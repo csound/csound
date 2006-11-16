@@ -119,8 +119,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
-      csound->InitError(csound, "creating socket");
-      return NOTOK;
+      return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -209,8 +208,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
-      csound->InitError(csound, "creating socket");
-      return NOTOK;
+      return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -295,8 +293,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
     if (p->sock < 0) {
-      csound->InitError(csound, "creating socket");
-      return NOTOK;
+      return csound->InitError(csound, "creating socket");
     }
 
     /* create server address: where we want to connect to */
@@ -331,8 +328,7 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
     if (n != read(p->sock, p->asig, n)) {
       csound->Message(csound, "Expected %d got %d\n",
                       (int) (sizeof(MYFLT) * csound->ksmps), n);
-      csound->PerfError(csound, "read from socket failed");
-      return NOTOK;
+      return csound->PerfError(csound, "read from socket failed");
     }
 
     return OK;

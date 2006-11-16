@@ -152,15 +152,13 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     /* check parameters */
     p->nChannels = (int) p->OUTOCOUNT;
     if (p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN) {
-      csound->InitError(csound, Str("ftconv: invalid number of channels"));
-      return NOTOK;
+      return csound->InitError(csound, Str("ftconv: invalid number of channels"));
     }
     /* partition length */
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0) {
-      csound->InitError(csound, Str("ftconv: invalid impulse response "
-                                    "partition length"));
-      return NOTOK;
+      return csound->InitError(csound, Str("ftconv: invalid impulse response "
+                                           "partition length"));
     }
     ftp = csound->FTFind(csound, p->iFTNum);
     if (ftp == NULL)
@@ -172,9 +170,9 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     if (MYFLT2LRND(*(p->iTotLen)) > 0 && n > MYFLT2LRND(*(p->iTotLen)))
       n = MYFLT2LRND(*(p->iTotLen));
     if (n <= 0) {
-      csound->InitError(csound, Str("ftconv: invalid length, "
-                                    "or insufficient IR data for convolution"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("ftconv: invalid length, or insufficient"
+                                   " IR data for convolution"));
     }
     p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
     /* calculate the amount of aux space to allocate (in bytes) */
@@ -244,8 +242,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
     int           i, n, nn, nSamples, rBufPos;
 
     if (p->initDone <= 0) {
-      csound->PerfError(csound, Str("ftconv: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("ftconv: not initialised"));
     }
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);

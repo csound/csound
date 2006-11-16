@@ -140,14 +140,14 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     p->mtracks = maxtracks;
 
     if (p->fin1->format != PVS_AMP_FREQ) {
-      csound->InitError(csound,
-                        "partials: first input not in AMP_FREQ format \n");
-      return NOTOK;
+      return csound->InitError(csound,
+                               "partials: first input not in AMP_FREQ format \n");
     }
 
     if (p->fin2->format != PVS_AMP_PHASE) {
       csound->Message(csound,
-                      "partials: no phase input, tracks will contain amp & freq only\n");
+                      "partials: no phase input, tracks will contain "
+                      "amp & freq only\n");
       p->nophase = 1;
     }
     else

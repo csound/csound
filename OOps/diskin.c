@@ -155,8 +155,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
     if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
-      csound->InitError(csound, Str("diskin: invalid number of channels"));
-      return NOTOK;
+      return csound->InitError(csound, Str("diskin: invalid number of channels"));
     }
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
@@ -186,8 +185,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                                   "SFDIR;SSDIR");
     if (fd == NULL) {
-      csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
-      return NOTOK;
+      return
+        csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -204,10 +203,9 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
-      csound->InitError(csound,
-                        Str("diskin: number of output args "
-                            "inconsistent with number of file channels"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("diskin: number of output args "
+                                   "inconsistent with number of file channels"));
     }
     /* skip initialisation if requested */
     if (p->initDone && *(p->iSkipInit) != FL(0.0))
@@ -395,16 +393,14 @@ int sndo1set(CSOUND *csound, void *pp)
       case 6: format = AE_FLOAT;
       case 0: break;
       default:
-        csound->InitError(csound, Str("%s: invalid sample format: %d"),
-                                  opname, (int) (*iformat + FL(0.5)));
-        return NOTOK;
+        return csound->InitError(csound, Str("%s: invalid sample format: %d"),
+                                 opname, (int) (*iformat + FL(0.5)));
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
     p->fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_W,
                                        sfname, &sfinfo, "SFDIR");
     if (p->fd == NULL) {
-      csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
-      return NOTOK;
+      return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
     }
     sfname = csound->GetFileName(p->fd);
     if (format != AE_FLOAT)

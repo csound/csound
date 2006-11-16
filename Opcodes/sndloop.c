@@ -277,26 +277,23 @@ static int flooper_init(CSOUND *csound, flooper *p)
     long len, i;
 
     if (cfds > durs) {
-      csound->InitError(csound, Str("crossfade longer than loop duration\n"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("crossfade longer than loop duration\n"));
     }
 
     inc =  FL(1.0)/cfds;    /* inc/dec */
     p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
     if (p->sfunc==NULL) {
-      csound->InitError(csound,Str("function table not found\n"));
-      return NOTOK;
+      return csound->InitError(csound,Str("function table not found\n"));
     }
     tab = p->sfunc->ftable,  /* func table pointer */
       len = p->sfunc->flen;    /* function table length */
     if (starts > len) {
-      csound->InitError(csound,Str("start time beyond end of table\n"));
-      return NOTOK;
+      return csound->InitError(csound,Str("start time beyond end of table\n"));
     }
 
     if (starts+durs+cfds > len) {
-      csound->InitError(csound,Str("table not long enough for loop\n"));
-      return NOTOK;
+      return csound->InitError(csound,Str("table not long enough for loop\n"));
     }
 
     if (p->buffer.auxp==NULL)   /* allocate memory if necessary */
@@ -373,8 +370,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
 
   p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
   if (p->sfunc==NULL) {
-    csound->InitError(csound,Str("function table not found\n"));
-    return NOTOK;
+    return csound->InitError(csound,Str("function table not found\n"));
   }
   if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
   else p->efunc = NULL;
@@ -619,8 +615,7 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
   int len,i,p2s,lomod;
   p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
   if (p->sfunc==NULL) {
-    csound->InitError(csound,Str("function table not found\n"));
-    return NOTOK;
+    return csound->InitError(csound,Str("function table not found\n"));
   }
   if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
   else p->efunc = NULL;

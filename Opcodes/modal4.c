@@ -42,8 +42,7 @@ static int make_Modal4(CSOUND *csound,
     if ((ftp = csound->FTFind(csound,ifn)) != NULL)
       m->vibr = ftp;
     else {                                              /* Expect sine wave */
-      csound->PerfError(csound, Str("No table for Modal4 case"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("No table for Modal4 case"));
     }
     make_Envelope(&m->envelope);
         /*  We don't make the excitation wave here yet,   */
@@ -252,8 +251,7 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;
     else {                                    /* Expect an impulslything */
-      csound->PerfError(csound, Str("No table for Marimba strike"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("No table for Marimba strike"));
     }
 
     if (make_Modal4(csound,

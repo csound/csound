@@ -600,8 +600,7 @@ static int    spat3d(CSOUND *csound, SPAT3D *p)
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
     if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) {
-      csound->PerfError(csound, Str("spat3d: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("spat3d: not initialised"));
     }
 
     /* spatialize and send to delay line */
@@ -756,8 +755,7 @@ static int    spat3di(CSOUND *csound, SPAT3D *p)
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
     if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) {
-      csound->PerfError(csound, Str("spat3di: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("spat3di: not initialised"));
     }
 
     /* spatialize and send to delay line */

@@ -81,8 +81,7 @@ int ctrlinit(CSOUND *csound, CTLINIT *p)
     short chnl = (short)(*p->chnl - FL(0.5));
     short nargs = p->INOCOUNT;
     if ((nargs & 0x1) == 0) {
-      csound->InitError(csound, Str("uneven ctrl pairs"));
-      return NOTOK;
+      return csound->InitError(csound, Str("uneven ctrl pairs"));
     }
     else {
       MCHNBLK *chn;
@@ -92,8 +91,7 @@ int ctrlinit(CSOUND *csound, CTLINIT *p)
       do {
         ctlno = (short)**argp++;
         if (ctlno < 0 || ctlno > 127) {
-          csound->InitError(csound, Str("illegal ctrl no"));
-          return NOTOK;
+          return csound->InitError(csound, Str("illegal ctrl no"));
         }
         chn->ctl_val[ctlno] = **argp++;
       } while (--nctls);
@@ -119,8 +117,7 @@ int cpstmid(CSOUND *csound, CPSTABLE *p)
     MYFLT basefreq, factor, interval;
 
     if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
-      csound->InitError(csound, Str("cpstabm: invalid modulator table"));
-      return NOTOK;
+      return csound->InitError(csound, Str("cpstabm: invalid modulator table"));
     }
     func = ftp->ftable;
     numgrades = (int)*func++;
@@ -304,7 +301,7 @@ int imidictl(CSOUND *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
                  * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
@@ -314,7 +311,7 @@ int mctlset(CSOUND *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
@@ -334,7 +331,7 @@ int imidiaft(CSOUND *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
                  * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
@@ -344,7 +341,7 @@ int maftset(CSOUND *csound, MIDICTL *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-      csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
@@ -401,8 +398,7 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
     else {                              /* program > 0: assign selected pgm */
       pgm = (int)(*(p->ipgm) - FL(0.5));
       if (pgm < 0 || pgm > 127) {
-        csound->InitError(csound, Str("pgmassign: invalid program number"));
-        return NOTOK;
+        return csound->InitError(csound, Str("pgmassign: invalid program number"));
       }
       if (!chn) {                           /* on all channels */
         for (chn = 0; chn < 16; chn++)
@@ -420,9 +416,9 @@ int ichanctl(CSOUND *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL)
-        csound->InitError(csound, Str("illegal channel number"));
+        return csound->InitError(csound, Str("illegal channel number"));
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
-        csound->InitError(csound, Str("illegal controller number"));
+        return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
                  * dv127 + *p->ilo;
     return OK;
@@ -432,13 +428,11 @@ int chctlset(CSOUND *csound, CHANCTL *p)
 {
     long  ctlno, chan = (long)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL) {
-      csound->InitError(csound, Str("illegal channel number"));
-      return NOTOK;
+      return csound->InitError(csound, Str("illegal channel number"));
     }
     p->chano = chan;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
-      csound->InitError(csound, Str("illegal controller number"));
-      return NOTOK;
+      return csound->InitError(csound, Str("illegal controller number"));
     }
     else {
       p->ctlno = ctlno;

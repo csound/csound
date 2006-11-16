@@ -195,8 +195,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     /* check number of channels */
     p->nChannels = (int)(p->OUTOCOUNT);
     if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
-      csound->InitError(csound, Str("diskin2: invalid number of channels"));
-      return NOTOK;
+      return csound->InitError(csound, Str("diskin2: invalid number of channels"));
     }
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
@@ -220,8 +219,8 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                                   "SFDIR;SSDIR");
     if (fd == NULL) {
-      csound->InitError(csound, Str("diskin2: %s: failed to open file"), name);
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("diskin2: %s: failed to open file"), name);
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -238,10 +237,9 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
-      csound->InitError(csound,
-                        Str("diskin2: number of output args "
-                            "inconsistent with number of file channels"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("diskin2: number of output args "
+                                   "inconsistent with number of file channels"));
     }
     /* skip initialisation if requested */
     if (p->initDone && *(p->iSkipInit) != FL(0.0))
@@ -330,8 +328,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     int     i, nn, chn, wsized2, warp;
 
     if (p->fdch.fd == NULL) {
-      csound->PerfError(csound, Str("diskin2: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
       double  f;
@@ -560,8 +557,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
     if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
-      csound->InitError(csound, Str("soundin: invalid number of channels"));
-      return NOTOK;
+      return csound->InitError(csound, Str("soundin: invalid number of channels"));
     }
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
@@ -591,8 +587,8 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                                   "SFDIR;SSDIR");
     if (fd == NULL) {
-      csound->InitError(csound, Str("soundin: %s: failed to open file"), name);
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("soundin: %s: failed to open file"), name);
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -609,10 +605,9 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
-      csound->InitError(csound,
-                        Str("soundin: number of output args "
-                            "inconsistent with number of file channels"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("soundin: number of output args "
+                                   "inconsistent with number of file channels"));
     }
     /* skip initialisation if requested */
     if (p->auxData.auxp != NULL && *(p->iSkipInit) != FL(0.0))
@@ -653,8 +648,7 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
     int nn, bufPos, i;
 
     if (p->fdch.fd == NULL) {
-      csound->PerfError(csound, Str("soundin: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("soundin: not initialised"));
     }
     for (nn = 0; nn < csound->ksmps; nn++) {
       bufPos = (int) (p->read_pos - p->bufStartPos);

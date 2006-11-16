@@ -806,10 +806,9 @@ int adset(CSOUND *csound, ADSYN *p)
       }
     } while (adp < endata);
     if (ptlap != ptlfp) {
-      csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
-                                (int) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
-                                (int) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
-      return NOTOK;
+      return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
+                               (int) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
+                               (int) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
     }
     ptlap->nxtp = NULL;   /* terminate the chain */
     p->mksecs = 0;
