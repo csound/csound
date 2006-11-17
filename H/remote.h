@@ -64,7 +64,7 @@ typedef struct {                        /* Remote Communication buffer          
 } REMOT_BUF;
 
 #ifdef HAVE_SOCKETS
-#include <arpa/inet.h>
+
 
 typedef struct {
     char *adr;
