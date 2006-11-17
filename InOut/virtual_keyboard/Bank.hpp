@@ -24,8 +24,8 @@
 #ifndef BANK_HPP_
 #define BANK_HPP_
 
-#include "csdl.h"
 #include <vector>
+#include "csdl.h"
 #include "Program.hpp"
 
 using namespace std;

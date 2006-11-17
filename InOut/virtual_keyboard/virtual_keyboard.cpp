@@ -77,7 +77,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 {
 
     FLTKKeyboardWindow *keyWin = (FLTKKeyboardWindow *)userData;
-
+    int i;
     Fl_lock(csound);
     Fl_awake(csound);
     Fl_wait(csound, 0.0);
@@ -137,7 +137,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 	keyWin->sliderBank->lock();
 	SliderData *sliderData = keyWin->sliderBank->getSliderData();
 
-	for(int i = 0; i < 10; i++) {
+	for(i = 0; i < 10; i++) {
 		if(sliderData->controllerNumber[i] !=
 			sliderData->previousControllerNumber[i]) {
 
@@ -180,7 +180,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 
 
 
-    for(int i = 0; i < 88; i++) {
+    for(i = 0; i < 88; i++) {
         if(keyStates[i] == -1) {
                 *mbuf++ = (unsigned char)0x90 + channel;
             *mbuf++ = (unsigned char)i + 21;

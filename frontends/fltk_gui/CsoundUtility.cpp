@@ -18,6 +18,7 @@
 */
 
 #include "CsoundGUI.hpp"
+using namespace std;
 
 int CsoundUtility::yieldCallback(CSOUND *csound)
 {
@@ -48,7 +49,7 @@ uintptr_t CsoundUtility::threadFunc(void *userData)
     if (csoundPreCompile(p->csound) == 0) {
       if (csoundCreateGlobalVariable(p->csound, "_csound5gui_utility",
                                                 sizeof(CsoundUtility*)) == 0) {
-        std::vector<char *>   argv_;
+        vector<char *>   argv_;
         int                   argc_;
         *((CsoundUtility**)
               csoundQueryGlobalVariable(p->csound, "_csound5gui_utility")) = p;
@@ -96,7 +97,7 @@ int CsoundUtility::Stop()
 }
 
 CsoundUtility::CsoundUtility(CsoundGUIConsole *consoleWindow,
-                             std::vector<std::string>& args)
+                             vector<string>& args)
 {
     csound = (CSOUND*) 0;
     utilityThread = (void*) 0;
@@ -118,7 +119,7 @@ CsoundUtility::~CsoundUtility()
 
 CsoundListOpcodesUtility::CsoundListOpcodesUtility(CsoundGUIConsole
                                                        *consoleWindow,
-                                                   std::vector<std::string>&
+                                                   vector<string>&
                                                        args)
     : CsoundUtility(consoleWindow, args)
 {
@@ -214,30 +215,30 @@ CsoundUtilitySettings::~CsoundUtilitySettings()
 
 // ----------------------------------------------------------------------------
 
-static void cmdLine_addIntegerOpt(std::vector<std::string>& cmdLine,
+static void cmdLine_addIntegerOpt(vector<string>& cmdLine,
                                   const char *optName, int value)
 {
     char    buf[64];
 
-    std::sprintf(&(buf[0]), "%s%d", optName, value);
+    sprintf(&(buf[0]), "%s%d", optName, value);
     cmdLine.push_back(&(buf[0]));
 }
 
-static void cmdLine_addDoubleOpt(std::vector<std::string>& cmdLine,
+static void cmdLine_addDoubleOpt(vector<string>& cmdLine,
                                  const char *optName, double value)
 {
     char    buf[64];
 
     if (!(value > -10000000.0 && value < 10000000.0))
       return;
-    std::sprintf(&(buf[0]), "%s%g", optName, value);
+    sprintf(&(buf[0]), "%s%g", optName, value);
     cmdLine.push_back(&(buf[0]));
 }
 
 CsoundUtility *CreateUtility_ListOpcodes(CsoundGUIConsole *consoleWindow,
                                          CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
+    vector<string>  args;
 
     args.push_back("csound");
     if (parm.listOpcodes_printDetails)
@@ -251,8 +252,8 @@ CsoundUtility *CreateUtility_ListOpcodes(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Cvanal(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.cvanal_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.cvanal_outputFile))
@@ -275,8 +276,8 @@ CsoundUtility *CreateUtility_Cvanal(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Pvanal(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.pvanal_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.pvanal_outputFile))
@@ -312,8 +313,8 @@ CsoundUtility *CreateUtility_Pvanal(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Hetro(CsoundGUIConsole *consoleWindow,
                                    CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.hetro_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.hetro_outputFile))
@@ -348,8 +349,8 @@ CsoundUtility *CreateUtility_Hetro(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.lpanal_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.lpanal_outputFile))
@@ -389,8 +390,8 @@ CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Sndinfo(CsoundGUIConsole *consoleWindow,
                                      CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.sndinfo_inputFile))
       return (CsoundUtility*) 0;
@@ -404,8 +405,8 @@ CsoundUtility *CreateUtility_Sndinfo(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.srconv_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.srconv_outputFile))
@@ -464,8 +465,8 @@ CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Dnoise(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    std::vector<std::string>  args;
-    std::string               arg;
+    vector<string>  args;
+    string               arg;
 
     if (CsoundGUIMain::isEmptyString(parm.dnoise_inputFile) ||
         CsoundGUIMain::isEmptyString(parm.dnoise_outputFile) ||

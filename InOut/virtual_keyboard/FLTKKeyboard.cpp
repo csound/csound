@@ -27,8 +27,14 @@
 #include "FLTKKeyboard.hpp"
 
 FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L)
-  : Fl_Widget(X, Y, W, H, L) {
-
+  : Fl_Widget(X, Y, W, H, L), 
+    blackKeyHeight(50), 
+    whiteKeyHeight(80),
+    blackKeyWidth(10),
+    whiteKeyWidth(12),
+    rightKeyBound(7), 
+    leftKeyBound(5) {
+    
     this->csound = csound;
     this->mutex = csound->Create_Mutex(0);
 
@@ -420,13 +426,13 @@ int FLTKKeyboard::isWhiteKey(int key) {
 }
 
 void FLTKKeyboard::draw() {
-    int width = whiteKeyWidth;
+    int width = whiteKeyWidth, i;
 
     int runningX = 0;
     int yval = this->y();
 
     // Draw White Keys
-    for(int i = 0; i < 88; i++) {
+    for(i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
             if(keyStates[i] == 1) {
                 fl_draw_box(box(), runningX, yval, width, whiteKeyHeight, FL_BLUE);
@@ -441,7 +447,7 @@ void FLTKKeyboard::draw() {
     runningX = 0;
 
     // Draw Black Keys
-    for(int i = 0; i < 88; i++) {
+    for(i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
             runningX += width;
         } else {
