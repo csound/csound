@@ -69,7 +69,7 @@ def getPlatform():
 testEnv = Environment()
 if getPlatform() == 'win32':
  for i in testEnv['TOOLS']:
-  if i == 'mingw':
+  if i == 'gcc':
    print "using " + i
    opts = Options('custom.py')
    withMinGW = 1
@@ -247,6 +247,7 @@ def isNT():
         return
 if getPlatform() == 'win32' and withMinGW == '1':
     Tool('mingw')(commonEnvironment)
+
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
