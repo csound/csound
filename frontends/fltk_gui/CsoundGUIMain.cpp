@@ -19,6 +19,7 @@
 
 #include "CsoundGUI.hpp"
 #include <FL/Fl_File_Chooser.H>
+using namespace std;
 
 void CsoundGUIMain::setTimeDisplay(double timeVal)
 {
@@ -65,11 +66,11 @@ void CsoundGUIMain::setTimeDisplay(double timeVal)
     scoreTimeDisplay->value(&(buf[0]));
 }
 
-int CsoundGUIMain::runCmd(std::string& cmdLine)
+int CsoundGUIMain::runCmd(string& cmdLine)
 {
-    std::string curToken;
-    std::vector<std::string>  args;
-    std::vector<char *>       argv;
+    string curToken;
+    vector<string>  args;
+    vector<char *>       argv;
     int         nTokens = 0;
     int         mode = 0;   // 0: white space, 1: collecting, 2: quoted string
     int         len;
@@ -114,7 +115,7 @@ int CsoundGUIMain::runCmd(std::string& cmdLine)
     return 0;
 }
 
-bool CsoundGUIMain::isEmptyString(std::string& s)
+bool CsoundGUIMain::isEmptyString(string& s)
 {
     int     len;
 
@@ -127,16 +128,16 @@ bool CsoundGUIMain::isEmptyString(std::string& s)
     return true;
 }
 
-void CsoundGUIMain::stripString(std::string& dst, const char *src)
+void CsoundGUIMain::stripString(string& dst, const char *src)
 {
-    std::string tmp;
+    string tmp;
 
     tmp = "";
     if (!src)
       src = dst.c_str();
     if (src[0] != '\0') {
       int   i, len, pos0, pos1;
-      len = (int) std::strlen(src);
+      len = (int) strlen(src);
       for (pos0 = 0; pos0 < len; pos0++) {
         char  c = src[pos0];
         if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
@@ -153,7 +154,7 @@ void CsoundGUIMain::stripString(std::string& dst, const char *src)
     dst = tmp;
 }
 
-bool CsoundGUIMain::isCSDFile(std::string& fileName)
+bool CsoundGUIMain::isCSDFile(string& fileName)
 {
     int     len;
 
@@ -168,18 +169,18 @@ bool CsoundGUIMain::isCSDFile(std::string& fileName)
     return true;
 }
 
-bool CsoundGUIMain::isRtAudioDevice(std::string& fileName, bool isOutput)
+bool CsoundGUIMain::isRtAudioDevice(string& fileName, bool isOutput)
 {
     const char  *s;
 
     if ((int) fileName.size() < 3)
       return false;
     s = fileName.c_str();
-    if (std::strncmp(s, "devaudio", 8) == 0) {
+    if (strncmp(s, "devaudio", 8) == 0) {
       s += 8;
     }
-    else if ((isOutput && std::strncmp(s, "dac", 3) == 0) ||
-             (!isOutput && std::strncmp(s, "adc", 3) == 0)) {
+    else if ((isOutput && strncmp(s, "dac", 3) == 0) ||
+             (!isOutput && strncmp(s, "adc", 3) == 0)) {
       s += 3;
     }
     else {
@@ -213,7 +214,7 @@ static const char *fileNameFilters[] = {
     "Python files (*.py)"
 };
 
-bool CsoundGUIMain::browseFile(std::string& fileName, const char *title,
+bool CsoundGUIMain::browseFile(string& fileName, const char *title,
                                int fileType, bool isOutput)
 {
     Fl_File_Chooser *fdlg;
@@ -435,7 +436,7 @@ void CsoundGUIMain::startPerformance()
       return;
     }
     {
-      std::vector<std::string>  args;
+      vector<string>  args;
       currentPerformanceSettings.buildCommandLine(
           args, currentGlobalSettings.forcePerformanceSettings);
       if (csPerf->Compile(args) != 0) {
@@ -456,7 +457,7 @@ void CsoundGUIMain::startPerformance()
 
 void CsoundGUIMain::editOrcFile()
 {
-    std::string cmd;
+    string cmd;
 
     if (isEmptyString(currentPerformanceSettings.orcName) ||
         isEmptyString(currentGlobalSettings.textEditorProgram))
@@ -470,7 +471,7 @@ void CsoundGUIMain::editOrcFile()
 
 void CsoundGUIMain::editScoreFile()
 {
-    std::string cmd;
+    string cmd;
 
     if (isEmptyString(currentPerformanceSettings.scoName) ||
         isEmptyString(currentGlobalSettings.textEditorProgram))
@@ -484,8 +485,8 @@ void CsoundGUIMain::editScoreFile()
 
 void CsoundGUIMain::editSoundFile(const char *fileName_)
 {
-    std::string fileName;
-    std::string cmd;
+    string fileName;
+    string cmd;
 
     stripString(fileName, fileName_);
     if ((int) fileName.size() == 0 ||
@@ -516,11 +517,12 @@ CsoundGUIMain::~CsoundGUIMain()
     }
     paused = true;
     prvTime = -1;
-    for (int i = 0; i < 5; i++)
+    int i;
+    for (i = 0; i < 5; i++)
       Fl::wait(0.01);
     consoleWindow.window->hide();
     consoleWindow.Clear();
-    for (int i = 0; i < 5; i++)
+    for (i = 0; i < 5; i++)
       Fl::wait(0.01);
     if (csound) {
       csoundDestroy(csound);

@@ -18,6 +18,7 @@
 */
 
 #include "CsoundGUI.hpp"
+using namespace std;
 
 CsoundPerformanceSettings::CsoundPerformanceSettings()
 {
@@ -95,7 +96,8 @@ int CsoundPerformanceSettings::fileTypeToIndex(const char *fileType)
     if (fileType == (char*) 0 || fileType[0] == (char) 0)
       return -1;
     for (int i = 0; fileTypeList[i] != (char*) 0; i++) {
-      if (std::strcmp(fileTypeList[i], fileType) == 0)
+      if (strcmp(fileTypeList[i], fileType) == 0)
+      if (strcmp(fileTypeList[i], fileType) == 0)
         return i;
     }
     return -1;
@@ -114,7 +116,7 @@ int CsoundPerformanceSettings::sampleFormatToIndex(const char *sampleFormat)
     if (sampleFormat == (char*) 0 || sampleFormat[0] == (char) 0)
       return -1;
     for (int i = 0; sampleFormatList[i] != (char*) 0; i++) {
-      if (std::strcmp(sampleFormatList[i], sampleFormat) == 0)
+      if (strcmp(sampleFormatList[i], sampleFormat) == 0)
         return i;
     }
     return -1;
@@ -128,10 +130,10 @@ const char *CsoundPerformanceSettings::indexToSampleFormat(int sampleFormat)
     return sampleFormatList[sampleFormat];
 }
 
-static bool cmdLine_addStringOpt(std::vector<std::string>& cmdLine,
-                                 const char *optName, std::string& value)
+static bool cmdLine_addStringOpt(vector<string>& cmdLine,
+                                 const char *optName, string& value)
 {
-    std::string arg;
+    string arg;
     int         i, pos0, pos1;
 
     for (pos0 = 0; pos0 < (int) value.size(); pos0++) {
@@ -154,27 +156,27 @@ static bool cmdLine_addStringOpt(std::vector<std::string>& cmdLine,
     return true;
 }
 
-static void cmdLine_addIntegerOpt(std::vector<std::string>& cmdLine,
+static void cmdLine_addIntegerOpt(vector<string>& cmdLine,
                                   const char *optName, int value)
 {
     char    buf[64];
 
-    std::sprintf(&(buf[0]), "%s%d", optName, value);
+    sprintf(&(buf[0]), "%s%d", optName, value);
     cmdLine.push_back(&(buf[0]));
 }
 
-static void cmdLine_addDoubleOpt(std::vector<std::string>& cmdLine,
+static void cmdLine_addDoubleOpt(vector<string>& cmdLine,
                                  const char *optName, double value)
 {
     char    buf[64];
 
     if (!(value > -10000000.0 && value < 10000000.0))
       return;
-    std::sprintf(&(buf[0]), "%s%g", optName, value);
+    sprintf(&(buf[0]), "%s%g", optName, value);
     cmdLine.push_back(&(buf[0]));
 }
 
-void CsoundPerformanceSettings::buildCommandLine(std::vector<std::string>&
+void CsoundPerformanceSettings::buildCommandLine(vector<string>&
                                                      cmdLine,
                                                  bool forceSettings)
 {
@@ -182,7 +184,7 @@ void CsoundPerformanceSettings::buildCommandLine(std::vector<std::string>&
     cmdLine.push_back("csound");
     if (!CsoundGUIMain::isEmptyString(soundFileType) &&
         (soundFileType != "wav" || forceSettings)) {
-      std::string arg;
+      string arg;
       arg = "--format=";
       arg += soundFileType;
       if (!CsoundGUIMain::isEmptyString(soundSampleFormat) &&
@@ -262,7 +264,7 @@ void CsoundPerformanceSettings::buildCommandLine(std::vector<std::string>&
     for (int i = 0; i < 10; i++) {
       if (!CsoundGUIMain::isEmptyString(strsets[i])) {
         char  buf[16];
-        std::sprintf(&(buf[0]), "--strset%d=", i);
+        sprintf(&(buf[0]), "--strset%d=", i);
         cmdLine_addStringOpt(cmdLine, &(buf[0]), strsets[i]);
       }
     }

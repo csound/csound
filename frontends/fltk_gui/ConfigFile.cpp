@@ -28,6 +28,7 @@
 #  include <windows.h>
 #endif
 
+using namespace std;
 // md5sum of "Csound5GUIConfig"
 
 static const unsigned char hdrMagic[16] = {
@@ -44,10 +45,10 @@ static int writeInt_(FILE *f, int n)
     int           retval = 0;
     unsigned int  x = (unsigned int) n;
 
-    retval |= std::fputc((int) ((x & 0xFF000000U) >> 24), f);
-    retval |= std::fputc((int) ((x & 0x00FF0000U) >> 16), f);
-    retval |= std::fputc((int) ((x & 0x0000FF00U) >> 8), f);
-    retval |= std::fputc((int) (x & 0x000000FFU), f);
+    retval |= fputc((int) ((x & 0xFF000000U) >> 24), f);
+    retval |= fputc((int) ((x & 0x00FF0000U) >> 16), f);
+    retval |= fputc((int) ((x & 0x0000FF00U) >> 8), f);
+    retval |= fputc((int) (x & 0x000000FFU), f);
 
     return (retval < 0 ? -1 : 0);
 }
@@ -57,7 +58,7 @@ static int writeBool(FILE *f, const bool *p)
     int     retval = 0;
 
     retval |= writeInt_(f, 1);
-    retval |= std::fputc((*p ? 1 : 0), f);
+    retval |= fputc((*p ? 1 : 0), f);
 
     return (retval < 0 ? -1 : 0);
 }
@@ -80,24 +81,24 @@ static int writeDouble(FILE *f, const double *p)
     retval |= writeInt_(f, (int) sizeof(double));
     if (*((char*) &endianTest) == (char) 0) {
       for (i = 0; i < (int) sizeof(double); i++)
-        retval |= std::fputc((int) ((const unsigned char*) p)[i], f);
+        retval |= fputc((int) ((const unsigned char*) p)[i], f);
     }
     else {
       for (i = (int) sizeof(double) - 1; i >= 0; i--)
-        retval |= std::fputc((int) ((const unsigned char*) p)[i], f);
+        retval |= fputc((int) ((const unsigned char*) p)[i], f);
     }
 
     return (retval < 0 ? -1 : 0);
 }
 
-static int writeString(FILE *f, std::string& p)
+static int writeString(FILE *f, string& p)
 {
     int     retval = 0;
     int     len;
 
     len = (int) p.size() + 1;
     retval |= writeInt_(f, len);
-    if ((int) std::fwrite((const void*) p.c_str(), 1, (size_t) len, f) != len)
+    if ((int) fwrite((const void*) p.c_str(), 1, (size_t) len, f) != len)
       retval = -1;
 
     return (retval < 0 ? -1 : 0);
@@ -111,19 +112,19 @@ static int readInt_(FILE *f, int *n)
     unsigned int  x;
 
     *n = 0;
-    c = std::fgetc(f);
+    c = fgetc(f);
     if (c < 0)
       return -1;
     x = (unsigned int) c & 0xFFU;
-    c = std::fgetc(f);
+    c = fgetc(f);
     if (c < 0)
       return -1;
     x = (x << 8) | ((unsigned int) c & 0xFFU);
-    c = std::fgetc(f);
+    c = fgetc(f);
     if (c < 0)
       return -1;
     x = (x << 8) | ((unsigned int) c & 0xFFU);
-    c = std::fgetc(f);
+    c = fgetc(f);
     if (c < 0)
       return -1;
     x = (x << 8) | ((unsigned int) c & 0xFFU);
@@ -145,7 +146,7 @@ static int readBool(FILE *f, bool *p)
       return -1;
     if (n != 1)
       return -1;
-    n = std::fgetc(f);
+    n = fgetc(f);
     if (n < 0)
       return -1;
     if (n > 0)
@@ -178,7 +179,7 @@ static int readDouble(FILE *f, double *p)
       return -1;
     if (*((char*) &endianTest) == (char) 0) {
       for (i = 0; i < (int) sizeof(double); i++) {
-        int c = std::fgetc(f);
+        int c = fgetc(f);
         if (c < 0)
           return -1;
         ((unsigned char*) p)[i] = (unsigned char) c;
@@ -186,7 +187,7 @@ static int readDouble(FILE *f, double *p)
     }
     else {
       for (i = (int) sizeof(double) - 1; i >= 0; i--) {
-        int c = std::fgetc(f);
+        int c = fgetc(f);
         if (c < 0)
           return -1;
         ((unsigned char*) p)[i] = (unsigned char) c;
@@ -196,7 +197,7 @@ static int readDouble(FILE *f, double *p)
     return 0;
 }
 
-static int readString(FILE *f, std::string& p)
+static int readString(FILE *f, string& p)
 {
     char    buf[128];
     int     len, cnt;
@@ -208,7 +209,7 @@ static int readString(FILE *f, std::string& p)
       return -1;
     cnt = 0;
     for (int i = 0; i < (len - 1); i++) {
-      int   c = std::fgetc(f);
+      int   c = fgetc(f);
       if (c < 0)
         return -1;
       buf[cnt++] = (char) c;
@@ -222,7 +223,7 @@ static int readString(FILE *f, std::string& p)
       buf[cnt] = (char) 0;
       p += &(buf[0]);
     }
-    if (std::fgetc(f) != 0)
+    if (fgetc(f) != 0)
       return -1;
 
     return 0;
@@ -230,14 +231,14 @@ static int readString(FILE *f, std::string& p)
 
 // ----------------------------------------------------------------------------
 
-static void getFullPathFileName(const char *fileName, std::string& fullName)
+static void getFullPathFileName(const char *fileName, string& fullName)
 {
-    std::string dirName;
+    string dirName;
 
     dirName = "";
 #ifndef WIN32
-    if (std::getenv("HOME") != (char*) 0)
-      dirName = std::getenv("HOME");
+    if (getenv("HOME") != (char*) 0)
+      dirName = getenv("HOME");
     if ((int) dirName.size() == 0)
       dirName = ".";
     mkdir(dirName.c_str(), 0700);
@@ -246,10 +247,10 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
     dirName += ".csound";
     mkdir(dirName.c_str(), 0700);
 #else
-    CsoundGUIMain::stripString(dirName, std::getenv("USERPROFILE"));
+    CsoundGUIMain::stripString(dirName, getenv("USERPROFILE"));
     if ((int) dirName.size() != 0) {
       struct _stat tmp;
-      std::memset(&tmp, 0, sizeof(struct _stat));
+      memset(&tmp, 0, sizeof(struct _stat));
       if (dirName[dirName.size() - 1] != '\\')
         dirName += '\\';
       dirName += "Application Data";
@@ -258,10 +259,10 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
         dirName = "";
     }
     if ((int) dirName.size() == 0) {
-      CsoundGUIMain::stripString(dirName, std::getenv("HOME"));
+      CsoundGUIMain::stripString(dirName, getenv("HOME"));
       if ((int) dirName.size() != 0) {
         struct _stat tmp;
-        std::memset(&tmp, 0, sizeof(struct _stat));
+        memset(&tmp, 0, sizeof(struct _stat));
         if (_stat(dirName.c_str(), &tmp) != 0 ||
             !(tmp.st_mode & _S_IFDIR))
           dirName = "";
@@ -301,19 +302,19 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
 
 int writeCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         err = 0;
 
     getFullPathFileName(fileName, fullName);
-    if (std::remove(fullName.c_str()) != 0) {
+    if (remove(fullName.c_str()) != 0) {
       if (errno != ENOENT)
         return -1;
     }
-    f = std::fopen(fullName.c_str(), "wb");
+    f = fopen(fullName.c_str(), "wb");
     if (f == NULL)
       return -1;
-    if ((int) std::fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
+    if ((int) fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
       err = -1;
 
     err |= writeInt_(f, 20001);
@@ -459,26 +460,26 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
     err |= writeBool(f, &(cfg.dnoise_verbose));
 
     err |= writeInt_(f, 0);
-    std::fclose(f);
+    fclose(f);
 
     return err;
 }
 
 int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         err = 0;
 
     getFullPathFileName(fileName, fullName);
-    if (std::remove(fullName.c_str()) != 0) {
+    if (remove(fullName.c_str()) != 0) {
       if (errno != ENOENT)
         return -1;
     }
-    f = std::fopen(fullName.c_str(), "wb");
+    f = fopen(fullName.c_str(), "wb");
     if (f == NULL)
       return -1;
-    if ((int) std::fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
+    if ((int) fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
       err = -1;
     err |= writeInt_(f, 10001);
     err |= writeString(f, cfg.textEditorProgram);
@@ -511,7 +512,7 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     err |= writeInt_(f, 10110);
     err |= writeString(f, cfg.performanceSettings10_Name);
     err |= writeInt_(f, 0);
-    std::fclose(f);
+    fclose(f);
 
     return err;
 }
@@ -519,19 +520,19 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 int writeCsound5GUIConfigFile(const char *fileName,
                               CsoundPerformanceSettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         err = 0;
 
     getFullPathFileName(fileName, fullName);
-    if (std::remove(fullName.c_str()) != 0) {
+    if (remove(fullName.c_str()) != 0) {
       if (errno != ENOENT)
         return -1;
     }
-    f = std::fopen(fullName.c_str(), "wb");
+    f = fopen(fullName.c_str(), "wb");
     if (f == NULL)
       return -1;
-    if ((int) std::fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
+    if ((int) fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
       err = -1;
     err |= writeInt_(f,  1); err |= writeString(f, cfg.orcName);
     err |= writeInt_(f,  2); err |= writeString(f, cfg.scoName);
@@ -595,24 +596,24 @@ int writeCsound5GUIConfigFile(const char *fileName,
     err |= writeInt_(f, 50); err |= writeBool(f, &(cfg.useThreads));
     err |= writeInt_(f, 51); err |= writeString(f, cfg.scriptFileName);
     err |= writeInt_(f, 0);
-    std::fclose(f);
+    fclose(f);
 
     return err;
 }
 
 int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         n;
     CsoundUtilitySettings   *tmp = (CsoundUtilitySettings*) 0;
 
     getFullPathFileName(fileName, fullName);
-    f = std::fopen(fullName.c_str(), "rb");
+    f = fopen(fullName.c_str(), "rb");
     if (f == NULL)
       return -1;
     for (int i = 0; i < 16; i++) {
-      int   c = std::fgetc(f);
+      int   c = fgetc(f);
       if (c < 0 || (unsigned char) c != hdrMagic[i])
         goto err_return;
     }
@@ -624,7 +625,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
           goto err_return;
         cfg = *tmp;
         delete tmp;
-        std::fclose(f);
+        fclose(f);
         return 0;
       case 20001:
         if (readBool(f, &(tmp->listOpcodes_printDetails)) != 0)
@@ -900,7 +901,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
     }
 
  err_return:
-    std::fclose(f);
+    fclose(f);
     if (tmp)
       delete tmp;
     return -1;
@@ -908,17 +909,17 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
 
 int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         n;
     CsoundGlobalSettings    *tmp = (CsoundGlobalSettings*) 0;
 
     getFullPathFileName(fileName, fullName);
-    f = std::fopen(fullName.c_str(), "rb");
+    f = fopen(fullName.c_str(), "rb");
     if (f == NULL)
       return -1;
     for (int i = 0; i < 16; i++) {
-      int   c = std::fgetc(f);
+      int   c = fgetc(f);
       if (c < 0 || (unsigned char) c != hdrMagic[i])
         goto err_return;
     }
@@ -930,7 +931,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
           goto err_return;
         cfg = *tmp;
         delete tmp;
-        std::fclose(f);
+        fclose(f);
         return 0;
       case 10001:
         if (readString(f, tmp->textEditorProgram) != 0)
@@ -998,7 +999,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     }
 
  err_return:
-    std::fclose(f);
+    fclose(f);
     if (tmp)
       delete tmp;
     return -1;
@@ -1007,17 +1008,17 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 int readCsound5GUIConfigFile(const char *fileName,
                              CsoundPerformanceSettings& cfg)
 {
-    std::string fullName;
+    string fullName;
     FILE        *f;
     int         n;
     CsoundPerformanceSettings   *tmp = (CsoundPerformanceSettings*) 0;
 
     getFullPathFileName(fileName, fullName);
-    f = std::fopen(fullName.c_str(), "rb");
+    f = fopen(fullName.c_str(), "rb");
     if (f == NULL)
       return -1;
     for (int i = 0; i < 16; i++) {
-      int   c = std::fgetc(f);
+      int   c = fgetc(f);
       if (c < 0 || (unsigned char) c != hdrMagic[i])
         goto err_return;
     }
@@ -1029,7 +1030,7 @@ int readCsound5GUIConfigFile(const char *fileName,
           goto err_return;
         cfg = *tmp;
         delete tmp;
-        std::fclose(f);
+        fclose(f);
         return 0;
       case 1:
         if (readString(f, tmp->orcName) != 0)
@@ -1281,7 +1282,7 @@ int readCsound5GUIConfigFile(const char *fileName,
     }
 
  err_return:
-    std::fclose(f);
+    fclose(f);
     if (tmp)
       delete tmp;
     return -1;
