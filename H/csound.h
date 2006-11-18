@@ -30,7 +30,7 @@
 /** \file
  * \brief Declares the public Csound application programming interface (API).
  * \author John P. ffitch, Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *         and Istvan Varga
+ *         Istvan Varga and Victor Lazzarini
  *
  * \b Purposes
  *
