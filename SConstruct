@@ -48,6 +48,8 @@ pythonModules = []
 def today():
     return time.strftime("%Y-%m-%d", time.localtime())
 
+# Detect OPERATING SYSTEM platform.
+
 def getPlatform():
     if sys.platform[:5] == 'linux':
         return 'linux'
@@ -64,179 +66,161 @@ def getPlatform():
 #
 #############################################################################
 
-# Detect platform.
-
-testEnv = Environment()
-if getPlatform() == 'win32':
- for i in testEnv['TOOLS']:
-  if i == 'gcc':
-   print "using " + i
-   opts = Options('custom.py')
-   withMinGW = 1
-   break
-  else:
-   opts = Options('custom-msvc.py')
-   print "using " + i
-   withMinGW = 0
-else:
-  opts = Options('custom.py')
-
 print "System platform is '" + getPlatform() + "'."
 
-opts.Add('CC')
-opts.Add('CXX')
-opts.Add('LINK')
-opts.Add('LINKFLAGS')
-opts.Add('customCPPPATH', 'List of custom CPPPATH variables')
-opts.Add('customCCFLAGS')
-opts.Add('customCXXFLAGS')
-opts.Add('customLIBS')
-opts.Add('customLIBPATH')
-opts.Add('customSHLINKFLAGS')
-opts.Add('customSWIGFLAGS')
+# Create options that can be set from the command line.
 
-opts.Add('useDouble',
+commandOptions = Options()
+commandOptions.Add('CC')
+commandOptions.Add('CXX')
+commandOptions.Add('LINK')
+commandOptions.Add('LINKFLAGS')
+commandOptions.Add('useDouble',
     'Set to 1 to use double-precision floating point for audio samples.',
     '0')
-opts.Add('usePortAudio',
+commandOptions.Add('usePortAudio',
     'Set to 1 to use PortAudio for real-time audio input and output.',
     '1')
-opts.Add('usePortMIDI',
+commandOptions.Add('usePortMIDI',
     'Build PortMidi plugin for real time MIDI input and output.',
     '1')
-opts.Add('useALSA',
+commandOptions.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio and MIDI input and output.',
     '1')
-opts.Add('useJack',
+commandOptions.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack; also builds Jack plugin.',
     '1')
-opts.Add('useFLTK',
+commandOptions.Add('useFLTK',
     'Set to 1 to use FLTK for graphs and widget opcodes.',
     '1')
-opts.Add('noFLTKThreads',
+commandOptions.Add('noFLTKThreads',
     'Set to 1 to disable use of a separate thread for FLTK widgets.',
     '1')
-opts.Add('pythonVersion',
+commandOptions.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
-opts.Add('buildCsoundVST',
+commandOptions.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
     '0')
-opts.Add('buildCsound5GUI',
+commandOptions.Add('buildCsound5GUI',
     'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
     '1')
-opts.Add('generateTags',
+commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
-opts.Add('generatePdf',
+commandOptions.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     '0')
-opts.Add('generateXmg',
+commandOptions.Add('generateXmg',
     'Set to 1 to generate string database',
     '1')
-opts.Add('generateZip',
+commandOptions.Add('generateZip',
     'Set to 1 to generate zip archive',
     '0')
-opts.Add('buildLoris',
+commandOptions.Add('buildLoris',
     'Set to 1 to build the Loris Python extension and opcodes',
     '1')
-opts.Add('useOSC',
+commandOptions.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
 if getPlatform() != 'win32':
-    opts.Add('useUDP',
+    commandOptions.Add('useUDP',
         'Set to 0 if you do not want UDP support',
         '1')
 else:
-    opts.Add('useUDP',
+    commandOptions.Add('useUDP',
         'Set to 1 if you want UDP support',
         '0')
-opts.Add('buildPythonOpcodes',
+commandOptions.Add('buildPythonOpcodes',
     'Set to 1 to build Python opcodes',
     '0')
-opts.Add('prefix',
+commandOptions.Add('prefix',
     'Base directory for installs. Defaults to /usr/local.',
     '/usr/local')
-opts.Add('buildRelease',
+commandOptions.Add('buildRelease',
     'Set to 1 to build for release (implies noDebug).',
     '0')
-opts.Add('noDebug',
+commandOptions.Add('noDebug',
     'Build without debugging information.',
     '0')
-opts.Add('gcc3opt',
+commandOptions.Add('gcc3opt',
     'Enable gcc 3.3.x or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
     '0')
-opts.Add('gcc4opt',
+commandOptions.Add('gcc4opt',
     'Enable gcc 4.0 or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
     '0')
-opts.Add('useLrint',
+commandOptions.Add('useLrint',
     'Use lrint() and lrintf() for converting floating point values to integers.',
     '0')
-opts.Add('useGprof',
+commandOptions.Add('useGprof',
     'Build with profiling information (-pg).',
     '0')
-opts.Add('Word64',
+commandOptions.Add('Word64',
     'Build for 64bit computer',
     '0')
 if getPlatform() == 'win32':
-    opts.Add('dynamicCsoundLibrary',
+    commandOptions.Add('dynamicCsoundLibrary',
         'Set to 0 to build static Csound library instead of csound.dll',
         '1')
 else:
-    opts.Add('dynamicCsoundLibrary',
+    commandOptions.Add('dynamicCsoundLibrary',
         'Build dynamic Csound library instead of libcsound.a',
         '0')
-opts.Add('buildStkOpcodes',
+commandOptions.Add('buildStkOpcodes',
     "Build opcodes encapsulating Perry Cook's Synthesis Toolkit in C++ instruments and effects",
     '0')
-opts.Add('install',
+commandOptions.Add('install',
     'Enables the Install targets',
     '1')
-opts.Add('buildPDClass',
+commandOptions.Add('buildPDClass',
     "build csoundapi~ PD class (needs m_pd.h in the standard places)",
     '0')
-opts.Add('useCoreAudio',
+commandOptions.Add('useCoreAudio',
     "Set to 1 to use CoreAudio for real-time audio input and output.",
     '1')
-opts.Add('useAltivec',
+commandOptions.Add('useAltivec',
     "On OSX use the gcc AltiVec optmisation flags",
     '0')
-opts.Add('buildDSSI',
+commandOptions.Add('buildDSSI',
     "Build DSSI/LADSPA host opcodes",
     '1')
-opts.Add('buildUtilities',
+commandOptions.Add('buildUtilities',
     "Build stand-alone executables for utilities that can also be used with -U",
     '1')
-opts.Add('buildTclcsound',
+commandOptions.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
     '0')
-opts.Add('buildWinsound',
+commandOptions.Add('buildWinsound',
     "Build Winsound frontend. Requires FLTK headers and libs",
     '0')
-opts.Add('buildInterfaces',
+commandOptions.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
     '0')
-opts.Add('buildJavaWrapper',
+commandOptions.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the interface library.',
     '0')
-opts.Add('buildOSXGUI',
+commandOptions.Add('buildOSXGUI',
     'On OSX, set to 1 to build the basic GUI frontend',
     '0')
-opts.Add('buildCSEditor',
+commandOptions.Add('buildCSEditor',
     'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
     '0')
-
-
+commandOptions.Add('withMSVC',
+    'On Windows, set to 1 to build with Microsoft Visual C++, or set to 0 to build with MinGW',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
 
-commonEnvironment = Environment(options = opts, ENV = {'PATH' : os.environ['PATH']})
+commonEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
+commandOptions.Update(commonEnvironment)
+
+Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 def withMSVC():
     if getPlatform() == 'win32':
-	if not withMinGW:
+	if commonEnvironment['withMSVC'] == '1':
             return 1
 	return 0
     else:
@@ -245,9 +229,34 @@ def withMSVC():
 def isNT():
     if getPlatform() == 'win32' and os.environ['SYSTEMROOT'].find('WINDOWS') != -1:
         return
-if getPlatform() == 'win32' and withMinGW == '1':
-    Tool('mingw')(commonEnvironment)
 
+# Detect the BUILD platform,
+# and update the environment with options from a custom Python script.
+
+if getPlatform() == 'win32':
+    if withMSVC():
+        optionsFilename = 'custom-msvc.py'
+    else:
+        optionsFilename = 'custom.py'
+else:
+    optionsFilename = 'custom.py'
+print "Using options from '%s.'" % optionsFilename
+
+fileOptions = Options(optionsFilename)
+fileOptions.Add('customCPPPATH', 'List of custom CPPPATH variables')
+fileOptions.Add('customCCFLAGS')
+fileOptions.Add('customCXXFLAGS')
+fileOptions.Add('customLIBS')
+fileOptions.Add('customLIBPATH')
+fileOptions.Add('customSHLINKFLAGS')
+fileOptions.Add('customSWIGFLAGS')
+fileOptions.Update(commonEnvironment)
+
+# If the user selects MinGW as the build platform,
+# force the use of MinGW tools even if SCons prefers MSVC.
+
+if getPlatform() == 'win32' and not withMSVC():
+    Tool('mingw')(commonEnvironment)
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
@@ -264,8 +273,6 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 customSWIGFLAGS = commonEnvironment['customSWIGFLAGS']
 commonEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
-Help(opts.GenerateHelpText(commonEnvironment))
-
 # Define options for different platforms.
 if getPlatform() != 'win32':
  print "Build platform is '" + getPlatform() + "'."
@@ -276,7 +283,6 @@ else:
   print "Build platform is 'msvc'"
 
 print "SCons tools on this platform: ", commonEnvironment['TOOLS']
-
 
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
 if commonEnvironment['useLrint'] != '0':
