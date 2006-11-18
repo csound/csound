@@ -1,6 +1,6 @@
 from Tkinter import *
 import csnd
-import sys
+
 
 class Application(Frame):
   
