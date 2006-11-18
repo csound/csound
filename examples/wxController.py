@@ -18,7 +18,7 @@ class ControlPanel(wxPanel):
             # Create a slider to change the pitch of the note.
             self.ID_SLIDER1 = 20
             self.slider1 = wxSlider(self, self.ID_SLIDER1, 63, 0, 127, (20, 50), (200,50),
-                               wxSL_HORIZONTAL | wxSL_LABELS)
+                                    wxSL_HORIZONTAL | wxSL_LABELS)
             self.slider1.SetTickFreq(5, 1)
             # Bind the slider to its event handler.
             EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
@@ -35,8 +35,6 @@ class ControlPanel(wxPanel):
         # Initialize Csound and start performing, in a separate thread.
         # Csound will play notes sent in from wxWindows.
         def csoundThreadRoutine(self):
-            # Enable Csound to print its messages to the Python console.
-            self.csound.setPythonMessageCallback()
             # Embed an orchestra in this script.
             self.csound.setOrchestra('''
             sr=44100
@@ -65,27 +63,22 @@ class ControlPanel(wxPanel):
             ''')
             # Real-time audio output.
             # It is not necessary to enable line events.
-            self.csound.setCommand('''csound -h -m128 -d -odac -B512 -b400 temp.orc temp.sco''')
+            self.csound.setCommand('''csound -h -m128 -d -odac8 -B512 -b400 temp.orc temp.sco''')
             # Export the orc and sco.
             self.csound.exportForPerformance()
             # Start the performance.
             self.csound.compile()
             # Perform in blocks of ksmps
             # (Csound will yield implicitly to wxWindows).
-            self.keepPerforming = True
-            while self.keepPerforming:
-                # for i in range(10000):
-                #     pass
-                if self.csound.PerformKsmps():
-                    print 'Performance finished.'
-                    return
+            self.performanceThread = csnd.CsoundPerformanceThread(self.csound)
+            self.performanceThread.Play()
 
         # Handle the button click -- send a note to Csound
         # with the pitch set by the slider.
         def OnClickButton1(self, event):
             print "You pressed button 1"
             # Send a line event.
-            self.csound.InputMessage("i 1 0 8 %i 70" % self.pitch)
+            self.performanceThread.InputMessage("i 1 0 8 %i 70" % self.pitch)
 
         # Handle the slider movement -- change the pitch.
         def OnSlider1Move(self, event):
@@ -97,11 +90,9 @@ class ControlPanel(wxPanel):
         def OnClose(self, event):
             try:
                 print "You closed the window."
-                self.csound.Stop()
-                self.keepPerforming = False
+                self.performanceThread.Stop()
+                self.performanceThread.Join()
                 self.csoundThread.join()
-                self.csound.Cleanup()
-                self.csound.Reset()
                 print 'Csound thread has finished.'
                 self.GetParent().Destroy()
             except:
