@@ -1,5 +1,6 @@
 from Tkinter import *
 import csnd
+import sys
 
 class Application(Frame):
   
@@ -70,6 +71,11 @@ class Application(Frame):
           cnt  = cnt + 1
         self.master.after(50,self.draw)
                 
+    def quit(self):
+        self.master.destroy()
+        self.perf.Stop()
+        self.perf.Join()
+
     def __init__(self,master=None):
         master.title("Csound + Tkinter: just click and play")
         self.items = []
@@ -88,7 +94,7 @@ class Application(Frame):
         self.master = master
         self.perf = csnd.CsoundPerformanceThread(self.cs)
         self.perf.Play()
+        self.master.protocol("WM_DELETE_WINDOW", self.quit)
 
 app = Application(Tk())
 app.mainloop()
-
