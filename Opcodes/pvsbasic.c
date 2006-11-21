@@ -766,6 +766,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+
     {"pvsfwrite", S(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
          (SUBR) pvsfwrite},
     {"pvscale", S(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
@@ -785,9 +786,10 @@ static OENTRY localops[] = {
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
          (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
-         (SUBR) pvsmoothprocess, NULL},
-    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
-         (SUBR) pvsoscprocess, NULL}
+     (SUBR) pvsmoothprocess, NULL},
+{"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
+ (SUBR) pvsoscprocess, NULL}
+    
 };
 
 int pvsbasic_init_(CSOUND *csound)

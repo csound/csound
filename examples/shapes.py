@@ -1,7 +1,6 @@
 from Tkinter import *
 import csnd
 
-
 class Application(Frame):
   
     def move(self,event):

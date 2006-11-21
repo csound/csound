@@ -1,0 +1,42 @@
+<CsoundSynthesizer>
+<CsOptions>
+-d -odac -iadc  -B1024 
+</CsOptions>
+<CsInstruments>
+sr=44100
+ksmps=128
+nchnls=1
+
+gklevel init 0
+gks chnexport "meter",3
+f1 pvsinit 0
+
+instr 1
+ain in
+k1 linenr 1, 0.1,0.1, 0.1
+kf linsegr 500, 0.1, 4000, 1.5, 1000, 0.1, 100
+fam pvsanal ain, 1024,256,1024,1
+fex pvsosca k1*p4, p5, 1, 1024,256,1024,1
+fvo pvsvoc  fam,fex,1,1
+a1 pvsynth fvo
+ks rms a1
+gklevel = gklevel + ks
+   out a1
+
+
+endin
+
+instr 100
+gks = gklevel
+gklevel = 0
+endin
+
+</CsInstruments>
+<CsScore>
+
+f1 0 16384 10 1
+i100 0 360
+e
+</CsScore>
+</CsoundSynthesizer>
+
