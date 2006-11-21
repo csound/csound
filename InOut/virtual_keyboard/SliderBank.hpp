@@ -34,24 +34,24 @@
 class SliderBank : public Fl_Group
 {
 public:
-	SliderBank(CSOUND *csound, int X, int Y, int W, int H);
-	virtual ~SliderBank();
+    SliderBank(CSOUND *csound, int X, int Y, int W, int H);
+    virtual ~SliderBank();
 
-	CSOUND *csound;
-	void * mutex;
+    CSOUND *csound;
+    void * mutex;
 
-	void setChannel(int channel);
-	SliderData *getSliderData();
+    void setChannel(int channel);
+    SliderData *getSliderData();
 
     void lock();
     void unlock();
 
-	Fl_Value_Slider* sliders[10];
-	Fl_Spinner* spinners[10];
+    Fl_Value_Slider* sliders[10];
+    Fl_Spinner* spinners[10];
 
 private:
     int channel;
-	SliderData sliderData[16];
+    SliderData sliderData[16];
 };
 
 #endif /*SLIDERBANK_HPP_*/

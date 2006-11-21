@@ -25,12 +25,12 @@
 
 SliderData::SliderData()
 {
-	for(int i = 0; i < 10; i++) {
-		controllerNumber[i] = (i + 1);
-		previousControllerNumber[i] = -1;
-		controllerValue[i] = 0;
-		previousControllerValue[i] = -1;
-	}
+    for(int i = 0; i < 10; i++) {
+      controllerNumber[i] = (i + 1);
+      previousControllerNumber[i] = -1;
+      controllerValue[i] = 0;
+      previousControllerValue[i] = -1;
+    }
 }
 
 SliderData::~SliderData()

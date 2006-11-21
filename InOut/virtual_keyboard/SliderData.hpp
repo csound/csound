@@ -27,13 +27,13 @@
 class SliderData
 {
 public:
-	SliderData();
-	virtual ~SliderData();
+    SliderData();
+    virtual ~SliderData();
 
-	int controllerNumber[10];
-	int previousControllerNumber[10];
-	int controllerValue[10];
-	int previousControllerValue[10];
+    int controllerNumber[10];
+    int previousControllerNumber[10];
+    int controllerValue[10];
+    int previousControllerValue[10];
 };
 
 #endif /*SLIDERDATA_HPP_*/
