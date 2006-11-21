@@ -134,42 +134,42 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
       keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
     }
 
-	keyWin->sliderBank->lock();
-	SliderData *sliderData = keyWin->sliderBank->getSliderData();
+    keyWin->sliderBank->lock();
+    SliderData *sliderData = keyWin->sliderBank->getSliderData();
 
-	for(i = 0; i < 10; i++) {
-		if(sliderData->controllerNumber[i] !=
-			sliderData->previousControllerNumber[i]) {
+    for(i = 0; i < 10; i++) {
+      if(sliderData->controllerNumber[i] !=
+         sliderData->previousControllerNumber[i]) {
 
-			*mbuf++ = (unsigned char)(0xB0 + channel);
-      		*mbuf++ = (unsigned char)sliderData->controllerNumber[i];
-      		*mbuf++ = (unsigned char)sliderData->controllerValue[i];
+        *mbuf++ = (unsigned char)(0xB0 + channel);
+        *mbuf++ = (unsigned char)sliderData->controllerNumber[i];
+        *mbuf++ = (unsigned char)sliderData->controllerValue[i];
 
-			count += 3;
+        count += 3;
 
-			sliderData->previousControllerNumber[i] =
-				sliderData->controllerNumber[i];
+        sliderData->previousControllerNumber[i] =
+          sliderData->controllerNumber[i];
 
-			sliderData->previousControllerValue[i] =
-				sliderData->controllerValue[i];
+        sliderData->previousControllerValue[i] =
+          sliderData->controllerValue[i];
 
 
-		} else if(sliderData->controllerValue[i] !=
-			sliderData->previousControllerValue[i]) {
+      } else if(sliderData->controllerValue[i] !=
+                sliderData->previousControllerValue[i]) {
 
-			*mbuf++ = (unsigned char)(0xB0 + channel);
-      		*mbuf++ = (unsigned char)sliderData->controllerNumber[i];
-      		*mbuf++ = (unsigned char)sliderData->controllerValue[i];
+        *mbuf++ = (unsigned char)(0xB0 + channel);
+        *mbuf++ = (unsigned char)sliderData->controllerNumber[i];
+        *mbuf++ = (unsigned char)sliderData->controllerValue[i];
 
-			count += 3;
+        count += 3;
 
-			sliderData->previousControllerValue[i] =
-				sliderData->controllerValue[i];
-		}
+        sliderData->previousControllerValue[i] =
+          sliderData->controllerValue[i];
+      }
 
-	}
+    }
 
-	keyWin->sliderBank->unlock();
+    keyWin->sliderBank->unlock();
     keyWin->unlock();
 
 

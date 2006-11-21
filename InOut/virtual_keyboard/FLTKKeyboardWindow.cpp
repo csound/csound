@@ -34,7 +34,7 @@ static void channelChange(Fl_Widget *widget, void * v) {
 
     win->lock();
 
-	int channel = (int)spinner->value() - 1;
+    int channel = (int)spinner->value() - 1;
 
     win->keyboardMapping->setCurrentChannel(channel);
 

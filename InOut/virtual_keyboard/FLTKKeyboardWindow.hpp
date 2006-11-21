@@ -47,7 +47,7 @@ public:
     Fl_Choice *programChoice;
 
     KeyboardMapping *keyboardMapping;
-	SliderBank *sliderBank;
+    SliderBank *sliderBank;
 
     int handle(int event);
 
