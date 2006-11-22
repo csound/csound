@@ -927,6 +927,7 @@ if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironme
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
+    print "Python Version" + commonEnvironment['pythonVersion']
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = []
     for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
