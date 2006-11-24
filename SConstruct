@@ -1153,18 +1153,6 @@ makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 
 # FLTK widgets
 
-
-if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
-    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
-else:
-    if getPlatform() == 'linux' or getPlatform() == 'darwin':
-        print 'CONFIGURATION DECISION: Building Csound Text Editor.'
-        csEdit = commonEnvironment.Copy()
-        csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
-        executables.append(csEditor)
-    else:
-        print 'CONFIGURATION DECISION: Csound Text Editor Not presently supported on Win32.'
-
 if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
@@ -1760,6 +1748,19 @@ else:
     counterpoint = vstEnvironment.Program(
         'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
+
+if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
+    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
+else:
+    print 'CONFIGURATION DECISION: Building Csound Text Editor.'
+    if getPlatform() == 'linux' or getPlatform() == 'darwin':
+        print 'CONFIGURATION DECISION: Building Csound Text Editor.'
+        csEdit = commonEnvironment.Copy()
+        csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
+        executables.append(csEditor)
+    else:
+    	csEditor = vstEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
+    	executables.append(csEditor)
 
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
