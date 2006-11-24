@@ -265,7 +265,7 @@ namespace csound
     std::vector<double> iterator_ = iterator;
     for (double pitch = original[voice]; pitch < maximum; pitch = pitch + double(divisionsPerOctave)) {
       iterator_[voice] = pitch;
-      chords.insert(iterator_);
+      chords.insert(sort(iterator_));
       inversions(original, iterator_, voice + 1, maximum, chords, divisionsPerOctave);
     }
   }
@@ -488,12 +488,11 @@ namespace csound
         }
       }
     }
-    return normalChord;
+	return normalChord;
   }
 
   std::vector<double>  Voicelead::primeChord(const std::vector<double> &chord)
   {
-    return zeroChord(normalChord(chord));
+	  return zeroChord(normalChord(chord));
   }
-
 }
