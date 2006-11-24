@@ -98,9 +98,21 @@ namespace csound
      * are not conformed.
      */
     virtual std::string getCsoundScore(double tonesPerOctave = 12.0, bool conformPitches = false);
+    /**
+     * Re-assign instrument numbers for export to Csound score.
+     */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
+    /**
+     * Re-assign instrument numbers and adjust gains for export to Csound score.
+     */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain);
+    /**
+     * Re-assign instrument numbers, adjust gains, and change pans for export to Csound score.
+     */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan);
+    /**
+     * Re-assign instrument numbers for export to Csound score.
+     */
     virtual void removeArrangement();
     /**
      * Return a vector containing the MIDI key numbers
