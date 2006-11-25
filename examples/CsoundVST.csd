@@ -464,6 +464,7 @@ aleft, aright		Pan			 (aleft + aright) * iamplitude
 
 			instr                   11 ; String pad
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 			; String-pad borrowed from the piece "Dorian Gray",
 			; http://akozar.spymac.net/music/ Modified to fit my needs
 ihz, iamp		NoteOn                  p4, p5, 1000.
