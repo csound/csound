@@ -304,6 +304,7 @@ typedef struct {
     MYFLT   *ihandle, *command;
     MYFLT   *iwidth, *iheight, *ix, *iy;
     char 	*commandString;
+    CSOUND *csound;
 } FLEXECBUTTON;
 
 #ifdef __cplusplus
