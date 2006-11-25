@@ -2051,28 +2051,45 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
   FLEXECBUTTON *p = (FLEXECBUTTON *) a;
-  
+
 #if defined(LINUX)
-  pid_t pId = fork();
+
+  CSOUND *csound = p->csound;
+  char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
+
+  pid_t pId = vfork();
   if(pId == 0) {
-  	
+
   	char *v[40];
+
   	int i = 0;
-  	
-  	char *tok = strtok(p->commandString, " ");
-  	
+
+
+    strcpy(command, p->commandString);
+
+  	char *tok = strtok(command, " ");
+
   	if(tok != NULL) {
   		v[i++] = tok;
   		while((tok = strtok(NULL, " ")) != NULL) {
-  			v[i++] = tok;	
+  			v[i++] = tok;
   		}
-  	
-  		execvp(v[0], v);	
+        v[i] = NULL;
+
+//        for(int j = 0; j < i; j++) {
+//            p->csound->Message(p->csound, "Arg[%i]: %s\n", j, v[j]);
+//        }
+  		execvp(v[0], v);
   	}
+
   	_exit(0);
-  } 
+  } else if (pId < 0) {
+     p->csound->Message(p->csound, "Error: Unable to fork process\n");
+  }
+
+  csound->Free(csound, command);
 #endif
-  	 
+
 }
 
 static void fl_callbackButton(Fl_Button* w, void *a)
@@ -3642,22 +3659,22 @@ static int fl_close_button(CSOUND *csound, FLCLOSEBUTTON *p)
   char *Name = GetString(csound, p->name, p->XSTRCODE);
 
   Fl_Button *w;
-  
+
   w = new Fl_Button((int)*p->ix, (int)*p->iy,
                       (int)*p->iwidth, (int)*p->iheight, Name);
-  
+
   Fl_Button *o = w;
-  
+
   o->align(FL_ALIGN_WRAP);
   widget_attributes(csound, o);
-  
+
   ADDR_STACK adrstk = ST(AddrStack).back();
   if (strcmp( adrstk.h->optext->t.opcod, "FLpanel"))
     return csound->InitError(csound, "FLcloseButton: invalid stack pointer: "
                                      "verify its placement");
-                                     
-  o->callback((Fl_Callback*) fl_callbackCloseButton, (void*) adrstk.WidgAddress); 
-  
+
+  o->callback((Fl_Callback*) fl_callbackCloseButton, (void*) adrstk.WidgAddress);
+
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = ST(AddrSetValue).size() - 1;
 
@@ -3666,22 +3683,23 @@ static int fl_close_button(CSOUND *csound, FLCLOSEBUTTON *p)
 
 static int fl_exec_button(CSOUND *csound, FLEXECBUTTON *p)
 {
+  p->csound = csound;
   Fl_Button *w;
-  
-  char *commandString = GetString(csound, p->command, p->XSTRCODE);
-  
+
+  p->commandString = GetString(csound, p->command, p->XSTRCODE);
+
   csound->Message(csound, "Command Found: %s\n", p->commandString);
-  
+
   w = new Fl_Button((int)*p->ix, (int)*p->iy,
                       (int)*p->iwidth, (int)*p->iheight, "About");
-  
+
   Fl_Button *o = w;
-  
+
   o->align(FL_ALIGN_WRAP);
   widget_attributes(csound, o);
-                                    
-  o->callback((Fl_Callback*) fl_callbackExecButton, (void*) p); 
-  
+
+  o->callback((Fl_Callback*) fl_callbackExecButton, (void*) p);
+
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = ST(AddrSetValue).size() - 1;
 
