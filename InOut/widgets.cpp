@@ -2042,6 +2042,39 @@ static void fl_callbackButton1(Fl_Button* w, void *a)
                                     p->args, p->INOCOUNT-8);
 }
 
+static void fl_callbackCloseButton(Fl_Button* w, void *a)
+{
+  Fl_Window *p = (Fl_Window *) a;
+  p->hide();
+}
+
+static void fl_callbackExecButton(Fl_Button* w, void *a)
+{
+  FLEXECBUTTON *p = (FLEXECBUTTON *) a;
+  
+#if defined(LINUX)
+  pid_t pId = fork();
+  if(pId == 0) {
+  	
+  	char *v[40];
+  	int i = 0;
+  	
+  	char *tok = strtok(p->commandString, " ");
+  	
+  	if(tok != NULL) {
+  		v[i++] = tok;
+  		while((tok = strtok(NULL, " ")) != NULL) {
+  			v[i++] = tok;	
+  		}
+  	
+  		execvp(v[0], v);	
+  	}
+  	_exit(0);
+  } 
+#endif
+  	 
+}
+
 static void fl_callbackButton(Fl_Button* w, void *a)
 {
   FLBUTTON *p = (FLBUTTON *) a;
@@ -3604,6 +3637,57 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
   return OK;
 }
 
+static int fl_close_button(CSOUND *csound, FLCLOSEBUTTON *p)
+{
+  char *Name = GetString(csound, p->name, p->XSTRCODE);
+
+  Fl_Button *w;
+  
+  w = new Fl_Button((int)*p->ix, (int)*p->iy,
+                      (int)*p->iwidth, (int)*p->iheight, Name);
+  
+  Fl_Button *o = w;
+  
+  o->align(FL_ALIGN_WRAP);
+  widget_attributes(csound, o);
+  
+  ADDR_STACK adrstk = ST(AddrStack).back();
+  if (strcmp( adrstk.h->optext->t.opcod, "FLpanel"))
+    return csound->InitError(csound, "FLcloseButton: invalid stack pointer: "
+                                     "verify its placement");
+                                     
+  o->callback((Fl_Callback*) fl_callbackCloseButton, (void*) adrstk.WidgAddress); 
+  
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  *p->ihandle = ST(AddrSetValue).size() - 1;
+
+  return OK;
+}
+
+static int fl_exec_button(CSOUND *csound, FLEXECBUTTON *p)
+{
+  Fl_Button *w;
+  
+  char *commandString = GetString(csound, p->command, p->XSTRCODE);
+  
+  csound->Message(csound, "Command Found: %s\n", p->commandString);
+  
+  w = new Fl_Button((int)*p->ix, (int)*p->iy,
+                      (int)*p->iwidth, (int)*p->iheight, "About");
+  
+  Fl_Button *o = w;
+  
+  o->align(FL_ALIGN_WRAP);
+  widget_attributes(csound, o);
+                                    
+  o->callback((Fl_Callback*) fl_callbackExecButton, (void*) p); 
+  
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  *p->ihandle = ST(AddrSetValue).size() - 1;
+
+  return OK;
+}
+
 static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
 {
   char *Name = "/0";
@@ -3934,6 +4018,10 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) FLprintkset,             (SUBR) FLprintk,          (SUBR) NULL },
     { "FLprintk2",      S(FLPRINTK2),           3,  "",     "ki",
         (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL },
+	{ "FLcloseButton",       S(FLCLOSEBUTTON),            1,  "i",   "Tiiii",
+        (SUBR) fl_close_button,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLexecButton",       S(FLEXECBUTTON),            1,  "i",   "Tiiii",
+        (SUBR) fl_exec_button,               (SUBR) NULL,              (SUBR) NULL },
     { NULL,             0,                      0,  NULL,   NULL,
         (SUBR) NULL,                    (SUBR) NULL,              (SUBR) NULL }
 };
