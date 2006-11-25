@@ -1,7 +1,17 @@
+2006-11-25  Steven Yi  <stevenyi@gmail.com>
+
+	* InOut/widgets.cpp: Added FLcloseButton and FLexecButton opcodes;
+	closeButton closes the window panel it is a member of, while execButton
+	runs a command given to it
+
 2006-11-16  jpff  <jpff@codemist.co.uk>
 
 	* OOps/diskin.c: (and many others)
 	* OOps/remote.c: Use InitError correctly
+
+2006-11-15  Steven Yi  <stevenyi@gmail.com>
+
+	* InOut/virtual_keyboard: Added 10 MIDI Sliders to virtual keyboard
 
 2006-11-13  jpff  <jpff@codemist.co.uk>
 
@@ -15,7 +25,7 @@
 
 2006-10-29  Simon Schampijer  <simon@schampijer.de>
 
-	* OOps/remote.c: Added the patch from Dan Williams which: 
+	* OOps/remote.c: Added the patch from Dan Williams which:
 	1) Fixes detection of the IP address by correctly converting the uint32
 	to a string format using inet_ntoa() on Linux.  There was something
 	wrong with the manual conversion code that was there which caused only
