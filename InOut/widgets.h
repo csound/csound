@@ -293,6 +293,19 @@ typedef struct {
  /* int     pspace; */
 } FLPRINTK2;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *ihandle, *name;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
+} FLCLOSEBUTTON;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ihandle, *command;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
+    char 	*commandString;
+} FLEXECBUTTON;
+
 #ifdef __cplusplus
 }
 #endif
