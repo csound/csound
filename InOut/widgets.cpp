@@ -2050,46 +2050,60 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-  FLEXECBUTTON *p = (FLEXECBUTTON *) a;
+    FLEXECBUTTON *p = (FLEXECBUTTON *) a;
 
 #if defined(LINUX)
 
-  CSOUND *csound = p->csound;
-  char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
+    CSOUND *csound = p->csound;
+    char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
 
-  pid_t pId = vfork();
-  if(pId == 0) {
+    pid_t pId = vfork();
+    if (pId == 0) {
 
-  	char *v[40];
+      char *v[40];
+      int i = 0;
 
-  	int i = 0;
+      strcpy(command, p->commandString);
 
+      char *tok = strtok(command, " ");
 
-    strcpy(command, p->commandString);
-
-  	char *tok = strtok(command, " ");
-
-  	if(tok != NULL) {
-  		v[i++] = tok;
-  		while((tok = strtok(NULL, " ")) != NULL) {
-  			v[i++] = tok;
-  		}
+      if(tok != NULL) {
+        v[i++] = tok;
+        while((tok = strtok(NULL, " ")) != NULL) {
+          v[i++] = tok;
+        }
         v[i] = NULL;
 
 //        for(int j = 0; j < i; j++) {
 //            p->csound->Message(p->csound, "Arg[%i]: %s\n", j, v[j]);
 //        }
-  		execvp(v[0], v);
-  	}
+        execvp(v[0], v);
+      }
 
-  	_exit(0);
-  } else if (pId < 0) {
-     p->csound->Message(p->csound, "Error: Unable to fork process\n");
-  }
+      _exit(0);
+    } else if (pId < 0) {
+      p->csound->Message(p->csound, "Error: Unable to fork process\n");
+    }
 
-  csound->Free(csound, command);
+    csound->Free(csound, command);
+#elif defined(WINDOWS)
+    {
+      char *v[40];
+      int i = 0;
+
+      strcpy(command, p->commandString);
+      char *tok = strtok(command, " ");
+
+      if(tok != NULL) {
+        v[i++] = tok;
+        while((tok = strtok(NULL, " ")) != NULL) {
+          v[i++] = tok;
+        }
+        v[i] = NULL;
+        csoundRunCommand(v, 1);
+      }
+    }
 #endif
-
 }
 
 static void fl_callbackButton(Fl_Button* w, void *a)
@@ -2124,8 +2138,9 @@ static void fl_callbackLinearSlider(Fl_Valuator* w, void *a)
 
 static void fl_callbackExponentialSlider(Fl_Valuator* w, void *a)
 {
-  FLSLIDER *p = ((FLSLIDER*) a);
-  displ(*p->kout = p->min * ::pow (p->base, w->value()), *p->idisp, p->h.insdshead->csound);
+    FLSLIDER *p = ((FLSLIDER*) a);
+    displ(*p->kout = p->min * ::pow (p->base, w->value()),
+          *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
@@ -4036,7 +4051,7 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) FLprintkset,             (SUBR) FLprintk,          (SUBR) NULL },
     { "FLprintk2",      S(FLPRINTK2),           3,  "",     "ki",
         (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL },
-	{ "FLcloseButton",       S(FLCLOSEBUTTON),            1,  "i",   "Tiiii",
+    { "FLcloseButton",       S(FLCLOSEBUTTON),            1,  "i",   "Tiiii",
         (SUBR) fl_close_button,               (SUBR) NULL,              (SUBR) NULL },
     { "FLexecButton",       S(FLEXECBUTTON),            1,  "i",   "Tiiii",
         (SUBR) fl_exec_button,               (SUBR) NULL,              (SUBR) NULL },
