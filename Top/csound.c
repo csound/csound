@@ -578,7 +578,14 @@ static const CSOUND cenviron_ = {
           0L, 0L,       /*    sr_override, ...  */
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL, (char*) NULL,
-          (char*) NULL, (char*) NULL
+          (char*) NULL, (char*) NULL,
+          0,		/*    midiKey           */
+          0,		/*    midiKeyCps        */
+          0,		/*    midiKeyOct        */
+          0,		/*    midiKeyPch        */
+          0,		/*    midiVelocity      */
+          0,		/*    midiVelocityAmp   */
+          0 		/*    noDefaultPaths    */
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
@@ -587,10 +594,10 @@ static const CSOUND cenviron_ = {
         csoundDoCallback_,  /*  doCsoundCallback    */
         &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
         csound_str_hash_32, /*  strHash32           */
-        {0, 0, ""},     /* REMOT_BUF */
-        NULL,            /*  remoteGlobals       */
-        0, 0,           /* nchanof, nchanif */
-        NULL, NULL,     /*  chanif, chanof */
+        {0, 0, NULL},   /* REMOT_BUF */
+        NULL,           /* remoteGlobals        */
+        0, 0,           /* nchanof, nchanif     */
+        NULL, NULL,     /* chanif, chanof       */
         defaultCsoundYield /* csoundInternalYieldCallback_*/
 };
 
