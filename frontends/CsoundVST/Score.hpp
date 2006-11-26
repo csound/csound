@@ -72,8 +72,17 @@ namespace csound
     virtual void load(std::string filename);
     virtual void load(std::istream &stream);
     virtual void load(MidiFile &midiFile);
+    /**
+     * Save as a MIDI file, format 1.
+     */
     virtual void save(std::string filename);
+    /**
+     * Save as a MIDI file, format 1.
+     */
     virtual void save(std::ostream &stream);
+    /**
+     * Save as a MIDI file, format 1.
+     */
     virtual void save(MidiFile &midiFile);
     static void getScale(std::vector<Event> &score, int dimension, size_t beginAt, size_t endAt, double &minimum, double &range);
     static void setScale(std::vector<Event> &score, int dimension, bool rescaleMinimum, bool rescaleRange, size_t beginAt, size_t endAt, double targetMinimum, double targetRange);
