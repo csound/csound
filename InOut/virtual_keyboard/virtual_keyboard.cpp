@@ -27,6 +27,7 @@
 #include "oload.h"
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"
+#include "FLTKKeyboardWidget.hpp"
 #include "KeyboardMapping.hpp"
 #include "SliderData.hpp"
 
@@ -51,6 +52,11 @@ static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
 
 extern "C"
 {
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *name, *ix, *iy;
+} FLVKEYBD;
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
@@ -243,6 +249,22 @@ static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
     return 0;
 }
 
+/* FLvkeybd Opcode */
+
+static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
+
+    return OK;
+}
+
+#define S(x)    sizeof(x)
+
+const OENTRY widgetOpcodes_[] = {
+    { "FLvkeybd", S(FLVKEYBD), 1,  "", "Tii",
+         (SUBR) fl_vkeybd, (SUBR) NULL, (SUBR) NULL },
+    { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL,(SUBR) NULL }
+};
+
+
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -255,6 +277,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
+    const OENTRY  *ep = &(widgetOpcodes_[0]);
 
     if (csound->QueryGlobalVariable(csound,
                                     "FLTK_Flags") == (void*) 0) {
@@ -262,6 +285,17 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
                                        "FLTK_Flags", sizeof(int)) != 0)
         csound->Die(csound,
                     Str("virtual_keyboard.cpp: error allocating FLTK flags"));
+    }
+
+    for ( ; ep->opname != NULL; ep++) {
+        if (csound->AppendOpcode(csound, ep->opname,
+                                 (int)ep->dsblksiz, (int)ep->thread,
+                                 ep->outypes, ep->intypes,
+                                 ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
+            csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                   ep->opname);
+            return -1;
+        }
     }
 
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
