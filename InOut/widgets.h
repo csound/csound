@@ -303,8 +303,8 @@ typedef struct {
     OPDS    h;
     MYFLT   *ihandle, *command;
     MYFLT   *iwidth, *iheight, *ix, *iy;
-    char 	*commandString;
-    CSOUND *csound;
+    char    *commandString;
+    CSOUND  *csound;
 } FLEXECBUTTON;
 
 #ifdef __cplusplus
