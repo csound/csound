@@ -1186,6 +1186,7 @@ else:
         makePlugin(widgetsEnvironment, 'virtual',
                ['InOut/virtual_keyboard/FLTKKeyboard.cpp',
                'InOut/virtual_keyboard/FLTKKeyboardWindow.cpp',
+               'InOut/virtual_keyboard/FLTKKeyboardWidget.cpp',
                'InOut/virtual_keyboard/virtual_keyboard.cpp',
                'InOut/virtual_keyboard/Bank.cpp',
                'InOut/virtual_keyboard/KeyboardMapping.cpp',
