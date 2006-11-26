@@ -24,8 +24,8 @@
 #include "FLTKKeyboardWindow.hpp"
 
 static void allNotesOff(Fl_Widget *widget, void * v) {
-        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
-        win->keyboard->allNotesOff();
+    FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+    win->keyboard->allNotesOff();
 }
 
 static void channelChange(Fl_Widget *widget, void * v) {
@@ -48,16 +48,16 @@ static void channelChange(Fl_Widget *widget, void * v) {
 }
 
 static void bankChange(Fl_Widget *widget, void * v) {
-        Fl_Choice *choice = (Fl_Choice *)widget;
-        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+    Fl_Choice *choice = (Fl_Choice *)widget;
+    FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-        win->lock();
+    win->lock();
 
-        win->keyboardMapping->setCurrentBank((int)choice->value());
+    win->keyboardMapping->setCurrentBank((int)choice->value());
 
-        win->setProgramNames();
+    win->setProgramNames();
 
-        win->unlock();
+    win->unlock();
 }
 
 static void programChange(Fl_Widget *widget, void * v) {
@@ -163,13 +163,13 @@ int FLTKKeyboardWindow::handle(int event) {
 }
 
 void FLTKKeyboardWindow::lock() {
-        if(mutex) {
+    if(mutex) {
         csound->LockMutex(mutex);
-        }
+    }
 }
 
 void FLTKKeyboardWindow::unlock() {
-        if(mutex) {
+    if(mutex) {
         csound->UnlockMutex(mutex);
-        }
+    }
 }
