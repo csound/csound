@@ -612,7 +612,7 @@ bool VSTPlugin::replace()
 
 void VSTPlugin::EditorIdle()
 {
-    Dispatch(effEditIdle,0,0, windowHandle,0.0f);
+    Dispatch(effEditIdle, 0, 0, windowHandle, 0.0f);
 }
 
 ERect VSTPlugin::GetEditorRect()
@@ -879,8 +879,10 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
       else
         return -1;
     case audioMasterIdle:
-      return plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
-      //return 0;
+      if (plugin) {
+	plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+      }
+      return 0;
     case audioMasterPinConnected:
       return !((value) ?  OnOutputConnected(effect, index) :
                OnInputConnected(effect, index));
@@ -900,9 +902,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     case audioMasterTempoAt:
       return 0;
     case audioMasterNeedIdle:
-      if (plugin)
-        return plugin->Dispatch(effIdle, 0, 0, NULL, 0.0f);
-      return false;
+      return 0;
     case audioMasterGetSampleRate:
       if (plugin)
         return plugin->framesPerSecond;
@@ -919,8 +919,10 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     case audioMasterGetLanguage:
       return kVstLangEnglish;
     case audioMasterUpdateDisplay:
-      if (plugin)
-        plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+      if (plugin) {
+        // plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+	return 0;
+      }
       else
         return 1;
     case audioMasterGetNextPlug:
