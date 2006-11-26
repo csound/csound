@@ -2100,7 +2100,8 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
           v[i++] = tok;
         }
         v[i] = NULL;
-        csoundRunCommand(v, 1);
+        if (csoundRunCommand(v, 1)<0)
+          p->csound->Message(p->csound, "Error: Unable to fork process\n");
       }
     }
 #endif
