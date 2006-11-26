@@ -555,6 +555,41 @@ namespace csound
     setPitches(begin, end, voicing);
   }
 
+  std::vector<double> Score::getPT(size_t begin, size_t end, double lowest, double range, size_t divisionsPerOctave) const
+  {
+    double prime = 0.0;
+    double transposition = 0.0;
+    std::vector<double> pt(2);
+    std::vector<double> chord = getPitches(begin, end);
+    if (chord.size() == 0) {
+      return pt;
+    }
+    std::vector<double> tones = Voicelead::pcs(chord, divisionsPerOctave);
+    transposition = tones[0];
+    if (chord.size() > 1) {
+      for (size_t i = 0, cn = chord.size(); i < cn; i++) {
+        prime = prime + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave)));
+      }
+    }
+    pt[0] = prime;
+    pt[1] = transposition;
+    return pt;
+  }
+
+  void Score::setPT(size_t begin, size_t end, double prime, double transposition, double lowest, double range, size_t divisionsPerOctave)
+  {
+    std::vector<double> chord;
+    int prime_ = int(std::fabs(prime + 0.5));
+    for (int i = 0; i < int(divisionsPerOctave); i++) {
+      int powerOf2 = int(std::pow(2., double(i)));
+      if ((prime_ & powerOf2) == powerOf2) {
+        chord.push_back(double(Voicelead::pc(i + transposition)));
+      }
+    }
+    std::vector<double> pcs = Voicelead::pcs(chord, divisionsPerOctave);
+    setPitchClassSet(begin, end, pcs, divisionsPerOctave);
+  }
+
   void Score::voicelead(size_t beginSource,
                         size_t endSource,
                         size_t beginTarget,

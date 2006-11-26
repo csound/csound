@@ -146,7 +146,7 @@ namespace csound
     virtual void setPitchClassSet(size_t begin,
                                   size_t end,
                                   const std::vector<double> &pcs,
-                                  size_t tonesPerOctave = 12);
+                                  size_t divisionsPerOctave = 12);
     /**
      * For the specified segment of the score,
      * return the indexes for the prime chord, its transposition,
@@ -174,6 +174,32 @@ namespace csound
                         double lowest,
                         double range,
                         size_t divisionsPerOctave = 12);
+    /**
+     * For the specified segment of the score,
+     * return the indexes for the prime chord and its transposition,
+     * within the specified range.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
+     */
+    virtual std::vector<double> getPT(size_t begin,
+				      size_t end,
+				      double lowest,
+				      double range,
+				      size_t divisionsPerOctave = 12) const;
+    /**
+     * For the specified segment of the score,
+     * adjust the pitches to match the specified indexes for the prime chord
+     * and its transposition within the specified range.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
+     */
+    virtual void setPT(size_t begin,
+		       size_t end,
+		       double prime,
+		       double transposition,
+		       double lowest,
+		       double range,
+		       size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between
      * between the specified segments of the score
