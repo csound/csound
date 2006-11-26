@@ -30,10 +30,18 @@
 #include "FLTKKeyboardWidget.hpp"
 #include "KeyboardMapping.hpp"
 #include "SliderData.hpp"
+#include <map>
+
+static std::map<CSOUND *, FLTKKeyboardWidget *> keyboardWidgets;
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
     return new FLTKKeyboardWindow(csound, dev,
                                   624, 270, "Csound Virtual Keyboard");
+}
+
+static FLTKKeyboardWidget *createWidget(CSOUND *csound, const char *dev, 
+        int x, int y) {
+	return new FLTKKeyboardWidget(csound, dev, x, y); 
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
@@ -55,11 +63,22 @@ extern "C"
 
 typedef struct {
     OPDS    h;
-    MYFLT   *name, *ix, *iy;
+    MYFLT   *mapFileName, *ix, *iy;
 } FLVKEYBD;
+
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
+    
+    if(keyboardWidgets.find(csound) != keyboardWidgets.end()) {
+        return 0;                              
+    }
+    
+//    if(csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget") != (void *)
+//        NULL) {
+//        return 0;        
+//    }
+    
     FLTKKeyboardWindow *keyboard = createWindow(csound, dev);
     *userData = (void *)keyboard;
 
@@ -78,11 +97,9 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int ReadMidiData_(CSOUND *csound, void *userData,
+static int ReadMidiWindow(CSOUND *csound, FLTKKeyboardWindow *keyWin,
                          unsigned char *mbuf, int nbytes)
 {
-
-    FLTKKeyboardWindow *keyWin = (FLTKKeyboardWindow *)userData;
     int i;
     Fl_lock(csound);
     Fl_awake(csound);
@@ -229,6 +246,137 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     return count;
 }
 
+static int ReadMidiWidget(CSOUND *csound, FLTKKeyboardWidget *widget,
+                         unsigned char *mbuf, int nbytes)
+{
+
+    int i;
+        
+    if(!widget->visible()) {
+        return 0;
+    }
+
+    int count = 0;
+ 
+    widget->lock();
+
+    KeyboardMapping* keyboardMapping = widget->keyboardMapping;
+
+    int channel = keyboardMapping->getCurrentChannel();
+
+    if(keyboardMapping->getCurrentBank() !=
+       keyboardMapping->getPreviousBank()) {
+
+      int bankNum = keyboardMapping->getCurrentBankMIDINumber();
+      unsigned char msb = (unsigned char)(bankNum >> 7) &
+        (unsigned char)0x7F;
+      unsigned char lsb = (unsigned char)bankNum &
+        (unsigned char)0x7F;
+
+      *mbuf++ = (unsigned char)(0xB0 + channel); // MSB
+      *mbuf++ = (unsigned char)0;
+      *mbuf++ = msb;
+
+      *mbuf++ = (unsigned char)(0xB0 + channel); // LSB
+      *mbuf++ = (unsigned char)32;
+      *mbuf++ = lsb;
+
+      *mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+      *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+
+      count += 8;
+
+      keyboardMapping->setPreviousBank(keyboardMapping->getCurrentBank());
+      keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
+
+    } else if(keyboardMapping->getCurrentProgram() !=
+              keyboardMapping->getPreviousProgram()) {
+
+      *mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+      *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+
+      keyboardMapping->getCurrentProgram();
+
+      count += 2;
+
+      keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
+    }
+
+    widget->unlock();
+
+
+    widget->keyboard->lock();
+
+    int *changedKeyStates = widget->keyboard->changedKeyStates;
+    int *keyStates = widget->keyboard->keyStates;
+
+
+
+    for(i = 0; i < 88; i++) {
+        if(keyStates[i] == -1) {
+                *mbuf++ = (unsigned char)0x90 + channel;
+            *mbuf++ = (unsigned char)i + 21;
+            *mbuf++ = (unsigned char)0;
+
+            count += 3;
+            keyStates[i] = 0;
+        } else if(changedKeyStates[i] != keyStates[i]) {
+
+            if(keyStates[i] == 1) {
+                *mbuf++ = (unsigned char)0x90 + channel;
+                *mbuf++ = (unsigned char)i + 21;
+                *mbuf++ = (unsigned char)127;
+
+                count += 3;
+
+            } else {
+                *mbuf++ = (unsigned char)0x90 + channel;
+                *mbuf++ = (unsigned char)i + 21;
+                *mbuf++ = (unsigned char)0;
+
+                count += 3;
+            }
+        }
+
+        changedKeyStates[i] = keyStates[i];
+    }
+
+    if(widget->keyboard->aNotesOff == 1) {
+        widget->keyboard->aNotesOff = 0;
+        *mbuf++ = (unsigned char)0xB0;
+        *mbuf++ = (unsigned char)123;
+        *mbuf++ = (unsigned char)0;
+
+        count += 3;
+    }
+
+    widget->keyboard->unlock();
+
+    return count;
+}
+
+static int ReadMidiData_(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int nbytes)
+{
+
+    if(keyboardWidgets.find(csound) == keyboardWidgets.end()) {
+        return ReadMidiWindow(csound, 
+                (FLTKKeyboardWindow *)userData, mbuf, nbytes);
+    }
+
+//    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
+//    
+//    if(v == (void *)NULL) {
+//        return ReadMidiWindow(csound, 
+//                (FLTKKeyboardWindow *)userData, mbuf, nbytes);
+//    } 
+        
+//    return ReadMidiWidget(csound, (FLTKKeyboardWidget *)v, mbuf, nbytes);
+    
+    return ReadMidiWidget(csound, 
+        keyboardWidgets[csound], mbuf, nbytes);
+}
+
 static int WriteMidiData_(CSOUND *csound, void *userData,
                           const unsigned char *mbuf, int nbytes)
 {
@@ -252,6 +400,30 @@ static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 /* FLvkeybd Opcode */
 
 static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
+    if(keyboardWidgets.find(csound) != keyboardWidgets.end()) {
+        csound->ErrorMsg(csound, 
+            "FLvkeybd may only be used once in a project.\n");
+        return -1;                                    
+    }
+    
+    char *mapFileName = new char[MAXNAME];
+    
+    csound->strarg2name(csound, mapFileName, p->mapFileName, "", p->XSTRCODE); 
+        
+    FLTKKeyboardWidget *widget = createWidget(csound, 
+            mapFileName, (int)*p->ix, (int)*p->iy);
+    
+//    if(csound->CreateGlobalVariable(csound, "FLTK_VKeyboard_Widget", 
+//        sizeof(widget)) != CSOUND_SUCCESS) {
+//            csound->Die(csound,
+//                Str("FLvkeybd: error allocating global memory for keyboard"));
+//    } 
+//    
+//    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
+//    
+//    v = &((void *)widget);
+
+    keyboardWidgets[csound] = widget;
 
     return OK;
 }
@@ -321,3 +493,4 @@ PUBLIC int csoundModuleInfo(void)
 }
 
 } // END EXTERN C
+
