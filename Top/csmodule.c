@@ -633,9 +633,9 @@ int csoundLoadModules(CSOUND *csound)
       return CSOUND_ERROR;
     }
     /* load database for deferred plugin loading */
-    n = csoundLoadOpcodeDB(csound, dname);
-    if (n != 0)
-      return n;
+/*     n = csoundLoadOpcodeDB(csound, dname); */
+/*     if (n != 0) */
+/*       return n; */
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
