@@ -1337,7 +1337,7 @@ int csoundLoadAllPluginOpcodes(CSOUND *csound)
         p = p->nxt;
       }
     }
-    csoundDestroyOpcodeDB(csound);
+/*     csoundDestroyOpcodeDB(csound); */
     /* report any errors */
     return (err == 0 || err == CSOUND_MEMORY ? err : CSOUND_ERROR);
 }
