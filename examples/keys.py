@@ -29,8 +29,8 @@ class Application(Frame):
                 self.perf.InputMessage("i1.1 0 -1 5000 %f" % freq)
                 if(self.recording):
                     self.clockstart()
-                    self.st = time.clock()
-                    ti = time.clock() - self.time
+                    self.st = time.time()
+                    ti = time.time() - self.time
                     self.cur = [ti,0, freq]
                             
     def stop(self,event):
@@ -42,7 +42,7 @@ class Application(Frame):
                 freq = self.translate(val+base)
                 self.perf.InputMessage("i-1.1 0 1 5000 %f" % freq)
                 if(self.recording):              
-                    dur = time.clock() - self.st
+                    dur = time.time() - self.st
                     self.cur[1] = dur
                     self.notesrec.append(self.cur)
                 
@@ -68,10 +68,10 @@ class Application(Frame):
 
     def clockstart(self):
         if self.time == 0.0:
-            self.time = time.clock()      
+            self.time = time.time()      
 
     def clockreset(self):
-         self.rectime = time.clock() - self.time
+         self.rectime = time.time() - self.time
          self.time = 0.0
         
     def  record(self,event):
