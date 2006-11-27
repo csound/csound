@@ -47,6 +47,7 @@ class Application(Frame):
                     self.notesrec.append(self.cur)
                 
     def playstop(self,event):
+     if not self.recording:
       if not self.playing:
         self.playing = True
         self.canvas.itemconfigure(self.pbutt, fill="red")
