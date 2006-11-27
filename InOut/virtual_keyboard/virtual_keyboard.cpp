@@ -39,9 +39,9 @@ static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
                                   624, 270, "Csound Virtual Keyboard");
 }
 
-static FLTKKeyboardWidget *createWidget(CSOUND *csound, const char *dev, 
+static FLTKKeyboardWidget *createWidget(CSOUND *csound, const char *dev,
         int x, int y) {
-	return new FLTKKeyboardWidget(csound, dev, x, y); 
+    return new FLTKKeyboardWidget(csound, dev, x, y);
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
@@ -69,16 +69,16 @@ typedef struct {
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    
+
     if(keyboardWidgets.find(csound) != keyboardWidgets.end()) {
-        return 0;                              
+        return 0;
     }
-    
+
 //    if(csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget") != (void *)
 //        NULL) {
-//        return 0;        
+//        return 0;
 //    }
-    
+
     FLTKKeyboardWindow *keyboard = createWindow(csound, dev);
     *userData = (void *)keyboard;
 
@@ -251,13 +251,13 @@ static int ReadMidiWidget(CSOUND *csound, FLTKKeyboardWidget *widget,
 {
 
     int i;
-        
+
     if(!widget->visible()) {
         return 0;
     }
 
     int count = 0;
- 
+
     widget->lock();
 
     KeyboardMapping* keyboardMapping = widget->keyboardMapping;
@@ -360,20 +360,20 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 {
 
     if(keyboardWidgets.find(csound) == keyboardWidgets.end()) {
-        return ReadMidiWindow(csound, 
+        return ReadMidiWindow(csound,
                 (FLTKKeyboardWindow *)userData, mbuf, nbytes);
     }
 
 //    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
-//    
+//
 //    if(v == (void *)NULL) {
-//        return ReadMidiWindow(csound, 
+//        return ReadMidiWindow(csound,
 //                (FLTKKeyboardWindow *)userData, mbuf, nbytes);
-//    } 
-        
+//    }
+
 //    return ReadMidiWidget(csound, (FLTKKeyboardWidget *)v, mbuf, nbytes);
-    
-    return ReadMidiWidget(csound, 
+
+    return ReadMidiWidget(csound,
         keyboardWidgets[csound], mbuf, nbytes);
 }
 
@@ -401,26 +401,26 @@ static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 
 static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
     if(keyboardWidgets.find(csound) != keyboardWidgets.end()) {
-        csound->ErrorMsg(csound, 
+        csound->ErrorMsg(csound,
             "FLvkeybd may only be used once in a project.\n");
-        return -1;                                    
+        return -1;
     }
-    
+
     char *mapFileName = new char[MAXNAME];
-    
-    csound->strarg2name(csound, mapFileName, p->mapFileName, "", p->XSTRCODE); 
-        
-    FLTKKeyboardWidget *widget = createWidget(csound, 
+
+    csound->strarg2name(csound, mapFileName, p->mapFileName, "", p->XSTRCODE);
+
+    FLTKKeyboardWidget *widget = createWidget(csound,
             mapFileName, (int)*p->ix, (int)*p->iy);
-    
-//    if(csound->CreateGlobalVariable(csound, "FLTK_VKeyboard_Widget", 
+
+//    if(csound->CreateGlobalVariable(csound, "FLTK_VKeyboard_Widget",
 //        sizeof(widget)) != CSOUND_SUCCESS) {
 //            csound->Die(csound,
 //                Str("FLvkeybd: error allocating global memory for keyboard"));
-//    } 
-//    
+//    }
+//
 //    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
-//    
+//
 //    v = &((void *)widget);
 
     keyboardWidgets[csound] = widget;
