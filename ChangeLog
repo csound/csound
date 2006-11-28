@@ -1,3 +1,13 @@
+2006-11-28  Steven Yi  <stevenyi@gmail.com>
+	* InOut/virtual_keyboard: Modified FLvkeybd to take in width and height,
+	make keyboard resizable
+
+2006-11-26  Steven Yi  <stevenyi@gmail.com>
+
+	* InOut/virtual_keyboard: Added FLvkeybd opcode to embed virtual keyboard
+	into FLTK Widget panel; only one allowed per project; useful for demo
+	versions of MIDI orchestras
+
 2006-11-25  Steven Yi  <stevenyi@gmail.com>
 
 	* InOut/widgets.cpp: Added FLcloseButton and FLexecButton opcodes;

@@ -36,7 +36,7 @@
 class FLTKKeyboardWidget  : public Fl_Group {
 public:
     FLTKKeyboardWidget(CSOUND * csound, const char *deviceMap,
-                                        int x, int y);
+                                        int x, int y, int w, int h);
     ~FLTKKeyboardWidget();
 
     FLTKKeyboard *keyboard;

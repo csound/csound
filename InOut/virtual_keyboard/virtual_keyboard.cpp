@@ -40,8 +40,8 @@ static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
 }
 
 static FLTKKeyboardWidget *createWidget(CSOUND *csound, const char *dev,
-        int x, int y) {
-    return new FLTKKeyboardWidget(csound, dev, x, y);
+        int w, int h, int x, int y) {
+    return new FLTKKeyboardWidget(csound, dev, x, y, w, h);
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
@@ -63,7 +63,7 @@ extern "C"
 
 typedef struct {
     OPDS    h;
-    MYFLT   *mapFileName, *ix, *iy;
+    MYFLT   *mapFileName, *iwidth, *iheight, *ix, *iy;
 } FLVKEYBD;
 
 
@@ -73,11 +73,6 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if(keyboardWidgets.find(csound) != keyboardWidgets.end()) {
         return 0;
     }
-
-//    if(csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget") != (void *)
-//        NULL) {
-//        return 0;
-//    }
 
     FLTKKeyboardWindow *keyboard = createWindow(csound, dev);
     *userData = (void *)keyboard;
@@ -364,15 +359,6 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
                 (FLTKKeyboardWindow *)userData, mbuf, nbytes);
     }
 
-//    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
-//
-//    if(v == (void *)NULL) {
-//        return ReadMidiWindow(csound,
-//                (FLTKKeyboardWindow *)userData, mbuf, nbytes);
-//    }
-
-//    return ReadMidiWidget(csound, (FLTKKeyboardWidget *)v, mbuf, nbytes);
-
     return ReadMidiWidget(csound,
         keyboardWidgets[csound], mbuf, nbytes);
 }
@@ -410,18 +396,8 @@ static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
 
     csound->strarg2name(csound, mapFileName, p->mapFileName, "", p->XSTRCODE);
 
-    FLTKKeyboardWidget *widget = createWidget(csound,
-            mapFileName, (int)*p->ix, (int)*p->iy);
-
-//    if(csound->CreateGlobalVariable(csound, "FLTK_VKeyboard_Widget",
-//        sizeof(widget)) != CSOUND_SUCCESS) {
-//            csound->Die(csound,
-//                Str("FLvkeybd: error allocating global memory for keyboard"));
-//    }
-//
-//    void *v = csound->QueryGlobalVariable(csound, "FLTK_VKeyboard_Widget");
-//
-//    v = &((void *)widget);
+    FLTKKeyboardWidget *widget = createWidget(csound, mapFileName,
+        (int)*p->iwidth, (int)*p->iheight, (int)*p->ix, (int)*p->iy);
 
     keyboardWidgets[csound] = widget;
 
@@ -431,7 +407,7 @@ static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
-    { "FLvkeybd", S(FLVKEYBD), 1,  "", "Tii",
+    { "FLvkeybd", S(FLVKEYBD), 1,  "", "Tiiii",
          (SUBR) fl_vkeybd, (SUBR) NULL, (SUBR) NULL },
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL,(SUBR) NULL }
 };

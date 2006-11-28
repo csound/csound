@@ -51,13 +51,6 @@ private:
 
   CSOUND *csound;
   void * mutex;
-
-  const int blackKeyHeight;
-  const int whiteKeyHeight;
-  const int blackKeyWidth;
-  const int whiteKeyWidth;
-  const int rightKeyBound; // = whiteKeyWidth - (blackKeyWidth / 2)
-  const int leftKeyBound; //= (blackKeyWidth / 2);
 };
 
 #endif /*FLTKKEYBOARD_HPP_*/
