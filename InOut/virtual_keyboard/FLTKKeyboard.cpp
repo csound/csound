@@ -22,19 +22,14 @@
 */
 
 #include <iostream>
+#include <math.h>
 
 #include <FL/fl_draw.H>
 #include "FLTKKeyboard.hpp"
 
 FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L)
-  : Fl_Widget(X, Y, W, H, L), 
-    blackKeyHeight(50), 
-    whiteKeyHeight(80),
-    blackKeyWidth(10),
-    whiteKeyWidth(12),
-    rightKeyBound(7), 
-    leftKeyBound(5) {
-    
+  : Fl_Widget(X, Y, W, H, L) {
+
     this->csound = csound;
     this->mutex = csound->Create_Mutex(0);
 
@@ -119,9 +114,10 @@ int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
     return 3 + (oct * 12) + whiteKeys[key];
 }
 
-int FLTKKeyboard::getMIDIKey(int xVal, int y) {
+int FLTKKeyboard::getMIDIKey(int xVal, int yVal) {
     int x = xVal - this->x();
-    
+    int y = yVal - this->y();
+
     if(x > this->w()) {
       return 87;
     }
@@ -130,12 +126,20 @@ int FLTKKeyboard::getMIDIKey(int xVal, int y) {
       return 0;
     }
 
-    
+    int whiteKeyHeight = this->h();
+    int blackKeyHeight = (int)(whiteKeyHeight * .625);
+
+    float whiteKeyWidth = this->w() / 52.0;
+    float blackKeyWidth = whiteKeyWidth * .8333333;
+
+    float leftKeyBound = blackKeyWidth / 2.0;
+    float rightKeyBound = whiteKeyWidth - leftKeyBound;
+
 
     // 52 white keys
-    int whiteKey = x  / whiteKeyWidth;
+    int whiteKey = (int)(x  / whiteKeyWidth);
 
-    int extra = x % whiteKeyWidth;
+    float extra = x - (whiteKey * whiteKeyWidth);
 
     if(whiteKey < 2) {
         if(whiteKey == 0) {
@@ -148,7 +152,7 @@ int FLTKKeyboard::getMIDIKey(int xVal, int y) {
                 return whiteKey;
             }
         } else {
-            if(y > blackKeyHeight + this->y()) {
+            if(y > blackKeyHeight) {
                 return getMidiValForWhiteKey(whiteKey);
             } else {
                 if(extra < leftKeyBound) {
@@ -163,7 +167,7 @@ int FLTKKeyboard::getMIDIKey(int xVal, int y) {
 
     if(adjustedKey == 0 || adjustedKey == 3) {
 
-        if(y > blackKeyHeight + this->y()) {
+        if(y > blackKeyHeight) {
             return getMidiValForWhiteKey(whiteKey);
         } else {
             if(extra > rightKeyBound) {
@@ -172,7 +176,7 @@ int FLTKKeyboard::getMIDIKey(int xVal, int y) {
             return getMidiValForWhiteKey(whiteKey);
         }
     } else if(adjustedKey == 2 || adjustedKey == 6) {
-        if(y > blackKeyHeight + this->y()) {
+        if(y > blackKeyHeight) {
             return getMidiValForWhiteKey(whiteKey);
         } else {
             if(extra < leftKeyBound) {
@@ -182,7 +186,7 @@ int FLTKKeyboard::getMIDIKey(int xVal, int y) {
         }
     }
 
-    if(y > blackKeyHeight  + this->y()) {
+    if(y > blackKeyHeight) {
         return getMidiValForWhiteKey(whiteKey);
     }
 
@@ -319,18 +323,18 @@ int FLTKKeyboard::handle(int event) {
             if(Fl::event_button2() || Fl::event_button3()) {
                 return 1;
             }
-    
+
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
-    
+
             this->lock();
 
             lastMidiKey = key;
             keyStates[key] = 1;
-    
+
             this->unlock();
             Fl::focus(this);
             this->redraw();
-    
+
             return 1;
         case FL_DRAG:
           if(Fl::event_button2() || Fl::event_button3()) {
@@ -430,37 +434,54 @@ int FLTKKeyboard::isWhiteKey(int key) {
 }
 
 void FLTKKeyboard::draw() {
-    int width = whiteKeyWidth, i;
+    int i;
 
-    int runningX = this->x();
+    int whiteKeyHeight = this->h();
+    int blackKeyHeight = (int)(whiteKeyHeight * .625);
+    float whiteKeyWidth = this->w() / 52.0;
+    int blackKeyWidth = (int)(whiteKeyWidth * .8333333);
+    int blackKeyOffset = blackKeyWidth / 2;
+
+    float runningX = (float)this->x();
     int yval = this->y();
+
+    fl_draw_box(box(), this->x(), this->y(), this->w(), this->h(), FL_WHITE);
+    fl_rect(this->x(), this->y(), this->w(),this->h(), FL_BLACK);
+
+    int lineHeight = this->y() + whiteKeyHeight - 1;
 
     // Draw White Keys
     for(i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
+            int newX = (int)round(runningX);
+
             if(keyStates[i] == 1) {
-                fl_draw_box(box(), runningX, yval, width, whiteKeyHeight, FL_BLUE);
-            } else {
-                fl_draw_box(box(), runningX, yval, width, whiteKeyHeight, FL_WHITE);
+                int newW = (int)(round(runningX + whiteKeyWidth) - newX);
+                fl_draw_box(box(), newX, yval, newW,
+                    whiteKeyHeight - 1, FL_BLUE);
             }
-            fl_rect(runningX, yval, width, whiteKeyHeight, FL_BLACK);
-            runningX += width;
+
+            runningX += whiteKeyWidth;
+
+            fl_color(FL_BLACK);
+
+            fl_line(newX, this->y(), newX, lineHeight);
         }
     }
 
-    runningX = this->x();
+    runningX = (float)this->x();
 
     // Draw Black Keys
     for(i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
-            runningX += width;
+            runningX += whiteKeyWidth;
         } else {
             if(keyStates[i] == 1) {
-                fl_draw_box(box(), runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLUE);
+                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLUE);
             } else {
-                fl_draw_box(box(), runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
+                fl_draw_box(box(), (int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
             }
-            fl_rect(runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
+            fl_rect((int)(runningX - blackKeyOffset), yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
         }
     }
 }
