@@ -71,8 +71,8 @@ static void programChange(Fl_Widget *widget, void * v) {
 
 FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
           const char *deviceMap,
-          int X, int Y)
-    : Fl_Group(X, Y, 624, 120)
+          int X, int Y, int w, int h)
+    : Fl_Group(X, Y, w, h)
 {
 
     this->csound = csound;
@@ -89,13 +89,24 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
     int row2 = row1 + 20;
     int row3 = row2 + 20;
 
-    this->channelSpinner = new Fl_Spinner(baseX + 60, row1, 80, 20, "Channel");
+    int x1 = (int)(baseX + ((60 / 624.0) * w));
+    int x2 = (int)(baseX + ((180 / 624.0) * w));
+    int x3 = (int)(baseX + ((420 / 624.0) * w));
+
+    int w1 = (int)((80 / 624.0) * w);
+    int w2 = (int)((180 / 624.0) * w);
+    int w3 = (int)((200 / 624.0) * w);
+
+
+    //624, 120
+
+    this->channelSpinner = new Fl_Spinner(x1, row1, w1, 20, "Channel");
     channelSpinner->maximum(16);
     channelSpinner->minimum(1);
     this->channelSpinner->callback((Fl_Callback*) channelChange, this);
 
-    this->bankChoice = new Fl_Choice(baseX + 180, row1, 180, 20, "Bank");
-    this->programChoice = new Fl_Choice(baseX + 420, row1, 200, 20, "Program");
+    this->bankChoice = new Fl_Choice(x2, row1, w2, 20, "Bank");
+    this->programChoice = new Fl_Choice(x3, row1, w3, 20, "Program");
 
     bankChoice->clear();
 
@@ -111,10 +122,10 @@ FLTKKeyboardWidget::FLTKKeyboardWidget(CSOUND *csound,
     this->programChoice->callback((Fl_Callback*)programChange, this);
 
 
-    this->allNotesOffButton = new Fl_Button(baseX, row2, 623, 20, "All Notes Off");
+    this->allNotesOffButton = new Fl_Button(baseX, row2, w, 20, "All Notes Off");
     this->allNotesOffButton->callback((Fl_Callback*) allNotesOff, this);
 
-    this->keyboard = new FLTKKeyboard(csound, baseX, row3, 624, 80, "Keyboard");
+    this->keyboard = new FLTKKeyboard(csound, baseX, row3, w, h - 40, "Keyboard");
 
     this->end();
 
