@@ -1623,7 +1623,7 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
     return OK;
 }
 
-static int vmap(CSOUND *csound,VECTORSOP *p)
+/*static int vmap(CSOUND *csound,VECTORSOP *p)
 {
     int elements = *p->kelements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -1632,6 +1632,79 @@ static int vmap(CSOUND *csound,VECTORSOP *p)
       *vector1 = (vector2++)[(int)*vector1];
       vector1++;
     } while (--elements);
+    return OK;
+}*/
+
+static int vmap_i(CSOUND *csound,VECTORSOPI *p)
+{
+       FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL)  {
+      csound->InitError(csound,
+                        Str("vmap: ifn1 invalid table number %i"),
+                        (int) *p->ifn1);
+      return NOTOK;
+    }
+    else if (ftp2 == NULL)  {
+      csound->InitError(csound,
+                        Str("vmap: ifn2 invalid table number %i"),
+                        (int) *p->ifn2);
+      return NOTOK;
+    }
+/*     if (*p->ifn1 == *p->ifn2)
+       csound->Warning(csound, Str("vcopy_i: ifn1 = ifn2."));*/
+    vector1 = ftp1->ftable;
+    vector2 = ftp2->ftable;
+    len1 = (long) ftp1->flen+1;
+    len2 = (long) ftp2->flen+1;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if (dstoffset < 0) {
+      elements += dstoffset;
+      srcoffset -= dstoffset;
+    }
+    else {
+      len1 -= dstoffset;
+      vector1 += dstoffset;
+    }
+    if (elements > len1)  {
+      elements = len1;
+      csound->Warning(csound,Str("vmap: ifn1 length exceeded"));
+    }
+/*     elements = (elements < len1 ? elements : len1);*/
+    if (srcoffset < 0) {
+      /*int   i, */n = -srcoffset;
+      n = (n < elements ? n : elements);
+      for (i = 0; i < n; i++)
+        vector1[i] = 0;
+      elements -= i;
+      vector1 += i;
+    }
+    else {
+      len2 -= srcoffset;
+      vector2 += srcoffset;
+    }
+/*     n = (elements < len2 ? elements : len2);*/
+    if (elements > len2) {
+      csound->Warning(csound,Str("vmap: ifn2 length exceeded"));
+      n = len2;
+    }
+    else n = elements;
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      /* special case: need to reverse direction*/
+      for (j = n; --j >= 0; i++)
+        vector1[j] = vector2[(int)vector1[j]];
+    }
+    for ( ; i < n; i++)
+      vector1[i] = vector2[(int)vector1[j]];
+    for ( ; i < elements; i++)
+      vector1[i] = 0;
     return OK;
 }
 
@@ -2355,7 +2428,7 @@ static OENTRY localops[] = {
   { "vexpv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vexpv_i, NULL, NULL      },
   { "vcopy",  S(VECTORSOP),  3, "",  "iikOOO", (SUBR)vectorsOp_set, (SUBR) vcopy },
   { "vcopy_i", S(VECTORSOP), 1, "",  "iiioo", (SUBR) vcopy_i, NULL, NULL      },
-  { "vmap",   S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR)vmap   },
+  { "vmap",   S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vmap_i, NULL, NULL          },
   { "vlimit", S(VLIMIT),     3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit    },
   { "vwrap",  S(VLIMIT),     3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap    },
   { "vmirror", S(VLIMIT),    3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror   },
