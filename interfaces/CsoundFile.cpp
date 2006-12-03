@@ -753,6 +753,37 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
   return false;
 }
 
+std::map<int, std::string> CsoundFile::getInstrumentNames() const
+{
+  std::map<int, std::string> instrumentNames;
+  int beginDefinition = 0;
+  int endDefinition = 0;
+  for(int index = 0; true; index++)
+    {
+      beginDefinition = findToken(orchestra, "instr", beginDefinition);
+      if(beginDefinition == -1)
+        {
+          return instrumentNames;
+        }
+      endDefinition = findToken(orchestra, "endin", beginDefinition);
+      if(endDefinition == -1)
+        {
+          return instrumentNames;
+        }
+      endDefinition += 6;
+      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string pre;
+      std::string id;
+      std::string name;
+      std::string post;
+      if(parseInstrument(definition, pre, id, name, post))
+        {
+          instrumentNames[atof(id.c_str())] = name;
+        }
+      beginDefinition++;
+    }
+}
+
 //bool CsoundFile::getInstrumentNumber(int number_, std::string &definition_) const
 //{
 //      int beginDefinition = 0;
