@@ -1102,7 +1102,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
     Opcodes/wave-terrain.c
-    Opcodes/stdopcod.c
+    Opcodes/stdopcod.c	    
 '''))
 
 pluginLibraries.append('opcodes.dir')
@@ -1149,6 +1149,8 @@ makePlugin(pluginEnvironment, 'vbap',
 makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
 makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
 makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
+makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
+
 # Plugins with External Dependencies
 
 # FLTK widgets
