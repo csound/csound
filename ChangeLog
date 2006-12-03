@@ -1,4 +1,12 @@
-2006-11-28  Steven Yi  <stevenyi@gmail.com>
+2006-12-02  Michael Gogins <gogins@pipeline.com>
+
+	* Added CppSound::getInstrumentNames() to return a map of
+	instrument numbers to names for a loaded Csound orchestra.
+	* Added ampmidid opcodes, which map MIDI velocity variable
+	to peak amplitude using the method of Dannenberg (ICMC 2006),
+	according to a user-specified dynamic range in dB.
+	
+ý2006-11-28  Steven Yi  <stevenyi@gmail.com>
 	* InOut/virtual_keyboard: Modified FLvkeybd to take in width and height,
 	make keyboard resizable
 
