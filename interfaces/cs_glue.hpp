@@ -31,6 +31,8 @@
  * Creates an alphabetically sorted opcode list for a Csound instance.
  * Should be called after csoundCompile() or Csound::Compile().
  */
+ 
+void sigcpy(MYFLT *dest, MYFLT *src, int size);
 
 class CsoundOpcodeList {
  private:
