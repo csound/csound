@@ -42,6 +42,7 @@ extern "C" {
     char        *buf;
   };
 
+
   // callback for storing messages in the buffer only
   static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
                                              const char *fmt, va_list args);
@@ -241,6 +242,12 @@ extern "C" {
   }
 
 }       // extern "C"
+
+
+  void sigcpy(MYFLT *dest, MYFLT *src, int size){
+	while(size--) *(dest++) = *(src++);
+  }
+
 
 // ----------------------------------------------------------------------------
 
