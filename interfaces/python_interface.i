@@ -31,6 +31,15 @@
 %include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
+%include "carrays.i"
+%array_functions(int, intp);
+%array_functions(float, floatp);
+%array_functions(double, doublep);
+
+%array_class(int, intArray);
+%array_class(float, floatArray);
+%array_class(double, doubleArray)
+
 %feature("autodoc", "1");
 %{
     #include "csound.h"
