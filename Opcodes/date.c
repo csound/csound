@@ -29,6 +29,12 @@ typedef struct {
    MYFLT *ans;
 } DATE;
 
+typedef struct {
+   OPDS h;
+   MYFLT *ans;
+   MYFLT *timstmp;
+} DATES;
+
 static int dateinit(CSOUND *csound, DATE *p)
 {
     time_t tt = time(NULL);
@@ -36,11 +42,25 @@ static int dateinit(CSOUND *csound, DATE *p)
     return OK;
 }
 
-int datesinit(CSOUND *csound, DATE *p)
+int datesinit(CSOUND *csound, DATES *p)
 {
-    time_t tt = time(NULL);
-    char *s = ctime(&tt);
-
+    time_t tt;
+    char *s;
+    long tmp;
+#if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
+    tmp = (long) MYFLT2LRND(*(p->timstmp));
+#else
+    tmp = (long) (*(p->timstmp) + FL(1.5)) - 1;
+#endif
+    if (tmp < 0) {
+      tt = time(NULL);
+/*       printf("Timestamp = %f\n", *p->timstmp); */
+    }
+    else {
+      tt = (time_t)tmp;
+/*       printf("Timestamp = %f\n", *p->timstmp); */
+    }
+    s = ctime(&tt);
     ((char*) p->ans)[0] = '\0';
     if ((int) strlen(s) >= csound->strVarMaxLen)
       return csound->InitError(csound, Str("dates: buffer overflow"));
@@ -52,12 +72,7 @@ int datesinit(CSOUND *csound, DATE *p)
 
 static OENTRY localops[] = {
 { "date",    S(DATE),     1,     "i",    "",(SUBR)dateinit, NULL, NULL },
-{ "dates",   S(DATE),     1,     "S",    "",(SUBR)datesinit, NULL, NULL },
+{ "dates",   S(DATE),     1,     "S",    "j",(SUBR)datesinit, NULL, NULL },
 };
 
-int date_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
-
+LINKAGE
