@@ -1101,7 +1101,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
+    Opcodes/wave-terrain.c  Opcodes/date.c
     Opcodes/stdopcod.c	    
 '''))
 
