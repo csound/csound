@@ -52,7 +52,6 @@ static int dates_init(CSOUND *csound, DATES *p)
 #else
     tmp = (long) (*(p->timstmp) + FL(0.5));
 #endif
-    printf("Tmp=%ld\n", tmp);
     if (tmp < 0) {
       tt = time(NULL);
 /*       printf("Timestamp = %f\n", *p->timstmp); */
