@@ -89,6 +89,15 @@ namespace csound
     return pcs;
   }
 
+  void Voicelead::primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, double &prime, double &transposition, size_t divisionsPerOctave)
+  {
+    std::vector<double> normalChord_ = normalChord(pcs);
+    std::vector<double> primeChord = zeroChord(normalChord_);
+    prime = numberFromChord(primeChord, divisionsPerOctave);
+    transposition = normalChord_[0];
+  }
+
+
   std::vector<double> Voicelead::voiceleading(const std::vector<double> &a,
                                               const std::vector<double> &b)
   {
@@ -234,8 +243,8 @@ namespace csound
   }
 
   const std::vector<double> Voicelead::closest(const std::vector<double> &source,
-                                                const std::vector< std::vector<double> > &targets,
-                                                bool avoidParallels)
+					       const std::vector< std::vector<double> > &targets,
+					       bool avoidParallels)
   {
     if (targets.size() == 0) {
       return source;
@@ -488,11 +497,11 @@ namespace csound
         }
       }
     }
-	return normalChord;
+    return normalChord;
   }
 
   std::vector<double>  Voicelead::primeChord(const std::vector<double> &chord)
   {
-	  return zeroChord(normalChord(chord));
+    return zeroChord(normalChord(chord));
   }
 }

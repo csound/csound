@@ -23,6 +23,8 @@
 #include "Conversions.hpp"
 #include "Voicelead.hpp"
 
+#include <cmath>
+
 namespace csound
 {
 
@@ -37,12 +39,12 @@ namespace csound
     rescaledTime(0.0),
     P(double(0.0) / double(0.0)),
     T(double(0.0) / double(0.0)),
-    N(double(0.0) / double(0.0)),
+    S(double(0.0) / double(0.0)),
     V(double(0.0) / double(0.0)),
     L(false),
-    parallels(false),
     begin(0),
-    end(0)
+    end(0),
+    avoidParallels(false)
   {
   }
   
@@ -53,7 +55,9 @@ namespace csound
   VoiceleadingNode::VoiceleadingNode() : 
     base(36.0),
     range(60.0),
-    rescaleTimes(true)
+    rescaleTimes(true),
+    avoidParallels(true),
+    divisionsPerOctave(12)
   {
   }
 
@@ -61,34 +65,134 @@ namespace csound
   {
   }
 
-  void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &currentOperation, double nextTime)
+  void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
-    size_t begin = score.indexForTime(currentOperation.time);
-    if (currentOperation.P != VoiceleadingOperation::INAPPLICABLE) {
-    } else if (currentOperation.S != VoiceleadingOperation::INAPPLICABLE) {
+    if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
+      if (!std::isnan(operation.V)) {
+	score.setPTV(operation.begin, 
+		     operation.end, 
+		     operation.P, 
+		     operation.T, 
+		     operation.V, 
+		     base, 
+		     range);
+      } else if (!std::isnan(operation.L)) {
+	score.setPT(operation.begin, 
+		    operation.end, 
+		    operation.P, 
+		    operation.T, 
+		    base, 
+		    range, 
+		    divisionsPerOctave);
+	score.recursiveVoicelead(priorOperation.begin, 
+				 priorOperation.end, 
+				 operation.begin, 
+				 operation.end, 
+				 base,
+				 range,
+				 avoidParallels, 
+				 divisionsPerOctave);
+      } else {
+	score.setPT(operation.begin, 
+		    operation.end, 
+		    operation.P, 
+		    operation.T, 
+		    base,
+		    range, 
+		    divisionsPerOctave);
+      }
+    } else if (!std::isnan(operation.S)) {
+      if (!std::isnan(operation.V)) {
+	double prime;
+	double transposition;
+	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
+	Voicelead::primeAndTranspositionFromPitchClassSet(pcs, prime, transposition, divisionsPerOctave);
+	score.setPTV(operation.begin, 
+		     operation.end, 
+		     prime, 
+		     transposition, 
+		     operation.V, 
+		     base, 
+		     range);
+      } else if (!std::isnan(operation.L)) {
+	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
+	score.setPitchClassSet(operation.begin, 
+			       operation.end, 
+			       pcs,
+			       divisionsPerOctave);
+	score.recursiveVoicelead(priorOperation.begin, 
+				 priorOperation.end, 
+				 operation.begin, 
+				 operation.end, 
+				 base,
+				 range,
+				 avoidParallels, 
+				 divisionsPerOctave);
+      } else {
+	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
+	score.setPitchClassSet(operation.begin, 
+			       operation.end, 
+			       pcs,
+			       divisionsPerOctave);
+      }
     } else {
+      if (!std::isnan(operation.V)) {
+      } else if (!std::isnan(operation.L)) {
+	std::vector<double> ptv = score.getPTV(operation.begin,
+					       operation.end,
+					       base,
+					       range,
+					       divisionsPerOctave);
+	score.setPTV(operation.begin,
+		     operation.end,
+		     ptv[0],
+		     ptv[1],
+		     operation.V,
+		     base,
+		     range,
+		     divisionsPerOctave);
+      } else {
+	score.recursiveVoicelead(priorOperation.begin, 
+				 priorOperation.end, 
+				 operation.begin, 
+				 operation.end, 
+				 base,
+				 range,
+				 avoidParallels, 
+				 divisionsPerOctave);
+      }
     }
   }
 
   void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
   {
+    if (operations.empty()) {
+      return;
+    }
     // First, rescale the times for the operations, if that is required.
     double timeMinimum;
     double timeRange;
     double timeScale = 1.0;
     double maxTime = operations.rbegin()->first;
     if (rescaleTimes) {
-      score::getScale(score, Event::TIME, 0, score.size(), timeMinimum, timeRange);
-      timeScale = maxTime / timeRange;
+      Score::getScale(score, Event::TIME, 0, score.size(), timeMinimum, timeRange);
+      timeScale = timeRange / maxTime;
     }
-    for (operations.iterator it = operations.begin(); it != operations.end(); ++it) {
-      it->rescaledTime = it->time * timeScale;
+    std::vector<double> keys;
+    for (std::map<double, VoiceleadingOperation>::iterator it = operations.begin(); it != operations.end(); ++it) {
+      keys.push_back(it->first);
     }
-    // Iterate over the operations, keeping the prior one around.
-    VoiceleadingOperation priorOperation = *operations.begin();
-    for (operations.const_iterator it = operations.begin(); it != operations.end(); ++it) {
-      apply(score, priorOperation, *it);
-      priorOperation = *it;
+    VoiceleadingOperation *priorOperation = &operations[0];
+    for (size_t i = 0, n = keys.size(); i < n; i++)  {
+      VoiceleadingOperation *operation = &operations[i];
+      operation->begin = score.indexAtTime(operation->rescaledTime);
+      if (i < (n - 1)) {
+	operation->end = score.indexAfterTime(operations[i + 1].rescaledTime);
+      } else {
+	operation->end = score.size();
+      }
+      apply(score, *priorOperation, *operation);
+      priorOperation = operation;
     }
   }
 
@@ -131,8 +235,7 @@ namespace csound
 
   void VoiceleadingNode::SV(double time, std::string S, double V)
   {
-    double s = Conversions::chordToNumber(S) - 1.0;
-    SV(time, s, V);
+    SV(time, nameToS(S), V);
   }
 
   void VoiceleadingNode::SL(double time, double S, bool avoidParallels)

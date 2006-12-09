@@ -80,6 +80,7 @@
 #include "MCRM.hpp"
 #include "Soundfile.hpp"
 #include "Voicelead.hpp"
+#include "VoiceleadingNode.hpp"
 
 #endif
 
