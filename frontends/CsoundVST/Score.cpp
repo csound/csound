@@ -599,6 +599,9 @@ namespace csound
                         bool avoidParallelFifths,
                         size_t divisionsPerOctave)
   {
+    if (beginSource == beginTarget && endSource == endTarget) {
+      return;
+    }
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
       return;
@@ -627,6 +630,9 @@ namespace csound
                                  bool avoidParallelFifths,
                                  size_t divisionsPerOctave)
   {
+    if (beginSource == beginTarget && endSource == endTarget) {
+      return;
+    }
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
       return;
@@ -694,10 +700,10 @@ namespace csound
     setPitches(beginTarget, endTarget, voicing);
   }
 
-  struct TimeComparator
+  struct TimeAtComparator
   {
     double time;
-    TimeComparator(double time_) : time(time_)
+    TimeAtComparator(double time_) : time(time_)
     {
     }
     bool operator()(const Event &event)
@@ -710,10 +716,36 @@ namespace csound
     }
   };
 
-  int Score::indexForTime(double time)
+  int Score::indexAtTime(double time)
   {
-    int index = -1;
-    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeComparator(time));
+    int index = size();
+    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAtComparator(time));
+    if (it != end()) {
+      index = (it - begin());
+    }
+    return index;
+  }
+
+  struct TimeAfterComparator
+  {
+    double time;
+    TimeAfterComparator(double time_) : time(time_)
+    {
+    }
+    bool operator()(const Event &event)
+    {
+      if (event.getTime() > time) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
+
+  int Score::indexAfterTime(double time)
+  {
+    int index = size();
+    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAfterComparator(time));
     if (it != end()) {
       index = (it - begin());
     }

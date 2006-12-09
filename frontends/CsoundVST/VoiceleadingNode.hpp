@@ -42,13 +42,8 @@ namespace csound
   class VoiceleadingOperation 
   {
   public:
-    /**
-     * Constant used to indicate
-     * that an operation is not to be applied.
-     */
-    const static double INAPPLICABLE;
-    VoiceLeading();
-    virtual ~VoiceLeading();
+    VoiceleadingOperation();
+    virtual ~VoiceleadingOperation();
     double time;
     double rescaledTime;
     double P;
@@ -56,15 +51,17 @@ namespace csound
     double S;
     double V;
     bool L;
-    bool parallels;
-    std::vector<double> chord;
+    size_t begin;
+    size_t end;
+    bool avoidParallels;
   };
   
   /**
-   * Node class that imposes 
-   * a sequence of one or more operations upon
+   * This node class imposes 
+   * a sequence of one or more 
+   * "voice-leading" operations upon
    * the pitches of notes produced by children of this node.
-   * Operations include:
+   * These operations comprise:
    * prime chord (P),
    * transpose (T),
    * unordered pitch-class set (S, equivalent to PT),
@@ -90,6 +87,8 @@ namespace csound
     double base;
     double range;
     bool rescaleTimes;
+    bool avoidParallels;
+    size_t divisionsPerOctave;
     VoiceleadingNode();
     virtual ~VoiceleadingNode();
     /**
@@ -99,15 +98,15 @@ namespace csound
     virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
     virtual void PT(double time, double P, double T);
     virtual void PTV(double time, double P, double T, double V);
-    virtual void PTL(double time, double P, double T, bool avoidParallels = false);
+    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
     virtual void S(double time, double S_);
     virtual void S(double time, std::string S_);
     virtual void SV(double time, double S, double V);
     virtual void SV(double time, std::string S, double V);
-    virtual void SL(double time, double S, bool avoidParallels = false);
-    virtual void SL(double time, std::string S, bool avoidParallels = false);
+    virtual void SL(double time, double S, bool avoidParallels = true);
+    virtual void SL(double time, std::string S, bool avoidParallels = true);
     virtual void V(double time, double V_);
-    virtual void L(double time, bool avoidParallels = false);
+    virtual void L(double time, bool avoidParallels = true);
   };
 }
 #endif

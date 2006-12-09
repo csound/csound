@@ -148,6 +148,14 @@ namespace csound
     static std::vector<double> pcsFromNumber(double pcn, size_t divisionsPerOctave = 12);
 
     /**
+     * Convert a pitch-class set to a prime chord number and a transposition.
+     */
+    static void primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, 
+						       double &prime, 
+						       double &transposition, 
+						       size_t divisionsPerOctave = 12);
+
+    /**
      * Return all voicings of the chord
      * within the specified range. These voices
      * include all unordered permutations of the pitch-classes
