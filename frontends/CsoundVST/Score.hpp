@@ -272,10 +272,23 @@ namespace csound
                                     bool avoidParallelFifths,
                                     size_t divisionsPerOctave = 12);
     /**
-     * Return the index of the first event at or after the specified time;
-     * if the time is not found, return -1.
+     * Return the index of the first event at or after the specified time,
+     * that is return "begin" for the time;
+     * if the time is not found, return the size of the score.
+     * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
+     * to iterate over all and only those events included 
+     * between t1 and t2.
      */
-    virtual int indexForTime(double time);
+    virtual int indexAtTime(double time);
+    /**
+     * Return the index of the first event after the specified time,
+     * that is return "end" for the time;
+     * if the time is not found, return the size of the score.
+     * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
+     * to iterate over all and only those events included 
+     * between t1 and t2.
+     */
+    virtual int indexAfterTime(double time);
     /**
      * Return the time of the first event at or after the specified index;
      * if the index is not found, return DBL_MAX.
