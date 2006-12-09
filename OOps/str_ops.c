@@ -232,7 +232,9 @@ static CS_NOINLINE int
         continue;
       }
       if (fmt[0] == '%' && fmt[1] == '%') {
-        strseg[i++] = *fmt++;
+        strseg[i++] = *fmt++;   /* Odd code: %% is usually % and as we
+                                   know the value of *fmt the loads are
+                                   unnecessary */
         strseg[i++] = *fmt++;
         continue;
       }
