@@ -55,6 +55,8 @@ namespace csound
     size_t end;
     bool avoidParallels;
   };
+
+  std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation);
   
   /**
    * This node class imposes 
