@@ -594,7 +594,7 @@ static const CSOUND cenviron_ = {
         csoundDoCallback_,  /*  doCsoundCallback    */
         &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
         csound_str_hash_32, /*  strHash32           */
-        {0, 0, NULL},   /* REMOT_BUF */
+        {0, 0, {NULL}}, /* REMOT_BUF */
         NULL,           /* remoteGlobals        */
         0, 0,           /* nchanof, nchanif     */
         NULL, NULL,     /* chanif, chanof       */
@@ -1091,7 +1091,7 @@ static const CSOUND cenviron_ = {
     csound->spoutactive = 0;            /*   make spout inactive   */
     ip = csound->actanchor.nxtact;
     while (ip != NULL) {                /* for each instr active:  */
-      INSDS *nxt = ip->nxtact;
+/*     INSDS *nxt = ip->nxtact; */
       csound->pds = (OPDS*) ip;
       while ((csound->pds = csound->pds->nxtp) != NULL) {
         (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
@@ -1100,7 +1100,7 @@ static const CSOUND cenviron_ = {
                                    deletions */
     }
     if (!csound->spoutactive)           /*   results now in spout? */
-      for (i = 0; i < (int) csound->nspout; i++)
+      for (i = 0; i < csound->nspout; i++)
         csound->spout[i] = FL(0.0);
     csound->spoutran(csound);           /*      send to audio_out  */
     return 0;
