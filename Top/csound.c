@@ -1096,7 +1096,8 @@ static const CSOUND cenviron_ = {
       while ((csound->pds = csound->pds->nxtp) != NULL) {
         (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
       }
-      ip = nxt;
+      ip = ip->nxtact;          /* ip = nxt; but that does not allow for
+                                   deletions */
     }
     if (!csound->spoutactive)           /*   results now in spout? */
       for (i = 0; i < (int) csound->nspout; i++)
