@@ -98,6 +98,9 @@ namespace csound
     stream << "currrentOperation: " << operation;
     stream << std::endl;
     System::inform(stream.str());
+    if (operation.begin == operation.end) {
+      return;
+    }
     if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
       if (!std::isnan(operation.V)) {
 	score.setPTV(operation.begin, 
@@ -107,7 +110,7 @@ namespace csound
 		     operation.V, 
 		     base, 
 		     range);
-      } else if (!std::isnan(operation.L)) {
+      } else if (operation.L) {
 	score.setPT(operation.begin, 
 		    operation.end, 
 		    operation.P, 
@@ -145,7 +148,7 @@ namespace csound
 		     operation.V, 
 		     base, 
 		     range);
-      } else if (!std::isnan(operation.L)) {
+      } else if (operation.L) {
 	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
 	score.setPitchClassSet(operation.begin, 
 			       operation.end, 
@@ -168,7 +171,6 @@ namespace csound
       }
     } else {
       if (!std::isnan(operation.V)) {
-      } else if (!std::isnan(operation.L)) {
 	std::vector<double> ptv = score.getPTV(operation.begin,
 					       operation.end,
 					       base,
@@ -182,7 +184,7 @@ namespace csound
 		     base,
 		     range,
 		     divisionsPerOctave);
-      } else {
+      } else if (operation.L) {
 	score.recursiveVoicelead(priorOperation.begin, 
 				 priorOperation.end, 
 				 operation.begin, 
