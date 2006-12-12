@@ -1885,10 +1885,11 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           }
           while (c[i]) {
             switch (c[i]) {
-              case 'a': xtypes[i] = c[i]; break;
-              case 'k':
-              case 'K': xtypes[i] = 'k'; break;
-              default:  xtypes[i] = 'i';
+            case 'a': xtypes[i] = c[i]; break;
+            case 'k':
+            case 'K': xtypes[i] = 'k'; break;
+            case 'S': xtypes[i] = 'S'; break;
+            default:  xtypes[i] = 'i';
             }
             i++;
           }
