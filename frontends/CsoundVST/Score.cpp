@@ -152,7 +152,13 @@ namespace csound
     range = maximum - minimum;
   }
 
-  void Score::setScale(std::vector<Event> &score, int dimension, bool rescaleMinimum, bool rescaleRange, size_t beginAt, size_t endAt, double targetMinimum, double targetRange)
+  void Score::setScale(std::vector<Event> &score, 
+		       int dimension, bool rescaleMinimum, 
+		       bool rescaleRange, 
+		       size_t beginAt, 
+		       size_t endAt, 
+		       double targetMinimum, 
+		       double targetRange)
   {
     if(!(rescaleMinimum || rescaleRange))
       {
@@ -478,6 +484,12 @@ namespace csound
 
   std::vector<double> Score::getPitches(size_t begin, size_t end, size_t divisionsPerOctave) const
   {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
     std::set<double> pitches;
     std::vector<double> chord;
     size_t n = std::min(end, size());
@@ -495,8 +507,13 @@ namespace csound
 
   void Score::setPitches(size_t begin, size_t end, const std::vector<double> &pitches)
   {
-    size_t n = std::min(end, size());
-     for (size_t i = begin; i < n; i++) {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
+    for (size_t i = begin; i < end; i++) {
       Event &event = (*this)[i];
       event.setKey(Voicelead::closestPitch(event.getKey(), pitches));
     }
@@ -504,15 +521,33 @@ namespace csound
 
   void Score::setPitchClassSet(size_t begin, size_t end, const std::vector<double> &pcs, size_t divisionsPerOctave)
   {
-    size_t n = std::min(end, size());
-    for (size_t i = begin; i < n; i++) {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
+    if (begin == end) {
+      return;
+    }
+    for (size_t i = begin; i < end; i++) {
       Event &event = (*this)[i];
       event.setKey(Voicelead::conformToPitchClassSet(event.getKey(), pcs, divisionsPerOctave));
     }
   }
 
-  std::vector<double> Score::getPTV(size_t begin, size_t end, double lowest, double range, size_t divisionsPerOctave) const
+  std::vector<double> Score::getPTV(size_t begin, 
+				    size_t end, 
+				    double lowest, 
+				    double range, 
+				    size_t divisionsPerOctave) const
   {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
     double prime = 0.0;
     double transposition = 0.0;
     double voicing = 0.0;
@@ -539,8 +574,24 @@ namespace csound
     return ptv;
   }
 
-  void Score::setPTV(size_t begin, size_t end, double prime, double transposition, double voicing_, double lowest, double range, size_t divisionsPerOctave)
+  void Score::setPTV(size_t begin, 
+		     size_t end, 
+		     double prime, 
+		     double transposition, 
+		     double voicing_, 
+		     double lowest, 
+		     double range, 
+		     size_t divisionsPerOctave)
   {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
+    if (begin == end) {
+      return;
+    }
     std::vector<double> chord;
     int prime_ = int(std::fabs(prime + 0.5));
     for (int i = 0; i < int(divisionsPerOctave); i++) {
@@ -555,8 +606,18 @@ namespace csound
     setPitches(begin, end, voicing);
   }
 
-  std::vector<double> Score::getPT(size_t begin, size_t end, double lowest, double range, size_t divisionsPerOctave) const
+  std::vector<double> Score::getPT(size_t begin, 
+				   size_t end, 
+				   double lowest, 
+				   double range, 
+				   size_t divisionsPerOctave) const
   {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
     double prime = 0.0;
     double transposition = 0.0;
     std::vector<double> pt(2);
@@ -576,8 +637,23 @@ namespace csound
     return pt;
   }
 
-  void Score::setPT(size_t begin, size_t end, double prime, double transposition, double lowest, double range, size_t divisionsPerOctave)
+  void Score::setPT(size_t begin, 
+		    size_t end, 
+		    double prime, 
+		    double transposition, 
+		    double lowest, 
+		    double range, 
+		    size_t divisionsPerOctave)
   {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
+    if (begin == end) {
+      return;
+    }
     std::vector<double> chord;
     int prime_ = int(std::fabs(prime + 0.5));
     for (int i = 0; i < int(divisionsPerOctave); i++) {
@@ -599,6 +675,24 @@ namespace csound
                         bool avoidParallelFifths,
                         size_t divisionsPerOctave)
   {
+    if (beginSource < 0) {
+      beginSource = 0;
+    }
+    if (endSource > size()) {
+      endSource = size();
+    }
+    if (beginSource == endSource) {
+      return;
+    }
+    if (beginTarget < 0) {
+      beginTarget = 0;
+    }
+    if (endTarget > size()) {
+      endTarget = size();
+    }
+    if (beginTarget == endTarget) {
+      return;
+    }
     if (beginSource == beginTarget && endSource == endTarget) {
       return;
     }
@@ -630,6 +724,24 @@ namespace csound
                                  bool avoidParallelFifths,
                                  size_t divisionsPerOctave)
   {
+    if (beginSource < 0) {
+      beginSource = 0;
+    }
+    if (endSource > size()) {
+      endSource = size();
+    }
+    if (beginSource == endSource) {
+      return;
+    }
+    if (beginTarget < 0) {
+      beginTarget = 0;
+    }
+    if (endTarget > size()) {
+      endTarget = size();
+    }
+    if (beginTarget == endTarget) {
+      return;
+    }
     if (beginSource == beginTarget && endSource == endTarget) {
       return;
     }
@@ -672,6 +784,27 @@ namespace csound
                                  bool avoidParallelFifths,
                                  size_t divisionsPerOctave)
   {
+    if (beginSource < 0) {
+      beginSource = 0;
+    }
+    if (endSource > size()) {
+      endSource = size();
+    }
+    if (beginSource == endSource) {
+      return;
+    }
+    if (beginTarget < 0) {
+      beginTarget = 0;
+    }
+    if (endTarget > size()) {
+      endTarget = size();
+    }
+    if (beginTarget == endTarget) {
+      return;
+    }
+    if (beginSource == beginTarget && endSource == endTarget) {
+      return;
+    }
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
       return;
