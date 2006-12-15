@@ -135,6 +135,14 @@ namespace csound
     static std::vector<double> pcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
+     * Return the chord as the list of its pitch-classes.
+     * Although the list is nominally unordered, it is
+     * returned sorted in ascending order. Note that pitch-classes
+     * are NOT doubled.
+     */
+    static std::vector<double> uniquePcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
+
+    /**
      * Convert a chord to a pitch-class set number
      * N = sum (2 ^ pc). These numbers form a multiplicative cyclic
      * group. Arithmetic on this group can perform many

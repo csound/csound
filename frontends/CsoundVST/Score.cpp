@@ -38,6 +38,26 @@
 
 namespace csound
 {
+
+  void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord) 
+  {
+    stream << label.c_str() << "[";
+    for (size_t i = 0, n = chord.size(); i < n; i++) {
+      if (i > 0) {
+	stream << ", ";
+      }
+      stream << chord[i];
+    }
+    stream << "]" << std::endl;
+  }
+
+  void printChord(std::string label, const std::vector<double> &chord) 
+  {
+    std::stringstream stream;
+    printChord(stream, label, chord);
+    System::inform(stream.str().c_str());
+  }
+
   Score::Score(void) :
     rescaleMinima(Event::ELEMENT_COUNT),
     rescaleRanges(Event::ELEMENT_COUNT)
@@ -482,26 +502,28 @@ namespace csound
     pans.clear();
   }
 
-  std::vector<double> Score::getPitches(size_t begin, size_t end, size_t divisionsPerOctave) const
+  std::vector<double> Score::getPitches(size_t begin_, size_t end_, size_t divisionsPerOctave_) const
   {
-    if (begin < 0) {
-      begin = 0;
+    System::inform("Score::getPitches(%d, %d, %d)\n", begin_, end_, divisionsPerOctave_);
+    if (begin_ < 0) {
+      begin_ = 0;
     }
-    if (end > size()) {
-      end = size();
+    if (end_ > size()) {
+      end_ = size();
     }
     std::set<double> pitches;
     std::vector<double> chord;
-    size_t n = std::min(end, size());
-    for (size_t i = begin; i < n; i++) {
+    for (size_t i = begin_; i < end_; i++) {
       const Event &event = (*this)[i];
-      double pitch = event.getKey(divisionsPerOctave);
+      double pitch = event.getKey(divisionsPerOctave_);
       if (pitches.find(pitch) == pitches.end()) {
         pitches.insert(pitch);
         chord.push_back(pitch);
+	//System::inform("  i: %d  pitch: %f\n", i, pitch);
       }
     }
     std::sort(chord.begin(), chord.end());
+    printChord("  pitches:             ", chord);
     return chord;
   }
 
@@ -552,7 +574,7 @@ namespace csound
     double transposition = 0.0;
     double voicing = 0.0;
     std::vector<double> ptv(3);
-    std::vector<double> chord = getPitches(begin, end);
+    std::vector<double> chord = getPitches(begin, end, divisionsPerOctave);
     if (chord.size() == 0) {
       return ptv;
     }
@@ -621,7 +643,7 @@ namespace csound
     double prime = 0.0;
     double transposition = 0.0;
     std::vector<double> pt(2);
-    std::vector<double> chord = getPitches(begin, end);
+    std::vector<double> chord = getPitches(begin, end, divisionsPerOctave);
     if (chord.size() == 0) {
       return pt;
     }
@@ -666,15 +688,81 @@ namespace csound
     setPitchClassSet(begin, end, pcs, divisionsPerOctave);
   }
 
+  std::vector<double> Score::getVoicing(size_t begin_, 
+					size_t end_, 
+					size_t divisionsPerOctave_) const
+  {
+    std::vector<double> pitches = getPitches(begin_, end_, divisionsPerOctave_);
+    std::set<double> pcs;
+    std::vector<double> voicing;
+    for (size_t i = 0, n = pitches.size(); i < n; i++) {
+      const Event &event = (*this)[i];
+      double pitch = event.getKey(divisionsPerOctave_);
+      double pc = Voicelead::pc(pitch, divisionsPerOctave_);
+      if (pcs.find(pc) == pcs.end()) {
+	pcs.insert(pc);
+	voicing.push_back(pitch);
+      }
+    }
+    std::sort(voicing.begin(), voicing.end());
+    return voicing;
+  }
+
+  void Score::setVoicing(size_t begin, 
+			 size_t end, 
+			 const std::vector<double> &voicing, 
+			 double range, 
+			 size_t divisionsPerOctave_)
+  {
+    if (begin < 0) {
+      begin = 0;
+    }
+    if (end > size()) {
+      end = size();
+    }
+    if (begin == end) {
+      return;
+    }
+    std::map<double, double> pitchesForPitchClassSets;
+    for (size_t i = 0, n = voicing.size(); i < n; i++) {
+      double pitch = voicing[i];
+      double pc = Voicelead::pc(pitch, divisionsPerOctave_);
+      pitchesForPitchClassSets[pc] = pitch;
+    }
+    std::vector<double> pcs = Voicelead::pcs(voicing, divisionsPerOctave_);
+    for (size_t i = begin; i < end; i++) {
+      Event &event = (*this)[i];
+      double pitch = Voicelead::conformToPitchClassSet(event.getKey(), pcs, divisionsPerOctave_);
+      double pc = Voicelead::pc(pitch);
+      double voicedPitch = pitchesForPitchClassSets[pc];
+      if (pitch < voicedPitch) {
+	pitch += double(divisionsPerOctave_);
+      }
+      event.setKey(pitch);
+    }
+  }
+
   void Score::voicelead(size_t beginSource,
-                        size_t endSource,
-                        size_t beginTarget,
-                        size_t endTarget,
-                        double lowest,
-                        double range,
-                        bool avoidParallelFifths,
-                        size_t divisionsPerOctave)
+			size_t endSource,
+			size_t beginTarget,
+			size_t endTarget,
+			double lowest,
+			double range,
+			bool avoidParallelFifths,
+			size_t divisionsPerOctave)
   {
+    std::stringstream stream;
+    stream << "Score::voicelead:" << std::endl;
+    stream << "  beginSource:         " << beginSource << std::endl;
+    stream << "  endSource:           " << endSource << std::endl;
+    stream << "  beginTarget:         " << beginTarget << std::endl;
+    stream << "  endTarget:           " << endTarget << std::endl;
+    stream << "  lowest:              " << lowest << std::endl;
+    stream << "  range:               " << range << std::endl;
+    stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
+    stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
+    stream << std::endl;
+    System::inform(stream.str().c_str());
     if (beginSource < 0) {
       beginSource = 0;
     }
@@ -693,97 +781,78 @@ namespace csound
     if (beginTarget == endTarget) {
       return;
     }
-    if (beginSource == beginTarget && endSource == endTarget) {
+    if ((beginSource == beginTarget) && (endSource == endTarget)) {
       return;
     }
-    std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
+    std::vector<double> source = getVoicing(beginSource, endSource, divisionsPerOctave);
+    std::stringstream stream1;
+    printChord("  source:               ", source);
     if (source.size() == 0) {
       return;
     }
-    std::vector<double> target = getPitches(beginTarget, endTarget, divisionsPerOctave);
+    std::vector<double> target = getVoicing(beginTarget, endTarget, divisionsPerOctave);
     if (target.size() == 0) {
       return;
     }
     std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
-    if (source.size() > tones.size()) {
-      size_t n = source.size() - tones.size();
-      for (size_t i = 0; i < n; i++) {
-        tones.push_back(source[i]);
-      }
-    }
-    std::vector<double> voicing = Voicelead::voicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
-    setPitches(beginTarget, endTarget, voicing);
-  }
-
-  void Score::recursiveVoicelead(size_t beginSource,
-                                 size_t endSource,
-                                 size_t beginTarget,
-                                 size_t endTarget,
-                                 double lowest,
-                                 double range,
-                                 bool avoidParallelFifths,
-                                 size_t divisionsPerOctave)
-  {
-    if (beginSource < 0) {
-      beginSource = 0;
-    }
-    if (endSource > size()) {
-      endSource = size();
-    }
-    if (beginSource == endSource) {
-      return;
-    }
-    if (beginTarget < 0) {
-      beginTarget = 0;
-    }
-    if (endTarget > size()) {
-      endTarget = size();
-    }
-    if (beginTarget == endTarget) {
-      return;
-    }
-    if (beginSource == beginTarget && endSource == endTarget) {
-      return;
-    }
-    std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
-    if (source.size() == 0) {
-      return;
-    }
-    std::vector<double> target = getPitches(beginTarget, endTarget, divisionsPerOctave);
-    if (target.size() == 0) {
-      return;
-    }
-    std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
-    // Double voices in the target if necessary.
-    if (source.size() > tones.size()) {
-      size_t n = source.size() - tones.size();
-      for (size_t i = 0; i < n; i++) {
-        size_t index = i % tones.size();
-        tones.push_back(tones[index]);
-      }
-    }
+    printChord("  tones:                ", tones);
     // Double voices in the source if necessary.
     if (tones.size() > source.size()) {
-      size_t n = tones.size() - source.size();
-      for (size_t i = 0; i < n; i++) {
-        size_t index = i % source.size();
-        source.push_back(source[index]);
+      size_t k = source.size();
+      size_t n = tones.size() - k;
+      for (size_t i = 0, j = 0; i < n; i++, j++) {
+        if (j >= k) {
+	  j = 0;
+	}
+        source.push_back(source[j]);
       }
     }
+    printChord("  source doubled:      ", source);
+    // Double voices in the target if necessary.
+    if (source.size() > tones.size()) {
+      size_t k = tones.size();
+      size_t n = source.size() - k;
+      for (size_t i = 0, j = 0; i < n; i++, j++) {
+        if (j >= k) {
+	  j = 0;
+	}
+        tones.push_back(tones[j]);
+      }
+    }
+    printChord(" tones doubled:       ", tones);
     std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
-    setPitches(beginTarget, endTarget, voicing);
+    printChord("  target voicing:      ", voicing);
+    setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave);
+    std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave);
+    printChord("  result:              ", result);
+    std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave);
+    printChord("  as pitch-class set:  ", resultTones);  
+
   }
 
-  void Score::recursiveVoicelead(size_t beginSource,
-                                 size_t endSource,
-                                 size_t beginTarget,
-                                 size_t endTarget,
-                                 const std::vector<double> &target,
-                                 double lowest,
-                                 double range,
-                                 bool avoidParallelFifths,
-                                 size_t divisionsPerOctave)
+  void Score::voicelead(size_t beginSource,
+			size_t endSource,
+			size_t beginTarget,
+			size_t endTarget,
+			const std::vector<double> &target,
+			double lowest,
+			double range,
+			bool avoidParallelFifths,
+			size_t divisionsPerOctave)
   {
+    std::stringstream stream;
+    stream << "Score::recursiveVoicelead:" << std::endl;
+    stream << "  beginSource:         " << beginSource << std::endl;
+    stream << "  endSource:           " << endSource << std::endl;
+    stream << "  beginTarget:         " << beginTarget << std::endl;
+    stream << "  endTarget:           " << endTarget << std::endl;
+    printChord(stream, "  target:              ", target);
+    stream << "  lowest:              " << lowest << std::endl;
+    stream << "  range:               " << range << std::endl;
+    stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
+    stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
+    stream << std::endl;
+    System::inform(stream.str().c_str());
     if (beginSource < 0) {
       beginSource = 0;
     }
@@ -802,35 +871,56 @@ namespace csound
     if (beginTarget == endTarget) {
       return;
     }
-    if (beginSource == beginTarget && endSource == endTarget) {
+    if ((beginSource == beginTarget) && (endSource == endTarget)) {
+      setPitchClassSet(beginTarget, endTarget, target, divisionsPerOctave);
+      std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave);
+      printChord("  result:              ", result);
+      std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave);
+      printChord("  as pitch-class set:  ", resultTones);  
       return;
     }
-    std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
-    if (source.size() == 0) {
+    std::vector<double> source = getVoicing(beginSource, endSource, divisionsPerOctave);
+    printChord("  source voicing:      ", source);
+     if (source.size() == 0) {
       return;
     }
     if (target.size() == 0) {
       return;
     }
     std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
-    // Double voices in the target if necessary.
-    if (source.size() > tones.size()) {
-      size_t n = source.size() - tones.size();
-      for (size_t i = 0; i < n; i++) {
-        size_t index = i % tones.size();
-        tones.push_back(tones[index]);
-      }
-    }
+    printChord("  target tones:        ", target);
     // Double voices in the source if necessary.
     if (tones.size() > source.size()) {
-      size_t n = tones.size() - source.size();
-      for (size_t i = 0; i < n; i++) {
-        size_t index = i % source.size();
-        source.push_back(source[index]);
+      size_t k = source.size();
+      size_t n = tones.size() - k;
+      for (size_t i = 0, j = 0; i < n; i++, j++) {
+        if (j >= k) {
+	  j = 0;
+	}
+        source.push_back(source[j]);
       }
+      printChord("  doubled source:      ", source);
+    }
+    // Double voices in the target if necessary.
+    if (source.size() > tones.size()) {
+      size_t k = tones.size();
+      size_t n = source.size() - k;
+      for (size_t i = 0, j = 0; i < n; i++, j++) {
+        if (j >= k) {
+	  j = 0;
+	}
+        tones.push_back(tones[j]);
+      }
+      std::sort(tones.begin(), tones.end());
+      printChord("  doubled tones:       ", tones);
     }
     std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
-    setPitches(beginTarget, endTarget, voicing);
+    printChord("  target voicing:      ", voicing);
+    setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave);
+    std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave);
+    printChord("  result:              ", result);
+    std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave);
+    printChord("  as pitch-class set:  ", resultTones);  
   }
 
   struct TimeAtComparator

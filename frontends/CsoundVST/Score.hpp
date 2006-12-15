@@ -202,29 +202,6 @@ namespace csound
 		       size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between
-     * between the specified segments of the score
-     * within the specified range.
-     * The voice-leading is first the closest by
-     * taxicab norm, and then the simplest in motion,
-     * optionally avoiding parallel fifths.
-     * Only the pitches of the target notes
-     * are affected. If necessary, the number of pitches
-     * in the target chord is adjusted to match the source.
-     * Candidate voicings are recursively compiled into
-     * a cache that is then searched.
-     *
-     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
-     */
-    virtual void voicelead(size_t beginSource,
-                           size_t endSource,
-                           size_t beginTarget,
-                           size_t endTarget,
-                           double lowest,
-                           double range,
-                           bool avoidParallelFifths,
-                           size_t divisionsPerOctave = 12);
-    /**
-     * Performs voice-leading between
      * the specified segments of the score
      * within the specified range.
      * The voice-leading is first the closest by
@@ -233,19 +210,17 @@ namespace csound
      * Only the pitches of the target notes
      * are affected. If necessary, the number of pitches
      * in the target chord is adjusted to match the source.
-     * Candidate voicings are recursively enumerated
-     * and compared.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void recursiveVoicelead(size_t beginSource,
-                                    size_t endSource,
-                                    size_t beginTarget,
-                                    size_t endTarget,
-                                    double lowest,
-                                    double range,
-                                    bool avoidParallelFifths,
-                                    size_t divisionsPerOctave = 12);
+    virtual void voicelead(size_t beginSource,
+			   size_t endSource,
+			   size_t beginTarget,
+			   size_t endTarget,
+			   double lowest,
+			   double range,
+			   bool avoidParallelFifths,
+			   size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between
      * the specified segments of the score
@@ -257,20 +232,18 @@ namespace csound
      * Only the pitches of the target notes
      * are affected. If necessary, the number of pitches
      * in the target chord is adjusted to match the source.
-     * Candidate voicings are recursively enumerated
-     * and compared.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void recursiveVoicelead(size_t beginSource,
-                                    size_t endSource,
-                                    size_t beginTarget,
-                                    size_t endTarget,
-                                    const std::vector<double> &targetPitches,
-                                    double lowest,
-                                    double range,
-                                    bool avoidParallelFifths,
-                                    size_t divisionsPerOctave = 12);
+    virtual void voicelead(size_t beginSource,
+			   size_t endSource,
+			   size_t beginTarget,
+			   size_t endTarget,
+			   const std::vector<double> &targetPitches,
+			   double lowest,
+			   double range,
+			   bool avoidParallelFifths,
+			   size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time,
      * that is return "begin" for the time;
@@ -294,6 +267,21 @@ namespace csound
      * if the index is not found, return DBL_MAX.
      */
     virtual double timeForIndex(size_t index);
+    /**
+     * Iterate over each note from the beginning to end of the segment;
+     * sort the unique pitches;
+     * return those unique pitches which also have unique pitch-class sets,
+     * in order from lowest to highest;
+     * this has the effect of returning the "inversion" or "voicing",
+     * in the musician's informal sense, of the pitches in that segment.
+      */
+    virtual std::vector<double> getVoicing(size_t begin, size_t end, size_t divisionsPerOctave = 12) const;
+    /**
+     * Move the pitches in the segment as little as possible
+     * to make them have the same ordering of pitch-class sets as the voicing,
+     * from the bottom to the top of the range.
+     */
+    virtual void setVoicing(size_t begin, size_t end, const std::vector<double> &voicing, double range, size_t divisionsPerOctave = 12);
   };
 }
 #endif
