@@ -118,14 +118,14 @@ namespace csound
 		    base, 
 		    range, 
 		    divisionsPerOctave);
-	score.recursiveVoicelead(priorOperation.begin, 
-				 priorOperation.end, 
-				 operation.begin, 
-				 operation.end, 
-				 base,
-				 range,
-				 avoidParallels, 
-				 divisionsPerOctave);
+	score.voicelead(priorOperation.begin, 
+			priorOperation.end, 
+			operation.begin, 
+			operation.end, 
+			base,
+			range,
+			avoidParallels, 
+			divisionsPerOctave);
       } else {
 	score.setPT(operation.begin, 
 		    operation.end, 
@@ -150,18 +150,15 @@ namespace csound
 		     range);
       } else if (operation.L) {
 	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
-	score.setPitchClassSet(operation.begin, 
-			       operation.end, 
-			       pcs,
-			       divisionsPerOctave);
-	score.recursiveVoicelead(priorOperation.begin, 
-				 priorOperation.end, 
-				 operation.begin, 
-				 operation.end, 
-				 base,
-				 range,
-				 avoidParallels, 
-				 divisionsPerOctave);
+	score.voicelead(priorOperation.begin, 
+			priorOperation.end, 
+			operation.begin, 
+			operation.end, 
+			pcs,
+			base,
+			range,
+			avoidParallels, 
+			divisionsPerOctave);
       } else {
 	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
 	score.setPitchClassSet(operation.begin, 
@@ -185,14 +182,14 @@ namespace csound
 		     range,
 		     divisionsPerOctave);
       } else if (operation.L) {
-	score.recursiveVoicelead(priorOperation.begin, 
-				 priorOperation.end, 
-				 operation.begin, 
-				 operation.end, 
-				 base,
-				 range,
-				 avoidParallels, 
-				 divisionsPerOctave);
+	score.voicelead(priorOperation.begin, 
+			priorOperation.end, 
+			operation.begin, 
+			operation.end, 
+			base,
+			range,
+			avoidParallels, 
+			divisionsPerOctave);
       }
     }
   }
@@ -245,6 +242,7 @@ namespace csound
 	} else {
 	  operationI = &operations[keys[i - 1]];
 	}
+	System::inform("Operation: %d\n", (i + 1));
 	apply(score, *operationI, *operationJ);
       }
     }
