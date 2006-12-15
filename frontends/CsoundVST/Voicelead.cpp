@@ -89,7 +89,10 @@ namespace csound
     return pcs;
   }
 
-  void Voicelead::primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, double &prime, double &transposition, size_t divisionsPerOctave)
+  void Voicelead::primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, 
+							 double &prime, 
+							 double &transposition, 
+							 size_t divisionsPerOctave)
   {
     std::vector<double> normalChord_ = normalChord(pcs);
     std::vector<double> primeChord = zeroChord(normalChord_);
@@ -239,6 +242,25 @@ namespace csound
       std::cout << "pcs: " << pcs_ << std::endl;
     }
     std::sort(pcs_.begin(), pcs_.end());
+    return pcs_;
+  }
+
+  std::vector<double> Voicelead::uniquePcs(const std::vector<double> &chord, size_t divisionsPerOctave)
+  {
+    std::vector<double> pcs_;
+    std::set<double> pcsSet;
+    for (size_t i = 0, n = chord.size(); i < n; i++) {
+      double pc_ = pc(chord[i], divisionsPerOctave);
+      if (pcsSet.find(pc_) == pcsSet.end()) {
+	pcsSet.insert(pc_);
+	pcs_.push_back(pc_);
+      }
+    }
+    std::sort(pcs_.begin(), pcs_.end());
+    if (debug > 1) {
+      std::cout << "chord: " << chord << std::endl;
+      std::cout << "pcs: " << pcs_ << std::endl;
+    }
     return pcs_;
   }
 
