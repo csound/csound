@@ -41,6 +41,9 @@ namespace csound
 
   void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord) 
   {
+    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+      return;
+    }
     stream << label.c_str() << "[";
     for (size_t i = 0, n = chord.size(); i < n; i++) {
       if (i > 0) {
@@ -53,6 +56,9 @@ namespace csound
 
   void printChord(std::string label, const std::vector<double> &chord) 
   {
+    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+      return;
+    }
     std::stringstream stream;
     printChord(stream, label, chord);
     System::inform(stream.str().c_str());
@@ -751,18 +757,20 @@ namespace csound
 			bool avoidParallelFifths,
 			size_t divisionsPerOctave)
   {
-    std::stringstream stream;
-    stream << "Score::voicelead:" << std::endl;
-    stream << "  beginSource:         " << beginSource << std::endl;
-    stream << "  endSource:           " << endSource << std::endl;
-    stream << "  beginTarget:         " << beginTarget << std::endl;
-    stream << "  endTarget:           " << endTarget << std::endl;
-    stream << "  lowest:              " << lowest << std::endl;
-    stream << "  range:               " << range << std::endl;
-    stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
-    stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
-    stream << std::endl;
-    System::inform(stream.str().c_str());
+    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+      std::stringstream stream;
+      stream << "Score::voicelead:" << std::endl;
+      stream << "  beginSource:         " << beginSource << std::endl;
+      stream << "  endSource:           " << endSource << std::endl;
+      stream << "  beginTarget:         " << beginTarget << std::endl;
+      stream << "  endTarget:           " << endTarget << std::endl;
+      stream << "  lowest:              " << lowest << std::endl;
+      stream << "  range:               " << range << std::endl;
+      stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
+      stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
+      stream << std::endl;
+      System::inform(stream.str().c_str());
+    }
     if (beginSource < 0) {
       beginSource = 0;
     }
@@ -840,19 +848,21 @@ namespace csound
 			bool avoidParallelFifths,
 			size_t divisionsPerOctave)
   {
-    std::stringstream stream;
-    stream << "Score::recursiveVoicelead:" << std::endl;
-    stream << "  beginSource:         " << beginSource << std::endl;
-    stream << "  endSource:           " << endSource << std::endl;
-    stream << "  beginTarget:         " << beginTarget << std::endl;
-    stream << "  endTarget:           " << endTarget << std::endl;
-    printChord(stream, "  target:              ", target);
-    stream << "  lowest:              " << lowest << std::endl;
-    stream << "  range:               " << range << std::endl;
-    stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
-    stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
-    stream << std::endl;
-    System::inform(stream.str().c_str());
+    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+      std::stringstream stream;
+      stream << "Score::recursiveVoicelead:" << std::endl;
+      stream << "  beginSource:         " << beginSource << std::endl;
+      stream << "  endSource:           " << endSource << std::endl;
+      stream << "  beginTarget:         " << beginTarget << std::endl;
+      stream << "  endTarget:           " << endTarget << std::endl;
+      printChord(stream, "  target:              ", target);
+      stream << "  lowest:              " << lowest << std::endl;
+      stream << "  range:               " << range << std::endl;
+      stream << "  avoidParallelFifths: " << avoidParallelFifths << std::endl;
+      stream << "  divisionsPerOctave:  " << divisionsPerOctave << std::endl;
+      stream << std::endl;
+      System::inform(stream.str().c_str());
+    }
     if (beginSource < 0) {
       beginSource = 0;
     }

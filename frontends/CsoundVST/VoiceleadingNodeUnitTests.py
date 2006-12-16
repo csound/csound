@@ -38,27 +38,27 @@ model.addChild(sequence)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.S(0.0, CsoundVST.Conversions_nameToPitchClassSet("CM7"))
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.S(0.0, CsoundVST.Conversions_nameToPitchClassSet("FM7"))
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.S(0.0,"FM7")
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.PT(0.0, CsoundVST.Conversions_nameToPitchClassSet("FM7"), 2)
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.PTV(0.0, CsoundVST.Conversions_nameToPitchClassSet("FM7"), 4, 5)
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.PTV(0.0, CsoundVST.Conversions_nameToPitchClassSet("FM7"), 4, 6)
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.S(0.0,"FM7")
@@ -66,7 +66,7 @@ voiceleading.S(1.0,"Bbm7")
 voiceleading.S(2.0,"E7")
 voiceleading.S(3.0,"Abm7")
 voiceleading.S(4.0,"FM7")
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.SV(0.0,"FM7", 10)
@@ -74,7 +74,7 @@ voiceleading.SV(1.0,"Bbm7", 11)
 voiceleading.SV(2.0,"E7", 12)
 voiceleading.SV(3.0,"Abm7", 13)
 voiceleading.SV(4.0,"FM7", 14)
-#addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 voiceleading = CsoundVST.VoiceleadingNode()
 voiceleading.SL(0.0,"FM7", True)
@@ -150,6 +150,8 @@ for key,value in csound.getInstrumentNames().items():
 for note in score:
 	print note.toString()
 csound.perform()
+
+
 
 
 

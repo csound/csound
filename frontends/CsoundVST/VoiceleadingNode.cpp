@@ -92,12 +92,14 @@ namespace csound
 
   void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
-    std::strstream stream;
-    stream << "VoiceleadingNode::apply:" << std::endl;
-    stream << "priorOperation:    " << priorOperation;
-    stream << "currrentOperation: " << operation;
-    stream << std::endl;
-    System::inform(stream.str());
+    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+      std::strstream stream;
+      stream << "VoiceleadingNode::apply:" << std::endl;
+      stream << "priorOperation:    " << priorOperation;
+      stream << "currrentOperation: " << operation;
+      stream << std::endl;
+      System::inform(stream.str());
+    }
     if (operation.begin == operation.end) {
       return;
     }
