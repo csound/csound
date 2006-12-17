@@ -68,8 +68,8 @@ namespace csound
 
 
     /**
-     * Return the voice-leading vector between
-     * chord1 and chord2.
+     * Return the voice-leading vector (difference) 
+     * between chord1 and chord2.
      */
     static std::vector<double> voiceleading(const std::vector<double> &chord1,
                                             const std::vector<double> &chord2);
@@ -157,6 +157,7 @@ namespace csound
 
     /**
      * Convert a pitch-class set to a prime chord number and a transposition.
+     * Note that the prime chord numbers, and transpositions, form an additive cyclic group.
      */
     static void primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, 
 						       double &prime, 
