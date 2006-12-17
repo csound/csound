@@ -126,6 +126,10 @@ namespace csound
     static double pitchClassSetToMidi(double pitchClassSet);
     static double midiToPitchClassSet(double midiKey);
     static double pitchClassToMidi(double pitchClass);
+    /**
+     * Given the pitch-class set number N = sum over pcs (2 ^ pc),
+     * return the pitch-class in the set that is closest to the argument.
+     */
     static double findClosestPitchClass(double pitchClassSet, double pitchClass, double tones = 12.0);
     static double midiToRoundedOctave(double midiKey);
     static std::string &trim(std::string &value);
@@ -140,12 +144,15 @@ namespace csound
     static std::vector<double> nameToPitches(std::string name);
     /**
      * Return the pitch-class set number (sum of powers of 2 by pitch-class) for
-     * the jazz-style scale or chord name.
+     * the jazz-style scale or chord name. These numbers form a multiplicative
+     * group for all pitch-class sets in a system of equal temperament.
      */
     static double nameToPitchClassSet(std::string name);
     /**
      * Return the jazz-style scale or chord name for
      * the pitch-class set number (sum of powers of 2 by pitch-class).
+     * These numbers form a multiplicative group 
+     *for all pitch-class sets in a system of equal temperament.
      */
     static std::string pitchClassSetToName(double pitchClassSet);
     /**

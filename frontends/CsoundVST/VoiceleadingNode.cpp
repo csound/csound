@@ -92,7 +92,7 @@ namespace csound
 
   void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
-    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+    if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
       std::strstream stream;
       stream << "VoiceleadingNode::apply:" << std::endl;
       stream << "priorOperation:    " << priorOperation;
@@ -202,7 +202,6 @@ namespace csound
       return;
     }
     // First, rescale the times for the operations, if that is required.
-    double timeRange = 0.0;
     double scoreMaxTime = score.getDuration();
     double operationMaxTime = 0.0;
     double timeScale = 1.0;
@@ -218,8 +217,6 @@ namespace csound
 	timeScale = scoreMaxTime / operationMaxTime;
       }
     }
-    VoiceleadingOperation *prior = 0;
-    VoiceleadingOperation *current = 0;
     System::inform("VoiceleadingNode::produceOrTransform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f\n", scoreMaxTime, operationMaxTime, timeScale);
     for (size_t i = 0, n = keys.size(); i < n; i++) {
       VoiceleadingOperation &operation = operations[keys[i]];

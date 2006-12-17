@@ -757,7 +757,7 @@ namespace csound
 			bool avoidParallelFifths,
 			size_t divisionsPerOctave)
   {
-    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+    if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
       std::stringstream stream;
       stream << "Score::voicelead:" << std::endl;
       stream << "  beginSource:         " << beginSource << std::endl;
@@ -848,7 +848,7 @@ namespace csound
 			bool avoidParallelFifths,
 			size_t divisionsPerOctave)
   {
-    if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
+    if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL ) {
       std::stringstream stream;
       stream << "Score::recursiveVoicelead:" << std::endl;
       stream << "  beginSource:         " << beginSource << std::endl;
