@@ -70,9 +70,12 @@ namespace csound
    * voicing (V),
    * and voice-lead (L).
    * The values of P, T, S, and V 
-   * each form an additive group
+   * each form an additive cyclic group
    * whose elements are defined 
    * by counting through all possible values in order.
+   * Note that S is not the same as "pitch-class set number"
+   * in the sense of N = sum over pcs (2 ^ pc); it is rather
+   * one less than N, which forms a multiplicative cyclic group.
    * Not all combinations of operations are consistent.
    * P requires T.
    * PT cannot be used with S.

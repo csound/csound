@@ -151,6 +151,7 @@ namespace csound
      * For the specified segment of the score,
      * return the indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
+     * Each of these indexes forms an additive cyclic group.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
@@ -163,6 +164,7 @@ namespace csound
      * For the specified segment of the score,
      * adjust the pitches to match the specified indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
+     * Each of these indexes forms an additive cyclic group.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
@@ -246,7 +248,7 @@ namespace csound
 			   size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time,
-     * that is return "begin" for the time;
+     * that is, return "begin" for the time;
      * if the time is not found, return the size of the score.
      * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
      * to iterate over all and only those events included 
@@ -259,7 +261,7 @@ namespace csound
      * if the time is not found, return the size of the score.
      * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
      * to iterate over all and only those events included 
-     * between t1 and t2.
+     * from and including t1 and up to but not including t2.
      */
     virtual int indexAfterTime(double time);
     /**
@@ -271,15 +273,17 @@ namespace csound
      * Iterate over each note from the beginning to end of the segment;
      * sort the unique pitches;
      * return those unique pitches which also have unique pitch-class sets,
-     * in order from lowest to highest;
+     * in order from lowest to highest in pitch;
      * this has the effect of returning the "inversion" or "voicing",
-     * in the musician's informal sense, of the pitches in that segment.
+     * in the musician's informal sense, of the pitches in that segment of the score.
       */
     virtual std::vector<double> getVoicing(size_t begin, size_t end, size_t divisionsPerOctave = 12) const;
     /**
      * Move the pitches in the segment as little as possible
      * to make them have the same ordering of pitch-class sets as the voicing,
-     * from the bottom to the top of the range.
+     * from the bottom to the top of the range. This has the effect of
+     * "inverting" or "re-voicing", in the musician's informal sense, the
+     * pitches in that segment of the score.
      */
     virtual void setVoicing(size_t begin, size_t end, const std::vector<double> &voicing, double range, size_t divisionsPerOctave = 12);
   };
