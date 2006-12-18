@@ -30,10 +30,14 @@
 namespace csound
 {
 
-  double nameToS(std::string name)
+  double nameToS(std::string name, size_t divisionsPerOctave_)
   {
-    double pcs = Conversions::nameToPitchClassSet(name);
-    return (pcs - 1.0);
+    double pcsn = Conversions::nameToPitchClassSet(name);
+    // Must change multiplicative element to additive.
+    int prime_ = int(std::fabs(pcsn + 0.5)) - 1;
+    int modulus = int(std::pow(2.0, double(divisionsPerOctave_))) - 1;
+    prime_ = prime_ % modulus;
+    return double(prime_);
   }
 
   VoiceleadingOperation::VoiceleadingOperation() : 
@@ -85,7 +89,7 @@ namespace csound
       stream << "  V:             " << operation.V << std::endl;
     }
     if (operation.L) {
-      stream << "  L:             " << operation.L << std::endl;
+      stream << "  L:             " << int(operation.L) << std::endl;
     }
     return stream;
   }
@@ -94,10 +98,11 @@ namespace csound
   {
     if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
       std::strstream stream;
-      stream << "VoiceleadingNode::apply:" << std::endl;
+      stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
       stream << "priorOperation:    " << priorOperation;
       stream << "currrentOperation: " << operation;
       stream << std::endl;
+      stream.flush();
       System::inform(stream.str());
     }
     if (operation.begin == operation.end) {
@@ -194,6 +199,7 @@ namespace csound
 			divisionsPerOctave);
       }
     }
+    System::inform("ENDED VoiceleadingNode::apply.\n");
   }
 
   void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
@@ -217,7 +223,7 @@ namespace csound
 	timeScale = scoreMaxTime / operationMaxTime;
       }
     }
-    System::inform("VoiceleadingNode::produceOrTransform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f\n", scoreMaxTime, operationMaxTime, timeScale);
+    System::inform("BEGAN VoiceleadingNode::produceOrTransform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
     for (size_t i = 0, n = keys.size(); i < n; i++) {
       VoiceleadingOperation &operation = operations[keys[i]];
       operation.rescaledTime = operation.time * timeScale;
@@ -245,6 +251,7 @@ namespace csound
 	apply(score, *operationI, *operationJ);
       }
     }
+    System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
   }
   
   void VoiceleadingNode::PT(double time, double P, double T)
@@ -279,18 +286,19 @@ namespace csound
 
   void VoiceleadingNode::S(double time, std::string S_)
   {
-    S(time, nameToS(S_));
+    S(time, nameToS(S_, divisionsPerOctave));
   }
 
   void VoiceleadingNode::SV(double time, double S, double V)
   {
+    operations[time].time = time;
     operations[time].S = S;
     operations[time].V = V;
   }
 
   void VoiceleadingNode::SV(double time, std::string S, double V)
   {
-    SV(time, nameToS(S), V);
+    SV(time, nameToS(S, divisionsPerOctave), V);
   }
 
   void VoiceleadingNode::SL(double time, double S, bool avoidParallels)
@@ -303,7 +311,7 @@ namespace csound
 
   void VoiceleadingNode::SL(double time, std::string S, bool avoidParallels)
   {
-    SL(time, nameToS(S), avoidParallels);
+    SL(time, nameToS(S, divisionsPerOctave), avoidParallels);
   }
 
   void VoiceleadingNode::V(double time, double V_)
