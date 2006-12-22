@@ -1,7 +1,7 @@
 /**
  * C S O U N D   V S T
  *
- * A VST plugin version of Csound, with Python scripting.
+ * A VST plugin version of Csound, with Python scrizting.
  *
  * L I C E N S E
  *
@@ -565,7 +565,7 @@ namespace csound
     }
   }
 
-  std::vector<double> Score::getPTV(size_t begin_, 
+  std::vector<double> Score::getZTV(size_t begin_, 
 				    size_t end_, 
 				    double lowest, 
 				    double range, 
@@ -577,13 +577,13 @@ namespace csound
     if (end_ > size()) {
       end_ = size();
     }
-    double prime = 0.0;
+    double M = 0.0;
     double transposition = 0.0;
     double voicing = 0.0;
-    std::vector<double> ptv(3);
+    std::vector<double> ztv(3);
     std::vector<double> chord = getPitches(begin_, end_, divisionsPerOctave_);
     if (chord.size() == 0) {
-      return ptv;
+      return ztv;
     }
     std::vector<double> tones = Voicelead::pcs(chord, divisionsPerOctave_);
     std::vector< std::vector<double> > voicings = Voicelead::voicings(tones, lowest, range, divisionsPerOctave_);
@@ -594,18 +594,18 @@ namespace csound
     transposition = tones[0];
     if (chord.size() > 1) {
       for (size_t i = 0, cn = chord.size(); i < cn; i++) {
-        prime = prime + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave_)));
+        M = M + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave_)));
       }
     }
-    ptv[0] = prime;
-    ptv[1] = transposition;
-    ptv[2] = voicing;
-    return ptv;
+    ztv[0] = Voicelead::cToZ(Voicelead::mToC(M, divisionsPerOctave_));
+    ztv[1] = transposition;
+    ztv[2] = voicing;
+    return ztv;
   }
 
-  void Score::setPTV(size_t begin_, 
+  void Score::setZTV(size_t begin_, 
 		     size_t end_, 
-		     double prime, 
+		     double zero, 
 		     double transposition, 
 		     double voicing_, 
 		     double lowest, 
@@ -622,27 +622,24 @@ namespace csound
       return;
     }
     std::vector<double> chord;
-    // Must change additive element back to multiplicative!
-    int prime_ = int(std::fabs(prime + 1.5));
-    int modulus = int(std::pow(2.0, double(divisionsPerOctave_)));
-    prime_ = prime_ % modulus;
+    int M = int(Voicelead::cToM(Voicelead::zToC(zero), divisionsPerOctave_));
     for (int i = 0; i < int(divisionsPerOctave_); i++) {
-      int powerOf2 = int(std::pow(2., double(i)));
-      if ((prime_ & powerOf2) == powerOf2) {
+      int powerOf2 = int(std::pow(2.0, double(i)));
+      if ((M & powerOf2) == powerOf2) {
         chord.push_back(double(Voicelead::pc(i + transposition)));
       }
     }
-    System::inform("BEGAN Score::setPTV(%d, %d, %f, %f, %f, %f, %f, %d)...\n", begin_, end_, prime, transposition, voicing_, lowest, range, divisionsPerOctave_);
+    System::inform("BEGAN Score::setZTV(%d, %d, %f, %f, %f, %f, %f, %d)...\n", begin_, end_, zero, transposition, voicing_, lowest, range, divisionsPerOctave_);
     printChord("  chord:   ", chord);
     std::vector< std::vector<double> > voicings = Voicelead::voicings(chord, lowest, range, divisionsPerOctave_);
     size_t index = size_t(voicing_) % voicings.size();
     const std::vector<double> &voicing = voicings[index];
     printChord("  voicing: ", voicing);
     setPitches(begin_, end_, voicing);
-    System::inform("ENDED Score::setPTV.\n");
+    System::inform("ENDED Score::setZTV.\n");
   }
 
-  std::vector<double> Score::getPT(size_t begin_, 
+  std::vector<double> Score::getZT(size_t begin_, 
 				   size_t end_, 
 				   double lowest, 
 				   double range, 
@@ -654,28 +651,28 @@ namespace csound
     if (end_ > size()) {
       end_ = size();
     }
-    double prime = 0.0;
+    double zero = 0.0;
     double transposition = 0.0;
-    std::vector<double> pt(2);
+    std::vector<double> zt(2);
     std::vector<double> chord = getPitches(begin_, end_, divisionsPerOctave_);
     if (chord.size() == 0) {
-      return pt;
+      return zt;
     }
     std::vector<double> tones = Voicelead::pcs(chord, divisionsPerOctave_);
     transposition = tones[0];
     if (chord.size() > 1) {
       for (size_t i = 0, cn = chord.size(); i < cn; i++) {
-        prime = prime + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave_)));
+        zero = zero + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave_)));
       }
     }
-    pt[0] = prime;
-    pt[1] = transposition;
-    return pt;
+    zt[0] = zero;
+    zt[1] = transposition;
+    return zt;
   }
 
-  void Score::setPT(size_t begin_, 
+  void Score::setZT(size_t begin_, 
 		    size_t end_, 
-		    double pcsn, 
+		    double Z, 
 		    double transposition, 
 		    double lowest, 
 		    double range, 
@@ -691,17 +688,14 @@ namespace csound
       return;
     }
     std::vector<double> chord;
-    // Must change additive element back to multiplicative.
-    int prime_ = int(std::fabs(pcsn + 1.5));
-    int modulus = int(std::pow(2.0, double(divisionsPerOctave_)));
-    prime_ = prime_ % modulus;
+    int M = Voicelead::cToM(Voicelead::zToC(Z), divisionsPerOctave_);
     for (int i = 0; i < int(divisionsPerOctave_); i++) {
-      int powerOf2 = int(std::pow(2., double(i)));
-      if ((prime_ & powerOf2) == powerOf2) {
+      int powerOf2 = int(std::pow(2.0, double(i)));
+      if ((M & powerOf2) == powerOf2) {
         chord.push_back(double(Voicelead::pc(i + transposition)));
       }
     }
-    System::inform("BEGAN Score::setPT(%d, %d, %f, %f, %f, %f, %d)...\n", begin_, end_, prime_, transposition, lowest, range, divisionsPerOctave_);
+    System::inform("BEGAN Score::setZT(%d, %d, %f, %f, %f, %f, %d)...\n", begin_, end_, Z, transposition, lowest, range, divisionsPerOctave_);
     printChord("  chord:               ", chord);
     std::vector<double> pcs = Voicelead::uniquePcs(chord, divisionsPerOctave_);
     printChord("  pitch-class set:     ", chord);
@@ -710,7 +704,7 @@ namespace csound
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
     printChord("  as pitch-class set:  ", resultTones);  
-    System::inform("ENDED Score::setPT.\n");
+    System::inform("ENDED Score::setZT.\n");
   }
 
   std::vector<double> Score::getVoicing(size_t begin_, 

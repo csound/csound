@@ -32,10 +32,10 @@ for chord in rotations:
 print
 pitches = [65., 69., 72., 76.]
 print '%s = Voicelead_pcs(%s)' % (CsoundVST.Voicelead_pcs(pitches), pitches)
-print '%8.3f = Voiclead_numberFromChord(%s)' % (CsoundVST.Voicelead_numberFromChord(pitches), pitches)
-print '%8.3f = Voiclead_numberFromChord(%s)' % (CsoundVST.Voicelead_numberFromChord(a), a)
+print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundVST.Voicelead_mFromPitchClassSet(pitches), pitches)
+print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundVST.Voicelead_mFromPitchClassSet(a), a)
 print
-print '%s = Voicelead_pcsFromNumber(%8.3f)' % (CsoundVST.Voicelead_pcsFromNumber(2193), 2193)
+print '%s = Voicelead_pitchClassSetFromM(%8.3f)' % (CsoundVST.Voicelead_pitchClassSetFromM(2193), 2193)
 print
 voicings = CsoundVST.Voicelead_voicings(a, lowest, range, 12)
 print 'Voicelead_voicings(%s, %s, %s, %d):' % (a, lowest, range, 12)
@@ -66,9 +66,9 @@ for i in xrange(len(vinversions)):
 	vinversion = vinversions[i]
 	tinversion = tinversions[i]
 	print 'inversion of %s:           V: %s  T: %s' % (a, vinversion, tinversion)
-	print '  zero chord of inversion:            V: %s  T: %s' % (CsoundVST.Voicelead_zeroChord(vinversion), tonnetz.zeroForm(tinversion))
+	print '  origin chord of inversion:          V: %s  T: %s' % (CsoundVST.Voicelead_toOrigin(vinversion), tonnetz.zeroForm(tinversion))
 	print '  normal chord of inversion:          V: %s  T: %s' % (CsoundVST.Voicelead_normalChord(vinversion), tonnetz.firstInversion(tinversion))
-	print '  prime chord of inversion:           V: %s  T: %s' % (CsoundVST.Voicelead_primeChord(vinversion), tonnetz.zeroForm(tonnetz.firstInversion(tinversion)))
+	print '  zero chord of inversion:            V: %s  T: %s' % (CsoundVST.Voicelead_zeroChord(vinversion), tonnetz.zeroForm(tonnetz.firstInversion(tinversion)))
 	print ' '
 print
 for i in xrange(lowest, range, 1):
@@ -87,11 +87,11 @@ for i in xrange(2000):
 score.save('CsoundVstUnitTest.py.1.mid')
 score.setPitchClassSet(0, len(score), a)
 score.save('CsoundVstUnitTest.py.2.mid')
-pcsN = CsoundVST.Voicelead_numberFromChord([0.,4.,7.,11.,14.])
+pcsN = CsoundVST.Voicelead_mFromPitchClassSet([0.,4.,7.,11.,14.])
 pcsI = pcsN - 1
 for i in xrange(0, len(score), 20):
-	CsoundVST.Voicelead.pcsFromNumber(pcsN)
-	score.setPitchClassSet(i, i + 20, CsoundVST.Voicelead_pcsFromNumber(pcsN, 12), 12)
+	CsoundVST.Voicelead.pitchClassSetFromM(pcsN)
+	score.setPitchClassSet(i, i + 20, CsoundVST.Voicelead_pitchClassSetFromM(pcsN, 12), 12)
 	pcs = score.getPitches(i, i + 20)
 	print pcsN, pcsI, pcs
 	pcsI = pcsI * 32
@@ -100,7 +100,7 @@ for i in xrange(0, len(score), 20):
 score.save('CsoundVstUnitTest.py.3.mid')
 for i in xrange(0, len(score) - 40, 20):
 	prepitches = score.getPitches(i, i + 20)
-	score.recursiveVoicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
+	score.voicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
 	postpitches = score.getPitches(i + 20, i + 40)
 	print i, prepitches, postpitches
 	print i, CsoundVST.Voicelead_pcs(prepitches), CsoundVST.Voicelead_pcs(postpitches)
@@ -113,6 +113,10 @@ score.save('CsoundVstUnitTest.py.4.mid')
 
 	
 	
+
+
+
+
 
 
 

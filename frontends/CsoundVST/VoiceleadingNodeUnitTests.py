@@ -22,15 +22,15 @@
  */
 This script tests the following Score methods:
 
-    virtual void PT(double time, double P, double T);
-    virtual void PTV(double time, double P, double T, double V);
-    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
-    virtual void S(double time, double S_);
-    virtual void S(double time, std::string S_);
-    virtual void SV(double time, double S, double V);
-    virtual void SV(double time, std::string S, double V);
-    virtual void SL(double time, double S, bool avoidParallels = true);
-    virtual void SL(double time, std::string S, bool avoidParallels = true);
+    virtual void ZT(double time, double Z, double T);
+    virtual void ZTV(double time, double Z, double T, double V);
+    virtual void ZTL(double time, double Z, double T, bool avoidParallels = true);
+    virtual void C(double time, double C_);
+    virtual void C(double time, std::string C_);
+    virtual void CV(double time, double C, double V);
+    virtual void CV(double time, std::string C, double V);
+    virtual void CL(double time, double C, bool avoidParallels = true);
+    virtual void CL(double time, std::string C, bool avoidParallels = true);
     virtual void V(double time, double V_);
     virtual void L(double time, bool avoidParallels = true);
 
@@ -80,103 +80,93 @@ sequenceDuration = 20.0
 sequence = CsoundVST.Sequence()
 model.addChild(sequence)
 
-#    virtual void PT(double time, double P, double T);
+#    virtual void ZT(double time, double Z, double T);
 
-# OK
-
+# 1
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.PT(0.0, CsoundVST.Conversions_nameToPitchClassSet("CM7")-1.0, 0.0)
+voiceleading.ZT(0.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
+voiceleading.ZT(1.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 5.0)
+voiceleading.ZT(2.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-# OK
-
+# 2
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.PT(0.0, CsoundVST.Conversions_nameToPitchClassSet("CM7")-1.0, 5.0)
-voiceleading.PT(1.0, CsoundVST.Conversions_nameToPitchClassSet("FM7")-1.0, 0.0)
-voiceleading.PT(1.0, CsoundVST.Conversions_nameToPitchClassSet("FM7")-1.0, 0.0)
+voiceleading.ZT(0.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
+voiceleading.ZT(1.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 5.0)
+voiceleading.ZT(2.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void PTV(double time, double P, double T, double V);
+#    virtual void ZTV(double time, double Z, double T, double V);
 
-# OK
-
+# 3
 voiceleading = CsoundVST.VoiceleadingNode()
 for i in xrange(11):
-	voiceleading.PTV(float(i), CsoundVST.Conversions_nameToPitchClassSet("CM7")-1.0, 0.0, float(i))
+	voiceleading.ZTV(float(i), CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0, float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
+#~ #    virtual void ZTL(double time, double P, double T, bool avoidParallels = true);
 
-# OK
-
+# 4
 voiceleading = CsoundVST.VoiceleadingNode()
 for i in xrange(5):
-	voiceleading.PTL(float(i), CsoundVST.Conversions_nameToPitchClassSet("CM")-1.0, float(i))
+	voiceleading.ZTL(float(i), CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void S(double time, double S_);
+#    virtual void C(double time, double C_);
 
-# OK
-
+# 5
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.S(0.0, CsoundVST.Conversions_nameToPitchClassSet("CM7")-1.0)
+voiceleading.C(0.0, CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-# OK
-
+# 6
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.S(0.0, CsoundVST.Conversions_nameToPitchClassSet("FM7")-1.0)
+voiceleading.C(0.0, CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void S(double time, std::string S_);
+#    virtual void C(double time, std::string C_);
 
-
-
+# 7
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.S(0.0,"FM7")
+voiceleading.C(0.0, "FM7")
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-# OK
-
+# 8
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.S(0.0, "FM7")
-voiceleading.S(1.0, "Bbm7")
-voiceleading.S(2.0, "E7")
-voiceleading.S(3.0, "Abm7")
-voiceleading.S(4.0, "FM7")
-voiceleading.S(5.0, "FM7")
+voiceleading.C(0.0, "FM7")
+voiceleading.C(1.0, "Bbm7")
+voiceleading.C(2.0, "E7")
+voiceleading.C(3.0, "Abm7")
+voiceleading.C(4.0, "FM7")
+voiceleading.C(5.0, "FM7")
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void SV(double time, double S, double V);
+#    virtual void CV(double time, double C, double V);
 
 # If SV for strings works and S for numbers works, then SV for numbers works; no test.
 
-#    virtual void SV(double time, std::string S, double V);
+#    virtual void CV(double time, std::string C, double V);
 
+# 9
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.SV(0.0, "FM7", 10.0)
-voiceleading.SV(1.0, "FM7", 11.0)
-voiceleading.SV(2.0, "FM7", 12.0)
-voiceleading.SV(3.0, "FM7", 13.0)
-voiceleading.SV(4.0, "FM7", 14.0)
-voiceleading.SV(5.0, "FM7", 14.0)
+for i in xrange(11):
+	voiceleading.CV(float(i), CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12), float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void SL(double time, double S, bool avoidParallels = true);
+#    virtual void CL(double time, double C, bool avoidParallels = true);
 
-# If SL for strings works and S for numbers works, then SV for numbers works; no test.
+# If CL for strings works and C for numbers works, then CV for numbers works; no test.
 
-#    virtual void SL(double time, std::string S, bool avoidParallels = true);
+#    virtual void CL(double time, std::string C, bool avoidParallels = true);
 
-# OK
-
+# 10
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.SL(0.0,"FM7", True)
-voiceleading.SL(1.0,"Bbm7", True)
-voiceleading.SL(2.0,"E7", True)
-voiceleading.SL(3.0,"Abm7", True)
-voiceleading.SL(4.0,"FM7", True)
-voiceleading.SL(5.0,"FM7", True)
+voiceleading.CL(0.0,"FM7", True)
+voiceleading.CL(1.0,"Bbm7", True)
+voiceleading.CL(2.0,"E7", True)
+voiceleading.CL(3.0,"Abm7", True)
+voiceleading.CL(4.0,"FM7", True)
+voiceleading.CL(5.0,"FM7", True)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 #    virtual void V(double time, double V_);
@@ -244,6 +234,24 @@ for note in score:
 	index = index + 1
 model.getScore().save(filename + ".mid")
 csound.perform()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
