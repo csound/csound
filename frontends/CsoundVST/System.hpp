@@ -60,6 +60,7 @@ namespace csound
     static void *userdata_;
     static int messageLevel;
     static void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
+    static FILE *logfile;
   public:
     enum Level
       {
@@ -137,6 +138,18 @@ namespace csound
      * Returns userdata for message printing.
      */
     static void *getUserdata();
+
+    /**
+     * Set a stream for printing messages to 
+     * (in addition to callback, stderr, etc.).
+     */
+    static void setLogfile(FILE *logfile);
+
+    /**
+     * Return the stream, if any, used for
+     * printing messages to.
+     */
+    static FILE *getLogfile();
 #ifndef SWIG
     /**
      *  Prints a message if the ERROR_LEVEL flag is set.

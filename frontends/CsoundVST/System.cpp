@@ -93,6 +93,8 @@ namespace csound
       }
   }
 
+  FILE *System::logfile = 0;
+
   int System::messageLevel = ERROR_LEVEL | WARNING_LEVEL | INFORMATION_LEVEL;
 
   void * System::userdata_ = 0;
@@ -231,18 +233,24 @@ namespace csound
 
   void System::message(CSOUND *csound, const char *format, va_list valist)
   {
-    if(messageCallback)
-      {
-        messageCallback(csound, messageLevel, format, valist);
-      }
-    else
-      {
-        vfprintf(stderr, format, valist);
-      }
+    if (logfile) {
+      vfprintf(logfile, format, valist);
+      fflush(logfile);
+    }
+    if(messageCallback) {
+      messageCallback(csound, messageLevel, format, valist);
+    }
+    else {
+      vfprintf(stderr, format, valist);
+    }
   }
-
+  
   void System::message(CSOUND *csound, int attribute, const char *format, va_list valist)
   {
+    if (logfile) {
+      vfprintf(logfile, format, valist);
+      fflush(logfile);
+    }
     if(messageCallback)
       {
         messageCallback(csound, attribute, format, valist);
@@ -306,6 +314,16 @@ namespace csound
   void System::closeLibrary(void *library)
   {
     csoundCloseLibrary(library);
+  }
+
+  void System::setLogfile(FILE *logfile_)
+  {
+    logfile = logfile_;
+  }
+
+  FILE *System::getLogfile()
+  {
+    return logfile;
   }
 
 #if defined(WIN32)

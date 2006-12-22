@@ -529,9 +529,9 @@ namespace csound
   {
     std::vector<double> pitches;
     int powerOf2 = 1;
-    int mason = int(nameToPitchClassSet(name));
+    int M = int(nameToM(name));
     for(double i = 0; i < 12.0; i = i + 1.0) {
-      if ((powerOf2 & mason) == powerOf2) {
+      if ((powerOf2 & M) == powerOf2) {
         pitches.push_back(i);
       }
       powerOf2 = powerOf2 + powerOf2;
@@ -539,7 +539,7 @@ namespace csound
     return pitches;
   }
 
-  double Conversions::nameToPitchClassSet(std::string name)
+  double Conversions::nameToM(std::string name)
   {
     if(pitchClassSetsForNames.find(name) != pitchClassSetsForNames.end())
       {
@@ -551,11 +551,11 @@ namespace csound
       }
   }
 
-  std::string Conversions::pitchClassSetToName(double pitchClassSet)
+  std::string Conversions::mToName(double M)
   {
-    if(namesForPitchClassSets.find(pitchClassSet) != namesForPitchClassSets.end())
+    if(namesForPitchClassSets.find(M) != namesForPitchClassSets.end())
       {
-        return namesForPitchClassSets[pitchClassSet];
+        return namesForPitchClassSets[M];
       }
     else
       {
