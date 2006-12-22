@@ -33,8 +33,12 @@
 #if defined __BORLANDC__
         #pragma -a8
 #elif defined(WIN32) || defined(__FLAT__) || defined CBUILDER
+#if defined(MSVC)
         #pragma pack(push)
         #pragma pack(8)
+#else
+        #pragma pack(push, 8)
+#endif
         #define VSTCALLBACK __cdecl
 #else
         #define VSTCALLBACK

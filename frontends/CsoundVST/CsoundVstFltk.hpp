@@ -68,9 +68,9 @@ public:
   } AEffEditorSize;
   static std::string aboutText;
   static Fl_Preferences preferences;
+  CsoundVST *csoundVST;
   void *windowHandle;
   Fl_Window *csoundVstUi;
-  CsoundVST *csoundVST;
   int useCount;
   Fl_Pack *mainPack;
   Fl_Tabs *mainTabs;

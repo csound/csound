@@ -63,40 +63,44 @@ namespace csound
     return double(int(round(p)) % divisionsPerOctave);
   }
 
-  double Voicelead::numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave)
+  double Voicelead::mFromPitchClassSet(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
     std::set<double> pcs_;
+    double M = 0.0;
     for (size_t i = 0, n = chord.size(); i < n; i++) {
-      pcs_.insert(pc(chord[i], divisionsPerOctave));
+      double pc_ = pc(chord[i], divisionsPerOctave);
+      if (pcs_.find(pc_) == pcs_.end()) {
+	pcs_.insert(pc_);
+	M = M + std::pow(2.0, pc_);
+      }
     }
-    double N = 0;
-    for(std::set<double>::iterator it = pcs_.begin(); it != pcs_.end(); ++it) {
-      N = N + std::pow(2.0, *it);
-    }
-    return N;
+    return M;
   }
-
-  std::vector<double> Voicelead::pcsFromNumber(double pcn, size_t divisionsPerOctave)
+  
+  std::vector<double> Voicelead::pitchClassSetFromM(double M, size_t divisionsPerOctave)
   {
-    size_t n = size_t(round(pcn));
+    size_t M_ = size_t(round(M));
     std::vector<double> pcs;
     for (double i = 0.0; i < double(divisionsPerOctave); i = i + 1.0) {
       size_t p2 = size_t(std::pow(2.0, i));
-      if ((p2 & n) == p2) {
+      if ((p2 & M_) == p2) {
         pcs.push_back(i);
       }
     }
     return pcs;
   }
 
-  void Voicelead::primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, 
-							 double &prime, 
-							 double &transposition, 
-							 size_t divisionsPerOctave)
+  void Voicelead::zeroAndTranspositionFromPitchClassSet(const std::vector<double> &pcs_, 
+							double &zero, 
+							double &transposition, 
+							size_t divisionsPerOctave)
   {
-    std::vector<double> normalChord_ = normalChord(pcs);
-    std::vector<double> primeChord = zeroChord(normalChord_);
-    prime = numberFromChord(primeChord, divisionsPerOctave);
+    std::vector<double> normalChord_ = normalChord(pcs_);
+    std::vector<double> zeroChord_ = toOrigin(normalChord_);
+    double M = mFromPitchClassSet(zeroChord_, divisionsPerOctave);
+    double C = mToC(M, divisionsPerOctave);
+    double Z = cToZ(C);
+    zero = Z;
     transposition = normalChord_[0];
   }
 
@@ -468,7 +472,7 @@ namespace csound
     return std::sqrt(ss);
   }
 
-  std::vector<double>  Voicelead::zeroChord(const std::vector<double> &chord_)
+  std::vector<double>  Voicelead::toOrigin(const std::vector<double> &chord_)
   {
     std::vector<double> chord = chord_;
     double minimum = *std::min_element(chord.begin(), chord.end());
@@ -507,7 +511,7 @@ namespace csound
     std::vector<double> normalChord;
     double minDistance = 0;
     for (size_t i = 0, n = inversions_.size(); i < n; i++) {
-      std::vector<double> zeroChordInversion = zeroChord(inversions_[i]);
+      std::vector<double> zeroChordInversion = toOrigin(inversions_[i]);
       if (i == 0) {
         normalChord = inversions_[i];
         minDistance = euclideanDistance(zeroChordInversion, origin);
@@ -522,8 +526,42 @@ namespace csound
     return normalChord;
   }
 
-  std::vector<double>  Voicelead::primeChord(const std::vector<double> &chord)
+  std::vector<double> Voicelead::zeroChord(const std::vector<double> &chord)
   {
-    return zeroChord(normalChord(chord));
+    return toOrigin(normalChord(chord));
+  }
+
+  double Voicelead::nameToC(std::string name, size_t divisionsPerOctave_)
+  {
+    double M = Conversions::nameToM(name);
+    return mToC(M, divisionsPerOctave_);
+  }
+
+  double Voicelead::mToC(double M, size_t divisionsPerOctave)
+  {
+    int C = int(std::fabs(M + 0.5)) - 1;
+    int modulus = int(std::pow(2.0, double(divisionsPerOctave))) - 1;
+    C = C % modulus;
+    return double(C);
+  }
+
+  double Voicelead::cToM(double C, size_t divisionsPerOctave)
+  {
+    int M = int(std::fabs(C + 0.5)) + 1;
+    int modulus = int(std::pow(2.0, double(divisionsPerOctave)));
+    M = M % modulus;
+    return double(M);
+  }
+  
+  double Voicelead::cToZ(double C)
+  {
+    double Z = C / 2.0;
+    return Z;
+  }
+  
+  double Voicelead::zToC(double Z)
+  {
+    double C = Z * 2.0;
+    return C;
   }
 }

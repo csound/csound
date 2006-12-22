@@ -144,23 +144,25 @@ namespace csound
 
     /**
      * Convert a chord to a pitch-class set number
-     * N = sum (2 ^ pc). These numbers form a multiplicative cyclic
-     * group. Arithmetic on this group can perform many
+     * M = sum over pitch-classes of (2 ^ pitch-class). 
+     * These numbers form a multiplicative monoid. 
+     * Arithmetic on this monoid can perform many
      * harmonic and other manipulations of pitch.
      */
-    static double numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
+    static double mFromPitchClassSet(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
-     * Convert a pitch-class set number to a pitch-class set chord.
+     * Convert a pitch-class set number M = sum over pitch-classes of (2 ^ pitch-class)
+     * to a pitch-class set chord.
      */
-    static std::vector<double> pcsFromNumber(double pcn, size_t divisionsPerOctave = 12);
+    static std::vector<double> pitchClassSetFromM(double pcn, size_t divisionsPerOctave = 12);
 
     /**
-     * Convert a pitch-class set to a prime chord number and a transposition.
-     * Note that the prime chord numbers, and transpositions, form an additive cyclic group.
+     * Convert a pitch-class set to a zero chord number and a transposition.
+     * Note that the zero chord numbers, and transpositions, form an additive cyclic group.
      */
-    static void primeAndTranspositionFromPitchClassSet(std::vector<double> pcs, 
-						       double &prime, 
+    static void zeroAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
+						       double &zero, 
 						       double &transposition, 
 						       size_t divisionsPerOctave = 12);
 
@@ -254,7 +256,7 @@ namespace csound
     /**
      * Return the chord transposed so its lowest pitch is at the origin.
      */
-    static std::vector<double> zeroChord(const std::vector<double> &chord);
+    static std::vector<double> toOrigin(const std::vector<double> &chord);
 
     /**
      * Return the normal chord: that inversion of the pitch-classes in the chord
@@ -264,13 +266,39 @@ namespace csound
     static std::vector<double> normalChord(const std::vector<double> &chord);
 
     /**
-     * Return the prime chord: that inversion of the pitch-classes in the chord
+     * Return the zero chord: that inversion of the pitch-classes in the chord
      * which is closest to the orthogonal axis of the Tonnetz for that chord,
      * transposed so that its lowest pitch is at the origin.
      * Similar to, but not identical with, "prime form."
      */
-    static std::vector<double> primeChord(const std::vector<double> &chord);
+    static std::vector<double> zeroChord(const std::vector<double> &chord);
 
+    /**
+     * Return C = (sum over pitch-classes of (pitch-class ^ 2)) - 1 
+     * (additive cyclic group for pitch-class sets)
+     * for the named pitch-class set.
+     */
+    static double nameToC(std::string name, size_t divisionsPerOctave_);
+    
+    /**
+     * Return C = (sum over pitch-classes of (pitch-class ^ 2)) - 1
+     * (additive cyclic group for non-empty pitch-class sets)
+     * for M = sum over pitch-classes of (2 ^ pitch-class)
+     * (multiplicative monoid for pitch-class sets).
+     */
+    static double mToC(double M, size_t divisionsPerOctave);
+
+    /**
+     * Return M = sum over pitch-classes of (2 ^ pitch-class)
+     * (multiplicative monoid for pitch-class sets)
+     * for C = (sum over pitch-classes of (pitch-class ^ 2)) - 1
+     * (additive cyclic group for non-empty pitch-class sets).
+     */
+    static double cToM(double C, size_t divisionsPerOctave);
+
+    static double cToZ(double C);
+
+    static double zToC(double Z);
   };
 
 }

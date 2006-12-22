@@ -25,27 +25,21 @@
 #include "System.hpp"
 
 #include <cmath>
-#include <strstream>
+#include <sstream>
 
 namespace csound
 {
 
-  double nameToS(std::string name, size_t divisionsPerOctave_)
-  {
-    double pcsn = Conversions::nameToPitchClassSet(name);
-    // Must change multiplicative element to additive.
-    int prime_ = int(std::fabs(pcsn + 0.5)) - 1;
-    int modulus = int(std::pow(2.0, double(divisionsPerOctave_))) - 1;
-    prime_ = prime_ % modulus;
-    return double(prime_);
-  }
+  extern void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
+
+  extern void printChord(std::string label, const std::vector<double> &chord); 
 
   VoiceleadingOperation::VoiceleadingOperation() : 
     time(0.0),
     rescaledTime(0.0),
-    P(double(0.0) / double(0.0)),
+    Z(double(0.0) / double(0.0)),
     T(double(0.0) / double(0.0)),
-    S(double(0.0) / double(0.0)),
+    C(double(0.0) / double(0.0)),
     V(double(0.0) / double(0.0)),
     L(false),
     begin(0),
@@ -76,14 +70,14 @@ namespace csound
     stream << "time (rescaled): " << operation.time << " (" << operation.rescaledTime << ")" << std::endl;
     stream << "  begin:         " << operation.begin << std::endl;
     stream << "  end:           " << operation.end << std::endl;
-    if (!std::isnan(operation.P)) {
-      stream << "  P:             " << operation.P << std::endl;
+    if (!std::isnan(operation.Z)) {
+      stream << "  Z:             " << operation.Z << std::endl;
     }
     if (!std::isnan(operation.T)) {
       stream << "  T:             " << operation.T << std::endl;
     }
-    if (!std::isnan(operation.S)) {
-      stream << "  S:             " << operation.S << std::endl;
+    if (!std::isnan(operation.C)) {
+      stream << "  C:             " << operation.C << std::endl;
     }
     if (!std::isnan(operation.V)) {
       stream << "  V:             " << operation.V << std::endl;
@@ -97,30 +91,29 @@ namespace csound
   void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
     if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
-      std::strstream stream;
+      std::stringstream stream;
       stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
       stream << "priorOperation:    " << priorOperation;
       stream << "currrentOperation: " << operation;
       stream << std::endl;
-      stream.flush();
-      System::inform(stream.str());
+      System::inform(stream.str().c_str());
     }
     if (operation.begin == operation.end) {
       return;
     }
-    if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
+    if (!std::isnan(operation.Z) && !std::isnan(operation.T)) {
       if (!std::isnan(operation.V)) {
-	score.setPTV(operation.begin, 
+	score.setZTV(operation.begin, 
 		     operation.end, 
-		     operation.P, 
+		     operation.Z, 
 		     operation.T, 
 		     operation.V, 
 		     base, 
 		     range);
       } else if (operation.L) {
-	score.setPT(operation.begin, 
+	score.setZT(operation.begin, 
 		    operation.end, 
-		    operation.P, 
+		    operation.Z, 
 		    operation.T, 
 		    base, 
 		    range, 
@@ -134,29 +127,32 @@ namespace csound
 			avoidParallels, 
 			divisionsPerOctave);
       } else {
-	score.setPT(operation.begin, 
+	score.setZT(operation.begin, 
 		    operation.end, 
-		    operation.P, 
+		    operation.Z, 
 		    operation.T, 
 		    base,
 		    range, 
 		    divisionsPerOctave);
       }
-    } else if (!std::isnan(operation.S)) {
+    } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
-	double prime;
-	double transposition;
-	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
-	Voicelead::primeAndTranspositionFromPitchClassSet(pcs, prime, transposition, divisionsPerOctave);
-	score.setPTV(operation.begin, 
+	double zero = 0.0;
+	double transposition = 0.0;
+	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+	printChord("CV", pcs);
+	Voicelead::zeroAndTranspositionFromPitchClassSet(pcs, zero, transposition, divisionsPerOctave);
+	System::inform("zero: %f transposition %f: divisionsPerOctave %d\n", zero, transposition, divisionsPerOctave);
+	score.setZTV(operation.begin, 
 		     operation.end, 
-		     prime, 
+		     zero, 
 		     transposition, 
 		     operation.V, 
 		     base, 
 		     range);
       } else if (operation.L) {
-	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
+	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+	printChord("CL", pcs);
 	score.voicelead(priorOperation.begin, 
 			priorOperation.end, 
 			operation.begin, 
@@ -167,7 +163,7 @@ namespace csound
 			avoidParallels, 
 			divisionsPerOctave);
       } else {
-	std::vector<double> pcs = Voicelead::pcsFromNumber(operation.S + 1.0, divisionsPerOctave);
+	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	score.setPitchClassSet(operation.begin, 
 			       operation.end, 
 			       pcs,
@@ -175,15 +171,15 @@ namespace csound
       }
     } else {
       if (!std::isnan(operation.V)) {
-	std::vector<double> ptv = score.getPTV(operation.begin,
+	std::vector<double> ztv = score.getZTV(operation.begin,
 					       operation.end,
 					       base,
 					       range,
 					       divisionsPerOctave);
-	score.setPTV(operation.begin,
+	score.setZTV(operation.begin,
 		     operation.end,
-		     ptv[0],
-		     ptv[1],
+		     ztv[0],
+		     ztv[1],
 		     operation.V,
 		     base,
 		     range,
@@ -254,64 +250,64 @@ namespace csound
     System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
   }
   
-  void VoiceleadingNode::PT(double time, double P, double T)
+  void VoiceleadingNode::ZT(double time, double Z, double T)
   {
     operations[time].time = time;
-    operations[time].P = P;
+    operations[time].Z = Z;
     operations[time].T = T;
   }
 
-  void VoiceleadingNode::PTV(double time, double P, double T, double V)
+  void VoiceleadingNode::ZTV(double time, double Z, double T, double V)
   {
     operations[time].time = time;
-    operations[time].P = P;
+    operations[time].Z = Z;
     operations[time].T = T;
     operations[time].V = V;
   }
 
-  void VoiceleadingNode::PTL(double time, double P, double T, bool avoidParallels)
+  void VoiceleadingNode::ZTL(double time, double Z, double T, bool avoidParallels)
   {
     operations[time].time = time;
-    operations[time].P = P;
+    operations[time].Z = Z;
     operations[time].T = T;
     operations[time].L = true;
     operations[time].avoidParallels = avoidParallels;
   }
 
-  void VoiceleadingNode::S(double time, double S_)
+  void VoiceleadingNode::C(double time, double C_)
   {
     operations[time].time = time;
-    operations[time].S = S_;
+    operations[time].C = C_;
   }
 
-  void VoiceleadingNode::S(double time, std::string S_)
+  void VoiceleadingNode::C(double time, std::string C_)
   {
-    S(time, nameToS(S_, divisionsPerOctave));
+    C(time, Voicelead::nameToC(C_, divisionsPerOctave));
   }
 
-  void VoiceleadingNode::SV(double time, double S, double V)
+  void VoiceleadingNode::CV(double time, double C, double V)
   {
     operations[time].time = time;
-    operations[time].S = S;
+    operations[time].C = C;
     operations[time].V = V;
   }
 
-  void VoiceleadingNode::SV(double time, std::string S, double V)
+  void VoiceleadingNode::CV(double time, std::string C, double V)
   {
-    SV(time, nameToS(S, divisionsPerOctave), V);
+    CV(time, Voicelead::nameToC(C, divisionsPerOctave), V);
   }
 
-  void VoiceleadingNode::SL(double time, double S, bool avoidParallels)
+  void VoiceleadingNode::CL(double time, double C, bool avoidParallels)
   {
     operations[time].time = time;
-    operations[time].S = S;
+    operations[time].C = C;
     operations[time].L = true;
     operations[time].avoidParallels = avoidParallels;
   }
 
-  void VoiceleadingNode::SL(double time, std::string S, bool avoidParallels)
+  void VoiceleadingNode::CL(double time, std::string C, bool avoidParallels)
   {
-    SL(time, nameToS(S, divisionsPerOctave), avoidParallels);
+    CL(time, Voicelead::nameToC(C, divisionsPerOctave), avoidParallels);
   }
 
   void VoiceleadingNode::V(double time, double V_)
