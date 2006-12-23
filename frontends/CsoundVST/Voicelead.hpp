@@ -158,13 +158,20 @@ namespace csound
     static std::vector<double> pitchClassSetFromM(double pcn, size_t divisionsPerOctave = 12);
 
     /**
-     * Convert a pitch-class set to a zero chord number and a transposition.
-     * Note that the zero chord numbers, and transpositions, form an additive cyclic group.
+     * Convert a pitch-class set to a prime chord number and a transposition.
+     * Note that the prime chord numbers, and transpositions, each form an additive cyclic group.
      */
-    static void zeroAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
-						       double &zero, 
+    static void primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
+						       double &prime, 
 						       double &transposition, 
 						       size_t divisionsPerOctave = 12);
+
+    /**
+     * Convert a prime chord number and transposition to a pitch-class set.
+     */
+    static std::vector<double> pitchClassSetFromPrimeAndTransposition(double prime, 
+								      double transposition, 
+								      size_t divisionsPerOctave = 12);
 
     /**
      * Return all voicings of the chord
@@ -266,12 +273,12 @@ namespace csound
     static std::vector<double> normalChord(const std::vector<double> &chord);
 
     /**
-     * Return the zero chord: that inversion of the pitch-classes in the chord
+     * Return the prime chord: that inversion of the pitch-classes in the chord
      * which is closest to the orthogonal axis of the Tonnetz for that chord,
      * transposed so that its lowest pitch is at the origin.
      * Similar to, but not identical with, "prime form."
      */
-    static std::vector<double> zeroChord(const std::vector<double> &chord);
+    static std::vector<double> primeChord(const std::vector<double> &chord);
 
     /**
      * Return C = (sum over pitch-classes of (pitch-class ^ 2)) - 1 
@@ -294,11 +301,28 @@ namespace csound
      * for C = (sum over pitch-classes of (pitch-class ^ 2)) - 1
      * (additive cyclic group for non-empty pitch-class sets).
      */
-    static double cToM(double C, size_t divisionsPerOctave);
+    static double cToM(double C, size_t divisionsPerOctaven = 12);
 
-    static double cToZ(double C);
+    /**
+     * Return C = (sum over pitch-classes of (pitch-class ^ 2)) - 1
+     * (additive cyclic group for non-empty pitch-class sets)
+     * for P = index of prime chords. 
+     * If an exact match is not found the closest match is returned.
+     */
+    static double cToP(double C, size_t divisionsPerOctave = 12);
 
-    static double zToC(double Z);
+    /**
+     * Return P = index of prime chords
+     * for C = (sum over pitch-classes of (pitch-class ^ 2)) - 1
+     * (additive cyclic group for non-empty pitch-class sets).
+     * If an exact match is not found the closest match is returned.
+     */
+    static double pToC(double Z, size_t divisionsPerOctave = 12);
+
+    static std::vector<double> primeChordForP(double P, size_t divisionsPerOctave = 12);
+
+    static void initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave);
+
   };
 
 }

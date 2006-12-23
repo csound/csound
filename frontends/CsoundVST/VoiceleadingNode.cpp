@@ -37,7 +37,7 @@ namespace csound
   VoiceleadingOperation::VoiceleadingOperation() : 
     time(0.0),
     rescaledTime(0.0),
-    Z(double(0.0) / double(0.0)),
+    P(double(0.0) / double(0.0)),
     T(double(0.0) / double(0.0)),
     C(double(0.0) / double(0.0)),
     V(double(0.0) / double(0.0)),
@@ -70,8 +70,8 @@ namespace csound
     stream << "time (rescaled): " << operation.time << " (" << operation.rescaledTime << ")" << std::endl;
     stream << "  begin:         " << operation.begin << std::endl;
     stream << "  end:           " << operation.end << std::endl;
-    if (!std::isnan(operation.Z)) {
-      stream << "  Z:             " << operation.Z << std::endl;
+    if (!std::isnan(operation.P)) {
+      stream << "  P:             " << operation.P << std::endl;
     }
     if (!std::isnan(operation.T)) {
       stream << "  T:             " << operation.T << std::endl;
@@ -101,19 +101,19 @@ namespace csound
     if (operation.begin == operation.end) {
       return;
     }
-    if (!std::isnan(operation.Z) && !std::isnan(operation.T)) {
+    if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
       if (!std::isnan(operation.V)) {
-	score.setZTV(operation.begin, 
+	score.setPTV(operation.begin, 
 		     operation.end, 
-		     operation.Z, 
+		     operation.P, 
 		     operation.T, 
 		     operation.V, 
 		     base, 
 		     range);
       } else if (operation.L) {
-	score.setZT(operation.begin, 
+	score.setPT(operation.begin, 
 		    operation.end, 
-		    operation.Z, 
+		    operation.P, 
 		    operation.T, 
 		    base, 
 		    range, 
@@ -127,9 +127,9 @@ namespace csound
 			avoidParallels, 
 			divisionsPerOctave);
       } else {
-	score.setZT(operation.begin, 
+	score.setPT(operation.begin, 
 		    operation.end, 
-		    operation.Z, 
+		    operation.P, 
 		    operation.T, 
 		    base,
 		    range, 
@@ -137,15 +137,15 @@ namespace csound
       }
     } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
-	double zero = 0.0;
+	double prime = 0.0;
 	double transposition = 0.0;
 	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	printChord("CV", pcs);
-	Voicelead::zeroAndTranspositionFromPitchClassSet(pcs, zero, transposition, divisionsPerOctave);
-	System::inform("zero: %f transposition %f: divisionsPerOctave %d\n", zero, transposition, divisionsPerOctave);
-	score.setZTV(operation.begin, 
+	Voicelead::primeAndTranspositionFromPitchClassSet(pcs, prime, transposition, divisionsPerOctave);
+	System::inform("prime: %f transposition %f: divisionsPerOctave %d\n", prime, transposition, divisionsPerOctave);
+	score.setPTV(operation.begin, 
 		     operation.end, 
-		     zero, 
+		     prime, 
 		     transposition, 
 		     operation.V, 
 		     base, 
@@ -171,15 +171,15 @@ namespace csound
       }
     } else {
       if (!std::isnan(operation.V)) {
-	std::vector<double> ztv = score.getZTV(operation.begin,
+	std::vector<double> ptv = score.getPTV(operation.begin,
 					       operation.end,
 					       base,
 					       range,
 					       divisionsPerOctave);
-	score.setZTV(operation.begin,
+	score.setPTV(operation.begin,
 		     operation.end,
-		     ztv[0],
-		     ztv[1],
+		     ptv[0],
+		     ptv[1],
 		     operation.V,
 		     base,
 		     range,
@@ -250,25 +250,25 @@ namespace csound
     System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
   }
   
-  void VoiceleadingNode::ZT(double time, double Z, double T)
+  void VoiceleadingNode::PT(double time, double P, double T)
   {
     operations[time].time = time;
-    operations[time].Z = Z;
+    operations[time].P = P;
     operations[time].T = T;
   }
 
-  void VoiceleadingNode::ZTV(double time, double Z, double T, double V)
+  void VoiceleadingNode::PTV(double time, double P, double T, double V)
   {
     operations[time].time = time;
-    operations[time].Z = Z;
+    operations[time].P = P;
     operations[time].T = T;
     operations[time].V = V;
   }
 
-  void VoiceleadingNode::ZTL(double time, double Z, double T, bool avoidParallels)
+  void VoiceleadingNode::PTL(double time, double P, double T, bool avoidParallels)
   {
     operations[time].time = time;
-    operations[time].Z = Z;
+    operations[time].P = P;
     operations[time].T = T;
     operations[time].L = true;
     operations[time].avoidParallels = avoidParallels;
