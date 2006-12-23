@@ -149,28 +149,28 @@ namespace csound
                                   size_t divisionsPerOctave = 12);
     /**
      * For the specified segment of the score,
-     * return the indexes for the zero chord, its transposition,
+     * return the indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
      * Each of these indexes forms an additive cyclic group.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual std::vector<double> getZTV(size_t begin,
+    virtual std::vector<double> getPTV(size_t begin,
                                        size_t end,
                                        double lowest,
                                        double range,
                                        size_t divisionsPerOctave = 12) const;
     /**
      * For the specified segment of the score,
-     * adjust the pitches to match the specified indexes for the zero chord, its transposition,
+     * adjust the pitches to match the specified indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
      * Each of these indexes forms an additive cyclic group.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void setZTV(size_t begin,
+    virtual void setPTV(size_t begin,
                         size_t end,
-                        double zero,
+                        double prime,
                         double transposition,
                         double voicing,
                         double lowest,
@@ -178,26 +178,26 @@ namespace csound
                         size_t divisionsPerOctave = 12);
     /**
      * For the specified segment of the score,
-     * return the indexes for the zero chord and its transposition,
+     * return the indexes for the prime chord and its transposition,
      * within the specified range.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual std::vector<double> getZT(size_t begin,
+    virtual std::vector<double> getPT(size_t begin,
 				      size_t end,
 				      double lowest,
 				      double range,
 				      size_t divisionsPerOctave = 12) const;
     /**
      * For the specified segment of the score,
-     * adjust the pitches to match the specified indexes for the zero chord
+     * adjust the pitches to match the specified indexes for the prime chord
      * and its transposition within the specified range.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void setZT(size_t begin,
+    virtual void setPT(size_t begin,
 		       size_t end,
-		       double zero,
+		       double prime,
 		       double transposition,
 		       double lowest,
 		       double range,

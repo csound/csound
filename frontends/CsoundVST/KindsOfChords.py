@@ -120,49 +120,36 @@ print chordnumber(D)
 for i in xrange(12):
     print 'pc %3d = %4d' % (i, chordnumber([i]))
 
+C = 0.0
 for i in xrange(1, int(pow(2, 12))):
     M = float(i)
+    C = M - 1.0
+    C1 = CsoundVST.Voicelead_mToC(M, 12)
+    if C != C1:
+        print 'Error: mToC is wrong: M: %s  C: %s %s' % (M, C, C1)
     c = numberchord(M)
-    chords[M] = c
-    z = CsoundVST.Voicelead_zeroChord(c)
-    numbersForChords[tuple(c)] = M
-    if tuple(z) == tuple(c):
-        primechords[M] = c
-        numbersForPrimeChords[tuple(c)] = M
-print '%4d UNORDERED CHORDS' % (len(chords))
-i = 0
-for number,chord in chords.items():
-    name = CsoundVST.Conversions_mToName(number)
-    distance = distanceFromOrigin(chord)
-    print 'C: %5d  M: %5d  name: %-20s  distance: %8.3f  chord: %-40s' % (i, number,name,distance,chord)
-    i = i + 1
-print
-print '%4d ZERO CHORDS' % (len(primechords))
-Z = 0
-for number,chord in primechords.items():
-    name = CsoundVST.Conversions_mToName(number)
-    distance = distanceFromOrigin(chord)
-    print 'Z: %5d  M: %5d  name: %-20s  distance: %8.3f  chord: %-40s' % (Z, number,name,distance,chord)
-    Z = Z + 1
-numbers = primechords.keys()
-numbers.sort()
-Z = 0
-for M in numbers:
-    chord = primechords[M]
+    chord = tuple(CsoundVST.Voicelead_pitchClassSetFromM(M, 12))
+    if tuple(c) != chord:
+        print 'Error: mToPitchClassSet is wrong.'
     name = CsoundVST.Conversions_mToName(M)
-    distance = distanceFromOrigin(chord)
-    print 'Z: %5d  M: %5d  name: %-20s  distance: %8.3f  chord: %-40s' % (Z, M,name,distance,chord)
-    Z = Z + 1
-
+    if name == 'Not found.':
+        name = ''
+    normal = CsoundVST.Voicelead_normalChord(c)
+    zero = CsoundVST.Voicelead_toOrigin(normal)
+    prime = CsoundVST.Voicelead_primeChord(c)
+    if tuple(zero) == tuple(normal):
+        if tuple(prime) != tuple(zero):
+	    print 'Error: primeChord is wrong.'
+    P = CsoundVST.Voicelead_cToP(C, 12)
+    distance = distanceFromOrigin(c)
+    print 'M: %4d  %-63s  C: %4d  %-68s  P: %4d  %-63s  distance: %6.3f  %s' % (int(M), chord, int(C), normal, int(P), prime, distance, name)
 print
-print '%4d UNORDERED CHORDS' % (len(chords))
-print '%4d PRIME CHORDS' % (len(primechords))
-
-print numbersForChords[tuple(sort([0,1,10,7,5]))]
+    
+print CsoundVST.Voicelead_mFromPitchClassSet(tuple(sort([0,1,10,7,5])))
 print (pow(2, 12) -1) % (pow(2,12)-1)
 
 print 'Unordered voicings of CM in 3 octaves:'
-voicings = CsoundVST.Voicelead_voicings(C, 0.0, 37.0, 12)
+voicings = CsoundVST.Voicelead_voicings([0, 4, 7], 0.0, 37.0, 12)
 for voicing in voicings:
     print voicing
 print len(voicings)
