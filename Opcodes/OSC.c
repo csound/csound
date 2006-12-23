@@ -231,10 +231,11 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
     if (p->eventQueue == NULL)
       return;
 
-    csound->LockMutex(p->mutex_);
     while (p->eventQueue != NULL) {
       double  startTime;
-      rtEvt_t *ep = p->eventQueue;
+      rtEvt_t *ep;
+      csound->LockMutex(p->mutex_);
+      ep = p->eventQueue;
       p->eventQueue = ep->nxt;
       csound->UnlockMutex(p->mutex_);
       startTime = (p->absp2mode ? p->baseTime : csound->curTime);
@@ -257,9 +258,7 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
       free(ep);
-      csound->LockMutex(p->mutex_);
     }
-    csound->UnlockMutex(p->mutex_);
 }
 
 /* callback function for OSC thread */
@@ -557,7 +556,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports[n].csound = csound;
     ports[n].mutex_ = csound->Create_Mutex(0);
     ports[n].oplst = NULL;
-    sprintf(buff, "%d", (int) *(p->port));
+/*     sprintf(buff, "%d", (int) *(p->port)); */
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
