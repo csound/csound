@@ -1,3 +1,8 @@
+2006-12-23  jpff  <jpff@codemist.co.uk>
+
+	* InOut/widgets.cpp (save_snap): fl_ask() is depricated so replace
+	by fl_choice()
+
 2006-12-14  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch0.c (pfun): Commented out printing
