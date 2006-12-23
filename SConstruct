@@ -339,6 +339,7 @@ if not withMSVC():
 
 if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
+    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
