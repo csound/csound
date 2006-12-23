@@ -1517,8 +1517,9 @@ static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
   {
     int   n;
     Fl_lock(csound);
-    n = fl_ask(Str("Saving could overwrite the old file.\n"
-                   "Are you sure you want to save ?"));
+    n = fl_choice(Str("Saving could overwrite the old file.\n"
+                      "Are you sure you want to save ?"),
+                  Str("No"), Str("Yes"), NULL);
     Fl_unlock(csound);
     if (!n)
       return OK;
