@@ -46,7 +46,7 @@ namespace csound
     virtual ~VoiceleadingOperation();
     double time;
     double rescaledTime;
-    double Z;
+    double P;
     double T;
     double C;
     double V;
@@ -64,12 +64,12 @@ namespace csound
    * "voice-leading" operations upon
    * the pitches of notes produced by children of this node.
    * These operations comprise:
-   * zero chord (Z),
+   * prime chord (P),
    * transpose (T),
-   * unordered pitch-class set (C, equivalent to ZT),
+   * unordered pitch-class set (C, equivalent to PT),
    * voicing (V),
    * and voice-lead (L).
-   * The values of Z, T, C, and V 
+   * The values of P, T, C, and V 
    * each form an additive cyclic group
    * whose elements are defined 
    * by counting through all possible values in order.
@@ -77,12 +77,12 @@ namespace csound
    * in the sense of M = sum over pitch-classes of (2 ^ pitch-class); 
    * it is rather one less than M.
    * Not all combinations of operations are consistent.
-   * Z requires T.
-   * ZT cannot be used with C.
+   * P requires T.
+   * PT cannot be used with C.
    * V cannot be used with L.
-   * If neither ZT nor C is specified, the existing C of the notes is used.
+   * If neither PT nor C is specified, the existing C of the notes is used.
    * The consistent combinations of operations are thus:
-   * ZT, ZTV, ZTL, C, CV, CL, V, and L.
+   * PT, PTV, PTL, C, CV, CL, V, and L.
    */
   class SILENCE_PUBLIC VoiceleadingNode :
     public Node
@@ -101,9 +101,9 @@ namespace csound
      */
     virtual void apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &currentOperation);
     virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
-    virtual void ZT(double time, double Z_, double T);
-    virtual void ZTV(double time, double Z_, double T, double V_);
-    virtual void ZTL(double time, double Z_, double T, bool avoidParallels = true);
+    virtual void PT(double time, double P_, double T);
+    virtual void PTV(double time, double P_, double T, double V_);
+    virtual void PTL(double time, double P_, double T, bool avoidParallels = true);
     virtual void C(double time, double C_);
     virtual void C(double time, std::string C_);
     virtual void CV(double time, double C_, double V_);

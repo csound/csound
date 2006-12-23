@@ -175,7 +175,7 @@ namespace csound
         fill("7b5",               "C            E    Gb          Bb  ");
         fill("7b9",               "C  Db        E       G        Bb  ");
         fill("7b9b5",             "C  Db        E    Gb          Bb  ");
-        fill("9",                 "C            E       G        Bb  ");
+        fill("9",                 "C     D      E       G        Bb  ");
         fill("11",                "C     D      E F     G        Bb  ");
         fill("13",                "C     D      E F     G     A  Bb  ");
         for(std::map<std::string, double>::iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
