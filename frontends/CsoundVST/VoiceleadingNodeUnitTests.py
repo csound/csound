@@ -22,9 +22,9 @@
  */
 This script tests the following Score methods:
 
-    virtual void ZT(double time, double Z, double T);
-    virtual void ZTV(double time, double Z, double T, double V);
-    virtual void ZTL(double time, double Z, double T, bool avoidParallels = true);
+    virtual void PT(double time, double P, double T);
+    virtual void PTV(double time, double P, double T, double V);
+    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
     virtual void C(double time, double C_);
     virtual void C(double time, std::string C_);
     virtual void CV(double time, double C, double V);
@@ -80,36 +80,36 @@ sequenceDuration = 20.0
 sequence = CsoundVST.Sequence()
 model.addChild(sequence)
 
-#    virtual void ZT(double time, double Z, double T);
+#    virtual void PT(double time, double P, double T);
 
 # 1
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.ZT(0.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
-voiceleading.ZT(1.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 5.0)
-voiceleading.ZT(2.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
+voiceleading.PT(0.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
+voiceleading.PT(1.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 5.0)
+voiceleading.PT(2.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 # 2
 voiceleading = CsoundVST.VoiceleadingNode()
-voiceleading.ZT(0.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
-voiceleading.ZT(1.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 5.0)
-voiceleading.ZT(2.0, CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
+voiceleading.PT(0.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
+voiceleading.PT(1.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 5.0)
+voiceleading.PT(2.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#    virtual void ZTV(double time, double Z, double T, double V);
+#    virtual void PTV(double time, double P, double T, double V);
 
 # 3
 voiceleading = CsoundVST.VoiceleadingNode()
 for i in xrange(11):
-	voiceleading.ZTV(float(i), CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0, float(i))
+	voiceleading.PTV(float(i), CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0, float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
-#~ #    virtual void ZTL(double time, double P, double T, bool avoidParallels = true);
+#~ #    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
 
 # 4
 voiceleading = CsoundVST.VoiceleadingNode()
 for i in xrange(5):
-	voiceleading.ZTL(float(i), CsoundVST.Voicelead_cToZ(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), float(i))
+	voiceleading.PTL(float(i), CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 #    virtual void C(double time, double C_);
