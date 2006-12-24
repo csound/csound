@@ -68,7 +68,7 @@ for i in xrange(len(vinversions)):
 	print 'inversion of %s:           V: %s  T: %s' % (a, vinversion, tinversion)
 	print '  origin chord of inversion:          V: %s  T: %s' % (CsoundVST.Voicelead_toOrigin(vinversion), tonnetz.zeroForm(tinversion))
 	print '  normal chord of inversion:          V: %s  T: %s' % (CsoundVST.Voicelead_normalChord(vinversion), tonnetz.firstInversion(tinversion))
-	print '  zero chord of inversion:            V: %s  T: %s' % (CsoundVST.Voicelead_zeroChord(vinversion), tonnetz.zeroForm(tonnetz.firstInversion(tinversion)))
+	print '  zero chord of inversion:            V: %s  T: %s' % (CsoundVST.Voicelead_primeChord(vinversion), tonnetz.zeroForm(tonnetz.firstInversion(tinversion)))
 	print ' '
 print
 for i in xrange(lowest, range, 1):
