@@ -84,6 +84,7 @@ model.addChild(sequence)
 
 # 1
 voiceleading = CsoundVST.VoiceleadingNode()
+# Note: shouldn't actually be CM7 - but must be some M7 chord.
 voiceleading.PT(0.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
 voiceleading.PT(1.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 5.0)
 voiceleading.PT(2.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0)
@@ -91,6 +92,7 @@ addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 # 2
 voiceleading = CsoundVST.VoiceleadingNode()
+# Note: shouldn't actually be FM7 - but must be some M7 chord.
 voiceleading.PT(0.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
 voiceleading.PT(1.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 5.0)
 voiceleading.PT(2.0, CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("FM7"), 12)), 0.0)
@@ -100,6 +102,7 @@ addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 # 3
 voiceleading = CsoundVST.VoiceleadingNode()
+# Note - shouldn't actually start with CM7, but should be stepwise progression of M7 chords.
 for i in xrange(11):
 	voiceleading.PTV(float(i), CsoundVST.Voicelead_cToP(CsoundVST.Voicelead_mToC(CsoundVST.Conversions_nameToM("CM7"), 12)), 0.0, float(i))
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)

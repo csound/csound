@@ -618,12 +618,14 @@ namespace csound
     }
     System::inform("BEGAN Score::setPTV(%d, %d, %f, %f, %f, %f, %f, %d)...\n", begin_, end_, P, T, V, lowest, range, divisionsPerOctave_);
     std::vector<double> chord = Voicelead::pitchClassSetFromPrimeAndTransposition(P, T, divisionsPerOctave_);
-    printChord("  chord:   ", chord);
+    printChord("pcs of P and T: ", chord);
     std::vector< std::vector<double> > voicings = Voicelead::voicings(chord, lowest, range, divisionsPerOctave_);
     size_t v = size_t(V) % voicings.size();
     const std::vector<double> &voicing = voicings[v];
-    printChord("  voicing: ", voicing);
+    printChord("       voicing: ", voicing);
     setPitches(begin_, end_, voicing);
+    std::vector<double> pcs = Voicelead::uniquePcs(voicing, divisionsPerOctave_);
+    printChord("pcs of voicing: ", pcs);
     System::inform("ENDED Score::setPTV.\n");
   }
 
@@ -670,6 +672,7 @@ namespace csound
     if (begin_ == end_) {
       return;
     }
+    System::inform("BEGAN Score::setPT(%d, %d, %f, %f, %f, %f, %d)...\n", begin_, end_, P, T, lowest, range, divisionsPerOctave_);
     std::vector<double> pitchClassSet = Voicelead::pitchClassSetFromPrimeAndTransposition(P, T, divisionsPerOctave_);
     printChord("  pitch-class set:     ", pitchClassSet);
     setPitchClassSet(begin_, end_, pitchClassSet, divisionsPerOctave_);

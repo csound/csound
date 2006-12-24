@@ -87,23 +87,32 @@ for i in xrange(2000):
 score.save('CsoundVstUnitTest.py.1.mid')
 score.setPitchClassSet(0, len(score), a)
 score.save('CsoundVstUnitTest.py.2.mid')
-pcsN = CsoundVST.Voicelead_mFromPitchClassSet([0.,4.,7.,11.,14.])
-pcsI = pcsN - 1
+score = CsoundVST.Score()
+for i in xrange(2000):
+	time = i * 0.125
+	duration = 0.5
+	key = random.randint(lowest, highest)
+	velocity = 80.0
+	score.append(time, duration, 144.0, 1.0, key, velocity)
+C = CsoundVST.Voicelead_mToC(CsoundVST.Voicelead_mFromPitchClassSet([0.,4.,7.,11.,14.]), 12)
 for i in xrange(0, len(score), 20):
-	CsoundVST.Voicelead.pitchClassSetFromM(pcsN)
-	score.setPitchClassSet(i, i + 20, CsoundVST.Voicelead_pitchClassSetFromM(pcsN, 12), 12)
-	pcs = score.getPitches(i, i + 20)
-	print pcsN, pcsI, pcs
-	pcsI = pcsI * 32
-	pcsI = pcsI % 4095
-	pcsN = pcsI + 1
+	M = CsoundVST.Voicelead_cToM(C)
+	pcs = CsoundVST.Voicelead_pitchClassSetFromM(M)
+	print 'M: %8.3f  C: %8.3f  %s' % (M, C, pcs)
+	score.setPitchClassSet(i, i + 20, pcs)
+	result = CsoundVST.Voicelead_uniquePcs(score.getPitches(i, i + 20))
+	print 'Result:',result
+	print ' '
+	C = 2 * C + 1
+	C = C % 4094
 score.save('CsoundVstUnitTest.py.3.mid')
 for i in xrange(0, len(score) - 40, 20):
 	prepitches = score.getPitches(i, i + 20)
-	score.voicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
+	score.voicelead(i, i + 20, i + 20, i + 40, lowest, highest - lowest, True)
 	postpitches = score.getPitches(i + 20, i + 40)
 	print i, prepitches, postpitches
-	print i, CsoundVST.Voicelead_pcs(prepitches), CsoundVST.Voicelead_pcs(postpitches)
+	print i, CsoundVST.Voicelead_uniquePcs(prepitches), CsoundVST.Voicelead_uniquePcs(postpitches)
+	print ' '
 score.save('CsoundVstUnitTest.py.4.mid')
 
 	
