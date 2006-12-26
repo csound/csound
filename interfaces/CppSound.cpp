@@ -123,7 +123,6 @@ int CppSound::perform()
 
 void CppSound::stop()
 {
-  Message("RECEIVED CppSound::stop...\n");
   isCompiled = false;
   isPerforming = false;
   go = false;
