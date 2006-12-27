@@ -1,42 +1,48 @@
-import CsoundVST
-import csnd
+'''
+C O M P O S I T I O N
+Copyright (c) 2006 by Michael Gogins.
+All rights reserved.
+This software is licensed under the GNU Lesser General Public License.
 
+Composition is designed to be a general-purpose base class
+for algorithmic compositions made with Silence and Csound.
+
+Composition encapsulates and automates most of the housekeeping
+for algorithmic composition, and enables a general-purpose Python
+development environment to be used for composing.
+
+Normally, only the following methods need to be overridden:
+1. assembleModel, to create a MusicModel.
+2. assembleOrchestra, to create a Csound orchestra suited to the model.
+3. assembleArrangement, to tweak levels or instrument assignments
+   in the orchestra.
+'''
 import atexit
+import csnd
+import CsoundVST
 import math
+import os
 import psyco
 from scipy import *
 import signal
 import sys
 import threading
 import traceback
-'''
-C O M P O S I T I O N   B A S E
-Copyright (c) 2006 by Michael Gogins.
-All rights reserved.
-This software is licensed under the GNU Lesser General Public License.
-
-CompositionBase is designed to be a general-purpose base class
-for algorithmic compositions made with Silence and Csound.
-
-CompositionBase encapsulates and automates most of the housekeeping
-for algorithmic composition, and enables a general-purpose Python
-development environment to be used for composing.
-
-Normally, only the assembleModel and assembleOrchestra methods need to be
-overridden.
-'''
 
 global composition
 composition = None
 
-class CompositionBase(object):
+class Composition(object):
     def __init__(self):
         self.csound = csound
         self.model = CsoundVST.MusicModel()
         self.model.setCppSound(self.csound)
         self.keepPerforming = False
         self.csound.setPythonMessageCallback()
+        self.autoplay = True
+        self.setPlayer(r'D:/utah/opt/Audacity/audacity.exe')
         composition = self
+        
     '''
     All filenames are based off the composition script filename.
     '''
@@ -70,13 +76,13 @@ class CompositionBase(object):
     where setting thisown is not necessary.
     '''
     def assembleModel(self):
-        print 'BEGAN CompositionBase.assembleModel...'
+        print 'BEGAN Composition.assembleModel...'
         lindenmayer = CsoundVST.Lindenmayer()
         lindenmayer.thisown = 0
         lindenmayer.setAxiom("b")
         lindenmayer.setAngle(2.0 * math.pi / 9.0)
-        lindenmayer.addRule("b", " b [  Ti-1 a b ] Tt+1 Tk-3.1 a N b Tt+3 N Tt+1.3 Tk+2 b [ Ti+1 a b ] N")
-        lindenmayer.addRule("a", " N Tt+1.1 Tk+1 N [ Tk+2 b ] Tk+3 N Tk-3 Tt-1 [ Tt+1 Tk-4 a ] N ")
+        lindenmayer.addRule("b", " b [  Ti-1 a b ] Tt+1 Tk-1.1 a N b Tt+3 N Tt+1.3 Tk+2 b [ Ti+1 a b ] N")
+        lindenmayer.addRule("a", " N Tt+1.1 Tk+1 N [ Tk+2 b ] Tk+3 N Tk-3 Tt-1 [ Tt+1 Tk-3 a ] N ")
         lindenmayer.setIterationCount(6)
         lindenmayer.generate()
         random = CsoundVST.Random()
@@ -89,32 +95,39 @@ class CompositionBase(object):
         rescale.setRescale( 1, 1, 1,  6,       4)
         rescale.setRescale( 3, 1, 1,  2,       6)
         rescale.setRescale( 4, 1, 1, 36,      60)
-        rescale.setRescale( 5, 1, 1, 60,      15)
+        rescale.setRescale( 5, 1, 1, 30,      15)
         rescale.setRescale( 7, 1, 1, -0.75,    1.5)
         scale = 'E major'
-        scalenumber = CsoundVST.Conversions.nameToM(scale)
-        print '"%s" = %s' % (scale, scalenumber)
-        rescale.setRescale(10, 1, 1,  scalenumber,    0)
+        M = CsoundVST.Conversions.nameToM(scale)
+        print '"%s" = %s' % (scale, M)
+        rescale.setRescale(10, 1, 1,  M,       0)
         random.addChild(lindenmayer)
         rescale.addChild(random)
         self.model.addChild(rescale)
-        print 'ENDED CompositionBase.assembleModel.'
+        print 'ENDED Composition.assembleModel.'
     '''
     This method is designed to be overridden in compositions.
     The default implementation loads the Silence orchestra.
     '''
     def assembleOrchestra(self):
-        print 'BEGAN CompositionBase.assembleOrchestra...'
+        print 'BEGAN Composition.assembleOrchestra...'
         csound.load(r'D:/utah/home/mkg/projects/music/library/CsoundVST.csd')
-        csound.setCommand(self.command)
-        print 'ENDED CompositionBase.assembleOrchestra.'
+        csound.setCommand(self.command)        
+        print 'ENDED Composition.assembleOrchestra.'
     def generateScore(self):
-        print 'BEGAN CompositionBase.generateScore...'
+        print 'BEGAN Composition.generateScore...'
         self.model.generate()
-        print 'after generate'
+        print 'Generated score:'
+        print self.csound.getScore()
         score = self.model.getScore()
         score.thisown = 0
         duration = score.getDuration() + 8.0
+        print 'Duration: %9.4f' % (duration)
+        score.save(self.getMidiFilename())
+        print 'ENDED Composition.generateScore.'
+    def assembleArrangement(self):
+        score = self.model.getScore()
+        score.thisown = 0
         score.arrange(0,56, 1.0)
         score.arrange(1,15, 1.0)
         score.arrange(2,19, 1.0)
@@ -123,7 +136,6 @@ class CompositionBase(object):
         score.arrange(5,56, 1.0)
         score.arrange(6,56, 1.0)
         score.arrange(7,56, 1.0)
-        print 'Duration: %9.4f' % (duration)
         self.model.createCsoundScore('''
         ; EFFECTS MATRIX
 
@@ -160,13 +172,9 @@ class CompositionBase(object):
         ; Insno	Start	Dur	Fadein	Fadeout
         i 220   0       -1      0.1     0.1
 
-        ''')
-        print 'Generated score:'
-        print self.csound.getScore()
-        self.model.getScore().save(self.getMidiFilename())
-        print 'ENDED CompositionBase.exportForPerformance.'
+        ''')        
     def perform(self):
-        print 'BEGAN CompositionBase.perform...'
+        print 'BEGAN Composition.perform...'
         self.keepPerforming = True
         if self.keepPerforming:
             self.model.clear()
@@ -177,66 +185,82 @@ class CompositionBase(object):
         if self.keepPerforming:
             self.generateScore()
         if self.keepPerforming:
+            self.assembleArrangement()
+        if self.keepPerforming:
             self.csound.perform()
-        print 'ENDED CompositionBase.perform.'
+        if self.keepPerforming and self.autoplay and not self.audio:
+            self.play()
+        print 'ENDED Composition.perform.'
     '''
     High-level function to generate a score and orchestra,
     export them, and render them as audio in real time
     on the indicated audio interface.
     '''
     def performAudio(self, dac='dac8'):
-        print 'BEGAN CompositionBase.peformAudio(%s)...' % (dac)
+        print 'BEGAN Composition.peformAudio(%s)...' % (dac)
         try:
             self.command = self.getAudioCommand(dac)
+            self.audio = True
             self.perform()
         except:
             traceback.print_exc()
-        print 'ENDED CompositionBase.performAudio.'
+        print 'ENDED Composition.performAudio.'
     '''
     High-level function to generate a score and orchestra,
     export them, and render them as a CD-quality soundfile.
     '''
     def performCdSoundfile(self):
-        print 'BEGAN CompositionBase.performCdSoundfile...'
+        print 'BEGAN Composition.performCdSoundfile...'
         try:
             self.command = self.getCdSoundfileCommand()
-            self.keepPerforming = True
+            self.audio = False
             self.perform()
         except:
             traceback.print_exc()
-        print 'ENDED CompositionBase.performCdSoundfile.'
+        print 'ENDED Composition.performCdSoundfile.'
     '''
     High-level function to generate a score and orchestra,
     export them, and render them as a high-resolution,
     master-quality soundfile.
     '''
     def performMasterSoundfile(self):
-        print 'BEGAN CompositionBase.performMasterSoundfile...'
+        print 'BEGAN Composition.performMasterSoundfile...'
         try:
             self.command = self.getMasterSoundfileCommand()
+            self.audio = False
             self.perform()
         except:
             traceback.print_exc()
-        print 'ENDED CompositionBase.performMasterSoundfile.'
+        print 'ENDED Composition.performMasterSoundfile.'
     '''
     Stops performance at any stage.
     '''
     def stop(self):
-        print 'BEGAN CompositionBase.stop...'
+        print 'BEGAN Composition.stop...'
         self.keepPerforming = False
         self.csound.stop()
-        print 'ENDED CompositionBase.stop.'
+        print 'ENDED Composition.stop.'
+        if self.autoplay and not self.audio:
+            self.play()
+    def play(self):
+        print 'BEGAN Composition.play...'
+        os.spawnl(os.P_NOWAIT, self.getPlayer(), self.getPlayer(), self.getOutputSoundfileName())
+        print 'ENDED Composition.play.'
+    def setPlayer(self, player):
+        self.player = player
+    def getPlayer(self):
+        return self.player
 
 # Set up signal handling so Csound can be killed
 # when performing in the development environment,
 # e.g. by pressing Control-C in the Idle shell.
 
 def signalHandler(signal, frame):
+    print
     print 'signalHandler called with signal: %d' % (signal)
     global composition
     if composition:
         composition.stop()
-        composition = None
     
 signal.signal(signal.SIGABRT,   signalHandler) 
 signal.signal(signal.SIGBREAK,  signalHandler) 
@@ -250,9 +274,9 @@ Unit test rendering.
 '''
 if __name__ == '__main__':
     print 'Create composition...'
-    composition = CompositionBase()
+    composition = Composition()
     print 'Began performance...'
-    composition.performMasterSoundfile()
+    composition.performCdSoundfile()
     print 'Ended performance.'
 
 
