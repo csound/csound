@@ -20,21 +20,10 @@ for algorithmic compositions made with Silence and Csound.
 
 CompositionBase encapsulates and automates most of the housekeeping
 for algorithmic composition, and enables a general-purpose Python
-development environment to be used for composing. Normally,
-only the assembleModel and assembleOrchestra methods need to be
+development environment to be used for composing.
+
+Normally, only the assembleModel and assembleOrchestra methods need to be
 overridden.
-
-Compositions may be developed with or without graphical user interfaces.
-
-1. Assemble a MusicModel.
-2. Generate the music graph for the MusicModel.
-3. Assemble a Csound orchestra.
-4. Export the Csound score and orchestra for performance,
-   and incidentally also always export a MIDI file of the score.
-5. Assemble an appropriate Csound command line.
-6. Render the composition -- as real-time audio for preview,
-   as a CD quality soundfile, or as a high-resolution soundfile.
-7. The rendering can be stopped at any time from the development environment.
 '''
 
 global composition
@@ -46,13 +35,13 @@ class CompositionBase(object):
         self.model = CsoundVST.MusicModel()
         self.model.setCppSound(self.csound)
         self.keepPerforming = False
-        self.csoundThread = None
+        self.csound.setPythonMessageCallback()
         composition = self
     '''
-    All filenames are based off the composition script.
+    All filenames are based off the composition script filename.
     '''
     def getFilename(self):
-        return __name__
+        return sys.argv[0]
     def getMidiFilename(self):
         return self.getFilename() + '.mid'
     def getOutputSoundfileName(self):
@@ -61,10 +50,24 @@ class CompositionBase(object):
         return self.getFilename() + '.orc'
     def getScoFilename(self):
         return self.getFilename() + '.sco'
+    def getAudioCommand(self, dac):
+        command = 'csound -m1 -h -d -r 44100 -k 441 -o %s %s %s' % (dac, self.getOrcFilename(), self.getScoFilename())
+        print 'Command: %s' % (command)
+        return command
+    def getCdSoundfileCommand(self):
+        command = 'csound -m3 -R -W -d -r 44100 -k 100 -o %s %s %s' % (self.getOutputSoundfileName(), self.getOrcFilename(), self.getScoFilename())
+        print 'Command: %s' % (command)
+        return command
+    def getMasterSoundfileCommand(self):
+        command = 'csound -m3 -R -W -Z -d -r 88200 -k 88200 -o %s %s %s' % (self.getOutputSoundfileName(), self.getOrcFilename(), self.getScoFilename())
+        print 'Command: %s' % (command)
+        return command
     '''
     This method is desgned to be overridden in compositions.
     The default implementation assembles a Lindenmayer system score.
     CsoundVST objects created here should have thisown = 0.
+    Note that the model can also be assembled in main-level module code,
+    where setting thisown is not necessary.
     '''
     def assembleModel(self):
         print 'BEGAN CompositionBase.assembleModel...'
@@ -103,10 +106,12 @@ class CompositionBase(object):
     def assembleOrchestra(self):
         print 'BEGAN CompositionBase.assembleOrchestra...'
         csound.load(r'D:/utah/home/mkg/projects/music/library/CsoundVST.csd')
+        csound.setCommand(self.command)
         print 'ENDED CompositionBase.assembleOrchestra.'
     def generateScore(self):
         print 'BEGAN CompositionBase.generateScore...'
         self.model.generate()
+        print 'after generate'
         score = self.model.getScore()
         score.thisown = 0
         duration = score.getDuration() + 8.0
@@ -158,22 +163,8 @@ class CompositionBase(object):
         ''')
         print 'Generated score:'
         print self.csound.getScore()
-        self.csound.setCommand(self.command)
-        self.csound.exportForPerformance()
         self.model.getScore().save(self.getMidiFilename())
         print 'ENDED CompositionBase.exportForPerformance.'
-    def getAudioCommand(self, dac):
-        command = 'csound -m1 -h -d -r 44100 -k 441 -o %s %s %s' % (dac, self.getOrcFilename(), self.getScoFilename())
-        print 'Command: %s' % (command)
-        return command
-    def getCdSoundfileCommand(self):
-        command = 'csound -m3 -R -W -d -r 44100 -k 100 -o %s %s %s' % (self.getOutputSoundfileName(), self.getOrcFilename(), self.getScoFilename())
-        print 'Command: %s' % (command)
-        return command
-    def getMasterSoundfileCommand(self):
-        command = 'csound -m3 -R -W -Z -d -r 88200 -k 1 -o %s %s %s' % (self.getOutputSoundfileName(), self.getOrcFilename(), self.getScoFilename())
-        print 'Command: %s' % (command)
-        return command
     def perform(self):
         print 'BEGAN CompositionBase.perform...'
         self.keepPerforming = True
@@ -236,6 +227,10 @@ class CompositionBase(object):
         self.csound.stop()
         print 'ENDED CompositionBase.stop.'
 
+# Set up signal handling so Csound can be killed
+# when performing in the development environment,
+# e.g. by pressing Control-C in the Idle shell.
+
 def signalHandler(signal, frame):
     print 'signalHandler called with signal: %d' % (signal)
     global composition
@@ -243,9 +238,6 @@ def signalHandler(signal, frame):
         composition.stop()
         composition = None
     
-# Set up signal handling so Csound can be killed
-# when performing in the development environment.
-
 signal.signal(signal.SIGABRT,   signalHandler) 
 signal.signal(signal.SIGBREAK,  signalHandler) 
 signal.signal(signal.SIGFPE,    signalHandler) 
@@ -260,7 +252,7 @@ if __name__ == '__main__':
     print 'Create composition...'
     composition = CompositionBase()
     print 'Began performance...'
-    composition.performAudio()
+    composition.performMasterSoundfile()
     print 'Ended performance.'
 
 
