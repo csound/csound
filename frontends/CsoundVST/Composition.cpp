@@ -47,11 +47,13 @@ namespace csound
 
   void Composition::createCsoundScore(std::string addToScore)
   {
-    cppSound->removeScore();
-    std::string csoundScore = addToScore;
-    csoundScore.append(score.getCsoundScore(tonesPerOctave, conformPitches));
-    csoundScore.append("\ne 5.0");
-    cppSound->setScore(csoundScore);      
+    System::inform("addToScore.length(): %d\n", addToScore.length());
+    if (addToScore.length() > 2) {
+      cppSound->removeScore();
+      cppSound->addScoreLine(addToScore);
+    }
+    cppSound->addScoreLine(score.getCsoundScore(tonesPerOctave, conformPitches));
+    cppSound->addScoreLine("\ne 5.0");
     cppSound->exportForPerformance();
   }
 
