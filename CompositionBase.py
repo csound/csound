@@ -11,11 +11,48 @@ Composition encapsulates and automates most of the housekeeping
 for algorithmic composition, and enables a general-purpose Python
 development environment to be used for composing.
 
-Normally, only the following methods need to be overridden:
-1. assembleModel, to create a MusicModel.
-2. assembleOrchestra, to create a Csound orchestra suited to the model.
-3. assembleArrangement, to tweak levels or instrument assignments
-   in the orchestra.
+This class is designed to be used either with a Csound orchestra
+created from scratch by the composer, or using an internally
+stored preset Csound orchestra together with an arrangement
+and mixer setup created by the composer.
+
+There are many ways to use this class, for example
+by overriding its virtual methods. But normally,
+it is easier to use one of the two following methods.
+
+With a composer-created orchestra:
+
+# Create an instance of Composition.
+composition = CompositionBase.Composition()
+
+# Create your music model:
+composition.model.addChild(myStuff)...
+
+# Set your orchestra:
+composition.setOrchestra(myOrc)
+
+# Render...
+composition.renderAudio(myDac)
+
+With the Composition class' built-in orchestra:
+
+# Create an instance of Composition.
+composition = CompositionBase.Composition()
+
+# Create your music model:
+composition.model.addChild(myStuff)...
+
+# Assign instruments from the build-in orchestra:
+composition.arrangeInstrumentGain(0, 56, 1)
+composition.arrangeInstrumentGain(1, 13, 1)
+composition.arrangeInstrumentGain(2, 12, 1.5,-.75)
+
+# Set the Csound score header which controls the
+# built-in orchestra's mixer sends and gains:
+composition.setScoreHeader(myHeader)
+
+# Render...
+composition.renderMasterSoundfile()
 '''
 import atexit
 import csnd
@@ -1626,6 +1663,46 @@ i 220   0       -1      0.1     0.1
 </CsoundSynthesizer>
 '''
 
+global scoreHeader
+scoreHeader = \
+'''
+; EFFECTS MATRIX
+
+; Chorus to Reverb
+i 1 0 0 200 210 0.0
+; Leslie to Reverb
+; i 1 0 0 201 210 0.5
+; Chorus to Output
+i 1 0 0 200 220 0.5
+; Reverb to Output
+i 1 0 0 210 220 0.5
+
+; SOUNDFONTS OUTPUT
+
+; Insno Start   Dur     Key 	Amplitude
+i 190 	0       -1      0	84.
+
+; PIANOTEQ OUTPUT
+
+; Insno Start   Dur     Key 	Amplitude
+i 191 	0       -1      0	55.
+
+; MASTER EFFECT CONTROLS
+
+; Chorus.
+; Insno	Start	Dur	Delay	Divisor of Delay
+i 200   0       -1      10      30
+
+; Reverb.
+; Insno	Start	Dur	Delay	Pitch mod	Cutoff
+i 210   0       -1      0.87    0.015  		16000
+
+; Master output.
+; Insno	Start	Dur	Fadein	Fadeout
+i 220   0       -1      0.1     0.1
+
+'''            
+
 global composition
 composition = None
 
@@ -1638,6 +1715,9 @@ class Composition(object):
         self.model = CsoundVST.MusicModel()
         self.model.setCppSound(self.csound)
         self.score = self.model.getScore()
+        self.orchestra = orchestra
+        self.arrangement = {}
+        self.scoreHeader = scoreHeader
         self.keepRendering = False
         self.autoplay = True
         self.setPlayer(r'D:/utah/opt/Audacity/audacity.exe')
@@ -1647,9 +1727,7 @@ class Composition(object):
         signal.signal(signal.SIGFPE,    self.signalHandler) 
         signal.signal(signal.SIGILL,    self.signalHandler) 
         signal.signal(signal.SIGINT,    self.signalHandler) 
-        signal.signal(signal.SIGSEGV,   self.signalHandler) 
-        
-        
+        signal.signal(signal.SIGSEGV,   self.signalHandler)
     '''
     All filenames are based off the composition script filename.
     '''
@@ -1676,8 +1754,6 @@ class Composition(object):
         print 'Command: %s' % (command)
         return command
     '''
-    This method is desgned to be overridden in compositions.
-    The default implementation assembles a Lindenmayer system score.
     CsoundVST objects created here should have thisown = 0.
     Note that the model can also be assembled in main-level module code,
     where setting thisown is not necessary.
@@ -1686,13 +1762,11 @@ class Composition(object):
         print 'BEGAN Composition.assembleModel...'
         print 'Default implementation does nothing.'
         print 'ENDED Composition.assembleModel.'
-    '''
-    This method is designed to be overridden in compositions.
-    The default implementation loads the Silence orchestra and lists its instruments.
-    '''
+    def setOrchestra(self, orchestra_):
+        self.orchestra = orchestra_
     def assembleOrchestra(self):
         print 'BEGAN Composition.assembleOrchestra...'
-        self.csound.setCSD(orchestra)
+        self.csound.setCSD(self.orchestra)
         self.csound.setCommand(self.command)
         instruments = self.csound.getInstrumentNames()
         for number, name in instruments.items():
@@ -1707,55 +1781,29 @@ class Composition(object):
         print 'Duration: %9.4f' % (duration)
         self.score.save(self.getMidiFilename())
         print 'ENDED Composition.generateScore.'
-    def assembleArrangement(self):
-        print 'BEGAN Composition.assembleArrangement...'
+    def arrangeInstrument(self, generatedInstrument, csoundInstrument):
+        self.arrangement[generatedInstrument] = (csoundInstrument)
+    def arrangeInstrumentGain(self, generatedInstrument, csoundInstrument, gain):
+        self.arrangement[generatedInstrument] = (csoundInstrument, gain)
+    def arrangeInstrumentGainPan(self, generatedInstrument, csoundInstrument, gain, pan):
+        self.arrangement[generatedInstrument] = (csoundInstrument, gain, pan)
+    def createCsoundArrangement(self):
+        print 'BEGAN Composition.createCsoundArrangement...'
         score = self.model.getScore()
-        score.arrange(0,56, 0.4)
-        score.arrange(1,15, 1.0)
-        score.arrange(2,19, 1.0)
-        score.arrange(3, 8, 1.0)
-        score.arrange(4, 3, 1.0)
-        score.arrange(5,56, 0.4)
-        score.arrange(6,56, 0.4)
-        score.arrange(7,56, 0.4)
-        self.model.createCsoundScore('''
-        ; EFFECTS MATRIX
-
-        ; Chorus to Reverb
-        i 1 0 0 200 210 0.0
-        ; Leslie to Reverb
-        ; i 1 0 0 201 210 0.5
-        ; Chorus to Output
-        i 1 0 0 200 220 0.5
-        ; Reverb to Output
-        i 1 0 0 210 220 0.5
-
-        ; SOUNDFONTS OUTPUT
-
-        ; Insno Start   Dur     Key 	Amplitude
-        i 190 	0       -1      0	84.
-
-        ; PIANOTEQ OUTPUT
-
-        ; Insno Start   Dur     Key 	Amplitude
-        i 191 	0       -1      0	55.
-
-        ; MASTER EFFECT CONTROLS
-
-        ; Chorus.
-        ; Insno	Start	Dur	Delay	Divisor of Delay
-        i 200   0       -1      10      30
-
-        ; Reverb.
-        ; Insno	Start	Dur	Delay	Pitch mod	Cutoff
-        i 210   0       -1      0.87    0.015  		16000
-
-        ; Master output.
-        ; Insno	Start	Dur	Fadein	Fadeout
-        i 220   0       -1      0.1     0.1
-
-        ''')        
-        print 'ENDED Composition.assembleArrangement.'
+        for instrument,assignment in self.arrangement.items():
+            if len(assignment) == 1:
+                score.arrange(instrument, assignment[0])
+            elif len(assignment) == 2:
+                score.arrange(instrument, assignment[0], assignment[1])
+            elif len(assignment) == 3:
+                score.arrange(instrument, assignment[0], assignment[1], assignment[2])
+        print 'ENDED Composition.createCsoundArrangement...'
+    def setScoreHeader(self, scoreHeader_):
+        self.scoreHeader = scoreHeader_
+    def createCsoundScore(self):
+        print 'BEGAN Composition.createCsoundScore...'
+        self.model.createCsoundScore(scoreHeader)        
+        print 'ENDED Composition.createCsoundScore.'
     def render(self):
         print 'BEGAN Composition.render...'
         self.keepRendering = True
@@ -1766,7 +1814,9 @@ class Composition(object):
         if self.keepRendering:
             self.generateScore()
         if self.keepRendering:
-            self.assembleArrangement()
+            self.createCsoundArrangement()
+        if self.keepRendering:
+            self.createCsoundScore()
         if self.keepRendering:
             print 'BEGAN CppSound.perform...'
             self.csound.perform()
@@ -1873,7 +1923,17 @@ if __name__ == '__main__':
     random.addChild(lindenmayer)
     rescale.addChild(random)
     composition.model.addChild(rescale)
-    
+
+    print 'Creating arrangement...'
+    composition.arrangeInstrumentGain(0, 56, 0.4)
+    composition.arrangeInstrumentGain(1, 15, 1.0)
+    composition.arrangeInstrumentGain(2, 19, 1.0)
+    composition.arrangeInstrumentGain(3,  8, 1.0)
+    composition.arrangeInstrumentGain(4,  3, 1.0)
+    composition.arrangeInstrumentGain(5, 56, 0.4)
+    composition.arrangeInstrumentGain(6, 56, 0.4)
+    composition.arrangeInstrumentGain(7, 56, 0.4)
+
     print 'Began rendering...'
     composition.renderMasterSoundfile()
     print 'Ended rendering.'
