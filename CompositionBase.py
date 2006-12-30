@@ -1887,7 +1887,8 @@ class Composition(object):
         print
         print 'signalHandler called with signal: %d' % (signal)
         self.stop()
-        composition = None
+        # Force hard exit.
+        sys._exit(0)
 
 '''
 Unit test rendering.
