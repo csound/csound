@@ -112,6 +112,10 @@ namespace csound
     virtual void CL(double time, std::string C_, bool avoidParallels = true);
     virtual void V(double time, double V_);
     virtual void L(double time, bool avoidParallels = true);
+    /**
+     * Simplifies use out of the context of a music graph.
+     */
+    virtual void transform(Score &score);
   };
 }
 #endif
