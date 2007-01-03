@@ -198,7 +198,7 @@ namespace csound
     System::inform("ENDED VoiceleadingNode::apply.\n");
   }
 
-  void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
+  void VoiceleadingNode::transform(Score &score)
   {
     if (operations.empty()) {
       return;
@@ -219,7 +219,7 @@ namespace csound
 	timeScale = scoreMaxTime / operationMaxTime;
       }
     }
-    System::inform("BEGAN VoiceleadingNode::produceOrTransform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
+    System::inform("BEGAN VoiceleadingNode::transform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
     for (size_t i = 0, n = keys.size(); i < n; i++) {
       VoiceleadingOperation &operation = operations[keys[i]];
       operation.rescaledTime = operation.time * timeScale;
@@ -247,7 +247,7 @@ namespace csound
 	apply(score, *operationI, *operationJ);
       }
     }
-    System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
+    System::inform("ENDED VoiceleadingNode::transform.\n");
   }
   
   void VoiceleadingNode::PT(double time, double P, double T)
@@ -323,4 +323,8 @@ namespace csound
     operations[time].avoidParallels = avoidParallels;
   }
 
+  void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
+  {
+    transform(score);
+  }
 }
