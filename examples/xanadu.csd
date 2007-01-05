@@ -4,7 +4,6 @@ csound -R -W -s -o Xanadu.wav temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr          =           44100
-kr          =           44100
 ksmps       =           1
 nchnls      =           2
 ;--------------------------------------------------------
