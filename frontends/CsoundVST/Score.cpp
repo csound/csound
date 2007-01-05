@@ -586,7 +586,9 @@ namespace csound
     double P = 0.0;
     double T = 0.0;
     double V = 0.0;
-    Voicelead::primeAndTranspositionFromPitchClassSet(pitchClassSet, P, T, divisionsPerOctave_);
+    std::vector<double> pt = Voicelead::primeAndTranspositionFromPitchClassSet(pitchClassSet, divisionsPerOctave_);
+    P = pt[0];
+    T = pt[1];
     std::vector< std::vector<double> > voicings = Voicelead::voicings(pitchClassSet, lowest, range, divisionsPerOctave_);
     std::vector< std::vector<double> >::iterator it = std::find(voicings.begin(), voicings.end(), chord);
     if (it != voicings.end()) {
@@ -649,9 +651,7 @@ namespace csound
     double P = 0.0;
     double T = 0.0;
     std::vector<double> pitchClassSet = Voicelead::uniquePcs(chord, divisionsPerOctave_);
-    Voicelead::primeAndTranspositionFromPitchClassSet(pitchClassSet, P, T, divisionsPerOctave_);
-    pt[0] = P;
-    pt[1] = T;
+    pt = Voicelead::primeAndTranspositionFromPitchClassSet(pitchClassSet, divisionsPerOctave_);
     return pt;
   }
 

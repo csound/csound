@@ -115,18 +115,18 @@ namespace csound
     return pcs;
   }
 
-  void Voicelead::primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs_, 
-							double &prime, 
-							double &transposition, 
-							size_t divisionsPerOctave)
+  std::vector<double> Voicelead::primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs_, 
+									size_t divisionsPerOctave)
   {
     std::vector<double> normalChord_ = normalChord(pcs_);
     std::vector<double> zeroChord_ = toOrigin(normalChord_);
     double M = mFromPitchClassSet(zeroChord_, divisionsPerOctave);
     double C = mToC(M, divisionsPerOctave);
     double P = cToP(C, divisionsPerOctave);
-    prime = P;
-    transposition = normalChord_[0];
+    std::vector<double> result(2);
+    result[0] = P;
+    result[1] = normalChord_[0];
+    return result;
   }
 
 

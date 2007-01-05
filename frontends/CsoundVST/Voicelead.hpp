@@ -161,10 +161,8 @@ namespace csound
      * Convert a pitch-class set to a prime chord number and a transposition.
      * Note that the prime chord numbers, and transpositions, each form an additive cyclic group.
      */
-    static void primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
-						       double &prime, 
-						       double &transposition, 
-						       size_t divisionsPerOctave = 12);
+    static std::vector<double> primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
+								      size_t divisionsPerOctave = 12);
 
     /**
      * Convert a prime chord number and transposition to a pitch-class set.
