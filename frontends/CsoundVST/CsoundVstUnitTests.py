@@ -1,6 +1,8 @@
 import CsoundVST
 import math
 import random
+import string
+import sys
 sys.path.append('d:/utah/home/mkg/projects/icmc2006-mkg')
 import tonnetz
 
@@ -114,6 +116,17 @@ for i in xrange(0, len(score) - 40, 20):
 	print i, CsoundVST.Voicelead_uniquePcs(prepitches), CsoundVST.Voicelead_uniquePcs(postpitches)
 	print ' '
 score.save('CsoundVstUnitTest.py.4.mid')
+
+for n in string.split('C C# D D# E F G G# A A# B'):
+    name = n + "M7"
+    chord = CsoundVST.Conversions_nameToPitches(n + "M7")
+    prime = CsoundVST.Voicelead_primeChord(chord)
+    print name, chord, prime
+    p = 0.0
+    t = 0.0
+    result = CsoundVST.Voicelead_primeAndTranspositionFromPitchClassSet(chord, int(12))
+    print result
+    
 
 	
 

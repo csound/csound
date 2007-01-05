@@ -137,11 +137,11 @@ namespace csound
       }
     } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
-	double prime = 0.0;
-	double transposition = 0.0;
 	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	printChord("CV", pcs);
-	Voicelead::primeAndTranspositionFromPitchClassSet(pcs, prime, transposition, divisionsPerOctave);
+	std::vector<double> pt = Voicelead::primeAndTranspositionFromPitchClassSet(pcs, divisionsPerOctave);
+	double prime = pt[0];
+	double transposition = pt[1];
 	System::inform("prime: %f transposition %f: divisionsPerOctave %d\n", prime, transposition, divisionsPerOctave);
 	score.setPTV(operation.begin, 
 		     operation.end, 
