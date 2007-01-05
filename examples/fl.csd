@@ -3,8 +3,7 @@
 </CsOptions>
 <CsInstruments>
 sr=44100
-kr=44.1
-ksmps=1000
+ksmps=32
 nchnls=2
 
         FLpanel "This Panel contains a Knob and shows its current value",400,300
@@ -15,7 +14,6 @@ gk1,gih  FLknob  "Current value of this Knob is shown in a text field", 80,5000,
 
         instr 1
         FLsetVal_i 440, gih
-gk1     tonek gk1, 1
 a1      oscili  3000, gk1, 1
         outs     a1,a1
         endin
