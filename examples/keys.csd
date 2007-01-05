@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--d -odac8 -iadc  -B1024 
+-d -odac -iadc  -B2048
 </CsOptions>
 <CsInstruments>
 sr=44100
@@ -10,7 +10,7 @@ nchnls=1
 
 gklevel init 0
 gks chnexport "meter",3
-f1 pvsinit 0
+
 
 instr 1
 ain in
