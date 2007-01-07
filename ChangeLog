@@ -10,6 +10,9 @@
 
 2007-01-07  jpff  <jpff@codemist.co.uk>
 
+	* Engine/entry1.c: Allow printf and printf_i not have zero
+	arguments after trigger
+
 	* Opcodes/system_call.c: new code
 
 2006-12-02  Michael Gogins <gogins@pipeline.com>
