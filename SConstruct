@@ -1127,7 +1127,7 @@ sfontEnvironment = pluginEnvironment.Copy()
 if (not withMSVC()):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 if sys.byteorder == 'big':
-    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN]')
+    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
