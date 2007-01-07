@@ -1152,6 +1152,7 @@ makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
 makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
 makePlugin(pluginEnvironment, 'date', ['Opcodes/date.c'])
+makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 # Plugins with External Dependencies
 
 # FLTK widgets
