@@ -639,6 +639,13 @@ int SVrecv(CSOUND *csound, int conn, void *data, int length)
 
 /*  INSTR 0 opcodes  */
 
+int remoteport(CSOUND *csound, REMOTEPORT *p)
+{
+    csound->Warning(csound, Str("*** This version of Csound was not "
+            "compiled with remote event support ***\n"));
+    return OK;
+}
+
 int insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
 {

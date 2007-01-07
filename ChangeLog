@@ -1,5 +1,7 @@
 2007-01-07  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
+	* OOps/remote.c (remoteport): Stub version for platforms without sockets.
+
 	* SConstruct: Use sys.byteorder to set flags for sfonts and STK opcodes.
 
 2007-01-07  Steven Yi  <stevenyi@gmail.com>
