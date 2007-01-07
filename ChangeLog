@@ -1,3 +1,9 @@
+2007-01-07  Steven Yi  <stevenyi@gmail.com>
+	* Engine/envvar.c (csoundGetDirectoryForPath): added call to 
+	csoundConvertPathname at top of function to fix bug on Windows
+	where path's with forward slashes were causing segfaults
+	(Recommended by Anthony Kozar on Dev list)
+
 2007-01-07  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/system_call.c: new code
