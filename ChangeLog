@@ -1,3 +1,7 @@
+2007-01-07  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/system_call.c: new code
+
 2006-12-02  Michael Gogins <gogins@pipeline.com>
 
 	* Completed implementation of algorithmic composition
