@@ -55,30 +55,28 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 
 static int call_system(CSOUND *csound, SYSTEM *p)
 {
-  char command[256];
-  if ((int)*p->nowait!=0) {
-    if (fork()) {
-      *p->res = 0;
-      return OK;
-    } else {
-      system((char*)p->commandLine);
-      exit(1);
+    char command[256];
+    if ((int)*p->nowait!=0) {
+      if ((*p->res = fork()))
+        return OK;
+      else {
+        system((char*)p->commandLine);
+        exit(1);
+      }
     }
-  } else {
-    *p->res = (MYFLT)system((char*)p->commandLine);
-    return OK;
-  }
+    else {
+      *p->res = (MYFLT)system((char*)p->commandLine);
+      return OK;
+    } 
 }
 
 #endif
-  
+
 #define S(x)    sizeof(x)
-  
+
   static OENTRY localops[] = {
     { "system",  S(SYSTEM), 1,   "i",   "So", (SUBR)call_system}
   };
-  
+
   LINKAGE
-    
-    
-    
+
