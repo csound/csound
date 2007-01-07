@@ -7,8 +7,8 @@
 	* Completed implementation of algorithmic composition
 	helper classes for voice-leading and chord progression in
 	CsoundVST: Voicelead, VoiceleadingNode, Conversions, and Score.
-	These implement orthogonal arithemtical operations for
-	changing interval strucure ('prime chord' or P), 
+	These implement orthogonal arithmetical operations for
+	changing interval structure ('prime chord' or P), 
 	chord transposition ('transposition' or T), and voicing or
 	inversion within a range ('voicing' or V), as well as
 	arithmetic upon pitch-class set numerals ('Mason number' or M).
