@@ -32,21 +32,19 @@ typedef struct	{
 
 #if defined(WIN32)
 
+static void threadroutine(void *command)
+{
+  system( (char *)command );
+  free( command );
+}
+
 static int call_system(CSOUND *csound, SYSTEM *p)
 {
   _flushall();
   if ( (int)*p->nowait != 0 ) {
-    char *string = strdup( (char *)p->commandLine );
-    char *separators = " \t\n\r";
-    const char *argv[0xff];
-    int arg = 0;
-    argv[arg] = strtok( string, separators ); 
-    while ( argv[arg++] ) {
-      argv[arg] = strtok( 0, separators ); 
-    }
-    _spawnv(_P_NOWAIT, argv[0], argv);
-    free( string );
-    *p->res = (MYFLT) OK;
+    char *command = strdup( (char *)p->commandLine );
+    _beginthread( threadroutine, 0, command );
+    *p->res = OK;
   } else {
     *p->res = (MYFLT) system( (char *)p->commandLine );
   }
