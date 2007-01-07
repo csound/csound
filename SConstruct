@@ -1126,6 +1126,8 @@ makePlugin(pluginEnvironment, 'scansyn',
 sfontEnvironment = pluginEnvironment.Copy()
 if (not withMSVC()):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
+if sys.byteorder == 'big':
+    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN]')
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
@@ -1407,12 +1409,15 @@ else:
     ''')
     stkEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'win32':
-        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
+        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
     elif getPlatform() == 'linux':
-        # N.B. these assumptions about endianness may be incorrect
-        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
+        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
     elif getPlatform() == 'darwin':
-        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
+        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__')
+    if sys.byteorder == 'big':
+        stkEnvironment.Append(CCFLAGS = '-D__BIG_ENDIAN__')
+    else:
+        stkEnvironment.Append(CCFLAGS = '-D__LITTLE_ENDIAN__')
     stkEnvironment.Prepend(CPPPATH = Split('''
         Opcodes/stk/include Opcodes/stk/src ./ ./../include
     '''))
