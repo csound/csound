@@ -735,38 +735,47 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     char *retval;
     char *cwd;
     int  len;
-    char *lastIndex = strrchr(path, DIRSEP);
+    
+    char *tempPath = csoundConvertPathname(csound, path);
+    
+    char *lastIndex = strrchr(tempPath, DIRSEP);
 
-    if (csoundIsNameFullpath(path))
+    if (csoundIsNameFullpath(tempPath))
     {
 #ifndef mac_classic
         /* check if root directory */
-        if (lastIndex == path) {
+        if (lastIndex == tempPath) {
             partialPath = (char *)mcalloc(csound, 2);
             partialPath[0] = DIRSEP;
             partialPath[1] = '\0';
+
+            mfree(csound, tempPath);
 
             return partialPath;
         }
 
 #  ifdef WIN32
         /* check if root directory of Windows drive */
-        if ((lastIndex - path) == 2 && path[1] == ':') {
+        if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
             partialPath = (char *)mcalloc(csound, 4);
-            partialPath[0] = path[0];
-            partialPath[1] = path[1];
-            partialPath[2] = path[2];
+            partialPath[0] = tempPath[0];
+            partialPath[1] = tempPath[1];
+            partialPath[2] = tempPath[2];
             partialPath[3] = '\0';
+
+            mfree(csound, tempPath);
 
             return partialPath;
         }
 #  endif
 #endif  /* no special case needed on OS 9 for root directory */
         /* not the root directory or we are on OS 9 */
-        len = (lastIndex - path);
+        len = (lastIndex - tempPath);
 
         partialPath = (char *)mcalloc(csound, len + 1);
-        strncpy(partialPath, path, len);
+        strncpy(partialPath, tempPath, len);
+
+        mfree(csound, tempPath);
 
         return partialPath;
     }
@@ -780,15 +789,16 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
         return cwd;
     }
 
-    len = (lastIndex - path);  /* could be 0 on OS 9 */
+    len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
 
     partialPath = (char *)mcalloc(csound, len + 1);
-    strncpy(partialPath, path, len);
+    strncpy(partialPath, tempPath, len);
 
     retval = csoundConcatenatePaths(csound, cwd, partialPath);
 
     mfree(csound, cwd);
     mfree(csound, partialPath);
+    mfree(csound, tempPath);
 
     return retval;
 }
