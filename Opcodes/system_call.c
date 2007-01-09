@@ -26,8 +26,11 @@
 typedef struct	{
   OPDS	h;
   MYFLT *res;
+  MYFLT *ktrig;
   MYFLT	*commandLine;
   MYFLT *nowait;
+
+  MYFLT prv_ktrig;
 } SYSTEM;
 
 #if defined(WIN32)
@@ -40,22 +43,23 @@ static void threadroutine(void *command)
 
 static int call_system(CSOUND *csound, SYSTEM *p)
 {
-  _flushall();
-  if ( (int)*p->nowait != 0 ) {
-    char *command = strdup( (char *)p->commandLine );
-    _beginthread( threadroutine, 0, command );
-    *p->res = OK;
-  } else {
-    *p->res = (MYFLT) system( (char *)p->commandLine );
-  }
-  return OK;
+    _flushall();
+    if ( (int)*p->nowait != 0 ) {
+      char *command = strdup( (char *)p->commandLine );
+      _beginthread( threadroutine, 0, command );
+      *p->res = OK;
+    }
+    else {
+      *p->res = (MYFLT) system( (char *)p->commandLine );
+    }
+    return OK;
 }
 
 #else
 
 static int call_system(CSOUND *csound, SYSTEM *p)
 {
-    char command[256];
+    IGN(csound);
     if ((int)*p->nowait!=0) {
       if ((*p->res = fork()))
         return OK;
@@ -70,13 +74,40 @@ static int call_system(CSOUND *csound, SYSTEM *p)
     } 
 }
 
+int call_system_i(CSOUND *csound, SYSTEM *p)
+{
+    if (*p->ktrig <= FL(0.0)) {
+      *p->res=FL(0.0);
+      return OK;
+    }
+    else
+      return call_system(csound, p);
+}
+
+int call_system_set(CSOUND *csound, SYSTEM *p)
+{
+    IGN(csound);
+    p->prv_ktrig = FL(0.0);
+    return OK;
+}
+
+int call_system_k(CSOUND *csound, SYSTEM *p)
+{
+    if (*p->ktrig == p->prv_ktrig)
+      return OK;
+    p->prv_ktrig = *p->ktrig;
+    if (p->prv_ktrig > FL(0.0))
+      return (call_system(csound, p));
+    return OK;
+}
 #endif
 
 #define S(x)    sizeof(x)
 
-  static OENTRY localops[] = {
-    { "system",  S(SYSTEM), 1,   "i",   "So", (SUBR)call_system}
-  };
+static OENTRY localops[] = {
+  { "system",  S(SYSTEM), 1,  "k", "kSo", (SUBR)call_system_i},
+  { "system_i", S(SYSTEM), 1, "i", "iSo", (SUBR)call_system_set,(SUBR)call_system_k}
+};
 
-  LINKAGE
+LINKAGE
 
