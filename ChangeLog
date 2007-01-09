@@ -13,7 +13,7 @@
 2007-01-07  jpff  <jpff@codemist.co.uk>
 
 	* Engine/entry1.c: Allow printf and printf_i not have zero
-	arguments after trigger
+	arguments after trigger (reverted as causes other problems)
 
 	* Opcodes/system_call.c: new code
 

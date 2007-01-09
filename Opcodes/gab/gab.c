@@ -119,16 +119,21 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
 
 static int fastabw(CSOUND *csound, FASTAB *p)
 {
-    int nsmps = csound->ksmps;
+    int nsmps = csound->ksmps, n;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
-      do *(tab + (long) (*ndx++ * p->xbmul)) = *rslt++;
-      while(--nsmps);
+      MYFLT xbmul = p->xbmul;   /* load once */
+      for (n=0; n<nsmps; n++)   /* for loops compile better */
+        tab[(int)(ndx[n]*xbmul)] = rslt[n];
+/*       do *(tab + (long) (*ndx++ * p->xbmul)) = *rslt++; */
+/*       while(--nsmps); */
     }
     else {
-      do *(tab + (long) *ndx++) = *rslt++;
-      while(--nsmps);
+      for (n=0; n<nsmps; n++)
+        tab[(int)ndx[n]] = rslt[n];
+/*       do *(tab + (long) *ndx++) = *rslt++; */
+/*       while(--nsmps); */
     }
     return OK;
 }
@@ -136,18 +141,18 @@ static int fastabw(CSOUND *csound, FASTAB *p)
 static int fastabk(CSOUND *csound, FASTAB *p)
 {
     if (p->xmode)
-      *p->rslt =  *(p->table + (long) (*p->xndx * p->xbmul));
+      *p->rslt =  *(p->table + (int) (*p->xndx * p->xbmul));
     else
-      *p->rslt =  *(p->table + (long) *p->xndx);
+      *p->rslt =  *(p->table + (int) *p->xndx);
     return OK;
 }
 
 static int fastabkw(CSOUND *csound, FASTAB *p)
 {
     if (p->xmode)
-      *(p->table + (long) (*p->xndx * p->xbmul)) = *p->rslt;
+      *(p->table + (int) (*p->xndx * p->xbmul)) = *p->rslt;
     else
-      *(p->table + (long) *p->xndx) = *p->rslt;
+      *(p->table + (int) *p->xndx) = *p->rslt;
     return OK;
 }
 
@@ -160,9 +165,9 @@ static int fastabi(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, "tab_i: incorrect table number");
     }
     if (*p->ixmode)
-      *p->rslt =  *(ftp->ftable + (long) (*p->xndx * ftp->flen));
+      *p->rslt =  *(ftp->ftable + (int) (*p->xndx * ftp->flen));
     else
-      *p->rslt =  *(ftp->ftable + (long) *p->xndx);
+      *p->rslt =  *(ftp->ftable + (int) *p->xndx);
     return OK;
 }
 
@@ -174,9 +179,9 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, "tabw_i: incorrect table number");
     }
     if (*p->ixmode)
-      *(ftp->ftable + (long) (*p->xndx * ftp->flen)) = *p->rslt;
+      *(ftp->ftable + (int) (*p->xndx * ftp->flen)) = *p->rslt;
     else
-      *(ftp->ftable + (long) *p->xndx) = *p->rslt;
+      *(ftp->ftable + (int) *p->xndx) = *p->rslt;
     return OK;
 }
 
@@ -186,13 +191,14 @@ static int fastab(CSOUND *csound, FASTAB *p)
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
+      MYFLT xbmul = p->xbmul;
       do {
-        rslt[i] = tab[(long) (ndx[i] * p->xbmul)];
+        rslt[i] = tab[(int) (ndx[i] * xbmul)];
       } while (++i < nsmps);
     }
     else {
       do {
-        rslt[i] = tab[(long) ndx[i]];
+        rslt[i] = tab[(int) ndx[i]];
       } while (++i < nsmps);
     }
     return OK;
@@ -211,7 +217,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 
 static CS_NOINLINE int tab_perf(CSOUND *csound, FASTB *p)
 {
-    *p->r = (*p->tb_ptr)[(long) *p->ndx];
+    *p->r = (*p->tb_ptr)[(int) *p->ndx];
     return OK;
 }
 
