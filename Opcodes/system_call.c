@@ -74,6 +74,8 @@ static int call_system(CSOUND *csound, SYSTEM *p)
     } 
 }
 
+#endif
+
 int call_system_i(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig <= FL(0.0)) {
@@ -100,7 +102,6 @@ int call_system_k(CSOUND *csound, SYSTEM *p)
       return (call_system(csound, p));
     return OK;
 }
-#endif
 
 #define S(x)    sizeof(x)
 
