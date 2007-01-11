@@ -193,6 +193,9 @@ commandOptions.Add('buildTclcsound',
 commandOptions.Add('buildWinsound',
     "Build Winsound frontend. Requires FLTK headers and libs",
     '0')
+commandOptions.Add('buildVirtual',
+    "Build Virtual MIDI keyboard. Requires FLTK 1.1.7 headers and libs",
+    '0')
 commandOptions.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
     '0')
@@ -1184,7 +1187,7 @@ else:
     makePlugin(widgetsEnvironment, 'widgets',
                ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
 
-    if not fltk117Found:
+    if commonEnvironment['buildVirtual'] == '0' or not fltk117Found:
         print "CONFIGURATION DECISION: Not building Virtual Keyboard plugin. (FLTK 1.1.7+ required)"
     else:
         print "CONFIGURATION DECISION: Building Virtual Keyboard plugin."
