@@ -1696,10 +1696,9 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
     }
     else n = elements;
     i = 0;
-    if (p->vector1 == p->vector2 && vector1 > vector2) {
-      /* special case: need to reverse direction*/
-      for (j = n; --j >= 0; i++)
-        vector1[j] = vector2[(int)vector1[j]];
+    if (p->vector1 == p->vector2) {
+      csound->Warning(csound,Str("vmap: Error: ifn1 and can't be the same"));
+      return NOTOK;
     }
     for ( ; i < n; i++)
       vector1[i] = vector2[(int)vector1[j]];
