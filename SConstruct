@@ -1553,9 +1553,9 @@ def fluidTarget(env, dirName, baseName, objFiles):
     return cppFile
 
 if not (commonEnvironment['buildCsound5GUI'] != '0' and fltk117Found):
-    print 'CONFIGURATION DECISION: Not building FLTK GUI frontend.'
+    print 'CONFIGURATION DECISION: Not building FLTK CSOUND5GUI frontend.'
 else:
-    print 'CONFIGURATION DECISION: Building FLTK GUI frontend.'
+    print 'CONFIGURATION DECISION: Building FLTK GUI CSOUND5GUI frontend.'
     csound5GUIEnvironment = csoundProgramEnvironment.Copy()
     csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
     if getPlatform() == 'linux':
