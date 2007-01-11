@@ -104,7 +104,7 @@ commandOptions.Add('buildCsoundVST',
     '0')
 commandOptions.Add('buildCsound5GUI',
     'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
-    '1')
+    '0')
 commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
