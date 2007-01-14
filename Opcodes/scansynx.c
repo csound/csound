@@ -346,7 +346,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         }
         else {
          csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
-                                 i, (long) MATLEN, MATRIX, pp);
+                                 i, (long) MATLENLF, MATRIXLF, pp);
          return csound->InitError(csound, "Not a valid matrix");
        }
 #ifdef USING_CHAR
