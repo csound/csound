@@ -91,8 +91,11 @@ static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
     }
     if (fi->flen != len)
       csound->Die(csound, Str("scanux: Init table has bad size"));
-    for (i = 0 ; i != len ; i++)
+    for (i = 0 ; i != len ; i++) {
+      p->x0[i] = fi->ftable[i];
       p->x1[i] = fi->ftable[i];
+      p->x2[i] = fi->ftable[i];
+    }
     return OK;
 }
 
@@ -273,7 +276,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
     p->d = f->ftable;
 
     /* Spring stiffness */
-    if (*p->i_f != SSTRCOD) {
+    if (!p->XSTRCODE) {
       int j, ilen;
 
       /* Get the table */
@@ -325,18 +328,27 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         return csound->InitError(csound, Str("SCANU cannot load %s"), filnam);
       }
       else {
-#define MATRIX "<MATRIX>\n"
-#define MATLEN (sizeof(MATRIX)-1)
-#define NMATRIX "</MATRIX>\n"
-#define NMATLEN (sizeof(NMATRIX)-1)
+#define MATRIXLF "<MATRIX>\n"
+#define MATLENLF (sizeof(MATRIXLF)-1)
+#define MATRIXCRLF "<MATRIX>\r\n"
+#define MATLENCRLF (sizeof(MATRIXCRLF)-1)
+#define NMATRIXLF "</MATRIX>\n"
+#define NMATLENLF (sizeof(NMATRIXLF)-1)
+#define NMATRIXCRLF "</MATRIX>\r\n"
+#define NMATLENCRLF (sizeof(NMATRIXCRLF)-1)
         int j;
         char *pp = mfp->beginp;
-        if ((i=strncmp(pp, MATRIX, MATLEN))) {
-          csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
-                                  i, (long) MATLEN, MATRIX, pp);
-          return csound->InitError(csound, "Not a valid matrix");
+        if ((i=strncmp(pp, MATRIXLF, MATLENLF))==0) {
+          pp += MATLENLF;
         }
-        else pp += MATLEN;
+        else if ((i=strncmp(pp, MATRIXCRLF, MATLENCRLF))==0) {
+          pp += MATLENCRLF;
+        }
+        else {
+         csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
+                                 i, (long) MATLEN, MATRIX, pp);
+         return csound->InitError(csound, "Not a valid matrix");
+       }
 #ifdef USING_CHAR
         csound->AuxAlloc(csound, len*len * sizeof(char), &p->aux_f);
         p->f = (char*)p->aux_f.auxp;
@@ -346,7 +358,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         p->f = (unsigned long*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {
-          if (strncmp(pp, NMATRIX, NMATLEN)==0) break;
+          if (strncmp(pp, NMATRIXLF, NMATLENLF)==0) break;
+          if (strncmp(pp, NMATRIXCRLF, NMATLENCRLF)==0) break;
           if (2 != sscanf(pp, "%d %d", &i, &j)) break;
 #ifdef USING_CHAR
           p->f[i*len+j] = 1;
