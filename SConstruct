@@ -211,6 +211,9 @@ commandOptions.Add('buildCSEditor',
 commandOptions.Add('withMSVC',
     'On Windows, set to 1 to build with Microsoft Visual C++, or set to 0 to build with MinGW',
     '0')
+commandOptions.Add('buildNewParser',
+	'Enable building new parser (requires Flex/Bison)',
+	'0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -611,6 +614,19 @@ if getPlatform() == 'darwin':
         OSXFrameworkCurrentVersion = tmp % csoundLibraryVersion
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
+
+if commonEnvironment['buildNewParser'] != '0':
+    print 'CONFIGURATION DECISION: Building with new parser enabled'
+    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '-p','csound_orc'])
+    csoundLibraryEnvironment.Append(LEXFLAGS = ['-d', '-Pcsound_orc'])
+    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
+    yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
+                               source = 'Engine/csound_orc.y')
+    lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
+                               source = 'Engine/csound_orc.l')
+else:
+    print 'CONFIGURATION DECISION: Not building with new parser'
+
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
 if commonEnvironment['buildRelease'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
@@ -785,6 +801,20 @@ Top/opcode.c
 Top/threads.c
 Top/utility.c
 ''')
+
+newParserSources = Split('''
+Engine/csound_orclex.c
+Engine/csound_orcparse.c
+Engine/csound_orc_semantics.c
+Engine/csound_orc_expressions.c
+Engine/csound_orc_optimize.c
+Engine/csound_orc_compile.c
+Engine/new_orc_parser.c
+Engine/symbtab.c
+''')
+
+if commonEnvironment['buildNewParser'] != '0':
+	libCsoundSources += newParserSources
 
 if commonEnvironment['dynamicCsoundLibrary'] == '1':
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
@@ -1106,7 +1136,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
     Opcodes/wave-terrain.c
-    Opcodes/stdopcod.c	    
+    Opcodes/stdopcod.c
 '''))
 
 pluginLibraries.append('opcodes.dir')

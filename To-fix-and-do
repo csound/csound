@@ -1,7 +1,60 @@
 KNOWN AREAS OF INCOMPLETENESS
 -----------------------------
 
-K2.	Parser
+[NEW PARSER]
+
+-notes on old parser
+  -rdorchfile in addition to getoptxt act as tokenizer
+  -otran is like parser, calls getoptxt to get tokens
+  	-otran sets up INSTRTXT pointers in two ways, one is in a flat array indexed
+  	by instrument number (including numbers assigned to named instruments), the
+  	array is NULL'd; individual INSTRTXT's also point to each other using
+  	nxtinstxt so there is a collapsed linked list as well as an array
+
+  -seems like some data held in structs that are not used beyond parse time
+
+  -after INSTRTXT's are created, they're traversed to figure out number of
+  args for each opcode to add as sum to instrtxt, but the sum from all
+  instruments is summed and assigned to csound->argoffspace (end of otran)
+
+  -constants are held in a pool so that memory wise, all "440" in code will
+  point to the same MYFLT "440"
+
+  -four pools: one for constants, one for strings, one for global var names,
+  and one for local var names
+
+  -polymorphic opcodes: checks dsblksiz of OENTRY, if > 0xfffc, then is polymorphic,
+  and checks for correct version of arg dependent on out arg types (in rdorch.c)
+
+
+-notes on new parser
+	-csound_orc_parse creates AST of TREE * using Bison/Flex; tree should be
+	semantically correct at end of parse run and all errors should be checked
+	during parsing (?)
+	-csound_orc_optimize will attempt to optmize tree using common compiler
+	optmization methods
+	-csound_orc_compile will transform the AST into INSRTXT, OPTXT, TEXT structs
+	to be used by csound
+	-when these are finished, CSOUND struct should be setup in the same way as
+	when after otran is used (barring any optimization differences)
+
+	-trying to make smaller functions (can be statically inlined) that make the
+	compilation process a little more transparent and encapsulated
+
+-other notes
+    -look into creating API functions for programmatically building orc from
+    opcodes, exposing INSTRTXT chain
+
+================================================================================
+Language Changes
+
+-Signal Arrays
+
+-Opcode Arrays
+
+-new operators: +=, -=, *=, /=
+
+================================================================================
 
 BUGS NOT FIXED
 --------------

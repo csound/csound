@@ -2094,7 +2094,17 @@ void synterr(CSOUND *csound, const char *s, ...)
     va_start(args, s);
     csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
     va_end(args);
-    if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL) {
+
+
+    /* FIXME - Removed temporarily for debugging
+     * This function may not be necessary at all in the end if some of this is
+     * done in the parser
+     */
+    if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL
+#if defined(ENABLE_NEW_PARSER)
+        && !csound->oparms->newParser
+#endif
+    ) {
       csound->MessageS(csound, CSOUNDMSG_ERROR,
                                Str(", line %d:\n"), ST(curline));
       do {

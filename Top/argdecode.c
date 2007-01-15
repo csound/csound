@@ -730,6 +730,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       longusage(csound);
       csound->LongJmp(csound, 0);
     }
+#ifdef ENABLE_NEW_PARSER
+    else if (!(strcmp(s, "new-parser"))) {
+      O->newParser = 1;             /* Use New Parser */
+      return 1;
+    }
+#endif
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;

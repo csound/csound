@@ -142,6 +142,10 @@ extern "C" {
     int     midiVelocity, midiVelocityAmp;
     int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
                               from files */
+#ifdef ENABLE_NEW_PARSER
+    int     newParser; /* SYY - July 30, 2006: for --new-parser */
+#endif
+
   } OPARMS;
 
   typedef struct arglst {
@@ -931,7 +935,7 @@ extern "C" {
                             int (*func)(void *, void *, unsigned int));
     int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
     int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
-    void (*SetInternalYieldCallback)(CSOUND *, 
+    void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
  /* SUBR dummyfn_1; */
     SUBR dummyfn_2[98];
