@@ -284,7 +284,7 @@ if not useDouble:
     pluginDir = pluginDir32
 else:
     pluginDir = pluginDir64
-err = installFile('opcodes.dir', pluginDir)
+#err = installFile('opcodes.dir', pluginDir)
 installErrors = installErrors or err
 pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
 for i in ['libcsound.so', 'libcsound64.so']:
