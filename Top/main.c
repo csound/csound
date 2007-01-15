@@ -286,7 +286,20 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
+
+#ifdef ENABLE_NEW_PARSER
+    if (O->newParser) {
+        csound->Message(csound, "********************\n");
+        csound->Message(csound, "* USING NEW PARSER *\n");
+        csound->Message(csound, "********************\n");
+        new_orc_parser(csound);
+    } else {
+        otran(csound);                  /* read orcfile, setup desblks & spaces */
+    }
+#else
     otran(csound);                  /* read orcfile, setup desblks & spaces */
+#endif
+
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
