@@ -1,3 +1,9 @@
+2007-01-15  Steven Yi  <stevenyi@gmail.com>
+	* Manually merged in work from New Parser branch; to compile, must enable
+	in build using buildNewParser=1; to use at runtime, use --new-parser flag;
+	notes added to To-fix-and-do file; added tests directory for use with 
+	testing new parser (python scripts)
+
 2007-01-15  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/scansyn.c (scsnu_initw): Initialise x2 and x3 as in
@@ -10,7 +16,7 @@
 	* SConstruct: Use sys.byteorder to set flags for sfonts and STK opcodes.
 
 2007-01-07  Steven Yi  <stevenyi@gmail.com>
-	* Engine/envvar.c (csoundGetDirectoryForPath): added call to 
+	* Engine/envvar.c (csoundGetDirectoryForPath): added call to
 	csoundConvertPathname at top of function to fix bug on Windows
 	where path's with forward slashes were causing segfaults
 	(Recommended by Anthony Kozar on Dev list)
@@ -28,13 +34,13 @@
 	helper classes for voice-leading and chord progression in
 	CsoundVST: Voicelead, VoiceleadingNode, Conversions, and Score.
 	These implement orthogonal arithmetical operations for
-	changing interval structure ('prime chord' or P), 
+	changing interval structure ('prime chord' or P),
 	chord transposition ('transposition' or T), and voicing or
 	inversion within a range ('voicing' or V), as well as
 	arithmetic upon pitch-class set numerals ('Mason number' or M).
-	These operations can be used both to generate scores, and to 
+	These operations can be used both to generate scores, and to
 	filter existing scores.
-	
+
 2006-12-23  jpff  <jpff@codemist.co.uk>
 
 	* InOut/widgets.cpp (save_snap): fl_ask() is depricated so replace
@@ -51,7 +57,7 @@
 	* Added ampmidid opcodes, which map MIDI velocity variable
 	to peak amplitude using the method of Dannenberg (ICMC 2006),
 	according to a user-specified dynamic range in dB.
-	
+
 2006-11-28  Steven Yi  <stevenyi@gmail.com>
 	* InOut/virtual_keyboard: Modified FLvkeybd to take in width and height,
 	make keyboard resizable
