@@ -51,8 +51,11 @@ static int scsnu_initw(CSOUND *csound, PSCSNU *p)
     }
     if (fi->flen != p->len)
       csound->Die(csound, Str("scanu: Init table has bad size"));
-    for (i = 0 ; i != p->len ; i++)
+    for (i = 0 ; i != p->len ; i++) {
+      p->x0[i] = fi->ftable[i];
       p->x1[i] = fi->ftable[i];
+      p->x2[i] = fi->ftable[i];
+    }
     return OK;
 }
 

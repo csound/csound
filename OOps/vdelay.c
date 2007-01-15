@@ -36,17 +36,18 @@
 int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
     unsigned long n = (long)(*p->imaxd * ESR)+1;
-    MYFLT *buf;
+/*     MYFLT *buf; */
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
-      else {
-        buf = (MYFLT *)p->aux.auxp;  /*    make sure buffer is empty       */
-        do {
-          *buf++ = FL(0.0);
-        } while (--n);
+      else {     /*    make sure buffer is empty       */
+        memset(p->aux.auxp, 0, n*sizeof(MYFLT));
+        /*         buf = (MYFLT *)p->aux.auxp;  */
+        /*         do { */
+        /*           *buf++ = FL(0.0); */
+        /*         } while (--n); */
       }
       p->left = 0;
     }
@@ -265,7 +266,6 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
     unsigned int i;
-    MYFLT *buf1, *buf2;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
 
@@ -273,14 +273,12 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
       if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+      else
+        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
       if (p->aux2.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
-      buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
-      buf2 = (MYFLT *)p->aux2.auxp;
-      for (i=0;i<n; i++) {
-        buf1[i] = FL(0.0);
-        buf2[i] = FL(0.0);
-      }
+      else
+        memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -294,7 +292,6 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
     unsigned int i;
-    MYFLT *buf1, *buf2, *buf3, *buf4;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
 
@@ -302,22 +299,20 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
       if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+      else
+        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
       if (p->aux2.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
+      else
+        memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
       if (p->aux3.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux3.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux3);
+      else
+        memset(p->aux3.auxp, 0, n*sizeof(MYFLT));
       if (p->aux4.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux4.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux4);
-      buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
-      buf2 = (MYFLT *)p->aux2.auxp;
-      buf3 = (MYFLT *)p->aux3.auxp;
-      buf4 = (MYFLT *)p->aux4.auxp;
-      for (i=0;i<n;i++) {
-        buf1[i] = FL(0.0);
-        buf2[i] = FL(0.0);
-        buf3[i] = FL(0.0);
-        buf4[i] = FL(0.0);
-      } /* or memset?? */
+      else
+        memset(p->aux4.auxp, 0, n*sizeof(MYFLT));
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -745,7 +740,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
     long n;
     MYFLT *buf, max = FL(0.0);
 
-    if (p->INOCOUNT/2 == (MYFLT)p->INOCOUNT/FL(2.0))
+    if (p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5))
       csound->Die(csound, Str("Wrong input count in multitap\n"));
 
     for (n = 0; n < p->INOCOUNT - 1; n += 2) {
@@ -757,11 +752,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
         n > p->aux.size)
       csound->AuxAlloc(csound, n, &p->aux);
     else {
-      buf = (MYFLT *)p->aux.auxp; /* make sure buffer is empty       */
-      n = p->max;
-      do {
-        *buf++ = FL(0.0);
-      } while (--n);
+      memset(p->aux.auxp, 0, n);
     }
 
     p->left = 0;
@@ -915,6 +906,7 @@ int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
 
     if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
       csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT), &p->temp);
+      /* Next loop is a waste as AuxAlloc clears */
       temp = (MYFLT *)p->temp.auxp;
       for (n = 0; n < csound->ksmps; n++)
         *temp++ = FL(0.0);
