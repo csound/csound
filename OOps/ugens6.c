@@ -163,7 +163,7 @@ int samphset(CSOUND *csound, SAMPHOLD *p)
 
 int ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
-    if (*p->xgate > 0.)
+    if (*p->xgate > 0.0)
       p->state = *p->xsig;
     *p->xr = p->state;
     return OK;

@@ -469,7 +469,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     amptp = p->amptp;
     amptbl = amptp->ftable;
     lphs = (long*)p->lphs.auxp;
-        prevAmp = p->previousAmp;
+    prevAmp = p->previousAmp;
 
     cps0 = *p->kcps;
     amp0 = *p->kamp;
