@@ -506,11 +506,11 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           }
           blocks_written++;
           PVDisplay_Update(&disp, frame);
+          if ((blocks_written/chans) % 20 == 0) {
+            csound->Message(csound, "%ld\n", blocks_written/chans);
         }
         PVDisplay_Display(&disp, (int) (blocks_written / chans));
       }
-      if ((blocks_written/chans) % 20 == 0) {
-        csound->Message(csound, "%ld\n", blocks_written/chans);
       }
       if (total_sampsread >= p->getframes*chans)
         break;
