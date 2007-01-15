@@ -1,3 +1,8 @@
+2007-01-15  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/scansyn.c (scsnu_initw): Initialise x2 and x3 as in
+	scansynx
+
 2007-01-07  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* OOps/remote.c (remoteport): Stub version for platforms without sockets.

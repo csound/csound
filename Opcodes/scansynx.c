@@ -96,6 +96,12 @@ static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
       p->x1[i] = fi->ftable[i];
       p->x2[i] = fi->ftable[i];
     }
+    /*
+      is this quicker??
+      memcpy(p->x0, fi->ftable, len*sizeof(MYFLT));
+      memcpy(p->x1, fi->ftable, len*sizeof(MYFLT));
+      memcpy(p->x2, fi->ftable, len*sizeof(MYFLT));
+     */
     return OK;
 }
 

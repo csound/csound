@@ -312,7 +312,7 @@ int pluck(CSOUND *csound, PLUCK *p)
         switch(p->method) {
         case 1:
           do {                  /* simple averaging */
-            newval = (*fp + preval) / FL(2.0);
+            newval = (*fp + preval) * FL(0.5);
             preval = *fp;
             *fp++ = newval;
           } while (--nn);
@@ -320,7 +320,7 @@ int pluck(CSOUND *csound, PLUCK *p)
         case 2:
           do {                  /* stretched avrging */
             if (rand15(csound) < p->thresh1) {
-              newval = (*fp + preval) / FL(2.0);
+              newval = (*fp + preval) * FL(0.5);
               preval = *fp;
               *fp++ = newval;
             }
@@ -330,8 +330,9 @@ int pluck(CSOUND *csound, PLUCK *p)
         case 3:
           do {                  /* simple drum */
             if (rand15(csound) < p->thresh1)
-              newval = -(*fp + preval) / FL(2.0);
-            else newval = (*fp + preval) / FL(2.0);
+              newval = -(*fp + preval) * FL(0.5);
+            else
+              newval = (*fp + preval) * FL(0.5);
             preval = *fp;
             *fp++ = newval;
           } while (--nn);
@@ -340,8 +341,9 @@ int pluck(CSOUND *csound, PLUCK *p)
           do {                  /* stretched drum */
             if (rand15(csound) < p->thresh2) {
               if (rand15(csound) < p->thresh1)
-                newval = -(*fp + preval) / FL(2.0);
-              else newval = (*fp + preval) / FL(2.0);
+                newval = -(*fp + preval) * FL(0.5);
+              else
+                newval = (*fp + preval) * FL(0.5);
               preval = *fp;
               *fp++ = newval;
             }
@@ -357,7 +359,7 @@ int pluck(CSOUND *csound, PLUCK *p)
           break;
         case 6:
           do {          /* 1st order recursive filter*/
-            preval = (*fp + preval)/FL(2.0);
+            preval = (*fp + preval) * FL(0.5);
             *fp++ = preval;
           } while (--nn);
           break;
