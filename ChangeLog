@@ -6,6 +6,8 @@
 
 2007-01-15  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/wave-terrain.c (wtinit): No need to copy tables
+
 	* Opcodes/scansyn.c (scsnu_initw): Initialise x2 and x3 as in
 	scansynx
 
