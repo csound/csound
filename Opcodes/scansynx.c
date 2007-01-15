@@ -91,17 +91,18 @@ static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
     }
     if (fi->flen != len)
       csound->Die(csound, Str("scanux: Init table has bad size"));
+    /*
+      memcpy is 20 times faster that loop!!
     for (i = 0 ; i != len ; i++) {
       p->x0[i] = fi->ftable[i];
       p->x1[i] = fi->ftable[i];
       p->x2[i] = fi->ftable[i];
     }
-    /*
-      is this quicker??
-      memcpy(p->x0, fi->ftable, len*sizeof(MYFLT));
-      memcpy(p->x1, fi->ftable, len*sizeof(MYFLT));
-      memcpy(p->x2, fi->ftable, len*sizeof(MYFLT));
-     */
+    */
+    len *= sizeof(MYFLT);
+    memcpy(p->x0, fi->ftable, len);
+    memcpy(p->x1, fi->ftable, len);
+    memcpy(p->x2, fi->ftable, len);
     return OK;
 }
 
@@ -161,36 +162,6 @@ struct scsnx_elem {
     struct scsnx_elem   *next;
 };
 
-#if 0
-/* remove from list */
-static int listrm(CSOUND *csound, PSCSNUX *p)
-{
-    SCANSYN_GLOBALS   *pp = p->pp;
-    struct scsnx_elem *q = NULL;
-    struct scsnx_elem *i = (struct scsnx_elem *) pp->scsnx_list;
-
-    csound->Message(csound, "remove from scsnx_list\n");
-    while (1) {
-      if (i == NULL) {
-        /* should not call csound->Die() here */
-        csound->ErrorMsg(csound,
-                         Str("Eek ... scan synthesis id was not found"));
-        return NOTOK;
-      }
-      if (i->p == p)
-        break;
-      q = i;
-      i = i->next;
-    }
-    if (q != NULL)
-      q->next = i->next;
-    else
-      pp->scsnx_list = (void*) i->next;
-    csound->Free(csound, i);
-    return OK;
-}
-#endif
-
 /* add to list */
 static void listadd(SCANSYN_GLOBALS *pp, PSCSNUX *p)
 {
@@ -208,9 +179,6 @@ static void listadd(SCANSYN_GLOBALS *pp, PSCSNUX *p)
     i->p = p;
     i->next = (struct scsnx_elem *) pp->scsnx_list;
     pp->scsnx_list = (void*) i;
-#if 0
-    csound->RegisterDeinitCallback(csound, p, (int (*)(CSOUND*, void*)) listrm);
-#endif
 }
 
 /* Return from list according to id */

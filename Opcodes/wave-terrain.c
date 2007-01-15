@@ -43,22 +43,9 @@ static int wtinit(CSOUND *csound, WAVETER *p)
       return csound->InitError(csound, Str("wterrain: ftable not found"));
     }
 
-    /* ALLOCATE FOR COPIES OF FTABLES */
-    csound->AuxAlloc(csound, ftpx->flen * sizeof(MYFLT), &p->aux_x);
-    csound->AuxAlloc(csound, ftpy->flen * sizeof(MYFLT), &p->aux_y);
-
     /* POINT xarr AND yarr AT THE TABLES */
-    p->xarr = (MYFLT*)p->aux_x.auxp;
-    p->yarr = (MYFLT*)p->aux_y.auxp;
-
-    /* COPY TABLES TO LOCAL */
-    for (i=0; i != ftpx->flen; i++) {
-      p->xarr[i] = (ftpx->ftable[i]);
-    }
-
-    for (i=0; i != ftpy->flen; i++) {
-      p->yarr[i] = (ftpy->ftable[i]);
-    }
+    p->xarr = ftpx->ftable;
+    p->yarr = ftpy->ftable;
 
     /* PUT SIZES INTO STRUCT FOR REFERENCE AT PERF TIME */
     p->sizx = (MYFLT)ftpx->flen;
