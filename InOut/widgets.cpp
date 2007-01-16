@@ -1860,50 +1860,53 @@ extern "C" {
       }
     }
 #endif  // NO_FLTK_THREADS
-    for (j = ST(allocatedStrings).size() - 1; j >= 0; j--)  {
-      delete[] ST(allocatedStrings)[j];
-      ST(allocatedStrings).pop_back();
+
+    if(csound->widgetGlobals != NULL) {
+        for (j = ST(allocatedStrings).size() - 1; j >= 0; j--)  {
+          delete[] ST(allocatedStrings)[j];
+          ST(allocatedStrings).pop_back();
+        }
+        j = ST(fl_windows).size();
+        if (j > 0) {
+          // destroy all opened panels
+          do {
+            j--;
+            if (ST(fl_windows)[j].is_subwindow == 0)
+              delete ST(fl_windows)[j].panel;
+            ST(fl_windows).pop_back();
+          } while (j);
+          Fl_wait_locked(csound, 0.0);
+        }
+        //for (j = AddrValue.size()-1; j >=0; j--)  {
+        //      AddrValue.pop_back();
+        //}
+        int ss = ST(snapshots).size();
+        for (j = 0; j < ss; j++) {
+          ST(snapshots)[j].fields.erase(ST(snapshots)[j].fields.begin(),
+                                    ST(snapshots)[j].fields.end());
+          ST(snapshots).resize(ST(snapshots).size() + 1);
+        }
+
+        ST(AddrSetValue).erase(ST(AddrSetValue).begin(), ST(AddrSetValue).end());
+
+     // curr_x =   curr_y = 0;
+        ST(stack_count)       = 0;
+
+        ST(FLcontrol_iheight) = 15;
+        ST(FLroller_iheight)  = 18;
+        ST(FLcontrol_iwidth)  = 400;
+        ST(FLroller_iwidth)   = 150;
+        ST(FLvalue_iwidth)    = 100;
+
+        ST(FLcolor)           = -1;
+        ST(FLcolor2)          = -1;
+        ST(FLtext_size)       = 0;
+        ST(FLtext_color)      = -1;
+        ST(FLtext_font)       = -1;
+        ST(FLtext_align)      = 0;
+        ST(FL_ix)             = 10;
+        ST(FL_iy)             = 10;
     }
-    j = ST(fl_windows).size();
-    if (j > 0) {
-      // destroy all opened panels
-      do {
-        j--;
-        if (ST(fl_windows)[j].is_subwindow == 0)
-          delete ST(fl_windows)[j].panel;
-        ST(fl_windows).pop_back();
-      } while (j);
-      Fl_wait_locked(csound, 0.0);
-    }
-    //for (j = AddrValue.size()-1; j >=0; j--)  {
-    //      AddrValue.pop_back();
-    //}
-    int ss = ST(snapshots).size();
-    for (j = 0; j < ss; j++) {
-      ST(snapshots)[j].fields.erase(ST(snapshots)[j].fields.begin(),
-                                ST(snapshots)[j].fields.end());
-      ST(snapshots).resize(ST(snapshots).size() + 1);
-    }
-
-    ST(AddrSetValue).erase(ST(AddrSetValue).begin(), ST(AddrSetValue).end());
-
- // curr_x =   curr_y = 0;
-    ST(stack_count)       = 0;
-
-    ST(FLcontrol_iheight) = 15;
-    ST(FLroller_iheight)  = 18;
-    ST(FLcontrol_iwidth)  = 400;
-    ST(FLroller_iwidth)   = 150;
-    ST(FLvalue_iwidth)    = 100;
-
-    ST(FLcolor)           = -1;
-    ST(FLcolor2)          = -1;
-    ST(FLtext_size)       = 0;
-    ST(FLtext_color)      = -1;
-    ST(FLtext_font)       = -1;
-    ST(FLtext_align)      = 0;
-    ST(FL_ix)             = 10;
-    ST(FL_iy)             = 10;
 
     return 0;
   }
