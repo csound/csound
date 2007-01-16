@@ -90,14 +90,16 @@ namespace csound
 
   void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
-    if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
-      std::stringstream stream;
-      stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
-      stream << "priorOperation:    " << priorOperation;
-      stream << "currrentOperation: " << operation;
-      stream << std::endl;
-      System::inform(stream.str().c_str());
-    }
+    std::stringstream stream;
+    stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
+    stream << "Events in score:     " << score.size() << std::endl;
+    stream << "Score duration:      " << score.getDuration() << std::endl;
+    stream << "Events in operation: " << (operation.end - operation.begin) << std::endl;
+    stream << "Operation duration:  " << (operation.time - priorOperation.time) << std::endl;
+    stream << "priorOperation:      " << priorOperation;
+    stream << "currrentOperation:   " << operation;
+    stream << std::endl;
+    System::message(stream.str().c_str());
     if (operation.begin == operation.end) {
       return;
     }
@@ -195,7 +197,7 @@ namespace csound
 			divisionsPerOctave);
       }
     }
-    System::inform("ENDED VoiceleadingNode::apply.\n");
+    System::message("ENDED VoiceleadingNode::apply.\n");
   }
 
   void VoiceleadingNode::transform(Score &score)
@@ -219,7 +221,7 @@ namespace csound
 	timeScale = scoreMaxTime / operationMaxTime;
       }
     }
-    System::inform("BEGAN VoiceleadingNode::transform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
+    System::message("BEGAN VoiceleadingNode::transform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
     for (size_t i = 0, n = keys.size(); i < n; i++) {
       VoiceleadingOperation &operation = operations[keys[i]];
       operation.rescaledTime = operation.time * timeScale;
@@ -247,7 +249,7 @@ namespace csound
 	apply(score, *operationI, *operationJ);
       }
     }
-    System::inform("ENDED VoiceleadingNode::transform.\n");
+    System::message("ENDED VoiceleadingNode::transform.\n");
   }
   
   void VoiceleadingNode::PT(double time, double P, double T)
