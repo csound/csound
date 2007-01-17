@@ -30,27 +30,28 @@
 static int lowpr_set(CSOUND *csound, LOWPR *p)
 {
     if (*p->istor==FL(0.0))
-      p->ynm1 = p->ynm2 = FL(0.0);
-    p->okf = FL(0.0);
-    p->okr = FL(0.0);
-    p->k = FL(0.0);
+      p->ynm1 = p->ynm2 = 0.0;
+    p->okf = 0.0;
+    p->okr = 0.0;
+    p->k = 0.0;
     return OK;
 }
 
 static int lowpr(CSOUND *csound, LOWPR *p)
 {
-    MYFLT b, k = p->k;
-    MYFLT *ar, *asig, yn, ynm1, ynm2 ;
+    double b, k = p->k;
+    MYFLT *ar, *asig;
+    double yn, ynm1, ynm2 ;
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
-    MYFLT coef1 = p->coef1, coef2 = p->coef2;
+    double coef1 = p->coef1, coef2 = p->coef2;
     int n,nsmps = csound->ksmps;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
-      p->k = k = FL(1000.0) / kfco;
-      p->coef1 = coef1 = (b+FL(2.0) * k);
-      p->coef2 = coef2 = FL(1.0)/(FL(1.0) + b + k);
+      b = 10.0 / (*p->kres * sqrt((double)kfco)) - 1.0;
+      p->k = k = 1000.0 / (double)kfco;
+      p->coef1 = coef1 = (b+2.0 * k);
+      p->coef2 = coef2 = 1.0/(1.0 + b + k);
     }
     ar = p->ar;
     asig = p->asig;
@@ -58,7 +59,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     ynm2 = p->ynm2;
 
     for (n=0; n<nsmps;n++) {
-      ar[n] = yn = (coef1 * ynm1 - k * ynm2 + asig[n]) * coef2;
+      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 =  yn;
     }

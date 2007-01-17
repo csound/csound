@@ -24,9 +24,9 @@
 #include "csdl.h"
 #include <math.h>
 
-#define LOGCURVE(x,y) ((log(x * (y-1)+1))/(log(y)))
-#define EXPCURVE(x,y) ((exp(x * log(y))-1)/(y-1))
-#define GAINSLIDER(x) (0.000145 * exp(x * 0.06907))
+#define LOGCURVE(x,y) (MYFLT)((log((double)x * ((double)y-1.0)+1.0))/(log((double)y)))
+#define EXPCURVE(x,y) (MYFLT)((exp((double)x * log((double)y))-1.0)/((double)y-1.0))
+#define GAINSLIDER(x) (MYFLT)(0.000145 * exp((double)x * 0.06907))
 
 typedef struct _scale {
   OPDS  h;
@@ -67,7 +67,7 @@ int scale_process(CSOUND *csound, scale *p)
 
 int expcurve_perf(CSOUND *csound, expcurve *p)
 {
-    *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = EXPCURVE(*p->kin, *p->ksteepness);
 
     return OK;
 }
@@ -76,7 +76,7 @@ int expcurve_perf(CSOUND *csound, expcurve *p)
 
 int logcurve_perf(CSOUND *csound, logcurve *p)
 {
-    *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = LOGCURVE(*p->kin, *p->ksteepness);
 
     return OK;
 }
@@ -89,7 +89,7 @@ int gainslider_perf(CSOUND *csound, gainslider *p)
       *p->koutsig = FL(0.0);
     }
     else {
-      *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
+      *p->koutsig = GAINSLIDER(*p->kindex);
     }
 
     return OK;

@@ -38,14 +38,14 @@ static int roundoffint(MYFLT x)
 static int random_number(CSOUND *csound, int a, int b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return roundoffint((MYFLT) a + x * (MYFLT) (b - a));
 }
 
 static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return (a + x * (b - a));
 }
 
