@@ -301,6 +301,14 @@ int init_pp(CSOUND *csound, CSPP *p)
                     2.0*c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt*0.5);
         p->s1[n] = (4*K*K*dt*dt*N*N*N*N+b*dt*N*N+
                     c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt*0.5);
+        /* Above optimises to this */
+/*         g9 = N*N*dt; */
+/*         g15 = g9*K; */
+/*         g8 = g15*g15; */
+/*         g13 = g9*c[n]*c[n]*dt + g9*b; */
+/*         g6 = 0.5 * dt*sig + 1.0; */
+/*         p->s0[n] =  (2.0*(1.0 - g13 - 3.0*g8))/g6; */
+/*         p->s1[n] = (g13 + 4.0*g8)/g4; */
       }
       p->s2 = -K*K*dt*dt*N*N*N*N/(1.0+sig*dt*0.5);
       p->t0 = (-1.0+2.0*b*dt*N*N+sig*dt*0.5)/(1.0+sig*dt*0.5);

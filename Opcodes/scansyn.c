@@ -87,25 +87,25 @@ static int scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     i1 = (int)(p->len*pos-fi->flen/2);
     i2 = (int)(p->len*pos+fi->flen/2);
     for (i = i1 ; i < 0 ; i++) {
-      p->x1[p->len-i-1] += sgn * *f++;
 #ifdef XALL
-      p->x2[p->len-i-1] += sgn * *f++;
-      p->x3[p->len-i-1] += sgn * *f++;
+      p->x2[p->len-i-1] += sgn * *f;
+      p->x3[p->len-i-1] += sgn * *f;
 #endif
+      p->x1[p->len-i-1] += sgn * *f++;
     }
     for (; i < p->len && i < i2 ; i++) {
-      p->x1[i] += sgn * *f++;
 #ifdef XALL
-      p->x2[i] += sgn * *f++;
-      p->x3[i] += sgn * *f++;
+      p->x2[i] += sgn * *f;
+      p->x3[i] += sgn * *f;
 #endif
+      p->x1[i] += sgn * *f++;
     }
     for (; i < i2 ; i++) {
-      p->x1[i-p->len] += sgn * *f++;
 #ifdef XALL
-      p->x2[i-p->len] += sgn * *f++;
-      p->x3[i-p->len] += sgn * *f++;
+      p->x2[i-p->len] += sgn * *f;
+      p->x3[i-p->len] += sgn * *f;
 #endif
+      p->x1[i-p->len] += sgn * *f++;
     }
     return OK;
 }
