@@ -61,7 +61,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     int     hsize, fftsize, hopsize, frames;
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
-    double  alpha = 0.0f, fac;
+    double  alpha = 0.0, fac;
 
     p->cnt = 0;
     fftsize = p->fftsize = (int) *p->size;

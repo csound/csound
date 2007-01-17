@@ -79,17 +79,17 @@ static int locsig(CSOUND *csound, LOCSIG *p)
 
       degree = *p->degree/FL(360.00);
 
-      p->ch1 = (MYFLT)cos(TWOPI * (MYFLT)degree);
+      p->ch1 = (MYFLT)cos(TWOPI * (double)degree);
       if (p->ch1 < FL(0.0)) p->ch1 = FL(0.0);
 
-      p->ch2 = (MYFLT)sin(TWOPI * (MYFLT)degree);
+      p->ch2 = (MYFLT)sin(TWOPI * (double)degree);
       if (p->ch2 < FL(0.0)) p->ch2 = FL(0.0);
 
       if (p->OUTOCOUNT == 4) {
-        p->ch3 = (MYFLT)cos(TWOPI * ((MYFLT)degree + 0.5));
+        p->ch3 = (MYFLT)cos(TWOPI * ((double)degree + 0.5));
         if (p->ch3 < FL(0.0)) p->ch3 = FL(0.0);
 
-        p->ch4 = (MYFLT)sin(TWOPI * ((MYFLT)degree + 0.5));
+        p->ch4 = (MYFLT)sin(TWOPI * ((double)degree + 0.5));
         if (p->ch4 < FL(0.0)) p->ch4 = FL(0.0);
       }
 
@@ -154,25 +154,34 @@ static int locsend(CSOUND *csound, LOCSEND *p)
     LOCSIG *q = p->locsig;
     int n, nsmps = csound->ksmps;
 
-    r1 = p->r1;
-    r2 = p->r2;
-    rrev1 = q->rrev1;
-    rrev2 = q->rrev2;
+/*     r1 = p->r1; */
+/*     r2 = p->r2; */
+/*     rrev1 = q->rrev1; */
+/*     rrev2 = q->rrev2; */
 
+/*     if (p->OUTOCOUNT == 4) { */
+/*       r3 = p->r3; */
+/*       r4 = p->r4; */
+/*       rrev3 = q->rrev3; */
+/*       rrev4 = q->rrev4; */
+/*     } */
+/*     for (n=0;n<nsmps; n++) { */
+/*       r1[n] = rrev1[n]; */
+/*       r2[n] = rrev2[n]; */
+
+/*       if (p->OUTOCOUNT == 4) { */
+/*         r3[n] = rrev3[n]; */
+/*         r4[n] = rrev4[n]; */
+/*       } */
+/*     } */
+    /*
+      Quicker form is: */
+    n = nsmps*sizeof(MYFLT);
+    memcpy(p->r1, q->rrev1, n);
+    memcpy(p->r2, q->rrev2, n);
     if (p->OUTOCOUNT == 4) {
-      r3 = p->r3;
-      r4 = p->r4;
-      rrev3 = q->rrev3;
-      rrev4 = q->rrev4;
-    }
-    for (n=0;n<nsmps; n++) {
-      r1[n] = rrev1[n];
-      r2[n] = rrev2[n];
-
-      if (p->OUTOCOUNT == 4) {
-        r3[n] = rrev3[n];
-        r4[n] = rrev4[n];
-      }
+      memcpy(p->r3, q->rrev3, n);
+      memcpy(p->r4, q->rrev4, n);
     }
     return OK;
 }

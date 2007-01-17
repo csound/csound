@@ -230,9 +230,9 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
 
     csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
-    /* Initialize the delay line for safety */
-    for (i=0;i<p->ndelay;i++)
-      ((double*)p->delay.auxp)[i] = 0.0;
+    /* Initialize the delay line for safety but done by AuxAlloc */
+/*     for (i=0;i<p->ndelay;i++) */
+/*       ((double*)p->delay.auxp)[i] = 0.0; */
 
     /* Set current position pointer to beginning of delay */
     p->currPos = (double*)p->delay.auxp;

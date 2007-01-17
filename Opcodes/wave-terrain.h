@@ -34,12 +34,10 @@ typedef struct {
   MYFLT *kcx, *kcy;
   MYFLT *krx, *kry;
 
-  MYFLT *i_tabx, *i_taby;
+  MYFLT *i_tabx, *i_taby;       /* Table numbers */
 /* Internals */
 
-  MYFLT *xarr, *yarr;
-
-  AUXCH aux_x, aux_y;
+  MYFLT *xarr, *yarr;           /* Actual tables */
 
   MYFLT sizx, sizy;
   double theta;
