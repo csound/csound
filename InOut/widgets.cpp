@@ -2769,7 +2769,7 @@ static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
         break;
       default:
         csound->Warning(csound, "(fl_setWidgetValuei): "
-                                "not implemented yet; exp=%d", v.exponential);
+                                "not fully implemented yet; exp=%d", v.exponential);
       }
     }
     fl_setWidgetValue_(csound, v, widgetType, *(p->ivalue), log_base);
@@ -2796,7 +2796,7 @@ static int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
         break;
       default:
         csound->Warning(csound, "(fl_setWidgetValue_set): "
-                                "not implemented yet; exp=%d", v.exponential);
+                                "not fully implemented yet; exp=%d", v.exponential);
       }
     }
     p->widgetType = widgetType;
