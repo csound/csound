@@ -44,14 +44,51 @@ namespace csound
   public:
     VoiceleadingOperation();
     virtual ~VoiceleadingOperation();
-    double time;
-    double rescaledTime;
+    /**
+     * The operation begins at this time,
+     * and continues until just before the beginning 
+     * of the next operation, or the end of the score,
+     * whichever comes first.
+     */
+    double beginTime;
+    /**
+     * Times may need to be rescaled to
+     * match the duration of the score.
+     */
+    double rescaledBeginTime;
+    /**
+     * The operation ends before this time.
+     */
+    double endTime;
+    /**
+     * Times may need to be rescaled
+     * to match the duration of the score.
+     */
+    double rescaledEndTime;
     double P;
+    /**
+     * Prime chord, or NAN if no operation.
+     */
     double T;
+    /**
+     * Transposition, or NAN if no operation.
+     */
     double C;
+    /**
+     * Voicing, or NAN if no operation.
+     */
     double V;
+    /**
+     * If true, perform the closest voice-leading from the prior operation.
+     */
     bool L;
+    /**
+     * The index of the first event to which the operation is applied.
+     */
     size_t begin;
+    /**
+     * One past the index of the last event to which the operation is applied.
+     */
     size_t end;
     bool avoidParallels;
   };
