@@ -35,8 +35,10 @@ namespace csound
   extern void printChord(std::string label, const std::vector<double> &chord); 
 
   VoiceleadingOperation::VoiceleadingOperation() : 
-    time(0.0),
-    rescaledTime(0.0),
+    beginTime(0.0),
+    rescaledBeginTime(0.0),
+    endTime(0.0),
+    rescaledEndTime(0.0),
     P(double(0.0) / double(0.0)),
     T(double(0.0) / double(0.0)),
     C(double(0.0) / double(0.0)),
@@ -67,39 +69,43 @@ namespace csound
 
   std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation)
   {
-    stream << "time (rescaled): " << operation.time << " (" << operation.rescaledTime << ")" << std::endl;
-    stream << "  begin:         " << operation.begin << std::endl;
-    stream << "  end:           " << operation.end << std::endl;
+    stream << "  beginTime:         " << operation.beginTime << std::endl;
+    stream << "  endTime:           " << operation.endTime << std::endl;
+    stream << "  rescaledBeginTime: " << operation.rescaledBeginTime << std::endl;
+    stream << "  rescaledEndTime:   " << operation.rescaledEndTime << std::endl;
+    stream << "  begin:             " << operation.begin << std::endl;
+    stream << "  end:               " << operation.end << std::endl;
     if (!std::isnan(operation.P)) {
-      stream << "  P:             " << operation.P << std::endl;
+      stream << "  P:                 " << operation.P << std::endl;
     }
     if (!std::isnan(operation.T)) {
-      stream << "  T:             " << operation.T << std::endl;
+      stream << "  T:                 " << operation.T << std::endl;
     }
     if (!std::isnan(operation.C)) {
-      stream << "  C:             " << operation.C << std::endl;
+      stream << "  C:                 " << operation.C << std::endl;
     }
     if (!std::isnan(operation.V)) {
-      stream << "  V:             " << operation.V << std::endl;
+      stream << "  V:                 " << operation.V << std::endl;
     }
     if (operation.L) {
-      stream << "  L:             " << int(operation.L) << std::endl;
+      stream << "  L:                 " << int(operation.L) << std::endl;
     }
     return stream;
   }
 
   void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &operation)
   {
-    std::stringstream stream;
-    stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
-    stream << "Events in score:     " << score.size() << std::endl;
-    stream << "Score duration:      " << score.getDuration() << std::endl;
-    stream << "Events in operation: " << (operation.end - operation.begin) << std::endl;
-    stream << "Operation duration:  " << (operation.time - priorOperation.time) << std::endl;
-    stream << "priorOperation:      " << priorOperation;
-    stream << "currrentOperation:   " << operation;
-    stream << std::endl;
-    System::message(stream.str().c_str());
+    if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
+      std::stringstream stream;
+      stream << "BEGAN VoiceleadingNode::apply:..." << std::endl;
+      stream << "Events in score:     " << score.size() << std::endl;
+      stream << "Score duration:      " << score.getDuration() << std::endl;
+      stream << "Events in operation: " << (operation.end - operation.begin) << std::endl;
+      stream << "priorOperation:      " << std::endl << priorOperation;
+      stream << "currrentOperation:   " << std::endl << operation;
+      stream << std::endl;
+      System::inform(stream.str().c_str());
+    }
     if (operation.begin == operation.end) {
       return;
     }
@@ -200,68 +206,16 @@ namespace csound
     System::message("ENDED VoiceleadingNode::apply.\n");
   }
 
-  void VoiceleadingNode::transform(Score &score)
-  {
-    if (operations.empty()) {
-      return;
-    }
-    // First, rescale the times for the operations, if that is required.
-    double scoreMaxTime = score.getDuration();
-    double operationMaxTime = 0.0;
-    double timeScale = 1.0;
-    std::vector<double> keys;
-    for (std::map<double, VoiceleadingOperation>::iterator it = operations.begin(); it != operations.end(); ++it) {
-      if (it->second.time > operationMaxTime) {
-	operationMaxTime = it->second.time;
-      }
-      keys.push_back(it->first);
-    }
-    if (rescaleTimes) {
-      if (operationMaxTime > 0.0) {
-	timeScale = scoreMaxTime / operationMaxTime;
-      }
-    }
-    System::message("BEGAN VoiceleadingNode::transform scoreMaxTime: %f  operationMaxTime: %f  timeScale: %f...\n", scoreMaxTime, operationMaxTime, timeScale);
-    for (size_t i = 0, n = keys.size(); i < n; i++) {
-      VoiceleadingOperation &operation = operations[keys[i]];
-      operation.rescaledTime = operation.time * timeScale;
-      operation.begin = score.indexAtTime(operation.rescaledTime);
-      operation.end = score.size();
-    }
-    for (size_t i = 0, j = 1, n = keys.size(); j < n; i++, j++) {
-      VoiceleadingOperation &operationI = operations[keys[i]];
-      VoiceleadingOperation &operationJ = operations[keys[j]];
-      operationI.end = operationJ.begin;
-    }
-    if (keys.size() == 1) {
-      VoiceleadingOperation &operation = operations[keys[0]];
-      apply(score, operation, operation);
-    } else {
-      for (size_t i = 0, n = keys.size() - 1; i < n; i++) {
-	VoiceleadingOperation *operationI = 0;
-	VoiceleadingOperation *operationJ = &operations[keys[i]];
-	if (i == 0) {
-	  operationI = &operations[keys[i]];
-	} else {
-	  operationI = &operations[keys[i - 1]];
-	}
-	System::inform("Operation: %d\n", (i + 1));
-	apply(score, *operationI, *operationJ);
-      }
-    }
-    System::message("ENDED VoiceleadingNode::transform.\n");
-  }
-  
   void VoiceleadingNode::PT(double time, double P, double T)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].P = P;
     operations[time].T = T;
   }
 
   void VoiceleadingNode::PTV(double time, double P, double T, double V)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].P = P;
     operations[time].T = T;
     operations[time].V = V;
@@ -269,7 +223,7 @@ namespace csound
 
   void VoiceleadingNode::PTL(double time, double P, double T, bool avoidParallels)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].P = P;
     operations[time].T = T;
     operations[time].L = true;
@@ -278,7 +232,7 @@ namespace csound
 
   void VoiceleadingNode::C(double time, double C_)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].C = C_;
   }
 
@@ -289,7 +243,7 @@ namespace csound
 
   void VoiceleadingNode::CV(double time, double C, double V)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].C = C;
     operations[time].V = V;
   }
@@ -301,7 +255,7 @@ namespace csound
 
   void VoiceleadingNode::CL(double time, double C, bool avoidParallels)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].C = C;
     operations[time].L = true;
     operations[time].avoidParallels = avoidParallels;
@@ -314,13 +268,13 @@ namespace csound
 
   void VoiceleadingNode::V(double time, double V_)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].V = V_;
   }
 
   void VoiceleadingNode::L(double time, bool avoidParallels)
   {
-    operations[time].time = time;
+    operations[time].beginTime = time;
     operations[time].L = true;
     operations[time].avoidParallels = avoidParallels;
   }
@@ -329,4 +283,66 @@ namespace csound
   {
     transform(score);
   }
+
+  void VoiceleadingNode::transform(Score &score)
+  {
+    if (operations.empty()) {
+      return;
+    }
+    // Find the time rescale factor.
+    score.sort();
+    score.findScale();
+    double origin = score.scaleActualMinima.getTime();
+    double duration = score.getDuration();
+    double scoreMaxTime = origin + duration;
+    double operationMaxTime = 0.0;
+    double timeScale = 1.0;
+    std::vector<VoiceleadingOperation *> ops;
+    for (std::map<double, VoiceleadingOperation>::iterator it = operations.begin(); it != operations.end(); ++it) {
+      if (it->second.beginTime > operationMaxTime) {
+	operationMaxTime = it->second.beginTime;
+      }
+      ops.push_back(&it->second);
+    }
+    if (rescaleTimes) {
+      if (operationMaxTime > 0.0) {
+	timeScale = duration / operationMaxTime;
+      }
+    }
+    System::inform("BEGAN VoiceleadingNode::produceOrTransform  operationMaxTime: %f  origin: %f  duration: %f  scoreMaxTime: %f  timeScale: %f...\n", 
+		   operationMaxTime, 
+		   origin, 
+		   duration, 
+		   scoreMaxTime,
+		   timeScale);
+    VoiceleadingOperation *priorOperation = 0;
+    VoiceleadingOperation *currentOperation = 0;
+    VoiceleadingOperation *nextOperation = 0;
+    for (int priorIndex = -1, currentIndex = 0, nextIndex = 1, firstIndex = 0, endIndex = ops.size(), backIndex = ops.size() - 1; 
+	 currentIndex < endIndex; 
+	 priorIndex++, currentIndex++, nextIndex++) {
+      if (currentIndex <= firstIndex) {
+	priorOperation = ops[currentIndex];
+	currentOperation = ops[currentIndex];
+      } else {
+	priorOperation = ops[priorIndex];
+	currentOperation = ops[currentIndex];
+      }
+      currentOperation->rescaledBeginTime = ((currentOperation->beginTime - origin) * timeScale) + origin;
+      currentOperation->begin = score.indexAtTime(currentOperation->rescaledBeginTime);
+      if (currentIndex >= backIndex) {
+	currentOperation->endTime = std::max(currentOperation->rescaledBeginTime, scoreMaxTime);
+	currentOperation->rescaledEndTime = currentOperation->endTime;
+	currentOperation->end = score.size();
+      } else {
+	nextOperation = ops[nextIndex];
+	currentOperation->endTime = nextOperation->beginTime;
+	currentOperation->rescaledEndTime = currentOperation->endTime * timeScale;
+	currentOperation->end = score.indexAfterTime(currentOperation->rescaledEndTime);
+      }
+      apply(score, *priorOperation, *currentOperation);
+    }
+    System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
+  }
+  
 }
