@@ -152,7 +152,7 @@ namespace csound
     /**
      * Simplifies use out of the context of a music graph.
      */
-    virtual void transform(Score &score);
+    virtual void transform(Score &score, bool rescaleTime = false);
   };
 }
 #endif
