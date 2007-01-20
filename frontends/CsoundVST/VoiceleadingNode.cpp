@@ -281,10 +281,10 @@ namespace csound
 
   void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
   {
-    transform(score);
+    transform(score, rescaleTimes);
   }
 
-  void VoiceleadingNode::transform(Score &score)
+  void VoiceleadingNode::transform(Score &score, bool rescaleTimes_)
   {
     if (operations.empty()) {
       return;
@@ -304,7 +304,7 @@ namespace csound
       }
       ops.push_back(&it->second);
     }
-    if (rescaleTimes) {
+    if (rescaleTimes_) {
       if (operationMaxTime > 0.0) {
 	timeScale = duration / operationMaxTime;
       }
