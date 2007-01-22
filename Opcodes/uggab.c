@@ -439,7 +439,7 @@ static int lposc(CSOUND *csound, LPOSC *p)
       end = p->tablen;
     looplength = end - loop;
 
-    for (n-0; n<nsmps; n++) {
+    for (n=0; n<nsmps; n++) {
       curr_samp = ft + (long)phs;
       fract = (MYFLT)(phs - (double)((long)phs));
       out[n] = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
