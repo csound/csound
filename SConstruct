@@ -1798,7 +1798,6 @@ if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
 else:
     print 'CONFIGURATION DECISION: Building Csound Text Editor.'
     if getPlatform() == 'linux' or getPlatform() == 'darwin':
-        print 'CONFIGURATION DECISION: Building Csound Text Editor.'
         csEdit = commonEnvironment.Copy()
         csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
         executables.append(csEditor)
@@ -1947,7 +1946,7 @@ if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
         "cd frontends/OSX; xcodebuild -buildstyle Deployment")
     Depends(OSXGUI, csoundLibrary)
 else:
-    print "CONFIGURATION DECISION: not building OSX GUI frontend"
+    print "CONFIGURATION DECISION: Not building OSX GUI frontend"
 
 if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
