@@ -311,11 +311,8 @@ elif commonEnvironment['buildRelease'] != '0':
       -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
     '''))
 elif commonEnvironment['noDebug'] == '0':
-  if getPlatform() == 'darwin':
+  if not withMSVC():
     commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
-  else:
-    if not withMSVC():
-      commonEnvironment.Prepend(CCFLAGS = ['-g', '-gstabs', '-O2'])
 else:
   commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if commonEnvironment['useGprof'] == '1':
