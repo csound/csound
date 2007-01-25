@@ -547,6 +547,8 @@ static int rsnsety(CSOUND *csound, RESONY *p)
                                        *p->iscl);
     }
     if (!(*p->istor)) {
+/*       memset(p->yt1, 0, p->loop*sizeof(MYFLT)); */
+/*       memset(p->yt2, 0, p->loop*sizeof(MYFLT)); */
       for (j = 0; j < p->loop; j++)
         p->yt1[j] = p->yt2[j] = FL(0.0);
     }
@@ -571,6 +573,7 @@ static int resony(CSOUND *csound, RESONY *p)
     nsmps = csound->ksmps;
     asig = p->asig;
 
+/*     memset(buffer, 0, nsmps*sizeof(MYFLT)); */
     for (n = 0; n < nsmps; n++)
       buffer[n] = FL(0.0);
 
