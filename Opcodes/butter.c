@@ -26,16 +26,30 @@
 /*              Copyright (c) May 1994.  All rights reserved            */
 
 #include "csdl.h"
-#include "butter.h"
-#include <math.h>
-#define ROOT2 (FL(1.4142135623730950488))
 
-static void butter_filter(long, MYFLT *, MYFLT *, MYFLT *);
+typedef struct  {
+        OPDS    h;
+        MYFLT   *sr, *ain, *kfc, *istor;
+        MYFLT   lkf;
+        double  a[8];
+} BFIL;
+
+typedef struct  {
+        OPDS    h;
+        MYFLT   *sr, *ain, *kfo, *kbw, *istor;
+        MYFLT   lkf, lkb;
+        double  a[8];
+} BBFIL;
+
+#include <math.h>
+#define ROOT2 (1.4142135623730950488)
+
+static void butter_filter(long, MYFLT *, MYFLT *, double *);
 
 static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
     if (*p->istor==FL(0.0)) {
-      p->a[6] = p->a[7] = FL(0.0);
+      p->a[6] = p->a[7] = 0.0;
       p->lkf = FL(0.0);
     }
     return OK;
@@ -44,7 +58,7 @@ static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
     if (*p->istor==FL(0.0)) {
-      p->a[6] = p->a[7] = FL(0.0);
+      p->a[6] = p->a[7] = 0.0;
       p->lkb = FL(0.0);
       p->lkf = FL(0.0);
     }
@@ -60,24 +74,25 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 
     if (*p->kfc <= FL(0.0))     {
       long      n = csound->ksmps;
-      do {
-        *out++ = *in++;
-      } while (--n);
+      memcpy(out, in, n*sizeof(MYFLT));
+/*       do { */
+/*         *out++ = *in++; */
+/*       } while (--n); */
       return OK;
     }
 
     if (*p->kfc != p->lkf)      {
-      MYFLT     *a, c;
+      double    *a, c;
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = (MYFLT)tan((double)(csound->pidsr * p->lkf));
+      c = tan((double)(csound->pidsr * p->lkf));
 
-      a[1] = FL(1.0) / ( FL(1.0) + ROOT2 * c + c * c);
+      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
       a[3] = a[1];
-      a[4] = FL(2.0) * ( c*c - FL(1.0)) * a[1];
-      a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
+      a[4] = 2.0 * ( c*c - 1.0) * a[1];
+      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
     butter_filter(csound->ksmps, in, out, p->a);
     return OK;
@@ -91,26 +106,27 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = csound->ksmps;
+      memset(out, 0, csound->ksmps*sizeof(MYFLT));
+/*       long      n = csound->ksmps; */
 
-      do {
-        *out++ = FL(0.0);
-        } while (--n);
+/*       do { */
+/*         *out++ = FL(0.0); */
+/*         } while (--n); */
 
       return OK;
     }
 
     if (*p->kfc != p->lkf)      {
-      MYFLT     *a, c;
+      double     *a, c;
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = FL(1.0) / (MYFLT)tan((double)(csound->pidsr * p->lkf));
-      a[1] = FL(1.0) / ( FL(1.0) + ROOT2 * c + c * c);
+      c = 1.0 / tan((double)(csound->pidsr * p->lkf));
+      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];
-      a[4] = FL(2.0) * ( FL(1.0) - c*c) * a[1];
-      a[5] = ( FL(1.0) - ROOT2 * c + c * c) * a[1];
+      a[4] = 2.0 * ( 1.0 - c*c) * a[1];
+      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
 
     butter_filter(csound->ksmps, in, out, p->a);
@@ -124,24 +140,25 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     in = p->ain;
     out = p->sr;
     if (*p->kbw <= FL(0.0))     {
-      long      n = csound->ksmps;
-      do {
-        *out++ = FL(0.0);
-      } while (--n);
+      memset(out, 0, csound->ksmps*sizeof(MYFLT));
+/*       long      n = csound->ksmps; */
+/*       do { */
+/*         *out++ = FL(0.0); */
+/*       } while (--n); */
       return OK;
     }
     if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
-      MYFLT *a, c, d;
+      double *a, c, d;
       a = p->a;
       p->lkf = *p->kfo;
       p->lkb = *p->kbw;
-      c = FL(1.0) / (MYFLT)tan((double)(csound->pidsr * p->lkb));
-      d = FL(2.0) * (MYFLT)cos((double)(csound->tpidsr * p->lkf));
-      a[1] = FL(1.0) / ( FL(1.0) + c);
-      a[2] = FL(0.0);
+      c = 1.0 / tan((double)(csound->pidsr * p->lkb));
+      d = 2.0 * cos((double)(csound->tpidsr * p->lkf));
+      a[1] = 1.0 / (1.0 + c);
+      a[2] = 0.0;
       a[3] = -a[1];
       a[4] = - c * d * a[1];
-      a[5] = ( c - FL(1.0)) * a[1];
+      a[5] = (c - 1.0) * a[1];
     }
     butter_filter(csound->ksmps, in, out, p->a);
     return OK;
@@ -155,27 +172,28 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
     out = p->sr;
 
     if (*p->kbw <= FL(0.0))     {
-      long      n = csound->ksmps;
+      memcpy(out, in, csound->ksmps*sizeof(MYFLT));
+/*       long      n = csound->ksmps; */
 
-      do {
-        *out++ = *in++;
-      } while (--n);
+/*       do { */
+/*         *out++ = *in++; */
+/*       } while (--n); */
       return OK;
     }
 
     if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
-      MYFLT *a, c, d;
+      double *a, c, d;
 
       a = p->a;
       p->lkf = *p->kfo;
       p->lkb = *p->kbw;
-      c = (MYFLT)tan((double)(csound->pidsr * p->lkb));
-      d = FL(2.0) * (MYFLT)cos((double)(csound->tpidsr * p->lkf));
-      a[1] = FL(1.0) / ( FL(1.0) + c);
+      c = tan((double)(csound->pidsr * p->lkb));
+      d = 2.0 * cos((double)(csound->tpidsr * p->lkf));
+      a[1] = 1.0 / (1.0 + c);
       a[2] = - d * a[1];
       a[3] = a[1];
       a[4] = a[2];
-      a[5] = ( FL(1.0) - c) * a[1];
+      a[5] = (1.0 - c) * a[1];
     }
 
     butter_filter(csound->ksmps, in, out, p->a);
@@ -184,18 +202,18 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 
 /* Filter loop */
 
-static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a)
+static void butter_filter(long n, MYFLT *in, MYFLT *out, double *a)
 {
-    MYFLT t, y;
-
-    do {
-      t = *in++ - a[4] * a[6] - a[5] * a[7];
-      t = csoundUndenormalizeMYFLT(t);
+    double t, y;
+    int nn;
+    for (nn=0; nn<n; nn++) {
+      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
       y = t * a[1] + a[2] * a[6] + a[3] * a[7];
       a[7] = a[6];
       a[6] = t;
-      *out++ = y;
-    } while (--n);
+      out[nn] = (MYFLT)y;
+    }
 }
 
 #define S(x)    sizeof(x)

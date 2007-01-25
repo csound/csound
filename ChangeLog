@@ -1,3 +1,8 @@
+2007-01-25  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/butter.c: Optimisations and accuracy improvements.  Also
+	deleted butter.h and incorporated into source
+
 2007-01-16  Steven Yi  <stevenyi@gmail.com>
 	* InOut/widgets.cpp (csoundModuleDestroy): wrapped deinit code with a check
 	to see if widgetGlobals is not NULL (was causing segfault when running
