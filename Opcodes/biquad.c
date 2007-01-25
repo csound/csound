@@ -392,6 +392,7 @@ static int vcoset(CSOUND *csound, VCO *p)
                                                      buffer */
       csound->AuxAlloc(csound, ndel * sizeof(MYFLT), &p->aux);
     else if (*p->iskip==FL(0.0)) {
+/*       memset(p->aux.auxp, 0, ndel*sizeof(MYFLT)); */
       buf = (MYFLT *)p->aux.auxp;   /*    make sure buffer is empty       */
       do {
         *buf++ = FL(0.0);
