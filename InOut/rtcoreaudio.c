@@ -123,6 +123,8 @@ ADIOProc(const AudioBufferList * input,
     float  *ibufp = cdata->inbuffs[buff];
     float  *obufp = cdata->outbuffs[buff];
 
+    if (input->mNumberBuffers > 1) cdata->isNInterleaved = 1;
+
     if (cdata->isNInterleaved) {
 
       int     nibuffs = input->mNumberBuffers, buffs;
@@ -305,10 +307,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioDeviceGetProperty(dev->dev, 0, false,
                            kAudioDevicePropertyStreamFormat, &psize, &format);
      
-    if ((format.mFormatFlags & kAudioFormatFlagIsNonInterleaved) 
-           == kAudioFormatFlagIsNonInterleaved)
-    dev->isNInterleaved = 1;
-      else dev->isNInterleaved = 0;
+    dev->isNInterleaved = 0;
 
     dev->format.mSampleRate = dev->srate;
     dev->format.mFormatID = kAudioFormatLinearPCM;
@@ -333,11 +332,6 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     if (format.mChannelsPerFrame != (unsigned int) dev->nchns &&
         !dev->isNInterleaved) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
-      p->Message(csound,
-                 "CoreAudio module warning: using %d channels; "
-                 "requested %d channels\n",
-                 (int) dev->format.mChannelsPerFrame, (int) dev->nchns);
-
     }
 
     if (format.mSampleRate != dev->srate) {
@@ -353,14 +347,9 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     }
     else{
 
-      if(dev->isNInterleaved)
       p->Message(csound,
-                 "CoreAudio module: sr set to %d with %d audio channels (non-interleaved)\n",
-                 (int) dev->srate, (int) dev->format.mChannelsPerFrame);
-      else
-      p->Message(csound,
-                 "CoreAudio module: sr set to %d with %d audio channels (interleaved)\n",
-                 (int) dev->srate, (int) dev->format.mChannelsPerFrame);
+                 "CoreAudio module: sr set to %d with %d audio channels \n",
+                 (int) dev->srate, (int) dev->nchns);      
     }    
 
     dev->outbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
