@@ -36,7 +36,6 @@
 int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
     unsigned long n = (long)(*p->imaxd * ESR)+1;
-/*     MYFLT *buf; */
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux.size)
@@ -44,10 +43,6 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {     /*    make sure buffer is empty       */
         memset(p->aux.auxp, 0, n*sizeof(MYFLT));
-        /*         buf = (MYFLT *)p->aux.auxp;  */
-        /*         do { */
-        /*           *buf++ = FL(0.0); */
-        /*         } while (--n); */
       }
       p->left = 0;
     }
@@ -446,7 +441,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
 int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
-    long  nn, maxd, indx;
+    long  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -457,26 +452,26 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
     long   i, i2, xpos;
+    int n, nsmps = csound->ksmps;
 
     if ((buf1 == NULL) || (buf2 == NULL)) {                     /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
     maxd = (long)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = csound->ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    do {
-      buf1[indx] = *in1++; buf2[indx] = *in2++;
+    for (n=0; n<nsmps; n++) {
+      buf1[indx] = in1[n]; buf2[indx] = in2[n];
       n1 = 0.0; n2 = 0.0;
 
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)*del++ * (double)csound->esr);
+      x1 = (double)indx - ((double)del[n] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
       xpos = (long)x1;
       x1 -= (double)xpos;
@@ -495,17 +490,16 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
           n1 -= (double)buf1[xpos] * w; n2 -= (double)buf2[xpos] * w;
           if (++xpos >= maxd) xpos -= maxd;
         }
-        *out1 = (MYFLT) (n1 * x2); *out2 = (MYFLT) (n2 * x2);
+        out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
       }
       else {                                            /* integer sample */
         xpos = (long)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
-        *out1 = buf1[xpos]; *out2 = buf2[xpos];
+        out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }
 
       if (++indx == maxd) indx = 0;
-      out1++; out2++;
-    } while (--nn);
+    }
 
     p->left = indx;
     return OK;
