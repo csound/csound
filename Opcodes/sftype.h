@@ -64,20 +64,20 @@ typedef struct
 {
 #ifdef WORDS_BIGENDIAN
   /* bigendian m/c like Mac and SGI */
-        BYTE byHi  PACKED;
-        BYTE byLo  PACKED;
+        BYTE byHi;
+        BYTE byLo;
 #else
-        BYTE byLo  PACKED;
-        BYTE byHi  PACKED;
+        BYTE byLo;
+        BYTE byHi;
 #endif
-} rangesType;
+} PACKED rangesType;
 
 typedef union
 {
-        rangesType ranges       PACKED;
-        SHORT shAmount          PACKED;
-        WORD wAmount            PACKED;
-} genAmountType;
+  rangesType ranges;
+  SHORT shAmount;
+  WORD wAmount;
+} PACKED genAmountType;
 
 /* The SFSampleLink is an enumeration type which
    describes both the type of sample (mono, stereo left, etc.)
@@ -111,72 +111,72 @@ typedef enum
 /* <iver-rec>   ->       */
 typedef struct
 {
-        WORD wMajor     PACKED;
-        WORD wMinor     PACKED;
-} sfVersionTag;
+        WORD wMajor;
+        WORD wMinor;
+} PACKED sfVersionTag;
 
 /* <phdr-rec>   ->       */
 typedef struct
 {
-        CHAR achPresetName[20]  PACKED;
-        WORD wPreset            PACKED;
-        WORD wBank              PACKED;
-        WORD wPresetBagNdx      PACKED;
-        DWORD dwLibrary         PACKED;
-        DWORD dwGenre           PACKED;
-        DWORD dwMorphology      PACKED;
-} sfPresetHeader;
+        CHAR achPresetName[20];
+        WORD wPreset;
+        WORD wBank;
+        WORD wPresetBagNdx;
+        DWORD dwLibrary;
+        DWORD dwGenre;
+        DWORD dwMorphology;
+} PACKED sfPresetHeader;
 
 /* <pbag-rec>   ->       */
 typedef struct
         {
-        WORD wGenNdx    PACKED;
-        WORD wModNdx    PACKED;
-} sfPresetBag;
+        WORD wGenNdx;
+        WORD wModNdx;
+} PACKED sfPresetBag;
 
 /* <pmod-rec> ->         */
 typedef struct
 {
         /*
-        SFModulator sfModSrcOper        PACKED;
-        SFGenerator sfModDestOper       PACKED;
-        SHORT modAmount                 PACKED;
-        SFModulator sfModAmtSrcOper     PACKED;
-        SFTransform sfModTransOper      PACKED;
+        SFModulator sfModSrcOper;
+        SFGenerator sfModDestOper;
+        SHORT modAmount;
+        SFModulator sfModAmtSrcOper;
+        SFTransform sfModTransOper;
         */
 
   /* SFModulator sfModSrcOper; */
-        WORD sfModSrcOper       PACKED;
+        WORD sfModSrcOper;
   /* SFGenerator sfModDestOper; */
-        WORD sfModDestOper      PACKED;
-        SHORT modAmount         PACKED;
+        WORD sfModDestOper;
+        SHORT modAmount;
   /* SFModulator sfModAmtSrcOper; */
-        WORD sfModAmtSrcOper    PACKED;
-        SFTransform sfModTransOper      PACKED;
+        WORD sfModAmtSrcOper;
+        SFTransform sfModTransOper;
 
-} sfModList;
+} PACKED sfModList;
 
 /* <pgen-rec>   ->       */
 typedef struct
         {
           /*SFGenerator sfGenOper; */
-        WORD sfGenOper          PACKED;
-        genAmountType genAmount PACKED;
-} sfGenList;
+        WORD sfGenOper;
+        genAmountType genAmount;
+} PACKED sfGenList;
 
 /* <inst-rec>   ->       */
 typedef struct
 {
-        CHAR achInstName[20]    PACKED;
-        WORD wInstBagNdx        PACKED;
-} sfInst;
+        CHAR achInstName[20];
+        WORD wInstBagNdx;
+} PACKED sfInst;
 
 /* <ibag-rec>   ->       */
 typedef struct
 {
-        WORD wInstGenNdx        PACKED;
-        WORD wInstModNdx        PACKED;
-} sfInstBag;
+        WORD wInstGenNdx;
+        WORD wInstModNdx;
+} PACKED sfInstBag;
 
 /* <imod-rec> ->         */
 typedef struct
@@ -191,38 +191,38 @@ typedef struct
         */
 
   /* SFModulator sfModSrcOper; */
-        WORD sfModSrcOper       PACKED;
+        WORD sfModSrcOper;
   /* SFGenerator sfModDestOper; */
-        WORD sfModDestOper      PACKED;
-        SHORT modAmount         PACKED;
+        WORD sfModDestOper;
+        SHORT modAmount;
   /* SFModulator sfModAmtSrcOper; */
-        WORD sfModAmtSrcOper    PACKED;
-        SFTransform sfModTransOper      PACKED;
-} sfInstModList;
+        WORD sfModAmtSrcOper;
+        SFTransform sfModTransOper;
+} PACKED sfInstModList;
 
 /* <igen-rec>   ->       */
 typedef struct
 {
   /* SFGenerator sfGenOper; */
-        WORD sfGenOper          PACKED;
-        genAmountType genAmount PACKED;
-} sfInstGenList;
+        WORD sfGenOper;
+        genAmountType genAmount;
+} PACKED sfInstGenList;
 
 /* <shdr-rec>   ->       */
 typedef struct
 {
-        CHAR achSampleName[20]  PACKED;
-        DWORD dwStart           PACKED;
-        DWORD dwEnd             PACKED;
-        DWORD dwStartloop       PACKED;
-        DWORD dwEndloop         PACKED;
-        DWORD dwSampleRate      PACKED;
-        BYTE byOriginalKey      PACKED;
-        CHAR chCorrection       PACKED;
-        WORD wSampleLink        PACKED;
+        CHAR achSampleName[20];
+        DWORD dwStart;
+        DWORD dwEnd;
+        DWORD dwStartloop;
+        DWORD dwEndloop;
+        DWORD dwSampleRate;
+        BYTE byOriginalKey;
+        CHAR chCorrection;
+        WORD wSampleLink;
   /*SFSampleLink sfSampleType; */
-        WORD sfSampleType       PACKED;
-} sfSample;
+        WORD sfSampleType;
+} PACKED sfSample;
 
 #define _SFTYPE_H
 #ifdef          MSVC
