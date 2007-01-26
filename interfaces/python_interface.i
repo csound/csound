@@ -29,6 +29,7 @@
 #endif
 
 %include "typemaps.i"
+
 %include "std_string.i"
 %include "std_vector.i"
 %include "carrays.i"
@@ -39,6 +40,7 @@
 %array_class(int, intArray);
 %array_class(float, floatArray);
 %array_class(double, doubleArray)
+
 
 %feature("autodoc", "1");
 %{
@@ -103,8 +105,12 @@ typedef unsigned int uint32_t;
 
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
+
+#ifndef MACOSX
 %include "CsoundFile.hpp"
+#endif
 %include "CppSound.hpp"
+/*
 %include "filebuilding.h"
 %include "Soundfile.hpp"
-
+*/

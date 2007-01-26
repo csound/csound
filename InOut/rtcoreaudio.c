@@ -74,7 +74,7 @@ int csoundModuleCreate(CSOUND *csound)
       *def = 0;
     p->CreateConfigurationVariable(csound, "noninterleaved", def,
                                    CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                   "coreaudio IO uses non-interleaved audio (eg. Digidesign HW: 0=no, 1=yes)",
+                                   "deprecated, noninterleaved audio is automatically detected",
                                    NULL);
 
     if (csound->oparms->msglevel & 0x400)
@@ -209,10 +209,13 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     p->DestroyGlobalVariable(csound, "::cabuffnos");
 
     vpt = (int *) (p->QueryGlobalVariable(csound, "::cainterleaved"));
-    if (vpt != NULL)
+    
+    /*
+     if (vpt != NULL)
       dev->isNInterleaved = *vpt;
     else
       dev->isNInterleaved = 0;
+    */
 
     p->DeleteConfigurationVariable(csound, "interleaved");
     p->DestroyGlobalVariable(csound, "::cainterleaved");
@@ -298,9 +301,18 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioDeviceSetProperty(dev->dev, NULL, 0, false,
                            kAudioDevicePropertyNominalSampleRate, psize, &sr);
 
+    psize = sizeof(AudioStreamBasicDescription);
+    AudioDeviceGetProperty(dev->dev, 0, false,
+                           kAudioDevicePropertyStreamFormat, &psize, &format);
+     
+    if ((format.mFormatFlags & kAudioFormatFlagIsNonInterleaved) 
+           == kAudioFormatFlagIsNonInterleaved)
+    dev->isNInterleaved = 1;
+      else dev->isNInterleaved = 0;
+
     dev->format.mSampleRate = dev->srate;
     dev->format.mFormatID = kAudioFormatLinearPCM;
-    dev->format.mFormatFlags = kAudioFormatFlagIsFloat;
+    dev->format.mFormatFlags = kAudioFormatFlagIsFloat | format.mFormatFlags;
     dev->format.mBytesPerPacket = sizeof(float) * dev->nchns;
     dev->format.mFramesPerPacket = 1;
     dev->format.mBytesPerFrame = format.mBytesPerPacket;
@@ -339,10 +351,17 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       free(dev);
       return -1;
     }
-    else
+    else{
+
+      if(dev->isNInterleaved)
       p->Message(csound,
-                 "CoreAudio module: sr set to %d with %d audio channels\n",
+                 "CoreAudio module: sr set to %d with %d audio channels (non-interleaved)\n",
                  (int) dev->srate, (int) dev->format.mChannelsPerFrame);
+      else
+      p->Message(csound,
+                 "CoreAudio module: sr set to %d with %d audio channels (interleaved)\n",
+                 (int) dev->srate, (int) dev->format.mChannelsPerFrame);
+    }    
 
     dev->outbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
     dev->inbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
