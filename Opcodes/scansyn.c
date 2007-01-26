@@ -43,7 +43,6 @@
  */
 static int scsnu_initw(CSOUND *csound, PSCSNU *p)
 {
-    int i;
     FUNC *fi = csound->FTFind(csound,  p->i_init);
     if (fi == NULL) {
       return csound->InitError(csound,

@@ -149,8 +149,8 @@ static int locsendset(CSOUND *csound, LOCSEND *p)
 
 static int locsend(CSOUND *csound, LOCSEND *p)
 {
-    MYFLT       *r1, *r2, *r3=NULL, *r4=NULL;
-    MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
+/*     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL; */
+/*     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
     LOCSIG *q = p->locsig;
     int n, nsmps = csound->ksmps;
 

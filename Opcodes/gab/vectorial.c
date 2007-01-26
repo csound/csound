@@ -1639,7 +1639,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
 {
        FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    long    i, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1701,7 +1701,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
       return NOTOK;
     }
     for ( ; i < n; i++)
-      vector1[i] = vector2[(int)vector1[j]];
+      vector1[i] = vector2[(int)vector1[i]]; /* Is this right?? */
     for ( ; i < elements; i++)
       vector1[i] = 0;
     return OK;

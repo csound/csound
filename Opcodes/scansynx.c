@@ -82,7 +82,6 @@ static void unquote(char *dst, char *src)
  */
 static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
 {
-    int i;
     long len = p->len;
     FUNC *fi = csound->FTFind(csound, p->i_init);
     if (fi == NULL) {

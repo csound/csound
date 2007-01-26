@@ -59,7 +59,7 @@ MYFLT Noise_tick(CSOUND *csound, Noise *n)
 
 void make_DLineL(CSOUND *csound, DLineL *p, long max_length)
 {
-    int i;
+/*     int i; */
 
     p->length = max_length;
     csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
