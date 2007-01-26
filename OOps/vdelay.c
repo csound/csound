@@ -265,7 +265,6 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
-    unsigned int i;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
 
@@ -291,7 +290,6 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
-    unsigned int i;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
 
@@ -738,7 +736,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 int multitap_set(CSOUND *csound, MDEL *p)
 {
     long n;
-    MYFLT *buf, max = FL(0.0);
+    MYFLT max = FL(0.0);
 
     if (p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5))
       csound->Die(csound, Str("Wrong input count in multitap\n"));

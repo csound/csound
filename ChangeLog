@@ -1,3 +1,8 @@
+2007-01-26  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/gab/vectorial.c (vexpv_i): Aparent typo used
+	uninitialied variable
+
 2007-01-25  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/butter.c: Optimisations and accuracy improvements.  Also

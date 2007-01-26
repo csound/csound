@@ -34,7 +34,6 @@
 static int wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
-    int i;
     FUNC *ftpx = csound->FTFind(csound, p->i_tabx);
     FUNC *ftpy = csound->FTFind(csound, p->i_taby);
 
