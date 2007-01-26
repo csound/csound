@@ -1136,8 +1136,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/stdopcod.c
 '''))
 
-pluginLibraries.append('opcodes.dir')
-MacOSX_InstallPlugin('opcodes.dir')
+
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
