@@ -1637,12 +1637,16 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
 
 static int vmap_i(CSOUND *csound,VECTORSOPI *p)
 {
-       FUNC    *ftp1, *ftp2;
+    FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
     long    i, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (*p->ifn1 == *p->ifn2) {
+      csound->InitError(csound,Str("vmap: Error: ifn1 and ifn2 can't be the same"));
+      return NOTOK;
+    }
     if (ftp1 == NULL)  {
       csound->InitError(csound,
                         Str("vmap: ifn1 invalid table number %i"),
@@ -1696,12 +1700,8 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
     }
     else n = elements;
     i = 0;
-    if (p->vector1 == p->vector2) {
-      csound->Warning(csound,Str("vmap: Error: ifn1 and can't be the same"));
-      return NOTOK;
-    }
     for ( ; i < n; i++)
-      vector1[i] = vector2[(int)vector1[i]]; /* Is this right?? */
+      vector1[i] = vector2[(int)vector1[i]];
     for ( ; i < elements; i++)
       vector1[i] = 0;
     return OK;
