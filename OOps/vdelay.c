@@ -246,8 +246,10 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
       if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+      else
+        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
       buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
-      for (i=0; i<n; i++) buf1[i] = FL(0.0);
+/*       for (i=0; i<n; i++) buf1[i] = FL(0.0); */
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));

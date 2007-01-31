@@ -56,7 +56,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = 2.0 - cos((double)(10.0 * csound->tpidsr));
+    b = 2.0 - cos(10.0*(double)csound->tpidsr);
     p->c2 = b - sqrt((double)(b * b - 1.0));
     p->c1 = 1.0 - p->c2;
     if (!*p->istor) p->prvq = 0.0;
@@ -457,29 +457,27 @@ int macset(CSOUND *csound, SUM *p)
 
 int maca(CSOUND *csound, SUM *p)
 {
-    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k=0;
+    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
-    do {
+    for(k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += args[j][k] * args[j+1][k];
-      k++;
-      *ar++ = ans;
-    } while (--nsmps);
+      ar[k] = ans;
+    }
     return OK;
 }
 
 int mac(CSOUND *csound, SUM *p)
 {
-    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k=0;
+    int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
-    do {
+    for(k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += *args[j]* args[j+1][k];
-      k++;
-      *ar++ = ans;
-    } while (--nsmps);
+      ar[k] = ans;
+    }
     return OK;
 }
 
@@ -620,11 +618,11 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 int adsynt(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
-    MYFLT   *ar, *ar0, *ftbl, *freqtbl, *amptbl;
+    MYFLT   *ar, *ftbl, *freqtbl, *amptbl;
     MYFLT   amp0, amp, cps0, cps;
     long    phs, inc, lobits;
     long    *lphs;
-    int     nsmps, count;
+    int     n, nsmps = csound->ksmps, count;
 
     if (p->inerr) {
       return csound->PerfError(csound, Str("adsynt: not initialised"));
@@ -642,25 +640,22 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     amp0 = *p->kamp;
     count = p->count;
 
-    ar0 = p->sr;
-    ar = ar0;
-    nsmps = csound->ksmps;
-    do
-      *ar++ = FL(0.0);
-    while (--nsmps);
+    ar = p->sr;
+    memset(ar, 0, nsmps*sizeof(MYFLT));
+/*     do */
+/*       *ar++ = FL(0.0); */
+/*     while (--nsmps); */
 
     do {
-      ar = ar0;
-      nsmps = csound->ksmps;
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
       inc = (long) (cps * csound->sicvt);
       phs = *lphs;
-      do {
-        *ar++ += *(ftbl + (phs >> lobits)) * amp;
+      for (n=0; n<nsmps; n++) {
+        ar[n] += *(ftbl + (phs >> lobits)) * amp;
         phs += inc;
         phs &= PHMASK;
-      } while (--nsmps);
+      }
       *lphs++ = phs;
     } while (--count);
     return OK;
@@ -680,10 +675,10 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
       if (octcnt > 10)
         octcnt = 10;
       p->octcnt = octcnt;
-      if (*p->iphs >= 0)
-        {  for (i=0; i<octcnt; i++)
+      if (*p->iphs >= 0) {
+        for (i=0; i<octcnt; i++)
           p->lphs[i] = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
-        }
+      }
     }
     if ((ftp = csound->FTFind(csound, p->imixtbl)) != NULL) {
       p->mixtp = ftp;
@@ -694,14 +689,14 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
 int hsboscil(CSOUND *csound, HSBOSC   *p)
 {
     FUNC        *ftp, *mixtp;
-    MYFLT       fract, v1, amp0, amp, *ar0, *ar, *ftab, *mtab;
+    MYFLT       fract, v1, amp0, amp, *ar, *ftab, *mtab;
     long        phs, inc, lobits;
-    long    phases[10];
-    int         nsmps;
+    long        phases[10];
+    int         n, nsmps = csound->ksmps;
     MYFLT       tonal, bright, freq, ampscl;
-    int     octcnt = p->octcnt;
-    MYFLT   octstart, octoffs, octbase;
-    int     octshift, i, mtablen;
+    int         octcnt = p->octcnt;
+    MYFLT       octstart, octoffs, octbase;
+    int         octshift, i, mtablen;
     MYFLT       hesr = csound->esr / FL(2.0);
 
     ftp = p->ftp;
@@ -739,29 +734,26 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 
     amp0 = *p->kamp / ampscl;
     lobits = ftp->lobits;
-    ar0 = p->sr;
-    ar = ar0;
-    nsmps = csound->ksmps;
-    do {
-      *ar++ = FL(0.0);
-    } while (--nsmps);
+    ar = p->sr;
+    memset(ar, 0, nsmps*sizeof(MYFLT));
+/*     do { */
+/*       *ar++ = FL(0.0); */
+/*     } while (--nsmps); */
 
     for (i=0; i<octcnt; i++) {
-      ar = ar0;
-      nsmps = csound->ksmps;
       phs = phases[i];
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (freq > hesr)
         amp = FL(0.0);
       inc = (long)(freq * csound->sicvt);
-      do {
+      for (n=0;n<nsmps;n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
         v1 = *ftab++;
-        *ar++ += (v1 + (*ftab - v1) * fract) * amp;
+        ar[n] += (v1 + (*ftab - v1) * fract) * amp;
         phs += inc;
         phs &= PHMASK;
-      } while (--nsmps);
+      }
       p->lphs[i] = phs;
 
       octoffs += FL(1.0);
@@ -774,7 +766,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
     long  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
-    MYFLT *medi, *buf;
+    MYFLT *medi;
 
     p->inerr = 0;
 
@@ -835,13 +827,14 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->rmsmediptr = 0;
 
     if (p->medisize) {
-      msize = p->medisize * 3;
-      if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
-        csound->AuxAlloc(csound, sizeof(MYFLT)*(msize), &p->median);
+      msize = p->medisize * 3 * sizeof(MYFLT);
+      if (p->median.auxp==NULL || p->median.size < (long)msize)
+        csound->AuxAlloc(csound, msize, &p->median);
       medi = (MYFLT*)p->median.auxp;
-      do
-        *medi++ = FL(0.0);
-      while (--msize);
+      memset(medi, 0, msize);
+/*       do */
+/*         *medi++ = FL(0.0); */
+/*       while (--msize); */
     }
 
     if (*p->imedi < 1)
@@ -863,10 +856,11 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (p->buffer.auxp==NULL ||
         p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*(bufsize), &p->buffer);
-      buf = (MYFLT*)p->buffer.auxp;
-      do {
-        *buf++ = FL(0.0);
-      } while (--bufsize);
+      /* This code is not necessary as AuxAlloc clears the buffer */
+/*       buf = (MYFLT*)p->buffer.auxp; */
+/*       do { */
+/*         *buf++ = FL(0.0); */
+/*       } while (--bufsize); */
     }
     return OK;
 }
@@ -1093,7 +1087,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
 int phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
-    int    count;
+    int    n, count;
     double  *curphs;
 
     count = (int)(*p->icnt + FL(0.5));
@@ -1105,14 +1099,11 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      do {
-        *curphs++ = (double) rand_31(csound) / 2147483645.0;
-      } while (--count);
+      for (n=0; n<count;n++) 
+        curphs[n] = (double) rand_31(csound) / 2147483645.0;
     }
     else if ((phs = *p->iphs) >= 0) {
-      do {
-        *curphs++ = phs;
-      } while (--count);
+      for (n=0; n<count;n++) curphs[n] = phs;
     }
     return OK;
 }
@@ -1144,7 +1135,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
 int phsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    int     nsmps = csound->ksmps;
+    int     n, nsmps = csound->ksmps;
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
@@ -1164,26 +1155,26 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
     phase = curphs[index];
     if (p->XINCODE) {
       MYFLT *cps = p->xcps;
-      do {
-        incr = (double)(*cps++ * csound->onedsr);
-        *rs++ = (MYFLT)phase;
+      for (n=0; n<nsmps; n++) {
+        incr = (double)(cps[n] * csound->onedsr);
+        rs[n] = (MYFLT)phase;
         phase += incr;
         if (phase >= 1.0)
           phase -= 1.0;
         else if (phase < 0.0)
           phase += 1.0;
-      } while (--nsmps);
+      }
     }
     else {
       incr = (double)(*p->xcps * csound->onedsr);
-      do {
-        *rs++ = (MYFLT)phase;
+      for (n=0; n<nsmps; n++) {
+        rs[n] = (MYFLT)phase;
         phase += incr;
         if (phase >= 1.0)
           phase -= 1.0;
         else if (phase < 0.0)
           phase += 1.0;
-      } while (--nsmps);
+      }
     }
     curphs[index] = phase;
     return OK;
@@ -1243,7 +1234,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
-    int    nsmps = csound->ksmps;
+    int    n, nsmps = csound->ksmps;
     aout = p->aout;
     ain = p->xin;
 
@@ -1255,8 +1246,8 @@ int pinkish(CSOUND *csound, PINKISH *p)
       /* Get filter states */
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
       c3 = p->b3; c4 = p->b4; c5 = p->b5; c6 = p->b6;
-      do {
-        nxtin = (double)*ain++;
+      for (n=0;n<nsmps;n++) {
+        nxtin = (double)ain[n];
         c0 = c0 * 0.99886 + nxtin * 0.0555179;
         c1 = c1 * 0.99332 + nxtin * 0.0750759;
         c2 = c2 * 0.96900 + nxtin * 0.1538520;
@@ -1264,9 +1255,9 @@ int pinkish(CSOUND *csound, PINKISH *p)
         c4 = c4 * 0.55000 + nxtin * 0.5329522;
         c5 = c5 * -0.7616 - nxtin * 0.0168980;
         nxtout = c0 + c1 + c2 + c3 + c4 + c5 + c6 + nxtin * 0.5362;
-        *aout++ = (MYFLT)(nxtout * 0.11);       /* (roughly) compensate for gain */
+        aout[n] = (MYFLT)(nxtout * 0.11);       /* (roughly) compensate for gain */
         c6 = nxtin * 0.115926;
-      } while(--nsmps);
+      }
       /* Store back filter coef states */
       p->b0 = c0; p->b1 = c1; p->b2 = c2;
       p->b3 = c3; p->b4 = c4; p->b5 = c5; p->b6 = c6;
@@ -1275,14 +1266,14 @@ int pinkish(CSOUND *csound, PINKISH *p)
       /* Get filter states */
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
 
-      do {      /* Paul Kellet's "economy" pink filter */
-        nxtin = (double)*ain++;
+      for (n=0;n<nsmps;n++) {      /* Paul Kellet's "economy" pink filter */
+        nxtin = (double)ain[n];
         c0 = c0 * 0.99765 + nxtin * 0.0990460;
         c1 = c1 * 0.96300 + nxtin * 0.2965164;
         c2 = c2 * 0.57000 + nxtin * 1.0526913;
         nxtout = c0 + c1 + c2 + nxtin * 0.1848;
-        *aout++ = (MYFLT)(nxtout * 0.11);       /* (roughly) compensate for gain */
-      } while(--nsmps);
+        aout[n] = (MYFLT)(nxtout * 0.11);       /* (roughly) compensate for gain */
+      }
 
       /* Store back filter coef states */
       p->b0 = c0; p->b1 = c1; p->b2 = c2;
@@ -1394,7 +1385,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
     MYFLT *aout, *amp, scalar;
     long *rows, rowIndex, indexMask, randSeed, newRandom;
     long runningSum, sum, ampinc;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
     aout        = p->aout;
     amp         = p->xin;
@@ -1406,7 +1397,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
     rows        = &(p->grd_Rows[0]);
     randSeed    = p->randSeed;
 
-    do {
+    for (n=0; n<nsmps;n++) {
       /* Increment and mask index. */
       rowIndex = (rowIndex + 1) & indexMask;
 
@@ -1438,9 +1429,9 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
       sum = runningSum + newRandom;
 
       /* Scale to range of +/-p->xin (user-selected amp) */
-      *aout++ = *amp * sum * scalar;
+      aout[n] = *amp * sum * scalar;
       amp += ampinc;            /* Increment if amp is a-rate */
-    } while(--nsmps);
+    }
 
     p->grd_RunningSum = runningSum;
     p->grd_Index = rowIndex;
@@ -1495,15 +1486,15 @@ int clip_set(CSOUND *csound, CLIP *p)
 int clip(CSOUND *csound, CLIP *p)
 {
     MYFLT *aout = p->aout, *ain = p->ain;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     MYFLT a = p->arg, k1 = p->k1, k2 = p->k2;
     MYFLT limit = p->lim;
     MYFLT rlim = FL(1.0)/limit;
 
     switch (p->meth) {
     case 0:                     /* Soft clip with division */
-      do {
-        MYFLT x = *ain++;
+      for (n=0;n<nsmps;n++) {
+        MYFLT x = ain[n];
         if (x>=FL(0.0)) {
           if (x>limit) x = k2;
           else if (x>a)
@@ -1515,32 +1506,32 @@ int clip(CSOUND *csound, CLIP *p)
           else if (-x>a)
             x = -a + (x+a)/(FL(1.0)+(x+a)*(x+a)*k1);
         }
-        *aout++ = x;
-      } while(--nsmps);
+        aout[n] = x;
+      }
       return OK;
     case 1:
-      do {
-        MYFLT x = *ain++;
+      for (n=0;n<nsmps;n++) {
+        MYFLT x = ain[n];
         if (x>=limit)
             x = limit;
         else if (x<= -limit)
           x = -limit;
         else
             x = limit*(MYFLT)sin((double)(k1*x));
-        *aout++ = x;
-      } while(--nsmps);
+        aout[n] = x;
+      }
       return OK;
     case 2:
-      do {
-        MYFLT x = *ain++;
+      for (n=0;n<nsmps;n++) {
+        MYFLT x = ain[n];
         if (x>=limit)
             x = limit;
         else if (x<= -limit)
           x = -limit;
         else
           x = limit*k1*(MYFLT)tanh((double)(x*rlim));
-        *aout++ = x;
-      } while(--nsmps);
+        aout[n] = x;
+      }
       return OK;
     }
     return OK;
@@ -1693,7 +1684,7 @@ int impulse_set(CSOUND *csound, IMPULSE *p)
 
 int impulse(CSOUND *csound, IMPULSE *p)
 {
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
     if (next < csound->ksmps) {         /* Impulse in this frame */
@@ -1702,20 +1693,17 @@ int impulse(CSOUND *csound, IMPULSE *p)
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
       else sfreq = (int)(frq*csound->esr); /* Normal case */
-      do {
+      for (n=0;n<nsmps;n++) {
         if (next-- == 0) {
-          *ar = *p->amp;
+          ar[n] = *p->amp;
           next = sfreq - 1;     /* Note can be less than k-rate */
         }
-        else *ar = FL(0.0);
-        ar++;
-      } while (--nsmps);
+        else ar[n] = FL(0.0);
+      }
     }
     else {                      /* Nothing this time so just fill */
-      do {
-        *ar++ = FL(0.0);
-      } while (--nsmps);
-      next -= csound->ksmps;
+      memset(ar, 0, nsmps*sizeof(MYFLT));
+      next -= nsmps;
     }
     p->next = next;
     return OK;
@@ -1918,7 +1906,7 @@ int lpf18set(CSOUND *csound, LPF18 *p)
 
 int lpf18db(CSOUND *csound, LPF18 *p)
 {
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
     MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                   FL(1.718))*kfcn - FL(0.9984);
@@ -1937,17 +1925,17 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     MYFLT lastin = p->lastin;
     double value = 1.0+(dist*(1.5+2.0*(MYFLT)kres*(1.0-(MYFLT)kfcn)));
 
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT ax1   = lastin;
       MYFLT ay11  = ay1;
       MYFLT ay31  = ay2;
-      lastin  =  *ain++ - (MYFLT)tanh((double)(kres*aout));
+      lastin  =  ain[n] - (MYFLT)tanh((double)(kres*aout));
       ay1      = kp1h * (lastin + ax1) - kp*ay1;
       ay2      = kp1h * (ay1 + ay11) - kp*ay2;
       aout     = kp1h * (ay2 + ay31) - kp*aout;
 
-      *ar++ = (MYFLT) tanh(aout*value);
-    } while (--nsmps);
+      ar[n] = (MYFLT) tanh(aout*value);
+    }
     p->ay1 = ay1;
     p->ay2 = ay2;
     p->aout = aout;
@@ -1985,10 +1973,10 @@ int waveset(CSOUND *csound, BARRI *p)
     MYFLT *out = p->ar;
     int   index = p->end;
     MYFLT *insert = (MYFLT*)(p->auxch.auxp) + index;
-    int   nsmps = csound->ksmps;
+    int   n, nsmps = csound->ksmps;
     if (p->noinsert) goto output;
-    do {                        /* Deal with inputs */
-      *insert++ = *in++;
+    for (n=0;n<nsmps;n++) {                        /* Deal with inputs */
+      *insert++ = in[n];
       if (++index ==  p->start) {
         p->noinsert = 1;
         break;
@@ -1997,13 +1985,12 @@ int waveset(CSOUND *csound, BARRI *p)
         index = 0;
         insert = (MYFLT*)(p->auxch.auxp);
       }
-    } while (--nsmps);
+    }
  output:
     p->end = index;
-    nsmps = csound->ksmps;
     index = p->current;
     insert = (MYFLT*)(p->auxch.auxp) + index;
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT samp = *insert++;
       index ++;
       if (index==p->length) {
@@ -2027,8 +2014,8 @@ int waveset(CSOUND *csound, BARRI *p)
         }
       }
       if (samp != FL(0.0)) p->lastsamp = samp;
-      *out++ = samp;
-    } while (--nsmps);
+      out[n] = samp;
+    }
     p->current = index;
     return OK;
 }

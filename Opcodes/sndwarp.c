@@ -91,7 +91,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
 static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       frm0,frm1;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -102,31 +102,34 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       v1, v2, windowamp, fract;
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
+    int		overlap = *p->ioverlap;
 
     if (p->auxch.auxp==NULL) {
       return csound->PerfError(csound, Str("sndwarp: not initialised"));
     }
     r1 = p->r1;
     r2 = p->r2;
-    for (i=0; i<nsmps; i++) {
-      *r1++ = FL(0.0);
-      if (p->OUTOCOUNT >1) *r2++ = FL(0.0);
-    }
+    memset(r1, 0, nsmps*sizeof(MYFLT));
+    if (p->OUTOCOUNT >1) memset(r2, 0, nsmps*sizeof(MYFLT));
+/*     for (i=0; i<nsmps; i++) { */
+/*       *r1++ = FL(0.0); */
+/*       if (p->OUTOCOUNT >1) *r2++ = FL(0.0); */
+/*     } */
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
 
     exp--;
-    for (i=0; i<*p->ioverlap; i++) {
+    for (i=0; i<overlap; i++) {
       exp++;
-      nsmps = csound->ksmps;
-      r1 = p->r1;
-      if (p->OUTOCOUNT >1)  r2 = p->r2;
+/*       nsmps = csound->ksmps; */
+/*       r1 = p->r1; */
+/*       if (p->OUTOCOUNT >1)  r2 = p->r2; */
       resample = p->xresample;
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      do {
+      for (n=0; n<nsmps;n++) {
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
@@ -165,21 +168,21 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
         frm0 = *(ftpSamp->ftable + base);
         frm1 = *(ftpSamp->ftable + (base+1));
         if (frac != FL(0.0)) {
-          *r1++ += ((frm0 + frac*(frm1-frm0)) * windowamp) * *amp;
+          r1[n] += ((frm0 + frac*(frm1-frm0)) * windowamp) * *amp;
           if (i==0)
            if (p->OUTOCOUNT > 1)
-             *r2++ += (frm0 + frac*(frm1-frm0)) * *amp;
+             r2[n] += (frm0 + frac*(frm1-frm0)) * *amp;
         }
         else {
-          *r1++ += (frm0 * windowamp) * *amp;
+          r1[n] += (frm0 * windowamp) * *amp;
           if (i==0)
             if (p->OUTOCOUNT > 1)
-              *r2++ += frm0 * *amp;
+              r2[n] += frm0 * *amp;
         }
         if (p->ampcode) amp++;
         if (p->timewarpcode) timewarpby++;
         if (p->resamplecode) resample++;
-      } while(--nsmps);
+      }
     }
     return OK;
 }
@@ -226,7 +229,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 
     exp = p->exp;
     exp--;
-    for (i=0; i< *p->ioverlap; i++) {
+    for (i=0; i< nsections; i++) {
       exp++;
       if (i==0) {
         exp->wsize = (int)*p->iwsize;
@@ -256,7 +259,7 @@ static int sndwarpstset(CSOUND *csound, SNDWARPST *p)
 
 static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       frm10,frm11, frm20, frm21;
     long        base, longphase;
     MYFLT       frac, frIndx;
@@ -275,14 +278,20 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     r2 = p->r2;
     r3 = p->r3;
     r4 = p->r4;
-    for (i=0; i<nsmps; i++) {
-      *r1++ = FL(0.0);
-      *r2++ = FL(0.0);
-      if (p->OUTOCOUNT >2) {
-        *r3++ = FL(0.0);
-        *r4++ = FL(0.0);
-      }
+    memset(r1, 0,nsmps*sizeof(MYFLT));
+    memset(r2, 0,nsmps*sizeof(MYFLT));
+    if (p->OUTOCOUNT >2) {
+      memset(r3, 0,nsmps*sizeof(MYFLT));
+      memset(r4, 0,nsmps*sizeof(MYFLT));
     }
+/*     for (i=0; i<nsmps; i++) { */
+/*       *r1++ = FL(0.0); */
+/*       *r2++ = FL(0.0); */
+/*       if (p->OUTOCOUNT >2) { */
+/*         *r3++ = FL(0.0); */
+/*         *r4++ = FL(0.0); */
+/*       } */
+/*     } */
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
@@ -290,18 +299,11 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     exp--;
     for (i=0; i<*p->ioverlap; i++) {
       exp++;
-      nsmps = csound->ksmps;
-      r1 = p->r1;
-      r2 = p->r2;
-      if (p->OUTOCOUNT >2)  {
-        r3 = p->r3;
-        r4 = p->r4;
-      }
       resample = p->xresample;
       timewarpby = p->xtimewarp;
       amp = p->xamp;
 
-      do {
+      for (n=0; n<nsmps;n++) {
         if (exp->cnt < exp->wsize) goto skipover;
 
         if (*p->itimemode!=0)
@@ -340,28 +342,27 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
         frm20 = *(ftpSamp->ftable + (base*2)+1);
         frm21 = *(ftpSamp->ftable + (((base+1)*2)+1));
         if (frac != FL(0.0)) {
-          *r1++ += ((frm10 + frac*(frm11-frm10)) * windowamp) * *amp;
-          *r2++ += ((frm20 + frac*(frm21-frm20)) * windowamp) * *amp;
+          r1[n] += ((frm10 + frac*(frm11-frm10)) * windowamp) * *amp;
+          r2[n] += ((frm20 + frac*(frm21-frm20)) * windowamp) * *amp;
           if (i==0)
             if (p->OUTOCOUNT > 2) {
-              *r3++ += (frm10 + frac*(frm11-frm10)) * *amp;
-              *r4++ += (frm20 + frac*(frm21-frm20)) * *amp;
+              r3[n] += (frm10 + frac*(frm11-frm10)) * *amp;
+              r4[n] += (frm20 + frac*(frm21-frm20)) * *amp;
             }
         }
         else {
-          *r1++ += (frm10 * windowamp) * *amp;
-          *r2++ += (frm20 * windowamp) * *amp;
+          r1[n] += (frm10 * windowamp) * *amp;
+          r2[n] += (frm20 * windowamp) * *amp;
           if (i==0)
             if (p->OUTOCOUNT > 2) {
-              *r3++ += frm10 * *amp;
-              *r4++ += frm20 * *amp;
+              r3[n] += frm10 * *amp;
+              r4[n] += frm20 * *amp;
             }
         }
         if (p->ampcode) amp++;
         if (p->timewarpcode) timewarpby++;
         if (p->resamplecode) resample++;
-      } while(--nsmps);
-
+      }
     }
     return OK;
 }

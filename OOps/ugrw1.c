@@ -2446,12 +2446,13 @@ int zkcl(CSOUND *csound, ZKCL *p)
                                Str("zkcl first > last. Not clearing."));
     }
     else {
-          /* Now clear the appropriate locations in zk space. */
-          loopcount = last - first + 1;
-          writeloc = csound->zkstart + first;
-          do {
-            *writeloc++ = FL(0.0);
-          } while (--loopcount);
+      /* Now clear the appropriate locations in zk space. */
+      loopcount = last - first + 1;
+      writeloc = csound->zkstart + first;
+      memset(writeloc, 0, loopcount*sizeof(MYFLT));
+/*           do { */
+/*             *writeloc++ = FL(0.0); */
+/*           } while (--loopcount); */
     }
     return OK;
 }
@@ -2492,24 +2493,27 @@ int zar(CSOUND *csound, ZAR *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {
-      do {
-        *writeloc++ = FL(0.0);
-      } while(--nsmps);
+      memset(writeloc, 0, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = FL(0.0); */
+/*       } while(--nsmps); */
       return csound->PerfError(csound, Str("zar index > isizea. Returning 0."));
     }
     else if (indx < 0) {
-      do {
-        *writeloc++ = FL(0.0);
-      } while(--nsmps);
+      memset(writeloc, 0, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = FL(0.0); */
+/*       } while(--nsmps); */
       return csound->PerfError(csound, Str("zar index < 0. Returning 0."));
     }
     else {
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
       readloc = csound->zastart + (indx * csound->ksmps);
-      do {
-        *writeloc++ = *readloc++;
-      } while(--nsmps);
+      memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = *readloc++; */
+/*       } while(--nsmps); */
     }
     return OK;
 }
@@ -2533,17 +2537,19 @@ int zarg(CSOUND *csound, ZARG *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {
-      do {
-        *writeloc++ = FL(0.0);
-      } while(--nsmps);
+      memset(writeloc, 0, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = FL(0.0); */
+/*       } while(--nsmps); */
       return csound->PerfError(csound,
                                Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (indx < 0) {
-        do {
-          *writeloc++ = FL(0.0);
-        } while(--nsmps);
+      memset(writeloc, 0, nsmps*sizeof(MYFLT));
+/*         do { */
+/*           *writeloc++ = FL(0.0); */
+/*         } while(--nsmps); */
         return csound->PerfError(csound, Str("zarg index < 0. Returning 0."));
       }
       else {
@@ -2583,9 +2589,10 @@ int zaw(CSOUND *csound, ZAW *p)
     else {
         /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * csound->ksmps);
-      do {
-        *writeloc++ = *readloc++;
-      } while(--nsmps);
+      memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = *readloc++; */
+/*       } while(--nsmps); */
     }
     return OK;
 }
@@ -2618,9 +2625,10 @@ int zawm(CSOUND *csound, ZAWM *p)
       writeloc = csound->zastart + (indx * csound->ksmps);
       if (*p->mix == 0) {
         /* Normal write mode.  */
-        do {
-          *writeloc++ = *readloc++;
-        } while(--nsmps);
+        memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
+/*         do { */
+/*           *writeloc++ = *readloc++; */
+/*         } while(--nsmps); */
       }
       else {
         /* Mix mode - add to the existing value.   */
@@ -2653,9 +2661,10 @@ int zamod(CSOUND *csound, ZAMOD *p)
     writeloc = p->rslt;
     /* If zkmod = 0, then just copy input to output.    */
     if ((indx = (long) *p->zamod) == 0) {
-      do {
-        *writeloc++ = *readsig++;
-      } while (--nsmps);
+      memcpy(writeloc, readsig, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *writeloc++ = *readsig++; */
+/*       } while (--nsmps); */
       return OK;
     }
     /* Decide whether index is positive or negative.  Make it postive.    */
@@ -2712,9 +2721,10 @@ int zacl(CSOUND *csound, ZACL *p)
         else {  /* Now clear the appropriate locations in za space. */
           loopcount = (last - first + 1) * csound->ksmps;
           writeloc = csound->zastart + (first * csound->ksmps);
-          do {
-            *writeloc++ = FL(0.0);
-          } while (--loopcount);
+          memset(writeloc, 0, loopcount*sizeof(MYFLT));
+/*           do { */
+/*             *writeloc++ = FL(0.0); */
+/*           } while (--loopcount); */
         }
       }
     }

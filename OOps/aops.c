@@ -1456,12 +1456,11 @@ int outch(CSOUND *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
 
     for (j = 0; j < count; j += 2) {
-      nsmps = csound->ksmps;
       ch = (int)(*args[j] + FL(0.5));
       apn = args[j + 1];
       if (ch > csound->nchnls) continue;
