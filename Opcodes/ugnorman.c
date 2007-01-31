@@ -599,8 +599,9 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     oscphase = p->oscphase;
     /* initialise output to zero */
     ar = p->aoutput;
-    for (i = 0; i < nsmps; i++)
-      ar[i] = FL(0.0);
+    memset(ar, 0, nsmps*sizeof(MYFLT));
+/*     for (i = 0; i < nsmps; i++) */
+/*       ar[i] = FL(0.0); */
 
     if (*p->igatefun > FL(0.0))
       AtsAmpGate(buf, *p->iptls, p->AmpGateFunc, p->MaxAmp);
@@ -958,7 +959,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     MYFLT   frIndx;
     MYFLT   *ar, amp;
     double  *buf;
-    int     i, nsmps;
+    int     i, n, nsmps;
     int     synthme;
     int     nsynthed;
 
@@ -990,8 +991,9 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
 
-    for (i = 0; i < csound->ksmps; i++)
-      *ar++ = FL(0.0);
+    memset(ar, 0, csound->ksmps*sizeof(MYFLT));
+/*     for (i = 0; i < csound->ksmps; i++) */
+/*       *ar++ = FL(0.0); */
 
     synthme = (int) *p->ibandoffset;
     nsynthed = 0;
@@ -1005,12 +1007,11 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
             sqrt((p->buf[i] / ((p->winsize) * (MYFLT) ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
         nsmps = csound->ksmps;
-        do {
-          *ar += (cos(p->oscphase[i])
-                  * amp * randiats(csound, &(p->randinoise[i])));
+        for (n=0; n<nsmps; n++) {
+          ar[n] += (cos(p->oscphase[i])
+                   * amp * randiats(csound, &(p->randinoise[i])));
           p->oscphase[i] += p->phaseinc[i];
-          ar++;
-        } while (--nsmps);
+        }
         /* make sure that the phase does not overflow */
         /*
            while (phase >= costabsz)
@@ -1202,7 +1203,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 {
     MYFLT   frIndx;
-    int     nsmps;
+    int     n, nsmps = csound->ksmps;
     MYFLT   *ar;
     double  noise;
     double  inc;
@@ -1242,8 +1243,9 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
 
-    for (i = 0; i < csound->ksmps; i++)
-      *ar++ = FL(0.0);
+    memset(ar, 0, csound->ksmps*sizeof(MYFLT));
+/*     for (i = 0; i < csound->ksmps; i++) */
+/*       *ar++ = FL(0.0); */
 
     oscbuf = p->oscbuf;
     nzbuf = p->nzbuf;
@@ -1253,14 +1255,13 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
       for (i = 0; i < (int) *p->iptls; i++) {
         phase = p->oscphase[i];
         ar = p->aoutput;
-        nsmps = csound->ksmps;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
         inc = TWOPI * freq * csound->onedsr;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
         nzfreq = (freq < 500.0 ? 50.0 : freq * 0.05);
-        do {
+        for (n=0; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase);
           phase += inc;
@@ -1269,10 +1270,9 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           noise = nzamp * sinewave
                         * randifats(csound, &(p->randinoise[i]), nzfreq);
           /* calc output */
-          *ar +=   (MYFLT) (amp * sinewave) * *p->ksinamp
-                 + (MYFLT) noise **p->knzamp;
-          ar++;
-        } while (--nsmps);
+          ar[n] +=   (MYFLT) (amp * sinewave) * *p->ksinamp
+                   + (MYFLT) noise **p->knzamp;
+        }
         p->oscphase[i] = phase;
       }
     }
@@ -1280,19 +1280,16 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
       for (i = 0; i < (int) *p->iptls; i++) {
         phase = p->oscphase[i];
         ar = p->aoutput;
-        nsmps = csound->ksmps;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
         inc = TWOPI * freq * csound->onedsr;
-        do {
+        for (n=0; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase) * amp;
           phase += inc;
           /* calc output */
-          *ar += (MYFLT) sinewave **p->ksinamp;
-
-          ar++;
-        } while (--nsmps);
+          ar[n] += (MYFLT) sinewave **p->ksinamp;
+        }
         p->oscphase[i] = phase;
       }
     }
@@ -1948,7 +1945,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     FUNC    *ftp;
     long    lobits, phase, inc;
     double  *oscphase;
-    int     i, nsmps = csound->ksmps;
+    int     i, n, nsmps = csound->ksmps;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -1997,8 +1994,9 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     oscphase = p->oscphase;
     /* initialise output to zero */
     ar = p->aoutput;
-    for (i = 0; i < nsmps; i++)
-      ar[i] = FL(0.0);
+    memset(ar, 0, nsmps*sizeof(MYFLT));
+/*     for (i = 0; i < nsmps; i++) */
+/*       ar[i] = FL(0.0); */
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
@@ -2008,15 +2006,14 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       nsmps = csound->ksmps;
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
-      do {
+      for (n=0; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
-        *ar += (v1 + fract * (*ftab - v1)) * amp;
-        ar++;
+        ar[n] += (v1 + fract * (*ftab - v1)) * amp;
         phase += inc;
         phase &= PHMASK;
-      } while (--nsmps);
+      }
       *oscphase = (double) phase;
       oscphase++;
     }
