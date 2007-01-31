@@ -295,6 +295,8 @@ int CsoundPerformanceThread::Perform()
         csoundWaitThreadLockNoTimeout(pauseLock);
         csoundNotifyThreadLock(pauseLock);
       }
+      if(processcallback != NULL)
+	   processcallback(cdata);
       retval = csoundPerformKsmps(csound);
     } while (!retval);
  endOfPerf:
@@ -372,6 +374,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound)
     catch (std::bad_alloc&) {
       return;
     }
+    processcallback = NULL;
     firstMessage = lastMessage;
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
     if (perfThread)

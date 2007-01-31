@@ -41,6 +41,13 @@ class CsPerfThread_PerformScore;
  * returns.
  */
 
+#ifdef SWIGPYTHON
+struct pycallbackdata {
+  PyObject *func;
+  PyObject *data;
+};
+#endif
+
 class CsoundPerformanceThread {
  private:
     volatile CsoundPerformanceThreadMessage *firstMessage;
@@ -52,11 +59,30 @@ class CsoundPerformanceThread {
     void    *perfThread;
     int     paused;
     int     status;
+    void *    cdata;
     // --------
     int  Perform();
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
+    void (*processcallback)(void *cdata);
  public:
+
+#ifdef SWIGPYTHON
+  PyThreadState *_tstate;
+  pycallbackdata pydata;
+#endif
+  /**
+  * Returns the process callback as a void pointer
+  */
+  void *GetProcessCallback() { return (void *)processcallback; }
+
+  /**
+   * Sets the process callback.
+   */
+   void SetProcessCallback(void (*Callback)(void *), void *cbdata){
+    processcallback = Callback;
+    cdata = cbdata;
+   }
     /**
      * Returns the Csound instance pointer.
      */
