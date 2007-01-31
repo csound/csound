@@ -898,11 +898,12 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
-    int   i = 0;
+/*     int   i = 0; */
 
-    do {
-      p->fp[i] = FL(0.0);
-    } while (++i < csound->ksmps);
+    memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
+/*     do { */
+/*       p->fp[i] = FL(0.0); */
+/*     } while (++i < csound->ksmps); */
 
     return OK;
 }

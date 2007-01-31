@@ -447,7 +447,7 @@ int klimit(CSOUND *csound, LIMIT *p)
        * the mid point between them.       */
 
       if ( (xlow = *p->xlow) >= (xhigh = *p->xhigh) ) {
-        *p->xdest = (xlow + xhigh) / 2;
+        *p->xdest = FL(0.5) * (xlow + xhigh); /* times 0.2 rather that /2 -- JPff */
       }
       else {
         if (xsig > xhigh)
@@ -483,10 +483,10 @@ int limit(CSOUND *csound, LIMIT *p)
      */
 
     if ((xlow = *p->xlow) >= (xhigh = *p->xhigh)) {
-        xaverage = (xlow + xhigh) / 2;
-        do {
-          *adest++ = xaverage;
-        } while (--loopcount);
+      xaverage = (xlow + xhigh) * FL(0.5);/* times 0.2 rather that /2 -- JPff */
+      do {
+        *adest++ = xaverage;
+      } while (--loopcount);
     }
     else
       do {

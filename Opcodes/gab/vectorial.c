@@ -121,7 +121,7 @@ static int mtable_k(CSOUND *csound,MTABLE *p)
 static int mtable_a(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
+    int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx, xbmul;
@@ -146,14 +146,14 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
       long indx;
       MYFLT fract;
       long indxp1;
-      do {
+      for (k=0; k<nsmps; k++) {
         MYFLT   v1, v2 ;
         fndx = (ixmode) ? *xndx++ * xbmul : *xndx++;
         if (fndx >= len)
           fndx = (MYFLT) fmod(fndx, len);
         indx = (long) fndx;
         fract = fndx - indx;
-        indxp1 = (indx < len-1) ? (indx+1) * nargs : 0;
+        indxp1 = (indx < len-1) ? (indx+1) * nargs : 0L;
         indx *=nargs;
         for (j=0; j < nargs; j++) {
           v1 = table[indx + j];
@@ -161,19 +161,16 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
           out[j][k] = v1 + (v2 - v1) * fract;
 
         }
-        k++;
-      } while(--nsmps);
-
+      }
     }
     else {
-      do {
+      for (k=0; k<nsmps; k++) {
         long indx = (ixmode) ? ((long)(*xndx++ * xbmul)%len) * nargs :
                                ((long) *xndx++ %len) * nargs;
         for (j=0; j < nargs; j++) {
           out[j][k] =  table[indx + j];
         }
-        k++;
-      } while(--nsmps);
+      }
     }
     return OK;
 }
@@ -227,20 +224,19 @@ static int mtab_k(CSOUND *csound,MTAB *p)
 static int mtab_a(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
-    int nsmps = csound->ksmps, k=0;
+    int nsmps = csound->ksmps, k;
     MYFLT **out = p->outargs;
     MYFLT *table;
     MYFLT *xndx = p->xndx;
     long len;
     table = p->ftable;
     len = p->len;
-    do {
+    for (k=0;k<nsmps;k++) {
       long indx = ((long) *xndx++ %len) * nargs;
       for (j=0; j < nargs; j++) {
         out[j][k] =  table[indx + j];
       }
-      k++;
-    } while(--nsmps);
+    }
     return OK;
 }
 
@@ -1644,7 +1640,8 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
     if (*p->ifn1 == *p->ifn2) {
-      csound->InitError(csound,Str("vmap: Error: ifn1 and ifn2 can't be the same"));
+      csound->InitError(csound,
+                        Str("vmap: Error: ifn1 and ifn2 can not be the same"));
       return NOTOK;
     }
     if (ftp1 == NULL)  {
