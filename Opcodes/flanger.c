@@ -242,7 +242,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     yt1_2= p->yt1_2;
 
     if (p->xdel1cod) { /* delays change at audio-rate */
-      for (n=0;n<nsmps;n++) do {
+      for (n=0;n<nsmps;n++) {
         MYFLT fd1 = *freq_del1++;
         MYFLT fd2 = *freq_del2++;
         buf1[indx1] = buf2[indx2] =
@@ -301,10 +301,10 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     }
     p->left1 = indx1;
     p->left2 = indx2;
-    p->old_out = old_out
+    p->old_out = old_out;
     p->yt1_1 = yt1_1;
     p->yt1_2 = yt1_2;
-   return OK;
+    return OK;
 }
 
 #define S(x)    sizeof(x)
