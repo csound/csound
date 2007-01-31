@@ -81,10 +81,12 @@
 extern "C" {
 #endif
 
+
+
 /**
  * Initialize an internal CSD file.
  */
-PUBLIC void csoundCsdCreate(CSOUND *csound);
+  PUBLIC void csoundCsdCreate(CSOUND *csound);
 
 /**
  * Set the CsOptions element of the internal CSD file.

@@ -21,6 +21,40 @@ static std::map<CSOUND *, CsoundFile> files;
 #ifdef __cplusplus
 extern "C" {
 #endif
+  uintptr_t perfthread(void *data){
+    CSOUND *cs = (CSOUND *)data;
+    int res = 0;
+    while(res == 0) res = csoundPerformKsmps(cs);
+    return 0;
+  }
+
+  PUBLIC void csoundNewCSD(char *path) {
+    char *argv[2];
+    CSOUND *instance;
+   argv[0] = (char *)malloc(7);
+   argv[1] = (char *)malloc(strlen(path)+1);
+   strcpy(argv[0], "csound");
+   strcpy(argv[1], path);
+   
+   //argv[0] = "csound";
+   //argv[1] = path;
+   
+   printf("%s \n", argv[1]);
+   instance = csoundCreate(NULL);
+   csoundCompile(instance,2,argv);
+   perfthread((void *) instance);  
+   csoundReset(instance);
+   // csoundDestroy(instance);
+   free(argv[0]);
+   free(argv[1]);
+   
+  }
+
+  
+  PUBLIC int csoundPerformLoop(CSOUND *cs){
+    csoundCreateThread(perfthread, (void *)cs);
+    return 1;
+  }
 
   PUBLIC void csoundCsdCreate(CSOUND *csound)
   {

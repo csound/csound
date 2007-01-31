@@ -103,8 +103,55 @@ typedef unsigned int uint32_t;
 %clear MYFLT &max;
 %clear MYFLT &value;
 
+// typemap for callbacks
+%typemap(in) PyObject *pyfunc {
+  if(!PyCallable_Check($input)){
+    PyErr_SetString(PyExc_TypeError, "Not a callable object!");
+    return NULL;
+}
+$1 = $input;
+}
+
+%{
+// this will be used as an interface to the
+// callback
+static void PythonCallback(void *p){
+
+    PyObject *res;
+    CsoundPerformanceThread *t = (CsoundPerformanceThread *) p;
+    if(t->_tstate == NULL)
+        t->_tstate = PyThreadState_New(PyInterpreterState_New()); 
+    PyEval_AcquireThread(t->_tstate);    
+    res = PyEval_CallObject(t->pydata.func, t->pydata.data);
+    if (res == NULL){
+    PyErr_SetString(PyExc_TypeError, "Exception in callback");
+     }
+    else Py_DECREF(res);    
+   PyEval_ReleaseThread(t->_tstate);
+}
+%}
+
+
+%ignore CsoundPerformanceThread::SetProcessCallback(void (*Callback)(void *), void *cbdata);
+
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
+
+%extend CsoundPerformanceThread {
+   // Set the Python callback
+   void SetProcessCallback(PyObject *pyfunc, PyObject *p){
+    if(self->GetProcessCallback() == NULL) {
+       PyEval_InitThreads();
+       self->_tstate = NULL;
+     }
+     else Py_XDECREF(self->pydata.func);  
+    self->pydata.func = pyfunc;
+    self->pydata.data = Py_BuildValue("(O)", p);
+    self->SetProcessCallback(PythonCallback, (void *)self);
+    Py_XINCREF(pyfunc);
+
+  }
+}
 
 #ifndef MACOSX
 %include "CsoundFile.hpp"
