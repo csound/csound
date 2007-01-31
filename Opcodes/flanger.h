@@ -36,7 +36,7 @@ typedef struct {
         MYFLT *ar, *asig, *xdel, *filt_khp, *kfeedback;
         MYFLT c1, c2, yt1, prvhp; /* filter instance variables */
         AUXCH   aux;  /* delay instance variables */
-        unsigned long maxd, maxdM1;
+        unsigned long maxd;
         long    left;
         short   xdelcod;
 } WGUIDE1;
@@ -51,7 +51,7 @@ typedef struct {
         long    left1;
         AUXCH   aux2;  /* delay1 instance variables */
         long    left2;
-        unsigned long maxd, maxdM1;
+        unsigned long maxd;
         MYFLT   old_out;
         short   xdel1cod, xdel2cod;
 } WGUIDE2;

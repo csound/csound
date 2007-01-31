@@ -98,7 +98,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     MYFLT *freq_del =  p->xdel; /*(1 / *p->xdel)  * csound->esr; */
     MYFLT feedback =  *p->kfeedback;
     MYFLT  fv1, fv2, out_delay,bufv1 ;
-    int maxdM1 = p->maxd-1;
+    unsigned int maxdM1 = p->maxd-1;
     long   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, yt1 = p->yt1;
@@ -117,7 +117,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     c1= p->c1;
     c2= p->c2;
     if (p->xdelcod) { /* delay changes at audio-rate */
-      for (n=0; n<nsmps;n++) {
+      for (n=0; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del++;
         buf[indx] = in[n] + (yt1 * feedback);
@@ -133,11 +133,11 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         out_delay = bufv1 + (fv1 - v1) * ( buf[(long)fv2] - bufv1);
         if (++indx == p->maxd) indx = 0; /* Advance current pointer */
         /*---------------- filter -----------------------*/
-        out[n] = yt1 = c1 * out_delay + c2 * *yt1;
+        out[n] = yt1 = c1 * out_delay + c2 * yt1;
       }
     } 
     else {
-      for (n=0; n<nsmps;n++) {
+      for (n=0; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del;
         buf[indx] = in[n] + (yt1 * feedback);
@@ -153,7 +153,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         out_delay = bufv1 + (fv1 - v1) * ( buf[(long)fv2] - bufv1);
         if (++indx == p->maxd) indx = 0;     /* Advance current pointer */
         /*---------------- filter -----------------------*/
-        out[n] = yt1 = c1 * out_delay + c2 * *yt1;
+        out[n] = yt1 = c1 * out_delay + c2 * yt1;
       }
     }
     p->left = indx;
@@ -196,7 +196,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     MYFLT *in = p->asig;
     int n, nsmps = csound->ksmps;
     MYFLT out1,out2, old_out = p->old_out;
-    int maxdM1 = p->maxd-1;
+    unsigned int maxdM1 = p->maxd-1;
 
     /*---------------- delay1 -----------------------*/
     unsigned long  indx1;
