@@ -351,6 +351,37 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     return -1;
 }
 
+static void list_devices(CSOUND *csound)
+{
+    FILE * f = fopen("/proc/asound/pcm", "r");
+    /*file presents this format:
+    02-00: Analog PCM : Mona : playback 6 : capture 4*/
+    char *line, *line_;
+    line = (char *) calloc (128, sizeof(char));
+    line_ = (char *) calloc (128, sizeof(char));
+    char card_[] = "  ";
+    char num_[] = "  ";
+    char *temp;
+    if (f)  {
+      while (fgets(line, 128, f))  {   /* Read one line*/
+        strcpy(line_, line);
+        temp = strtok (line, "-");
+        strncpy (card_, temp, 2);
+        temp = strtok (NULL, ":");
+        strncpy (num_, temp, 2);
+        int card = atoi (card_);
+        int num = atoi (num_);
+        temp = strchr (line_, ':');
+        if (temp)
+          temp = temp + 2;
+   /* name contains spaces at the beginning and the end. And line return at the end*/
+        csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
+      }
+    }
+    free(line);
+    free(line_);
+}
+
 static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
 {
     DEVPARAMS *dev;
@@ -364,7 +395,8 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
       return 0;
     if (parm->devNum != 1024) {
       csound->ErrorMsg(csound, Str(" *** ALSA: must specify a device name, "
-                                   "not a number"));
+                                   "not a number (e.g. -odac:hw:0,0)"));
+      list_devices(csound);
       return -1;
     }
     /* allocate structure */
