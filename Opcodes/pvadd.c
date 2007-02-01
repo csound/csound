@@ -122,8 +122,9 @@ int pvaddset(CSOUND *csound, PVADD *p)
 
     oscphase = p->oscphase;
 
-    for (i=0; i < MAXBINS; i++)
-      *oscphase++ = FL(0.0);
+    memset(p->oscphase, 0, MAXBINS*sizeof(MYFLT));
+/*     for (i=0; i < MAXBINS; i++) */
+/*       *oscphase++ = FL(0.0); */
 
     ibins = (*p->ibins <= FL(0.0) ? (size / 2) : (int) *p->ibins);
     p->maxbin = ibins + (int) *p->ibinoffset;
@@ -137,7 +138,7 @@ int pvadd(CSOUND *csound, PVADD *p)
     MYFLT   *ar, *ftab;
     MYFLT   frIndx;
     int     size = pvfrsiz(p);
-    int     i, binincr = (int) *p->ibinincr, nsmps = csound->ksmps;
+    int     i, binincr = (int) *p->ibinincr, n, nsmps = csound->ksmps;
     MYFLT   amp, frq, v1, fract, *oscphase;
     long    phase, incr;
     FUNC    *ftp;
@@ -163,13 +164,12 @@ int pvadd(CSOUND *csound, PVADD *p)
       PvAmpGate(p->buf, p->maxbin*2, p->AmpGateFunc, p->PvMaxAmp);
 
     ar = p->rslt;
-    for (i = 0; i < nsmps; i++)
-      *ar++ = FL(0.0);
+    memset(ar, 0, nsmps*sizeof(MYFLT));
+/*     for (i = 0; i < nsmps; i++) */
+/*       *ar++ = FL(0.0); */
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
-      nsmps = csound->ksmps;
-      ar = p->rslt;
       phase = (long) *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
       if (p->buf[i * 2 + 1] == FL(0.0) || frq >= csound->esr * FL(0.5)) {
@@ -181,15 +181,14 @@ int pvadd(CSOUND *csound, PVADD *p)
         incr = (long) MYFLT2LONG(tmp);
         amp = p->buf[i * 2];
       }
-      do {
+      for (n=0;n<nsmps;n++) {
         fract = PFRAC(phase);
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
-        *ar += (v1 + (*ftab - v1) * fract) * amp;
-        ar++;
+        ar[n] += (v1 + (*ftab - v1) * fract) * amp;
         phase += incr;
         phase &= PHMASK;
-      } while (--nsmps);
+      }
       *oscphase = (MYFLT) phase;
       oscphase++;
     }

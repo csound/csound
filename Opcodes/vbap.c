@@ -122,9 +122,10 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       sets[j].set_gains[2] = FL(1.0);
     }
 
-    for (i=0;i<ls_amount;i++) {
-      gains[i]=FL(0.0);
-    }
+/*     for (i=0;i<ls_amount;i++) { */
+/*       gains[i]=FL(0.0); */
+/*     } */
+    memset(gains, 0, ls_amount*sizeof(MYFLT));
 
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
     gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
