@@ -94,7 +94,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     lower_rail->end = lower_rail->data + rail_len - 1;
 
                                 /* Set initial shape */
-    if (plk != 0.0) {
+    if (plk != FL(0.0)) {
       initial_shape = (MYFLT*) csound->Malloc(csound, rail_len*sizeof(MYFLT));
       if (pickpt < 1) pickpt = 1;       /* Place for pluck, in range (0,1.0) */
       upslope = FL(1.0)/(MYFLT)pickpt; /* Slightly faster to precalculate */
@@ -162,20 +162,20 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
       csound->Message(csound, Str("Reflection invalid (%f)\n"), reflect);
       reflect = FL(0.5);
     }
-    ar   = p->ar;
-    ain   = p->ain;
-    scale = p->scale;
-    reflect = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale; /* For over sapling */
+    ar         = p->ar;
+    ain        = p->ain;
+    scale      = p->scale;
+    reflect    = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale; /* For over sapling */
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
-    pickup = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
-    pickfrac = pickup & OVERMSK;
-    pickup = pickup>>OVERSHT;
+    pickup     = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
+    pickfrac   = pickup & OVERMSK;
+    pickup     = pickup>>OVERSHT;
     if (pickup<0 || pickup > p->rail_len) {
       csound->Message(csound, Str("Pickup out of range (%f)\n"), *p->pickup);
-      pickup =  p->rail_len * (OVERCNT/2);
+      pickup   = p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
-      pickup = pickup>>OVERSHT;
+      pickup   = pickup>>OVERSHT;
     }
 
     for (n=0;n<nsmps;n++) {

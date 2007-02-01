@@ -57,7 +57,7 @@ typedef struct _gainslider {
 int scale_process(CSOUND *csound, scale *p)
 {
     if (*p->kmin != *p->kmax) {
-        *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
+      *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
     }
 
     return OK;

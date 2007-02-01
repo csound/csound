@@ -41,6 +41,7 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
+    int n, nsmps = csound->ksmps;
     int i,j;
 
     vbap_EIGHT_control(csound,p);
@@ -60,21 +61,20 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
-          for (i = 0; i < csound->ksmps; i++) {
-            *outptr++ = *inptr++ *
+          for (i = 0; i < nsmps; i++) {
+            outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else {
-          for (i=0; i<csound->ksmps; ++i)
-            *outptr++ = *inptr++ * ogain;
+          for (i=0; i<nsmps; ++i)
+            outptr[i] = inptr[i] * ogain;
         }
       }
       else {
-        for (i=0; i<csound->ksmps; ++i)
-          *outptr++ = FL(0.0);
+        memset(outptr, 0, nsmps*sizeof(MYFLT));
       }
     }
     return OK;
@@ -241,6 +241,7 @@ int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING *p) /* during note perfo
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
+    int nsmps = csound->ksmps;
 
     vbap_EIGHT_moving_control(csound,p);
     for (i=0;i< (EIGHT); i++) {
@@ -259,19 +260,18 @@ int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING *p) /* during note perfo
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
-          for (i = 0; i < csound->ksmps; i++) {
-            *outptr++ = *inptr++ *
+          for (i = 0; i < nsmps; i++) {
+            outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
         else
-          for (i=0; i<csound->ksmps; ++i)
-            *outptr++ = *inptr++ * ogain;
+          for (i=0; i<nsmps; ++i)
+            outptr[i] = inptr[i] * ogain;
       else
-        for (i=0; i<csound->ksmps; ++i)
-          *outptr++ = FL(0.0);
+        memset(outptr,0, nsmps*sizeof(MYFLT));
     }
     return OK;
 }

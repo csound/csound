@@ -51,7 +51,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 
 int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
-    long  nn, maxd, indx;
+    long  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out = p->sr;     /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -64,7 +64,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     indx = p->left;
 
     if (XINARG2) {          /*      if delay is a-rate      */
-      for (nn=0; nn<csound->ksmps; nn++) {
+      for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
         long   v1, v2;
 
@@ -99,7 +99,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     }
     else {                      /* and, if delay is k-rate */
       MYFLT fdel=*del;
-      for (nn=0; nn<csound->ksmps; nn++) {
+      for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
         long   v1, v2;
 
@@ -133,7 +133,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
-    long  nn, maxd, indx;
+    long  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -148,7 +148,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     indx = p->left;
 
     if (XINARG2) {              /*      if delay is a-rate      */
-      for (nn=0; nn<csound->ksmps; nn++) {
+      for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1;
         long   v0, v1, v2, v3;
 
@@ -214,7 +214,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
         z = fv1 * fv1; z--; z *= FL(0.1666666667);      /* IV Oct 2001 */
         y = fv1; y++; w = (y *= FL(0.5)); w--;
         x = FL(3.0) * z; y -= x; w -= z; x -= fv1;
-        for (nn=0; nn<csound->ksmps; nn++) {
+        for (nn=0; nn<nsmps; nn++) {
           buf[indx] = in[nn];
           /* Find next sample for interpolation      */
           v2 = (v1 == (long)(maxd - 1UL) ? 0L : v1 + 1L);
@@ -237,8 +237,6 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
-    unsigned int i;
-    MYFLT *buf1;
 
     if (n == 0) n = 1;          /* fix due to Troxler */
 
@@ -248,9 +246,6 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
         memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      buf1 = (MYFLT *)p->aux1.auxp;  /*    make sure buffer is empty       */
-/*       for (i=0; i<n; i++) buf1[i] = FL(0.0); */
-
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
@@ -319,7 +314,7 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 
 int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
-    long  nn, maxd, indx;
+    long  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
@@ -337,7 +332,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    for (nn=0; nn<csound->ksmps; nn++) {
+    for (nn=0; nn<nsmps; nn++) {
       buf1[indx] = in1[nn];
       n1 = 0.0;
 
@@ -381,7 +376,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
-    long  nn, maxd, indx;
+    long  nn, maxd, indx, nsmps = csound->ksmps;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
@@ -395,17 +390,16 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     }
     maxd = (long)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
-    nn = csound->ksmps;
     indx = p->left;
     i2 = (wsize >> 1);
     d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
 
-    do {
+    for (nn=0;nn<nsmps;nn++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)*del++ * (double)csound->esr);
+      x1 = (double)indx + ((double)del[nn] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
       xpos = (long)x1;
       x1 -= (double)xpos;
@@ -413,7 +407,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
       while (xpos >= maxd) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
-        n1 = (double)*in1 * x2;
+        n1 = (double)in1[nn] * x2;
         xpos += (1 - i2);
         while (xpos < 0) xpos += maxd;
         d = (double)(1 - i2) - x1;
@@ -429,13 +423,12 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
       else {                                            /* integer sample */
         xpos = (long)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
-        buf1[xpos] += *in1;
+        buf1[xpos] += in1[nn];
       }
 
-      *out1++ = buf1[indx]; buf1[indx] = FL(0.0);
+      out1[nn] = buf1[indx]; buf1[indx] = FL(0.0);
       if (++indx == maxd) indx = 0;
-      in1++;
-    } while (--nn);
+    }
 
     p->left = indx;
     return OK;
@@ -847,194 +840,6 @@ static int prime(int val)
     return 1;
 }
 
-#if 0
-
-/*      reverb2 for Csound coded by Paris Smaragdis             */
-/*      Berklee College of Music Csound development team        */
-/*      Copyright (c) December 1994.  All rights reserved       */
-
-static const MYFLT gc_time[Combs] = {
-    FL(1237.0), FL(1381.0), FL(1607.0), FL(1777.0), FL(1949.0), FL(2063.0)
-};
-
-static const MYFLT gc_gain[Combs] = {
-    FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
-};
-
-static const MYFLT ga_time[Alpas] = {
-    FL(307.0), FL(97.0), FL(71.0), FL(53.0), FL(37.0)
-};
-
-static const MYFLT ga_gain[Alpas] = {
-    FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)
-};
-
-/* ---------------------------------------- */
-
-static const MYFLT ngc_time[Combs] = {
-    FL(1433.0), FL(1601.0), FL(1867.0), FL(2053.0), FL(2251.0), FL(2399.0)
-};
-
-static const MYFLT ngc_gain[Combs] = {
-    FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
-};
-
-static const MYFLT nga_time[Alpas] = {
-    FL(347.0), FL(113.0), FL(37.0), FL(59.0), FL(43.0)
-};
-
-static const MYFLT nga_gain = FL(0.7);
-
-int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
-                                               5-allpass reverberator */
-{
-    long i, n;
-    MYFLT *temp;
-
-    MYFLT srscale=csound->esr/FL(25641.0); /* denominator is probably CCRMA
-                                      "samson box" sampling-rate! */
-    int c_time, a_time;
-
-    if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
-      csound->Die(csound, Str("High frequency diffusion not in (0, 1)\n"));
-
-    if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
-      csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT), &p->temp);
-      /* Next loop is a waste as AuxAlloc clears */
-      temp = (MYFLT *)p->temp.auxp;
-      for (n = 0; n < csound->ksmps; n++)
-        *temp++ = FL(0.0);
-
-      for (i = 0; i < Combs; i++) {
-        /* derive new primes to make delay times */
-        /* work with orch. sampling-rate */
-        c_time = (int) (ngc_time[i] * srscale);
-        if (c_time % 2 == 0)  c_time += 1;
-        while (!prime(c_time))  c_time += 2;
-        p->c_time[i] = (MYFLT)c_time;
-
-        p->c_gain[i] = (MYFLT) exp((double)(LOG001 * (p->c_time[i]
-                                                       * csound->onedsr)
-                                             / (ngc_gain[i] * *p->time)));
-        p->g[i] = *p->hdif;
-        p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
-        p->z[i] = FL(0.0);
-
-        csound->AuxAlloc(csound, (long)(p->c_time[i] * sizeof(MYFLT)),
-                                 &p->caux[i]);
-        p->cbuf_cur[i] = (MYFLT *)p->caux[i].auxp;
-        for (n = 0; n < p->c_time[i]; n++)
-          *(p->cbuf_cur[i] + n) = FL(0.0);
-      }
-      for (i = 0; i < Alpas; i++) {
-        a_time = (int) (nga_time[i] * srscale);
-        if (a_time % 2 == 0)  a_time += 1;
-        while (!prime(a_time))  a_time += 2;
-        p->a_time[i] = (MYFLT)a_time;
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * (p->a_time[i]
-                                                     * csound->onedsr)
-                                           / (nga_gain * *p->time)));
-        csound->AuxAlloc(csound, (long)p->a_time[i] * sizeof(MYFLT),
-                                 &p->aaux[i]);
-        p->abuf_cur[i] = (MYFLT*)p->aaux[i].auxp;
-      }
-    }
-
-    p->prev_time = *p->time;
-    p->prev_hdif = *p->hdif;
-    return OK;
-}
-
-int nreverb(CSOUND *csound, NREV *p)
-{
-    long       i, n = csound->ksmps;
-    MYFLT      *in, *out = p->out, *buf, *end;
-    MYFLT      gain, z;
-    MYFLT      hdif = *p->hdif;
-    MYFLT      time = *p->time;
-
-    if (p->temp.auxp==NULL) {
-      return csound->PerfError(csound, Str("reverb2: not initialised"));
-    }
-    do {
-      *out++ = FL(0.0);
-    } while (--n);
-    if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
-      if (hdif > FL(1.0)) {
-        csound->Message(csound, Str("Warning: High frequency diffusion>1\n"));
-        hdif = FL(1.0);
-      }
-      if (hdif < FL(0.0)) {
-        csound->Message(csound, Str("Warning: High frequency diffusion<0\n"));
-        hdif = FL(0.0);
-      }
-      if (time <= FL(0.0)) {
-        csound->Message(csound, Str("Non positive reverb time\n"));
-        time = FL(0.001);
-      }
-      for (i = 0; i < Combs; i++) {
-        p->c_gain[i] = (MYFLT) exp((double)(LOG001 * (p->c_time[i]
-                                                       * csound->onedsr)
-                                             / (ngc_gain[i] * time)));
-        p->g[i] = hdif;
-        p->c_gain[i] = p->c_gain[i] * (1 - p->g[i]);
-        p->z[i] = FL(0.0);
-      }
-
-      for (i = 0; i < Alpas; i++)
-        p->a_gain[i] = (MYFLT) exp((double)(LOG001 * (p->a_time[i]
-                                                       * csound->onedsr)
-                                             / (nga_gain * time)));
-
-      p->prev_time = time;
-      p->prev_hdif = hdif;
-    }
-
-    for (i = 0; i < Combs; i++) {
-      buf = p->cbuf_cur[i];
-      end = (MYFLT *)p->caux[i].endp;
-      gain = p->c_gain[i];
-      in = p->in;
-      out = p->out;
-      n = csound->ksmps;
-      do {
-        *out++ += *buf;
-        *buf += p->z[i] * p->g[i];
-        p->z[i] = *buf;
-        *buf *= gain;
-        *buf += *in++;
-        if (++buf >= end)
-          buf = (MYFLT *)p->caux[i].auxp;
-      } while (--n);
-      p->cbuf_cur[i] = buf;
-    }
-
-    for (i = 0; i < Alpas; i++) {
-      in = (MYFLT *)p->temp.auxp;
-      out = p->out;
-      n = csound->ksmps;
-      do {
-        *in++ = *out++;
-      } while (--n);
-      buf = p->abuf_cur[i];
-      end = (MYFLT *)p->aaux[i].endp;
-      gain = p->a_gain[i];
-      in = (MYFLT *)p->temp.auxp;
-      out = p->out;
-      n = csound->ksmps;
-      do {
-        z = *buf;
-        *buf = gain * z + *in++;
-        *out++ = z - gain * *buf;
-        if (++buf >= end)
-          buf = (MYFLT *)p->aaux[i].auxp;
-      } while (--n);
-      p->abuf_cur[i] = buf;
-    }
-    return OK;
-}
-#endif
-
 /*
  * Based on nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998.
  * Changes made to allow user-defined comb and alpas constant in a ftable.
@@ -1233,7 +1038,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
 
 int reverbx(CSOUND *csound, NREV2 *p)
 {
-    long    i, n = csound->ksmps;
+    long    i, n, nsmps = csound->ksmps;
     MYFLT   *in, *out = p->out, *buf, *end;
     MYFLT   gain, z;
     MYFLT   hdif = *p->hdif;
@@ -1246,10 +1051,12 @@ int reverbx(CSOUND *csound, NREV2 *p)
     }
     buf = (MYFLT*) p->temp.auxp;
     in = p->in;
-    do {
-      *buf++ = *in++;
-      *out++ = FL(0.0);
-    } while (--n);
+    memcpy(buf, in, nsmps*sizeof(MYFLT));
+    memset(out, 0,  nsmps*sizeof(MYFLT));
+/*     do { */
+/*       *buf++ = *in++; */
+/*       *out++ = FL(0.0); */
+/*     } while (--n); */
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (hdif > FL(1.0)) {
         csound->Message(csound, Str("Warning: High frequency diffusion>1\n"));
@@ -1285,39 +1092,37 @@ int reverbx(CSOUND *csound, NREV2 *p)
       gain = p->c_gain[i];
       in = (MYFLT*) p->temp.auxp;
       out = p->out;
-      n = csound->ksmps;
-      do {
-        *out++ += *buf;
+      for (n=0;n<nsmps;n++) {
+        out[n] += *buf;
         *buf += p->z[i] * p->g[i];
         p->z[i] = *buf;
         *buf *= gain;
-        *buf += *in++;
+        *buf += in[n];
         if (++buf >= end)
           buf = (MYFLT*) p->cbuf_cur[i];
-      } while (--n);
+      }
       p->pcbuf_cur[i] = buf;
     }
 
     for (i = 0; i < numAlpas; i++) {
       in = (MYFLT*) p->temp.auxp;
       out = p->out;
-      n = csound->ksmps;
-      do {
-        *in++ = *out++;
-      } while (--n);
+      memcpy(in, out, nsmps*sizeof(MYFLT));
+/*       do { */
+/*         *in++ = *out++; */
+/*       } while (--n); */
       buf = p->pabuf_cur[i];
       end = p->abuf_cur[i + 1];
       gain = p->a_gain[i];
       in = (MYFLT*) p->temp.auxp;
       out = p->out;
-      n = csound->ksmps;
-      do {
+      for (n=0;n<nsmps;n++) {
         z = *buf;
-        *buf = gain * z + *in++;
-        *out++ = z - gain * *buf;
+        *buf = gain * z + in[n];
+        out[n] = z - gain * *buf;
         if (++buf >= end)
           buf = (MYFLT*) p->abuf_cur[i];
-      } while (--n);
+      }
       p->pabuf_cur[i] = buf;
     }
 

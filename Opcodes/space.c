@@ -174,28 +174,13 @@ static int spsendset(CSOUND *csound, SPSEND *p)
 
 static int spsend(CSOUND *csound, SPSEND *p)
 {
-    MYFLT       *r1, *r2, *r3, *r4, *rrev1, *rrev2, *rrev3, *rrev4;
     SPACE *q = p->space;
+    int nbytes = csound->ksmps*sizeof(MYFLT);
 
-    r1 = p->r1;
-    r2 = p->r2;
-    r3 = p->r3;
-    r4 = p->r4;
-    rrev1 = q->rrev1;
-    rrev2 = q->rrev2;
-    rrev3 = q->rrev3;
-    rrev4 = q->rrev4;
-
-/*     for (n=0; n<csound->ksmps; n++) { */
-/*       r1[n] = rrev1[n]; */
-/*       r2[n] = rrev2[n]; */
-/*       r3[n] = rrev3[n]; */
-/*       r4[n] = rrev4[n]; */
-/*     } */
-    memmove(r1, rrev1, csound->ksmps*sizeof(MYFLT));
-    memmove(r2, rrev2, csound->ksmps*sizeof(MYFLT));
-    memmove(r3, rrev3, csound->ksmps*sizeof(MYFLT));
-    memmove(r4, rrev4, csound->ksmps*sizeof(MYFLT));
+    memmove(p->r1, q->rrev1, nbytes);
+    memmove(p->r2, q->rrev2, nbytes);
+    memmove(p->r3, q->rrev3, nbytes);
+    memmove(p->r4, q->rrev4, nbytes);
     return OK;
 }
 
