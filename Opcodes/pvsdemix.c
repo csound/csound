@@ -24,14 +24,6 @@
 #include "csdl.h"
 #include "pvsdemix.h"
 
-#ifndef OK
-#define OK 1
-#endif
-
-#ifndef NOTOK
-#define NOTOK 0
-#endif
-
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if ((f1->overlap    == f2->overlap)
@@ -42,7 +34,6 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
         )
       return 1;
     return 0;
-
 }
 #define FLOATMAX_ 3.402823466e+38f
 
@@ -117,10 +108,10 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     if (p->lastframe < p->finleft->framecount) {
 
       if (width > beta) width = (MYFLT) beta;
-      else if (width < 1) width = (MYFLT) 1;
+      else if (width < 1) width = FL(1.0);
 
-      if (azimuth < -1) azimuth = (MYFLT) -1;
-      else if (azimuth > 1) azimuth = (MYFLT) 1;
+      if (azimuth < -1) azimuth = -FL(1.0);
+      else if (azimuth > 1) azimuth = FL(1.0);
 
       imax = beta*framesize;
       range = width/FL(2.0);
@@ -128,7 +119,7 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
       /*  create the azimuth amplitude vectors &
           find the max/min values for channels, per bin */
-      for (n=0; n < N/2+1; n++){
+      for (n=0; n < N/2+1; n++) {
         maxl[n] = maxr[n] = 0.0f;
         minl[n] = minr[n] = FLOATMAX_;
         n2 = n << 1;
