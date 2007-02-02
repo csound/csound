@@ -45,14 +45,14 @@ typedef struct {
 static int nlfiltset(CSOUND *csound, NLFILT *p)
 {
     int   i;
-    MYFLT *fp;
 
-    if (p->delay.auxp == NULL) {        /* get newspace    */
+    if (p->delay.auxp == NULL ||
+        p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
       csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
     }
-    fp = (MYFLT*) p->delay.auxp;
-    for (i = 0; i < MAX_DELAY; i++)
-      fp[i] = FL(0.0);                  /* Clear delays */
+    else{
+      memset(p->delay.auxp, 0, MAX_DELAY * sizeof(MYFLT));
+    }
     p->point = 0;
     return OK;
 } /* end nlfset(p) */

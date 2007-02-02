@@ -65,6 +65,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 /*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
 /*       } */
 /*     } */
+    int M;                      /* A temporary */
 
     /* have no knowledge of source length */
     p->numbarsnow  = 0;
@@ -77,10 +78,9 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
-    if (p->repeatbuffer.auxp == NULL) {
-      csound->AuxAlloc(csound,
-              ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
-              &p->repeatbuffer);
+    M = ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
+      csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;
@@ -293,6 +293,8 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 /*       } */
 /*                 } */
 
+    int M;                      /* temporary */
+
     /* have no knowledge of source length */
 
     p->numbarsnow = 0;
@@ -305,11 +307,10 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* allocate space- need no more than a half bar at current tempo
        and barlength */
-    if (p->repeatbuffer.auxp == NULL) {
+    M = 2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
-      csound->AuxAlloc(csound,
-              2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
-              &p->repeatbuffer);
+      csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;

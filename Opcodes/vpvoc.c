@@ -45,10 +45,11 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
 
     nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
 
-    if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
-        csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
-        p->cursegp = segp = (TSEG *) p->auxch.auxp;
-        (segp+nsegs)->cnt = MAXPOS;
+    if ((segp = (TSEG *) p->auxch.auxp) == NULL ||
+        p->auxch.size<(nsegs+1)*sizeof(TSEG)) {
+      csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      p->cursegp = segp = (TSEG *) p->auxch.auxp;
+      (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
     if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL)

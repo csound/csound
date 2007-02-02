@@ -44,7 +44,7 @@ static int spaceset(CSOUND *csound, SPACE *p)
       p->ftp = ftp;
     }
 
-    if (p->auxch.auxp == NULL) {
+    if (p->auxch.auxp == NULL) { /* Assumes ksmps is constant */
       MYFLT *fltp;
       csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
                                * sizeof(MYFLT), &p->auxch);
