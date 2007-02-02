@@ -1723,11 +1723,11 @@ int trnset(CSOUND *csound, TRANSEG *p)
 
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
-        nsegs*sizeof(NSEG) < (unsigned int)p->auxch.size) {
+        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
       csound->AuxAlloc(csound, (long)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
-      segp[nsegs-1].cnt = MAXPOS;     /* set endcount for safety */
     }
+    segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
     val = **argp++;
     if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
