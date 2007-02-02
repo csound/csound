@@ -41,28 +41,32 @@ static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 {
     long N = p->finleft->N;
     int olap = p->finleft->overlap;
+    int M;
     p->beta = (int)(*p->slices);
 
-    if (p->fout->frame.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+    M = (N+2)*sizeof(float);
+    if (p->fout->frame.auxp==NULL || p->fout->frame.size<M)
+      csound->AuxAlloc(csound, M,&p->fout->frame);
 
-    if (p->left.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float)*p->beta, &p->left);
+    M = M*p->beta;
+    if (p->left.auxp==NULL || p->left.size<M)
+      csound->AuxAlloc(csound, M, &p->left);
 
-    if (p->right.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float)*p->beta, &p->right);
+    if (p->right.auxp==NULL || p->right.size<M)
+      csound->AuxAlloc(csound, M, &p->right);
 
-    if (p->maxl.auxp==NULL)
-      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->maxl);
+    M = (N/2+1)*sizeof(float);
+      if (p->maxl.auxp==NULL || p->maxl.size<M)
+      csound->AuxAlloc(csound, M, &p->maxl);
 
-    if (p->maxr.auxp==NULL)
-      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->maxr);
+    if (p->maxr.auxp==NULL || p->maxr.size<M)
+      csound->AuxAlloc(csound, M, &p->maxr);
 
-    if (p->minl.auxp==NULL)
-      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->minl);
+    if (p->minl.auxp==NULL || p->minl.size<M)
+      csound->AuxAlloc(csound, M, &p->minl);
 
-    if (p->minr.auxp==NULL)
-      csound->AuxAlloc(csound, (N/2+1)*sizeof(float), &p->minr);
+    if (p->minr.auxp==NULL || p->minr.size<M)
+      csound->AuxAlloc(csound, M, &p->minr);
 
     p->fout->N =  N;
     p->fout->overlap = olap;

@@ -206,7 +206,8 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
     p->a    = FL(0.0);
     p->wp   = 0;   /* intialise write pointer */
     p->rst  = 1;       /* reset the rec control */
-    if(p->buffer.auxp==NULL)   /* allocate memory if necessary */
+    if(p->buffer.auxp==NULL ||
+       p->buffer.size<p->durs*sizeof(MYFLT))   /* allocate memory if necessary */
       csound->AuxAlloc(csound, p->durs*sizeof(MYFLT), &p->buffer);
     return OK;
 }
@@ -296,7 +297,8 @@ static int flooper_init(CSOUND *csound, flooper *p)
       return csound->InitError(csound,Str("table not long enough for loop\n"));
     }
 
-    if (p->buffer.auxp==NULL)   /* allocate memory if necessary */
+    if (p->buffer.auxp==NULL ||
+        p->buffer.size<(durs+1)*sizeof(MYFLT))   /* allocate memory if necessary */
       csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT), &p->buffer);
 
     inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
@@ -882,7 +884,7 @@ static int pvsarp_init(CSOUND *csound, pvsarp *p)
 {
   long N = p->fin->N;
 
-  if (p->fout->frame.auxp==NULL)
+  if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
     csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
   p->fout->N =  N;
   p->fout->overlap = p->fin->overlap;
@@ -930,7 +932,7 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
 {
   long N = p->fin->N;
 
-  if (p->fout->frame.auxp==NULL)
+  if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
     csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
   p->fout->N =  N;
   p->fout->overlap = p->fin->overlap;

@@ -308,7 +308,8 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
     int   loop = (int) (*p->iorder + FL(0.5));
     long  nBytes = (long) loop * (long) sizeof(MYFLT);
 
-    if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || p->auxy.auxp == NULL) {
+    if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || p->auxx.size<nBytes ||
+                                p->auxy.auxp == NULL || p->auxy.size<nBytes) {
       csound->AuxAlloc(csound, nBytes, &p->auxx);
       csound->AuxAlloc(csound, nBytes, &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
