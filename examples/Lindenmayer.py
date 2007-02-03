@@ -27,7 +27,7 @@ rescale.setRescale( 4, 1, 1, 36,      60)
 rescale.setRescale( 5, 1, 1, 70,      15)
 rescale.setRescale( 7, 1, 1, -0.75,    1.5)
 scale = 'E major'
-scalenumber = CsoundVST.Conversions_nameToPitchClassSet(scale)
+scalenumber = CsoundVST.Conversions_nameToM(scale)
 print '"%s" = %s' % (scale, scalenumber)
 rescale.setRescale(10, 1, 1,  scalenumber,    0)
 random.addChild(lindenmayer)
@@ -85,6 +85,8 @@ i 220   0       %f      0.1     0.1
 #print csound.getScore()
 print csound.getCommand()
 csound.perform()
+
+
 
 
 
