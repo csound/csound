@@ -441,6 +441,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
+  File ..\..\CompositionBase.py
   ; File ..\..\loris.py
   File ..\..\*.exe
   File ..\..\csound.def
@@ -456,7 +457,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
-  File CsoundAPI.pdf
+  File ..\..\CsoundAPI.pdf
   File ..\..\ChangeLog
   File ..\..\COPYING
   File ..\..\LICENSE.PortMidi
