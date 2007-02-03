@@ -268,7 +268,7 @@ namespace csound
      * Return the time of the first event at or after the specified index;
      * if the index is not found, return DBL_MAX.
      */
-    virtual double timeForIndex(size_t index);
+    virtual double indexToTime(size_t index);
     /**
      * Iterate over each note from the beginning to end of the segment;
      * sort the unique pitches;

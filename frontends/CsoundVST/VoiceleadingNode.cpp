@@ -145,9 +145,9 @@ namespace csound
       }
     } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
-	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	printChord("CV", pcs);
-	std::vector<double> pt = Voicelead::primeAndTranspositionFromPitchClassSet(pcs, divisionsPerOctave);
+	std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
 	double prime = pt[0];
 	double transposition = pt[1];
 	System::inform("prime: %f transposition %f: divisionsPerOctave %d\n", prime, transposition, divisionsPerOctave);
@@ -159,7 +159,7 @@ namespace csound
 		     base, 
 		     range);
       } else if (operation.L) {
-	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	printChord("CL", pcs);
 	score.voicelead(priorOperation.begin, 
 			priorOperation.end, 
@@ -171,7 +171,7 @@ namespace csound
 			avoidParallels, 
 			divisionsPerOctave);
       } else {
-	std::vector<double> pcs = Voicelead::pitchClassSetFromM(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
 	score.setPitchClassSet(operation.begin, 
 			       operation.end, 
 			       pcs,
