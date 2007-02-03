@@ -56,7 +56,7 @@ namespace csound
   {
     if (primeChordsForDivisionsPerOctave.find(divisionsPerOctave) == primeChordsForDivisionsPerOctave.end()) {
       for (double C = 0.0, P = 0.0, N = std::pow(2.0, double(divisionsPerOctave)) - 1; C < N; ++C) {
-	std::vector<double> chord = pitchClassSetFromM(cToM(C, divisionsPerOctave), divisionsPerOctave);
+	std::vector<double> chord = mToPitchClassSet(cToM(C, divisionsPerOctave), divisionsPerOctave);
 	std::vector<double> normalChord_ = normalChord(chord);
 	std::vector<double> zeroChord = toOrigin(normalChord_);
 	if (normalChord_ == zeroChord) {
@@ -88,7 +88,7 @@ namespace csound
     return double(int(round(p)) % divisionsPerOctave);
   }
 
-  double Voicelead::mFromPitchClassSet(const std::vector<double> &chord, size_t divisionsPerOctave)
+  double Voicelead::pitchClassSetToM(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
     std::set<double> pcs_;
     double M = 0.0;
@@ -102,7 +102,7 @@ namespace csound
     return M;
   }
   
-  std::vector<double> Voicelead::pitchClassSetFromM(double M, size_t divisionsPerOctave)
+  std::vector<double> Voicelead::mToPitchClassSet(double M, size_t divisionsPerOctave)
   {
     size_t M_ = size_t(round(M));
     std::vector<double> pcs;
@@ -115,12 +115,12 @@ namespace csound
     return pcs;
   }
 
-  std::vector<double> Voicelead::primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs_, 
+  std::vector<double> Voicelead::pitchClassSetToPandT(const std::vector<double> &pcs_, 
 									size_t divisionsPerOctave)
   {
     std::vector<double> normalChord_ = normalChord(pcs_);
     std::vector<double> zeroChord_ = toOrigin(normalChord_);
-    double M = mFromPitchClassSet(zeroChord_, divisionsPerOctave);
+    double M = pitchClassSetToM(zeroChord_, divisionsPerOctave);
     double C = mToC(M, divisionsPerOctave);
     double P = cToP(C, divisionsPerOctave);
     std::vector<double> result(2);
@@ -582,7 +582,7 @@ namespace csound
   {
     initializePrimeChordsForDivisionsPerOctave(divisionsPerOctave);
     double M = cToM(C, divisionsPerOctave);
-    std::vector<double> pitchClassSet = pitchClassSetFromM(M, divisionsPerOctave);
+    std::vector<double> pitchClassSet = mToPitchClassSet(M, divisionsPerOctave);
     std::vector<double> primeChord_ = primeChord(pitchClassSet);
     return pForPrimeChordsForDivisionsPerOctave[divisionsPerOctave][primeChord_];
   }
@@ -596,7 +596,7 @@ namespace csound
     return cForPForDivisionsPerOctave[divisionsPerOctave][P];
   }
 
-  std::vector<double> Voicelead::primeChordForP(double P, size_t divisionsPerOctave)
+  std::vector<double> Voicelead::pToPrimeChord(double P, size_t divisionsPerOctave)
   {
     initializePrimeChordsForDivisionsPerOctave(divisionsPerOctave);
     size_t p = size_t(round(P));
@@ -605,11 +605,11 @@ namespace csound
   }
   
 
-  std::vector<double> Voicelead::pitchClassSetFromPrimeAndTransposition(double P, 
-									double T, 
-									size_t divisionsPerOctave)
+  std::vector<double> Voicelead::pAndTtoPitchClassSet(double P, 
+						      double T, 
+						      size_t divisionsPerOctave)
   {
-    std::vector<double> pitchClassSet = primeChordForP(P, divisionsPerOctave);
+    std::vector<double> pitchClassSet = pToPrimeChord(P, divisionsPerOctave);
     for (size_t i = 0, n = pitchClassSet.size(); i < n; i++) {
       double pitch = pitchClassSet[i] + T;
       pitchClassSet[i] = pc(pitch, divisionsPerOctave);

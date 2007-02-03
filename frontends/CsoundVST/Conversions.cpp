@@ -596,7 +596,7 @@ namespace csound
     copy[len] = '\0';
     return copy;
   }
-  double Conversions::dbFromGain(double inputDb, double gain, bool odbfs)
+  double Conversions::gainToDb(double inputDb, double gain, bool odbfs)
   {
     double factor = 1.0;
     if (odbfs) {

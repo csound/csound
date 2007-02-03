@@ -149,27 +149,27 @@ namespace csound
      * Arithmetic on this monoid can perform many
      * harmonic and other manipulations of pitch.
      */
-    static double mFromPitchClassSet(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
+    static double pitchClassSetToM(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
      * Convert a pitch-class set number M = sum over pitch-classes of (2 ^ pitch-class)
      * to a pitch-class set chord.
      */
-    static std::vector<double> pitchClassSetFromM(double pcn, size_t divisionsPerOctave = 12);
+    static std::vector<double> mToPitchClassSet(double pcn, size_t divisionsPerOctave = 12);
 
     /**
      * Convert a pitch-class set to a prime chord number and a transposition.
      * Note that the prime chord numbers, and transpositions, each form an additive cyclic group.
      */
-    static std::vector<double> primeAndTranspositionFromPitchClassSet(const std::vector<double> &pcs, 
-								      size_t divisionsPerOctave = 12);
+    static std::vector<double> pitchClassSetToPandT(const std::vector<double> &pcs, 
+						    size_t divisionsPerOctave = 12);
 
     /**
      * Convert a prime chord number and transposition to a pitch-class set.
      */
-    static std::vector<double> pitchClassSetFromPrimeAndTransposition(double prime, 
-								      double transposition, 
-								      size_t divisionsPerOctave = 12);
+    static std::vector<double> pAndTtoPitchClassSet(double prime, 
+						    double transposition, 
+						    size_t divisionsPerOctave = 12);
 
     /**
      * Return all voicings of the chord
@@ -317,7 +317,7 @@ namespace csound
      */
     static double pToC(double Z, size_t divisionsPerOctave = 12);
 
-    static std::vector<double> primeChordForP(double P, size_t divisionsPerOctave = 12);
+    static std::vector<double> pToPrimeChord(double P, size_t divisionsPerOctave = 12);
 
     static void initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave);
 
