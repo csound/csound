@@ -167,7 +167,7 @@ namespace csound
      * 0 dB is the threshold of hearing; 
      * otherwise, 0 dB is full scale.
      */
-    static double dbFromGain(double inputDb, double gain, bool odbfs = false);
+    static double gainToDb(double inputDb, double gain, bool odbfs = false);
   };
 }
 
