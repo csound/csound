@@ -42,7 +42,8 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
       return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
                                            "must be 2 or 4"));
 
-    if (p->auxch.auxp == NULL) {
+    if (p->auxch.auxp == NULL ||
+        p->auxch.size<sizeof(MYFLT)*(csound->ksmps * 4)) {
       MYFLT *fltp;
       csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
                                * sizeof(MYFLT), &p->auxch);
