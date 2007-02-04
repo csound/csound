@@ -61,7 +61,7 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN *p) /* during note performance:   
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
           for (i = 0 /* p->counter */; i < csound->ksmps /* + p->counter */; i++) {
-            *outptr++ = *inptr++ *
+            outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
@@ -69,7 +69,7 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN *p) /* during note performance:   
         }
         else {
           for (i=0; i<csound->ksmps; ++i)
-            *outptr++ = *inptr++ * ogain;
+            outptr[i] = inptr[i] * ogain;
         }
       }
       else {
@@ -261,7 +261,7 @@ int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING *p) /* during note p
       if (ngain != FL(0.0) || ogain != FL(0.0))
         if (ngain != ogain) {
           for (i = 0; i < csound->ksmps; i++) {
-            *outptr++ = *inptr++ *
+            outptr[i] = inptr[i] *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
@@ -269,10 +269,10 @@ int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING *p) /* during note p
         }
         else
           for (i=0; i<csound->ksmps; ++i)
-            *outptr++ = *inptr++ * ogain;
+            outptr[i] = inptr[i] * ogain;
       else
         for (i=0; i<csound->ksmps; ++i)
-          *outptr++ = FL(0.0);
+          outptr[i] = FL(0.0);
     }
     return OK;
 }

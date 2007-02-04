@@ -41,7 +41,7 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int n, nsmps = csound->ksmps;
+    int nsmps = csound->ksmps;
     int i,j;
 
     vbap_EIGHT_control(csound,p);
@@ -315,7 +315,8 @@ int vbap_EIGHT_moving_control(CSOUND *csound, VBAP_EIGHT_MOVING *p)
         csound->Die(csound, Str("Missing fields in vbap8move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          csound->Message(csound,Str("Warning: Ambiguous transition 180 degrees.\n"));
+          csound->Message(csound,
+                          Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/

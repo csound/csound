@@ -885,7 +885,6 @@ static const MYFLT ca_gain[orgAlpas] = {
 int reverbx_set(CSOUND *csound, NREV2 *p)
 {
     long  i, n;
-    MYFLT *temp;
     /* Temp holder of old or user constants. */
     const MYFLT *c_orgtime, *a_orgtime;
     int   c_time, a_time;
@@ -959,11 +958,9 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
                               + (p->numAlpas + 1) * sizeof(MYFLT*));
 
     /* Init variables */
-    if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
+    if (*p->istor == FL(0.0) ||
+        p->temp.auxp == NULL || p->temp.size<csound->ksmps * sizeof(MYFLT)) {
       csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT), &p->temp);
-      temp = (MYFLT*) p->temp.auxp;
-      for (n = 0; n < csound->ksmps; n++)
-        *temp++ = FL(0.0);
 
       n = 0;
       for (i = 0; i < p->numCombs; i++) {
