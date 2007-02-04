@@ -48,6 +48,7 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     }
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
+      /* Assumes PVDATASIZE, PVFFTSIZE, PVWINLEN constant */
       MYFLT *fltp;
       csound->AuxAlloc(csound,
                        (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(MYFLT),

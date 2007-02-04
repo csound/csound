@@ -552,7 +552,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
       for (j = 0; j < p->loop; j++)
         p->yt1[j] = p->yt2[j] = FL(0.0);
     }
-    if (p->buffer.auxp == NULL)
+    if (p->buffer.auxp == NULL || p->buffer.size<csound->ksmps*sizeof(MYFLT))
       csound->AuxAlloc(csound, (long)(csound->ksmps*sizeof(MYFLT)), &p->buffer);
     return OK;
 }
