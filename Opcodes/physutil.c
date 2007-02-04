@@ -63,8 +63,6 @@ void make_DLineL(CSOUND *csound, DLineL *p, long max_length)
 
     p->length = max_length;
     csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
-    /* Next line not necessary as AuxAlloc clears array */
-/*     for (i=0; i<max_length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0); */
     p->outPoint = 0;
     p->lastOutput = FL(0.0);
     p->inPoint = max_length >> 1;

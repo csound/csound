@@ -851,7 +851,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     g_kicvt = csound->kicvt;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
-      csound->ksmps = p->l_ksmps;
+      csound->ksmps = p->l_ksmps; /* Oh dear!  breaks many assumptions -- JPff */
       p->ksmps_scale = g_ksmps / (int) csound->ksmps;
       csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
       p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
