@@ -317,6 +317,30 @@ namespace csound
      */
     static double pToC(double Z, size_t divisionsPerOctave = 12);
 
+    /**
+     * Return a copy of the chord where each pitch is replaced by its corresponding pitch-class.
+     * The voices remain in their original order.
+     */
+    static std::vector<double> orderedPcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
+
+    /**
+     * Return a copy of the chord sorted by ascending distance from its first pitch-class.
+     */
+    static std::vector<double> sortByAscendingDistance(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
+
+    /**
+     * Return the closest crossing-free, non-bijective voiceleading
+     * from the source chord to the pitch-classes in the target chord,
+     * using Dimitri Tymoczko's linear programming algorithm.
+     * Because voices can be doubled, the source chord
+     * is returned along with result.
+     * The algorithm does not avoid parallel motions,
+     * and does not maintain the original order of the voices.
+     */
+    static std::vector< std::vector<double> > nonBijectiveVoicelead(const std::vector<double> &sourceChord, 
+								    const std::vector<double> &targetPitchClassSet,
+								    size_t divisionsPerOctave = 12);
+    
     static std::vector<double> pToPrimeChord(double P, size_t divisionsPerOctave = 12);
 
     static void initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave);

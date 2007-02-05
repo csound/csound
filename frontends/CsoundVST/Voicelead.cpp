@@ -617,4 +617,147 @@ namespace csound
     std::sort(pitchClassSet.begin(), pitchClassSet.end());
     return pitchClassSet;
   }
+
+  std::vector<double> Voicelead::orderedPcs(const std::vector<double> &chord, size_t divisionsPerOctave)
+  {
+    std::vector<double> pcs_(chord.size());
+    for (size_t i = 0, n = chord.size(); i < n; i++) {
+      pcs_[i] = pc(chord[i], divisionsPerOctave);
+    }
+    return pcs_;
+  }
+
+  struct AscendingDistanceComparator
+  {
+    double origin;
+    size_t divisionsPerOctave;
+    AscendingDistanceComparator(double origin_, size_t divisionsPerOctave_) : origin(origin_), divisionsPerOctave(divisionsPerOctave_)
+    {
+    }
+    double ascendingDistance(double a, double b)
+    {
+      double pcA = Voicelead::pc(a, divisionsPerOctave);
+      double pcB = Voicelead::pc(b, divisionsPerOctave);
+      double d = pcB - pcA;
+      if (d < 0.0) {
+	d  = (pcB + double(divisionsPerOctave)) - pcA;
+      }
+      return d;  
+    }
+    bool operator()(double a, double b) 
+    {
+      double dA = ascendingDistance(origin, a);
+      double dB = ascendingDistance(origin, b);
+      return (dA < dB);
+    }
+  };
+
+  struct MatrixCell
+  {
+    size_t i;
+    size_t j;
+    std::vector<double> s;
+    std::vector<double> a;
+    std::vector<double> b;
+    std::vector<double> v;
+    double d;
+    MatrixCell() : i(0), j(0), d(0.0)
+    {
+    }
+  };
+
+  const MatrixCell &minimumCell(const MatrixCell &a, const MatrixCell &b, const MatrixCell &c)
+  {
+    if (a.d < b.d && a.d < c.d) {
+      return a;
+    } else if (b.d < a.d && b.d < c.d) {
+      return b;
+    } else {
+      return c;
+    }
+  }
+
+  std::vector< std::vector<MatrixCell> > createMatrix(const std::vector<double> &sourceMultiset_, 
+						      const std::vector<double> &targetMultiset_, 
+						      const std::vector<double> &sourceChord_)
+  {
+    std::vector<double> sourceMultiset = sourceMultiset_;
+    std::vector<double> targetMultiset = targetMultiset_;
+    std::vector<double> sourceChord =    sourceChord_;
+    sourceMultiset.push_back(sourceMultiset[0]);
+    targetMultiset.push_back(targetMultiset[0]);
+    sourceChord.push_back   (sourceChord   [0]);
+    size_t N = sourceMultiset.size();
+    std::vector< std::vector<MatrixCell> > matrix;
+    for (size_t i = 0; i < N; i++) {
+      matrix.push_back(std::vector<MatrixCell>(N));
+    }
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < N; j++) {
+	MatrixCell cell;
+	if (i == 0 && j == 0) {
+	  cell = matrix[i    ][j    ];
+	} else if (i == 0 && j != 0) {
+	  cell = matrix[i    ][j - 1];
+	} else if (i != 0 && j == 0) {
+	  cell = matrix[i - 1][j    ];
+	} else {
+	  const MatrixCell &a = matrix[i    ][j - 1];
+	  const MatrixCell &b = matrix[i - j][j    ];
+	  const MatrixCell &c = matrix[i - 1][j - 1];
+	  cell = minimumCell(a, b, c);
+	}
+	cell.i = i;
+	cell.j = j;
+	cell.s.push_back(sourceChord[i]);
+	cell.a.push_back(sourceMultiset[i]);
+	cell.b.push_back(targetMultiset[j]);
+	cell.v = Voicelead::voiceleading(cell.a, cell.b);
+	cell.d = Voicelead::smoothness(cell.a, cell.b);
+	matrix[i][j] = cell;
+      }
+    }
+    return matrix;
+  }
+
+  std::vector<double> Voicelead::sortByAscendingDistance(const std::vector<double> &chord, size_t divisionsPerOctave)
+  {
+    std::vector<double> copy(chord);
+    AscendingDistanceComparator comparator(chord[0], divisionsPerOctave);
+    std::sort(copy.begin(), copy.end(), comparator);
+    return copy;
+  }
+
+  std::vector< std::vector<double> > Voicelead::nonBijectiveVoicelead(const std::vector<double> &sourceChord, 
+								     const std::vector<double> &targetPitchClassSet,
+								     size_t divisionsPerOctave)
+  {
+    std::vector<double> sortedSourceChord = sortByAscendingDistance(sourceChord, divisionsPerOctave);
+    std::vector<double> resultChord = sortedSourceChord;
+    std::vector<double> sourceTones = orderedPcs(sortedSourceChord, divisionsPerOctave);
+    std::vector<double> targetTones = orderedPcs(resultChord, divisionsPerOctave);
+    std::vector<double> sourceMultiset = sortByAscendingDistance(sourceTones, divisionsPerOctave);
+    std::vector<double> targetMultiset = sortByAscendingDistance(targetTones, divisionsPerOctave);
+    std::vector< std::vector<double> > targetMultisets = rotations(targetMultiset);
+    std::map<double, MatrixCell> cellsForDistances;
+    for (size_t i = 0, n = targetMultisets.size(); i < n; i++) {
+      const std::vector<double> &targetMultiset = targetMultisets[i];
+      std::vector< std::vector<MatrixCell> > matrix = createMatrix(sourceMultiset, targetMultiset, sortedSourceChord);
+      size_t corner = sourceMultiset.size();
+      const MatrixCell &cell = matrix[corner][corner];
+      cellsForDistances[cell.d] = cell;
+    }
+    MatrixCell resultCell = std::min_element(cellsForDistances.begin(), cellsForDistances.end(), cellsForDistances.value_comp())->second;
+    std::vector<double> returnedVoiceleading(resultCell.v.begin(), resultCell.v.end() - 1);
+    std::vector<double> returnedSourceChord(resultCell.s.begin(), resultCell.s.end() - 1);
+    std::vector<double> returnedResultChord = returnedSourceChord;
+    for (size_t i = 0, n = returnedVoiceleading.size(); i < n; i++) {
+      returnedResultChord[i] = returnedSourceChord[i] + returnedVoiceleading[i]; 
+    }
+    std::vector< std::vector<double> > result;
+    result.push_back(returnedSourceChord);
+    result.push_back(returnedVoiceleading);
+    result.push_back(returnedResultChord);
+    return result;
+  }
 }
