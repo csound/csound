@@ -70,6 +70,8 @@ static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 static  int pnum(char *s) ;
 
+void close_instrument(CSOUND *csound, INSTRTXT * ip);
+
 char argtyp2(CSOUND *csound, char *s);
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
