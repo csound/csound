@@ -19,6 +19,7 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#include "System.hpp"
 #include "Voicelead.hpp"
 
 #include <algorithm>
@@ -664,6 +665,22 @@ namespace csound
     MatrixCell() : i(0), j(0), d(0.0)
     {
     }
+//     MatrixCell(const MatrixCell &a)
+//     {
+//       operator=(a);
+//     }
+//     MatrixCell &operator=(const MatrixCell &a)
+//     {
+//       if (this != &a) {
+// 	i = a.i;
+// 	j = a.j;
+// 	s = a.s;
+// 	b = a.b;
+// 	v = a.v;
+// 	d = a.d;
+//       }
+//       return *this;
+//     }
   };
 
   const MatrixCell &minimumCell(const MatrixCell &a, const MatrixCell &b, const MatrixCell &c)
@@ -690,21 +707,27 @@ namespace csound
     size_t N = sourceMultiset.size();
     std::vector< std::vector<MatrixCell> > matrix;
     for (size_t i = 0; i < N; i++) {
-      matrix.push_back(std::vector<MatrixCell>(N));
-    }
-    for (size_t i = 0; i < N; i++) {
+      std::vector<MatrixCell> row;
       for (size_t j = 0; j < N; j++) {
 	MatrixCell cell;
-	if (i == 0 && j == 0) {
-	  cell = matrix[i    ][j    ];
-	} else if (i == 0 && j != 0) {
-	  cell = matrix[i    ][j - 1];
-	} else if (i != 0 && j == 0) {
-	  cell = matrix[i - 1][j    ];
+	row.push_back(cell);
+      }
+      matrix.push_back(row);
+    }
+    for (int i = 0, im1 = -1; i < N; i++, im1++) {
+      for (int j = 0, jm1 = -1; j < N; j++, jm1++) {
+	MatrixCell cell;
+	//System::message("N: %d  i: %d  j: %d\n", N, i, j);
+	if        (i == 0 && j == 0) {
+	  cell = matrix[i  ][j  ];
+	} else if (i == 0 && j >  0) {
+	  cell = matrix[i  ][jm1];
+	} else if (i >  0 && j == 0) {
+	  cell = matrix[im1][j    ];
 	} else {
-	  const MatrixCell &a = matrix[i    ][j - 1];
-	  const MatrixCell &b = matrix[i - j][j    ];
-	  const MatrixCell &c = matrix[i - 1][j - 1];
+	  const MatrixCell &a = matrix[i  ][jm1];
+	  const MatrixCell &b = matrix[im1][j  ];
+	  const MatrixCell &c = matrix[im1][jm1];
 	  cell = minimumCell(a, b, c);
 	}
 	cell.i = i;
@@ -715,6 +738,8 @@ namespace csound
 	cell.v = Voicelead::voiceleading(cell.a, cell.b);
 	cell.d = Voicelead::smoothness(cell.a, cell.b);
 	matrix[i][j] = cell;
+	//System::message("cell.d:         %d\n", cell.d);
+	//System::message("matrix[i][j].d: %d\n", matrix[i][j].d);
       }
     }
     return matrix;
@@ -729,13 +754,13 @@ namespace csound
   }
 
   std::vector< std::vector<double> > Voicelead::nonBijectiveVoicelead(const std::vector<double> &sourceChord, 
-								     const std::vector<double> &targetPitchClassSet,
-								     size_t divisionsPerOctave)
+								      const std::vector<double> &targetPitchClassSet,
+								      size_t divisionsPerOctave)
   {
     std::vector<double> sortedSourceChord = sortByAscendingDistance(sourceChord, divisionsPerOctave);
     std::vector<double> resultChord = sortedSourceChord;
     std::vector<double> sourceTones = orderedPcs(sortedSourceChord, divisionsPerOctave);
-    std::vector<double> targetTones = orderedPcs(resultChord, divisionsPerOctave);
+    std::vector<double> targetTones = orderedPcs(targetPitchClassSet, divisionsPerOctave);
     std::vector<double> sourceMultiset = sortByAscendingDistance(sourceTones, divisionsPerOctave);
     std::vector<double> targetMultiset = sortByAscendingDistance(targetTones, divisionsPerOctave);
     std::vector< std::vector<double> > targetMultisets = rotations(targetMultiset);
@@ -748,8 +773,10 @@ namespace csound
       cellsForDistances[cell.d] = cell;
     }
     MatrixCell resultCell = std::min_element(cellsForDistances.begin(), cellsForDistances.end(), cellsForDistances.value_comp())->second;
-    std::vector<double> returnedVoiceleading(resultCell.v.begin(), resultCell.v.end() - 1);
-    std::vector<double> returnedSourceChord(resultCell.s.begin(), resultCell.s.end() - 1);
+    std::vector<double> returnedVoiceleading(resultCell.v);
+    returnedVoiceleading.pop_back();
+    std::vector<double> returnedSourceChord(resultCell.s);
+    returnedSourceChord.pop_back();
     std::vector<double> returnedResultChord = returnedSourceChord;
     for (size_t i = 0, n = returnedVoiceleading.size(); i < n; i++) {
       returnedResultChord[i] = returnedSourceChord[i] + returnedVoiceleading[i]; 
