@@ -648,8 +648,6 @@ namespace csound
     if (chord.size() == 0) {
       return pt;
     }
-    double P = 0.0;
-    double T = 0.0;
     std::vector<double> pitchClassSet = Voicelead::uniquePcs(chord, divisionsPerOctave_);
     pt = Voicelead::pitchClassSetToPandT(pitchClassSet, divisionsPerOctave_);
     return pt;
