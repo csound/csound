@@ -336,11 +336,16 @@ namespace csound
      * is returned along with result.
      * The algorithm does not avoid parallel motions,
      * and does not maintain the original order of the voices.
+     * The result contains the original chord, the voiceleading vector, 
+     * and the resulting chord in that order.
      */
     static std::vector< std::vector<double> > nonBijectiveVoicelead(const std::vector<double> &sourceChord, 
 								    const std::vector<double> &targetPitchClassSet,
 								    size_t divisionsPerOctave = 12);
     
+    /**
+     * Return the prime chord for the index P.
+     */
     static std::vector<double> pToPrimeChord(double P, size_t divisionsPerOctave = 12);
 
     static void initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave);
