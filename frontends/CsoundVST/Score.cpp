@@ -821,9 +821,12 @@ namespace csound
       }
     }
     printChord("  tones doubled:       ", tones);
-    std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave_);
+    //std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave_);
+    std::vector< std::vector<double> > result3 = Voicelead::nonBijectiveVoicelead(source, tones, divisionsPerOctave_);
+    const std::vector<double> voicing = result3[2];
     printChord("  final target voicing:", voicing);
-    setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave_);
+    //setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave_);
+    setPitches(beginTarget, endTarget, voicing);
     std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave_);
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
@@ -918,9 +921,12 @@ namespace csound
       std::sort(tones.begin(), tones.end());
       printChord("  doubled tones:       ", tones);
     }
-    std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave_);
+    //std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave_);
+    std::vector< std::vector<double> > result3 = Voicelead::nonBijectiveVoicelead(source, tones, divisionsPerOctave_);
+    const std::vector<double> voicing = result3[2];
     printChord("  target voicing:      ", voicing);
-    setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave_);
+    //setVoicing(beginTarget, endTarget, voicing, range, divisionsPerOctave_);
+    setPitches(beginTarget, endTarget, voicing);
     std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave_);
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
