@@ -995,4 +995,19 @@ namespace csound
     return time;
   }
 
+  void Score::setDuration(double targetDuration)
+  {
+    double currentDuration = getDuration();
+    if (currentDuration == 0.0) {
+      return;
+    }
+    double factor = targetDuration / currentDuration;
+    for (size_t i = 0, n = size(); i < n; i++) {
+      Event &event = (*this)[i];
+      double time = event.getTime();
+      double duration = event.getDuration();
+      event.setTime(time * factor);
+      event.setDuration(duration * factor);
+    }
+  }
 }

@@ -286,6 +286,11 @@ namespace csound
      * pitches in that segment of the score.
      */
     virtual void setVoicing(size_t begin, size_t end, const std::vector<double> &voicing, double range, size_t divisionsPerOctave = 12);
+    /**
+     * Multiply existing times and durations by (targetDuration / getDuration()), i.e.
+     * stretch or shrink musical time.
+     */
+    virtual void setDuration(double targetDuration);
   };
 }
 #endif
