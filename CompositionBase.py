@@ -143,10 +143,10 @@ nchnls                  =                       2
 
 ; Disabled for Csound installer -- enable if you have the Pianoteq VST plugin.
 
-;giAzr3                  vstinit                "D:\\utah\\opt\\Steinberg\\CubaseSX3\\Vstplugins\\Synths\\AZR3.dll", 1
+;giAzr3                  vstinit                "D:/utah/opt/Steinberg/CubaseSX3/Vstplugins/Synths/AZR3.dll", 1
 ;                        vstinfo                 giAzr3
 			
-giPianoteq              vstinit                 "C:\\Program Files\\Steinberg\\Vstplugins\\Pianoteq\\pianoteq", 0
+giPianoteq              vstinit                 "C:/Program Files/Steinberg/Vstplugins/Pianoteq/pianoteq", 0
 ;                        vstinfo                 giPianoteq
 			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1772,12 +1772,14 @@ class Composition(object):
         for number, name in instruments.items():
             print 'Instr %4d: %s' % (number, name)
         print 'ENDED Composition.assembleOrchestra.'
-    def generateScore(self):
+    def generateScore(self, duration = 0.0):
         print 'BEGAN Composition.generateScore...'
         self.model.generate()
+        if duration:
+            self.score.setDuration(duration)
         print 'Generated score:'
         print self.score.getCsoundScore()
-        duration = self.score.getDuration() + 8.0
+        duration = self.score.getDuration()
         print 'Duration: %9.4f' % (duration)
         self.score.save(self.getMidiFilename())
         print 'ENDED Composition.generateScore.'
@@ -1804,7 +1806,7 @@ class Composition(object):
         print 'BEGAN Composition.createCsoundScore...'
         self.model.createCsoundScore(scoreHeader)        
         print 'ENDED Composition.createCsoundScore.'
-    def render(self):
+    def render(self, duration = 0.0):
         print 'BEGAN Composition.render...'
         self.keepRendering = True
         if self.keepRendering:
@@ -1812,7 +1814,7 @@ class Composition(object):
         if self.keepRendering:
             self.assembleOrchestra()
         if self.keepRendering:
-            self.generateScore()
+            self.generateScore(duration)
         if self.keepRendering:
             self.createCsoundArrangement()
         if self.keepRendering:
@@ -1842,12 +1844,12 @@ class Composition(object):
     High-level function to generate a score and orchestra,
     export them, and render them as a CD-quality soundfile.
     '''
-    def renderCdSoundfile(self):
+    def renderCdSoundfile(self, duration = 0.0):
         print 'BEGAN Composition.renderCdSoundfile...'
         try:
             self.command = self.getCdSoundfileCommand()
             self.audio = False
-            self.render()
+            self.render(duration)
         except:
             traceback.print_exc()
         print 'ENDED Composition.renderCdSoundfile.'
@@ -1856,12 +1858,12 @@ class Composition(object):
     export them, and render them as a high-resolution,
     master-quality soundfile.
     '''
-    def renderMasterSoundfile(self):
+    def renderMasterSoundfile(self, duration = 0.0):
         print 'BEGAN Composition.renderMasterSoundfile...'
         try:
             self.command = self.getMasterSoundfileCommand()
             self.audio = False
-            self.render()
+            self.render(duration)
         except:
             traceback.print_exc()
         print 'ENDED Composition.renderMasterSoundfile.'
