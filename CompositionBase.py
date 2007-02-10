@@ -156,16 +156,16 @@ giPianoteq              vstinit                 "C:\\Program Files\\Steinberg\\V
 ; Disabled for Csound installer -- enable if you have the SoundFonts.
 
 giFluidsynth		fluidEngine		0, 0
-giFluidSteinway		fluidLoad		"\\utah\\home\\mkg\\projects\\music\\library\\soundfonts\\Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
+giFluidSteinway		fluidLoad		"D:/utah/home/mkg/projects/music/library/soundfonts/Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
 			fluidProgramSelect	giFluidsynth, 0, giFluidSteinway, 0, 1
 
-;giFluidGM		fluidLoad		"\\utah\\home\\mkg\\projects\\music\\library\\soundfonts\\63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
+;giFluidGM		fluidLoad		"D:/utah/home/mkg/projects/music/library/soundfonts/63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
 ;		        fluidProgramSelect	giFluidsynth, 1, giFluidGM, 0, 26
 
-giFluidMarimba		fluidLoad		"\\utah\\home\\mkg\\projects\\music\\library\\soundfonts\\Marimba Moonman (414KB).SF2", giFluidsynth, 1
+giFluidMarimba		fluidLoad		"D:/utah\home/mkg/projects/music/library/soundfonts/Marimba Moonman (414KB).SF2", giFluidsynth, 1
 		        fluidProgramSelect	giFluidsynth, 2, giFluidMarimba, 0, 0
 
-giFluidOrgan		fluidLoad		"\\utah\\home\\mkg\\projects\\music\\library\\soundfonts\\Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
+giFluidOrgan		fluidLoad		"D:/utah/home/mkg/projects/music/library/soundfonts/Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
 		        fluidProgramSelect	giFluidsynth, 3, giFluidOrgan, 0, 36
                 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
