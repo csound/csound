@@ -21,16 +21,23 @@
 
 CsoundGlobalSettings::CsoundGlobalSettings()
 {
-#ifndef WIN32
-    textEditorProgram = "xterm -e vim";
+#ifdef LINUX
+    textEditorProgram = "cseditor";
     soundEditorProgram = "audacity";
-    helpBrowserProgram =
-        "firefox /usr/local/share/doc/csound/manual/index.html";
+    soundPlayerProgram = "aplay";
+    helpBrowserProgram = "firefox";
 #else
-    textEditorProgram = "notepad";
-    soundEditorProgram = "sndrec32";
-    helpBrowserProgram =
-        "explorer \"C:\\Program Files\\Csound\\doc\\manual\\index.html\"";
+#ifdef WIN32
+    textEditorProgram = "cseditor";
+    soundEditorProgram = "audacity";
+    soundplayerProgram = "sndrec32";
+    helpBrowserProgram = "explorer";
+#else
+    textEditorProgram = "cseditor";
+    soundEditorProgram = "audacity";
+    soundPlayerProgram = "quicktime";
+    helpBrowserProgram = "safari";
+#endif
 #endif
     performanceSettings1_Name = "";
     performanceSettings2_Name = "";
@@ -44,6 +51,21 @@ CsoundGlobalSettings::CsoundGlobalSettings()
     performanceSettings10_Name = "";
     forcePerformanceSettings = false;
     editSoundFileAfterPerformance = false;
+    useBuiltInEditor = true;
+    guiPosX = -1;
+    guiPosY = -1;
+    orcEditorPosX = -1;
+    orcEditorPosY = -1;
+    orcEditorWidth = 660;
+    orcEditorHeight = 400;
+    scoEditorPosX = -1;
+    scoEditorPosY = -1;
+    scoEditorWidth = 660;
+    scoEditorHeight = 400;
+    consolePosX = -1;
+    consolePosY = -1;
+    consoleWidth = 480;
+    consoleHeight = 220;
 }
 
 CsoundGlobalSettings::~CsoundGlobalSettings()

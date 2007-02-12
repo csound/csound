@@ -491,6 +491,8 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     err |= writeBool(f, &(cfg.editSoundFileAfterPerformance));
     err |= writeInt_(f, 10005);
     err |= writeString(f, cfg.helpBrowserProgram);
+    err |= writeInt_(f, 10006);
+    err |= writeBool(f, &(cfg.useBuiltInEditor));
     err |= writeInt_(f, 10101);
     err |= writeString(f, cfg.performanceSettings1_Name);
     err |= writeInt_(f, 10102);
@@ -511,6 +513,34 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     err |= writeString(f, cfg.performanceSettings9_Name);
     err |= writeInt_(f, 10110);
     err |= writeString(f, cfg.performanceSettings10_Name);
+    err |= writeInt_(f, 10200);
+    err |= writeInt(f, &(cfg.guiPosX));
+    err |= writeInt_(f, 10201);
+    err |= writeInt(f, &(cfg.guiPosY));
+    err |= writeInt_(f, 10202);
+    err |= writeInt(f, &(cfg.orcEditorPosX));
+    err |= writeInt_(f, 10203);
+    err |= writeInt(f, &(cfg.orcEditorPosY));
+    err |= writeInt_(f, 10204);
+    err |= writeInt(f, &(cfg.orcEditorWidth));
+    err |= writeInt_(f, 10205);
+    err |= writeInt(f, &(cfg.orcEditorHeight));
+    err |= writeInt_(f, 10206);
+    err |= writeInt(f, &(cfg.scoEditorPosX));
+    err |= writeInt_(f, 10207);
+    err |= writeInt(f, &(cfg.scoEditorPosY));
+    err |= writeInt_(f, 10208);
+    err |= writeInt(f, &(cfg.scoEditorWidth));
+    err |= writeInt_(f, 10209);
+    err |= writeInt(f, &(cfg.scoEditorHeight));
+    err |= writeInt_(f, 10210);
+    err |= writeInt(f, &(cfg.consolePosX));
+    err |= writeInt_(f, 10211);
+    err |= writeInt(f, &(cfg.consolePosY));
+    err |= writeInt_(f, 10212);
+    err |= writeInt(f, &(cfg.consoleWidth));
+    err |= writeInt_(f, 10213);
+    err |= writeInt(f, &(cfg.consoleHeight));
     err |= writeInt_(f, 0);
     fclose(f);
 
@@ -564,6 +594,7 @@ int writeCsound5GUIConfigFile(const char *fileName,
     err |= writeInt_(f, 28); err |= writeString(f, cfg.ssdirPath);
     err |= writeInt_(f, 29); err |= writeString(f, cfg.sfdirPath);
     err |= writeInt_(f, 30); err |= writeString(f, cfg.incdirPath);
+    err |= writeInt_(f, 52); err |= writeString(f, cfg.csdocdirPath);
     err |= writeInt_(f, 100); err |= writeString(f, cfg.strsets[0]);
     err |= writeInt_(f, 101); err |= writeString(f, cfg.strsets[1]);
     err |= writeInt_(f, 102); err |= writeString(f, cfg.strsets[2]);
@@ -589,12 +620,24 @@ int writeCsound5GUIConfigFile(const char *fileName,
     err |= writeInt_(f, 43); err |= writeString(f, cfg.jackOutPortName);
     err |= writeInt_(f, 44); err |= writeInt(f, &(cfg.maxStrLen));
     err |= writeInt_(f, 45); err |= writeString(f, cfg.midiFileMuteTracks);
+    err |= writeInt_(f, 150); err |= writeInt(f, &(cfg.midiKeyMidi));
+    err |= writeInt_(f, 151); err |= writeInt(f, &(cfg.midiKeyCps));
+    err |= writeInt_(f, 152); err |= writeInt(f, &(cfg.midiKeyOct));
+    err |= writeInt_(f, 153); err |= writeInt(f, &(cfg.midiKeyPch));
+    err |= writeInt_(f, 154); err |= writeInt(f, &(cfg.midiVelMidi));
+    err |= writeInt_(f, 155); err |= writeInt(f, &(cfg.midiVelAmp));
     err |= writeInt_(f, 46); err |= writeBool(f, &(cfg.rawControllerMode));
     err |= writeInt_(f, 47); err |= writeString(f, cfg.rtAudioModule);
+    err |= writeInt_(f, 54); err |= writeString(f, cfg.rtAudioOutputDevice);
+    err |= writeInt_(f, 55); err |= writeString(f, cfg.rtAudioInputDevice);
     err |= writeInt_(f, 48); err |= writeString(f, cfg.rtMidiModule);
     err |= writeInt_(f, 49); err |= writeDouble(f, &(cfg.scoreOffsetSeconds));
     err |= writeInt_(f, 50); err |= writeBool(f, &(cfg.useThreads));
     err |= writeInt_(f, 51); err |= writeString(f, cfg.scriptFileName);
+    err |= writeInt_(f, 53); err |= writeBool(f, &(cfg.runRealtime));
+    err |= writeInt_(f, 56); err |= writeBool(f, &(cfg.disableDiskOutput));
+    err |= writeInt_(f, 200); err |= writeString(f, cfg.additionalFlags);
+    err |= writeInt_(f, 201); err |= writeBool(f, &(cfg.useAdditionalFlags));
     err |= writeInt_(f, 0);
     fclose(f);
 
@@ -953,6 +996,10 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
         if (readString(f, tmp->helpBrowserProgram) != 0)
           goto err_return;
         break;
+      case 10006:
+        if (readBool(f, &(tmp->useBuiltInEditor)) != 0)
+          goto err_return;
+        break;
       case 10101:
         if (readString(f, tmp->performanceSettings1_Name) != 0)
           goto err_return;
@@ -991,6 +1038,62 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
         break;
       case 10110:
         if (readString(f, tmp->performanceSettings10_Name) != 0)
+          goto err_return;
+        break;
+      case 10200:
+        if (readInt(f, &(tmp->guiPosX)) != 0)
+          goto err_return;
+        break;
+      case 10201:
+        if (readInt(f, &(tmp->guiPosY)) != 0)
+          goto err_return;
+        break;
+      case 10202:
+        if (readInt(f, &(tmp->orcEditorPosX)) != 0)
+          goto err_return;
+        break;
+      case 10203:
+        if (readInt(f, &(tmp->orcEditorPosX)) != 0)
+          goto err_return;
+        break;
+      case 10204:
+        if (readInt(f, &(tmp->orcEditorWidth)) != 0)
+          goto err_return;
+        break;
+      case 10205:
+        if (readInt(f, &(tmp->orcEditorHeight)) != 0)
+          goto err_return;
+        break;
+      case 10206:
+        if (readInt(f, &(tmp->scoEditorPosX)) != 0)
+          goto err_return;
+        break;
+      case 10207:
+        if (readInt(f, &(tmp->scoEditorPosX)) != 0)
+          goto err_return;
+        break;
+      case 10208:
+        if (readInt(f, &(tmp->scoEditorWidth)) != 0)
+          goto err_return;
+        break;
+      case 10209:
+        if (readInt(f, &(tmp->scoEditorHeight)) != 0)
+          goto err_return;
+        break;
+      case 10210:
+        if (readInt(f, &(tmp->consolePosX)) != 0)
+          goto err_return;
+        break;
+      case 10211:
+        if (readInt(f, &(tmp->consolePosY)) != 0)
+          goto err_return;
+        break;
+      case 10212:
+        if (readInt(f, &(tmp->consoleWidth)) != 0)
+          goto err_return;
+        break;
+      case 10213:
+        if (readInt(f, &(tmp->consoleHeight)) != 0)
           goto err_return;
         break;
       default:
@@ -1152,6 +1255,10 @@ int readCsound5GUIConfigFile(const char *fileName,
         if (readString(f, tmp->incdirPath) != 0)
           goto err_return;
         break;
+      case 52:
+        if (readString(f, tmp->csdocdirPath) != 0)
+          goto err_return;
+        break;
       case 100:
         if (readString(f, tmp->strsets[0]) != 0)
           goto err_return;
@@ -1252,12 +1359,44 @@ int readCsound5GUIConfigFile(const char *fileName,
         if (readString(f, tmp->midiFileMuteTracks) != 0)
           goto err_return;
         break;
+      case 150:
+        if (readInt(f, &(tmp->midiKeyMidi)) != 0)
+          goto err_return;
+        break;
+      case 151:
+        if (readInt(f, &(tmp->midiKeyCps)) != 0)
+          goto err_return;
+        break;
+      case 152:
+        if (readInt(f, &(tmp->midiKeyOct)) != 0)
+          goto err_return;
+        break;
+      case 153:
+        if (readInt(f, &(tmp->midiKeyPch)) != 0)
+          goto err_return;
+        break;
+      case 154:
+        if (readInt(f, &(tmp->midiVelMidi)) != 0)
+          goto err_return;
+        break;
+      case 155:
+        if (readInt(f, &(tmp->midiVelAmp)) != 0)
+          goto err_return;
+        break;
       case 46:
         if (readBool(f, &(tmp->rawControllerMode)) != 0)
           goto err_return;
         break;
       case 47:
         if (readString(f, tmp->rtAudioModule) != 0)
+          goto err_return;
+        break;
+      case 54:
+        if (readString(f, tmp->rtAudioOutputDevice) != 0)
+          goto err_return;
+        break;
+      case 55:
+        if (readString(f, tmp->rtAudioInputDevice) != 0)
           goto err_return;
         break;
       case 48:
@@ -1274,6 +1413,22 @@ int readCsound5GUIConfigFile(const char *fileName,
         break;
       case 51:
         if (readString(f, tmp->scriptFileName) != 0)
+          goto err_return;
+        break;
+      case 53:
+        if (readBool(f, &(tmp->runRealtime)) != 0)
+          goto err_return;
+        break;
+      case 56:
+        if (readBool(f, &(tmp->disableDiskOutput)) != 0)
+          goto err_return;
+        break;
+      case 200:
+        if (readString(f, tmp->additionalFlags) != 0)
+          goto err_return;
+        break;
+      case 201:
+        if (readBool(f, &(tmp->useAdditionalFlags)) != 0)
           goto err_return;
         break;
       default:

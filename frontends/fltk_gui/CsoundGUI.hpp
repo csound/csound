@@ -36,9 +36,11 @@
 
 #include <FL/Fl_Text_Buffer.H>
 
+
 #include "CsoundPerformanceSettings.hpp"
 #include "CsoundGlobalSettings.hpp"
 #include "CsoundPerformance.hpp"
+#include "CsoundEditor.hpp"
 
 class CsoundGUIMain;
 
@@ -62,6 +64,8 @@ struct Csound_Message {
 #define CSOUND5GUI_PCFGWIN_OPEN         2
 #define CSOUND5GUI_UTILWIN_OPEN         4
 #define CSOUND5GUI_ABOUTWIN_OPEN        8
+#define CSOUND5GUI_ORCEDITORWIN_OPEN    16
+#define CSOUND5GUI_SCOEDITORWIN_OPEN    32
 #define CSOUND5GUI_LISTOPCODES_RUNNING  256
 #define CSOUND5GUI_CVANAL_RUNNING       512
 #define CSOUND5GUI_PVANAL_RUNNING       1024
@@ -82,6 +86,8 @@ struct Csound_Message {
 #define CSOUND5GUI_FILETYPE_LPC         8
 #define CSOUND5GUI_FILETYPE_PYTHON      9
 #define CSOUND5GUI_FILETYPE_DIRECTORY   1024
+
+
 
 #endif  // CSOUNDGUI_HPP
 

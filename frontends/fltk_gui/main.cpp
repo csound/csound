@@ -27,7 +27,7 @@ int main(int argc, char **argv)
       return -1;
     Fl::lock();
     mainWin = new CsoundGUIMain;
-    mainWin->run();
+    mainWin->run(argc, argv);
     delete mainWin;
     Fl::wait(0.0);
 

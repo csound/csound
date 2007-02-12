@@ -36,7 +36,7 @@ CsoundPerformanceSettings::CsoundPerformanceSettings()
     midiInDevName = "";
     midiOutDevName = "";
     terminateOnMidi = false;
-    heartBeatMode = 0;
+//     heartBeatMode = 0;
     rewriteHeader = false;
     inputFileName = "";
     outputFileName = "dac";
@@ -52,6 +52,7 @@ CsoundPerformanceSettings::CsoundPerformanceSettings()
     ssdirPath = "";
     sfdirPath = "";
     incdirPath = "";
+    csdocdirPath = "";
     for (int i = 0; i < 10; i++)
       strsets[i] = "";
     verbose = false;
@@ -63,18 +64,28 @@ CsoundPerformanceSettings::CsoundPerformanceSettings()
     sndidDate = "";
     sndidSoftware = "";
     sndidTitle = "";
-    ignoreCSDOptions = false;
+    ignoreCSDOptions = true;
     jackClientName = "";
     jackInPortName = "";
     jackOutPortName = "";
     maxStrLen = 255;
     midiFileMuteTracks = "";
+    midiKeyMidi = -1;
+    midiKeyCps = -1;
+    midiKeyOct = -1;
+    midiKeyPch = -1;
+    midiVelMidi = -1;
+    midiVelAmp = -1;
     rawControllerMode = false;
-    rtAudioModule = "";
-    rtMidiModule = "";
+    rtAudioModule = "PortAudio";
+    rtAudioOutputDevice = "dac";
+    rtAudioInputDevice = "adc";
+    rtMidiModule = "PortMidi";
     scoreOffsetSeconds = 0.0;
     useThreads = true;
     scriptFileName = "";
+    additionalFlags = "";
+    useAdditionalFlags = false;
 }
 
 CsoundPerformanceSettings::~CsoundPerformanceSettings()
@@ -238,9 +249,12 @@ void CsoundPerformanceSettings::buildCommandLine(vector<string>&
     if (rewriteHeader)
       cmdLine.push_back("-R");
     cmdLine_addStringOpt(cmdLine, "-i", inputFileName);
-    if (!CsoundGUIMain::isEmptyString(outputFileName) && enableSoundOutput)
+    if (!CsoundGUIMain::isEmptyString(outputFileName) && enableSoundOutput) {
       cmdLine_addStringOpt(cmdLine, "-o", outputFileName);
-    else if (forceSettings)
+    }
+    else if (forceSettings && !disableDiskOutput)
+      cmdLine.push_back("-n");
+    if (disableDiskOutput && !runRealtime)
       cmdLine.push_back("-n");
     if (beatModeTempo > 0.0)
       cmdLine_addDoubleOpt(cmdLine, "-t", beatModeTempo);
@@ -261,6 +275,7 @@ void CsoundPerformanceSettings::buildCommandLine(vector<string>&
     cmdLine_addStringOpt(cmdLine, "--env:SSDIR+=", ssdirPath);
     cmdLine_addStringOpt(cmdLine, "--env:SFDIR+=", sfdirPath);
     cmdLine_addStringOpt(cmdLine, "--env:INCDIR+=", incdirPath);
+//     cmdLine_addStringOpt(cmdLine, "--env:CSDOCDIR+=", csdocdirPath);
     for (int i = 0; i < 10; i++) {
       if (!CsoundGUIMain::isEmptyString(strsets[i])) {
         char  buf[16];
@@ -294,11 +309,24 @@ void CsoundPerformanceSettings::buildCommandLine(vector<string>&
       if (forceSettings)
         cmdLine.push_back("-+mute_tracks=");
     }
+    if (midiKeyMidi > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-key=", midiKeyMidi);
+    if (midiKeyCps > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-key-cps=", midiKeyCps);
+    if (midiKeyOct > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-key-oct=", midiKeyOct);
+    if (midiKeyPch > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-key-pch=", midiKeyPch);
+    if (midiVelMidi > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-velocity=", midiVelMidi);
+    if (midiVelAmp > 0)
+      cmdLine_addIntegerOpt(cmdLine, "-+midi-velocity-amp=", midiVelAmp);
     if (rawControllerMode)
       cmdLine.push_back("-+raw_controller_mode=1");
     else if (forceSettings)
       cmdLine.push_back("-+raw_controller_mode=0");
-    cmdLine_addStringOpt(cmdLine, "-+rtaudio=", rtAudioModule);
+    if (runRealtime)
+      cmdLine_addStringOpt(cmdLine, "-+rtaudio=", rtAudioModule);
     cmdLine_addStringOpt(cmdLine, "-+rtmidi=", rtMidiModule);
     if (scoreOffsetSeconds > 0.0)
       cmdLine_addDoubleOpt(cmdLine, "-+skip_seconds=", scoreOffsetSeconds);
@@ -310,5 +338,6 @@ void CsoundPerformanceSettings::buildCommandLine(vector<string>&
           !CsoundGUIMain::isEmptyString(scoName))
         cmdLine.push_back(scoName);
     }
+    if (useAdditionalFlags && !CsoundGUIMain::isEmptyString(additionalFlags))
+      cmdLine.push_back(additionalFlags);
 }
-
