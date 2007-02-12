@@ -1587,6 +1587,9 @@ else:
     print 'CONFIGURATION DECISION: Building FLTK GUI CSOUND5GUI frontend.'
     csound5GUIEnvironment = csoundProgramEnvironment.Copy()
     csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
+    if jackFound:
+        csound5GUIEnvironment.Append(LIBS = ['jack'])
+        csound5GUIEnvironment.Prepend(CPPFLAGS = ['-DHAVE_JACK'])
     if getPlatform() == 'linux':
         csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -1615,6 +1618,8 @@ else:
         frontends/fltk_gui/CsoundPerformance.cpp
         frontends/fltk_gui/CsoundPerformanceSettings.cpp
         frontends/fltk_gui/CsoundUtility.cpp
+        frontends/fltk_gui/CsoundEditor.cpp
+        frontends/fltk_gui/Fl_Native_File_Chooser.cxx
         frontends/fltk_gui/main.cpp
     ''')
     csound5GUIFluidSources = Split('''
@@ -1792,7 +1797,6 @@ else:
 if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
     print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
 else:
-    print 'CONFIGURATION DECISION: Building Csound Text Editor.'
     if getPlatform() == 'linux' or getPlatform() == 'darwin':
         csEdit = commonEnvironment.Copy()
         csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
