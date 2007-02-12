@@ -24,6 +24,13 @@
 #include <string>
 #include <vector>
 
+typedef struct deviceInfo {
+  std::string description;
+  int cardNum;
+  int portNum;   //Only on ALSA
+} deviceInfo_;
+
+
 class CsoundPerformanceSettings {
 public:
   std::string orcName;                // orchestra or CSD name
@@ -37,8 +44,6 @@ public:
   int         nBuffers;               // number of buffers (-B / -b)
   std::string midiInFileName;         // MIDI input file (-F)
   std::string midiOutFileName;        // MIDI output file (--midioutfile)
-  std::string midiInDevName;          // MIDI input device (-M)
-  std::string midiOutDevName;         // MIDI output device (-Q)
   bool        terminateOnMidi;        // terminate on end of MIDI file (-T)
   int         heartBeatMode;          // default: 0
   bool        rewriteHeader;          // update sndfile header (default: no)
@@ -57,6 +62,7 @@ public:
   std::string ssdirPath;              // SSDIR (default: none)
   std::string sfdirPath;              // SFDIR (default: none)
   std::string incdirPath;             // INCDIR (default: none)
+  std::string csdocdirPath;             // INCDIR (default: none)
   std::string strsets[10];            // --strset1 to --strset10
   bool        verbose;                // verbose orchestra compilation (-v)
   bool        enableDither;           // dither sound output
@@ -73,14 +79,29 @@ public:
   std::string jackOutPortName;        // JACK output port name prefix
   int         maxStrLen;              // max. length of string variables
   std::string midiFileMuteTracks;     // pattern of 0 and 1 characters
+  int         midiKeyMidi;             // p-field to route MIDI key value
+  int         midiKeyCps;              // p-field to route MIDI key value in Hz
+  int         midiKeyOct;              // p-field to route MIDI key value in octave notation
+  int         midiKeyPch;              // p-field to route MIDI key value in pitch class
+  int         midiVelMidi;             // p-field to route MIDI velocity
+  int         midiVelAmp;              // p-field to route MIDI velocity in fullscale amp
   bool        rawControllerMode;      // disable GM compatible MIDI behavior
   std::string rtAudioModule;          // "portaudio", "jack", etc.
+  std::string rtAudioOutputDevice;    // Audio output device name or number for csound
+  std::string rtAudioInputDevice;     // Audio input device name or number for csound
   std::string rtMidiModule;           // "portmidi", "mme", etc.
+  std::string midiInDevName;          // MIDI input device (-M)
+  std::string midiOutDevName;         // MIDI output device (-Q)
   double      scoreOffsetSeconds;     // number of seconds to skip
   bool        useThreads;             // use a separate audio thread
+  bool        runRealtime;            // use dac instead of filename
+  std::string additionalFlags;        // Addtional flags to pass directly to the command line
+  bool        useAdditionalFlags;     // use additional flags
+  bool        disableDiskOutput;      // disable writing output to disk
   // -----------------------------------------------------------------
   CsoundPerformanceSettings();
   ~CsoundPerformanceSettings();
+
   static int fileTypeToIndex(const char *);
   static const char *indexToFileType(int);
   static int sampleFormatToIndex(const char *);

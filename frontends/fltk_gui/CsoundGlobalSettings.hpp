@@ -27,6 +27,7 @@ class CsoundGlobalSettings {
  public:
     std::string textEditorProgram;
     std::string soundEditorProgram;
+    std::string soundPlayerProgram;
     std::string helpBrowserProgram;
     std::string performanceSettings1_Name;
     std::string performanceSettings2_Name;
@@ -40,6 +41,21 @@ class CsoundGlobalSettings {
     std::string performanceSettings10_Name;
     bool    forcePerformanceSettings;
     bool    editSoundFileAfterPerformance;
+    bool    useBuiltInEditor;
+    int guiPosX;
+    int guiPosY;
+    int orcEditorPosX;
+    int orcEditorPosY;
+    int orcEditorWidth;
+    int orcEditorHeight;
+    int scoEditorPosX;
+    int scoEditorPosY;
+    int scoEditorWidth;
+    int scoEditorHeight;
+    int consolePosX;
+    int consolePosY;
+    int consoleWidth;
+    int consoleHeight;
     // -----------------------------------------------------------------
     CsoundGlobalSettings();
     ~CsoundGlobalSettings();

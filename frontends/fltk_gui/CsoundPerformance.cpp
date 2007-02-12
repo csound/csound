@@ -256,6 +256,7 @@ int CsoundPerformance_Thread::Compile(std::vector<std::string>& argList)
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
       pt = new CsoundPerformanceThread(csound);
+//       pt->SetRTPriority(60);
       pt->Play();
     }
 
