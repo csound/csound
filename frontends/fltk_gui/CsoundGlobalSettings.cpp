@@ -21,23 +21,21 @@
 
 CsoundGlobalSettings::CsoundGlobalSettings()
 {
-#ifdef LINUX
+#if defined(LINUX)
     textEditorProgram = "cseditor";
     soundEditorProgram = "audacity";
     soundPlayerProgram = "aplay";
     helpBrowserProgram = "firefox";
-#else
-#ifdef WIN32
+#elif defined(WIN32)
     textEditorProgram = "cseditor";
     soundEditorProgram = "audacity";
-    soundplayerProgram = "sndrec32";
+    soundPlayerProgram = "sndrec32";
     helpBrowserProgram = "explorer";
 #else
     textEditorProgram = "cseditor";
     soundEditorProgram = "audacity";
     soundPlayerProgram = "quicktime";
     helpBrowserProgram = "safari";
-#endif
 #endif
     performanceSettings1_Name = "";
     performanceSettings2_Name = "";
