@@ -62,67 +62,55 @@ class CsoundGUIMain {open
   utilityState = 0;
 }} {}
     Fl_Window window {
-      label {Csound 5 GUI} open
-      xywh {914 563 450 365} type Double color 0 visible
+      label {Csound 5 GUI} open selected
+      xywh {908 446 440 335} type Double color 0 visible
     } {
       Fl_Group {} {open
-        xywh {5 5 440 110} box ROUNDED_FRAME
-      } {}
-      Fl_Group {} {open
-        xywh {5 120 440 95} box ROUNDED_FRAME
-      } {}
-      Fl_Group {} {open
-        xywh {5 220 235 140} box ROUNDED_FRAME
-      } {}
-      Fl_Group {} {open
-        xywh {240 220 205 85} box ROUNDED_FRAME
-      } {}
-      Fl_Group {} {open
-        xywh {10 10 430 100} box ROUNDED_BOX color 1
+        xywh {5 5 430 100} box PLASTIC_THIN_DOWN_BOX color 1
       } {
         Fl_Input orcNameInput {
           label {Orchestra/CSD}
           callback {stripString(currentPerformanceSettings.orcName, o->value());
 updateGUIState_orcName();}
-          xywh {50 30 325 25} box THIN_DOWN_BOX align 1
+          xywh {45 25 325 25} box THIN_DOWN_BOX align 1
           code0 {o->value(currentPerformanceSettings.orcName.c_str());}
         }
         Fl_Button orcNameButton {
           label {...}
           callback {pushOpenOrcButton();}
-          tooltip {Browse orchestra or CSD file} xywh {20 30 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
+          tooltip {Browse orchestra or CSD file} xywh {15 25 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
         }
         Fl_Button editOrcButton {
           label Edit
           callback {editOrcFile();}
-          tooltip {Open orchestra or CSD file with external editor} xywh {380 30 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
+          tooltip {Open orchestra or CSD file with external editor} xywh {375 25 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
         }
         Fl_Input scoreNameInput {
           label {Score file}
           callback {stripString(currentPerformanceSettings.scoName, o->value());
-updateGUIState_scoName();} selected
-          xywh {50 75 325 25} box THIN_DOWN_BOX align 1
+updateGUIState_scoName();}
+          xywh {45 70 325 25} box THIN_DOWN_BOX align 1
           code0 {o->value(currentPerformanceSettings.scoName.c_str());}
         }
         Fl_Button scoreNameButton {
           label {...}
           callback {pushOpenScoButton();}
-          tooltip {Browse score file} xywh {20 75 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
+          tooltip {Browse score file} xywh {15 70 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 129
         }
         Fl_Button editScoreButton {
           label Edit
           callback {editScoreFile();}
-          tooltip {Open score file with external editor} xywh {380 75 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 130
+          tooltip {Open score file with external editor} xywh {375 70 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 130
         }
       }
       Fl_Group {} {open
-        xywh {10 125 430 85} box ROUNDED_BOX color 70 align 17
+        xywh {5 110 430 85} box PLASTIC_THIN_DOWN_BOX color 70 align 17
       } {
         Fl_Input outfileNameInput {
           label {Output file/device}
           callback {stripString(currentPerformanceSettings.outputFileName, o->value());
 updateGUIState_outFile();}
-          xywh {55 145 260 25} box THIN_DOWN_BOX align 1
+          xywh {50 130 260 25} box THIN_DOWN_BOX align 1
           code0 {o->value(currentPerformanceSettings.outputFileName.c_str());}
         }
         Fl_Button outfileNameButton {
@@ -132,55 +120,55 @@ updateGUIState_outFile();}
   outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
   updateGUIState_outFile();
 }}
-          tooltip {Browse sound output file} xywh {20 145 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
+          tooltip {Browse sound output file} xywh {15 130 25 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
         }
         Fl_Button editOutfileButton {
           label Edit
           callback {editSoundFile(currentPerformanceSettings.outputFileName.c_str());}
-          tooltip {Open output sound file with external editor} xywh {380 145 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
+          tooltip {Open output sound file with external editor} xywh {375 130 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
         }
         Fl_Button playOutfileButton {
           label {@>}
           callback {playSoundFile(currentPerformanceSettings.outputFileName.c_str());}
-          tooltip {Listen to output sound file with external player} xywh {325 145 45 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
+          tooltip {Listen to output sound file with external player} xywh {320 130 45 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
         }
         Fl_Check_Button realtimeIOToggle {
           label {Realtime I/O}
           callback {setRealtimeCheckbox(o->value());}
-          xywh {55 175 260 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
+          xywh {50 160 260 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
         }
         Fl_Button configureRealtimeIO {
           label Configure
           callback {openPerformanceSettingsWindow(2);}
-          xywh {325 175 105 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
+          xywh {320 160 105 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 70
         }
       }
       Fl_Group {} {open
-        xywh {10 225 225 130} box ROUNDED_BOX color 3
+        xywh {5 200 225 130} box PLASTIC_THIN_UP_BOX color 3
       } {
         Fl_Output scoreTimeDisplay {
-          tooltip {The current score time (hh:mm:ss)} xywh {20 235 205 50} box EMBOSSED_BOX color 32 selection_color 7 textfont 4 textsize 24 textcolor 23
+          tooltip {The current score time (hh:mm:ss)} xywh {15 210 205 50} box EMBOSSED_BOX color 32 selection_color 7 labelfont 13 textfont 4 textsize 24 textcolor 23
           code0 {o->value("  --:--:--.-");}
         }
         Fl_Button rewindButton {
           label {@|<}
-          tooltip {Rewind to the beginning of the score} xywh {20 289 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
+          tooltip {Rewind to the beginning of the score} xywh {15 264 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
         }
         Fl_Button playButton {
           label {@>}
           callback {pushPlayPauseButton();}
-          tooltip {Play/Pause} xywh {71 289 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
+          tooltip {Play/Pause} xywh {66 264 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
         }
         Fl_Button fastForwardButton {
           label {@>>}
           callback {if (performing && csPerf != (CsoundPerformance*) 0)
   csPerf->AdvanceScoreTime(10.0);}
-          tooltip {Fast forward 10 seconds} xywh {123 289 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
+          tooltip {Fast forward 10 seconds} xywh {118 264 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
         }
         Fl_Button stopButton {
           label {@square}
           callback {pushStopButton();}
-          tooltip Stop xywh {175 289 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
+          tooltip Stop xywh {170 264 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
         }
         Fl_Button applyScoreOffsetButton {
           label Goto
@@ -188,19 +176,19 @@ updateGUIState_outFile();}
   if (currentPerformanceSettings.scoreOffsetSeconds >= 0.0)
     csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, true);
 }}
-          tooltip {Set the current score position to the specified offset} xywh {20 320 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
+          tooltip {Set the current score position to the specified offset} xywh {15 295 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 174
         }
         Fl_Value_Input scoreOffsetInput {
           label Seconds
           callback {currentPerformanceSettings.scoreOffsetSeconds = o->value();
 if (performing && csPerf != (CsoundPerformance*) 0)
   csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, false);}
-          tooltip {Score offset in seconds} xywh {83 320 72 25} box THIN_DOWN_BOX align 8 maximum 10000
+          tooltip {Score offset in seconds} xywh {78 295 72 25} box THIN_DOWN_BOX align 8 maximum 10000
           code0 {o->value(currentPerformanceSettings.scoreOffsetSeconds);}
         }
       }
       Fl_Group {} {open
-        xywh {245 225 195 75} box ROUNDED_BOX color 4
+        xywh {235 200 200 75} box PLASTIC_THIN_DOWN_BOX color 4
       } {
         Fl_Menu_Button {} {
           label Options
@@ -208,14 +196,14 @@ if (performing && csPerf != (CsoundPerformance*) 0)
   openGlobalSettingsWindow();
 else if (o->value() == 1)
   openPerformanceSettingsWindow();} open
-          tooltip {Set options for Csound and the GUI interface} xywh {255 235 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
+          tooltip {Set options for Csound and the GUI interface} xywh {245 210 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
           code0 {o->add("GUI...|Csound...");}
           code1 {o->value(0);}
         } {}
         Fl_Button {} {
           label {Utilities...}
           callback {openUtilitiesWindow();}
-          tooltip {Open Csound utilities dialog} xywh {255 265 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
+          tooltip {Open Csound utilities dialog} xywh {245 240 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
         }
         Fl_Button {} {
           label Messages
@@ -233,7 +221,7 @@ else {
   currentGlobalSettings.consoleHeight = consoleWindow.window->h();
   consoleWindow.window->hide();
   }}
-          tooltip {Show/Hide Csound console messages} xywh {345 235 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
+          tooltip {Show/Hide Csound console messages} xywh {340 210 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
         }
         Fl_Menu_Button {} {
           label Help
@@ -241,14 +229,14 @@ else {
   runHelpBrowser("index.html");
 else if (o->value() == 1)
   openAboutWindow();} open
-          xywh {345 265 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
+          xywh {340 240 85 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 137 selection_color 139 align 20
           code0 {o->add("Manual|About");}
           code1 {o->value(0);}
         } {}
       }
       Fl_Group {} {
         label {Csound5 GUI} open
-        tooltip {This is the FLTK frontend for Csound5} xywh {240 305 205 55} box ROUNDED_FRAME selection_color 55 labeltype SHADOW_LABEL labelfont 5 labelsize 30 labelcolor 7 align 16
+        tooltip {This is the FLTK frontend for Csound5} xywh {235 280 200 50} box ROUNDED_FRAME selection_color 55 labeltype SHADOW_LABEL labelfont 5 labelsize 24 labelcolor 7 align 16
       } {}
     }
   }
