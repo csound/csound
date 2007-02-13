@@ -78,7 +78,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       return csound->InitError(csound, Str("illegal iocts"));
     if (nfreqs <= 0 || nfreqs > MAXFRQS)
       return csound->InitError(csound, Str("illegal ifrqs"));
-    if (Q <= FZERO)
+    if (Q <= FL(0.0))
       return csound->InitError(csound, Str("illegal Q value"));
     if (p->dbout < 0 || p->dbout > 3)
       return csound->InitError(csound, Str("unknown dbout code"));
@@ -164,7 +164,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         }
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
-      if (*p->idsines != FZERO) {      /* if reqd, dsply windowed sines now! */
+      if (*p->idsines != FL(0.0)) {      /* if reqd, dsply windowed sines now! */
         csound->dispset(csound, &p->sinwindow, p->sinp, (long) sumk,
                                 Str("spectrum windowed sines:"), 0, "spectrum");
         csound->display(csound, &p->sinwindow);
@@ -202,7 +202,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */
       octp->curp = octp->begp;
       for (fltp=octp->feedback,n=6; n--; )
-        *fltp++ = FZERO;
+        *fltp++ = FL(0.0);
       octp->scount = 0;
     }
     specp->nfreqs = p->nfreqs;               /* save the spec descriptors */
@@ -348,165 +348,165 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 }
 
 #if 0
-int nocdfset(CSOUND *csound, NOCTDFT *p)
-    /* noctdft - calcs disc Fourier transform of oct-downsampled data */
-    /* outputs coefs (mag, db or mag2) of log freq within each octave */
-{
-    int     nfreqs, hanning, nocts, ncoefs;
-    MYFLT   Q, *fltp;
-    DOWNDAT *downp = p->dsig;
-    SPECDAT *specp = p->wsig;
+/* int nocdfset(CSOUND *csound, NOCTDFT *p) */
+/*     /\* noctdft - calcs disc Fourier transform of oct-downsampled data *\/ */
+/*     /\* outputs coefs (mag, db or mag2) of log freq within each octave *\/ */
+/* { */
+/*     int     nfreqs, hanning, nocts, ncoefs; */
+/*     MYFLT   Q, *fltp; */
+/*     DOWNDAT *downp = p->dsig; */
+/*     SPECDAT *specp = p->wsig; */
 
-    p->timcount = csound->ekr * *p->iprd;
-    nfreqs = *p->ifrqs;
-    Q = *p->iq;
-    hanning = (*p->ihann) ? 1 : 0;
-    if ((p->dbout = *p->idbout) && p->dbout != 1 && p->dbout != 2) {
-      return csound->InitError(csound, Str("noctdft: unknown dbout code of %d"),
-                                       p->dbout);
-    }
-    nocts = downp->nocts;
-    ncoefs = nocts * nfreqs;
-    if (nfreqs != p->nfreqs || Q != p->curq         /* if anything changed */
-        || p->timcount <= 0 || Q <= 0.
-        || hanning != p->hanning
-        || ncoefs != p->ncoefs) {                   /*     make new tables */
-      double      basfrq, curfrq, frqmlt, Qfactor;
-      double      theta, a, windamp, onedws, pidws;
-      MYFLT       *sinp, *cosp;
-      int         n, k, sumk, windsiz, *wsizp, nsamps;
-      long        auxsiz;
+/*     p->timcount = csound->ekr * *p->iprd; */
+/*     nfreqs = *p->ifrqs; */
+/*     Q = *p->iq; */
+/*     hanning = (*p->ihann) ? 1 : 0; */
+/*     if ((p->dbout = *p->idbout) && p->dbout != 1 && p->dbout != 2) { */
+/*       return csound->InitError(csound, Str("noctdft: unknown dbout code of %d"), */
+/*                                        p->dbout); */
+/*     } */
+/*     nocts = downp->nocts; */
+/*     ncoefs = nocts * nfreqs; */
+/*     if (nfreqs != p->nfreqs || Q != p->curq         /\* if anything changed *\/ */
+/*         || p->timcount <= 0 || Q <= 0. */
+/*         || hanning != p->hanning */
+/*         || ncoefs != p->ncoefs) {                   /\*     make new tables *\/ */
+/*       double      basfrq, curfrq, frqmlt, Qfactor; */
+/*       double      theta, a, windamp, onedws, pidws; */
+/*       MYFLT       *sinp, *cosp; */
+/*       int         n, k, sumk, windsiz, *wsizp, nsamps; */
+/*       long        auxsiz; */
 
-      csound->Message(csound,
-                      Str("noctdft: %s window, %s out, making tables ...\n"),
-                      (hanning) ? "hanning":"hamming", outstring[p->dbout]);
-      if (p->timcount <= 0)
-        return csound->InitError(csound, Str("illegal iprd"));
-      if (nfreqs <= 0 || nfreqs > MAXFRQS)
-        return csound->InitError(csound, Str("illegal ifrqs"));
-      if (Q <= FZERO)
-        return csound->InitError(csound, Str("illegal Q value"));
-      nsamps = downp->nsamps;
-      p->nfreqs = nfreqs;
-      p->curq = Q;
-      p->hanning = hanning;
-      p->ncoefs = ncoefs;
-      basfrq = downp->hifrq/2.0 * TWOPI/downp->srate; /* oct below retuned top */
-      frqmlt = pow(2.0,1.0/(double)nfreqs);    /* nfreq interval mult */
-      Qfactor = TWOPI * Q;      /* Was incorrect value for 2pi?? */
-      curfrq = basfrq;
-      for (sumk=0,wsizp=p->winlen,n=nfreqs; n--; ) {
-        *wsizp++ = k = Qfactor/curfrq + 0.5;         /* calc window sizes  */
-        sumk += k;                                   /*   and find total   */
-        curfrq *= frqmlt;
-      }
-      if ((windsiz = *(p->winlen)) > nsamps) {        /* chk longest windsiz */
-        return csound->InitError(csound, Str("Q %4.1f needs %d samples, "
-                                             "octdown has just %d"),
-                                         Q, windsiz, nsamps);
-      }
-      else csound->Message(csound, Str("noctdft: Q %4.1f uses %d of "
-                                       "%d samps per octdown\n"),
-                                   Q, windsiz, nsamps);
-      auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);    /* calc local space reqd */
-      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /* & alloc auxspace  */
-      fltp = (MYFLT *) p->auxch.auxp;
-      p->linbufp = fltp;          fltp += nsamps; /* linbuf must handle nsamps */
-      p->sinp = sinp = fltp;      fltp += sumk;
-      p->cosp = cosp = fltp;                         /* cos gets rem sumk  */
-      wsizp = p->winlen;
-      for (curfrq=basfrq,n=nfreqs; n--; ) {           /* now fill tables */
-        windsiz = *wsizp++;
-        onedws = 1.0 / windsiz;
-        pidws = PI / windsiz;
-        for (k=0; k<windsiz; k++) {                 /*   with sines    */
-          a = sin(k * pidws);
-          windamp = a * a;                        /*   times hanning */
-          if (!hanning)
-            windamp = 0.08 + 0.92 * windamp;    /*   or hamming    */
-          windamp *= onedws;                      /*   scaled        */
-          theta = k * curfrq;
-          *sinp++ = windamp * sin(theta);
-          *cosp++ = windamp * cos(theta);
-        }
-        curfrq *= frqmlt;                           /*   step by log freq  */
-      }
-      if (*p->idsines != FL(0.0)) {
-        /* if reqd, display windowed sines immediately */
-        csound->dispset(csound, &p->dwindow, p->sinp, (long) sumk,
-                                Str("octdft windowed sines:"), 0, "octdft");
-        csound->display(csound, &p->dwindow);
-      }
-      SPECset(csound,
-              specp, (long)ncoefs);                /* prep the spec dspace */
-      specp->downsrcp = downp;                     /*  & record its source */
-    }
-    specp->nfreqs = p->nfreqs;                 /* save the spec descriptors */
-    specp->dbout = p->dbout;
-    specp->ktimstamp = 0;                      /* init specdata to not new  */
-    specp->ktimprd = p->timcount;
-    p->countdown = p->timcount;                /*     & prime the countdown */
-    return OK;
-}
+/*       csound->Message(csound, */
+/*                       Str("noctdft: %s window, %s out, making tables ...\n"), */
+/*                       (hanning) ? "hanning":"hamming", outstring[p->dbout]); */
+/*       if (p->timcount <= 0) */
+/*         return csound->InitError(csound, Str("illegal iprd")); */
+/*       if (nfreqs <= 0 || nfreqs > MAXFRQS) */
+/*         return csound->InitError(csound, Str("illegal ifrqs")); */
+/*       if (Q <= FL(0.0)) */
+/*         return csound->InitError(csound, Str("illegal Q value")); */
+/*       nsamps = downp->nsamps; */
+/*       p->nfreqs = nfreqs; */
+/*       p->curq = Q; */
+/*       p->hanning = hanning; */
+/*       p->ncoefs = ncoefs; */
+/*       basfrq = downp->hifrq/2.0 * TWOPI/downp->srate; /\* oct below retuned top *\/ */
+/*       frqmlt = pow(2.0,1.0/(double)nfreqs);    /\* nfreq interval mult *\/ */
+/*       Qfactor = TWOPI * Q;      /\* Was incorrect value for 2pi?? *\/ */
+/*       curfrq = basfrq; */
+/*       for (sumk=0,wsizp=p->winlen,n=nfreqs; n--; ) { */
+/*         *wsizp++ = k = Qfactor/curfrq + 0.5;         /\* calc window sizes  *\/ */
+/*         sumk += k;                                   /\*   and find total   *\/ */
+/*         curfrq *= frqmlt; */
+/*       } */
+/*       if ((windsiz = *(p->winlen)) > nsamps) {        /\* chk longest windsiz *\/ */
+/*         return csound->InitError(csound, Str("Q %4.1f needs %d samples, " */
+/*                                              "octdown has just %d"), */
+/*                                          Q, windsiz, nsamps); */
+/*       } */
+/*       else csound->Message(csound, Str("noctdft: Q %4.1f uses %d of " */
+/*                                        "%d samps per octdown\n"), */
+/*                                    Q, windsiz, nsamps); */
+/*       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);    /\* calc local space reqd *\/ */
+/*       csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /\* & alloc auxspace  *\/ */
+/*       fltp = (MYFLT *) p->auxch.auxp; */
+/*       p->linbufp = fltp;          fltp += nsamps; /\* linbuf must handle nsamps *\/ */
+/*       p->sinp = sinp = fltp;      fltp += sumk; */
+/*       p->cosp = cosp = fltp;                         /\* cos gets rem sumk  *\/ */
+/*       wsizp = p->winlen; */
+/*       for (curfrq=basfrq,n=nfreqs; n--; ) {           /\* now fill tables *\/ */
+/*         windsiz = *wsizp++; */
+/*         onedws = 1.0 / windsiz; */
+/*         pidws = PI / windsiz; */
+/*         for (k=0; k<windsiz; k++) {                 /\*   with sines    *\/ */
+/*           a = sin(k * pidws); */
+/*           windamp = a * a;                        /\*   times hanning *\/ */
+/*           if (!hanning) */
+/*             windamp = 0.08 + 0.92 * windamp;    /\*   or hamming    *\/ */
+/*           windamp *= onedws;                      /\*   scaled        *\/ */
+/*           theta = k * curfrq; */
+/*           *sinp++ = windamp * sin(theta); */
+/*           *cosp++ = windamp * cos(theta); */
+/*         } */
+/*         curfrq *= frqmlt;                           /\*   step by log freq  *\/ */
+/*       } */
+/*       if (*p->idsines != FL(0.0)) { */
+/*         /\* if reqd, display windowed sines immediately *\/ */
+/*         csound->dispset(csound, &p->dwindow, p->sinp, (long) sumk, */
+/*                                 Str("octdft windowed sines:"), 0, "octdft"); */
+/*         csound->display(csound, &p->dwindow); */
+/*       } */
+/*       SPECset(csound, */
+/*               specp, (long)ncoefs);                /\* prep the spec dspace *\/ */
+/*       specp->downsrcp = downp;                     /\*  & record its source *\/ */
+/*     } */
+/*     specp->nfreqs = p->nfreqs;                 /\* save the spec descriptors *\/ */
+/*     specp->dbout = p->dbout; */
+/*     specp->ktimstamp = 0;                      /\* init specdata to not new  *\/ */
+/*     specp->ktimprd = p->timcount; */
+/*     p->countdown = p->timcount;                /\*     & prime the countdown *\/ */
+/*     return OK; */
+/* } */
 
-int noctdft(CSOUND *csound, NOCTDFT *p)
-{
-    DOWNDAT *downp;
-    SPECDAT *specp;
-    OCTDAT  *octp;
-    MYFLT   *dftp;
-    int     nocts, wrap;
-    MYFLT   a, b;
-    double  c;
+/* int noctdft(CSOUND *csound, NOCTDFT *p) */
+/* { */
+/*     DOWNDAT *downp; */
+/*     SPECDAT *specp; */
+/*     OCTDAT  *octp; */
+/*     MYFLT   *dftp; */
+/*     int     nocts, wrap; */
+/*     MYFLT   a, b; */
+/*     double  c; */
 
-    if ((--p->countdown))  return;    /* if not yet time for new spec, return */
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("noctdft: not initialised"));
-    }
-    p->countdown = p->timcount;            /* else reset counter & proceed:   */
-    downp = p->dsig;
-    specp = p->wsig;
-    nocts = downp->nocts;
-    octp = downp->octdata + nocts;
-    dftp = (MYFLT *) specp->auxch.auxp;
-    while (nocts--) {
-      MYFLT  *bufp, *sinp, *cosp;
-      int    len, *lenp, nfreqs;
-      MYFLT   *begp, *curp, *endp;
-      octp--;                              /* for each octave (low to high)   */
-      begp = octp->begp;
-      curp = octp->curp;
-      endp = octp->endp;
-      wrap = curp - begp;
-      bufp = p->linbufp;
-      while (curp < endp)                    /*   copy circbuf to linbuf   */
-        *bufp++ = *curp++;
-      for (curp=begp,len=wrap; len--; )
-        *bufp++ = *curp++;
-      cosp = p->cosp;                        /*   get start windowed sines */
-      sinp = p->sinp;
-      lenp = p->winlen;
-      for (nfreqs=p->nfreqs; nfreqs--; ) {   /*   now for each freq this oct: */
-        a = 0.0;
-        b = 0.0;
-        bufp = p->linbufp;
-        for (len = *lenp++; len--; bufp++) {    /*  apply windowed sine seg */
-          a += *bufp * *cosp++;
-          b += *bufp * *sinp++;
-        }
-        c = a*a + b*b;                          /*  get magnitude squared   */
-        if (!(p->dbout))                        /*    & optionally convert  */
-          c = sqrt(c);                          /*    to  mag or db         */
-        else if (p->dbout == 1) {
-          if (c < .001) c = .001;
-          c = 10. * log10(c);
-        }
-        *dftp++ = c;                            /* store in out spectrum   */
-      }
-    }
-    specp->ktimstamp = csound->kcounter;        /* time-stamp the output   */
-    return OK;
-}
+/*     if ((--p->countdown))  return;    /\* if not yet time for new spec, return *\/ */
+/*     if (p->auxch.auxp==NULL) { /\* RWD fix *\/ */
+/*       return csound->PerfError(csound, Str("noctdft: not initialised")); */
+/*     } */
+/*     p->countdown = p->timcount;            /\* else reset counter & proceed:   *\/ */
+/*     downp = p->dsig; */
+/*     specp = p->wsig; */
+/*     nocts = downp->nocts; */
+/*     octp = downp->octdata + nocts; */
+/*     dftp = (MYFLT *) specp->auxch.auxp; */
+/*     while (nocts--) { */
+/*       MYFLT  *bufp, *sinp, *cosp; */
+/*       int    len, *lenp, nfreqs; */
+/*       MYFLT   *begp, *curp, *endp; */
+/*       octp--;                              /\* for each octave (low to high)   *\/ */
+/*       begp = octp->begp; */
+/*       curp = octp->curp; */
+/*       endp = octp->endp; */
+/*       wrap = curp - begp; */
+/*       bufp = p->linbufp; */
+/*       while (curp < endp)                    /\*   copy circbuf to linbuf   *\/ */
+/*         *bufp++ = *curp++; */
+/*       for (curp=begp,len=wrap; len--; ) */
+/*         *bufp++ = *curp++; */
+/*       cosp = p->cosp;                        /\*   get start windowed sines *\/ */
+/*       sinp = p->sinp; */
+/*       lenp = p->winlen; */
+/*       for (nfreqs=p->nfreqs; nfreqs--; ) {   /\*   now for each freq this oct: *\/ */
+/*         a = 0.0; */
+/*         b = 0.0; */
+/*         bufp = p->linbufp; */
+/*         for (len = *lenp++; len--; bufp++) {    /\*  apply windowed sine seg *\/ */
+/*           a += *bufp * *cosp++; */
+/*           b += *bufp * *sinp++; */
+/*         } */
+/*         c = a*a + b*b;                          /\*  get magnitude squared   *\/ */
+/*         if (!(p->dbout))                        /\*    & optionally convert  *\/ */
+/*           c = sqrt(c);                          /\*    to  mag or db         *\/ */
+/*         else if (p->dbout == 1) { */
+/*           if (c < .001) c = .001; */
+/*           c = 10. * log10(c); */
+/*         } */
+/*         *dftp++ = c;                            /\* store in out spectrum   *\/ */
+/*       } */
+/*     } */
+/*     specp->ktimstamp = csound->kcounter;        /\* time-stamp the output   *\/ */
+/*     return OK; */
+/* } */
 #endif
 
 int spdspset(CSOUND *csound, SPECDISP *p)
@@ -522,7 +522,7 @@ int spdspset(CSOUND *csound, SPECDISP *p)
     if (!(p->dwindow.windid)) {
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
-      if (downp->lofrq > 5.) {
+      if (downp->lofrq > FL(5.0)) {
         sprintf(strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
                 (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
@@ -588,7 +588,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       return csound->InitError(csound, Str("illegal no of partials"));
     }
     p->nptls = nptls;        /* number, whether all or odd */
-    if (*p->iodd == FZERO) {
+    if (*p->iodd == FL(0.0)) {
       ptlmax = nptls;
       inc = 1;
     } else {
@@ -605,13 +605,13 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     } else {
       MYFLT *fltp = p->pmult;
       MYFLT octdrop = (FL(1.0) - rolloff) / nfreqs;
-      weightsum = FZERO;
+      weightsum = FL(0.0);
       for (dstp = p->pdist, nn = nptls; nn--; ) {
         weight = FL(1.0) - octdrop * *dstp++;       /* rolloff * octdistance */
         weightsum += weight;
         *fltp++ = weight;
       }
-      if (*--fltp < FZERO) {
+      if (*--fltp < FL(0.0)) {
         return csound->InitError(csound, Str("per oct rolloff too steep"));
       }
       p->rolloff = 1;
@@ -629,9 +629,9 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
-      *fp++ = FZERO;   /* clear unused lo and hi range */
+      *fp++ = FL(0.0);   /* clear unused lo and hi range */
     for (fp = fhip; fp < fendp; )
-      *fp++ = FZERO;
+      *fp++ = FL(0.0);
 
     csound->Message(csound, Str("specptrk: %d freqs, %d%s ptls at "),
                             (int)nfreqs, (int)nptls, inc==2 ? Str(" odd") : "");
@@ -669,11 +669,11 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     p->confact = *p->iconf;
     p->flop = flop;
     p->fhip = fhip;
-    p->kinterp = (*p->interp == FZERO) ? 0 : 1;
+    p->kinterp = (*p->interp == FL(0.0)) ? 0 : 1;
     p->playing = 0;
     p->kvalsav = *p->istrt;
-    p->kval = p->kinc = FZERO;
-    p->kavl = p->kanc = FZERO;
+    p->kval = p->kinc = FL(0.0);
+    p->kavl = p->kanc = FL(0.0);
     p->jmpcount =  0;
     return OK;
 }
@@ -697,7 +697,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       if (inp==NULL) {             /* RWD fix */
         return csound->PerfError(csound, Str("specptrk: not initialised"));
       }
-      if ((kvar = *p->kvar) < FZERO)
+      if ((kvar = *p->kvar) < FL(0.0))
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
       lobin = (long)((kval-kvar) * inspecp->nfreqs); /* set lims of frq interest */
@@ -710,9 +710,9 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       ihip = inp + (fhip - p->fundp);
       if (p->ftimcnt) {                         /* if displaying,  */
         for (fp = p->flop; fp < flop; )         /*   clr to limits */
-          *fp++ = FZERO;
+          *fp++ = FL(0.0);
         for (fp = p->fhip; fp > fhip; )
-          *--fp = FZERO;
+          *--fp = FL(0.0);
       }
       inp = ilop;
       fp = flop;
@@ -757,28 +757,28 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
         if (fmax < p->threshoff) {      /* playing & threshoff ? */
           if (p->playing == PLAYING)
             p->kvalsav = p->kval;   /*   save val & turn off */
-          p->kval = FZERO;
-          p->kavl = FZERO;
-          p->kinc = FZERO;
-          p->kanc = FZERO;
+          p->kval = FL(0.0);
+          p->kavl = FL(0.0);
+          p->kinc = FL(0.0);
+          p->kanc = FL(0.0);
           p->playing = 0;
           goto output;
         }
       }
-      a = fmaxp>flop ? *(fmaxp-1) : FZERO;     /* calc a refined bin no */
+      a = fmaxp>flop ? *(fmaxp-1) : FL(0.0);     /* calc a refined bin no */
       b = fmax;
-      c = fmaxp<fhip-1 ? *(fmaxp+1) : FZERO;
+      c = fmaxp<fhip-1 ? *(fmaxp+1) : FL(0.0);
       if (b < FL(2.0) * (a + c))
         denom = b * FL(2.0) - a - c;
       else denom = a + b + c;
-      if (denom != FZERO)
+      if (denom != FL(0.0))
         delta = FL(0.5) * (c - a) / denom;
-      else delta = FZERO;
+      else delta = FL(0.0);
       realbin = (fmaxp - p->oct0p) + delta;    /* get modified bin number  */
       kval = realbin / inspecp->nfreqs;        /*     & cvt to true decoct */
 
       if (p->playing == STARTING) {            /* STARTING mode:           */
-        if ((absdiff = kval - p->kvalsav) < FZERO)
+        if ((absdiff = kval - p->kvalsav) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (p->jmpcount < confirms) {
@@ -788,15 +788,15 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
           p->playing = PLAYING;            /* else switch on playing   */
           p->jmpcount = 0;
           p->kval = kval;                  /*    but suppress interp   */
-          p->kinc = FZERO;
+          p->kinc = FL(0.0);
         }
       } else {                                 /* PLAYING mode:            */
-        if ((absdiff = kval - p->kval) < FZERO)
+        if ((absdiff = kval - p->kval) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (p->jmpcount < confirms) {
           p->jmpcount += 1;                /* if not enough confirms,  */
-          p->kinc = FZERO;                 /*    must wait some more   */
+          p->kinc = FL(0.0);                 /*    must wait some more   */
         } else {
           p->jmpcount = 0;                 /* else OK to jump interval */
           if (p->kinterp)                  /*    with optional interp  */
@@ -823,9 +823,8 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
 
 int spsumset(CSOUND *csound, SPECSUM *p)
 {
-    p->kinterp = (*p->interp == FZERO) ? 0 : 1;
-    p->kval = FZERO;
-    p->kinc = FZERO;
+    p->kinterp = (*p->interp == FL(0.0)) ? 0 : 1;
+    p->kinc = p->kval = FL(0.0);
     return OK;
 }
 
@@ -840,10 +839,10 @@ int specsum(CSOUND *csound, SPECSUM *p)
     if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
-      long npts = specp->npts;                  /*   sum all the values */
-      do {
-        sum += *valp++;
-      } while (--npts);
+      long n,npts = specp->npts;                /*   sum all the values */
+      for (n=0;n<npts;n++) {
+        sum += valp[n];
+      }
       if (p->kinterp)                           /*   new kinc if interp */
         p->kinc = (sum - p->kval) / specp->ktimprd;
       else p->kval = sum;
@@ -897,12 +896,12 @@ int specaddm(CSOUND *csound, SPECADDM *p)
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
       MYFLT *outp = (MYFLT *) p->waddm->auxch.auxp;
       MYFLT mul2 = p->mul2;
-      int   npts = p->wsig1->npts;
+      int   n,npts = p->wsig1->npts;
 
-      do {
-        *outp++ = *in1p++ + *in2p++ * mul2;         /* out = in1 + in2 * mul2 */
-      } while (--npts);
-      p->waddm->ktimstamp = csound->kcounter; /* mark the output spec as new */
+      for (n=0;n<npts;n++) {
+        outp[n] = in1p[n] + in2p[n] * mul2;         /* out = in1 + in2 * mul2 */
+      }
+      p->waddm->ktimstamp = csound->kcounter;  /* mark the output spec as new */
     }
     return OK;
 }
@@ -930,11 +929,9 @@ int spdifset(CSOUND *csound, SPECDIFF *p)
       return csound->InitError(csound,
                                Str("specdiff: local buffers not initialised"));
     }
-    do {
-      *lclp++ = FL(0.0);                    /* clr local & out spec bufs */
-      *outp++ = FL(0.0);
-    } while (--npts);
-    p->wdiff->ktimstamp = 0;             /* mark the out spec not new */
+    memset(lclp, 0, npts*sizeof(MYFLT));          /* clr local & out spec bufs */
+    memset(outp, 0, npts*sizeof(MYFLT));
+    p->wdiff->ktimstamp = 0;                      /* mark the out spec not new */
     return OK;
 }
 
@@ -953,19 +950,19 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
       MYFLT *difp = (MYFLT *) p->wdiff->auxch.auxp;
-      MYFLT newval, prvval, diff, possum = FL(0.0);
-      int   npts = inspecp->npts;
+      MYFLT newval, prvval, diff, possum = FL(0.0); /* possum not used! */
+      int   n,npts = inspecp->npts;
 
-      do {
-        newval = *newp++;                     /* compare new & old coefs */
-        prvval = *prvp;
+      for (n=0; n<npts;n++) {
+        newval = newp[n];                     /* compare new & old coefs */
+        prvval = prvp[n];
         if ((diff = newval-prvval) > FL(0.0)) {  /* if new coef > prv coef  */
-          *difp++ = diff;
+          difp[n] = diff;
           possum += diff;                     /*   enter & accum diff    */
         }
-        else *difp++ = FL(0.0);               /* else enter zero         */
-        *prvp++ = newval;                     /* sav newval for nxt time */
-      } while (--npts);
+        else difp[n] = FL(0.0);               /* else enter zero         */
+        prvp[n] = newval;                     /* sav newval for nxt time */
+      }
       p->wdiff->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
@@ -1004,10 +1001,10 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
       long lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fscale;
-      do {
-        *flp++ = *(ftable + (phs >> lobits));    /*  sample into scale area */
+      for (nn=0;nn<npts;nn++) {
+        flp[nn] = *(ftable + (phs >> lobits));   /*  sample into scale area */
         phs += inc;
-      } while (--nn);
+      }
     }
     if ((p->thresh = (int)*p->ifthresh)
         && (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
@@ -1018,10 +1015,10 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
       long lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fthresh;
-      do {
-        *flp++ = *(ftable + (phs >> lobits));    /*  sample into thresh area */
+      for(nn=0;nn<npts;nn++) {
+        flp[nn] = *(ftable + (phs >> lobits));   /*  sample into thresh area */
         phs += inc;
-      } while (--nn);
+      }
     }
     else p->thresh = 0;
     outspecp->ktimstamp = 0;                     /* mark the out spec not new */
@@ -1043,22 +1040,21 @@ int specscal(CSOUND *csound, SPECSCAL *p)
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *outp = (MYFLT *) outspecp->auxch.auxp;
       MYFLT *sclp = p->fscale;
-      long npts = inspecp->npts;
+      long n,npts = inspecp->npts;
 
       if (p->thresh) {                              /* if thresh requested,  */
         MYFLT *threshp = p->fthresh;
         MYFLT val;
-        do {
-          if ((val = *inp++ - *threshp++) > FL(0.0)) /* for vals above thresh */
-            *outp++ = val * *sclp;                   /*     scale & write out */
-          else *outp++ = FL(0.0);                    /*   else output is 0.   */
-          sclp++;
-        } while (--npts);
+        for (n=0; n<npts;n++) {
+          if ((val = inp[n] - threshp[n]) > FL(0.0)) /* for vals above thresh */
+            outp[n] = val * sclp[n];                 /*     scale & write out */
+          else outp[n] = FL(0.0);                    /*   else output is 0.   */
+        }
       }
       else {
-        do {
-          *outp++ = *inp++ * *sclp++;             /* no thresh: rescale only */
-        } while (--npts);
+        for (n=0; n<npts;n++) {
+          outp[n] = inp[n] * sclp[n];             /* no thresh: rescale only */
+        }
       }
       outspecp->ktimstamp = csound->kcounter;     /* mark the outspec as new */
     }
@@ -1088,10 +1084,8 @@ int sphstset(CSOUND *csound, SPECHIST *p)
       return csound->InitError(csound,
                                Str("spechist: local buffers not intiialised"));
     }
-    do {
-      *lclp++ = FL(0.0);                    /* clr local & out spec bufs */
-      *outp++ = FL(0.0);
-    } while (--npts);
+    memset(lclp,0,npts*sizeof(MYFLT));      /* clr local & out spec bufs */
+    memset(outp,0,npts*sizeof(MYFLT));
     p->wacout->ktimstamp = 0;             /* mark the out spec not new */
     return OK;
 }
@@ -1111,13 +1105,13 @@ int spechist(CSOUND *csound, SPECHIST *p)
       MYFLT *acup = (MYFLT *) p->accumer.auxch.auxp;
       MYFLT *outp = (MYFLT *) p->wacout->auxch.auxp;
       MYFLT newval;
-      int   npts = inspecp->npts;
+      int   n,npts = inspecp->npts;
 
-      do {
-        newval = *acup + *newp++;           /* add new to old coefs */
-        *acup++ = newval;                   /* sav in accumulator   */
-        *outp++ = newval;                   /* & copy to output     */
-      } while (--npts);
+      for (n=0;n<npts;n++) {
+        newval = acup[n] + newp[n];         /* add new to old coefs */
+        acup[n] = newval;                   /* sav in accumulator   */
+        outp[n] = newval;                   /* & copy to output     */
+      }
       p->wacout->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
@@ -1152,37 +1146,35 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       return csound->InitError(csound, Str("missing htim ftable"));
     }
     {
-      long nn = npts;
+      long nn;
       long phs = 0;
       long inc = (long)PHMASK / npts;
       long lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->coefs;
-      do {
-        *flp++ = *(ftable + (phs >> lobits));    /*  sample into coefs area */
+      for (nn=0;nn<npts;nn++) {
+        flp[nn] = *(ftable + (phs >> lobits));    /*  sample into coefs area */
         phs += inc;
-      } while (--nn);
+      }
     }
     {
-      long  nn = npts;
+      long  nn;
       MYFLT *flp = p->coefs;
       double halftim, reittim = inspecp->ktimprd * csound->onedkr;
-      do {
-        if ((halftim = *flp) > 0.)
-          *flp++ = (MYFLT)pow(0.5, reittim/halftim);
+      for (nn=0;nn<npts;nn++) {
+        if ((halftim = flp[nn]) > 0.)
+          flp[nn] = (MYFLT)pow(0.5, reittim/halftim);
         else {
           return csound->InitError(csound,
                                    Str("htim ftable must be all-positive"));
         }
-      } while (--nn);
+      }
     }
     csound->Message(csound, Str("coef range: %6.3f - %6.3f\n"),
                             *p->coefs, *(p->coefs+npts-1));
     {
       MYFLT *flp = (MYFLT *) p->states;
-      do {
-        *flp++ = FL(0.0);               /* clr the persist buf state mem */
-      } while (--npts);
+      memset(flp,0,npts*sizeof(MYFLT)); /* clr the persist buf state mem */
     }
     outspecp->ktimstamp = 0;            /* mark the output spec as not new */
     return OK;
@@ -1197,15 +1189,15 @@ int specfilt(CSOUND *csound, SPECFILT *p)
       MYFLT *outp = (MYFLT *) outspecp->auxch.auxp;
       MYFLT curval, *coefp = p->coefs;
       MYFLT *persp = p->states;
-      int   npts = inspecp->npts;
+      int   n,npts = inspecp->npts;
 
       if (newp==NULL || outp==NULL || coefp==NULL || persp==NULL) { /* RWD */
         return csound->PerfError(csound, Str("specfilt: not initialised"));
       }
-      do {                                         /* for npts of inspec:     */
-        *outp++ = curval = *persp;                 /*   output current point  */
-        *persp++ = *coefp++ * curval + *newp++;    /*   decay & addin newval  */
-      } while (--npts);
+      for (n=0; n<npts;n++) {                      /* for npts of inspec:     */
+        outp[n] = curval = persp[n];               /*   output current point  */
+        persp[n] = coefp[n] * curval + newp[n];    /*   decay & addin newval  */
+      }
       outspecp->ktimstamp = csound->kcounter;      /* mark output spec as new */
     }
     return OK;
