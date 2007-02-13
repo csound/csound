@@ -64,12 +64,12 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
   /*   Perform Filter Operation            */
 { /*  TwoZero is a two zero filter (duh!)  */
   /*  Look it up in your favorite DSP text */
-    p->lastOutput = p->zeroCoeffs[0] * p->inputs[0] +
-                    p->zeroCoeffs[1] * p->inputs[1];
+    MYFLT lastOutput = p->zeroCoeffs[0] * p->inputs[0] +
+                       p->zeroCoeffs[1] * p->inputs[1];
     p->inputs[1] = p->inputs[0];
     p->inputs[0] = p->gain * sample;
-    p->lastOutput += p->inputs[0];
-    return p->lastOutput;
+    p->lastOutput = (lastOutput += p->inputs[0]);
+    return lastOutput;
 }
 
 MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)

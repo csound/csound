@@ -51,25 +51,10 @@
 
 typedef struct TwoZero {
     MYFLT gain;
-    MYFLT inputs[2];
     MYFLT lastOutput;
+    MYFLT inputs[2];
     MYFLT zeroCoeffs[2];
 } TwoZero;
-
-/*******************************************/
-/*  Two Pole Filter Class,                 */
-/*  by Perry R. Cook, 1995-96              */
-/*  See books on filters to understand     */
-/*  more about how this works.  Nothing    */
-/*  out of the ordinary in this version.   */
-/*******************************************/
-
-typedef struct TwoPole {
-    MYFLT gain;
-    MYFLT onputs[2];
-    MYFLT lastOutput;
-    MYFLT poleCoeffs[2];
-} TwoPole;
 
 /* ********************************************************************** */
 
