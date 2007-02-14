@@ -1,3 +1,16 @@
+2007-02-13  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/cscorfns.c: cscoreCopyEvent() was writing past the end of the EVENT
+	struct.  Also added new static atEOF to fix an infinite loop caused by
+	a change in the behavior of rdscor().
+	
+	* Top/cscormai.c:
+	* Top/cscore.c:   Moved to frontends/cscore/
+	
+	* examples/cscore/: Added a number of examples of using Cscore.
+	
+	* util1/cscore/: Removing this directory as it is obsolete.
+	
 2007-02-13  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/fm4op.h (TwoPole): Not used
