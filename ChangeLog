@@ -1,3 +1,8 @@
+2007-02-14  jpff  <jpff@codemist.co.uk>
+
+	* Top/cscore.c:
+	  Top/cscormai.c:	Removed old code
+
 2007-02-13  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/cscorfns.c: cscoreCopyEvent() was writing past the end of the EVENT

@@ -43,7 +43,7 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, long length)
        a delay-line of length = max_length+1. */
     p->length = length = length+1;
     csound->AuxAlloc(csound, length * sizeof(MYFLT), &p->inputs);
-    for (i=0; i<length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0);
+/*     for (i=0; i<length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0); */
     p->inPoint = 0;
     p->outPoint = length >> 1;
     p->lastOutput = FL(0.0);
@@ -64,10 +64,11 @@ static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 
 static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 {
-    ((MYFLT*)p->inputs.auxp)[p->inPoint++] = sample; /* Input next sample */
+    MYFLT *xx = (MYFLT*)p->inputs.auxp;
+    xx[p->inPoint++] = sample; /* Input next sample */
     if (p->inPoint == p->length)               /* Check for end condition */
       p->inPoint -= p->length;
-    p->lastOutput = ((MYFLT*)p->inputs.auxp)[p->outPoint++]; /* Read nxt value */
+    p->lastOutput = xx[p->outPoint++]; /* Read nxt value */
     if (p->outPoint>=p->length)                /* Check for end condition */
       p->outPoint -= p->length;
 /*     return p->lastOutput; */
