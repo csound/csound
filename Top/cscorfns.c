@@ -28,7 +28,6 @@
 #define TYP_EVENT  1
 #define TYP_EVLIST 2
 #define TYP_SPACE  3
-#define WMYFLTS    4        /* extra floats for warped events */
 #define NSLOTS     100      /* default slots in cscoreListCreate list   */
 #define MAXALLOC   32768L
 
@@ -44,7 +43,7 @@ typedef struct {
         FILE  *iscfp;
         EVENT *next;
         MYFLT until;
-        int   wasend, warped;
+        int   wasend, warped, atEOF;
 } INFILE;
 static INFILE *infiles = NULL;    /* array of infile status blks */
 
@@ -57,6 +56,11 @@ static CSHDR  *nxtfree = NULL;   /* fast pointer to yet unused free space */
 static EVENT  *nxtevt = NULL;    /* to hold nxt infil event, PMAX pfields */
 static EVTBLK *nxtevtblk;        /* cs.h EVTBLK subset of EVENT nxtevt    */
 static int    warpout = 0;
+static MYFLT  curuntil;          /* initialised to zero by cscoreFileOpen */
+static int    wasend;            /* ditto */
+static int    atEOF;             /* zero when file opened;
+                                    stays one once rdscor returns 0 */
+
 
 void cscoreRESET(CSOUND *csound)
 {
@@ -215,9 +219,13 @@ PUBLIC EVENT * cscoreCopyEvent(CSOUND *csound, EVENT *e)
     f = cscoreCreateEvent(csound, n);
     f->op = e->op;
     f->strarg = e->strarg;
-    p = &e->p2orig;
-    q = &f->p2orig;
-    n += WMYFLTS;
+    /* f->pcnt was set by cscoreCreateEvent */
+    /* previous method of copying these was dangerous! - akozar */
+    f->p2orig = e->p2orig;
+    f->p3orig = e->p3orig;
+    p = &e->p[0];
+    q = &f->p[0];
+    n += 1; /* p[] is one larger than pcnt b/c p[0] unused */
     while (n--)
       *q++ = *p++;
     return(f);
@@ -274,11 +282,13 @@ PUBLIC EVENT * cscoreGetEvent(CSOUND *csound)
 {
     EVENT *e;
 
-    if (csound->scfp != NULL && nxtevt->op != '\0')
+    if (csound->scfp != NULL && !atEOF && nxtevt->op != '\0')
       e = cscoreCopyEvent(csound, nxtevt);
     else e = NULL;
-    if (!(rdscor(csound, nxtevtblk)))
+    if (!(rdscor(csound, nxtevtblk))) {
       nxtevt->op = '\0';
+      atEOF = 1;
+    }
     return(e);
 }
 
@@ -385,9 +395,6 @@ PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)
     a->nevents = nevents;
     return(a);
 }
-
-static MYFLT curuntil;           /* initialised to zero by cscoreFileOpen */
-static int   wasend;             /* ditto */
 
 /* get section events from the scorefile */
 
@@ -729,7 +736,8 @@ static void savinfdata(         /* store input file data */
   EVENT *next,
   MYFLT until,
   int   wasend,
-  int   warp)
+  int   warp,
+  int   eof)
 {
     INFILE *infp;
     int    n;
@@ -753,6 +761,7 @@ static void savinfdata(         /* store input file data */
     infp->until = until;
     infp->wasend = wasend;
     infp->warped = warp;
+    infp->atEOF = eof;
 }
 
 /* make fp the cur scfp & retreive other data */
@@ -772,10 +781,13 @@ static void makecurrent(CSOUND *csound, FILE *fp)
           nxtevtblk = (EVTBLK *) &nxtevt->strarg;
           curuntil = infp->until;
           wasend = infp->wasend;
+          atEOF = infp->atEOF;
           csound->warped = infp->warped;
           if (nxtevt->op == '\0')
-            if (!(rdscor(csound, nxtevtblk)))
+            if (!(rdscor(csound, nxtevtblk))) {
               nxtevt->op = '\0';
+              atEOF = 1;
+            }
           return;
         }
     csound->ErrorMsg(csound, Str("makecurrent: fp not recorded"));
@@ -805,7 +817,7 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     next = cscoreCreateEvent(csound, PMAX); /* creat EVENT blk receiving buf */
     next->op = '\0';
     savinfdata(csound, csound->scfp,
-               next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
+               next, FL(0.0), 1, 0, 0);    /* curuntil 0, wasend, non-warp, not eof */
     makecurrent(csound, csound->scfp);  /* make all this current         */
 
     return CSOUND_SUCCESS;
@@ -825,8 +837,8 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound, char *name)
     }
     /* alloc a receiving evtblk */
     next = cscoreCreateEvent(csound,PMAX);  /* FIXME: need next->op = '\0' ?? */
-    /* save all, wasend, non-warped */
-    savinfdata(csound, fp, next, FL(0.0), 1, 0);
+    /* save all, wasend, non-warped, not eof */
+    savinfdata(csound, fp, next, FL(0.0), 1, 0, 0);
     return(fp);
 }
 
@@ -867,7 +879,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 {
     if (csound->scfp != NULL)
       savinfdata(csound,
-                 csound->scfp, nxtevt, curuntil, wasend, csound->warped);
+                 csound->scfp, nxtevt, curuntil, wasend, csound->warped, atEOF);
     makecurrent(csound, fp);
 }
 
