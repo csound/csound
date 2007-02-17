@@ -121,11 +121,10 @@ MYFLT MOD(MYFLT a, MYFLT bb)
     if (bb==FL(0.0)) return FL(0.0);
     else {
       MYFLT b = (bb<0 ? -bb : bb);
-      int d = (int)(a / b);
-      a -= d * b;
-      while (a>b) a -= b;
-      while (-a>b) a += b;
-      return a;
+      int d = (int)fmod((double)a, (double)b);
+      while (d>b) d -= b;
+      while (-d>b) d += b;
+      return (MYFLT)d;
     }
 }
 
@@ -1456,7 +1455,7 @@ int outch(CSOUND *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         n, nsmps = csound->ksmps;
+    int         nsmps = csound->ksmps;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
 
