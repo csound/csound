@@ -78,7 +78,7 @@ static int dam(CSOUND *csound, DAM *p)
     /* Initialize power value and buffer at first ksamp computed as
      * it depends on kthreshold
      */
-    if(!p->initialized) {
+    if (!p->initialized) {
         p->power = *(p->kthreshold);
         for (i=0;i<POWER_BUFSIZE;i++) {
             p->powerBuffer[i] = p->power/(MYFLT)POWER_BUFSIZE;
