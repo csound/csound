@@ -54,7 +54,7 @@ static int daminit(CSOUND *csound, DAM *p)
 
     p->rspeed = (*p->rtime)*csound->onedsr*FL(1000.0);
     p->fspeed = (*p->ftime)*csound->onedsr*FL(1000.0);
-
+    p->initialized = 0;
     return OK;
 }
 
