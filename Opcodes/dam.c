@@ -44,8 +44,6 @@
 
 static int daminit(CSOUND *csound, DAM *p)
 {
-    int i;
-
    /* Initialise gain value */
 
     p->gain = FL(1.0);
@@ -57,14 +55,6 @@ static int daminit(CSOUND *csound, DAM *p)
     p->rspeed = (*p->rtime)*csound->onedsr*FL(1000.0);
     p->fspeed = (*p->ftime)*csound->onedsr*FL(1000.0);
 
-   /* Initialize power value and buffer */
-
-    p->power = *(p->kthreshold);
-    for (i=0;i<POWER_BUFSIZE;i++) {
-      p->powerBuffer[i] = p->power/(MYFLT)POWER_BUFSIZE;
-    }
-
-    p->powerPos = p->powerBuffer;
     return OK;
 }
 
@@ -84,6 +74,19 @@ static int dam(CSOUND *csound, DAM *p)
     MYFLT power;
     MYFLT tg;
     int nsmps = csound->ksmps;
+
+    /* Initialize power value and buffer at first ksamp computed as
+     * it depends on kthreshold
+     */
+    if(!p->initialized) {
+        p->power = *(p->kthreshold);
+        for (i=0;i<POWER_BUFSIZE;i++) {
+            p->powerBuffer[i] = p->power/(MYFLT)POWER_BUFSIZE;
+        }
+
+        p->powerPos = p->powerBuffer;
+        p->initialized = 1;
+    }
 
     ain         = p->ain;
     aout        = p->aout;
