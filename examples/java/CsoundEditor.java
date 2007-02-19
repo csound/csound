@@ -365,6 +365,12 @@ public class CsoundEditor extends JFrame {
         soundfilePlayer = properties.getProperty("SoundfilePlayer",
                 soundfilePlayer);
         initialize();
+		String orchestra = properties.getProperty("DefaultOrchestra");
+		if (orchestra != null) {
+			csoundFile.load(orchestra);
+            csoundFile.setFilename(orchestra);
+            updateView();
+		}
     }
 
     /**
