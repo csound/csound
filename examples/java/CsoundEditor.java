@@ -9,6 +9,7 @@
 
 import csnd.CppSound;
 import csnd.CsoundFile;
+import csnd.CsoundPerformanceThread;
 
 import javax.swing.JFrame;
 
@@ -35,31 +36,18 @@ import javax.swing.JOptionPane;
 public class CsoundEditor extends JFrame {
 
     private javax.swing.JPanel jContentPane = null;
-
     private JToolBar jToolBar = null;
-
     private JButton jButton = null;
-
     private JButton jButton1 = null;
-
     private JButton jButton2 = null;
-
     private JTextField commandTextField = null;
-
     private JButton jButton3 = null;
-
     private JTabbedPane jTabbedPane = null;
-
     private JScrollPane jScrollPane = null;
-
     private JTextArea orchestraTextArea = null;
-
     private JScrollPane jScrollPane1 = null;
-
     static JFileChooser fileChooser;
-
     static FileFilter csoundFileFilter;
-
     private JTextArea scoreTextArea = null;
     static {
         System.loadLibrary("_csnd");
@@ -68,15 +56,11 @@ public class CsoundEditor extends JFrame {
         csoundFileFilter = new CsoundFileFilter();
         fileChooser.addChoosableFileFilter(csoundFileFilter);
     }
-
     public Properties properties = new Properties(System.getProperties());
-
     private String soundfilePlayer = "";
-
-    public CppSound csound = new CppSound();
-
+    public CppSound csound = null;
     public CsoundFile csoundFile = null;
-
+	public CsoundPerformanceThread csoundPerformanceThread = null;
     private JButton jButton4 = null;
 
     /**
@@ -214,23 +198,16 @@ public class CsoundEditor extends JFrame {
         return jButton2;
     }
 
-    class PerformanceThread extends Thread {
-        public void run() {
-            try {
-                csoundFile.exportForPerformance();
-                csound.compile();
-                csound.Perform();
-            } catch (Exception x) {
-                x.printStackTrace();
-            }
-
-        }
-    }
-
     public void perform() {
         updateModel();
-        PerformanceThread performanceThread = new PerformanceThread();
-        performanceThread.start();
+        try {
+            csoundFile.exportForPerformance();
+            csound.compile();
+			csoundPerformanceThread = new CsoundPerformanceThread(csound);
+            csoundPerformanceThread.Play();
+        } catch (Exception x) {
+            x.printStackTrace();
+        }
     }
 
     /**
@@ -355,7 +332,9 @@ public class CsoundEditor extends JFrame {
             jButton4.setText("Stop");
             jButton4.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    csound.stop();
+                    csoundPerformanceThread.Stop();
+					csoundPerformanceThread.Join();
+					csound.cleanup();
                 }
             });
         }
@@ -380,6 +359,8 @@ public class CsoundEditor extends JFrame {
         } catch (Exception x) {
             x.printStackTrace();
         }
+		csound = new CppSound();
+		csoundPerformanceThread = new CsoundPerformanceThread(csound);
         csoundFile = csound.getCsoundFile();
         soundfilePlayer = properties.getProperty("SoundfilePlayer",
                 soundfilePlayer);
