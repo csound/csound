@@ -487,10 +487,11 @@ void reference_cb(Fl_Widget*, void* v)
   CsoundEditorWindow* w = (CsoundEditorWindow*)v;
   int start = w->textbuf->word_start(w->editor->insert_position());
   int end = w->textbuf->word_end(w->editor->insert_position());
-  char *page;
-  page =  w->textbuf->text_range(start,end);
+  char *page = (char *)calloc(128, sizeof(char));
+  strcpy(page, w->textbuf->text_range(start,end));
   strcat(page, ".html\0");
   w->parent->runHelpBrowser(string(page));
+  free(page);
 }
 
 void replall_cb(Fl_Widget*, void* v) {
