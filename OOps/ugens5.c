@@ -101,8 +101,6 @@ int tonsetx(CSOUND *csound, TONEX *p)
     p->yt1 = (double*)p->aux.auxp;
     if (!(*p->istor)) {
       memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
-/*       int j; */
-/*       for (j=0; j< p->loop; j++) p->yt1[j] = 0.0; */
     }
     return OK;
 }
@@ -166,9 +164,9 @@ int atone(CSOUND *csound, TONE *p)
 
 int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
-    MYFLT       *ar, *asig;
+    MYFLT       *ar = p->ar, *asig;
     double      c2, *yt1;
-    int         nsmps, j;
+    int         n, nsmps=csound->ksmps, j;
 
     if (*p->khp != p->prvhp) {
       double b;
@@ -182,16 +180,12 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     yt1=p->yt1;
     asig = p->asig;
     for (j=0; j< p->loop; j++) {
-      nsmps = csound->ksmps;
-      ar = p->ar;
-      do {
-        double sig = *asig++;
-        double x = c2 * (*yt1 + sig);
-        *yt1 = x - sig;            /* yt1 contains yt1-xt1 */
-        *ar++ = (MYFLT)x;
-      } while (--nsmps);
-      yt1++;
-      asig= p->ar;
+      for (n=0; n<nsmps; n++) {
+        double sig = asig[n];
+        double x = c2 * (yt1[j] + sig);
+        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
+        ar[n] = (MYFLT)x;
+      }
     }
     return OK;
 }
@@ -271,15 +265,13 @@ int rsnsetx(CSOUND *csound, RESONX *p)
     if (!(*p->istor)) {
       memset(p->yt1, 0, p->loop*sizeof(double));
       memset(p->yt2, 0, p->loop*sizeof(double));
-/*       int j; */
-/*       for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = 0.0; */
     }
     return OK;
 }
 
 int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
-    int flag = 0, nsmps, j;
+    int flag = 0, nsmps = csound->ksmps, j;
     MYFLT       *ar, *asig;
     double       c3p1, c3t4, omc3, c2sqr;
     double       *yt1, *yt2, c1,c2,c3;
@@ -315,7 +307,6 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     yt2  = p->yt2;
     ar = p->ar;
     asig = p->asig;
-    nsmps = csound->ksmps;
     for (j=0; j< p->loop; j++) {
       int n;
       for (n=0; n<nsmps; n++) {
@@ -325,7 +316,6 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
         ar[n] = (MYFLT)x;
         yt1[j] = x;
       }
-      asig = p->ar;
     }
     return OK;
 }

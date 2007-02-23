@@ -297,8 +297,9 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     n = p->bufSize * p->nChannels;
     p->buf = (MYFLT*) (p->auxData.auxp);
     p->prvBuf = (MYFLT*) p->buf + (int)n;
-    for (i = 0; i < n; i++)
-      p->buf[i] = FL(0.0);
+/*     for (i = 0; i < n; i++) */
+/*       p->buf[i] = FL(0.0); */
+    memset(p->buf, 0, n*sizeof(MYFLT));
     /* done initialisation */
     p->initDone = 1;
     return OK;
@@ -645,12 +646,12 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
 
 int soundin(CSOUND *csound, SOUNDIN_ *p)
 {
-    int nn, bufPos, i;
+    int nn, nsmps=csound->ksmps, bufPos, i;
 
     if (p->fdch.fd == NULL) {
       return csound->PerfError(csound, Str("soundin: not initialised"));
     }
-    for (nn = 0; nn < csound->ksmps; nn++) {
+    for (nn = 0; nn < nsmps; nn++) {
       bufPos = (int) (p->read_pos - p->bufStartPos);
       if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
         /* not in current buffer frame, need to read file */

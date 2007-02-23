@@ -53,7 +53,7 @@ int printv(CSOUND *csound, PRINTV *p)
 int fdspset(CSOUND *csound, FSIGDISP *p){
     char strmsg[256];
     p->size = p->fin->N/2 + 1;
-    if(*p->points && (p->size > *p->points)) p->size = *p->points;
+    if (*p->points && (p->size > *p->points)) p->size = *p->points;
 
   if (p->fdata.auxp == NULL || p->fdata.size < p->size*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
@@ -68,12 +68,12 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
 }
 
 int fdsplay(CSOUND *csound, FSIGDISP *p){
-    float *fin  = p->fin->frame.auxp;
+    float *fin   = p->fin->frame.auxp;
     MYFLT *pdata = p->fdata.auxp;
     int i,k, end = p->size;
 
    if (p->lastframe < p->fin->framecount) {
-    for(i=0, k=0; k < end; i+=2,k++)pdata[k] = fin[i];
+    for (i=0, k=0; k < end; i+=2,k++) pdata[k] = fin[i];
      display(csound, &p->dwindow);
       p->lastframe = p->fin->framecount;
    }
