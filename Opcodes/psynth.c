@@ -124,6 +124,12 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
         (unsigned) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
 
+    memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
+     memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
+ memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins  );
+ memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
+ memset(p->trackID.auxp, 0, sizeof(int) * numbins );
+
     return OK;
 }
 
@@ -254,21 +260,27 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
 
-    if (p->amps.auxp == NULL ||
-        (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
+      if (p->amps.auxp == NULL ||
+    (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-    if (p->freqs.auxp == NULL ||
-        (unsigned) p->freqs.size < sizeof(MYFLT) * numbins)
+      if (p->freqs.auxp == NULL ||
+      (unsigned) p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-    if (p->phases.auxp == NULL ||
-        (unsigned) p->phases.size < sizeof(MYFLT) * numbins)
+      if (p->phases.auxp == NULL ||
+       (unsigned) p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-    if (p->sum.auxp == NULL ||
-        (unsigned) p->sum.size < sizeof(MYFLT) * p->hopsize)
+      if (p->sum.auxp == NULL ||
+       (unsigned) p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-    if (p->trackID.auxp == NULL ||
-        (unsigned) p->trackID.size < sizeof(int) * numbins)
+      if (p->trackID.auxp == NULL ||
+       (unsigned) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
+
+    memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
+     memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
+ memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins  );
+ memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
+ memset(p->trackID.auxp, 0, sizeof(int) * numbins );
 
     return OK;
 }

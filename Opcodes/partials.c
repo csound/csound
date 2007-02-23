@@ -79,44 +79,43 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     if (p->lmags.auxp == NULL && p->lmags.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->lmags);
 
-    if (p->cflag.auxp == NULL && p->cflag.size < sizeof(int) * maxtracks)
+     if (p->cflag.auxp == NULL && p->cflag.size < sizeof(int) * maxtracks)
       csound->AuxAlloc(csound, sizeof(int) * maxtracks, &p->cflag);
-    if (p->trkid.auxp == NULL && p->trkid.size < sizeof(int) * maxtracks * 2)
+     if (p->trkid.auxp == NULL && p->trkid.size < sizeof(int) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(int) * maxtracks * 2, &p->trkid);
-    if (p->trndx.auxp == NULL && p->trndx.size < sizeof(int) * maxtracks)
+     if (p->trndx.auxp == NULL && p->trndx.size < sizeof(int) * maxtracks)
       csound->AuxAlloc(csound, sizeof(int) * maxtracks, &p->trndx);
-    if (p->index.auxp == NULL && p->index.size < sizeof(int) * numbins)
+     if (p->index.auxp == NULL && p->index.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->index);
 
-    if (p->tstart.auxp == NULL &&
-        p->tstart.size < sizeof(unsigned long) * maxtracks * 2)
+     if (p->tstart.auxp == NULL && p->tstart.size < sizeof(unsigned long) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(unsigned long) * maxtracks * 2,
                        &p->tstart);
-    if (p->lastpk.auxp == NULL &&
-        p->lastpk.size < sizeof(unsigned long) * maxtracks * 2)
+      if (p->lastpk.auxp == NULL &&
+       p->lastpk.size < sizeof(unsigned long) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(unsigned long) * maxtracks * 2,
                        &p->lastpk);
 
-    if (p->binex.auxp == NULL && p->binex.size < sizeof(MYFLT) * numbins)
+      if (p->binex.auxp == NULL && p->binex.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->binex);
-    if (p->magex.auxp == NULL && p->magex.size < sizeof(MYFLT) * numbins)
+      if (p->magex.auxp == NULL && p->magex.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->magex);
-    if (p->bins.auxp == NULL && p->bins.size < sizeof(MYFLT) * maxtracks)
+      if (p->bins.auxp == NULL && p->bins.size < sizeof(MYFLT) * maxtracks)
       csound->AuxAlloc(csound, sizeof(MYFLT) * maxtracks, &p->bins);
 
-    if (p->oldbins.auxp == NULL &&
-        p->oldbins.size < sizeof(MYFLT) * maxtracks * 2)
+      if (p->oldbins.auxp == NULL &&
+       p->oldbins.size < sizeof(MYFLT) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(MYFLT) * maxtracks * 2, &p->oldbins);
-    if (p->diffs.auxp == NULL && p->diffs.size < sizeof(MYFLT) * numbins)
+      if (p->diffs.auxp == NULL && p->diffs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->diffs);
-    if (p->pmags.auxp == NULL && p->pmags.size < sizeof(MYFLT) * maxtracks * 2)
+      if (p->pmags.auxp == NULL && p->pmags.size < sizeof(MYFLT) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(MYFLT) * maxtracks * 2, &p->pmags);
-    if (p->adthresh.auxp == NULL &&
-        p->adthresh.size < sizeof(MYFLT) * maxtracks * 2)
+      if (p->adthresh.auxp == NULL &&
+       p->adthresh.size < sizeof(MYFLT) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(MYFLT) * maxtracks * 2, &p->adthresh);
 
-    if (p->fout->frame.auxp == NULL &&
-        p->fout->frame.size < sizeof(float) * numbins * 4)
+      if (p->fout->frame.auxp == NULL &&
+       p->fout->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
 
     p->fout->N = N;
@@ -129,9 +128,20 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     memset(p->adthresh.auxp, 0, sizeof(MYFLT) * maxtracks * 2);
     memset(p->pmags.auxp, 0, sizeof(MYFLT) * maxtracks * 2);
     memset(p->oldbins.auxp, 0, sizeof(MYFLT) * maxtracks * 2);
+    memset(p->trndx.auxp, 0, sizeof(int) * maxtracks );
+    memset(p->trkid.auxp, 0, sizeof(int) * maxtracks * 2);
     memset(p->tstart.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->lastpk.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->cflag.auxp, 0, sizeof(int) * maxtracks);
+    memset(p->fout->frame.auxp, 0,sizeof(float) * numbins * 4); 
+    memset(p->mags.auxp, 0,sizeof(MYFLT) * numbins );
+    memset(p->lmags.auxp, 0,sizeof(double) * numbins );
+    memset(p->magex.auxp, 0,sizeof(MYFLT) * numbins );
+    memset(p->binex.auxp, 0,sizeof(MYFLT) * numbins );
+    memset(p->index.auxp, 0,sizeof(MYFLT) * numbins );
+    memset(p->bins.auxp, 0, sizeof(MYFLT) * maxtracks );
+    memset(p->diffs.auxp, 0, sizeof(MYFLT) * numbins );
+
     trkid = (int *) p->trkid.auxp;
     trndx = (int *) p->trndx.auxp;
     for (i = 0; i < maxtracks; i++)
@@ -152,6 +162,8 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     }
     else
       p->nophase = 0;
+
+    p->lastframe = 0;
 
     return OK;
 }

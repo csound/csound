@@ -99,7 +99,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
         (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
     if (p->fout2->frame.auxp == NULL ||
-        (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
+        (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout2->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
 
     p->fout1->N = fftsize;
@@ -121,6 +121,9 @@ static int ifd_init(CSOUND * csound, _IFD * p)
       counter[i] = i * hopsize;
 
     memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize * frames);
+    memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
+    memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
+    memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2)) ;
 
     winf = (MYFLT *) p->win.auxp;
     dwinf = (MYFLT *) p->diffwin.auxp;
