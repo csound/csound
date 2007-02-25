@@ -248,7 +248,10 @@ void CsoundPerformanceSettings::buildCommandLine(vector<string>&
       cmdLine_addIntegerOpt(cmdLine, "-H", heartBeatMode);
     if (rewriteHeader)
       cmdLine.push_back("-R");
-    cmdLine_addStringOpt(cmdLine, "-i", inputFileName);
+    if (runRealtime)
+      cmdLine_addStringOpt(cmdLine, "-i", rtAudioInputDevice);
+    else
+      cmdLine_addStringOpt(cmdLine, "-i", inputFileName);
     if (!CsoundGUIMain::isEmptyString(outputFileName) && enableSoundOutput) {
       cmdLine_addStringOpt(cmdLine, "-o", outputFileName);
     }
