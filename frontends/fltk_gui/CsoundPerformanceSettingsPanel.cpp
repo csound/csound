@@ -235,7 +235,7 @@ int CsoundPerformanceSettingsPanel::getNumber(std::string module, std::vector<st
 void CsoundPerformanceSettingsPanel::makeAudioDeviceName(std::string Name, bool isInput)
 {
     std::string deviceName = (isInput ? "adc":"dac");
-    if (performanceSettings.rtAudioModule == "JACK")  {
+    if (performanceSettings.rtAudioModule == "JACK" && Name != "NONE")  {
       deviceName.append(":");
       deviceName.append(Name);
     }
@@ -270,7 +270,8 @@ void CsoundPerformanceSettingsPanel::makeAudioDeviceName(std::string Name, bool 
             char temp [] = "  ";
             sprintf(temp, "%i", (isInput ? rtAudioInputDevices[i].cardNum :
                 rtAudioOutputDevices[i].cardNum) );
-            deviceName.append(std::string(temp));
+            if (strcmp(temp, "-1") != 0)
+              deviceName.append(std::string(temp));
           }
         }
       }
@@ -521,6 +522,11 @@ void CsoundPerformanceSettingsPanel::querySoundDevices()
           }
         }
         else if (rtModule == "JACK") {
+          deviceInfo a;
+          a.cardNum = -1;
+          a.description = "NONE";
+          rtAudioOutputDevices.push_back(a);
+          rtAudioInputDevices.push_back(a);
           char *begin = strchr(tmp, '"');
           char *end = strrchr(tmp, '"');
           size_t len = end - begin - 1;
