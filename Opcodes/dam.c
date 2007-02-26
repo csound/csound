@@ -54,7 +54,7 @@ static int daminit(CSOUND *csound, DAM *p)
 
     p->rspeed = (*p->rtime)*csound->onedsr*FL(1000.0);
     p->fspeed = (*p->ftime)*csound->onedsr*FL(1000.0);
-    p->power = -FL(1.0);
+    p->kthr = -FL(1.0);
     return OK;
 }
 
@@ -78,11 +78,12 @@ static int dam(CSOUND *csound, DAM *p)
     /* Initialize power value and buffer at first ksamp computed as
      * it depends on kthreshold
      */
-    if (p->kthr != *(p->kthreshold)) {
-      /* Initialise trable as threshhold changed */
-      p->kthr = p->power = *(p->kthreshold);
+    if (p->kthr < FL(0.0)) {
+      MYFLT x = (p->kthr = *(p->kthreshold))/(MYFLT)POWER_BUFSIZE;
+      p->power = p->kthr;
+      /* Initialise table as threshhold changed */
       for (i=0;i<POWER_BUFSIZE;i++) {
-        p->powerBuffer[i] = p->power/(MYFLT)POWER_BUFSIZE;
+        p->powerBuffer[i] = x;
       }
       p->powerPos = p->powerBuffer;
     }
