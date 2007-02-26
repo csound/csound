@@ -43,7 +43,7 @@ typedef struct {
    MYFLT power ;
    MYFLT powerBuffer[POWER_BUFSIZE] ;
    MYFLT *powerPos ;
-   int   initialized;
+   MYFLT kthr;
 
 } DAM ;
 
