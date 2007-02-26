@@ -83,9 +83,9 @@ int init(CSOUND *csound, ASSIGN *p)
 int ainit(CSOUND *csound, ASSIGN *p)
 {
     MYFLT aa = *p->a;
-    int   n;
+    int   n, nsmps=csound->ksmps;
 
-    for (n = 0; n < csound->ksmps; n++)
+    for (n = 0; n < nsmps; n++)
       p->r[n] = aa;
     return OK;
 }
@@ -317,8 +317,8 @@ int int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. */
 int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 {
     double intpart;
-    int    n;
-    for (n = 0; n < csound->ksmps; n++) {
+    int    n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++) {
       modf((double)p->a[n], &intpart);
       p->r[n] = (MYFLT) intpart;
     }
@@ -336,8 +336,8 @@ int frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
 int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 {
     double intpart, fracpart;
-    int    n;
-    for (n = 0; n < csound->ksmps; n++) {
+    int    n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++) {
       fracpart = modf((double)p->a[n], &intpart);
       p->r[n] = (MYFLT) fracpart;
     }
@@ -362,8 +362,8 @@ int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 
 int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)MYFLT2LRND(p->a[n]);
     return OK;
 }
@@ -376,8 +376,8 @@ int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 
 int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(FLOOR(p->a[n]));
     return OK;
 }
@@ -390,8 +390,8 @@ int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 
 int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(CEIL(p->a[n]));
     return OK;
 }
@@ -809,8 +809,8 @@ int powoftwo(CSOUND *csound, EVAL *p)
 
 int powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps=csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = pow2(p->a[n]);
     return OK;
 }
@@ -1057,11 +1057,11 @@ int inch_opcode(CSOUND *csound, INCH *p)
 int inall_opcode(CSOUND *csound, INALL *p)
 {
     int   n = (int)p->OUTOCOUNT;
-    int   m;
+    int   m, nsmps=csound->ksmps;
     int   i, j = 0, k = 0;
 
     m = (n < csound->nchnls ? n : csound->nchnls);
-    for (j=0; j<csound->ksmps; j++) {
+    for (j=0; j<nsmps; j++) {
       for (i=0; i<m; i++) {
         p->ar[i][j] = csound->spin[k + i];
       }
@@ -1455,7 +1455,7 @@ int outch(CSOUND *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         nsmps = csound->ksmps;
+    int         n,nsmps = csound->ksmps;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
 
@@ -1465,20 +1465,20 @@ int outch(CSOUND *csound, OUTCH *p)
       if (ch > csound->nchnls) continue;
       if (!csound->spoutactive) {
         sp = csound->spout;
-        do {
+        for (n=0; n<nsmps; n++) {
           for (i = 1; i <= csound->nchnls; i++) {
-            *sp = ((i == ch) ? *apn++ : FL(0.0));
+            *sp = ((i == ch) ? apn[n] : FL(0.0));
             sp++;
           }
-        } while (--nsmps);
+        }
         csound->spoutactive = 1;
       }
       else {
         sp = csound->spout + (ch - 1);
-        do {
-          *sp += *apn++;
+        for (n=0; n<nsmps; n++) {
+          *sp += apn[n];
           sp += csound->nchnls;
-        } while (--nsmps);
+        }
       }
     }
     return OK;
