@@ -27,7 +27,7 @@ class CsoundPerformanceSettingsPanel {open
     Fl_Window window {
       label {Csound performance settings}
       callback {status = 1;} open
-      xywh {983 477 405 540} type Double color 139
+      xywh {983 495 405 540} type Double color 139
       code0 {window = o;} visible
     } {
       Fl_Tabs tabs {open
@@ -35,8 +35,8 @@ class CsoundPerformanceSettingsPanel {open
         code0 {tabs = o;}
       } {
         Fl_Group {} {
-          label General open selected
-          xywh {0 25 405 480} color 139
+          label General open
+          xywh {0 25 405 480} color 139 hide
         } {
           Fl_Input orcNameInput {
             label {Orchestra/CSD}
@@ -409,6 +409,7 @@ else
             label {Input Device}
             callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
+if (!button_->text()) return;
 if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
   makeAudioDeviceName(std::string(o->value()), true);
 else
@@ -419,6 +420,7 @@ else
             label {Output Device}
             callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
+if (!button_->text()) return;
 if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
   makeAudioDeviceName(std::string(o->value()), false);
 else
@@ -445,7 +447,7 @@ performanceSettings.rtAudioInputDevice = "adc";} open
         }
         Fl_Group {} {
           label MIDI open
-          xywh {0 25 405 470} color 139 hide
+          xywh {0 25 405 470} color 139
         } {
           Fl_Group {} {
             label {MIDI file I/O} open
@@ -493,7 +495,7 @@ performanceSettings.rtAudioInputDevice = "adc";} open
             }
           }
           Fl_Group {} {
-            label {Real time MIDI} open
+            label {Real time MIDI} open selected
             xywh {10 195 385 125} box PLASTIC_UP_FRAME labelsize 12 align 5
           } {
             Fl_Choice rtMidiModulesChoice {
@@ -518,6 +520,7 @@ else {
               label {Input Device}
               callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
+if (!button_->text()) return;
 if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
   makeMidiDeviceName(std::string(o->value()), true);
 else
@@ -529,6 +532,7 @@ else
               label {Output Device}
               callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
+if (!button_->text()) return;
 if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
   makeMidiDeviceName(std::string(o->value()), false);
 else
