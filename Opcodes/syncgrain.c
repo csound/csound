@@ -220,9 +220,9 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     loop_end = (int) (*p->loop_end*sr);
     if(loop_start < 0) loop_start = 0;
     if(loop_start >= datasize) loop_start = datasize-1;
-    if(firsttime) start = start > loop_start ? loop_start : start;
     loop_end = (loop_start > loop_end ? loop_start : loop_end);
     loopsize = loop_end - loop_start;
+    //csound->Message(csound, "st:%d, end:%d, loopsize=%d\n", loop_start, loop_end, loopsize);    
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
@@ -231,6 +231,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if (grsize<1) {
       return csound->PerfError(csound, "grain size smaller than 1 sample\n");
     }
+    if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
@@ -259,9 +260,10 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         while (start >= loop_end) {
           firsttime = 0;
           start -= loopsize;
+          //csound->Message(csound, "st:%d, end:%d, loopsize=%d\n", loop_start, loop_end, loopsize);
         }
         while (start < loop_start && !firsttime)
-          start += loopsize;
+	 start += loopsize;
       }
       /* depending on pitch transpsition a
          grain can extend beyond the loop points.
