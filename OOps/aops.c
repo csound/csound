@@ -1455,18 +1455,19 @@ int outch(CSOUND *csound, OUTCH *p)
     int         ch;
     int         i, j;
     MYFLT       *sp, *apn;
-    int         n,nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
+    int		nchnls = csound->nchnls;
 
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
       apn = args[j + 1];
-      if (ch > csound->nchnls) continue;
+      if (ch > nchnls) continue;
       if (!csound->spoutactive) {
         sp = csound->spout;
         for (n=0; n<nsmps; n++) {
-          for (i = 1; i <= csound->nchnls; i++) {
+          for (i = 1; i <= nchnls; i++) {
             *sp = ((i == ch) ? apn[n] : FL(0.0));
             sp++;
           }
@@ -1477,7 +1478,7 @@ int outch(CSOUND *csound, OUTCH *p)
         sp = csound->spout + (ch - 1);
         for (n=0; n<nsmps; n++) {
           *sp += apn[n];
-          sp += csound->nchnls;
+          sp += nchnls;
         }
       }
     }
