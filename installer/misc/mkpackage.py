@@ -74,7 +74,7 @@ utils1 = ['csound', 'csound5gui', 'winsound', 'cstclsh', 'cswish',
           'het_export', 'het_import', 'hetro', 'lpanal',
           'lpc_export', 'lpc_import', 'mixer', 'pvanal',
           'pvlook', 'pv_export', 'pv_import', 'scale', 'sndinfo',
-          'srconv']
+          'srconv', 'cseditor']
 
 utils2 = ['scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 
