@@ -949,6 +949,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           char  buff[200];
           int   c;
           int   i = 0;
+          int   j = 0;
           while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
           while (isNameChar(c, i)) {
             buff[i++] = c;
@@ -957,14 +958,14 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           buff[i] = '\0';
           if (csound->oparms->msglevel)
             csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
-          for (i=0; i<=ST(next_name); i++)
-            if (strcmp(buff, ST(names)[i].name)==0) break;
-          if (i>ST(next_name)) {
-            i = ++ST(next_name);
-            ST(names)[i].name = (char*)mmalloc(csound, i+1);
-            strcpy(ST(names)[i].name, buff);
+          for (j=0; j<=ST(next_name); j++)
+            if (strcmp(buff, ST(names)[j].name)==0) break;
+          if (j>ST(next_name)) {
+            j = ++ST(next_name);
+            ST(names)[j].name = (char*)mmalloc(csound, i+1);
+            strcpy(ST(names)[j].name, buff);
           }
-          else mfree(csound, ST(names)[i].file);
+          else mfree(csound, ST(names)[j].file);
           flushlin(csound);
           if (!ST(str)->string) {
             ST(names)[ST(next_name)].posit = ftell(ST(str)->file);
@@ -979,7 +980,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           else {
             csound->Message(csound,
                              Str("Ignoring name %s not in file\n"), buff);
-            ST(names)[i].name[0] = '\0'; /* Destroy name */
+            ST(names)[j].name[0] = '\0'; /* Destroy name */
           }
           ST(op) = getop(csound);
           ST(nxp) = old_nxp;
