@@ -300,7 +300,11 @@ PUBLIC void csoundapi_reset(t_csoundapi *x)
       }
 
       csoundReset(x->csound);
+      x->result = csoundPreCompile(x->csound);
+      if (x->result == CSOUND_SUCCESS) {
+      csoundSetHostImplementedAudioIO(x->csound, 1, 0);
       x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
+      }
 
       if (!x->result) {
         x->end = 0;
