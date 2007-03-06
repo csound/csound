@@ -948,8 +948,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           char  *old_nxp = ST(nxp)-2;
           char  buff[200];
           int   c;
-          int   i = 0;
-          int   j = 0;
+          int   i = 0, j;
           while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
           while (isNameChar(c, i)) {
             buff[i++] = c;
