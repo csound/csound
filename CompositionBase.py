@@ -618,9 +618,9 @@ isustain		=			p3
 irelease		=			.05
 aenvelope               transeg                 1.0, p3, -3.0, 0.1
 aexcite                 poscil                  1.0, 1, gisine
-asignal1		wgpluck2 		.1, 1.0, ifrequency,         .15, .2
-asignal2		wgpluck2 		.1, 1.0, ifrequency * 1.003, .14, .1
-asignal3		wgpluck2 		.1, 1.0, ifrequency * 0.997, .16, .1
+asignal1		wgpluck2 		.1, 1.0, ifrequency,         .15, .18
+asignal2		wgpluck2 		.1, 1.0, ifrequency * 1.003, .14, .18
+asignal3		wgpluck2 		.1, 1.0, ifrequency * 0.997, .16, .18
 apluckout               =                       (asignal1 + asignal2 + asignal3) * aenvelope
 aleft, aright		Pan			 apluckout * iamplitude
 p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
