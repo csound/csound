@@ -3109,6 +3109,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp;
+  bool plastic = false;
 
   if (*p->iy < 0) {
     iy = ST(FL_iy);
@@ -3134,7 +3135,10 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
   case 0: iexp = LIN_; break;
   default: iexp = (int) *p->iexp;
   }
-
+  if (itype > 19) {
+    plastic = true;
+    itype = itype - 20;
+  }
   if (itype > 10 && iexp == EXP_) {
     if (csound->oparms->msglevel & WARNMSG)
       csound->Warning(csound, "FLslider exponential, using non-labeled slider");
@@ -3142,7 +3146,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
   }
 
   Fl_Slider *o;
-  if (itype < 10) o = new Fl_Slider(ix, iy, iwidth, iheight, controlName);
+  if (itype <= 10) o = new Fl_Slider(ix, iy, iwidth, iheight, controlName);
   else {
     o = new Fl_Value_Slider_Input(csound, ix, iy, iwidth, iheight, controlName);
     itype -=10;
@@ -3152,14 +3156,15 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
     o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
   }
   switch (itype) {
-  case 1:  o->type(FL_HOR_FILL_SLIDER); break;
-  case 2:  o->type(FL_VERT_FILL_SLIDER); break;
+  case 1: o->type(FL_HOR_FILL_SLIDER); break;
+  case 2: o->type(FL_VERT_FILL_SLIDER); break;
   case 3:  o->type(FL_HOR_SLIDER); break;
   case 4:  o->type(FL_VERT_SLIDER); break;
   case 5:  o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
   case 6:  o->type(FL_VERT_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
   default: return csound->InitError(csound, "FLslider: invalid slider type");
   }
+  if (plastic) o->box(FL_PLASTIC_DOWN_BOX);
   widget_attributes(csound, o);
   MYFLT min = p->min = *p->imin, max = *p->imax, range;
   switch (iexp) {
@@ -3201,6 +3206,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
 static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
 {
   char s[MAXNAME];
+  bool plastic = false;
   if (p->XSTRCODE)
     strcpy(s, (char*) p->names);
   else if ((long) *p->names <= csound->strsmax &&
@@ -3268,12 +3274,19 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     if ((int) *p->itypetable <= 0) {    // no slider type table
       if (*p->itypetable >= -7)         //  all sliders are of the same type
         slider_type = -((int) *p->itypetable);
+      else if (*p->itypetable >= -27 and *p->itypetable < -20) {
+        slider_type = -((int) *p->itypetable) - 20;
+        plastic = true;
+      }
       else                              // random type
         slider_type = rand_31_i(csound, 7) | 1;
     }
     else
       slider_type = (int) typetable[j];
-
+    if (slider_type > 20) {
+      plastic = true;
+      slider_type -= 20;
+    }
     if (slider_type < 10)
       o = new Fl_Slider(x, y, width, 10, Name);
     else {
@@ -3289,6 +3302,7 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     case 7:  o->type(FL_HOR_NICE_SLIDER); o->box(FL_DOWN_BOX); break;
     default: o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
     }
+    if (plastic) o->box(FL_PLASTIC_DOWN_BOX);
     o->align(FL_ALIGN_LEFT);
     widget_attributes(csound, o);
     MYFLT min, max, range;
@@ -3631,6 +3645,11 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   int type = (int) *p->itype;
+  bool plastic = false;
+  if (type > 19) {
+    type = type - 20;
+    plastic = true;
+  }
   if (type > 9) {       // ignored when getting ST(snapshots)
     if (csound->oparms->msglevel & WARNMSG)
       csound->Warning(csound,
@@ -3645,18 +3664,34 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
   case 1:
     w = new Fl_Button((int)*p->ix, (int)*p->iy,
                       (int)*p->iwidth, (int)*p->iheight, Name);
+    if (plastic) {
+      w->box(FL_PLASTIC_UP_BOX);
+      w->down_box(FL_PLASTIC_DOWN_BOX);
+    }
     break;
   case 2:
     w = new Fl_Light_Button((int)*p->ix, (int)*p->iy,
                             (int)*p->iwidth, (int)*p->iheight, Name);
+    if (plastic) {
+      w->box(FL_PLASTIC_UP_BOX);
+//       w->down_box(FL_PLASTIC_DOWN_BOX);
+    }
     break;
   case 3:
     w = new Fl_Check_Button((int)*p->ix, (int)*p->iy,
                             (int)*p->iwidth, (int)*p->iheight, Name);
+    if (plastic) {
+      w->box(FL_PLASTIC_UP_BOX);
+      w->down_box(FL_PLASTIC_DOWN_BOX);
+    }
     break;
   case 4:
     w = new Fl_Round_Button((int)*p->ix, (int)*p->iy,
                             (int)*p->iwidth, (int)*p->iheight, Name);
+    if (plastic) {
+      w->box(FL_PLASTIC_UP_BOX);
+      w->down_box(FL_PLASTIC_DOWN_BOX);
+    }
     break;
   default:
     return csound->InitError(csound, "FLbutton: invalid button type");
@@ -3730,6 +3765,11 @@ static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
 {
   char *Name = "/0";
   int type = (int) *p->itype;
+  bool plastic = false;
+  if (type > 20) {
+    plastic = true;
+    type = type - 20;
+  }
   if (type > 9) {       // ignored when getting ST(snapshots)
     csound->Warning(csound,
                     "FLbutton \"%s\" ignoring snapshot capture retrieve",
@@ -3747,10 +3787,33 @@ static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
       ST(allocatedStrings).push_back(btName);
       sprintf(btName, "%d", z);
       switch (type) {
-      case 1: w = new Fl_Button(x, y, 10, 10, btName); break;
-      case 2: w = new Fl_Light_Button(x, y, 10, 10, btName); break;
-      case 3: w = new Fl_Check_Button(x, y, 10, 10, btName); break;
-      case 4: w = new Fl_Round_Button(x, y, 10, 10, btName); break;
+      case 1:
+        w = new Fl_Button(x, y, 10, 10, btName);
+        if (plastic) {
+          w->box(FL_PLASTIC_UP_BOX);
+          w->down_box(FL_PLASTIC_DOWN_BOX);
+        }
+        break;
+      case 2:
+        w = new Fl_Light_Button(x, y, 10, 10, btName);
+        if (plastic) {
+          w->box(FL_PLASTIC_UP_BOX);
+        }
+        break;
+      case 3:
+        w = new Fl_Check_Button(x, y, 10, 10, btName);
+        if (plastic) {
+          w->box(FL_PLASTIC_UP_BOX);
+          w->down_box(FL_PLASTIC_DOWN_BOX);
+        }
+        break;
+      case 4:
+        w = new Fl_Round_Button(x, y, 10, 10, btName); 
+        if (plastic) {
+          w->box(FL_PLASTIC_UP_BOX);
+          w->down_box(FL_PLASTIC_DOWN_BOX);
+        }
+        break;
       default: return csound->InitError(csound, "FLbuttonBank: "
                                                 "invalid button type");
       }
