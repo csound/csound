@@ -1,3 +1,7 @@
+2007-03-12  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/system_call.c (localops): system was not called a k-rate
+
 2007-03-11  Andrés Cabrera  <andres@geminiflux.com>
 	* Added Plastic look for FLslider, FlslidBnk, FLbutton and FLbutBnk
 
