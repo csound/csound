@@ -1,3 +1,6 @@
+2007-03-12  Andrés Cabrera  <andres@geminiflux.com>
+	* Added preliminary support for vst4cs on linux
+
 2007-03-12  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/system_call.c (localops): system was not called a k-rate
