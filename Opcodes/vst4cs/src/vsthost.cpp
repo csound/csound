@@ -22,13 +22,14 @@
 //  License along with The vst4cs library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
+
+#include "vsthost.h"
 #include <cmath>
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 // ma++ #include "AEffEditor.hpp"
 // ma++ #include "aeffectx.h"
-#include "vsthost.h"
 
 #ifdef MSVC
 #define round int
@@ -348,30 +349,30 @@ bool VSTPlugin::AddMIDI(int data, int deltaFrames, int detune)
     if (!aeffect)
       return false;
 
-      vstMidiEvents.resize(vstMidiEvents.size() + 1);
-      VstMidiEvent& vstMidiEvent = vstMidiEvents.back();
+    vstMidiEvents.resize(vstMidiEvents.size() + 1);
+    VstMidiEvent& vstMidiEvent = vstMidiEvents.back();
 
-      vstMidiEvent.type = kVstMidiType;
-      vstMidiEvent.byteSize = 24;
-      vstMidiEvent.deltaFrames = deltaFrames;
-      vstMidiEvent.flags = 0;
-      vstMidiEvent.detune = detune;
-      vstMidiEvent.noteLength = 0;
-      vstMidiEvent.noteOffset = 0;
-      vstMidiEvent.reserved1 = 0;
-      vstMidiEvent.reserved2 = 0;
-      vstMidiEvent.noteOffVelocity = 0;
-      vstMidiEvent.midiData[0] = data & 255;
-      if ((data & 240) == 144) {
-        if (!(data & (int) 0x7F0000)) {
-          vstMidiEvent.midiData[0] -= 16;
-          data |= (int) 0x400000;
-        }
+    vstMidiEvent.type = kVstMidiType;
+    vstMidiEvent.byteSize = 24;
+    vstMidiEvent.deltaFrames = deltaFrames;
+    vstMidiEvent.flags = 0;
+    vstMidiEvent.detune = detune;
+    vstMidiEvent.noteLength = 0;
+    vstMidiEvent.noteOffset = 0;
+    vstMidiEvent.reserved1 = 0;
+    vstMidiEvent.reserved2 = 0;
+    vstMidiEvent.noteOffVelocity = 0;
+    vstMidiEvent.midiData[0] = data & 255;
+    if ((data & 240) == 144) {
+      if (!(data & (int) 0x7F0000)) {
+        vstMidiEvent.midiData[0] -= 16;
+        data |= (int) 0x400000;
       }
-      vstMidiEvent.midiData[1] = (data >> 8) & 127;
-      vstMidiEvent.midiData[2] = (data >> 16) & 127;
-      vstMidiEvent.midiData[3] = 0;
-      return true;
+    }
+    vstMidiEvent.midiData[1] = (data >> 8) & 127;
+    vstMidiEvent.midiData[2] = (data >> 16) & 127;
+    vstMidiEvent.midiData[3] = 0;
+    return true;
 }
 
 void VSTPlugin::SendMidi()
@@ -628,6 +629,7 @@ void VSTPlugin::OpenEditor()
     if (windowHandle)
       return;
     if (aeffect->flags & effFlagsHasEditor == 1) {
+#ifdef WIN32
       GetEditorRect();
       Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left,
             rect.right, rect.bottom);
@@ -637,6 +639,9 @@ void VSTPlugin::OpenEditor()
       windowHandle = fl_xid(window);
       Debug("windowHandle 0x%x.\n", windowHandle);
       SetEditWindow(windowHandle);
+#else
+      // Nothing here for now...
+#endif
     }
     else
       Log("Plugin:%s has no GUI.\n", productName);
@@ -864,9 +869,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
                     effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
     else {
-      fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
-              "value %d, ptr 0x%x, opt %f)\n",
-              effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
+      return -1;
     }
     switch (opcode) {
     case audioMasterAutomate:
