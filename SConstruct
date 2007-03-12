@@ -1337,7 +1337,7 @@ else:
 
 # VST HOST OPCODES
 
-if getPlatform() == 'win32' and fltkFound:
+if (getPlatform() == 'win32' or getPlatform() == 'linux') and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
     if not withMSVC():
@@ -1349,7 +1349,7 @@ if getPlatform() == 'win32' and fltkFound:
         Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
         Opcodes/vst4cs/src/vsthost.cpp
     '''))
-if getPlatform() == 'darwin' and fltkFound:
+elif getPlatform() == 'darwin' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
     vst4Environment.Append(LIBS = ['stdc++'])

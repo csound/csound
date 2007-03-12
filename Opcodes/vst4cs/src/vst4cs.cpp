@@ -87,7 +87,7 @@ extern "C" {
 
       p->opcodeInChannels = (size_t) (csound->GetInputArgCnt(data) - 1);
       if (p->opcodeInChannels > 32)
-        csound->Die(csound, "vstaudio: too many input args");
+        csound->InitError(csound, "vstaudio: too many input args");
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
 
       plugin->Debug("vstaudio_init.\n");
@@ -242,6 +242,7 @@ extern "C" {
 
       st = (int) *(p->kstatus);
       if (st < 128 || st >= 240) {
+        // No valid MIDI event
         p->prvMidiData = 0;
         return OK;
       }
@@ -268,7 +269,11 @@ extern "C" {
 
       p->prvMidiData = midiData;
       plugin = vstPlugins[p->vstHandle];
-      plugin->Debug("vstmidiout.\n");
+      plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i--- mididata = %i\n",
+                    (int) *(p->kstatus),
+                    (int) *(p->kdata1),
+                    (int) *(p->kdata2),
+                    midiData);
       plugin->AddMIDI(midiData, 0, 0);
 
       return OK;
