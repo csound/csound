@@ -5,7 +5,7 @@
 ; "-f" for single-precision audio samples.
 !define VERSION "win32-d"
 ; !define VERSION "win32-f"
-!define PROGRAM "Csound5.04"
+!define PROGRAM "Csound5.05"
 
 !include "MUI.nsh"
 
@@ -448,8 +448,6 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
   File ..\..\frontends\CsoundVST\_CsoundVST.def
-  ; File ..\..\_loris.def
-  
   SetOutPath $INSTDIR\pluginSDK
   File ..\..\pluginSDK\SConstruct
   File ..\..\pluginSDK\examplePlugin.c
