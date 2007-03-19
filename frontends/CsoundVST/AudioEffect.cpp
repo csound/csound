@@ -7,6 +7,15 @@
 // use override methods instead
 //-------------------------------------------------------------------------------------------------------
 
+/*
+This is a modified version of the original VST SDK file, which is copyright by
+Steinberg Media Technologies. This modified file is NOT licensed as a 
+software development kit for the development of VST plugins. It is included
+here ONLY for the purpose of compiling CsoundVST and vst4cs. If you
+wish to develop VST plugins, you must apply to Steinberg for permission
+and a copy of the VST SDK.
+*/
+
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
