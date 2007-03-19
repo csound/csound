@@ -116,22 +116,26 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements;
+    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
     int     elements;
+    int     offset;
     long    phs;
     MYFLT   *num1;
+    long   rand;
 } VRANDH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements;
+    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
     int     elements;
+    int     offset;
     long    phs;
     MYFLT   *num1, *num2, *dfdmax;
+    long   rand;
 } VRANDI;
 
 /*  TSEG definition from H/vpvoc.h */
@@ -200,14 +204,14 @@ typedef struct {
 } CELLA;
 
 /* from uggab.h for vrandi, vrandh */
-
+/*
 #define oneUp31Bit      (double) (4.656612875245796924105750827168e-10)
 
 #define randGab   (MYFLT) ((double)     \
     (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
      & 0x7fffffff) * oneUp31Bit)
 #define BiRandGab (MYFLT) ((double)     \
-    (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)
+    (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)*/
 
 #endif
 
