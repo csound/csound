@@ -1,3 +1,6 @@
+2007-03-19  Andrés Cabrera  <andres@geminiflux.com>
+	* Fixed vrandh and vrandi scaling problems and added optional idstoffset, iseed and ioffset arguments 
+
 2007-03-12  Andrés Cabrera  <andres@geminiflux.com>
 	* Added preliminary support for vst4cs on linux
 
