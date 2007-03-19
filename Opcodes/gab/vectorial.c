@@ -1839,28 +1839,76 @@ static int vmirror(CSOUND *csound,VLIMIT *p)
     return OK;
 }
 
-/* #include "newopcodes.h" */
+// #define RNDMUL  15625
+// #define MASK16  0xFFFF
+// #define MASK15  0x7FFF
+#define BIPOLAR 0x7FFFFFFF      /* Constant to make bipolar */
+#define RIA 16807               /* multiplier */
+#define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
+
+#define dv2_31          (FL(4.656612873077392578125e-10))
+
+static long randint31(long seed31)
+{
+    unsigned long rilo, rihi;
+
+    rilo = RIA * (long)(seed31 & 0xFFFF);
+    rihi = RIA * (long)((unsigned long)seed31 >> 16);
+    rilo += (rihi & 0x7FFF) << 16;
+    if (rilo > RIM) {
+      rilo &= RIM;
+      ++rilo;
+    }
+    rilo += rihi >> 15;
+    if (rilo > RIM) {
+      rilo &= RIM;
+      ++rilo;
+    }
+    return (long)rilo;
+}
 
 static int vrandh_set(CSOUND *csound,VRANDH *p)
 {
     FUNC        *ftp;
     int elements = 0;
     MYFLT *num1;
-    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
-      p->vector = ftp->ftable;
-      elements = (p->elements = (int) *p->ielements);
+    if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
+      if (*p->iseed > FL(1.0)) {    /* Seed from current time */
+        unsigned long seed;
+        seed = csound->GetRandomSeedFromTime();
+        p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        csound->Message(csound, Str("vrandh: Seeding from current time %lu\n"), seed);
+      }
+      else {
+        p->rand = (long) (*p->iseed * FL(2147483648.0));
+//         p->rand = randint31(p->rand);
+//         p->rand = randint31(p->rand);
+      }
+      if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+        p->elements = (int) *p->ielements;
+        p->offset = (int) *p->idstoffset;
+      }
+      else return csound->InitError(csound, "vrandh: Invalid table.");
+      if ( *p->idstoffset >= ftp->flen)
+        csound->InitError(csound, "vrandh: idstoffset is greater than table length.");
+      p->vector = ftp->ftable + p->offset;
+      if ( p->elements + p->offset > ftp->flen ) {
+        csound->Warning(csound, "vrandh: Table length exceeded, last elements discarded.");
+        p->elements = p->offset - ftp->flen;
+      }
     }
-    else return NOTOK;
-    if ( p->elements > ftp->flen )
-      return csound->InitError(csound, "vectorop: invalid num of elements");
-
-    p->phs = 0;
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, p->elements * sizeof(MYFLT), &p->auxch);
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
+    long r = p->rand;
+    elements = p->elements;
     do {
-      *num1++ = BiRandGab;
+      *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) *
+        dv2_31;
+      r = randint31( r);
     } while (--elements);
+    p->phs = 0;
+    p->rand = r;
     return OK;
 }
 
@@ -1871,7 +1919,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
     int elements = p->elements;
 
     do {
-      *vector++ += *num1++ * value;
+      *vector++ = (*num1++ * value) + *p->ioffset;
     } while (--elements);
 
     p->phs += (long)(*p->kcps * csound->kicvt);
@@ -1880,9 +1928,12 @@ static int vrandh(CSOUND *csound,VRANDH *p)
       elements = p->elements;
       vector = p->vector;
       num1 = p->num1;
+      long r = p->rand;
       do {
-        *num1++ = BiRandGab;
+        *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        r = randint31(r);
       } while (--elements);
+      p->rand = r;
     }
     return OK;
 }
@@ -1890,29 +1941,49 @@ static int vrandh(CSOUND *csound,VRANDH *p)
 static int vrandi_set(CSOUND *csound,VRANDI *p)
 {
     FUNC        *ftp;
-    MYFLT fmaxlen = (MYFLT)MAXLEN;
     int elements = 0;
     MYFLT *dfdmax, *num1, *num2;
-    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
-      p->vector = ftp->ftable;
-      elements = (p->elements = (int) *p->ielements);
+    unsigned long seed;
+    if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
+      if (*p->iseed > FL(1.0)) {    /* Seed from current time */
+        seed = csound->GetRandomSeedFromTime();
+        p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        csound->Message(csound, Str("vrandi: Seeding from current time %lu\n"), seed);
+      }
+      else {
+        p->rand = (long) (*p->iseed * FL(2147483648.0));
+//         p->rand = randint31(p->rand);
+//         p->rand = randint31(p->rand);
+      }
+      if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+        p->elements = (int) *p->ielements;
+        p->offset = (int) *p->idstoffset;
+      }
+      else return csound->InitError(csound, "vrandi: Invalid table.");
+      if ( p->offset >= ftp->flen)
+        csound->InitError(csound, "vrandi: idstoffset is greater than table length.");
+      p->vector = ftp->ftable + p->offset;
+      if ( p->elements > ftp->flen ) {
+        csound->Warning(csound, "vrandi: Table length exceeded, last elements discarded.");
+        p->elements = p->offset - ftp->flen;
+      }
     }
-    else return NOTOK;
-    if ( p->elements > ftp->flen )
-      return csound->InitError(csound, "vectorop: invalid num of elements");
-
-    p->phs = 0;
-    if (p->auxch.auxp == NULL)
-      csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 3, &p->auxch);
+    if (p->auxch.auxp == NULL) {
+      csound->AuxAlloc(csound, p->elements * sizeof(MYFLT) * 3, &p->auxch);
+    }
+    elements = p->elements;
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
     num2 = (p->num2 = &num1[elements]);
     dfdmax = (p->dfdmax = &num1[elements * 2]);
-
+    long r = p->rand;
     do {
       *num1 = FL(0.0);
-      *num2 = BiRandGab;
-      *dfdmax++ = (*num2++ - *num1++) / fmaxlen;
+      *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+      *dfdmax++ = (*num2++ - *num1++) / FMAXLEN;
+      r = randint31(r);
     } while (--elements);
+    p->phs = 0;
+    p->rand = r;
     return OK;
 }
 
@@ -1920,11 +1991,9 @@ static int vrandi(CSOUND *csound,VRANDI *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
-    MYFLT fmaxlen = (MYFLT)MAXLEN;
     int elements = p->elements;
-
     do {
-      *vector++ += (*num1++ + (MYFLT)p->phs * *dfdmax++) * value;
+      *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) + *p->ioffset;
     } while (--elements);
 
     p->phs += (long)(*p->kcps * csound->kicvt);
@@ -1935,12 +2004,14 @@ static int vrandi(CSOUND *csound,VRANDI *p)
       num1 = p->num1;
       num2 = p->num2;
       dfdmax = p->dfdmax;
-
+      long r = p->rand;
       do {
         *num1 = *num2;
-        *num2 = BiRandGab ;
-        *dfdmax++ = (*num2++ - *num1++) / fmaxlen;
+        *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
+        *dfdmax++ = ((MYFLT)*num2++ - (MYFLT)*num1++) / FMAXLEN;
+        r = randint31(r);
       } while (--elements);
+      p->rand = r;
     }
     return OK;
 }
@@ -2430,8 +2501,8 @@ static OENTRY localops[] = {
   { "vmirror", S(VLIMIT),    3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror   },
   { "vlinseg", S(VSEG),      3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg   },
   { "vexpseg", S(VSEG),      3, "",  "iin", (SUBR)vseg_set,   (SUBR)vexpseg   },
-  { "vrandh", S(VRANDH),     3, "",  "ikki",(SUBR)vrandh_set, (SUBR) vrandh   },
-  { "vrandi", S(VRANDI),     3, "",  "ikki",(SUBR)vrandi_set, (SUBR)vrandi    },
+  { "vrandh", S(VRANDH),     3, "",  "ikkiovo",(SUBR)vrandh_set, (SUBR) vrandh   },
+  { "vrandi", S(VRANDI),     3, "",  "ikkiovo",(SUBR)vrandi_set, (SUBR)vrandi    },
   { "vport",  S(VPORT),      3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport     },
   { "vecdelay", S(VECDEL),   3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly  },
   { "vdelayk", S(KDEL),      3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay    },
