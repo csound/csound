@@ -1219,7 +1219,7 @@ void oload(CSOUND *p)
       p->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
                                    / (MYFLT) O->kr_override)) + FL(0.5));
       p->Message(p, Str("sample rate overrides: "
-                        "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
+                        "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
                     p->esr, p->ekr, p->ksmps);
     }
     /* number of MYFLT locations to allocate for a string variable */

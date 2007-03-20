@@ -133,7 +133,7 @@ extern "C" {
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
-    long    sr_override, kr_override;
+    long    sr_override_l, kr_override_l;
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
@@ -145,7 +145,7 @@ extern "C" {
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
 #endif
-
+    MYFLT    sr_override, kr_override;
   } OPARMS;
 
   typedef struct arglst {
