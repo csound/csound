@@ -575,7 +575,7 @@ static const CSOUND cenviron_ = {
           0, 0,         /*    ringbell, ...     */
           0, 0, 0,      /*    rewrt_hdr, ...    */
           0,            /*    expr_opt          */
-          0L, 0L,       /*    sr_override, ...  */
+          0L, 0L,       /*    sr_override_l, ...  */
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL,
@@ -585,7 +585,11 @@ static const CSOUND cenviron_ = {
           0,		/*    midiKeyPch        */
           0,		/*    midiVelocity      */
           0,		/*    midiVelocityAmp   */
-          0 		/*    noDefaultPaths    */
+          0, 		/*    noDefaultPaths    */
+#ifdef ENABLE_NEW_PARSER
+          0,            /*    newParser   */
+#endif
+          FL(0.0), FL(0.0) /*   sr_override, kr_override */
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
