@@ -857,7 +857,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'r':
           FIND(Str("no sample rate"));
-          sscanf(s, "%ld", &(O->sr_override));
+          sscanf(s, "%f", &(O->sr_override));
           while (*++s);
           break;
         case 'j':
@@ -866,7 +866,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'k':
           FIND(Str("no control rate"));
-          sscanf(s, "%ld", &(O->kr_override));
+          sscanf(s, "%f",  &(O->kr_override));
           while (*++s);
           break;
         case 'v':
