@@ -575,7 +575,7 @@ static const CSOUND cenviron_ = {
           0, 0,         /*    ringbell, ...     */
           0, 0, 0,      /*    rewrt_hdr, ...    */
           0,            /*    expr_opt          */
-          0L, 0L,       /*    sr_override_l, ...  */
+          0.0f, 0.0f,   /*    sr_override ...  */
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL,
@@ -589,7 +589,6 @@ static const CSOUND cenviron_ = {
 #ifdef ENABLE_NEW_PARSER
           0,            /*    newParser   */
 #endif
-          FL(0.0), FL(0.0) /*   sr_override, kr_override */
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
