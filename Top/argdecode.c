@@ -494,7 +494,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp(s, "control-rate=", 13))) {
       s += 13;
       if (*s=='\0') dieu(csound, Str("no control rate"));
-      O->kr_override = atoi(s);
+      O->kr_override = (float)atof(s);
       return 1;
     }
     /* -K */
@@ -583,7 +583,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     /* -r N */
     else if (!(strncmp (s, "sample-rate=", 12))) {
       s += 12;
-      O->sr_override = atol(s);
+      O->sr_override = (float)atof(s);
       return 1;
     }
     /* R */
