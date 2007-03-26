@@ -31,6 +31,10 @@
 #define _BSD_SOURCE 1
 #endif
 
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 1
+#endif
+
 #include "csdl.h"
 
 #include <sys/types.h>
