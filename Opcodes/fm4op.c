@@ -122,12 +122,12 @@ void build_FM(void)
     temp = FL(1.0);
     for (i=15; i>=0; i--) {
       FM4Op_susLevels[i] = temp;
-      temp *= FL(0.707101);
+      temp *= FL(0.707106781186547524400844362104849);
     }
     temp = FL(8.498186);
     for (i=0; i<32; i++) {
       FM4Op_attTimes[i] = temp;
-      temp *= FL(0.707101);
+      temp *= FL(0.707106781186547524400844362104849);
     }
     FM_tabs_built = 1;
 }

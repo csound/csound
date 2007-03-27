@@ -857,7 +857,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'r':
           FIND(Str("no sample rate"));
-		  O->sr_override = atof(s);
+          O->sr_override = (float)atof(s);
           while (*++s);
           break;
         case 'j':
@@ -866,7 +866,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'k':
           FIND(Str("no control rate"));
-		  O->kr_override = atof(s);
+          O->kr_override = (float)atof(s);
           while (*++s);
           break;
         case 'v':
@@ -875,7 +875,8 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
         case 'm':
           FIND(Str("no message level"));
 #ifdef useoctal
-          if (*s=='0') sscanf(s, "%o%n", &(O->msglevel), &n);
+          if (*s=='0') 
+            sscanf(s, "%o%n", &(O->msglevel), &n);
           else
 #endif
             sscanf(s, "%d%n", &(O->msglevel), &n);
