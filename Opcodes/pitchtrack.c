@@ -193,8 +193,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 	COEF4 * ( prev[k-8] +prev[k+7]  +spectmp[k-8] +spectmp[k+7]) +
 	COEF5 * ( prev[k-9] +prev[k+8]  +spectmp[k-9] +spectmp[k+8]);
 
-      spec[j] = 0.7071f * (re + im);
-      spec[j+1] = 0.7071f * (im - re);
+      spec[j] = 0.707106781186547524400844362104849f * (re + im);
+      spec[j+1] = 0.707106781186547524400844362104849f * (im - re);
       spec[j+4] = prev[k] + spectmp[k+1];
       spec[j+5] = prev[k+1] - spectmp[k];
        
@@ -212,8 +212,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 	COEF4 * ( prev[k-8] +prev[k+7]  -spectmp[k-8] -spectmp[k+7]) +
 	COEF5 * ( prev[k-9] +prev[k+8]  -spectmp[k-9] -spectmp[k+8]);
 
-      spec[j] = 0.7071f * (re + im);
-      spec[j+1] = 0.7071f * (im - re);
+      spec[j] = 0.707106781186547524400844362104849f * (re + im);
+      spec[j+1] = 0.707106781186547524400844362104849f * (im - re);
       spec[j+4] = prev[k] - spectmp[k+1];
       spec[j+5] = prev[k+1] + spectmp[k];
         

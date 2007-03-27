@@ -89,8 +89,9 @@ static int iambicode(CSOUND *csound, AMBIC *p)
 static void ambicode_set_coefficients(AMBIC *p)
 {
     /* convert degrees to radian */
-    MYFLT kalpha_rad = (*p->kalpha) / FL(57.295779513082320876798154814105);
-    MYFLT kbeta_rad = (*p->kin[0]) / FL(57.295779513082320876798154814105);
+    /* 0.017 = pi/180 */
+    MYFLT kalpha_rad = (*p->kalpha) * FL(0.0174532925199432957692369076848861);
+    MYFLT kbeta_rad = (*p->kin[0]) * FL(0.0174532925199432957692369076848861);
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -98,9 +99,12 @@ static void ambicode_set_coefficients(AMBIC *p)
     p->w = FL(1.0) / sqrt(FL(2.0));
 
     /* 1st order */
-    p->x = cos(kalpha_rad) * cos(kbeta_rad);
-    p->y = sin(kalpha_rad) * cos(kbeta_rad);
-    p->z = sin(kbeta_rad);
+    {
+      double ck = cos(kbeta_rad);
+      p->x = cos(kalpha_rad) * ck;
+      p->y = sin(kalpha_rad) * ck;
+      p->z = sin(kbeta_rad);
+    }
 
     /* 2nd order */
     p->r = FL(0.5) * (FL(3.0) * p->z * p->z - FL(1.0));
@@ -234,18 +238,22 @@ static void ambideco_set_coefficients(AMBID *p, MYFLT alpha, MYFLT beta,
                                       int index)
 {
     /* convert degrees to radian */
-    MYFLT alpha_rad = alpha / FL(57.295779513082320876798154814105);
-    MYFLT beta_rad = beta / FL(57.295779513082320876798154814105);
+    /* 0.017... = pi/180 */
+    MYFLT alpha_rad = alpha * FL(0.0174532925199432957692369076848861);
+    MYFLT beta_rad = beta * FL(0.0174532925199432957692369076848861);
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
     /* 0th order */
-    p->w[index] = FL(1.0) / sqrt(FL(2.0));
+    p->w[index] = 0.707106781186547524400844362104849; /* 1/sqrt(2) */
 
     /* 1st order */
-    p->x[index] = cos(alpha_rad) * cos(beta_rad);
-    p->y[index] = sin(alpha_rad) * cos(beta_rad);
-    p->z[index] = sin(beta_rad);
+    {
+      double cbeta = cos(beta_rad);
+      p->x[index] = cos(alpha_rad) * cbeta;
+      p->y[index] = sin(alpha_rad) * cbeta;
+      p->z[index] = sin(beta_rad);
+    }
 
     /* 2nd order */
     p->r[index] = FL(0.5) * (FL(3.0) * p->z[index] * p->z[index] - FL(1.0));
@@ -405,7 +413,9 @@ static int aambideco(CSOUND *csound, AMBID *p)
     rsltp[5] = p->m5;
     rsltp[6] = p->m6;
     rsltp[7] = p->m7;
+    /* L = 0.5 * (0.9397*W + 0.1856*X - j*0.342*W + j*0.5099*X + 0.655*Y)
 
+       R = 0.5 * (0.9397*W+ 0.1856*X + j*0.342*W - j*0.5099*X - 0.655*Y) */
     if (p->INOCOUNT == 5) {
       do {
         /* 1st order */
