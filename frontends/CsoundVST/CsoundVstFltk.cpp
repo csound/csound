@@ -184,6 +184,31 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   scoreGroup (0),
   scriptGroup (0)
 {
+  this->csoundVstUi = make_window(this);
+  this->mainTabs = ::mainTabs;
+  this->commandInput = ::commandInput;
+  this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
+  this->orchestraTextBuffer = new Fl_Text_Buffer();
+  this->scoreTextBuffer = new Fl_Text_Buffer();
+  this->scriptTextBuffer = new Fl_Text_Buffer();
+  this->aboutTextBuffer = new Fl_Text_Buffer();
+  this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
+  this->settingsVstPluginModeEffect = ::settingsVstPluginModeEffect;
+  this->settingsVstPluginModeInstrument = ::settingsVstPluginModeInstrument;
+  this->settingsCsoundPerformanceModeClassic = ::settingsCsoundPerformanceModeClassic;
+  this->settingsCsoundPerformanceModePython = ::settingsCsoundPerformanceModePython;
+  this->orchestraTextEdit = ::orchestraTextEdit;
+  this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
+  this->scoreTextEdit = ::scoreTextEdit;
+  this->scoreTextEdit->buffer(this->scoreTextBuffer);
+  this->scriptTextEdit = ::scriptTextEdit;
+  this->scriptTextEdit->buffer(this->scriptTextBuffer);
+  this->aboutTextDisplay = ::aboutTextDisplay;
+  this->aboutTextDisplay->buffer(this->aboutTextBuffer);
+  this->orchestraGroup = ::orchestraGroup;
+  this->scoreGroup = ::scoreGroup;
+  this->scriptGroup = ::scriptGroup;
+  this->autoPlayCheckButton = ::autoPlayCheckButton;
   csoundVST->setEditor(this);
 }
 
@@ -234,31 +259,6 @@ long CsoundVstFltk::open(void *parentWindow)
 {
   csoundVST->fltklock();
   systemWindow = parentWindow;
-  this->csoundVstUi = make_window(this);
-  this->mainTabs = ::mainTabs;
-  this->commandInput = ::commandInput;
-  this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
-  this->orchestraTextBuffer = new Fl_Text_Buffer();
-  this->scoreTextBuffer = new Fl_Text_Buffer();
-  this->scriptTextBuffer = new Fl_Text_Buffer();
-  this->aboutTextBuffer = new Fl_Text_Buffer();
-  this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
-  this->settingsVstPluginModeEffect = ::settingsVstPluginModeEffect;
-  this->settingsVstPluginModeInstrument = ::settingsVstPluginModeInstrument;
-  this->settingsCsoundPerformanceModeClassic = ::settingsCsoundPerformanceModeClassic;
-  this->settingsCsoundPerformanceModePython = ::settingsCsoundPerformanceModePython;
-  this->orchestraTextEdit = ::orchestraTextEdit;
-  this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
-  this->scoreTextEdit = ::scoreTextEdit;
-  this->scoreTextEdit->buffer(this->scoreTextBuffer);
-  this->scriptTextEdit = ::scriptTextEdit;
-  this->scriptTextEdit->buffer(this->scriptTextBuffer);
-  this->aboutTextDisplay = ::aboutTextDisplay;
-  this->aboutTextDisplay->buffer(this->aboutTextBuffer);
-  this->orchestraGroup = ::orchestraGroup;
-  this->scoreGroup = ::scoreGroup;
-  this->scriptGroup = ::scriptGroup;
-  this->autoPlayCheckButton = ::autoPlayCheckButton;
   //    Read user preferences.
   char buffer[0x500];
   int number = 0;
