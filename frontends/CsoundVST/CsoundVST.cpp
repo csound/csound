@@ -216,6 +216,9 @@ int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
 
 void CsoundVST::performanceThreadRoutine()
 {
+  if (!getCppSound()) {
+      return;
+  }
   getCppSound()->stop();
   getCppSound()->Reset();
   if(getIsPython())
