@@ -102,6 +102,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     int     lobits, msg_enabled, i;
     FUNC    *ftp;
     FGDATA  ff;
+    int nonpowof2_flag=0; /* gab: fixed for non-powoftwo function tables*/
 
     *ftpp = NULL;
     if (csound->gensub == NULL) {
@@ -193,10 +194,11 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     /* if user flen given */
     if (ff.flen < 0L) {                 /* gab for non-pow-of-two-length    */
       ff.guardreq = 1;
-      ff.flen = -(ff.flen) - 1L;
+      ff.flen = -(ff.flen);           /* gab: fixed */
       if (!(ff.flen & (ff.flen - 1L)) || ff.flen > MAXLEN)
         goto powOfTwoLen;
       lobits = 0;                               /* Hope this is not needed! */
+      nonpowof2_flag = 1; /* gab: fixed for non-powoftwo function tables*/
     }
     else {
       ff.guardreq = ff.flen & 01;               /*  set guard request flg   */
@@ -222,6 +224,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftp->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
     ftp->nchanls  = 1;                          /*    presume mono for now  */
     ftp->flenfrms = ff.flen;
+    if (nonpowof2_flag) ftp->lenmask = 0xFFFFFFFF;  /* gab: fixed for non-powoftwo function tables */
 
     if (msg_enabled)
       csound->Message(csound, Str("ftable %d:\n"), ff.fno);
@@ -2382,8 +2385,8 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     basefreq    = *pp++;
     basekeymidi = (int) *pp++;
 
-    if ((ff->e.pcnt - 8) != numgrades) {
-      return fterror(ff, Str("gen51: invalid number of p-fields"));
+    if ((ff->e.pcnt - 8) < numgrades) { /* gab fixed */
+      return fterror(ff, Str("gen51: invalid number of p-fields (too few grades)"));
     }
 
     for (j = 0; j < nvals; j++) {
