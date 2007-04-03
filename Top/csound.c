@@ -37,6 +37,7 @@ extern "C" {
 #endif
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>
@@ -296,6 +297,9 @@ static const CSOUND cenviron_ = {
         csoundPvsinSet,
         csoundPvsoutGet,
         SetInternalYieldCallback,
+        csoundCreateBarrier,
+        csoundDestroyBarrier,
+        csoundWaitBarrier,
      /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -306,7 +310,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+          NULL, NULL, NULL, NULL, NULL },
         NULL,  /*  flgraphsGlobals */
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
@@ -1064,9 +1068,130 @@ static const CSOUND cenviron_ = {
    * returns non-zero if this kperiod was skipped
    */
 
+  static int getThreadIndex(CSOUND *csound, void * threadId) {
+    int index = 0;
+    THREADINFO *current = csound->multiThreadedThreadInfo;
+
+    if(current == NULL) {
+        return -1;
+    }
+
+    while(current != NULL) {
+        if(threadId == current->threadId) {
+            return index;
+        }
+        index++;
+        current = current->next;
+    }
+    return -1;
+  }
+
+  static int getNumActive(INSDS *start, INSDS *end) {
+    INSDS *current = start;
+    int counter = 1;
+
+    while(((current = current->nxtact) != NULL) && current != end) {
+        counter++;
+    }
+
+    return counter;
+  }
+
+  static void advanceINSDSPointer(INSDS ***start, int num) {
+     int i;
+
+     INSDS *s = **start;
+
+     if(s == NULL) {
+        return;
+     }
+
+     for(i = 0; i < num; i++) {
+        s = s->nxtact;
+
+        if(s == NULL) {
+            **start = NULL;
+            return;
+        }
+     }
+     **start = s;
+  }
+
+  static void partitionWork(CSOUND *csound, INSDS **start, INSDS **end, int threadNum,
+    int numThreads, int numActive) {
+
+    int partition = numActive / numThreads;
+
+//    csound->Message(csound, "%d %d Start Before: %p\n", threadNum, numActive, *start);
+    advanceINSDSPointer(&start, (threadNum * partition));
+//    csound->Message(csound, "%d %d Start After: %p\n", threadNum, numActive, *start);
+
+    if(*start == NULL || threadNum == (numThreads - 1)) {
+        *end = NULL;
+        return;
+    }
+
+    *end = *start;
+
+    advanceINSDSPointer(&end, partition);
+
+  }
+
+  int kperfThread(void * cs) {
+    INSDS *start, *end;
+    CSOUND *csound = (CSOUND *)cs;
+
+    void *threadId = csound->GetCurrentThreadID();
+
+    int index = getThreadIndex(csound, threadId);
+
+    int numThreads = csound->oparms->numThreads;
+
+    if(index < 0) {
+       return -1;
+    }
+
+    void *barrier1 = csound->multiThreadedBarrier1;
+    void *barrier2 = csound->multiThreadedBarrier2;
+
+    while(1) {
+        csound->WaitBarrier(barrier1);
+
+        csound_global_mutex_lock();
+        if(csound->multiThreadedComplete == 1) {
+            csound_global_mutex_unlock();
+            return 0;
+        }
+        csound_global_mutex_unlock();
+
+
+        start = csound->multiThreadedStart;
+        end = csound->multiThreadedEnd;
+
+        int numActive = getNumActive(start, end);
+
+        partitionWork(csound, &start, &end, index, numThreads, numActive);
+
+        while(start != NULL && start != end) {
+            csound->pds = (OPDS*) start;
+            while ((csound->pds = csound->pds->nxtp) != NULL) {
+                (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+            }
+            start = start->nxtact;          /* ip = nxt; but that does not allow for
+                                         deletions */
+        }
+
+        csound->WaitBarrier(barrier2);
+    }
+
+
+
+
+
+  }
+
   static inline int kperf(CSOUND *csound)
   {
-    INSDS   *ip;
     int     i;
 
     /* update orchestra time */
@@ -1092,16 +1217,53 @@ static const CSOUND cenviron_ = {
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
+
+    void *barrier1 = csound->multiThreadedBarrier1;
+    void *barrier2 = csound->multiThreadedBarrier2;
+
+    INSDS   *ip;
+
     ip = csound->actanchor.nxtact;
-    while (ip != NULL) {                /* for each instr active:  */
-/*     INSDS *nxt = ip->nxtact; */
-      csound->pds = (OPDS*) ip;
-      while ((csound->pds = csound->pds->nxtp) != NULL) {
-        (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-      }
-      ip = ip->nxtact;          /* ip = nxt; but that does not allow for
-                                   deletions */
+
+    if(ip != NULL) {
+
+        csound->multiThreadedStart = ip;
+
+        if(csound->multiThreadedThreadInfo != NULL) {
+
+            while(csound->multiThreadedStart != NULL) {
+                INSDS *current = csound->multiThreadedStart;
+
+                while(current != NULL &&
+                    (current->insno == csound->multiThreadedStart->insno)) {
+                    current = current->nxtact;
+                }
+
+                csound->multiThreadedEnd = current;
+
+                // process this partition
+                csound->WaitBarrier(barrier1);
+
+                // wait until partition is complete
+                csound->WaitBarrier(barrier2);
+
+                csound->multiThreadedStart = current;
+            }
+
+        } else {
+
+            while (ip != NULL) {                /* for each instr active:  */
+        /*     INSDS *nxt = ip->nxtact; */
+              csound->pds = (OPDS*) ip;
+              while ((csound->pds = csound->pds->nxtp) != NULL) {
+                (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+              }
+              ip = ip->nxtact;          /* ip = nxt; but that does not allow for
+                                           deletions */
+            }
+        }
     }
+
     if (!csound->spoutactive)           /*   results now in spout? */
       for (i = 0; i < csound->nspout; i++)
         csound->spout[i] = FL(0.0);

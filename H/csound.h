@@ -251,9 +251,9 @@ extern "C" {
         long            overlap;
         long            winsize;
         int             wintype;
-        long            format;         
+        long            format;
         unsigned long   framecount;
-        float*           frame;          
+        float*           frame;
  } PVSDATEXT;
 
 
@@ -1077,6 +1077,24 @@ extern "C" {
    */
   PUBLIC void csoundDestroyMutex(void *mutex_);
 
+
+  /**
+   * Create a Thread Barrier. Max value parameter should be equal to
+   * number of child threads using the barrier plus one for the
+   * master thread */
+
+  PUBLIC void *csoundCreateBarrier(unsigned int max);
+
+  /**
+   * Destroy a Thread Barrier.
+   */
+  PUBLIC int csoundDestroyBarrier(void *barrier);
+
+  /**
+   * Wait on the thread barrier
+   */
+  PUBLIC int csoundWaitBarrier(void *barrier);
+
   /**
    * Waits for at least the specified number of milliseconds,
    * yielding the CPU to other threads.
@@ -1407,7 +1425,7 @@ extern "C" {
  * CSOUND_MEMORY if there is not enough memory to extend the bus
  */
   PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
- 
+
   /**
    * Sets general purpose callback function that will be called on various
    * events. The callback is preserved on csoundReset(), and multiple

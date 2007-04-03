@@ -142,6 +142,7 @@ extern "C" {
     int     midiVelocity, midiVelocityAmp;
     int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
                               from files */
+    int     numThreads;
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
 #endif
@@ -642,6 +643,11 @@ extern "C" {
     struct names *next;
   } NAMES;
 
+  typedef struct threadInfo {
+    struct threadInfo *next;
+    void * threadId;
+  } THREADINFO;
+
 #include "sort.h"
 #include "text.h"
 #include "prototyp.h"
@@ -936,6 +942,9 @@ extern "C" {
     int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
+    void *(*CreateBarrier)(unsigned int max);
+    int (*DestroyBarrier)(void *);
+    int (*WaitBarrier)(void *);
  /* SUBR dummyfn_1; */
     SUBR dummyfn_2[98];
     void          *flgraphGlobals;
@@ -1208,6 +1217,12 @@ extern "C" {
     char           *chanif, *chanof;
     /* VL: internal yield callback */
     int           (*csoundInternalYieldCallback_)(CSOUND *);
+    void          *multiThreadedBarrier1;
+    void          *multiThreadedBarrier2;
+    int           multiThreadedComplete;
+    THREADINFO    *multiThreadedThreadInfo;
+    INSDS         *multiThreadedStart;
+    INSDS         *multiThreadedEnd;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
