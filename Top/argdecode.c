@@ -719,11 +719,18 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         strcat(csound->dl_opcodes_oplibs, s);
       }
       return 1;
-    } else if (!(strcmp(s, "default-paths"))) {
+    }
+    else if (!(strcmp(s, "default-paths"))) {
       O->noDefaultPaths = 0;
       return 1;
-    } else if (!(strcmp(s, "no-default-paths"))) {
+    }
+    else if (!(strcmp(s, "no-default-paths"))) {
       O->noDefaultPaths = 1;
+      return 1;
+    }
+    else if(!(strncmp (s, "num-threads=", 12))) {
+      s += 12 ;
+      O->numThreads = atoi(s);
       return 1;
     }
     else if (!(strcmp(s, "help"))) {

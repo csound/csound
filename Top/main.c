@@ -35,6 +35,8 @@ extern  int     read_unified_file(CSOUND *, char **, char **);
 
 extern  OENTRY  opcodlst_1[];
 
+extern  int     kperfThread(void * cs);
+
 static void create_opcodlst(CSOUND *csound)
 {
     OENTRY  *saved_opcodlst = csound->opcodlst;
@@ -359,6 +361,32 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
+
+    /* SYY - Mar 28, 2007 - Multithreaded Csound */
+
+    if (O->numThreads > 1) {
+        int i;
+        THREADINFO *current = NULL;
+
+        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads + 1);
+        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads + 1);
+        csound->multiThreadedComplete = 0;
+
+        for(i = 0; i < O->numThreads; i++) {
+            THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
+
+            t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
+            t->next = NULL;
+
+            if(current == NULL) {
+                csound->multiThreadedThreadInfo = t;
+            } else {
+                current->next = t;
+            }
+            current = t;
+        }
+
+    }
 
     return musmon(csound);
 }

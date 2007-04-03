@@ -225,6 +225,24 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
     return retval;
 }
 
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+    fprintf(stderr, Str("csoundCreateBarrier() is not implemented on this platform.\n"));
+    return NULL;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+    fprintf(stderr, Str("csoundDestroyBarrier() is not implemented on this platform.\n"));
+    return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+    fprintf(stderr, Str("csoundWaitBarrier() is not implemented on this platform.\n"));
+    return 0;
+}
+
  /* ------------------------------------------------------------------------ */
 
 #elif defined(LINUX) || defined(__MACH__)
@@ -235,6 +253,15 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#define BARRIER_SERIAL_THREAD (-1)
+
+typedef struct barrier {
+  pthread_mutex_t mut;
+  pthread_cond_t cond;
+  unsigned int count, max, iteration;
+} barrier_t;
+
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -319,6 +346,66 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     pthread_mutex_destroy((pthread_mutex_t*) lock);
     free(lock);
 }
+
+// iteration needed to distinguish between separate sets of max threads
+// where a thread enters the barrier before others have had
+// a chance to leave
+// this limits us to 2^32 barrier synchronisations, but only if one thread
+// gets stuck and doesn't leave for 2^32 other synchronisations
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+  barrier_t *b;
+
+  if (max == 0) return EINVAL;
+
+  b = (barrier_t *)malloc(sizeof(barrier_t));
+
+  pthread_mutex_init(&b->mut, NULL);
+  pthread_cond_init(&b->cond, NULL);
+  b->count = 0;
+  b->iteration = 0;
+  b->max = max;
+
+  return b;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+  barrier_t *b = (barrier_t *)barrier;
+  if (b->count > 0) return EBUSY;
+
+  pthread_cond_destroy(&b->cond);
+  pthread_mutex_destroy(&b->mut);
+
+  free(barrier);
+
+  return 0;
+}
+
+// when barrier is passed, all threads except one return 0
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+  int ret, it;
+  barrier_t *b = (barrier_t *)barrier;
+
+  pthread_mutex_lock(&b->mut);
+  b->count++;
+  it = b->iteration;
+  if (b->count >= b->max) {
+    b->count = 0;
+    b->iteration++;
+    pthread_cond_broadcast(&b->cond);
+    ret = BARRIER_SERIAL_THREAD;
+  }
+  else {
+    while (it == b->iteration) pthread_cond_wait(&b->cond, &b->mut);
+    ret = 0;
+  }
+  pthread_mutex_unlock(&b->mut);
+
+  return ret;
+}
+
 
 #else   /* LINUX */
 
@@ -418,6 +505,26 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
     pthread_mutex_destroy(&(p->m));
     free(threadLock);
 }
+
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+    fprintf(stderr, Str("csoundCreateBarrier() is not implemented on this platform.\n"));
+    return NULL;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+    fprintf(stderr, Str("csoundDestroyBarrier() is not implemented on this platform.\n"));
+    return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+    fprintf(stderr, Str("csoundWaitBarrier() is not implemented on this platform.\n"));
+    return 0;
+}
+
+
 
 #endif  /* !LINUX */
 
@@ -656,6 +763,24 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 {
     notImplementedWarning_("csoundRunCommand");
     return -1L;
+}
+
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+    notImplementedWarning_("csoundDestroyBarrier");
+    return NULL;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+    notImplementedWarning_("csoundDestroyBarrier");
+    return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+    notImplementedWarning_("csoundWaitBarrier");
+    return 0;
 }
 
 #endif
