@@ -36,7 +36,7 @@ CsoundPerformanceSettings::CsoundPerformanceSettings()
     midiInDevName = "";
     midiOutDevName = "";
     terminateOnMidi = false;
-//     heartBeatMode = 0;
+    heartBeatMode = 0;
     rewriteHeader = false;
     inputFileName = "";
     outputFileName = "dac";
