@@ -347,65 +347,6 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     free(lock);
 }
 
-// iteration needed to distinguish between separate sets of max threads
-// where a thread enters the barrier before others have had
-// a chance to leave
-// this limits us to 2^32 barrier synchronisations, but only if one thread
-// gets stuck and doesn't leave for 2^32 other synchronisations
-PUBLIC void *csoundCreateBarrier(unsigned int max)
-{
-  barrier_t *b;
-
-  if (max == 0) return EINVAL;
-
-  b = (barrier_t *)malloc(sizeof(barrier_t));
-
-  pthread_mutex_init(&b->mut, NULL);
-  pthread_cond_init(&b->cond, NULL);
-  b->count = 0;
-  b->iteration = 0;
-  b->max = max;
-
-  return b;
-}
-
-PUBLIC int csoundDestroyBarrier(void *barrier)
-{
-  barrier_t *b = (barrier_t *)barrier;
-  if (b->count > 0) return EBUSY;
-
-  pthread_cond_destroy(&b->cond);
-  pthread_mutex_destroy(&b->mut);
-
-  free(barrier);
-
-  return 0;
-}
-
-// when barrier is passed, all threads except one return 0
-PUBLIC int csoundWaitBarrier(void *barrier)
-{
-  int ret, it;
-  barrier_t *b = (barrier_t *)barrier;
-
-  pthread_mutex_lock(&b->mut);
-  b->count++;
-  it = b->iteration;
-  if (b->count >= b->max) {
-    b->count = 0;
-    b->iteration++;
-    pthread_cond_broadcast(&b->cond);
-    ret = BARRIER_SERIAL_THREAD;
-  }
-  else {
-    while (it == b->iteration) pthread_cond_wait(&b->cond, &b->mut);
-    ret = 0;
-  }
-  pthread_mutex_unlock(&b->mut);
-
-  return ret;
-}
-
 
 #else   /* LINUX */
 
@@ -506,27 +447,68 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
     free(threadLock);
 }
 
+#endif  /* !LINUX */
+
+
+// iteration needed to distinguish between separate sets of max threads
+// where a thread enters the barrier before others have had
+// a chance to leave
+// this limits us to 2^32 barrier synchronisations, but only if one thread
+// gets stuck and doesn't leave for 2^32 other synchronisations
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-    fprintf(stderr, Str("csoundCreateBarrier() is not implemented on this platform.\n"));
-    return NULL;
+  barrier_t *b;
+
+  if (max == 0) return EINVAL;
+
+  b = (barrier_t *)malloc(sizeof(barrier_t));
+
+  pthread_mutex_init(&b->mut, NULL);
+  pthread_cond_init(&b->cond, NULL);
+  b->count = 0;
+  b->iteration = 0;
+  b->max = max;
+
+  return b;
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-    fprintf(stderr, Str("csoundDestroyBarrier() is not implemented on this platform.\n"));
-    return 0;
+  barrier_t *b = (barrier_t *)barrier;
+  if (b->count > 0) return EBUSY;
+
+  pthread_cond_destroy(&b->cond);
+  pthread_mutex_destroy(&b->mut);
+
+  free(barrier);
+
+  return 0;
 }
 
+// when barrier is passed, all threads except one return 0
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
-    fprintf(stderr, Str("csoundWaitBarrier() is not implemented on this platform.\n"));
-    return 0;
+  int ret, it;
+  barrier_t *b = (barrier_t *)barrier;
+
+  pthread_mutex_lock(&b->mut);
+  b->count++;
+  it = b->iteration;
+  if (b->count >= b->max) {
+    b->count = 0;
+    b->iteration++;
+    pthread_cond_broadcast(&b->cond);
+    ret = BARRIER_SERIAL_THREAD;
+  }
+  else {
+    while (it == b->iteration) pthread_cond_wait(&b->cond, &b->mut);
+    ret = 0;
+  }
+  pthread_mutex_unlock(&b->mut);
+
+  return ret;
 }
 
-
-
-#endif  /* !LINUX */
 
 PUBLIC void csoundSleep(size_t milliseconds)
 {
