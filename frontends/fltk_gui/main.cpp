@@ -18,13 +18,17 @@
 */
 
 #include "CsoundGUI.hpp"
+#include <FL/fl_ask.H>
 
 int main(int argc, char **argv)
 {
     CsoundGUIMain   *mainWin;
 
-    if (csoundInitialize(&argc, &argv, 0) < 0)
+    if (csoundInitialize(&argc, &argv, 0) < 0) {
+      fprintf(stderr, "Couldn't Initialize Csound! Try removing command line flags.\nQuitting...\n");
+      fl_alert("Couldn't Initialize Csound!\nTry removing command line flags.");
       return -1;
+    }
     Fl::lock();
     mainWin = new CsoundGUIMain;
     mainWin->run(argc, argv);
