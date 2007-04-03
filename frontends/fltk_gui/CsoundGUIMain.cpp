@@ -508,7 +508,8 @@ void CsoundGUIMain::editOrcFile()
           isEmptyString(currentGlobalSettings.textEditorProgram))
         return;
       stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
-      cmd += " \"";
+      cmd = cmd.insert(0, "\"");
+      cmd += "\" \"";
       cmd += currentPerformanceSettings.orcName;
       cmd += '"';
       runCmd(cmd);
@@ -526,7 +527,8 @@ void CsoundGUIMain::editScoreFile()
           isEmptyString(currentGlobalSettings.textEditorProgram))
         return;
       stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
-      cmd += " \"";
+      cmd = cmd.insert(0, "\"");
+      cmd += "\" \"";
       cmd += currentPerformanceSettings.scoName;
       cmd += '"';
       runCmd(cmd);
@@ -545,7 +547,8 @@ void CsoundGUIMain::editSoundFile(const char *fileName_)
     if (isRtAudioDevice(fileName, true))
       return;
     stripString(cmd, currentGlobalSettings.soundEditorProgram.c_str());
-    cmd += " \"";
+    cmd = cmd.insert(0, "\"");
+    cmd += "\" \"";
     cmd += fileName;
     cmd += '"';
     runCmd(cmd);
@@ -563,7 +566,8 @@ void CsoundGUIMain::playSoundFile(const char *fileName_)
     if (isRtAudioDevice(fileName, true))
       return;
     stripString(cmd, currentGlobalSettings.soundPlayerProgram.c_str());
-    cmd += " \"";
+    cmd = cmd.insert(0, "\"");
+    cmd += "\" \"";
     cmd += fileName;
     cmd += '"';
     runCmd(cmd);
@@ -607,13 +611,15 @@ void CsoundGUIMain::runHelpBrowser(string page)
     }
     if (cmd[cmd.size() - 1] != 47)  // 47 = "/"
         cmd.append("/");
-      cmd += page;
+      cmd.insert(0, "\"");
+      cmd += page + "\"";
     if (FILE * file = fopen(cmd.c_str(), "r")) //Check if file exists
     {
       fclose(file);
       cmd.insert(0, " ");
       if (!isEmptyString(currentGlobalSettings.helpBrowserProgram)) {
         cmd.insert(0, currentGlobalSettings.helpBrowserProgram);
+        cmd.insert(0, "\"");
         runCmd(cmd);
       }
     }
