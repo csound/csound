@@ -1434,6 +1434,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
       switch(fld.exp) {
       case LIN_:
         if (opcode_name == "FLbox" || opcode_name == "FLvalue" ) continue;
+        else if (opcode_name == "FLtext" &&
+              *((FLTEXT *)opcode)->itype == 1) continue;
         ((Fl_Valuator*) o)->value(val);
         break;
       case EXP_:
@@ -2054,7 +2056,7 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-    FLEXECBUTTON *p = (FLEXECBUTTON *) a;
+  /*    FLEXECBUTTON *p = (FLEXECBUTTON *) a; */
 
 #if defined(LINUX)
 
@@ -3621,8 +3623,8 @@ static int fl_text(CSOUND *csound, FLTEXT *p)
   case 1:
     {
       o = new Fl_Value_Input(ix, iy, iwidth, iheight, controlName);
-      ((Fl_Value_Output *) o)->step(istep);
-      ((Fl_Value_Output *) o)->range(*p->imin,*p->imax);
+      ((Fl_Value_Input *) o)->step(istep);
+      ((Fl_Value_Input *) o)->range(*p->imin,*p->imax);
     }
     break;
   case 2:
