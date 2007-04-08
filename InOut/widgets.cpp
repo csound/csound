@@ -2042,21 +2042,21 @@ static inline void displ(MYFLT val, MYFLT index, CSOUND *csound)
 
 static void fl_callbackButton1(Fl_Button* w, void *a)
 {
-  FLBUTTON *p = (FLBUTTON *) a;
-  *((FLBUTTON*) a)->kout =  *p->ion;
-  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
-                                    p->args, p->INOCOUNT-8);
+    FLBUTTON *p = (FLBUTTON *) a;
+    *((FLBUTTON*) a)->kout =  *p->ion;
+    if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                      p->args, p->INOCOUNT-8);
 }
 
 static void fl_callbackCloseButton(Fl_Button* w, void *a)
 {
-  Fl_Window *p = (Fl_Window *) a;
-  p->hide();
+    Fl_Window *p = (Fl_Window *) a;
+    p->hide();
 }
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-  /*    FLEXECBUTTON *p = (FLEXECBUTTON *) a; */
+    FLEXECBUTTON *p = (FLEXECBUTTON *) a; 
 
 #if defined(LINUX)
 
@@ -2079,10 +2079,6 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
           v[i++] = tok;
         }
         v[i] = NULL;
-
-//        for(int j = 0; j < i; j++) {
-//            p->csound->Message(p->csound, "Arg[%i]: %s\n", j, v[j]);
-//        }
         execvp(v[0], v);
       }
 
@@ -2115,32 +2111,32 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
 static void fl_callbackButton(Fl_Button* w, void *a)
 {
-  FLBUTTON *p = (FLBUTTON *) a;
-  *((FLBUTTON*) a)->kout =  (w->value()) ? *p->ion : *p->ioff;
-  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
-                                    p->args, p->INOCOUNT-8);
+    FLBUTTON *p = (FLBUTTON *) a;
+    *((FLBUTTON*) a)->kout =  (w->value()) ? *p->ion : *p->ioff;
+    if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                      p->args, p->INOCOUNT-8);
 }
 
 static void fl_callbackButtonBank(Fl_Button* w, void *a)
 {
-  FLBUTTONBANK *p = (FLBUTTONBANK *) a;
-  *((FLBUTTONBANK*) a)->kout = (MYFLT) atoi(w->label());
-  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
-                                    p->args, p->INOCOUNT-7);
+    FLBUTTONBANK *p = (FLBUTTONBANK *) a;
+    *((FLBUTTONBANK*) a)->kout = (MYFLT) atoi(w->label());
+    if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                      p->args, p->INOCOUNT-7);
 }
 
 static void fl_callbackCounter(Fl_Counter* w, void *a)
 {
-  FLCOUNTER *p = (FLCOUNTER *) a;
-  *((FLCOUNTER*) a)->kout =  w->value();
-  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
-                                    p->args, p->INOCOUNT-10);
+    FLCOUNTER *p = (FLCOUNTER *) a;
+    *((FLCOUNTER*) a)->kout =  w->value();
+    if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                      p->args, p->INOCOUNT-10);
 }
 
 static void fl_callbackLinearSlider(Fl_Valuator* w, void *a)
 {
-  FLSLIDER *p = ((FLSLIDER*) a);
-  displ(*p->kout = w->value(), *p->idisp, p->h.insdshead->csound);
+    FLSLIDER *p = ((FLSLIDER*) a);
+    displ(*p->kout = w->value(), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackExponentialSlider(Fl_Valuator* w, void *a)
@@ -2152,165 +2148,166 @@ static void fl_callbackExponentialSlider(Fl_Valuator* w, void *a)
 
 static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
 {
-  FLSLIDER *p = ((FLSLIDER*) a);
-  MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
-  MYFLT v1 = p->table[index];
-  displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) *
-                             (ndx - index)) * (*p->imax - p->min),
-        *p->idisp, p->h.insdshead->csound);
+    FLSLIDER *p = ((FLSLIDER*) a);
+    MYFLT ndx = w->value() * (p->tablen-1);
+    int index = (long) ndx;
+    MYFLT v1 = p->table[index];
+    displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) *
+                               (ndx - index)) * (*p->imax - p->min),
+          *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackTableSlider(Fl_Valuator* w, void *a)
 {
-  FLSLIDER *p = ((FLSLIDER*) a);
-  displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
-        (*p->imax - p->min),
-        *p->idisp, p->h.insdshead->csound);
+    FLSLIDER *p = ((FLSLIDER*) a);
+    displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
+          (*p->imax - p->min),
+          *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackLinearSliderBank(Fl_Valuator* w, void *a)
 {
-  SLDBK_ELEMENT* p = (SLDBK_ELEMENT*) a;
-  *p->out = w->value();
+    SLDBK_ELEMENT* p = (SLDBK_ELEMENT*) a;
+    *p->out = w->value();
 }
 
 static void fl_callbackExponentialSliderBank(Fl_Valuator* w, void *a)
 {
-  SLDBK_ELEMENT* p = (SLDBK_ELEMENT*) a;
-  *p->out = p->min * ::pow (p->base, w->value());
+    SLDBK_ELEMENT* p = (SLDBK_ELEMENT*) a;
+    *p->out = p->min * ::pow (p->base, w->value());
 }
 
 static void fl_callbackInterpTableSliderBank(Fl_Valuator* w, void *a)
 {
-  SLDBK_ELEMENT *p = ((SLDBK_ELEMENT*) a);
+    SLDBK_ELEMENT *p = ((SLDBK_ELEMENT*) a);
 
-  MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
-  MYFLT v1 = p->table[index];
-  *p->out = p->min + ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
-    (p->max - p->min);
+    MYFLT ndx = w->value() * (p->tablen-1);
+    int index = (long) ndx;
+    MYFLT v1 = p->table[index];
+    *p->out = p->min + ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
+      (p->max - p->min);
 }
 
 static void fl_callbackTableSliderBank(Fl_Valuator* w, void *a)
 {
-  SLDBK_ELEMENT *p = ((SLDBK_ELEMENT*) a);
-  *p->out = p->min + p->table[(long)(w->value() * p->tablen)] *
-    (p->max - p->min);
+    SLDBK_ELEMENT *p = ((SLDBK_ELEMENT*) a);
+    *p->out = p->min + p->table[(long)(w->value() * p->tablen)] *
+      (p->max - p->min);
 }
 
 static void fl_callbackJoystick(Fl_Widget* w, void *a)
 {
-  FLJOYSTICK *p = (FLJOYSTICK*) a;
-  Fl_Positioner *j = (Fl_Positioner*) w;
-  MYFLT val;
-  int iexpx = (int) *p->iexpx, iexpy = (int) *p->iexpy;
-  switch (iexpx) {
-  case LIN_:
-    val = j->xvalue();
-    break;
-  case EXP_:
-    val = *p->iminx * ::pow (p->basex, j->xvalue());
-    break;
-  default:
-    if (iexpx > 0) { //interpolated
-      MYFLT ndx = j->xvalue() * (p->tablenx-1);
-      int index = (long) ndx;
-      MYFLT v1 = p->tablex[index];
-      val = *p->iminx + ( v1 + (p->tablex[index+1] - v1) *
-                          (ndx - index)) * (*p->imaxx - *p->iminx);
+    FLJOYSTICK *p = (FLJOYSTICK*) a;
+    Fl_Positioner *j = (Fl_Positioner*) w;
+    MYFLT val;
+    int iexpx = (int) *p->iexpx, iexpy = (int) *p->iexpy;
+    switch (iexpx) {
+    case LIN_:
+      val = j->xvalue();
+      break;
+    case EXP_:
+      val = *p->iminx * ::pow (p->basex, j->xvalue());
+      break;
+    default:
+      if (iexpx > 0) { //interpolated
+        MYFLT ndx = j->xvalue() * (p->tablenx-1);
+        int index = (long) ndx;
+        MYFLT v1 = p->tablex[index];
+        val = *p->iminx + ( v1 + (p->tablex[index+1] - v1) *
+                            (ndx - index)) * (*p->imaxx - *p->iminx);
+      }
+      else // non-interpolated
+        val = *p->iminx+ p->tablex[(long) (j->xvalue() * p->tablenx)] *
+          (*p->imaxx - *p->iminx);
     }
-    else // non-interpolated
-      val = *p->iminx+ p->tablex[(long) (j->xvalue() * p->tablenx)] *
-        (*p->imaxx - *p->iminx);
-  }
-  displ(*p->koutx = val,*p->idispx, p->h.insdshead->csound);
-  switch (iexpy) {
-  case LIN_:
-    val = j->yvalue();
-    break;
-  case EXP_:
-    val = *p->iminy * ::pow (p->basey, j->yvalue());
-    break;
-  default:
-    if (iexpy > 0) { //interpolated
-      MYFLT ndx = j->yvalue() * (p->tableny-1);
-      long index = (long) ndx;
-      MYFLT v1 = p->tabley[index];
-      val = *p->iminy + ( v1 + (p->tabley[index+1] - v1) * (ndx - index))
-        * (*p->imaxy - *p->iminy);
-    }
-    else { // non-interpolated
-      long index = (long) (j->yvalue()* p->tableny);
-      val = *p->iminy+ p->tabley[index] * (*p->imaxy - *p->iminy);
+    displ(*p->koutx = val,*p->idispx, p->h.insdshead->csound);
+    switch (iexpy) {
+    case LIN_:
+      val = j->yvalue();
+      break;
+    case EXP_:
+      val = *p->iminy * ::pow (p->basey, j->yvalue());
+      break;
+    default:
+      if (iexpy > 0) { //interpolated
+        MYFLT ndx = j->yvalue() * (p->tableny-1);
+        long index = (long) ndx;
+        MYFLT v1 = p->tabley[index];
+        val = *p->iminy + ( v1 + (p->tabley[index+1] - v1) * (ndx - index))
+          * (*p->imaxy - *p->iminy);
+      }
+      else { // non-interpolated
+        long index = (long) (j->yvalue()* p->tableny);
+        val = *p->iminy+ p->tabley[index] * (*p->imaxy - *p->iminy);
 
+      }
     }
-  }
-  displ(*p->kouty = val, *p->idispy, p->h.insdshead->csound);
+    displ(*p->kouty = val, *p->idispy, p->h.insdshead->csound);
 }
 
 static void fl_callbackLinearRoller(Fl_Valuator* w, void *a)
 {
-  FLROLLER *p = ((FLROLLER*) a);
-  displ(*p->kout =  w->value(),*p->idisp, p->h.insdshead->csound);
+    FLROLLER *p = ((FLROLLER*) a);
+    displ(*p->kout =  w->value(),*p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackExponentialRoller(Fl_Valuator* w, void *a)
 {
-  FLROLLER *p = ((FLROLLER*) a);
-  displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()),
-        *p->idisp, p->h.insdshead->csound);
+    FLROLLER *p = ((FLROLLER*) a);
+    displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()),
+          *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackInterpTableRoller(Fl_Valuator* w, void *a)
 {
-  FLROLLER *p = ((FLROLLER*) a);
-  MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
-  MYFLT v1 = p->table[index];
-  displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
-        (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
+    FLROLLER *p = ((FLROLLER*) a);
+    MYFLT ndx = w->value() * (p->tablen-1);
+    int index = (long) ndx;
+    MYFLT v1 = p->table[index];
+    displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
+          (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackTableRoller(Fl_Valuator* w, void *a)
 {
-  FLROLLER *p = ((FLROLLER*) a);
-  displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
-        (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
+    FLROLLER *p = ((FLROLLER*) a);
+    displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
+          (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackLinearKnob(Fl_Valuator* w, void *a)
 {
-  FLKNOB *p = ((FLKNOB*) a);
-  displ( *p->kout = w->value(), *p->idisp, p->h.insdshead->csound);
+    FLKNOB *p = ((FLKNOB*) a);
+    displ( *p->kout = w->value(), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackExponentialKnob(Fl_Valuator* w, void *a)
 {
-  FLKNOB *p = ((FLKNOB*) a);
-  displ(*p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()), *p->idisp, p->h.insdshead->csound);
+    FLKNOB *p = ((FLKNOB*) a);
+    displ(*p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()),
+          *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
 {
-  FLKNOB *p = ((FLKNOB*) a);
-  MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
-  MYFLT v1 = p->table[index];
-  displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
-        (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
+    FLKNOB *p = ((FLKNOB*) a);
+    MYFLT ndx = w->value() * (p->tablen-1);
+    int index = (long) ndx;
+    MYFLT v1 = p->table[index];
+    displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
+          (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackTableKnob(Fl_Valuator* w, void *a)
 {
-  FLKNOB *p = ((FLKNOB*) a);
-  displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
-        (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
+    FLKNOB *p = ((FLKNOB*) a);
+    displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
+          (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
 }
 
 static void fl_callbackLinearValueInput(Fl_Valuator* w, void *a)
 {
-  *((FLTEXT*) a)->kout =  w->value();
+    *((FLTEXT*) a)->kout =  w->value();
 }
 
 //-----------

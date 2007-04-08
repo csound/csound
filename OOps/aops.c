@@ -1458,7 +1458,7 @@ int outch(CSOUND *csound, OUTCH *p)
     int         n, nsmps = csound->ksmps;
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
-    int		nchnls = csound->nchnls;
+    int         nchnls = csound->nchnls;
 
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
