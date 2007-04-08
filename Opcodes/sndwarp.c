@@ -102,7 +102,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       v1, v2, windowamp, fract;
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
-    int		overlap = *p->ioverlap;
+    int         overlap = *p->ioverlap;
 
     if (p->auxch.auxp==NULL) {
       return csound->PerfError(csound, Str("sndwarp: not initialised"));

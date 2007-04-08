@@ -450,11 +450,10 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
 #endif  /* !LINUX */
 
 
-// iteration needed to distinguish between separate sets of max threads
-// where a thread enters the barrier before others have had
-// a chance to leave
-// this limits us to 2^32 barrier synchronisations, but only if one thread
-// gets stuck and doesn't leave for 2^32 other synchronisations
+/* iteration needed to distinguish between separate sets of max threads */
+/* where a thread enters the barrier before others have had a chance to leave */
+/* this limits us to 2^32 barrier synchronisations, but only if one thread */
+/* gets stuck and doesn't leave for 2^32 other synchronisations */
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
   barrier_t *b;
@@ -485,7 +484,7 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
   return 0;
 }
 
-// when barrier is passed, all threads except one return 0
+/* when barrier is passed, all threads except one return 0 */
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
   int ret, it;

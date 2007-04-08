@@ -37,45 +37,45 @@ extern void init_symbtab();
 
 void new_orc_parser(CSOUND *csound)
 {
-	void *t;
-	int retVal;
-	TREE* astTree;
+    void *t;
+    int retVal;
+    TREE* astTree;
 
     astTree = (TREE *)mcalloc(csound, sizeof(TREE));
 
-	OPARMS *O = csound->oparms;
+    OPARMS *O = csound->oparms;
 
-	init_symbtab(csound);
+    init_symbtab(csound);
 
-	csound->Message(csound, "Testing...\n");
+    csound->Message(csound, "Testing...\n");
 
-	if ((t = csound->FileOpen(csound, &csound_orcin, CSFILE_STD,
-                                   csound->orchname, "rb", NULL)) == NULL)
+    if ((t = csound->FileOpen(csound, &csound_orcin, CSFILE_STD,
+                              csound->orchname, "rb", NULL)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
 
-	csound_orcdebug = O->odebug;
+    csound_orcdebug = O->odebug;
 
-	csound_orcrestart(csound_orcin);
+    csound_orcrestart(csound_orcin);
 
-	retVal = csound_orcparse(csound, astTree);
+    retVal = csound_orcparse(csound, astTree);
 
-    if(retVal == 0) {
-    	csound->Message(csound, "Parsing successful!\n");
-    } else if(retVal == 1){
-    	csound->Message(csound, "Parsing failed due to invalid input!\n");
-    } else if(retVal == 2){
-    	csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
+    if (retVal == 0) {
+      csound->Message(csound, "Parsing successful!\n");
+    } else if (retVal == 1){
+      csound->Message(csound, "Parsing failed due to invalid input!\n");
+    } else if (retVal == 2){
+      csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
     }
 
     print_tree(csound, astTree);
 
-	verify_tree(csound, astTree);
+    verify_tree(csound, astTree);
     astTree = csound_orc_expand_expressions(csound, astTree);
 
     print_tree(csound, astTree);
 
-	astTree = csound_orc_optimize(csound, astTree);
-	csound_orc_compile(csound, astTree);
+    astTree = csound_orc_optimize(csound, astTree);
+    csound_orc_compile(csound, astTree);
 
 }
 

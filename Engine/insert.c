@@ -1711,7 +1711,7 @@ static void instance(CSOUND *csound, int insno)
     }
     if (nxtopds != opdslim) {
       /*      csound->Message(csound, Str("nxtopds = %p opdslim = %p\n"),
-	      nxtopds, opdslim); */
+              nxtopds, opdslim); */
       if (nxtopds > opdslim)
         csoundDie(csound, Str("inconsistent opds total"));
     }
