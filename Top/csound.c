@@ -1122,9 +1122,9 @@ static const CSOUND cenviron_ = {
 
     int partition = numActive / numThreads;
 
-//    csound->Message(csound, "%d %d Start Before: %p\n", threadNum, numActive, *start);
+    /*    csound->Message(csound, "%d %d Start Before: %p\n", threadNum, numActive, *start); */
     advanceINSDSPointer(&start, (threadNum * partition));
-//    csound->Message(csound, "%d %d Start After: %p\n", threadNum, numActive, *start);
+    /*    csound->Message(csound, "%d %d Start After: %p\n", threadNum, numActive, *start); */
 
     if(*start == NULL || threadNum == (numThreads - 1)) {
         *end = NULL;
@@ -1241,10 +1241,10 @@ static const CSOUND cenviron_ = {
 
                 csound->multiThreadedEnd = current;
 
-                // process this partition
+                /* process this partition */
                 csound->WaitBarrier(barrier1);
 
-                // wait until partition is complete
+                /* wait until partition is complete */
                 csound->WaitBarrier(barrier2);
 
                 csound->multiThreadedStart = current;

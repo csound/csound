@@ -58,7 +58,7 @@ void init_symbtab(CSOUND *csound)
     symbtab = (ORCTOKEN**)mcalloc(csound, HASH_SIZE * sizeof(ORCTOKEN*));
     /* Now we need to populate with basic words */
 
-	OENTRY *ep;
+    OENTRY *ep;
     OENTRY *temp;
 
     int len = 0;
@@ -99,19 +99,19 @@ void init_symbtab(CSOUND *csound)
 
         } else {
 //            csound->Message(csound, "Found Regular Opcode %s\n",ep->opname);
-    		add_token(csound, ep->opname,get_opcode_type(ep));
-    	}
+          add_token(csound, ep->opname,get_opcode_type(ep));
+        }
 
 
     }
 
 
-	/* This adds all the T_FUNCTION tokens.  These should only be
-	 * looked up in context when parsing a expression list (not yet done)
-	 * and perhaps a more intelligent way needs to be done eventually to
-	 * look up opcodes which can serve as functions, as well as for allowing
-	 * multiple arguments to functions
-	 */
+    /* This adds all the T_FUNCTION tokens.  These should only be
+     * looked up in context when parsing a expression list (not yet done)
+     * and perhaps a more intelligent way needs to be done eventually to
+     * look up opcodes which can serve as functions, as well as for allowing
+     * multiple arguments to functions
+     */
     add_token(csound, "int", T_FUNCTION);
     add_token(csound, "frac", T_FUNCTION);
     add_token(csound, "round", T_FUNCTION);
@@ -210,72 +210,73 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 
 int isUDOArgList(char *s) {
 
-	int len = strlen(s) - 1;
+    int len = strlen(s) - 1;
 
-	while(len >= 0) {
-		if(strchr("aijkKop0", s[len]) == NULL) {
-			/* printf("Invalid char '%c' in '%s'", *p, s); */
-			return 0;
-		}
+    while (len >= 0) {
+      if (strchr("aijkKop0", s[len]) == NULL) {
+        /* printf("Invalid char '%c' in '%s'", *p, s); */
+        return 0;
+      }
 
-		len--;
-	}
+      len--;
+    }
 
-	return 1;
+    return 1;
 }
 
 int isUDOAnsList(char *s) {
-	int len = strlen(s) - 1;
+    int len = strlen(s) - 1;
 
-	while(len >= 0) {
-		if(strchr("aikK0", s[len]) == NULL) {
-			return 0;
-		}
+    while (len >= 0) {
+      if (strchr("aikK0", s[len]) == NULL) {
+        return 0;
+      }
 
-		len--;
-	}
+      len--;
+    }
 
-	return 1;
+    return 1;
 }
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s)
 {
-	int h = hash(s);
+    int h = hash(s);
     int type = T_IDENT;
     ORCTOKEN *a = symbtab[h];
     ORCTOKEN *ans;
 
     csound->Message(csound, "Looking up token for: %d : %s\n", h, s);
 
-	if(udoflag == 0) {
+    if (udoflag == 0) {
 
-		if(isUDOAnsList(s)) {
-			ans = new_token(csound, T_UDO_ANS);
-		    ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
-	    	strcpy(ans->lexeme, s);
-	    	ans->next = symbtab[h];
-	    	symbtab[h] = ans;
-	    	//printf("Found UDO Answer List\n");
-			return ans;
-		}
-	}
+      if (isUDOAnsList(s)) {
+        ans = new_token(csound, T_UDO_ANS);
+        ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+        strcpy(ans->lexeme, s);
+        ans->next = symbtab[h];
+        symbtab[h] = ans;
+        //printf("Found UDO Answer List\n");
+        return ans;
+      }
+    }
 
-	if(udoflag == 1) {
-		if(isUDOArgList(s)) {
-			ans = new_token(csound, T_UDO_ARGS);
-		    ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
-	    	strcpy(ans->lexeme, s);
-	    	ans->next = symbtab[h];
-	    	symbtab[h] = ans;
-	    	//printf("Found UDO Arg List\n");
-			return ans;
-		}
-	}
+    if (udoflag == 1) {
+      if (isUDOArgList(s)) {
+        ans = new_token(csound, T_UDO_ARGS);
+        ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+        strcpy(ans->lexeme, s);
+        ans->next = symbtab[h];
+        symbtab[h] = ans;
+        //printf("Found UDO Arg List\n");
+        return ans;
+      }
+    }
 
     while (a!=NULL) {
-        if(strcmp(s, "reverb") == 0) {
-            csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n", hash("reverb"), hash("a4"), s, a->lexeme);
-        }
+      if (strcmp(s, "reverb") == 0) {
+        csound->Message(csound, "Looking up token for: %d: %d: %s : %s\n",
+                        hash("reverb"), hash("a4"), s, a->lexeme);
+      }
 
       if (strcmp(a->lexeme, s)==0) {
         ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));

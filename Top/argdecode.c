@@ -158,6 +158,7 @@ static const char *longUsageList[] = {
   "--sample-rate=N\t\torchestra srate override",
   "--score-in=FNAME\tread Line-oriented realtime score events from device",
   "--messagelevel=N\ttty message level, sum of:",
+  "--messageolevel=O\ttty message level in octal, of:",
   "\t\t\t\t1=note amps, 2=out-of-range msg, 4=warnings,",
   "\t\t\t\t0/32/64/96=note amp format (raw,dB,colors),",
   "\t\t\t\t128=print benchmark information",
@@ -530,6 +531,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->msglevel = atoi(s);
       return 1;
     }
+    else if (!(strncmp (s, "messageolevel=", 14))) {
+      s += 14;
+      if (*s=='\0') dieu(csound, Str("no message level"));
+      sscanf(s, "%o", &(O->msglevel));
+      return 1;
+    }
     /*
       -M dnam read MIDI realtime events from device 'dnam'
      */
@@ -881,12 +888,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'm':
           FIND(Str("no message level"));
-#ifdef useoctal
-          if (*s=='0') 
-            sscanf(s, "%o%n", &(O->msglevel), &n);
-          else
-#endif
-            sscanf(s, "%d%n", &(O->msglevel), &n);
+          sscanf(s, "%d%n", &(O->msglevel), &n);
           s += n;
           break;
         case 'd':
