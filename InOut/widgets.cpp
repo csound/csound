@@ -1485,7 +1485,7 @@ static int get_snap(CSOUND *csound, FLGETSNAP *p)
 {
   int index = (int) *p->index;
   if (!ST(snapshots).empty()) {
-    if (index > (int) ST(snapshots).size()) index = ST(snapshots).size();
+    if (index >= (int) ST(snapshots).size()) index = ST(snapshots).size()-1;
     else if (index < 0) index=0;
     if (ST(snapshots)[index].get(ST(AddrSetValue))!=OK) return NOTOK;
   }
@@ -2678,13 +2678,15 @@ static int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
 static int fl_getWidgetTypeFromOpcodeName(CSOUND *csound, void *p)
 {
     const char  *opname = csound->GetOpcodeName(p);
-
+    
     if (strcmp(opname, "FLbutton") == 0)
       return 1;
     if (strcmp(opname, "FLbutBank") == 0)
       return 2;
     if (strcmp(opname, "FLjoy") == 0)
       return 3;
+    if (strcmp(opname, "FLvalue") == 0)
+      return 4;
     if (strcmp(opname, "FLbox") != 0)
       return 0;
     csound->Warning(csound, "System error: value() method called from "
@@ -2758,6 +2760,10 @@ static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
     int             widgetType;
 
     widgetType = fl_getWidgetTypeFromOpcodeName(csound, v.opcode);
+    if (widgetType == 4){
+      csound->InitError(csound, "FLvalue cannot be set by FLsetVal\n");
+    return NOTOK;
+    }
     if (widgetType < 0)
       return OK;
     if (!widgetType || widgetType > 2) {
@@ -2785,6 +2791,10 @@ static int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
     int             widgetType;
 
     widgetType = fl_getWidgetTypeFromOpcodeName(csound, v.opcode);
+     if (widgetType == 4){
+      csound->InitError(csound, "FLvalue cannot be set by FLsetVal\n");
+    return NOTOK;
+    }
     if (widgetType < 0)
       return OK;
     if (!widgetType || widgetType > 2) {
