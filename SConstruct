@@ -1193,6 +1193,7 @@ if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
     widgetsEnvironment = pluginEnvironment.Copy()
+    widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
@@ -1340,6 +1341,7 @@ else:
 if (getPlatform() == 'win32' or getPlatform() == 'linux') and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
+    vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
     if not withMSVC():
         vst4Environment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
@@ -1355,6 +1357,7 @@ elif getPlatform() == 'darwin' and fltkFound:
     vst4Environment.Append(LIBS = ['stdc++'])
     vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework', 'ApplicationServices'])
     vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+    vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
     makePlugin(vst4Environment, 'vst4cs', Split('''
         Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
         Opcodes/vst4cs/src/vsthost.cpp

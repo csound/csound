@@ -28,7 +28,7 @@
 
 #include "csdl.h"
 // ma++ #include "AEffectx.h"
-#include "AEffEditor.hpp"
+#include <AEffEditor.hpp>
 #include <vector>
 #include <map>
 #include <string>
@@ -77,6 +77,7 @@ class VSTPlugin {
     static std::map<long, std::string> masterOpcodes;
     static std::map<long, std::string> dispatchOpcodes;
     static size_t opcodeRefCount;
+	int targetFLpanel; //GAB
 
     VSTPlugin(CSOUND *csound);
     virtual ~VSTPlugin();
@@ -117,8 +118,7 @@ class VSTPlugin {
     virtual void processReplacing(float **inputs, float **outputs,
                                   long sampleframes);
     virtual void process(float **inputs, float **outputs, long sampleframes);
-    virtual long Dispatch(long opCode, long index, long value, void *ptr,
-                          float opt);
+    virtual long Dispatch(long opCode, long index=0, long value=0, void *ptr=0, float opt=0);
     virtual void Log(const char *format, ...);
     virtual void Debug(const char *format, ...);
     virtual void OpenEditor();
@@ -132,6 +132,14 @@ class VSTPlugin {
                        long opcode, long index, long value, void *ptr,
                        float opt);
     static void initializeOpcodes();
+	
+	long EffGetChunk(void **ptr, bool isPreset = false) // GAB
+	{ 
+		return Dispatch(effGetChunk, isPreset, 0, ptr); 
+	}
+    long EffGetProgram() { return Dispatch(effGetProgram); }
+    void EffSetProgram(long lValue) { Dispatch(effSetProgram, 0, lValue); }
+    void EffGetProgramName(char *ptr) { Dispatch(effGetProgramName, 0, 0, ptr); }
 };
 
 inline long VSTPlugin::Dispatch(long opCode,
