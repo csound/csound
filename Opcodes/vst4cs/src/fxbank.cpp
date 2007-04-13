@@ -22,6 +22,9 @@
 //  License along with The vst4cs library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
+#ifdef _WIN32 
+  #pragma warning(disable:4786) //gab
+#endif
 
 #include "fxbank.h"
 #include <stdio.h>

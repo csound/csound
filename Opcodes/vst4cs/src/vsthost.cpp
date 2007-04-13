@@ -30,6 +30,10 @@
 #include <FL/x.H>
 // ma++ #include "AEffEditor.hpp"
 // ma++ #include "aeffectx.h"
+#ifdef _WIN32 
+  #pragma warning(disable:4786) //gab
+#endif
+
 
 #ifdef MSVC
 #define round int
@@ -547,7 +551,7 @@ void VSTPlugin::Free() // Called also in destruction
 
 void VSTPlugin::Init()
 {
-  size_t i;
+    size_t i;
     Debug("VSTPlugin::Init.\n");
     framesPerSecond = (size_t) ((long) (csound->esr + FL(0.5)));
     framesPerBlock = csound->ksmps;
@@ -620,7 +624,12 @@ ERect VSTPlugin::GetEditorRect()
 {
     ERect *rect_ = 0;
     Dispatch(effEditGetRect,0,0, &rect_,0.0f);
-    rect = *rect_;
+    if (rect_)
+      rect = *rect_;
+    else {
+      rect.right = 600;
+      rect.bottom = 400;
+    }
     return rect;
 }
 
@@ -629,18 +638,23 @@ void VSTPlugin::OpenEditor()
     if (windowHandle)
       return;
     if (aeffect->flags & effFlagsHasEditor == 1) {
-#ifdef WIN32
       GetEditorRect();
       Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left,
             rect.right, rect.bottom);
       window = new Fl_Window(rect.right, rect.bottom, GetName());
       Debug("Window 0x%x.\n", window);
       window->show();
+#ifdef WIN32
       windowHandle = fl_xid(window);
       Debug("windowHandle 0x%x.\n", windowHandle);
       SetEditWindow(windowHandle);
-#else
-      // Nothing here for now...
+#elif defined (LINUX)
+      //TODO: Fill appropriate code here
+//       windowHandle = (void *) fl_find(fl_xid(ST(fl_windows)[panelNum].panel));
+      Log("vstedit not implemented on Linux yet.\n");
+#elif defined (MACOSX)
+      //TODO: Fill appropriate code here
+      Log("vstedit not implemented on Mac yet.\n");
 #endif
     }
     else
@@ -654,9 +668,9 @@ void VSTPlugin::CloseEditor()
     OnEditorClose();
     if (aeffect->flags & effFlagsHasEditor == 1) {
       OnEditorClose();
-      window->hide();
-      delete window;
-      window = 0;
+      //window->hide();
+      //delete window;
+      //window = 0;
       windowHandle = 0;
     }
 }
@@ -869,7 +883,9 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
                     effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
     else {
-      return -1;
+      fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
+              "value %d, ptr 0x%x, opt %f)\n",
+              effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
     switch (opcode) {
     case audioMasterAutomate:
@@ -905,7 +921,9 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     case audioMasterTempoAt:
       return 0;
     case audioMasterNeedIdle:
-      return 0;
+      if (plugin)
+        return plugin->Dispatch(effIdle, 0, 0, NULL, 0.0f);
+      return false;
     case audioMasterGetSampleRate:
       if (plugin)
         return plugin->framesPerSecond;
@@ -923,8 +941,8 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
       return kVstLangEnglish;
     case audioMasterUpdateDisplay:
       if (plugin) {
-        // plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
-	return 0;
+        plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+        //return 0;
       }
       else
         return 1;
