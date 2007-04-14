@@ -1344,6 +1344,7 @@ if (getPlatform() == 'win32' or getPlatform() == 'linux') and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
     vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
+    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
     if not withMSVC():
         vst4Environment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
