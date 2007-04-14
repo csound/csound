@@ -163,6 +163,13 @@ static const char *longUsageList[] = {
   "\t\t\t\t0/32/64/96=note amp format (raw,dB,colors),",
   "\t\t\t\t128=print benchmark information",
   "",
+  "--m-amps=[01]\tmessages on note amps",
+  "--m-range=[01]\tmessages on range errors",
+  "--m-warnings=[01]\tmesage on warnings",
+  "--m-raw=[01]\traw amp messages",
+  "--m-dB=[01]\tamp messages in dB",
+  "--m-colours=[01]\tcolour amp messages",
+  "--m-benchmarks=[01]\tprint benchmark information",
   "--extract-score=FNAME\textract from score.srt using extract file",
   "--keep-sorted-score",
   "--expression-opt\toptimise use of temporary variables in expressions",
@@ -535,6 +542,69 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 14;
       if (*s=='\0') dieu(csound, Str("no message level"));
       sscanf(s, "%o", &(O->msglevel));
+      return 1;
+    }
+    else if (!(strncmp (s, "m-amps=", 8))) {
+      int n;
+      s += 8;
+      if (*s=='\0') dieu(csound, Str("no message amps"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 1;
+      else O->msglevel &= ~1;
+      return 1;
+    }
+    else if (!(strncmp (s, "m-range=",9))) {
+      int n;
+      s += 9;
+      if (*s=='\0') dieu(csound, Str("no message range"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 2;
+      else O->msglevel &= ~2;
+      return 1;
+     }
+    else if (!(strncmp (s, "m-warnings=",12))) {
+      int n;
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no message warnings"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 4;
+      else O->msglevel &= ~4;
+      return 1;
+    }
+    else if (!(strncmp (s, "m-raw=",6))) {
+      int n;
+      s += 6;
+      if (*s=='\0') dieu(csound, Str("no message warnings"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 32;
+      else O->msglevel &= ~32;
+      return 1;
+    }
+    else if (!(strncmp (s, "m-dB=",5))) {
+      int n;
+      s += 5;
+      if (*s=='\0') dieu(csound, Str("no message dB"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 64;
+      else O->msglevel &= ~64;
+      return 1;
+    }
+    else if (!(strncmp (s, "m-colours=",10))) {
+      int n;
+      s += 10;
+      if (*s=='\0') dieu(csound, Str("no message colours"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 96;
+      else O->msglevel &= ~96;
+      return 1;
+    }
+    else if (!(strncmp (s, "m-benchmarks=",13))) {
+      int n;
+      s += 13;
+      if (*s=='\0') dieu(csound, Str("no message colours"));
+      sscanf(s, "%n", &n);
+      if (n) O->msglevel |= 128;
+      else O->msglevel &= ~128;
       return 1;
     }
     /*
