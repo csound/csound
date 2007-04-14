@@ -445,7 +445,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
       MYFLT famp = *p->xamp;
       for (n=0;n<nsmps;n++) {
         out1[n] *= famp;
-        out2[2] *= famp;
+        out2[n] *= famp;
       }
     }
     return OK;
