@@ -1185,6 +1185,8 @@ makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
 makePlugin(pluginEnvironment, 'date', ['Opcodes/date.c'])
 makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
+makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
+
 # Plugins with External Dependencies
 
 # FLTK widgets
