@@ -215,8 +215,8 @@ commandOptions.Add('buildNewParser',
 	'Enable building new parser (requires Flex/Bison)',
 	'0')
 commandOptions.Add('buildvst4cs',
-	'Build vst4cs plugins',
-	'0')
+    'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1344,7 +1344,10 @@ else:
                ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
 
 # VST HOST OPCODES
-if (commonEnvironment['buildvst4cs'] == 1):
+if (commonEnvironment['buildvst4cs'] != '1'):
+    print "CONFIGURATION DECISION: Not building vst4cs opcodes."
+else:
+    print "CONFIGURATION DECISION: Building vst4cs opcodes."
     if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
         vst4Environment = vstEnvironment.Copy()
         vst4Environment.Append(LIBS = ['fltk'])
