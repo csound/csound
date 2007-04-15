@@ -1344,14 +1344,14 @@ if (getPlatform() == 'win32' or getPlatform() == 'linux') and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
     vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
-    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+    vst4Environment.Append(CPPPATH = ['#frontends/CsoundVST'])
     if not withMSVC():
         vst4Environment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
         vst4Environment.Append(LIBS = csoundWindowsLibraries)
-    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
     makePlugin(vst4Environment, 'vst4cs', Split('''
-        Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
+        Opcodes/vst4cs/src/vst4cs.cpp 
+        Opcodes/vst4cs/src/fxbank.cpp
         Opcodes/vst4cs/src/vsthost.cpp
     '''))
 elif getPlatform() == 'darwin' and fltkFound:
