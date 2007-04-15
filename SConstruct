@@ -1195,7 +1195,7 @@ if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
     widgetsEnvironment = pluginEnvironment.Copy()
-    widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
+##    widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
@@ -1340,7 +1340,8 @@ else:
 
 # VST HOST OPCODES
 
-if (getPlatform() == 'win32' or getPlatform() == 'linux') and fltkFound:
+if (getPlatform() == 'win32') and fltkFound:
+    ### or getPlatform() == 'linux') and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
     vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
