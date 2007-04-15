@@ -1195,14 +1195,15 @@ if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
     widgetsEnvironment = pluginEnvironment.Copy()
-##    widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
+        ## dont do this  widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         widgetsEnvironment.Append(LIBS = ['fltk'])
+        widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         if (not withMSVC()):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
@@ -1210,6 +1211,7 @@ else:
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
+        widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         widgetsEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
