@@ -62,6 +62,10 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('C:/Python24/include')
     customLIBPATH.append('C:/Python24/Libs')
     ################################################################
+    # If you want to build vst4cs you need the include
+    # path to the VST SDK header files. Add them there:
+    customCPPPATH.append('d:/utah/home/mkg/projects/csoundd/frontends/CsoundVST')    
+    ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
     customCPPPATH.append('D:/utah/opt/lua-5.1.1/src')
