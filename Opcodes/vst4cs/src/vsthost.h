@@ -28,7 +28,7 @@
 
 #include "csdl.h"
 // ma++ #include "AEffectx.h"
-#include <AEffEditor.hpp>
+#include "AEffEditor.hpp"
 #include <vector>
 #include <map>
 #include <string>
