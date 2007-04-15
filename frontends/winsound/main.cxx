@@ -4,6 +4,7 @@
    this code for any purpose whatsoever.
  */
 #include "csound.h"
+#include <errno.h>
 #include "winsound.h"
 #include <stdarg.h>
 #include <FL/Fl_Preferences.H>
@@ -174,20 +175,32 @@ void cs_compile_run(void)
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
    /* argv[nxt++] = "-d"; */    // for the moment
       // If orch name starts with / do a chdir
-      getcwd(olddir, 255);      // remember current directory
+      if (getcwd(olddir, 255)) {      // remember current directory
+        text->insert(strerror(errno));
+          text->show_insert_position();
+          Fl::wait(0);
+      }
       if ((orchname->value())[0]=='/') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'/')) = '\0';
         if (dir[0]=='\0') strcpy(dir, "/"); // if nothing left....
-        chdir(dir);
+        if (chdir(dir)) {
+          text->insert(strerror(errno));
+          text->show_insert_position();
+          Fl::wait(0);
+        }
       }
       else if ((orchname->value())[0]=='\\') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'\\')) = '\0';
         if (dir[0]=='\0') strcpy(dir, "\\"); // if nothing left....
-        chdir(dir);
+        if (chdir(dir)) {
+          text->insert(strerror(errno));
+          text->show_insert_position();
+          Fl::wait(0);
+        }
       };
       res = csoundPreCompile(csound);
 //       {
@@ -211,7 +224,11 @@ void cs_compile_run(void)
         *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 30;
         res = csoundCompile(csound, nxt, argv);
       }
-      chdir(olddir);
+      if (chdir(olddir)) {
+          text->insert(strerror(errno));
+          text->show_insert_position();
+          Fl::wait(0);
+      }
     }
     else
       csoundRewindScore(csound);
