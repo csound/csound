@@ -22,6 +22,8 @@
 */
 
 #include "widglobals.h"
+#include <FL/x.H>
+
 
 Fl_Font FONT_TABLE[] = { FL_HELVETICA,                  FL_HELVETICA,
                          FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
