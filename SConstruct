@@ -214,6 +214,9 @@ commandOptions.Add('withMSVC',
 commandOptions.Add('buildNewParser',
 	'Enable building new parser (requires Flex/Bison)',
 	'0')
+commandOptions.Add('buildvst4cs',
+	'Build vst4cs plugins',
+	'0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1195,6 +1198,8 @@ if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
     widgetsEnvironment = pluginEnvironment.Copy()
+    if (commonEnvironment['buildvst4cs'] == '1'):
+        widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
@@ -1203,7 +1208,6 @@ else:
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         widgetsEnvironment.Append(LIBS = ['fltk'])
-        widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         if (not withMSVC()):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
@@ -1211,7 +1215,6 @@ else:
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
-        widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         widgetsEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
@@ -1341,33 +1344,32 @@ else:
                ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
 
 # VST HOST OPCODES
-
-if (getPlatform() == 'win32') and fltkFound:
-    ### or getPlatform() == 'linux') and fltkFound:
-    vst4Environment = vstEnvironment.Copy()
-    vst4Environment.Append(LIBS = ['fltk'])
-    vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
-    vst4Environment.Append(CPPPATH = ['#frontends/CsoundVST'])
-    if not withMSVC():
+if (commonEnvironment['buildvst4cs'] == 1):
+    if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
+        vst4Environment = vstEnvironment.Copy()
+        vst4Environment.Append(LIBS = ['fltk'])
+        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
+        vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+        if not withMSVC():
+            vst4Environment.Append(LIBS = ['stdc++'])
+        if getPlatform() == 'win32':
+            vst4Environment.Append(LIBS = csoundWindowsLibraries)
+        makePlugin(vst4Environment, 'vst4cs', Split('''
+            Opcodes/vst4cs/src/vst4cs.cpp 
+            Opcodes/vst4cs/src/fxbank.cpp
+            Opcodes/vst4cs/src/vsthost.cpp
+        '''))
+    elif getPlatform() == 'darwin' and fltkFound:
+        vst4Environment = vstEnvironment.Copy()
+        vst4Environment.Append(LIBS = ['fltk'])
         vst4Environment.Append(LIBS = ['stdc++'])
-    if getPlatform() == 'win32':
-        vst4Environment.Append(LIBS = csoundWindowsLibraries)
-    makePlugin(vst4Environment, 'vst4cs', Split('''
-        Opcodes/vst4cs/src/vst4cs.cpp 
-        Opcodes/vst4cs/src/fxbank.cpp
-        Opcodes/vst4cs/src/vsthost.cpp
-    '''))
-elif getPlatform() == 'darwin' and fltkFound:
-    vst4Environment = vstEnvironment.Copy()
-    vst4Environment.Append(LIBS = ['fltk'])
-    vst4Environment.Append(LIBS = ['stdc++'])
-    vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework', 'ApplicationServices'])
-    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
-    vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
-    makePlugin(vst4Environment, 'vst4cs', Split('''
-        Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
-        Opcodes/vst4cs/src/vsthost.cpp
-    '''))
+        vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework', 'ApplicationServices'])
+        vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
+        makePlugin(vst4Environment, 'vst4cs', Split('''
+            Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
+            Opcodes/vst4cs/src/vsthost.cpp
+        '''))
 
 # Build the Loris and Python opcodes here
 
