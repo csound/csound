@@ -1097,7 +1097,7 @@ static const CSOUND cenviron_ = {
     return counter;
   }
 
-  static void advanceINSDSPointer(INSDS ***start, int num) {
+  inline void advanceINSDSPointer(INSDS ***start, int num) {
      int i;
 
      INSDS *s = **start;
@@ -1117,7 +1117,7 @@ static const CSOUND cenviron_ = {
      **start = s;
   }
 
-  static void partitionWork(CSOUND *csound, INSDS **start, INSDS **end, int threadNum,
+  inline void partitionWork(CSOUND *csound, INSDS **start, INSDS **end, int threadNum,
     int numThreads, int numActive) {
 
     int partition = numActive / numThreads;
@@ -1140,6 +1140,7 @@ static const CSOUND cenviron_ = {
   int kperfThread(void * cs) {
     INSDS *start, *end;
     CSOUND *csound = (CSOUND *)cs;
+    OPDS   *opstart;
 
     void *threadId = csound->GetCurrentThreadID();
 
@@ -1173,9 +1174,9 @@ static const CSOUND cenviron_ = {
         partitionWork(csound, &start, &end, index, numThreads, numActive);
 
         while(start != NULL && start != end) {
-            csound->pds = (OPDS*) start;
-            while ((csound->pds = csound->pds->nxtp) != NULL) {
-                (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+            opstart = (OPDS*) start;
+            while ((opstart = opstart->nxtp) != NULL) {
+                (*opstart->opadr)(csound, opstart); /* run each opcode */
             }
             start = start->nxtact;          /* ip = nxt; but that does not allow for
                                          deletions */
