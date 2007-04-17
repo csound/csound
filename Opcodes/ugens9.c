@@ -32,7 +32,9 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp;
+    MYFLT *fltp;
     CVSTRUCT *cvh;
+    int i, siz;
     long     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
@@ -104,19 +106,20 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     else
       obufsiz = (long) ceil((double) csound->ksmps / (double) Hlen) * Hlen;
 
-    if (p->auxch.auxp == NULL) {            /* if no buffers yet, alloc now */
-      MYFLT *fltp;
-      csound->AuxAlloc(csound, (long) (((Hlenpadded + 2)
-                                        + p->nchanls * ((Hlen - 1) + obufsiz)
-                                        + (p->nchanls > 1 ?
-                                           (Hlenpadded + 2) : 0))
-                                       * sizeof(MYFLT)), &p->auxch);
+    siz = ((Hlenpadded + 2) + p->nchanls * ((Hlen - 1) + obufsiz) 
+              + (p->nchanls > 1 ? (Hlenpadded + 2) : 0));
+    if (p->auxch.auxp == NULL || p->auxch.size < siz*sizeof(MYFLT)) 
+         {            /* if no buffers yet, alloc now */
+      csound->AuxAlloc(csound, (long) siz*sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->fftbuf = fltp;   fltp += (Hlenpadded + 2); /* and insert addresses */
       p->olap = fltp;     fltp += p->nchanls*(Hlen - 1);
       p->outbuf = fltp;   fltp += p->nchanls*obufsiz;
       p->X  = fltp;
-    }
+	   } 
+    fltp = (MYFLT *) p->auxch.auxp;
+    for(i=0; i < siz; i++) fltp[i] = FL(0.0);
+        
     p->obufsiz = obufsiz;
     p->outcnt = obufsiz;
     p->incount = 0;
