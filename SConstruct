@@ -1189,6 +1189,7 @@ makePlugin(pluginEnvironment, 'date', ['Opcodes/date.c'])
 makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
+makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 
 # Plugins with External Dependencies
 
