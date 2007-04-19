@@ -130,9 +130,9 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         /* table with data [1.0, 1.0, 1.0], used as default by envelopes */
         pg->ooo_tab->flen = 2;
         pg->ooo_tab->lobits = 31;
-        pg->ooo_tab->ftable[0] = FL(1.);
-        pg->ooo_tab->ftable[1] = FL(1.);
-        pg->ooo_tab->ftable[2] = FL(1.);
+        pg->ooo_tab->ftable[0] = FL(1.0);
+        pg->ooo_tab->ftable[1] = FL(1.0);
+        pg->ooo_tab->ftable[2] = FL(1.0);
         /* table with data [0.0, 0.0, 0.0], used as default by grain
          * distribution table, channel masks and grain waveforms */
         pg->zzz_tab->flen = 2;
@@ -142,7 +142,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
          * end freq tables */
         pg->zzooooo_tab->flen = 6;
         for (i = 2; i <= 6; ++i)
-            pg->zzooooo_tab->ftable[i] = FL(1.);
+            pg->zzooooo_tab->ftable[i] = FL(1.0);
     }
     p->globals = pg;
     if ((int)*p->opcodeid == 0) {
@@ -233,7 +233,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->grainroot = NULL;
     /* set grainphase to 1.0 to make grain scheduler create a grain immediately
      * after starting opcode */
-    p->grainphase = 1.;
+    p->grainphase = 1.0;
     p->num_outputs = csound->GetOutputArgCnt(p); /* save for faster access */
     /* resolve tables with no default table handling */
     p->costab = csound->FTFind(csound, p->cosine);
@@ -241,31 +241,31 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->disttab = *p->dist >= FL(0.)
                  ? csound->FTFind(csound, p->dist)
                  : p->globals->zzz_tab;
-    p->gainmasktab = *p->gainmasks >= FL(0.)
+    p->gainmasktab = *p->gainmasks >= FL(0.0)
                      ? csound->FTFind(csound, p->gainmasks)
                      : p->globals->zzooooo_tab;
-    p->channelmasktab = *p->channelmasks >= FL(0.)
+    p->channelmasktab = *p->channelmasks >= FL(0.0)
                         ? csound->FTFind(csound, p->channelmasks)
                         : p->globals->zzz_tab;
-    p->env_attack_tab = *p->env_attack >= FL(0.)
+    p->env_attack_tab = *p->env_attack >= FL(0.0)
                         ? csound->FTFind(csound, p->env_attack)
                         : p->globals->ooo_tab;
-    p->env_decay_tab = *p->env_decay >= FL(0.)
+    p->env_decay_tab = *p->env_decay >= FL(0.0)
                        ? csound->FTFind(csound, p->env_decay)
                        : p->globals->ooo_tab;
-    p->env2_tab = *p->env2 >= FL(0.)
+    p->env2_tab = *p->env2 >= FL(0.0)
                    ? csound->FTFind(csound, p->env2)
                    : p->globals->ooo_tab;
-    p->wavfreqstarttab = *p->wavfreq_startmuls >= FL(0.)
+    p->wavfreqstarttab = *p->wavfreq_startmuls >= FL(0.0)
                          ? csound->FTFind(csound, p->wavfreq_startmuls)
                          : p->globals->zzooooo_tab;
-    p->wavfreqendtab = *p->wavfreq_endmuls >= FL(0.)
+    p->wavfreqendtab = *p->wavfreq_endmuls >= FL(0.0)
                        ? csound->FTFind(csound, p->wavfreq_endmuls)
                        : p->globals->zzooooo_tab;
-    p->fmamptab = *p->fm_indices >= FL(0.)
+    p->fmamptab = *p->fm_indices >= FL(0.0)
                   ? csound->FTFind(csound, p->fm_indices)
                   : p->globals->zzooooo_tab;
-    p->wavgaintab = *p->waveamps >= FL(0.)
+    p->wavgaintab = *p->waveamps >= FL(0.0)
                     ? csound->FTFind(csound, p->waveamps)
                     : p->globals->zzooooo_tab;
 
@@ -289,9 +289,9 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
         return INITERROR("unable to load wave gain table");
 
     p->disttabshift = sizeof(unsigned)*CHAR_BIT -
-                      (unsigned)(log((double)p->disttab->flen)/log(2.));
+                      (unsigned)(log((double)p->disttab->flen)/log(2.0));
     p->cosineshift = sizeof(unsigned)*CHAR_BIT -
-                     (unsigned)(log((double)p->costab->flen)/log(2.));
+                     (unsigned)(log((double)p->costab->flen)/log(2.0));
     p->zscale = FL(1.0)/FL(1 << p->cosineshift);
     p->wavfreqstartindex = p->wavfreqendindex = 0;
     p->gainmaskindex = p->channelmaskindex = 0;
@@ -384,7 +384,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     }
 
     grain->env2amount = *p->env2_amount;
-    grain->envattacklen = (1. - *p->sustain_amount)*(*p->a_d_ratio);
+    grain->envattacklen = (1.0 - *p->sustain_amount)*(*p->a_d_ratio);
     grain->envdecaystart = grain->envattacklen + *p->sustain_amount;
     grain->fmenvtab = p->fmenvtab;
 
@@ -401,18 +401,18 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
 
     graingain = *p->amplitude*maskgain;
     /* duration in samples */
-    samples = (unsigned)round(max(csound->esr*(*p->duration)/1000., 0.));
+    samples = (unsigned)round(max(csound->esr*(*p->duration)/1000., 0.0));
     /* if grainlength is below one sample, we'll just cancel it */
     if (samples == 0) {
         return_grain(&p->gpool, node);
         return OK;
     }
-    rcp_samples = 1./(double)samples;
+    rcp_samples = 1.0/(double)samples;
     grain->start = n;
     grain->stop = n + samples;
 
     /* factor to correct grain placement for current grain clock phase */
-    phase_corr = p->graininc != 0. ? p->grainphase/p->graininc : 0.;
+    phase_corr = p->graininc != 0.0 ? p->grainphase/p->graininc : 0.;
 
     /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
@@ -452,10 +452,10 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
             /* normalize trainlets to uniform peak, using geometric sum */
             if (fabs(grain->falloff) > 0.9999 && fabs(grain->falloff) < 1.0001)
                 /* limit case for falloff = 1 */
-                normalize = 1./(double)grain->harmonics;
+                normalize = 1.0/(double)grain->harmonics;
             else
-                normalize = (1. - fabs(grain->falloff))
-                            /(1. - fabs(grain->falloff_pow_N));
+                normalize = (1.0 - fabs(grain->falloff))
+                            /(1.0 - fabs(grain->falloff_pow_N));
             curwav->gain *= normalize;
         }
 
@@ -473,30 +473,30 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
          * high frequency synchronous grain streams sounds right */
         curwav->phase += phase_corr*startfreq*csound->onedsr;
         /* clamp phase in case it's out of bounds */
-        curwav->phase = curwav->phase > 1. ? 1. : curwav->phase;
-        curwav->phase = curwav->phase < 0. ? 0. : curwav->phase;
+        curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
+        curwav->phase = curwav->phase < 0.0 ? 0.0 : curwav->phase;
 
         /* the sweep curve generator is a first order iir filter */
         if (*p->freqsweepshape == FL(0.5)) {
             /* special case for linear sweep */
-            curwav->sweepdecay = 1.;
+            curwav->sweepdecay = 1.0;
             curwav->sweepoffset = (enddelta - curwav->delta)*rcp_samples;
         } else {
             /* handle extreme cases the generic code doesn't handle too well */
             if (*p->freqsweepshape < FL(0.001)) {
-                curwav->sweepdecay = 1.;
-                curwav->sweepoffset = 0.;
+                curwav->sweepdecay = 1.0;
+                curwav->sweepoffset = 0.0;
             } else if (*p->freqsweepshape > FL(0.999)) {
-                curwav->sweepdecay = 0.;
+                curwav->sweepdecay = 0.0;
                 curwav->sweepoffset = enddelta;
             } else {
                 double start_offset, total_decay;
-                curwav->sweepdecay = pow(fabs((*p->freqsweepshape - 1.)/
-                                         *p->freqsweepshape), 2.*rcp_samples);
+                curwav->sweepdecay = pow(fabs((*p->freqsweepshape - 1.0)/
+                                         *p->freqsweepshape), 2.0*rcp_samples);
                 total_decay = intpow(curwav->sweepdecay, samples);
                 start_offset = (enddelta - curwav->delta*total_decay)/
-                               (1. - total_decay);
-                curwav->sweepoffset = start_offset*(1. - curwav->sweepdecay);
+                               (1.0 - total_decay);
+                curwav->sweepoffset = start_offset*(1.0 - curwav->sweepdecay);
             }
         }
     }
@@ -520,14 +520,14 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
     /* krate table lookup, first look up waveform ftables */
     for (n = 0; n < 4; ++n) {
-        p->wavetabs[n] = *waveformparams[n] >= FL(0.)
+        p->wavetabs[n] = *waveformparams[n] >= FL(0.0)
                          ? csound->FTnp2Find(csound, waveformparams[n])
                          : p->globals->zzz_tab;
         if (p->wavetabs[n] == NULL)
             return PERFERROR("unable to load waveform table");
     }
     /* look up fm envelope table for use in grains scheduled this kperiod */
-    p->fmenvtab = *p->fm_env >= FL(0.)
+    p->fmenvtab = *p->fm_env >= FL(0.0)
                   ? csound->FTFind(csound, p->fm_env)
                   : p->globals->ooo_tab;
     if (!p->fmenvtab)
@@ -543,18 +543,18 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         if (p->sync[n] > FL(0.0)) {
             /* only sync if the last sync value was <= 0 */
             if (!p->synced) {
-                p->grainphase = 1.;
+                p->grainphase = 1.0;
                 p->synced = 1;
             } else {
                 /* if sync is held high, stop the grain clock until it goes
                  * back to zero or below again */
-                p->graininc = 0.;
+                p->graininc = 0.0;
             }
         } else {
             p->synced = 0;
         }
 
-        if (p->grainphase >= 1.) {
+        if (p->grainphase >= 1.0) {
             /* phase has wrapped because we're at a period, so find out where
              * to create the next grain */
             if (*p->distribution >= FL(0.0)) {
@@ -569,8 +569,8 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 if (p->distindex >= p->disttab->flen)
                     p->distindex = 0;
             }
-            while (p->grainphase >= 1.)
-                p->grainphase -= 1.;
+            while (p->grainphase >= 1.0)
+                p->grainphase -= 1.0;
             phase_wrapped = 1;
         }
 
@@ -634,10 +634,10 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
                 MYFLT frac;
 
                 /* make sure phase accumulator stays within bounds */
-                while (curwav->phase >= 1.)
-                    curwav->phase -= 1.;
-                while (curwav->phase < 0.)
-                    curwav->phase += 1.;
+                while (curwav->phase >= 1.0)
+                    curwav->phase -= 1.0;
+                while (curwav->phase < 0.0)
+                    curwav->phase += 1.0;
 
                 /* sample table lookup with linear interpolation */
                 pos = curwav->phase*curwav->table->flen;
@@ -659,10 +659,10 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         } else {
             /* trainlet synthesis */
             for (n = grain->start; n < stop; ++n) {
-                while (curwav->phase >= 1.)
-                    curwav->phase -= 1.;
-                while (curwav->phase < 0.)
-                    curwav->phase += 1.;
+                while (curwav->phase >= 1.0)
+                    curwav->phase -= 1.0;
+                while (curwav->phase < 0.0)
+                    curwav->phase += 1.0;
 
                 /* dsf/trainlet synthesis */
                 buf[n] += curwav->gain*dsf(p->costab, grain, curwav->phase,
@@ -693,13 +693,13 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
             /* for sustain, use last sample in attack table */
             envtable = p->env_attack_tab;
             envphase = 1.;
-        } else if (grain->envphase < 1.) {
+        } else if (grain->envphase < 1.0) {
             envtable = p->env_decay_tab;
-            envphase = (grain->envphase - grain->envdecaystart)/(1. -
+            envphase = (grain->envphase - grain->envdecaystart)/(1.0 -
                        grain->envdecaystart);
         } else {
             /* clamp envelope phase because of round-off errors */
-            envtable = grain->envdecaystart < 1. ?
+            envtable = grain->envdecaystart < 1.0 ?
                        p->env_decay_tab : p->env_attack_tab;
             envphase = grain->envphase = 1.0;
         }
