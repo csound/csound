@@ -1,3 +1,8 @@
+2007-04-19  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/partikkel.h: 
+	* Opcodes/partikkel.c: New code from Oeyvind
+
 2007-03-24  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h (CS_APISUBVER): Increase 
