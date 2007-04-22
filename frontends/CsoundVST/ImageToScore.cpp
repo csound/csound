@@ -27,6 +27,8 @@
 #include <FL/Fl_XPM_Image.H>
 #include <FL/Fl_GIF_Image.H>
 #include <FL/Fl_BMP_Image.H>
+#include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_JPEG_Image.H>
 #include <cmath>
 #include <set>
 #include <functional>
@@ -128,47 +130,71 @@ namespace csound
                 return minimumValue;
         }
 
-        struct EventLess
+        struct StartingEventLess
         {
-                bool operator()(const csound::Event& a, const csound::Event& b) const
-                {
-                        return a[Event::VELOCITY] < b[Event::VELOCITY];
+                bool operator()(const csound::Event& a, const csound::Event& b) const {
+                        return a.getVelocity() < b.getVelocity();
                 }
         };
 
+        struct PendingEventLess
+        {
+                bool operator()(const csound::Event& a, const csound::Event& b) const {
+                        if (a.getKeyNumber() < b.getKeyNumber()) {
+                            return true;
+                        } else if (a.getChannel() < b.getChannel()) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                }
+        };
+
+        /**
+        * Generate a score with up to N voices,
+        * based on the pixels in an image file.
+        * The horizontal (x) dimension is time,
+        * the vertical (y) dimension is pitch (MIDI key),
+        * the value (brightness or v) of the pixel is loudness (MIDI velocity),
+        * and the hue (color or h) of the pixel is instrument number.
+        * The translation algorithm is: 
+        * for each column of pixels,
+        * compare the value of the pixel in each row 
+        * to the value in the previous column 
+        * and the value in the next column.
+        * If the current value is greater than the previous value or some minimum value V,
+        * begin an event for the pitch of that row;
+        * if the current value is less than V, end the event;
+        * otherwise, continue the event.
+        */
         void ImageToScore::generate()
         {
-                if(image)
-                {
+                if (image) {
                         delete image;
                         image = 0;
                 }
-                if(imageFilename.find(".gif") != std::string::npos || imageFilename.find(".GIF") != std::string::npos)
-                {
+                if (imageFilename.find(".jpg") != std::string::npos || imageFilename.find(".JPG") != std::string::npos ||
+                    imageFilename.find(".jpeg") != std::string::npos || imageFilename.find(".JPEG") != std::string::npos) {
+                        image = new Fl_JPEG_Image(imageFilename.c_str());
+                } else if (imageFilename.find(".png") != std::string::npos || imageFilename.find(".PNG") != std::string::npos) {
+                        image = new Fl_PNG_Image(imageFilename.c_str());
+                } else if (imageFilename.find(".gif") != std::string::npos || imageFilename.find(".GIF") != std::string::npos) {
                         image = new Fl_GIF_Image(imageFilename.c_str());
-                }
-                else if(imageFilename.find(".xpm") != std::string::npos || imageFilename.find(".XPM") != std::string::npos)
-                {
+                } else if(imageFilename.find(".xpm") != std::string::npos || imageFilename.find(".XPM") != std::string::npos) {
                         image = new Fl_XPM_Image(imageFilename.c_str());
-                }
-                else if(imageFilename.find(".pnm") != std::string::npos || imageFilename.find(".PNM") != std::string::npos)
-                {
+                } else if(imageFilename.find(".pnm") != std::string::npos || imageFilename.find(".PNM") != std::string::npos) {
                         image = new Fl_PNM_Image(imageFilename.c_str());
-                }
-                else if(imageFilename.find(".bmp") != std::string::npos || imageFilename.find(".BMP") != std::string::npos)
-                {
+                } else if(imageFilename.find(".bmp") != std::string::npos || imageFilename.find(".BMP") != std::string::npos) {
                         image = new Fl_BMP_Image(imageFilename.c_str());
-                }
-                else
-                {
+                } else {
                         System::error("Image file '%s' not found, or unsupported image format.\n", getImageFilename().c_str());
                 }
-                if(!image)
+                if (!image)
                 {
                         return;
                 }
-                double x;
-                double y;
+                double x = 0.0;
+                double y = 0.0;
                 double w = image->w();
                 double h = image->h();
                 System::inform("Image width  = %d\n", int(w));
@@ -176,92 +202,67 @@ namespace csound
                 System::inform("Image depth  = %d\n", image->d());
                 System::inform("Image count  = %d\n", image->count());
                 double saturation;
-                double hue;
-                double value;
-                double previousHue;
                 double previousValue;
-                double nextHue;
+                double previousHue;
+                double currentValue;
+                double currentHue;
                 double nextValue;
+                double nextHue;
                 Event startingEvent;
                 Event endingEvent;
-                std::map<size_t, Event> pendingEvents;
-                std::multiset<Event, EventLess> startingEvents;
-                for(x = 0; x < w; ++x)
-                {
-                        // Insert starting events into the starting event list,
-                        // but only if they are not already there.
-                        startingEvents.erase(startingEvents.begin(), startingEvents.end());
-                        for(y = 0; y < h; ++y)
-                        {
-                                getPixel(size_t(x), size_t(y), hue, saturation, value);
-                                if(x == 0)
-                                {
-                                        if(value > minimumValue)
-                                        {
-                                                previousHue = 0;
+                std::multiset<Event, StartingEventLess> startingEvents;
+                std::set<Event, PendingEventLess> pendingEvents;
+                for (x = 0; x < w; ++x) {
+                        startingEvents.clear();
+                        // Detect starting events.
+                        for (y = 0; y < h; ++y) {
+                                getPixel(size_t(x), size_t(y), currentHue, saturation, currentValue);
+                                if (x == 0) {
+                                        if (currentValue > minimumValue) {
                                                 previousValue = 0;
+                                                previousHue = 0;
+                                        } else {
+                                                previousValue = currentValue;
+                                                previousHue = currentHue;
                                         }
-                                        else
-                                        {
-                                                previousHue = hue;
-                                                previousValue = value;
-                                        }
-                                }
-                                else
-                                {
+                                } else {
                                         getPixel(size_t(x - 1), size_t(y), previousHue, saturation, previousValue);
                                 }
-                                // Is the event starting?
-                                if(previousValue <= minimumValue && value > minimumValue)
-                                {
-                                        translate(x, y, hue, value, startingEvent);
+                                if (previousValue <= minimumValue && currentValue > minimumValue) {
+                                        translate(x, y, currentHue, currentValue, startingEvent);
                                         startingEvents.insert(startingEvent);
                                 }
                         }
                         // Insert starting events into the pending event list, in order of decreasing loudness,
                         // until the pending event list has no more than maximumCount events.
-                        for(std::multiset<Event, EventLess>::iterator nt = startingEvents.begin(); nt != startingEvents.end(); ++nt)
-                        {
-                                if(pendingEvents.size() < maximumVoiceCount)
-                                {
-                                        startingEvent = *nt;
-                                        size_t eventIndex = size_t(startingEvent[Event::INSTRUMENT] * 1000 + startingEvent[Event::KEY]);
-                                        if(pendingEvents.find(eventIndex) == pendingEvents.end())
-                                        {
-                                                pendingEvents[eventIndex] = startingEvent;
+                        for (std::multiset<Event, StartingEventLess>::iterator si = startingEvents.begin(); si != startingEvents.end(); ++si) {
+                                if (pendingEvents.size() < maximumVoiceCount) {
+                                        startingEvent = *si;
+                                        if (pendingEvents.find(startingEvent) == pendingEvents.end()) {
+                                                pendingEvents.insert(startingEvent);
                                         }
                                 }
-                                else
-                                {
-                                        break;
-                                }
                         }
-                        // Remove ending events from the pending event list,
-                        // and put them in the score.
-                        for(y = 0; y < h; ++y)
-                        {
-                                getPixel(size_t(x), size_t(y), hue, saturation, value);
-                                if(x < (w - 1))
-                                {
+                        // Remove ending events from the pending event list and put them in the score.
+                        for (y = 0; y < h; ++y) {
+                                getPixel(size_t(x), size_t(y), currentHue, saturation, currentValue);
+                                if (x < (w - 1)) {
                                         getPixel(size_t(x + 1), size_t(y), nextHue, saturation, nextValue);
-                                }
-                                else
-                                {
-                                        nextHue = 0;
+                                } else {
                                         nextValue = 0;
+                                        nextHue = 0;
                                 }
-                                //      Is the event ending?
-                                if(value > minimumValue && nextValue <= minimumValue)
-                                {
-                                        translate(x, y, hue, value, endingEvent);
-                                        size_t eventIndex = size_t(endingEvent[Event::INSTRUMENT] * 1000 + endingEvent[Event::KEY]);
-                                        if(pendingEvents.find(eventIndex) != pendingEvents.end())
-                                        {
-                                                startingEvent = pendingEvents[eventIndex];
+                                if (currentValue > minimumValue && nextValue <= minimumValue) {
+                                        translate(x, y, currentHue, currentValue, endingEvent);
+                                        if (pendingEvents.find(endingEvent) != pendingEvents.end()) {
+                                                std::set<Event, PendingEventLess>::iterator pi = pendingEvents.find(endingEvent);
+                                                startingEvent = *pi;
                                                 startingEvent[Event::DURATION] = endingEvent[Event::TIME] - startingEvent[Event::TIME];
-                                                score.push_back(startingEvent);
-                                                System::debug("Inserting: %s\n", startingEvent.toString().c_str());
-                                                pendingEvents.erase(eventIndex);
+                                                if (startingEvent.getDuration() > 0.0) {
+                                                    score.push_back(startingEvent);
+                                                    System::debug("Inserting at (x =%5d, y =%5d): %s\n", size_t(x), size_t(y), startingEvent.toString().c_str());
+                                                }
+                                                pendingEvents.erase(pi);
                                         }
                                 }
                         }
@@ -269,13 +270,11 @@ namespace csound
                 System::debug("Remaining events...\n");
                 // Insert any remaining events.
                 double endingTime = score.scaleTargetMinima[Event::TIME] + score.scaleTargetRanges[Event::TIME];
-                for(std::map<size_t, Event>::iterator it = pendingEvents.begin(); it != pendingEvents.end(); ++it)
-                {
-                        startingEvent = it->second;
-                        size_t eventIndex = size_t(startingEvent[Event::INSTRUMENT] * 1000 + startingEvent[Event::KEY]);
+                for (std::set<Event, PendingEventLess>::iterator it = pendingEvents.begin(); it != pendingEvents.end(); ++it) {
+                        startingEvent = *it;
                         startingEvent[Event::DURATION] = endingTime - startingEvent[Event::TIME];
                         score.push_back(startingEvent);
-                        System::debug("Ending:   %d  %s\n", eventIndex, startingEvent.toString().c_str());
+                        System::debug("Ending:   %s\n", startingEvent.toString().c_str());
                 }
         }
 }
