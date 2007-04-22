@@ -1351,7 +1351,7 @@ else:
     print "CONFIGURATION DECISION: Building vst4cs opcodes."
     if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
         vst4Environment = vstEnvironment.Copy()
-        vst4Environment.Append(LIBS = ['fltk'])
+        vst4Environment.Append(LIBS = Split('''fltk'''))
         vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         if not withMSVC():
@@ -1707,7 +1707,7 @@ else:
         '''))
         vstEnvironment.Prepend(
             LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
-        vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
+        vstEnvironment.Append(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
     for option in vstEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
