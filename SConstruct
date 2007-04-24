@@ -1143,6 +1143,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'modal4',
