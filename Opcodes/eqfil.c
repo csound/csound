@@ -5,14 +5,14 @@ typedef struct _equ {
   MYFLT *out;
   MYFLT *sig, *fr, *bw, *g, *ini;  /* in, freq, bw, gain, ini */
   double z1,z2;              /* delay memory */
-  double frv, bwv;            /* bandwidth and frequency */
+  MYFLT frv, bwv;            /* bandwidth and frequency */
   double c,d;                /* filter vars */  
 
 } equ;
 
 static int equ_init(CSOUND *csound, equ *p)
 {
-    if(*p->ini){
+    if(*p->ini==0){
 	MYFLT sr = csound->GetSr(csound);
     p->z1 = p->z2 = 0.0;
     p->frv = *p->fr; p->bwv = *p->bw;
