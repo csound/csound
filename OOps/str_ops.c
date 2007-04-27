@@ -150,6 +150,10 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
 
     if (p->r == p->str)
       return OK;
+    if(*p->str == SSTRCOD){
+       csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
+       return OK;
+    }
     if ((int) strlen(newVal) >= csound->strVarMaxLen)
       return StrOp_ErrMsg(p, "buffer overflow");
     strcpy((char*) p->r, newVal);
