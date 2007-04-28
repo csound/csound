@@ -16,7 +16,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
  */
-#include <OpcodeBase.hpp>
+#include "OpcodeBase.hpp"
 
 #include <cmath>
 
@@ -131,7 +131,7 @@ extern "C" {
   {
     return 0;
   }
-};
+}
 
 
 
