@@ -1137,11 +1137,12 @@ static const CSOUND cenviron_ = {
 
   }
 
-  int kperfThread(void * cs) {
+  unsigned long kperfThread(void * cs) {
     INSDS *start, *end;
     CSOUND *csound = (CSOUND *)cs;
     OPDS   *opstart;
-
+    void   *barrier1, *barrier2;
+    
     void *threadId = csound->GetCurrentThreadID();
 
     int index = getThreadIndex(csound, threadId);
@@ -1152,10 +1153,12 @@ static const CSOUND cenviron_ = {
        return -1;
     }
 
-    void *barrier1 = csound->multiThreadedBarrier1;
-    void *barrier2 = csound->multiThreadedBarrier2;
+    barrier1 = csound->multiThreadedBarrier1;
+    barrier2 = csound->multiThreadedBarrier2;
 
     while(1) {
+        int numActive;
+        
         csound->WaitBarrier(barrier1);
 
         csound_global_mutex_lock();
@@ -1169,7 +1172,7 @@ static const CSOUND cenviron_ = {
         start = csound->multiThreadedStart;
         end = csound->multiThreadedEnd;
 
-        int numActive = getNumActive(start, end);
+        numActive = getNumActive(start, end);
 
         partitionWork(csound, &start, &end, index, numThreads, numActive);
 
@@ -1194,7 +1197,9 @@ static const CSOUND cenviron_ = {
   static inline int kperf(CSOUND *csound)
   {
     int     i;
-
+    void *barrier1, *barrier2;
+    INSDS   *ip;
+    
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->curTime += csound->curTime_inc;
@@ -1219,10 +1224,8 @@ static const CSOUND cenviron_ = {
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
 
-    void *barrier1 = csound->multiThreadedBarrier1;
-    void *barrier2 = csound->multiThreadedBarrier2;
-
-    INSDS   *ip;
+    barrier1 = csound->multiThreadedBarrier1;
+    barrier2 = csound->multiThreadedBarrier2;
 
     ip = csound->actanchor.nxtact;
 

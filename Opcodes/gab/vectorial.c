@@ -1872,6 +1872,8 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     FUNC        *ftp;
     int elements = 0;
     MYFLT *num1;
+    long r;
+    
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
         unsigned long seed;
@@ -1900,7 +1902,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, p->elements * sizeof(MYFLT), &p->auxch);
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
-    long r = p->rand;
+    r = p->rand;
     elements = p->elements;
     do {
       *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) *
@@ -1917,7 +1919,8 @@ static int vrandh(CSOUND *csound,VRANDH *p)
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
     int elements = p->elements;
-
+    long r;
+    
     do {
       *vector++ = (*num1++ * value) + *p->ioffset;
     } while (--elements);
@@ -1928,7 +1931,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
       elements = p->elements;
       vector = p->vector;
       num1 = p->num1;
-      long r = p->rand;
+      r = p->rand;
       do {
         *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
         r = randint31(r);
@@ -1944,6 +1947,8 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
     int elements = 0;
     MYFLT *dfdmax, *num1, *num2;
     unsigned long seed;
+    long r;
+    
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
         seed = csound->GetRandomSeedFromTime();
@@ -1975,7 +1980,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
     num1 = (p->num1 = (MYFLT *) p->auxch.auxp);
     num2 = (p->num2 = &num1[elements]);
     dfdmax = (p->dfdmax = &num1[elements * 2]);
-    long r = p->rand;
+    r = p->rand;
     do {
       *num1 = FL(0.0);
       *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
@@ -1992,6 +1997,8 @@ static int vrandi(CSOUND *csound,VRANDI *p)
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
     int elements = p->elements;
+    long r;
+    
     do {
       *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) + *p->ioffset;
     } while (--elements);
@@ -2004,7 +2011,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
       num1 = p->num1;
       num2 = p->num2;
       dfdmax = p->dfdmax;
-      long r = p->rand;
+      r = p->rand;
       do {
         *num1 = *num2;
         *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
