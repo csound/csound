@@ -35,7 +35,7 @@ extern  int     read_unified_file(CSOUND *, char **, char **);
 
 extern  OENTRY  opcodlst_1[];
 
-extern  int     kperfThread(void * cs);
+extern  unsigned long     kperfThread(void * cs);
 
 static void create_opcodlst(CSOUND *csound)
 {
