@@ -946,7 +946,7 @@ extern "C" {
     int (*DestroyBarrier)(void *);
     int (*WaitBarrier)(void *);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[98];
+    SUBR dummyfn_2[95];
     void          *flgraphGlobals;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
