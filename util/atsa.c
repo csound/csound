@@ -531,8 +531,8 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     void    *fd;
 
     /* open output file */
-    fd = csound->FileOpen(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
-                          NULL);
+    fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
+                          NULL, CSFTYPE_ATS, FALSE);
     if (fd == NULL) {
       csound->Die(csound, Str("\n Could not open %s for writing, bye...\n"),
                   ats_outfile);
@@ -1477,7 +1477,8 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, file, &sfinfo, NULL);
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo, NULL,
+                           CSFTYPE_UNKNOWN_AUDIO, FALSE);
     if (fd == NULL) {
       csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
     }
@@ -1807,8 +1808,8 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
     sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-    fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
-                          NULL);
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
+                          NULL, CSFTYPE_WAVE, FALSE);
     if (fd == NULL) {
       csound->Die(csound, Str("\nERROR: can't open file %s for writing\n"),
                   output_file);
@@ -1997,7 +1998,8 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* open input file
        we get srate and total_samps in file in anargs */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo, NULL);
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo, NULL,
+                           CSFTYPE_UNKNOWN_AUDIO, FALSE);
     if (fd == NULL) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s'"),
                        soundfile);

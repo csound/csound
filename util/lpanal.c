@@ -503,8 +503,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     }
 
     /* Try to open output file */
-    if (csound->FileOpen(csound,
-                         &ofd, CSFILE_FD_W, outfilnam, NULL, "") == NULL)
+    if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W,
+                          outfilnam, NULL, "", CSFTYPE_LPC, FALSE) == NULL)
       quit(csound, Str("cannot create output file"));
 
     /* Prepare header */
@@ -559,7 +559,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     lpc.a = (double (*)[MAXPOLES]) csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(double));
     lpc.x = (double *) csound->Malloc(csound, lpc.WINDIN * sizeof(double));  /* alloc a double array */
 #ifdef TRACE
-    csound->FileOpen(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL);
+    csound->FileOpen2(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
+                      CSFTYPE_OTHER_TEXT, FALSE);
 #endif
     /* Do the analysis */
     do {

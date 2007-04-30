@@ -1472,6 +1472,22 @@ extern "C" {
   PUBLIC void csoundRemoveCallback(CSOUND *,
                                    int (*func)(void *, void *, unsigned int));
 
+
+  /**
+   * Sets an external callback for receiving notices whenever Csound opens
+   * a file.  The callback is made after the file is successfully opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     int    a file type code from the enumeration CSOUND_FILETYPES
+   *     int    1 if Csound is writing the file, 0 if reading
+   *     int    1 if a temporary file that Csound will delete; 0 if not
+   * 
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+  PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
+                           void (*func)(CSOUND*, const char*, int, int, int));
+
 /* This pragma must come after all public function declarations */
 #if (defined(macintosh) && defined(__MWERKS__))
 #  pragma export off

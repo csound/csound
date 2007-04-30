@@ -156,6 +156,9 @@ extern "C" {
   /**
    * Open a file and return handle.
    *
+   * This function has been replaced by csoundFileOpenWithType().
+   * Please do not use it in new code.
+   *
    * CSOUND *csound:
    *   Csound instance pointer
    * void *fd:
@@ -190,6 +193,24 @@ extern "C" {
    */
   void *csoundFileOpen(CSOUND *csound, void *fd, int type,
                        const char *name, void *param, const char *env);
+
+  /**
+   * Open a file and return handle.
+   *
+   * Same as csoundFileOpen() with two additional parameters describing the
+   * type of file being opened and whether it is a temporary file.  This
+   * function replaces csoundFileOpen().  This additional information is 
+   * used as metadata to be passed to the host application's FileOpenCallback.
+   *
+   * int csFileType:
+   *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
+   * int isTemporary:
+   *   TRUE if this file will be deleted when Csound is finished.
+   *   Otherwise, FALSE.
+   */
+  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
+			     const char *name, void *param, const char *env,
+			     int csFileType, int isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),

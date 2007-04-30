@@ -478,7 +478,8 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
       memcpy(p->customWindow, fWindow, dwWinlen * sizeof(float));
     }
 
-    p->fd = csound->FileOpen(csound, &(p->fp), CSFILE_STD, filename, "wb", "");
+    p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename, "wb",
+                               "", CSFTYPE_PVCEX, FALSE);
     if (p->fd == NULL) {
       mfree(csound, pname);
       if (p->customWindow)
@@ -526,8 +527,8 @@ int pvoc_openfile(CSOUND *csound,
     p = pvsys_getFileHandle(csound, fd);
 
     p->customWindow = NULL;
-    p->fd = csound->FileOpen(csound, &(p->fp), CSFILE_STD, filename,
-                                     "rb", "SADIR");
+    p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename,
+                                   "rb", "SADIR", CSFTYPE_PVCEX, FALSE);
     if (p->fd == NULL) {
       csound->pvErrorCode = -9;
       free(p);

@@ -599,8 +599,8 @@ static int filedump(HET *thishet, CSOUND *csound)
       TIME[pnt] = (short)(pnt * timesiz);
 
     /* fullpath else cur dir */
-    if (csound->FileOpen(csound, &ofd, CSFILE_FD_W,
-                                 thishet->outfilnam, NULL, "") == NULL)
+    if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
+                                 NULL, "", CSFTYPE_HETRO, FALSE) == NULL)
       return quit(csound, Str("cannot create output file\n"));
 
     write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax)); /* Write header */

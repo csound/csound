@@ -286,9 +286,9 @@ static int scale(CSOUND *csound, int argc, char **argv)
         }
       }
       else
-        fd = csound->FileOpen(csound, &outfile, CSFILE_SND_W,
-                                      O->outfilename, &sfinfo,
-                                      "SFDIR");
+        fd = csound->FileOpen2(csound, &outfile, CSFILE_SND_W,
+                               O->outfilename, &sfinfo, "SFDIR",
+                               csound->type2csfiletype(O->filetyp), FALSE);
       if (fd == NULL)
         csound->Die(csound, Str("Failed to open output file %s"),
                             O->outfilename);
@@ -321,8 +321,8 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       FILE    *f;
       double  samplepert = (double)thissc->p->sr;
       double  x, y;
-      if (csound->FileOpen(csound, &f, CSFILE_STD, factorfile, "r", NULL)
-          == NULL)
+      if (csound->FileOpen2(csound, &f, CSFILE_STD, factorfile, "r", NULL,
+                              CSFTYPE_FLOATS_TEXT, FALSE) == NULL)
         csound->Die(csound, Str("Failed to open %s"), factorfile);
       while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
         scalepoint *newpoint =
