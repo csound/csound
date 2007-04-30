@@ -118,7 +118,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, "-o cannot be stdin");
-#ifdef THINK_C
+#ifdef macintosh
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->Die(csound, "stdout audio not supported");
             }
@@ -298,9 +298,9 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
       }
     }
     else
-      fd = csound->FileOpen(csound, &outfd, CSFILE_SND_W,
-                                    O->outfilename, &sfinfo,
-                                    "SFDIR");
+      fd = csound->FileOpen2(csound, &outfd, CSFILE_SND_W,
+                               O->outfilename, &sfinfo, "SFDIR",
+                               csound->type2csfiletype(O->filetyp), FALSE);
     if (fd == NULL)
       csound->Die(csound, Str("Failed to open output file %s"),
                           O->outfilename);

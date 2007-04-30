@@ -283,7 +283,8 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
 
     /* Generate orchestra name */
     csoundTmpFileName(csound, ST(orcname), ".orc");
-    fd = csoundFileOpen(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL);
+    fd = csoundFileOpenWithType(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL,
+                                CSFTYPE_ORCHESTRA, TRUE);
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
 #endif
@@ -311,7 +312,8 @@ static int createScore(CSOUND *csound, FILE *unf)
 
     /* Generate score name */
     csoundTmpFileName(csound, ST(sconame), ".sco");
-    fd = csoundFileOpen(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL);
+    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL,
+                                CSFTYPE_SCORE, TRUE);
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof);
 #endif
@@ -341,7 +343,8 @@ static int createMIDI(CSOUND *csound, FILE *unf)
 
     /* Generate MIDI file name */
     csoundTmpFileName(csound, ST(midname), ".mid");
-    fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
+    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL,
+                                CSFTYPE_STD_MIDI, TRUE);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
@@ -424,7 +427,8 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
 
     /* Generate MIDI file name */
     csoundTmpFileName(csound, ST(midname), ".mid");
-    fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
+    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL,
+                                CSFTYPE_STD_MIDI, TRUE);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
@@ -458,7 +462,8 @@ static int createSample(CSOUND *csound, FILE *unf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
     }
-    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL);
+    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
+                                CSFTYPE_UNKNOWN_AUDIO, TRUE);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
     }
@@ -491,7 +496,8 @@ static int createFile(CSOUND *csound, FILE *unf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "wb", NULL);
+    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
+                                CSFTYPE_UNKNOWN, TRUE);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
@@ -587,7 +593,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     int   r;
 
     /* Need to open in binary to deal with MIDI and the like. */
-    fd = csoundFileOpen(csound, &unf, CSFILE_STD, name, "rb", NULL);
+    fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
+                                CSFTYPE_UNIFIED_CSD, FALSE);
     /* RWD 3:2000 fopen can fail... */
     if (fd == NULL) {
       csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
@@ -597,6 +604,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     alloc_globals(csound);
     ST(orcname)[0] = ST(sconame)[0] = ST(midname)[0] = '\0';
     ST(midiSet) = FALSE;
+    csound->usingCSD = TRUE;
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif

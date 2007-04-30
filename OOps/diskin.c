@@ -182,8 +182,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     /* open file */
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
-    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                                  "SFDIR;SSDIR");
+    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, FALSE);
     if (fd == NULL) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
@@ -397,8 +397,8 @@ int sndo1set(CSOUND *csound, void *pp)
                                  opname, (int) (*iformat + FL(0.5)));
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
-    p->fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_W,
-                                       sfname, &sfinfo, "SFDIR");
+    p->fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_W, sfname, &sfinfo,
+                                    "SFDIR", type2csfiletype(filetyp), FALSE);
     if (p->fd == NULL) {
       return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
     }
@@ -454,4 +454,3 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
 
     return OK;
 }
-

@@ -131,8 +131,9 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (sfinfo.samplerate < 1)
       sfinfo.samplerate = (int) ((double) DFLT_SR + 0.5);
     /* open with full dir paths */
-    p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R,
-                                     sfname, &sfinfo, "SFDIR;SSDIR");
+    p->fd = csound->FileOpen2(csound, &(p->sinfd), CSFILE_SND_R,
+                                     sfname, &sfinfo, "SFDIR;SSDIR",
+                                     CSFTYPE_UNKNOWN_AUDIO, FALSE);
     if (p->fd == NULL) {
       csound->ErrorMsg(csound, Str("soundin cannot open %s"), sfname);
       goto err_return;
@@ -370,5 +371,25 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
     }
     return Str("unknown");
+}
+
+int type2csfiletype(int type)
+{
+    switch (type) {
+      case TYP_RAW:    return CSFTYPE_RAW_AUDIO;
+      case TYP_IRCAM:  return CSFTYPE_IRCAM;
+      case TYP_AIFF:   return CSFTYPE_AIFF;
+      case TYP_WAV:    return CSFTYPE_WAVE;
+      case TYP_AU:     return CSFTYPE_AU;
+      case TYP_W64:    return CSFTYPE_W64;
+      case TYP_WAVEX:  return CSFTYPE_WAVEX;
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
+      case TYP_SD2:    return CSFTYPE_SD2;
+#  if HAVE_LIBSNDFILE >= 1013
+      case TYP_FLAC:   return CSFTYPE_FLAC;
+#  endif
+#endif
+      default:         return CSFTYPE_UNKNOWN_AUDIO;
+    }
 }
 

@@ -1067,8 +1067,8 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     FILE    *infile;
     void    *fd;
 
-    fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
-                                  "SFDIR;SSDIR;INCDIR");
+    fd = csound->FileOpen2(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
+                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, FALSE);
     if (fd == NULL) {
       return fterror(ff, Str("error opening ASCII file"));
     }
@@ -1287,8 +1287,8 @@ static int gen28(FGDATA *ff, FUNC *ftp)
 
     if (ff->flen)
       return fterror(ff, Str("GEN28 requires zero table length"));
-    fd = csound->FileOpen(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
-                                  "SFDIR;SSDIR;INCDIR");
+    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
+                          "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, FALSE);
     if (fd == NULL)
       goto gen28err1;
 

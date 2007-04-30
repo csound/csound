@@ -49,6 +49,75 @@ extern "C" {
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
 
+/** 
+ * The following constants are used with csound->FileOpen2() and
+ * are passed by Csound to a host's FileOpen callback.
+ */
+typedef enum
+{
+    CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
+    CSFTYPE_ORCHESTRA = 2,     /* the primary orc file (may be temporary) */
+    CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary) */
+    CSFTYPE_ORC_INCLUDE = 4,   /* a file #included by the orchestra */
+    CSFTYPE_SCO_INCLUDE = 5,   /* a file #included by the score */
+    CSFTYPE_SCORE_OUT = 6,     /* used for score.srt, score.xtr, cscore.out */
+    CSFTYPE_SCOT = 7,          /* Scot score input format */
+    CSFTYPE_OPTIONS = 8,       /* for .csoundrc and -@ flag */
+    
+    /* audio file types that Csound can write */
+    CSFTYPE_RAW_AUDIO = 9,
+    CSFTYPE_IRCAM = 10,
+    CSFTYPE_AIFF = 11,
+    CSFTYPE_WAVE = 12,
+    CSFTYPE_AU = 13,
+    CSFTYPE_SD2 = 14,
+    CSFTYPE_W64 = 15,
+    CSFTYPE_WAVEX = 16,
+    CSFTYPE_FLAC = 17,
+    CSFTYPE_UNKNOWN_AUDIO = 18, /* used when opening audio file for reading
+                                   or temp file written with <CsSampleB> */
+    
+    /* miscellaneous music formats */
+    CSFTYPE_SOUNDFONT = 19,
+    CSFTYPE_STD_MIDI = 20,     /* Standard MIDI file */
+    CSFTYPE_MIDI_SYSEX = 21,   /* Raw MIDI codes, eg. SysEx dump */
+    
+    /* analysis formats */
+    CSFTYPE_HETRO = 22,
+    CSFTYPE_PVC = 23,          /* original PVOC format */
+    CSFTYPE_PVCEX = 24,        /* PVOC-EX format */
+    CSFTYPE_CVANAL = 25,
+    CSFTYPE_LPC = 26,
+    CSFTYPE_ATS = 27,
+    CSFTYPE_LORIS = 28,
+    CSFTYPE_SDIF = 29,
+
+    /* Types for plugins and the files they read/write */
+    CSFTYPE_VST_PLUGIN = 30,
+    CSFTYPE_LADSPA_PLUGIN = 31,
+    CSFTYPE_SNAPSHOT = 32,
+    
+    /* Special formats for Csound ftables with header info */
+    CSFTYPE_FTABLES_TEXT = 33,   /* for ftsave and ftload  */
+    CSFTYPE_FTABLES_BINARY = 34, /* for ftsave and ftload  */
+    
+    /* These are for raw lists of numbers without header info */
+    CSFTYPE_FLOATS_TEXT = 35,    /* used by GEN23, GEN28, dumpk, readk */
+    CSFTYPE_FLOATS_BINARY = 36,  /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_TEXT = 37,   /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_BINARY = 38, /* used by dumpk, readk, etc. */
+
+    /* For files that don't match any of the above */
+    CSFTYPE_POSTSCRIPT = 39,     /* EPS format used by graphs */
+    CSFTYPE_OTHER_TEXT = 40,
+    CSFTYPE_OTHER_BINARY = 41,
+    
+    /* This should only be used internally by the original FileOpen()
+       API call or for temp files written with <CsFileB> */
+    CSFTYPE_UNKNOWN = 0 
+}    
+CSOUND_FILETYPES;
+
 #define MAXINSNO  (200)
 #define PMAX      (1000)
 #define VARGMAX   (1001)
@@ -871,6 +940,7 @@ extern "C" {
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                            int (*func)(CSOUND *, void *));
     void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
+    /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */ 
     void *(*FileOpen)(CSOUND *,
                       void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
@@ -945,8 +1015,11 @@ extern "C" {
     void *(*CreateBarrier)(unsigned int max);
     int (*DestroyBarrier)(void *);
     int (*WaitBarrier)(void *);
+    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *, 
+                      const char *, int, int);
+    int (*type2csfiletype)(int type);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[95];
+    SUBR dummyfn_2[93];
     void          *flgraphGlobals;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
@@ -1025,6 +1098,7 @@ extern "C" {
     void          (*csoundReadXYinCallback_)(CSOUND *, XYINDAT *);
     void          (*csoundKillXYinCallback_)(CSOUND *, XYINDAT *);
     void          (*cscoreCallback_)(CSOUND *);
+    void          (*FileOpenCallback_)(CSOUND*, const char*, int, int, int);
     SUBR          last_callback_;
     /* these are not saved on RESET */
     int           (*playopen_callback)(CSOUND *, const csRtAudioParams *parm);
@@ -1223,6 +1297,7 @@ extern "C" {
     THREADINFO    *multiThreadedThreadInfo;
     INSDS         *multiThreadedStart;
     INSDS         *multiThreadedEnd;
+    int           usingCSD;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
