@@ -180,8 +180,8 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));    /* open with full dir paths */
-    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
-                                  "SFDIR;SSDIR");
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
+                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, FALSE);
     if (fd == NULL) {
       /* RWD 5:2001 better to exit in this situation ! */
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);

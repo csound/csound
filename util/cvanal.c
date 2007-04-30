@@ -129,8 +129,8 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
       return -1;
     }
-    ofd_handle = csound->FileOpen(csound, &ofd, CSFILE_STD, outfilnam, "wb",
-                                          "SFDIR");
+    ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
+                                          "SFDIR", CSFTYPE_CVANAL, FALSE);
     if (ofd_handle == NULL) {                   /* open the output CV file */
       return quit(csound, Str("cannot create output file"));
     }                                           /* & wrt hdr into the file */

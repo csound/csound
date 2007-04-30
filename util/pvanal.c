@@ -233,8 +233,8 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
             break;
           case 'V':  FIND(Str("no output file for trace"));
             {
-              void  *dummy = csound->FileOpen(csound, &trfil, CSFILE_STD, s,
-                                                      "w", NULL);
+              void  *dummy = csound->FileOpen2(csound, &trfil, CSFILE_STD, s,
+                                       "w", NULL, CSFTYPE_OTHER_TEXT, FALSE);
               if (dummy == NULL)
                 return quit(csound, Str("Failed to open text file"));
               csound->Message(csound, Str("Writing text form to file %s\n"), s);

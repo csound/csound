@@ -69,6 +69,7 @@ void    list_opcodes(CSOUND *, int);
 char    *getstrformat(int format);
 int     sfsampsize(int sf_format);
 char    *type2string(int type);
+int     type2csfiletype(int type);
 void    rewriteheader(SNDFILE *ofd);
 int     readOptions(CSOUND *, FILE *);
 int     argdecode(CSOUND *, int, char **);

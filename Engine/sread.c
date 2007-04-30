@@ -99,7 +99,7 @@ static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *);
         MYFLT   stof(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 #define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
 
@@ -1018,7 +1018,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             ST(str)++;
             ST(str)->string = 0;
             ST(str)->fd = fopen_path(csound, &(ST(str)->file),
-                                             ST(names)[i].file, NULL, NULL);
+                                             ST(names)[i].file, NULL, NULL, 1);
             /* RWD 3:2000 */
             if (ST(str)->fd == NULL) {
               csoundDie(csound, Str("cannot open input file %s"),
@@ -1504,7 +1504,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         ST(str)++;
         ST(str)->string = 0;
         ST(str)->fd = fopen_path(csound, &(ST(str)->file), mname,
-                                         csound->scorename, "INCDIR");
+                                         csound->scorename, "INCDIR", 1);
         if (ST(str)->fd == NULL) {
           scorerr(csound, Str("Cannot open #include'd file %s\n"), mname);
         }

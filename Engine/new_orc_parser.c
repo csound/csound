@@ -49,8 +49,9 @@ void new_orc_parser(CSOUND *csound)
 
     csound->Message(csound, "Testing...\n");
 
-    if ((t = csound->FileOpen(csound, &csound_orcin, CSFILE_STD,
-                              csound->orchname, "rb", NULL)) == NULL)
+    if ((t = csound->FileOpen2(csound, &csound_orcin, CSFILE_STD,
+                                 csound->orchname, "rb", NULL,
+                                 CSFTYPE_ORCHESTRA, FALSE)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
 
     csound_orcdebug = O->odebug;

@@ -402,8 +402,9 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
         }
       }
     }
-    else if (csound->FileOpen(csound, &outfd, CSFILE_SND_W, O->outfilename,
-                                      &sfinfo, "SFDIR") == NULL)
+    else if (csound->FileOpen2(csound, &outfd, CSFILE_SND_W, O->outfilename,
+                       &sfinfo, "SFDIR", csound->type2csfiletype(O->filetyp),
+                       FALSE) == NULL)
       outfd = NULL;
     if (outfd == NULL) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s'"),
@@ -436,8 +437,8 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
     MYFLT   x, y;
     scalepoint *tt = (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
 
-    if (csound->FileOpen(csound,
-                         &f, CSFILE_STD, mixin[i].fname, "r", NULL) == NULL) {
+    if (csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
+                           "r", NULL, CSFTYPE_FLOATS_TEXT, FALSE) == NULL) {
       csound->Die(csound, Str("Cannot open scale table file %s"),
                           mixin[i].fname);
       return;   /* not reached */

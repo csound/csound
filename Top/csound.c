@@ -300,6 +300,8 @@ static const CSOUND cenviron_ = {
         csoundCreateBarrier,
         csoundDestroyBarrier,
         csoundWaitBarrier,
+        csoundFileOpenWithType,
+        type2csfiletype,
      /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -310,7 +312,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL },
+          NULL, NULL, NULL },
         NULL,  /*  flgraphsGlobals */
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
@@ -390,6 +392,7 @@ static const CSOUND cenviron_ = {
         defaultCsoundReadKillXYin,
         defaultCsoundReadKillXYin,
         cscore,         /*  cscoreCallback_     */
+        (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
         (SUBR) NULL,    /*  last_callback_      */
         /* these are not saved on RESET */
         playopen_dummy,
@@ -605,7 +608,14 @@ static const CSOUND cenviron_ = {
         NULL,           /* remoteGlobals        */
         0, 0,           /* nchanof, nchanif     */
         NULL, NULL,     /* chanif, chanof       */
-        defaultCsoundYield /* csoundInternalYieldCallback_*/
+        defaultCsoundYield, /* csoundInternalYieldCallback_*/
+        NULL,           /* multiThreadedBarrier1 */
+        NULL,           /* multiThreadedBarrier2 */
+        0,              /* multiThreadedComplete */
+        NULL,           /* multiThreadedThreadInfo */
+        NULL,           /* multiThreadedStart */
+        NULL,           /* multiThreadedEnd */
+        0               /* usingCSD */
 };
 
   /* from threads.c */
@@ -2387,6 +2397,12 @@ static const CSOUND cenviron_ = {
       prv = pp;
       pp = pp->nxt;
     }
+  }
+
+  PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
+                void (*fileOpenCallback)(CSOUND*, const char*, int, int, int))
+  {
+    p->FileOpenCallback_ = fileOpenCallback;
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */

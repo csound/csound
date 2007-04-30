@@ -286,12 +286,17 @@ static int getorchar_noeof(CSOUND *csound)
     return c;
 }
 
+/* The fromScore parameter should be 1 if opening a score include file,
+   0 if opening an orchestra include file */
 void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
-                                  char *env)
+                                  char *env, int fromScore)
 {
     void *fd;
+    int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
+    
                                 /* First try to open name given */
-    fd = csound->FileOpen(csound, fp, CSFILE_STD, name, "rb", NULL);
+    fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", NULL,
+                                             csftype, FALSE);
     if (fd != NULL)
       return fd;
                                 /* if that fails try in base directory */
@@ -299,7 +304,8 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
       char *dir, *name_full;
       if ((dir = csoundSplitDirectoryFromPath(csound, basename)) != NULL) {
           name_full = csoundConcatenatePaths(csound, dir, name);
-          fd = csound->FileOpen(csound, fp, CSFILE_STD, name_full, "rb", NULL);
+          fd = csound->FileOpen2(csound, fp, CSFILE_STD, name_full, "rb", NULL,
+                                             csftype, FALSE);
           mfree(csound, dir);
           mfree(csound, name_full);
           if (fd != NULL)
@@ -307,7 +313,8 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
       }
     }
                                 /* or use env argument */
-    fd = csound->FileOpen(csound, fp, CSFILE_STD, name, "rb", env);
+    fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", env,
+                                             csftype, FALSE);
     return fd;
 }
 
@@ -429,8 +436,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       }
     }
     csound->Message(csound, Str("orch compiler:\n"));
-    if ((ST(fd) = csound->FileOpen(csound, &ST(fp), CSFILE_STD,
-                                   csound->orchname, "rb", NULL)) == NULL)
+    if ((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD,
+                              csound->orchname, "rb", NULL, CSFTYPE_ORCHESTRA,
+                              csound->usingCSD)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     if (fseek(ST(fp), 0L, SEEK_END) != 0)
       csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
@@ -669,7 +677,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           ST(str) = (IN_STACK*) ST(inputs) + (int) ST(input_cnt);
           ST(str)->string = 0;
           ST(str)->fd = fopen_path(csound, &(ST(str)->file),
-                                           mname, csound->orchname, "INCDIR");
+                                        mname, csound->orchname, "INCDIR", 0);
           if (ST(str)->fd == NULL) {
             csound->Message(csound,
                             Str("Cannot open #include'd file %s\n"), mname);
