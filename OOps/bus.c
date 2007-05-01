@@ -58,11 +58,12 @@ static CS_NOINLINE int chan_realloc(CSOUND *csound,
 
 static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
                                       void **p, int *oldSize,
-                                      int newSize, PVSDATEXT *fin)
+                                      int newSize, void *init)
 {
     volatile jmp_buf  saved_exitjmp;
     PVSDATEXT           *newp, *pp;
     int chans = newSize - *oldSize, i;
+    PVSDAT   *fin = (PVSDAT *)init;
 
     memcpy((void*) &saved_exitjmp, (void*)&csound->exitjmp, sizeof(jmp_buf));
     if (setjmp(csound->exitjmp) != 0) {
@@ -191,7 +192,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
     if ((unsigned int)n >= (unsigned int)csound->nchanif) {
       int   err = chan_realloc_f(csound, (void *)&(csound->chanif),
                                  &(csound->nchanif), n + 1,
-                                 (PVSDATEXT *)fin);
+                                 (void *)fin);
       if (err)
         return err;
       fout = (PVSDATEXT *)csound->chanif;
@@ -218,7 +219,7 @@ PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
     if (n < 0) return CSOUND_ERROR;
     if (((unsigned int)n >= (unsigned int)csound->nchanof)) {
       int err = chan_realloc_f(csound, (void *)&(csound->chanof),
-                               &(csound->nchanof), n + 1, fout);
+                               &(csound->nchanof), n + 1, (void *)fout);
       if (err)
         return err;
       fin = (PVSDATEXT *)csound->chanof;
@@ -334,7 +335,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     if (((unsigned int)n >= (unsigned int)csound->nchanif)){
       int err = chan_realloc_f(csound, (void *)&(csound->chanif),
                                &(csound->nchanif), n + 1,
-                               (PVSDATEXT *) &(p->init));
+                               (void *) &(p->init));
       if (err) {
      return csound->PerfError(csound, Str("chani: memory allocation failure"));
       }
@@ -360,7 +361,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     if ((unsigned int)n >= (unsigned int)csound->nchanof) {
       if (chan_realloc_f(csound, (void *)&(csound->chanof),
                          &(csound->nchanof), n + 1,
-                         (PVSDATEXT *) fin) != 0)
+                         (void *) fin) != 0)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
       else fout = (PVSDATEXT *)csound->chanof;
