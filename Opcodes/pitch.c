@@ -32,7 +32,7 @@
 
 #define STARTING  1
 #define PLAYING   2
-#define LOGTWO    (0.693147)
+#define LOGTWO    (0.69314718055994530942)
 
 static const MYFLT bicoefs[] = {
     -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
@@ -147,8 +147,9 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
       octp->curp = octp->begp;
-      for (fltp=octp->feedback,n=6; n--; )
-        *fltp++ = FL(0.0);
+/*       for (fltp=octp->feedback,n=6; n--; ) */
+/*         *fltp++ = FL(0.0); */
+      memset(octp->feedback, '\0', 6*sizeof(MYFLT));
       octp->scount = 0;
     }
     specp->nfreqs = p->nfreqs;               /* save the spec descriptors */
@@ -176,9 +177,8 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     for (nn = 1; nn <= ptlmax; nn++)
       *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
     if ((rolloff = *p->irolloff) == FL(0.0) ||
-        rolloff == FL(1.0)
-        || nptls == 1) {
-      p->rolloff = 0;
+        rolloff == FL(1.0) || nptls == 1) {
+      p->rolloff = FL(0.0);
       weightsum = (MYFLT)nptls;
     }
     else {
@@ -275,7 +275,7 @@ int pitch(CSOUND *csound, PITCH *p)
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
     } while (--nsmps);
     p->prvq = q;
-    kvar = (MYFLT) sqrt((double)q);       /* End of spectrun part */
+    kvar = (MYFLT) sqrt((double)q);       /* End of spectrum part */
 
     specp = &p->wsig;
     if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
@@ -459,7 +459,7 @@ int maca(CSOUND *csound, SUM *p)
 {
     int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
-    for(k=0; k<nsmps; k++) {
+    for (k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += args[j][k] * args[j+1][k];
@@ -472,7 +472,7 @@ int mac(CSOUND *csound, SUM *p)
 {
     int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k;
     MYFLT *ar = p->ar, **args = p->argums;
-    for(k=0; k<nsmps; k++) {
+    for (k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
         ans += *args[j]* args[j+1][k];
