@@ -813,6 +813,7 @@ int comb(CSOUND *csound, COMB *p)
       return csound->PerfError(csound, Str("comb: not initialised"));
     }
     if (p->prvt != *p->krvt) {
+      p->prvt = *p->krvt;
 #ifdef __alpha__
       /*
        * The argument to exp() in the following is sometimes a small
@@ -820,15 +821,14 @@ int comb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it's zero and don't call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / *p->krvt);
+      double exp_arg = (double)(log001 * *p->ilpt / p->kprvt);
       if (exp_arg < -36.8413615)    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
         coef = p->coef = (MYFLT)exp(exp_arg);
 #else
-      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / *p->krvt));
+      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / p->prvt));
 #endif
-      p->prvt = *p->krvt;
     }
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
@@ -856,8 +856,8 @@ int alpass(CSOUND *csound, COMB *p)
       return csound->PerfError(csound, Str("alpass: not initialised"));
     }
     if (p->prvt != *p->krvt) {
-      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / *p->krvt));
       p->prvt = *p->krvt;
+      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / p->prvt));
     }
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
@@ -875,7 +875,7 @@ int alpass(CSOUND *csound, COMB *p)
 }
 
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
-                                    FL(0.0437), FL(0.005), FL(0.0017)};
+                                    FL(0.0437), FL(0.0050), FL(0.0017)};
 
 void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
