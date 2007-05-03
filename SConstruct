@@ -1107,9 +1107,8 @@ else:
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
             Depends(csoundPythonInterface, pythonImportLibrary)
-        if getPlatform() != 'darwin':
-            csndModule = makePythonModule(csndPythonEnvironment, 'csnd', [csoundPythonInterface])
-            pythonModules.append('csnd.py')
+        csndModule = makePythonModule(csndPythonEnvironment, 'csnd', [csoundPythonInterface])
+        pythonModules.append('csnd.py')
         Depends(csoundPythonInterface, csoundInterfaces)
 
 if commonEnvironment['generatePdf'] == '0':
