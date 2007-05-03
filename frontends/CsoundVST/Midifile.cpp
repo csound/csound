@@ -658,7 +658,7 @@ namespace csound
     std::sort(begin(), end());
   }
 
-  bool operator < (const MidiEvent &a, MidiEvent &b)
+  bool SILENCE_PUBLIC operator < (const MidiEvent &a, MidiEvent &b)
   {
 
     return (a.time < b.time);

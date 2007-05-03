@@ -50,27 +50,35 @@ namespace csound
   void *Shell::pythonLibrary = 0;
   const char *Shell::pythonLibraryPathList[] = {
 #ifdef WIN32
+    "python25.dll",
     "python24.dll",
     "python23.dll",
 #elif defined(MACOSX)
     // hope that one of these will work
     "/System/Library/Frameworks/Python.Framework/Versions/Current/Python",
     "/System/Library/Frameworks/Python.framework/Versions/Current/Python",
+    "/System/Library/Frameworks/Python.Framework/Versions/2.5/Python",
+    "/System/Library/Frameworks/Python.framework/Versions/2.5/Python",
     "/System/Library/Frameworks/Python.Framework/Versions/2.4/Python",
     "/System/Library/Frameworks/Python.framework/Versions/2.4/Python",
     "/System/Library/Frameworks/Python.Framework/Versions/2.3/Python",
     "/System/Library/Frameworks/Python.framework/Versions/2.3/Python",
+    "/usr/lib/libpython2.5.dylib",
     "/usr/lib/libpython2.4.dylib",
     "/usr/lib/libpython2.3.dylib",
     "/Library/Frameworks/Python.Framework/Versions/Current/Python",
     "/Library/Frameworks/Python.framework/Versions/Current/Python",
+    "/Library/Frameworks/Python.Framework/Versions/2.5/Python",
+    "/Library/Frameworks/Python.framework/Versions/2.5/Python",
     "/Library/Frameworks/Python.Framework/Versions/2.4/Python",
     "/Library/Frameworks/Python.framework/Versions/2.4/Python",
     "/Library/Frameworks/Python.Framework/Versions/2.3/Python",
     "/Library/Frameworks/Python.framework/Versions/2.3/Python",
+    "/usr/local/lib/libpython2.5.dylib",
     "/usr/local/lib/libpython2.4.dylib",
     "/usr/local/lib/libpython2.3.dylib",
 #else
+    "libpython2.5.so",
     "libpython2.4.so",
     "libpython2.3.so",
 #endif

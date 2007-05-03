@@ -28,12 +28,14 @@
 %include "std_vector.i"
 %{
 #include <vector>
+#include "Score.hpp"
 #include "audioeffectx.h"
 %}
 %template(VstMidiEventVector) std::vector<VstMidiEvent>;
 #else
 #include <Python.h>
 #include <vector>
+#include "Score.hpp"
 #include "audioeffectx.h"
 #endif
 
@@ -53,6 +55,7 @@ public:
   virtual void setScoreGeneratorVst(PyObject *scoreGeneratorVst);
   virtual PyObject *getScoreGeneratorVst();
   virtual size_t event(double time, double duration, double status, double channel, double key, double velocity);
+  virtual void score(csound::Score *score);
   virtual void write(char *message);
 };
 

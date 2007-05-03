@@ -6,7 +6,7 @@
 (use-system :cffi)
 (load "csound.lisp")
 (load "filebuilding.lisp")
-(cffi:load-foreign-library "_csnd.dll")
+(cffi:load-foreign-library "csnd.dll")
 (setq cs (csound::csoundCreate nil))
 (cffi:with-foreign-string (csd "../examples/trapped.csd")
 			  (filebuilding::csoundCompileCsd cs csd))
