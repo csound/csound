@@ -18,6 +18,8 @@
 */
 
 #include "CsoundGUI.hpp"
+#include "cs_glue.h"
+
 using namespace std;
 
 CsoundPerformanceSettings::CsoundPerformanceSettings()
