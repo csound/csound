@@ -27,45 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-  /**
-   * Creates a buffer for storing messages printed by Csound.
-   * Should be called after creating a Csound instance; note that
-   * the message buffer uses the host data pointer, and the buffer
-   * should be freed by calling csoundDestroyMessageBuffer() before
-   * deleting the Csound instance.
-   * If 'toStdOut' is non-zero, the messages are also printed to
-   * stdout and stderr (depending on the type of the message),
-   * in addition to being stored in the buffer.
-   */
-  void csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
-
-  /**
-   * Returns the first message from the buffer.
-   */
-  const char *csoundGetFirstMessage(CSOUND *csound);
-
-  /**
-   * Returns the attribute parameter (see msg_attr.h) of the first message
-   * in the buffer.
-   */
-  int csoundGetFirstMessageAttr(CSOUND *csound);
-
-  /**
-   * Removes the first message from the buffer.
-   */
-  void csoundPopFirstMessage(CSOUND *csound);
-
-  /**
-   * Returns the number of pending messages in the buffer.
-   */
-  int csoundGetMessageCnt(CSOUND *csound);
-
-  /**
-   * Releases all memory used by the message buffer.
-   */
-  void csoundDestroyMessageBuffer(CSOUND *csound);
-
 #ifdef __cplusplus
 }       /* extern "C" */
 #endif

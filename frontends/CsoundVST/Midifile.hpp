@@ -230,6 +230,6 @@ namespace csound
                 virtual void sort(void);
         };
 
-        bool operator < (const MidiEvent &a, MidiEvent &b);
+        bool SILENCE_PUBLIC operator < (const MidiEvent &a, MidiEvent &b);
 }
 #endif

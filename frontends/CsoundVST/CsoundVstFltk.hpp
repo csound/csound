@@ -48,7 +48,7 @@ extern HINSTANCE hInstance;
 
 #endif
 
-class WaitCursor
+class SILENCE_PUBLIC WaitCursor
 {
   void *cursor;
 public:
@@ -56,7 +56,7 @@ public:
   virtual ~WaitCursor();
 };
 
-class CsoundVstFltk :
+class SILENCE_PUBLIC CsoundVstFltk :
   public AEffEditor
 {
 public:

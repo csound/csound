@@ -21,6 +21,8 @@
  */
 #include "ScoreGenerator.hpp"
 #include "ScoreGeneratorVst.hpp"
+#include "Event.hpp"
+#include <vector>
 
 ScoreGenerator::ScoreGenerator() : scoreGeneratorVst(0)
 {
@@ -55,3 +57,19 @@ void ScoreGenerator::write(char *message)
     scoreGeneratorVst->log(message);
   }
 }
+
+void ScoreGenerator::score(csound::Score *score)
+{
+    if (scoreGeneratorVst) {
+        for (std::vector<csound::Event>::iterator it = score->begin(); it != score->end(); ++it) {
+            double time = it->getTime();
+            double duration = it->getDuration();
+            double status = it->getStatus();
+            double channel = it->getChannel();
+            double key = it->getKey();
+            double velocity = it->getVelocity();
+            scoreGeneratorVst->event(time, duration, status, channel, key, velocity);
+        }
+    }
+}
+

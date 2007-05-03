@@ -61,13 +61,13 @@
 #endif
 #endif
 
-void gatherArgs(int argc, const char **argv, std::string &commandLine);
+void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine);
 
-void scatterArgs(const std::string commandLine, std::vector<std::string> &args, std::vector<char *> &argv);
+void PUBLIC scatterArgs(const std::string commandLine, std::vector<std::string> &args, std::vector<char *> &argv);
 
-std::string &trim(std::string &value);
+std::string PUBLIC &trim(std::string &value);
 
-std::string &trimQuotes(std::string &value);
+std::string PUBLIC &trimQuotes(std::string &value);
 
 /**
  *       Returns true if definition is a valid Csound instrument definition block.
@@ -75,7 +75,7 @@ std::string &trimQuotes(std::string &value);
  *       the name (all text after the first comment on the same line as the instr number),
  *       and the part after the instr number, all by reference.
  */
-bool parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
+bool PUBLIC parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
 
 /**
  * Manages a Csound Structured Data (CSD) file with facilities

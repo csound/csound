@@ -16,6 +16,8 @@ and a copy of the VST SDK.
 #ifndef __AEffEditor__
 #define __AEffEditor__
 
+#include "Platform.hpp"
+
 class AudioEffect;
 
 //----------------------------------------------------------------------
@@ -36,7 +38,7 @@ struct ERect
 //----------------------------------------------------------------------
 // class AEffEditor Declaration
 //----------------------------------------------------------------------
-class AEffEditor
+class SILENCE_PUBLIC AEffEditor
 {
 public:
         AEffEditor (AudioEffect *effect) { this->effect = effect; updateFlag = 0; }

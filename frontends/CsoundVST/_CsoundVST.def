@@ -1,5 +1,4 @@
-LIBRARY _CsoundVST.dll
+LIBRARY CsoundVST.dll
 EXPORTS
 	main=main_plugin; 
 	CreateCsoundVST;
-	init_CsoundVST;

@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
   std::fprintf(stderr, "Starting CsoundVST...\n" );
 #if defined(WIN32)
-  HINSTANCE lib = LoadLibrary("_CsoundVST.dll");
+  HINSTANCE lib = LoadLibrary("CsoundVST.dll");
   if(!lib) {
     DWORD lastError = GetLastError();
     std::fprintf(stderr, "DLL load error: %d.\n", lastError);

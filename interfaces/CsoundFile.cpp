@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <csound.h>
 
-void gatherArgs(int argc, const char **argv, std::string &commandLine)
+void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
 {
   for(int i = 0; i < argc; i++)
     {
@@ -47,7 +47,7 @@ void gatherArgs(int argc, const char **argv, std::string &commandLine)
     }
 }
 
-void scatterArgs(const std::string buffer, std::vector<std::string> &args, std::vector<char *> &argv)
+void PUBLIC scatterArgs(const std::string buffer, std::vector<std::string> &args, std::vector<char *> &argv)
 {
   std::string separators = " \t\n\r";
   args.clear();
@@ -71,7 +71,7 @@ void scatterArgs(const std::string buffer, std::vector<std::string> &args, std::
   }
 }
 
-std::string &trim(std::string &value)
+std::string PUBLIC &trim(std::string &value)
 {
   size_t i = value.find_first_not_of(" \n\r\t");
   if(i != value.npos)
@@ -91,7 +91,7 @@ std::string &trim(std::string &value)
   return value;
 }
 
-std::string &trimQuotes(std::string &value)
+std::string PUBLIC &trimQuotes(std::string &value)
 {
   size_t i = value.find_first_not_of("\"");
   if(i != value.npos)
@@ -112,7 +112,7 @@ std::string &trimQuotes(std::string &value)
  *       the name (all text after the first comment on the same line as the instr number),
  *       and the part after the instr number, all by reference.
  */
-bool parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
+bool PUBLIC parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
 
 char staticBuffer[0x1000];
 
@@ -126,7 +126,7 @@ bool getline(std::istream& stream, std::string &buffer)
   return stream.good();
 }
 
-bool parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postName)
+bool PUBLIC parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postName)
 {
   preNumber.erase();
   name.erase();

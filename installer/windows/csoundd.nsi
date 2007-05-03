@@ -420,14 +420,17 @@ Section "${PRODUCT}" SecCopyUI
   ; "csound32" for single-precision audio samples.
   File ..\..\csound64.dll.5.1
   ; File ..\..\csound32.dll.5.1
-  File ..\..\_csnd.dll
+  File ..\..\csnd.dll
+  File ..\..\_csnd.pyd
   File ..\..\_jcsound.dll
-  File ..\..\_CsoundVST.dll
-  File ..\..\_scoregen.dll
-  ; File ..\..\_loris.dll
+  File ..\..\CsoundVST.dll
+  File ..\..\_CsoundVST.pyd
+  File ..\..\scoregen.dll
+  File ..\..\_scoregen.pyd
+  # File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File D:\utah\opt\csound5\bin\fltk.dll
+  #File D:\utah\opt\csound5\bin\fltk.dll
   File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
@@ -435,7 +438,7 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
   File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
-  File D:\utah\opt\csound5\bin\liblo.dll
+  #File D:\utah\opt\csound5\bin\liblo.dll
   File D:\utah\opt\csound5\bin\pthreadGC2.dll
   File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
   File ..\..\csnd.py
@@ -501,7 +504,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\plugins64
   File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
-  File D:\utah\opt\csound5\plugins64\osc.dll
+  # File D:\utah\opt\csound5\plugins64\osc.dll
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*

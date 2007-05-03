@@ -67,7 +67,7 @@ namespace csound
   {
   }
 
-  std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation)
+  std::ostream SILENCE_PUBLIC &operator << (std::ostream &stream, const VoiceleadingOperation &operation)
   {
     stream << "  beginTime:         " << operation.beginTime << std::endl;
     stream << "  endTime:           " << operation.endTime << std::endl;

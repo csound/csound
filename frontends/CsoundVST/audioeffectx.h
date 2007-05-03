@@ -35,7 +35,7 @@ and a copy of the VST SDK.
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
 
-class AudioEffectX : public AudioEffect
+class SILENCE_PUBLIC AudioEffectX : public AudioEffect
 {
 public:
         // Constructor

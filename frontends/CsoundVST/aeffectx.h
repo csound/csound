@@ -16,6 +16,8 @@ and a copy of the VST SDK.
 #ifndef __aeffectx__
 #define __aeffectx__
 
+#include "Platform.hpp"
+
 #ifndef __AEffect__
 #include "AEffect.h"
 #endif
@@ -43,7 +45,7 @@ typedef struct VstEvent VstEvent;
 typedef struct VstMidiEvent     VstMidiEvent;
 typedef struct VstEvents VstEvents;
 
-struct VstEvent                 // a generic timestamped event
+struct SILENCE_PUBLIC VstEvent                 // a generic timestamped event
 {
         long type;                      // see enum below
         long byteSize;          // of this event, excl. type and byteSize
@@ -65,7 +67,7 @@ enum
         // ...etc
 };
 
-struct VstEvents                        // a block of events for the current audio block
+struct SILENCE_PUBLIC VstEvents                        // a block of events for the current audio block
 {
         long numEvents;
         long reserved;                  // zero
@@ -73,7 +75,7 @@ struct VstEvents                        // a block of events for the current aud
 };
 
 //---Defined Events--------------------------------
-struct VstMidiEvent             // to be casted from a VstEvent
+struct SILENCE_PUBLIC VstMidiEvent             // to be casted from a VstEvent
 {
         long type;                      // kVstMidiType
         long byteSize;          // 24
@@ -100,7 +102,7 @@ typedef struct VstTimeInfo VstTimeInfo;
 // refers to the current time slice. note the new slice is
 // already started when processEvents() is called
 
-struct VstTimeInfo
+struct SILENCE_PUBLIC VstTimeInfo
 {
         double samplePos;                       // current location
         double sampleRate;
@@ -146,7 +148,7 @@ enum
 
 typedef struct VstVariableIo VstVariableIo;
 
-struct VstVariableIo
+struct SILENCE_PUBLIC VstVariableIo
 {
         float **inputs;
         float **outputs;
@@ -382,7 +384,7 @@ enum
 
 typedef struct VstParameterProperties VstParameterProperties;
 
-struct VstParameterProperties
+struct SILENCE_PUBLIC VstParameterProperties
 {
         float stepFloat;
         float smallStepFloat;
@@ -435,7 +437,7 @@ enum
 
 typedef struct VstPinProperties VstPinProperties;
 
-struct VstPinProperties
+struct SILENCE_PUBLIC VstPinProperties
 {
         char label[64];
         long flags;         // see pin properties flags
@@ -480,7 +482,7 @@ typedef struct MidiProgramName MidiProgramName;
 typedef struct MidiProgramCategory MidiProgramCategory;
 typedef struct MidiKeyName MidiKeyName;
 
-struct MidiProgramName
+struct SILENCE_PUBLIC MidiProgramName
 {
         long thisProgramIndex;          // >= 0. fill struct for this program index.
         char name[64];
@@ -500,7 +502,7 @@ enum
 };
 
 //---MidiProgramName-------------------------------
-struct MidiProgramCategory
+struct SILENCE_PUBLIC MidiProgramCategory
 {
         long thisCategoryIndex;         // >= 0. fill struct for this category index.
         char name[64];
@@ -509,7 +511,7 @@ struct MidiProgramCategory
 };
 
 //---MidiKeyName-----------------------------------
-struct MidiKeyName
+struct SILENCE_PUBLIC MidiKeyName
 {
         long thisProgramIndex;          // >= 0. fill struct for this program index.
         long thisKeyNumber;                     // 0 - 127. fill struct for this key number.
@@ -540,7 +542,7 @@ typedef struct VstSpeakerProperties VstSpeakerProperties;
 typedef struct VstSpeakerArrangement VstSpeakerArrangement;
 
 //---Speaker Properties----------------------------
-struct VstSpeakerProperties
+struct SILENCE_PUBLIC VstSpeakerProperties
 {                                               // units:       range:                  except:
         float azimuth;          // rad          -PI...PI                10.f for LFE channel
         float elevation;        // rad          -PI/2...PI/2    10.f for LFE channel
@@ -560,7 +562,7 @@ struct VstSpeakerProperties
 // origins will obviously 'shift' accordingly.
 
 //---Speaker Arrangement---------------------------
-struct VstSpeakerArrangement
+struct SILENCE_PUBLIC VstSpeakerArrangement
 {
         long type;                              // (was float lfeGain; // LFE channel gain is adjusted [dB] higher than other channels)
         long numChannels;               // number of channels in this speaker arrangement
@@ -688,7 +690,7 @@ typedef struct VstOfflineTask VstOfflineTask;
 typedef struct VstAudioFile VstAudioFile;
 typedef struct VstAudioFileMarker VstAudioFileMarker;
 
-struct VstOfflineTask
+struct SILENCE_PUBLIC VstOfflineTask
 {
         char    processName[96];        // set by plug
 
@@ -763,7 +765,7 @@ enum VstOfflineOption
 };
 
 //---Structure passed to offlineNotify and offlineStart
-struct VstAudioFile
+struct SILENCE_PUBLIC VstAudioFile
 {
         long    flags;                          // see enum VstAudioFileFlags
         void*   hostOwned;                      // any data private to host
@@ -809,7 +811,7 @@ enum VstAudioFileFlags
 };
 
 //---VstAudioFileMarker----------------------------
-struct VstAudioFileMarker
+struct SILENCE_PUBLIC VstAudioFileMarker
 {
         double  position;
         char    name[32];
@@ -823,7 +825,7 @@ struct VstAudioFileMarker
 //-------------------------------------------------
 
 //---Structure used for openWindow and closeWindow
-struct VstWindow
+struct SILENCE_PUBLIC VstWindow
 {
         char  title[128];    // title
         short xPos;          // position and size
@@ -840,7 +842,7 @@ struct VstWindow
 };
 
 //---Structure and enum used for keyUp/keyDown-----
-struct VstKeyCode
+struct SILENCE_PUBLIC VstKeyCode
 {
         long character;
         unsigned char virt;     // see enum VstVirtualKey
@@ -923,7 +925,7 @@ enum VstModifierKey
 };
 
 //---Used by audioMasterOpenFileSelector-----------
-struct VstFileType
+struct SILENCE_PUBLIC VstFileType
 {
         VstFileType (char* _name, char *_macType, char *_dosType, char *_unixType = 0, char *_mimeType1 = 0, char *_mimeType2 = 0)
         {
@@ -948,7 +950,7 @@ struct VstFileType
         char mimeType2[128];
 };
 
-struct VstFileSelect
+struct SILENCE_PUBLIC VstFileSelect
 {
         long command;           // see enum kVstFileLoad....
         long type;              // see enum kVstFileType...
@@ -985,7 +987,7 @@ enum {
 };
 
 //---Structure used for effBeginLoadBank/effBeginLoadProgram--
-struct VstPatchChunkInfo
+struct SILENCE_PUBLIC VstPatchChunkInfo
 {
         long version;           // Format Version (should be 1)
         long pluginUniqueID;// UniqueID of the plugin
