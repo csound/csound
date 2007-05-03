@@ -185,7 +185,7 @@ void openMIDIout(CSOUND *csound)
       return;
     fp = (midiOutFile_t *) csound->Calloc(csound, sizeof(midiOutFile_t));
     fp->fd = csound->FileOpen2(csound, &(fp->f), CSFILE_STD, O->FMidioutname,
-                                "wb", NULL,  CSFTYPE_STD_MIDI, FALSE);
+                                "wb", NULL,  CSFTYPE_STD_MIDI, 0);
     if (fp->fd == NULL) {
       csoundDie(csound, Str(" *** error opening MIDI out file '%s'"),
                         O->FMidioutname);

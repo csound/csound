@@ -52,7 +52,7 @@ int kdmpset(CSOUND *csound, KDUMP *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
-                               "wb", "", dumpf_format_table[p->format], FALSE);
+                               "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
@@ -77,7 +77,7 @@ int kdmp2set(CSOUND *csound, KDUMP2 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
-                               "wb", "", dumpf_format_table[p->format], FALSE);
+                               "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
@@ -102,7 +102,7 @@ int kdmp3set(CSOUND *csound, KDUMP3 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
-                               "wb", "", dumpf_format_table[p->format], FALSE);
+                               "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
@@ -127,7 +127,7 @@ int kdmp4set(CSOUND *csound, KDUMP4 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
-                               "wb", "", dumpf_format_table[p->format], FALSE);
+                               "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
@@ -269,7 +269,7 @@ int krdset(CSOUND *csound, KREAD *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                               "SFDIR;SSDIR", dumpf_format_table[p->format], FALSE);
+                               "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -296,7 +296,7 @@ int krd2set(CSOUND *csound, KREAD2 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                               "SFDIR;SSDIR", dumpf_format_table[p->format], FALSE);
+                               "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -323,7 +323,7 @@ int krd3set(CSOUND *csound, KREAD3 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                               "SFDIR;SSDIR", dumpf_format_table[p->format], FALSE);
+                               "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -350,7 +350,7 @@ int krd4set(CSOUND *csound, KREAD4 *p)
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                               "SFDIR;SSDIR", dumpf_format_table[p->format], FALSE);
+                               "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
