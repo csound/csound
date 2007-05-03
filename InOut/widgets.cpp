@@ -1031,43 +1031,72 @@ static void set_butbank_value(Fl_Group *o, MYFLT value)
   }
 }
 
-SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
+inline void FLlock() { //gab
+  Fl::lock();
+}
+
+inline void FLunlock() { //gab
+  Fl::unlock();
+  Fl::awake((void*) 0); 
+}
+
+SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 { // the constructor captures current values of all widgets
   // by copying all current values from "valuators" vector (AddrSetValue)
   // to the "fields" vector
   is_empty =0;
-  for (int i=0; i < (int) valuators.size(); i++) {
-    string  opcode_name, widg_name;
-    ADDR_SET_VALUE& v  = valuators[i];
+  FLlock(); //<=================
+  int i,k;
+  int vsize  = valuators.size();
+  for (i = 0, k = 0; i < vsize && k < vsize; i++, k++) {
+    while (valuators[k].group != snapGroup ) {
+      k++;
+      if (k >=vsize) goto err;
+    }
+    ADDR_SET_VALUE& v  = valuators[k];
     CSOUND *csound = (CSOUND*) (((OPDS *) (v.opcode))->insdshead->csound);
+    string  opcode_name, widg_name;
+    fields.resize(i+1);
     if ((int) fields.size() < i+1)
       fields.resize(i+1);
-    VALUATOR_FIELD& fld = fields[i];
+    VALUATOR_FIELD* fld = &(fields[i]);
     float val, min, max;
-    opcode_name = fld.opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
-    if (opcode_name == "FLslider") {
-      FLSLIDER *p = (FLSLIDER *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      val = *p->kout; min = *p->imin; max =*p->imax;
-      if (val < min) val=min;
-      else if (val>max) val=max;
-      fld.value = val;
-      fld.min = *p->imin; fld.max = *p->imax; fld.exp = (int) *p->iexp;
+    opcode_name = fld->opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
+    if (opcode_name.c_str() == NULL)
+    {
+      csound->InitError(csound,"Invalid snapshot. Perhaps you modified orchestra widget code after you saved the snapshot bank.");
+      goto err;
     }
-    else if (opcode_name == "FLslidBnk") {
+    else if (opcode_name == "FLslider") {
+      FLSLIDER *p = (FLSLIDER *) (v.opcode);
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->exp = (int) *p->iexp;
+      min = fld->min = *p->imin; max = fld->max = *p->imax;
+      switch (fld->exp) {
+        case LIN_:
+        case EXP_:
+          val = *p->kout; 
+          if (val < min) val=min;
+          else if(val>max) val=max;
+          break;
+        default: val = ((Fl_Valuator *)v.WidgAddress)->value();
+      }
+      fld->value = val;
+    }
+    else if (opcode_name == "FLslidBnk" || opcode_name == "FLvslidBnk") {
       FLSLIDERBANK *p = (FLSLIDERBANK *) (v.opcode);
-      fld.widg_name = GetString(csound, p->names, p->XSTRCODE);
+      fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
       int numsliders = (int) *p->inumsliders;
-      fld.sldbnk = p->slider_data;
-      fld.sldbnkValues = new MYFLT[numsliders];
-      ST(allocatedStrings).push_back((char *) fld.sldbnkValues);
-      fld.exp = numsliders; // EXCEPTIONAL CASE! fld.exp contains the number
+      fld->sldbnk = p->slider_data;
+//       fld->sldbnkValues = new MYFLT[numsliders];
+//       ST(allocatedStrings).push_back((char *) fld->sldbnkValues);
+      fld->exp = numsliders; // EXCEPTIONAL CASE! fld->exp contains the number
       // of sliders and not the exponential flag
       for (int j =0; j < numsliders; j++) {
-        switch (fld.sldbnk[j].exp) {
+        switch (fld->sldbnk[j].exp) {
         case LIN_: case EXP_:
-          val = *fld.sldbnk[j].out;
-          min = fld.sldbnk[j].min; max = fld.sldbnk[j].max;
+          val = *fld->sldbnk[j].out;
+          min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
           if (val < min) val = min;
           if (val > max) val = max;
           break;
@@ -1075,168 +1104,231 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
           val = ((Fl_Valuator *) ((Fl_Group*)v.WidgAddress)->
                  child(j))->value();
         }
-        fld.sldbnkValues[j]= val;
+        fld->set_sldbnk(j, val);
       }
     }
+//     else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
+//       FLSLIDERBANK2 *p = (FLSLIDERBANK2 *) (v.opcode);
+//       fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
+//       int numsliders = (int) *p->inumsliders;
+//       fld->sldbnk = p->slider_data;
+//       fld->exp = numsliders; // EXCEPTIONAL CASE! fld->exp contains the number of sliders and not the exponential flag
+//       for (int j =0; j < numsliders; j++) {
+//         switch (fld->sldbnk[j].exp) {
+//           case LIN_: case EXP_:
+//             val = *fld->sldbnk[j].out;
+//             min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
+//             if (val < min) val = min;
+//             if (val > max) val = max;
+//             break;
+//           default:
+//             val = ((Fl_Valuator *) ((Fl_Group*) v.WidgAddress)->child(j))->value();
+//         }
+//         fld->set_sldbnk(j, val);
+//       }
+//     }
     else if (opcode_name == "FLknob") {
       FLKNOB *p = (FLKNOB *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      val = *p->kout; min = *p->imin; max =*p->imax;
-      if (val < min) val=min;
-      else if (val>max) val=max;
-      fld.value = val;
-      fld.min = *p->imin; fld.max = *p->imax; fld.exp = (int) *p->iexp;
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->exp = (int) *p->iexp;
+      min = fld->min = *p->imin; max = fld->max = *p->imax;
+      switch (fld->exp) {
+        case LIN_:
+        case EXP_: 
+          val = *p->kout; 
+          if (val < min) val=min;
+          else if(val>max) val=max;
+          break;
+        default: val = ((Fl_Valuator *)v.WidgAddress)->value();
+      }
+      fld->value = val;
     }
     else if (opcode_name == "FLroller") {
       FLROLLER *p = (FLROLLER *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      val = *p->kout; min = *p->imin; max =*p->imax;
-      if (val < min) val=min;
-      else if (val>max) val=max;
-      fld.value = val;
-      fld.min = *p->imin; fld.max = *p->imax; fld.exp = (int) *p->iexp;
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->exp = (int) *p->iexp;
+      min = fld->min = *p->imin; max = fld->max = *p->imax;
+      switch (fld->exp) {
+        case LIN_:
+        case EXP_: 
+          val = *p->kout;
+          if (val < min) val=min;
+          else if(val>max) val=max;
+          break;
+        default: val = ((Fl_Valuator *)v.WidgAddress)->value();
+      }
+      fld->value = val;
     }
     else if (opcode_name == "FLtext") {
       FLTEXT *p = (FLTEXT *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      val = *p->kout; min = *p->imin; max =*p->imax;
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      val = *p->kout; min = fld->min = *p->imin; max = fld->max = *p->imax;
       if (val < min) val=min;
       else if (val>max) val=max;
-      fld.value = val;
-      fld.min = *p->imin; fld.max = *p->imax; fld.exp = LIN_;
+      fld->value = val;
+      fld->exp = LIN_;
     }
     else if (opcode_name == "FLjoy") {
       FLJOYSTICK *p = (FLJOYSTICK *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      val = *p->koutx; min = *p->iminx; max =*p->imaxx;
-      if (val < min) val=min;
-      else if (val>max) val=max;
-      fld.value = val;
-      val = *p->kouty; min = *p->iminy; max =*p->imaxy;
-      if (val < min) val=min;
-      else if (val>max) val=max;
-      fld.value2 =val;
-      fld.min =  *p->iminx; fld.max  = *p->imaxx; fld.exp  = (int) *p->iexpx;
-      fld.min2 = *p->iminy; fld.max2 = *p->imaxy; fld.exp2 = (int) *p->iexpy;
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->exp  = (int) *p->iexpx;
+      min = fld->min = *p->iminx; max = fld->max = *p->imaxx;
+      switch (fld->exp) {
+        case LIN_:
+        case EXP_: 
+          val = *p->koutx;
+          if (val < min) val=min;
+          else if(val>max) val=max;
+          break;
+        default: 
+          val = ((Fl_Positioner *)v.WidgAddress)->xvalue();
+      }
+      fld->value = val;
+      fld->exp2 = (int) *p->iexpy;
+      min = fld->min2 = *p->iminy; max = fld->max2 = *p->imaxy;
+      switch (fld->exp2) {
+        case LIN_: case EXP_: 
+          val = *p->kouty;
+          if (val < min) val=min;
+          else if(val>max) val=max;
+          break;
+        default: 
+          val = ((Fl_Positioner *)v.WidgAddress)->yvalue();
+      }
+      fld->value2 =val;
     }
     else if (opcode_name == "FLbutton") {
       FLBUTTON *p = (FLBUTTON *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      fld.value = (*p->kout == *p->ion ? 1 : 0);    // IV - Aug 27 2002
-      fld.min = 0; fld.max = 1; fld.exp = LIN_;
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->value = *p->kout;
+      fld->min = 0; fld->max = 1; fld->exp = LIN_;
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK *) (v.opcode);
-      fld.widg_name = "No name for FLbutbank";
-      //fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
-      fld.value = *p->kout;
-      fld.min = 0; fld.max = 1; fld.exp = LIN_;
+      fld->widg_name = "No name for FLbutbank";
+      //fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->value = *p->kout;
+      fld->min = 0; fld->max = 1; fld->exp = LIN_;
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
       val = *p->kout; min = *p->imin; max =*p->imax;
       if (min != max) {
         if (val < min) val=min;
         else if (val>max) val=max;
       }
-      fld.value = val;
-      fld.min = *p->imin; fld.max = *p->imax; fld.exp = LIN_;
+      fld->value = val;
+      fld->min = *p->imin; fld->max = *p->imax; fld->exp = LIN_;
     }
     else if (opcode_name == "FLvalue") {
       FLVALUE *p = (FLVALUE *) (v.opcode);
-      fld.widg_name = GetString(csound, p->name, p->XSTRCODE);
+      fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
     }
     else if (opcode_name == "FLbox") {
       FL_BOX *p = (FL_BOX *) (v.opcode);
-      fld.widg_name = GetString(csound, p->itext, p->XSTRCODE);
+      fld->widg_name = GetString(csound, p->itext, p->XSTRCODE);
     }
   }
+err:
+  FLunlock(); //<=================
 }
 
-int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
+int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 {
   if (is_empty) {
 /*  FIXME: should have CSOUND* pointer here */
 /*  return csound->InitError(csound, "empty snapshot"); */
     return -1;
   }
-  for (int j =0; j< (int) valuators.size(); j++) {
-    Fl_Widget* o = (Fl_Widget*) (valuators[j].WidgAddress);
-    void *opcode = valuators[j].opcode;
-    CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound);
-    VALUATOR_FIELD& fld = fields[j];
-    string opcode_name = fld.opcode_name;
+  FLlock(); //<=================
+  int j,k;
+  int siz =valuators.size();
+  for (j = 0, k = 0; j< siz && k < siz; j++, k++) {
+//     int grp = valuators[k].group;
+    while (valuators[k].group != snapGroup) {
+      k++; 
+      if (k >= (int) valuators.size()) goto end_func;
+    }
+    Fl_Widget* o = (Fl_Widget*) (valuators[k].WidgAddress);
+    void *opcode = valuators[k].opcode;
+//     CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound);
+    VALUATOR_FIELD* fld = &fields[j];
+    string opcode_name = fld->opcode_name;
 
-    MYFLT val = fld.value, min=fld.min, max=fld.max, range,base;
-    if (val < min) val =min;
+    MYFLT val = fld->value, valtab = fld->value, min=fld->min, max=fld->max, range,base;
+    if (val < min) val = min;
     else if (val >max) val = max;
 
     if (opcode_name == "FLjoy") {
-      switch(fld.exp) {
+      switch(fld->exp) {
       case LIN_:
         ((Fl_Positioner*) o)->xvalue(val);
         break;
       case EXP_:
-        range  = fld.max - fld.min;
-        base = ::pow(fld.max / fld.min, 1.0/(double)range);
-        ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
+        range  = fld->max - fld->min;
+        base = ::pow(fld->max / fld->min, 1.0/(double)range);
+        ((Fl_Positioner*) o)->xvalue(log(val/fld->min) / log(base)) ;
         break;
       default:
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Warning(csound, "(SNAPSHOT::get): "
-                                  "not implemented yet; exp=%d", fld.exp);
+        ((Fl_Positioner*) o)->xvalue(valtab); 
         break;
       }
-      val = fld.value2; min = fld.min2; max = fld.max2;
-      if (val < min) val =min;
-      else if (val >max) val = max;
-      switch(fld.exp2) {
+      val = fld->value2; min = fld->min2; max = fld->max2;
+//       if (val < min) val = min;
+//       else if (val >max) val = max;
+      switch(fld->exp2) {
       case LIN_:
         ((Fl_Positioner*) o)->yvalue(val);
         break;
       case EXP_:
-        range  = fld.max2 - fld.min2;
-        base = ::pow(fld.max2 / fld.min2, 1.0/(double)range);
-        ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
+        range  = fld->max2 - fld->min2;
+        base = ::pow(fld->max2 / fld->min2, 1.0/(double)range);
+        ((Fl_Positioner*) o)->yvalue(log(val/fld->min2) / log(base)) ;
         break;
       default:
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Warning(csound, "(SNAPSHOT::get): "
-                                  "not implemented yet; exp2=%d", fld.exp2);
+        ((Fl_Positioner*) o)->yvalue(valtab);
         break;
       }
       o->do_callback(o, opcode);
     }
     else if (opcode_name == "FLbutton") {
       FLBUTTON *p = (FLBUTTON*) (opcode);
-      if (*p->itype < 10) {//  don't allow to retreive its value if >= 10
-        ((Fl_Button*) o)->value((int)fld.value);
+      //  don't allow to retreive its value if >= 10 or between 21 and 29
+      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+        if(fld->value >= *p->ioff - .0001 && fld->value <= *p->ioff + .0001)  // to avoid eventual  math rounding
+          ((Fl_Button*) o)->value(0);
+        else if (fld->value >= *p->ion - .0001 && fld->value <= *p->ion +.0001) // to avoid eventual math rounding
+          ((Fl_Button*) o)->value(1);
+        else 
+          ((Fl_Button*) o)->value((int)fld->value);
         o->do_callback(o, opcode);
       }
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK*) (opcode);
-      if (*p->itype < 10) {//  don't allow to retreive its value if >= 10
-        //((Fl_Group*) o)->value(fld.value);
-        set_butbank_value((Fl_Group*) o, fld.value);
+      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {//  don't allow to retreive its value if >= 10
+        //((Fl_Group*) o)->value(fld->value);
+        set_butbank_value((Fl_Group*) o, fld->value);
         //o->do_callback(o, opcode);
-        *p->kout=fld.value;
+        *p->kout=fld->value;
+        if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+          p->args, p->INOCOUNT-7);
       }
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER*) (opcode);
-      if (*p->itype < 10) { //  don't allow to retreive its value if >= 10
-        ((Fl_Counter*) o)->value(fld.value);
+      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) { //  don't allow to retreive its value if >= 10
+        ((Fl_Counter*) o)->value(fld->value);
         o->do_callback(o, opcode);
       }
     }
-    else if (opcode_name == "FLslidBnk") {
+    else if (opcode_name == "FLslidBnk" || opcode_name == "FLvslidBnk") {
       FLSLIDERBANK *p = (FLSLIDERBANK*) (opcode);
       int numsliders = (int) *p->inumsliders;
       Fl_Group * grup = (Fl_Group *) o;
       for (int j =0; j < numsliders; j++) {
-        MYFLT val = fld.sldbnkValues[j];
+        MYFLT val = fld->get_sldbnk(j);
         switch (p->slider_data[j].exp) {
         case LIN_:
           ((Fl_Valuator *) grup->child(j))->value(val);
@@ -1248,20 +1340,40 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
           ((Fl_Valuator*) grup->child(j))->
             value(log(val/p->slider_data[j].min) / log(base)) ;
           break;
-        default:
+        default:// TABLE the value must be in the 0 to 1 range...
+          val = (val - fld->min ) / (fld->max - fld->min);
           ((Fl_Valuator *) grup->child(j))->value(val);
-          /*
-            if (csound->oparms->msglevel & WARNMSG)
-            csound->Warning(csound, "not implemented yet (bogus)");
-            break;
-          */
+          break;
         }
         grup->child(j)->do_callback( grup->child(j),
                                      (void *) &(p->slider_data[j]));
       }
     }
+//     else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
+//       FLSLIDERBANK2 *p = (FLSLIDERBANK2*) (opcode);
+//       int numsliders = (int) *p->inumsliders;
+//       Fl_Group * grup = (Fl_Group *) o;
+//       for (int j =0; j < numsliders; j++) {
+//         MYFLT val = fld->get_sldbnk(j);
+//         switch (p->slider_data[j].exp) {
+//         case LIN_:
+//           ((Fl_Valuator *) grup->child(j))->value(val);
+//           break;
+//         case EXP_:
+//           range  = p->slider_data[j].max - p->slider_data[j].min;
+//           base = pow(p->slider_data[j].max / p->slider_data[j].min, 1/range);
+//           ((Fl_Valuator*) grup->child(j))->value(log(val/p->slider_data[j].min) / log(base)) ;
+//           break;
+//         default:// TABLE the value must be in the 0 to 1 range...
+//           val = (val - fld->min ) / (fld->max - fld->min);
+//           ((Fl_Valuator *) grup->child(j))->value(val);
+//           break;
+//         }
+//         grup->child(j)->do_callback( grup->child(j), (void *) &(p->slider_data[j])); 
+//       }
+//     }
     else {
-      switch(fld.exp) {
+      switch(fld->exp) {
       case LIN_:
         if (opcode_name == "FLbox" || opcode_name == "FLvalue" ) continue;
         else if (opcode_name == "FLtext" &&
@@ -1269,19 +1381,19 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         ((Fl_Valuator*) o)->value(val);
         break;
       case EXP_:
-        range  = fld.max - fld.min;
-        base = ::pow(fld.max / fld.min, 1.0/(double)range);
-        ((Fl_Valuator*) o)->value(log(val/fld.min) / log(base)) ;
+        range  = fld->max - fld->min;
+        base = ::pow(fld->max / fld->min, 1.0/(double)range);
+        ((Fl_Valuator*) o)->value(log(val/fld->min) / log(base)) ;
         break;
-      default:
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Warning(csound, "(SNAPSHOT::get): not implemented yet; "
-                                  "exp=%d", fld.exp);
+      default: // TABLE the value must be in the 0 to 1 range...
+        ((Fl_Valuator*) o)->value(valtab);
         break;
       }
       o->do_callback(o, opcode);
     }
   }
+end_func:
+  FLunlock(); //<=================
   return OK;
 }
 
@@ -1292,7 +1404,14 @@ static int set_snap(CSOUND *csound, FLSETSNAP *p)
   SNAPSHOT snap(ST(AddrSetValue));
   int numfields = snap.fields.size();
   int index = (int) *p->index;
-  *p->inum_snap = ST(snapshots).size();
+  int group = (int) *p->group;
+  SNAPVEC snapvec_init;
+  SNAPSHOT snap_init;
+  snap_init.fields.resize(1,VALUATOR_FIELD());
+  snapvec_init.resize(1,snap_init);
+  if (group+1 > (int) ST(snapshots).size()) 
+    ST(snapshots).resize(group+1, snapvec_init);
+//   *p->inum_snap = ST(snapshots).size();
   *p->inum_val = numfields; // number of snapshots
 
   if (*p->ifn >= 1) { // if the table number is valid
@@ -1306,9 +1425,10 @@ static int set_snap(CSOUND *csound, FLSETSNAP *p)
     else return csound->InitError(csound, "FLsetsnap: invalid table");
   }
   else { // else store it into snapshot bank
-    if ((int) ST(snapshots).size() < index+1)
-      ST(snapshots).resize(index+1);
-    ST(snapshots)[index]=snap;
+    if ((int) ST(snapshots)[group].size() < index+1)
+      ST(snapshots)[group].resize(index+1);
+    ST(snapshots)[group][index]=snap;
+    *p->inum_snap = ST(snapshots)[group].size();
   }
   return OK;
 }
@@ -1316,26 +1436,20 @@ static int set_snap(CSOUND *csound, FLSETSNAP *p)
 static int get_snap(CSOUND *csound, FLGETSNAP *p)
 {
   int index = (int) *p->index;
-  if (!ST(snapshots).empty()) {
-    if (index >= (int) ST(snapshots).size()) index = ST(snapshots).size()-1;
+  int group = (int) *p->group;
+  if (!ST(snapshots)[group].empty()) {
+    if (index >= (int) ST(snapshots)[group].size()) index = ST(snapshots)[group].size()-1;
     else if (index < 0) index=0;
-    if (ST(snapshots)[index].get(ST(AddrSetValue))!=OK) return NOTOK;
+    if (ST(snapshots)[group][index].get(ST(AddrSetValue), (int) *p->group)!=OK) return NOTOK;
   }
   *p->inum_el = ST(snapshots).size();
   return OK;
 }
 
-}       // extern "C"
-
-#include <FL/fl_ask.H>
-
-extern "C" {
-
 static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
 {
   char    s[MAXNAME], *s2;
   string  filename;
-  // put here some warning message!!
 #ifdef WIN32
   int id = MessageBox(NULL, Str("Saving could overwrite the old file.\n"
                                 "Are you sure to save ?"), "Warning",
@@ -1366,28 +1480,32 @@ static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
   filename = s;
 
   fstream file(filename.c_str(), ios::out);
-  for (int j =0; j < (int) ST(snapshots).size(); j++) {
+  int group = (int) *p->group;
+  for (int j =0; j < (int) ST(snapshots)[group].size(); j++) {
     file << "----------- "<< j << " -----------\n";
-    for ( int k =0; k < (int) ST(snapshots)[j].fields.size(); k++) {
-      VALUATOR_FIELD& f = ST(snapshots)[j].fields[k];
+    int siz = ST(snapshots)[group][j].fields.size();
+    for ( int k = 0; k < siz; k++) {
+      VALUATOR_FIELD& f = ST(snapshots)[group][j].fields[k];
+//	if (f.group != group) continue;
       if (f.opcode_name == "FLjoy") {
         file <<f.opcode_name<<" "<< f.value <<" "<< f.value2
              <<" "<< f.min <<" "<< f.max <<" "<< f.min2 <<" "
              << f.max2<<" "<<f.exp<<" "<<f.exp2<<" \"" <<f.widg_name<<"\"\n";
       }
-      else if (f.opcode_name == "FLslidBnk") {
-        // EXCEPTIONAL CASE! fld.exp contains the number of sliders and
-        // not the exponential flag
-        file << f.opcode_name << " " << f.exp << " ";
+      else if ( f.opcode_name == "FLslidBnk"  || f.opcode_name == "FLvslidBnk"
+                || f.opcode_name == "FLslidBnk2" || f.opcode_name == "FLvslidBnk2") {
+        file << f.opcode_name << " " << f.exp << " "; // EXCEPTIONAL CASE! fld.exp contains the number of sliders and not the exponential flag
         for (int i=0; i < f.exp; i++) {
-          file << f.sldbnkValues[i] << " ";
+          file << f.get_sldbnk(i) << " ";
         }
         file << " \"" << f.widg_name << "\"\n";
       }
       else {
-        file <<f.opcode_name<<" "<< f.value
-             <<" "<< f.min <<" "<< f.max <<" "<<f.exp<<" \""
-             <<f.widg_name<<"\"\n";
+        const char *s = f.opcode_name.c_str();
+        if (*s != '\0') {
+          file <<f.opcode_name<<" "<< f.value 
+                <<" "<< f.min <<" "<< f.max <<" "<<f.exp<<" \"" <<f.widg_name<<"\"\n";
+        }
       }
     }
   }
@@ -1410,8 +1528,8 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
   filename = s;
 
   fstream file(filename.c_str(), ios::in);
-
-  int j=0,k=-1;
+  int group = (int) *p->group;
+  int j=0,k=-1,q=0;
   while (!(file.eof())) {
     char buf[MAXNAME];
     file.getline(buf,MAXNAME);
@@ -1423,17 +1541,22 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
     getline(sbuf, opc, ' ');
     const char *ss = opc.c_str();
     if (*ss == '-') { // if it is a separation line
-      k++; j=0;
-      if ((int) ST(snapshots).size() < k+1)
-        ST(snapshots).resize(k+1);
+      k++; j=0; q=0;
+      if ((int) ST(snapshots)[group].size() < k+1)
+        ST(snapshots)[group].resize(k+1);
     }
     else if (*ss != '\0' && *ss != ' ' && *ss != '\n'){ //ignore blank lines
-      ADDR_SET_VALUE& v = ST(AddrSetValue)[j];
-      if ((int) ST(snapshots)[k].fields.size() < j+1)
-        ST(snapshots)[k].fields.resize(j+1);
-      ST(snapshots)[k].is_empty = 0;
-      VALUATOR_FIELD& fld = ST(snapshots)[k].fields[j];
-      opc_orig = ((OPDS *) (v.opcode))->optext->t.opcod;
+      ADDR_SET_VALUE* v = &(ST(AddrSetValue)[q]);
+      while (ST(AddrSetValue)[q].group != group) {
+        q++;
+        if (q >= (int) ST(AddrSetValue).size()) continue;
+        v = &(ST(AddrSetValue)[q]);
+      }
+      if ((int) ST(snapshots)[group][k].fields.size() < j+1)
+        ST(snapshots)[group][k].fields.resize(j+1);
+      ST(snapshots)[group][k].is_empty = 0;
+      VALUATOR_FIELD& fld = ST(snapshots)[group][k].fields[j];
+      opc_orig = ((OPDS *) (v->opcode))->optext->t.opcod;
 
       if (!(opc_orig == opc)) {
         return csound->InitError(csound,
@@ -1455,18 +1578,23 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
         getline(sbuf,s, '\"');
         getline(sbuf,s, '\"');  fld.widg_name = s;
       }
-      else if (opc == "FLslidBnk") {
+      else if (opc == "FLslidBnk"  || opc == "FLvslidBnk" 
+              || opc == "FLslidBnk2" || opc == "FLvslidBnk2" ) {
         fld.opcode_name = opc;
         string s;
         getline(sbuf,s, ' ');
         // EXCEPTIONAL CASE! fld.exp contains the number of sliders
         // and not the exponential flag
         fld.exp = atoi(s.c_str());
-        fld.sldbnkValues = new MYFLT[fld.exp];
-        ST(allocatedStrings).push_back((char *) fld.sldbnkValues);
+//         fld.sldbnkValues = new MYFLT[fld.exp];
+//				fld.insert_sldbnk(fld.exp);
+		//		allocatedStrings.push_back((char *) fld.sldbnkValues);
+//         ST(allocatedStrings).push_back((char *) fld.sldbnkValues);
 
-        for (int k =0; k < fld.exp; k++) {
-          getline(sbuf,s, ' ');  fld.sldbnkValues[k] = atof(s.c_str());
+        for (int kk =0; kk < fld.exp; kk++) {
+          getline(sbuf,s, ' ');
+//           fld.sldbnkValues[kk] = atof(s.c_str());
+          fld.set_sldbnk(kk,atof(s.c_str()));
 
         }
         getline(sbuf,s, '\"');
@@ -1482,7 +1610,7 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
         getline(sbuf,s, '\"');
         getline(sbuf,s, '\"');  fld.widg_name = s;
       }
-      j++;
+      j++; q++;
     }
   }
 
@@ -1596,20 +1724,23 @@ class CsoundFLTKKeyboardBuffer {
   }
 };
 
-class CsoundFLWindow : public Fl_Window {
+class CsoundFLWindow : public Fl_Double_Window {
  public:
+  CSOUND *csound_; //gab
   CsoundFLTKKeyboardBuffer  fltkKeyboardBuffer;
   CsoundFLWindow(CSOUND *csound, int w, int h, const char *title = 0)
-      : Fl_Window(w, h, title),
-        fltkKeyboardBuffer(csound)
+      : Fl_Double_Window(w, h, title),
+        fltkKeyboardBuffer(csound),
+        csound_(csound)//gab
   {
     csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                          CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
   }
   CsoundFLWindow(CSOUND *csound,
                  int x, int y, int w, int h, const char *title = 0)
-      : Fl_Window(x, y, w, h, title),
-        fltkKeyboardBuffer(csound)
+      : Fl_Double_Window(x, y, w, h, title),
+        fltkKeyboardBuffer(csound),
+        csound_(csound)//gab
   {
     csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                          CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
@@ -1621,13 +1752,19 @@ class CsoundFLWindow : public Fl_Window {
   }
   virtual int handle(int evt)
   {
+    CSOUND* csound = csound_; //gab
     switch (evt) {
     case FL_FOCUS:
       Fl::focus(this);
     case FL_UNFOCUS:
       return 1;
     case FL_KEYDOWN:
+      ST(last_KEY) = Fl::event_key(); //gab
+      ST(isKeyDown) = true;  //gab
+      break;
     case FL_KEYUP:
+      ST(last_KEY) = Fl::event_key(); //gab
+      ST(isKeyDown) = false; //gab
       if (Fl::focus() == this)
         fltkKeyboardBuffer.writeFLEvent(evt);
       break;
@@ -1712,32 +1849,43 @@ extern "C" {
         //for (j = AddrValue.size()-1; j >=0; j--)  {
         //      AddrValue.pop_back();
         //}
-        int ss = ST(snapshots).size();
+      for(ST(snapshots_iterator)=ST(snapshots).begin(); 	ST(snapshots_iterator) != ST(snapshots).end(); 	ST(snapshots_iterator)++) {
+//           SNAPVEC *svec = &(*snapshots_iterator).second;
+        // Had to do this to calm the compiler...
+        SNAPVEC *svec = &(*ST(snapshots_iterator));
+  /*	int ss = snapshots.size();
+          for (j = 0; j < ss; j++) {
+                  snapshots[j].fields.erase(snapshots[j].fields.begin(), 
+                          snapshots[j].fields.end());
+                  snapshots.resize(snapshots.size() + 1);
+          } */
+        int ss = svec->size();
         for (j = 0; j < ss; j++) {
-          ST(snapshots)[j].fields.erase(ST(snapshots)[j].fields.begin(),
-                                    ST(snapshots)[j].fields.end());
-          ST(snapshots).resize(ST(snapshots).size() + 1);
+          
+          (*svec)[j].fields.erase((*svec)[j].fields.begin(), 
+                                  (*svec)[j].fields.end());
+          (*svec).resize((*svec).size() + 1);
         }
+      }
 
-        ST(AddrSetValue).erase(ST(AddrSetValue).begin(), ST(AddrSetValue).end());
+      ST(AddrSetValue).erase(ST(AddrSetValue).begin(), ST(AddrSetValue).end());
 
-     // curr_x =   curr_y = 0;
-        ST(stack_count)       = 0;
+      ST(stack_count)       = 0;
 
-        ST(FLcontrol_iheight) = 15;
-        ST(FLroller_iheight)  = 18;
-        ST(FLcontrol_iwidth)  = 400;
-        ST(FLroller_iwidth)   = 150;
-        ST(FLvalue_iwidth)    = 100;
+      ST(FLcontrol_iheight) = 15;
+      ST(FLroller_iheight)  = 18;
+      ST(FLcontrol_iwidth)  = 400;
+      ST(FLroller_iwidth)   = 150;
+      ST(FLvalue_iwidth)    = 100;
 
-        ST(FLcolor)           = -1;
-        ST(FLcolor2)          = -1;
-        ST(FLtext_size)       = 0;
-        ST(FLtext_color)      = -1;
-        ST(FLtext_font)       = -1;
-        ST(FLtext_align)      = 0;
-        ST(FL_ix)             = 10;
-        ST(FL_iy)             = 10;
+      ST(FLcolor)           = -1;
+      ST(FLcolor2)          = -1;
+      ST(FLtext_size)       = 0;
+      ST(FLtext_color)      = -1;
+      ST(FLtext_font)       = -1;
+      ST(FLtext_align)      = 0;
+      ST(FL_ix)             = 10;
+      ST(FL_iy)             = 10;
     }
 
     return 0;
@@ -2819,7 +2967,7 @@ static int fl_box(CSOUND *csound, FL_BOX *p)
   o->labelfont(font);
   o->labelsize((unsigned char)*p->isize);
   o->align(FL_ALIGN_WRAP);
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *)o, (void *)p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *)o, (void *)p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
@@ -2949,7 +3097,7 @@ static int fl_value(CSOUND *csound, FLVALUE *p)
     o->color(ST(FLcolor), ST(FLcolor2));
   widget_attributes(csound, o);
   //AddrValue.push_back((void *) o);
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p, ST(currentSnapGroup)));
   //*p->ihandle = AddrValue.size()-1;
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
@@ -3050,7 +3198,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
     }
   }
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
-                                        (void *) o, (void *) p));
+                                        (void *) o, (void *) p)), ST(currentSnapGroup);
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
@@ -3240,8 +3388,9 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     w->position((int)*p->ix, (int)*p->iy);
   }
   w->end();
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(LIN_, 0, 0, (void *) w, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(LIN_, 0, 0, (void *) w, (void *) p, ST(currentSnapGroup)));
   //*p->ihandle = ST(AddrSetValue).size()-1;
+  ST(last_sldbnk) = ST(AddrSetValue).size()-1;  //gab
   return OK;
 }
 
@@ -3338,11 +3487,17 @@ static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
   o->callback((Fl_Callback*)fl_callbackJoystick,(void *) p);
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(iexpx, *p->iminx, *p->imaxx,
-                                        (void *) o, (void *) p));
+                                        (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle1 = ST(AddrSetValue).size()-1;
+  ADDR_SET_VALUE *asv = &ST(AddrSetValue)[(int) *p->ihandle1];
+  asv->widg_type = FL_JOY;
+  asv->joy = JOY_X;
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(iexpy, *p->iminy, *p->imaxy,
-                                        (void *) o, (void *) p));
+                                        (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle2 = ST(AddrSetValue).size()-1;
+  asv = &ST(AddrSetValue)[(int) *p->ihandle2];
+  asv->widg_type = FL_JOY;
+  asv->joy = JOY_Y;
   return OK;
 }
 
@@ -3526,7 +3681,7 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
                             (int)*p->iwidth, (int)*p->iheight, Name);
     if (plastic) {
       w->box(FL_PLASTIC_UP_BOX);
-//       w->down_box(FL_PLASTIC_DOWN_BOX);
+//       w->down_box(FL_PLASTIC_DOWN_BOX);  //Doesn't work
     }
     break;
   case 3:
@@ -3555,7 +3710,7 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
     o->callback((Fl_Callback*) fl_callbackButton1, (void*) p);
   else
     o->callback((Fl_Callback*) fl_callbackButton, (void*) p);
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size() - 1;
 
   return OK;
@@ -3607,7 +3762,7 @@ static int fl_exec_button(CSOUND *csound, FLEXECBUTTON *p)
 
   o->callback((Fl_Callback*) fl_callbackExecButton, (void*) p);
 
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size() - 1;
 
   return OK;
@@ -3684,7 +3839,7 @@ static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
   o->end();
 
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->kout = FL(0.0);
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
@@ -3722,7 +3877,7 @@ static int fl_counter(CSOUND *csound, FLCOUNTER *p)
     o->range(*p->imin,*p->imax); //otherwise no-range
   widget_attributes(csound, o);
   o->callback((Fl_Callback*)fl_callbackCounter,(void *) p);
-  ST(AddrSetValue).push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p));
+  ST(AddrSetValue).push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
@@ -3808,7 +3963,7 @@ static int fl_roller(CSOUND *csound, FLROLLER *p)
     }
   }
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
-                                        (void *) o, (void *) p));
+                                        (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
@@ -3955,13 +4110,13 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
     { "FLgroup_end",    S(FLGROUPEND),          1,  "",     "",
         (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
-    { "FLsetsnap",      S(FLSETSNAP),           1,  "ii",   "io",
+    { "FLsetsnap",      S(FLSETSNAP),           1,  "ii",   "ioo",
         (SUBR) set_snap,                (SUBR) NULL,              (SUBR) NULL },
-    { "FLgetsnap",      S(FLGETSNAP),           1,  "i",    "i",
+    { "FLgetsnap",      S(FLGETSNAP),           1,  "i",    "io",
         (SUBR) get_snap,                (SUBR) NULL,              (SUBR) NULL },
-    { "FLsavesnap",     S(FLSAVESNAPS),         1,  "",     "T",
+    { "FLsavesnap",     S(FLSAVESNAPS),         1,  "",     "To",
         (SUBR) save_snap,               (SUBR) NULL,              (SUBR) NULL },
-    { "FLloadsnap",     S(FLLOADSNAPS),         1,  "",     "T",
+    { "FLloadsnap",     S(FLLOADSNAPS),         1,  "",     "To",
         (SUBR) load_snap,               (SUBR) NULL,              (SUBR) NULL },
     { "FLrun",          S(FLRUN),               1,  "",     "",
         (SUBR) FL_run,                  (SUBR) NULL,              (SUBR) NULL },
