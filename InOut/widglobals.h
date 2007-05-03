@@ -41,6 +41,7 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Valuator.H>
 #include <FL/Fl_Input.H>
+#include <FL/fl_ask.H>
 
 #include <map>
 #include <vector>
@@ -106,30 +107,6 @@ struct ADDR_STACK /*: ADDR*/{
   ADDR_STACK() { h=NULL; WidgAddress = NULL;      count=0; }
 };
 
-// struct VALUATOR_FIELD {
-// 	MYFLT value, value2;
-// 	MYFLT min,max, min2,max2;
-// 	int	exp, exp2;
-// 	string widg_name;
-// 	string opcode_name;
-// 	SLDBK_ELEMENT *sldbnk;
-// private:
-// 	vector<MYFLT> sldbnkValues;
-// public:
-// 	VALUATOR_FIELD() {  
-// 		value = 0; value2 =0; widg_name= ""; opcode_name =""; 
-// 		min = 0; max =1; min2=0; max2=1; exp=LIN_; exp2=LIN_; sldbnk=0;
-// 	}
-// 	void set_sldbnk(int ndx, MYFLT val) {
-// 		if (ndx >= (int)sldbnkValues.size())
-// 			sldbnkValues.resize(ndx+1);
-// 		sldbnkValues[ndx]= val;
-// 	}
-// 	MYFLT get_sldbnk(int ndx) {
-// 		return sldbnkValues[ndx];
-// 	}
-// };
-
 struct VALUATOR_FIELD {
   MYFLT value, value2;
   MYFLT min,max, min2,max2;
@@ -137,13 +114,23 @@ struct VALUATOR_FIELD {
   string widg_name;
   string opcode_name;
   SLDBK_ELEMENT *sldbnk;
-  MYFLT  *sldbnkValues;
-  VALUATOR_FIELD() {
-    value = 0; value2 =0; widg_name= ""; opcode_name ="";
-    min = 0; max =1; min2=0; max2=1; exp=LIN_; exp2=LIN_;
-    sldbnk=0; sldbnkValues=0; }
-   ~VALUATOR_FIELD() { if (sldbnk != 0) delete sldbnk;
-   if (sldbnkValues !=0) delete sldbnkValues; }
+private:
+  vector<MYFLT> sldbnkValues;
+public:
+  VALUATOR_FIELD() {  
+    value = 0; value2 =0; widg_name= ""; opcode_name =""; 
+    min = 0; max =1; min2=0; max2=1; exp=LIN_; exp2=LIN_; sldbnk=0;
+  }
+  void set_sldbnk(int ndx, MYFLT val) {
+    if (ndx >= (int)sldbnkValues.size())
+            sldbnkValues.resize(ndx+1);
+    sldbnkValues[ndx]= val;
+  }
+  MYFLT get_sldbnk(int ndx) {
+          return sldbnkValues[ndx];
+  }
+//   ~VALUATOR_FIELD() { if (sldbnk != 0) delete sldbnk;
+//   if (sldbnkValues !=0) delete sldbnkValues; }
 };
 
 
@@ -187,26 +174,17 @@ struct PANELS {
   PANELS() {panel = NULL; is_subwindow=0; }
 };
 
-
-// struct SNAPSHOT {
-//   int is_empty;
-//   vector<VALUATOR_FIELD> fields;
-//   SNAPSHOT(vector<ADDR_SET_VALUE>& valuators, int snapGroup = 0);
-//   SNAPSHOT() { is_empty = 1; }
-//   int get(vector<ADDR_SET_VALUE>& valuators, int snapGroup = 0);
-// };
-
 struct SNAPSHOT {
   int is_empty;
   vector<VALUATOR_FIELD> fields;
-  SNAPSHOT(vector<ADDR_SET_VALUE>& valuators);
+  SNAPSHOT(vector<ADDR_SET_VALUE>& valuators, int snapGroup = 0);
   SNAPSHOT() { is_empty = 1; }
-  int get(vector<ADDR_SET_VALUE>& valuators);
+  int get(vector<ADDR_SET_VALUE>& valuators, int snapGroup = 0);
 };
 
-typedef vector<SNAPSHOT> SNAPVEC; //gab
 extern "C"
 {
+typedef vector<SNAPSHOT> SNAPVEC; //gab
 typedef struct {
     char hack_o_rama1;       // IV - Aug 23 2002
     char hack_o_rama2;
@@ -226,78 +204,40 @@ typedef struct {
     int FLtext_font;
     int FLtext_align;
 	
-	int currentSnapGroup; // GAB for snapshot groups
-	int last_KEY;  // GAB
-	bool isKeyDown;  //GAB
+    int currentSnapGroup; // GAB for snapshot groups
+    int last_KEY;  // GAB
+    bool isKeyDown;  //GAB
 	
 	
     int FL_ix;
     int FL_iy;
 	
-	vector<PANELS> fl_windows; // all panels
-	//static vector<void*> AddrValue;
-	//        addresses of widgets that display current value of valuators
-	vector<ADDR_STACK> AddrStack; //addresses of containers
-	vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
-	vector<char*> allocatedStrings;
-  //TODO: comment line below, and use SNAPVEC futher below
-	vector<SNAPSHOT> snapshots;
+    vector<PANELS> fl_windows; // all panels
+    //static vector<void*> AddrValue;
+    //        addresses of widgets that display current value of valuators
+    vector<ADDR_STACK> AddrStack; //addresses of containers
+    vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
+    vector<char*> allocatedStrings;
 // 	map<int, SNAPVEC> snapshots; //gab
 // 	map<int, SNAPVEC>::iterator snapshots_iterator; // iterator of the map
-	int last_sldbnk;
-	
-	FL_MIDI_WIDGET_VALUE *midiFLaddress[16][128]; // gab 128 cc * 16 midi channels   
-	int midiFLold_val[16][128]; //gab
-// 	vector<SNAPVEC> snapshots;  // GAB (MAKING IT GLOBAL IS CERTAINLY A TEMPORARY UGLY HACK, but map seems not to function in the WIDGET_GLOBALS structure)
-// 	vector<SNAPVEC>::iterator snapshots_iterator; //GAB (MAKING IT GLOBAL IS A TEMPORARY UGLY HACK)
-	VUMETER *p_vumeter;
+    int last_sldbnk;
+    
+    FL_MIDI_WIDGET_VALUE *midiFLaddress[16][128]; // gab 128 cc * 16 midi channels   
+    int midiFLold_val[16][128]; //gab
+    vector<SNAPVEC> snapshots;  // GAB (MAKING IT GLOBAL IS CERTAINLY A TEMPORARY UGLY HACK, but map seems not to function in the WIDGET_GLOBALS structure)
+    vector<SNAPVEC>::iterator snapshots_iterator; //GAB (MAKING IT GLOBAL IS A TEMPORARY UGLY HACK)
+    VUMETER *p_vumeter;
 #ifdef CS_VSTHOST
-	vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
-	vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins 
+    vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
+    vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins 
 #endif
 
 #ifdef CS_IMAGE
-	vector<ImageSTRUCT> Bm_image; // map of pointers to CAnyBmp objects
-	vector<ImageSTRUCT>::iterator Bm_image_iterator; // iterator of the map
+    vector<ImageSTRUCT> Bm_image; // map of pointers to CAnyBmp objects
+    vector<ImageSTRUCT>::iterator Bm_image_iterator; // iterator of the map
 #endif
 
 } WIDGET_GLOBALS;
 }
-
-// typedef struct {
-//     char hack_o_rama1;       // IV - Aug 23 2002
-//     char hack_o_rama2;
-//     int ix, drag, indrag, sldrag;
-//     int stack_count;
-// 
-//     int FLcontrol_iheight;
-//     int FLroller_iheight;
-//     int FLcontrol_iwidth;
-//     int FLroller_iwidth;
-//     int FLvalue_iwidth;
-// 
-//     int FLcolor;
-//     int FLcolor2;
-//     int FLtext_size;
-//     int FLtext_color;
-//     int FLtext_font;
-//     int FLtext_align;
-// 
-//     int FL_ix;
-//     int FL_iy;
-// 
-//   vector<PANELS> fl_windows; // all panels
-// //static vector<void*> AddrValue;
-// //        addresses of widgets that display current value of valuators
-//   vector<ADDR_STACK> AddrStack; //addresses of containers
-//   vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
-//   vector<char*> allocatedStrings;
-//   vector<SNAPSHOT> snapshots;
-// 
-// } WIDGET_GLOBALS;
-
-//map<int, SNAPVEC> snapshots;  // GAB (MAKING IT GLOBAL IS CERTAINLY A TEMPORARY UGLY HACK, but map seems not to function in the WIDGET_GLOBALS structure)
-//map<int, SNAPVEC>::iterator snapshots_iterator; //GAB (MAKING IT GLOBAL IS A TEMPORARY UGLY HACK)
-
 
 #define ST(x)   (((WIDGET_GLOBALS*) csound->widgetGlobals)->x)
