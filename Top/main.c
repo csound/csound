@@ -136,7 +136,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csrcname = csoundGetEnv(csound, "CSOUNDRC");
       if (csrcname != NULL && csrcname[0] != '\0') {
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
-                                 CSFTYPE_OPTIONS, FALSE);
+                                 CSFTYPE_OPTIONS, 0);
         if (fd == NULL)
           csoundMessage(csound, Str("WARNING: cannot open csoundrc file %s\n"),
                                 csrcname);
@@ -145,7 +145,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
                          home_dir[0] != '\0')) {
         s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
-                                 CSFTYPE_OPTIONS, FALSE);
+                                 CSFTYPE_OPTIONS, 0);
         mfree(csound, s);
       }
       /* read global .csoundrc file (if exists) */
@@ -155,7 +155,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       }
       /* check for .csoundrc in current directory */
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csoundrc", "r", NULL,
-                                 CSFTYPE_OPTIONS, FALSE);
+                                 CSFTYPE_OPTIONS, 0);
       if (fd != NULL) {
         readOptions(csound, csrc);
         csound->FileClose(csound, fd);

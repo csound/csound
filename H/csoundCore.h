@@ -49,10 +49,6 @@ extern "C" {
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
 /** 
  * The following constants are used with csound->FileOpen2() and
  * are passed by Csound to a host's FileOpen callback.

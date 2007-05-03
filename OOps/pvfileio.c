@@ -479,7 +479,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
     }
 
     p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename, "wb",
-                               "", CSFTYPE_PVCEX, FALSE);
+                               "", CSFTYPE_PVCEX, 0);
     if (p->fd == NULL) {
       mfree(csound, pname);
       if (p->customWindow)
@@ -528,7 +528,7 @@ int pvoc_openfile(CSOUND *csound,
 
     p->customWindow = NULL;
     p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename,
-                                   "rb", "SADIR", CSFTYPE_PVCEX, FALSE);
+                                   "rb", "SADIR", CSFTYPE_PVCEX, 0);
     if (p->fd == NULL) {
       csound->pvErrorCode = -9;
       free(p);

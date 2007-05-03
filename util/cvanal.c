@@ -130,7 +130,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
-                                          "SFDIR", CSFTYPE_CVANAL, FALSE);
+                                          "SFDIR", CSFTYPE_CVANAL, 0);
     if (ofd_handle == NULL) {                   /* open the output CV file */
       return quit(csound, Str("cannot create output file"));
     }                                           /* & wrt hdr into the file */
