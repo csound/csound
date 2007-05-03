@@ -3,6 +3,12 @@
 #include "jack/jack.h"
 #endif
 
+//CS5GUI_EXPERIMENTAL device query section left out for Windows and Mac while the problem is found
+#ifdef LINUX
+#define CS5GUI_EXPERIMENTAL
+#endif
+
+
 #include "csound.hpp"
 #include <FL/fl_ask.H>
   //  #include <unistd.h>
@@ -425,6 +431,8 @@ void CsoundPerformanceSettingsPanel::querySoundDevices()
     }
     else
 #endif //LINUX
+      //The following code is problematic on other platforms. Taken out while things are sorted
+#ifdef CS5GUI_EXPERIMENTAL
     {
       /* Use the Csound API to query Output Devices */
       csoundMessages = (char *) calloc(800, sizeof(char));
@@ -603,6 +611,7 @@ void CsoundPerformanceSettingsPanel::querySoundDevices()
       free(csoundMessagesOut);
       free(tmp2);
     }
+#endif //CS5GUI_EXPERIMENTAL
     setPerformanceSettingsWindow(1);
 }
 
@@ -751,6 +760,8 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
     }
     else
 #endif //LINUX
+      //The following code is problematic on other platforms. Taken out while things are sorted
+#ifdef CS5GUI_EXPERIMENTAL
     {
       /* Use the Csound API to query Output Devices */
       csoundMessages = (char *) calloc(800, sizeof(char));
@@ -847,6 +858,7 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
       free(csoundMessagesOut);
       free(tmp2);
     }
+#endif //CS5GUI_EXPERIMENTAL
     setPerformanceSettingsWindow(2);
 }
 
