@@ -2870,6 +2870,223 @@ static const CSOUND cenviron_ = {
   {
     return (int) ((OPDS*) p)->insdshead->p1;
   }
+  
+  typedef struct csMsgStruct_ {
+    struct csMsgStruct_  *nxt;
+    int         attr;
+    char        s[1];
+  } csMsgStruct;
+
+  typedef struct csMsgBuffer_ {
+    void        *mutex_;
+    csMsgStruct *firstMsg;
+    csMsgStruct *lastMsg;
+    int         msgCnt;
+    char        *buf;
+  } csMsgBuffer;
+
+  // callback for storing messages in the buffer only
+  static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
+                                             const char *fmt, va_list args);
+
+  // callback for writing messages to the buffer, and also stdout/stderr
+  static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
+                                             const char *fmt, va_list args);
+
+  /**
+   * Creates a buffer for storing messages printed by Csound.
+   * Should be called after creating a Csound instance; note that
+   * the message buffer uses the host data pointer, and the buffer
+   * should be freed by calling csoundDestroyMessageBuffer() before
+   * deleting the Csound instance.
+   * If 'toStdOut' is non-zero, the messages are also printed to
+   * stdout and stderr (depending on the type of the message),
+   * in addition to being stored in the buffer.
+   */
+
+  void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
+  {
+    csMsgBuffer *pp;
+    size_t      nBytes;
+
+    csoundDestroyMessageBuffer(csound);
+    nBytes = sizeof(csMsgBuffer);
+    if (!toStdOut)
+      nBytes += (size_t) 16384;
+    pp = (csMsgBuffer*) malloc(nBytes);
+    pp->mutex_ = csoundCreateMutex(0);
+    pp->firstMsg = (csMsgStruct*) 0;
+    pp->lastMsg = (csMsgStruct*) 0;
+    pp->msgCnt = 0;
+    if (!toStdOut) {
+      pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
+      pp->buf[0] = (char) '\0';
+    }
+    else
+      pp->buf = (char*) 0;
+    csoundSetHostData(csound, (void*) pp);
+    if (!toStdOut)
+      csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
+    else
+      csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
+  }
+
+  /**
+   * Returns the first message from the buffer.
+   */
+
+  const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    char        *msg = (char*) 0;
+
+    if (pp && pp->msgCnt) {
+      csoundLockMutex(pp->mutex_);
+      if (pp->firstMsg)
+        msg = &(pp->firstMsg->s[0]);
+      csoundUnlockMutex(pp->mutex_);
+    }
+    return msg;
+  }
+
+  /**
+   * Returns the attribute parameter (see msg_attr.h) of the first message
+   * in the buffer.
+   */
+
+  int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    int         attr = 0;
+
+    if (pp && pp->msgCnt) {
+      csoundLockMutex(pp->mutex_);
+      if (pp->firstMsg)
+        attr = pp->firstMsg->attr;
+      csoundUnlockMutex(pp->mutex_);
+    }
+    return attr;
+  }
+
+  /**
+   * Removes the first message from the buffer.
+   */
+
+  void PUBLIC csoundPopFirstMessage(CSOUND *csound)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+
+    if (pp) {
+      csMsgStruct *tmp;
+      csoundLockMutex(pp->mutex_);
+      tmp = pp->firstMsg;
+      if (tmp) {
+        pp->firstMsg = tmp->nxt;
+        pp->msgCnt--;
+        if (!pp->firstMsg)
+          pp->lastMsg = (csMsgStruct*) 0;
+      }
+      csoundUnlockMutex(pp->mutex_);
+      if (tmp)
+        free((void*) tmp);
+    }
+  }
+
+  /**
+   * Returns the number of pending messages in the buffer.
+   */
+
+  int PUBLIC csoundGetMessageCnt(CSOUND *csound)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    int         cnt = 0;
+
+    if (pp) {
+      csoundLockMutex(pp->mutex_);
+      cnt = pp->msgCnt;
+      csoundUnlockMutex(pp->mutex_);
+    }
+    return cnt;
+  }
+
+  /**
+   * Releases all memory used by the message buffer.
+   */
+
+  void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+
+    if (!pp)
+      return;
+    while (csoundGetMessageCnt(csound) > 0)
+      csoundPopFirstMessage(csound);
+    csoundSetHostData(csound, (void*) 0);
+    csoundDestroyMutex(pp->mutex_);
+    free((void*) pp);
+  }
+
+  static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
+                                             const char *fmt, va_list args)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    csMsgStruct *p;
+    int         len;
+
+    csoundLockMutex(pp->mutex_);
+    len = vsprintf(pp->buf, fmt, args);         // FIXME: this can overflow
+    if ((unsigned int) len >= (unsigned int) 16384) {
+      csoundUnlockMutex(pp->mutex_);
+      fprintf(stderr, "csound: internal error: message buffer overflow\n");
+      exit(-1);
+    }
+    p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
+    p->nxt = (csMsgStruct*) 0;
+    p->attr = attr;
+    strcpy(&(p->s[0]), pp->buf);
+    if (pp->firstMsg == (csMsgStruct*) 0)
+      pp->firstMsg = p;
+    else
+      pp->lastMsg->nxt = p;
+    pp->lastMsg = p;
+    pp->msgCnt++;
+    csoundUnlockMutex(pp->mutex_);
+  }
+
+  static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
+                                             const char *fmt, va_list args)
+  {
+    csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+    csMsgStruct *p;
+    int         len = 0;
+
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+      case CSOUNDMSG_ERROR:
+      case CSOUNDMSG_REALTIME:
+      case CSOUNDMSG_WARNING:
+        len = vfprintf(stderr, fmt, args);
+        break;
+      default:
+        len = vfprintf(stdout, fmt, args);
+    }
+    p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
+    p->nxt = (csMsgStruct*) 0;
+    p->attr = attr;
+    vsprintf(&(p->s[0]), fmt, args);
+    csoundLockMutex(pp->mutex_);
+    if (pp->firstMsg == (csMsgStruct*) 0)
+      pp->firstMsg = p;
+    else
+      pp->lastMsg->nxt = p;
+    pp->lastMsg = p;
+    pp->msgCnt++;
+    csoundUnlockMutex(pp->mutex_);
+  }
+
+void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
+{
+	while(size--) *(dest++) = *(src++);
+}  
 
 #ifdef __cplusplus
 }
