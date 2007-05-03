@@ -51,7 +51,7 @@ namespace csound
    *
    * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
    */
-  class Voicelead
+  class SILENCE_PUBLIC Voicelead
   {
   public:
     /**

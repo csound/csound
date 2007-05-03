@@ -39,7 +39,7 @@ using namespace boost::numeric;
 
 namespace csound
 {
-  class VoiceleadingOperation 
+  class SILENCE_PUBLIC VoiceleadingOperation 
   {
   public:
     VoiceleadingOperation();
@@ -93,7 +93,7 @@ namespace csound
     bool avoidParallels;
   };
 
-  std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation);
+  std::ostream SILENCE_PUBLIC &operator << (std::ostream &stream, const VoiceleadingOperation &operation);
   
   /**
    * This node class imposes 

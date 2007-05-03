@@ -16,6 +16,8 @@ and a copy of the VST SDK.
 #ifndef __AEffect__
 #define __AEffect__
 
+#include "Platform.hpp"
+
 /*      to create an Audio Effect for power pc's, create a
         code resource
         file type: 'aPcs'
@@ -74,7 +76,7 @@ typedef long (VSTCALLBACK *audioMasterCallback)(AEffect *effect, long opcode, lo
 //-------------------------------------------------
 // AEffect Structure
 //-------------------------------------------------
-struct AEffect
+struct SILENCE_PUBLIC AEffect
 {
         long magic;                     // must be kEffectMagic ('VstP')
 

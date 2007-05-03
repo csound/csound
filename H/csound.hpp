@@ -39,9 +39,9 @@
 %}
 #else
 #include "csound.h"
-#ifdef __BUILDING_CSOUND_INTERFACES
+//#ifdef __BUILDING_CSOUND_INTERFACES
 #include "cs_glue.h"
-#endif
+//#endif
 #endif
 
 #if defined(__cplusplus)
@@ -53,7 +53,7 @@
 /**
  * C++ interface to the "C" Csound API.
  */
-class Csound
+class PUBLIC Csound
 {
 protected:
   CSOUND *csound;
@@ -767,32 +767,32 @@ public:
     csoundDestroy(csound);
   }
   // Functions for embedding.
-#ifdef __BUILDING_CSOUND_INTERFACES
-  void EnableMessageBuffer(int toStdOut)
+//#ifdef __BUILDING_CSOUND_INTERFACES
+  virtual void EnableMessageBuffer(int toStdOut)
   {
     csoundEnableMessageBuffer(csound, toStdOut);
   }
-  const char *GetFirstMessage()
+  virtual const char *GetFirstMessage()
   {
     return csoundGetFirstMessage(csound);
   }
-  int GetFirstMessageAttr()
+  virtual int GetFirstMessageAttr()
   {
     return csoundGetFirstMessageAttr(csound);
   }
-  void PopFirstMessage()
+  virtual void PopFirstMessage()
   {
     csoundPopFirstMessage(csound);
   }
-  int GetMessageCnt()
+  virtual int GetMessageCnt()
   {
     return csoundGetMessageCnt(csound);
   }
-  void DestroyMessageBuffer()
+  virtual void DestroyMessageBuffer()
   {
     csoundDestroyMessageBuffer(csound);
   }
-#endif
+//#endif
 };
 
 // thread locks

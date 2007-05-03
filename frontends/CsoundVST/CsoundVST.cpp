@@ -914,7 +914,7 @@ extern "C"
 #else
   CsoundVST *CreateCsoundVST();
 #endif
-  PUBLIC CsoundVST *CreateCsoundVST()
+  CsoundVST* SILENCE_PUBLIC CreateCsoundVST()
   {
     return new CsoundVST;
   }

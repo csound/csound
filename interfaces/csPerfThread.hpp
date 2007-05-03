@@ -42,13 +42,13 @@ class CsPerfThread_PerformScore;
  */
 
 #ifdef SWIGPYTHON
-struct pycallbackdata {
+struct PUBLIC pycallbackdata {
   PyObject *func;
   PyObject *data;
 };
 #endif
 
-class CsoundPerformanceThread {
+class PUBLIC CsoundPerformanceThread {
  private:
     volatile CsoundPerformanceThreadMessage *firstMessage;
     CsoundPerformanceThreadMessage *lastMessage;

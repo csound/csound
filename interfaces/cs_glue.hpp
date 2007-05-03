@@ -32,9 +32,9 @@
  * Should be called after csoundCompile() or Csound::Compile().
  */
  
-void sigcpy(MYFLT *dest, MYFLT *src, int size);
+void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size);
 
-class CsoundOpcodeList {
+class PUBLIC CsoundOpcodeList {
  private:
     opcodeListEntry *lst;
     int             cnt;
@@ -77,7 +77,7 @@ class CsoundOpcodeList {
  * instance. Should be called after csoundCompile() or Csound::Compile().
  */
 
-class CsoundChannelList {
+class PUBLIC CsoundChannelList {
  private:
     CsoundChannelListEntry  *lst;
     int                     cnt;
@@ -168,7 +168,7 @@ class CsoundChannelList {
  * or Csound::PreCompile().
  */
 
-class CsoundUtilityList {
+class PUBLIC CsoundUtilityList {
  private:
     char  **lst;
     int   cnt;
@@ -206,7 +206,7 @@ class CsoundUtilityList {
  * with Csound API functions that take a MYFLT* pointer.
  */
 
-class CsoundMYFLTArray {
+class PUBLIC CsoundMYFLTArray {
  private:
     MYFLT *p;
     void  *pp;
@@ -412,7 +412,7 @@ class CsoundMYFLTArray {
  * functions like csoundCompile().
  */
 
-class CsoundArgVList {
+class PUBLIC CsoundArgVList {
  private:
     char  **ArgV_;
     int   cnt;
@@ -459,7 +459,7 @@ class CsoundArgVList {
 class CsoundMidiInputBuffer;
 class CsoundMidiOutputBuffer;
 
-class CsoundCallbackWrapper {
+class PUBLIC CsoundCallbackWrapper {
  private:
     CSOUND  *csound_;
  public:
@@ -559,7 +559,7 @@ class CsoundCallbackWrapper {
 
 // ---------------------------- MIDI INPUT ----------------------------
 
-class CsoundMidiInputBuffer {
+class PUBLIC CsoundMidiInputBuffer {
  private:
     unsigned char   *buf;
     void            *mutex_;
@@ -632,7 +632,7 @@ class CsoundMidiInputBuffer {
  * instance.
  */
 
-class CsoundMidiInputStream : public CsoundMidiInputBuffer {
+class PUBLIC CsoundMidiInputStream : public CsoundMidiInputBuffer {
  private:
     unsigned char   buf_[4096];
     CSOUND          *csound;
@@ -657,7 +657,7 @@ class CsoundMidiInputStream : public CsoundMidiInputBuffer {
 
 // ---------------------------- MIDI OUTPUT ---------------------------
 
-class CsoundMidiOutputBuffer {
+class PUBLIC CsoundMidiOutputBuffer {
  private:
     unsigned char   *buf;
     void            *mutex_;
@@ -715,7 +715,7 @@ class CsoundMidiOutputBuffer {
  * from a Csound instance.
  */
 
-class CsoundMidiOutputStream : public CsoundMidiOutputBuffer {
+class PUBLIC CsoundMidiOutputStream : public CsoundMidiOutputBuffer {
  private:
     unsigned char   buf_[4096];
     CSOUND          *csound;

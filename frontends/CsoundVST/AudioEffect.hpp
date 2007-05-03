@@ -16,6 +16,8 @@ and a copy of the VST SDK.
 #ifndef __AudioEffect__
 #define __AudioEffect__
 
+#include "Platform.hpp"
+
 #ifndef __AEffect__
 #include "AEffect.h"    // "c" interface
 #endif
@@ -35,7 +37,7 @@ void processClass (AEffect *e, float **inputs, float **outputs, long sampleFrame
 void processClassReplacing (AEffect *e, float **inputs, float **outputs, long sampleFrames);
 
 //-------------------------------------------------------------------------------------------------------
-class AudioEffect
+class SILENCE_PUBLIC AudioEffect
 {
 friend class AEffEditor;
 friend long dispatchEffectClass (AEffect *e, long opCode, long index, long value, void *ptr, float opt);

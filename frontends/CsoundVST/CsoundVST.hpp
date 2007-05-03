@@ -46,9 +46,9 @@
 
 #endif
 
-class CsoundVstFltk;
+class SILENCE_PUBLIC CsoundVstFltk;
 
-class Preset
+class SILENCE_PUBLIC Preset
 {
 public:
   std::string name;
@@ -163,7 +163,7 @@ public:
 
 extern "C"
 {
-  PUBLIC CsoundVST *CreateCsoundVST();
+   CsoundVST* SILENCE_PUBLIC CreateCsoundVST();
 }
 
 #endif

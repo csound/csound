@@ -1471,8 +1471,50 @@ extern "C" {
    */
   PUBLIC void csoundRemoveCallback(CSOUND *,
                                    int (*func)(void *, void *, unsigned int));
+                                   
 
 
+  /**
+   * Creates a buffer for storing messages printed by Csound.
+   * Should be called after creating a Csound instance; note that
+   * the message buffer uses the host data pointer, and the buffer
+   * should be freed by calling csoundDestroyMessageBuffer() before
+   * deleting the Csound instance.
+   * If 'toStdOut' is non-zero, the messages are also printed to
+   * stdout and stderr (depending on the type of the message),
+   * in addition to being stored in the buffer.
+   */
+  void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
+
+  /**
+   * Returns the first message from the buffer.
+   */
+  const char *PUBLIC csoundGetFirstMessage(CSOUND *csound);
+
+  /**
+   * Returns the attribute parameter (see msg_attr.h) of the first message
+   * in the buffer.
+   */
+  int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound);
+
+  /**
+   * Removes the first message from the buffer.
+   */
+  void PUBLIC csoundPopFirstMessage(CSOUND *csound);
+
+  /**
+   * Returns the number of pending messages in the buffer.
+   */
+  int PUBLIC csoundGetMessageCnt(CSOUND *csound);
+
+  /**
+   * Releases all memory used by the message buffer.
+   */
+  void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
+
+  void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size);
+
+#if !defined(SWIG)
   /**
    * Sets an external callback for receiving notices whenever Csound opens
    * a file.  The callback is made after the file is successfully opened.
@@ -1487,6 +1529,7 @@ extern "C" {
    */
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                            void (*func)(CSOUND*, const char*, int, int, int));
+#endif
 
 /* This pragma must come after all public function declarations */
 #if (defined(macintosh) && defined(__MWERKS__))
