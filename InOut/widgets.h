@@ -39,24 +39,26 @@ typedef struct {
 #define MAXSLIDERBANK 128
 
 typedef struct {
-    MYFLT   min, max, *out;
-    MYFLT   base, *table;
-    long    tablen;
-    int     exp;
+	void *widget_addr; //gab
+	MYFLT min, max, *out;
+	MYFLT base, *table;
+	long tablen;
+	int exp;
 } SLDBK_ELEMENT;
 
 // ---------------------------------------------------------------------
 
-typedef struct {
-    OPDS    h;
+typedef struct	{
+	OPDS	h;
     MYFLT   *names, *inumsliders, *ioutable, *iwidth, *iheight;
     MYFLT   *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx;
     MYFLT   *iminmaxtable;
-    SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
+	SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
+	long elements;
 } FLSLIDERBANK;
 
-typedef struct {
-    OPDS    h;
+typedef struct	{
+	OPDS	h;
     MYFLT   *kout, *args[PMAX+1];
 } FLKEYB;
 
@@ -203,22 +205,22 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *inum_snap, *inum_val, *index, *ifn;
+    MYFLT   *inum_snap, *inum_val, *index, *ifn, *group;
 } FLSETSNAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *inum_el, *index;
+    MYFLT   *inum_el, *index, *group;
 } FLGETSNAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *filename;
+    MYFLT   *filename, *group;
 } FLSAVESNAPS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *filename;
+    MYFLT   *filename, *group;
 } FLLOADSNAPS;
 
 typedef struct {
