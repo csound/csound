@@ -1081,7 +1081,10 @@ else:
         csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''
             -install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s
         ''' % ('5.1', ilibName)))
-    csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+         '_csnd', csoundInterfacesSources)
+    else:
+      csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
         'csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
@@ -1105,7 +1108,10 @@ else:
         csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
-        csndPythonEnvironment.Append(LIBS = ['csnd'])
+        if getPlatform() == 'darwin':
+         csndPythonEnvironment.Append(LIBS = ['_csnd'])
+        else:
+         csndPythonEnvironment.Append(LIBS = ['csnd'])
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
