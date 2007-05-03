@@ -1110,6 +1110,7 @@ else:
         if getPlatform() != 'darwin':
             csndModule = makePythonModule(csndPythonEnvironment, 'csnd', [csoundPythonInterface])
             pythonModules.append('csnd.py')
+        Depends(csoundPythonInterface, csoundInterfaces)
 
 if commonEnvironment['generatePdf'] == '0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
