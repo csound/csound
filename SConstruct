@@ -169,7 +169,7 @@ commandOptions.Add('buildStkOpcodes',
     '0')
 commandOptions.Add('install',
     'Enables the Install targets',
-    '1')
+    '0')
 commandOptions.Add('buildPDClass',
     "build csoundapi~ PD class (needs m_pd.h in the standard places)",
     '0')
@@ -952,9 +952,13 @@ def makePythonModule(env, targetName, srcs):
         env.Prepend(LINKFLAGS = ['-bundle'])
         pyModule_ = env.Program('_%s.so' % targetName, srcs)
     else:
-        pyModule_ = env.SharedLibrary('_%s' % targetName, srcs, SHLIBSUFFIX = '.pyd')
+        if  getPlatform() == 'linux':
+         pyModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="_", SHLIBSUFFIX = '.so')
+        else:
+	 pyModule_ = env.SharedLibrary('_%s' % targetName, srcs, SHLIBSUFFIX = '.pyd')
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
             Depends(pyModule_, pythonImportLibrary)
+        print "PYTHON MODULE.........."
     pythonModules.append(pyModule_)
     pythonModules.append('%s.py' % targetName)
     return pyModule_
@@ -1063,7 +1067,7 @@ else:
                 csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
     if getPlatform() == 'linux':
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
-        os.symlink('lib_csnd.so', '_csnd.so')
+        # os.symlink('lib_csnd.so', '_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
     if getPlatform() == 'darwin':
         ilibName = "lib_csnd.dylib"
