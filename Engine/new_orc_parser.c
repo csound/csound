@@ -34,7 +34,9 @@ extern int csound_orcdebug;
 
 extern int csound_orcparse(CSOUND*, TREE*);
 extern void init_symbtab();
-
+#ifndef FALSE
+#define FALSE (0)
+#endif
 void new_orc_parser(CSOUND *csound)
 {
     void *t;
