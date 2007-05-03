@@ -1045,7 +1045,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env)
 {
     return csoundFileOpenWithType(csound, fd, type, name, param, env, 
-                                  CSFTYPE_UNKNOWN, FALSE);
+                                  CSFTYPE_UNKNOWN, 0);
 }
 
 /**
@@ -1059,8 +1059,8 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int type,
  * int csFileType:
  *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
  * int isTemporary:
- *   TRUE if this file will be deleted when Csound is finished.
- *   Otherwise, FALSE.
+ *   1 if this file will be deleted when Csound is finished.
+ *   Otherwise, 0.
  */
 void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,

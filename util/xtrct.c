@@ -300,7 +300,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     else
       fd = csound->FileOpen2(csound, &outfd, CSFILE_SND_W,
                                O->outfilename, &sfinfo, "SFDIR",
-                               csound->type2csfiletype(O->filetyp), FALSE);
+                               csound->type2csfiletype(O->filetyp), 0);
     if (fd == NULL)
       csound->Die(csound, Str("Failed to open output file %s"),
                           O->outfilename);
