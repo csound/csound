@@ -566,10 +566,10 @@ int tempest(CSOUND *csound, TEMPEST *p)
       *xcur++ = FL(0.0);                    /*    & clear the loc it occupied */
       if (xcur >= p->xend) xcur = p->xbeg;  /* xcur now points to cur xarray  */
       p->xcur = xcur;
-#ifdef DEBUG
+      #ifdef DEBUG
       csound->Message(csound, "**kin -> %f (%f,%f)\n",
                       *p->kin - p->yt1, *p->kin, p->yt1);
-#endif
+      #endif
       if ((kin = *p->kin - p->yt1) < FL(0.0))
         kin = FL(0.0);
       { /* ignore input below lopass */
@@ -636,7 +636,10 @@ int tempest(CSOUND *csound, TEMPEST *p)
             sumsqr += *memp * *memp;
           } while (--terms);
           crossprods = sumraw * sumraw - sumsqr;
-          RMScross = (MYFLT)sqrt(crossprods / p->ncross);
+          if(crossprods >= 0)
+          RMScross = (MYFLT)sqrt(crossprods / p->ncross);   
+          else
+	    RMScross = 0;        
           if (RMScross < FL(1.4) * RMStot)    /* if RMScross significant:   */
             continue;
 #ifdef DEBUG
