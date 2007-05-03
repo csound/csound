@@ -3,10 +3,7 @@
 -- On Linux this should work:
 -- require "csnd"
 
--- On Windows this is needed because the _csnd.dll name
--- does not match the csnd module:
-csnd_init = package.loadlib("_csnd.dll", "Csnd_Init")
-csnd_init()
+require "csnd"
 
 csound = csnd.Csound()
 args = csnd.CsoundArgVList()
