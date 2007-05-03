@@ -27,7 +27,7 @@ class CsoundPerformanceSettingsPanel {open
     Fl_Window window {
       label {Csound performance settings}
       callback {status = 1;} open
-      xywh {983 495 405 540} type Double color 139
+      xywh {535 436 405 540} type Double color 139
       code0 {window = o;} visible
     } {
       Fl_Tabs tabs {open
@@ -36,7 +36,7 @@ class CsoundPerformanceSettingsPanel {open
       } {
         Fl_Group {} {
           label General open
-          xywh {0 25 405 480} color 139 hide
+          xywh {0 25 405 480} color 139
         } {
           Fl_Input orcNameInput {
             label {Orchestra/CSD}
@@ -447,7 +447,7 @@ performanceSettings.rtAudioInputDevice = "adc";} open
         }
         Fl_Group {} {
           label MIDI open
-          xywh {0 25 405 470} color 139
+          xywh {0 25 405 470} color 139 hide
         } {
           Fl_Group {} {
             label {MIDI file I/O} open
@@ -495,7 +495,7 @@ performanceSettings.rtAudioInputDevice = "adc";} open
             }
           }
           Fl_Group {} {
-            label {Real time MIDI} open selected
+            label {Real time MIDI} open
             xywh {10 195 385 125} box PLASTIC_UP_FRAME labelsize 12 align 5
           } {
             Fl_Choice rtMidiModulesChoice {
@@ -799,7 +799,7 @@ updateGUIState_Midi();}
       }
       Fl_Button {} {
         label OK
-        callback {status = 1;}
+        callback {status = 1;} selected
         xywh {255 510 60 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX
       }
       Fl_Button {} {
