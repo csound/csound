@@ -1,3 +1,16 @@
+2007-05-02  Michael Gogins <gogins@pipeline.com>
+
+    * Updated the csnd and CsoundVST Python extension modules
+    to be compatible with Python version 2.5.
+    * Split all SWIG-generated Python stub code off into shared
+    libraries _csnd.pyd and _CsoundVST.pyd.
+    * All remaining code from the old _csnd.dll and _CsoundVST.dll
+    is now in csnd.dll and CsoundVST.dll.
+    * Many classes and functions in CsoundVST are now exported
+    so that they can dynamically link with _CsoundVST.pyd.
+    * "Glue" code for message buffers, etc. has been moved
+    into the csound.h and csound.c files.
+
 2007-04-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/envvar.c, Engine/fgens.c, Engine/memfiles.c,
