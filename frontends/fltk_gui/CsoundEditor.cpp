@@ -548,7 +548,7 @@ void rewind_cb(Fl_Widget*, void* v) {
 }
 
 void set_title(CsoundEditorWindow* w) {
-  if (w->filename[0] == '\0') strcpy(title, "Untitled");
+  if (!w->filename[0]) strcpy(title, "Untitled");
   else {
     char *slash;
     slash = strrchr(w->filename, '/');
