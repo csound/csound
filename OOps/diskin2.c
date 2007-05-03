@@ -190,7 +190,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     char    name[1024];
     void    *fd;
     SF_INFO sfinfo;
-    int     i, n;
+    int     n;
 
     /* check number of channels */
     p->nChannels = (int)(p->OUTOCOUNT);
