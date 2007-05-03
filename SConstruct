@@ -1,6 +1,4 @@
-
 # vim:syntax=python
-
 print '''
 C S O U N D 5
 
@@ -229,9 +227,9 @@ Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 def withMSVC():
     if getPlatform() == 'win32':
-	if commonEnvironment['withMSVC'] == '1':
+    	if commonEnvironment['withMSVC'] == '1':
             return 1
-	return 0
+	    return 0
     else:
         return 0
 
@@ -363,6 +361,10 @@ elif getPlatform() == 'win32':
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
+    commonEnvironment.Append(CXXFLAGS = "-D_WIN32")
+    commonEnvironment.Append(CXXFLAGS = "-DWIN32")
+    commonEnvironment.Append(CXXFLAGS = "-DPIPES")
+    commonEnvironment.Append(CXXFLAGS = "-DOS_IS_WIN32")
     if not withMSVC():
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -950,7 +952,7 @@ def makePythonModule(env, targetName, srcs):
         env.Prepend(LINKFLAGS = ['-bundle'])
         pyModule_ = env.Program('_%s.so' % targetName, srcs)
     else:
-        pyModule_ = env.SharedLibrary('_%s' % targetName, srcs)
+        pyModule_ = env.SharedLibrary('_%s' % targetName, srcs, SHLIBSUFFIX = '.pyd')
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
             Depends(pyModule_, pythonImportLibrary)
     pythonModules.append(pyModule_)
@@ -961,7 +963,7 @@ if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironme
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
-    print "Python Version" + commonEnvironment['pythonVersion']
+    print "Python Version: " + commonEnvironment['pythonVersion']
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = []
     for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
@@ -1046,19 +1048,6 @@ else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     csoundInterfacesSources.insert(0,
         csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
-    if pythonFound:
-        csoundWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
-        csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-        csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
-        csoundPythonInterface = csoundWrapperEnvironment.SharedObject(
-            'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
-        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
-            Depends(csoundPythonInterface, pythonImportLibrary)
-        if getPlatform() != 'darwin':
-            csoundInterfacesSources.insert(0, csoundPythonInterface)
-            pythonModules.append('csnd.py')
     if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
@@ -1089,7 +1078,7 @@ else:
             -install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s
         ''' % ('5.1', ilibName)))
     csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-        '_csnd', csoundInterfacesSources)
+        'csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
     if getPlatform() == 'darwin' and (pythonFound or luaFound):
@@ -1106,6 +1095,21 @@ else:
             'csnd', csoundInterfacesBundleSources)
         Depends(csoundInterfacesBundle, csoundInterfaces)
         Depends(csoundInterfacesBundle, csoundLibrary)
+    if pythonFound:
+        csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
+        csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
+        csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
+        csndPythonEnvironment.Append(LIBS = ['csnd'])
+        csoundPythonInterface = csndPythonEnvironment.SharedObject(
+            'interfaces/python_interface.i',
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
+            Depends(csoundPythonInterface, pythonImportLibrary)
+        if getPlatform() != 'darwin':
+            csndModule = makePythonModule(csndPythonEnvironment, 'csnd', [csoundPythonInterface])
+            pythonModules.append('csnd.py')
 
 if commonEnvironment['generatePdf'] == '0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
@@ -1138,8 +1142,6 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 '''))
-
-
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
@@ -1683,7 +1685,7 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = ['_csnd'])
+    vstEnvironment.Prepend(LIBS = ['csnd'])
     vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     vstEnvironment.Append(LIBS = libCsoundLibs)
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
@@ -1758,26 +1760,6 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
-    swigflags = vstEnvironment['SWIGFLAGS']
-    vstWrapperEnvironment = vstEnvironment.Copy()
-    fixCFlagsForSwig(vstWrapperEnvironment)
-    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
-        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
-    if getPlatform() != 'darwin':
-        csoundVstSources.insert(0, csoundVstPythonWrapper)
-        pythonModules.append('CsoundVST.py')
-    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
-    libs.append(csoundvst)
-    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
-    Depends(csoundvst, csoundInterfaces)
-    Depends(csoundvst, csoundLibrary)
-    if getPlatform() == 'darwin':
-        vstPythonEnvironment = vstEnvironment.Copy()
-        vstPythonEnvironment.Prepend(LIBS = ['_CsoundVST'])
-        csoundvstPythonModule = makePythonModule(
-            vstPythonEnvironment, 'CsoundVST', csoundVstPythonWrapper)
-        Depends(csoundvstPythonModule, csoundvst)
-
     scoregenSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/ScoreGenerator.cpp
     frontends/CsoundVST/ScoreGeneratorVst.cpp
@@ -1787,20 +1769,45 @@ else:
     ''')
     if getPlatform() == 'win32':
         scoregenSources.append('frontends/CsoundVST/_scoregen.def')
-    scoregenWrapperEnvironment = vstEnvironment.Copy()
-    fixCFlagsForSwig(scoregenWrapperEnvironment)
-    scoregenPythonWrapper = scoregenWrapperEnvironment.SharedObject(
+    swigflags = vstEnvironment['SWIGFLAGS']
+    vstWrapperEnvironment = vstEnvironment.Copy()
+    fixCFlagsForSwig(vstWrapperEnvironment)
+    csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
+    libs.append(csoundvst)
+    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
+    Depends(csoundvst, csoundInterfaces)
+    Depends(csoundvst, csoundLibrary)
+    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
+        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
+    if getPlatform() == 'darwin':
+        vstPythonEnvironment = vstEnvironment.Copy()
+        vstPythonEnvironment.Prepend(LIBS = ['CsoundVST'])
+        csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', csoundVstPythonWrapper)
+        Depends(csoundVstPythonModule, csoundvst)
+    else:
+        vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        vstEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        vstEnvironment.Prepend(LIBS = pythonLibs)
+        vstEnvironment.Append(CPPPATH = pythonIncludePath)
+        vstPythonEnvironment = vstEnvironment.Copy()
+        scoregenEnvironment = vstEnvironment.Copy()
+        vstPythonEnvironment.Append(LIBS = ['CsoundVST'])
+        csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', [csoundVstPythonWrapper])
+        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
+            Depends(csoundvstPythonModule, pythonImportLibrary)
+        pythonModules.append('CsoundVST.py')
+        scoregen = scoregenEnvironment.SharedLibrary('scoregen', scoregenSources)
+        libs.append(scoregen)
+        Depends(scoregen, csoundInterfaces)
+        Depends(scoregen, csoundLibrary)
+        scoregenPythonWrapper = vstWrapperEnvironment.SharedObject(
         'frontends/CsoundVST/ScoreGeneratorVST.i',
         SWIGFLAGS = [swigflags, '-python'])
-    scoregenSources.insert(0, scoregenPythonWrapper)
-    scoregenEnvironment = vstEnvironment.Copy()
-    scoregenEnvironment['SHLIBPREFIX'] = ''
-    scoregen = makePythonModule(
-        scoregenEnvironment, 'scoregen', scoregenSources)
-    Depends(scoregen, csoundInterfaces)
-    Depends(scoregen, csoundLibrary)
-
-    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST', '_csnd'])
+        scoregenPythonEnvironment = scoregenEnvironment.Copy()
+        scoregenPythonEnvironment.Append(LIBS = ['scoregen'])
+        scoregenPythonModule = makePythonModule(scoregenPythonEnvironment, 'scoregen', [scoregenPythonWrapper])
+        pythonModules.append('scoregen.py')
+    guiProgramEnvironment.Prepend(LIBS = ['CsoundVST', 'csnd'])
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     guiProgramEnvironment.Append(LIBS = libCsoundLibs)
     csoundvstGui = guiProgramEnvironment.Program(
