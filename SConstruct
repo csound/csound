@@ -1081,20 +1081,20 @@ else:
         'csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
-    if getPlatform() == 'darwin' and (pythonFound or luaFound):
-        csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
-        csoundInterfacesBundleSources = []
-        if pythonFound:
-            csoundInterfacesBundleSources += csoundPythonInterface
-        if luaFound:
-            csoundInterfacesBundleSources += csoundLuaInterface
-            csoundInterfacesBundleEnvironment.Prepend(LIBS = ['lua'])
-        csoundInterfacesBundleEnvironment.Prepend(LIBS = ['_csnd'])
-        csoundInterfacesBundle = makePythonModule(
-            csoundInterfacesBundleEnvironment,
-            'csnd', csoundInterfacesBundleSources)
-        Depends(csoundInterfacesBundle, csoundInterfaces)
-        Depends(csoundInterfacesBundle, csoundLibrary)
+    #if getPlatform() == 'darwin' and (pythonFound or luaFound):
+        #csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
+        #csoundInterfacesBundleSources = []
+        #if pythonFound:
+        #    csoundInterfacesBundleSources += csoundPythonInterface
+        #if luaFound:
+        #    csoundInterfacesBundleSources += csoundLuaInterface
+        #    csoundInterfacesBundleEnvironment.Prepend(LIBS = ['lua'])
+        #csoundInterfacesBundleEnvironment.Prepend(LIBS = ['_csnd'])
+        #csoundInterfacesBundle = makePythonModule(
+        #    csoundInterfacesBundleEnvironment,
+        #    'csnd', csoundInterfacesBundleSources)
+        #Depends(csoundInterfacesBundle, csoundInterfaces)
+        #Depends(csoundInterfacesBundle, csoundLibrary)
     if pythonFound:
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
