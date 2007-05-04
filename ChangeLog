@@ -1,3 +1,8 @@
+2007-05-04    <jpff@cs.bath.ac.uk>
+
+	* util/het_export.c (het_export): Improved error checks as suggest
+	in bug report
+
 2007-05-02  Michael Gogins <gogins@pipeline.com>
 
     * Updated the csnd and CsoundVST Python extension modules
