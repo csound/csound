@@ -53,7 +53,7 @@ static void * getMutex(CSOUND *csound, size_t instrNum, size_t lockNum)
         void * mutex = csound->Create_Mutex(0);
         mutexes[csound][instrNum][lockNum] = mutex;
 
-        csound->Message(csound, "Created new mutex [%d:%d]\n", instrNum, lockNum);
+        csound->Message(csound, "Created new mutex [%ld:%ld]\n", instrNum, lockNum);
     }
     csound_global_mutex_unlock();
 

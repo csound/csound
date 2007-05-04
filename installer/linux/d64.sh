@@ -11,7 +11,7 @@ mkdir -p -m 0755 ../../../CSDIST/$DIR/opc/frontends
 
 rm ../../../CSDIST/$DIR/bin/*
 
-cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,csound5gui,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,winsound,cstclsh,cswish,matrix.tk,pv_export,pv_import,atsa,sndinfo} ../../../CSDIST/$DIR/bin
+cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,csound5gui,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,winsound,cstclsh,cswish,matrix.tk,pv_export,pv_import,atsa,sndinfo,cseditor} ../../../CSDIST/$DIR/bin
 
 strip ../../../CSDIST/$DIR/bin/*
 

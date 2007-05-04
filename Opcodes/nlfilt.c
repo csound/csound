@@ -44,8 +44,6 @@ typedef struct {
 
 static int nlfiltset(CSOUND *csound, NLFILT *p)
 {
-    int   i;
-
     if (p->delay.auxp == NULL ||
         p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
       csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);

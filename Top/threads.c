@@ -458,7 +458,7 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
   barrier_t *b;
 
-  if (max == 0) return EINVAL;
+  if (max == 0) return (void*)EINVAL;
 
   b = (barrier_t *)malloc(sizeof(barrier_t));
 
