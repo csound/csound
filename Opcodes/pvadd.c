@@ -64,7 +64,7 @@ void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
 
 int pvaddset(CSOUND *csound, PVADD *p)
 {
-    int      i, ibins;
+    int      ibins;
     char     pvfilnam[MAXNAME];
     int      size;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;

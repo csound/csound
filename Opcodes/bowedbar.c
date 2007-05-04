@@ -37,7 +37,6 @@
 
 static void make_DLineN(CSOUND *csound, DLINEN *p, long length)
 {
-    int i;
     /* Writing before reading allows delays from 0 to length-1.
        Thus, if we want to allow a delay of max_length, we need
        a delay-line of length = max_length+1. */

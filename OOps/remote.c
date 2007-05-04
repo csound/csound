@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #ifdef LINUX
 #include <linux/if.h>
+#include <arpa/inet.h>
 #endif
 #include <net/if.h>
 #endif
