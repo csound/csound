@@ -1530,6 +1530,9 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
   fstream file(filename.c_str(), ios::in);
   int group = (int) *p->group;
   int j=0,k=-1,q=0;
+  SNAPVEC snapvec_init;
+  if (group+1 > (int) ST(snapshots).size()) 
+    ST(snapshots).resize(group+1, snapvec_init);
   while (!(file.eof())) {
     char buf[MAXNAME];
     file.getline(buf,MAXNAME);
@@ -1730,8 +1733,8 @@ class CsoundFLWindow : public Fl_Double_Window {
   CsoundFLTKKeyboardBuffer  fltkKeyboardBuffer;
   CsoundFLWindow(CSOUND *csound, int w, int h, const char *title = 0)
       : Fl_Double_Window(w, h, title),
-        fltkKeyboardBuffer(csound),
-        csound_(csound)//gab
+        csound_(csound),
+        fltkKeyboardBuffer(csound)//gab
   {
     csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                          CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
@@ -4015,6 +4018,14 @@ static int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
   return OK;
 }
 
+// New opcodes for Csound5.06 by Gabriel Maldonado, ported by Andres Cabrera
+
+static int fl_setSnapGroup(CSOUND *csound, FLSETSNAPGROUP *p)
+{
+  ST(currentSnapGroup) = (int) *p->group;
+  return OK;
+}
+
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
@@ -4112,6 +4123,8 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
     { "FLsetsnap",      S(FLSETSNAP),           1,  "ii",   "ioo",
         (SUBR) set_snap,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetSnapGroup", S(FLSETSNAPGROUP),     1,   "",     "i", 		
+		(SUBR)fl_setSnapGroup,  (SUBR) NULL,              (SUBR) NULL },
     { "FLgetsnap",      S(FLGETSNAP),           1,  "i",    "io",
         (SUBR) get_snap,                (SUBR) NULL,              (SUBR) NULL },
     { "FLsavesnap",     S(FLSAVESNAPS),         1,  "",     "To",

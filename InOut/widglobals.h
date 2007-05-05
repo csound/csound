@@ -69,7 +69,8 @@ using namespace std;
 #define CSOUND_WIDGETS_CPP 1
 #include "widgets.h"
 
-#include "newwidgets.h" //GAB
+//#include "newwidgets.h" //GAB
+// file newwidgets.h has been included in widgets.h
 
 #define LIN_ (0)
 #define EXP_ (-1)
