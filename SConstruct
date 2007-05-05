@@ -1983,7 +1983,8 @@ if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
 else:
     print "CONFIGURATION DECISION: Not building OSX GUI frontend"
 
-if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
+if (commonEnvironment['buildDSSI'] == '1' and (getPlatform() == 'linux' or getPlatform() == 'darwin') and
+configure.CheckHeader("ladspa.h", language = "C")):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
     dssiEnvironment = pluginEnvironment.Copy()
     dssiEnvironment.Append(LIBS = ['dl'])
