@@ -177,8 +177,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
       majr = windsiz - minr;                /*      & calc totsamps reqd     */
       totsamps = (majr*nocts) + (minr<<nocts) - minr;
-      DOWNset(csound,
-              dwnp, totsamps);              /* auxalloc in DOWNDAT struct */
+      DOWNset(csound, dwnp, totsamps);      /* auxalloc in DOWNDAT struct */
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
@@ -195,8 +194,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
                         (long)totsamps, Str("octdown buffers:"), 0, "spectrum");
       }
-      SPECset(csound,
-              specp, (long)ncoefs);          /* prep the spec dspace */
+      SPECset(csound, specp, (long)ncoefs);  /* prep the spec dspace */
       specp->downsrcp = dwnp;                /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */

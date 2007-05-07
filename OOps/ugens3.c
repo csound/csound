@@ -190,10 +190,8 @@ int foscili(CSOUND *csound, FOSC *p)
 int losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
-
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       long  maxphs = ((long) ftp->flenfrms << LOBITS) + ((long) LOFACT - 1);
-      printf("Init loscil\n");
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
@@ -214,8 +212,8 @@ int losset(CSOUND *csound, LOSC *p)
       else if (p->mod1 < 0 || p->mod1 > 3)
         goto lerr2;
       else {
-        p->beg1 = (long) (*p->ibeg1 * (MYFLT) LOFACT);
-        p->end1 = (long) (*p->iend1 * (MYFLT) LOFACT);
+        p->beg1 = (long) (*p->ibeg1 * (MYFLT) (LOFACT));
+        p->end1 = (long) (*p->iend1 * (MYFLT) (LOFACT));
         if (!p->beg1 && !p->end1) {
           /* default to looping the whole sample */
           p->end1 = (p->mod1 ? maxphs : ((long) ftp->flenfrms << LOBITS));
@@ -223,16 +221,14 @@ int losset(CSOUND *csound, LOSC *p)
         else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1)
           goto lerr2;
       }
-      printf("mod2/beg2/end2/maxphs %d %ld %ld %ld\n",
-             p->mod1,p->beg2,p->end2,maxphs);
       if ((p->mod2 = (short) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;
         p->beg2 = ftp->begin2 << LOBITS;
         p->end2 = ftp->end2 << LOBITS;
       }
       else {
-        p->beg2 = (long) (*p->ibeg2 * (MYFLT) LOFACT);
-        p->end2 = (long) (*p->iend2 * (MYFLT) LOFACT);
+        p->beg2 = (long) (*p->ibeg2 * (MYFLT) (LOFACT));
+        p->end2 = (long) (*p->iend2 * (MYFLT) (LOFACT));
         if (p->mod2 < 0 || p->mod2 > 3 ||
             p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2) {
           goto lerr3;
