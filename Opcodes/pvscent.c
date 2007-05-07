@@ -86,14 +86,13 @@ typedef struct _pvspitch
 
 
 
-#define FALSE 0
+#define FALSE (0)
 #define TRUE (!FALSE)
 
 #define RoundNum(Number)  (int)MYFLT2LRND(Number)
 
-
-#define Remainder(Numerator, Denominator)  Numerator/Denominator - (int) (Numerator/Denominator)
-
+#define Remainder(Numerator, Denominator)  \
+  Numerator/Denominator - (int) (Numerator/Denominator)
 
 
 int pvspitch_init(CSOUND *csound, PVSPITCH *p)
@@ -160,7 +159,8 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
         Partial = 0;
       }
       else {
-        /* Threshold of hearing is 20 Hz, so no need to look beyond there for the fundamental. */
+        /* Threshold of hearing is 20 Hz, so no need to look beyond
+           there for the fundamental. */
         maxPartial = (int) (PeakFreq[0]/lowHearThreshold);
 
         /* Calculates the inharmonicity for each fundamental candidate */
@@ -236,7 +236,8 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 
 static OENTRY localops[] = {
   {"pvscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
-  {"pvspitch", S(PVSPITCH), 3, "kk", "fk", (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
+  {"pvspitch", S(PVSPITCH), 3, "kk", "fk",
+                           (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 
 int pvscent_init_(CSOUND *csound)
