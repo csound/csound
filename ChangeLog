@@ -1,3 +1,10 @@
+2007-05-07  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/partikkel.h: 
+	* Opcodes/partikkel.c: Remove failed attempt at
+	aliasing-prevention that might result in segfaults or hangs when
+	using kdist. Small optimisations. Some cosmetic stuff.
+
 2007-05-04    <jpff@cs.bath.ac.uk>
 
 	* util/het_export.c (het_export): Improved error checks as suggest

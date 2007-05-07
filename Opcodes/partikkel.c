@@ -92,16 +92,6 @@ static void kill_oldest_grain(GRAINPOOL *s, NODE *n)
     n->next = NULL;
 }
 
-static inline double min(double a, double b)
-{
-    return a > b ? b : a;
-}
-
-static inline double max(double a, double b)
-{
-    return a > b ? a : b;
-}
-
 static int setup_globals(CSOUND *csound, PARTIKKEL *p)
 {
     PARTIKKEL_GLOBALS *pg;
@@ -182,9 +172,9 @@ static inline MYFLT lrplookup(FUNC *tab, unsigned phase, MYFLT zscale,
     return lrp(a, b, z);
 }
 
-static inline MYFLT intpow(MYFLT x, unsigned n)
+static inline double intpow(MYFLT x, unsigned n)
 {
-    MYFLT ans = FL(1.0);
+    double ans = 1.0;
 
     while (n != 0) {
         if (n & 1)
@@ -238,7 +228,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     /* resolve tables with no default table handling */
     p->costab = csound->FTFind(csound, p->cosine);
     /* resolve some tables with default table handling */
-    p->disttab = *p->dist >= FL(0.)
+    p->disttab = *p->dist >= FL(0.0)
                  ? csound->FTFind(csound, p->dist)
                  : p->globals->zzz_tab;
     p->gainmasktab = *p->gainmasks >= FL(0.0)
@@ -328,12 +318,11 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     /* make a new grain */
     MYFLT startfreqscale, endfreqscale;
     MYFLT maskgain, maskchannel;
-    unsigned samples;
+    int samples;
     double rcp_samples; /* 1/samples */
-    double phase_corr;
     GRAIN *grain = &node->grain;
-    unsigned i;
-    unsigned chan;
+    unsigned int i;
+    unsigned int chan;
     MYFLT graingain;
     MYFLT *gainmasks = p->gainmasktab->ftable;
     MYFLT *chanmasks = p->channelmasktab->ftable;
@@ -401,9 +390,9 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
 
     graingain = *p->amplitude*maskgain;
     /* duration in samples */
-    samples = (unsigned)round(max(csound->esr*(*p->duration)/1000., 0.0));
+    samples = (int)round(csound->esr*(*p->duration)/1000.0);
     /* if grainlength is below one sample, we'll just cancel it */
-    if (samples == 0) {
+    if (samples <= 0) {
         return_grain(&p->gpool, node);
         return OK;
     }
@@ -411,14 +400,10 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     grain->start = n;
     grain->stop = n + samples;
 
-    /* factor to correct grain placement for current grain clock phase */
-    phase_corr = p->graininc != 0.0 ? p->grainphase/p->graininc : 0.;
-
-    /* set up the four wavetables and dsf to use in the grain */
+    /* set up the `four' wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
-        /* if i = 4 we're setting up DSF. if not we're setting up a wavetable */
         WAVEDATA *curwav = &grain->wav[i];
-        MYFLT freqmult = i != 4
+        MYFLT freqmult = i != WAV_TRAINLET
                          ? *(*(&p->wavekey1 + i))*(*p->wavfreq)
                          : *p->trainletfreq;
         MYFLT startfreq = freqmult*startfreqscale;
@@ -426,7 +411,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
         MYFLT *samplepos = *(&p->samplepos1 + i);
         MYFLT enddelta;
 
-        curwav->table = i != 4 ? p->wavetabs[i] : p->costab;
+        curwav->table = i != WAV_TRAINLET ? p->wavetabs[i] : p->costab;
         curwav->gain = wavgains[wavgainsindex + i + 2]*graingain;
 
         /* check if waveform gets zero volume. if so, let's mark it as unused
@@ -437,14 +422,17 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
         }
 
         /* now do some trainlet specific setup */
-        if (i == 4) {
-            double normalize;
+        if (i == WAV_TRAINLET) {
+            double normalize, nh;
+            MYFLT maxfreq = startfreq > endfreq ? startfreq : endfreq;
 
             /* limit dsf harmonics to nyquist to avoid aliasing.
              * minumum number of harmonics is 2, since 1 would yield just dc,
              * which we remove anyway */
-            grain->harmonics = (unsigned)min(fabs(*p->harmonics),
-                    0.5*csound->esr/fabs(max(startfreq, endfreq))) + 1;
+            nh = 0.5*csound->esr/fabs(maxfreq);
+            if (nh > fabs(*p->harmonics))
+                nh = fabs(*p->harmonics);
+            grain->harmonics = (unsigned)nh + 1;
             if (grain->harmonics < 2)
                 grain->harmonics = 2;
             grain->falloff = *p->falloff;
@@ -462,22 +450,29 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
         curwav->delta = startfreq*csound->onedsr;
         enddelta = endfreq*csound->onedsr;
 
-        if (i != 4)
-            /* set wavphase to samplepos parameter */
-            curwav->phase = samplepos[n];
-        else
+        if (i != WAV_TRAINLET) {
+          /* set wavphase to samplepos parameter */
+          curwav->phase = samplepos[n];
+        }
+        else {
             /* set to 0.5 so the dsf pulse doesn't occur at the very start of
              * the grain where it'll probably be enveloped away anyway */
-            curwav->phase = 0.5;
-        /* place grain inbetween samples. this is especially important to make
-         * high frequency synchronous grain streams sounds right */
-        curwav->phase += phase_corr*startfreq*csound->onedsr;
+          curwav->phase = 0.5;
+        }
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
         curwav->phase = curwav->phase < 0.0 ? 0.0 : curwav->phase;
+        /* phase and delta for wavetable synthesis are scaled by table length */
+        if (i != WAV_TRAINLET) {
+          double tablen = (double)curwav->table->flen;
+
+          curwav->phase *= tablen;
+          curwav->delta *= tablen;
+          enddelta *= tablen;
+        }
 
         /* the sweep curve generator is a first order iir filter */
-        if (*p->freqsweepshape == FL(0.5)) {
+        if (curwav->delta == enddelta || *p->freqsweepshape == FL(0.5)) {
             /* special case for linear sweep */
             curwav->sweepdecay = 1.0;
             curwav->sweepoffset = (enddelta - curwav->delta)*rcp_samples;
@@ -490,20 +485,20 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
                 curwav->sweepdecay = 0.0;
                 curwav->sweepoffset = enddelta;
             } else {
-                double start_offset, total_decay;
-                curwav->sweepdecay = pow(fabs((*p->freqsweepshape - 1.0)/
-                                         *p->freqsweepshape), 2.0*rcp_samples);
-                total_decay = intpow(curwav->sweepdecay, samples);
-                start_offset = (enddelta - curwav->delta*total_decay)/
-                               (1.0 - total_decay);
-                curwav->sweepoffset = start_offset*(1.0 - curwav->sweepdecay);
+              double start_offset, total_decay, t;
+
+              t = fabs((*p->freqsweepshape - 1.0)/(*p->freqsweepshape));
+              curwav->sweepdecay = pow(t, 2.0*rcp_samples);
+              total_decay = t*t; /* pow(curwav->sweepdecay, samples) */
+              start_offset = (enddelta - curwav->delta*total_decay)/
+                (1.0 - total_decay);
+              curwav->sweepoffset = start_offset*(1.0 - curwav->sweepdecay);
             }
         }
     }
 
     grain->envinc = rcp_samples;
-    /* correct the envelope phase to compensate for sub-sample placement */
-    grain->envphase = grain->env2phase = phase_corr*grain->envinc;
+    grain->envphase = 0.0;
     /* link new grain into the list */
     node->next = p->grainroot;
     p->grainroot = node;
@@ -626,23 +621,22 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 
         /* the main synthesis loop is duplicated for both wavetable and
          * trainlet synthesis for speed */
-        if (i < 4) {
+        if (i != WAV_TRAINLET) {
             /* wavetable synthesis */
             for (n = grain->start; n < stop; ++n) {
-                double pos;
+                double tablen = (double)curwav->table->flen;
                 unsigned x0;
                 MYFLT frac;
 
                 /* make sure phase accumulator stays within bounds */
-                while (curwav->phase >= 1.0)
-                    curwav->phase -= 1.0;
+                while (curwav->phase >= tablen)
+                    curwav->phase -= tablen;
                 while (curwav->phase < 0.0)
-                    curwav->phase += 1.0;
+                    curwav->phase += tablen;
 
                 /* sample table lookup with linear interpolation */
-                pos = curwav->phase*curwav->table->flen;
-                x0 = (unsigned)pos;
-                frac = pos - x0;
+                x0 = (unsigned)curwav->phase;
+                frac = curwav->phase - x0;
                 buf[n] += lrp(curwav->table->ftable[x0],
                               curwav->table->ftable[x0 + 1],
                               frac)*curwav->gain;
@@ -692,7 +686,7 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         } else if (grain->envphase < grain->envdecaystart) {
             /* for sustain, use last sample in attack table */
             envtable = p->env_attack_tab;
-            envphase = 1.;
+            envphase = 1.0;
         } else if (grain->envphase < 1.0) {
             envtable = p->env_decay_tab;
             envphase = (grain->envphase - grain->envdecaystart)/(1.0 -
