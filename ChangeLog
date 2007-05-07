@@ -1,5 +1,7 @@
 2007-05-07  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/pitch.c (pitchset): Do not change parameters!
+
 	* Opcodes/partikkel.h: 
 	* Opcodes/partikkel.c: Remove failed attempt at
 	aliasing-prevention that might result in segfaults or hangs when
