@@ -944,7 +944,7 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
 
   if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
     return csound->InitError(csound,
-                             Str("pvsvoc: signal format must be amp-phase "
+                             Str("signal format must be amp-phase "
                                  "or amp-freq.\n"));
   }
 
@@ -961,7 +961,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
   float *fout = (float *) p->fout->frame.auxp;
 
   if (fout==NULL)
-    return csound->PerfError(csound,Str("pvsarp: not initialised\n"));
+    return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
 
   if (p->lastframe < p->fin->framecount) {
 
@@ -976,6 +976,32 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
   return OK;
 }
 
+static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
+{
+  long i,N = p->fout->N;
+  float frint = (float) *p->gain;
+  float amint = (float) *(p->kdepth);
+  float *fi1 = (float *) p->fin->frame.auxp;
+  float *fi2 = (float *) p->ffr->frame.auxp;
+  float *fout = (float *) p->fout->frame.auxp;
+
+  if (fout==NULL)
+    return csound->PerfError(csound,Str("pvsmorph: not initialised\n"));
+
+  if (p->lastframe < p->fin->framecount) {
+
+   amint = amint >= 0 ? (amint <= 1 ? amint : FL(1.0)): FL(0.0);
+   frint = frint >= 0 ? (frint <= 1 ? frint : FL(1.0)): FL(0.0);
+    for(i=0;i < N+2;i+=2) {
+      fout[i] = fi1[i]*(1.0-amint) + fi2[i]*(amint);
+      fout[i+1] = fi2[i+1]*(1.0-frint) + fi2[i+1]*(frint);
+    }
+    p->fout->framecount = p->lastframe = p->fin->framecount;
+  }
+
+  return OK;
+}
+
 static OENTRY localops[] = {
   {"sndloop", sizeof(sndloop), 5,
    "ak", "akkii", (SUBR)sndloop_init, NULL, (SUBR)sndloop_process},
@@ -983,12 +1009,14 @@ static OENTRY localops[] = {
    "a", "kkiiii", (SUBR)flooper_init, NULL, (SUBR)flooper_process},
   {"pvsarp", sizeof(pvsarp), 3,
    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
-  {"pvsvoc", sizeof(pvsarp), 3,
+  {"pvsvoc", sizeof(pvsvoc), 3,
    "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), 5,
    "a", "kkkkkioooo", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
  {"flooper3", sizeof(flooper3), 5,
-   "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process}
+  "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},
+ {"pvsmorph", sizeof(pvsvoc), 3,
+   "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsmorph_process}
 };
 
 int sndloop_init_(CSOUND *csound)
