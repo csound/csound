@@ -169,14 +169,15 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     if (nptls > MAXPTL) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
-    if (*p->irolloff<=FL(0.0)) *p->irolloff = FL(0.6);
+    if (*p->irolloff<=FL(0.0)) p->rolloff = FL(0.6);
+    else p->rolloff = *p->irolloff;
     p->nptls = nptls;        /* number, whether all or odd */
       ptlmax = nptls;
     dstp = p->pdist;
     fnfreqs = (MYFLT)specp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn++)
       *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
-    if ((rolloff = *p->irolloff) == FL(0.0) ||
+    if ((rolloff = p->rolloff) == FL(0.0) ||
         rolloff == FL(1.0) || nptls == 1) {
       p->rolloff = FL(0.0);
       weightsum = (MYFLT)nptls;
