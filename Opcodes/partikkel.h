@@ -31,7 +31,7 @@ typedef struct {
     unsigned start, stop;
     double envphase, envinc;
     double envattacklen, envdecaystart;
-    double env2phase, env2inc, env2amount;
+    double env2amount;
     MYFLT fmamp;
     FUNC *fmenvtab;
     unsigned harmonics;
@@ -40,6 +40,9 @@ typedef struct {
     unsigned chan1, chan2;
     WAVEDATA wav[5];
 } GRAIN;
+
+/* which of the wav[] entries above correspond to the trainlet generator */
+#define WAV_TRAINLET 4
 
 /* support structs for the grain pool routines */
 typedef struct NODE_ {
