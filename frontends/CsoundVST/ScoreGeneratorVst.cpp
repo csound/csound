@@ -24,7 +24,7 @@
 #include "ScoreGeneratorVstFltk.hpp"
 #include "System.hpp"
 
-static bool debug = false;
+bool debug = true;
 
 static char *dupstr(const char *string)
 {
@@ -38,17 +38,45 @@ static char *dupstr(const char *string)
   return copy;
 }
 
-ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
-  AudioEffectX(audioMaster, kNumPrograms, 0),
-  vstSecondsPerFrame(0),
+ScoreGeneratorVst::ScoreGeneratorVst() :
+  AudioEffectX(0, kNumPrograms, 0),
+  vstEventsPointer(0),
   vstFramesPerSecond(0),
+  vstSecondsPerFrame(0),
   vstCurrentBlockStart(0),
   vstCurrentBlockStartFrame(0),
   vstInputLatency(0),
   vstInputLatencySeconds(0),
+  alive(0),
   scoreGeneratorVstFltk(0),
+  score(0)
+{
+  open();
+  scoreGeneratorVstFltk = new ScoreGeneratorVstFltk(this);
+  setEditor(scoreGeneratorVstFltk);
+  programsAreChunks(true);
+  curProgram = 0;
+  bank.resize(kNumPrograms);
+  vstEventsPointer = (VstEvents *) calloc(100000, sizeof(VstEvents *));
+  for(size_t i = 0; i < bank.size(); i++) {
+      char buffer[0x24];
+      sprintf(buffer, "Program%d", (int)(i + 1));
+      bank[i].name = buffer;
+  }
+}
+
+ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
+  AudioEffectX(audioMaster, kNumPrograms, 0),
   vstEventsPointer(0),
-  alive(false)
+  vstFramesPerSecond(0),
+  vstSecondsPerFrame(0),
+  vstCurrentBlockStart(0),
+  vstCurrentBlockStartFrame(0),
+  vstInputLatency(0),
+  vstInputLatencySeconds(0),
+  alive(0),
+  scoreGeneratorVstFltk(0),
+  score(0)
 {
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
@@ -129,12 +157,12 @@ void ScoreGeneratorVst::resume()
 
 long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 {
+  synchronizeScore(0);
   return 1;
 }
 
 void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
 {
-  synchronizeScore(frames);
   if (alive) {
     sendEvents(frames);
   }
@@ -142,7 +170,6 @@ void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long fram
 
 void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
 {
-  synchronizeScore(frames);
   if (alive) {
     sendEvents(frames);
   }
@@ -280,8 +307,9 @@ long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
   bank[curProgram].text = getText();
   if(isPreset)
     {
-      *data = (void *)bank[curProgram].text.c_str();
-      returnValue = (long) strlen((char *)*data) + 1;
+      bankBuffer = bank[curProgram].text.c_str();
+      *data = (void *)bankBuffer.c_str();
+      returnValue = bankBuffer.size();
     }
   else
     {
@@ -313,7 +341,11 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
   long returnValue = 0;
   if(isPreset)
     {
+#if defined(__GNUC__)
+      bank[curProgram].text = (const char *)data;
+#else
       bank[curProgram].text = dupstr((const char *)data);
+#endif
       setText(bank[curProgram].text);
       returnValue = byteSize;
     }
@@ -357,15 +389,23 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 std::string ScoreGeneratorVst::getText()
 {
   if (debug) log("BEGAN ScoreGeneratorVst::getText...\n");
-  std::string buffer;
-  buffer = getScript();
-  if (debug) log("ENDED ScoreGeneratorVst::getText.\n");
-  return buffer;
+  std::string text;
+  text = getScript();
+  if (debug) {
+    logv("Text = %s\n", text.c_str());
+    log("ENDED ScoreGeneratorVst::getText.\n");
+  }
+  return text;
 }
 
 void ScoreGeneratorVst::setText(const std::string text)
 {
+  if (debug) log("BEGAN ScoreGeneratorVst::setText...\n");
   setScript(text);
+  if (debug) {
+    logv("Text = %s\n", text.c_str());
+    log("ENDED ScoreGeneratorVst::setText.\n");
+  }
 }
 
 void ScoreGeneratorVst::openFile(std::string filename_)
@@ -381,10 +421,6 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   csound::System::parsePathname(filename_, drive, base, file, extension);
   chdir(base.c_str());
 }
-
-static PyMethodDef scoregenMethods[] = {
-    {NULL, NULL, 0, NULL}        /* Sentinel */
-};
 
 void ScoreGeneratorVst::open()
 {
@@ -411,7 +447,7 @@ void ScoreGeneratorVst::open()
   score = PyObject_GetAttrString(mainModule, "score");
   Py_INCREF(score);
   PyObject *pyThis = PyCObject_FromVoidPtr(this, 0);
-  PyObject *pyResult = PyObject_CallMethod(score,  "setScoreGeneratorVst",  "O", pyThis);
+  /* PyObject *pyResult = */ PyObject_CallMethod(score,  "setScoreGeneratorVst",  "O", pyThis);
   result = runScript("sys.stdout = sys.stderr = score\n");
   if(result)
     {
@@ -424,18 +460,14 @@ int ScoreGeneratorVst::runScript(std::string script_)
 {
   log("BEGAN ScoreGeneratorVst::runScript()...\n");
   int result = 0;
-  try
-    {
+  try {
       char *script__ = const_cast<char *>(script_.c_str());
       log("==============================================================================================================\n");
       result = PyRun_SimpleString(script__);
-      if(result)
-        {
+      if(result) {
           PyErr_Print();
         }
-    }
-  catch(...)
-    {
+    } catch(...) {
       log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
     }
   log("==============================================================================================================\n");
@@ -467,6 +499,7 @@ int ScoreGeneratorVst::generate()
   csound::Shell::runScript();
   log("ENDED ScoreGeneratorVst::generate().\n");
   alive = true;
+  return true;
 }
 
 void ScoreGeneratorVst::clearEvents()
@@ -505,38 +538,33 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
   noteon.vstMidiEvent.midiData[3]     = 0;
   noteon.vstMidiEvent.detune          = detune;
   noteon.vstMidiEvent.noteOffVelocity = 0;
-  int onframe = noteon.start * vstFramesPerSecond;
-  scoreGeneratorEvents.insert(std::make_pair(onframe, noteon));
-  if (duration > 0) {
-    ScoreGeneratorEvent noteoff = noteon;
-    noteoff.start = start + duration;
-    noteoff.vstMidiEvent.midiData[0] = midistatus - 16;
-    noteoff.vstMidiEvent.midiData[2] = 0;
-    int offframe = noteoff.start * vstFramesPerSecond;
-    scoreGeneratorEvents.insert(std::make_pair(offframe, noteoff));
+  int onframe = int(noteon.start * vstFramesPerSecond);
+  scoreGeneratorEvents.insert(std::make_pair(start, noteon));
+  //if (duration > 0) {
+  //  ScoreGeneratorEvent noteoff = noteon;
+  //  noteoff.start = start + duration;
+  //  noteoff.vstMidiEvent.midiData[0] = midistatus - 16;
+  //  noteoff.vstMidiEvent.midiData[2] = 0;
+  //  int offframe = noteoff.start * vstFramesPerSecond;
+  //  scoreGeneratorEvents.insert(std::make_pair(offframe, noteoff));
+  //}
+  if (debug) {
+      logv("Added event: frame=%8d, time=%12.4f, duration=%12.4f, status=%3d, key=%3d, velocity=%3d, detune=%3d\n",
+      onframe,
+      noteon.start,
+      noteon.duration,
+      (unsigned char) noteon.vstMidiEvent.midiData[0],
+      (unsigned char) noteon.vstMidiEvent.midiData[1],
+      (unsigned char) noteon.vstMidiEvent.midiData[2],
+      (unsigned char) noteon.vstMidiEvent.detune);
   }
-  logv("Adding noteon: frame %d, time %f, duration %f, opcode %f, channel %f, key %f, velocity %f\n",
-       onframe,
-       start,
-       duration,
-       status,
-       channel,
-       data1,
-       data2);
-  if (debug) logv("    MIDI data: frame %d, time %f, duration %f, status %d, key %d, velocity %d, detune %d\n",
-       onframe,
-       noteon.duration,
-       (unsigned char) noteon.vstMidiEvent.midiData[0],
-       (unsigned char) noteon.vstMidiEvent.midiData[1],
-       (unsigned char) noteon.vstMidiEvent.midiData[2],
-       (unsigned char) noteon.vstMidiEvent.detune);
   return scoreGeneratorEvents.size();
 }
 
 bool ScoreGeneratorVst::synchronizeScore(long frames)
 {
   vstInputLatency = getInputLatency();
-  VstTimeInfo *vstTimeInfo = getTimeInfo(0xff);
+  VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
   vstFramesPerSecond = vstTimeInfo->sampleRate;
   vstSecondsPerFrame = 1.0 / vstFramesPerSecond;
   vstInputLatencySeconds = vstInputLatency * vstSecondsPerFrame;
@@ -548,32 +576,38 @@ bool ScoreGeneratorVst::synchronizeScore(long frames)
 
 void ScoreGeneratorVst::sendEvents(long frames)
 {
-  if (scoreGeneratorEvents.empty()) {
-    return;
-  }
-  for (long frame = 0; frame < frames; frame++) {
-    int currentFrame = int(vstCurrentBlockStartFrame) + int(frame) - int(vstInputLatency);
-    double currentTime = (vstCurrentBlockStart + (double(frame) * vstSecondsPerFrame)) - vstInputLatencySeconds;
+    if (scoreGeneratorEvents.size() == 0) {
+        return;
+    }
+    double lowerTime = vstCurrentBlockStart;
+    double upperTime = vstCurrentBlockStart + double(frames) * vstSecondsPerFrame;
+    std::multimap<double, ScoreGeneratorEvent>::iterator lowerI = scoreGeneratorEvents.lower_bound(lowerTime);
+    std::multimap<double, ScoreGeneratorEvent>::iterator upperI = scoreGeneratorEvents.upper_bound(upperTime);
     vstEventsPointer->numEvents = 0;
-    std::pair< std::multimap<int, ScoreGeneratorEvent>::const_iterator, std::multimap<int, ScoreGeneratorEvent>::const_iterator > pair = scoreGeneratorEvents.equal_range(currentFrame);
-    for( ; pair.first != pair.second; ++pair.first) {
-      const VstMidiEvent *vstMidiEventPointer = &(*pair.first).second.vstMidiEvent;
-      vstEventsPointer->events[vstEventsPointer->numEvents++] = (VstEvent *)vstMidiEventPointer;
-      if (debug) logv("Scheduled event: frame %d, , time %f, delta %d, length %d, status %d, key %d, velocity %d, detune %d\n",
-                      currentFrame,
-                      currentTime,
-                      vstMidiEventPointer->deltaFrames,
-                      vstMidiEventPointer->noteLength,
-                      (unsigned char) vstMidiEventPointer->midiData[0],
-                      (unsigned char) vstMidiEventPointer->midiData[1],
-                      (unsigned char) vstMidiEventPointer->midiData[2],
-                      (unsigned char) vstMidiEventPointer->detune);
+    for(int i = 0; lowerI != upperI && lowerI != scoreGeneratorEvents.end(); ++lowerI, ++i) {
+        VstMidiEvent *vstMidiEventPointer = &lowerI->second.vstMidiEvent;
+        vstMidiEventPointer->noteLength = int(lowerI->second.duration / vstFramesPerSecond);
+        vstMidiEventPointer->deltaFrames = int((lowerI->second.start - lowerTime) / vstFramesPerSecond);
+        vstEventsPointer->events[vstEventsPointer->numEvents++] = (VstEvent *)vstMidiEventPointer;
+        if (debug) {
+            logv("Sent event %5d: frame=%8d, time=%12.4f, deltaFrames=%8d, length=%8d, status=%3d, key=%3d, velocity=%3d, detune=%3d\n",
+                i,
+                vstCurrentBlockStartFrame,
+                vstCurrentBlockStart,
+                vstMidiEventPointer->deltaFrames,
+                vstMidiEventPointer->noteLength,
+                (unsigned char) vstMidiEventPointer->midiData[0],
+                (unsigned char) vstMidiEventPointer->midiData[1],
+                (unsigned char) vstMidiEventPointer->midiData[2],
+                (unsigned char) vstMidiEventPointer->detune);
+        }
     }
     if (vstEventsPointer->numEvents > 0) {
       bool result = sendVstEventsToHost(vstEventsPointer);
-      if (debug) logv("sendVstEventsToHost(%d events) returned %d\n", vstEventsPointer->numEvents, result);
+      if (debug) {
+          logv("sendVstEventsToHost(%d events) returned %d\n", vstEventsPointer->numEvents, result);
+      }
     }
-  }
 }
 
 void ScoreGeneratorVst::log(char *message)

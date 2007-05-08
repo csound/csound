@@ -67,7 +67,7 @@ protected:
     {
       kNumPrograms = 10
     };
-  std::multimap<int, ScoreGeneratorEvent> scoreGeneratorEvents;
+  std::multimap<double, ScoreGeneratorEvent> scoreGeneratorEvents;
   std::vector<VstMidiEvent> vstMidiEventsBuffer;
   VstEvents *vstEventsPointer;
   double vstFramesPerSecond;
