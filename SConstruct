@@ -1764,13 +1764,19 @@ else:
     frontends/CsoundVST/Voicelead.cpp
     frontends/CsoundVST/VoiceleadingNode.cpp
     ''')
-    # These are the Windows system call libraries.
     if getPlatform() == 'win32':
         vstEnvironment.Append(LIBS = csoundWindowsLibraries)
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     scoregenSources = csoundVstBaseSources + Split('''
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base/funknown.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/pluginfactory.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/linkedlist.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugparams.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugxmlgui.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/midieffect.cpp
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/eventqueue.cpp
     frontends/CsoundVST/ScoreGenerator.cpp
     frontends/CsoundVST/ScoreGeneratorVst.cpp
     frontends/CsoundVST/ScoreGeneratorVstUi.cpp
@@ -1801,6 +1807,17 @@ else:
         vstEnvironment.Append(CPPPATH = pythonIncludePath)
         vstPythonEnvironment = vstEnvironment.Copy()
         scoregenEnvironment = vstEnvironment.Copy()
+        scoregenEnvironment.Append(CXXFLAGS = Split('''-DWIN32'''))
+        scoregenEnvironment.Append(CPPPATH = Split('''
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/gui
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/host
+    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/midi
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/main
+    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi
+        '''))
         vstPythonEnvironment.Append(LIBS = ['CsoundVST'])
         csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', [csoundVstPythonWrapper])
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
