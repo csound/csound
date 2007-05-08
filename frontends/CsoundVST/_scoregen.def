@@ -1,3 +1,4 @@
-LIBRARY _scoregen.dll
+LIBRARY scoregen.dll
 EXPORTS
+    GetPluginFactory;
 	main=main_plugin; 

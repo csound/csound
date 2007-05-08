@@ -61,6 +61,7 @@ void ScoreGenerator::write(char *message)
 void ScoreGenerator::score(csound::Score *score)
 {
     if (scoreGeneratorVst) {
+        scoreGeneratorVst->clearEvents();
         for (std::vector<csound::Event>::iterator it = score->begin(); it != score->end(); ++it) {
             double time = it->getTime();
             double duration = it->getDuration();
