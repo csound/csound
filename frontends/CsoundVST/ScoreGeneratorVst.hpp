@@ -76,6 +76,7 @@ protected:
   double vstCurrentBlockStartFrame;
   double vstInputLatency;
   double vstInputLatencySeconds;
+  bool vstTransportActive;
   char alive;
   ScoreGeneratorVstFltk *scoreGeneratorVstFltk;
   PyObject *score;

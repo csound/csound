@@ -24,7 +24,7 @@
 #include "ScoreGeneratorVstFltk.hpp"
 #include "System.hpp"
 
-bool debug = true;
+bool debug = false;
 
 static char *dupstr(const char *string)
 {
@@ -47,6 +47,7 @@ ScoreGeneratorVst::ScoreGeneratorVst() :
   vstCurrentBlockStartFrame(0),
   vstInputLatency(0),
   vstInputLatencySeconds(0),
+  vstTransportActive(false),
   alive(0),
   scoreGeneratorVstFltk(0),
   score(0)
@@ -74,6 +75,7 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   vstCurrentBlockStartFrame(0),
   vstInputLatency(0),
   vstInputLatencySeconds(0),
+  vstTransportActive(false),
   alive(0),
   scoreGeneratorVstFltk(0),
   score(0)
@@ -157,12 +159,12 @@ void ScoreGeneratorVst::resume()
 
 long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 {
-  synchronizeScore(0);
   return 1;
 }
 
 void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore(frames);
   if (alive) {
     sendEvents(frames);
   }
@@ -170,6 +172,7 @@ void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long fram
 
 void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore(frames);
   if (alive) {
     sendEvents(frames);
   }
@@ -341,11 +344,7 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
   long returnValue = 0;
   if(isPreset)
     {
-#if defined(__GNUC__)
-      bank[curProgram].text = (const char *)data;
-#else
-      bank[curProgram].text = dupstr((const char *)data);
-#endif
+      bank[curProgram].text.assign((const char *)data, byteSize);
       setText(bank[curProgram].text);
       returnValue = byteSize;
     }
@@ -488,6 +487,7 @@ void ScoreGeneratorVst::reset()
   vstCurrentBlockStart = 0.;
   vstCurrentBlockStartFrame = 0.;
   vstEventsPointer->numEvents = 0;
+  vstTransportActive = false;
 }
 
 int ScoreGeneratorVst::generate()
@@ -563,37 +563,48 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
 
 bool ScoreGeneratorVst::synchronizeScore(long frames)
 {
-  vstInputLatency = getInputLatency();
+  //vstInputLatency = getInputLatency();
   VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
-  vstFramesPerSecond = vstTimeInfo->sampleRate;
-  vstSecondsPerFrame = 1.0 / vstFramesPerSecond;
-  vstInputLatencySeconds = vstInputLatency * vstSecondsPerFrame;
-  vstCurrentBlockStart = vstTimeInfo->samplePos * vstSecondsPerFrame;
-  vstCurrentBlockStartFrame = vstTimeInfo->samplePos;
-  bool transportActive = ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying);
-  return transportActive;
+  vstFramesPerSecond = double(vstTimeInfo->sampleRate);
+  vstSecondsPerFrame = double(1.0) / vstFramesPerSecond;
+  //vstInputLatencySeconds = vstInputLatency * vstSecondsPerFrame;
+  vstCurrentBlockStartFrame = double(vstTimeInfo->samplePos);
+  vstCurrentBlockStart = vstCurrentBlockStartFrame * vstSecondsPerFrame;
+  vstTransportActive = ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying);
+  //~ if (debug) {
+    //~ logv("synchronizeScore: frames=%8d vstFramesPerSecond=%8.2f vstSecondsPerFrame=%12.8f vstCurrentBlockStartFrame=%8.3f vstCurrentBlockStart=%12.5f active=%4d\n",
+      //~ frames,
+      //~ vstFramesPerSecond,
+      //~ vstSecondsPerFrame,
+      //~ vstCurrentBlockStartFrame,
+      //~ vstCurrentBlockStart,
+      //~ vstTransportActive);
+  //~ }
+  return vstTransportActive;
 }
 
 void ScoreGeneratorVst::sendEvents(long frames)
 {
-    if (scoreGeneratorEvents.size() == 0) {
+    if (!vstTransportActive || scoreGeneratorEvents.size() == 0) {
         return;
     }
     double lowerTime = vstCurrentBlockStart;
-    double upperTime = vstCurrentBlockStart + double(frames) * vstSecondsPerFrame;
+    double frameSeconds = vstSecondsPerFrame * double(frames);
+    double upperTime = vstCurrentBlockStart + frameSeconds;
+    vstEventsPointer->numEvents = 0;
     std::multimap<double, ScoreGeneratorEvent>::iterator lowerI = scoreGeneratorEvents.lower_bound(lowerTime);
     std::multimap<double, ScoreGeneratorEvent>::iterator upperI = scoreGeneratorEvents.upper_bound(upperTime);
-    vstEventsPointer->numEvents = 0;
-    for(int i = 0; lowerI != upperI && lowerI != scoreGeneratorEvents.end(); ++lowerI, ++i) {
+    for(int i = 0; (lowerI != upperI) && (lowerI != scoreGeneratorEvents.end()); ++lowerI, ++i) {
         VstMidiEvent *vstMidiEventPointer = &lowerI->second.vstMidiEvent;
-        vstMidiEventPointer->noteLength = int(lowerI->second.duration / vstFramesPerSecond);
-        vstMidiEventPointer->deltaFrames = int((lowerI->second.start - lowerTime) / vstFramesPerSecond);
+        vstMidiEventPointer->noteLength = int(lowerI->second.duration * vstFramesPerSecond);
+        vstMidiEventPointer->deltaFrames = int((lowerI->second.start - lowerTime) * vstFramesPerSecond);
         vstEventsPointer->events[vstEventsPointer->numEvents++] = (VstEvent *)vstMidiEventPointer;
         if (debug) {
-            logv("Sent event %5d: frame=%8d, time=%12.4f, deltaFrames=%8d, length=%8d, status=%3d, key=%3d, velocity=%3d, detune=%3d\n",
+            logv("Sent event %5d: frame=%12.4f, time=%12.4f, frames=%8d, deltaFrames=%8d, length=%8d, status=%3d, key=%3d, velocity=%3d, detune=%3d\n",
                 i,
                 vstCurrentBlockStartFrame,
                 vstCurrentBlockStart,
+                frames,
                 vstMidiEventPointer->deltaFrames,
                 vstMidiEventPointer->noteLength,
                 (unsigned char) vstMidiEventPointer->midiData[0],
