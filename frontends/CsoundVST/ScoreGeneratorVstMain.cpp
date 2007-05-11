@@ -49,9 +49,9 @@ extern "C" __declspec(dllexport) AEffect *main_plugin (audioMasterCallback audio
 #endif
 {
   // get vst version
-  if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0))
+  if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0)) {
     return 0;  // old version
-
+  }
   effect = new ScoreGeneratorVst (audioMaster);
   if (!effect) {
     return 0;
