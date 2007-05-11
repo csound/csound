@@ -509,6 +509,19 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
 // Ported by Andres Cabrera. This section below comes
 // from the file newwidgets.h
 
+typedef struct {
+	OPDS	h;
+	MYFLT 	*koutx, *kouty, *kinside; //outs
+	MYFLT	*ioutx_min, *ioutx_max, *iouty_min, *iouty_max, 
+		    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max, 
+			*iexpx, *iexpy, *ioutx, *iouty; //ins
+	MYFLT oldx, oldy, *tablex, *tabley;
+	int expx, expy;
+	long tablenx, tableny;
+	double rangex, rangey, basex, basey;
+	//int	pspace;
+} FLXYIN; //gab
+
 // Parts below are commented out because thay have not yet been implemented
 typedef struct	{
 	OPDS	h;
@@ -558,7 +571,7 @@ typedef struct	{
 	MYFLT max[MAXCHNLS];
 	unsigned long widg_address[MAXCHNLS];
 	int dummycycles, dummycyc;
-} VUMETER;
+} FLTKMETER;
 
 #endif          /* CSOUND_WIDGETS_CPP */
 #endif          /* CSOUND_WIDGETS_H */

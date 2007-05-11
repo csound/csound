@@ -227,7 +227,7 @@ typedef struct {
     int midiFLold_val[16][128]; //gab
     vector<SNAPVEC> snapshots;  // GAB (MAKING IT GLOBAL IS CERTAINLY A TEMPORARY UGLY HACK, but map seems not to function in the WIDGET_GLOBALS structure)
     vector<SNAPVEC>::iterator snapshots_iterator; //GAB (MAKING IT GLOBAL IS A TEMPORARY UGLY HACK)
-    VUMETER *p_vumeter;
+    FLTKMETER *p_vumeter;
 #ifdef CS_VSTHOST
     vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
     vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins 

@@ -4026,6 +4026,125 @@ static int fl_setSnapGroup(CSOUND *csound, FLSETSNAPGROUP *p)
   return OK;
 }
 
+static int FLxyin_set(CSOUND *csound, FLXYIN *p)
+{
+  *p->koutx = *p->ioutx; //initial values
+  *p->kouty = *p->iouty;
+  p->rangex = *p->ioutx_max - *p->ioutx_min;
+  p->rangey = *p->iouty_max - *p->iouty_min;
+
+  switch((int) *p->iexpx) {
+  case 0: // LIN
+    p->expx = LIN_; break;
+  case -1: // EXP
+    p->expx = EXP_; 
+    if (*p->ioutx_min == 0 || *p->ioutx_max==0)
+      return csound->InitError(csound, "FLxyin: none of X limits cannot be zero in exponential mode!");
+    p->basex = pow((double) (*p->ioutx_max / *p->ioutx_min),(double) (1/p->rangex));
+
+    break;
+  default: // TABLE
+    p->expx = (int) *p->iexpx;
+    {
+      FUNC *ftp;
+      MYFLT fnum = abs(p->expx);
+      if ((ftp = csound->FTFind(csound, &fnum)) != NULL) {
+        p->tablex = ftp->ftable;
+        p->tablenx = ftp->flen;
+      }
+      else return NOTOK;
+    }
+
+  }
+
+  switch((int) *p->iexpy) {
+  case 0: // LIN
+    p->expy = LIN_; break;
+  case -1: // EXP
+    p->expy = EXP_; 
+    if (*p->iouty_min == 0 || *p->iouty_max==0)
+      return csound->InitError(csound, "FLxyin: none of Y limits cannot be zero in exponential mode!");
+    p->basey = pow((double) (*p->iouty_max / *p->iouty_min),(double) (1/p->rangey));
+    break;
+  default: // TABLE
+    p->expy = (int) *p->iexpy;
+    {
+      FUNC *ftp;
+      MYFLT fnum = abs(p->expy);
+      if ((ftp = csound->FTFind(csound, &fnum)) != NULL) {
+        p->tabley = ftp->ftable;
+        p->tableny = ftp->flen;
+      }
+      else return NOTOK;
+    }
+
+  }
+  return OK;
+}
+
+static int FLxyin(CSOUND *csound, FLXYIN *p)
+{
+  int windx_min = *p->iwindx_min, windx_max = *p->iwindx_max;
+  int windy_min = *p->iwindy_min, windy_max = *p->iwindy_max;
+  MYFLT outx_min = *p->ioutx_min, outy_min = *p->iouty_min;
+
+  MYFLT x=Fl::event_x();
+  MYFLT y=Fl::event_y();
+
+  *p->kinside = 1;
+
+  if (x< windx_min) { x = windx_min; *p->kinside = 0; }
+  else if (x > windx_max) { x = windx_max; *p->kinside = 0; }
+
+  if (y< windy_min) { y = windy_min; *p->kinside = 0; }
+  else if (y > windy_max) { y = windy_max; *p->kinside = 0; }
+
+  MYFLT xx = x - windx_min;
+  xx /= windx_max - windx_min;
+
+  MYFLT yy = windy_max - y;
+  yy /= windy_max - windy_min;
+
+  switch (p->expx) {
+  case LIN_:
+    *p->koutx = outx_min + xx *  p->rangex;
+    break;
+  case EXP_:
+    *p->koutx  = outx_min * pow (p->basex, xx * p->rangex) ;
+    break;
+  default: // TABLE
+    if (p->expx > 0) { //interpolated
+      MYFLT ndx = xx * (p->tablenx-1);
+      int index = (long) ndx;
+      MYFLT v1 = p->tablex[index];
+      *p->koutx = outx_min + ( v1 + (p->tablex[index+1] - v1) *
+                                (ndx - index)) * p->rangex;
+    }
+    else // non-interpolated
+      *p->koutx = outx_min + p->tablex[(int) (xx*p->tablenx)] * p->rangex;
+  }
+
+  switch (p->expy) {
+  case LIN_:
+    *p->kouty = outy_min + yy *  p->rangey;
+    break;
+  case EXP_:
+    *p->kouty  = outy_min * pow (p->basey, yy * p->rangey) ;
+    break;
+  default: // TABLE
+    if (p->expy > 0) { //interpolated
+      MYFLT ndx = yy * (p->tableny-1);
+      int index = (long) ndx;
+      MYFLT v1 = p->tabley[index];
+      *p->kouty = outy_min + ( v1 + ( p->tabley[index+1] - v1) *
+                                (ndx - index)) * p->rangey;
+    }
+    else // non-interpolated
+      *p->kouty = outy_min + p->tabley[(int) (yy*p->tableny)] * p->rangey;
+  }
+  return OK;
+}
+
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
@@ -4143,6 +4262,8 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) fl_close_button,               (SUBR) NULL,              (SUBR) NULL },
     { "FLexecButton",       S(FLEXECBUTTON),            1,  "i",   "Tiiii",
         (SUBR) fl_exec_button,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLxyin",         S(FLXYIN),	            3,  "kkk","iiiiiiiioooo",
+		(SUBR)FLxyin_set,               (SUBR)FLxyin,            (SUBR) NULL  },
     { NULL,             0,                      0,  NULL,   NULL,
         (SUBR) NULL,                    (SUBR) NULL,              (SUBR) NULL }
 };
