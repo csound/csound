@@ -1,7 +1,17 @@
+2007-05-02  Michael Gogins <gogins@pipeline.com>
+
+    * ScoreGen.dll can now act as a MIDI effect as well as a VST
+    plugin that can send MIDI events to the host. I.e., ScoreGen
+    can act as a Python-programmable score generator in VST hosts.
+    As a MIDI effect, ScoreGen can "freeze" generated events into
+    a MIDI part for manual editing or notation, using Cubase's
+    "Free MIDI Modifiers" command.
+    * A number of serious bugs were fixed in ScoreGen's VST
+    event processing. It will now properly play generated scores.
+    
 2007-05-07  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (pitchset): Do not change parameters!
-
 	* Opcodes/partikkel.h: 
 	* Opcodes/partikkel.c: Remove failed attempt at
 	aliasing-prevention that might result in segfaults or hangs when
