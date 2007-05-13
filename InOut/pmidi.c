@@ -215,7 +215,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     }
     *userData = (void*) midistream;
     /* only interested in channel messages (note on, control change, etc.) */
-    Pm_SetFilter(midistream, (PM_FILT_REALTIME | PM_FILT_SYSTEMCOMMON));
+	Pm_SetFilter(midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX)); /* GAB: fixed for portmidi v.23Aug06 */
     /* empty the buffer after setting filter */
     while (Pm_Poll(midistream) == TRUE) {
       Pm_Read(midistream, &buffer, 1);
