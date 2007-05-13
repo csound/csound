@@ -61,7 +61,9 @@ typedef struct STDOPCOD_GLOBALS_ {
     /* space.c */
     void        *spaceaddr;
     /* gab/gab.c */
-    MYFLT       *tb_ptrs[16];
+    MYFLT       *tb[16];       /* gab: updated */
+    int         tb_ixmode[16]; /* gab: added */
+    long        tb_size[16];   /* gab: added */
 } STDOPCOD_GLOBALS;
 
 extern int ambicode_init_(CSOUND *);
