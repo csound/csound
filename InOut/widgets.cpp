@@ -75,6 +75,9 @@ void widget_init(CSOUND *csound)
 
       ST(FL_ix)             = 10;
       ST(FL_iy)             = 10;
+      ST(currentSnapGroup)	= 0;
+      ST(last_KEY)=0;
+      ST(isKeyDown)=0;
     }
 }
 
@@ -1742,8 +1745,8 @@ class CsoundFLWindow : public Fl_Double_Window {
   CsoundFLWindow(CSOUND *csound,
                  int x, int y, int w, int h, const char *title = 0)
       : Fl_Double_Window(x, y, w, h, title),
-        fltkKeyboardBuffer(csound),
-        csound_(csound)//gab
+        csound_(csound),
+        fltkKeyboardBuffer(csound)//gab
   {
     csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
                          CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
@@ -2400,14 +2403,17 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 
 extern "C" {
 
-static int FLkeyb(CSOUND *csound, FLKEYB *p)
-{
-    (void) csound;
-    (void) p;
-    return OK;
-}
+// static int FLkeyb(CSOUND *csound, FLKEYB *p)
+// {
+//     (void) csound;
+//     (void) p;
+//     return OK;
+// }
 
 //-----------
+
+  void flpanel_cb(Fl_Widget *,void *) { //suppresses the close button
+}
 
 static int StartPanel(CSOUND *csound, FLPANEL *p)
 {
@@ -2450,6 +2456,8 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
     widget_attributes(csound, o);
     o->box(borderType);
     o->resizable(o);
+    if (*p->iclose != 0)
+      o->callback(flpanel_cb);
     widget_attributes(csound, o);
     ADDR_STACK adrstk(&p->h, (void *) o, ST(stack_count));
     ST(AddrStack).push_back(adrstk);
@@ -2509,6 +2517,7 @@ static int StartTabs(CSOUND *csound, FLTABS *p)
   Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                             (int) *p->iwidth, (int) *p->iheight);
   widget_attributes(csound, o);
+//   o->box(FL_PLASTIC_UP_BOX);
   ADDR_STACK adrstk(&p->h,o,ST(stack_count));
   ST(AddrStack).push_back(adrstk);
   ST(stack_count)++;
@@ -2754,8 +2763,8 @@ static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
 
     widgetType = fl_getWidgetTypeFromOpcodeName(csound, v.opcode);
     if (widgetType == 4){
-      csound->InitError(csound, "FLvalue cannot be set by FLsetVal\n");
-    return NOTOK;
+      csound->InitError(csound, "FLvalue cannot be set by FLsetVal.\n");
+      return NOTOK;
     }
     if (widgetType < 0)
       return OK;
@@ -3646,7 +3655,7 @@ static int fl_text(CSOUND *csound, FLTEXT *p)
   widget_attributes(csound, o);
   o->callback((Fl_Callback*)fl_callbackLinearValueInput,(void *) p);
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(1, *p->imin, *p->imax,
-                                        (void *) o, (void *) p));
+                                        (void *) o, (void *) p, ST(currentSnapGroup)));
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
@@ -4020,9 +4029,214 @@ static int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
 
 // New opcodes for Csound5.06 by Gabriel Maldonado, ported by Andres Cabrera
 
+  void skin(CSOUND* csound, Fl_Widget *o, int imgNum, bool isTiled)
+  {
+#ifdef CS_IMAGE
+    extern void* get_image(CSOUND* csound, int imgNum);
+    ImageSTRUCT *bmp =  (ImageSTRUCT*) get_image(csound, imgNum); 
+    FLlock();
+    Fl_RGB_Image *img = new Fl_RGB_Image((BYTE*) (bmp->data),bmp->xsize,bmp->ysize,bmp->csize);
+    ST(allocatedStrings).push_back((char *) img);
+    if (isTiled) {
+      Fl_Tiled_Image *t_img = new Fl_Tiled_Image(img);
+      o->image(t_img);
+      ST(allocatedStrings).push_back((char *) t_img);
+    }
+    else {
+      o->image(img);
+    }
+    o->align(FL_ALIGN_INSIDE);
+    FLunlock(); 
+#endif
+  }
+
+  class HVS_BOX : public Fl_Box{
+    int rx,ry,rw,rh;
+    int red, green, blue;
+//	Fl_PNG_Image *img;
+  public:
+
+    int numLinesX,numLinesY;
+    MYFLT valueX, valueY;
+
+    HVS_BOX(int numLinesX_, int numLinesY_, int x, int y, int w, int h) : Fl_Box(x,y,w,h) {
+      numLinesX = numLinesX_ - 1;
+      numLinesY = numLinesY_ - 1;
+      valueX = valueY = .5;
+	//	if (filename != NULL) {
+	//	 img = new Fl_PNG_Image(filename);
+	//	 this->image(img);
+	//	}
+    }
+    void  draw() {
+      Fl_Box::draw();
+
+      fl_color(selection_color());
+      MYFLT Xincr = w()/(MYFLT) numLinesX;
+      MYFLT Yincr = h()/(MYFLT) numLinesY;
+      fl_color(FL_RED);
+      for (int j = 1; j < numLinesX; j++) {
+        fl_yxline((int) (j*Xincr+x()), y(),    h()+y());
+      }
+      for (int k = 1; k <numLinesY; k++) {
+        fl_xyline(x(), (int) (k*Yincr+y()), w()+x()-2);
+      }
+      fl_color(FL_CYAN);
+      fl_yxline((int) (valueX*w()+x()), y(),    h()+y());
+      fl_xyline(x(), (int) (valueY*h()+y()), w()+x()-2);
+      fl_color(FL_BLACK);
+      fl_rect((int) (valueX*w()+x()-6), (int) (valueY*h()+y()-6), 12, 12);
+      fl_color(FL_WHITE);
+      fl_rect((int) (valueX*w()+x()-10), (int) (valueY*h()+y()-10), 20, 20);
+    }
+
+    virtual int handle(int event) {
+      switch (event) {
+      case FL_PUSH:
+      case FL_DRAG:
+      case FL_RELEASE: 
+        valueX = (MYFLT) (Fl::event_x() - x()) / (MYFLT) w();
+        valueY = (MYFLT) (Fl::event_y() - y()) / (MYFLT) h();
+        redraw();
+        return 1;
+      default:
+        return 0;
+
+      }
+    }
+    void setXY(MYFLT xx, MYFLT yy) {
+      valueX = xx;
+      valueY = yy;
+      damage(FL_DAMAGE_ALL);
+      redraw();
+    }
+
+/*
+	void set_rect (int newrx, int newry, int newrw, int newrh) {
+		rx = newrx; ry=newry; rw=newrw; rh=newrh;
+		redraw();
+	}
+	void set_color (int newred, int newgreen, int newblue){
+		red=newred; blue=newblue; green=newgreen;
+	}
+*/
+  };
+
+  static int fl_hvsbox(CSOUND *csound,FL_HVSBOX *p)
+  {
+    if (*p->numlinesX < 2 || *p->numlinesY < 2) 
+      return csound->InitError(csound, "FLhvsBox: a square area must be delimited by 2 lines at least");
+
+    HVS_BOX *o =  new HVS_BOX((int) *p->numlinesX,(int)  *p->numlinesY, 
+                              (int) *p->ix,(int)  *p->iy,
+                              (int)  *p->iwidth, (int) *p->iheight);
+    widget_attributes(csound,o);
+    o->box(FL_DOWN_BOX);
+    if (*p->image >= 0) skin(csound, o, (int) *p->image, false);
+
+    ST(AddrSetValue).push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p, ST(currentSnapGroup)));
+    *p->ihandle = ST(AddrSetValue).size()-1; 
+    return OK;
+
+  }
+
+  static int fl_setHvsValue_set(CSOUND *csound,FL_SET_HVS_VALUE *p)
+  {
+    ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
+    p->WidgAddress = v.WidgAddress;
+    p->opcode = v.opcode;
+    return OK;
+  }
+
+  static int fl_setHvsValue(CSOUND *csound,FL_SET_HVS_VALUE *p)
+  {
+    if(*p->kx != p->old_x || *p->ky != p->old_y ) {
+      HVS_BOX *o = (HVS_BOX *) p->WidgAddress;
+      FLlock();
+      o->setXY(*p->kx, *p->ky);
+      FLunlock();
+      p->old_x = *p->kx;
+      p->old_y = *p->ky;
+    }
+    return OK;
+  }
+
+
+static int fl_keyin_set(CSOUND *csound,FLKEYIN *p)
+{
+    FUNC* ftp;
+    if (*p->ifn > 0) { // mapping values
+      p->flag = 1;
+
+      if((ftp = csound->FTFind(csound,p->ifn)) != NULL) p->table = ftp->ftable; 
+      else {
+        return csound->InitError(csound, "FLkeyIn: invalid table number");  
+      }
+      if ( ftp->flen < 512) {
+        return csound->InitError(csound,  "FLkeyIn: table too short!");
+      }
+    }
+    else p->flag = 0;
+    return OK;
+}
+
+static int fl_keyin(CSOUND *csound,FLKEYIN *p)
+{
+    if (ST(last_KEY)) {
+      int key;
+
+      if ( ST(last_KEY) > 0 && ST(last_KEY) < 256)  
+        key = ST(last_KEY); 
+      else 
+        key = (ST(last_KEY) & 0xFF) + 256;  // function keys
+
+      if(p->flag) {
+        if(ST(isKeyDown))
+          p->table[key] = 1;
+        else 
+          p->table[key] = 0;
+      }
+      if (ST(isKeyDown)) *p->kascii = key;
+      else *p->kascii = -key;
+      ST(last_KEY) = 0;
+    }
+    return OK;
+}
+
 static int fl_setSnapGroup(CSOUND *csound, FLSETSNAPGROUP *p)
 {
   ST(currentSnapGroup) = (int) *p->group;
+  return OK;
+}
+
+static int fl_mouse_set(CSOUND *csound,FLMOUSE *p)
+{
+  p->width= Fl::w();
+  p->height= Fl::h();
+  return OK;
+}
+
+static int fl_mouse(CSOUND *csound,FLMOUSE *p)
+{
+  if (*p->flagRaw == 0) {
+    *p->x = (MYFLT) Fl::event_x_root()/p->width;
+    *p->y = 1.0 - ((MYFLT) Fl::event_y_root()/p->height);
+  }
+  else if (*p->flagRaw == 1) {
+    *p->x = (MYFLT) Fl::event_x_root();
+    *p->y = (MYFLT) Fl::event_y_root();
+  }
+  else if (*p->flagRaw == 2) {
+    *p->x = (MYFLT) Fl::event_x();
+    *p->y = (MYFLT) Fl::event_y();
+  }
+//   *p->b1 = (MYFLT) (Fl::event_button1() >> 56);
+//   *p->b2 = (MYFLT) (Fl::event_button2() >> 57);
+//   *p->b3 = (MYFLT) (Fl::event_button3() >> 58);
+  *p->b1 = (MYFLT) (Fl::event_button1() >> 24);
+  *p->b2 = (MYFLT) (Fl::event_button2() >> 25);
+  *p->b3 = (MYFLT) (Fl::event_button3() >> 26);
+
   return OK;
 }
 
@@ -4084,8 +4298,8 @@ static int FLxyin_set(CSOUND *csound, FLXYIN *p)
 
 static int FLxyin(CSOUND *csound, FLXYIN *p)
 {
-  int windx_min = *p->iwindx_min, windx_max = *p->iwindx_max;
-  int windy_min = *p->iwindy_min, windy_max = *p->iwindy_max;
+  int windx_min = (int) *p->iwindx_min, windx_max = (int) *p->iwindx_max;
+  int windy_min = (int) *p->iwindy_min, windy_max = (int) *p->iwindy_max;
   MYFLT outx_min = *p->ioutx_min, outy_min = *p->iouty_min;
 
   MYFLT x=Fl::event_x();
@@ -4145,6 +4359,144 @@ static int FLxyin(CSOUND *csound, FLXYIN *p)
   return OK;
 }
 
+//   //FIXME: Should this be defined to 0dbfs?
+// #define MAXAMPVU 32767
+// 
+//   //TODO: Implement FLTK meter
+//   void VuMeter(CSOUND *csound);
+// 
+//   static int VuMeter_set(CSOUND *csound, FLTKMETER *p) {
+// 	//isVumeterActive = 1;
+//     csoundSetVuMeterCallback(csound, VuMeter);
+//     //OPARMS    *O = csound->oparms;
+//     int nchnls = csound->nchnls;
+//     Fl_Window *o;
+//     int iw;
+//     iw = (csound->oparms->sfread) ? 30 : 15;
+//     o = new Fl_Window(0,0, 410,nchnls * iw+35, "Meter");
+//     Fl_Box *box = new Fl_Box(10,3,260,10,"Outputs");
+//     box->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+// 	//else 	o = new Fl_Panel(x,y,width,height, panelName);
+// 	//o->box((Fl_Boxtype) borderType);
+//     o->resizable(o);
+//     o->callback(flpanel_cb);
+// 	//o->set_modal();
+//     widget_attributes(csound,o);
+// 
+//     PANELS panel(o, (ST(stack_count)>0) ? 1 : 0);
+//     ST(fl_windows).push_back(panel);
+//     int j;
+// 
+//     for ( j = 0; j < nchnls; j++) {
+//       string stemp;
+//       char s[10];
+//       stemp = itoa(j+1,s,10);
+//       char *Name =  new char[stemp.size()+2];
+//       strcpy(Name,stemp.c_str());
+//       ST(allocatedStrings).push_back(Name);
+// 
+//       Fl_Slider *w = new Fl_Slider(20, 18+15*j, 380, 10, Name);
+//       w->align(FL_ALIGN_LEFT);
+//       p->widg_address[j] = (unsigned long) w;
+//       w->type(FL_HOR_FILL_SLIDER);
+//       w->color(FL_BACKGROUND_COLOR,FL_GREEN);
+//       w->box(FL_PLASTIC_DOWN_BOX);
+//       w->range(0,MAXAMPVU);
+//     }
+// 
+//     if (csound->oparms->sfread) {
+//       box = new Fl_Box(10,18 + 15 * nchnls ,260,10,"Inputs");
+//       box->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+//       for (  ; j < nchnls*2; j++) {
+//         string stemp;
+//         char s[10];
+//         stemp = itoa(j+1- nchnls,s,10);
+//         char *Name =  new char[stemp.size()+2];
+//         strcpy(Name,stemp.c_str());
+//         ST(allocatedStrings).push_back(Name);
+//         Fl_Slider *w = new Fl_Slider(20, 30+15*j , 380, 10, Name);
+//         w->align(FL_ALIGN_LEFT);
+//         p->widg_address[j] = (unsigned long) w;
+//         w->type(FL_HOR_FILL_SLIDER);
+//         w->color(FL_BACKGROUND_COLOR,FL_YELLOW);
+//         w->box(FL_PLASTIC_DOWN_BOX);
+//         w->range(0,MAXAMPVU);
+//       }
+//     }
+//     o->end();
+//     ST(p_vumeter) = p;
+//     p->dummycycles = csound->ekr / 16 ;
+//     p->dummycyc = 0;
+//     return OK;
+//   }
+// 
+// //extern "C" MYFLT *spout,*spin; //GAB
+// 
+//   void VuMeter(CSOUND *csound){
+//     FLTKMETER *p = ST(p_vumeter);
+//     Fl_Slider *w;
+//     int nchnls = csound->nchnls;
+//     int	n = (csound->oparms->sfread) ? nchnls * 2 : nchnls;
+//     MYFLT temp[MAXCHNLS];
+//     int smps = csound->ksmps;
+//     MYFLT max[MAXCHNLS];
+//     MYFLT *spo = csound->spout;
+//     MYFLT *spi = csound->spin;
+// 
+//     static int overfl[MAXCHNLS];
+//     int i;
+//     for (i=0;i<n;i++) {
+//       max[i]=0; 
+//       temp[i] = 0;
+//     }
+//     do 	{
+//       for ( i=0; i<nchnls; i++) {
+//         if ((temp[i]=(MYFLT) fabs(*spo++)) > max[i] ) 
+//           max[i]=	temp[i]; 
+//       }
+//       if (csound->oparms->sfread) {
+//         for ( ; i<n; i++) {
+//  
+//           if ((temp[i]=(MYFLT) fabs(*spi++)) > max[i] ) 
+//             max[i]=	temp[i]; 
+//         }
+//       }
+// 		//if ((temp= (MYFLT) fabs(*a++)) > max) max = temp;
+//     } while (--smps);
+// 
+//     for (i=0; i<n; i++) {
+//       if (max[i] > p->max[i]) 
+//         p->max[i] = (overfl[i] = max[i]>MAXAMPVU) ? MAXAMPVU : max[i];
+//     }
+//     p->dummycyc++;
+//     if (!(p->dummycyc % p->dummycycles)) {
+//       for (int j=0; j<n; j++) {
+//         w = (Fl_Slider *) p->widg_address[j];
+// 
+//         FLlock();
+//         if (overfl[j]) { 
+//           w->selection_color(FL_RED);
+//           overfl[j] = 0;
+//         }
+//         else {
+//           if (j < nchnls) w->selection_color(FL_GREEN);
+//           else w->selection_color(FL_YELLOW);
+//         }
+//         w->value( p->max[j]);
+//         w->do_callback(w);
+//         FLunlock();
+//       }
+// #ifdef WIN32
+// //			PostMessage(callback_target,0,0,0);
+// #endif
+//       for (i=0; i<n; i++) 
+//         p->max[i] = 0;
+//     }
+//   }
+// 
+
+}       // extern "C"
+
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
@@ -4166,8 +4518,8 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) fl_button,               (SUBR) NULL,              (SUBR) NULL },
     { "FLbutBank",      S(FLBUTTONBANK),        1,  "ki",   "iiiiiiiz",
         (SUBR) fl_button_bank,          (SUBR) NULL,              (SUBR) NULL },
-    { "FLkeyb",         S(FLKEYB),              1,  "k",    "z",
-        (SUBR) FLkeyb,                  (SUBR) NULL,              (SUBR) NULL },
+//     { "FLkeyb",         S(FLKEYB),              1,  "k",    "z",
+//         (SUBR) FLkeyb,                  (SUBR) NULL,              (SUBR) NULL },
     { "FLcolor",        S(FLWIDGCOL),           1,  "",     "jjjjjj",
         (SUBR) fl_widget_color,         (SUBR) NULL,              (SUBR) NULL },
     { "FLcolor2",       S(FLWIDGCOL2),          1,  "",     "jjj",
@@ -4210,7 +4562,7 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) fl_box,                  (SUBR) NULL,              (SUBR) NULL },
     { "FLvalue",        S(FLVALUE),             1,  "i",    "Tjjjj",
         (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
-    { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjjooo",
+    { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjjoooo",
         (SUBR) StartPanel,              (SUBR) NULL,              (SUBR) NULL },
     { "FLpanelEnd",     S(FLPANELEND),          1,  "",     "",
         (SUBR) EndPanel,                (SUBR) NULL,              (SUBR) NULL },
@@ -4243,7 +4595,7 @@ const OENTRY widgetOpcodes_[] = {
     { "FLsetsnap",      S(FLSETSNAP),           1,  "ii",   "ioo",
         (SUBR) set_snap,                (SUBR) NULL,              (SUBR) NULL },
     { "FLsetSnapGroup", S(FLSETSNAPGROUP),     1,   "",     "i", 		
-		(SUBR)fl_setSnapGroup,  (SUBR) NULL,              (SUBR) NULL },
+        (SUBR)fl_setSnapGroup,  (SUBR) NULL,              (SUBR) NULL },
     { "FLgetsnap",      S(FLGETSNAP),           1,  "i",    "io",
         (SUBR) get_snap,                (SUBR) NULL,              (SUBR) NULL },
     { "FLsavesnap",     S(FLSAVESNAPS),         1,  "",     "To",
@@ -4262,11 +4614,19 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) fl_close_button,               (SUBR) NULL,              (SUBR) NULL },
     { "FLexecButton",       S(FLEXECBUTTON),            1,  "i",   "Tiiii",
         (SUBR) fl_exec_button,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLkeyIn",       S(FLKEYIN),              3,  "k",    "o", 		
+        (SUBR)fl_keyin_set,             (SUBR)fl_keyin,           (SUBR) NULL  },
     { "FLxyin",         S(FLXYIN),	            3,  "kkk","iiiiiiiioooo",
-		(SUBR)FLxyin_set,               (SUBR)FLxyin,            (SUBR) NULL  },
+        (SUBR)FLxyin_set,               (SUBR)FLxyin,            (SUBR) NULL  },
+    { "FLmouse",        S(FLMOUSE),             3,  "kkkkk","o", 		
+        (SUBR)fl_mouse_set,             (SUBR)fl_mouse,           (SUBR) NULL  },
+    { "FLhvsBox",       S(FL_HVSBOX),           1,  "i",    "iiiiiio", 	
+        (SUBR)fl_hvsbox,                (SUBR) NULL,              (SUBR) NULL  },
+    { "FLhvsBoxSetValue",S(FL_SET_HVS_VALUE),   3,  "",     "kki",   	
+        (SUBR)fl_setHvsValue_set,       (SUBR)fl_setHvsValue,     (SUBR) NULL  },
+//     { "FLmeter",      S(FLTKMETER),             1,  "",  "",
+//         (SUBR)VuMeter_set,               (SUBR) NULL,             (SUBR) NULL  },
     { NULL,             0,                      0,  NULL,   NULL,
         (SUBR) NULL,                    (SUBR) NULL,              (SUBR) NULL }
 };
-
-}       // extern "C"
 
