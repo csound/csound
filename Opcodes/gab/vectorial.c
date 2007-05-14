@@ -1839,7 +1839,7 @@ static int vmirror(CSOUND *csound,VLIMIT *p)
     return OK;
 }
 
-// #define RNDMUL  15625
+#define RNDMUL  15625
 // #define MASK16  0xFFFF
 // #define MASK15  0x7FFF
 #define BIPOLAR 0x7FFFFFFF      /* Constant to make bipolar */
@@ -1872,19 +1872,25 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     FUNC        *ftp;
     int elements = 0;
     MYFLT *num1;
+    unsigned long seed;
     long r;
-    
+
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
-        unsigned long seed;
         seed = csound->GetRandomSeedFromTime();
-        p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        if (*p->isize == 0) {
+          p->rand = (long) (seed & 0xFFFFUL);
+        }
+        else {
+          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        }
         csound->Message(csound, Str("vrandh: Seeding from current time %lu\n"), seed);
       }
       else {
-        p->rand = (long) (*p->iseed * FL(2147483648.0));
-//         p->rand = randint31(p->rand);
-//         p->rand = randint31(p->rand);
+        if (*p->isize == 0)
+          p->rand = 0xffff&(short)(*p->iseed * 32768L);   /* init rand integ    */
+        else
+          p->rand = (long) (*p->iseed * FL(2147483648.0));
       }
       if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
         p->elements = (int) *p->ielements;
@@ -1905,9 +1911,15 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     r = p->rand;
     elements = p->elements;
     do {
-      *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) *
-        dv2_31;
-      r = randint31( r);
+      if (*p->isize == 0) {
+        *num1++ = (MYFLT) ((short) r) * DV32768;
+        r = (long) (r & 0xFFFFUL);
+      }
+      else {
+        // 31-bit PRNG
+        *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        r = randint31( r);
+      }
     } while (--elements);
     p->phs = 0;
     p->rand = r;
@@ -1920,7 +1932,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
     MYFLT value = *p->krange;
     int elements = p->elements;
     long r;
-    
+
     do {
       *vector++ = (*num1++ * value) + *p->ioffset;
     } while (--elements);
@@ -1933,8 +1945,16 @@ static int vrandh(CSOUND *csound,VRANDH *p)
       num1 = p->num1;
       r = p->rand;
       do {
-        *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
-        r = randint31(r);
+        if (*p->isize == 0) {
+          *num1++ = (MYFLT) ((short) r) * DV32768;
+          r *= RNDMUL;
+          r += 1;
+        }
+        else {
+          // 31-bit PRNG
+          *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+          r = randint31(r);
+        }
       } while (--elements);
       p->rand = r;
     }
@@ -1948,17 +1968,23 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
     MYFLT *dfdmax, *num1, *num2;
     unsigned long seed;
     long r;
-    
+
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
         seed = csound->GetRandomSeedFromTime();
-        p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        if (*p->isize == 0) {
+          p->rand = (long) (seed & 0xFFFFUL);
+        }
+        else {
+          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+        }
         csound->Message(csound, Str("vrandi: Seeding from current time %lu\n"), seed);
       }
       else {
-        p->rand = (long) (*p->iseed * FL(2147483648.0));
-//         p->rand = randint31(p->rand);
-//         p->rand = randint31(p->rand);
+        if (*p->isize == 0)
+          p->rand = 0xffff&(short)(*p->iseed * 32768L);   /* init rand integ    */
+        else
+          p->rand = (long) (*p->iseed * FL(2147483648.0));
       }
       if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
         p->elements = (int) *p->ielements;
@@ -1983,9 +2009,16 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
     r = p->rand;
     do {
       *num1 = FL(0.0);
-      *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+      if (*p->isize == 0) {
+        *num2 = (MYFLT) ((short) r) * DV32768;
+        r = (long) (r & 0xFFFFUL);
+      }
+      else {
+        // 31-bit PRNG
+        *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        r = randint31(r);
+      }
       *dfdmax++ = (*num2++ - *num1++) / FMAXLEN;
-      r = randint31(r);
     } while (--elements);
     p->phs = 0;
     p->rand = r;
@@ -1998,7 +2031,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
     MYFLT value = *p->krange;
     int elements = p->elements;
     long r;
-    
+
     do {
       *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) + *p->ioffset;
     } while (--elements);
@@ -2014,9 +2047,17 @@ static int vrandi(CSOUND *csound,VRANDI *p)
       r = p->rand;
       do {
         *num1 = *num2;
-        *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
+        if (*p->isize == 0) {
+          *num2 = (MYFLT) ((short) r) * DV32768;
+          r *= RNDMUL;                         /*      recalc random   */
+          r += 1;
+        }
+        else {
+          // 31-bit PRNG
+          *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
+          r = randint31(r);
+        }
         *dfdmax++ = ((MYFLT)*num2++ - (MYFLT)*num1++) / FMAXLEN;
-        r = randint31(r);
       } while (--elements);
       p->rand = r;
     }
@@ -2508,8 +2549,8 @@ static OENTRY localops[] = {
   { "vmirror", S(VLIMIT),    3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror   },
   { "vlinseg", S(VSEG),      3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg   },
   { "vexpseg", S(VSEG),      3, "",  "iin", (SUBR)vseg_set,   (SUBR)vexpseg   },
-  { "vrandh", S(VRANDH),     3, "",  "ikkiovo",(SUBR)vrandh_set, (SUBR) vrandh   },
-  { "vrandi", S(VRANDI),     3, "",  "ikkiovo",(SUBR)vrandi_set, (SUBR)vrandi    },
+  { "vrandh", S(VRANDH),     3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR) vrandh   },
+  { "vrandi", S(VRANDI),     3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi    },
   { "vport",  S(VPORT),      3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport     },
   { "vecdelay", S(VECDEL),   3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly  },
   { "vdelayk", S(KDEL),      3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay    },
