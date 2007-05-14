@@ -37,7 +37,7 @@ static int equ_process(CSOUND *csound, equ *p)
 	}
 	c = p->c;
 	d = p->d;
-    a = (1-c)/(1+c);
+        a = (1.0-c)/(1.0+c);
 	g = *p->g;
 
 	for(i=0; i < ksmps; i++){
