@@ -158,7 +158,7 @@ int     pvoc_putframes(CSOUND *,
 int     pvoc_getframes(CSOUND *,
                        int ifd, float *frames, unsigned long nframes);
 int     pvoc_framecount(CSOUND *, int ifd);
-int     pvoc_rewind(CSOUND *, int ifd, int skip_first_frame);
+int     pvoc_fseek(CSOUND *, int ifd, int offset);
 int     pvsys_release(CSOUND *);
 
 #endif  /* CSOUND_CSDL_H */

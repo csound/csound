@@ -245,7 +245,7 @@ static const CSOUND cenviron_ = {
         pvoc_putframes,
         pvoc_getframes,
         pvoc_framecount,
-        pvoc_rewind,
+        pvoc_fseek,
         pvoc_errorstr,
         PVOCEX_LoadFile,
         csoundGetOpcodeName,
