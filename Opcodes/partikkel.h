@@ -63,10 +63,12 @@ typedef struct PARTIKKEL_GLOBALS_ENTRY_ {
 } PARTIKKEL_GLOBALS_ENTRY;
 
 typedef struct {
-    /* default tables. name describes table contents, 'z' is 0.0, 'o' is 1.0 */
+    /* default tables. name describes table contents, 'z' is 0.0, 'o' is 1.0
+     * and 'h' is 0.5 */
     FUNC *ooo_tab;
     FUNC *zzz_tab;
-    FUNC *zzooooo_tab;
+    FUNC *zzo_tab;
+    FUNC *zzhhhhz_tab;
     char *tablestorage;
     PARTIKKEL_GLOBALS_ENTRY *rootentry;
 } PARTIKKEL_GLOBALS;
