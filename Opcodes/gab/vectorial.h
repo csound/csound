@@ -116,7 +116,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *ioffset;
+    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
     int     elements;
@@ -128,7 +128,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *ioffset;
+    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
     int     elements;
