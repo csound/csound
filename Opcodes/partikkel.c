@@ -109,30 +109,32 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         pg->rootentry = NULL;
         /* build default tables. allocate enough for three, plus extra for the
          * ftable data itself */
-        t = pg->tablestorage = csound->Calloc(csound, 3*sizeof(FUNC)
+        t = pg->tablestorage = csound->Calloc(csound, 4*sizeof(FUNC)
                                                       + 12*sizeof(MYFLT));
         pg->ooo_tab = (FUNC *)t;
         t += sizeof(FUNC) + 2*sizeof(MYFLT);
         pg->zzz_tab = (FUNC *)t;
         t += sizeof(FUNC) + 2*sizeof(MYFLT);
-        pg->zzooooo_tab = (FUNC *)t;
+        pg->zzo_tab = (FUNC *)t;
+        t += sizeof(FUNC) + 2*sizeof(MYFLT);
+        pg->zzhhhhz_tab = (FUNC *)t;
         /* we only fill in the entries in the FUNC struct that we use */
         /* table with data [1.0, 1.0, 1.0], used as default by envelopes */
         pg->ooo_tab->flen = 2;
         pg->ooo_tab->lobits = 31;
-        pg->ooo_tab->ftable[0] = FL(1.0);
-        pg->ooo_tab->ftable[1] = FL(1.0);
-        pg->ooo_tab->ftable[2] = FL(1.0);
+        for (i = 0; i <= 2; ++i)
+            pg->ooo_tab->ftable[i] = FL(1.0);
         /* table with data [0.0, 0.0, 0.0], used as default by grain
          * distribution table, channel masks and grain waveforms */
         pg->zzz_tab->flen = 2;
         pg->zzz_tab->lobits = 31;
-        /* table with data [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0], used as default
-         * by gain masks, fm index table, wave gain table and wave start and
-         * end freq tables */
-        pg->zzooooo_tab->flen = 6;
-        for (i = 2; i <= 6; ++i)
-            pg->zzooooo_tab->ftable[i] = FL(1.0);
+        /* table with data [0.0, 0.0, 1.0], used as default by gain masks,
+         * fm index table, and wave start and end freq tables */
+        pg->zzo_tab->ftable[2] = FL(1.0);
+        /* table with data [0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0], used as default
+         * by wave gain table */
+        for (i = 2; i <= 5; ++i)
+            pg->zzhhhhz_tab->ftable[i] = FL(0.5);
     }
     p->globals = pg;
     if ((int)*p->opcodeid == 0) {
@@ -233,7 +235,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
                  : p->globals->zzz_tab;
     p->gainmasktab = *p->gainmasks >= FL(0.0)
                      ? csound->FTFind(csound, p->gainmasks)
-                     : p->globals->zzooooo_tab;
+                     : p->globals->zzo_tab;
     p->channelmasktab = *p->channelmasks >= FL(0.0)
                         ? csound->FTFind(csound, p->channelmasks)
                         : p->globals->zzz_tab;
@@ -248,16 +250,16 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
                    : p->globals->ooo_tab;
     p->wavfreqstarttab = *p->wavfreq_startmuls >= FL(0.0)
                          ? csound->FTFind(csound, p->wavfreq_startmuls)
-                         : p->globals->zzooooo_tab;
+                         : p->globals->zzo_tab;
     p->wavfreqendtab = *p->wavfreq_endmuls >= FL(0.0)
                        ? csound->FTFind(csound, p->wavfreq_endmuls)
-                       : p->globals->zzooooo_tab;
+                       : p->globals->zzo_tab;
     p->fmamptab = *p->fm_indices >= FL(0.0)
                   ? csound->FTFind(csound, p->fm_indices)
-                  : p->globals->zzooooo_tab;
+                  : p->globals->zzo_tab;
     p->wavgaintab = *p->waveamps >= FL(0.0)
                     ? csound->FTFind(csound, p->waveamps)
-                    : p->globals->zzooooo_tab;
+                    : p->globals->zzhhhhz_tab;
 
     if (!p->disttab)
         return INITERROR("unable to load distribution table");
@@ -400,7 +402,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     grain->start = n;
     grain->stop = n + samples;
 
-    /* set up the `four' wavetables and dsf to use in the grain */
+    /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
         MYFLT freqmult = i != WAV_TRAINLET
@@ -451,24 +453,23 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
         enddelta = endfreq*csound->onedsr;
 
         if (i != WAV_TRAINLET) {
-          /* set wavphase to samplepos parameter */
-          curwav->phase = samplepos[n];
-        }
-        else {
+            /* set wavphase to samplepos parameter */
+            curwav->phase = samplepos[n];
+        } else {
             /* set to 0.5 so the dsf pulse doesn't occur at the very start of
              * the grain where it'll probably be enveloped away anyway */
-          curwav->phase = 0.5;
+            curwav->phase = 0.5;
         }
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
         curwav->phase = curwav->phase < 0.0 ? 0.0 : curwav->phase;
         /* phase and delta for wavetable synthesis are scaled by table length */
         if (i != WAV_TRAINLET) {
-          double tablen = (double)curwav->table->flen;
+            double tablen = (double)curwav->table->flen;
 
-          curwav->phase *= tablen;
-          curwav->delta *= tablen;
-          enddelta *= tablen;
+            curwav->phase *= tablen;
+            curwav->delta *= tablen;
+            enddelta *= tablen;
         }
 
         /* the sweep curve generator is a first order iir filter */
@@ -485,14 +486,14 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
                 curwav->sweepdecay = 0.0;
                 curwav->sweepoffset = enddelta;
             } else {
-              double start_offset, total_decay, t;
+                double start_offset, total_decay, t;
 
-              t = fabs((*p->freqsweepshape - 1.0)/(*p->freqsweepshape));
-              curwav->sweepdecay = pow(t, 2.0*rcp_samples);
-              total_decay = t*t; /* pow(curwav->sweepdecay, samples) */
-              start_offset = (enddelta - curwav->delta*total_decay)/
-                (1.0 - total_decay);
-              curwav->sweepoffset = start_offset*(1.0 - curwav->sweepdecay);
+                t = fabs((*p->freqsweepshape - 1.0)/(*p->freqsweepshape));
+                curwav->sweepdecay = pow(t, 2.0*rcp_samples);
+                total_decay = t*t; /* pow(curwav->sweepdecay, samples) */
+                start_offset = (enddelta - curwav->delta*total_decay)/
+                               (1.0 - total_decay);
+                curwav->sweepoffset = start_offset*(1.0 - curwav->sweepdecay);
             }
         }
     }
@@ -558,7 +559,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 MYFLT offset = p->disttab->ftable[rnd >> p->disttabshift];
                 p->nextgrainphase = *p->distribution*offset;
             } else {
-                /* negative distrib, choose sequantial point in table */
+                /* negative distrib, choose sequential point in table */
                 MYFLT offset = p->disttab->ftable[p->distindex++];
                 p->nextgrainphase = -*p->distribution*offset;
                 if (p->distindex >= p->disttab->flen)
