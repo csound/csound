@@ -1149,8 +1149,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
-    Opcodes/stdopcod.c
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
 '''))
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
@@ -1204,6 +1203,12 @@ makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
+
+makePlugin(pluginEnvironment, 'gabnew', Split('''
+    Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
+'''))
 
 # Plugins with External Dependencies
 
