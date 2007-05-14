@@ -344,7 +344,8 @@ typedef struct _filegrain {
     AUXCH index;
     AUXCH envindex;
     float start,frac;
-    int read1,read2,pos;
+    int read1,read2;
+    unsigned long pos;
     float trigger;
 } filegrain;
 
@@ -433,7 +434,9 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     int     datasize = p->datasize, envtablesize = p->envtablesize;
     int     hdatasize = datasize/2;
     int     read1 = p->read1, read2 = p->read2;
-    int items, pos = p->pos;
+    int items;
+    unsigned long pos = p->pos;
+    long negpos;
     float trigger = p->trigger, incr;
     int flen = p->sfinfo.frames;
 
@@ -470,7 +473,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
         incr = prate*grsize;
         start += incr;
         trigger += incr;
-        jump = grsize*(pitch > 0 ? pitch : -pitch);  
+        jump = grsize;//*(pitch > 0 ? pitch : -pitch);  
         if(incr >= 0) {
 	  if(trigger >= (datasize - jump)){
           trigger -= (datasize);
@@ -505,9 +508,28 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
         else {
          if(trigger < jump){
           trigger += (datasize);
-         if(!read1) {
+          if(!read1) {
+           
+	    /*this roundabout code is to 
+             allow us to use an unsigned long
+             to hold the file position
+            whilst allowing for pos to go negative
+	    */ 
+
+           negpos = pos;
+	   negpos -= hdatasize;
+           if(negpos < 0){
+	    while(negpos < 0) negpos += flen;
+	    pos = negpos;
+           }
+           else pos -= hdatasize;
+           
+
+	   /*
 	   pos -= hdatasize;
-           if(pos < 0) pos += flen;
+           if(pos < 0)  pos += flen;
+           */
+
             sf_seek(p->sf,pos,SEEK_SET);  
             items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
             if (items < hdatasize){
@@ -522,8 +544,18 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
 	}
         else if(trigger <= (hdatasize + jump)){
          if(!read2){
-           pos -= hdatasize;
-           if(pos < 0) pos += flen;
+
+           negpos = pos;
+	   negpos -= hdatasize;
+           if(negpos < 0){
+	    while(negpos < 0) negpos += flen;
+	    pos = negpos;
+           }
+           else pos -= hdatasize;
+           /*
+            pos -= hdatasize;
+           if(pos < 0)  pos += flen;
+           */
             sf_seek(p->sf,pos,SEEK_SET);  
             items = sf_read_MYFLT(p->sf,datap,hdatasize);
             if (items < hdatasize){
