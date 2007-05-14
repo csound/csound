@@ -23,6 +23,7 @@
 
 #include "csdl.h"
 #include "syncgrain.h"
+#include "soundio.h"
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
@@ -35,17 +36,17 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
     if (p->sfunc == NULL)
       return NOTOK;
 
-    p->olaps = (int) *p->ols;
+    p->olaps = (int) *p->ols+2;
 
-    if (p->olaps < 1)
-      p->olaps = 1;
+    if (p->olaps < 2)
+      p->olaps = 2;
 
-   size =  p->olaps * sizeof(double);
+    size =  (p->olaps) * sizeof(double);
    if(p->index.auxp == NULL || p->index.size < size)
           csound->AuxAlloc(csound, size, &p->index);
    if(p->envindex.auxp == NULL || p->envindex.size < size)
           csound->AuxAlloc(csound, size, &p->envindex);
-   size = p->olaps * sizeof(int);
+   size = (p->olaps) * sizeof(int);
    if(p->streamon.auxp == NULL || p->streamon.size > size)
           csound->AuxAlloc(csound, size, &p->streamon);
 
@@ -79,6 +80,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
+    if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
@@ -171,18 +173,18 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 
     p->datasize =  p->sfunc->flen;
     p->envtablesize = p->efunc->flen;   /* size of envtable */
-    p->olaps = (int) *p->ols;
+    p->olaps = (int) *p->ols+1;
 
-    if (p->olaps < 1)
-      p->olaps = 1;
+    if (p->olaps <2)
+      p->olaps = 2;
 
     if(*p->iskip == 0){
-      int size =  p->olaps * sizeof(double);
+      int size =  (p->olaps) * sizeof(double);
       if(p->index.auxp == NULL || p->index.size < size)
-          csound->AuxAlloc(csound, size, &p->index);
+         csound->AuxAlloc(csound, size, &p->index);
       if(p->envindex.auxp == NULL || p->envindex.size < size)
           csound->AuxAlloc(csound, size, &p->envindex);
-       size = p->olaps * sizeof(int);
+      size = (p->olaps) * sizeof(int);
        if(p->streamon.auxp == NULL || p->streamon.size > size)
           csound->AuxAlloc(csound, size, &p->streamon);
     p->count = 0xFFFFFFFF;              /* sampling period counter */
@@ -226,6 +228,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
+    if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
@@ -318,11 +321,286 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 }
 
 
+typedef struct _filegrain {
+    OPDS h;
+    MYFLT *output;
+    MYFLT *fname;
+    MYFLT *amp;
+    MYFLT *fr;
+    MYFLT *pitch;
+    MYFLT *grsize;
+    MYFLT *prate;
+    MYFLT *ifn2;
+    MYFLT *ols;
+    MYFLT *max;
+    MYFLT *ioff;
+    FUNC  *efunc;
+    SF_INFO sfinfo;
+    SNDFILE *sf;
+    AUXCH buffer;
+    int count, numstreams, firststream;
+    int datasize, envtablesize, olaps;
+    AUXCH streamon;
+    AUXCH index;
+    AUXCH envindex;
+    float start,frac;
+    int read1,read2,pos;
+    float trigger;
+} filegrain;
+
+#define MINFBUFSIZE  88200
+
+static int filegrain_init(CSOUND *csound, filegrain *p)
+{
+    int size;
+    void *fd;
+    char *fname = csound->strarg2name(csound, NULL, p->fname,
+                                      "soundin.",p->XSTRCODE);
+    MYFLT *buffer;
+    p->efunc = csound->FTFind(csound, p->ifn2);
+    if (p->efunc == NULL)
+      return NOTOK;
+
+    p->olaps = (int) *p->ols + 1;
+    p->datasize = (int)(*p->max*csound->esr*4);
+    if(p->datasize < MINFBUFSIZE)
+      p->datasize =  MINFBUFSIZE; 
+    if (p->olaps < 2)
+      p->olaps = 2;
+
+    size =  (p->olaps) * sizeof(double);
+   if(p->index.auxp == NULL || p->index.size < size)
+          csound->AuxAlloc(csound, size, &p->index);
+   if(p->envindex.auxp == NULL || p->envindex.size < size)
+          csound->AuxAlloc(csound, size, &p->envindex);
+   size = (p->olaps) * sizeof(int);
+   if(p->streamon.auxp == NULL || p->streamon.size > size)
+          csound->AuxAlloc(csound, size, &p->streamon);
+   if(p->buffer.auxp == NULL || p->buffer.size > (p->datasize+1)*sizeof(MYFLT))
+     csound->AuxAlloc(csound, (p->datasize+1)*sizeof(MYFLT), &p->buffer);
+  
+   buffer = (MYFLT *) p->buffer.auxp;
+   /* open file and read the first block using *p->ioff */
+    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &p->sfinfo,
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0); 
+    if(fd == NULL){
+     csound->InitError(csound, "diskgrain: could not open file\n");
+     return NOTOK;
+    }   
+    if(p->sfinfo.channels != 1){
+     csound->InitError(csound, "diskgrain: soundfile is not mono \n");
+     return NOTOK;
+    }
+   
+   if(*p->ioff >= 0)
+     sf_seek(p->sf,*p->ioff * csound->esr, SEEK_SET);
+
+   if(sf_read_MYFLT(p->sf,buffer,p->datasize/2) != 0){
+    p->read1 = 1; 
+    p->read2 = 0;
+   } else {
+    csound->InitError(csound, "diskgrain: could not read file \n");
+    return NOTOK;
+   }
+         
+   /* -===-  */
+    p->count = 0xFFFFFFFF;              /* sampling period counter */
+    p->numstreams = 0;                  /* curr num of streams */
+    p->firststream = 0;                 /* streams index (first stream)  */
+    p->envtablesize = p->efunc->flen;   /* size of envtable */
+
+    p->start = 0.0f;
+    p->frac = 0.0f;
+    p->pos = *p->ioff*csound->esr;
+    p->trigger = 0.0f;
+    
+    return OK;
+}
+
+static int filegrain_process(CSOUND *csound, filegrain *p)
+{
+    MYFLT   sig, pitch, amp, grsize, envincr, period, fperiod, prate;
+    MYFLT   *output = p->output;
+    MYFLT   *datap = (MYFLT *) p->buffer.auxp;
+    MYFLT   *ftable = p->efunc->ftable;
+    int     *streamon = (int *) p->streamon.auxp;
+    float   start = p->start, frac = p->frac, jump;
+    double   *index = (double *) p->index.auxp;
+    double   *envindex = (double *) p->envindex.auxp;
+    int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
+    int     numstreams = p->numstreams, olaps = p->olaps;
+    int     count = p->count, i,j, newstream;
+    int     datasize = p->datasize, envtablesize = p->envtablesize;
+    int     hdatasize = datasize/2;
+    int     read1 = p->read1, read2 = p->read2;
+    int items, pos = p->pos;
+    float trigger = p->trigger, incr;
+    int flen = p->sfinfo.frames;
+
+    pitch  = *p->pitch;
+    fperiod = csound->esr/(*p->fr);
+    if(fperiod  < 0) fperiod = -fperiod;
+    amp =    *p->amp;
+    grsize = csound->esr * *p->grsize;
+    if (grsize<1) {
+      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
+    }
+    else if (grsize > hdatasize) grsize = hdatasize;
+    envincr = envtablesize/grsize;
+    prate = *p->prate;
+
+    for(vecpos = 0; vecpos < vecsize; vecpos++) {
+      sig = (MYFLT) 0;
+      /* if a grain has finished, clean up */
+      if ((!streamon[firststream]) && (numstreams) ) {
+        numstreams--; /* decrease the no of streams */
+        firststream=(firststream+1)%olaps; /* first stream is the next */
+      }
+      /* if a fund period has elapsed */
+      /* start a new grain */
+        period = fperiod + frac;
+      if (count >= (period-1)) {
+        frac = count - period; 
+        newstream =(firststream+numstreams)%olaps;
+        streamon[newstream] = 1; 
+        envindex[newstream] = 0.;
+        index[newstream] = start;
+        numstreams++;  
+        count = 0;
+        incr = prate*grsize;
+        start += incr;
+        trigger += incr;
+        jump = grsize*(pitch > 0 ? pitch : -pitch);  
+        if(incr >= 0) {
+	  if(trigger >= (datasize - jump)){
+          trigger -= (datasize);
+         if(!read1) {
+	   pos += hdatasize;
+	   sf_seek(p->sf,pos,SEEK_SET);  
+            items = sf_read_MYFLT(p->sf,datap,hdatasize);
+            if(items < hdatasize){
+	      sf_seek(p->sf, 0, 0);
+              sf_read_MYFLT(p->sf,datap+items, hdatasize-items);
+            }
+	    datap[hdatasize] = datap[hdatasize-1];
+           read1 = 1;
+           read2 = 0;
+	}
+	}
+        else if(trigger >= (hdatasize - jump)){
+         if(!read2){
+           pos += hdatasize;
+	   sf_seek(p->sf,pos,SEEK_SET);
+	    items = sf_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
+            if(items < hdatasize){
+	      sf_seek(p->sf, 0, SEEK_SET);
+              sf_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
+            }
+            datap[datasize] = datap[datasize-1];
+          read2 = 1;
+          read1 = 0;
+	 }
+	 }
+        }
+        else {
+         if(trigger < jump){
+          trigger += (datasize);
+         if(!read1) {
+	   pos -= hdatasize;
+           if(pos < 0) pos += flen;
+            sf_seek(p->sf,pos,SEEK_SET);  
+            items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
+            if (items < hdatasize){
+	      sf_seek(p->sf,items-hdatasize,SEEK_END);
+              items = sf_read_MYFLT(p->sf,datap+hdatasize+items,hdatasize-items);
+	    }
+	    
+            datap[datasize] = datap[datasize-1];
+           read1 = 1;
+           read2 = 0;
+	 }
+	}
+        else if(trigger <= (hdatasize + jump)){
+         if(!read2){
+           pos -= hdatasize;
+           if(pos < 0) pos += flen;
+            sf_seek(p->sf,pos,SEEK_SET);  
+            items = sf_read_MYFLT(p->sf,datap,hdatasize);
+            if (items < hdatasize){
+	      sf_seek(p->sf,items-hdatasize,SEEK_END);
+              items = sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
+	    }
+            datap[hdatasize] = datap[hdatasize-1];
+          
+          read2 = 1;
+          read1 = 0;
+	 }
+	}
+	}
+
+        if(start >= datasize) start -= datasize;
+        if(start < 0) start += datasize;
+      }
+      
+      for (i=numstreams,
+             j=firststream; i; i--, j=(j+1)%olaps) {
+
+        /* modulus */
+	if(index[j] >= datasize)
+              index[j] -= datasize; 
+        if(index[j]  < 0)  
+              index[j] += datasize;
+        
+        /* sum all the grain streams */
+	     sig += ((datap[(int)index[j]] +
+                 (index[j] - (int)index[j])*
+                 (datap[(int)index[j]+1] - datap[(int)index[j]]) 
+                 ) *
+                (ftable[(int)envindex[j]] +
+                 (envindex[j] - (int)envindex[j])*
+                 (ftable[(int)envindex[j]+1] - ftable[(int)envindex[j]])
+                 )
+		 )* amp;
+	
+    
+        /* increment the indexes */
+        /* for each grain */
+        index[j] += pitch;
+        envindex[j] += envincr;
+
+        /* if the envelope is finished */
+        /* the grain is also finished */
+        if (envindex[j] > envtablesize)
+          streamon[j] = 0;
+      }
+
+      /* increment the period counter */
+      count++;
+      /* scale the output */
+      output[vecpos] = sig*amp;
+    }
+
+    p->firststream = firststream;
+    p->numstreams = numstreams;
+    p->count = count;
+    p->start = start;
+    p->frac = frac;
+    p->trigger = trigger;
+    p->read1 = read1;
+    p->read2 = read2;
+    p->pos = pos;
+    return OK;
+}
+
+
+
 static OENTRY localops[] = {
 {"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",
  (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process },
 {"syncloop", sizeof(syncgrainloop), 5, "a", "kkkkkkkiiioo",
-                            (SUBR)syncgrainloop_init, NULL,(SUBR)syncgrainloop_process }
+ (SUBR)syncgrainloop_init, NULL,(SUBR)syncgrainloop_process },
+{"diskgrain", sizeof(filegrain), 5, "a", "Skkkkkiipo",
+                            (SUBR)filegrain_init, NULL,(SUBR)filegrain_process }
 
 };
 

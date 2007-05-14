@@ -110,6 +110,130 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     return OK;
 }
 
+typedef struct _pvsdiskin {
+  OPDS h;
+  PVSDAT *fout;
+  MYFLT  *file;
+  MYFLT  *kspeed;
+  MYFLT  *kgain;
+  MYFLT *ioff;
+  MYFLT *ichn;
+  MYFLT  pos;
+  int oldpos;
+  int chans, chn;
+  int pvfile;
+  int scnt;
+  unsigned long  flen;
+  AUXCH buffer;
+} pvsdiskin;
+
+#define FSIGBUFRAMES 2
+
+static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
+{
+    int N;
+    WAVEFORMATEX fmt;
+    PVOCDATA   pvdata;
+    char *fname = csound->strarg2name(csound, NULL, p->file,
+                                      "pvoc.",p->XSTRCODE);
+   
+    if((p->pvfile  = csound->PVOC_OpenFile(csound, fname,
+					   &pvdata, &fmt)) < 0)
+      return csound->InitError(csound,
+                               Str("pvsdiskin: could not open file %s\n"),
+                               fname);
+
+    N = (pvdata.nAnalysisBins-1)*2;
+    p->chans = fmt.nChannels;  
+
+    if(p->fout->frame.auxp == NULL || 
+         p->fout->frame.size < sizeof(float) * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+
+    if(p->buffer.auxp == NULL || 
+         p->buffer.size < sizeof(float) * (N + 2) * FSIGBUFRAMES * p->chans)
+        csound->AuxAlloc(csound, 
+          (N + 2) * sizeof(float) * FSIGBUFRAMES * p->chans, 
+           &p->buffer);
+
+    p->flen = csound->PVOC_FrameCount(csound, p->pvfile) - 1;
+
+  
+    p->fout->N = N;
+    p->fout->overlap =  pvdata.dwOverlap;
+    p->fout->winsize = pvdata.dwWinlen;
+    switch ((pv_wtype) pvdata.wWindowType) {
+      case PVOC_DEFAULT:
+      case PVOC_HAMMING:
+        p->fout->wintype = PVS_WIN_HAMMING;
+        break;
+      case PVOC_HANN:
+        p->fout->wintype = PVS_WIN_HANN;
+        break;
+      case PVOC_KAISER:
+        p->fout->wintype = PVS_WIN_KAISER;
+        break;
+      default:
+        p->fout->wintype = PVS_WIN_HAMMING;
+        break;
+    }
+    p->fout->format = pvdata.wAnalFormat;
+    p->fout->framecount = 1;
+       p->scnt = p->fout->overlap;
+       p->pos = *p->ioff * csound->esr/N;
+       p->oldpos = -1;
+      
+       p->chn = (int) (*p->ichn <= p->chans ? *p->ichn : p->chans) -1;
+       if(p->chn < 0) p->chn = 0;
+    return OK;
+}
+
+  static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p){
+    int overlap = p->fout->overlap, frames, i, posi;
+    MYFLT pos = p->pos;
+    long N = p->fout->N;
+    MYFLT frac;
+    float *fout = (float *)  p->fout->frame.auxp;
+    float *buffer = (float *) p->buffer.auxp;
+    float *frame1 = buffer + (N+2)*p->chn;
+    float *frame2 = buffer + (N+2)*(p->chans + p->chn);
+    float amp = (float) (*p->kgain * csound->e0dbfs);
+    
+    
+    if(p->scnt >= overlap){
+      posi = (int) pos;
+      if(posi != p->oldpos) {
+	/* 
+           read new frame
+           PVOC_Rewind() is now PVOC_fseek() adapted to work
+           as fseek(), using the last argument as
+           offset
+	*/
+        while(pos >= p->flen) pos -= p->flen;
+        while(pos < 0) pos += p->flen;
+        csound->PVOC_fseek(csound,p->pvfile, pos);
+        frames = csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
+        p->oldpos = posi = (int)pos;
+       
+      }
+      // interpolate        
+      frac = pos - posi;
+      for(i=0; i < N+2; i+=2){
+        fout[i] = amp*(frame1[i] + frac*(frame2[i] - frame1[i]));
+        fout[i+1] =  frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
+      }
+      p->pos += (*p->kspeed * p->chans);
+      p->scnt -= overlap;
+      p->fout->framecount++;
+    }
+    p->scnt += csound->ksmps;
+
+    return OK;
+  }
+
+
+
+
 static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 {
     long    N = p->fin->N;
@@ -788,7 +912,9 @@ static OENTRY localops[] = {
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
      (SUBR) pvsmoothprocess, NULL},
 {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
- (SUBR) pvsoscprocess, NULL}
+ (SUBR) pvsoscprocess, NULL},
+    {"pvsdiskin", S(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
+     (SUBR) pvsdiskinproc, NULL}
     
 };
 
