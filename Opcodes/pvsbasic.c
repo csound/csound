@@ -118,8 +118,8 @@ typedef struct _pvsdiskin {
   MYFLT  *kgain;
   MYFLT *ioff;
   MYFLT *ichn;
-  MYFLT  pos;
-  int oldpos;
+  double  pos;
+  unsigned long oldpos;
   int chans, chn;
   int pvfile;
   int scnt;
@@ -190,7 +190,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
 
   static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p){
     int overlap = p->fout->overlap, frames, i, posi;
-    MYFLT pos = p->pos;
+    double pos = p->pos;
     long N = p->fout->N;
     MYFLT frac;
     float *fout = (float *)  p->fout->frame.auxp;
