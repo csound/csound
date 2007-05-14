@@ -473,7 +473,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
         incr = prate*grsize;
         start += incr;
         trigger += incr;
-        jump = grsize;//*(pitch > 0 ? pitch : -pitch);  
+        jump = grsize*(pitch > 0 ? pitch : -pitch);  
         if(incr >= 0) {
 	  if(trigger >= (datasize - jump)){
           trigger -= (datasize);
