@@ -955,7 +955,7 @@ CSOUND_FILETYPES;
     int (*PVOC_PutFrames)(CSOUND *, int, const float *, long);
     int (*PVOC_GetFrames)(CSOUND *, int, float *, unsigned long);
     int (*PVOC_FrameCount)(CSOUND *, int);
-    int (*PVOC_Rewind)(CSOUND *, int, int);
+    int (*PVOC_fseek)(CSOUND *, int, int);
     const char *(*PVOC_ErrorString)(CSOUND *);
     int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
     char *(*GetOpcodeName)(void *p);

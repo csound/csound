@@ -951,7 +951,7 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
     return (int) nframes;
 }
 
-int pvoc_rewind(CSOUND *csound, int ifd, int skip_first_frame)
+int pvoc_fseek(CSOUND *csound, int ifd, int offset)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     long      pos, skipframes, skipsize;
@@ -964,7 +964,9 @@ int pvoc_rewind(CSOUND *csound, int ifd, int skip_first_frame)
       csound->pvErrorCode = -37;
       return -1;
     }
-    skipframes = (skip_first_frame ? (long) p->fmtdata.nChannels : 0L);
+    if(offset == 1)
+    skipframes = (long) p->fmtdata.nChannels;
+    else skipframes = offset;
     skipsize = p->pvdata.dwFrameAlign * skipframes;
 
     pos = p->datachunkoffset + skipsize;
