@@ -212,64 +212,64 @@ Fl_Knob::~Fl_Knob(void)
 
 void Fl_Knob::draw(void)
 {
-  int ox,oy,ww,hh,side;
-  unsigned char rr,gg,bb;
+    int ox,oy,ww,hh,side;
+    unsigned char rr,gg,bb;
 
-  ox = x();
-  oy = y();
-  ww = w();
-  hh = h();
-  draw_label();
-  fl_clip(ox,oy,ww,hh);
-  if (ww > hh) {
-    side = hh;
-    ox = ox + (ww - side) / 2;
-  }
-  else {
-    side = ww;
-    oy = oy + (hh - side) / 2;
-  }
-  side = w() > h () ? hh:ww;
-  int dam = damage();
-  if (dam & FL_DAMAGE_ALL) {
-    int col = parent()->color();
-    fl_color(col);
-    fl_rectf(ox,oy,side,side);
-    Fl::get_color((Fl_Color)col,rr,gg,bb);
-    shadow(-60,rr,gg,bb);
-    fl_pie(ox+9,oy+9,side-12,side-12,0,360);
-    draw_scale(ox,oy,side);
-    col = color();
-    Fl::get_color((Fl_Color)col,rr,gg,bb);
-    shadow(15,rr,gg,bb);
-    fl_pie(ox+6,oy+6,side-12,side-12,40,80);
-    shadow(30,rr,gg,bb);
-    fl_pie(ox+6,oy+6,side-12,side-12,80,220);
-    shadow(-15,rr,gg,bb);
-    fl_pie(ox+6,oy+6,side-12,side-12,220,260);
-    shadow(-30,rr,gg,bb);
-    fl_pie(ox+6,oy+6,side-12,side-12,260,400);
-    fl_color(FL_BLACK);
-    fl_arc(ox+6,oy+6,side-11,side-11,0,360);
-    fl_color(col);
-    fl_pie(ox+10,oy+10,side-20,side-20,0,360);
-  }
-  else {
-    fl_color(color());
-    fl_pie(ox+10,oy+10,side-20,side-20,0,360);
-  }
-  Fl::get_color((Fl_Color)color(),rr,gg,bb);
-  shadow(10,rr,gg,bb);
-  fl_pie(ox+10,oy+10,side-20,side-20,110,150);
-  fl_pie(ox+10,oy+10,side-20,side-20,290,330);
-  shadow(17,rr,gg,bb);
-  fl_pie(ox+10,oy+10,side-20,side-20,120,140);
-  fl_pie(ox+10,oy+10,side-20,side-20,300,320);
-  shadow(25,rr,gg,bb);
-  fl_pie(ox+10,oy+10,side-20,side-20,127,133);
-  fl_pie(ox+10,oy+10,side-20,side-20,307,313);
-  draw_cursor(ox,oy,side);
-  fl_pop_clip();
+    ox = x();
+    oy = y();
+    ww = w();
+    hh = h();
+    draw_label();
+    fl_clip(ox,oy,ww,hh);
+    if (ww > hh) {
+      side = hh;
+      ox = ox + (ww - side) / 2;
+    }
+    else {
+      side = ww;
+      oy = oy + (hh - side) / 2;
+    }
+    side = w() > h () ? hh:ww;
+    int dam = damage();
+    if (dam & FL_DAMAGE_ALL) {
+      int col = parent()->color();
+      fl_color(col);
+      fl_rectf(ox,oy,side,side);
+      Fl::get_color((Fl_Color)col,rr,gg,bb);
+      shadow(-60,rr,gg,bb);
+      fl_pie(ox+9,oy+9,side-12,side-12,0,360);
+      draw_scale(ox,oy,side);
+      col = color();
+      Fl::get_color((Fl_Color)col,rr,gg,bb);
+      shadow(15,rr,gg,bb);
+      fl_pie(ox+6,oy+6,side-12,side-12,40,80);
+      shadow(30,rr,gg,bb);
+      fl_pie(ox+6,oy+6,side-12,side-12,80,220);
+      shadow(-15,rr,gg,bb);
+      fl_pie(ox+6,oy+6,side-12,side-12,220,260);
+      shadow(-30,rr,gg,bb);
+      fl_pie(ox+6,oy+6,side-12,side-12,260,400);
+      fl_color(FL_BLACK);
+      fl_arc(ox+6,oy+6,side-11,side-11,0,360);
+      fl_color(col);
+      fl_pie(ox+10,oy+10,side-20,side-20,0,360);
+    }
+    else {
+      fl_color(color());
+      fl_pie(ox+10,oy+10,side-20,side-20,0,360);
+    }
+    Fl::get_color((Fl_Color)color(),rr,gg,bb);
+    shadow(10,rr,gg,bb);
+    fl_pie(ox+10,oy+10,side-20,side-20,110,150);
+    fl_pie(ox+10,oy+10,side-20,side-20,290,330);
+    shadow(17,rr,gg,bb);
+    fl_pie(ox+10,oy+10,side-20,side-20,120,140);
+    fl_pie(ox+10,oy+10,side-20,side-20,300,320);
+    shadow(25,rr,gg,bb);
+    fl_pie(ox+10,oy+10,side-20,side-20,127,133);
+    fl_pie(ox+10,oy+10,side-20,side-20,307,313);
+    draw_cursor(ox,oy,side);
+    fl_pop_clip();
 }
 
 int Fl_Knob::handle(int  event)
@@ -603,15 +603,15 @@ Fl_Spin::Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char* l)
   : Fl_Valuator(x,y,w,h,l)
 {
     csound = cs;
-  soft_ = 0;
-  align(FL_ALIGN_LEFT);
-  ix=x;
-  iy=y;
-  drag=0;
-  ST(indrag)=0;
-  mouseobj = 0;
-  deltadir=0;
-  delta=0;
+    soft_ = 0;
+    align(FL_ALIGN_LEFT);
+    ix=x;
+    iy=y;
+    drag=0;
+    ST(indrag)=0;
+    mouseobj = 0;
+    deltadir=0;
+    delta=0;
 }
 
 // ---- IV - Aug 23 2002 ---- included file: Fl_Value_Input_Spin.cpp
@@ -688,8 +688,8 @@ void Fl_Value_Input_Spin::draw(void)
 
 void Fl_Value_Input_Spin::resize(int X, int Y, int W, int H)
 {
-  input.resize(X,Y,W,H);
-  Fl_Valuator::resize(X,Y,W,H);
+    input.resize(X,Y,W,H);
+    Fl_Valuator::resize(X,Y,W,H);
 }
 
 void Fl_Value_Input_Spin::value_damage(void)
@@ -1299,9 +1299,11 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       FLBUTTON *p = (FLBUTTON*) (opcode);
       //  don't allow to retreive its value if >= 10 or between 21 and 29
       if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
-        if(fld->value >= *p->ioff - .0001 && fld->value <= *p->ioff + .0001)  // to avoid eventual  math rounding
+        if(fld->value >= *p->ioff - 0.0001 &&
+           fld->value <= *p->ioff + 0.0001)  // to avoid eventual  math rounding
           ((Fl_Button*) o)->value(0);
-        else if (fld->value >= *p->ion - .0001 && fld->value <= *p->ion +.0001) // to avoid eventual math rounding
+        else if (fld->value >= *p->ion - 0.0001 &&
+                 fld->value <= *p->ion + 0.0001) // to avoid eventual math rounding
           ((Fl_Button*) o)->value(1);
         else 
           ((Fl_Button*) o)->value((int)fld->value);
@@ -1310,7 +1312,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK*) (opcode);
-      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {//  don't allow to retreive its value if >= 10
+      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+        //  don't allow to retreive its value if >= 10
         //((Fl_Group*) o)->value(fld->value);
         set_butbank_value((Fl_Group*) o, fld->value);
         //o->do_callback(o, opcode);
@@ -1321,7 +1324,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER*) (opcode);
-      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) { //  don't allow to retreive its value if >= 10
+      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+        //  don't allow to retreive its value if >= 10
         ((Fl_Counter*) o)->value(fld->value);
         o->do_callback(o, opcode);
       }
@@ -1441,9 +1445,11 @@ static int get_snap(CSOUND *csound, FLGETSNAP *p)
   int index = (int) *p->index;
   int group = (int) *p->group;
   if (!ST(snapshots)[group].empty()) {
-    if (index >= (int) ST(snapshots)[group].size()) index = ST(snapshots)[group].size()-1;
+    if (index >= (int) ST(snapshots)[group].size())
+      index = ST(snapshots)[group].size()-1;
     else if (index < 0) index=0;
-    if (ST(snapshots)[group][index].get(ST(AddrSetValue), (int) *p->group)!=OK) return NOTOK;
+    if (ST(snapshots)[group][index].get(ST(AddrSetValue), (int) *p->group)!=OK)
+      return NOTOK;
   }
   *p->inum_el = ST(snapshots).size();
   return OK;
@@ -1495,9 +1501,11 @@ static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
              <<" "<< f.min <<" "<< f.max <<" "<< f.min2 <<" "
              << f.max2<<" "<<f.exp<<" "<<f.exp2<<" \"" <<f.widg_name<<"\"\n";
       }
-      else if ( f.opcode_name == "FLslidBnk"  || f.opcode_name == "FLvslidBnk"
-                || f.opcode_name == "FLslidBnk2" || f.opcode_name == "FLvslidBnk2") {
-        file << f.opcode_name << " " << f.exp << " "; // EXCEPTIONAL CASE! fld.exp contains the number of sliders and not the exponential flag
+      else if (f.opcode_name == "FLslidBnk"  || f.opcode_name == "FLvslidBnk" ||
+               f.opcode_name == "FLslidBnk2" || f.opcode_name == "FLvslidBnk2") {
+        file << f.opcode_name << " " << f.exp
+             << " "; // EXCEPTIONAL CASE! fld.exp contains the
+                     //number of sliders and not the exponential flag
         for (int i=0; i < f.exp; i++) {
           file << f.get_sldbnk(i) << " ";
         }
@@ -1507,7 +1515,8 @@ static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
         const char *s = f.opcode_name.c_str();
         if (*s != '\0') {
           file <<f.opcode_name<<" "<< f.value 
-                <<" "<< f.min <<" "<< f.max <<" "<<f.exp<<" \"" <<f.widg_name<<"\"\n";
+               <<" "<< f.min <<" "<< f.max <<" "<<f.exp
+               <<" \"" <<f.widg_name<<"\"\n";
         }
       }
     }
@@ -4253,7 +4262,9 @@ static int FLxyin_set(CSOUND *csound, FLXYIN *p)
   case -1: // EXP
     p->expx = EXP_; 
     if (*p->ioutx_min == 0 || *p->ioutx_max==0)
-      return csound->InitError(csound, "FLxyin: none of X limits cannot be zero in exponential mode!");
+      return csound->InitError(csound,
+                               "FLxyin: none of X limits cannot be zero in"
+                               " exponential mode!");
     p->basex = pow((double) (*p->ioutx_max / *p->ioutx_min),(double) (1/p->rangex));
 
     break;
@@ -4298,65 +4309,65 @@ static int FLxyin_set(CSOUND *csound, FLXYIN *p)
 
 static int FLxyin(CSOUND *csound, FLXYIN *p)
 {
-  int windx_min = (int) *p->iwindx_min, windx_max = (int) *p->iwindx_max;
-  int windy_min = (int) *p->iwindy_min, windy_max = (int) *p->iwindy_max;
-  MYFLT outx_min = *p->ioutx_min, outy_min = *p->iouty_min;
+    int windx_min = (int)*p->iwindx_min, windx_max = (int)*p->iwindx_max;
+    int windy_min = (int)*p->iwindy_min, windy_max = (int)*p->iwindy_max;
+    MYFLT outx_min = *p->ioutx_min, outy_min = *p->iouty_min;
 
-  MYFLT x=Fl::event_x();
-  MYFLT y=Fl::event_y();
+    MYFLT x=Fl::event_x();
+    MYFLT y=Fl::event_y();
 
-  *p->kinside = 1;
+    *p->kinside = 1;
 
-  if (x< windx_min) { x = windx_min; *p->kinside = 0; }
-  else if (x > windx_max) { x = windx_max; *p->kinside = 0; }
+    if (x< windx_min) { x = windx_min; *p->kinside = 0; }
+    else if (x > windx_max) { x = windx_max; *p->kinside = 0; }
 
-  if (y< windy_min) { y = windy_min; *p->kinside = 0; }
-  else if (y > windy_max) { y = windy_max; *p->kinside = 0; }
+    if (y< windy_min) { y = windy_min; *p->kinside = 0; }
+    else if (y > windy_max) { y = windy_max; *p->kinside = 0; }
 
-  MYFLT xx = x - windx_min;
-  xx /= windx_max - windx_min;
+    MYFLT xx = x - windx_min;
+    xx /= windx_max - windx_min;
 
-  MYFLT yy = windy_max - y;
-  yy /= windy_max - windy_min;
+    MYFLT yy = windy_max - y;
+    yy /= windy_max - windy_min;
 
-  switch (p->expx) {
-  case LIN_:
-    *p->koutx = outx_min + xx *  p->rangex;
-    break;
-  case EXP_:
-    *p->koutx  = outx_min * pow (p->basex, xx * p->rangex) ;
-    break;
-  default: // TABLE
-    if (p->expx > 0) { //interpolated
-      MYFLT ndx = xx * (p->tablenx-1);
-      int index = (long) ndx;
-      MYFLT v1 = p->tablex[index];
-      *p->koutx = outx_min + ( v1 + (p->tablex[index+1] - v1) *
-                                (ndx - index)) * p->rangex;
+    switch (p->expx) {
+    case LIN_:
+      *p->koutx = outx_min + xx *  p->rangex;
+      break;
+    case EXP_:
+      *p->koutx  = outx_min * pow (p->basex, xx * p->rangex) ;
+      break;
+    default: // TABLE
+      if (p->expx > 0) { //interpolated
+        MYFLT ndx = xx * (p->tablenx-1);
+        int index = (long) ndx;
+        MYFLT v1 = p->tablex[index];
+        *p->koutx = outx_min + ( v1 + (p->tablex[index+1] - v1) *
+                                 (ndx - index)) * p->rangex;
+      }
+      else // non-interpolated
+        *p->koutx = outx_min + p->tablex[(int) (xx*p->tablenx)] * p->rangex;
     }
-    else // non-interpolated
-      *p->koutx = outx_min + p->tablex[(int) (xx*p->tablenx)] * p->rangex;
-  }
 
-  switch (p->expy) {
-  case LIN_:
-    *p->kouty = outy_min + yy *  p->rangey;
-    break;
-  case EXP_:
-    *p->kouty  = outy_min * pow (p->basey, yy * p->rangey) ;
-    break;
-  default: // TABLE
-    if (p->expy > 0) { //interpolated
-      MYFLT ndx = yy * (p->tableny-1);
-      int index = (long) ndx;
-      MYFLT v1 = p->tabley[index];
-      *p->kouty = outy_min + ( v1 + ( p->tabley[index+1] - v1) *
-                                (ndx - index)) * p->rangey;
+    switch (p->expy) {
+    case LIN_:
+      *p->kouty = outy_min + yy *  p->rangey;
+      break;
+    case EXP_:
+      *p->kouty  = outy_min * pow (p->basey, yy * p->rangey) ;
+      break;
+    default: // TABLE
+      if (p->expy > 0) { //interpolated
+        MYFLT ndx = yy * (p->tableny-1);
+        int index = (long) ndx;
+        MYFLT v1 = p->tabley[index];
+        *p->kouty = outy_min + ( v1 + ( p->tabley[index+1] - v1) *
+                                 (ndx - index)) * p->rangey;
+      }
+      else // non-interpolated
+        *p->kouty = outy_min + p->tabley[(int) (yy*p->tableny)] * p->rangey;
     }
-    else // non-interpolated
-      *p->kouty = outy_min + p->tabley[(int) (yy*p->tableny)] * p->rangey;
-  }
-  return OK;
+    return OK;
 }
 
 //   //FIXME: Should this be defined to 0dbfs?
