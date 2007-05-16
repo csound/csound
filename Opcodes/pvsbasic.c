@@ -136,29 +136,29 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     PVOCDATA   pvdata;
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
-   
+
     if((p->pvfile  = csound->PVOC_OpenFile(csound, fname,
-					   &pvdata, &fmt)) < 0)
+                                           &pvdata, &fmt)) < 0)
       return csound->InitError(csound,
                                Str("pvsdiskin: could not open file %s\n"),
                                fname);
 
     N = (pvdata.nAnalysisBins-1)*2;
-    p->chans = fmt.nChannels;  
+    p->chans = fmt.nChannels;
 
-    if(p->fout->frame.auxp == NULL || 
+    if(p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-    if(p->buffer.auxp == NULL || 
+    if(p->buffer.auxp == NULL ||
          p->buffer.size < sizeof(float) * (N + 2) * FSIGBUFRAMES * p->chans)
-        csound->AuxAlloc(csound, 
-          (N + 2) * sizeof(float) * FSIGBUFRAMES * p->chans, 
+        csound->AuxAlloc(csound,
+          (N + 2) * sizeof(float) * FSIGBUFRAMES * p->chans,
            &p->buffer);
 
     p->flen = csound->PVOC_FrameCount(csound, p->pvfile) - 1;
 
-  
+
     p->fout->N = N;
     p->fout->overlap =  pvdata.dwOverlap;
     p->fout->winsize = pvdata.dwWinlen;
@@ -182,7 +182,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
        p->scnt = p->fout->overlap;
        p->pos = *p->ioff * csound->esr/N;
        p->oldpos = -1;
-      
+
        p->chn = (int) (*p->ichn <= p->chans ? *p->ichn : p->chans) -1;
        if(p->chn < 0) p->chn = 0;
     return OK;
@@ -198,25 +198,25 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     float *frame1 = buffer + (N+2)*p->chn;
     float *frame2 = buffer + (N+2)*(p->chans + p->chn);
     float amp = (float) (*p->kgain * csound->e0dbfs);
-    
-    
+
+
     if(p->scnt >= overlap){
       posi = (int) pos;
       if(posi != p->oldpos) {
-	/* 
+        /*
            read new frame
            PVOC_Rewind() is now PVOC_fseek() adapted to work
            as fseek(), using the last argument as
            offset
-	*/
+        */
         while(pos >= p->flen) pos -= p->flen;
         while(pos < 0) pos += p->flen;
         csound->PVOC_fseek(csound,p->pvfile, pos);
         frames = csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
         p->oldpos = posi = (int)pos;
-       
+
       }
-      // interpolate        
+      /* interpolate */
       frac = pos - posi;
       for(i=0; i < N+2; i+=2){
         fout[i] = amp*(frame1[i] + frac*(frame2[i] - frame1[i]));
@@ -915,7 +915,7 @@ static OENTRY localops[] = {
  (SUBR) pvsoscprocess, NULL},
     {"pvsdiskin", S(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
      (SUBR) pvsdiskinproc, NULL}
-    
+
 };
 
 int pvsbasic_init_(CSOUND *csound)
