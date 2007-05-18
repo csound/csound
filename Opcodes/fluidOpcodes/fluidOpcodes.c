@@ -444,6 +444,7 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
   int   midiChannel   = (int) *(p->kMidiChannel);
   int   midiData1     = (int) *(p->kMidiData1);
   int   midiData2     = (int) *(p->kMidiData2);
+  int res =  -1;
 
   if (midiData2 != p->priorMidiData2 ||
       midiData1 != p->priorMidiData1 ||
@@ -455,17 +456,17 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
     switch (midiStatus) {
     case (int) 0x80:
     noteOff:
-      fluid_synth_noteoff(fluidEngine, midiChannel, midiData1);
+      res = fluid_synth_noteoff(fluidEngine, midiChannel, midiData1);
       if (printMsgs)
-        csound->Message(csound, "Note off:       c:%3d k:%3d\n",
+        csound->Message(csound, "result: %d \n Note off: c:%3d k:%3d\n",res,
                         midiChannel, midiData1);
       break;
     case (int) 0x90:
       if (!midiData2)
         goto noteOff;
-      fluid_synth_noteon(fluidEngine, midiChannel, midiData1, midiData2);
+      res = fluid_synth_noteon(fluidEngine, midiChannel, midiData1, midiData2);
       if (printMsgs)
-        csound->Message(csound, "Note on:        c:%3d k:%3d v:%3d\n",
+        csound->Message(csound, "result: %d \nNote on: c:%3d k:%3d v:%3d\n",res,
                         midiChannel, midiData1, midiData2);
       break;
     case (int) 0xA0:
@@ -475,15 +476,15 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
                         midiChannel, midiData1, midiData2);
       break;
     case (int) 0xB0:
-      fluid_synth_cc(fluidEngine, midiChannel, midiData1, midiData2);
+      res = fluid_synth_cc(fluidEngine, midiChannel, midiData1, midiData2);
       if (printMsgs)
-        csound->Message(csound, "Control change: c:%3d c:%3d v:%3d\n",
+        csound->Message(csound, "Result: %d Control change: c:%3d c:%3d v:%3d\n",res,
                         midiChannel, midiData1, midiData2);
       break;
     case (int) 0xC0:
-      fluid_synth_program_change(fluidEngine, midiChannel, midiData1);
+      res = fluid_synth_program_change(fluidEngine, midiChannel, midiData1);
       if (printMsgs)
-        csound->Message(csound, "Program change: c:%3d p:%3d\n",
+        csound->Message(csound, "Result: %d Program change: c:%3d p:%3d\n",res,
                         midiChannel, midiData1);
       break;
     case (int) 0xD0:
@@ -496,7 +497,7 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
         int pbVal = midiData1 + (midiData2 << 7);
         fluid_synth_pitch_bend(fluidEngine, midiChannel, pbVal);
         if (printMsgs)
-          csound->Message(csound, "Pitch bend:     c:%d b:%d\n",
+          csound->Message(csound, "Result: %d, Pitch bend:     c:%d b:%d\n", res,
                           midiChannel, pbVal);
       }
       break;
