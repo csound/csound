@@ -1,4 +1,7 @@
 
+2007-05-17  Andrés Cabrera  <andres@geminiflux.com>
+	* InOut/widgets.cpp, InOut/widgets.h: Added FlslidBnk2, FlvslidBnk, FlvslidBnk2, by Gabriel Maldonado
+
 2007-05-14  Andrés Cabrera  <andres@geminiflux.com>
 	* InOut/widgets.cpp, InOut/widgets.h, Opcodes/gab/hvs.c, Opcodes/gab/newgabopc.c, Opcodes/gab/sliderTable.c, Opcodes/gab/tabmorph.c: Added new opcodes from CsoundAV by Gabriel Maldonado: hvs1, hvs2, hvs3, vphaseseg, inrg, outrg, lposcila, lposcilsa, lposcilsa2, tabmorph, tabmorpha, tabmorphak, tabmorphi, trandom, vtable1k, slider8table, slider16table, slider32table, slider64table, slider8tablef, slider16tablef, slider32tablef, slider64tablef, sliderKawai and an a-rate version of ctrl7.
 	* Opcodes/gab/vectorial.c,Opcodes/gab/vectorial.c: Added new optional isize argument to vrandh and vrandi for more similarity with randh and randi

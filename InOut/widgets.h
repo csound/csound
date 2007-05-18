@@ -59,8 +59,15 @@ typedef struct	{
 
 typedef struct	{
 	OPDS	h;
-    MYFLT   *kout, *args[PMAX+1];
-} FLKEYB;
+	MYFLT  *names, *inumsliders, *ioutable, *iconfigtable, *iwidth, *iheight, *ix, *iy, *ioutablestart_ndx;
+	SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
+	long elements;
+} FLSLIDERBANK2;   //gab
+
+// typedef struct	{
+// 	OPDS	h;
+//     MYFLT   *kout, *args[PMAX+1];
+// } FLKEYB;
 
 typedef struct {
     OPDS    h;
