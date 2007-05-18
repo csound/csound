@@ -62,7 +62,7 @@ typedef struct {
                                                                         \
             if (*slnum > 127) {                                         \
                 sprintf(sbuf,                                           \
-                        Str("illegal control number at position n.%d"), \
+                        "illegal control number at position n.%d", \
                         j);                                             \
                 return csound->InitError(csound, sbuf);                 \
                 break;                                                  \
@@ -71,16 +71,16 @@ typedef struct {
             *max=*sld->imax;                                            \
             if (t !=0  && t != -1) {           /*table indexing */      \
               if (value >= 1 || value < 0) {                            \
-                sprintf(sbuf, Str("sliderXtable: illegal initvalue at " \
-                                  "position %d.  When using table "     \
-                                  "indexing, the init range is 0 to 1", j); \
+                sprintf(sbuf, "sliderXtable: illegal initvalue at " \
+                              "position %d.  When using table "     \
+                              "indexing, the init range is 0 to 1", j); \
                 return csound->InitError(csound, sbuf);                 \
                 break;                                                  \
               }                                                         \
             }                                                           \
             else if (value < *min || value > *max ) {                   \
               sprintf(sbuf,                                             \
-                      Str("illegal initvalue at position n.%d"), j);    \
+                      "illegal initvalue at position n.%d", j);    \
               return csound->InitError(csound, sbuf);                   \
               break;                                                    \
             }                                                           \
