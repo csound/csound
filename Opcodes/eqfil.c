@@ -29,7 +29,7 @@ typedef struct _equ {
   MYFLT *sig, *fr, *bw, *g, *ini;  /* in, freq, bw, gain, ini */
   double z1,z2;              /* delay memory */
   MYFLT frv, bwv;            /* bandwidth and frequency */
-  double c,d;                /* filter vars */  
+  double c,d;                /* filter vars */
 
 } equ;
 
