@@ -314,7 +314,7 @@ typedef struct {
 } INRANGE;
 
 /* extern       MYFLT   *spin, *spout; */
-/*extern    int spoutactive, PortaudioNumOfInPorts; /* gab default, = nchnls */
+/*extern    int spoutactive, PortaudioNumOfInPorts; // gab default, = nchnls */
 
 static int inRange_i(CSOUND *csound, INRANGE *p)
 {
@@ -697,7 +697,7 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) // stereo lposcinta
 
 static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 {    /* transposition is allowed only */
-     / *in integer values (twice, three times etc.) so it is faster */
+     /*in integer values (twice, three times etc.) so it is faster */
     long    *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
