@@ -42,7 +42,8 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
-      return csound->InitError(csound,"illegal reson iscl value, %f",*p->iscl);
+      return csound->InitError(csound,Str("illegal reson iscl value, %f"),
+                               *p->iscl);
     }
     p->prvcf = p->prvbw = -FL(100.0);
 
@@ -106,7 +107,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, "fastab: incorrect table number");
+      return csound->InitError(csound, Str("fastab: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->xmode = (int) *p->ixmode;
@@ -162,7 +163,7 @@ static int fastabi(CSOUND *csound, FASTAB *p)
     /*ftp = csound->FTFind(p->xfn); */
 
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, "tab_i: incorrect table number");
+      return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
       *p->rslt =  *(ftp->ftable + (int) (*p->xndx * ftp->flen));
@@ -176,7 +177,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, "tabw_i: incorrect table number");
+      return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
       *(ftp->ftable + (int) (*p->xndx * ftp->flen)) = *p->rslt;
@@ -278,7 +279,8 @@ static void printi(CSOUND *csound, PRINTI *p)
     char    *sarg;
 
     if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0)) {
-      csound->InitError(csound, "printi parameter was not a \"quoted string\"");
+      csound->InitError(csound, Str("printi parameter was not "
+                                    "a \"quoted string\""));
       return NOTOK;
     }
     else {
@@ -384,8 +386,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*csound->InitError(csound, Str("adsynt: wavetable not found!")); */
-      return csound->InitError(csound, "adsynt2: wavetable not found!");
+      return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
     }
 
     count = (int)*p->icnt;
@@ -398,14 +399,13 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*csound->InitError(csound, Str("adsynt: freqtable not found!")); */
-      return csound->InitError(csound, "adsynt: freqtable not found!");
+      return csound->InitError(csound, Str("adsynt2: freqtable not found!"));
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-/* csound->InitError(csound, Str(
-             "adsynt: partial count is greater than freqtable size!")); */
-      return csound->InitError(csound, "adsynt: partial count is greater than freqtable size!");
+      return csound->InitError(csound,
+                               Str("adsynt2: partial count is greater "
+                                   "than freqtable size!"));
     }
 
     if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
@@ -413,14 +413,13 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*       csound->InitError(csound, Str("adsynt: amptable not found!")); */
-      return csound->InitError(csound, "adsynt: amptable not found!");
+      return csound->InitError(csound, Str("adsynt2: amptable not found!"));
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-      /* csound->InitError(csound, Str(
-                   "adsynt: partial count is greater than amptable size!")); */
-      return csound->InitError(csound, "adsynt: partial count is greater than amptable size!");
+      return csound->InitError(csound,
+                               Str("adsynt2: partial count is greater "
+                                   "than amptable size!"));
     }
 
     if (p->lphs.auxp==NULL ||
@@ -458,8 +457,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     int     nsmps, count;
 
     if (p->inerr) {
-      /*csound->InitError(csound, Str("adsynt: not initialized")); */
-      return csound->InitError(csound, "adsynt: not initialized");
+      return csound->InitError(csound, Str("adsynt2: not initialized"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -546,7 +544,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
       if (*p->kfn != p->old_fn) {
         int flen;
         if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
-          return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
+          return csound->PerfError(csound, Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         *(p->table++) = *p->numtics;
         p->old_fn = *p->kfn;
@@ -600,7 +598,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
       if (*p->kfn != p->old_fn) {
         int flen;
         if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
-          return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
+          return csound->PerfError(csound, Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
         p->currtic = 0;
         p->ndx = 0;
@@ -622,7 +620,8 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
       int j, curr_frame = p->ndx * p->numouts;
       MYFLT *table = p->table;
       MYFLT **outargs = p->outargs;
-      if (curr_frame + p->numouts < p->tablen) { /* play only if ndx is inside table */
+      if (curr_frame + p->numouts < p->tablen) {
+        /* play only if ndx is inside table */
         /*for (j = p->ndx* p->numouts; j < end; j++) */
         /*      *outargs[j] = table[j]; */
 
@@ -708,7 +707,7 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       }
       break;
     default:
-      return csound->PerfError(csound, "max_k: invalid imaxflag value");
+      return csound->PerfError(csound, Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
       if (flag == 3) {
