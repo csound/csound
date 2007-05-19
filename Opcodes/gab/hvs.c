@@ -1,31 +1,27 @@
-//  Copyright (C) 2007 Gabriel Maldonado
-//
-//  Csound is free software; you can redistribute it
-//  and/or modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License, or (at your option) any later version.
-//
-//  Csound is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with Csound; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+/*  Copyright (C) 2007 Gabriel Maldonado
+
+  Csound is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
 
 #include "csdl.h"
 
 
 /* -------------------------------------------------------------------- */
 
-//#include "cs.h"
-//#include "hvs.h"
-
-
-
-/* 
+/*
 The iConfigTab is made up of the following parameters:
 f #  time size -2  inactive_flag1 inactive_flag2 ... inactiveflagN
 a 1 value means that corresponding parameter is left unchanged by the HVS opcode
@@ -54,7 +50,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kx,  *inumParms, *inumPointsX, *iOutTab, *iPositionsTab,
                 *iSnapTab, *iConfigTab;
-        MYFLT   *outTable, *posTable, *snapTable, *confTable; 
+        MYFLT   *outTable, *posTable, *snapTable, *confTable;
         int iconfFlag;
 } HVS1;
 
@@ -62,20 +58,20 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
-    if (*p->inumPointsX < 2 ) 
+    if (*p->inumPointsX < 2 )
       return csound->InitError(csound, Str("hvs1: a line segment must be "
                                            "delimited by 2 points at least"));
 
-    if(*p->iConfigTab == 0) 
+    if(*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL) 
+      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
         p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -114,7 +110,7 @@ static int hvs1(CSOUND *csound, HVS1 *p)
         default:        // special table=shaped interpolations
           ;       // to be implemented...
         }
-                        
+
       }
     }
     else {
@@ -134,7 +130,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kx, *ky, *inumParms, *inumlinesX, *inumlinesY,
                 *iOutTab, *iPositionsTab, *iSnapTab, *iConfigTab;
-        MYFLT   *outTable, *posTable, *snapTable, *confTable; 
+        MYFLT   *outTable, *posTable, *snapTable, *confTable;
         int iconfFlag;
 } HVS2;
 
@@ -144,17 +140,17 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
-    if (*p->inumlinesX < 2 || *p->inumlinesY < 2) 
+    if (*p->inumlinesX < 2 || *p->inumlinesY < 2)
       return csound->InitError(csound, Str("hvs2: a square area must be "
                                            "delimited by 2 lines at least"));
-        
-    if(*p->iConfigTab == 0) 
+
+    if(*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
       if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL) {
@@ -207,7 +203,7 @@ static int hvs2(CSOUND *csound, HVS2 *p)
           ;       // to be implemented...
         }
       }
-    }       
+    }
     else {
       for( j =0; j< noc; j++) {
         MYFLT val1 = p->snapTable[ndx1 * noc + j];
@@ -220,7 +216,7 @@ static int hvs2(CSOUND *csound, HVS2 *p)
         p->outTable[j] = valu;
       }
     }
-    
+
     return OK;
 }
 
@@ -231,7 +227,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kx, *ky, *kz, *inumParms, *inumlinesX, *inumlinesY,
                 *inumlinesZ, *iOutTab, *iPositionsTab, *iSnapTab, *iConfigTab;
-        MYFLT   *outTable, *posTable, *snapTable, *confTable; 
+        MYFLT   *outTable, *posTable, *snapTable, *confTable;
         int iconfFlag;
 } HVS3;
 
@@ -240,21 +236,21 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iOutTab)) != NULL)
       p->outTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iPositionsTab)) != NULL)
       p->posTable = ftp->ftable;
-    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL) 
+    if ((ftp = csound->FTFind(csound, p->iSnapTab)) != NULL)
       p->snapTable = ftp->ftable;
-    if (*p->inumlinesX < 2 || *p->inumlinesY < 2) 
+    if (*p->inumlinesX < 2 || *p->inumlinesY < 2)
       return csound->InitError(csound, Str("hvs3: a square area must be "
                                            "delimited by 2 lines at least"));
 
 
-    if(*p->iConfigTab == 0) 
+    if(*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL) 
+      if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
         p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -284,7 +280,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
     int ndx2 = (int) p->posTable[posX+1 + posY     * linesX + posZ * linesXY];
     int ndx3 = (int) p->posTable[posX   + (posY+1) * linesX + posZ * linesXY];
     int ndx4 = (int) p->posTable[posX+1 + (posY+1) * linesX + posZ * linesXY];
-    
+
     int ndx5 = (int) p->posTable[posX   + posY     * linesX + (posZ+1) * linesXY];
     int ndx6 = (int) p->posTable[posX+1 + posY     * linesX + (posZ+1) * linesXY];
     int ndx7 = (int) p->posTable[posX   + (posY+1) * linesX + (posZ+1) * linesXY];
@@ -308,7 +304,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
             MYFLT   valX2 = (1 - fracX) * val3 + fracX * val4;
             MYFLT   valY1 = (1 - fracY) * valX1 + fracY * valX2;
             MYFLT   valY2, valu;
-                                        
+
             val1 = p->snapTable[ndx5 * noc + j];
             val2 = p->snapTable[ndx6 * noc + j];
             val3 = p->snapTable[ndx7 * noc + j];
@@ -316,9 +312,9 @@ static int hvs3(CSOUND *csound, HVS3 *p)
             valX1 = (1 - fracX) * val1 + fracX * val2;
             valX2 = (1 - fracX) * val3 + fracX * val4;
             valY2 = (1 - fracY) * valX1 + fracY * valX2;
-                                        
+
             valu = (1-fracZ) * valY1 + fracZ * valY2;
-                                        
+
             p->outTable[j] = valu;
           }
           break;
@@ -326,7 +322,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
           ;               // to be implemented...
         }
       }
-    }       
+    }
     else {
       for( j =0; j< noc; j++) {
         MYFLT   val1 = p->snapTable[ndx1 * noc + j];
@@ -337,7 +333,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
         MYFLT   valX2 = (1 - fracX) * val3 + fracX * val4;
         MYFLT   valY1 = (1 - fracY) * valX1 + fracY * valX2;
         MYFLT   valY2, valu;
-                        
+
         val1 = p->snapTable[ndx5 * noc + j];
         val2 = p->snapTable[ndx6 * noc + j];
         val3 = p->snapTable[ndx7 * noc + j];
@@ -345,9 +341,9 @@ static int hvs3(CSOUND *csound, HVS3 *p)
         valX1 = (1 - fracX) * val1 + fracX * val2;
         valX2 = (1 - fracX) * val3 + fracX * val4;
         valY2 = (1 - fracY) * valX1 + fracY * valX2;
-                        
+
         valu = (1-fracZ) * valY1 + fracZ * valY2;
-                        
+
         p->outTable[j] = valu;
       }
     }
@@ -369,7 +365,7 @@ typedef struct {
         int     elements;
         long    nsegs;
         AUXCH   auxch;
-} VPSEG; 
+} VPSEG;
 
 static int vphaseseg_set(CSOUND *csound, VPSEG *p)
 {
@@ -381,13 +377,13 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
     long        flength;
 
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
-        
+
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
       csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG2), &p->auxch);
       p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
-      //(segp+nsegs)->cnt = MAXPOS; 
-    } 
-    argp = p->argums; 
+      //(segp+nsegs)->cnt = MAXPOS;
+    }
+    argp = p->argums;
     if ((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL)
       return csound->InitError(csound,
                                Str("vphaseseg: the first function is "
@@ -400,19 +396,19 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
       return csound->InitError(csound, Str("vphaseseg: invalid num. of elements"));
     vector = p->vector;
     flength = p->elements;
-    
+
     do      *vector++ = FL(0.0);
     while (--flength);
 
     if (**argp <= 0.0)  return NOTOK;           /* if idur1 <= 0, skip init  */
     //p->cursegp = tempsegp =segp;              /* else proceed from 1st seg */
-    
+
     segp--;
-    do { 
+    do {
       segp++;                 /* init each seg ..  */
       curfunc = nxtfunc;
       dur = **argp++;
-      if ((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL) 
+      if ((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL)
         return csound->InitError(csound,
                                  Str("vphaseseg: function invalid or missing"));
       if (dur > 0.0f) {
@@ -420,26 +416,26 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
         segp->d = dur; //* ekr;
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
-        //segp->cnt = (long) (segp->d + .5); 
+        //segp->cnt = (long) (segp->d + .5);
       }
       else break;             /*  .. til 0 dur or done */
     } while (--nsegs);
     segp++;
-    
+
     segp->function =  nxtfunc;
     segp->nxtfunction = nxtfunc;
     nsegs = p->nsegs;
-        
+
     segp = p->cursegp;
-        
+
     for (j=0; j< nsegs; j++)
       segp[j].d /= durtot;
-        
+
     for (j=nsegs-1; j>= 0; j--)
       segp[j+1].d = segp[j].d;
-        
+
     segp[0].d = prevphs = 0.0;
-        
+
     for (j=0; j<= nsegs; j++) {
       segp[j].d += prevphs;
       prevphs = segp[j].d;
@@ -457,7 +453,7 @@ static int vphaseseg(CSOUND *csound, VPSEG *p)
 
     while (phase >= 1.0) phase -= 1.0;
     while (phase < 0.0) phase = 0.0;
-        
+
     for (j = 0; j < p->nsegs; j++) {
       TSEG2 *seg = &segp[j], *seg1 = &segp[j+1];
       if (phase < seg1->d) {
