@@ -189,7 +189,10 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
 
       *interpoint -= (int) *interpoint; /* to limit to zero to 1 range */
 
-      *out++ = val1 * (1 - *interpoint) + val2 * *interpoint++;
+      {
+        MYFLT tmp =*out++ = val1 * (1 - *interpoint);
+        *out++ = tmp + val2 * *interpoint++;
+      }
     } while (--nsmps);
     return OK;
 }
