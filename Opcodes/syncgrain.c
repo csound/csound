@@ -384,10 +384,12 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
    /* open file and read the first block using *p->ioff */
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &p->sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0); 
+    
     if(fd == NULL){
      csound->InitError(csound, "diskgrain: could not open file\n");
      return NOTOK;
-    }   
+    } 
+
     if(p->sfinfo.channels != 1){
      csound->InitError(csound, "diskgrain: soundfile is not mono \n");
      return NOTOK;
@@ -592,7 +594,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
                  (envindex[j] - (int)envindex[j])*
                  (ftable[(int)envindex[j]+1] - ftable[(int)envindex[j]])
                  )
-		 )* amp;
+		 );
 	
     
         /* increment the indexes */
