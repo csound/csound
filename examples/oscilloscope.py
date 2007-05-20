@@ -15,15 +15,21 @@ time_interval = 0.2
 norm = 32768.0
 
 # display callback
-def callb(data):
+class Disp:
+
+ def callb(self, dummy):
     sig = array.array('f')
-    cs  = data[0]
-    disp = data[1]
-    chn = data[2]
+    cs  = self.data[0]
+    disp = self.data[1]
+    chn = self.data[2]
     cs.ChanOAGet(chn.cast(), 1)
     for i in range(0,cs.GetKsmps()):
       sig.append(chn[i]/norm)
     disp.draw(sig,time_interval*cs.GetSr())
+
+ def __init__(self,data):
+      self.data = data
+
 
 # create & compile instance
 cs = csnd.Csound()
@@ -39,9 +45,10 @@ disp = display.Oscilloscope(master, window_size, perf.Stop, "green", "black")
 # samples array
 chn = csnd.floatArray(cs.GetKsmps())
 dat = (cs,disp,chn)
+tes = Disp(dat)
 
 # set the callback
-perf.SetProcessCallback(callb, dat)
+perf.SetProcessCallback(tes.callb, None)
 
 # play
 perf.Play()
