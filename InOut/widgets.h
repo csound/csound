@@ -518,6 +518,37 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
 
 typedef struct {
 	OPDS	h;
+	MYFLT *ihandle;
+} FLSLDBNK_GETHANDLE; //gab
+
+typedef struct {
+	OPDS	h;
+	MYFLT *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+	//int oldx, oly;
+} FLSLDBNK_SET;  //gab
+
+typedef struct {
+	OPDS	h;
+	MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+	MYFLT oldValues[MAXSLIDERBANK];
+	int numslid, startind, startslid;
+	FLSLIDERBANK2 *q;
+	MYFLT *table, *outable;
+	//int oldx, oly;
+} FLSLDBNK2_SETK;
+
+typedef struct {
+	OPDS	h;
+	MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+	MYFLT oldValues[MAXSLIDERBANK];
+	int numslid, startind, startslid;
+	FLSLIDERBANK *q;
+	MYFLT *table, *outable;
+	//int oldx, oly;
+} FLSLDBNK_SETK;
+
+typedef struct {
+	OPDS	h;
 	MYFLT 	*koutx, *kouty, *kinside; //outs
 	MYFLT	*ioutx_min, *ioutx_max, *iouty_min, *iouty_max, 
 		    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max, 
@@ -529,10 +560,9 @@ typedef struct {
 	//int	pspace;
 } FLXYIN; //gab
 
-// Parts below are commented out because thay have not yet been implemented
 typedef struct	{
 	OPDS	h;
-	//MYFLT *ktrig, *kvalue, *ihandle;
+// 	MYFLT *ktrig, *kvalue, *ihandle;
 	MYFLT *chan, *cc, *ihandle;
 	int	ccVal, oldCCval;
 	MYFLT log_base, min, max, range;

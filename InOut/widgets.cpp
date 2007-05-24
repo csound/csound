@@ -1112,26 +1112,26 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         fld->set_sldbnk(j, val);
       }
     }
-//     else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
-//       FLSLIDERBANK2 *p = (FLSLIDERBANK2 *) (v.opcode);
-//       fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
-//       int numsliders = (int) *p->inumsliders;
-//       fld->sldbnk = p->slider_data;
-//       fld->exp = numsliders; // EXCEPTIONAL CASE! fld->exp contains the number of sliders and not the exponential flag
-//       for (int j =0; j < numsliders; j++) {
-//         switch (fld->sldbnk[j].exp) {
-//           case LIN_: case EXP_:
-//             val = *fld->sldbnk[j].out;
-//             min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
-//             if (val < min) val = min;
-//             if (val > max) val = max;
-//             break;
-//           default:
-//             val = ((Fl_Valuator *)((Fl_Group*)v.WidgAddress)->child(j))->value();
-//         }
-//         fld->set_sldbnk(j, val);
-//       }
-//     }
+    else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
+      FLSLIDERBANK2 *p = (FLSLIDERBANK2 *) (v.opcode);
+      fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
+      int numsliders = (int) *p->inumsliders;
+      fld->sldbnk = p->slider_data;
+      fld->exp = numsliders; // EXCEPTIONAL CASE! fld->exp contains the number of sliders and not the exponential flag
+      for (int j =0; j < numsliders; j++) {
+        switch (fld->sldbnk[j].exp) {
+          case LIN_: case EXP_:
+            val = *fld->sldbnk[j].out;
+            min = fld->sldbnk[j].min; max = fld->sldbnk[j].max;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            break;
+          default:
+            val = ((Fl_Valuator *) ((Fl_Group*) v.WidgAddress)->child(j))->value();
+        }
+        fld->set_sldbnk(j, val);
+      }
+    }
     else if (opcode_name == "FLknob") {
       FLKNOB *p = (FLKNOB *) (v.opcode);
       fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
@@ -1250,14 +1250,14 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
   int j,k;
   int siz =valuators.size();
   for (j = 0, k = 0; j< siz && k < siz; j++, k++) {
-//     int grp = valuators[k].group;
+//     int grp = valuators[k].group; //Not used
     while (valuators[k].group != snapGroup) {
       k++;
       if (k >= (int) valuators.size()) goto end_func;
     }
     Fl_Widget* o = (Fl_Widget*) (valuators[k].WidgAddress);
     void *opcode = valuators[k].opcode;
-//     CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound);
+//     CSOUND *csound = (CSOUND*) (((OPDS*) opcode)->insdshead->csound); //Not used
     VALUATOR_FIELD* fld = &fields[j];
     string opcode_name = fld->opcode_name;
 
@@ -1359,29 +1359,29 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
                                      (void *) &(p->slider_data[j]));
       }
     }
-//     else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
-//       FLSLIDERBANK2 *p = (FLSLIDERBANK2*) (opcode);
-//       int numsliders = (int) *p->inumsliders;
-//       Fl_Group * grup = (Fl_Group *) o;
-//       for (int j =0; j < numsliders; j++) {
-//         MYFLT val = fld->get_sldbnk(j);
-//         switch (p->slider_data[j].exp) {
-//         case LIN_:
-//           ((Fl_Valuator *) grup->child(j))->value(val);
-//           break;
-//         case EXP_:
-//           range  = p->slider_data[j].max - p->slider_data[j].min;
-//           base = pow(p->slider_data[j].max / p->slider_data[j].min, 1/range);
-//           ((Fl_Valuator*) grup->child(j))->value(log(val/p->slider_data[j].min) / log(base)) ;
-//           break;
-//         default:// TABLE the value must be in the 0 to 1 range...
-//           val = (val - fld->min ) / (fld->max - fld->min);
-//           ((Fl_Valuator *) grup->child(j))->value(val);
-//           break;
-//         }
-//         grup->child(j)->do_callback( grup->child(j), (void *) &(p->slider_data[j]));
-//       }
-//     }
+    else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
+      FLSLIDERBANK2 *p = (FLSLIDERBANK2*) (opcode);
+      int numsliders = (int) *p->inumsliders;
+      Fl_Group * grup = (Fl_Group *) o;
+      for (int j =0; j < numsliders; j++) {
+        MYFLT val = fld->get_sldbnk(j);
+        switch (p->slider_data[j].exp) {
+        case LIN_:
+          ((Fl_Valuator *) grup->child(j))->value(val);
+          break;
+        case EXP_:
+          range  = p->slider_data[j].max - p->slider_data[j].min;
+          base = pow(p->slider_data[j].max / p->slider_data[j].min, 1/range);
+          ((Fl_Valuator*) grup->child(j))->value(log(val/p->slider_data[j].min) / log(base)) ;
+          break;
+        default:// TABLE the value must be in the 0 to 1 range...
+          val = (val - fld->min ) / (fld->max - fld->min);
+          ((Fl_Valuator *) grup->child(j))->value(val);
+          break;
+        }
+        grup->child(j)->do_callback( grup->child(j), (void *) &(p->slider_data[j])); 
+      }
+    }
     else {
       switch(fld->exp) {
       case LIN_:
@@ -1411,7 +1411,7 @@ extern "C" {
 
 static int set_snap(CSOUND *csound, FLSETSNAP *p)
 {
-  SNAPSHOT snap(ST(AddrSetValue));
+  SNAPSHOT snap(ST(AddrSetValue), (int) *p->group );
   int numfields = snap.fields.size();
   int index = (int) *p->index;
   int group = (int) *p->group;
@@ -1454,7 +1454,7 @@ static int get_snap(CSOUND *csound, FLGETSNAP *p)
     if (ST(snapshots)[group][index].get(ST(AddrSetValue), (int) *p->group)!=OK)
       return NOTOK;
   }
-  *p->inum_el = ST(snapshots).size();
+  *p->inum_el = ST(snapshots)[group].size();
   return OK;
 }
 
@@ -4796,294 +4796,291 @@ static int fl_mouse(CSOUND *csound,FLMOUSE *p)
     return OK;
   }
 
-//   static int fl_slider_bank_getHandle(CSOUND *csound, FLSLDBNK_GETHANDLE *p) //valid only if called immediately after FLslidBnk
-//   {
-//     *p->ihandle = ST(last_sldbnk);
-//     return OK;
-//   }
+  static int fl_slider_bank_getHandle(CSOUND *csound, FLSLDBNK_GETHANDLE *p) //valid only if called immediately after FLslidBnk
+  {
+    *p->ihandle = ST(last_sldbnk); 
+    return OK;
+  }
 
-//   static int fl_slider_bank_setVal(CSOUND *csound, FLSLDBNK_SET *p)
-//   {
-//     FUNC* ftp;
-//     MYFLT *table, *outable;
-//     int numslid = *p->numSlid;
-//     int startInd = *p->startInd;
-//     int startSlid = *p->startSlid;
-//
-//     if((ftp = csound->FTFind(csound, p->ifn)) != NULL) table = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSet: invalid table number");
-//     }
-//      // *startInd, *startSlid, *numSlid
-//     if ( ftp->flen < startInd + numslid) {
-//       return csound->InitError(csound, "FLslidBnkSet: table too short!");
-//     }
-//     FLSLIDERBANK *q = (FLSLIDERBANK *)ST(AddrSetValue)[ (int) *p->ihandle].opcode;
-//
-//     if((ftp = csound->FTFind(csound, q->ioutable)) != NULL) outable = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSet: invalid outable number");
-//     }
-//
-//     if (numslid == 0) numslid = q->elements - *p->startSlid;
-//     if ( q->elements > startSlid + numslid) {
-//       return csound->InitError(csound, "FLslidBnkSet: too many sliders to reset!");
-//     }
-//
-//     for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
-//
-//       MYFLT val = 0;
-//       MYFLT base = q->slider_data[j].base;
-//       int iexp = q->slider_data[j].exp;
-//       MYFLT min = q->slider_data[j].min;
-//       MYFLT max = q->slider_data[j].max;
-//       switch (iexp) {
-//       case LIN_: //linear
-//         val = table[k];
-//         if (val > max) val = max;
-//         else if (val < min) val = min;
-//         break;
-//       case EXP_ : //exponential
-//         {
-//           MYFLT range = max - min;
-//           MYFLT base2 = pow(max / min, 1/range);
-//           val = (log(table[k]/min) / log(base2)) ;
-//         }
-//         break;
-//       default:
-//         return csound->InitError(csound, "FLslidBnkSet: function mapping not available");
-//       }
-//
-//       FLlock();
-//       ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
-//       FLunlock();
-//       outable[j] = table[k];
-//     }
-//     return OK;
-//   }
+  static int fl_slider_bank_setVal(CSOUND *csound, FLSLDBNK_SET *p)
+  {
+    FUNC* ftp;
+    MYFLT *table, *outable;
+    int numslid = *p->numSlid;
+    int startInd = *p->startInd;
+    int startSlid = *p->startSlid;
 
-//   static int fl_slider_bank2_setVal(CSOUND *csound, FLSLDBNK_SET *p)
-//   {
-//     FUNC* ftp;
-//     MYFLT *table, *outable;
-//     int numslid = *p->numSlid;
-//     int startInd = *p->startInd;
-//     int startSlid = *p->startSlid;
-//
-//     if((ftp = csound->FTFind(csound, p->ifn)) != NULL) table = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSet: invalid table number");
-//     }
-//      // *startInd, *startSlid, *numSlid
-//     if ( ftp->flen < startInd + numslid) {
-//       return csound->InitError(csound,  "FLslidBnkSet: table too short!");
-//     }
-//     FLSLIDERBANK2 *q = (FLSLIDERBANK2 *)ST(AddrSetValue)[ (int) *p->ihandle].opcode;
-//
-//     if((ftp = csound->FTFind(csound, q->ioutable)) != NULL) outable = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSet: invalid outable number");
-//     }
-//
-//     if (numslid == 0) numslid = q->elements - *p->startSlid;
-//     if ( q->elements > startSlid + numslid) {
-//       return csound->InitError(csound,"FLslidBnkSet: too many sliders to reset!");
-//     }
-//
-//     for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
-//
-//       MYFLT val = 0;
-//       MYFLT base = q->slider_data[j].base;
-//       int iexp = q->slider_data[j].exp;
-//       MYFLT min = q->slider_data[j].min;
-//       MYFLT max = q->slider_data[j].max;
-//       switch (iexp) {
-//       case LIN_: //linear
-//         val = table[k];
-//         if (val > max) val = max;
-//         else if (val < min) val = min;
-//         break;
-//       case EXP_ : //exponential
-//         {
-//           MYFLT range = max - min;
-//           MYFLT base2 = pow(max / min, 1/range);
-//           val = (log(table[k]/min) / log(base2));
-//         }
-//         break;
-//       default:  // table
-//         {
-//                              //      val = table[k];
-//           if (val < 0 || val > 1) { // input range must be 0 to 1
-//             csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
-//           }
-//         }
-//                      //{
-//                      //      initerror("FLslidBnkSet: function mapping not available");
-//                      //      return;
-//                      //}
-//       }
-//
-//       FLlock();
-//       ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
-//       FLunlock();
-//       outable[j] = table[k];
-//     }
-//     return OK;
-//   }
+    if((ftp = csound->FTFind(csound, p->ifn)) != NULL) table = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSet: invalid table number");  
+    }
+	// *startInd, *startSlid, *numSlid
+    if ( ftp->flen < startInd + numslid) {
+      return csound->InitError(csound, "FLslidBnkSet: table too short!");
+    }
+    FLSLIDERBANK *q = (FLSLIDERBANK *)ST(AddrSetValue)[ (int) *p->ihandle].opcode;
 
-//   static int fl_slider_bank2_setVal_k_set(CSOUND *csound, FLSLDBNK2_SETK *p)
-//   {
-//     FUNC* ftp;
-//
-//     p->numslid = *p->numSlid;
-//     p->startind = *p->startInd;
-//     p->startslid = *p->startSlid;
-//
-//     if((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->table = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSetk: invalid table number");
-//     }
-//      // *startInd, *startSlid, *numSlid
-//     if ( ftp->flen < p->startind + p->numslid) {
-//       return csound->InitError(csound, "FLslidBnkSetk: table too short!");
-//     }
-//     p->q = (FLSLIDERBANK2 *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
-//
-//     if((ftp = csound->FTFind(csound, p->q->ioutable)) != NULL) p->outable = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSetk: invalid outable number");
-//     }
-//
-//     if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
-//     if ( p->q->elements < p->startslid + p->numslid) {
-//       return csound->InitError(csound,  "FLslidBnkSetk: too many sliders to reset!");
-//     }
-//     return OK;
-//   }
+    if((ftp = csound->FTFind(csound, q->ioutable)) != NULL) outable = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSet: invalid outable number");  
+    }
+    if (numslid == 0) numslid = q->elements - *p->startSlid;
+    if ( q->elements > startSlid + numslid) {
+      return csound->InitError(csound, "FLslidBnkSet: too many sliders to reset!");
+    }
+    for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
 
+      MYFLT val = 0;
+      MYFLT base = q->slider_data[j].base;
+      int iexp = q->slider_data[j].exp;
+      MYFLT min = q->slider_data[j].min;
+      MYFLT max = q->slider_data[j].max;
+      switch (iexp) {
+      case LIN_: //linear
+        val = table[k];
+        if (val > max) val = max;
+        else if (val < min) val = min;
+        break;
+      case EXP_ : //exponential
+        {
+          MYFLT range = max - min;
+          MYFLT base2 = pow(max / min, 1/range);
+          val = (log(table[k]/min) / log(base2)) ;
+        }
+        break;
+      default: 
+        return csound->InitError(csound, "FLslidBnkSet: function mapping not available");
+      }
 
-
-//   static int fl_slider_bank2_setVal_k(CSOUND *csound, FLSLDBNK2_SETK *p)
-//   {
-//     if(*p->kflag) {
-//       FLSLIDERBANK2 *q = p->q;
-//       MYFLT *table=p->table;
-//       for (int j = p->startslid, k = p->startind; j< p->numslid + p->startslid; j++, k++) {
-//
-//         MYFLT val = 0;
-//         MYFLT base= q->slider_data[j].base;
-//         int iexp =  q->slider_data[j].exp;
-//         MYFLT min = q->slider_data[j].min;
-//         MYFLT max = q->slider_data[j].max;
-//         switch (iexp) {
-//         case LIN_: //linear
-//           val = table[k];
-//           if (val > max) val = max;
-//           else if (val < min) val = min;
-//           break;
-//         case EXP_ : //exponential
-//           {
-//             MYFLT range = max - min;
-//             MYFLT base2 = pow(max / min, 1/range);
-//             val = (log(table[k]/min) / log(base2));
-//           }
-//           break;
-//         default: // table
-//           {
-//             val = table[k];
-//             if (val < 0 || val > 1) { // input range must be 0 to 1
-//               csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
-//             }
-//           }
-//         }
-//         if (val != p->oldValues[j]) {
-//           FLlock();
-//           ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
-//           ((Fl_Slider*) (q->slider_data[j].widget_addr))->do_callback();
-//           FLunlock();
-//           p->oldValues[j] = val;
-//         }
-//       }
-//     }
-//     return OK;
-//   }
-
-//   static int fl_slider_bank_setVal_k_set(CSOUND *csound, FLSLDBNK_SETK *p)
-//   {
-//     FUNC* ftp;
-//
-//     p->numslid = *p->numSlid;
-//     p->startind = *p->startInd;
-//     p->startslid = *p->startSlid;
-//
-//     if((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->table = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSetk: invalid table number");
-//     }
-//      // *startInd, *startSlid, *numSlid
-//     if ( ftp->flen < p->startind + p->numslid) {
-//       return csound->InitError(csound, "FLslidBnkSetk: table too short!");
-//     }
-//     p->q = (FLSLIDERBANK *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
-//
-//     if((ftp = csound->FTFind(csound, p->q->ioutable)) != NULL) p->outable = ftp->ftable;
-//     else {
-//       return csound->InitError(csound, "FLsldBnkSetk: invalid outable number");
-//     }
-//
-//     if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
-//     if ( p->q->elements < p->startslid + p->numslid) {
-//       return csound->InitError(csound,  "FLslidBnkSetk: too many sliders to reset!");
-//     }
-//     return OK;
-//   }
-
-
-
-//   static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)
-//   {
-//     if(*p->kflag) {
-//       FLSLIDERBANK *q = p->q;
-//       MYFLT *table=p->table;
-//       for (int j = p->startslid, k = p->startind; j< p->numslid + p->startslid; j++, k++) {
-//
-//         MYFLT val = 0;
-//         MYFLT base= q->slider_data[j].base;
-//         int iexp =  q->slider_data[j].exp;
-//         MYFLT min = q->slider_data[j].min;
-//         MYFLT max = q->slider_data[j].max;
-//         switch (iexp) {
-//         case LIN_: //linear
-//           val = table[k];
-//           if (val > max) val = max;
-//           else if (val < min) val = min;
-//           break;
-//         case EXP_ : //exponential
-//           {
-//             MYFLT range = max - min;
-//             MYFLT base2 = pow(max / min, 1/range);
-//             val = (log(table[k]/min) / log(base2));
-//           }
-//           break;
-//         default: // table
-//           {
-//             val = table[k];
-//             if (val < 0 || val > 1) { // input range must be 0 to 1
-//               csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
-//             }
-//           }
-//         }
-//         if (val != p->oldValues[j]) {
-//           FLlock();
-//           ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
-//           ((Fl_Slider*) (q->slider_data[j].widget_addr))->do_callback();
-//           FLunlock();
-//           p->oldValues[j] = val;
-//         }
-//       }
-//     }
-//     return OK;
-//   }
+      FLlock();
+      ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
+      FLunlock();
+      outable[j] = table[k];
+    }
+    return OK;
+  }
+  
+  static int fl_slider_bank2_setVal(CSOUND *csound, FLSLDBNK_SET *p)
+  {
+    FUNC* ftp;
+    MYFLT *table, *outable;
+    int numslid = *p->numSlid;
+    int startInd = *p->startInd;
+    int startSlid = *p->startSlid;
+    
+    if((ftp = csound->FTFind(csound, p->ifn)) != NULL) table = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSet: invalid table number");  
+    }
+	// *startInd, *startSlid, *numSlid
+    if ( ftp->flen < startInd + numslid) {
+      return csound->InitError(csound,  "FLslidBnkSet: table too short!");
+    }
+    FLSLIDERBANK2 *q = (FLSLIDERBANK2 *)ST(AddrSetValue)[ (int) *p->ihandle].opcode;
+    
+    if((ftp = csound->FTFind(csound, q->ioutable)) != NULL) outable = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSet: invalid outable number");  
+    }
+    
+    if (numslid == 0) numslid = q->elements - *p->startSlid;
+    if ( q->elements > startSlid + numslid) {
+      return csound->InitError(csound,"FLslidBnkSet: too many sliders to reset!");
+    }
+    
+    for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
+      
+      MYFLT val = 0;
+      MYFLT base = q->slider_data[j].base;
+      int iexp = q->slider_data[j].exp;
+      MYFLT min = q->slider_data[j].min;
+      MYFLT max = q->slider_data[j].max;
+      switch (iexp) {
+      case LIN_: //linear
+        val = table[k];
+        if (val > max) val = max;
+        else if (val < min) val = min;
+        break;
+      case EXP_ : //exponential
+        {
+          MYFLT range = max - min;
+          MYFLT base2 = pow(max / min, 1/range);
+          val = (log(table[k]/min) / log(base2));
+        }
+        break;
+      default:  // table
+        {
+				//	val = table[k];
+          if (val < 0 || val > 1) { // input range must be 0 to 1
+            csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
+          }
+        }
+			//{
+			//	initerror("FLslidBnkSet: function mapping not available");
+			//	return;
+			//}
+      }
+      
+      FLlock();
+      ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
+      FLunlock();
+      outable[j] = table[k];
+    }
+    return OK;
+  }
+  static int fl_slider_bank2_setVal_k_set(CSOUND *csound, FLSLDBNK2_SETK *p)  
+  {
+    FUNC* ftp;
+    
+    p->numslid = *p->numSlid;
+    p->startind = *p->startInd;
+    p->startslid = *p->startSlid;
+    
+    if((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->table = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSetk: invalid table number");  
+    }
+	// *startInd, *startSlid, *numSlid
+    if ( ftp->flen < p->startind + p->numslid) {
+      return csound->InitError(csound, "FLslidBnkSetk: table too short!");
+    }
+    p->q = (FLSLIDERBANK2 *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
+    
+    if((ftp = csound->FTFind(csound, p->q->ioutable)) != NULL) p->outable = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSetk: invalid outable number");  
+    }
+    
+    if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
+    if ( p->q->elements < p->startslid + p->numslid) {
+      return csound->InitError(csound,  "FLslidBnkSetk: too many sliders to reset!");
+    }
+    return OK;
+  }
+  
+  
+  
+  static int fl_slider_bank2_setVal_k(CSOUND *csound, FLSLDBNK2_SETK *p)  
+  {
+    if(*p->kflag) {
+      FLSLIDERBANK2 *q = p->q;
+      MYFLT *table=p->table;
+      for (int j = p->startslid, k = p->startind; j< p->numslid + p->startslid; j++, k++) {
+        
+        MYFLT val = 0;
+        MYFLT base= q->slider_data[j].base;
+        int iexp =  q->slider_data[j].exp;
+        MYFLT min = q->slider_data[j].min;
+        MYFLT max = q->slider_data[j].max;
+        switch (iexp) {
+        case LIN_: //linear
+          val = table[k];
+          if (val > max) val = max;
+          else if (val < min) val = min;
+          break;
+        case EXP_ : //exponential
+          {
+            MYFLT range = max - min;
+            MYFLT base2 = pow(max / min, 1/range);
+            val = (log(table[k]/min) / log(base2));
+          }
+          break;
+        default: // table
+          {
+            val = table[k];
+            if (val < 0 || val > 1) { // input range must be 0 to 1
+              csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
+            }
+          }
+        }
+        if (val != p->oldValues[j]) {
+          FLlock();
+          ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
+          ((Fl_Slider*) (q->slider_data[j].widget_addr))->do_callback();
+          FLunlock();
+          p->oldValues[j] = val;
+        }
+      }
+    }
+    return OK;
+  }
+  
+  static int fl_slider_bank_setVal_k_set(CSOUND *csound, FLSLDBNK_SETK *p)  
+  {
+    FUNC* ftp;
+    
+    p->numslid = *p->numSlid;
+    p->startind = *p->startInd;
+    p->startslid = *p->startSlid;
+    
+    if((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->table = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSetk: invalid table number");  
+    }
+	// *startInd, *startSlid, *numSlid
+    if ( ftp->flen < p->startind + p->numslid) {
+      return csound->InitError(csound, "FLslidBnkSetk: table too short!");
+    }
+    p->q = (FLSLIDERBANK *) ST(AddrSetValue)[ (int) *p->ihandle].opcode;
+    
+    if((ftp = csound->FTFind(csound, p->q->ioutable)) != NULL) p->outable = ftp->ftable; 
+    else {
+      return csound->InitError(csound, "FLsldBnkSetk: invalid outable number");  
+    }
+    
+    if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
+    if ( p->q->elements < p->startslid + p->numslid) {
+      return csound->InitError(csound,  "FLslidBnkSetk: too many sliders to reset!");
+    }
+    return OK;
+  }
+  
+  
+  
+  static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)  
+  {
+    if(*p->kflag) {
+      FLSLIDERBANK *q = p->q;
+      MYFLT *table=p->table;
+      for (int j = p->startslid, k = p->startind; j< p->numslid + p->startslid; j++, k++) {
+        
+        MYFLT val = 0;
+//         MYFLT base= q->slider_data[j].base;  //Not used
+        int iexp =  q->slider_data[j].exp;
+        MYFLT min = q->slider_data[j].min;
+        MYFLT max = q->slider_data[j].max;
+        switch (iexp) {
+        case LIN_: //linear
+          val = table[k];
+          if (val > max) val = max;
+          else if (val < min) val = min;
+          break;
+        case EXP_ : //exponential
+          {
+            MYFLT range = max - min;
+            MYFLT base2 = pow(max / min, 1/range);
+            val = (log(table[k]/min) / log(base2));
+          }
+          break;
+        default: // table
+          {
+            val = table[k];
+            if (val < 0 || val > 1) { // input range must be 0 to 1
+              csound->PerfError(csound, "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range for input");
+            }
+          }
+        }
+        if (val != p->oldValues[j]) {
+          FLlock();
+          ((Fl_Slider*) (q->slider_data[j].widget_addr))->value(val);
+          ((Fl_Slider*) (q->slider_data[j].widget_addr))->do_callback();
+          FLunlock();
+          p->oldValues[j] = val;
+        }
+      }
+    }
+    return OK;
+  }
 
 static int FLxyin_set(CSOUND *csound, FLXYIN *p)
 {
@@ -5473,16 +5470,16 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR)fl_slider_bank2 ,          (SUBR) NULL,             (SUBR) NULL  },
     { "FLvslidBnk2",    S(FLSLIDERBANK2),       1,  "",  "Siiiooooo",
         (SUBR)fl_vertical_slider_bank2,  (SUBR) NULL,             (SUBR) NULL  },
-//     { "FLslidBnkGetHandle",S(FLSLDBNK_GETHANDLE),1, "i", "",
-//         (SUBR)fl_slider_bank_getHandle,  (SUBR) NULL,             (SUBR) NULL  },
-//     { "FLslidBnkSet",   S(FLSLDBNK_SET),        1,  "",  "iiooo",
-//         (SUBR)fl_slider_bank_setVal,     (SUBR) NULL,             (SUBR) NULL  },
-//     { "FLslidBnkSetk",  S(FLSLDBNK2_SETK),      3,  "",  "kiiooo",
-//         (SUBR)fl_slider_bank_setVal_k_set,(SUBR)fl_slider_bank_setVal_k,(SUBR) NULL },
-//     { "FLslidBnk2Set",  S(FLSLDBNK_SET),        1,  "",  "iiooo",
-//         (SUBR)fl_slider_bank2_setVal,    (SUBR) NULL,             (SUBR) NULL  },
-//     { "FLslidBnk2Setk", S(FLSLDBNK2_SETK),      3,  "",  "kiiooo",
-//         (SUBR)fl_slider_bank2_setVal_k_set, (SUBR)fl_slider_bank2_setVal_k,(SUBR) NULL },
+    { "FLslidBnkGetHandle",S(FLSLDBNK_GETHANDLE),1, "i", "",
+        (SUBR)fl_slider_bank_getHandle,  (SUBR) NULL,             (SUBR) NULL  },
+    { "FLslidBnkSet",   S(FLSLDBNK_SET),        1,  "",  "iiooo",
+        (SUBR)fl_slider_bank_setVal,     (SUBR) NULL,             (SUBR) NULL  },
+    { "FLslidBnkSetk",  S(FLSLDBNK2_SETK),      3,  "",  "kiiooo",
+        (SUBR)fl_slider_bank_setVal_k_set,(SUBR)fl_slider_bank_setVal_k,(SUBR) NULL },
+    { "FLslidBnk2Set",  S(FLSLDBNK_SET),        1,  "",  "iiooo",
+        (SUBR)fl_slider_bank2_setVal,    (SUBR) NULL,             (SUBR) NULL  },
+    { "FLslidBnk2Setk", S(FLSLDBNK2_SETK),      3,  "",  "kiiooo",
+        (SUBR)fl_slider_bank2_setVal_k_set, (SUBR)fl_slider_bank2_setVal_k,(SUBR) NULL },
     { "FLhvsBox",       S(FL_HVSBOX),           1,  "i",    "iiiiiio",
         (SUBR)fl_hvsbox,                (SUBR) NULL,              (SUBR) NULL  },
     { "FLhvsBoxSetValue",S(FL_SET_HVS_VALUE),   3,  "",     "kki",
