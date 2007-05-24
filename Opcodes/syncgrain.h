@@ -89,7 +89,8 @@ SYNCLOOP:
 A variation on syncgrain allowing for loop points to be set, as well
 as sound start position
 
-asig  syncloop kamp, kfreq, kpitch, kgrsize, kprate,kloopstart, kloopend, ifun1, ifun2, iolaps [, istart]
+asig  syncloop kamp, kfreq, kpitch, kgrsize, kprate,kloopstart, kloopend, \
+               ifun1, ifun2, iolaps [, istart]
 
 parameters are as above, with the following additions:
 

@@ -27,7 +27,7 @@
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
-  int size;
+    int size;
     p->efunc = csound->FTFind(csound, p->ifn2);
     if (p->efunc == NULL)
       return NOTOK;
@@ -71,8 +71,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     MYFLT   *ftable = p->efunc->ftable;
     int     *streamon = (int *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
-    double   *index = (double *) p->index.auxp;
-    double   *envindex = (double *) p->envindex.auxp;
+    double  *index = (double *) p->index.auxp;
+    double  *envindex = (double *) p->envindex.auxp;
     int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
@@ -84,13 +84,13 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
+      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
     }
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
     for(vecpos = 0; vecpos < vecsize; vecpos++) {
-      sig = (MYFLT) 0;
+      sig = FL(0.0);
       /* if a grain has finished, clean up */
       if ((!streamon[firststream]) && (numstreams) ) {
         numstreams--; /* decrease the no of streams */
@@ -100,11 +100,11 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod + frac;
-      if (count >= (period-1)) {
+      if (count >= (period-FL(1.0))) {
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
-        envindex[newstream] = 0.;
+        envindex[newstream] = 0.0;
         index[newstream] = start;
         numstreams++; /* increase the stream count */
         count = 0;
@@ -224,7 +224,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if(loop_start >= datasize) loop_start = datasize-1;
     loop_end = (loop_start > loop_end ? loop_start : loop_end);
     loopsize = loop_end - loop_start;
-    /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n", loop_start, loop_end, loopsize);     */
+    /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
+                              loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
@@ -232,7 +233,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
+      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
     }
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
@@ -249,7 +250,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod + frac;
-      if (count >= (period-1)) {
+      if (count >= (period-FL(1.0))) {
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
@@ -263,7 +264,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         while (start >= loop_end) {
           firsttime = 0;
           start -= loopsize;
-          /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n", loop_start, loop_end, loopsize); */
+          /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
+                                    loop_start, loop_end, loopsize); */
         }
         while (start < loop_start && !firsttime)
           start += loopsize;
@@ -362,7 +364,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     SF_INFO sfinfo;
     char *fname = csound->strarg2name(csound, NULL, p->fname,
                                       "soundin.",p->XSTRCODE);
-    
+
     p->nChannels = (int) (p->OUTOCOUNT);
      if (p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN) {
       return csound->InitError(csound, Str("disgrain: invalid number of channels"));
@@ -374,7 +376,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     p->olaps = (int) *p->ols + 1;
     p->dataframes = (int)(*p->max*csound->esr*4);
     if(p->dataframes < MINFBUFSIZE)
-      p->dataframes =  MINFBUFSIZE; 
+      p->dataframes =  MINFBUFSIZE;
     if (p->olaps < 2)
       p->olaps = 2;
 
@@ -386,33 +388,36 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
    size = (p->olaps) * sizeof(int);
    if(p->streamon.auxp == NULL || p->streamon.size > size)
           csound->AuxAlloc(csound, size, &p->streamon);
-   if(p->buffer.auxp == NULL || p->buffer.size > (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
-     csound->AuxAlloc(csound, (p->dataframes+1)*sizeof(MYFLT)*p->nChannels, &p->buffer);
-  
+   if(p->buffer.auxp == NULL ||
+      p->buffer.size > (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
+     csound->AuxAlloc(csound,
+                      (p->dataframes+1)*sizeof(MYFLT)*p->nChannels, &p->buffer);
+
    buffer = (MYFLT *) p->buffer.auxp;
    /* open file and read the first block using *p->ioff */
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
-                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0); 
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if(fd == NULL){
-     csound->InitError(csound, "diskgrain: could not open file\n");
-     return NOTOK;
-    }   
-    if(sfinfo.channels != p->nChannels){
-     csound->InitError(csound, "diskgrain: soundfile channel numbers do not match the number of outputs \n");
+      csound->InitError(csound, Str("diskgrain: could not open file\n"));
      return NOTOK;
     }
-   
-   if(*p->ioff >= 0)
-     sf_seek(p->sf,*p->ioff * csound->esr, SEEK_SET);
+    if(sfinfo.channels != p->nChannels){
+      csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
+                                    "do not match the number of outputs \n"));
+     return NOTOK;
+    }
 
-   if(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0){
-    p->read1 = 1; 
-    p->read2 = 0;
-   } else {
-    csound->InitError(csound, "diskgrain: could not read file \n");
-    return NOTOK;
-   }
-         
+    if(*p->ioff >= 0)
+      sf_seek(p->sf,*p->ioff * csound->esr, SEEK_SET);
+
+    if(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0){
+      p->read1 = 1;
+      p->read2 = 0;
+    } else {
+      csound->InitError(csound, Str("diskgrain: could not read file \n"));
+      return NOTOK;
+    }
+
    /* -===-  */
     p->count = 0xFFFFFFFF;              /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
@@ -429,7 +434,8 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
 
 static int filegrain_process(CSOUND *csound, filegrain *p)
 {
-    MYFLT   sig[DGRAIN_MAXCHAN], pitch, amp, grsize, envincr, period, fperiod, prate;
+    MYFLT   sig[DGRAIN_MAXCHAN], pitch, amp, grsize, envincr, period,
+            fperiod, prate;
     MYFLT   **output = p->output;
     MYFLT   *datap = (MYFLT *) p->buffer.auxp;
     MYFLT   *ftable = p->efunc->ftable;
@@ -447,17 +453,17 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     unsigned long pos = p->pos;
     long negpos, flen = p->flen;
     float trigger = p->trigger, incr;
-    
+
     datasize = dataframes*chans;
     hdatasize = hdataframes*chans;
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
-    if(fperiod  < 0) fperiod = -fperiod;
+    if(fperiod  < FL(0.0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
+      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
     }
     else if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
@@ -472,154 +478,154 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
       }
       /* if a fund period has elapsed */
       /* start a new grain */
-        period = fperiod + frac;
-      if (count >= (period-1)) {
-        frac = count - period; 
+      period = fperiod + frac;
+      if (count >= (period-FL(1.0))) {
+        frac = count - period;
         newstream =(firststream+numstreams)%olaps;
-        streamon[newstream] = 1; 
-        envindex[newstream] = 0.;
+        streamon[newstream] = 1;
+        envindex[newstream] = 0.0;
         index[newstream] = start;
-        numstreams++;  
+        numstreams++;
         count = 0;
         incr = prate*grsize;
         start += (incr);
         trigger += (incr);
-        jump = grsize*(pitch > 0 ? pitch : -pitch);  
+        jump = grsize*(pitch > 0 ? pitch : -pitch);
         if(incr >= 0) {
-	  if(trigger >= (dataframes - jump)){
-         
-          trigger -= (dataframes);
-          
-         if(!read1) {
-	   pos += hdataframes;
-	   sf_seek(p->sf,pos,SEEK_SET); 
-              
-	      items = sf_read_MYFLT(p->sf,datap,hdatasize);
-            if(items < hdatasize){
-	      sf_seek(p->sf, 0, 0);
-              sf_read_MYFLT(p->sf,datap+items, hdatasize-items);
+          if(trigger >= (dataframes - jump)){
+
+            trigger -= (dataframes);
+
+            if(!read1) {
+              pos += hdataframes;
+              sf_seek(p->sf,pos,SEEK_SET);
+
+              items = sf_read_MYFLT(p->sf,datap,hdatasize);
+              if(items < hdatasize){
+                sf_seek(p->sf, 0, 0);
+                sf_read_MYFLT(p->sf,datap+items, hdatasize-items);
+              }
+              for(n=0; n < chans; n++)
+                datap[hdatasize+n] = datap[hdatasize-chans+n];
+
+              read1 = 1;
+              read2 = 0;
             }
-            for(n=0; n < chans; n++)
-            datap[hdatasize+n] = datap[hdatasize-chans+n];
-	   
-           read1 = 1;
-           read2 = 0;
-	 }
-	  }
-        else if(trigger >= (hdataframes - jump)){
-             
-         if(!read2){
-      
-           pos += hdataframes;
-	   sf_seek(p->sf,pos,SEEK_SET);
-	  
-	   items = sf_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
-            if(items < hdatasize){
-	      sf_seek(p->sf, 0, SEEK_SET);
-              sf_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
+          }
+          else if(trigger >= (hdataframes - jump)){
+
+            if(!read2){
+
+              pos += hdataframes;
+              sf_seek(p->sf,pos,SEEK_SET);
+
+              items = sf_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
+              if(items < hdatasize){
+                  sf_seek(p->sf, 0, SEEK_SET);
+                  sf_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
+              }
+              for(n=0; n < chans; n++)
+                datap[datasize+n] = datap[datasize-chans+n];
+              read2 = 1;
+              read1 = 0;
             }
-            for(n=0; n < chans; n++)
-            datap[datasize+n] = datap[datasize-chans+n];
-          read2 = 1;
-          read1 = 0;
-	 }
-	 }
+          }
         }
         else {
-         if(trigger < jump){
-          trigger += (dataframes);
-          if(!read1) {
-           
-	    /*this roundabout code is to 
-             allow us to use an unsigned long
-             to hold the file position
-            whilst allowing for pos to go negative
-	    */ 
+          if(trigger < jump){
+            trigger += (dataframes);
+            if(!read1) {
 
-           negpos = pos;
-	   negpos -= hdataframes;
-           if(negpos < 0){
-	    while(negpos < 0) negpos += flen;
-	    pos = negpos;
-           }
-           else pos -= hdataframes;
-           
+              /*this roundabout code is to
+                allow us to use an unsigned long
+                to hold the file position
+                whilst allowing for pos to go negative
+              */
 
-	   /*
-	   pos -= hdataframes;
-           if(pos < 0)  pos += flen;
-           */
+              negpos = pos;
+              negpos -= hdataframes;
+              if(negpos < 0){
+                while(negpos < 0) negpos += flen;
+                pos = negpos;
+              }
+              else pos -= hdataframes;
 
-            sf_seek(p->sf,pos,SEEK_SET);  
-            items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
-            if (items < hdatasize){
-	      sf_seek(p->sf,items-hdatasize,SEEK_END);
-              items = sf_read_MYFLT(p->sf,datap+hdatasize+items,hdatasize-items);
-	    }
-	    
-            for(n=0; n < chans; n++)
-            datap[datasize+n] = datap[datasize-chans+n];
-           read1 = 1;
-           read2 = 0;
-	 }
-	}
-        else if(trigger <= (hdataframes + jump)){
-         if(!read2){
 
-           negpos = pos;
-	   negpos -= hdataframes;
-           if(negpos < 0){
-	    while(negpos < 0) negpos += flen;
-	    pos = negpos;
-           }
-           else pos -= hdataframes;
-           /*
-            pos -= hdataframes;
-           if(pos < 0)  pos += flen;
-           */
-            sf_seek(p->sf,pos,SEEK_SET);  
-            items = sf_read_MYFLT(p->sf,datap,hdatasize);
-            if (items < hdatasize){
-	      sf_seek(p->sf,items-hdatasize,SEEK_END);
-              items = sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
-	    }
-            for(n=0; n < chans; n++)
-            datap[hdatasize+n] = datap[hdatasize-chans+n];
-          
-          read2 = 1;
-          read1 = 0;
-	 }
-	}
-	}
+              /*
+                pos -= hdataframes;
+                if(pos < 0)  pos += flen;
+              */
+
+              sf_seek(p->sf,pos,SEEK_SET);
+              items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
+              if (items < hdatasize){
+                sf_seek(p->sf,items-hdatasize,SEEK_END);
+                items = sf_read_MYFLT(p->sf,datap+hdatasize+items,hdatasize-items);
+              }
+
+              for(n=0; n < chans; n++)
+                datap[datasize+n] = datap[datasize-chans+n];
+              read1 = 1;
+              read2 = 0;
+            }
+          }
+          else if(trigger <= (hdataframes + jump)){
+            if(!read2){
+
+              negpos = pos;
+              negpos -= hdataframes;
+              if(negpos < 0){
+                while(negpos < 0) negpos += flen;
+                pos = negpos;
+              }
+              else pos -= hdataframes;
+              /*
+                pos -= hdataframes;
+                if(pos < 0)  pos += flen;
+              */
+              sf_seek(p->sf,pos,SEEK_SET);
+              items = sf_read_MYFLT(p->sf,datap,hdatasize);
+              if (items < hdatasize){
+                sf_seek(p->sf,items-hdatasize,SEEK_END);
+                items = sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
+              }
+              for(n=0; n < chans; n++)
+                datap[hdatasize+n] = datap[hdatasize-chans+n];
+
+              read2 = 1;
+              read1 = 0;
+            }
+          }
+        }
 
         if(start >= dataframes) start -= dataframes;
         if(start < 0) start += dataframes;
       }
-      
+
       for (i=numstreams,
              j=firststream; i; i--, j=(j+1)%olaps) {
-       
+
         /* modulus */
-	if(index[j] >= dataframes)
-              index[j] -= dataframes; 
-        if(index[j]  < 0)  
-              index[j] += dataframes;
-        
+        if(index[j] >= dataframes)
+          index[j] -= dataframes;
+        if(index[j]  < 0)
+          index[j] += dataframes;
+
         /* sum all the grain streams */
         tndx = (int)index[j]*chans;
         endx = (int) envindex[j];
-	for(n=0; n < chans; n++){ 
-	     sig[n] += ((datap[tndx+n] +
-			 (index[j] - (int)index[j])*
-			 (datap[tndx+n+chans] - datap[tndx+n]) 
-                 ) *
-                (ftable[endx] +
-                 (envindex[j] - endx)*
-                 (ftable[endx+1] - ftable[endx])
-                 )
-		 );
-	}
-    
+        for(n=0; n < chans; n++){
+          sig[n] += ((datap[tndx+n] +
+                      (index[j] - (int)index[j])*
+                      (datap[tndx+n+chans] - datap[tndx+n])
+                      ) *
+                     (ftable[endx] +
+                      (envindex[j] - endx)*
+                      (ftable[endx+1] - ftable[endx])
+                      )
+                     );
+        }
+
         /* increment the indexes */
         /* for each grain */
         index[j] += (pitch);
