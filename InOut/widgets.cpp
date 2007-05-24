@@ -1047,7 +1047,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 { // the constructor captures current values of all widgets
   // by copying all current values from "valuators" vector (AddrSetValue)
   // to the "fields" vector
-  is_empty =0;
+  is_empty = 1;
   FLlock(); //<=================
   int i,k;
   int vsize  = valuators.size();
@@ -1241,7 +1241,7 @@ err:
 
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 {
-  if (is_empty) {
+  if (is_empty == 1) {
 /*  FIXME: should have CSOUND* pointer here */
 /*  return csound->InitError(csound, "empty snapshot"); */
     return -1;
@@ -1447,6 +1447,12 @@ static int get_snap(CSOUND *csound, FLGETSNAP *p)
 {
   int index = (int) *p->index;
   int group = (int) *p->group;
+  SNAPVEC snapvec_init;
+  SNAPSHOT snap_init;
+  snap_init.fields.resize(1,VALUATOR_FIELD());
+  snapvec_init.resize(1,snap_init);
+  if (group+1 > (int) ST(snapshots).size())
+    ST(snapshots).resize(group+1, snapvec_init);
   if (!ST(snapshots)[group].empty()) {
     if (index >= (int) ST(snapshots)[group].size())
       index = ST(snapshots)[group].size()-1;
@@ -1546,6 +1552,9 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
   int group = (int) *p->group;
   int j=0,k=-1,q=0;
   SNAPVEC snapvec_init;
+  SNAPSHOT snap_init;
+  snap_init.fields.resize(1,VALUATOR_FIELD());
+  snapvec_init.resize(1,snap_init);
   if (group+1 > (int) ST(snapshots).size())
     ST(snapshots).resize(group+1, snapvec_init);
   while (!(file.eof())) {
