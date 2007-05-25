@@ -39,33 +39,34 @@ typedef struct {
 #define MAXSLIDERBANK 128
 
 typedef struct {
-	void *widget_addr; //gab
-	MYFLT min, max, *out;
-	MYFLT base, *table;
-	long tablen;
-	int exp;
+        void *widget_addr; //gab
+        MYFLT min, max, *out;
+        MYFLT base, *table;
+        long tablen;
+        int exp;
 } SLDBK_ELEMENT;
 
 // ---------------------------------------------------------------------
 
-typedef struct	{
-	OPDS	h;
+typedef struct {
+    OPDS    h;
     MYFLT   *names, *inumsliders, *ioutable, *iwidth, *iheight;
     MYFLT   *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx;
     MYFLT   *iminmaxtable;
-	SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
-	long elements;
+    SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
+    long    elements;
 } FLSLIDERBANK;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT  *names, *inumsliders, *ioutable, *iconfigtable, *iwidth, *iheight, *ix, *iy, *ioutablestart_ndx;
-	SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
-	long elements;
+typedef struct {
+    OPDS    h;
+    MYFLT  *names, *inumsliders, *ioutable, *iconfigtable, *iwidth,
+           *iheight, *ix, *iy, *ioutablestart_ndx;
+    SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
+    long   elements;
 } FLSLIDERBANK2;   //gab
 
-// typedef struct	{
-// 	OPDS	h;
+// typedef struct       {
+//      OPDS    h;
 //     MYFLT   *kout, *args[PMAX+1];
 // } FLKEYB;
 
@@ -89,7 +90,6 @@ typedef struct {
     MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
     MYFLT   min, base, *table;
     long    tablen;
-
 } FLROLLER;
 
 typedef struct {
@@ -517,96 +517,96 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
 // from the file newwidgets.h
 
 typedef struct {
-	OPDS	h;
-	MYFLT *ihandle;
+        OPDS    h;
+        MYFLT *ihandle;
 } FLSLDBNK_GETHANDLE; //gab
 
 typedef struct {
-	OPDS	h;
-	MYFLT *ihandle, *ifn, *startInd, *startSlid, *numSlid;
-	//int oldx, oly;
+        OPDS    h;
+        MYFLT *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+        //int oldx, oly;
 } FLSLDBNK_SET;  //gab
 
 typedef struct {
-	OPDS	h;
-	MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
-	MYFLT oldValues[MAXSLIDERBANK];
-	int numslid, startind, startslid;
-	FLSLIDERBANK2 *q;
-	MYFLT *table, *outable;
-	//int oldx, oly;
+        OPDS    h;
+        MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+        MYFLT oldValues[MAXSLIDERBANK];
+        int numslid, startind, startslid;
+        FLSLIDERBANK2 *q;
+        MYFLT *table, *outable;
+        //int oldx, oly;
 } FLSLDBNK2_SETK;
 
 typedef struct {
-	OPDS	h;
-	MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
-	MYFLT oldValues[MAXSLIDERBANK];
-	int numslid, startind, startslid;
-	FLSLIDERBANK *q;
-	MYFLT *table, *outable;
-	//int oldx, oly;
+        OPDS    h;
+        MYFLT *kflag, *ihandle, *ifn, *startInd, *startSlid, *numSlid;
+        MYFLT oldValues[MAXSLIDERBANK];
+        int numslid, startind, startslid;
+        FLSLIDERBANK *q;
+        MYFLT *table, *outable;
+        //int oldx, oly;
 } FLSLDBNK_SETK;
 
 typedef struct {
-	OPDS	h;
-	MYFLT 	*koutx, *kouty, *kinside; //outs
-	MYFLT	*ioutx_min, *ioutx_max, *iouty_min, *iouty_max, 
-		    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max, 
-			*iexpx, *iexpy, *ioutx, *iouty; //ins
-	MYFLT oldx, oldy, *tablex, *tabley;
-	int expx, expy;
-	long tablenx, tableny;
-	double rangex, rangey, basex, basey;
-	//int	pspace;
+        OPDS    h;
+        MYFLT   *koutx, *kouty, *kinside; //outs
+        MYFLT   *ioutx_min, *ioutx_max, *iouty_min, *iouty_max, 
+                    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max, 
+                        *iexpx, *iexpy, *ioutx, *iouty; //ins
+        MYFLT oldx, oldy, *tablex, *tabley;
+        int expx, expy;
+        long tablenx, tableny;
+        double rangex, rangey, basex, basey;
+        //int   pspace;
 } FLXYIN; //gab
 
-typedef struct	{
-	OPDS	h;
-// 	MYFLT *ktrig, *kvalue, *ihandle;
-	MYFLT *chan, *cc, *ihandle;
-	int	ccVal, oldCCval;
-	MYFLT log_base, min, max, range;
-	void *WidgAddress, *opcode, *addrSetVal;
-	int exp, widg_type;
+typedef struct  {
+        OPDS    h;
+//      MYFLT *ktrig, *kvalue, *ihandle;
+        MYFLT *chan, *cc, *ihandle;
+        int     ccVal, oldCCval;
+        MYFLT log_base, min, max, range;
+        void *WidgAddress, *opcode, *addrSetVal;
+        int exp, widg_type;
 } FL_MIDI_WIDGET_VALUE;
 
 
-typedef struct	{
-	OPDS	h;
-	MYFLT   *kascii,*ifn;//, *ifnMap;
-	MYFLT	*table;//, *tableMap;
-	int		flag;
+typedef struct  {
+        OPDS    h;
+        MYFLT   *kascii,*ifn;//, *ifnMap;
+        MYFLT   *table;//, *tableMap;
+        int             flag;
 } FLKEYIN;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT  *group;
+typedef struct  {
+        OPDS    h;
+        MYFLT  *group;
 } FLSETSNAPGROUP;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT   *x,*y, *b1, *b2, *b3, *flagRaw;
-	MYFLT height,width;
+typedef struct  {
+        OPDS    h;
+        MYFLT   *x,*y, *b1, *b2, *b3, *flagRaw;
+        MYFLT height,width;
 } FLMOUSE;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT *ihandle, *numlinesX, *numlinesY, *iwidth, *iheight, *ix, *iy,*image;
-	int width, height;
+typedef struct  {
+        OPDS    h;
+        MYFLT *ihandle, *numlinesX, *numlinesY, *iwidth, *iheight, *ix, *iy,*image;
+        int width, height;
 } FL_HVSBOX;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT *kx, *ky, *ihandle;
-	void *WidgAddress, *opcode;
-	MYFLT old_x, old_y;
+typedef struct  {
+        OPDS    h;
+        MYFLT *kx, *ky, *ihandle;
+        void *WidgAddress, *opcode;
+        MYFLT old_x, old_y;
 } FL_SET_HVS_VALUE;
 
-typedef struct	{
-	OPDS	h;
-	MYFLT max[MAXCHNLS];
-	unsigned long widg_address[MAXCHNLS];
-	int dummycycles, dummycyc;
+typedef struct  {
+        OPDS    h;
+        MYFLT max[MAXCHNLS];
+        unsigned long widg_address[MAXCHNLS];
+        int dummycycles, dummycyc;
 } FLTKMETER;
 
 #endif          /* CSOUND_WIDGETS_CPP */

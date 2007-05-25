@@ -586,13 +586,13 @@ static const CSOUND cenviron_ = {
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL, (char*) NULL,
           (char*) NULL, (char*) NULL,
-          0,		/*    midiKey           */
-          0,		/*    midiKeyCps        */
-          0,		/*    midiKeyOct        */
-          0,		/*    midiKeyPch        */
-          0,		/*    midiVelocity      */
-          0,		/*    midiVelocityAmp   */
-          0, 		/*    noDefaultPaths    */
+          0,            /*    midiKey           */
+          0,            /*    midiKeyCps        */
+          0,            /*    midiKeyOct        */
+          0,            /*    midiKeyPch        */
+          0,            /*    midiVelocity      */
+          0,            /*    midiVelocityAmp   */
+          0,            /*    noDefaultPaths    */
 #ifdef ENABLE_NEW_PARSER
           0,            /*    newParser   */
 #endif
@@ -3085,7 +3085,7 @@ static const CSOUND cenviron_ = {
 
 void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
 {
-	while(size--) *(dest++) = *(src++);
+        while(size--) *(dest++) = *(src++);
 }  
 
 #ifdef __cplusplus
