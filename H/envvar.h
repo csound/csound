@@ -209,8 +209,8 @@ extern "C" {
    *   Otherwise, 0.
    */
   void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
-			     const char *name, void *param, const char *env,
-			     int csFileType, int isTemporary);
+                               const char *name, void *param, const char *env,
+                               int csFileType, int isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
