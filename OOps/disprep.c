@@ -637,9 +637,9 @@ int tempest(CSOUND *csound, TEMPEST *p)
           } while (--terms);
           crossprods = sumraw * sumraw - sumsqr;
           if(crossprods >= 0)
-          RMScross = (MYFLT)sqrt(crossprods / p->ncross);   
+            RMScross = (MYFLT)sqrt(crossprods / p->ncross);
           else
-	    RMScross = 0;        
+            RMScross = FL(0.0);
           if (RMScross < FL(1.4) * RMStot)    /* if RMScross significant:   */
             continue;
 #ifdef DEBUG

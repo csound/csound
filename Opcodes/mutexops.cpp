@@ -49,11 +49,13 @@ static void * getMutex(CSOUND *csound, size_t instrNum, size_t lockNum)
         mutexes[csound][instrNum] = mutexMap;
     }
 
-    if(mutexes[csound][instrNum].find(lockNum) ==  mutexes[csound][instrNum].end()) {
+    if (mutexes[csound][instrNum].find(lockNum) ==
+        mutexes[csound][instrNum].end()) {
         void * mutex = csound->Create_Mutex(0);
         mutexes[csound][instrNum][lockNum] = mutex;
 
-        csound->Message(csound, "Created new mutex [%ld:%ld]\n", instrNum, lockNum);
+        csound->Message(csound, "Created new mutex [%ld:%ld]\n",
+                        (long)instrNum, (long)lockNum);
     }
     csound_global_mutex_unlock();
 
@@ -93,10 +95,10 @@ static int mutexUnlock(CSOUND *csound, OPCODE_MUTEX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "mutex_lock",  S(OPCODE_MUTEX),   2, "", "i", NULL, (SUBR)mutexLock, NULL   },
-  { "mutex_unlock",  S(OPCODE_MUTEX),  2, "", "i", NULL, (SUBR)mutexUnlock, NULL   },
-  { "mutex_locki",  S(OPCODE_MUTEX),   1, "", "i", (SUBR)mutexLock, NULL, NULL   },
-  { "mutex_unlocki",  S(OPCODE_MUTEX),  1, "", "i", (SUBR)mutexUnlock, NULL, NULL   }
+  { "mutex_lock",   S(OPCODE_MUTEX),  2, "", "i", NULL, (SUBR)mutexLock, NULL   },
+  { "mutex_unlock",  S(OPCODE_MUTEX), 2, "", "i", NULL, (SUBR)mutexUnlock, NULL },
+  { "mutex_locki",  S(OPCODE_MUTEX),  1, "", "i", (SUBR)mutexLock, NULL, NULL   },
+  { "mutex_unlocki", S(OPCODE_MUTEX), 1, "", "i", (SUBR)mutexUnlock, NULL, NULL }
 
 };
 

@@ -724,7 +724,7 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 
 /* -------------------------------------------------------------------- */
 
-/* #undef oneUp31Bit /* to avoid warnings */
+/* #undef oneUp31Bit \/\* to avoid warnings */
 #include "vectorial.h"
 
 typedef struct  {       /* gab d5*/

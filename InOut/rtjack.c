@@ -22,6 +22,7 @@
 */
 
 #include <jack/jack.h>
+#include <ctype.h>
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
