@@ -150,11 +150,13 @@ typedef struct {
 typedef struct {
     OPDS h;
     /* output arrays */
-    MYFLT *output;
+    MYFLT *syncout;
+    MYFLT *schedphaseout;
 
     /* opcode parameters */
     MYFLT *opcodeid;
 
     /* internal variables */
+    int output_schedphase;
     PARTIKKEL_GLOBALS_ENTRY *ge;
 } PARTIKKELSYNC;

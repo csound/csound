@@ -142,14 +142,17 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         p->globals_entry = NULL;
         return OK;
     }
+    /* try to find entry corresponding to our opcodeid */
     pe = &pg->rootentry;
     while (*pe != NULL && (*pe)->id != *p->opcodeid)
         pe = &((*pe)->next);
 
+    /* check if one already existed, if not, create one */
     if (*pe == NULL) {
         *pe = csound->Malloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
         (*pe)->id = *p->opcodeid;
-        (*pe)->synctab = csound->Calloc(csound, csound->ksmps*sizeof(MYFLT));
+        /* allocate table for sync data */
+        (*pe)->synctab = csound->Calloc(csound, 2*csound->ksmps*sizeof(MYFLT));
         (*pe)->next = NULL;
     }
     p->globals_entry = *pe;
@@ -536,8 +539,8 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             grainfreq = p->grainfreq[n];
         p->graininc = fabs(grainfreq*csound->onedsr);
 
-        if (p->sync[n] > FL(0.0)) {
-            /* only sync if the last sync value was <= 0 */
+        if (p->sync[n] >= FL(1.0)) {
+            /* we got a full sync pulse, hardsync grain clock if needed */
             if (!p->synced) {
                 p->grainphase = 1.0;
                 p->synced = 1;
@@ -547,6 +550,11 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 p->graininc = 0.0;
             }
         } else {
+            /* softsync-like functionality where we advance the grain clock by
+             * the amount given by the sync value */
+            p->grainphase += p->sync[n];
+            p->grainphase = p->grainphase > 1.0 ? 1.0 : p->grainphase;
+            p->grainphase = p->grainphase < 0.0 ? 0.0 : p->grainphase;
             p->synced = 0;
         }
 
@@ -591,9 +599,13 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 if (ret != OK)
                     return ret;
             }
+            /* create a sync pulse for use in partikkelsync */
             if (p->globals_entry)
                 p->globals_entry->synctab[n] = FL(1.0);
         }
+        /* store away the scheduler phase for use in partikkelsync */
+        if (p->globals_entry)
+            p->globals_entry->synctab[csound->ksmps + n] = p->grainphase;
         p->prevphase = p->grainphase;
         p->grainphase += p->graininc;
     }
@@ -775,12 +787,21 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKELSYNC *p)
         return csound->InitError(csound,
             Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
+    /* find out if we're supposed to output grain scheduler phase too */
+    p->output_schedphase = csound->GetOutputArgCnt(p) > 1;
     return OK;
 }
 
 static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
 {
-    memcpy(p->output, p->ge->synctab, csound->ksmps*sizeof(MYFLT));
+    /* write sync pulse data */
+    memcpy(p->syncout, p->ge->synctab, csound->ksmps*sizeof(MYFLT));
+    /* write scheduler phase data, if user wanted it */
+    if (p->output_schedphase) {
+        memcpy(p->schedphaseout, p->ge->synctab + csound->ksmps,
+               csound->ksmps*sizeof(MYFLT));
+    }
+    /* clear first half of sync table to get rid of old sync pulses */
     memset(p->ge->synctab, 0, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
@@ -796,7 +817,7 @@ static OENTRY localops[] = {
     },
     {
         "partikkelsync", sizeof(PARTIKKELSYNC), 5,
-        "a", "i",
+        "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)NULL,
         (SUBR)partikkelsync
