@@ -1,22 +1,38 @@
+2007-05-27  jpff  <jpff@codemist.co.uk>
+
+	* OOps/aops.c (MOD): Changed to non-integer values can be returned
+	-- reverting to pre Feb2007 version but better code
 
 2007-05-17  Andrés Cabrera  <andres@geminiflux.com>
-	* InOut/widgets.cpp, InOut/widgets.h: Added FlslidBnk2, FlvslidBnk, FlvslidBnk2, by Gabriel Maldonado
+	* InOut/widgets.cpp, InOut/widgets.h: Added FlslidBnk2,
+	FlvslidBnk, FlvslidBnk2, by Gabriel Maldonado 
 
 2007-05-14  Andrés Cabrera  <andres@geminiflux.com>
-	* InOut/widgets.cpp, InOut/widgets.h, Opcodes/gab/hvs.c, Opcodes/gab/newgabopc.c, Opcodes/gab/sliderTable.c, Opcodes/gab/tabmorph.c: Added new opcodes from CsoundAV by Gabriel Maldonado: hvs1, hvs2, hvs3, vphaseseg, inrg, outrg, lposcila, lposcilsa, lposcilsa2, tabmorph, tabmorpha, tabmorphak, tabmorphi, trandom, vtable1k, slider8table, slider16table, slider32table, slider64table, slider8tablef, slider16tablef, slider32tablef, slider64tablef, sliderKawai and an a-rate version of ctrl7.
-	* Opcodes/gab/vectorial.c,Opcodes/gab/vectorial.c: Added new optional isize argument to vrandh and vrandi for more similarity with randh and randi
+	* InOut/widgets.cpp, InOut/widgets.h, Opcodes/gab/hvs.c,
+	Opcodes/gab/newgabopc.c, Opcodes/gab/sliderTable.c,
+	Opcodes/gab/tabmorph.c: Added new opcodes from CsoundAV by Gabriel
+	Maldonado: hvs1, hvs2, hvs3, vphaseseg, inrg, outrg, lposcila,
+	lposcilsa, lposcilsa2, tabmorph, tabmorpha, tabmorphak, tabmorphi,
+	trandom, vtable1k, slider8table, slider16table, slider32table,
+	slider64table, slider8tablef, slider16tablef, slider32tablef,
+	slider64tablef, sliderKawai and an a-rate version of ctrl7. 
+	
+	* Opcodes/gab/vectorial.c,Opcodes/gab/vectorial.c: Added new
+	optional isize argument to vrandh and vrandi for more similarity
+	with randh and randi 
 
 2007-05-02  Michael Gogins <gogins@pipeline.com>
 
-    * ScoreGen.dll can now act as a MIDI effect as well as a VST
-    plugin that can send MIDI events to the host. I.e., ScoreGen
-    can act as a Python-programmable score generator in VST hosts.
-    As a MIDI effect, ScoreGen can "freeze" generated events into
-    a MIDI part for manual editing or notation, using Cubase's
-    "Free MIDI Modifiers" command.
-    * A number of serious bugs were fixed in ScoreGen's VST
-    event processing. It will now properly play generated scores.
-    
+	* ScoreGen.dll can now act as a MIDI effect as well as a VST
+	plugin that can send MIDI events to the host. I.e., ScoreGen can
+	act as a Python-programmable score generator in VST hosts.  As a
+	MIDI effect, ScoreGen can "freeze" generated events into a MIDI
+	part for manual editing or notation, using Cubase's "Free MIDI
+	Modifiers" command. 
+
+	* A number of serious bugs were fixed in ScoreGen's VST event
+	processing. It will now properly play generated scores. 
+
 2007-05-07  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (pitchset): Do not change parameters!
@@ -32,16 +48,16 @@
 
 2007-05-02  Michael Gogins <gogins@pipeline.com>
 
-    * Updated the csnd and CsoundVST Python extension modules
-    to be compatible with Python version 2.5.
-    * Split all SWIG-generated Python stub code off into shared
-    libraries _csnd.pyd and _CsoundVST.pyd.
-    * All remaining code from the old _csnd.dll and _CsoundVST.dll
-    is now in csnd.dll and CsoundVST.dll.
-    * Many classes and functions in CsoundVST are now exported
-    so that they can dynamically link with _CsoundVST.pyd.
-    * "Glue" code for message buffers, etc. has been moved
-    into the csound.h and csound.c files.
+	* Updated the csnd and CsoundVST Python extension modules to be
+	compatible with Python version 2.5. 
+	* Split all SWIG-generated Python stub code off into shared
+	libraries _csnd.pyd and _CsoundVST.pyd. 
+	* All remaining code from the old _csnd.dll and _CsoundVST.dll is
+	now in csnd.dll and CsoundVST.dll. 
+	* Many classes and functions in CsoundVST are now exported so that
+	they can dynamically link with _CsoundVST.pyd. 
+	* "Glue" code for message buffers, etc. has been moved into the
+	csound.h and csound.c files. 
 
 2007-04-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 

@@ -121,10 +121,10 @@ MYFLT MOD(MYFLT a, MYFLT bb)
     if (bb==FL(0.0)) return FL(0.0);
     else {
       MYFLT b = (bb<0 ? -bb : bb);
-      int d = (int)fmod((double)a, (double)b);
+      MYFLT d = fmod((double)a, (double)b);
       while (d>b) d -= b;
       while (-d>b) d += b;
-      return (MYFLT)d;
+      return d;
     }
 }
 
