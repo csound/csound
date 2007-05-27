@@ -254,7 +254,7 @@ int init_pp(CSOUND *csound, CSPP *p)
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
       double dt = (double)csound->onedsr;
-      double sig = (2.0*(double)csound->esr)*(pow(10,3.0*dt/T30)-1.0);
+      double sig = (2.0*(double)csound->esr)*(pow(10.0,3.0*dt/T30)-1.0);
 
       int N, n;
       double *c, dx, dxmin = 0.0; /* for stability */
