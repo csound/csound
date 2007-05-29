@@ -2018,7 +2018,7 @@ else:
 # build csLADSPA
 print "...Building csLadspa"
 csLadspaEnv = commonEnvironment.Copy()
-csLadspaEnv.Append(LIBS=['csound','sndfile'])
+csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
 csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', PREFIX="")
 Depends(csladspa, csoundLibrary)

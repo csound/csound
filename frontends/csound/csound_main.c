@@ -67,14 +67,14 @@ int main(int argc, char **argv)
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
-    }
+	}
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
 #ifdef LINUX
     if (set_rt_priority(argc, argv) != 0)
       return -1;
-#endif
 
+#endif 
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
       result = csoundPerform(csound);
 
     /* delete Csound instance */
-    csoundDestroy(csound);
+     csoundDestroy(csound);
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
