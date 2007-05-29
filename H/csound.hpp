@@ -39,9 +39,9 @@
 %}
 #else
 #include "csound.h"
-//#ifdef __BUILDING_CSOUND_INTERFACES
+#ifdef __BUILDING_CSOUND_INTERFACES
 #include "cs_glue.h"
-//#endif
+#endif
 #endif
 
 #if defined(__cplusplus)
