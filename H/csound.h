@@ -1489,7 +1489,7 @@ extern "C" {
   /**
    * Returns the first message from the buffer.
    */
-  const char *PUBLIC csoundGetFirstMessage(CSOUND *csound);
+  PUBLIC const char*  csoundGetFirstMessage(CSOUND *csound);
 
   /**
    * Returns the attribute parameter (see msg_attr.h) of the first message
