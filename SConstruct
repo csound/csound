@@ -2015,6 +2015,15 @@ configure.CheckHeader("ladspa.h", language = "C")):
 else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
+# build csLADSPA
+print "...Building csLadspa"
+csLadspaEnv = commonEnvironment.Copy()
+csLadspaEnv.Append(LIBS=['csound','sndfile'])
+csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
+csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', PREFIX="")
+Depends(csladspa, csoundLibrary)
+libs.append(csladspa)
+
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
