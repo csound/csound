@@ -544,7 +544,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       sscanf(s, "%o", &(O->msglevel));
       return 1;
     }
-    else if (!(strncmp (s, "m-amps=", 8))) {
+    else if (!(strncmp (s, "m-amps=", 7))) {
       int n;
       s += 8;
       if (*s=='\0') dieu(csound, Str("no message amps"));
@@ -553,7 +553,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       else O->msglevel &= ~1;
       return 1;
     }
-    else if (!(strncmp (s, "m-range=",9))) {
+    else if (!(strncmp (s, "m-range=",8))) {
       int n;
       s += 9;
       if (*s=='\0') dieu(csound, Str("no message range"));
@@ -562,7 +562,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       else O->msglevel &= ~2;
       return 1;
      }
-    else if (!(strncmp (s, "m-warnings=",12))) {
+    else if (!(strncmp (s, "m-warnings=",11))) {
       int n;
       s += 12;
       if (*s=='\0') dieu(csound, Str("no message warnings"));
@@ -589,7 +589,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       else O->msglevel &= ~64;
       return 1;
     }
-    else if (!(strncmp (s, "m-colours=",10))) {
+    else if (!(strncmp (s, "m-colours=",10)) || !(strncmp (s, "m-colors=",9))) {
       int n;
       s += 10;
       if (*s=='\0') dieu(csound, Str("no message colours"));
