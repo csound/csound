@@ -373,23 +373,52 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
     return Str("unknown");
 }
 
-int type2csfiletype(int type)
+/* type should be one of Csound's TYP_XXX macros,
+   encoding should be one of its AE_XXX macros. */
+int type2csfiletype(int type, int encoding)
 {
     switch (type) {
       case TYP_RAW:    return CSFTYPE_RAW_AUDIO;
       case TYP_IRCAM:  return CSFTYPE_IRCAM;
-      case TYP_AIFF:   return CSFTYPE_AIFF;
+      case TYP_AIFF:   
+        switch (encoding) {
+          case AE_CHAR:   
+          case AE_SHORT:   
+          case AE_24INT:   
+          case AE_LONG:   
+                       return CSFTYPE_AIFF;
+          default:     return CSFTYPE_AIFC;
+        }
       case TYP_WAV:    return CSFTYPE_WAVE;
       case TYP_AU:     return CSFTYPE_AU;
       case TYP_W64:    return CSFTYPE_W64;
       case TYP_WAVEX:  return CSFTYPE_WAVEX;
+      case TYP_AVR:    return CSFTYPE_AVR;
+      case TYP_HTK:    return CSFTYPE_HTK;
+      case TYP_MAT4:   return CSFTYPE_MAT4;
+      case TYP_MAT5:   return CSFTYPE_MAT5;
+      case TYP_NIST:   return CSFTYPE_NIST;
+      case TYP_PAF:    return CSFTYPE_PAF;
+      case TYP_PVF:    return CSFTYPE_PVF;
+      case TYP_SVX:    return CSFTYPE_SVX;
+      case TYP_VOC:    return CSFTYPE_VOC;
+      case TYP_XI:     return CSFTYPE_XI;
+#ifdef SF_FORMAT_SDS
+      case TYP_SDS:    return CSFTYPE_SDS;
+#endif
 #if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
       case TYP_SD2:    return CSFTYPE_SD2;
 #  if HAVE_LIBSNDFILE >= 1013
       case TYP_FLAC:   return CSFTYPE_FLAC;
+      case TYP_CAF:    return CSFTYPE_CAF;
 #  endif
 #endif
       default:         return CSFTYPE_UNKNOWN_AUDIO;
     }
 }
 
+/* type should be one of libsndfile's format values. */
+int sftype2csfiletype(int type)
+{
+    return type2csfiletype(SF2TYPE(type), SF2FORMAT(type));
+}

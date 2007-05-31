@@ -403,8 +403,8 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       }
     }
     else if (csound->FileOpen2(csound, &outfd, CSFILE_SND_W, O->outfilename,
-                       &sfinfo, "SFDIR", csound->type2csfiletype(O->filetyp),
-                       0) == NULL)
+                       &sfinfo, "SFDIR", csound->type2csfiletype(O->filetyp,
+                       O->outformat), 0) == NULL)
       outfd = NULL;
     if (outfd == NULL) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s'"),
