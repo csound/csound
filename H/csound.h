@@ -190,6 +190,98 @@ extern "C" {
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
 
+  /** 
+   * The following constants are used with csound->FileOpen2() and
+   * csound->ldmemfile2() to specify the format of a file that is being
+   * opened.  This information is passed by Csound to a host's FileOpen
+   * callback and does not influence the opening operation in any other
+   * way. Conversion from Csound's TYP_XXX macros for audio formats to
+   * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
+   */
+typedef enum
+{
+    CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
+    CSFTYPE_ORCHESTRA = 2,     /* the primary orc file (may be temporary) */
+    CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary) 
+                                  or any additional score opened by Cscore */
+    CSFTYPE_ORC_INCLUDE = 4,   /* a file #included by the orchestra */
+    CSFTYPE_SCO_INCLUDE = 5,   /* a file #included by the score */
+    CSFTYPE_SCORE_OUT = 6,     /* used for score.srt, score.xtr, cscore.out */
+    CSFTYPE_SCOT = 7,          /* Scot score input format */
+    CSFTYPE_OPTIONS = 8,       /* for .csoundrc and -@ flag */
+    CSFTYPE_EXTRACT_PARMS = 9, /* extraction file specified by -x */
+    
+    /* audio file types that Csound can write (10-19) or read */
+    CSFTYPE_RAW_AUDIO = 10,
+    CSFTYPE_IRCAM = 11,
+    CSFTYPE_AIFF = 12,
+    CSFTYPE_AIFC = 13,
+    CSFTYPE_WAVE = 14,
+    CSFTYPE_AU = 15,
+    CSFTYPE_SD2 = 16,
+    CSFTYPE_W64 = 17,
+    CSFTYPE_WAVEX = 18,
+    CSFTYPE_FLAC = 19,
+    CSFTYPE_CAF = 20,
+    CSFTYPE_AVR = 21,
+    CSFTYPE_HTK = 22,
+    CSFTYPE_MAT4 = 23,
+    CSFTYPE_MAT5 = 24,
+    CSFTYPE_NIST = 25,
+    CSFTYPE_PAF = 26,
+    CSFTYPE_PVF = 27,
+    CSFTYPE_SDS = 28,
+    CSFTYPE_SVX = 29,
+    CSFTYPE_VOC = 30,
+    CSFTYPE_XI = 31,
+    CSFTYPE_UNKNOWN_AUDIO = 32, /* used when opening audio file for reading
+                                   or temp file written with <CsSampleB> */
+    
+    /* miscellaneous music formats */
+    CSFTYPE_SOUNDFONT = 33,
+    CSFTYPE_STD_MIDI = 34,     /* Standard MIDI file */
+    CSFTYPE_MIDI_SYSEX = 35,   /* Raw MIDI codes, eg. SysEx dump */
+    
+    /* analysis formats */
+    CSFTYPE_HETRO = 36,
+    CSFTYPE_PVC = 37,          /* original PVOC format */
+    CSFTYPE_PVCEX = 38,        /* PVOC-EX format */
+    CSFTYPE_CVANAL = 39,
+    CSFTYPE_LPC = 40,
+    CSFTYPE_ATS = 41,
+    CSFTYPE_LORIS = 42,
+    CSFTYPE_SDIF = 43,
+    CSFTYPE_HRTF = 44,
+
+    /* Types for plugins and the files they read/write */
+    CSFTYPE_VST_PLUGIN = 45,
+    CSFTYPE_LADSPA_PLUGIN = 46,
+    CSFTYPE_SNAPSHOT = 47,
+    
+    /* Special formats for Csound ftables or scanned synthesis 
+       matrices with header info */
+    CSFTYPE_FTABLES_TEXT = 48,   /* for ftsave and ftload  */
+    CSFTYPE_FTABLES_BINARY = 49, /* for ftsave and ftload  */
+    CSFTYPE_XSCANU_MATRIX = 50,  /* for xscanu opcode  */
+    
+    /* These are for raw lists of numbers without header info */
+    CSFTYPE_FLOATS_TEXT = 51,    /* used by GEN23, GEN28, dumpk, readk */
+    CSFTYPE_FLOATS_BINARY = 52,  /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_TEXT = 53,   /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_BINARY = 54, /* used by dumpk, readk, etc. */
+
+    /* For files that don't match any of the above */
+    CSFTYPE_POSTSCRIPT = 55,     /* EPS format used by graphs */
+    CSFTYPE_SCRIPT_TEXT = 56,    /* executable script files (eg. Python) */
+    CSFTYPE_OTHER_TEXT = 57,
+    CSFTYPE_OTHER_BINARY = 58,
+    
+    /* This should only be used internally by the original FileOpen()
+       API call or for temp files written with <CsFileB> */
+    CSFTYPE_UNKNOWN = 0 
+}    
+CSOUND_FILETYPES;
+
   /*
    * TYPE DEFINITIONS
    */
