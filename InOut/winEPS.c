@@ -87,6 +87,7 @@ extern  char *          asctime(const struct tm *);
 
 typedef struct winEPS_globals_ {
     FILE    *psFile;
+    void    *psfd;                      /* CSFILE* returned by FileOpen2()  */
     char    ps_date[40];                /* Print time & date on every plot  */
     int     currentPage;                /* Current page number              */
 } winEPS_globals_t;
@@ -95,7 +96,6 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
     winEPS_globals_t  *pp;
     char      *filenam;
-    char      *pathnam_;
     char      pathnam[1024];
     char      *t;
     time_t    lt;
@@ -126,13 +126,9 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strcat(pathnam, ".eps");
-    pathnam_ = csoundFindOutputFile(csound, pathnam, "SFDIR");
-    pp->psFile = NULL;
-    if (pathnam_ != NULL) {
-      pp->psFile = fopen(pathnam_, "w");
-      mfree(csound, pathnam_);
-    }
-    if (pp->psFile == NULL) {
+    pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
+                                   "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
+    if (pp->psfd == NULL) {
       csound->Message(csound, Str("** Warning **  PostScript file %s "
                                   "cannot be opened\n"), pathnam);
       csound->winEPS_globals = NULL;
@@ -453,7 +449,7 @@ int PS_ExitGraph(CSOUND *csound)
       fprintf(pp->psFile, "%%%%Trailer \n");
       fprintf(pp->psFile, "%%%%Pages: %d  \n", pp->currentPage);
       fprintf(pp->psFile, "%%%%EOF\n");
-      fclose(pp->psFile);
+      csound->FileClose(csound, pp->psfd);
       csound->winEPS_globals = NULL;
       csound->Free(csound, (void *) pp);
     }
