@@ -302,6 +302,8 @@ static const CSOUND cenviron_ = {
         csoundWaitBarrier,
         csoundFileOpenWithType,
         type2csfiletype,
+        ldmemfile2,
+        csoundNotifyFileOpened,
      /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -312,7 +314,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL },
+          NULL },
         NULL,  /*  flgraphsGlobals */
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
@@ -391,7 +393,7 @@ static const CSOUND cenviron_ = {
         defaultCsoundMakeXYin,
         defaultCsoundReadKillXYin,
         defaultCsoundReadKillXYin,
-        cscore,         /*  cscoreCallback_     */
+        cscore_,        /*  cscoreCallback_     */
         (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
         (SUBR) NULL,    /*  last_callback_      */
         /* these are not saved on RESET */
@@ -615,7 +617,7 @@ static const CSOUND cenviron_ = {
         NULL,           /* multiThreadedThreadInfo */
         NULL,           /* multiThreadedStart */
         NULL,           /* multiThreadedEnd */
-        0               /* usingCSD */
+        0               /* tempStatus */
 };
 
   /* from threads.c */
@@ -1533,7 +1535,7 @@ static const CSOUND cenviron_ = {
   PUBLIC void csoundSetCscoreCallback(CSOUND *p,
                                       void (*cscoreCallback)(CSOUND *))
   {
-    p->cscoreCallback_ = (cscoreCallback != NULL ? cscoreCallback : cscore);
+    p->cscoreCallback_ = (cscoreCallback != NULL ? cscoreCallback : cscore_);
   }
 
   static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
@@ -2403,6 +2405,21 @@ static const CSOUND cenviron_ = {
                 void (*fileOpenCallback)(CSOUND*, const char*, int, int, int))
   {
     p->FileOpenCallback_ = fileOpenCallback;
+  }
+
+  /* csoundNotifyFileOpened() should be called by plugins via 
+     csound->NotifyFileOpened() to let Csound know that they opened a file 
+     without using one of the standard mechanisms (csound->FileOpen2() or 
+     ldmemfile2()).  The notification is passed on to the host if it has set
+     the FileOpen callback. */
+  void csoundNotifyFileOpened(CSOUND* csound, const char* pathname, 
+                int csFileType, int writing, int temporary)
+  {
+    if (csound->FileOpenCallback_ != NULL)
+      csound->FileOpenCallback_(csound, pathname, csFileType, writing,
+                                  temporary);
+    return;
+  
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */

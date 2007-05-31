@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-void    cscore(CSOUND *);
+void    cscore_(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
@@ -69,7 +69,8 @@ void    list_opcodes(CSOUND *, int);
 char    *getstrformat(int format);
 int     sfsampsize(int sf_format);
 char    *type2string(int type);
-int     type2csfiletype(int type);
+int     type2csfiletype(int type, int encoding);
+int     sftype2csfiletype(int type);
 void    rewriteheader(SNDFILE *ofd);
 int     readOptions(CSOUND *, FILE *);
 int     argdecode(CSOUND *, int, char **);
@@ -79,6 +80,7 @@ void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
 int     insert_score_event(CSOUND *, EVTBLK *, double);
 MEMFIL  *ldmemfile(CSOUND *, const char *);
+MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 void    rlsmemfiles(CSOUND *);
 int     delete_memfile(CSOUND *, const char *);
 char    *csoundTmpFileName(CSOUND *, char *, const char *);
@@ -96,6 +98,7 @@ void    csoundDestroyOpcodeDB(CSOUND *);
 int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
 int     csoundLoadAllPluginOpcodes(CSOUND *);
 int     csoundLoadAndInitModule(CSOUND *, const char *);
+void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
 
 /**
  * Register a function to be called at note deactivation.
