@@ -170,6 +170,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
+    void  *fd;
 
     if (strcmp(csound->GetOpcodeName(p), "ftload") != 0) {
       nargs--;
@@ -187,7 +188,9 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
                                 (int) csound->GetInputArgSMask(p));
     if (*p->iflag <= FL(0.0)) {
-      if (!(file = fopen(filename, "rb"))) goto err3;
+      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "rb",
+                               "", CSFTYPE_FTABLES_BINARY, 0);
+      if (fd == NULL) goto err3;
       while (nargs--) {
         FUNC  header;
         int   fno = (int) MYFLT2LRND(**argp);
@@ -208,7 +211,9 @@ static int ftload(CSOUND *csound, FTLOAD *p)
       }
     }
     else {
-      if (!(file = fopen(filename, "r"))) goto err3;
+      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "r",
+                               "", CSFTYPE_FTABLES_TEXT, 0);
+      if (fd == NULL) goto err3;
       while (nargs--) {
         FUNC  header;
         char  s[64], *s1;
@@ -283,10 +288,10 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         argp++;
       }
     }
-    fclose(file);
+    csound->FileClose(csound, fd);
     return OK;
  err:
-    fclose(file);
+    csound->FileClose(csound, fd);
     return err_func(csound, Str("ftload: error allocating ftable"));
  err2:
     return err_func(csound, Str("ftload: no table numbers"));
@@ -309,6 +314,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
+    void  *fd;
 
     if (strcmp(csound->GetOpcodeName(p), "ftsave") != 0) {
       nargs--;
@@ -326,7 +332,9 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
                                 (int) csound->GetInputArgSMask(p));
     if (*p->iflag <= FL(0.0)) {
-      if (!(file = fopen(filename, "wb"))) goto err3;
+      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "wb",
+                               "", CSFTYPE_FTABLES_BINARY, 0);
+      if (fd == NULL) goto err3;
       while (nargs--) {
         FUNC *ftp;
 
@@ -341,7 +349,9 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
       }
     }
     else {
-      if (!(file = fopen(filename, "w"))) goto err3;
+      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "w",
+                               "", CSFTYPE_FTABLES_TEXT, 0);
+      if (fd == NULL) goto err3;
       while (nargs--) {
         FUNC *ftp;
 
@@ -392,10 +402,10 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
         argp++;
       }
     }
-    fclose(file);
+    csound->FileClose(csound, fd);
     return OK;
  err:
-    fclose(file);
+    csound->FileClose(csound, fd);
     return err_func(csound, Str("ftsave: Bad table number. Saving is possible "
                                 "only for existing tables."));
  err2:

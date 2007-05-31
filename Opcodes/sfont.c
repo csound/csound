@@ -97,6 +97,8 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
+    void *fd;
+
     /*
       if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "\n"
@@ -107,22 +109,17 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
                       "** http://web.tiscalinet.it/G-Maldonado **\n"
                       "******************************************\n\n");
     */
-    pathnam = csound->FindInputFile(csound, fname, "SFDIR;SSDIR");
-    fil = NULL;
-    if (pathnam != NULL)
-      fil = fopen(pathnam, "rb");
-    if (fil == NULL) {
-      if (pathnam != NULL)
-        csound->Free(csound, pathnam);
+    fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
+                             "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
+    if (fd == NULL) {
       csound->Die(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
     }
     soundFont = &sfArray[currSFndx];
-    strcpy(soundFont->name, pathnam);
-    csound->Free(csound, pathnam);
+    strcpy(soundFont->name, csound->GetFileName(fd));
     chunk_read(fil, &soundFont->chunk.main_chunk);
-    fclose(fil);
+    csound->FileClose(csound, fd);
     fill_pitches();
     fill_SfPointers(csound);
     fill_SfStruct(csound);
