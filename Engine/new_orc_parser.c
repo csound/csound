@@ -34,9 +34,7 @@ extern int csound_orcdebug;
 
 extern int csound_orcparse(CSOUND*, TREE*);
 extern void init_symbtab();
-#ifndef FALSE
-#define FALSE (0)
-#endif
+
 void new_orc_parser(CSOUND *csound)
 {
     void *t;
@@ -53,7 +51,7 @@ void new_orc_parser(CSOUND *csound)
 
     if ((t = csound->FileOpen2(csound, &csound_orcin, CSFILE_STD,
                                  csound->orchname, "rb", NULL,
-                                 CSFTYPE_ORCHESTRA, FALSE)) == NULL)
+                                 CSFTYPE_ORCHESTRA, 0)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
 
     csound_orcdebug = O->odebug;
