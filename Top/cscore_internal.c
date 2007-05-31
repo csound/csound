@@ -23,8 +23,8 @@
 
 #include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
 
-void cscore(CSOUND *cs)  /* callable from Csound or standalone cscore  */
-                         /* csound -C will run Csound scores as normal */
+void cscore_(CSOUND *cs)  /* callable from Csound or standalone cscore  */
+                          /* csound -C will run Csound scores as normal */
 {
     EVLIST *a;
 
