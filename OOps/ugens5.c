@@ -409,7 +409,8 @@ int lprdset(CSOUND *csound, LPREAD *p)
     if ((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
-    if ((mfp = ldmemfile(csound, lpfilname)) == NULL) { /* else read file  */
+    /* else read file  */
+    if ((mfp = ldmemfile2(csound, lpfilname, CSFTYPE_LPC)) == NULL) {
       return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
     }
     /* Store memory file location in opcode */
