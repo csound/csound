@@ -28,8 +28,8 @@
 #include "pstream.h"
 #include "namedins.h"
 
-static int Load_File_(CSOUND *csound,
-                      const char *filnam, char **allocp, long *len)
+static int Load_File_(CSOUND *csound, const char *filnam,
+                       char **allocp, long *len, int csFileType)
 {
     FILE *f;
 
@@ -37,7 +37,9 @@ static int Load_File_(CSOUND *csound,
     f = fopen(filnam, "rb");
     if (f == NULL)                              /* if cannot open the file */
       return 1;                                 /*    return 1             */
-    fseek(f, 0L, SEEK_END);                     /* else get its length     */
+    /* notify the host if it asked */
+    csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
+    fseek(f, 0L, SEEK_END);                     /* then get its length     */
     *len = (long) ftell(f);
     fseek(f, 0L, SEEK_SET);
     if (*len < 1L)
@@ -58,7 +60,16 @@ static int Load_File_(CSOUND *csound,
     return 1;
 }
 
+/* Backwards-compatible wrapper for ldmemfile2().
+   Please use ldmemfile2() in all new code instead. */
 MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
+{
+	return ldmemfile2(csound, filnam, CSFTYPE_UNKNOWN);
+}
+
+/* Takes an additional parameter specifying the type of the file being opened.
+   The type constants are defined in the enumeration CSOUND_FILETYPES. */
+MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
     char    *allocp;            /* if not fullpath, look in current directory,*/
@@ -87,7 +98,7 @@ MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
       delete_memfile(csound, filnam);
       return NULL;
     }
-    if (Load_File_(csound, pathnam, &allocp, &len) != 0) {  /* loadfile */
+    if (Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0) {  /* loadfile */
       csoundMessage(csound, Str("cannot load %s, or SADIR undefined\n"),
                             pathnam);
       mfree(csound, pathnam);

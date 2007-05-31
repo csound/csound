@@ -1,3 +1,54 @@
+2007-05-31  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/csoundCore.h:
+	* H/csound.h:  Moved CSOUND_FILETYPES enum to csound.h for host and
+	plugin access.  Added more file type constants.
+	
+	* InOut/libsnd_u.c:
+	* OOps/diskin.c
+	* util/mixer.c:
+	* util/scale.c:
+	* util/xtrct.c: type2csfiletype() now does more audio formats and uses
+	sample-encoding information to distinguish between AIFF and AIFC.
+	
+	* H/csound.h:
+	* H/csoundCore.h: 
+	* H/prototyp.h:
+	* Engine/memfiles.c:
+	* Top/csound.c:
+	* OOps/ugens3.c:
+	* OOps/ugens5.c:
+	* Opcodes/hrtferX.c:
+	* Opcodes/scansynx.c:
+	* Opcodes/ugens9.c:
+	* Opcodes/ugnorman.c:
+	* util/het_export.c: New API function pointer ldmemfile2() to replace
+	ldmemfile().  Takes an additional parameter for the type of file being
+	opened. Updated all calls to ldmemfile() to use ldmemfile2() instead. 
+	New API function pointer NotifyFileOpened() that calls the
+	FileOpenCallback when set.
+
+	* InOut/winEPS.c:
+	* Opcodes/ftgen.c:
+	* Opcodes/sfont.c:  Replaced fopen() calls with FileOpen2().
+	
+	* Top/main.c:
+	* Top/one_file.c
+	* Engine/musmon.c:
+	* Engine/rdorch.c:
+	* OOps/sndinfUG.c:
+	* Opcodes/Loris/lorisgens5.C:
+	* Opcodes/fluidOpcodes/fluidOpcodes.c: Added calls to
+	csoundNotifyFileOpened() after uses of fopen() within Csound.  Added
+	csound->NotifyFileOpened() to fluidLoad and lorisread. lorisread now
+	looks in SADIR for input files.  Tracks whether orc and sco files are
+	temporary files.
+
+	* Top/cscore_internal.c:
+	* Top/csound.c:
+	* H/prototyp.h: Rename internal cscore function to cscore_() to avoid
+	linker warnings for duplicate symbol with standalone cscore programs.
+
 2007-05-30  jpff  <jpff@codemist.co.uk>
 
 	* Top/argdecode.c (decode_long): Correct string length count in
@@ -64,6 +115,7 @@
 	* "Glue" code for message buffers, etc. has been moved into the
 	csound.h and csound.c files. 
 
+>>>>>>> 1.550
 2007-04-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/envvar.c, Engine/fgens.c, Engine/memfiles.c,
