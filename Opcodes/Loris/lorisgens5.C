@@ -588,18 +588,26 @@ int lorisread_setup( CSOUND *csound, LORISREAD * params )
 
   //    determine the name of the SDIF file to use:
   {
-    char  *tmp;
+    char  *tmp, *pathname;
     //  use strg name, if given:
     tmp = csound->strarg2name(
         csound, (char*) 0, (void*) params->ifilnam, "loris.sdif.",
         (int) csound->GetInputArgSMask( (void*) params )
     );
-    sdiffilname = tmp;
+    pathname = csound->FindInputFile(csound, tmp, "SADIR");
+    if (pathname == NULL) {
+      csound->InitError(csound, Str("lorisread cannot load %s"), tmp);
+      csound->Free(csound, (void*)tmp);
+      return NOTOK;
+    }
+    sdiffilname = pathname;
     csound->Free( csound, (void*) tmp );
+    csound->Free( csound, (void*) pathname );
   }
 
   //    construct the implementation object:
   params->imp = new LorisReader( sdiffilname, *params->fadetime, params->h.insdshead, int(*params->readerIdx) );
+  csound->NotifyFileOpened(csound, sdiffilname.c_str(), CSFTYPE_LORIS, 0, 0);
 
   // set lorisplay_cleanup as cleanup routine:
   csound->RegisterDeinitCallback(csound, params,

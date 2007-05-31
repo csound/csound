@@ -221,6 +221,7 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
   *(p->iInstrumentNumber) = (MYFLT) sfontId;
   if (sfontId < 0)
     csound->InitError(csound, "fluid: unable to load %s", filename);
+  csound->NotifyFileOpened(csound, filename_fullpath, CSFTYPE_SOUNDFONT, 0, 0);
   csound->Free(csound, filename_fullpath);
   csound->Free(csound, filename);
   if (sfontId < 0)
