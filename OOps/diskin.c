@@ -398,7 +398,7 @@ int sndo1set(CSOUND *csound, void *pp)
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
     p->fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_W, sfname, &sfinfo,
-                                    "SFDIR", type2csfiletype(filetyp), 0);
+                                "SFDIR", type2csfiletype(filetyp, format), 0);
     if (p->fd == NULL) {
       return csound->InitError(csound, Str("%s cannot open %s"), opname, sfname);
     }
