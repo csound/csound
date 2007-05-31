@@ -261,6 +261,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scof);
       csound->scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
+      csound->tempStatus |= csScoInMask;
     } else if(!csdFound && !O->noDefaultPaths){
         /* Add directory of SCO file to search paths*/
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
@@ -323,11 +324,17 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       else {
         playscore = sortedscore = csoundTmpFileName(csound, NULL, ".srt");
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
+        csound->tempStatus |= csScoSortMask + csPlayScoMask;
       }
       if (!(scorin = fopen(csound->scorename, "rb")))   /* else sort it   */
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
+      /* notify the host that we are opening a file */
+      csoundNotifyFileOpened(csound, csound->scorename, CSFTYPE_SCORE, 0,
+                                     (csound->tempStatus & csScoInMask)!=0);
       if (!(scorout = fopen(sortedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
+      csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT, 1,
+                                     (csound->tempStatus & csScoSortMask)!=0);
       csound->Message(csound, Str("sorting score ...\n"));
       scsort(csound, scorin, scorout);
       fclose(scorin);
@@ -339,16 +346,22 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
                           csound->scorename);
       if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
+      csoundNotifyFileOpened(csound, csound->xfilename, 
+                                     CSFTYPE_EXTRACT_PARMS, 0, 0);
       if (!(scorin = fopen(sortedscore, "r")))
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);
+      csoundNotifyFileOpened(csound, sortedscore, CSFTYPE_SCORE_OUT,  0,
+                                     (csound->tempStatus & csScoSortMask)!=0);
       if (!(scorout = fopen(xtractedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
+      csoundNotifyFileOpened(csound, xtractedscore, CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("  ... extracting ...\n"));
       scxtract(csound, scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
       fclose(xfile);
       playscore = xtractedscore;
+      csound->tempStatus &= ~csPlayScoMask;
     }
     csound->Message(csound, Str("\t... done\n"));
     /* copy sorted score name */
