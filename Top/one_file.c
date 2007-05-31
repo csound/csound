@@ -43,6 +43,15 @@
 #  define FALSE (0)
 #endif
 
+/* These are used to set/clear bits in csound->tempStatus.
+   If the bit is set, it indicates that the given file is
+   a temporary. */
+const uint32_t csOrcMask     = 1;
+const uint32_t csScoInMask   = 2;
+const uint32_t csScoSortMask = 4;
+const uint32_t csMidiScoMask = 8;
+const uint32_t csPlayScoMask = 16;
+
 typedef struct namelst {
   char           *name;
   struct namelst *next;
@@ -287,6 +296,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     csoundTmpFileName(csound, ST(orcname), ".orc");
     fd = csoundFileOpenWithType(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL,
                                 CSFTYPE_ORCHESTRA, 1);
+    csound->tempStatus |= csOrcMask;
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
 #endif
@@ -316,6 +326,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     csoundTmpFileName(csound, ST(sconame), ".sco");
     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL,
                                 CSFTYPE_SCORE, 1);
+    csound->tempStatus |= csScoInMask;
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof);
 #endif
@@ -351,6 +362,7 @@ static int createMIDI(CSOUND *csound, FILE *unf)
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
     }
+    csound->tempStatus |= csMidiScoMask;
     my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf);
     if (sscanf(ST(buffer), Str("Size = %d"), &size) == 0) {
       csoundDie(csound, Str("Error in reading MIDI subfile -- no size read"));
@@ -435,6 +447,7 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
     }
+    csound->tempStatus |= csMidiScoMask;
     read_base64(csound, unf, midf);
     csoundFileClose(csound, fd);
     add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
@@ -606,7 +619,6 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     alloc_globals(csound);
     ST(orcname)[0] = ST(sconame)[0] = ST(midname)[0] = '\0';
     ST(midiSet) = FALSE;
-    csound->usingCSD = TRUE;
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif

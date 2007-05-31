@@ -438,7 +438,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
     csound->Message(csound, Str("orch compiler:\n"));
     if ((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD,
                               csound->orchname, "rb", NULL, CSFTYPE_ORCHESTRA,
-                              csound->usingCSD)) == NULL)
+                              (csound->tempStatus & csOrcMask)!=0)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     if (fseek(ST(fp), 0L, SEEK_END) != 0)
       csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
