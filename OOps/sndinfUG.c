@@ -39,6 +39,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
     char    *sfname, *s, soundiname[512];
     SNDFILE *sf;
     SF_INFO sfinfo;
+    int     csFileType;
 
     memset(hdr, 0, sizeof(SF_INFO));
     /* leap thru std hoops to get the name */
@@ -59,6 +60,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
       }
     }
     sfname = s;                         /* & record fullpath filnam */
+    csFileType = CSFTYPE_UNKNOWN;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sf = sf_open(sfname, SFM_READ, &sfinfo);
     if (sf == NULL) {
@@ -85,7 +87,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
               hdr->samplerate = (int)(cvdata.samplingRate + FL(0.5));
               hdr->channels = (cvdata.channel == (long)ALLCHNLS ?
                                (int)cvdata.src_chnls : 1);
-              return 1;
+              csFileType = CSFTYPE_CVANAL;
             }
           }
         }
@@ -104,24 +106,29 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
           hdr->samplerate = (int)fmt.nSamplesPerSec;
           hdr->channels = (int)fmt.nChannels;
           csound->PVOC_CloseFile(csound, fd);
-          return 1;
+          csFileType = CSFTYPE_PVCEX;
         }
       }
-      memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.samplerate = (int)(csound->esr + FL(0.5));
-      sfinfo.channels = 1;
-      sfinfo.format = (int)FORMAT2SF(csound->oparms->outformat)
-                      | (int)TYPE2SF(TYP_RAW);
-      /* try again */
-      sf = sf_open(sfname, SFM_READ, &sfinfo);
+      if (csFileType == CSFTYPE_UNKNOWN) {
+        memset(&sfinfo, 0, sizeof(SF_INFO));
+        sfinfo.samplerate = (int)(csound->esr + FL(0.5));
+        sfinfo.channels = 1;
+        sfinfo.format = (int)FORMAT2SF(csound->oparms->outformat)
+                        | (int)TYPE2SF(TYP_RAW);
+        /* try again */
+        sf = sf_open(sfname, SFM_READ, &sfinfo);
+      }
     }
-    if (sf == NULL) {
+    if (sf == NULL && csFileType == CSFTYPE_UNKNOWN) {
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
+    if (sf != NULL) {
+      csFileType = sftype2csfiletype(sfinfo.format);
+      memcpy(hdr, &sfinfo, sizeof(SF_INFO));
+      sf_close(sf);
+    }
+    csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
     mfree(csound, sfname);
-    memcpy(hdr, &sfinfo, sizeof(SF_INFO));
-    sf_close(sf);
-
     return 1;
 }
 

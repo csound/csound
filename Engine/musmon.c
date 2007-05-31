@@ -274,6 +274,9 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen %s"), O->playscore);
       }
     }
+    /* notify the host if it asked */
+    csoundNotifyFileOpened(csound, O->playscore, CSFTYPE_SCORE_OUT, 0,
+                             (csound->tempStatus & csPlayScoMask)!=0);
     if (O->usingcscore) {
       if (ST(lsect) == NULL) {
         ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
@@ -283,6 +286,7 @@ int musmon(CSOUND *csound)
       /* override stdout in */
       if (!(csound->oscfp = fopen("cscore.out", "w")))
         csoundDie(csound, Str("cannot create cscore.out"));
+      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
       /* rdscor for cscorefns */
       csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
       /* call cscore, optionally re-enter via lplay() */
@@ -294,8 +298,10 @@ int musmon(CSOUND *csound)
 
       if (!(csound->scfp = fopen("cscore.out", "r"))) /*  rd from cscore.out */
         csoundDie(csound, Str("cannot reopen cscore.out"));
+      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
       if (!(csound->oscfp = fopen("cscore.srt", "w"))) /* writ to cscore.srt */
         csoundDie(csound, Str("cannot reopen cscore.srt"));
+      csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
       scsort(csound, csound->scfp, csound->oscfp);  /* call the sorter again */
       fclose(csound->scfp); csound->scfp = NULL;
@@ -303,6 +309,7 @@ int musmon(CSOUND *csound)
       csound->Message(csound, Str("\t... done\n"));
       if (!(csound->scfp = fopen("cscore.srt", "r"))) /*  rd from cscore.srt */
         csoundDie(csound, Str("cannot reopen cscore.srt"));
+      csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 0, 0);
       csound->Message(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
