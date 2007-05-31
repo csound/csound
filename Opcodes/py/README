@@ -17,14 +17,10 @@ scripts in this directory.
 
 NOTES
 
-Currently, these opcodes only function in CsoundVST because they require
-the Python virtual machine to be initialized, which CsoundVST takes care of.
+These opcodes require the Python virtual machine to be initialized, which 
+can be done by putting the "pyinit" opcode in the orchestra header.
 
 If you write your composition as a Python script in CsoundVST, you can write
 classes for your composition in that script and embed your Csound orchestras
 and scores in the script using Python triple quotes ('''). Therefore, the
 {{ and }} directives are not necessary if you use CsoundVST.
-
-The {{ and }} directives for mutiple-line strings are not currently
-implemented in Csound 5.
-

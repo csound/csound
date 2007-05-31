@@ -8,6 +8,8 @@ kr=4410
 ksmps=10
 nchnls=1
 
+pyinit
+
 pyruni "import random"
 
 instr 1
