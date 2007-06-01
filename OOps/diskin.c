@@ -193,7 +193,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & 4) !=0) {
+    if ((csound->oparms_.msglevel & WARNMSG) !=0) {
       csound->Message(csound, Str("diskin: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("        %d Hz, %d channel(s), "
@@ -203,7 +203,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels &&
-        (csound->oparms_.msglevel & 4) != 0) {
+        (csound->oparms_.msglevel & WARNMSG) != 0) {
       return csound->InitError(csound,
                                Str("diskin: number of output args "
                                    "inconsistent with number of file channels"));
@@ -214,7 +214,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     /* set file parameters from header info */
     p->fileLength = (long) sfinfo.frames;
     if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate &&
-        (csound->oparms_.msglevel & 4) != 0) {
+        (csound->oparms_.msglevel & WARNMSG) != 0) {
       csound->Message(csound, Str("diskin: warning: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                               sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
