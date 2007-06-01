@@ -308,9 +308,10 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       MYFLT *pfld = &ip->p3;              /* if pset data present */
       MYFLT *pdat = tp->psetdata + 2;
       long nn = tp->pmax - 2;             /*   put cur vals in pflds */
-      do {
-        *pfld++ = *pdat++;
-      } while (--nn);
+      memcpy(pfld, pdat, nn*sizeof(MYFLT));
+/*       do { */
+/*         *pfld++ = *pdat++; */
+/*       } while (--nn); */
     }
 
     /* MIDI channel message note on routing overrides pset: */
@@ -1755,7 +1756,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     while (active != NULL) {    /* Check there are no active instances */
       INSDS   *nxt = active->nxtinstance;
       if (active->actflg)       /* Can only remove non-active instruments */
-        return csound->InitError(csound, "Instrument %d is stilll active", n);
+        return csound->InitError(csound, "Instrument %d is still active", n);
 #if 0
       if (active->opcod_iobufs && active->insno > csound->maxinsno)
         mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
