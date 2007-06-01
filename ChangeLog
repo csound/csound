@@ -1,8 +1,13 @@
+2007-06-01  jpff  <jpff@codemist.co.uk>
+
+	* Top/csound.c (kperf): Restore other way of running chain. Unsafe
+	in presence of delete but needed in turnoff
+
 2007-06-01  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/envvar.c (csoundFileOpenWithType): When opening a sound file
 	for reading, replace CSFTYPE_UNKNOWN_AUDIO with actual file type.
-	
+
 	* InOut/libsnd_u.c (sftype2csfiletype): Ignore endian bits of format.
 
 	* OOps/sndinfUG.c (getsndinfo): Fixed a small bug in yesterday's changes
@@ -13,7 +18,7 @@
 	* H/csoundCore.h:
 	* H/csound.h:  Moved CSOUND_FILETYPES enum to csound.h for host and
 	plugin access.  Added more file type constants.
-	
+
 	* InOut/libsnd_u.c:
 	* OOps/diskin.c
 	* util/mixer.c:
@@ -125,7 +130,6 @@
 	* "Glue" code for message buffers, etc. has been moved into the
 	csound.h and csound.c files. 
 
->>>>>>> 1.550
 2007-04-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/envvar.c, Engine/fgens.c, Engine/memfiles.c,
@@ -170,7 +174,8 @@
 	* H/csoundCore.h: Rearrange code on sr/kr override
 
 2007-03-19  Andrés Cabrera  <andres@geminiflux.com>
-	* Fixed vrandh and vrandi scaling problems and added optional idstoffset, iseed and ioffset arguments 
+	* Fixed vrandh and vrandi scaling problems and added optional
+	idstoffset, iseed and ioffset arguments
 
 2007-03-12  Andrés Cabrera  <andres@geminiflux.com>
 	* Added preliminary support for vst4cs on linux
@@ -235,15 +240,15 @@
 	deleted butter.h and incorporated into source
 
 2007-01-16  Steven Yi  <stevenyi@gmail.com>
-	* InOut/widgets.cpp (csoundModuleDestroy): wrapped deinit code with a check
-	to see if widgetGlobals is not NULL (was causing segfault when running
-	"csound" or "csound --help")
+	* InOut/widgets.cpp (csoundModuleDestroy): wrapped deinit code
+	with a check to see if widgetGlobals is not NULL (was causing
+	segfault when running "csound" or "csound --help")
 
 2007-01-15  Steven Yi  <stevenyi@gmail.com>
-	* Manually merged in work from New Parser branch; to compile, must enable
-	in build using buildNewParser=1; to use at runtime, use --new-parser flag;
-	notes added to To-fix-and-do file; added tests directory for use with
-	testing new parser (python scripts)
+	* Manually merged in work from New Parser branch; to compile, must
+	enable in build using buildNewParser=1; to use at runtime, use
+	--new-parser flag; notes added to To-fix-and-do file; added tests
+	directory for use with testing new parser (python scripts)
 
 2007-01-15  jpff  <jpff@codemist.co.uk>
 
@@ -398,16 +403,16 @@
 
 2006-10-25    Steven Yi  <stevenyi@gmail.com>
 
-    * H/csoundCore.h (OPARMS):
-    * Top/argdecode(decode_long):
-    * Top/main.c (csoundCompile): added command line flags --no-default-paths
-    and --default-paths to disable and reenable using path(s) of CSD/ORC/SCO as
-    part of search paths
+	* H/csoundCore.h (OPARMS):
+	* Top/argdecode(decode_long):
+	* Top/main.c (csoundCompile): added command line flags
+	--no-default-paths and --default-paths to disable and reenable
+	using path(s) of CSD/ORC/SCO as part of search paths
 
 2006-10-24    Steven Yi  <stevenyi@gmail.com>
 
-    * Top/main.c (csoundCompile): changed CSD/ORC/SCO directory to append
-    instead of prepending search paths
+	* Top/main.c (csoundCompile): changed CSD/ORC/SCO directory to
+	append instead of prepending search paths
 
 2006-10-24  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
@@ -443,9 +448,9 @@
 
 2006-10-19    Steven Yi  <stevenyi@gmail.com>
 
-    * Top/main.c (csoundCompile): now adds directory of CSD, or ORC and SCO to
-    INCDIR, SADIR, SSDIR, and MFDIR; SCO path's are currently added before ORC
-    path
+	* Top/main.c (csoundCompile): now adds directory of CSD, or ORC
+	and SCO to INCDIR, SADIR, SSDIR, and MFDIR; SCO path's are
+	currently added before ORC path
 
 	* Engine/envvar.c (csoundGetDirectoryForPath): New function added to find
 	absolute path given a path as string
