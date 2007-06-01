@@ -1,5 +1,6 @@
 2007-06-01  jpff  <jpff@codemist.co.uk>
 
+	* OOps/diskin2.c (diskin2_init): 
 	* OOps/diskin.c (newsndinset): Supress warning messages when no
 	warnings requested
 
