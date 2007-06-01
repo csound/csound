@@ -420,5 +420,7 @@ int type2csfiletype(int type, int encoding)
 /* type should be one of libsndfile's format values. */
 int sftype2csfiletype(int type)
 {
-    return type2csfiletype(SF2TYPE(type), SF2FORMAT(type));
+    /* mask out the endian-ness bits */
+    int typemod = type & (SF_FORMAT_TYPEMASK | SF_FORMAT_SUBMASK);
+    return type2csfiletype(SF2TYPE(typemod), SF2FORMAT(typemod));
 }

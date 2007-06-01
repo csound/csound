@@ -1184,6 +1184,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     if (csound->FileOpenCallback_ != NULL) {
       int writing = (type == CSFILE_SND_W || type == CSFILE_FD_W || 
                       (type == CSFILE_STD && ((char*)param)[0] == 'w'));
+      if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
+        csFileType = sftype2csfiletype(((SF_INFO*)param)->format);
       csound->FileOpenCallback_(csound, p->fullName, csFileType, writing, isTemporary);
     }
     /* return with opaque file handle */
