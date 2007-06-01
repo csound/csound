@@ -227,7 +227,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & 7) == 7) {
+    if ((csound->oparms_.msglevel & WARNMSG) != 0) {
       csound->Message(csound, Str("diskin2: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("         %d Hz, %d channel(s), "
@@ -268,9 +268,10 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
         p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
       }
       else {
-        csound->Message(csound, Str("diskin2: warning: file sample rate (%d) "
-                                    "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, (int)(csound->esr + FL(0.5)));
+        if (!(csound->oparms_.msglevel & WARNMSG))
+          csound->Message(csound, Str("diskin2: warning: file sample rate (%d) "
+                                      "!= orchestra sr (%d)\n"),
+                          sfinfo.samplerate, (int)(csound->esr + FL(0.5)));
       }
     }
     /* wrap mode */
