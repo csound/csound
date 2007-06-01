@@ -82,7 +82,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     csound->inerrcnt = 0;
     tp = csound->instrtxtp[insno];
     if (tp->muted == 0) {
-      csound->Message(csound, Str("Instrument %d muted\n"), insno);
+      csound->Warning(csound, Str("Instrument %d muted\n"), insno);
       return 0;
     }
     if (tp->mdepends & 04) {
