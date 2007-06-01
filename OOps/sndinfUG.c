@@ -92,7 +92,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
           }
         }
       }
-      {                                 /* PVOC */
+      if (csFileType == CSFTYPE_UNKNOWN) {  /* PVOC */
         int     fd;
         PVOCDATA pvdata;
         WAVEFORMATEX fmt;
@@ -127,7 +127,10 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
       memcpy(hdr, &sfinfo, sizeof(SF_INFO));
       sf_close(sf);
     }
-    csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
+    /* FIXME: PVOC_OpenFile has already notified since it calls
+       FileOpen2(), even if the file was not a PVOC file. */
+    if (csFileType != CSFTYPE_PVCEX)
+      csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
     mfree(csound, sfname);
     return 1;
 }
