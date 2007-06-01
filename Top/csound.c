@@ -630,7 +630,7 @@ static const CSOUND cenviron_ = {
     CSOUND              *csound;
     struct csInstance_s *nxt;
   } csInstance_t;
-
+  
   /* initialisation state: */
   /* 0: not done yet, 1: complete, 2: in progress, -1: failed */
   static  volatile  int init_done = 0;
@@ -1241,21 +1241,18 @@ static const CSOUND cenviron_ = {
 
     ip = csound->actanchor.nxtact;
 
-    if(ip != NULL) {
+    if (ip != NULL) {
+      csound->multiThreadedStart = ip;
 
-        csound->multiThreadedStart = ip;
+      if (csound->multiThreadedThreadInfo != NULL) {
+        while (csound->multiThreadedStart != NULL) {
+          INSDS *current = csound->multiThreadedStart;
+          while(current != NULL &&
+                (current->insno == csound->multiThreadedStart->insno)) {
+            current = current->nxtact;
+          }
 
-        if(csound->multiThreadedThreadInfo != NULL) {
-
-            while(csound->multiThreadedStart != NULL) {
-                INSDS *current = csound->multiThreadedStart;
-
-                while(current != NULL &&
-                    (current->insno == csound->multiThreadedStart->insno)) {
-                    current = current->nxtact;
-                }
-
-                csound->multiThreadedEnd = current;
+          csound->multiThreadedEnd = current;
 
                 /* process this partition */
                 csound->WaitBarrier(barrier1);
@@ -1266,18 +1263,20 @@ static const CSOUND cenviron_ = {
                 csound->multiThreadedStart = current;
             }
 
-        } else {
-
-            while (ip != NULL) {                /* for each instr active:  */
-        /*     INSDS *nxt = ip->nxtact; */
-              csound->pds = (OPDS*) ip;
-              while ((csound->pds = csound->pds->nxtp) != NULL) {
-                (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-              }
-              ip = ip->nxtact;          /* ip = nxt; but that does not allow for
-                                           deletions */
-            }
         }
+      else {
+        while (ip != NULL) {                /* for each instr active:  */
+          INSDS *nxt = ip->nxtact;
+          csound->pds = (OPDS*) ip;
+          while ((csound->pds = csound->pds->nxtp) != NULL) {
+            (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+          }
+/*           if (nxt != ip->nxtact
+                  printf("Deletion case?? %p %p\n", nxt, ip->nxtact); */
+          /* ip = ip->nxtact; */
+          ip = nxt; /* but this does not allow for all deletions */
+        }
+      }
     }
 
     if (!csound->spoutactive)           /*   results now in spout? */
