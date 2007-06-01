@@ -1154,11 +1154,8 @@ static const CSOUND cenviron_ = {
     CSOUND *csound = (CSOUND *)cs;
     OPDS   *opstart;
     void   *barrier1, *barrier2;
-    
     void *threadId = csound->GetCurrentThreadID();
-
     int index = getThreadIndex(csound, threadId);
-
     int numThreads = csound->oparms->numThreads;
 
     if(index < 0) {
@@ -1180,7 +1177,6 @@ static const CSOUND cenviron_ = {
         }
         csound_global_mutex_unlock();
 
-
         start = csound->multiThreadedStart;
         end = csound->multiThreadedEnd;
 
@@ -1199,11 +1195,6 @@ static const CSOUND cenviron_ = {
 
         csound->WaitBarrier(barrier2);
     }
-
-
-
-
-
   }
 
   static inline int kperf(CSOUND *csound)
