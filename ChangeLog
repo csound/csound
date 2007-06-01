@@ -1,5 +1,8 @@
 2007-06-01  jpff  <jpff@codemist.co.uk>
 
+	* OOps/diskin.c (newsndinset): Supress warning messages when no
+	warnings requested
+
 	* Top/csound.c (kperf): Restore other way of running chain. Unsafe
 	in presence of delete but needed in turnoff
 
