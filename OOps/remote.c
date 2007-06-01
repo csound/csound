@@ -377,8 +377,8 @@ int insremot(CSOUND *csound, INSREMOT *p)
     if (nargs < 3) {
       return csound->InitError(csound, Str("missing instr nos"));
     }
-    csound->Message(csound, Str("*** str1: %s own:%s\n"),
-                    (char *)p->str1 , ST(ipadrs));
+/*     csound->Message(csound, Str("*** str1: %s own:%s\n"), */
+/*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) {  /* if client is this adrs */
       MYFLT   **argp = p->insno;
       int rfd = 0;
@@ -397,8 +397,8 @@ int insremot(CSOUND *csound, INSREMOT *p)
       ST(insrfd_list)[ST(insrfd_count)++] = rfd;   /*  and make a list    */
     }
     else if (!strcmp(ST(ipadrs),(char *)p->str2)) { /* if server is this adrs*/
-      csound->Message(csound, Str("*** str2: %s own:%s\n"),
-                      (char *)p->str2 , ST(ipadrs));
+/*       csound->Message(csound, Str("*** str2: %s own:%s\n"), */
+/*                       (char *)p->str2 , ST(ipadrs)); */
       if (SVopen(csound, (char *)p->str2) == NOTOK){ /* open port to listen */
         return csound->InitError(csound, Str("Failed to open port to listen"));
       }
@@ -492,8 +492,8 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
     if (nargs < 2) {
       return csound->InitError(csound, Str("missing channel nos"));
     }
-    csound->Message(csound, Str("*** str1: %s own:%s\n"),
-                    (char *)p->str1 , ST(ipadrs));
+/*     csound->Message(csound, Str("*** str1: %s own:%s\n"), */
+/*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) { /* if client is this adrs */
       MYFLT   **argp = p->chnum;
       for (nargs -= 1; nargs--; ) {

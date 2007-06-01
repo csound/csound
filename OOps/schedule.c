@@ -108,11 +108,11 @@ int schedule(CSOUND *csound, SCHED *p)
       RSCHED *rr;
       /* if duration is zero assume MIDI schedule */
       MYFLT dur = *p->dur;
-      csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur);
+/*       csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur); */
       p->midi = (dur <= FL(0.0));
       if (p->midi) {
-        csound->Message(csound,"SCH: MIDI case\n");
-        csound->Message(csound,Str(" *** WARNING: schedule in MIDI mode is not "
+/*         csound->Message(csound,"SCH: MIDI case\n"); */
+        csound->Warning(csound,Str("schedule in MIDI mode is not "
                                    "implemented correctly, do not use it\n"));
         /* set 1 k-cycle of extratime in order to allow mtrnoff to
            recognize whether the note is turned off */
@@ -191,8 +191,8 @@ int kschedule(CSOUND *csound, WSCHED *p)
       }
       p->midi = (dur <= FL(0.0));
       if (p->midi)
-        csound->Message(csound,
-                        Str(" *** WARNING: schedule in MIDI mode is not "
+        csound->Warning(csound,
+                        Str("schedule in MIDI mode is not "
                             "implemented correctly, do not use it\n"));
       p->todo = 0;
                                 /* Insert event */
