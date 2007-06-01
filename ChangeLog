@@ -1,3 +1,13 @@
+2007-06-01  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Engine/envvar.c (csoundFileOpenWithType): When opening a sound file
+	for reading, replace CSFTYPE_UNKNOWN_AUDIO with actual file type.
+	
+	* InOut/libsnd_u.c (sftype2csfiletype): Ignore endian bits of format.
+
+	* OOps/sndinfUG.c (getsndinfo): Fixed a small bug in yesterday's changes
+	and worked around opening of PVOC files being reported twice.
+
 2007-05-31  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* H/csoundCore.h:
