@@ -1056,15 +1056,15 @@ int reverbx(CSOUND *csound, NREV2 *p)
 /*     } while (--n); */
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (hdif > FL(1.0)) {
-        csound->Message(csound, Str("Warning: High frequency diffusion>1\n"));
+        csound->Warning(csound, Str("High frequency diffusion>1\n"));
         hdif = FL(1.0);
       }
       if (hdif < FL(0.0)) {
-        csound->Message(csound, Str("Warning: High frequency diffusion<0\n"));
+        csound->Warning(csound, Str("High frequency diffusion<0\n"));
         hdif = FL(0.0);
       }
       if (time <= FL(0.0)) {
-        csound->Message(csound, Str("Non positive reverb time\n"));
+        csound->Warning(csound, Str("Non positive reverb time\n"));
         time = FL(0.001);
       }
       for (i = 0; i < numCombs; i++) {
