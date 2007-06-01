@@ -193,7 +193,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & 7) == 7) {
+    if ((csound->oparms_.msglevel & 4) !=0) {
       csound->Message(csound, Str("diskin: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("        %d Hz, %d channel(s), "
@@ -202,7 +202,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
                               (long) sfinfo.frames);
     }
     /* check number of channels in file (must equal the number of outargs) */
-    if (sfinfo.channels != p->nChannels) {
+    if (sfinfo.channels != p->nChannels &&
+        (csound->oparms_.msglevel & 4) != 0) {
       return csound->InitError(csound,
                                Str("diskin: number of output args "
                                    "inconsistent with number of file channels"));
@@ -212,7 +213,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
       return OK;
     /* set file parameters from header info */
     p->fileLength = (long) sfinfo.frames;
-    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate) {
+    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate &&
+        (csound->oparms_.msglevel & 4) != 0) {
       csound->Message(csound, Str("diskin: warning: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                               sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
@@ -412,8 +414,9 @@ int sndo1set(CSOUND *csound, void *pp)
 #else
     sf_command(p->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
-    csound->Message(csound, Str("%s: opening RAW outfile %s\n"),
-                            opname, sfname);
+    if ((csound->oparms_.msglevel & 4) != 0)
+      csound->Message(csound, Str("%s: opening RAW outfile %s\n"),
+                      opname, sfname);
     p->outbufp = p->outbuf;                 /* fix - isro 20-11-96 */
     p->bufend = p->outbuf + SNDOUTSMPS;     /* fix - isro 20-11-96 */
 
