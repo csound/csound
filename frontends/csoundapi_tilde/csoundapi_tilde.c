@@ -61,29 +61,29 @@ typedef struct t_csoundapi_ {
     t_int   padding2;
 } t_csoundapi;
 
-PUBLIC int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
-PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel);
-PUBLIC channelname *create_channel(channelname *ch, char *channel);
-PUBLIC void destroy_channels(channelname *ch);
-PUBLIC void in_channel_value_callback(CSOUND *csound,
+static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
+static MYFLT get_channel_value(t_csoundapi *x, char *channel);
+static channelname *create_channel(channelname *ch, char *channel);
+static void destroy_channels(channelname *ch);
+static void in_channel_value_callback(CSOUND *csound,
                                       const char *name, MYFLT *val);
-PUBLIC void out_channel_value_callback(CSOUND *csound,
+static void out_channel_value_callback(CSOUND *csound,
                                        const char *name, MYFLT val);
-PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s,
+static void csoundapi_event(t_csoundapi *x, t_symbol *s,
                             int argc, t_atom *argv);
-PUBLIC void csoundapi_run(t_csoundapi *x, t_floatarg f);
-PUBLIC void csoundapi_offset(t_csoundapi *x, t_floatarg f);
-PUBLIC void csoundapi_reset(t_csoundapi *x);
-PUBLIC void csoundapi_rewind(t_csoundapi *x);
-PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
-PUBLIC void csoundapi_tilde_setup(void);
-PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv);
-PUBLIC void csoundapi_destroy(t_csoundapi *x);
-PUBLIC void csoundapi_dsp(t_csoundapi *x, t_signal **sp);
-PUBLIC t_int *csoundapi_perform(int *w);
-PUBLIC void csoundapi_channel(t_csoundapi *x, t_symbol *s,
+static void csoundapi_run(t_csoundapi *x, t_floatarg f);
+static void csoundapi_offset(t_csoundapi *x, t_floatarg f);
+static void csoundapi_reset(t_csoundapi *x);
+static void csoundapi_rewind(t_csoundapi *x);
+static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
+static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv);
+static void csoundapi_destroy(t_csoundapi *x);
+static void csoundapi_dsp(t_csoundapi *x, t_signal **sp);
+static t_int *csoundapi_perform(int *w);
+static void csoundapi_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv);
-PUBLIC void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
+static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
+static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
 
 PUBLIC void csoundapi_tilde_setup(void)
 {
@@ -109,6 +109,8 @@ PUBLIC void csoundapi_tilde_setup(void)
                     gensym("set"), A_GIMME, 0);
     class_addmethod(csoundapi_class, (t_method) csoundapi_control,
                     gensym("control"), A_DEFSYMBOL, A_DEFFLOAT, 0);
+    class_addmethod(csoundapi_class, (t_method) csoundapi_set_channel,
+                    gensym("chnset"), A_GIMME, 0);
 
     CLASS_MAINSIGNALIN(csoundapi_class, t_csoundapi, f);
 
@@ -118,13 +120,13 @@ PUBLIC void csoundapi_tilde_setup(void)
       v3 = v1 % 10;
       v2 = (v1 / 10) % 100;
       v1 = v1 / 1000;
-      post("\ncsoundapi~ 1.0\n"
+      post("\ncsoundapi~ 1.01\n"
            " A PD csound class using the Csound %d.%02d.%d API\n"
-           "(c) V Lazzarini, 2005\n", v1, v2, v3);
+           "(c) V Lazzarini, 2005-2007\n", v1, v2, v3);
     }
 }
 
-PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
+static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 {
     char  **cmdl;
     int     i;
@@ -190,7 +192,7 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     return 0;
 }
 
-PUBLIC void csoundapi_destroy(t_csoundapi *x)
+static void csoundapi_destroy(t_csoundapi *x)
 {
     if (x->cmdl != NULL)
       free(x->cmdl);
@@ -199,7 +201,7 @@ PUBLIC void csoundapi_destroy(t_csoundapi *x)
     csoundDestroy(x->csound);
 }
 
-PUBLIC void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
+static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
 {
     int     i, numlets = x->numlets;
 
@@ -217,7 +219,7 @@ PUBLIC void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
       post("csoundapi~ warning: orchestra not compiled");
 }
 
-PUBLIC t_int *csoundapi_perform(int *w)
+static t_int *csoundapi_perform(int *w)
 {
     t_csoundapi *x = (t_csoundapi *) w[1];
     t_int   size = x->vsize;
@@ -268,7 +270,7 @@ PUBLIC t_int *csoundapi_perform(int *w)
     return (t_int *) (w + 2);
 }
 
-PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
+static void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
 {
     char    type[10];
     MYFLT   pFields[64];
@@ -290,7 +292,7 @@ PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
       post("csoundapi~ warning: not compiled");
 }
 
-PUBLIC void csoundapi_reset(t_csoundapi *x)
+static void csoundapi_reset(t_csoundapi *x)
 {
     if (x->cmdl != NULL) {
 
@@ -314,7 +316,7 @@ PUBLIC void csoundapi_reset(t_csoundapi *x)
     }
 }
 
-PUBLIC void csoundapi_rewind(t_csoundapi *x)
+static void csoundapi_rewind(t_csoundapi *x)
 {
     if (!x->result) {
       csoundSetScoreOffsetSeconds(x->csound, (MYFLT) 0);
@@ -328,7 +330,7 @@ PUBLIC void csoundapi_rewind(t_csoundapi *x)
       post("csoundapi~ warning: not compiled");
 }
 
-PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
+static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
 {
     char  **cmdl;
     int     i;
@@ -374,18 +376,18 @@ PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
       post("csoundapi~ warning: could not compile");
 }
 
-PUBLIC void csoundapi_run(t_csoundapi *x, t_floatarg f)
+static void csoundapi_run(t_csoundapi *x, t_floatarg f)
 {
     x->run = (int) f;
     post("csoundapi~ run: %d", x->run);
 }
 
-PUBLIC void csoundapi_offset(t_csoundapi *x, t_floatarg f)
+static void csoundapi_offset(t_csoundapi *x, t_floatarg f)
 {
     csoundSetScoreOffsetSeconds(x->csound, (MYFLT) f);
 }
 
-PUBLIC int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value)
+static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value)
 {
     channelname *ch = x->iochannels;
 
@@ -402,7 +404,7 @@ PUBLIC int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value)
     return 1;
 }
 
-PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel)
+static MYFLT get_channel_value(t_csoundapi *x, char *channel)
 {
     channelname *ch;
 
@@ -419,7 +421,7 @@ PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel)
     return ch->value;
 }
 
-PUBLIC channelname *create_channel(channelname *ch, char *channel)
+static channelname *create_channel(channelname *ch, char *channel)
 {
     channelname *tmp = ch, *newch = (channelname *) malloc(sizeof(channelname));
 
@@ -430,7 +432,7 @@ PUBLIC channelname *create_channel(channelname *ch, char *channel)
     return ch;
 }
 
-PUBLIC void destroy_channels(channelname *ch)
+static void destroy_channels(channelname *ch)
 {
     channelname *tmp = ch;
 
@@ -441,7 +443,7 @@ PUBLIC void destroy_channels(channelname *ch)
     }
 }
 
-PUBLIC void csoundapi_channel(t_csoundapi *x, t_symbol *s,
+static void csoundapi_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv)
 {
     int     i;
@@ -453,13 +455,13 @@ PUBLIC void csoundapi_channel(t_csoundapi *x, t_symbol *s,
     }
 }
 
-PUBLIC void csoundapi_control(t_csoundapi *x, t_symbol *s, float f)
+static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f)
 {
     if (!set_channel_value(x, s, f))
       post("channel not found");
 }
 
-PUBLIC void in_channel_value_callback(CSOUND *csound,
+static void in_channel_value_callback(CSOUND *csound,
                                       const char *name, MYFLT *val)
 {
     t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
@@ -467,7 +469,7 @@ PUBLIC void in_channel_value_callback(CSOUND *csound,
     *val = get_channel_value(x, (char *) name);
 }
 
-PUBLIC void out_channel_value_callback(CSOUND *csound,
+static void out_channel_value_callback(CSOUND *csound,
                                        const char *name, MYFLT val)
 {
     t_atom  at[2];
@@ -478,3 +480,27 @@ PUBLIC void out_channel_value_callback(CSOUND *csound,
     outlet_list(x->ctlout, gensym("list"), 2, at);
 }
 
+static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
+				  int argc, t_atom *argv){
+  CSOUND *p = x->csound;
+  MYFLT *pval;
+  int i;
+  char chn[64];
+  int len = csoundGetStrVarMaxLen(p);
+  
+  for(i=0; i < argc; i+=2){
+    atom_string(&argv[i],chn,64);
+    if(i+1 < argc){
+      if(argv[i+1].a_type == A_SYMBOL) {
+	csoundGetChannelPtr(p,&pval,chn,
+			    CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
+	atom_string(&argv[i+1],(char *)pval,len);
+      }
+      else if (argv[i+1].a_type == A_FLOAT) {
+	csoundGetChannelPtr(p,&pval,chn,
+			    CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+	*pval = atom_getfloat(&argv[i+1]);
+      }
+    }
+  }
+}
