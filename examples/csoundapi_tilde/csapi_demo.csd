@@ -15,6 +15,11 @@ kamp  invalue "amp"
 a0    = 0
 asyn  oscili p4*kamp, p5*kfreq, 1
         outq asyn*0.7, asyn*0.3,a0,a0
+
+kchn chnget "blobs"
+S1 chnget "blar"
+printf "blar: %s blobs: %d\n", kchn, S1, kchn
+
 endin
 
 instr 2
@@ -25,6 +30,7 @@ klt   invalue "del"
 kfm   invalue "modf"
 kmod  phasor kfm
 adel upsamp klt
+
 a0  = 0
 acmb flanger  as4, adel, krvt
       outvalue "mod",  kmod

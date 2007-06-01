@@ -48,7 +48,6 @@ run 1 re-starts it;
 #X text 29 354 instr 2 controls use invalue opcode;
 #X msg 462 343 open csapi_demo.csd;
 #X obj 312 365 csoundapi~ csapi_demo.csd;
-#X text 513 67 csoundapi~ 1 (c) V Lazzarini \, 2005;
 #X msg 30 439 rewind;
 #X text 92 439 rewinds the score without recompilation;
 #X msg 30 464 offset 20;
@@ -57,6 +56,13 @@ run 1 re-starts it;
 #X text 437 461 csoundapi~ is built with the number of channels taken
 from the orchestra \, or it can be built with a set number of out/inlets
 (when its argument is numeric);
+#X msg 338 78 chnset blobs 2;
+#X text 610 28 csoundapi~ 1.01 (c) V Lazzarini \, 2005-2007;
+#X msg 321 57 chnset blar haha;
+#X msg 355 97 chnset blobs 1;
+#X text 496 87 they work with the chnget opcode;
+#X text 456 73 chnset messages send in k-rate numbers or strings;
+#X text 453 58 instr 1 also uses chnget opcodes;
 #X connect 1 0 39 0;
 #X connect 2 0 23 1;
 #X connect 3 0 39 0;
@@ -89,3 +95,6 @@ from the orchestra \, or it can be built with a set number of out/inlets
 #X connect 39 3 0 1;
 #X connect 39 4 24 0;
 #X connect 39 5 25 0;
+#X connect 46 0 39 0;
+#X connect 48 0 39 0;
+#X connect 49 0 39 0;
