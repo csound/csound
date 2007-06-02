@@ -1,3 +1,8 @@
+2007-06-02  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* InOut/libsnd.c (sfopenin & sfopenout): Call csoundNotifyFileOpened()
+	for the primary input and output soundfiles.
+
 2007-06-01  jpff  <jpff@codemist.co.uk>
 
 	* OOps/diskin2.c (diskin2_init): 

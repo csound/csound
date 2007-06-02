@@ -326,6 +326,9 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       }
       if (ST(infile) == NULL)
         csoundDie(csound, Str("isfinit: cannot open %s"), fullName);
+      /* only notify the host if we opened a real file, not stdin or a pipe */
+      csoundNotifyFileOpened(csound, fullName,
+                              sftype2csfiletype(sfinfo.format), 0, 0);
       sfname = fullName;
     }
     /* chk the hdr codes  */
@@ -439,6 +442,9 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       ST(outfile) = sf_open(fullName, SFM_WRITE, &sfinfo);
       if (ST(outfile) == NULL)
         csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
+      /* only notify the host if we opened a real file, not stdout or a pipe */
+      csoundNotifyFileOpened(csound, fullName,
+                              type2csfiletype(O->filetyp, O->outformat), 1, 0);
     }
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
