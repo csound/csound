@@ -119,7 +119,10 @@
 /* NOTE: Perhaps should use %union feature of bison */
 
 %{
-#define YYSTYPE ORCTOKEN*
+/* #define YYSTYPE ORCTOKEN* */
+/* JPff thinks that line must be wrong and is trying this! */
+#define YYSTYPE TREE*
+
 #ifndef NULL
 #define NULL 0L
 #endif
@@ -132,6 +135,7 @@
 int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
+extern int csound_orclex (ORCTOKEN*, CSOUND *);
 
 %}
 %%
@@ -144,45 +148,43 @@ orcfile           : rootstatement
 
 rootstatement	  : rootstatement topstatement
                         {
-                        $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+                        $$ = appendToTree(csound, $1, $2);
                         }
                   | rootstatement instrdecl
                         {
-                        $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+                        $$ = appendToTree(csound, $1, $2);
                         }
                   | rootstatement udodecl
                         {
-                        $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+                        $$ = appendToTree(csound, $1, $2);
                         }
                   | S_NL { }
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 /* FIXME: Does not allow named instruments i.e. "instr trumpet" */
-instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
+instrdecl : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                     {
-                        TREE *leaf = make_leaf(csound, T_INTGR, $2);
+                        TREE *leaf = make_leaf(csound, T_INTGR, (ORCTOKEN *)$2);
                         $$ = make_node(csound, T_INSTR, leaf, $4);
                     }
           | T_INSTR S_NL error
-                        { csound->Message(csound, "No number following instr\n"); }
+                    { csound->Message(csound, "No number following instr\n"); }
           ;
 
-udodecl		: T_UDOSTART T_IDENT_S S_COM
-                { udoflag = 0;}
+udodecl	  : T_UDOSTART T_IDENT_S S_COM
+			{ udoflag = 0;}
               T_UDO_ANS
-                  { udoflag = 1; }
+                        { udoflag = 1; }
               S_COM T_UDO_ARGS S_NL
-                  { udoflag = 2; }
+                        { udoflag = 2; }
               statementlist T_UDOEND S_NL
-                  {	udoflag = -1;
-
-
-
-                    TREE * udoTop = make_leaf(csound, T_UDO, NULL);
-                    TREE * udoAns = make_leaf(csound, T_UDO_ANS, $5);
-                    TREE * udoArgs = make_leaf(csound, T_UDO_ARGS, $8);
-
+              {
+                  udoflag = -1;
+                  {
+                    TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
+                    TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$5);
+                    TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$8);
 
                     udoTop->left = udoAns;
                     udoAns->left = udoArgs;
@@ -190,182 +192,184 @@ udodecl		: T_UDOSTART T_IDENT_S S_COM
                     udoTop->right = (TREE *)$11;
 
                     $$ = udoTop;
-                }
+                  }
+              }
 
             ;
 
-/* rtparam		  : T_SRATE S_ASSIGN T_NUMBER S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+/* rtparam  : T_SRATE S_ASSIGN T_NUMBER S_NL
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                        //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
-                        //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
-                    }
+                $$ = ans;
+                //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
+                //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
+              }
               | T_SRATE S_ASSIGN T_INTGR S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                      //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->value);
-                      //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
-                    }
-                | T_KRATE S_ASSIGN T_NUMBER S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+                $$ = ans;
+                //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->value);
+                //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
+              }
+              | T_KRATE S_ASSIGN T_NUMBER S_NL
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                        ((TREE *)$$)->value->lexeme = "=.r";
-                      //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
-                      //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
-                    }
-                | T_KRATE S_ASSIGN T_INTGR S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+                $$ = ans;
+                ((TREE *)$$)->value->lexeme = "=.r";
+                //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
+                //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
+              }
+              | T_KRATE S_ASSIGN T_INTGR S_NL
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                      //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->value);
-                      //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
-                    }
-                | T_KSMPS S_ASSIGN T_INTGR S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+                $$ = ans;
+                //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->value);
+                //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
+              }
+              | T_KSMPS S_ASSIGN T_INTGR S_NL
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                      //csound->tran_ksmps = (MYFLT)(((ORCTOKEN*)$3)->value);
-                      //csound->Message(csound, "ksmps set to %f\n", csound->tran_ksmps);
-                    }
-                | T_NCHNLS S_ASSIGN T_INTGR S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = make_leaf(csound, $1->type, $1);
-                        ans->right = make_leaf(csound, $3->type, $3);
-                        ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
+                $$ = ans;
+                //csound->tran_ksmps = (MYFLT)(((ORCTOKEN*)$3)->value);
+                //csound->Message(csound, "ksmps set to %f\n", csound->tran_ksmps);
+              }
+              | T_NCHNLS S_ASSIGN T_INTGR S_NL
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
+                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
+                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
 
-                        $$ = ans;
-                      //csound->tran_nchnls = ((ORCTOKEN*)$3)->value;
-                      //csound->Message(csound, "nchnls set to %i\n", csound->tran_nchnls);
-                    }
+                $$ = ans;
+                //csound->tran_nchnls = ((ORCTOKEN*)$3)->value;
+                //csound->Message(csound, "nchnls set to %i\n",
+                //                csound->tran_nchnls);
+              }
               | gident S_ASSIGN exprlist S_NL
-                    {
-                        TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                        ans->left = (TREE *)$1;
-                        ans->right = (TREE *)$3;
-                        ans->value->lexeme = get_assignment_type(csound,
-                                ((TREE *)$1)->value->lexeme);
+              {
+                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                ans->left = (TREE *)$1;
+                ans->right = (TREE *)$3;
+                ans->value->lexeme = get_assignment_type(csound,
+                                      ((TREE *)$1)->value->lexeme);
 
-                        $$ = ans;
-                        //instr0(csound, $2, $1, check_opcode($2, $1, $3));
-                      }
+                $$ = ans;
+                //instr0(csound, $2, $1, check_opcode($2, $1, $3));
+              }
               | gans initop exprlist S_NL
-                    { //instr0(csound, $2, $1, check_opcode($2, $1, $3));
-                      }
-                | initop0 exprlist S_NL
-                    {
-                        //instr0(csound, $1, NULL, check_opcode0($1, $2));
-                    }
-                | S_NL {
-                    $$ = NULL;
-                }
-                  ;
+              { //instr0(csound, $2, $1, check_opcode($2, $1, $3));
+              }
+              | initop0 exprlist S_NL
+              {
+                //instr0(csound, $1, NULL, check_opcode0($1, $2));
+              }
+              | S_NL {
+                $$ = NULL;
+              }
+              ;
 
-initop0           : T_STRSET		{ $$ = make_leaf(csound, T_STRSET, NULL); }
-                  | T_PSET		{ $$ = make_leaf(csound, T_PSET, NULL); }
-                  | T_CTRLINIT		{ $$ = make_leaf(csound, T_CTRLINIT, NULL); }
-                  | T_MASSIGN		{ $$ = make_leaf(csound, T_MASSIGN, NULL); }
-                  | T_TURNON		{ $$ = make_leaf(csound, T_TURNON, NULL); }
-                  | T_PREALLOC		{ $$ = make_leaf(csound, T_PREALLOC, NULL); }
-                  | T_ZAKINIT		{ $$ = make_leaf(csound, T_ZAKINIT, NULL); }
-                  ;
-initop            : T_FTGEN		{ $$ = make_leaf(csound, T_FTGEN, NULL); }
-                  | T_INIT              { $$ = make_leaf(csound, T_INIT, NULL); }
-                  ;
+initop0       : T_STRSET	{ $$ = make_leaf(csound, T_STRSET, NULL); }
+              | T_PSET		{ $$ = make_leaf(csound, T_PSET, NULL); }
+              | T_CTRLINIT	{ $$ = make_leaf(csound, T_CTRLINIT, NULL); }
+              | T_MASSIGN	{ $$ = make_leaf(csound, T_MASSIGN, NULL); }
+              | T_TURNON	{ $$ = make_leaf(csound, T_TURNON, NULL); }
+              | T_PREALLOC	{ $$ = make_leaf(csound, T_PREALLOC, NULL); }
+              | T_ZAKINIT	{ $$ = make_leaf(csound, T_ZAKINIT, NULL); }
+              ;
+initop        : T_FTGEN		{ $$ = make_leaf(csound, T_FTGEN, NULL); }
+              | T_INIT          { $$ = make_leaf(csound, T_INIT, NULL); }
+              ;
+
+gans          : gident              { $$ = $1; }
+              | gans S_COM gident   { $$ = appendToTree(csound, $1, $3); }
+              ;
+
 */
 
-gans              : gident              { $$ = $1; }
-                  | gans S_COM gident   { $$ = appendToTree(csound, $1, $3); }
-                  ;
 
-
-
-statementlist     : statementlist statement
-                        {
-                          $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
-                        }
-                  | /* null */          { $$ = NULL; }
-                  ;
+statementlist : statementlist statement
+                {
+                    $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+                }
+                | /* null */          { $$ = NULL; }
+                ;
 
 topstatement : rident S_ASSIGN expr S_NL
                 {
 
-                    TREE *ans = make_leaf(csound, S_ASSIGN, $2);
-                    ans->left = (TREE *)$1;
-                    ans->right = (TREE *)$3;
-                    /* ans->value->lexeme = get_assignment_type(csound, ans->left->value->lexeme, ans->right->value->lexeme); */
+                  TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
+                  ans->left = (TREE *)$1;
+                  ans->right = (TREE *)$3;
+                  /* ans->value->lexeme = get_assignment_type(csound,
+                      ans->left->value->lexeme, ans->right->value->lexeme); */
 
-                    $$ = ans;
+                  $$ = ans;
                 }
-             | statement { $$ = $1; }
+                | statement { $$ = $1; }
 
              ;
 
 statement : ident S_ASSIGN expr S_NL
                 {
 
-                    TREE *ans = make_leaf(csound, S_ASSIGN, $2);
+                    TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
                     ans->left = (TREE *)$1;
                     ans->right = (TREE *)$3;
-                    /* ans->value->lexeme = get_assignment_type(csound, ans->left->value->lexeme, ans->right->value->lexeme); */
+                    /* ans->value->lexeme = get_assignment_type(csound,
+                       ans->left->value->lexeme, ans->right->value->lexeme); */
 
                     $$ = ans;
                 }
           | ans opcode exprlist S_NL
                 {
 
-                    ((TREE *)$2)->left = (TREE *)$1;
-                    ((TREE *)$2)->right = (TREE *)$3;
+                    $2->left = $1;
+                    $2->right = $3;
 
                     $$ = $2;
                 }
           | opcode0 exprlist S_NL
-                  {
-                      ((TREE *)$1)->left = NULL;
-                      ((TREE *)$1)->right = (TREE *)$2;
+                {
+                    ((TREE *)$1)->left = NULL;
+                    ((TREE *)$1)->right = (TREE *)$2;
 
-                      $$ = $1;
-                  }
+                    $$ = $1;
+                }
           | /* NULL */  { $$ = NULL; }
           | T_LABEL S_NL
-                  {
-
-                      $$ = make_leaf(csound, T_LABEL, yylval);
-
-                  }
+                {
+                    $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)yylval);
+                }
           | goto T_IDENT S_NL
-                  {
-                      ((TREE *)$1)->left = NULL;
-                      ((TREE*) $1)->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$2);
-                      $$ = $1;
+                {
+                    $1->left = NULL;
+                    $1->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$2);
+                    $$ = $1;
                 }
           | T_IF S_LB expr S_RB goto T_IDENT S_NL
                 {
-                    ((TREE *)$5)->left = NULL;
-                    ((TREE *)$5)->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$6);
+                    $5->left = NULL;
+                    $5->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$6);
                     $$ = make_node(csound, T_IF, $3, $5);
                 }
           | T_IF S_LB expr S_RB error
@@ -375,36 +379,32 @@ statement : ident S_ASSIGN expr S_NL
           ;
 
 
-lvalue		  : ident               { $$ = $1; }
+ans       : ident               { $$ = $1; }
+          | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
           ;
 
-ans               : ident               { $$ = $1; }
-                  | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
-                  ;
-
-goto		      : T_GOTO              { $$ = make_leaf(csound, T_GOTO, yylval); }
-                  | T_KGOTO             { $$ = make_leaf(csound, T_KGOTO, yylval); }
-                  | T_IGOTO             { $$ = make_leaf(csound, T_IGOTO, yylval); }
-                  ;
+goto	  : T_GOTO             
+            { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
+          | T_KGOTO  
+            { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)yylval); }
+          | T_IGOTO  
+            { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)yylval); }
+          ;
 
 
 exprlist  : exprlist S_COM expr
                 {
                     /* $$ = make_node(S_COM, $1, $3); */
-                    $$ = appendToTree(csound, (TREE *)$1, (TREE *)$3);
+                    $$ = appendToTree(csound, $1, $3);
                 }
           | exprlist S_COM error
           | expr { $$ = $1;	}
           | /* null */          { $$ = NULL; }
           ;
 
-
-
-
-
-expr              : expr S_Q expr S_COL expr %prec S_Q
-                                        { $$ = make_node(csound, S_Q, $1,
-                                                make_node(csound, S_COL, $3, $5)); }
+expr      : expr S_Q expr S_COL expr %prec S_Q
+            { $$ = make_node(csound, S_Q, $1,
+                             make_node(csound, S_COL, $3, $5)); }
           | expr S_Q expr S_COL error
           | expr S_Q expr error
           | expr S_Q error
@@ -426,94 +426,97 @@ expr              : expr S_Q expr S_COL expr %prec S_Q
           | expr S_OR error
           | S_NOT expr %prec S_UNOT { $$ = make_node(csound, S_UNOT, $2, NULL); }
           | S_NOT error
-                  | iexp                { $$ = $1; }
-                  ;
+          | iexp                { $$ = $1; }
+          ;
 
 iexp      : iexp S_PLUS iterm   { $$ = make_node(csound, S_PLUS, $1, $3); }
           | iexp S_PLUS error
           | iexp S_MINUS iterm  { $$ = make_node(csound, S_MINUS, $1, $3); }
           | expr S_MINUS error
           | iterm               { $$ = $1; }
-                  ;
+          ;
 
-iterm     : iterm S_TIMES ifac   { $$ = make_node(csound, S_TIMES, $1, $3); }
+iterm     : iterm S_TIMES ifac  { $$ = make_node(csound, S_TIMES, $1, $3); }
           | iterm S_TIMES error
-          | iterm S_DIV ifac     { $$ = make_node(csound, S_DIV, $1, $3); }
+          | iterm S_DIV ifac    { $$ = make_node(csound, S_DIV, $1, $3); }
           | iterm S_DIV error
-                  | ifac                { $$ = $1; }
-                  ;
+          | ifac                { $$ = $1; }
+          ;
 
-ifac              : ident               { $$ = $1; }
-                  | constant               { $$ = $1; }
+ifac      : ident               { $$ = $1; }
+          | constant            { $$ = $1; }
           | S_MINUS ifac %prec S_UMINUS
-                {
-                       $$ = make_node(csound, S_UMINUS, NULL, $2);
-                   }
+            {
+                $$ = make_node(csound, S_UMINUS, NULL, $2);
+            }
           | S_MINUS error
-                  | S_LB expr S_RB      { $$ = $2; }
+          | S_LB expr S_RB      { $$ = $2; }
           | S_LB expr error
           | S_LB error
           | function S_LB exprlist S_RB
-                  {
-                    ((TREE *)$1)->left = NULL;
-                      ((TREE *)$1)->right = (TREE *)$3;
+            {
+                $1->left = NULL;
+                $1->right = $3;
 
-                    $$ = $1;
-                  }
+                $$ = $1;
+            }
           | function S_LB error
-                  ;
+          ;
 
-function		  : T_FUNCTION	{ $$ = make_leaf(csound, T_FUNCTION, $1); }
-                  ;
+function  : T_FUNCTION	{ $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
+          ;
 
 /* exprstrlist	  : exprstrlist S_COM expr
                                         { $$ = make_node(csound, S_COM, $1, $3); }
           | exprstrlist S_COM T_STRCONST
-                                        { $$ = make_node(csound, S_COM, $1,
-                                                make_leaf(csound, T_STRCONST, yylval)); }
+                 { $$ = make_node(csound, S_COM, $1,
+                   make_leaf(csound, T_STRCONST, (ORCTOKEN *)yylval)); }
           | exprstrlist S_COM error
           | expr                { $$ = $1; }
           ;
  */
 
-rident	  : T_SRATE 			{ $$ = make_leaf(csound, T_SRATE, yylval); }
-          | T_KRATE             { $$ = make_leaf(csound, T_KRATE, yylval); }
-          | T_KSMPS             { $$ = make_leaf(csound, T_KSMPS, yylval); }
-          | T_NCHNLS	        { $$ = make_leaf(csound, T_NCHNLS, yylval); }
+rident	  : T_SRATE 	{ $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)yylval); }
+          | T_KRATE     { $$ = make_leaf(csound, T_KRATE, (ORCTOKEN *)yylval); }
+          | T_KSMPS     { $$ = make_leaf(csound, T_KSMPS, (ORCTOKEN *)yylval); }
+          | T_NCHNLS    { $$ = make_leaf(csound, T_NCHNLS, (ORCTOKEN *)yylval); }
           ;
 
-ident	  : T_IDENT_I			{ $$ = make_leaf(csound, T_IDENT_I, yylval); }
-          | T_IDENT_K           { $$ = make_leaf(csound, T_IDENT_K, yylval); }
-          | T_IDENT_F           { $$ = make_leaf(csound, T_IDENT_F, yylval); }
-          | T_IDENT_W           { $$ = make_leaf(csound, T_IDENT_W, yylval); }
-          | T_IDENT_S           { $$ = make_leaf(csound, T_IDENT_S, yylval); }
-          | T_IDENT_A           { $$ = make_leaf(csound, T_IDENT_A, yylval); }
-          | T_IDENT_P           { $$ = make_leaf(csound, T_IDENT_P, yylval); }
-          | gident              { $$ = $1; }
+ident	  : T_IDENT_I	{ $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)yylval); }
+          | T_IDENT_K   { $$ = make_leaf(csound, T_IDENT_K, (ORCTOKEN *)yylval); }
+          | T_IDENT_F   { $$ = make_leaf(csound, T_IDENT_F, (ORCTOKEN *)yylval); }
+          | T_IDENT_W   { $$ = make_leaf(csound, T_IDENT_W, (ORCTOKEN *)yylval); }
+          | T_IDENT_S   { $$ = make_leaf(csound, T_IDENT_S, (ORCTOKEN *)yylval); }
+          | T_IDENT_A   { $$ = make_leaf(csound, T_IDENT_A, (ORCTOKEN *)yylval); }
+          | T_IDENT_P   { $$ = make_leaf(csound, T_IDENT_P, (ORCTOKEN *)yylval); }
+          | gident      { $$ = $1; }
           ;
 
-gident	  : T_IDENT_GI          { $$ = make_leaf(csound, T_IDENT_GI, yylval); }
-          | T_IDENT_GK          { $$ = make_leaf(csound, T_IDENT_GK, yylval); }
-          | T_IDENT_GF          { $$ = make_leaf(csound, T_IDENT_GF, yylval); }
-          | T_IDENT_GW          { $$ = make_leaf(csound, T_IDENT_GW, yylval); }
-          | T_IDENT_GS          { $$ = make_leaf(csound, T_IDENT_GS, yylval); }
-          | T_IDENT_GA          { $$ = make_leaf(csound, T_IDENT_GA, yylval); }
-                  ;
-
-constant	  : T_INTGR 		{ $$ = make_leaf(csound, T_INTGR, yylval); }
-          | T_NUMBER 		{ $$ = make_leaf(csound, T_NUMBER, yylval); }
-          | T_STRCONST 		{ $$ = make_leaf(csound, T_STRCONST, yylval); }
-                  | T_SRATE             { $$ = make_leaf(csound, T_NUMBER, yylval); }
-                  | T_KRATE             { $$ = make_leaf(csound, T_NUMBER, yylval); }
-                  | T_KSMPS             { $$ = make_leaf(csound, T_NUMBER, yylval); }
-                  | T_NCHNLS            { $$ = make_leaf(csound, T_NUMBER, yylval); }
+gident	  : T_IDENT_GI  { $$ = make_leaf(csound, T_IDENT_GI, (ORCTOKEN *)yylval); }
+          | T_IDENT_GK  { $$ = make_leaf(csound, T_IDENT_GK, (ORCTOKEN *)yylval); }
+          | T_IDENT_GF  { $$ = make_leaf(csound, T_IDENT_GF, (ORCTOKEN *)yylval); }
+          | T_IDENT_GW  { $$ = make_leaf(csound, T_IDENT_GW, (ORCTOKEN *)yylval); }
+          | T_IDENT_GS  { $$ = make_leaf(csound, T_IDENT_GS, (ORCTOKEN *)yylval); }
+          | T_IDENT_GA  { $$ = make_leaf(csound, T_IDENT_GA, (ORCTOKEN *)yylval); }
           ;
 
-opcode0           : T_OPCODE0           { csound->Message(csound, "opcode0 yylval=%p\n", yylval);
-                                          $$ = make_leaf(csound, T_OPCODE0, yylval); }
+constant  : T_INTGR 	{ $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
+          | T_NUMBER	{ $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_STRCONST	{ $$ = make_leaf(csound, T_STRCONST, (ORCTOKEN *)yylval); }
+          | T_SRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_KRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_KSMPS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_NCHNLS    { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           ;
 
-opcode            : T_OPCODE		{ $$ = make_leaf(csound, T_OPCODE, yylval); }
-                  ;
+opcode0   : T_OPCODE0 
+            {
+                csound->Message(csound, "opcode0 yylval=%p\n", yylval);
+                $$ = make_leaf(csound, T_OPCODE0, (ORCTOKEN *)yylval);
+            }
+          ;
+
+opcode    : T_OPCODE	{ $$ = make_leaf(csound, T_OPCODE, (ORCTOKEN *)yylval); }
+          ;
 
 %%

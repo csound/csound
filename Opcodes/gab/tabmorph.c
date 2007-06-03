@@ -30,7 +30,7 @@ typedef struct {
 static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
 {
     int numOfTabs,j;
-    MYFLT **argp, *first_table;
+    MYFLT **argp, *first_table = NULL;
 
     FUNC *ftp;
     long flength = 0;

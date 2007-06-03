@@ -447,9 +447,9 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
 static int vphaseseg(CSOUND *csound, VPSEG *p)
 {
     TSEG2       *segp = p->cursegp;
-    double phase = *p->kphase, partialPhase;
+    double phase = *p->kphase, partialPhase = 0.0;
     int j, flength;
-    MYFLT   *curtab, *nxttab, curval, nxtval, /*durovercnt=0.0f,*/ *vector;
+    MYFLT   *curtab = NULL, *nxttab = NULL, curval, nxtval, *vector;
 
     while (phase >= 1.0) phase -= 1.0;
     while (phase < 0.0) phase = 0.0;
