@@ -25,6 +25,10 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 
+extern char argtyp2(CSOUND *, char *);
+extern void print_tree(CSOUND *, TREE *);
+extern void handle_polymorphic_opcode(CSOUND*, TREE *);
+extern void handle_optional_args(CSOUND *, TREE *);
 
 char *create_out_arg(CSOUND *csound, char outype) {
     char* s = (char *)csound->Malloc(csound, 8);
@@ -157,7 +161,7 @@ TREE * create_ans_token(CSOUND *csound, char* var) {
 }
 
 TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
-    TREE *ans = create_empty_token(csound);
+/*     TREE *ans = create_empty_token(csound); */
 
     char* op = (char *)csound->Malloc(csound, 6);
 
@@ -231,10 +235,7 @@ int is_boolean_expression_node(TREE *node) {
  * create_opcode when an expression node has been found as an argument
  */
 TREE * create_expression(CSOUND *csound, TREE *root) {
-    char *op, arg1, arg2, c, *outarg, *arg;
-    int opnum;
-
-    int n;
+    char *op, arg1, arg2, c, *outarg = NULL;
 
     TREE *anchor = NULL, *last;
 
@@ -287,7 +288,7 @@ TREE * create_expression(CSOUND *csound, TREE *root) {
 
     op = mcalloc(csound, 80);
 
-    arg1 = NULL;
+    arg1 = '\0';
     if(root->left != NULL) {
         arg1 = argtyp2(csound, root->left->value->lexeme);
     }
@@ -364,10 +365,7 @@ TREE * create_expression(CSOUND *csound, TREE *root) {
  */
 TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
     /* csound->Message(csound, "Creating boolean expression\n"); */
-    char *op, arg1, arg2, *outarg, *arg;
-    int opnum;
-
-    int n;
+    char *op, *outarg;
 
     TREE *anchor = NULL, *last;
 
@@ -623,3 +621,4 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
     return anchor;
 }
+

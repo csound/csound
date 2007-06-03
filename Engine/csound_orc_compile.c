@@ -68,7 +68,9 @@ static  NAME    *lclnamset(CSOUND *, char *);
         int     lgexist(CSOUND *, const char *);
 static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
-static  int pnum(char *s) ;
+static  int     pnum(char *s) ;
+
+extern void     print_tree(CSOUND *, TREE *);
 
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 
@@ -205,7 +207,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep) {
       /*}*/
 
      while (n--) {                     /* inargs:   */
-        long    tfound_m, treqd_m = 0L;
         s = tp->inlist->arg[n];
 
         if (n >= nreqd) {               /* det type required */
@@ -232,7 +233,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep) {
         }*/
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound == 'a' && n < 31)    /* JMC added for FOG */
-          /* 4 for FOF, 8 for FOG; expanded to 15  */
+                                        /* 4 for FOF, 8 for FOG; expanded to 15  */
           tp->xincod |= (1 << n);
         if (tfound == 'S' && n < 31)
           tp->xincod_str |= (1 << n);
@@ -289,7 +290,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep) {
 
 
     while (n--) {                                     /* outargs:  */
-        long    tfound_m;       /* IV - Oct 31 2002 */
+      /*        long    tfound_m;*/       /* IV - Oct 31 2002 */
         s = tp->outlist->arg[n];
         treqd = types[n];
         tfound = argtyp2(csound, s);                     /*  found    */
@@ -313,7 +314,6 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep) {
       }
 }
 
-
 /**
  * Create an Opcode (OPTXT) from the AST node given. Called from
  * create_udo and create_instrument.
@@ -322,7 +322,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip) {
 
     TEXT *tp;
     TREE *inargs, *outargs;
-    OPTXT *optxt, *expOptxt, *retOptxt = NULL;
+    OPTXT *optxt, *retOptxt = NULL;
     char *arg;
     int opnum;
 
@@ -632,7 +632,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
     if(root->left->type == T_INTGR) { /* numbered instrument */
         long instrNum = (long)root->left->value->value;
 
-        sscanf(c, "%ld", &instrNum);
+        sscanf(c, "%ld", &instrNum); /* Problem here as c not set */
 
         csound->Message(csound, "create_instrument: instr num %ld\n", instrNum);
 
@@ -742,6 +742,7 @@ void append_instrument(CSOUND * csound, INSTRTXT * instrtxt) {
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 
+#if 0
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
@@ -855,6 +856,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *i_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
     return err;
 }
+#endif
 
 static int pnum(char *s)        /* check a char string for pnum format  */
                                 /*   and return the pnum ( >= 0 )       */
@@ -906,15 +908,10 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
     OPARMS      *O = csound->oparms;
-    TEXT        *tp;
-    int         init = 1;
     INSTRTXT    *ip = NULL;
     INSTRTXT    *prvinstxt = &(csound->instxtanchor);
-    OPTXT       *bp, *prvbp = NULL;
-    ARGLST      *alp;
-    char        *s;
-    long        pmax = -1, nn;
-    long        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
+    OPTXT       *bp;
+    long        count, sumcount, instxtcount, optxtcount;
 
     strsav_create(csound);
 
@@ -1557,6 +1554,7 @@ static void delete_local_namepool(CSOUND *csound)
 }
 
  /* ------------------------------------------------------------------------ */
+#if 0
 
 /* get size of string in MYFLT units */
 
@@ -1642,6 +1640,7 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
       csound->Free(csound, strpool[i]);
     csound->Free(csound, strpool);
 }
+#endif
 
 char argtyp2(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
