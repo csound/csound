@@ -59,8 +59,8 @@ KeyboardMapping::KeyboardMapping(CSOUND *csound, const char *mapFileName)
 
     char *mapf = strdup(mapFileName);
 
-    void *fd = csound->FileOpen(csound, &mapFile, CSFILE_STD,
-                                mapf, (void *)"r", "INCDIR");
+    void *fd = csound->FileOpen2(csound, &mapFile, CSFILE_STD, mapf,
+                                 (void *)"r", "INCDIR", CSFTYPE_OTHER_TEXT, 0);
 
     if (fd == NULL) {
         initializeDefaults(csound);

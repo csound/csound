@@ -1,5 +1,28 @@
 2007-06-02  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
+	* util/dnoise.c:
+	* util/hetro.c:
+	* util/sndinfo.c:
+	* util/srconv.c: Added calls to csound->NotifyFileOpened() as needed.
+
+	* Opcodes/fout.c (fout_open_file): Changed FileOpen() to FileOpen2(),
+	but the result is not ideal yet because we cannot always know the 
+	correct file type for files opened with the fiopen opcode.
+	
+	* H/csoundCore.h:
+	* H/csound.h:  Added sftype2csfiletype() function pointer to CSOUND.
+
+	* Opcodes/py/pythonopcodes.c (exec_file_in_given_context):
+	* Opcodes/py/pyx-gen.py:
+	* Opcodes/py/pyx.auto.c: Replaced fopen() call with FileOpen2() in 
+	exec_file_in_given_context(), adding a CSOUND* to the function arguments,
+	and updating the pyexec* opcode routines to pass it.
+
+	* InOut/virtual_keyboard/KeyboardMapping.cpp:
+
+	* Top/main.c (csoundCompile): Call csoundNotifyFileOpened() if a dummy
+	score file is created.
+
 	* InOut/libsnd.c (sfopenin & sfopenout): Call csoundNotifyFileOpened()
 	for the primary input and output soundfiles.
 
