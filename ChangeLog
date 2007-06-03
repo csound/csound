@@ -1,3 +1,9 @@
+2007-06-03  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/cscorfns.c (cscoreRESET & cscoreFileOpen):  Fixed deallocation of 
+	SPACE blocks.  Clarified some error messages.  Searches in INCDIR now 
+	when opening extra score files and calls csoundNotifyFileOpened().
+
 2007-06-02  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* util/dnoise.c:
