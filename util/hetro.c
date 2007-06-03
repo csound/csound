@@ -774,6 +774,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
       fclose(sdiffile);
       return 0;
     }
+    csound->NotifyFileOpened(csound, thishet->outfilnam, CSFTYPE_SDIF, 1, 0);
 
     SDIF_Copy4Bytes(head.frameType,"1TRC");
     head.streamID = SDIF_UniqueStreamID();

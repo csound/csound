@@ -6,7 +6,7 @@ static int pyexec_krate(CSOUND *csound, PYEXEC *p)
 
     strcpy(source, (char*) p->string);
 
-    result = exec_file_in_given_context(source, 0);
+    result = exec_file_in_given_context(csound, source, 0);
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }
@@ -21,7 +21,7 @@ static int pyexec_krate(CSOUND *csound, PYEXEC *p)
 
 /*     strcpy(source, (char*) p->string); */
 
-/*     result = exec_file_in_given_context(source, 0); */
+/*     result = exec_file_in_given_context(csound, source, 0); */
 /*     if (result == NULL) { */
 /*       return pyErrMsg(p, "python exception"); */
 /*     } */
@@ -42,7 +42,7 @@ static int pylexec_krate(CSOUND *csound, PYEXEC *p)
 
     strcpy(source, (char*) p->string);
 
-    result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
+    result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }
@@ -59,7 +59,7 @@ static int pylexeci_irate(CSOUND *csound, PYEXEC *p)
 
     strcpy(source, (char*) p->string);
 
-    result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
+    result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }
@@ -77,7 +77,7 @@ static int pyexect_krate(CSOUND *csound, PYEXECT *p)
 
     strcpy(source, (char*) p->string);
 
-    result = exec_file_in_given_context(source, 0);
+    result = exec_file_in_given_context(csound, source, 0);
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }
@@ -101,7 +101,7 @@ static int pylexect_krate(CSOUND *csound, PYEXECT *p)
 
     strcpy(source, (char*) p->string);
 
-    result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
+    result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }

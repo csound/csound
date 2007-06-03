@@ -73,7 +73,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     char              *name;
-    int               idx, need_deinit = 0;
+    int               idx, csFileType, need_deinit = 0;
 
     if (fp != NULL) {
       if (fileType == CSFILE_STD)
@@ -152,8 +152,15 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
     if (fileType == CSFILE_STD) {
       FILE    *f;
       void    *fd;
-
-      fd = csound->FileOpen(csound, &f, fileType, name, fileParams, "");
+      char    *filemode = (char*)fileParams;
+      
+      /* akozar: csFileType cannot be as specific as I'd like since it is not
+         possible to know the real file type until this handle is used */ 
+      if ((strcmp(filemode, "rb") == 0 || (strcmp(filemode, "wb") == 0)))
+            csFileType = CSFTYPE_OTHER_BINARY;
+      else  csFileType = CSFTYPE_OTHER_TEXT;
+      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, "",
+                               csFileType, 0);
       if (fd == NULL) {
         csound->InitError(csound, Str("error opening file '%s'"), name);
         csound->Free(csound, name);
@@ -170,12 +177,13 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       buf_reqd = (int) ((SF_INFO*) fileParams)->channels;
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SF_INFO*) fileParams)->format;
-        fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
-                                      "SFDIR");
+        csFileType = csound->sftype2csfiletype(do_scale);
+        fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
+                                 "SFDIR", csFileType, 0);
       }
       else {
-        fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
-                                      "SFDIR;SSDIR");
+        fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
+                                 "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
         do_scale = ((SF_INFO*) fileParams)->format;
       }
       do_scale = (SF2TYPE(do_scale) == TYP_RAW ? 0 : 1);

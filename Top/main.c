@@ -261,6 +261,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scof);
       csound->scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
+      csoundNotifyFileOpened(csound, sconame, CSFTYPE_SCORE, 1, 1);
       csound->tempStatus |= csScoInMask;
     } else if(!csdFound && !O->noDefaultPaths){
         /* Add directory of SCO file to search paths*/
