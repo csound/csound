@@ -26,8 +26,8 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customCPPPATH.append('c:/msys/1.0/local/include')
-    customLIBPATH.append('c:/msys/1.0/local/lib')
+    customCPPPATH.append('D:/utah/msys/1.0/mingw/include')
+    customLIBPATH.append('D:/utah/msys/1.0/mingw/lib')
     # If libsndfile is not in a standard location add it here:
     customCPPPATH.append('D:/utah/opt/libsndfile-1_0_17')
     customLIBPATH.append('D:/utah/opt/libsndfile-1_0_17')
@@ -57,7 +57,6 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('D:/utah/opt/Python24/include')
     customLIBPATH.append('D:/utah/msys/1.0/local/lib')
     customCPPPATH.append('D:/utah/opt/Python25/include')
     customLIBPATH.append('D:/utah/opt/Python25/Libs')
@@ -112,13 +111,14 @@ elif sys.platform[:3] == 'win':
     # If you want to build the OSC opcodes,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    #customCPPPATH.append('D:/utah/home/mkg/projects/liblo')
-    #customLIBPATH.append('D:/utah/home/mkg/projects/liblo/src/.libs')
+    customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\lo')
+    customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo')
+    customLIBPATH.append('D:/utah/home/mkg/projects/liblo/src/.libs')
     # For OSC on Windows you will also need a Windows pthread library,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    #customCPPPATH.append('D:/utah/opt/pthreads')
-    #customLIBPATH.append('D:/utah/opt/pthreads')
+    customCPPPATH.append('D:/utah/opt/pthreads/Pre-built.2/include')
+    customLIBPATH.append('D:/utah/opt/pthreads/Pre-build.2/lib')
     ################################################################
     # print "Adding custom path"
 else:
