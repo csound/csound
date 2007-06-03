@@ -67,18 +67,26 @@ void cscoreRESET(CSOUND *csound)
     nxtfree   = NULL;
     nxtevt    = NULL;
     nxtevtblk = NULL;
-    infiles   = NULL;
+    infiles   = NULL;            /* FIXME: leak? (any others here?) */
     csound->warped  = warpout  = 0;
     evtmp     = NULL;
     evtmpblk  = NULL;
     if (spaceanchor.nxtspace != NULL) {
-      SPACE *p = &spaceanchor;
+      SPACE *p = spaceanchor.nxtspace;
       SPACE *n;
-      while ((n = p->nxtspace)!=NULL) {
-        if (p != &spaceanchor) mfree(csound, n);
+      do {
+        n = p->nxtspace;
+        mfree(csound, p);
         p = n;
       }
+      while (p != NULL);
     }
+    spaceanchor.nxtspace = NULL;
+    spaceanchor.h.prvblk = NULL;
+    spaceanchor.h.nxtblk = NULL;
+    spaceanchor.h.type = TYP_SPACE;
+    spaceanchor.h.size = 0;
+    return;
 }
 
 static SPACE *morespace(CSOUND *csound)
@@ -752,7 +760,7 @@ static void savinfdata(         /* store input file data */
     for (infp = infiles, n = MAXOPEN; n--; infp++)
       if (infp->iscfp == NULL)
         goto save;
-    csound->ErrorMsg(csound, Str("too many input files open"));
+    csound->ErrorMsg(csound, Str("cscore: too many input files open"));
     exit(0);     /* FIXME: should not call exit */
 
  save:
@@ -790,7 +798,8 @@ static void makecurrent(CSOUND *csound, FILE *fp)
             }
           return;
         }
-    csound->ErrorMsg(csound, Str("makecurrent: fp not recorded"));
+    csound->ErrorMsg(csound, Str("cscore: tried to set an unknown file pointer"
+                                 " as the current file"));
     exit(0);     /* FIXME: should not call exit */
 }
 
@@ -830,11 +839,17 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound, char *name)
 {
     FILE    *fp;
     EVENT   *next;
+    char    *pathname;
 
-    if ((fp = fopen(name, "r")) == NULL) {
-      csound->ErrorMsg(csound, Str("error in opening %s"), name);
+    /* keeping fopen() because the FILE* is returned to the user control
+       program and who knows what they will do with it ... */
+    pathname = csoundFindInputFile(csound, name, "INCDIR");
+    if (pathname == NULL || (fp = fopen(pathname, "r")) == NULL) {
+      csound->ErrorMsg(csound, Str("cscoreFileOpen: error opening %s"), name);
       exit(0);     /* FIXME: should not call exit */
     }
+    csoundNotifyFileOpened(csound, pathname, CSFTYPE_SCORE, 0, 0);
+    mfree(csound, pathname);
     /* alloc a receiving evtblk */
     next = cscoreCreateEvent(csound,PMAX);  /* FIXME: need next->op = '\0' ?? */
     /* save all, wasend, non-warped, not eof */
