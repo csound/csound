@@ -96,7 +96,6 @@ static void fill_pitches(void)
 static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
-    char *pathnam;
     void *fd;
 
     /*

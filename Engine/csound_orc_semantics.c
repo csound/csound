@@ -28,6 +28,9 @@
 #include "csound_orc.h"
 #include "namedins.h"
 
+extern  char argtyp2(CSOUND*, char*);
+extern  int tree_arg_list_count(TREE *);
+
 TREE* force_rate(TREE* a, char t)
 {                               /* Ensure a is of type t */
     return a;
@@ -373,7 +376,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     int opnum = find_opcode(csound, tree->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
 
-    int incnt = tree_arg_list_count(tree->right);
+/*     int incnt = tree_arg_list_count(tree->right); */
 
     char * str = (char *)mcalloc(csound, strlen(ep->opname) + 4);
     char c, d;

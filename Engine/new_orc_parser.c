@@ -29,11 +29,17 @@
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
 extern FILE *csound_orcin;
+extern void csound_orcrestart(FILE*);
 
 extern int csound_orcdebug;
 
 extern int csound_orcparse(CSOUND*, TREE*);
-extern void init_symbtab();
+extern void init_symbtab(CSOUND*);
+extern void print_tree(CSOUND *, TREE *);
+extern int verify_tree(CSOUND *, TREE *);
+extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
+extern TREE* csound_orc_optimize(CSOUND *, TREE *);
+extern void csound_orc_compile(CSOUND *, TREE *);
 
 void new_orc_parser(CSOUND *csound)
 {
