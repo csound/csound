@@ -304,6 +304,7 @@ static const CSOUND cenviron_ = {
         type2csfiletype,
         ldmemfile2,
         csoundNotifyFileOpened,
+        sftype2csfiletype,
      /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -313,8 +314,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL },
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
         NULL,  /*  flgraphsGlobals */
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */

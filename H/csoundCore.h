@@ -960,8 +960,9 @@ extern const uint32_t csPlayScoMask;
     int (*type2csfiletype)(int type, int encoding);
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
+    int (*sftype2csfiletype)(int type);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[91];
+    SUBR dummyfn_2[90];
     void          *flgraphGlobals;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */

@@ -84,6 +84,8 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
         continue;
       }
       else {
+        csound->NotifyFileOpened(csound, fname, 
+                            csound->sftype2csfiletype(sf_info.format), 0, 0);
         csound->Message(csound, "%s:\n", fname);
         csound->Free(csound, fname);
         switch (sf_info.channels) {

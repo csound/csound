@@ -94,10 +94,11 @@ static PyObject *
 }
 
 static PyObject *
-    exec_file_in_given_context(char *filename, PyObject *private)
+    exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
 {
     FILE      *file;
     PyObject  *result, *module, *public;
+    void      *fd;
 
     module = PyImport_AddModule("__main__");
     if (module == NULL) {
@@ -105,15 +106,16 @@ static PyObject *
       return NULL;
     }
     public = PyModule_GetDict(module);
-    file = fopen(filename, "r");
-    if (file == NULL) {
+    fd = cs->FileOpen2(cs, &file, CSFILE_STD, filename, "r",
+                           "", CSFTYPE_SCRIPT_TEXT, 0);
+    if (fd == NULL) {
       PyErr_Format(PyExc_RuntimeError,
                    "couldn't open script file %s", filename);
       return NULL;
     }
     result = PyRun_File(file, filename, Py_file_input,
                         public, private ? private : public);
-    fclose(file);
+    cs->FileClose(cs, fd);
     return result;
 }
 
