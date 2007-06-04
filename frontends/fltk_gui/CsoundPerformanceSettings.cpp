@@ -18,7 +18,7 @@
 */
 
 #include "CsoundGUI.hpp"
-#include "cs_glue.h"
+//#include "cs_glue.h"
 
 using namespace std;
 

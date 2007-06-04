@@ -22,7 +22,7 @@
 */
 
 #include "csound.h"
-#include "cs_glue.h"
+//#include "cs_glue.h"
 #include "csound.hpp"
 #include "cs_glue.hpp"
 
