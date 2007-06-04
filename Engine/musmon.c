@@ -31,8 +31,8 @@
 #include "remote.h"
 #include <math.h>
 
-#define SEGAMPS 01
-#define SORMSG  02
+#define SEGAMPS AMPLMSG
+#define SORMSG  RNGEMSG
 
 extern  int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(CSOUND *, int, EVTBLK*);
@@ -71,7 +71,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 {
     double  rt, ct;
 
-    if ((csound->oparms->msglevel & 0x80) == 0 || csound->csRtClock == NULL)
+    if ((csound->oparms->msglevel & TIMEMSG) == 0 || csound->csRtClock == NULL)
       return;
     rt = csoundGetRealTime(csound->csRtClock);
     ct = csoundGetCPUTime(csound->csRtClock);

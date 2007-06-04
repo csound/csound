@@ -414,7 +414,7 @@ int sndo1set(CSOUND *csound, void *pp)
 #else
     sf_command(p->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
-    if ((csound->oparms_.msglevel & 4) != 0)
+    if ((csound->oparms_.msglevel & WARNMSG) != 0)
       csound->Message(csound, Str("%s: opening RAW outfile %s\n"),
                       opname, sfname);
     p->outbufp = p->outbuf;                 /* fix - isro 20-11-96 */

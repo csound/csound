@@ -841,8 +841,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      if (csound->oparms->msglevel & 4)
-        csound->Warning(csound, Str("rtjack: xrun in real time audio"));
+      csound->Warning(csound, Str("rtjack: xrun in real time audio"));
     }
 }
 
