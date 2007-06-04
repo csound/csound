@@ -35,12 +35,12 @@
 %module csnd
 %{
 #include "csound.h"
-#include "cs_glue.h"
+  //#include "cs_glue.h"
 %}
 #else
 #include "csound.h"
 #ifdef __BUILDING_CSOUND_INTERFACES
-#include "cs_glue.h"
+//#include "cs_glue.h"
 #endif
 #endif
 
