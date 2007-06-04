@@ -114,7 +114,11 @@ extern "C" {
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
 
+#define AMPLMSG 01
+#define RNGEMSG 02
 #define WARNMSG 04
+#define RAWMSG  0x40
+#define TIMEMSG 0x80
 #define IGN(X)  (void) X
 /* VL: this is a silly redefinition that can only
    cause confusion

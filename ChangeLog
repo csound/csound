@@ -1,5 +1,7 @@
 2007-06-04  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/grain4.c (grainsetv4): Supress messages if no warnings
+
 	* H/soundio.h (SF2TYPE): Masked off top nibble with SF_FORMAT_TYPEMASK
 
 2007-06-03  Anthony Kozar  <anthonykozar@sbcglobal.net>

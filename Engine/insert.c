@@ -114,7 +114,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & 2)
+      if (O->msglevel & RNGEMSG)
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       instance(csound, insno);
     }
@@ -252,7 +252,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & 2)
+      if (O->msglevel & RNGEMSG)
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       instance(csound, insno);
     }
@@ -1167,7 +1167,7 @@ INSDS *insert_event(CSOUND *csound,
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & 2)
+      if (O->msglevel & RNGEMSG)
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       instance(csound, insno);
     }
