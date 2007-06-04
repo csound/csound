@@ -546,35 +546,35 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp (s, "m-amps=", 7))) {
       int n;
-      s += 8;
+      s += 7;
       if (*s=='\0') dieu(csound, Str("no message amps"));
       sscanf(s, "%n", &n);
-      if (n) O->msglevel |= 1;
-      else O->msglevel &= ~1;
+      if (n) O->msglevel |= AMPLMSG;
+      else O->msglevel &= ~AMPLMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-range=",8))) {
       int n;
-      s += 9;
+      s += 8;
       if (*s=='\0') dieu(csound, Str("no message range"));
       sscanf(s, "%n", &n);
-      if (n) O->msglevel |= 2;
-      else O->msglevel &= ~2;
+      if (n) O->msglevel |= RNGEMSG;
+      else O->msglevel &= ~RNGEMSG;
       return 1;
      }
     else if (!(strncmp (s, "m-warnings=",11))) {
       int n;
-      s += 12;
+      s += 11;
       if (*s=='\0') dieu(csound, Str("no message warnings"));
       sscanf(s, "%n", &n);
-      if (n) O->msglevel |= 4;
-      else O->msglevel &= ~4;
+      if (n) O->msglevel |= WARNMSG;
+      else O->msglevel &= ~WARNMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-raw=",6))) {
       int n;
       s += 6;
-      if (*s=='\0') dieu(csound, Str("no message warnings"));
+      if (*s=='\0') dieu(csound, Str("no message raw"));
       sscanf(s, "%n", &n);
       if (n) O->msglevel |= 32;
       else O->msglevel &= ~32;
@@ -585,8 +585,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 5;
       if (*s=='\0') dieu(csound, Str("no message dB"));
       sscanf(s, "%n", &n);
-      if (n) O->msglevel |= 64;
-      else O->msglevel &= ~64;
+      if (n) O->msglevel |= RAWMSG;
+      else O->msglevel &= ~RAWMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-colours=",10)) || !(strncmp (s, "m-colors=",9))) {
@@ -601,10 +601,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp (s, "m-benchmarks=",13))) {
       int n;
       s += 13;
-      if (*s=='\0') dieu(csound, Str("no message colours"));
+      if (*s=='\0') dieu(csound, Str("no benchmark level"));
       sscanf(s, "%n", &n);
-      if (n) O->msglevel |= 128;
-      else O->msglevel &= ~128;
+      if (n) O->msglevel |= TIMEMSG;
+      else O->msglevel &= ~TIMEMSG;
       return 1;
     }
     /*

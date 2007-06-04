@@ -290,18 +290,17 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     csound->Message(csound, "granule_set: nvoice is %d\n", nvoice);
 #endif
 
-    if (*p->ilength < (20 * *p->kgsize)) {
-      csound->Message(csound, Str("granule_set: "
-                                  "WARNING * ilength may be too short * \n"));
-      csound->Message(csound, Str("            ilength should be "
-                                  "greater than kgsize * max up\n"));
-      csound->Message(csound, Str("            pitch shift. Also, igsize_os "
-                                  "and igskip_os should\n"));
-      csound->Message(csound, Str("            be taken into consideration.\n"
-                                  "ilength is "));
-      csound->Message(csound, Str("%f Sec, kgsize is %f Sec\n"),
-                              *p->ilength, *p->kgsize);
-    }
+    if (*p->ilength < (20 * *p->kgsize)) 
+      csound->Warning(csound, Str("granule_set: "
+                                  "WARNING * ilength may be too short * \n"
+                                  "            ilength should be "
+                                  "greater than kgsize * max up\n"
+                                  "            pitch shift. Also, igsize_os "
+                                  "and igskip_os should\n"
+                                  "            be taken into consideration.\n"
+                                  "ilength is "
+                                  "%f Sec, kgsize is %f Sec\n"),
+                      *p->ilength, *p->kgsize);
 
     p->clock = 0;               /* init clock */
     return OK;
