@@ -98,7 +98,7 @@
 #define FORMAT2SF(x) ((int) (x))
 #define SF2FORMAT(x) ((int) (x) & 0xFFFF)
 #define TYPE2SF(x)   ((int) (x) << 16)
-#define SF2TYPE(x)   ((int) (x) >> 16)
+#define SF2TYPE(x)   ((int) (x& SF_FORMAT_TYPEMASK) >> 16)
 
 #ifdef  USE_DOUBLE
 #define sf_write_MYFLT  sf_write_double
