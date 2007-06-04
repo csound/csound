@@ -462,6 +462,7 @@ oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
+midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
 if not tclhfound:
      for i in tclIncludePath:
         tmp = '%s/tcl.h' % i
@@ -1686,11 +1687,17 @@ else:
         csound5GUIEnvironment.Command(
             '%s/csound5gui' % appDir, 'csound5gui', "cp $SOURCE %s/" % appDir)
         addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', appDir)
-
+buildScoregen = False
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
 else:
     print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
+    if midiPluginSdkFound:
+        print 'CONFIGURATION DECISION: Building scoregen plugin.'
+        buildScoregen = True
+    else:
+        print 'CONFIGURATION DECISION: Not building scoregen plugin.'
+        buildScoregen = False
     headers += glob.glob('frontends/CsoundVST/*.h')
     headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
@@ -1774,22 +1781,23 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
-    scoregenSources = csoundVstBaseSources + Split('''
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base/funknown.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/pluginfactory.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/linkedlist.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugparams.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugxmlgui.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/midieffect.cpp
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/eventqueue.cpp
-    frontends/CsoundVST/ScoreGenerator.cpp
-    frontends/CsoundVST/ScoreGeneratorVst.cpp
-    frontends/CsoundVST/ScoreGeneratorVstUi.cpp
-    frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
-    frontends/CsoundVST/ScoreGeneratorVstMain.cpp
-    ''')
-    if getPlatform() == 'win32':
-        scoregenSources.append('frontends/CsoundVST/_scoregen.def')
+    if buildScoregen:
+	scoregenSources = csoundVstBaseSources + Split('''
+	frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base/funknown.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/pluginfactory.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/linkedlist.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugparams.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugxmlgui.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/midieffect.cpp
+	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/eventqueue.cpp
+	frontends/CsoundVST/ScoreGenerator.cpp
+	frontends/CsoundVST/ScoreGeneratorVst.cpp
+	frontends/CsoundVST/ScoreGeneratorVstUi.cpp
+	frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
+	frontends/CsoundVST/ScoreGeneratorVstMain.cpp
+	''')
+	if getPlatform() == 'win32':
+	    scoregenSources.append('frontends/CsoundVST/_scoregen.def')
     swigflags = vstEnvironment['SWIGFLAGS']
     vstWrapperEnvironment = vstEnvironment.Copy()
     fixCFlagsForSwig(vstWrapperEnvironment)
@@ -1811,34 +1819,36 @@ else:
         vstEnvironment.Prepend(LIBS = pythonLibs)
         vstEnvironment.Append(CPPPATH = pythonIncludePath)
         vstPythonEnvironment = vstEnvironment.Copy()
-        scoregenEnvironment = vstEnvironment.Copy()
-        scoregenEnvironment.Append(CXXFLAGS = Split('''-DWIN32'''))
-        scoregenEnvironment.Append(CPPPATH = Split('''
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/gui
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/host
-    frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/midi
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/main
-    frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi
-        '''))
+        if buildScoregen:
+	    scoregenEnvironment = vstEnvironment.Copy()
+	    scoregenEnvironment.Append(CXXFLAGS = Split('''-DWIN32'''))
+            scoregenEnvironment.Append(CPPPATH = Split('''
+        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces
+        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/gui
+        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base
+        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/host
+        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/midi
+        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common
+        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/main
+        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi
+            '''))
         vstPythonEnvironment.Append(LIBS = ['CsoundVST'])
         csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', [csoundVstPythonWrapper])
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundVST.py')
-        scoregen = scoregenEnvironment.SharedLibrary('scoregen', scoregenSources)
-        libs.append(scoregen)
-        Depends(scoregen, csoundInterfaces)
-        Depends(scoregen, csoundLibrary)
-        scoregenPythonWrapper = vstWrapperEnvironment.SharedObject(
-        'frontends/CsoundVST/ScoreGeneratorVST.i',
-        SWIGFLAGS = [swigflags, '-python'])
-        scoregenPythonEnvironment = scoregenEnvironment.Copy()
-        scoregenPythonEnvironment.Append(LIBS = ['scoregen'])
-        scoregenPythonModule = makePythonModule(scoregenPythonEnvironment, 'scoregen', [scoregenPythonWrapper])
-        pythonModules.append('scoregen.py')
+        if buildScoregen:
+            scoregen = scoregenEnvironment.SharedLibrary('scoregen', scoregenSources)
+            libs.append(scoregen)
+            Depends(scoregen, csoundInterfaces)
+            Depends(scoregen, csoundLibrary)
+            scoregenPythonWrapper = vstWrapperEnvironment.SharedObject(
+                'frontends/CsoundVST/ScoreGeneratorVST.i',
+                SWIGFLAGS = [swigflags, '-python'])
+            scoregenPythonEnvironment = scoregenEnvironment.Copy()
+            scoregenPythonEnvironment.Append(LIBS = ['scoregen'])
+            scoregenPythonModule = makePythonModule(scoregenPythonEnvironment, 'scoregen', [scoregenPythonWrapper])
+            pythonModules.append('scoregen.py')
     guiProgramEnvironment.Prepend(LIBS = ['CsoundVST', 'csnd'])
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     guiProgramEnvironment.Append(LIBS = libCsoundLibs)
