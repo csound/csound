@@ -431,7 +431,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   #File D:\utah\opt\csound5\bin\fltk.dll
-  File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
+  File D:\utah\opt\libsndfile-1.0.18pre10\src\.libs\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
