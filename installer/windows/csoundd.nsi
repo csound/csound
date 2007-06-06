@@ -503,9 +503,9 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\interfaces\*.lisp
   
   SetOutPath $INSTDIR\plugins64
+  File ..\..\frontends\csladspa\csladspa.dll
   File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
-  # File D:\utah\opt\csound5\plugins64\osc.dll
- 
+  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
   File /r ..\..\Opcodes\stk\rawwaves\*.raw
