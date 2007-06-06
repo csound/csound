@@ -27,6 +27,7 @@
 #include "csound.h"
 
 #define CS_MAX_CHANS 32
+#define MAXMESSTRING 16384
 
 static t_class *csoundapi_class = 0;
 
@@ -56,9 +57,9 @@ typedef struct t_csoundapi_ {
     channelname *iochannels;
     t_outlet *ctlout;
     t_outlet *bangout;
-    t_int   padding1;
+    t_int   messon;
     CSOUND *csound;
-    t_int   padding2;
+    char   *csmess;
 } t_csoundapi;
 
 static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
@@ -84,6 +85,8 @@ static void csoundapi_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv);
 static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
 static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
+static void message_callback(CSOUND *,int attr, const char *format,va_list valist);
+static void csoundapi_mess(t_csoundapi *x, t_floatarg f);
 
 PUBLIC void csoundapi_tilde_setup(void)
 {
@@ -111,7 +114,7 @@ PUBLIC void csoundapi_tilde_setup(void)
                     gensym("control"), A_DEFSYMBOL, A_DEFFLOAT, 0);
     class_addmethod(csoundapi_class, (t_method) csoundapi_set_channel,
                     gensym("chnset"), A_GIMME, 0);
-
+    class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
     CLASS_MAINSIGNALIN(csoundapi_class, t_csoundapi, f);
 
     {
@@ -142,9 +145,9 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     x->cleanup = 0;
     x->cmdl = NULL;
     x->iochannels = NULL;
-    csoundSetInputValueCallback(x->csound, in_channel_value_callback);
-    csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
-
+    x->csmess = malloc(MAXMESSTRING);
+    x->messon = 1;
+   
     if (argc == 1 && argv[0].a_type == A_FLOAT) {
       x->numlets = (t_int) atom_getfloat(&argv[0]);
       for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++) {
@@ -167,6 +170,9 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
       x->result = csoundPreCompile(x->csound);
       if (x->result == CSOUND_SUCCESS) {
         csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+        csoundSetInputValueCallback(x->csound, in_channel_value_callback);
+        csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
+        csoundSetMessageCallback(x->csound, message_callback);
         x->result = csoundCompile(x->csound, x->argnum, cmdl);
       }
 
@@ -196,6 +202,7 @@ static void csoundapi_destroy(t_csoundapi *x)
 {
     if (x->cmdl != NULL)
       free(x->cmdl);
+    free(x->csmess);
     if (x->iochannels != NULL)
       destroy_channels(x->iochannels);
     csoundDestroy(x->csound);
@@ -503,4 +510,24 @@ static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
       }
     }
   }
+}
+
+
+static void csoundapi_mess(t_csoundapi *x, t_floatarg f)
+{
+    x->messon = (int) f;
+}
+
+static void message_callback(CSOUND *csound,
+			     int attr, const char *format,va_list valist){
+  int i;
+  t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
+  
+  vsnprintf(x->csmess, MAXMESSTRING, format, valist);
+  for(i=0;i<MAXMESSTRING;i++)
+    if(x->csmess[i] == '\0'){
+      x->csmess[i-1]= ' ';
+      break;
+    }
+  if(x->messon) post(x->csmess);
 }

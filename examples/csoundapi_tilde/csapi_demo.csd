@@ -34,7 +34,7 @@ adel upsamp klt
 a0  = 0
 acmb flanger  as4, adel, krvt
       outvalue "mod",  kmod
-        outs a0,a0,acmb*0.3, acmb*0.7
+        outq a0,a0,acmb*0.3, acmb*0.7
 endin
 
 </CsInstruments>
