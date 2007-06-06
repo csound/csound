@@ -13,6 +13,7 @@ cp csnd.jar $FMKBASE/Versions/5.1/Resources/Java/
 cp csoundapi~.pd_darwin $FMKBASE/Versions/5.1/Resources/PD/
 cp examples/csoundapi_tilde/csoundapi-osx.pd $FMKBASE/Versions/5.1/Resources/PD/csoundapi.pd
 cp examples/csoundapi_tilde/csapi_demo.csd ../csound5_install/csoundlib/package_contents/Library/Documentation/
+cp interfaces/*.hpp $FMKBASE/Headers
 cp -R $FMKBASE $IFMKBASE
           
 cp csound  $APPSBASE
