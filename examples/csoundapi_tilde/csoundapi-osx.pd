@@ -1,0 +1,110 @@
+#N canvas 121 78 1080 708 10;
+#X obj 346 558 dac~;
+#X msg 359 202 event e;
+#X obj 297 23 vsl 15 128 0.1 4 0 0 empty empty empty 0 -8 0 8 -257472
+-1 -1 0 1;
+#X msg 247 181 control freq \$1;
+#X obj 469 459 adc~;
+#X msg 563 408 set freq amp rev del modf;
+#X obj 209 34 vsl 15 128 0 1 0 0 empty empty empty 0 -8 0 8 -257472
+-1 -1 0 1;
+#X msg 209 204 control amp \$1;
+#X obj 141 116 vsl 15 128 0 0.99 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 0 1;
+#X msg 141 252 control rev \$1;
+#X obj 104 148 vsl 15 128 0.1 0.5 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 0 1;
+#X msg 104 287 control del \$1;
+#X msg 701 429 reset;
+#X msg 362 232 event i 1 0 10 16000 200;
+#X obj 475 301 loadbang;
+#X obj 356 360 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1
+1;
+#X msg 357 380 run \$1;
+#X msg 368 277 event f 1 0 4096 10 1 0.5 0.25 0.2 0.166;
+#X obj 67 181 vsl 15 128 0.1 2 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 0 1;
+#X msg 67 317 control modf \$1;
+#X obj 239 9 r mod;
+#X obj 249 37 *;
+#X obj 282 5 tgl 15 0 empty empty empty 0 -6 0 8 -257472 -1 -1 0 1
+;
+#X obj 247 155 +;
+#X msg 443 569 \; \$1 \$2;
+#X obj 500 536 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X text 317 18 instr 1 controls use invalue opcode;
+#X text 318 5 modulation source is instr 2 outvalue opcode;
+#X text 418 201 ends score and stops processing;
+#X text 538 234 starts an i-statement score event;
+#X text 659 276 generates a function table;
+#X text 379 352 csound runs by default \, run 0 message stops it \,
+run 1 re-starts it;
+#X text 566 392 invalue channels are registered using 'set';
+#X text 749 428 resets the engine and recompiles the score;
+#X text 843 452 opens a new orc/score;
+#X text 521 535 bangs when score is finished;
+#X text 463 553 outvalues: [channel] [value];
+#X text 29 354 instr 2 controls use invalue opcode;
+#X msg 700 450 open csapi_demo.csd;
+#X obj 315 507 csoundapi~ /Library/Documentation/csapi_demo.csd;
+#X msg 32 600 rewind;
+#X text 85 601 rewinds the score without recompilation;
+#X msg 30 633 offset 20;
+#X text 105 634 offsets the score playback by 20 secs;
+#X text 43 574 other score playback messages;
+#X msg 345 94 chnset blobs 2;
+#X text 731 166 csoundapi~ 1.01 (c) V Lazzarini \, 2005-2007;
+#X msg 325 68 chnset blar haha;
+#X msg 362 126 chnset blobs 1;
+#X text 321 50 instr 1 also uses chnget opcodes;
+#X msg 373 437 messages \$1;
+#X obj 373 416 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1
+1;
+#X text 464 436 console messages on/off;
+#X text 467 109 unlike invalue channels \, chnget channels do not need
+to be registered;
+#X text 454 94;
+#X text 454 80 chnset messages send in k-rate numbers or strings \,
+they work with chnget opcode;
+#X text 440 603 csoundapi~ is built with the number of audio output
+channels taken from the orchestra \, or it can be built with a set
+number of out/inlets (when its 1st argument is numeric);
+#X connect 1 0 39 0;
+#X connect 2 0 23 1;
+#X connect 3 0 39 0;
+#X connect 4 0 39 3;
+#X connect 4 1 39 3;
+#X connect 5 0 39 0;
+#X connect 6 0 7 0;
+#X connect 7 0 39 0;
+#X connect 8 0 9 0;
+#X connect 9 0 39 0;
+#X connect 10 0 11 0;
+#X connect 11 0 39 0;
+#X connect 12 0 39 0;
+#X connect 13 0 39 0;
+#X connect 14 0 5 0;
+#X connect 14 0 15 0;
+#X connect 14 0 51 0;
+#X connect 15 0 16 0;
+#X connect 16 0 39 0;
+#X connect 17 0 39 0;
+#X connect 18 0 19 0;
+#X connect 19 0 39 0;
+#X connect 20 0 21 0;
+#X connect 21 0 23 0;
+#X connect 22 0 21 1;
+#X connect 23 0 3 0;
+#X connect 38 0 39 0;
+#X connect 39 0 0 0;
+#X connect 39 1 0 1;
+#X connect 39 2 0 0;
+#X connect 39 3 0 1;
+#X connect 39 4 24 0;
+#X connect 39 5 25 0;
+#X connect 45 0 39 0;
+#X connect 47 0 39 0;
+#X connect 48 0 39 0;
+#X connect 50 0 39 0;
+#X connect 51 0 50 0;
