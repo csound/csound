@@ -2026,7 +2026,7 @@ else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
 # build csLADSPA
-print "...Building csLadspa"
+print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Copy()
 csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
