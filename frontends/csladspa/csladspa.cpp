@@ -413,7 +413,11 @@ int CountCSD(char **csdnames)
   int             i = 0;
   int             indx = 0;
 
+#ifndef MACOSX
   ladspa_path = getenv("LADSPA_PATH");
+#else
+  ladspa_path = "/Library/Audio/Plug-Ins/LADSPA";
+#endif
   // if no LADSPA_PATH attempt to open
   // current directory
   if(ladspa_path == NULL) dip = opendir(".");

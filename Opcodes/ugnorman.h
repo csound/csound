@@ -126,6 +126,7 @@ typedef struct _atsadd {
     double  *oscphase;  /* oscillator phase */
     ATS_DATA_LOC *buf;
     int     swapped;    /* indicates if the data file is byte swapped or not */
+  MYFLT *oldamps;
 } ATSADD;
 
 typedef struct _atsaddnz {
@@ -182,7 +183,7 @@ typedef struct _atscross {
     MYFLT   *aoutput, *ktimpnt, *kfmod, *ifileno, *ifn;
     MYFLT   *kmyamp, *katsbufamp, *iptls;
     /* optional arguments */
-    MYFLT   *iptloffset, *iptlincr, *igatefun;
+    MYFLT   *iptloffset, *iptlincr, *igatefun, *kthresh;
 
     /* pointer to table with wave to synthesize sound */
     FUNC    *ftp, *AmpGateFunc;
@@ -200,6 +201,7 @@ typedef struct _atscross {
     double  *oscphase;  /* oscillator phase */
     ATS_DATA_LOC *buf;
     int     swapped;    /* indicates if the data file is byte swapped or not */
+  MYFLT   *oldamps;
 } ATSCROSS;             /* modified from atsadd */
 
 typedef struct _atssinnoi {

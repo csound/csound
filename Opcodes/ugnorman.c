@@ -485,14 +485,16 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
     /* calculate how much memory we have to allocate for this */
     memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double);
+              + (int) (*p->iptls) * sizeof(double) + (int) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
+    if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
     csound->AuxAlloc(csound, (long) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
     p->oscphase = (double *) (p->buf + (int) (*p->iptls));
+    p->oldamps = (MYFLT *) (p->oscphase + (int) (*p->iptls));
     /* byte swap if necessary */
     if (p->swapped == 1) {
       p->maxFr = (int) bswap(&atsh->nfrms) - 1;
@@ -558,7 +560,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 static int atsadd(CSOUND *csound, ATSADD *p)
 {
     MYFLT   frIndx;
-    MYFLT   *ar, amp, fract, v1, *ftab;
+    MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps;
     FUNC    *ftp;
     long    lobits, phase, inc;
     double  *oscphase;
@@ -612,18 +614,22 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       nsmps = csound->ksmps;
+      inca = (amp-oldamps[i])/nsmps;
+      a = oldamps[i];
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
       do {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
-        *ar += (v1 + fract * (*ftab - v1)) * amp;
+        *ar += (v1 + fract * (*ftab - v1)) * a;
         ar++;
         phase += inc;
         phase &= PHMASK;
+        a+=inca;
       } while (--nsmps);
       *oscphase = (double) phase;
+      oldamps[i] = amp;
       oscphase++;
     }
     return OK;
@@ -1771,14 +1777,16 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
 
     /* calculate how much memory we have to allocate for this */
     memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double);
+              + (int) (*p->iptls) * sizeof(double) + (int) (*p->iptls) * sizeof(MYFLT) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
+    if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
     csound->AuxAlloc(csound, (long) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
     p->oscphase = (double *) (p->buf + (int) (*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int) (*p->iptls));
     if (p->swapped == 1) {
       p->maxFr = (int) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
@@ -1900,20 +1908,22 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 }
 
 static void ScalePartials(
+			  CSOUND *csound,
                 ATS_DATA_LOC *cbuf, /* the current buffer */
                 int cbufnp,     /* the current buffer's number of partials */
                 MYFLT cbufamp,  /* the amplitude for the current buffer */
                 ATS_DATA_LOC *tbuf, /* the table buffer */
                 int tbufnp,     /* the table buffer's n partials */
-                MYFLT tbufamp)  /* the amp of the table buffer */
+                MYFLT tbufamp,  /* the amp of the table buffer */
+			  MYFLT kthresh )
 {
     MYFLT   tempamp;            /* hold the cbufn amp for a bit */
     MYFLT   frac;               /* for interpilation */
-    int     i, j;               /* for the for loop */
+    int     i, j=0;               /* for the for loop */
 
     for (i = 0; i < cbufnp; i++) {
-      /* look for closest freqency in buffer */
-      for (j = 0; j < tbufnp; j++) {
+      /* look for closest frequency in buffer */
+      for(j=0;j < tbufnp; j++) {
         if (tbuf[j].freq > cbuf[i].freq)
           break;
       }
@@ -1922,25 +1932,27 @@ static void ScalePartials(
       if (j < tbufnp && j > 0) {
         /* interp amplitude from table */
         frac =
-            (cbuf[i + 1].freq - tbuf[j - 1].freq) / (tbuf[j].freq -
+            (cbuf[i].freq - tbuf[j - 1].freq) / (tbuf[j].freq -
                                                      tbuf[j - 1].freq);
         tempamp = tbuf[j - 1].amp + frac * (tbuf[j].amp - tbuf[j - 1].amp);
       }
       else if (j == tbufnp) {
-        /* this means the last value in the table */
+        /* this means the last value in the table */ 
         /* is equal to a value in the current buffer */
-        if (cbuf[i + 1].freq == tbuf[tbufnp - 1].freq)
-          tempamp = tbuf[tbufnp - 1].amp;
+      if (cbuf[i + 1].freq == tbuf[tbufnp - 1].freq)
+      tempamp = tbuf[tbufnp - 1].amp;
       }
       /* do the actual scaling */
-      cbuf[i].amp = cbufamp * cbuf[i].amp + tempamp * tbufamp;
+   
+      if(i<tbufnp && cbuf[i].amp > kthresh) cbuf[i].amp = cbuf[i].amp * cbufamp + tempamp*tbufamp;
+      else  cbuf[i].amp *= cbufamp; 
     }
 }
 
 static int atscross(CSOUND *csound, ATSCROSS *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
-    MYFLT   frIndx;
+    MYFLT   frIndx, *oldamps = p->oldamps, a, inca;
     MYFLT   *ar, amp, fract, v1, *ftab;
     FUNC    *ftp;
     long    lobits, phase, inc;
@@ -1983,13 +1995,14 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 
     FetchCROSSPartials(p, buf, frIndx);
 
-    ScalePartials(
+    ScalePartials(csound,
         buf,                    /* the current buffer */
         (int) *(p->iptls),      /* the current buffer's number of partials */
         *(p->kmyamp),           /* the amplitude for the current buffer */
         atsbufreadaddr->table,  /* the table buffer */
         (int) *(atsbufreadaddr->iptls), /* the table buffer's n partials */
-        *p->katsbufamp);        /* the amp of the table buffer */
+		  *p->katsbufamp,
+         *p->kthresh);        /* the amp of the table buffer */
 
     oscphase = p->oscphase;
     /* initialise output to zero */
@@ -2001,21 +2014,25 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
       amp = (MYFLT) p->buf[i].amp;
-      phase = MYFLT2LONG(*oscphase);
+      phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       nsmps = csound->ksmps;
+      inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
-      for (n=0; n<nsmps; n++) {
+      a =  oldamps[i];
+      for (n=0; n<nsmps; n++) {    
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
-        ar[n] += (v1 + fract * (*ftab - v1)) * amp;
+        ar[n] += (v1 + fract * (*ftab - v1)) * a;
         phase += inc;
         phase &= PHMASK;
+        a += inca;
       }
-      *oscphase = (double) phase;
-      oscphase++;
+      oscphase[i] = (double) phase;
+      oldamps[i] = amp;
+      //oscphase++;
     }
     return OK;
 }
@@ -2041,7 +2058,7 @@ static OENTRY localops[] = {
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
     { "ATSinterpread",  S(ATSINTERPREAD),   3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        5,  "a",    "kkTikkiopo",
+    { "ATScross",       S(ATSCROSS),        5,  "a",    "kkTikkiopoo",
         (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
     { "ATSinfo",        S(ATSINFO),         1,  "i",    "Ti",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
