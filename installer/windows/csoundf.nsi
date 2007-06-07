@@ -420,14 +420,18 @@ Section "${PRODUCT}" SecCopyUI
   ; "csound32" for single-precision audio samples.
   ; File ..\..\csound64.dll.5.1
   File ..\..\csound32.dll.5.1
-  File ..\..\_csnd.dll
+  File ..\..\csnd.dll
+  File ..\..\_csnd.pyd
   File ..\..\_jcsound.dll
-  File ..\..\_CsoundVST.dll
-  File ..\..\_scoregen.dll
+  File ..\..\CsoundVST.dll
+  File ..\..\_CsoundVST.pyd
+  File ..\..\scoregen.dll
+  File ..\..\_scoregen.pyd
+  # File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File D:\utah\opt\csound5\bin\fltk.dll
-  File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
+  #File D:\utah\opt\csound5\bin\fltk.dll
+  File D:\utah\opt\libsndfile-1.0.18pre10\src\.libs\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
