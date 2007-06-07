@@ -42,7 +42,7 @@ lispDir     = libDir + '/csound/lisp'
 rawWaveDir  = instPrefix + '/share/csound/rawwaves'
 
 # Python version to use
-pyVersion   = '2.4'
+pyVersion   = '2.5'
 # csnd.py
 pythonDir   = '/usr/lib/python' + pyVersion + '/site-packages'
 # _csnd.so
