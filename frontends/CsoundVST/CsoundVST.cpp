@@ -342,7 +342,12 @@ int CsoundVST::perform()
         {
           csound::System::inform("Multi-threaded performance.\n");
           getCppSound()->SetYieldCallback(threadYieldCallback);
-          result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
+          void* result_ = csound::System::createThread(performanceThreadRoutine_, this, 0);
+          if (result_) {
+              result = true;
+          } else {
+              result = false;
+          }
           csound::System::inform("Created Csound performance thread.\n");
         }
       else
