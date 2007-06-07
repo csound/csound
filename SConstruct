@@ -2029,10 +2029,12 @@ else:
 print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Copy()
 csLadspaEnv.Append(LIBS=libCsoundLibs)
+csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
 if getPlatform() == "darwin":
  csLadspaEnv.Append(LINKFLAGS=['-framework','CsoundLib'])
-csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
-csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', PREFIX="")
+ csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', SUFFIX=".so" )
+else:
+ csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
 Depends(csladspa, csoundLibrary)
 libs.append(csladspa)
 
