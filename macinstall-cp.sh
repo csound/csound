@@ -13,9 +13,26 @@ cp csnd.jar $FMKBASE/Versions/5.1/Resources/Java/
 cp csoundapi~.pd_darwin $FMKBASE/Versions/5.1/Resources/PD/
 cp examples/csoundapi_tilde/csoundapi-osx.pd $FMKBASE/Versions/5.1/Resources/PD/csoundapi.pd
 cp examples/csoundapi_tilde/csapi_demo.csd ../csound5_install/csoundlib/package_contents/Library/Documentation/
+cp -R ../manual/html $FMKBASE/Resources
+rm -R $FMKBASE/Resources/Manual
+mv $FMKBASE/Resources/html $FMKBASE/Resources/Manual
+cp interfaces/*.hpp $FMKBASE/Headers
 cp csladspa.so ../csound5_install/csoundApps/package_contents/Library/Audio/Plug-Ins/LADSPA/csladspa.so
-CP -R $FMKBASE $IFMKBASE
-
+cp -R $FMKBASE $IFMKBASE
+          
+cp csound  $APPSBASE
+cp dnoise   $APPSBASE
+cp het_export $APPSBASE     
+cp lpanal  $APPSBASE        
+cp scale  $APPSBASE         
+cp tabdes $APPSBASE
+cp cs   $APPSBASE           
+cp cstclsh $APPSBASE        
+cp envext $APPSBASE          
+cp het_import $APPSBASE     
+cp lpc_export $APPSBASE     
+cp mixer  $APPSBASE         
+cp scsort $APPSBASE
 cp cswish  $APPSBASE        
 cp extract $APPSBASE         
 cp hetro $APPSBASE          
