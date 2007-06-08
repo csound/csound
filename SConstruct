@@ -2031,8 +2031,8 @@ csLadspaEnv = commonEnvironment.Copy()
 csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
 if getPlatform() == "darwin":
- csLadspaEnv.Append(LINKFLAGS=['-framework','CsoundLib'])
- csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp', SUFFIX=".so" )
+ csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -flat_namespace -framework CsoundLib'''))
+ csladspa = csLadspaEnv.Program('csladpsa.so', 'frontends/csladspa/csladspa.cpp' )
 else:
  csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
 Depends(csladspa, csoundLibrary)
