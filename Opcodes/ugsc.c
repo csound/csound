@@ -187,7 +187,7 @@ static int resonzset(CSOUND *csound, RESONZ *p)
                                        *p->iscl);
     }
     if (!(*p->istor))
-      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
 
 /*     p->aratemod = (XINARG2) ? 1 : 0; */
 
@@ -208,22 +208,23 @@ static int resonr(CSOUND *csound, RESONZ *p)
      *
      */
 
-    MYFLT r, scale; /* radius & scaling factor */
-    MYFLT c1, c2;   /* filter coefficients */
-    MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
+    double r, scale; /* radius & scaling factor */
+    double c1, c2;   /* filter coefficients */
+    MYFLT *out, *in;
+    double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
-    r = (MYFLT)exp((double)(kbw * csound->mpidsr));
-    c1 = FL(2.0) * r * (MYFLT)cos((double)(kcf * csound->tpidsr));
+    r = exp((double)(kbw * csound->mpidsr));
+    c1 = 2.0 * r * cos((double)(kcf * csound->tpidsr));
     c2 = r * r;
 
     /* calculation of scaling coefficients */
     if (p->scaletype == 1)
-      scale = FL(1.0) - r;
+      scale = 1.0 - r;
     else if (p->scaletype == 2)
-      scale = (MYFLT)sqrt(1.0 - (double)r);
-    else scale = FL(1.0);
+      scale = sqrt(1.0 - r);
+    else scale = 1.0;
 
     out = p->out;
     in = p->in;
@@ -232,14 +233,14 @@ static int resonr(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    do {
-      xn = *in++;
-      *out++ = yn = scale * (xn - r * xnm2) + c1 * ynm1 - c2 * ynm2;
+    for (n=0; n<nsmps; n++) {
+      xn = (double)in[n];
+      out[n] = (MYFLT)(yn = scale * (xn - r * xnm2) + c1 * ynm1 - c2 * ynm2);
       xnm2 = xnm1;
       xnm1 = xn;
       ynm2 = ynm1;
       ynm1 = yn;
-    } while (--nsmps);
+    }
     p->xnm1 = xnm1;
     p->xnm2 = xnm2;
     p->ynm1 = ynm1;
@@ -260,14 +261,15 @@ static int resonz(CSOUND *csound, RESONZ *p)
      *
      */
 
-    MYFLT r, scale; /* radius & scaling factor */
-    MYFLT c1, c2;   /* filter coefficients */
-    MYFLT *out, *in, xn, yn, xnm1, xnm2, ynm1, ynm2;
+    double r, scale; /* radius & scaling factor */
+    double c1, c2;   /* filter coefficients */
+    MYFLT *out, *in;
+    double xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT kcf = *p->kcf, kbw = *p->kbw;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
-    r = (MYFLT)exp(-(double)(kbw * csound->pidsr));
-    c1 = FL(2.0) * r * (MYFLT)cos((double)(csound->tpidsr*kcf));
+    r = exp(-(double)(kbw * csound->pidsr));
+    c1 = 2.0 * r * cos((double)(csound->tpidsr*kcf));
     c2 = r * r;
 
     /* Normalizing factors derived from equations in Ken Steiglitz,
@@ -275,10 +277,10 @@ static int resonz(CSOUND *csound, RESONZ *p)
      * Music Journal, vol. 18, no. 4, pp. 8-10, Winter 1982.
      */
     if (p->scaletype == 1)
-      scale = (FL(1.0) - c2) * FL(0.5);
+      scale = (1.0 - c2) * 0.5;
     else if (p->scaletype == 2)
-      scale = (MYFLT)sqrt((1.0 - (double)c2) * 0.5);
-    else scale = FL(1.0);
+      scale = sqrt((1.0 - c2) * 0.5);
+    else scale = 1.0;
 
     out  = p->out;
     in   = p->in;
@@ -287,14 +289,14 @@ static int resonz(CSOUND *csound, RESONZ *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    do {
-      xn = *in++;
-      *out++ = yn = scale * (xn - xnm2) + c1 * ynm1 - c2 * ynm2;
+    for (n=0; n<nsmps; n++) {
+      xn = (double)in[n];
+      out[n] = (MYFLT)(yn = scale * (xn - xnm2) + c1 * ynm1 - c2 * ynm2);
       xnm2 = xnm1;
       xnm1 = xn;
       ynm2 = ynm1;
       ynm1 = yn;
-    } while (--nsmps);
+    }
 
     p->xnm1 = xnm1;
     p->xnm2 = xnm2;
@@ -473,7 +475,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
 static int lp2_set(CSOUND *csound, LP2 *p)
 {
     if (!(*p->istor))
-      p->ynm1 = p->ynm2 = FL(0.0);
+      p->ynm1 = p->ynm2 = 0.0;
     return OK;
 }
 
@@ -481,18 +483,18 @@ static int lp2_set(CSOUND *csound, LP2 *p)
 Hal Chamberlin's "Musical Applications of Microprocessors." */
 static int lp2(CSOUND *csound, LP2 *p)
 {
-    MYFLT a, b, c, temp;
-    MYFLT *out, *in, yn, ynm1, ynm2;
+    double a, b, c, temp;
+    MYFLT *out, *in;
+    double yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
     int nsmps = csound->ksmps;
     int n;
 
-    temp = csound->mpidsr * kfco / kres;
+    temp = (double)(csound->mpidsr * kfco / kres);
       /* (-PI_F * kfco / (kres * csound->esr)); */
-    a = FL(2.0) * (MYFLT) (cos((double) (kfco * csound->tpidsr))
-                           * exp((double) temp));
-    b = (MYFLT)exp((double)(temp+temp));
-    c = FL(1.0) - a + b;
+    a = 2.0 * cos((double) (kfco * csound->tpidsr)) * exp(temp);
+    b = exp(temp+temp);
+    c = 1.0 - a + b;
 
     out  = p->out;
     in   = p->in;
@@ -500,7 +502,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     ynm2 = p->ynm2;
 
     for (n=0; n<nsmps; n++) {
-      out[n] = yn = a * ynm1 - b * ynm2 + c * in[n];
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
       ynm2 = ynm1;
       ynm1 = yn;
     }
