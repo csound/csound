@@ -12,7 +12,7 @@
 sr = 44100
 kr = 441
 ksmps = 100
-nchnls = 1
+nchnls = 2
 
 FLcolor  200,10,40, 140,60,60
 
@@ -46,13 +46,13 @@ kps = 1/kol          /* pointer rate scaling */
 
 /* gk1 controls timescale, gk2 controls pitchscale */
 
-ain    in
+ain    inch  1
 awp  phasor sr/ftlen(1)
 awin tablei awp, 2, 1
      tablew ain*awin, awp, 1, 1
 asig syncgrain  gk5, kfr, gk2, kgr, kps*gk1,1, 3, iomax
 
-   out   asig
+   outch    1, asig
 
 endin
 
