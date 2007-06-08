@@ -100,7 +100,9 @@ int isCsoundFile(char *in)
       if (DEBUG)
         fprintf(stderr, "%d: %c%c%c%c\n", i, in[0], in[1], in[2], in[3]);
       if (tmp == '.csd' || tmp == '.orc' || tmp == '.sco' ||
-          tmp == '.CSD' || tmp == '.ORC' || tmp == '.SCO')
+          tmp == '.CSD' || tmp == '.ORC' || tmp == '.SCO' ||
+		  tmp == 'dsc.' || tmp == 'cro.' || tmp == 'ocs.' ||
+          tmp == 'DSC.' || tmp == 'CRO.' || tmp == 'OCS.' )
         return 1;
       else
         return 0;
@@ -190,7 +192,7 @@ void Compile(globals *g)
       if (*tmp[i] != '-' && isCsoundFile(tmp[i])) {
         int     siz = strlen(dir) + strlen(tmp[i]);
         char   *tmpstr = tmp[i];
-
+        
         tmp[i] = (char *) malloc(siz);
         sprintf(tmp[i], "%s%s", dir, tmpstr);
         free(tmpstr);

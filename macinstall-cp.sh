@@ -7,7 +7,7 @@ cp _csnd.so ../csound5_install/csoundlib/package_contents/System/Library/Framewo
 cp csnd.py ../csound5_install/csoundlib/package_contents/System/Library/Frameworks/Python.framework/Versions/2.3/lib/Python2.3/
 cp lib_csnd.dylib $FMKBASE/Versions/5.1/
 cp tclcsound.dylib $FMKBASE/Versions/5.1/Resources/TclTk/
-cp frontends/csladspa/libcsladspa.dylib  $FMKBASE/Versions/5.1/Resources/csladspa/csladspa.dylib
+cp csladspa.so  $FMKBASE/Versions/5.1/Resources/csladspa/csladspa.so
 cp lib_jcsound.jnilib $FMKBASE/Versions/5.1/Resources/Java/
 cp csnd.jar $FMKBASE/Versions/5.1/Resources/Java/
 cp csoundapi~.pd_darwin $FMKBASE/Versions/5.1/Resources/PD/
@@ -46,7 +46,7 @@ cp atsa  $APPSBASE
 
 cp cswish frontends/tclcsound/cswish.app/Contents/MacOS/.
 cp -R frontends/tclcsound/cswish.app "../csound5_install/csoundapps/package_contents/Applications/Csound 5 Wish.app"
-cp -R "frontends/OSX/build/Csound 5.app" ../csound5_install/csoundapps/package_contents/Applications
+cp -R "frontends/OSX/build/Deployment/Csound 5.app" ../csound5_install/csoundapps/package_contents/Applications
 cp -R frontends/Winsound/Winsound.app "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/."
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/Winsound.app/CVS"
 rm -R "../csound5_install/csoundapps/package_contents/Applications/Csound 5 frontends/Winsound.app/Contents/CVS"

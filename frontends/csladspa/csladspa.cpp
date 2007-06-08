@@ -32,6 +32,8 @@
 #include "ladspa.h"
 using namespace std;
 
+
+
 #ifdef WIN32
 #define PUBLIC  __declspec(dllexport)
 #else
@@ -95,6 +97,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   inp = new LADSPA_Data*[chans];
   outp = new LADSPA_Data*[chans];
 
+ 
   // csound parameters
   cmdl = new char*[5];
   cmdl[0] = "csound";
@@ -160,19 +163,20 @@ static LADSPA_Handle createplugin(const LADSPA_Descriptor *pdesc,
 {       
   CsoundPlugin* p;
   int i, aports=0;
+   cerr << "instantiating plugin: " << pdesc->Label << "\n";
   for(i=0; i < (int)pdesc->PortCount; i++)
     if(pdesc->PortDescriptors[i] & LADSPA_PORT_AUDIO) aports++;
-#ifdef DEBUG
+  #ifdef DEBUG
   cerr << "instantiating plugin: " << pdesc->Label << "\n";
-#endif 
-  p = new CsoundPlugin(pdesc->Label, aports/2, pdesc->PortCount-aports,
-                       (AuxData *)pdesc->ImplementationData,rate);
-#ifdef DEBUG
+  #endif 
+   p = new CsoundPlugin(pdesc->Label, aports/2, pdesc->PortCount-aports,
+                    (AuxData *)pdesc->ImplementationData,rate);
+  #ifdef DEBUG
   if(!p->result)
     cerr << "plugin instantiated: " << pdesc->Label << "\n";
   else
     cerr << "plugin not instantiated \n";
-#endif
+  #endif
   return p;
 }
 
@@ -203,7 +207,7 @@ static void connect(LADSPA_Handle inst, unsigned long port, LADSPA_Data* pdata)
 // Processing entry point
 static void runplugin(LADSPA_Handle inst, unsigned long cnt) 
 {
-  ((CsoundPlugin *)inst)->Process(cnt);
+   ((CsoundPlugin *)inst)->Process(cnt);
 }
 
 
@@ -313,9 +317,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
               temp = trim(temp);
               tmp = new char[temp.length()+1];
               strcpy(tmp, (const char*)temp.c_str());
-              /*doesn't seem to display properly on windows
-                doesn't display at all on Linux? Is there any need for it? 
-                desc->Copyright = (const char*) tmp;*/
+              desc->Copyright = (const char*) tmp;
             }                     
             else if(csddata.find("ControlPort")!=string::npos)
               {

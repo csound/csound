@@ -442,9 +442,9 @@ static int fluidControl_init(CSOUND *csound, FLUIDCONTROL *p)
 static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
 {
   int   midiStatus    = 0xF0 & (int) *(p->kMidiStatus);
-  int   midiChannel   = (int) *(p->kMidiChannel);
-  int   midiData1     = (int) *(p->kMidiData1);
-  int   midiData2     = (int) *(p->kMidiData2);
+  int   midiChannel   = *(p->kMidiChannel);
+  int   midiData1     = *(p->kMidiData1);
+  int   midiData2     = *(p->kMidiData2);
   int res =  -1;
 
   if (midiData2 != p->priorMidiData2 ||
