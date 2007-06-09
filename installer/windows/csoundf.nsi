@@ -430,7 +430,7 @@ Section "${PRODUCT}" SecCopyUI
   # File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  #File D:\utah\opt\csound5\bin\fltk.dll
+  File D:\utah\opt\fltk-1.1.7\vc2005\fltk.dll
   File D:\utah\opt\libsndfile-1.0.18pre10\src\.libs\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
@@ -438,7 +438,7 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
   File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
-  #File D:\utah\opt\csound5\bin\liblo.dll
+  File D:\utah\home\mkg\projects\liblo\src\liblo.dll
   File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
    File ..\..\csnd.py
   File ..\..\CsoundVST.py

@@ -438,7 +438,7 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
   File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
-  #File D:\utah\opt\csound5\bin\liblo.dll
+  File D:\utah\home\mkg\projects\liblo\src\liblo.dll
   File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
   File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
   File ..\..\csnd.py
