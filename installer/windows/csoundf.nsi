@@ -430,7 +430,7 @@ Section "${PRODUCT}" SecCopyUI
   # File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File D:\utah\opt\fltk-1.1.7\vc2005\fltk.dll
+  #File D:\utah\opt\fltk-1.1.7\vc2005\fltk.dll
   File D:\utah\opt\libsndfile-1.0.18pre10\src\.libs\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
@@ -457,7 +457,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
-  File ..\..\refman.pdf
+  File ..\..\doc\latex\refman.pdf
   File ..\..\ChangeLog
   File ..\..\COPYING
   File ..\..\LICENSE.PortMidi
