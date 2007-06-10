@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco
+csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1153,6 +1153,7 @@ asig2                   =                       asignal * irightgain * kdamping
 </CsInstruments>
 <CsScore>
 f 0 3600
+
 
 
 </CsScore>
