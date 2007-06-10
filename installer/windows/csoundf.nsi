@@ -457,7 +457,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
-  File ..\..\CsoundAPI.pdf
+  File ..\..\refman.pdf
   File ..\..\ChangeLog
   File ..\..\COPYING
   File ..\..\LICENSE.PortMidi
@@ -563,7 +563,7 @@ Section "${PRODUCT}" SecCopyUI
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt" "" "" "" "" "" "Csound README"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf" "" "" "" "" "" "API reference"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\refman.pdf" "" "" "" "" "" "API reference"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
   
   !insertmacro MUI_STARTMENU_WRITE_END
