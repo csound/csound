@@ -192,7 +192,7 @@ commandOptions.Add('buildWinsound',
     "Build Winsound frontend. Requires FLTK headers and libs",
     '0')
 commandOptions.Add('buildVirtual',
-    "Build Virtual MIDI keyboard. Requires FLTK 1.1.7 headers and libs",
+    "Build Virtual MIDI keyboard. Requires FLTK 1.1.7 or later headers and libs",
     '0')
 commandOptions.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
@@ -892,8 +892,10 @@ if getPlatform() != 'darwin':
 try:
     if vstEnvironment.ParseConfig(fltkConfigFlags):
     	print 'Parsed fltk-config.'
+    else:
+        print 'Could not parse fltk-config.'
 except:
-    print 'Unable to parse fltk-config.'
+    print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = Split('''
         fltk fltk_images fltk_png z fltk_jpeg
@@ -1228,7 +1230,7 @@ else:
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
-        widgetsEnvironment.Append(LIBS = ['fltk'])
+        widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         if (not withMSVC()):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
@@ -1371,7 +1373,7 @@ else:
     print "CONFIGURATION DECISION: Building vst4cs opcodes."
     if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
         vst4Environment = vstEnvironment.Copy()
-        vst4Environment.Append(LIBS = Split('''fltk'''))
+        vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         if not withMSVC():
@@ -1630,7 +1632,7 @@ else:
         csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
-        csound5GUIEnvironment.Append(LIBS = ['fltk'])
+        csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         if (not withMSVC()):
             csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
@@ -1970,7 +1972,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
-        csWinEnvironment.Append(LIBS = ['fltk'])
+        csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         if not withMSVC():
             csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csWinEnvironment.Prepend(LINKFLAGS = Split('''
