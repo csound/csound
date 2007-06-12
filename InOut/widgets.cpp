@@ -2950,7 +2950,7 @@ static int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
   return OK;
 }
 
-static int fl_box(CSOUND *csound, FL_BOX *p)
+static int fl_box_(CSOUND *csound, FL_BOX *p)
 {
   char *text = GetString(csound, p->itext, p->XSTRCODE);
   Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
@@ -5458,7 +5458,7 @@ const OENTRY widgetOpcodes_[] = {
     { "FLsetAlign",     S(FL_TALIGN),           1,  "",     "ii",
         (SUBR) fl_align,                (SUBR) NULL,              (SUBR) NULL },
     { "FLbox",          S(FL_BOX),              1,  "i",    "Tiiiiiii",
-        (SUBR) fl_box,                  (SUBR) NULL,              (SUBR) NULL },
+        (SUBR) fl_box_,                  (SUBR) NULL,              (SUBR) NULL },
     { "FLvalue",        S(FLVALUE),             1,  "i",    "Tjjjj",
         (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
     { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjjoooo",
