@@ -45,7 +45,7 @@ namespace csound
     perform();
   }
 
-  void Composition::createCsoundScore(std::string addToScore)
+  void Composition::createCsoundScore(std::string addToScore, double extendSeconds)
   {
     System::inform("addToScore.length(): %d\n", addToScore.length());
     if (addToScore.length() > 2) {
@@ -53,7 +53,9 @@ namespace csound
       cppSound->addScoreLine(addToScore);
     }
     cppSound->addScoreLine(score.getCsoundScore(tonesPerOctave, conformPitches));
-    cppSound->addScoreLine("\ne 5.0");
+    char buffer[0x100];
+    std::sprintf(buffer, "\ne %9.3f", extendSeconds);
+    cppSound->addScoreLine(buffer);
     cppSound->exportForPerformance();
   }
 

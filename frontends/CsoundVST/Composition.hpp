@@ -59,8 +59,9 @@ namespace csound
     virtual void generate();
     /**
      * Translate the generated score to a Csound score and export it for performance.
+     * The time given by extendSeconds is used for a concluding e statement.
      */
-    virtual void createCsoundScore(std::string addToScore = "");
+    virtual void createCsoundScore(std::string addToScore = "", double extendSeconds = 5.0);
     /**
      * Convenience function that erases the existing score,
      * appends optional text to it,
