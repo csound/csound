@@ -1483,7 +1483,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
+      return csound->PerfError(csound, Str("oscil3: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
@@ -1492,8 +1492,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     cpsp = p->xcps;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc;
-      inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
+      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;

@@ -1,6 +1,11 @@
+2007-06-24  jpff  <jpff@codemist.co.uk>
+
+	* OOps/ugens2.c (koscl3): The amplitude was being ignored.
+	Multiply by *p->xamp to fix
+
 2007-06-08  jpff  <jpff@codemist.co.uk>
 
-	* Opcodes/ugsc.h: 
+	* Opcodes/ugsc.h:
 	* Opcodes/ugsc.c: Make filters work in doubles internally
 
 2007-06-04  jpff  <jpff@codemist.co.uk>
