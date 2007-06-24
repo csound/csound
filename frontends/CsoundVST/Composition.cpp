@@ -54,7 +54,9 @@ namespace csound
     }
     cppSound->addScoreLine(score.getCsoundScore(tonesPerOctave, conformPitches));
     char buffer[0x100];
-    std::sprintf(buffer, "\ne %9.3f", extendSeconds);
+    std::sprintf(buffer, "\ns %9.3f", extendSeconds);
+    cppSound->addScoreLine(buffer);
+    std::sprintf(buffer, "\ne %9.3f", 5.0);
     cppSound->addScoreLine(buffer);
     cppSound->exportForPerformance();
   }
