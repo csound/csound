@@ -1316,8 +1316,9 @@ int koscl3(CSOUND *csound, OSC   *p)
       MYFLT frcu = frsq*ym1;
       MYFLT t1 = y2 + y0+y0+y0;
       *p->sr = amp * (y0 + FL(0.5)*frcu +
-        fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-        frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0));
+                      fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
+                      frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
+                      frsq*(FL(0.5)* y1 - y0));
     }
     inc = (long)(*p->xcps * csound->kicvt);
     phs += inc;
@@ -1437,7 +1438,7 @@ int oscak3(CSOUND *csound, OSC   *p)
 
     ftp = p->ftp;
     if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
+      return csound->PerfError(csound, Str("oscil3: not initialised"));
     }
     ftab = ftp->ftable;
     lobits = ftp->lobits;
