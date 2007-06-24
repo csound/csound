@@ -1293,7 +1293,7 @@ int koscl3(CSOUND *csound, OSC   *p)
     long    phs, inc;
     MYFLT  *ftab, fract;
     int     x0;
-    MYFLT   y0, y1, ym1, y2;
+    MYFLT   y0, y1, ym1, y2, amp = *p->xamp;
 
     phs = p->lphs;
     ftp = p->ftp;
@@ -1315,9 +1315,9 @@ int koscl3(CSOUND *csound, OSC   *p)
       MYFLT frsq = fract*fract;
       MYFLT frcu = frsq*ym1;
       MYFLT t1 = y2 + y0+y0+y0;
-      *p->sr = y0 + FL(0.5)*frcu +
+      *p->sr = amp * (y0 + FL(0.5)*frcu +
         fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-        frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0);
+        frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0));
     }
     inc = (long)(*p->xcps * csound->kicvt);
     phs += inc;
