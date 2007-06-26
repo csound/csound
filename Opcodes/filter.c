@@ -556,7 +556,7 @@ static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
        * the array since it was previously sorted by the init routine.
        */
       for (i=0;i<dim;i++)
-        if (fabs (b[i].i)>eps) /* Check if pole is complex */
+        if (fabs(b[i].i)>eps) /* Check if pole is complex */
           break;
 
       nudgefact = 1 + (1/a[i].mag-1)*fact;

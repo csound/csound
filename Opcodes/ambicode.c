@@ -51,8 +51,9 @@ static int iambicode(CSOUND *csound, AMBIC *p)
         {
           /* 2nd order */
           if (p->INOCOUNT != 5) {
-            return csound->InitError(csound, "Wrong number of input arguments! "
-                                             "5 needed!");
+            return csound->InitError(csound,
+                                     Str("Wrong number of input arguments! "
+                                         "5 needed!"));
           }
           break;
         }
@@ -61,8 +62,9 @@ static int iambicode(CSOUND *csound, AMBIC *p)
         {
           /* 3rd order */
           if (p->INOCOUNT != 6) {
-            return csound->InitError(csound, "Wrong number of input arguments! "
-                                             "6 needed!");
+            return csound->InitError(csound,
+                                     Str("Wrong number of input arguments! "
+                                         "6 needed!"));
           }
           break;
         }
@@ -71,16 +73,18 @@ static int iambicode(CSOUND *csound, AMBIC *p)
         {
           /* 4th order */
           if (p->INOCOUNT != 7) {
-            return csound->InitError(csound, "Wrong number of input arguments! "
-                                             "7 needed!");
+            return csound->InitError(csound,
+                                     Str("Wrong number of input arguments! "
+                                         "7 needed!"));
           }
           break;
         }
 
       default:
         {
-          return csound->InitError(csound, "Wrong number of output arguments! "
-                                           "4, 9 or 16 needed!");
+          return csound->InitError(csound,
+                                   Str("Wrong number of output arguments! "
+                                       "4, 9 or 16 needed!"));
         }
     }
     return OK;
@@ -90,8 +94,8 @@ static void ambicode_set_coefficients(AMBIC *p)
 {
     /* convert degrees to radian */
     /* 0.017 = pi/180 */
-    MYFLT kalpha_rad = (*p->kalpha) * FL(0.0174532925199432957692369076848861);
-    MYFLT kbeta_rad = (*p->kin[0]) * FL(0.0174532925199432957692369076848861);
+    double kalpha_rad = (double)(*p->kalpha)*0.0174532925199432957692369076848861;
+    double kbeta_rad = (double)(*p->kin[0])*0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -107,20 +111,20 @@ static void ambicode_set_coefficients(AMBIC *p)
     }
 
     /* 2nd order */
-    p->r = FL(0.5) * (FL(3.0) * p->z * p->z - FL(1.0));
-    p->s = FL(2.0) * p->x * p->z;
-    p->t = FL(2.0) * p->y * p->z;
+    p->r = 0.5 * (3.0 * p->z * p->z - 1.0);
+    p->s = 2.0 * p->x * p->z;
+    p->t = 2.0 * p->y * p->z;
     p->u = p->x * p->x - p->y * p->y;
-    p->v = FL(2.0) * p->x * p->y;
+    p->v = 2.0 * p->x * p->y;
 
     /* 3rd order */
-    p->k = FL(0.5) * p->z * (FL(5.0) * p->z * p->z - FL(3.0));
-    p->l = FL(8.0) / FL(11.0) * p->y * (FL(5.0) * p->z * p->z - FL(1.0));
-    p->m = FL(8.0) / FL(11.0) * p->x * (FL(5.0) * p->z * p->z - FL(1.0));
-    p->n = FL(2.0) * p->x * p->y * p->z;
+    p->k = 0.5 * p->z * (5.0 * p->z * p->z - 3.0);
+    p->l = (8.0 / 11.0) * p->y * (5.0 * p->z * p->z - 1.0);
+    p->m = (8.0 / 11.0) * p->x * (5.0 * p->z * p->z - 1.0);
+    p->n = 2.0 * p->x * p->y * p->z;
     p->o = p->z * (p->x * p->x - p->y * p->y);
-    p->p = FL(3.0) * p->y * (FL(3.0) * p->x * p->x - p->y * p->y);
-    p->q = FL(3.0) * p->x * (p->x * p->x - FL(3.0) * p->y * p->y);
+    p->p = 3.0 * p->y * (3.0 * p->x * p->x - p->y * p->y);
+    p->q = 3.0 * p->x * (p->x * p->x - 3.0 * p->y * p->y);
 }
 
 static int aambicode(CSOUND *csound, AMBIC *p)
@@ -234,13 +238,13 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     return OK;
 }
 
-static void ambideco_set_coefficients(AMBID *p, MYFLT alpha, MYFLT beta,
+static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
                                       int index)
 {
     /* convert degrees to radian */
     /* 0.017... = pi/180 */
-    MYFLT alpha_rad = alpha * FL(0.0174532925199432957692369076848861);
-    MYFLT beta_rad = beta * FL(0.0174532925199432957692369076848861);
+    double alpha_rad = alpha * 0.0174532925199432957692369076848861;
+    double beta_rad = beta * 0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -282,19 +286,20 @@ static int iambideco(CSOUND *csound, AMBID *p)
 {
     /* check correct number of input arguments */
     if ((p->INOCOUNT != 5) && (p->INOCOUNT != 10) && (p->INOCOUNT != 17)) {
-      return csound->InitError(csound, "Wrong number of input arguments!");
+      return csound->InitError(csound, Str("Wrong number of input arguments!"));
     }
 
     switch ((int)*p->isetup) {
       case 1:
         {
           if (p->OUTOCOUNT != 2) {
-            return csound->InitError(csound, "Wrong number of output cells! "
-                                             "There must be 2 output cells.");
+            return csound->InitError(csound,
+                                     Str("Wrong number of output cells! "
+                                         "There must be 2 output cells."));
           }
           else {
-            ambideco_set_coefficients(p, FL(330.0), FL(0.0), 0);    /* left */
-            ambideco_set_coefficients(p, FL(30.0), FL(0.0), 1);     /* right */
+            ambideco_set_coefficients(p, 330.0, 0.0, 0);    /* left */
+            ambideco_set_coefficients(p, 30.0, 0.0, 1);     /* right */
           }
           break;
         }
@@ -302,29 +307,31 @@ static int iambideco(CSOUND *csound, AMBID *p)
       case 2:
         {
           if (p->OUTOCOUNT != 4) {
-            return csound->InitError(csound, "Wrong number of output cells! "
-                                             "There must be 4 output cells.");
+            return csound->InitError(csound,
+                                     Str("Wrong number of output cells! "
+                                         "There must be 4 output cells."));
           }
           else {
-            ambideco_set_coefficients(p, FL(45.0), FL(0.0), 0);
-            ambideco_set_coefficients(p, FL(135.0), FL(0.0), 1);
-            ambideco_set_coefficients(p, FL(225.0), FL(0.0), 2);
-            ambideco_set_coefficients(p, FL(315.0), FL(0.0), 3);
+            ambideco_set_coefficients(p, 45.0, 0.0, 0);
+            ambideco_set_coefficients(p, 135.0, 0.0, 1);
+            ambideco_set_coefficients(p, 225.0, 0.0, 2);
+            ambideco_set_coefficients(p, 315.0, 0.0, 3);
           }
           break;
         }
 
       case 3: {
         if (p->OUTOCOUNT != 5) {
-          return csound->InitError(csound, "Wrong number of output cells! "
-                                           "There must be 5 output cells.");
+          return csound->InitError(csound,
+                                   Str("Wrong number of output cells! "
+                                       "There must be 5 output cells."));
         }
         else {
-          ambideco_set_coefficients(p, FL(330.0), FL(0.0), 0);  /* left */
-          ambideco_set_coefficients(p, FL(30.0), FL(0.0), 1);   /* right */
-          ambideco_set_coefficients(p, FL(0.0), FL(0.0), 2);    /* center */
-          ambideco_set_coefficients(p, FL(250.0), FL(0.0), 3);  /* surround L */
-          ambideco_set_coefficients(p, FL(110.0), FL(0.0), 4);  /* surround R */
+          ambideco_set_coefficients(p, 330.0, 0.0, 0);  /* left */
+          ambideco_set_coefficients(p, 30.0, 0.0, 1);   /* right */
+          ambideco_set_coefficients(p, 0.0, 0.0, 2);    /* center */
+          ambideco_set_coefficients(p, 250.0, 0.0, 3);  /* surround L */
+          ambideco_set_coefficients(p, 110.0, 0.0, 4);  /* surround R */
         }
         break;
       }
@@ -332,18 +339,19 @@ static int iambideco(CSOUND *csound, AMBID *p)
       case 4:
         {
           if (p->OUTOCOUNT != 8) {
-            return csound->InitError(csound, "Wrong number of output cells! "
-                                             "There must be 8 output cells.");
+            return csound->InitError(csound,
+                                     Str("Wrong number of output cells! "
+                                         "There must be 8 output cells."));
           }
           else {
-            ambideco_set_coefficients(p, FL(22.5), FL(0.0), 0);
-            ambideco_set_coefficients(p, FL(67.5), FL(0.0), 1);
-            ambideco_set_coefficients(p, FL(112.5), FL(0.0), 2);
-            ambideco_set_coefficients(p, FL(157.5), FL(0.0), 3);
-            ambideco_set_coefficients(p, FL(202.5), FL(0.0), 4);
-            ambideco_set_coefficients(p, FL(247.5), FL(0.0), 5);
-            ambideco_set_coefficients(p, FL(292.5), FL(0.0), 6);
-            ambideco_set_coefficients(p, FL(337.5), FL(0.0), 7);
+            ambideco_set_coefficients(p,  22.5, 0.0, 0);
+            ambideco_set_coefficients(p,  67.5, 0.0, 1);
+            ambideco_set_coefficients(p, 112.5, 0.0, 2);
+            ambideco_set_coefficients(p, 157.5, 0.0, 3);
+            ambideco_set_coefficients(p, 202.5, 0.0, 4);
+            ambideco_set_coefficients(p, 247.5, 0.0, 5);
+            ambideco_set_coefficients(p, 292.5, 0.0, 6);
+            ambideco_set_coefficients(p, 337.5, 0.0, 7);
           }
           break;
         }
@@ -351,18 +359,19 @@ static int iambideco(CSOUND *csound, AMBID *p)
       case 5:
         {
           if (p->OUTOCOUNT != 8) {
-            return csound->InitError(csound, "Wrong number of output cells! "
-                                             "There must be 8 output cells.");
+            return csound->InitError(csound,
+                                     Str("Wrong number of output cells! "
+                                         "There must be 8 output cells."));
           }
           else {
-            ambideco_set_coefficients(p, FL(45.0), FL(0.0), 0);
-            ambideco_set_coefficients(p, FL(45.0), FL(30.0), 1);
-            ambideco_set_coefficients(p, FL(135.0), FL(0.0), 2);
-            ambideco_set_coefficients(p, FL(135.0), FL(30.0), 3);
-            ambideco_set_coefficients(p, FL(225.0), FL(0.0), 4);
-            ambideco_set_coefficients(p, FL(225.0), FL(30.0), 5);
-            ambideco_set_coefficients(p, FL(315.0), FL(0.0), 6);
-            ambideco_set_coefficients(p, FL(315.0), FL(30.0), 7);
+            ambideco_set_coefficients(p,  45.0,  0.0, 0);
+            ambideco_set_coefficients(p,  45.0, 30.0, 1);
+            ambideco_set_coefficients(p, 135.0,  0.0, 2);
+            ambideco_set_coefficients(p, 135.0, 30.0, 3);
+            ambideco_set_coefficients(p, 225.0,  0.0, 4);
+            ambideco_set_coefficients(p, 225.0, 30.0, 5);
+            ambideco_set_coefficients(p, 315.0,  0.0, 6);
+            ambideco_set_coefficients(p, 315.0, 30.0, 7);
           }
           break;
         }
@@ -422,7 +431,7 @@ static int aambideco(CSOUND *csound, AMBID *p)
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
           *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-            *inptp_y * p->y[i] + *inptp_z * p->z[i];
+                        *inptp_y * p->y[i] + *inptp_z * p->z[i];
         }
 
         /* increment input array pointer 0th order */
@@ -441,9 +450,10 @@ static int aambideco(CSOUND *csound, AMBID *p)
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
           *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-            *inptp_y * p->y[i] + *inptp_z * p->z[i] +
-            *inptp_r * p->r[i] + *inptp_s * p->s[i] +
-            *inptp_t * p->t[i] + *inptp_u * p->u[i] + *inptp_v * p->v[i];
+                        *inptp_y * p->y[i] + *inptp_z * p->z[i] +
+                        *inptp_r * p->r[i] + *inptp_s * p->s[i] +
+                        *inptp_t * p->t[i] + *inptp_u * p->u[i] +
+                        *inptp_v * p->v[i];
         }
 
         /* increment input array pointer 0th order */
@@ -469,11 +479,13 @@ static int aambideco(CSOUND *csound, AMBID *p)
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
           *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-            *inptp_y * p->y[i] + *inptp_z * p->z[i] + *inptp_r * p->r[i] +
-            *inptp_s * p->s[i] + *inptp_t * p->t[i] + *inptp_u * p->u[i] +
-            *inptp_v * p->v[i] + *inptp_k * p->k[i] + *inptp_l * p->l[i] +
-            *inptp_m * p->m[i] + *inptp_n * p->n[i] + *inptp_o * p->o[i] +
-            *inptp_p * p->p[i] + *inptp_q * p->q[i];
+                        *inptp_y * p->y[i] + *inptp_z * p->z[i] + 
+                        *inptp_r * p->r[i] + *inptp_s * p->s[i] +
+                        *inptp_t * p->t[i] + *inptp_u * p->u[i] +
+                        *inptp_v * p->v[i] + *inptp_k * p->k[i] + 
+                        *inptp_l * p->l[i] + *inptp_m * p->m[i] +
+                        *inptp_n * p->n[i] + *inptp_o * p->o[i] +
+                        *inptp_p * p->p[i] + *inptp_q * p->q[i];
         }
 
         /* increment input array pointer 0th order */

@@ -1,9 +1,27 @@
+/*
+    metro.c:
+
+    Copyright (C) 2000 Gabriel Maldonado
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #include "csdl.h"
-
-/* ********************************************************************** */
-/* NO AUTHOR COPYRIGHT OR LICENCE                                         */
-/* ********************************************************************** */
-
 #include <math.h>
 
 typedef struct {
@@ -37,8 +55,8 @@ static int metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if ((longphs = (long)phs))
-        csound->Message(csound, "metro:init phase truncation");
-      p->curphs = phs - (MYFLT)longphs;
+        csound->Message(csound, Str("metro:init phase truncation"));
+      p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;
     return OK;
@@ -100,7 +118,7 @@ static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
 
     if (*p->trig) {
       int ndx = (int) *p->ndx * (numouts * (int) *p->maxtics + 1);
-      int       numtics =  (int) p->table[ndx];
+      int numtics =  (int) p->table[ndx];
       MYFLT *table = &(p->table[ndx+1]);
       int kndx = (int) *p->ndx;
       int currtic;
