@@ -92,12 +92,9 @@ MYFLT FormSwep_tick(CSOUND *csound,
       if (p->sweepState>= FL(1.0)) {
         p->sweepState   = FL(1.0);
         p->dirty        = 0;
-        p->currentReson = p->targetReson;
-        p->reson        = p->targetReson;
-        p->currentFreq  = p->targetFreq;
-        p->freq         = p->targetFreq;
-        p->currentGain  = p->targetGain;
-        p->gain         = p->targetGain;
+        p->currentReson = p->reson = p->targetReson;
+        p->currentFreq  = p->freq  = p->targetFreq;
+        p->currentGain  = p->gain  = p->targetGain;
       }
       else {
         p->currentReson = p->reson + (p->deltaReson * p->sweepState);
@@ -126,16 +123,16 @@ static MYFLT Samp_tick(Wave *p)
     p->time += p->rate;                  /*  Update current time    */
     while (p->time >= p->wave->flen)     /*  Check for end of sound */
       p->time -= p->wave->flen;          /*  loop back to beginning */
-    while (p->time < FL(0.))             /*  Check for end of sound */
+    while (p->time < FL(0.0))            /*  Check for end of sound */
       p->time += p->wave->flen;          /*  loop back to beginning */
 
     temp_time = p->time;
 
-    if (p->phase != FL(0.)) {
+    if (p->phase != FL(0.0)) {
       temp_time += p->phase;             /*  Add phase offset       */
       while (temp_time >= p->wave->flen) /*  Check for end of sound */
         temp_time -= p->wave->flen;      /*  loop back to beginning */
-      while (temp_time < FL(0.))         /*  Check for end of sound */
+      while (temp_time < FL(0.0))        /*  Check for end of sound */
         temp_time += p->wave->flen;      /*  loop back to beginning */
     }
 

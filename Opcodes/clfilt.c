@@ -64,11 +64,11 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
 /*       p->nsec = nsec = 1; */
     }
     else if (fmod((double)*p->npol,2.0) != 0.0) {
-      p->nsec = nsec = (int)((*p->npol+FL(1.0))/FL(2.0));
+      p->nsec = nsec = (int)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
                                   " rounded to %d"), 2*nsec);
     }
-    else p->nsec = nsec = (int)((*p->npol)/FL(2.0));
+    else p->nsec = nsec = (int)((*p->npol)*FL(0.5));
     switch (p->ilohi) {
     case 0: /* Lowpass filters */
       switch (p->ikind) {
@@ -288,7 +288,7 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
 
 static int clfilt(CSOUND *csound, CLFILT *p)
 {
-    long n;
+    int n, nsmps;
     int m, nsec;
     MYFLT *out, *in;
     MYFLT xn[CL_LIM+1], yn[CL_LIM];
@@ -386,11 +386,11 @@ static int clfilt(CSOUND *csound, CLFILT *p)
         return csound->PerfError(csound, Str("code error, ihilo out of range"));
       }
     }
-    n    = csound->ksmps;
+    nsmps = csound->ksmps;
     in   = p->in;
     out  = p->out;
-    do {
-      xn[0] = *in++;
+    for (n=0; n<nsmps; n++) {
+      xn[0] = in[n];
       for (m=0;m<=nsec-1;m++) {
         yn[m] = (b0[m]*xn[m] + b1[m]*xnm1[m] + b2[m]*xnm2[m] -
                  a1[m]*ynm1[m] - a2[m]*ynm2[m])/a0[m];
@@ -398,10 +398,10 @@ static int clfilt(CSOUND *csound, CLFILT *p)
         xnm1[m] = xn[m];
         ynm2[m] = ynm1[m];
         ynm1[m] = yn[m];
-        xn[m+1]=yn[m];
+        xn[m+1] = yn[m];
       }
-      *out++ = yn[nsec-1];
-    } while (--n);
+      out[n] = yn[nsec-1];
+    }
     for (m=0;m<=nsec-1;m++) {
       p->xnm1[m] = xnm1[m]; p->xnm2[m] = xnm2[m];
       p->ynm1[m] = ynm1[m]; p->ynm2[m] = ynm2[m];

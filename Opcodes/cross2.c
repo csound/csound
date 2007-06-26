@@ -42,34 +42,6 @@ static long plog2(long x)
     }
 }
 
-/* void makepolar(MYFLT *x, long size) */
-/* { */
-/*     MYFLT    *i = x + 1, *j = x + size - 1; */
-/*     double   t; */
-/*     size = size/2 - 1; */
-
-/*     do { */
-/*       double jj = (double) *j; */
-/*       t =  (double) *i; */
-/*       *i++ = (MYFLT)sqrt(t * t + jj * jj); */
-/*       *j-- = (MYFLT)atan2(jj, t); */
-/*     } while (--size); */
-/* } */
-
-/* void makerect(MYFLT *x, long size) */
-/* { */
-/*     MYFLT    *i = x + 1, *j = x + size - 1; */
-/*     double   t; */
-/*     size = size/2 - 1; */
-
-/*     do { */
-/*       double jj = (double)*j; */
-/*       t = (double) *i; */
-/*       *i++ = t * (MYFLT)cos(jj); */
-/*       *j-- = t * (MYFLT)sin(jj); */
-/*     } while (--size); */
-/* } */
-
 static void getmag(MYFLT *x, long size)
 {
     MYFLT       *i = x + 1, *j = x + size - 1, max = FL(0.0);
@@ -91,49 +63,6 @@ static void getmag(MYFLT *x, long size)
       *x++ /= max;
     } while ( --n);
 }
-
-/* void scalemag(MYFLT *x, long size) */
-/* { */
-/*     MYFLT    *i = x, f = 0.; */
-/*     long     n = size; */
-
-/*     do       f += *i++; */
-/*     while ( --n); */
-
-/*     f = size/f; */
-/*     n = size; */
-/*     do       *x++ *= f; */
-/*     while ( --n); */
-/* } */
-
-/* void makelog(MYFLT *x, long size) */
-/* { */
-/*     size = size/2 + 1; */
-
-/*     do       { */
-/*       MYFLT y = *x; */
-/*       *x++ = 20.0 * (MYFLT) log10((double) CHOP(y)); */
-/*     } while ( --size); */
-/* } */
-
-/* void unlog(MYFLT *x, long size) */
-/* { */
-/*     size = size/2 + 1; */
-/*     do       *x++ =  (MYFLT) pow(10.0, (double) *x / 20.0); */
-/*     while ( --size); */
-/* } */
-
-/* void scalemod(MYFLT *y, long size) */
-/* { */
-/*     long i = size/2 + 1; */
-/*     MYFLT max = 0, *z = y-1; */
-
-/*     do       if (*++z > max) max = *z; */
-/*     while ( --i); */
-/*     i = size/2 + 1; */
-/*     do       *y++ /= max; */
-/*     while ( --i); */
-/* } */
 
 static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
 {
@@ -393,10 +322,10 @@ static int Xsynthset(CSOUND *csound, CON *p)
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
       csound->AuxAlloc(csound, bufsize, &p->mem);
+    else 
+      memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
 
     b = (MYFLT*)p->mem.auxp;
-    memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
-
     p->buffer_in1 = b;     b += 2 * flen;
     p->buffer_in2 = b;     b += 2 * flen;
     p->buffer_out = b;     b += 2 * flen;
@@ -439,7 +368,7 @@ static int Xsynth(CSOUND *csound, CON *p)
       *out++ = *(outbuf + n);
       n++; m++; if (m==div) m = 0;
 
-      if (m == 0)       {
+      if (m == 0) {
         long            i, mask, index;
         MYFLT           window;
         MYFLT           *x, *y, *win;
@@ -449,7 +378,7 @@ static int Xsynth(CSOUND *csound, CON *p)
         x = p->in1;
         y = p->in2;
 
-        for (i = 0 ; i < size ; i++)    {
+        for (i = 0 ; i < size ; i++) {
 
           window = *(win + (long)( i * rfn));
           index = (i + n) & mask;
@@ -458,12 +387,12 @@ static int Xsynth(CSOUND *csound, CON *p)
           y[i] = *(buf2 + index) * window;
         }
 
-        for (; i < 2 * size ; i++)      {
+        for (; i < 2 * size ; i++) {
           x[i] = FL(0.0);
           y[i] = FL(0.0);
         }
 
-        if (*p->bias != FL(0.0))        {
+        if (*p->bias != FL(0.0)) {
           int nsize = (int)(size+size);
 
           do_fht( x, nsize);

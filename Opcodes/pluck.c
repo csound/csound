@@ -241,7 +241,7 @@ static void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len
 {
     MYFLT *data = cb->data;
     if (!data)
-      error(csound, csound->LocalizeString("Buffer memory not allocated!"),
+      error(csound, Str("Buffer memory not allocated!"),
                     "<circularBuffer::circularBuffer>");
 
   /* Initialize pointers and variables */
@@ -252,36 +252,6 @@ static void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len
     cb->insertionPoint  = data;
     cb->extractionPoint = data;
 }
-
-#if 0
-/* ::write -- insert new value in the buffer, update insertion pointer */
-static void circularBufferWrite(circularBuffer* cb, MYFLT val)
-{
-    /* update the extraction point */
-    cb->extractionPoint = cb->insertionPoint;
-
-    /* place data at the insertion point */
-    *cb->insertionPoint-- = val;
-
-    /* update the insertion point */
-    if (cb->insertionPoint<cb->data)
-      cb->insertionPoint = cb->endPoint;
-}
-
-/* ::read -- extract the value at the extraction point */
-static MYFLT circularBufferRead(circularBuffer* cb)
-{
-    MYFLT val;
-    /* Read the value at the extraction point */
-    val = *cb->extractionPoint++;
-
-    /* Update the extraction point */
-    if (cb->extractionPoint>cb->endPoint)
-      cb->extractionPoint=cb->data;
-
-    return val;
-}
-#endif
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
 /* Guide rail is a circular buffer */
@@ -297,19 +267,6 @@ static MYFLT guideRailAccess(guideRail* gr, len_t pos)
       s -= gr->size;
     return *s;
 }
-
-/* unused */
-#if 0
-static void dumpRail(CSOUND *csound, guideRail* gr, len_t M)
-{
-    MYFLT *s = gr->pointer;
-    while (M-- >= 0) {
-      csound->Message(csound, "%.2f ", *s);
-      if (++s > gr->endPoint) s -= gr->size;
-    }
-    csound->Message(csound, "\n\n");
-}
-#endif
 
 /* ***** class filter3 -- JPff ****** */
 

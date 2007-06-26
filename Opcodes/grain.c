@@ -33,7 +33,7 @@
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return (x * a);
 }
 
@@ -111,11 +111,12 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xamp    = p->xamp;
     xlfr    = p->xlfr;
 
-    i       = bufsize;                /* Clear buffer */
+/*     i       = bufsize;                /\* Clear buffer *\/ */
     temp    = buf;
-    do {
-      *temp++ = FL(0.0);
-    } while (--i);
+    memset(buf, '\0', bufsize);
+/*     do { */
+/*       *temp++ = FL(0.0); */
+/*     } while (--i); */
 
     for (i = 0 ; i < csound->ksmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
