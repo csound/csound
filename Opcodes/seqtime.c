@@ -1,8 +1,27 @@
-#include "csdl.h"
+/*
+    seqtime.c:
 
-/* ********************************************************** */
-/* THIS FILE IS WITHOUT AUTHOR, COPYRIGHT OR LICENCE          */
-/* ********************************************************** */
+    Copyright (C) 2000 Gabriel Maldonado
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+#include "csdl.h"
 
 typedef struct {
     OPDS  h;
@@ -135,7 +154,7 @@ static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     long *ndx = &p->ndx;
     p->pfn = (long) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
-      return csound->InitError(csound, "seqtim: incorrect table number");
+      return csound->InitError(csound, Str("seqtim: incorrect table number"));
     }
     *ndx = (long) *p->kinitndx;
     p->done=0;
@@ -158,7 +177,7 @@ static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
       }
     }
     p->curr_unit_time = *p->unit_time;
-    p->first_flag=1;
+    p->first_flag = 1;
     return OK;
 }
 
@@ -177,7 +196,7 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
       if (p->pfn != (long)*p->kfn) {
         FUNC *ftp;
         if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) {
-          return csound->PerfError(csound, "seqtim: incorrect table number");
+          return csound->PerfError(csound, Str("seqtim: incorrect table number"));
         }
         p->pfn = (long)*p->kfn;
         p->table = ftp->ftable;
@@ -209,7 +228,7 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
           (*ndx)--;
           while (p->ndx < 0) {
             if (start == loop) {
-              p->done =1;
+              p->done = 1;
               return OK;
             }
             *ndx -= loop + start;
@@ -220,11 +239,11 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
       else {
         if(p->first_flag) {
           *p->ktrig = p->table[p->ndx];
-          p->first_flag=0;
+          p->first_flag = 0;
         }
         else {
         end:
-          *p->ktrig=FL(0.0);
+          *p->ktrig = FL(0.0);
         }
       }
     }

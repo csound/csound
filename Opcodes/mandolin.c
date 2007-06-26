@@ -52,16 +52,16 @@ static int infoTick(MANDOL *p)
 
     if (p->s_time >= (MYFLT)p->soundfile->flen) { /*  Check for end of sound */
       p->s_time = (MYFLT)(p->soundfile->flen-1L); /*  stick at end      */
-      allDone = 1;            /* Information for one-shot use  */
+      allDone = 1;                 /* Information for one-shot use  */
     }
     else if (p->s_time < FL(0.0))  /*  Check for end of sound       */
-      p->s_time = FL(0.0);       /*  stick at beg                 */
+      p->s_time = FL(0.0);         /*  stick at beg                 */
 
     temp_time = p->s_time;
 
-    temp = (long) temp_time;    /*  Integer part of time address */
+    temp = (long) temp_time;       /*  Integer part of time address */
     alpha = temp_time - (MYFLT) temp; /*  fractional part of time address */
-    p->s_lastOutput =           /* Do linear interpolation         */
+    p->s_lastOutput =              /* Do linear interpolation       */
       FL(0.05)*((MYFLT*)(p->soundfile->ftable))[temp];
     p->s_lastOutput = p->s_lastOutput + /*  same as alpha*data[temp+1]      */
         (alpha * FL(0.05)*(((MYFLT*)(p->soundfile->ftable))[temp+1] -
@@ -73,7 +73,7 @@ static int infoTick(MANDOL *p)
 /* Suggested values pluckAmp = 0.3; pluckPos = 0.4; detuning = 0.995; */
 int mandolinset(CSOUND *csound, MANDOL *p)
 {
-    FUNC        *ftp;
+    FUNC *ftp;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
@@ -111,8 +111,8 @@ int mandolinset(CSOUND *csound, MANDOL *p)
                            /* the tick method.                     */
                            /* Set Pick Position                    */
       DLineL_setDelay(&p->combDelay, FL(0.5) * *p->pluckPos * p->lastLength);
-                                /*   which puts zeroes at pos*length    */
-      p->dampTime = (long) p->lastLength;/* See tick method below         */
+                           /*   which puts zeroes at pos*length    */
+      p->dampTime = (long) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
         int relestim = (int)(csound->ekr * FL(0.1));
@@ -163,14 +163,14 @@ int mandolin(CSOUND *csound, MANDOL *p)
         lastOutput =
           DLineA_tick(&p->delayLine1, /* Calculate 1st delay */
                       OneZero_tick(&p->filter1, /*  filterered reflection */
-                                   temp + /*  plus pluck excitation      */
+                                   temp + /*  plus pluck excitation    */
                                    (p->delayLine1.lastOutput * FL(0.7))));
         lastOutput +=
-          DLineA_tick(&p->delayLine2, /* and 2nd delay just like the 1st   */
+          DLineA_tick(&p->delayLine2, /* and 2nd delay just like the 1st */
                       OneZero_tick(&p->filter2,
                                    temp
                                    + (p->delayLine2.lastOutput * FL(0.7))));
-                              /* that's the whole thing!!     */
+                              /* that's the whole thing!!        */
       }
       else {                  /*  No damping hack after 1 period */
         lastOutput =

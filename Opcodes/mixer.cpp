@@ -6,7 +6,8 @@
  * The busses are laid out:
  * busses[csound][bus][channel][frame].
  */
-static std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > busses;
+static std::map<CSOUND *, std::map<size_t,
+                                   std::vector< std::vector<MYFLT> > > > busses;
 
 /**
  * The mixer matrix is laid out:
@@ -44,17 +45,20 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
           {
             busses[csound][buss][channel].resize(frames);
           }
-        //warn(csound, "MixerSetLevel::init: initialized instance %d buss %d channels %d frames %d\n", csound, buss, channels, frames);
+        //warn(csound, "MixerSetLevel::init: initialized instance %d buss "
+        //"%d channels %d frames %d\n", csound, buss, channels, frames);
       }
     matrix[csound][send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss %d gain %f\n", csound, send, buss, gain);
+    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss "
+    //"%d gain %f\n", csound, send, buss, gain);
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
     //warn(csound, "MixerSetLevel::kontrol...\n");
     matrix[csound][send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss %d gain %f\n", csound, send, buss, gain);
+    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss "
+    //"%d gain %f\n", csound, send, buss, gain);
     return OK;
   }
 };
@@ -127,7 +131,9 @@ struct MixerSend : public OpcodeBase<MixerSend>
     channel = static_cast<size_t>(*ichannel);
     frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
-    //warn(csound, "MixerSend::init: instance %d send %d buss %d channel %d frames %d busspointer 0x%x\n", csound, send, buss, channel, frames, busspointer);
+    //warn(csound, "MixerSend::init: instance %d send %d buss "
+    //"%d channel %d frames %d busspointer 0x%x\n", 
+    //csound, send, buss, channel, frames, busspointer);
     return OK;
   }
   int audio(CSOUND *csound)
@@ -138,7 +144,8 @@ struct MixerSend : public OpcodeBase<MixerSend>
       {
         busspointer[i] += (ainput[i] * gain);
       }
-    //warn(csound, "MixerSend::audio: instance %d send %d buss %d gain %f busspointer 0x%x\n", csound, send, buss, gain, busspointer);
+    //warn(csound, "MixerSend::audio: instance %d send %d buss "
+    //"%d gain %f busspointer 0x%x\n", csound, send, buss, gain, busspointer);
     return OK;
   }
 };
@@ -169,7 +176,9 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     channel = static_cast<size_t>(*ichannel);
     frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
-    //warn(csound, "MixerReceive::init instance %d buss %d channel %d frames %d busspointer 0x%x\n", instance, buss, channel, frames, busspointer);
+    //warn(csound, "MixerReceive::init instance %d buss %d channel "
+    //"%d frames %d busspointer 0x%x\n", instance, buss, channel, 
+    //frames, busspointer);
     return OK;
   }
   int audio(CSOUND *csound)
@@ -179,7 +188,8 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
       {
         aoutput[i] = busspointer[i];
       }
-    //warn(csound, "MixerReceive::audio aoutput 0x%x busspointer 0x%x\n", aoutput, busspointer);
+    //warn(csound, "MixerReceive::audio aoutput 0x%x busspointer 0x%x\n", 
+    //aoutput, busspointer);
     return OK;
   }
 };
@@ -199,11 +209,17 @@ struct MixerClear : public OpcodeBase<MixerClear>
   int audio(CSOUND *csound)
   {
     //warn(csound, "MixerClear::audio...\n")
-    for(std::map<size_t, std::vector< std::vector<MYFLT> > >::iterator busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
+    for(std::map<size_t, 
+          std::vector< std::vector<MYFLT> > >::iterator
+          busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
       {
-        for(std::vector< std::vector<MYFLT> >::iterator channeli = busi->second.begin(); channeli != busi->second.end(); ++channeli)
+        for(std::vector< std::vector<MYFLT> >::iterator 
+              channeli = busi->second.begin(); 
+            channeli != busi->second.end(); ++channeli)
           {
-            for(std::vector<MYFLT>::iterator framei = (*channeli).begin(); framei != (*channeli).end(); ++framei)
+            for(std::vector<MYFLT>::iterator
+                  framei = (*channeli).begin(); 
+                framei != (*channeli).end(); ++framei)
               {
                 *framei = 0;
               }

@@ -29,11 +29,11 @@
 #include <math.h>
 
 #define f7bit           (FL(127.0))
-#define oneTOf7bit      (MYFLT)(1./127.)
+#define oneTOf7bit      (MYFLT)(1.0/127.0)
 #define f14bit          (FL(16383.0))
-#define oneTOf14bit     (MYFLT)(1/16383.)
+#define oneTOf14bit     (MYFLT)(1.0/16383.0)
 #define f21bit          (FL(2097151.0))
-#define oneTOf21bit     (MYFLT)(1/2097151.)
+#define oneTOf21bit     (MYFLT)(1.0/2097151.0)
 
 /* This set of macros is rather a cop-out! */
 #define SLIDERI_INIT(p, n)                                        \
