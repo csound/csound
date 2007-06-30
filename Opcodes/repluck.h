@@ -50,7 +50,8 @@ typedef struct  {
 typedef struct{
         OPDS h;
         MYFLT   *result, *ainput, *afr, *ifdbgain;
-        MYFLT   LPdelay, APdelay, *Cdelay;
+        double   LPdelay, APdelay;
+        MYFLT   *Cdelay;
         AUXCH   aux;
-        int     wpointer, rpointer, vdtime, size;
+        int     wpointer, rpointer, size;
 } STRES;
