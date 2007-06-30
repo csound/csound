@@ -250,32 +250,33 @@ static int streson(CSOUND *csound, STRES *p)
     MYFLT *out = p->result;
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
-    MYFLT freq, a, s, w, sample, tdelay, fracdelay;
+    MYFLT freq; 
+    double a, s, w, sample, tdelay, fracdelay;
     int delay, n, nsmps = csound->ksmps;
     int rp = p->rpointer, wp = p->wpointer;
     int size = p->size;
     MYFLT       APdelay = p->APdelay;
     MYFLT       LPdelay = p->LPdelay;
-    int         vdt = p->vdtime;
+    int         vdt;
 
     freq = *p->afr;
     if (freq < 20) freq = FL(20.0);   /* lowest freq is 20 Hz */
     tdelay = csound->esr/freq;
-    delay = (int) (tdelay - FL(0.5)); /* comb delay */
-    fracdelay = tdelay - (delay + FL(0.5)); /* fractional delay */
-    p->vdtime = size - delay;       /* set the var delay */
-    a = (1-fracdelay)/(1+fracdelay);   /* set the all-pass gain */
+    delay = (int) (tdelay - 0.5); /* comb delay */
+    fracdelay = tdelay - (delay + 0.5); /* fractional delay */
+    vdt = size - delay;       /* set the var delay */
+    a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
     for (n=0;n<nsmps;n++) {
       /* GetSample(p); */
       MYFLT tmpo;
-      tmpo = p->Cdelay[rp];
-      rp = (vdt + wp)%size;
+      rp = (vdt + wp);
+      if(rp >= size) rp -= size;
+      tmpo = p->Cdelay[rp];     
       w = in[n] + tmpo;
-      s = LPdelay*FL(0.5) + w*FL(0.5);
+      s = (LPdelay + w)*0.5;
       LPdelay = w;
       out[n] = sample = APdelay + s*a;
       APdelay = s - (sample*a);
-      /* PutSample(sample*g, p); */
       p->Cdelay[wp] = sample*g;
       wp++;
       if (wp == size) wp=0;
