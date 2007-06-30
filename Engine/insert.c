@@ -496,12 +496,13 @@ static void deact(CSOUND *csound, INSDS *ip)
       ip->subins_deact = NULL;
     }
     if (csound->oparms->odebug)
-      csound->Message(csound, "removed instance of instr %d\n", ip->insno);
+      csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
     /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
     if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
       nxtp->prvact = ip->prvact;
     ip->actflg = 0;
     /* link into free instance chain */
+    /* This also destroys ip->nxtact causing loops */
     ip->nxtact = csound->instrtxtp[ip->insno]->act_instance;
     csound->instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdchp != NULL)
@@ -511,20 +512,20 @@ static void deact(CSOUND *csound, INSDS *ip)
 /* Turn off a particular insalloc, also remove from list of active */
 /* MIDI notes. Allows for releasing if ip->xtratim > 0. */
 
-void xturnoff(CSOUND *csound, INSDS *ip) /* turnoff a particular insalloc */
+void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
 {                                         /* called by inexclus on ctrl 111 */
     MCHNBLK *chn;
 
     if (ip->relesing)
-      return;                           /* already releasing: nothing to do */
+      return;                             /* already releasing: nothing to do */
 
     chn = ip->m_chnbp;
-    if (chn != NULL) {                          /* if this was a MIDI note */
+    if (chn != NULL) {                    /* if this was a MIDI note */
       INSDS *prvip;
-      prvip = chn->kinsptr[ip->m_pitch];        /*    remov from activ lst */
+      prvip = chn->kinsptr[ip->m_pitch];  /*    remov from activ lst */
       if (ip->m_sust && chn->ksuscnt)
         chn->ksuscnt--;
-      ip->m_sust = 0;                   /* force turnoff even if sustaining */
+      ip->m_sust = 0;                     /* force turnoff even if sustaining */
       if (prvip != NULL) {
         if (prvip == ip)
           chn->kinsptr[ip->m_pitch] = ip->nxtolap;

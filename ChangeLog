@@ -1,3 +1,8 @@
+2007-06-30  jpff  <jpff@codemist.co.uk>
+
+	* OOps/goto_ops.c (turnoff2): ip->nxtact can be overwritten in
+	mode 0 so need to remember the value before calling deact
+
 2007-06-24  jpff  <jpff@codemist.co.uk>
 
 	* OOps/ugens2.c (koscl3): The amplitude was being ignored.
