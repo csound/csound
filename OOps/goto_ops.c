@@ -169,7 +169,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 int turnoff2(CSOUND *csound, TURNOFF2 *p)
 {
     MYFLT p1;
-    INSDS *ip, *ip2;
+    INSDS *ip, *ip2, *nip;
     int   mode, insno, allow_release;
 
     if (*(p->kInsNo) <= FL(0.0))
@@ -190,28 +190,35 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p)
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
     if (ip == NULL)
       return OK;
-    do {
+    do {                        /* This loop does not terminate in mode=0 */
+      nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||
           ((mode & 4) && ip->p1 != p1) ||
           (allow_release && ip->relesing))
         continue;
       if (!(mode & 3)) {
-        if (allow_release)
+        if (allow_release) {
           xturnoff(csound, ip);
-        else
+        }
+        else {
+          nip = ip->nxtact;
           xturnoff_now(csound, ip);
+        }
       }
       else {
         ip2 = ip;
         if ((mode & 3) == 1)
           break;
       }
-    } while ((ip = ip->nxtact) != NULL && (int) ip->insno == insno);
+      ip = nip;
+    } while (ip != NULL && (int) ip->insno == insno);
     if (ip2 != NULL) {
-      if (allow_release)
+      if (allow_release) {
         xturnoff(csound, ip2);
-      else
+      }
+      else {
         xturnoff_now(csound, ip2);
+      }
     }
     if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
       while (csound->pds->nxtp != NULL)
