@@ -31,7 +31,7 @@ namespace csound
 {
   StrangeAttractor::StrangeAttractor () : scoreType(1)
   {
-    random.createDistribution("uniform_real");
+    randomNode.createDistribution("uniform_real");
     initialize ();
     reset ();
   }
@@ -92,7 +92,7 @@ namespace csound
 
   void StrangeAttractor::codeRandomize ()
   {
-    O = 2 + (int) (std::floor (double(OMAX - 1)) * random.sample());
+    O = 2 + (int) (std::floor (double(OMAX - 1)) * randomNode.sample());
     code.clear();
     code.push_back(59 + 4 * D + O + 8 * ODE);
     if (ODE > 1)
@@ -103,13 +103,9 @@ namespace csound
     getDimensionAndOrder ();
     for (I = 1; I <= M; I++)
       {
-        code[I] = (65 + ((int) std::floor (25 * random.sample())));
+        code[I] = (65 + ((int) std::floor (25 * randomNode.sample())));
       }
-    static std::string copybuffer;
-    copybuffer = code;
-    Fl::copy(copybuffer.c_str(), copybuffer.length(), 1);
-    System::debug(code.c_str());
-    //code.push_back(0);
+    System::debug("Code: %s\n", code.c_str());
   }
 
   void StrangeAttractor::reset ()
@@ -444,7 +440,7 @@ namespace csound
              D2MAX = D2MAX + std::pow (ZMAX - ZMIN, 2);
              D2MAX = D2MAX + std::pow (WMAX - WMIN, 2);
            }
-         J = (P + 1 + ((int) (std::floor (480 * random.sample())))) % 500;
+         J = (P + 1 + ((int) (std::floor (480 * randomNode.sample())))) % 500;
          DX = XNEW - XS[J];
          DY = YNEW - YS[J];
          DZ = ZNEW - ZS[J];
@@ -533,7 +529,7 @@ namespace csound
         duration = 0.25;
         octave = X;
         decibels = 70.0;
-        x = random.sample() * 2.0 - 1.0;
+        x = randomNode.sample() * 2.0 - 1.0;
         break;
       case 2:switch (scoreType)
         {
@@ -543,7 +539,7 @@ namespace csound
           duration = 0.25;
           octave = Y;
           decibels = 70.0;
-          x = random.sample() * 2.0 - 1.0;
+          x = randomNode.sample() * 2.0 - 1.0;
           break;
         case 0:
           instrument = 1.0;
@@ -551,7 +547,7 @@ namespace csound
           duration = 0.25;
           octave = Y;
           decibels = 70.0;
-          x = random.sample() * 2.0 - 1.0;
+          x = randomNode.sample() * 2.0 - 1.0;
           break;
         }
         break;
@@ -564,7 +560,7 @@ namespace csound
             duration = 0.25;
             octave = Y;
             decibels = Z;
-            x = random.sample() * 2.0 - 1.0;
+            x = randomNode.sample() * 2.0 - 1.0;
             break;
           case 0:
             instrument = Z;
@@ -572,7 +568,7 @@ namespace csound
             duration = 0.25;
             octave = Y;
             decibels = 70.0;
-            x = random.sample() * 2.0 - 1.0;
+            x = randomNode.sample() * 2.0 - 1.0;
             break;
           }
         break;
@@ -585,7 +581,7 @@ namespace csound
             duration = W;
             octave = Y;
             decibels = ((double) Z);
-            x = random.sample() * 2.0 - 1.0;
+            x = randomNode.sample() * 2.0 - 1.0;
             break;
           case 0:
             instrument = Z;
@@ -593,7 +589,7 @@ namespace csound
             duration = 0.25;
             octave = Y;
             decibels = W;
-            x = random.sample() * 2.0 - 1.0;
+            x = randomNode.sample() * 2.0 - 1.0;
             break;
           }
         break;
@@ -607,12 +603,12 @@ namespace csound
       {
         for (J = 0; J <= 99; J++)
           {
-            V[J] = random.sample();
+            V[J] = randomNode.sample();
           }
       }
     J = (int) std::floor (100 * RAN);
     RAN = V[J];
-    V[J] = random.sample();
+    V[J] = randomNode.sample();
   }
 
   int StrangeAttractor::getAttractorType () const
