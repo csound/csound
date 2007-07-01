@@ -168,7 +168,7 @@ namespace csound
     std::vector<double> ZS;
     double ZSAVE;
   public:
-    Random random;
+    Random randomNode;
     StrangeAttractor(void);
     virtual ~StrangeAttractor(void);
     virtual void setCode(std::string code);
