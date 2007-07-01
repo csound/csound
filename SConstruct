@@ -1307,6 +1307,8 @@ else:
     jackEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'linux':
         jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+    elif getPlatform() == 'win32':
+        jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
     else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
