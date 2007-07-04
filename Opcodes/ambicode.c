@@ -260,36 +260,35 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
     }
 
     /* 2nd order */
-    p->r[index] = FL(0.5) * (FL(3.0) * p->z[index] * p->z[index] - FL(1.0));
-    p->s[index] = FL(2.0) * p->x[index] * p->z[index];
-    p->t[index] = FL(2.0) * p->y[index] * p->z[index];
+    p->r[index] = 0.5 * (3.0 * p->z[index] * p->z[index] - 1.0);
+    p->s[index] = 2.0 * p->x[index] * p->z[index];
+    p->t[index] = 2.0 * p->y[index] * p->z[index];
     p->u[index] = p->x[index] * p->x[index] - p->y[index] * p->y[index];
-    p->v[index] = FL(2.0) * p->x[index] * p->y[index];
+    p->v[index] = 2.0 * p->x[index] * p->y[index];
 
     /* 3rd order */
-    p->k[index] = FL(0.5) * p->z[index] *
-      (FL(5.0) * p->z[index] * p->z[index] - FL(3.0));
-    p->l[index] = FL(8.0) / FL(11.0) * p->y[index] *
-      (FL(5.0) * p->z[index] * p->z[index] - FL(1.0));
-    p->m[index] = FL(8.0) / FL(11.0) * p->x[index] *
-      (FL(5.0) * p->z[index] * p->z[index] - FL(1.0));
-    p->n[index] = FL(2.0) * p->x[index] * p->y[index] * p->z[index];
+    p->k[index] = 0.5 * p->z[index] * (5.0 * p->z[index] * p->z[index] - 3.0);
+    p->l[index] = (8.0/11.0) * p->y[index] * (5.0*p->z[index]* p->z[index] - 1.0);
+    p->m[index] = (8.0/11.0) * p->x[index] * (5.0*p->z[index]* p->z[index] - 1.0);
+    p->n[index] = 2.0 * p->x[index] * p->y[index] * p->z[index];
     p->o[index] = p->z[index] *
       (p->x[index] * p->x[index] - p->y[index] * p->y[index]);
-    p->p[index] = FL(3.0) * p->y[index] *
-      (FL(3.0) * p->x[index] * p->x[index] - p->y[index] * p->y[index]);
-    p->q[index] = FL(3.0) * p->x[index] *
-      (p->x[index] * p->x[index] - FL(3.0) * p->y[index] * p->y[index]);
+    p->p[index] = 3.0 * p->y[index] *
+      (3.0 * p->x[index] * p->x[index] - p->y[index] * p->y[index]);
+    p->q[index] = 3.0 * p->x[index] *
+      (p->x[index] * p->x[index] - 3.0 * p->y[index] * p->y[index]);
 }
 
 static int iambideco(CSOUND *csound, AMBID *p)
 {
+    int setup = (int)*p->isetup;
+    if (setup<0) setup = -setup;
     /* check correct number of input arguments */
     if ((p->INOCOUNT != 5) && (p->INOCOUNT != 10) && (p->INOCOUNT != 17)) {
       return csound->InitError(csound, Str("Wrong number of input arguments!"));
     }
 
-    switch ((int)*p->isetup) {
+    switch (setup) {
       case 1:
         {
           if (p->OUTOCOUNT != 2) {
@@ -297,9 +296,40 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                      Str("Wrong number of output cells! "
                                          "There must be 2 output cells."));
           }
-          else {
+          else if (*p->isetup>0) {
             ambideco_set_coefficients(p, 330.0, 0.0, 0);    /* left */
             ambideco_set_coefficients(p, 30.0, 0.0, 1);     /* right */
+          }
+          else {
+            int i;
+            static double w[] = {0.707106781186547524400844362104849,
+                                 0.707106781186547524400844362104849};
+/*             static double x[] = {0.0, 0.0}; */
+            static double y[] = {0.5000,-0.5000};
+/*             static double z[] = {0.0, 0.0}; */
+/*             static double r[] = {0.0, 0.0}; */
+/*             static double s[] = {0.0, 0.0}; */
+/*             static double t[] = {0.0, 0.0}; */
+/*             static double u[] = {0.0, 0.0}; */
+/*             static double v[] = {0.0, 0.0}; */
+            for (i=0; i<2; i++) {
+              p->w[i] = w[i];
+              p->x[i] = 0.0;
+              p->y[i] = y[i];
+              p->z[i] = 0.0;
+              p->r[i] = 0.0;
+              p->s[i] = 0.0;
+              p->t[i] = 0.0;
+              p->u[i] = 0.0;
+              p->v[i] = 0.0;
+              p->k[i] = 0.0;
+              p->l[i] = 0.0;
+              p->m[i] = 0.0;
+              p->n[i] = 0.0;
+              p->o[i] = 0.0;
+              p->p[i] = 0.0;
+              p->q[i] = 0.0;
+            } 
           }
           break;
         }
@@ -311,11 +341,41 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                      Str("Wrong number of output cells! "
                                          "There must be 4 output cells."));
           }
-          else {
+          else if (*p->isetup>0) {
             ambideco_set_coefficients(p, 45.0, 0.0, 0);
             ambideco_set_coefficients(p, 135.0, 0.0, 1);
             ambideco_set_coefficients(p, 225.0, 0.0, 2);
             ambideco_set_coefficients(p, 315.0, 0.0, 3);
+          }
+          else {
+            int i;
+            static double w[] = {0.3536, 0.3536, 0.3536, 0.3536};
+            static double x[] = {0.2434,  0.2434, -0.2434, -0.2434};
+            static double y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
+/*             static double z[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static double r[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static double s[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static double t[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static double u[] = {0.0, 0.0, 0.0, 0.0}; */
+            static double v[] = {0.0964, -0.0964, 0.0964, -0.0964};
+            for (i=0; i<4; i++) {
+              p->w[i] = w[i];
+              p->x[i] = x[i];
+              p->y[i] = y[i];
+              p->z[i] = 0.0;
+              p->r[i] = 0.0;
+              p->s[i] = 0.0;
+              p->t[i] = 0.0;
+              p->u[i] = 0.0;
+              p->v[i] = v[i];
+              p->k[i] = 0.0;
+              p->l[i] = 0.0;
+              p->m[i] = 0.0;
+              p->n[i] = 0.0;
+              p->o[i] = 0.0;
+              p->p[i] = 0.0;
+              p->q[i] = 0.0;
+            } 
           }
           break;
         }
@@ -326,12 +386,42 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                    Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
         }
-        else {
+        else if (*p->isetup>0) {
           ambideco_set_coefficients(p, 330.0, 0.0, 0);  /* left */
           ambideco_set_coefficients(p, 30.0, 0.0, 1);   /* right */
           ambideco_set_coefficients(p, 0.0, 0.0, 2);    /* center */
           ambideco_set_coefficients(p, 250.0, 0.0, 3);  /* surround L */
           ambideco_set_coefficients(p, 110.0, 0.0, 4);  /* surround R */
+        }
+        else {
+          int i;
+          static double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
+          static double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
+          static double y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
+/*           static double z[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static double r[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static double s[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static double t[] = {0.0, 0.0, 0.0, 0.0}; */
+          static double u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
+          static double v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
+          for (i=0; i<5; i++) {
+            p->w[i] = w[i];
+            p->x[i] = x[i];
+            p->y[i] = y[i];
+            p->z[i] = 0.0;
+            p->r[i] = 0.0;
+            p->s[i] = 0.0;
+            p->t[i] = 0.0;
+            p->u[i] = u[i];
+            p->v[i] = v[i];
+            p->k[i] = 0.0;
+            p->l[i] = 0.0;
+            p->m[i] = 0.0;
+            p->n[i] = 0.0;
+            p->o[i] = 0.0;
+            p->p[i] = 0.0;
+            p->q[i] = 0.0;
+          } 
         }
         break;
       }
@@ -343,7 +433,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
-          else {
+          else if (*p->isetup>0) {
             ambideco_set_coefficients(p,  22.5, 0.0, 0);
             ambideco_set_coefficients(p,  67.5, 0.0, 1);
             ambideco_set_coefficients(p, 112.5, 0.0, 2);
@@ -352,6 +442,36 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 247.5, 0.0, 5);
             ambideco_set_coefficients(p, 292.5, 0.0, 6);
             ambideco_set_coefficients(p, 337.5, 0.0, 7);
+          }
+          else {
+            int i;
+            static double w[] = {0.1768, 0.1768, 0.1768, 0.1768, 0.1768, 0.1768, 0.1768, 0.1768};
+            static double x[] = {0.1591, 0.0659,-0.0659,-0.1591,-0.1591,-0.0659, 0.0659, 0.1591};
+            static double y[] = {0.0659, 0.1591, 0.1591, 0.0659,-0.0659,-0.1591,-0.1591,-0.0659};
+/*             static double z[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static double s[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static double t[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static double u[] = {0.0342,-0.0342,-0.0342, 0.0342, 0.0342,-0.0342,-0.0342, 0.0342};
+            static double v[] = {0.0342, 0.0342,-0.0342,-0.0342, 0.0342, 0.0342,-0.0342,-0.0342};
+            for (i=0; i<8; i++) {
+              p->w[i] = w[i];
+              p->x[i] = x[i];
+              p->y[i] = y[i];
+              p->z[i] = 0.0;
+              p->r[i] = 0.0;
+              p->s[i] = 0.0;
+              p->t[i] = 0.0;
+              p->u[i] = u[i];
+              p->v[i] = v[i];
+              p->k[i] = 0.0;
+              p->l[i] = 0.0;
+              p->m[i] = 0.0;
+              p->n[i] = 0.0;
+              p->o[i] = 0.0;
+              p->p[i] = 0.0;
+              p->q[i] = 0.0;
+            } 
           }
           break;
         }
@@ -363,7 +483,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
-          else {
+          else if (*p->isetup>0) {
             ambideco_set_coefficients(p,  45.0,  0.0, 0);
             ambideco_set_coefficients(p,  45.0, 30.0, 1);
             ambideco_set_coefficients(p, 135.0,  0.0, 2);
@@ -373,7 +493,37 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 315.0,  0.0, 6);
             ambideco_set_coefficients(p, 315.0, 30.0, 7);
           }
-          break;
+          else {
+            int i;
+            static double w[] = {0.1768,0.1768,0.1768,0.1768,0.1768,0.1768,0.1768,0.1768};
+            static double x[] = {0.1140, 0.1140,-0.1140,-0.1140, 0.1140, 0.1140,-0.1140,-0.1140};
+            static double y[] = {0.1140,-0.1140,-0.1140, 0.1140, 0.1140,-0.1140,-0.1140, 0.1140};
+            static double z[] = {-0.1140,-0.1140,-0.1140,-0.1140, 0.1140, 0.1140, 0.1140, 0.1140};
+/*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static double s[] = {-0.0369,-0.0369, 0.0369, 0.0369, 0.0369, 0.0369,-0.0369,-0.0369};
+            static double t[] = {-0.0369, 0.0369, 0.0369,-0.0369, 0.0369,-0.0369,-0.0369, 0.0369};
+/*             static double u[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static double v[] = { 0.0369,-0.0369, 0.0369,-0.0369, 0.0369,-0.0369, 0.0369,-0.0369};
+            for (i=0; i<8; i++) {
+              p->w[i] = w[i];
+              p->x[i] = x[i];
+              p->y[i] = y[i];
+              p->z[i] = z[i];
+              p->r[i] = 0.0;
+              p->s[i] = s[i];
+              p->t[i] = t[i];
+              p->u[i] = 0.0;
+              p->v[i] = v[i];
+              p->k[i] = 0.0;
+              p->l[i] = 0.0;
+              p->m[i] = 0.0;
+              p->n[i] = 0.0;
+              p->o[i] = 0.0;
+              p->p[i] = 0.0;
+              p->q[i] = 0.0;
+            } 
+          }
+         break;
         }
 
       default:
