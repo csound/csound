@@ -49,8 +49,9 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
     cotfpi2 = cotfpi*cotfpi;
     p->ilohi = (int)*p->lohi;
     if ((p->ilohi < 0) || (p->ilohi > 1)) {
-      return csound->InitError(csound, Str(
-                           "filter type not lowpass or highpass in clfilt"));
+      return csound->InitError(csound,
+                               Str("filter type not lowpass or "
+                                   "highpass in clfilt"));
     }
     p->ikind = (int)*p->kind;
     if ((p->ikind < 0) || (p->ikind > 3)) {

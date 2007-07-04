@@ -214,7 +214,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             break;
           }
         default:
-          csound->Message(csound, "Unknown OSC type %c\n", type[1]);
+          csound->Message(csound, Str("Unknown OSC type %c\n"), type[1]);
         }
       }
       lo_send_message(p->addr, (char*)p->dest, msg);
@@ -610,11 +610,11 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
                         csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp == NULL)
-      return csound->InitError(csound, "OSC not running");
+      return csound->InitError(csound, Str("OSC not running"));
     /* find port */
     n = (int) *(p->ihandle);
     if (n < 0 || n >= pp->nPorts)
-      return csound->InitError(csound, "invalid handle");
+      return csound->InitError(csound, Str("invalid handle"));
     p->port = &(pp->ports[n]);
     p->saved_path = (char*) csound->Malloc(csound, strlen((char*) p->dest) + 1);
     strcpy(p->saved_path, (char*) p->dest);

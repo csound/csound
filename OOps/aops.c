@@ -1509,8 +1509,8 @@ int invalset(CSOUND *csound, INVAL *p)
          -- pretty unlikely given that the parser thinks
          "$string" is a macro -- but just in case: */
       if (*s == '$')
-        return csound->PerfError(csound, "k-rate invalue ChannelName "
-                                         "cannot start with $");
+        return csound->PerfError(csound, Str("k-rate invalue ChannelName "
+                                             "cannot start with $"));
       /* allocate the space used to pass a string during the k-pass */
       csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
       sprintf((char*) p->channelName.auxp, "%s", s);
