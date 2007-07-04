@@ -79,7 +79,7 @@ static int bar_init(CSOUND *csound, BAR *p)
     }
     else {
       if (p->w_aux.auxp == NULL)
-        return csound->InitError(csound, "No data to continue");
+        return csound->InitError(csound, Str("No data to continue"));
     }
     p->first = 0;
 
@@ -105,7 +105,8 @@ static int bar_run(CSOUND *csound, BAR *p)
 
     if ((bcL|bcR)&(~3) && (bcL|bcR)!=0)
       return csound->PerfError(csound,
-                               "Ends but be clamped(1), pivoting(2) or free(3)");
+                               Str("Ends but be clamped(1), "
+                                   "pivoting(2) or free(3)"));
 
     for (n = 0; n < csound->ksmps; n++) {
       /* Fix ends */
