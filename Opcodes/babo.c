@@ -335,7 +335,7 @@ static inline void BaboTapline_preload_parameter(CSOUND *csound,
      *          direct_att=1     when distance is 0 m.
      */
     this->delay_size    = (distance / sound_speed) * csound->esr;
-    this->attenuation   = 1 / (1 + distance);
+    this->attenuation   = FL(1.0) / (FL(1.0) + distance);
 }
 
 /* k-rate function */
@@ -405,8 +405,8 @@ BaboLowPass_create(BaboLowPass *this, MYFLT decay, MYFLT hidecay, MYFLT norm)
     MYFLT real_decay    = (MYFLT)exp(norm * log(decay));
     MYFLT real_hidecay  = (MYFLT)exp(norm * log(hidecay));
 
-    this->a0 = (real_decay + real_hidecay) / 4;
-    this->a1 = (real_decay - real_hidecay) / 2;
+    this->a0 = (real_decay + real_hidecay) * FL(0.25);
+    this->a1 = (real_decay - real_hidecay) * FL(0.5);
     this->z1 = this->z2 = FL(0.0);
 
     return this;
@@ -603,7 +603,7 @@ BaboMatrix_create(CSOUND *csound,
     MYFLT delays[BABO_NODES];
     MYFLT min_delay = BaboMatrix_calculate_delays(delays, x, y, z);
 
-    this->complementary_early_diffusion = 1 - early_diffusion;
+    this->complementary_early_diffusion = FL(1.0) - early_diffusion;
 
     BaboMatrix_create_FDN(this, diffusion);
 
@@ -691,7 +691,7 @@ set_defaults(CSOUND *csound, BABO *p)
      * with half the distance in the program (i.e. the distance
      * from a center point)
      */
-    p->inter_receiver_distance /= 2;
+    p->inter_receiver_distance *= FL(0.5);
 
 }
 
