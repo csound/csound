@@ -91,6 +91,11 @@ enum PVS_ANALFORMAT {
 
 typedef struct pvsdat {
         long            N;
+#ifdef BETA
+        long            NB;
+        AUXCH           trig;
+        double          *cosine, *sine;
+#endif
         long            overlap;
         long            winsize;
         int             wintype;
