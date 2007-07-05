@@ -395,6 +395,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
         }
         else {
           int i;
+          /* Furze controlled opposites */
           static double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
           static double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
           static double y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
@@ -404,6 +405,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 /*           static double t[] = {0.0, 0.0, 0.0, 0.0}; */
           static double u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
           static double v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
+
           for (i=0; i<5; i++) {
             p->w[i] = w[i];
             p->x[i] = x[i];
@@ -525,6 +527,46 @@ static int iambideco(CSOUND *csound, AMBID *p)
           }
          break;
         }
+      case 6: {
+        if (p->OUTOCOUNT != 5) {
+          return csound->InitError(csound,
+                                   Str("Wrong number of output cells! "
+                                       "There must be 5 output cells."));
+        }
+                /*  These are Wiggins' cpefficients */
+/*  L  	 30°  	{0.4724,  0.7143,  0.7258,  0.0000,  0.3456}
+    R 	-30° 	{0.4724,  0.7143, -0.7258,  0.0000, -0.3456}
+    C 	0° 	{0.3226,  0.7719,  0.0000,  0.0000,  0.4724}
+   LS 	110° 	{0.9101, -0.7834,  0.9562, -0.0806,  0.0000}
+   RS 	-110° 	{0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
+        {
+          int i;
+          static double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
+          static double x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
+          static double y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
+          static double u[] = {0.0000,0.0000,0.0000,-0.0806,-0.0806};
+          static double v[] = {0.3456,-0.3456,0.4724,0.0000,0.0000};
+          for (i=0; i<5; i++) {
+            p->w[i] = w[i];
+            p->x[i] = x[i];
+            p->y[i] = y[i];
+            p->z[i] = 0.0;
+            p->r[i] = 0.0;
+            p->s[i] = 0.0;
+            p->t[i] = 0.0;
+            p->u[i] = u[i];
+            p->v[i] = v[i];
+            p->k[i] = 0.0;
+            p->l[i] = 0.0;
+            p->m[i] = 0.0;
+            p->n[i] = 0.0;
+            p->o[i] = 0.0;
+            p->p[i] = 0.0;
+            p->q[i] = 0.0;
+          } 
+        }
+        break;
+      }
 
       default:
           return csound->InitError(csound, "Not supported setup number!");
