@@ -1761,6 +1761,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           case 'O':             /* Will this work?  Doubtful code.... */
           case 'o': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "0");
             break;
+          case 'P':
           case 'p': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "1");
             break;
           case 'q': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "10");
@@ -1895,6 +1896,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             switch (c[i]) {
             case 'a': xtypes[i] = c[i]; break;
             case 'k':
+            case 'P':
             case 'K': xtypes[i] = 'k'; break;
             case 'S': xtypes[i] = 'S'; break;
             default:  xtypes[i] = 'i';
@@ -1961,6 +1963,7 @@ static void intyperr(CSOUND *csound, int n, char tfound, char expect)
     case 'a':
     case 'k':
     case 'i':
+    case 'P':
     case 'p': t[0] = tfound;
               t[1] = '\0';
               break;

@@ -312,76 +312,77 @@ void handle_optional_args(CSOUND *csound, TREE *l) {
     TREE * temp;
 
     csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
-        ep->opname, incnt, nreqd);
-
+                    ep->opname, incnt, nreqd);
+    
     if (incnt < nreqd) {         /*  or set defaults: */
-         do {
-              switch (ep->intypes[incnt]) {
-                  case 'O':             /* Will this work?  Doubtful code.... */
-                  case 'o':
-                      temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
-                      appendToTree(csound, l->right, temp);
-                      break;
-                  case 'p':
-                      temp = make_leaf(csound, T_INTGR, make_int(csound, "1"));
-                      appendToTree(csound, l->right, temp);
-                      break;
-                  case 'q':
-                      temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
-                      appendToTree(csound, l->right, temp);
-                  break;
-
-                case 'V':
-                  case 'v':
-                      temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
-                      appendToTree(csound, l->right, temp);
-                      break;
-                case 'h':
-                      temp = make_leaf(csound, T_INTGR, make_int(csound, "127"));
-                      appendToTree(csound, l->right, temp);
-                      break;
-                case 'j':
-                      temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
-                      appendToTree(csound, l->right, temp);
-                      break;
-                  case 'M':
-                  case 'N':
-                  case 'm':
-                      nreqd--;
-                    break;
-                  default:
-                      synterr(csound, Str("insufficient required arguments"));
-              }
-              incnt++;
-        } while (incnt < nreqd);
+      do {
+        switch (ep->intypes[incnt]) {
+        case 'O':             /* Will this work?  Doubtful code.... */
+        case 'o':
+          temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
+          appendToTree(csound, l->right, temp);
+          break;
+        case 'P':
+        case 'p':
+          temp = make_leaf(csound, T_INTGR, make_int(csound, "1"));
+          appendToTree(csound, l->right, temp);
+          break;
+        case 'q':
+          temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
+          appendToTree(csound, l->right, temp);
+          break;
+          
+        case 'V':
+        case 'v':
+          temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
+          appendToTree(csound, l->right, temp);
+          break;
+        case 'h':
+          temp = make_leaf(csound, T_INTGR, make_int(csound, "127"));
+          appendToTree(csound, l->right, temp);
+          break;
+        case 'j':
+          temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
+          appendToTree(csound, l->right, temp);
+          break;
+        case 'M':
+        case 'N':
+        case 'm':
+          nreqd--;
+          break;
+        default:
+          synterr(csound, Str("insufficient required arguments"));
+        }
+        incnt++;
+      } while (incnt < nreqd);
     }
 }
 
 char tree_argtyp(CSOUND *csound, TREE *tree) {
     if(tree->type == T_INTGR || tree->type == T_NUMBER) {
-        return 'i';
+      return 'i';
     }
 
     return argtyp2(csound, tree->value->lexeme);
 }
 
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
-
-    if(tree->type == S_ASSIGN) {
-        tree->value->lexeme = get_assignment_type(csound,
-            tree->left->value->lexeme, tree->right->value->lexeme);
-        return;
+    if (tree->type == S_ASSIGN) {
+      tree->value->lexeme = get_assignment_type(csound,
+                                                tree->left->value->lexeme,
+                                                tree->right->value->lexeme);
+      return;
     }
-
-    int opnum = find_opcode(csound, tree->value->lexeme);
-    OENTRY *ep = csound->opcodlst + opnum;
+    else {
+      int opnum = find_opcode(csound, tree->value->lexeme);
+      OENTRY *ep = csound->opcodlst + opnum;
 
 /*     int incnt = tree_arg_list_count(tree->right); */
 
-    char * str = (char *)mcalloc(csound, strlen(ep->opname) + 4);
-    char c, d;
+      char * str = (char *)mcalloc(csound, strlen(ep->opname) + 4);
+      char c, d;
 
-    if (ep->dsblksiz >= 0xfffb) {
+      if (ep->dsblksiz >= 0xfffb) {
 
         c = tree_argtyp(csound, tree->right);
 
@@ -399,60 +400,62 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           csound->Message(csound, "New Value: %s\n", str);
 
           /*if (find_opcode(csound, str) == 0) {*/
-            /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
-                    str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
-            /*ST(nxtest) = 100; */                       /* step way over this line */
-            /*goto tstnxt;*/                            /* & go to next            */
-            /*break;*/
+          /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
+             str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
+          /*ST(nxtest) = 100; */                       /* step way over this line */
+          /*goto tstnxt;*/                            /* & go to next            */
+          /*break;*/
           /*}*/
           tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme, strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
           csound->DebugMsg(csound, Str("modified opcod: %s"), str);
-        break;
-      case 0xfffe:                              /* Two tags for OSCIL's    */
-        csound->Message(csound, "POLYMORPHIC 0xfffe\n");
-        if (c != 'a') c = 'k';
-        if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
-        sprintf(str, "%s.%c%c", ep->opname, c, d);
-        csound->Message(csound, "New Value: %s\n", str);
-        tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme, strlen(str) + 1);
-        strcpy(tree->value->lexeme, str);
-        break;
-      case 0xfffd:                              /* For peak, etc.          */
-        /*if (c != 'a') c = 'k';
-        sprintf(str, "%s.%c", ST(linopcod), c);*/
-        break;
-      case 0xfffc:                              /* For divz types          */
-        /*d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
-        if ((c=='i' || c=='c') && (d=='i' || d=='c'))
-          c = 'i', d = 'i';
-        else {
+          break;
+        case 0xfffe:                              /* Two tags for OSCIL's    */
+          csound->Message(csound, "POLYMORPHIC 0xfffe\n");
           if (c != 'a') c = 'k';
-          if (d != 'a') d = 'k';
+          if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
+          sprintf(str, "%s.%c%c", ep->opname, c, d);
+          csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
+          break;
+        case 0xfffd:                              /* For peak, etc.          */
+          /*if (c != 'a') c = 'k';
+            sprintf(str, "%s.%c", ST(linopcod), c);*/
+          break;
+        case 0xfffc:                              /* For divz types          */
+          /*d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
+            if ((c=='i' || c=='c') && (d=='i' || d=='c'))
+            c = 'i', d = 'i';
+            else {
+            if (c != 'a') c = 'k';
+            if (d != 'a') d = 'k';
+            }
+            sprintf(str, "%s.%c%c", ST(linopcod), c, d);*/
+          break;
+        case 0xfffb:          /* determine opcode by type of first input arg */
+          /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
+          /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
+            c = 'i';
+            sprintf(str, "%s.%c", ST(linopcod), c);*/
+          break;
+        default:
+          break;
+          /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
         }
-        sprintf(str, "%s.%c%c", ST(linopcod), c, d);*/
-        break;
-      case 0xfffb:          /* determine opcode by type of first input arg */
-            /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
-        /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
-          c = 'i';
-        sprintf(str, "%s.%c", ST(linopcod), c);*/
-        break;
-      default:
-        break;
-        /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
-      }
-
-      /*if (!(isopcod(csound, str))) {*/
-                        /* if opcode is not found: report syntax error     */
+        
+        /*if (!(isopcod(csound, str))) {*/
+        /* if opcode is not found: report syntax error     */
         /*synterr(csound, Str("failed to find %s, input arg illegal type"), str);*/
         /*ST(nxtest) = 100;*/                       /* step way over this line */
         /*goto tstnxt;*/                            /* & go to next            */
-      /*}
-      ST(linopnum) = ST(opnum);
-      ST(linopcod) = ST(opcod);
-      csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));*/
+        /*}
+          ST(linopnum) = ST(opnum);
+          ST(linopcod) = ST(opcod);
+          csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));*/
+      }
+      
+      /* free(str); */
     }
-
-    /* free(str); */
 }
