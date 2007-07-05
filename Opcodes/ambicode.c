@@ -29,7 +29,7 @@ typedef struct {
     OPDS    h;                                      /* required header */
     MYFLT   *mw, *mx, *my, *mz, *mr, *ms, *mt, *mu, *mv, *mk,
             *ml, *mm, *mn, *mo, *mp, *mq;           /* addr outarg */
-    MYFLT   *asig, *kalpha, *kin[VARGMAX];          /* addr inargs */
+  MYFLT   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
     /* private dataspace */
     double  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
 } AMBIC;
@@ -48,38 +48,38 @@ static int iambicode(CSOUND *csound, AMBIC *p)
     /* check correct number of input and output arguments */
     switch (p->OUTOCOUNT) {
       case 4:
-        {
-          /* 2nd order */
-          if (p->INOCOUNT != 5) {
-            return csound->InitError(csound,
-                                     Str("Wrong number of input arguments! "
-                                         "5 needed!"));
-          }
-          break;
-        }
+/*         { */
+/*           /\* 2nd order *\/ */
+/*           if (p->INOCOUNT != 5) { */
+/*             return csound->InitError(csound, */
+/*                                      Str("Wrong number of input arguments! " */
+/*                                          "5 needed!")); */
+/*           } */
+/*           break; */
+/*         } */
 
       case 9:
-        {
-          /* 3rd order */
-          if (p->INOCOUNT != 6) {
-            return csound->InitError(csound,
-                                     Str("Wrong number of input arguments! "
-                                         "6 needed!"));
-          }
-          break;
-        }
+/*         { */
+/*           /\* 3rd order *\/ */
+/*           if (p->INOCOUNT != 6) { */
+/*             return csound->InitError(csound, */
+/*                                      Str("Wrong number of input arguments! " */
+/*                                          "6 needed!")); */
+/*           } */
+/*           break; */
+/*         } */
 
       case 16:
-        {
-          /* 4th order */
-          if (p->INOCOUNT != 7) {
-            return csound->InitError(csound,
-                                     Str("Wrong number of input arguments! "
-                                         "7 needed!"));
-          }
-          break;
-        }
-
+/*         { */
+/*           /\* 4th order *\/ */
+/*           if (p->INOCOUNT != 7) { */
+/*             return csound->InitError(csound, */
+/*                                      Str("Wrong number of input arguments! " */
+/*                                          "7 needed!")); */
+/*           } */
+/*           break; */
+/*         } */
+        break;
       default:
         {
           return csound->InitError(csound,
@@ -95,7 +95,7 @@ static void ambicode_set_coefficients(AMBIC *p)
     /* convert degrees to radian */
     /* 0.017 = pi/180 */
     double kalpha_rad = (double)(*p->kalpha)*0.0174532925199432957692369076848861;
-    double kbeta_rad = (double)(*p->kin[0])*0.0174532925199432957692369076848861;
+    double kbeta_rad = (double)(*p->kbeta)*0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -166,12 +166,12 @@ static int aambicode(CSOUND *csound, AMBIC *p)
 
       do {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[1];
+        *rsltp_w++ = *inptp * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[2];
-        *rsltp_y++ = *inptp * p->y * *p->kin[2];
-        *rsltp_z++ = *inptp * p->z * *p->kin[2];
+        *rsltp_x++ = *inptp * p->x * *p->kin[1];
+        *rsltp_y++ = *inptp * p->y * *p->kin[1];
+        *rsltp_z++ = *inptp * p->z * *p->kin[1];
 
         /* increment input pointer */
         inptp++;
@@ -183,19 +183,19 @@ static int aambicode(CSOUND *csound, AMBIC *p)
 
       do {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[1];
+        *rsltp_w++ = *inptp * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[2];
-        *rsltp_y++ = *inptp * p->y * *p->kin[2];
-        *rsltp_z++ = *inptp * p->z * *p->kin[2];
+        *rsltp_x++ = *inptp * p->x * *p->kin[1];
+        *rsltp_y++ = *inptp * p->y * *p->kin[1];
+        *rsltp_z++ = *inptp * p->z * *p->kin[1];
 
         /* 2nd order */
-        *rsltp_r++ = *inptp * p->r * *p->kin[3];
-        *rsltp_s++ = *inptp * p->s * *p->kin[3];
-        *rsltp_t++ = *inptp * p->t * *p->kin[3];
-        *rsltp_u++ = *inptp * p->u * *p->kin[3];
-        *rsltp_v++ = *inptp * p->v * *p->kin[3];
+        *rsltp_r++ = *inptp * p->r * *p->kin[2];
+        *rsltp_s++ = *inptp * p->s * *p->kin[2];
+        *rsltp_t++ = *inptp * p->t * *p->kin[2];
+        *rsltp_u++ = *inptp * p->u * *p->kin[2];
+        *rsltp_v++ = *inptp * p->v * *p->kin[2];
 
         /* increment input pointer */
         inptp++;
@@ -207,28 +207,28 @@ static int aambicode(CSOUND *csound, AMBIC *p)
 
       do {
         /* 0th order */
-        *rsltp_w++ = *inptp * p->w * *p->kin[1];
+        *rsltp_w++ = *inptp * p->w * *p->kin[0];
 
         /* 1st order */
-        *rsltp_x++ = *inptp * p->x * *p->kin[2];
-        *rsltp_y++ = *inptp * p->y * *p->kin[2];
-        *rsltp_z++ = *inptp * p->z * *p->kin[2];
+        *rsltp_x++ = *inptp * p->x * *p->kin[1];
+        *rsltp_y++ = *inptp * p->y * *p->kin[1];
+        *rsltp_z++ = *inptp * p->z * *p->kin[1];
 
         /* 2nd order */
-        *rsltp_r++ = *inptp * p->r * *p->kin[3];
-        *rsltp_s++ = *inptp * p->s * *p->kin[3];
-        *rsltp_t++ = *inptp * p->t * *p->kin[3];
-        *rsltp_u++ = *inptp * p->u * *p->kin[3];
-        *rsltp_v++ = *inptp * p->v * *p->kin[3];
+        *rsltp_r++ = *inptp * p->r * *p->kin[2];
+        *rsltp_s++ = *inptp * p->s * *p->kin[2];
+        *rsltp_t++ = *inptp * p->t * *p->kin[2];
+        *rsltp_u++ = *inptp * p->u * *p->kin[2];
+        *rsltp_v++ = *inptp * p->v * *p->kin[2];
 
         /* 3rd order */
-        *rsltp_k++ = *inptp * p->k * *p->kin[4];
-        *rsltp_l++ = *inptp * p->l * *p->kin[4];
-        *rsltp_m++ = *inptp * p->m * *p->kin[4];
-        *rsltp_n++ = *inptp * p->n * *p->kin[4];
-        *rsltp_o++ = *inptp * p->o * *p->kin[4];
-        *rsltp_p++ = *inptp * p->p * *p->kin[4];
-        *rsltp_q++ = *inptp * p->q * *p->kin[4];
+        *rsltp_k++ = *inptp * p->k * *p->kin[3];
+        *rsltp_l++ = *inptp * p->l * *p->kin[3];
+        *rsltp_m++ = *inptp * p->m * *p->kin[3];
+        *rsltp_n++ = *inptp * p->n * *p->kin[3];
+        *rsltp_o++ = *inptp * p->o * *p->kin[3];
+        *rsltp_p++ = *inptp * p->p * *p->kin[3];
+        *rsltp_q++ = *inptp * p->q * *p->kin[3];
 
         /* increment input pointer */
         inptp++;
@@ -669,7 +669,7 @@ static int aambideco(CSOUND *csound, AMBID *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "bformenc", S(AMBIC), 5, "mmmmmmmmmmmmmmmm", "akz",
+  { "bformenc", S(AMBIC), 5, "mmmmmmmmmmmmmmmm", "akkPPPP",
                             (SUBR)iambicode, NULL, (SUBR)aambicode },
   { "bformdec", S(AMBID), 5, "mmmmmmmm", "iaaay",
                             (SUBR)iambideco, NULL, (SUBR)aambideco }

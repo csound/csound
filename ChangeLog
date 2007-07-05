@@ -1,3 +1,15 @@
+2007-07-05  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/ambicode.c: Used P type for gains in bformenc.  Added
+	negative setup to give "controlled opposites" rather than
+	spherical harmonics.  Tidied code to make kbeta explicit in
+	encoding.  Other code reworking.
+
+	* Engine/entry1.c:
+	* Engine/rdorch.c (getoptxt):
+	* Engine/csound_orc_semantics.c (handle_polymorphic_opcode): Added
+	P as k-rate defaulting to 1
+
 2007-06-30  jpff  <jpff@codemist.co.uk>
 
 	* OOps/goto_ops.c (turnoff2): ip->nxtact can be overwritten in

@@ -58,6 +58,7 @@
                 h              "             "        127
                 O       optional k-rate, defaulting to  0
                 V              "             "          .5
+                P              "             "          1
                 y       begins indef list of aargs (any count)
                 z       begins indef list of kargs (any count)
                 Z       begins alternating kakaka...list (any count)    */
