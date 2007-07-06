@@ -172,59 +172,58 @@ extern "C" {
       return OK;
   }
 
-  static int vstnote_init(CSOUND *csound, void *data)
-  {
-      VSTNOTE *p = (VSTNOTE *) data;
+  //~ static int vstnote_init(CSOUND *csound, void *data)
+  //~ {
+      //~ VSTNOTE *p = (VSTNOTE *) data;
+      //~ p->vstHandle = (size_t) *p->iVSThandle;
+      //~ VSTPlugin *vstPlugin = ST(vstPlugins)[p->vstHandle];
 
-      p->vstHandle = (size_t) *p->iVSThandle;
-      VSTPlugin *vstPlugin = ST(vstPlugins)[p->vstHandle];
+      //~ int     rounded = (int) ((double) *p->knote + 0.5);
+      //~ int     cents = (int) (((double) *p->knote - (double) rounded) * 100.0
+                             //~ + 100.5) - 100;
+      //~ int     veloc = (int) *p->kveloc;
+      //~ double  deltaTime =
+        //~ ((double) p->h.insdshead->p2 + csound->timeOffs) - csound->curTime;
+      //~ int     deltaFrames =
+        //~ (int) (deltaTime * (double) vstPlugin->framesPerSecond
+               //~ + (deltaTime < 0.0 ? -0.5 : 0.5));
+      //~ long    framesRemaining =
+        //~ (long) ((double) *p->kdur * (double) vstPlugin->framesPerSecond + 0.5)
+        //~ + (long) deltaFrames;
 
-      int     rounded = (int) ((double) *p->knote + 0.5);
-      int     cents = (int) (((double) *p->knote - (double) rounded) * 100.0
-                             + 100.5) - 100;
-      int     veloc = (int) *p->kveloc;
-      double  deltaTime =
-        ((double) p->h.insdshead->p2 + csound->timeOffs) - csound->curTime;
-      int     deltaFrames =
-        (int) (deltaTime * (double) vstPlugin->framesPerSecond
-               + (deltaTime < 0.0 ? -0.5 : 0.5));
-      long    framesRemaining =
-        (long) ((double) *p->kdur * (double) vstPlugin->framesPerSecond + 0.5)
-        + (long) deltaFrames;
+      //~ p->chn = (int) *p->kchan & 15;
+      //~ p->note = (rounded >= 0 ? (rounded < 128 ? rounded : 127) : 0);
+      //~ veloc = (veloc >= 0 ? (veloc < 128 ? veloc : 127) : 0);
+      //~ if (deltaFrames < 0)
+        //~ deltaFrames = 0;
+      //~ else if (deltaFrames >= (int) vstPlugin->framesPerBlock)
+      //~ deltaFrames = (int) vstPlugin->framesPerBlock - 1;
+      //~ if (framesRemaining < 0L)
+        //~ framesRemaining = 0L;
+      //~ p->framesRemaining = (size_t) framesRemaining;
 
-      p->chn = (int) *p->kchan & 15;
-      p->note = (rounded >= 0 ? (rounded < 128 ? rounded : 127) : 0);
-      veloc = (veloc >= 0 ? (veloc < 128 ? veloc : 127) : 0);
-      if (deltaFrames < 0)
-        deltaFrames = 0;
-      else if (deltaFrames >= (int) vstPlugin->framesPerBlock)
-      deltaFrames = (int) vstPlugin->framesPerBlock - 1;
-      if (framesRemaining < 0L)
-        framesRemaining = 0L;
-      p->framesRemaining = (size_t) framesRemaining;
+      //~ vstPlugin->Debug("vstnote_init\n");
+      //~ vstPlugin->AddMIDI(144 | p->chn | (p->note << 8) | (veloc << 16),
+                       //~ deltaFrames, cents);
 
-      vstPlugin->Debug("vstnote_init\n");
-      vstPlugin->AddMIDI(144 | p->chn | (p->note << 8) | (veloc << 16),
-                       deltaFrames, cents);
+      //~ return OK;
+  //~ }
 
-      return OK;
-  }
+  //~ static int vstnote(CSOUND *csound, void *data)
+  //~ {
+      //~ VSTNOTE *p = (VSTNOTE *) data;
 
-  static int vstnote(CSOUND *csound, void *data)
-  {
-      VSTNOTE *p = (VSTNOTE *) data;
+      //~ if (p->framesRemaining >= (size_t) csound->ksmps) {
+        //~ p->framesRemaining -= (size_t) csound->ksmps;
+        //~ return OK;
+      //~ }
 
-      if (p->framesRemaining >= (size_t) csound->ksmps) {
-        p->framesRemaining -= (size_t) csound->ksmps;
-        return OK;
-      }
-
-      VSTPlugin *plugin = ST(vstPlugins)[p->vstHandle];
-      plugin->Debug("vstnote.\n");
-      plugin->AddMIDI(144 | p->chn | (p->note << 8), (int) p->framesRemaining, 0);
-      p->framesRemaining = ~((size_t) 0);
-      return OK;
-  }
+      //~ VSTPlugin *plugin = ST(vstPlugins)[p->vstHandle];
+      //~ plugin->Debug("vstnote.\n");
+      //~ plugin->AddMIDI(128 | p->chn | (p->note << 8), (int) p->framesRemaining, 0);
+      //~ p->framesRemaining = 0; /* ~((size_t) 0); */
+      //~ return OK;
+  //~ }
 
   static int vstmidiout_init(CSOUND *csound, void *data)
   {
@@ -423,49 +422,6 @@ extern "C" {
           return OK;
   }
 
-  static int vstout_on_dur_set(CSOUND *csound, VSTOUT_ON_DUR *p) //gab
-  {
-      int temp;
-      //if (MIDIoutDONE==0) openMIDIout();
-      if (p->h.insdshead->xtratim < 1)      /* if not initialised by another opcode */
-                  p->h.insdshead->xtratim = 1;
-
-      p->chn = (temp = abs((int) *p->ichn-1)) < 16 ? temp : 15;
-      p->num = (temp = abs((int) *p->inum)) < 128 ? temp : 127; 
-      p->vel = (temp = abs((int) *p->ivel)) < 128 ? temp : 127;
-
-      //note_on(p->chn,p->num, p->vel);
-          VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
-      plugin->AddMIDI( 0x90 + ((int) *p->ichn&0x0F), (int) *p->inum, (int) *p->ivel);
-      p->istart_time = (MYFLT) csound->kcounter * csound->onedkr;
-      p->fl_expired = false;
-      p->fl_extra_dur = false;
-          return OK;
-  }
-
-
-  static int vstout_on_dur(CSOUND *csound, VSTOUT_ON_DUR *p) //gab
-  {
-      if (!(p->fl_expired)) {
-        MYFLT actual_dur = (MYFLT) csound->kcounter * csound->onedkr - p->istart_time;
-        MYFLT dur = *p->idur;
-        if (dur < actual_dur) {	
-                VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
-                p->fl_expired = true;
-                //note_off(p->chn, p->num, p->vel);
-                plugin->AddMIDI( 0x80 + ( p->chn&0x0F), p->num, p->vel);
-        }
-        else if (p->h.insdshead->relesing) {
-                VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
-                p->fl_expired = true;
-                //note_off(p->chn, p->num, p->vel);
-                plugin->AddMIDI( 0x80 + ( p->chn&0x0F), p->num, p->vel);
-        }
-      }
-      return OK;
-  }
-
-
   int vstbanksave(CSOUND *csound, void *data)
   {
           VSTBANKLOAD *p = (VSTBANKLOAD *)data;
@@ -544,24 +500,109 @@ extern "C" {
   }
 #endif
 
+typedef struct VSTNOTEOUT_ { 
+    OPDS h;
+	MYFLT *iVSThandle;
+    MYFLT *iChannel;
+    MYFLT *iKey;
+    MYFLT *iVelocity;
+    MYFLT *iDuration;
+    VSTPlugin *vstPlugin;
+    MYFLT startTime;
+    MYFLT offTime;
+    int channel;
+    int key;
+    int velocity;
+    int on;
+} VSTNOTEOUT;
 
+static int vstnote_init(CSOUND *csound, void *data)
+{
+    VSTNOTEOUT *p = (VSTNOTEOUT *)data;
+    size_t vstHandle = (size_t) *p->iVSThandle;
+    p->vstPlugin = ST(vstPlugins)[vstHandle];
+    p->startTime = csound->curTime;
+    // The note may be scheduled to turn on some frames after the actual start of this kperiod.
+    // Use the warped p2 to compute this time.
+    double onTime = double(csound->timeOffs + p->h.insdshead->p2);
+    double deltaTime = onTime - csound->curTime;
+    int deltaFrames = 0;
+    if (deltaTime > 0) {
+        deltaFrames = int(deltaTime / csound->GetSr(csound));
+    }
+    // Use the warped p3 to schedule the note off message.
+    if (*p->iDuration >= FL(0.0)) {
+        p->offTime = p->startTime + p->h.insdshead->p3;
+    // In case of real-time performance with indefinite p3...
+    } else {
+        p->offTime = p->startTime + FL(1000000.0);
+    }
+    p->channel = int(*p->iChannel) & 0xf;
+    // Split the real-valued MIDI key number
+    // into an integer key number and an integer number of cents (plus or minus 50 cents).
+    p->key = int(double(*p->iKey) + 0.5);
+    int cents = int( ( ( double(*p->iKey) - double(p->key) ) * double(100.0) ) + double(0.5) );
+    p->velocity = int(*p->iVelocity) & 0x7f;
+    p->vstPlugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16), deltaFrames, cents);
+    // Ensure that the opcode instance is still active when we are scheduled to turn the note off!
+    p->h.insdshead->xtratim = p->h.insdshead->xtratim + 2;
+    p->on = true;
+    if (csound->GetDebug(csound)) {
+        csound->Message(csound, "vstnote_init 0x%x: on time:      %f\n", p, onTime);
+        csound->Message(csound, "                   csound time:  %f\n", csound->curTime);
+        csound->Message(csound, "                   delta time:   %f\n", deltaTime);
+        csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
+        csound->Message(csound, "                   off time:     %f\n", p->offTime);
+        csound->Message(csound, "                   channel:      %d\n", p->channel);
+        csound->Message(csound, "                   key:          %d\n", p->key);
+        csound->Message(csound, "                   cents:        %d\n", cents);
+        csound->Message(csound, "                   velocity:     %d\n", p->velocity);
+    }
+    return OK;
+}
 
+static int vstnote_perf(CSOUND *csound, void *data)
+{
+    VSTNOTEOUT *p = (VSTNOTEOUT *)data;
+    if (p->on) {
+        if (csound->curTime >= p->offTime) { // || p->h.insdshead->relesing) {
+            // The note may be scheduled to turn off
+            // some frames after the actual start of this kperiod.
+            double deltaTime = p->offTime - csound->curTime;
+            int deltaFrames = 0;
+            if (deltaTime > 0) {
+                deltaFrames = int(deltaTime / csound->GetSr(csound));
+            }
+            p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
+            p->on = false;
+            if (csound->GetDebug(csound)) {
+                csound->Message(csound, "vstnote_perf 0x%x: csound time:  %f\n", p, csound->curTime);
+                csound->Message(csound, "                   off time:     %f\n", p->offTime);
+                csound->Message(csound, "                   delta time:   %f\n", deltaTime);
+                csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
+                csound->Message(csound, "                   channel:      %d\n", p->channel);
+                csound->Message(csound, "                   key:          %d\n", p->key);
+            }
+         }
+    }
+    return OK;
+}
 
   static OENTRY localops[] = {
-      { "vstinit",    sizeof(VSTINIT), 1, "i", "So", &vstinit, 0, 0 },
-      { "vstinfo",    sizeof(VSTINFO), 1, "", "i", &vstinfo, 0, 0 },
-      { "vstaudio",   sizeof(VSTAUDIO), 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudio },
-      { "vstaudiog",  sizeof(VSTAUDIO), 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudiog },
-      { "vstnote",    sizeof(VSTNOTE), 3, "", "iiiii", &vstnote_init, &vstnote, 0 },
-      { "vstmidiout", sizeof(VSTMIDIOUT), 3, "", "ikkkk", &vstmidiout_init, &vstmidiout, 0 },
-      { "vstparamget",sizeof(VSTPARAMGET), 3, "k", "ik", &vstparamget_init, &vstparamget, 0 },
-      { "vstparamset",sizeof(VSTPARAMSET), 3, "", "ikk", &vstparamset_init, &vstparamset, 0 },
-      { "vstbankload",sizeof(VSTBANKLOAD), 1, "", "iS", &vstbankload, 0, 0 },
-      { "vstprogset", sizeof(VSTPROGSET), 1, "", "ii", &vstprogset, 0, 0 },
-      { "vstedit",    sizeof(VSTEDIT), 1, "", "i", &vstedit_init, 0, 0 },
-      { "vsttempo",    sizeof(VSTTEMPO), 2,"" ,"ki",  0,  (SUBR)vstSetTempo,         0/*,          &vstedit_deinit*/},
-      { "vstnoteondur",sizeof(VSTOUT_ON_DUR),3,"" ,  "iiiii",  (SUBR)vstout_on_dur_set, (SUBR)vstout_on_dur,     0 },
-      { "vstbanksave", sizeof(VSTBANKLOAD), 1, "" ,  "iS",    vstbanksave,      0,           0/*, 0        */},
+      { "vstinit",      sizeof(VSTINIT),        1, "i", "So", &vstinit, 0, 0 },
+      { "vstinfo",      sizeof(VSTINFO),        1, "", "i", &vstinfo, 0, 0 },
+      { "vstaudio",     sizeof(VSTAUDIO),       5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudio },
+      { "vstaudiog",    sizeof(VSTAUDIO),       5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iy", &vstaudio_init, 0, &vstaudiog },
+      { "vstmidiout",   sizeof(VSTMIDIOUT),     3, "", "ikkkk", &vstmidiout_init, &vstmidiout, 0 },
+      { "vstparamget",  sizeof(VSTPARAMGET),    3, "k", "ik", &vstparamget_init, &vstparamget, 0 },
+      { "vstparamset",  sizeof(VSTPARAMSET),    3, "", "ikk", &vstparamset_init, &vstparamset, 0 },
+      { "vstbankload",  sizeof(VSTBANKLOAD),    1, "", "iS", &vstbankload, 0, 0 },
+      { "vstprogset",   sizeof(VSTPROGSET),     1, "", "ii", &vstprogset, 0, 0 },
+      { "vstedit",      sizeof(VSTEDIT),        1, "", "i", &vstedit_init, 0, 0 },
+      { "vsttempo",     sizeof(VSTTEMPO),       2, "" ,"ki",  0,  &vstSetTempo,         0/*,          &vstedit_deinit*/},
+      { "vstnote",      sizeof(VSTNOTEOUT),     3, "" ,"iiiii",  &vstnote_init, &vstnote_perf, 0 },
+      { "vstbanksave",  sizeof(VSTBANKLOAD),    1, "" ,"iS",    &vstbanksave,      0,           0/*, 0        */},
+      //{ "vstnote",      sizeof(VSTNOTE),        3, "", "iiiii", &vstnote_init, &vstnote, 0 },
       { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 

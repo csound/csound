@@ -131,14 +131,5 @@ typedef struct VSTTEMPO_ { //gab
 	MYFLT *tempo,*iVSThandle;
 } VSTTEMPO;
 
-typedef struct { //gab
-    OPDS   h;
-	MYFLT *iVSThandle;
-    MYFLT  *ichn,*inum,*ivel,*idur;
-    MYFLT  istart_time;
-    int    chn, num, vel;
-    int   fl_expired, fl_extra_dur;
-} VSTOUT_ON_DUR;
-
 #endif
 
