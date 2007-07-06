@@ -79,7 +79,9 @@ enum PVS_WINTYPE {
     PVS_WIN_HAMMING = 0,
     PVS_WIN_HANN,
     PVS_WIN_KAISER,
-    PVS_WIN_CUSTOM
+    PVS_WIN_CUSTOM,
+    PVS_WIN_BLACKMAN,
+    PVS_WIN_RECT
 };
 
 enum PVS_ANALFORMAT {
@@ -122,7 +124,7 @@ typedef struct {
         float   fund,arate;
         float   RoverTwoPi,TwoPioverR,Fexact;
         MYFLT   *nextIn;
-        long    nI,Ii,IOi;              /* need all these ?*/
+        long    nI,Ii,IOi;              /* need all these ?; double as N and NB */
         long    inptr;
 
         AUXCH   input;
