@@ -95,6 +95,11 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
 }
 
 #ifdef BETA
+typedef struct {
+  MYFLT re;
+  MYFLT im;
+} CMPLX;
+
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
     /* opcode params */
@@ -102,6 +107,7 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     int NB;
     int i;
     int wintype = (int) (FL(0.5)+*p->wintype);
+
     /* deal with iinit and iformat later on! */
 
     N = N + N%2;               /* Make N even */
@@ -109,27 +115,27 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
 
     /* Need space for NB complex numbers for each of ksmps */
     if (p->fsig->frame.auxp==NULL ||
-        ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
-      auxalloc(ksmps*(N+2)*sizeof(MYFLT),&p->fsig->frame);
-    else memset(p->fsig->frame.auxp, 0, ksmps*(N+2)*sizeof(MYFLT));
+        csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
+      csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fsig->frame);
+    else memset(p->fsig->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
     /* Space for remembering samples */
     if (p->input.auxp==NULL ||
         N*sizeof(MYFLT) > (unsigned int)p->input.size)
-      auxalloc(N*sizeof(MYFLT),&p->input);
+      csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
     else memset(p->input.auxp, 0, N*sizeof(MYFLT));
     if (p->analwinbuf.auxp==NULL ||
         NB*sizeof(CMPLX) > (unsigned int)p->analwinbuf.size)
-      auxalloc(NB*sizeof(CMPLX),&p->analwinbuf);
+      csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
     else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
     p->inptr = 0;                 /* Pointer in circular buffer */
-    p->fsig->NB = p->NB = NB;
+    p->fsig->NB = p->Ii = NB;
     p->fsig->wintype = wintype;
     p->fsig->format = PVS_COMPLEX;      /* only this, for now */
-    p->fsig->N = p->N  = N;
+    p->fsig->N = p->nI  = N;
     /* Need space for NB sines and cosines */
     if (p->fsig->trig.auxp==NULL ||
         (N+2)*sizeof(double) > (unsigned int)p->fsig->trig.size)
-      auxalloc((N+2)*sizeof(double),&p->fsig->trig);
+      csound->AuxAlloc(csound,(N+2)*sizeof(double),&p->fsig->trig);
     {
       double dc = cos(TWOPI/(double)N);
       double ds = sin(TWOPI/(double)N);
@@ -419,17 +425,124 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 
 }
 
+#ifdef BETA
+int pvssanal(CSOUND *csound, PVSANAL *p)
+{
+    MYFLT *ain;
+    int NB = p->Ii, i, k, loc;
+    MYFLT *data = (MYFLT*)(p->input.auxp);
+    CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
+    double *c = p->fsig->cosine;
+    double *s = p->fsig->sine;
+
+    if (data==NULL) {
+      csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
+    }
+    ain = p->ain;               /* The input samples */
+    loc = p->inptr;             /* Circular buffer */
+    for (i=0, k=csound->ksmps-1; i < csound->ksmps; i++, k=(k+1)%csound->ksmps) {
+      MYFLT re, im, dx;
+      CMPLX* ff, *gg;
+      int j;
+
+      dx = *ain - data[loc];    /* Change in sample */
+      data[loc] = *ain++;       /* Remember input sample */
+      /* get the frame for this sample */
+      ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
+      gg = (CMPLX*)(p->fsig->frame.auxp) + k*NB;
+      for (j = 0; j < NB; j++) {
+        re = fw[j].re + dx;
+        im = fw[j].im;
+        fw[j].re = c[j]*re - s[j]*im;
+        fw[j].im = c[j]*im + s[j]*re;
+      }
+      loc++; if (loc==p->nI) loc = 0; /* Circular buffer */
+      /* should apply window here */
+      /* Rectang :Fw_t =     F_t                          */
+      /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
+      /* Hamming :Fw_t = 0.5 F_t - 0.25[ F_{t-1}+F_{t+1}] */
+      /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}] + 0.04 [F_{t-2}+F_{t+2}] */
+      switch ((int)(*p->wintype+FL(0.5))) {
+      case PVS_WIN_HAMMING:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.54)*fw[j].re;
+          ff[j].im = FL(0.54)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.23)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.23)*(fw[j+1].im + fw[j-1].im);
+        }
+        ff[0].re -= FL(0.46)*fw[1].re;
+        ff[NB-1].re -= FL(0.46)*fw[NB-2].re;
+        break;
+      case PVS_WIN_HANN:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.5)*fw[j].re;
+          ff[j].im = FL(0.5)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.25)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.25)*(fw[j+1].im + fw[j-1].im);
+        }
+        ff[0].re -= FL(0.5)*fw[1].re;
+        ff[NB-1].re -= FL(0.5)*fw[NB-2].re;
+        break;
+      default:
+        csound->Message(csound,
+                        Str("Unknown window type; replaced by rectangular\n"));
+      case PVS_WIN_RECT:
+        for (j=0; j<NB; j++) {
+          ff[j].re = fw[j].re;
+          ff[j].im = fw[j].im;
+        }
+        break;
+      case PVS_WIN_BLACKMAN:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.42)*fw[j].re;
+          ff[j].im = FL(0.42)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.25)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.25)*(fw[j+1].im + fw[j-1].im);
+        }
+        for (j=2; j<NB-2; j++) {
+          ff[j].re += FL(0.04)*(fw[j+2].re + fw[j-2].re);
+          ff[j].im += FL(0.04)*(fw[j+2].im + fw[j-2].im);
+        }
+        ff[0].re += -FL(0.5)*fw[1].re + FL(0.08)*fw[2].re;
+        ff[NB-1].re += -FL(0.5)*fw[NB-2].re + FL(0.08)*fw[NB-3].re;
+        ff[1].re += -FL(0.5)*fw[2].re + FL(0.08)*fw[3].re;
+        ff[NB-2].re += -FL(0.5)*fw[NB-3].re + FL(0.08)*fw[NB-4].re;
+        break;
+      }
+    }
+/*     for (i=0; i<ksmps; i++) { */
+/*       int j; */
+/*       CMPLX* ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB; */
+/*       printf("Frame %d %p\n", i, ff); */
+/*       for (j = 0; j < NB; j++) */
+/*         printf("%d: %f,%f\t%f,%f\n", j, fw[j].re, fw[j].im, ff[j].re, ff[j].im); */
+/*     } */
+    p->inptr = loc;
+    return NOTOK;
+}
+#endif
+
 int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
     int i;
+    int overlap = (int)*p->overlap;
 
     ain = p->ain;
 
     if (p->input.auxp==NULL) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
-
+#ifdef BETA
+    if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
+      return pvssanal(csound, p);
+#endif
     for (i=0; i < csound->ksmps; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
