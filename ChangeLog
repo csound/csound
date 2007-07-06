@@ -1,9 +1,13 @@
+2007-07-06    <jpff@cs.bath.ac.uk>
+
+	* Opcodes/ugnorman.c (atsaddnzset): Complain about a negative
+	number of bands
+
 2007-07-05  Michael Gogins <gogins@pipeline.com>
 
-	* Opcodes/vst4cs: Fixed a bug in the vstnote 
-    opcode whereby NOTE OFF messages were scheduled, 
-    but not always dispatched. NOTE OFF messages are
-    now both scheduled and dispatched.
+	* Opcodes/vst4cs: Fixed a bug in the vstnote opcode whereby NOTE
+	OFF messages were scheduled, but not always dispatched. NOTE OFF
+	messages are now both scheduled and dispatched.
 
 2007-07-05  jpff  <jpff@codemist.co.uk>
 
@@ -58,7 +62,7 @@
 	* Opcodes/fout.c (fout_open_file): Changed FileOpen() to FileOpen2(),
 	but the result is not ideal yet because we cannot always know the 
 	correct file type for files opened with the fiopen opcode.
-	
+
 	* H/csoundCore.h:
 	* H/csound.h:  Added sftype2csfiletype() function pointer to CSOUND.
 
