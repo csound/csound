@@ -128,7 +128,7 @@ typedef struct {
         AUXCH   input;
         AUXCH   overlapbuf;
         AUXCH   analbuf;
-        AUXCH   analwinbuf;
+        AUXCH   analwinbuf;     /* prewin in SDFT case */
         AUXCH   oldInPhase;
 } PVSANAL;
 
