@@ -273,8 +273,9 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       if (m.fn.o.opcode_init == NULL && m.fn.o.fgen_init == NULL) {
         /* must have csound_opcode_init() or csound_fgen_init() */
         csoundCloseLibrary(h);
-        csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
-                                libraryPath);
+        if (csound->oparms->msglevel & 0x400)
+          csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
+                          libraryPath);
         return CSOUND_ERROR;
       }
     }
