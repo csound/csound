@@ -1,5 +1,8 @@
 2007-07-06    <jpff@cs.bath.ac.uk>
 
+	* InOut/rtwinmm.c (csoundModuleCreate): Quieten startup message in
+	line with other modules
+
 	* Opcodes/ugnorman.c (atsaddnzset): Complain about a negative
 	number of bands
 
