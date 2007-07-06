@@ -94,6 +94,69 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
 }
 
+#ifdef BETA
+int pvssanalset(CSOUND *csound, PVSANAL *p)
+{
+    /* opcode params */
+    int N = (int) (FL(0.5)+*(p->winsize));
+    int NB;
+    int i;
+    int wintype = (int) (FL(0.5)+*p->wintype);
+    /* deal with iinit and iformat later on! */
+
+    N = N + N%2;               /* Make N even */
+    NB = N/2+1;                 /* Number of bins */
+
+    /* Need space for NB complex numbers for each of ksmps */
+    if (p->fsig->frame.auxp==NULL ||
+        ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
+      auxalloc(ksmps*(N+2)*sizeof(MYFLT),&p->fsig->frame);
+    else memset(p->fsig->frame.auxp, 0, ksmps*(N+2)*sizeof(MYFLT));
+    /* Space for remembering samples */
+    if (p->input.auxp==NULL ||
+        N*sizeof(MYFLT) > (unsigned int)p->input.size)
+      auxalloc(N*sizeof(MYFLT),&p->input);
+    else memset(p->input.auxp, 0, N*sizeof(MYFLT));
+    if (p->analwinbuf.auxp==NULL ||
+        NB*sizeof(CMPLX) > (unsigned int)p->analwinbuf.size)
+      auxalloc(NB*sizeof(CMPLX),&p->analwinbuf);
+    else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
+    p->inptr = 0;                 /* Pointer in circular buffer */
+    p->fsig->NB = p->NB = NB;
+    p->fsig->wintype = wintype;
+    p->fsig->format = PVS_COMPLEX;      /* only this, for now */
+    p->fsig->N = p->N  = N;
+    /* Need space for NB sines and cosines */
+    if (p->fsig->trig.auxp==NULL ||
+        (N+2)*sizeof(double) > (unsigned int)p->fsig->trig.size)
+      auxalloc((N+2)*sizeof(double),&p->fsig->trig);
+    {
+      double dc = cos(TWOPI/(double)N);
+      double ds = sin(TWOPI/(double)N);
+      double *c = (double *)(p->fsig->trig.auxp);
+      double *s = (double *)(p->fsig->trig.auxp)+NB;
+      p->fsig->cosine = c;
+      p->fsig->sine = s;
+      c[0] = 1.0; s[0] = 0.0;
+        /*
+          direct computation of c and s may be better for large n
+          c = cos(2*M_PI*i/n);
+          s = sin(2*M_PI*i/n);
+          if (i % 16 == 15) {
+          c = cos(2*M_PI*(i+1)/n);
+          s = sin(2*M_PI*(i+1)/n);
+        */
+      for (i=1; i<NB; i++) {
+          c[i] = dc*c[i-1] - ds*s[i-1];
+          s[i] = ds*c[i-1] + dc*s[i-1];
+      }
+/*       for (i=0; i<NB; i++)  */
+/*         printf("c[%d] = %f   \ts[%d] = %f\n", i, c[i], i, s[i]); */
+    }
+    return OK;
+}
+#endif
+
 int pvsanalset(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
@@ -108,6 +171,10 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
+#ifdef BETA
+    if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
+      return pvssanalset(csound, p);
+#endif
     if (N <= 32)
       csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
@@ -116,9 +183,10 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
+#if !defined(BETA)
     if (overlap < csound->ksmps)
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
-
+#endif
     halfwinsize = M/2;
     buflen = M*4;
     p->arate = (float)(csound->esr / (MYFLT) overlap);

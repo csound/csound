@@ -60,6 +60,7 @@ kamp            ATSinterpread   kfreq
 */
 
 #include "ugnorman.h"
+#include <ctype.h>
 
 #define ATSA_NOISE_VARIANCE 0.04
 
@@ -106,7 +107,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
 
     strcpy(opname, csound->GetOpcodeName(p));   /* opcode name */
     for (i = 0; opname[i] != '\0'; i++)
-      opname[i] &= (char) 0xDF;                 /* converted to upper case */
+      opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
     csound->strarg2name(csound, fname, name_arg, "ats.",
