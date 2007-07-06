@@ -673,8 +673,9 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
 
-    csound->Message(csound, Str("Windows MME real time audio and MIDI module "
-                                "for Csound by Istvan Varga\n"));
+    if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, Str("Windows MME real time audio and MIDI module "
+                                  "for Csound by Istvan Varga\n"));
 
     if (csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
                                    sizeof(rtWinMMGlobals)) != 0)
