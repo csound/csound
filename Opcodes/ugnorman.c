@@ -844,6 +844,7 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 
     /* make sure partials are in range */
     if ((int) (*p->ibandoffset + *p->ibands * *p->ibandincr) > 25 ||
+        (int) (*p->ibands) <0 || /* Allow zero bands for no good reason */
         (int) (*p->ibandoffset) < 0) {
       return csound->InitError(csound, Str("ATSADDNZ: Band(s) out of range, "
                                            "max band allowed is 25"));
