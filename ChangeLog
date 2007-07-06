@@ -1,3 +1,10 @@
+2007-07-05  Michael Gogins <gogins@pipeline.com>
+
+	* Opcodes/vst4cs: Fixed a bug in the vstnote 
+    opcode whereby NOTE OFF messages were scheduled, 
+    but not always dispatched. NOTE OFF messages are
+    now both scheduled and dispatched.
+
 2007-07-05  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/ambicode.c: Used P type for gains in bformenc.  Added
