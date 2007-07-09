@@ -531,9 +531,14 @@ static int vstnote_init(CSOUND *csound, void *data)
         deltaFrames = int(deltaTime / csound->GetSr(csound));
     }
     // Use the warped p3 to schedule the note off message.
-    if (*p->iDuration >= FL(0.0)) {
+    if (*p->iDuration > FL(0.0)) {
         p->offTime = p->startTime + p->h.insdshead->p3;
     // In case of real-time performance with indefinite p3...
+    } else if (*p->iDuration == FL(0.0)) {
+        if (csound->GetDebug(csound)) {
+            csound->Message(csound, "vstnote_init 0x%x: not scheduling 0 duration note.\n");
+        }
+        return OK;
     } else {
         p->offTime = p->startTime + FL(1000000.0);
     }
