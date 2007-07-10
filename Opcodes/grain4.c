@@ -21,25 +21,6 @@
     02111-1307 USA
 */
 
-/*                              grainv4.c               */
-/*    ASC.Lee@ee.qub.ac.uk                              */
-/*Copyright 1994, 1995 by the Allan S C Lee, Queen's        */
-/*University of Belfast. All rights reserved.               */
-/*                                                          */
-/*Permission to use, copy, or modify this software and      */
-/*documentation for educational and research purposes only  */
-/*and without fee is hereby granted, provided that this     */
-/*copyright and permission notice appear on all copies and  */
-/*supporting documentation.  For any other uses of this     */
-/*software, in original or modified form, including but not */
-/*limited to distribution in whole or in part, specific     */
-/*prior permission from Allan S C Lee must be obtained.     */
-/*Allan S C Lee and Queen's University of Belfast make      */
-/*no representations about the suitability of this software */
-/*for any purpose. It is provided "as is" without express   */
-/*or implied warranty.                                      */
-/*                                                          */
-/*                                                      */
 /* Verson 4.0 -    Mar 95                               */
 /* Verson 4.1 - 10 Mar 95                               */
 /*        Lifted restriction on pitch, now accept       */
@@ -59,7 +40,6 @@
 #define        RNDMUL  15625L
 
 static MYFLT grand(GRAINV4 *);
-/* MYFLT envv4(int *, GRAINV4 *); */
 
 static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
@@ -71,9 +51,6 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     /* call ftfind() to get the function table...*/
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
-#ifdef BETA
-      csound->Message(csound, "granule_set: Find ftable OK...\n");
-#endif
       p->ftp = ftp;
     }
     else {
@@ -82,15 +59,8 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
     /* call ftfind() to get the function table for the envelop...*/
-#ifdef BETA
-    csound->Message(csound, "*p->ifnenv is %f\n", *p->ifnenv);
-#endif
-
     if (*p->ifnenv > 0) {
       if ((ftp_env = csound->FTFind(csound, p->ifnenv)) != NULL) {
-#ifdef BETA
-        csound->Message(csound, "granule_set: Find ftable for envelop OK...\n");
-#endif
         p->ftp_env = ftp_env;
       }
       else {
@@ -254,30 +224,12 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
           p->gskip[nvoice];
       }
 
-#ifdef BETA
-    csound->Message(csound, "granule_set: User define sampling rate esr is "
-                            "%f samp/sec.\n", csound->esr);
-    csound->Message(csound, "granule_set: Function table length in samples is "
-                            "%ld\n", ftp->flen);
-    csound->Message(csound, "granule_set: Function table length in seconds is "
-                            "%f\n", (MYFLT)ftp->flen * csound->onedsr);
-#endif
     if (*p->ithd != 0) {        /* Do thresholding.... */
-#ifdef BETA
-      csound->Message(csound, "granule_set: Doing thresholding %f\n", *p->ithd);
-#endif
       tmplong2 = 0;
       for (tmplong1=0; tmplong1<ftp->flen; tmplong1++)
         if (fabs(*(ftp->ftable + tmplong1)) >= *p->ithd )
           *(ftp->ftable + tmplong2++) = *(ftp->ftable + tmplong1);
       ftp->flen = tmplong2;
-#ifdef BETA
-      csound->Message(csound, "granule_set: Function table shrink to "
-                              "%ld samples\n", ftp->flen);
-      csound->Message(csound, "granule_set: Function table shrink to %f sec "
-                              "after thresholding\n",
-                              (MYFLT) ftp->flen * csound->onedsr);
-#endif
     }
 
     if (p->gend > ftp->flen) {
@@ -286,9 +238,6 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
     nvoice = (int)*p->ivoice;
-#ifdef BETA
-    csound->Message(csound, "granule_set: nvoice is %d\n", nvoice);
-#endif
 
     if (*p->ilength < (20 * *p->kgsize)) 
       csound->Warning(csound, Str("granule_set: "
@@ -468,32 +417,6 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
    } while (--nsmps);
    return OK;
 } /* end graingenv4(p) */
-
-/* Function takes in fpnt pointing to a relative
-    position of gsize,
-    returns a float between 0.0 to 1.0
-*/
-#ifdef never
-static MYFLT envv4(int *nvoice, GRAINV4 *p)
-{
-    long     att_len, dec_len, att_sus;
-    MYFLT    tmp, result;
-
-    att_len = (p->gsize[*nvoice] * *p->iatt) * FL(0.01);
-    dec_len = (p->gsize[*nvoice] * *p->idec) * FL(0.01);
-    att_sus =  p->gsize[*nvoice] -  dec_len;
-
-    if (p->fpnt[*nvoice] < att_sus) {
-      tmp = ((MYFLT) p->fpnt[*nvoice]) / (MYFLT)att_len;
-      result = (tmp >=FL(1.0)) ? FL(1.0) : tmp;
-    }
-    else
-      result = ((MYFLT)(dec_len - (p->fpnt[*nvoice]-att_sus)) / (MYFLT)dec_len);
-
-    csound->Message(csound, "envv4: %f\n", result);
-    return (result);
-}
-#endif
 
 /* Function return a float random number between -1 to +1 */
 static MYFLT grand( GRAINV4 *p)

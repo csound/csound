@@ -21,26 +21,6 @@
     02111-1307 USA
 */
 
-/* include file for grainv4.c           grainv4.h */
-/*     ASC.Lee@ee.qub.ac.uk                       */
-/*Copyright 1994, 1995 by the Allan S C Lee, Queen's        */
-/*University of Belfast. All rights reserved.               */
-/*                                                          */
-/*Permission to use, copy, or modify this software and      */
-/*documentation for educational and research purposes only  */
-/*and without fee is hereby granted, provided that this     */
-/*copyright and permission notice appear on all copies and  */
-/*supporting documentation.  For any other uses of this     */
-/*software, in original or modified form, including but not */
-/*limited to distribution in whole or in part, specific     */
-/*prior permission from Allan S C Lee must be obtained.     */
-/*Allan S C Lee and Queen's University of Belfast make      */
-/*no representations about the suitability of this software */
-/*for any purpose. It is provided "as is" without express   */
-/*or implied warranty.                                      */
-/*                                                          */
-/* */
-
 #define MAXVOICE 128
 
 typedef struct {
