@@ -60,6 +60,7 @@ typedef struct t_csoundapi_ {
     t_int   messon;
     CSOUND *csound;
     char   *csmess;
+  t_symbol *curdir;
 } t_csoundapi;
 
 static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
@@ -129,6 +130,26 @@ PUBLIC void csoundapi_tilde_setup(void)
     }
 }
 
+
+int isCsoundFile(char *in)
+{
+    int     len;
+    int     i;
+    const char *extensions[6] = {".csd", ".orc", ".sco",".CSD",".ORC",".SCO"}; 
+
+    len = strlen(in);
+    for (i = 0; i < len; i++, in++) {
+      if (*in == '.')
+        break;
+    }
+    if (*in == '.') {
+      for(i=0; i<6;i++) 
+        if (strcmp(in,extensions[i])==0);
+           return 1;
+    }
+    return 0; 
+}
+
 static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 {
     char  **cmdl;
@@ -147,7 +168,7 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     x->iochannels = NULL;
     x->csmess = malloc(MAXMESSTRING);
     x->messon = 1;
-   
+    x->curdir = canvas_getcurrentdir();
     if (argc == 1 && argv[0].a_type == A_FLOAT) {
       x->numlets = (t_int) atom_getfloat(&argv[0]);
       for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++) {
@@ -162,6 +183,15 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
       for (i = 1; i < argc + 1; i++) {
         cmdl[i] = (char *) malloc(64);
         atom_string(&argv[i - 1], cmdl[i], 64);
+	if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
+          char *tmp = cmdl[i];
+          cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
+          strcpy(cmdl[i], x->curdir->s_name);
+          strcat(cmdl[i],"/");
+          strcat(cmdl[i],tmp);
+          post(cmdl[i]);
+          free(tmp);
+	  }
         post(cmdl[i]);
       }
       cmdl[i] = "-d";
@@ -200,8 +230,7 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 
 static void csoundapi_destroy(t_csoundapi *x)
 {
-    if (x->cmdl != NULL)
-      free(x->cmdl);
+   if (x->cmdl != NULL) free(x->cmdl);
     free(x->csmess);
     if (x->iochannels != NULL)
       destroy_channels(x->iochannels);
@@ -356,6 +385,15 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     for (i = 1; i < argc + 1; i++) {
       cmdl[i] = (char *) malloc(64);
       atom_string(&argv[i - 1], cmdl[i], 64);
+ if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
+         char *tmp = cmdl[i];
+          cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
+          strcpy(cmdl[i], x->curdir->s_name);
+          strcat(cmdl[i],"/");
+          strcat(cmdl[i],tmp);
+          post(cmdl[i]);
+          free(tmp);
+	}
       post(cmdl[i]);
     }
     cmdl[i] = "-d";
