@@ -118,6 +118,8 @@ PUBLIC void csoundapi_tilde_setup(void)
     class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
     CLASS_MAINSIGNALIN(csoundapi_class, t_csoundapi, f);
 
+   
+
     {
       int v1, v2, v3;
       v1 = csoundGetVersion();
@@ -128,6 +130,8 @@ PUBLIC void csoundapi_tilde_setup(void)
            " A PD csound class using the Csound %d.%02d.%d API\n"
            "(c) V Lazzarini, 2005-2007\n", v1, v2, v3);
     }
+     csoundInitialize(NULL,NULL,0);
+
 }
 
 
@@ -231,10 +235,11 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 static void csoundapi_destroy(t_csoundapi *x)
 {
    if (x->cmdl != NULL) free(x->cmdl);
-    free(x->csmess);
     if (x->iochannels != NULL)
       destroy_channels(x->iochannels);
     csoundDestroy(x->csound);
+    free(x->csmess);
+    
 }
 
 static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
@@ -561,11 +566,12 @@ static void message_callback(CSOUND *csound,
   int i;
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   
+  if(x->csmess != NULL)
   vsnprintf(x->csmess, MAXMESSTRING, format, valist);
   for(i=0;i<MAXMESSTRING;i++)
-    if(x->csmess[i] == '\0'){
+    if(x->csmess != NULL && x->csmess[i] == '\0'){
       x->csmess[i-1]= ' ';
       break;
     }
-  if(x->messon) post(x->csmess);
+  if(x->csmess != NULL && x->messon) post(x->csmess);
 }
