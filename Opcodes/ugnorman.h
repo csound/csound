@@ -145,15 +145,16 @@ typedef struct _atsaddnz {
     double  winsize;    /* size of windows in analysis file, used to */
                         /*   compute RMS amplitude from energy in noise band */
     double  *datastart;
-    double  firstband;
 
     double  buf[25];      /* stores band information for passing data */
     double  phaseinc[25]; /* to create an array of noise */
     double  oscphase[25]; /* the phase of all the oscilators */
     RANDIATS randinoise[25]; /* pointer to the interpolated random noise info */
     double  nfreq[25];
-    ATSSTRUCT atshead;
+    int     firstband;
     int     swapped;    /* indicates if the data file is byte swapped or not */
+    int     bands, bandoffset, bandincr;
+    ATSSTRUCT atshead;
 } ATSADDNZ;
 
 struct _atsbufread {

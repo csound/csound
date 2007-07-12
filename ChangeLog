@@ -1,3 +1,7 @@
+2007-07-12    <jpff@cs.bath.ac.uk>
+
+	* Opcodes/ugnorman.c: Added scaling by 0dbfs and some code tidying
+
 2007-07-06    <jpff@cs.bath.ac.uk>
 
 	* InOut/rtwinmm.c (csoundModuleCreate): Quieten startup message in
