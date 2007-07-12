@@ -64,9 +64,9 @@ kamp            ATSinterpread   kfreq
 
 #define ATSA_NOISE_VARIANCE 0.04
 
-#define ATSA_CRITICAL_BAND_EDGES                                            \
-    { 0.0, 100.0, 200.0, 300.0, 400.0, 510.0, 630.0, 770.0, 920.0, 1080.0,  \
-      1270.0, 1480.0, 1720.0, 2000.0, 2320.0, 2700.0, 3150.0, 3700.0,       \
+#define ATSA_CRITICAL_BAND_EDGES                                        \
+ { 0.0, 100.0, 200.0, 300.0, 400.0, 510.0, 630.0, 770.0, 920.0, 1080.0, \
+      1270.0, 1480.0, 1720.0, 2000.0, 2320.0, 2700.0, 3150.0, 3700.0,   \
       4400.0, 5300.0, 6400.0, 7700.0, 9500.0, 12000.0, 15500.0, 20000.0 }
 
 /* static variables used for atsbufread and atsbufreadnz */
@@ -611,7 +611,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = (MYFLT) p->buf[i].amp;
+      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       nsmps = csound->ksmps;
@@ -798,6 +798,7 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
         frm1val = frm1[firstband + i];
       }
       buf[i] = frm0val + frac * (frm1val - frm0val);  /* calc energy */
+
     }
 }
 
@@ -812,6 +813,9 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
     if (p->swapped < 0)
       return NOTOK;
+    p->bands = (int)(*p->ibands);
+    p->bandoffset = (int) (*p->ibandoffset);
+    p->bandincr = (int) (*p->ibandincr);
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* make sure that this file contains noise */
@@ -844,9 +848,9 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     }
 
     /* make sure partials are in range */
-    if ((int) (*p->ibandoffset + *p->ibands * *p->ibandincr) > 25 ||
-        (int) (*p->ibands) <0 || /* Allow zero bands for no good reason */
-        (int) (*p->ibandoffset) < 0) {
+    if ((p->bandoffset + p->bands * p->bandincr) > 25 ||
+        p->bands <0 || /* Allow zero bands for no good reason */
+        p->bandoffset < 0) {
       return csound->InitError(csound, Str("ATSADDNZ: Band(s) out of range, "
                                            "max band allowed is 25"));
     }
@@ -966,7 +970,6 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 {
     MYFLT   frIndx;
     MYFLT   *ar, amp;
-    double  *buf;
     int     i, n, nsmps;
     int     synthme;
     int     nsynthed;
@@ -992,8 +995,6 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     else
       p->prFlg = 1;
 
-    buf = p->buf;
-
     FetchADDNZbands(p, p->buf, frIndx);
 
     /* set local pointer to output and initialise output to zero */
@@ -1003,16 +1004,14 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 /*     for (i = 0; i < csound->ksmps; i++) */
 /*       *ar++ = FL(0.0); */
 
-    synthme = (int) *p->ibandoffset;
+    synthme = p->bandoffset;
     nsynthed = 0;
 
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
-      if (i == synthme && nsynthed < (int) *p->ibands) {
-        /* synthesize cosine */
-        amp =
-            (MYFLT)
-            sqrt((p->buf[i] / ((p->winsize) * (MYFLT) ATSA_NOISE_VARIANCE)));
+      if (i == synthme && nsynthed < p->bands) {
+/* synthesize cosine */
+        amp = csound->e0dbfs*(MYFLT) sqrt((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
         nsmps = csound->ksmps;
         for (n=0; n<nsmps; n++) {
@@ -1026,7 +1025,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
              phase = phase - costabsz;
          */
         nsynthed++;
-        synthme += (int) *p->ibandincr;
+        synthme += p->bandincr;
       }
     }
     return OK;
@@ -1278,8 +1277,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           noise = nzamp * sinewave
                         * randifats(csound, &(p->randinoise[i]), nzfreq);
           /* calc output */
-          ar[n] +=   (MYFLT) (amp * sinewave) * *p->ksinamp
-                   + (MYFLT) noise **p->knzamp;
+          ar[n] +=   csound->e0dbfs *(MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
         }
         p->oscphase[i] = phase;
       }
@@ -1296,7 +1294,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           sinewave = cos(phase) * amp;
           phase += inc;
           /* calc output */
-          ar[n] += (MYFLT) sinewave **p->ksinamp;
+          ar[n] += csound->e0dbfs * (MYFLT)sinewave **p->ksinamp;
         }
         p->oscphase[i] = phase;
       }
@@ -2015,7 +2013,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = (MYFLT) p->buf[i].amp;
+      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       nsmps = csound->ksmps;
