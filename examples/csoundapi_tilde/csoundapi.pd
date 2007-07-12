@@ -64,12 +64,15 @@ run 1 re-starts it;
 #X text 464 436 console messages on/off;
 #X text 467 109 unlike invalue channels \, chnget channels do not need
 to be registered;
-#X text 454 94;
+#X text 454 94 comment;
 #X text 454 80 chnset messages send in k-rate numbers or strings \,
 they work with chnget opcode;
 #X text 440 603 csoundapi~ is built with the number of audio output
 channels taken from the orchestra \, or it can be built with a set
 number of out/inlets (when its 1st argument is numeric);
+#X text 566 481 the CSD or ORC/SCO files should be either in the canvas
+directory or should be given a full-path relative to the canvas directory
+;
 #X connect 1 0 39 0;
 #X connect 2 0 23 1;
 #X connect 3 0 39 0;
