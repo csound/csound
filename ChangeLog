@@ -1,3 +1,8 @@
+2007-07-13    <jpff@cs.bath.ac.uk>
+
+	* util/atsa.c (init_sound): Check to see if no partials (ie
+	silence) and stop
+
 2007-07-12    <jpff@cs.bath.ac.uk>
 
 	* Opcodes/ugnorman.c: Added scaling by 0dbfs and some code tidying
