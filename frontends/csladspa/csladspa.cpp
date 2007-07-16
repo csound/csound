@@ -18,7 +18,7 @@
   License along with Csound; if not, write to the Free Software
       Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
       02111-1307 USA
-  
+
 */
 
 
@@ -44,7 +44,7 @@ using namespace std;
 #define MAXPORTS 64
 
 //to remove leading and trailing spaces
-string trim(string s) 
+string trim(string s)
 {
   //trim spaces at start
   s.erase( 0, s.find_first_not_of( " \t\n" ) );
@@ -74,7 +74,7 @@ struct CsoundPlugin {
   int chans;
   int frames;
 
-  CsoundPlugin(const char *csd, int chns, int ports, AuxData* paux, 
+  CsoundPlugin(const char *csd, int chns, int ports, AuxData* paux,
                unsigned long rate);
   void Process(unsigned long cnt);
 };
@@ -82,8 +82,8 @@ struct CsoundPlugin {
 
 
 // constructor
-CsoundPlugin::CsoundPlugin(const char *csd, 
-                           int chns, int ports, AuxData *paux, 
+CsoundPlugin::CsoundPlugin(const char *csd,
+                           int chns, int ports, AuxData *paux,
                            unsigned long rate){
   char** cmdl;
   string sr_override, kr_override;
@@ -97,7 +97,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   inp = new LADSPA_Data*[chans];
   outp = new LADSPA_Data*[chans];
 
- 
+
   // csound parameters
   cmdl = new char*[5];
   cmdl[0] = "csound";
@@ -110,22 +110,22 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   sr_override.append("--sample-rate= ");
   sr_override.append(sr);
   cmdl[3] = (char *) sr_override.c_str();
-  
-  // ksmps override 
+
+  // ksmps override
   kr = new char[32];
-  sprintf(kr,"%f",(float)rate/ksmps); 
-  kr_override.append("-k "); 
+  sprintf(kr,"%f",(float)rate/ksmps);
+  kr_override.append("-k ");
   kr_override.append(kr);
-  cmdl[4] = (char *) kr_override.c_str(); 
-   
+  cmdl[4] = (char *) kr_override.c_str();
+
   csound =  new Csound;
   csound->PreCompile();
   result = csound->Compile(5,cmdl);
   spout = csound->GetSpout();
-  spin  = csound->GetSpin();            
-    
+  spin  = csound->GetSpin();
+
   delete[] cmdl;
-  delete[]  sr; 
+  delete[]  sr;
   delete[]  kr;
 }
 
@@ -134,15 +134,15 @@ CsoundPlugin::CsoundPlugin(const char *csd,
 void CsoundPlugin::Process(unsigned long cnt){
   int pos, i, j, ksmps = csound->GetKsmps(),n = cnt;
   MYFLT scale = csound->Get0dBFS();
-  
+
   for(i=0;i<ctlports;i++)
     csound->SetChannel(ctlchn[i].c_str(),
-                       *(ctl[i])); 
-              
+                       *(ctl[i]));
+
   if(!result){
     for(i=0; i < n; i++, frames++){
-      if(frames == ksmps){ 
-      
+      if(frames == ksmps){
+
         result = csound->PerformKsmps();
         frames = 0;
       }
@@ -151,7 +151,7 @@ void CsoundPlugin::Process(unsigned long cnt){
           pos = frames*chans;
           spin[j+pos] =  inp[j][i]*scale;
           outp[j][i] = (LADSPA_Data) (spout[j+pos]/scale);
-        } else outp[j][i] = 0;    
+        } else outp[j][i] = 0;
     }
   }
 }
@@ -159,8 +159,8 @@ void CsoundPlugin::Process(unsigned long cnt){
 
 // Plugin instantiation
 static LADSPA_Handle createplugin(const LADSPA_Descriptor *pdesc,
-                                  unsigned long rate) 
-{       
+                                  unsigned long rate)
+{
   CsoundPlugin* p;
   int i, aports=0;
    cerr << "instantiating plugin: " << pdesc->Label << "\n";
@@ -168,7 +168,7 @@ static LADSPA_Handle createplugin(const LADSPA_Descriptor *pdesc,
     if(pdesc->PortDescriptors[i] & LADSPA_PORT_AUDIO) aports++;
   #ifdef DEBUG
   cerr << "instantiating plugin: " << pdesc->Label << "\n";
-  #endif 
+  #endif
    p = new CsoundPlugin(pdesc->Label, aports/2, pdesc->PortCount-aports,
                     (AuxData *)pdesc->ImplementationData,rate);
   #ifdef DEBUG
@@ -183,17 +183,17 @@ static LADSPA_Handle createplugin(const LADSPA_Descriptor *pdesc,
 
 
 // Plugin cleanup
-static void destroyplugin(LADSPA_Handle inst) 
+static void destroyplugin(LADSPA_Handle inst)
 {
   CsoundPlugin* p = (CsoundPlugin*)inst;
   delete p->csound;
   delete[] p->inp;
   delete[] p->outp;
-  delete p;  
+  delete p;
 }
 
 
-// Port connections  
+// Port connections
 static void connect(LADSPA_Handle inst, unsigned long port, LADSPA_Data* pdata)
 {
   CsoundPlugin *p = (CsoundPlugin *) inst;
@@ -205,15 +205,15 @@ static void connect(LADSPA_Handle inst, unsigned long port, LADSPA_Data* pdata)
 
 
 // Processing entry point
-static void runplugin(LADSPA_Handle inst, unsigned long cnt) 
+static void runplugin(LADSPA_Handle inst, unsigned long cnt)
 {
    ((CsoundPlugin *)inst)->Process(cnt);
 }
 
 
 // initialise a descriptor for a given CSD file
-static LADSPA_Descriptor *init_descriptor(char *csdname) 
-{               
+static LADSPA_Descriptor *init_descriptor(char *csdname)
+{
   char *str, *tmp;
   string csddata, temp;
   int portcnt=2, chans=1,i;
@@ -229,17 +229,17 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
   LADSPA_Descriptor *desc =  new LADSPA_Descriptor;
 
 
-  // if descriptor was created 
+  // if descriptor was created
   // and csdfile was open properly
-  if (desc && csdfile.is_open()) 
-    {       
+  if (desc && csdfile.is_open())
+    {
       tmp = new char[strlen(csdname)+1];
       str = new char[MAXLINESIZE+1];
       strcpy(tmp, csdname);
       desc->Label = (const char*) tmp;
       paux->ksmps = 10;
       // check channels
-      while(!csdfile.eof()){   
+      while(!csdfile.eof()){
         csdfile.getline(str,MAXLINESIZE);
         csddata = str;
 #ifdef DEBUG
@@ -251,7 +251,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
             indx = csddata.find('=');
             temp = csddata.substr(indx+1,100);
             chans = (int) atoi((char *) temp.c_str());
-            portcnt = chans*2;           
+            portcnt = chans*2;
             break;
           }
         // if we reached the end of header block
@@ -259,12 +259,12 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
       }
       csdfile.seekg(0);
       // check ksmps, similar to above
-      while(!csdfile.eof()){  
+      while(!csdfile.eof()){
         csdfile.getline(str,MAXLINESIZE);
         csddata = str;
 #ifdef DEBUG
         cerr << csddata << "\n";
-#endif 
+#endif
         if(csddata.find("ksmps")!=string::npos){
           indx = csddata.find('=');
           temp = csddata.substr(indx+1,100);
@@ -273,17 +273,17 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
         }
         else if(csddata.find("instr")!=string::npos) break;
       }
-    
-      csdfile.seekg(0); 
+
+      csdfile.seekg(0);
       while(!csdfile.eof())
         {
           csdfile.getline(str,MAXLINESIZE);
           csddata = str;
-          // check for csLADSPA section  
+          // check for csLADSPA section
           if(csddata.find("<csLADSPA>")!=string::npos){
             cerr << "cSLADSPA plugin found: \n";
             plugin_found = true;
-          } 
+          }
           // now if we found a plugin header section
           // we proceed to read it
           if (plugin_found) {
@@ -298,7 +298,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
             }
             else if(csddata.find("Maker")!=string::npos){
 	      equals = csddata.find('=');
-              temp = csddata.substr(equals+1) + 
+              temp = csddata.substr(equals+1) +
                 "     (csLADSPA: Lazzarini, Walsh)";
               temp = trim(temp);
               tmp = new char[temp.length()+1];
@@ -309,8 +309,8 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
               equals = csddata.find('=');
               temp = csddata.substr(equals+1);
               temp = trim(temp);
-              desc->UniqueID = atoi(temp.c_str());      
-            }                 
+              desc->UniqueID = atoi(temp.c_str());
+            }
             else if(csddata.find("Copyright")!=string::npos){
               equals = csddata.find('=');
               temp = csddata.substr(equals+1, 100);
@@ -318,47 +318,52 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
               tmp = new char[temp.length()+1];
               strcpy(tmp, (const char*)temp.c_str());
               desc->Copyright = (const char*) tmp;
-            }                     
+            }
             else if(csddata.find("ControlPort")!=string::npos)
               {
-		equals = csddata.find('='); 
+		equals = csddata.find('=');
                 if(portcnt < MAXPORTS) {
-                  PortDescriptors[portcnt] = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL; 
+                  PortDescriptors[portcnt] =
+                    LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
                   temp = csddata;
                   indx = temp.find('|');
                   string temp2 = trim(temp.substr(equals+1,indx-(equals+1)));
                   PortNames[portcnt] = new char[temp2.length()+1];
-                  strcpy(PortNames[portcnt], (const char*)temp2.c_str());       
-                  temp2 = trim(temp.substr(indx+1));            
-                  ctlchn[portcnt-chans*2] =  temp2;//temp.substr(indx+1); 
+                  strcpy(PortNames[portcnt], (const char*)temp2.c_str());
+                  temp2 = trim(temp.substr(indx+1));
+                  ctlchn[portcnt-chans*2] =  temp2;//temp.substr(indx+1);
                   csdfile.getline(str,500);
-                  csddata = str; 
+                  csddata = str;
                   temp = csddata.substr(6, 200);
                   indx = temp.find('|');
                   indx2 = temp.find('&');
-                  // if &log is found in the range spec, then we have a LOGARITHMIC response 
-                  if(indx2<200 && !strcmp(temp.substr(indx2+1,indx2+3).c_str(), "log")){
-                    PortRangeHints[portcnt].HintDescriptor = 
-                      (LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE  
+                  // if &log is found in the range spec, then we have a
+                  // LOGARITHMIC response
+                  if(indx2<200 &&
+                     !strcmp(temp.substr(indx2+1,indx2+3).c_str(), "log")){
+                    PortRangeHints[portcnt].HintDescriptor =
+                      (LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE
                        | LADSPA_HINT_LOGARITHMIC | LADSPA_HINT_DEFAULT_MIDDLE);
                     lower =  atoi((char*)temp.substr(0, indx).c_str());
                     upper =  atoi((char*)temp.substr(indx+1, indx2).c_str());
                   }
                   else {
-                    PortRangeHints[portcnt].HintDescriptor = 
+                    PortRangeHints[portcnt].HintDescriptor =
                       (LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE  );
                     lower =  atoi((char*)temp.substr(0, indx).c_str());
                     upper =  atoi((char*)temp.substr(indx+1, 200).c_str());
                   }
-                  PortRangeHints[portcnt].LowerBound = lower < upper ? lower : upper;
-                  PortRangeHints[portcnt].UpperBound = upper > lower ? upper : lower;
-                  portcnt++;                        
+                  PortRangeHints[portcnt].LowerBound =
+                    lower < upper ? lower : upper;
+                  PortRangeHints[portcnt].UpperBound =
+                    upper > lower ? upper : lower;
+                  portcnt++;
                   indx2 = 0;
-                } 
-              }            
+                }
+              }
             else if(csddata.find("</csLADSPA>")!=string::npos) break;
           }
-        }       
+        }
       csdfile.close();
       // now if a csLADSPA section was found
       // we proceed to create the plugin descriptor
@@ -375,8 +380,8 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
           sprintf(PortNames[i+chans], "csladspa-audio-out%d", i);
         }
         desc->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-        desc->PortDescriptors = (const LADSPA_PortDescriptor *) PortDescriptors; 
-        desc->PortNames = (const char **)PortNames; 
+        desc->PortDescriptors = (const LADSPA_PortDescriptor *) PortDescriptors;
+        desc->PortNames = (const char **)PortNames;
         desc->PortRangeHints = (const LADSPA_PortRangeHint *) PortRangeHints;
         desc->instantiate = createplugin;
         desc->connect_port = connect;
@@ -391,10 +396,10 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
         desc->ImplementationData = (void *) paux;
         delete[] str;
         cerr << "PLUGIN LOADED\n";
-     
+
         return desc;
-      }      
-    } 
+      }
+    }
   // otherwise we just delete the empty descriptors
   // and return NULL
   delete desc;
@@ -411,7 +416,7 @@ int CountCSD(char **csdnames)
   DIR             *dip;
   struct dirent   *dit;
   string          temp, name;
-  char           *ladspa_path;  
+  char           *ladspa_path;
   int             i = 0;
   int             indx = 0;
 
@@ -424,11 +429,11 @@ int CountCSD(char **csdnames)
   // current directory
   if(ladspa_path == NULL) dip = opendir(".");
   else dip = opendir(ladspa_path);
-  if (dip == NULL){             
-    return -1;    
-  }               
+  if (dip == NULL){
+    return -1;
+  }
   while ((dit = readdir(dip))!=NULL)
-    {            
+    {
       temp = dit->d_name;
       indx = temp.find(".csd", 0);
       string validExt = trim(temp.substr(indx+1));
@@ -441,7 +446,7 @@ int CountCSD(char **csdnames)
           }
           else name = temp;
           csdnames[i] =  new char[name.length()+1];
-          strcpy(csdnames[i], (char*)name.c_str()); 
+          strcpy(csdnames[i], (char*)name.c_str());
           i++;
         }
     }
@@ -450,8 +455,8 @@ int CountCSD(char **csdnames)
 
 // plugin lib entry point
 PUBLIC
-const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index) 
-{ 
+const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
+{
   // count CSD files to build the plugin lib
   // and fill in the CSD names list
   LADSPA_Descriptor *descriptor = NULL;
@@ -467,11 +472,11 @@ const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
     }
   // delete the CSD list
   for(unsigned int i=0; i < csds; i++) delete[] csdnames[i];
-  
+
   if(descriptor == NULL)
     cerr << "no more csLADSPA plugins\n";
   return descriptor;
- 
+
 }
 
 
