@@ -38,7 +38,7 @@ void check_exists(char *dir)
         }
       }
       else {
-        printf("Directort %s OK\n", test);
+        printf("Directory %s OK\n", test);
       }
       *p = '/';
     }
@@ -167,19 +167,10 @@ int main(int argc, char **argv)
         system(s);
       }
     }
-<<<<<<< install.c
     /* Need to setup OPCODEDIR or OPCODEDIR64 */
     /* This differs according to which shell is being used, so for
        bash, sh,  add "OPCODEDIRxx=$prefix/$opcdirl export OPCODEDIRxx"
        csh, tcsh  add "setenv OPCODEDIRxx $prefix/$opcdirl"
-    */
-    /* and check /etc/ld.so.conf. If that is not writable change users LD_PATH */
-    /* Also need to check existence of libsndfile and other necessary libraries */
-=======
-    /* Need to setup OPCODEDIR or OPCODEDIR64 */
-    /* This differs according to which shell is being used, so for
-       bash, sh,  add to .profile "OPCODEDIRxx=$prefix/$opcdir; export OPCODEDIRxx"
-       csh, tcsh  add to .cshrc "setenv OPCODEDIRxx $prefix/$opcdir"
     */
     {
       char *shell = getenv("SHELL");
@@ -189,7 +180,7 @@ int main(int argc, char **argv)
         FILE *rc;
         FILE *new;
         char name[32];
-        strcpy(name, (single==2 ? "OPCODEDIR32 " : "OPCODEDIR32 "));
+        strcpy(name, (single==2 ? "OPCODEDIR64 " : "OPCODEDIR "));
         strcpy(buff, getenv("HOME"));
         strcat(buff, "/.cshrc");
         rc = fopen(buff, "r");
@@ -213,7 +204,7 @@ int main(int argc, char **argv)
         FILE *rc;
         FILE *new;
         char name[32];
-        strcpy(name, (single==2 ? "OPCODEDIR32 " : "OPCODEDIR32 "));
+        strcpy(name, (single==2 ? "OPCODEDIR64 " : "OPCODEDIR "));
         strcpy(buff, getenv("HOME"));
         strcat(buff, "/.profile");
         rc = fopen(buff, "r");
@@ -228,13 +219,12 @@ int main(int argc, char **argv)
           }
           fputs(b, new);
         }
-        fprintf(new, "%s=%s/%s; export name\n", name, prefix , opcdir, name);
+        fprintf(new, "%s=%s/%s; export %s\n", name, prefix , opcdir, name);
         fclose(new); fclose(rc); unlink(buff); link(temp, buff);
       }
     }
     /* and check /etc/ld.so.conf. If that is not writable change users LD_PATH */
     /* Also need to check existence of libsndfile and other necessary libraries */
->>>>>>> 1.4
 
 }
 

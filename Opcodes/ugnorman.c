@@ -773,15 +773,18 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
     int     i;                  /* for the for loop */
     int     firstband = p->firstband;
 
+    printf("FetchADDNZbands: position %f\n", position);
     frame = (int) position;
     frm0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
-      for (i = 0; i < 25; i++)
+      for (i = 0; i < 25; i++) { 
         buf[i] = (p->swapped == 1 ? bswap(&frm0[firstband + i])
                                     : frm0[firstband + i]); /* output value */
+        printf("buf[%d] = %f\n", i, buf[i]);
+      }
       return;
     }
 
@@ -1009,9 +1012,9 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
-      if (i == synthme && nsynthed < p->bands) {
-/* synthesize cosine */
-        amp = csound->e0dbfs*(MYFLT) sqrt((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
+      if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
+        amp = csound->e0dbfs*
+          (MYFLT) sqrt((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
         nsmps = csound->ksmps;
         for (n=0; n<nsmps; n++) {
