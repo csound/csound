@@ -46,7 +46,7 @@ std::ostream &operator << (std::ostream &stream,
 
 namespace csound
 {
-  static int debug = 0;
+  static int debug = 2;
 
   std::map<size_t, std::vector< std::vector<double> > > primeChordsForDivisionsPerOctave;
   std::map<size_t, std::map<double, double> > pForCForDivisionsPerOctave;
@@ -76,7 +76,7 @@ namespace csound
     return std::floor(x + 0.5);
   }
 
-  std::vector<double> sort(const std::vector<double> &chord)
+  std::vector<double> _sort_(const std::vector<double> &chord)
   {
     std::vector<double> sorted(chord);
     std::sort(sorted.begin(), sorted.end());
@@ -117,7 +117,7 @@ namespace csound
   }
 
   std::vector<double> Voicelead::pitchClassSetToPandT(const std::vector<double> &pcs_, 
-									size_t divisionsPerOctave)
+						      size_t divisionsPerOctave)
   {
     std::vector<double> normalChord_ = normalChord(pcs_);
     std::vector<double> zeroChord_ = toOrigin(normalChord_);
@@ -180,10 +180,10 @@ namespace csound
           if ( ((a[i] - a[j]) ==  7.0 && (b[i] - b[j]) ==  7.0) ||
                ((a[i] - a[j]) == -7.0 && (b[i] - b[j]) == -7.0) ) {
             if (debug > 1) {
-              std::cout << "Parallel fifth: " << std::endl;
-              std::cout << " chord 1: " << a << std::endl;
-              std::cout << " leading: " << voiceleading(a, b) << std::endl;
-              std::cout << " chord 2: " << b << std::endl;
+              std::cerr << "Parallel fifth: " << std::endl;
+              std::cerr << " chord 1: " << a << std::endl;
+              std::cerr << " leading: " << voiceleading(a, b) << std::endl;
+              std::cerr << " chord 2: " << b << std::endl;
             }
             return true;
           }
@@ -232,19 +232,19 @@ namespace csound
     std::vector< std::vector<double> > rotations_;
     std::vector<double> inversion = pcs(chord);
     if (debug > 1) {
-      std::cout << "rotating:   " << chord << std::endl;
-      std::cout << "rotation 1: " << inversion << std::endl;
+      std::cerr << "rotating:   " << chord << std::endl;
+      std::cerr << "rotation 1: " << inversion << std::endl;
     }
     rotations_.push_back(inversion);
     for (size_t i = 1, n = chord.size(); i < n; i++) {
       inversion = rotate(inversion);
       if (debug > 1) {
-        std::cout << "rotation " << (i+1) << ": " << inversion << std::endl;
+        std::cerr << "rotation " << (i+1) << ": " << inversion << std::endl;
       }
       rotations_.push_back(inversion);
     }
     if (debug > 1) {
-      std::cout << std::endl;
+      std::cerr << std::endl;
     }
     return rotations_;
   }
@@ -267,9 +267,9 @@ namespace csound
     for (size_t i = 0, n = chord.size(); i < n; i++) {
       pcs_[i] = pc(chord[i], divisionsPerOctave);
     }
-    if (debug > 1) {
-      std::cout << "chord: " << chord << std::endl;
-      std::cout << "pcs: " << pcs_ << std::endl;
+    if (debug > 2) {
+      std::cerr << "chord: " << chord << std::endl;
+      std::cerr << "pcs: " << pcs_ << std::endl;
     }
     std::sort(pcs_.begin(), pcs_.end());
     return pcs_;
@@ -287,9 +287,9 @@ namespace csound
       }
     }
     std::sort(pcs_.begin(), pcs_.end());
-    if (debug > 1) {
-      std::cout << "chord: " << chord << std::endl;
-      std::cout << "pcs: " << pcs_ << std::endl;
+    if (debug > 2) {
+      std::cerr << "chord: " << chord << std::endl;
+      std::cerr << "pcs: " << pcs_ << std::endl;
     }
     return pcs_;
   }
@@ -326,7 +326,7 @@ namespace csound
     std::vector<double> iterator_ = iterator;
     for (double pitch = original[voice]; pitch < maximum; pitch = pitch + double(divisionsPerOctave)) {
       iterator_[voice] = pitch;
-      chords.insert(sort(iterator_));
+      chords.insert(_sort_(iterator_));
       inversions(original, iterator_, voice + 1, maximum, chords, divisionsPerOctave);
     }
   }
@@ -377,10 +377,10 @@ namespace csound
     std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range, divisionsPerOctave);
     std::vector<double> voicing = closest(source, voicings_, avoidParallels);
     if (debug) {
-      std::cout << "   From: " << source_ << std::endl;
-      std::cout << "     To: " << target_ << std::endl;
-      std::cout << "Leading: " << voiceleading(source_, voicing) << std::endl;
-      std::cout << "     Is: " << voicing << std::endl << std::endl;
+      std::cerr << "   From: " << source_ << std::endl;
+      std::cerr << "     To: " << target_ << std::endl;
+      std::cerr << "Leading: " << voiceleading(source_, voicing) << std::endl;
+      std::cerr << "     Is: " << voicing << std::endl << std::endl;
     }
     return voicing;
   }
@@ -441,10 +441,10 @@ namespace csound
       recursiveVoicelead_(source, rotations_[i], iterator,  voicing, 0,         lowest + range, avoidParallels, divisionsPerOctave);
     }
     if (debug) {
-      std::cout << "   From: " << source_ << std::endl;
-      std::cout << "     To: " << target_ << std::endl;
-      std::cout << "Leading: " << voiceleading(source_, voicing) << std::endl;
-      std::cout << "     Is: " << voicing << std::endl << std::endl;
+      std::cerr << "   From: " << source_ << std::endl;
+      std::cerr << "     To: " << target_ << std::endl;
+      std::cerr << "Leading: " << voiceleading(source_, voicing) << std::endl;
+      std::cerr << "     Is: " << voicing << std::endl << std::endl;
     }
     return voicing;
   }
@@ -665,22 +665,22 @@ namespace csound
     MatrixCell() : i(0), j(0), d(0.0)
     {
     }
-//     MatrixCell(const MatrixCell &a)
-//     {
-//       operator=(a);
-//     }
-//     MatrixCell &operator=(const MatrixCell &a)
-//     {
-//       if (this != &a) {
-// 	i = a.i;
-// 	j = a.j;
-// 	s = a.s;
-// 	b = a.b;
-// 	v = a.v;
-// 	d = a.d;
-//       }
-//       return *this;
-//     }
+    //     MatrixCell(const MatrixCell &a)
+    //     {
+    //       operator=(a);
+    //     }
+    //     MatrixCell &operator=(const MatrixCell &a)
+    //     {
+    //       if (this != &a) {
+    // 	i = a.i;
+    // 	j = a.j;
+    // 	s = a.s;
+    // 	b = a.b;
+    // 	v = a.v;
+    // 	d = a.d;
+    //       }
+    //       return *this;
+    //     }
   };
 
   const MatrixCell &minimumCell(const MatrixCell &a, const MatrixCell &b, const MatrixCell &c)
@@ -786,5 +786,158 @@ namespace csound
     result.push_back(returnedVoiceleading);
     result.push_back(returnedResultChord);
     return result;
+  }
+
+  bool Voicelead::addOctave(const std::vector<double> &lowestVoicing, std::vector<double> &newVoicing, size_t maximumPitch, size_t divisionsPerOctave)
+  {
+    for (size_t voice = 0, voices = lowestVoicing.size(); voice < voices; voice++) {
+      double newPitch = newVoicing[voice] + double(divisionsPerOctave);
+      if (newPitch >= maximumPitch) {
+	newVoicing[voice] = lowestVoicing[voice];
+      } else {
+	newVoicing[voice] = newPitch;
+	if (debug > 1) {
+	  std::cerr << "addOctave: " << newVoicing << std::endl;
+	}
+	return true;
+      }
+    }
+    if (debug > 1) {
+      std::cerr << "addOctave: exceeded range." << std::endl;
+    }
+    return false;
+  }
+
+  std::vector<double> Voicelead::wrap(const std::vector<double> &chord, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave) 
+  {
+    std::vector<double> wrapped = chord;
+    for(size_t i = 0, n = chord.size(); i < n; i++) {
+      double pc_ = pc(chord[i], divisionsPerOctave);
+      if (chord[i] < lowestPitch) {
+	wrapped[i] = highestPitch + pc_ - divisionsPerOctave;
+      } else if (chord[i] > highestPitch) {
+	wrapped[i] = lowestPitch - pc_ + divisionsPerOctave;
+      }
+    }
+    return wrapped;
+  }
+
+  std::vector<double> Voicelead::ptvToChord(size_t P, size_t T, size_t V_, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave)
+  {
+    // Find the normal chord of PT.
+    std::vector<double> lowestVoicing = normalChord(pAndTtoPitchClassSet(P, T, divisionsPerOctave));
+    // Transpose it by octaves until its first voice 
+    // is as close as possible to the lowest pitch, but no lower.
+    while (lowestPitch > lowestVoicing[0]) {
+      for (size_t i = 0, n = lowestVoicing.size(); i < n; i++) {
+	lowestVoicing[i] += double(divisionsPerOctave);
+      }
+    }
+    // Enumerate the voicings by adding octaves until one of the voicings matches the original V.
+    // The enumeration continues until the lowest tone of the voicing is above the highest pitch;
+    // the other tones of the voicing are wrapped back to the bottom of the range.
+    std::vector<double> iterator = lowestVoicing;
+    std::vector<double> voicing;
+    for(size_t V = 0; ; V++) {
+      voicing = _sort_(wrap(iterator, lowestPitch, highestPitch, divisionsPerOctave));
+      if (V == V_) {
+	return voicing;
+      }
+      // If our V_ is too big, take its modulus and try again.
+      if(!addOctave(lowestVoicing, iterator, highestPitch, divisionsPerOctave)) {
+	V_ = V_ % V;
+	V = 0;
+	iterator = lowestVoicing;
+      }
+    }
+  }
+
+  std::vector<double> Voicelead::chordToPTV(const std::vector<double> &chord_, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave)
+  {
+    std::vector<double> chord = _sort_(chord_);
+    // Find the normal chord of the chord.
+    std::vector<double> lowestVoicing = normalChord(chord);
+    // Transpose it by octaves until its first voice 
+    // is as close as possible to the lowest pitch, but no lower.
+    while (lowestVoicing[0] < lowestPitch) {
+      for (size_t i = 0, n = lowestVoicing.size(); i < n; i++) {
+	lowestVoicing[i] += double(divisionsPerOctave);
+      }
+    }    
+    double offsetHighestPitch = highestPitch + lowestVoicing[0];
+    // Enumerate the voicings by adding octaves.
+    std::vector<double> ptv;
+    double V = 0.0;
+    std::vector<double> iterator = lowestVoicing;
+    std::vector<double> voicing = _sort_(lowestVoicing);
+    while (voicing != chord) {
+      if (!addOctave(lowestVoicing, iterator, offsetHighestPitch, divisionsPerOctave)) {
+	break;
+      }
+      std::vector<double> wrappedIterator = wrap(iterator, lowestPitch, highestPitch, divisionsPerOctave);
+      voicing = _sort_(wrappedIterator);
+      bool duplicates = false;
+      for (size_t i = 0; i < voicing.size(); i++) {
+	size_t n = std::count(voicing.begin(), voicing.end(), voicing[i]);
+	if (n > 1) {
+	  duplicates = true;
+	  break;
+	}
+      }
+      if (duplicates) {
+	if (voicing == wrappedIterator) {
+	  V++;
+	}
+      } else {
+	V++;
+      }
+    }
+    if (voicing == chord) {
+      ptv = pitchClassSetToPandT(chord, divisionsPerOctave);
+      ptv.push_back(V);
+    }
+    return ptv;
+  }
+
+  std::vector< std::vector<double> > Voicelead::allVoicings(const std::vector<double> &chord_,
+							    double lowestPitch,
+							    double highestPitch,
+							    size_t divisionsPerOctave)
+  {
+    std::vector<double> chord = _sort_(chord_);
+    // Find the normal chord of the chord.
+    std::vector<double> lowestVoicing = normalChord(chord);
+    // Transpose it by octaves until its first voice 
+    // is as close as possible to the lowest pitch, but no lower.
+    while (lowestVoicing[0] < lowestPitch) {
+      for (size_t i = 0, n = lowestVoicing.size(); i < n; i++) {
+	lowestVoicing[i] += double(divisionsPerOctave);
+      }
+    }    
+    double offsetHighestPitch = highestPitch + lowestVoicing[0];
+    // Enumerate the voicings by adding octaves.
+    std::vector< std::vector<double> > voicings;
+    std::vector<double> iterator = lowestVoicing;
+    voicings.push_back(_sort_(lowestVoicing));
+    while(addOctave(lowestVoicing, iterator, offsetHighestPitch, divisionsPerOctave)) {
+      std::vector<double> wrappedIterator = wrap(iterator, lowestPitch, highestPitch, divisionsPerOctave);
+      std::vector<double> voicing = _sort_(wrappedIterator);
+      bool duplicates = false;
+      for (size_t i = 0; i < voicing.size(); i++) {
+	size_t n = std::count(voicing.begin(), voicing.end(), voicing[i]);
+	if (n > 1) {
+	  duplicates = true;
+	  break;
+	}
+      }
+      if (duplicates) {
+	if (voicing == wrappedIterator) {
+	  voicings.push_back(voicing);
+	}
+      } else {
+	voicings.push_back(voicing);
+      }
+    }
+    return voicings;
   }
 }
