@@ -462,6 +462,15 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
       /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
       /* Hamming :Fw_t = 0.5 F_t - 0.25[ F_{t-1}+F_{t+1}] */
       /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}] + 0.04 [F_{t-2}+F_{t+2}] */
+      /* Blackman_exact:Fw_t = 0.42659071367153912296F_t 
+         - 0.24828030954428202923 [F_{t-1}+F_{t+1}] 
+         + 0.038424333619948409286 [F_{t-2}+F_{t+2}]      */
+      /* Nuttall_C3:Fw_t = 0.375  F_t - 0.25[ F_{t-1}+F_{t+1}] + 
+                                      0.0625 [F_{t-2}+F_{t+2}] */
+      /* BHarris_3:Fw_t = 0.44959 F_t - 0.24682[ F_{t-1}+F_{t+1}] + 
+                                      0.02838 [F_{t-2}+F_{t+2}] */
+      /* BHarris_min:Fw_t = 0.42323 F_t - 0.2486703 [ F_{t-1}+F_{t+1}] + 
+                                      0.0391396 [F_{t-2}+F_{t+2}] */
       switch ((int)(*p->wintype+FL(0.5))) {
       case PVS_WIN_HAMMING:
         for (j=0; j<NB; j++) {
@@ -474,7 +483,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         }
         ff[0].re -= FL(0.46)*fw[1].re;
         ff[NB-1].re -= FL(0.46)*fw[NB-2].re;
-        break;
+        goto gook;
       case PVS_WIN_HANN:
         for (j=0; j<NB; j++) {
           ff[j].re = FL(0.5)*fw[j].re;
@@ -486,7 +495,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         }
         ff[0].re -= FL(0.5)*fw[1].re;
         ff[NB-1].re -= FL(0.5)*fw[NB-2].re;
-        break;
+        goto gook;
       default:
         csound->Message(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
@@ -495,7 +504,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
           ff[j].re = fw[j].re;
           ff[j].im = fw[j].im;
         }
-        break;
+        goto gook;
       case PVS_WIN_BLACKMAN:
         for (j=0; j<NB; j++) {
           ff[j].re = FL(0.42)*fw[j].re;
@@ -509,13 +518,95 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
           ff[j].re += FL(0.04)*(fw[j+2].re + fw[j-2].re);
           ff[j].im += FL(0.04)*(fw[j+2].im + fw[j-2].im);
         }
-        ff[0].re += -FL(0.5)*fw[1].re + FL(0.08)*fw[2].re;
+        ff[0].re    += -FL(0.5)*fw[1].re + FL(0.08)*fw[2].re;
         ff[NB-1].re += -FL(0.5)*fw[NB-2].re + FL(0.08)*fw[NB-3].re;
-        ff[1].re += -FL(0.5)*fw[2].re + FL(0.08)*fw[3].re;
+        ff[1].re    += -FL(0.5)*fw[2].re + FL(0.08)*fw[3].re;
         ff[NB-2].re += -FL(0.5)*fw[NB-3].re + FL(0.08)*fw[NB-4].re;
+        break;
+    case PVS_WIN_BLACKMAN_EXACT:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.42659071367153912296)*fw[j].re;
+          ff[j].im = FL(0.42659071367153912296)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.49656061908856405847)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.49656061908856405847)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
+        }
+        for (j=2; j<NB-2; j++) {
+          ff[j].re += FL(0.076848667239896818573)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
+          ff[j].im += FL(0.076848667239896818573)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
+        }
+        ff[0].re    += -FL(0.49656061908856405847) * fw[1].re
+                      + FL(0.076848667239896818573) * fw[2].re;
+        ff[NB-1].re += -FL(0.49656061908856405847) * fw[NB-2].re
+                      + FL(0.076848667239896818573) * fw[NB-3].re;
+        ff[1].re    += -FL(0.49656061908856405847) * fw[2].re
+                      + FL(0.076848667239896818573) * fw[3].re;
+        ff[NB-2].re += -FL(0.49656061908856405847) * fw[NB-3].re
+                      + FL(0.076848667239896818573) * fw[NB-4].re;
+        break;
+      case PVS_WIN_NUTTALLC3:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.375)*fw[j].re;
+          ff[j].im = FL(0.375)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.5)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.5)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
+        }
+        for (j=2; j<NB-2; j++) {
+          ff[j].re += FL(0.125)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
+          ff[j].im += FL(0.125)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
+        }
+        ff[0].re    += -FL(0.5) * fw[1].re    + FL(0.125) * fw[2].re;
+        ff[NB-1].re += -FL(0.5) * fw[NB-2].re + FL(0.125) * fw[NB-3].re;
+        ff[1].re    += -FL(0.5) * fw[2].re    + FL(0.125) * fw[3].re;
+        ff[NB-2].re += -FL(0.5) * fw[NB-3].re + FL(0.125) * fw[NB-4].re;
+        break;
+      case PVS_WIN_BHARRIS_3:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.44959)*fw[j].re;
+          ff[j].im = FL(0.44959)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.49364)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.49364)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
+        }
+        for (j=2; j<NB-2; j++) {
+          ff[j].re += FL(0.05677)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
+          ff[j].im += FL(0.05677)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
+        }
+        ff[0].re    += -FL(0.49364) * fw[1].re    + FL(0.05677) * fw[2].re;
+        ff[NB-1].re += -FL(0.49364) * fw[NB-2].re + FL(0.05677) * fw[NB-3].re;
+        ff[1].re    += -FL(0.49364) * fw[2].re    + FL(0.05677) * fw[3].re;
+        ff[NB-2].re += -FL(0.49364) * fw[NB-3].re + FL(0.05677) * fw[NB-4].re;
+        break;
+      case PVS_WIN_BHARRIS_MIN:
+        for (j=0; j<NB; j++) {
+          ff[j].re = FL(0.42323)*fw[j].re;
+          ff[j].im = FL(0.42323)*fw[j].im;
+        }
+        for (j=1; j<NB-1; j++) {
+          ff[j].re -= FL(0.4973406)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
+          ff[j].im -= FL(0.4973406)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
+        }
+        for (j=2; j<NB-2; j++) {
+          ff[j].re += FL(0.0782793)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
+          ff[j].im += FL(0.0782793)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
+        }
+        ff[0].re    += -FL(0.4973406) * fw[1].re    + FL(0.0782793) * fw[2].re;
+        ff[NB-1].re += -FL(0.4973406) * fw[NB-2].re + FL(0.0782793) * fw[NB-3].re;
+        ff[1].re    += -FL(0.4973406) * fw[2].re    + FL(0.0782793) * fw[3].re;
+        ff[NB-2].re += -FL(0.4973406) * fw[NB-3].re + FL(0.0782793) * fw[NB-4].re;
         break;
       }
     }
+#ifdef DO_HACK
+    ff[1].re = 0.5 * (fw[2].re + fw[0].re);
+    ff[1].im = 0.5 * (fw[2].im + fw[0].im);
+#endif
+
+ gook:
 /*     for (i=0; i<ksmps; i++) { */
 /*       int j; */
 /*       CMPLX* ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB; */
@@ -524,7 +615,11 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
 /*         printf("%d: %f,%f\t%f,%f\n", j, fw[j].re, fw[j].im, ff[j].re, ff[j].im); */
 /*     } */
     p->inptr = loc;
-    return NOTOK;
+#ifdef somefineday
+    if (mode != PVS_COMPLEX)
+      sconvert(mode,n,Fexact,win_re,win_im,mag,freq,inPhase);
+#endif
+    return OK;
 }
 #endif
 
