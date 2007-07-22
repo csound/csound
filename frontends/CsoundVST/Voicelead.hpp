@@ -172,20 +172,6 @@ namespace csound
 						    size_t divisionsPerOctave = 12);
 
     /**
-     * Return all voicings of the chord
-     * within the specified range. These voicings
-     * include all unordered permutations of the pitch-classes
-     * at whatever octave fits within the range.
-     * The index of this list forms an additive cyclic group.
-     * Arithmetic on this group can perform many operations
-     * on the voices of the chord such as revoicing, arpeggiation, and so on.
-     */
-    static std::vector< std::vector<double> > voicings(const std::vector<double> &chord,
-                                                       double lowest,
-                                                       double range,
-                                                       size_t divisionsPerOctave);
-
-    /**
      * Return the closest voiceleading within the specified range,
      * first by smoothness then by simplicity,
      * between the source chord any of the destination chords,
@@ -353,8 +339,18 @@ namespace csound
    /**
      * Return the voiced chord for the prime chord index P, transposition T,
      * and voicing index V within the specified range for the indicated number of tones per octave.
-     * The algorithm enumerates the voicings of the lowest transposition (within the range)
-     * of the normal chord of the chord, and thus of V, until the V is matched.
+     * The algorithm finds the zero voicing 
+     * (the lowest octave transposition 
+     * of the normal chord of the chord
+     * that is no lower than the lowest pitch, 
+     * which has voicing index V = 0) and the zero
+     * iterator (the lowest (in all voices) 
+     * unordered voicing of the chord that is no lower 
+     * (in all voices) than the lowest pitch,
+     * which has enumeration index = 0). Thus, 
+     * V of a voicing equals the enumeration index of that
+     * voicing minus the enumeration index of the zero voicing.
+     * The algorithm enumerates the voicings, and thus V, until V is matched.
      * If V is greater than the maximum V, its modulus is used.
      */
     static std::vector<double> ptvToChord(size_t P, size_t T, size_t V_, size_t lowest, size_t range, size_t divisionsPerOctave = 12);
@@ -362,27 +358,37 @@ namespace csound
    /**
      * Return the voiced chord for the prime chord index P, transposition T,
      * and voicing index V within the specified range for the indicated number of tones per octave.
-     * The algorithm enumerates the voicings of the lowest transposition (within the range)
-     * of the normal chord of the chord, and thus of V, until the chord is matched.
-     * If V is greater than the maximum V, its modulus is used.
+     * The algorithm finds the zero voicing 
+     * (the lowest octave transposition 
+     * of the normal chord of the chord
+     * that is no lower than the lowest pitch, 
+     * which has voicing index V = 0) and the zero
+     * iterator (the lowest (in all voices) 
+     * unordered voicing of the chord that is no lower 
+     * (in all voices) than the lowest pitch,
+     * which has enumeration index = 0). Thus, the
+     * V of a voicing equals the enumeration index of that
+     * voicing minus the enumeration index of the zero voicing.
+     * The algorithm enumerates the voicings until the chord is matched.
      */
     static std::vector<double> chordToPTV(const std::vector<double> &chord, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave = 12);
 
     /**
-     * Return all voicings of the chord
-     * within the specified range. These voicings
-     * include all unordered permutations of the pitch-classes
-     * at whatever octave fits within the range.
-     * The index of this list forms an additive cyclic group.
+     * Return an enumeration of all voicings of the chord
+     * that are greater than or equal to the lowest pitch,
+     * and less than the highest pitch, by adding octaves. 
+     * Voicings are ordered, but note that normally 
+     * in this module chords are considered to be unordered. 
+     * Note that complex chords and/or wide ranges may require
+     * more memory than is available.
+     * The index of voicings V forms an additive cyclic group.
      * Arithmetic on this group can perform many operations
      * on the voices of the chord such as revoicing, arpeggiation, and so on.
-     * Note that large chords and ranges may require 
-     * more memory than is available.
      */
-    static std::vector< std::vector<double> > allVoicings(const std::vector<double> &chord,
-							  double lowest,
-							  double highest,
-							  size_t divisionsPerOctave);
+    static std::vector< std::vector<double> > voicings(const std::vector<double> &chord,
+						       double lowest,
+						       double highest,
+						       size_t divisionsPerOctave);
     /**
      * Add an octave to a voicing; can be
      * iterated to enumerate the voicings of a chord. 
@@ -399,8 +405,12 @@ namespace csound
      * Wrap chord tones that exceed the highest pitch around to the bottom of the range orbifold.
      */
     static std::vector<double> wrap(const std::vector<double> &chord, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave = 12);
-  };
 
+    /**
+     * Return the chord transposed by the indicated number of semitones.
+     */
+    static std::vector<double> transpose(const std::vector<double> &chord, double semitones);
+  };
 }
 #endif
 
