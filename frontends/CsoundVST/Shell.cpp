@@ -25,8 +25,6 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
-#include "csdl.h"
-
 #ifdef WIN32
 #  define WIN32_LEAN_AND_MEAN 1
 #  include <windows.h>
@@ -34,56 +32,6 @@
 
 namespace csound
 {
-
-  void        (*Py_Initialize_)(void) = 0;
-  void        (*Py_Finalize_)(void) = 0;
-  void        (*PySys_SetArgv_)(int, char **) = 0;
-  PyObject_   *(*PyImport_ImportModule_)(char *) = 0;
-  void        (*PyErr_Print_)(void) = 0;
-  PyObject_   *(*PyObject_GetAttrString_)(PyObject_ *, char *) = 0;
-  int         (*PyRun_SimpleFileEx_)(FILE *, const char *, int) = 0;
-  int         (*PyRun_SimpleString_)(const char *) = 0;
-  PyObject_   *(*PyObject_CallMethod_)(PyObject_ *,
-                                       char *, char *, ...) = 0;
-  long        (*PyLong_AsLong_)(PyObject_ *) = 0;
-
-  void *Shell::pythonLibrary = 0;
-  const char *Shell::pythonLibraryPathList[] = {
-#ifdef WIN32
-    "python25.dll",
-    "python24.dll",
-    "python23.dll",
-#elif defined(MACOSX)
-    // hope that one of these will work
-    "/System/Library/Frameworks/Python.Framework/Versions/Current/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/Current/Python",
-    "/System/Library/Frameworks/Python.Framework/Versions/2.5/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/2.5/Python",
-    "/System/Library/Frameworks/Python.Framework/Versions/2.4/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/2.4/Python",
-    "/System/Library/Frameworks/Python.Framework/Versions/2.3/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/2.3/Python",
-    "/usr/lib/libpython2.5.dylib",
-    "/usr/lib/libpython2.4.dylib",
-    "/usr/lib/libpython2.3.dylib",
-    "/Library/Frameworks/Python.Framework/Versions/Current/Python",
-    "/Library/Frameworks/Python.framework/Versions/Current/Python",
-    "/Library/Frameworks/Python.Framework/Versions/2.5/Python",
-    "/Library/Frameworks/Python.framework/Versions/2.5/Python",
-    "/Library/Frameworks/Python.Framework/Versions/2.4/Python",
-    "/Library/Frameworks/Python.framework/Versions/2.4/Python",
-    "/Library/Frameworks/Python.Framework/Versions/2.3/Python",
-    "/Library/Frameworks/Python.framework/Versions/2.3/Python",
-    "/usr/local/lib/libpython2.5.dylib",
-    "/usr/local/lib/libpython2.4.dylib",
-    "/usr/local/lib/libpython2.3.dylib",
-#else
-    "libpython2.5.so",
-    "libpython2.4.so",
-    "libpython2.3.so",
-#endif
-    (char*) 0
-  };
 
   Shell::Shell()
   {
@@ -93,114 +41,9 @@ namespace csound
   {
   }
 
-  static bool pythonFuncWarning(void **pythonLibrary,
-                                const char *funcName)
-  {
-    csound::System::warn("Failed to find '%s' function. "
-                         "Python scripting is not enabled.\n", funcName);
-    csoundCloseLibrary(*pythonLibrary);
-    *pythonLibrary = (void *) 0;
-    return false;
-  }
-
   void Shell::open()
   {
-    // nothing to do if already loaded
-    if (pythonLibrary) {
-      return;
-    }
-    int     result = CSOUND_ERROR;
-#ifdef WIN32
-    // avoid pop-up window about missing DLL file
-    SetErrorMode((unsigned int) SEM_NOOPENFILEERRORBOX);
-#endif
-    for (const char **sp = &(pythonLibraryPathList[0]); *sp != (char*) 0; sp++) {
-      if ((result = csoundOpenLibrary(&pythonLibrary, *sp)) == CSOUND_SUCCESS) {
-        break;
-      }
-    }
-#ifdef WIN32
-    SetErrorMode((unsigned int) 0);
-#endif
-    if (result != CSOUND_SUCCESS) {
-      csound::System::warn("Python not found, disabling scripting. "
-                           "Check your PATH or Python installation.\n");
-      pythonLibrary = (void*) 0;
-      return;
-    }
-    Py_Initialize_ =
-      (void (*)(void))
-      csoundGetLibrarySymbol(pythonLibrary, "Py_Initialize");
-    if (!Py_Initialize_) {
-      pythonFuncWarning(&pythonLibrary, "Py_Initialize");
-      return;
-    }
-    Py_Finalize_ =
-      (void (*)(void))
-      csoundGetLibrarySymbol(pythonLibrary, "Py_Finalize");
-    if (!Py_Finalize_) {
-      pythonFuncWarning(&pythonLibrary, "Py_Finalize");
-      return;
-    }
-    PySys_SetArgv_ =
-      (void (*)(int, char **))
-      csoundGetLibrarySymbol(pythonLibrary, "PySys_SetArgv");
-    if (!PySys_SetArgv_) {
-      pythonFuncWarning(&pythonLibrary, "PySys_SetArgv");
-      return;
-    }
-    PyImport_ImportModule_ =
-      (PyObject_* (*)(char *))
-      csoundGetLibrarySymbol(pythonLibrary, "PyImport_ImportModule");
-    if (!PyImport_ImportModule_) {
-      pythonFuncWarning(&pythonLibrary,
-                        "PyImport_ImportModule");
-      return;
-    }
-    PyRun_SimpleFileEx_ =
-      (int (*)(FILE *, const char *, int))
-      csoundGetLibrarySymbol(pythonLibrary, "PyRun_SimpleFileEx");
-    if (!PyRun_SimpleFileEx_) {
-      pythonFuncWarning(&pythonLibrary, "PyRun_SimpleFileEx");
-      return;
-    }
-    PyRun_SimpleString_ =
-      (int (*)(const char *))
-      csoundGetLibrarySymbol(pythonLibrary, "PyRun_SimpleString");
-    if (!PyRun_SimpleString_) {
-      pythonFuncWarning(&pythonLibrary, "PyRun_SimpleString");
-      return;
-    }
-    PyErr_Print_ =
-      (void (*)(void))
-      csoundGetLibrarySymbol(pythonLibrary, "PyErr_Print");
-    if (!PyErr_Print_) {
-      pythonFuncWarning(&pythonLibrary, "PyErr_Print");
-      return;
-    }
-    PyObject_GetAttrString_ =
-      (PyObject_ *(*)(PyObject_ *, char *))
-      csoundGetLibrarySymbol(pythonLibrary, "PyObject_GetAttrString");
-    if (!PyObject_GetAttrString_) {
-      pythonFuncWarning(&pythonLibrary,
-                        "PyObject_GetAttrString");
-      return;
-    }
-    PyObject_CallMethod_ =
-      (PyObject_ * (*)(PyObject_ *, char *, char *, ...))
-      csoundGetLibrarySymbol(pythonLibrary, "PyObject_CallMethod");
-    if (!PyObject_CallMethod_) {
-      pythonFuncWarning(&pythonLibrary, "PyObject_CallMethod");
-      return;
-    }
-    PyLong_AsLong_ =
-      (long (*)(PyObject_ *))
-      csoundGetLibrarySymbol(pythonLibrary, "PyLong_AsLong");
-    if (!PyLong_AsLong_) {
-      pythonFuncWarning(&pythonLibrary, "PyLong_AsLong");
-      return;
-    }
-    Py_Initialize_();
+    Py_Initialize();
   }
 
   void Shell::close()
@@ -210,7 +53,7 @@ namespace csound
 
   void Shell::main(int argc, char **argv)
   {
-    PySys_SetArgv_(argc, argv);
+    PySys_SetArgv(argc, argv);
   }
 
   void Shell::initialize()
@@ -319,7 +162,7 @@ namespace csound
       {
         char *script__ = const_cast<char *>(script_.c_str());
         csound::System::message("==============================================================================================================\n");
-        result = PyRun_SimpleString_(script__);
+        result = PyRun_SimpleString(script__);
         if(result)
           {
             PyErr_Print_();

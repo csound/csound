@@ -27,8 +27,8 @@
 
 %module CsoundVST
 %{
-#include "CppSound.hpp"
-#include "Shell.hpp"
+#include <CppSound.hpp>
+#include <Shell.hpp>
 #include <list>
   %}
 
@@ -40,8 +40,9 @@
 #endif
 
 #include "audioeffectx.h"
-#include "CppSound.hpp"
-#include "Shell.hpp"
+#include <CppSound.hpp>
+#include <Shell.hpp>
+#include <System.hpp>
 #include <list>
 
 #endif
