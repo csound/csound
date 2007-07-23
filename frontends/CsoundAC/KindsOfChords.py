@@ -128,7 +128,7 @@ for i in xrange(1, int(pow(2, 12))):
     if C != C1:
         print 'Error: mToC is wrong: M: %s  C: %s %s' % (M, C, C1)
     c = numberchord(M)
-    chord = tuple(CsoundAC.Voicelead_pitchClassSetFromM(M, 12))
+    chord = tuple(CsoundAC.Voicelead_mToPitchClassSet(M, 12))
     if tuple(c) != chord:
         print 'Error: mToPitchClassSet is wrong.'
     name = CsoundAC.Conversions_mToName(M)
@@ -145,7 +145,7 @@ for i in xrange(1, int(pow(2, 12))):
     print 'M: %4d  %-63s  C: %4d  %-68s  P: %4d  %-63s  distance: %6.3f  %s' % (int(M), chord, int(C), normal, int(P), prime, distance, name)
 print
     
-print CsoundAC.Voicelead_mFromPitchClassSet(tuple(sort([0,1,10,7,5])))
+print CsoundAC.Voicelead_pitchClassSetToM(tuple(sort([0,1,10,7,5])))
 print (pow(2, 12) -1) % (pow(2,12)-1)
 
 print 'Unordered voicings of CM in 3 octaves:'
