@@ -98,7 +98,10 @@ commandOptions.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
 commandOptions.Add('buildCsoundVST',
-    'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
+    'Set to 1 to build CsoundVST (needs CsoundAC, FLTK, boost, Python, SWIG).',
+    '0')
+commandOptions.Add('buildCsoundAC',
+    'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
     '0')
 commandOptions.Add('buildCsound5GUI',
     'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
@@ -886,6 +889,8 @@ csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
 csoundProgramEnvironment.Append(LIBS = libCsoundLibs)
 
 vstEnvironment = commonEnvironment.Copy()
+guiProgramEnvironment = commonEnvironment.Copy()
+
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
     fltkConfigFlags += ' --ldflags'
@@ -900,8 +905,6 @@ if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = Split('''
         fltk fltk_images fltk_png z fltk_jpeg
     '''))
-guiProgramEnvironment = commonEnvironment.Copy()
-
 if getPlatform() == 'win32':
     if not withMSVC():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
@@ -1692,6 +1695,136 @@ else:
         csound5GUIEnvironment.Command(
             '%s/csound5gui' % appDir, 'csound5gui', "cp $SOURCE %s/" % appDir)
         addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', appDir)
+
+if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
+    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
+else:
+    csEditorEnvironment = commonEnvironment.Copy()
+    if getPlatform() == 'linux':
+        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx')
+        executables.append(csEditor)
+    elif getPlatform() == 'win32':
+        csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+        if (not withMSVC()):
+            csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
+        csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
+        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
+        executables.append(csEditor)
+    elif getPlatform() == 'darwin':
+        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+        csEditorEnvironment.Append(LIBS = Split('''
+            fltk stdc++ pthread m
+        '''))
+        csEditorEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework ApplicationServices
+        '''))
+        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
+        executables.append(csEditor)
+
+if not ((commonEnvironment['buildCsoundAC'] == '1') and fltkFound and boostFound and fltkFound):
+    print 'CONFIGURATION DECISION: Not building CsoundAC extension module for Csound with algorithmic composition.'
+else:
+    print 'CONFIGURATION DECISION: Building CsoundAC extension module for Csound with algorithmic composition.'
+    acEnvironment = vstEnvironment.Copy()
+    headers += glob.glob('frontends/CsoundAC/*.hpp')
+    acEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces'])
+    acEnvironment.Append(CPPPATH = pythonIncludePath)
+    acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    acEnvironment.Append(LIBPATH = pythonLibraryPath)
+    if getPlatform() != 'darwin':
+        acEnvironment.Prepend(LIBS = pythonLibs)
+    acEnvironment.Prepend(LIBS = ['csnd'])
+    acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    acEnvironment.Append(LIBS = libCsoundLibs)
+    acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
+    if getPlatform() == 'linux':
+        acEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
+        os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+    elif getPlatform() == 'darwin':
+        acEnvironment.Append(LIBS = ['dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        acEnvironment['SHLIBSUFFIX'] = '.dylib'
+    elif getPlatform() == 'win32':
+        acEnvironment['ENV']['PATH'] = os.environ['PATH']
+        acEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
+        acEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
+            -mwindows -Wl,--enable-runtime-pseudo-reloc
+        '''))
+        acEnvironment.Prepend(
+            LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
+        acEnvironment.Append(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+        guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
+    for option in acEnvironment['CCFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPPATH']:
+        option = '-I' + option
+        acEnvironment.Append(SWIGFLAGS = [option])
+    print 'PATH =', commonEnvironment['ENV']['PATH']
+    csoundAcSources = Split('''
+    frontends/CsoundAC/Cell.cpp
+    frontends/CsoundAC/Composition.cpp
+    frontends/CsoundAC/Conversions.cpp
+    frontends/CsoundAC/Counterpoint.cpp
+    frontends/CsoundAC/CounterpointNode.cpp
+    frontends/CsoundAC/Event.cpp
+    frontends/CsoundAC/Hocket.cpp
+    frontends/CsoundAC/ImageToScore.cpp
+    frontends/CsoundAC/Lindenmayer.cpp
+    frontends/CsoundAC/MCRM.cpp
+    frontends/CsoundAC/Midifile.cpp
+    frontends/CsoundAC/MusicModel.cpp
+    frontends/CsoundAC/Node.cpp
+    frontends/CsoundAC/Random.cpp
+    frontends/CsoundAC/Rescale.cpp
+    frontends/CsoundAC/Score.cpp
+    frontends/CsoundAC/ScoreNode.cpp
+    frontends/CsoundAC/Sequence.cpp
+    frontends/CsoundAC/Shell.cpp
+    frontends/CsoundAC/Soundfile.cpp
+    frontends/CsoundAC/StrangeAttractor.cpp
+    frontends/CsoundAC/System.cpp
+    frontends/CsoundAC/Voicelead.cpp
+    frontends/CsoundAC/VoiceleadingNode.cpp
+    ''')
+    swigflags = acEnvironment['SWIGFLAGS']
+    acWrapperEnvironment = acEnvironment.Copy()
+    fixCFlagsForSwig(acWrapperEnvironment)
+    csoundac = acEnvironment.SharedLibrary('CsoundAC', csoundAcSources)
+    libs.append(csoundac)
+    Depends(csoundac, csoundInterfaces)
+    Depends(csoundac, csoundLibrary)
+    csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
+        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, '-python'])
+    if getPlatform() == 'darwin':
+        acPythonEnvironment = acEnvironment.Copy()
+        acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
+        csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC', csoundAcPythonWrapper)
+        Depends(csoundAcPythonModule, csoundvst)
+    else:
+        acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        acEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        acEnvironment.Prepend(LIBS = pythonLibs)
+        acEnvironment.Append(CPPPATH = pythonIncludePath)
+        acPythonEnvironment = acEnvironment.Copy()
+        acPythonEnvironment.Append(LIBS = ['CsoundAC'])
+        csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC', [csoundAcPythonWrapper])
+        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
+            Depends(csoundvstPythonModule, pythonImportLibrary)
+        pythonModules.append('CsoundAC.py')
+
 buildScoregen = False
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
@@ -1705,14 +1838,14 @@ else:
         buildScoregen = False
     headers += glob.glob('frontends/CsoundVST/*.h')
     headers += glob.glob('frontends/CsoundVST/*.hpp')
-    vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    vstEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces', 'frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
     vstEnvironment.Append(CPPPATH = pythonIncludePath)
     vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = ['csnd'])
+    vstEnvironment.Prepend(LIBS = ['CsoundAC', 'csnd'])
     vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     vstEnvironment.Append(LIBS = libCsoundLibs)
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
@@ -1751,35 +1884,14 @@ else:
         vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundVstBaseSources = []
-    for i in ['AudioEffect', 'audioeffectx', 'Conversions', 'Shell', 'System']:
+    for i in ['AudioEffect', 'audioeffectx']:
         csoundVstBaseSources += vstEnvironment.SharedObject(
             'frontends/CsoundVST/%s.cpp' % i)
     csoundVstSources = csoundVstBaseSources + Split('''
-    frontends/CsoundVST/Cell.cpp
-    frontends/CsoundVST/Composition.cpp
-    frontends/CsoundVST/Counterpoint.cpp
-    frontends/CsoundVST/CounterpointNode.cpp
     frontends/CsoundVST/CsoundVST.cpp
     frontends/CsoundVST/CsoundVstFltk.cpp
     frontends/CsoundVST/CsoundVSTMain.cpp
     frontends/CsoundVST/CsoundVstUi.cpp
-    frontends/CsoundVST/Event.cpp
-    frontends/CsoundVST/Hocket.cpp
-    frontends/CsoundVST/ImageToScore.cpp
-    frontends/CsoundVST/Lindenmayer.cpp
-    frontends/CsoundVST/MCRM.cpp
-    frontends/CsoundVST/Midifile.cpp
-    frontends/CsoundVST/MusicModel.cpp
-    frontends/CsoundVST/Node.cpp
-    frontends/CsoundVST/Random.cpp
-    frontends/CsoundVST/Rescale.cpp
-    frontends/CsoundVST/Score.cpp
-    frontends/CsoundVST/ScoreNode.cpp
-    frontends/CsoundVST/Sequence.cpp
-    frontends/CsoundVST/Soundfile.cpp
-    frontends/CsoundVST/StrangeAttractor.cpp
-    frontends/CsoundVST/Voicelead.cpp
-    frontends/CsoundVST/VoiceleadingNode.cpp
     ''')
     if getPlatform() == 'win32':
         vstEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -1811,13 +1923,9 @@ else:
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     Depends(csoundvst, csoundInterfaces)
     Depends(csoundvst, csoundLibrary)
-    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
-        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
     if getPlatform() == 'darwin':
         vstPythonEnvironment = vstEnvironment.Copy()
         vstPythonEnvironment.Prepend(LIBS = ['CsoundVST'])
-        csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', csoundVstPythonWrapper)
-        Depends(csoundVstPythonModule, csoundvst)
     else:
         vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         vstEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -1838,10 +1946,6 @@ else:
         frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi
             '''))
         vstPythonEnvironment.Append(LIBS = ['CsoundVST'])
-        csoundVstPythonModule = makePythonModule(vstPythonEnvironment, 'CsoundVST', [csoundVstPythonWrapper])
-        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
-            Depends(csoundvstPythonModule, pythonImportLibrary)
-        pythonModules.append('CsoundVST.py')
         if buildScoregen:
             scoregen = scoregenEnvironment.SharedLibrary('scoregen', scoregenSources)
             libs.append(scoregen)
@@ -1854,7 +1958,7 @@ else:
             scoregenPythonEnvironment.Append(LIBS = ['scoregen'])
             scoregenPythonModule = makePythonModule(scoregenPythonEnvironment, 'scoregen', [scoregenPythonWrapper])
             pythonModules.append('scoregen.py')
-    guiProgramEnvironment.Prepend(LIBS = ['CsoundVST', 'csnd'])
+    guiProgramEnvironment.Prepend(LIBS = ['CsoundVST', 'CsoundAC', 'csnd'])
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     guiProgramEnvironment.Append(LIBS = libCsoundLibs)
     csoundvstGui = guiProgramEnvironment.Program(
@@ -1865,17 +1969,6 @@ else:
     counterpoint = vstEnvironment.Program(
         'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
-
-if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
-    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
-else:
-    if getPlatform() == 'linux' or getPlatform() == 'darwin':
-        csEdit = commonEnvironment.Copy()
-        csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
-        executables.append(csEditor)
-    else:
-    	csEditor = vstEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
-    	executables.append(csEditor)
 
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
