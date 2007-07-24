@@ -1,4 +1,6 @@
-;NSIS Modern Csound5 Install Script
+; NSIS Modern Csound5 Install Script
+; This installer contains only free software.
+; CsoundVST and stk.dll have been removed.
 
 !define PRODUCT "Csound"
 ; "-d" for double-precision audio samples,
@@ -408,6 +410,18 @@ FunctionEnd
 ;--------------------------------
 ;Installer Sections
 
+Section -Prerequisites
+  SetOutPath $INSTDIR\Prerequisites
+  MessageBox MB_YESNO "Install Microsoft ActiveSync?" /SD IDYES IDNO endActiveSync
+;    File "..\Prerequisites\ActiveSyncSetup.exe"
+;    ExecWait "$INSTDIR\Prerequisites\ActiveSyncSetup.exe"
+   Goto endActiveSync
+  endActiveSync:
+SectionEnd
+
+[edit]
+
+
 Section "${PRODUCT}" SecCopyUI
 
   SetOutPath $INSTDIR
@@ -423,11 +437,10 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csnd.dll
   File ..\..\_csnd.pyd
   File ..\..\_jcsound.dll
-  File ..\..\CsoundVST.dll
-  File ..\..\_CsoundVST.pyd
+  File ..\..\CsoundAC.dll
+  File ..\..\_CsoundAC.pyd
   File ..\..\scoregen.dll
   File ..\..\_scoregen.pyd
-  # File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
@@ -443,16 +456,14 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
   File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
   File ..\..\csnd.py
-  File ..\..\CsoundVST.py
+  File ..\..\CsoundAC.py
   File ..\..\scoregen.py
   File ..\..\CompositionBase.py
-  ; File ..\..\loris.py
-  File ..\..\*.exe
+  File /x csoundvst.exe ..\..\*.exe
   File ..\..\csound.def
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
-  File ..\..\frontends\CsoundVST\_CsoundVST.def
-  SetOutPath $INSTDIR\pluginSDK
+   SetOutPath $INSTDIR\pluginSDK
   File ..\..\pluginSDK\SConstruct
   File ..\..\pluginSDK\examplePlugin.c
   File ..\..\pluginSDK\custom.py
@@ -491,10 +502,9 @@ Section "${PRODUCT}" SecCopyUI
   File /x *.wav  ..\..\Opcodes\py\examples\*.*
   
   SetOutPath $INSTDIR\include
-  File ..\..\H\*.h
-  File ..\..\H\*.hpp
-  File ..\..\frontends\CsoundVST\*.h
-  File ..\..\frontends\CsoundVST\*.hpp
+  File /x aeff* ..\..\H\*.h
+  File /x aeff* ..\..\H\*.hpp
+  File ..\..\frontends\CsoundAC\*.hpp
   File ..\..\interfaces\*.hpp
   
   SetOutPath $INSTDIR\interfaces\java
@@ -505,12 +515,11 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\plugins64
   File ..\..\frontends\csladspa\csladspa.dll
-  File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
+  File /x stk.dll /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
   
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
-  File /r ..\..\Opcodes\stk\rawwaves\*.raw
-
+  
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
   
@@ -562,7 +571,6 @@ Section "${PRODUCT}" SecCopyUI
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csound5gui.lnk" "$INSTDIR\bin\csound5gui.exe" "" "" "" "" "" " Varga Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cseditor.lnk" "$INSTDIR\bin\cseditor.exe" "" "" "" "" "" "Csound editor"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe" "" "" "" "" "" "CsoundVST GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt" "" "" "" "" "" "Csound README"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
@@ -597,8 +605,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\cseditor.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
+   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
