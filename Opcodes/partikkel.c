@@ -421,7 +421,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
 
         /* check if waveform gets zero volume. if so, let's mark it as unused
          * and move on to the next one */
-        if (fabs(curwav->gain) < 1e-10) {
+        if (fabs(curwav->gain) < FL(1e-10)) {
             curwav->table = NULL;
             continue;
         }
