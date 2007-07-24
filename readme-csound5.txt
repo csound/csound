@@ -1,19 +1,18 @@
-CSOUND AND CSOUND VST
+CSOUND
 Version 5.06
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
 
 Csound is copyright (c) 1991 Barry Vercoe, John ffitch.
-CsoundVST is copyright (c) 2001 by Michael Gogins.
-VST PlugIn Interface Technology by Steinberg Soft- und Hardware GmbH
+CsoundAC is copyright (c) 2001 by Michael Gogins.
 
-Csound and CsoundVST are free software; you can redistribute them
-and/or modify them under the terms of the GNU Lesser General Public
+Csound is free software; you can redistribute it
+and/or modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
 version 2.1 of the License, or (at your option) any later version.
 
-Csound and CsoundVST are distributed in the hope that they will be useful,
+Csound is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
