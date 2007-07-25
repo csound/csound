@@ -43,7 +43,7 @@ import ImageOps
 import psyco
 
 import csnd
-import CsoundVST
+import CsoundAC
 '''
 Represents operations on chords in a voice-leading orbifold.
 Chords can actually have more dimensions than voices,
@@ -170,7 +170,7 @@ class Tonnetz(object):
             v.append(b[i] - a[i])
         return v
     def areParallel(self, a, b):
-        return CsoundVST.areParallel(a,b)
+        return CsoundAC.areParallel(a,b)
 ##        if self.debug:
 ##            v = self.voiceleading(a, b)
 ##        for i in xrange(self.N):
