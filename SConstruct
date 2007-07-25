@@ -1824,6 +1824,9 @@ else:
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
+    counterpoint = acEnvironment.Program(
+        'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'])
+    zipDependencies.append(counterpoint)
 
 buildScoregen = False
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
@@ -1965,10 +1968,6 @@ else:
         'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
-
-    counterpoint = vstEnvironment.Program(
-        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
-    zipDependencies.append(counterpoint)
 
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
