@@ -22,17 +22,7 @@
 #ifndef __CSOUNDVST_H
 #define __CSOUNDVST_H
 
-#include "Platform.hpp"
-#ifdef SWIG
-
-%module CsoundVST
-%{
-#include <CppSound.hpp>
-#include <Shell.hpp>
-#include <list>
-  %}
-
-#else
+#include <Platform.hpp>
 // Hack to compile all this GNU stuff on Windows.
 #ifdef _MSC_VER
 #include <windows.h>
@@ -44,8 +34,6 @@
 #include <Shell.hpp>
 #include <System.hpp>
 #include <list>
-
-#endif
 
 class SILENCE_PUBLIC CsoundVstFltk;
 

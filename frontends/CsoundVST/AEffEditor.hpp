@@ -16,7 +16,7 @@ and a copy of the VST SDK.
 #ifndef __AEffEditor__
 #define __AEffEditor__
 
-#include "Platform.hpp"
+#include <Platform.hpp>
 
 class AudioEffect;
 
