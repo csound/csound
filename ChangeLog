@@ -1,3 +1,25 @@
+2007-07-024  Michael Gogins <gogins@pipeline.com>
+
+	* Removed CsoundVST, vst4cs, and stk.dll (the C++ version of the 
+	STK opcodes) from the default Windows installers, in order to bring
+	the Windows installers into line with SourceForge licensing guidelines.
+
+	* Moved the "Silence" algorithmic composition classes out of 
+	the CsoundVST shared library and into a new shared library, Python 
+	extension module, and CVS directory, CsoundAC (for "Csound
+	algorithmic composition").
+
+	* Created new NSIS installer scripts that do include CsoundVST,
+	vst4cs, and the STK opcodes as a convenience for those who will
+	build these components from source code.
+
+	* Speeded up the CsoundAC.Voicelead, CsoundAC.VoiceleadingNode, 
+	and CsoundAC.Score class methods that work with chord voicings
+	by using a new algorithm to iterate through all voicings of a chord
+	in a specified by range by adding octaves to the lowest and
+	most compact voicing, instead of building a set of all voicings
+	in memory (which would get much too large for complex chords).
+
 2007-07-13    <jpff@cs.bath.ac.uk>
 
 	* util/atsa.c (init_sound): Check to see if no partials (ie
