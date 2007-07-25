@@ -1,4 +1,4 @@
-# Importing CsoundVST automatically creates a global 'csound' object.
+# Importing CsoundAC automatically creates a global 'csound' object.
 import csnd
 from wxPython.wx import *
 # Csound MUST run in its own thread.

@@ -4,10 +4,10 @@
 # Shows how to render an ordinary MIDI sequence
 # using a SoundFont
 
-import CsoundVST
+import CsoundAC
 
 # Load the MIDI sequence into the score.
-model = CsoundVST.MusicModel()
+model = CsoundAC.MusicModel()
 model.setCppSound(csound)
 score = model.getScore()
 score.load("c:/WINDOWS/Media/town.mid")
