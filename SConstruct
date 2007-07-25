@@ -1842,7 +1842,7 @@ else:
     headers += glob.glob('frontends/CsoundVST/*.h')
     headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces', 'frontends/CsoundVST'])
-    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundAC', 'frontends/CsoundVST', 'interfaces'])
     vstEnvironment.Append(CPPPATH = pythonIncludePath)
     vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
