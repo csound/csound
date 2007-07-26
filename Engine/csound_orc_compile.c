@@ -630,7 +630,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
      * root->left->next is NULL or not to indicate list)
      */
     if(root->left->type == T_INTGR) { /* numbered instrument */
-        long instrNum = (long)root->left->value->value;
+        long instrNum = (long)root->left->value->value; /* Not used! */
 
         sscanf(c, "%ld", &instrNum); /* Problem here as c not set */
 
