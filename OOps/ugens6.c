@@ -38,7 +38,7 @@ int downset(CSOUND *csound, DOWNSAMP *p)
 int downsamp(CSOUND *csound, DOWNSAMP *p)
 {
     MYFLT       *asig, sum;
-    int len;
+    int len, n;
 
     if (p->len <= 1)
       *p->kr = *p->asig;
@@ -46,9 +46,9 @@ int downsamp(CSOUND *csound, DOWNSAMP *p)
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      do {
-        sum += *asig++;
-      } while (--len);
+      for (n=0; n<len; n++) {
+        sum += asig[n];
+      }
       *p->kr = sum / p->len;
     }
     return OK;
@@ -220,9 +220,10 @@ int delset(CSOUND *csound, DELAY *p)
     }
     else if (!(*p->istor)) {                    /* else if requested */
       long *lp = (long *)auxp;
-      do {
-        *lp++ = 0;                            /*   clr old to zero */
-      } while (--npts);
+      memset(lp, '\0', npts*sizeof(long));
+/*       do { */
+/*         *lp++ = 0;                            /\*   clr old to zero *\/ */
+/*       } while (--npts); */
     }
     p->curp = (MYFLT *) auxp;
     return OK;
@@ -927,7 +928,7 @@ int rvbset(CSOUND *csound, REVERB *p)
 int reverb(CSOUND *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("reverb: not intialised"));
@@ -952,27 +953,28 @@ int reverb(CSOUND *csound, REVERB *p)
 
     ar = p->ar;
     asig = p->asig;
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT     cmbsum, y1, y2, z;
+      MYFLT     sig = asig[n];
       cmbsum = *p1 + *p2 + *p3 + *p4;
-      *p1 = p->c1 * *p1 + *asig;
-      *p2 = p->c2 * *p2 + *asig;
-      *p3 = p->c3 * *p3 + *asig;
-      *p4 = p->c4 * *p4 + *asig++;
+      *p1 = p->c1 * *p1 + sig;
+      *p2 = p->c2 * *p2 + sig;
+      *p3 = p->c3 * *p3 + sig;
+      *p4 = p->c4 * *p4 + sig;
       p1++; p2++; p3++; p4++;
       y1 = *p5;
       *p5++ = z = p->c5 * y1 + cmbsum;
       y1 -= p->c5 * z;
       y2 = *p6;
       *p6++ = z = p->c6 * y2 + y1;
-      *ar++ = y2 - p->c6 * z;
+      ar[n] = y2 - p->c6 * z;
       if (p1 >= p->adr2)        p1 = p->adr1;
       if (p2 >= p->adr3)        p2 = p->adr2;
       if (p3 >= p->adr4)        p3 = p->adr3;
       if (p4 >= p->adr5)        p4 = p->adr4;
       if (p5 >= p->adr6)        p5 = p->adr5;
       if (p6 >= endp)   p6 = p->adr6;
-    } while (--nsmps);
+    }
     p->p1 = p1;
     p->p2 = p2;
     p->p3 = p3;
