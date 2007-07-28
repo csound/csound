@@ -1,11 +1,15 @@
-2007-07-024  Michael Gogins <gogins@pipeline.com>
+2007-07-28  jpff  <jpff@codemist.co.uk>
 
-	* Removed CsoundVST, vst4cs, and stk.dll (the C++ version of the 
+	* Engine/musmon.c (tempset): Cannot set tempo if beatmode not in force
+
+2007-07-24  Michael Gogins <gogins@pipeline.com>
+
+	* Removed CsoundVST, vst4cs, and stk.dll (the C++ version of the
 	STK opcodes) from the default Windows installers, in order to bring
 	the Windows installers into line with SourceForge licensing guidelines.
 
-	* Moved the "Silence" algorithmic composition classes out of 
-	the CsoundVST shared library and into a new shared library, Python 
+	* Moved the "Silence" algorithmic composition classes out of
+	the CsoundVST shared library and into a new shared library, Python
 	extension module, and CVS directory, CsoundAC (for "Csound
 	algorithmic composition").
 

@@ -82,8 +82,9 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 
 static void settempo(CSOUND *csound, MYFLT tempo)
 {
-    if (tempo <= FL(0.0))
-      return;
+    if (tempo <= FL(0.0)) return;
+    if (csound->oparms->Beatmode==0) 
+
     csound->beatTime = 60.0 / (double) tempo;
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
@@ -104,6 +105,8 @@ int tempset(CSOUND *csound, TEMPO *p)
     if ((tempo = *p->istartempo) <= FL(0.0)) {
       return csound->InitError(csound, Str("illegal istartempo value"));
     }
+    if (csound->oparms->Beatmode==0) 
+      return csound->InitError(csound, Str("Beat mode not in force"));
     settempo(csound, tempo);
     p->prvtempo = tempo;
     return OK;
