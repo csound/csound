@@ -135,7 +135,7 @@ void ScoreGeneratorVst::closeView()
   editor->close();
 }
 
-void ScoreGeneratorVst::setProgram(long program)
+void ScoreGeneratorVst::setProgram(VstInt32 program)
 {
   if (debug) logv("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
   if(program < kNumPrograms && program >= 0)
@@ -157,12 +157,12 @@ void ScoreGeneratorVst::resume()
   wantEvents(true);
 }
 
-long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
+VstInt32 ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 {
   return 1;
 }
 
-void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
+void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, VstInt32 frames)
 {
   synchronizeScore(frames);
   if (alive) {
@@ -170,7 +170,7 @@ void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long fram
   }
 }
 
-void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
+void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, VstInt32 frames)
 {
   synchronizeScore(frames);
   if (alive) {
@@ -178,7 +178,7 @@ void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, 
   }
 }
 
-bool ScoreGeneratorVst::getInputProperties(long index, VstPinProperties* properties)
+bool ScoreGeneratorVst::getInputProperties(VstInt32 index, VstPinProperties* properties)
 {
   if(index < kNumInputs)
     {
@@ -189,7 +189,7 @@ bool ScoreGeneratorVst::getInputProperties(long index, VstPinProperties* propert
   return false;
 }
 
-bool ScoreGeneratorVst::getOutputProperties(long index, VstPinProperties* properties)
+bool ScoreGeneratorVst::getOutputProperties(VstInt32 index, VstPinProperties* properties)
 {
   if(index < kNumOutputs)
     {
@@ -205,7 +205,7 @@ VstPlugCategory ScoreGeneratorVst::getPlugCategory()
   return kPlugCategEffect;
 }
 
-bool ScoreGeneratorVst::getProgramNameIndexed(long category, long index, char* text)
+bool ScoreGeneratorVst::getProgramNameIndexed(VstInt32 category, VstInt32 index, char* text)
 {
   if(index < kNumPrograms)
     {
@@ -233,7 +233,7 @@ bool ScoreGeneratorVst::getProductString(char* text)
   return true;
 }
 
-long ScoreGeneratorVst::canDo(char* text)
+VstInt32 ScoreGeneratorVst::canDo(char* text)
 {
   if (debug) logv("RECEIVED ScoreGeneratorVst::canDo('%s')...\n", text);
   if(strcmp(text, "receiveVstTimeInfo") == 0)
@@ -285,12 +285,12 @@ bool ScoreGeneratorVst::keysRequired()
   return 1;
 }
 
-long ScoreGeneratorVst::getProgram()
+VstInt32 ScoreGeneratorVst::getProgram()
 {
   return curProgram;
 }
 
-bool ScoreGeneratorVst::copyProgram(long destination)
+bool ScoreGeneratorVst::copyProgram(VstInt32 destination)
 {
   if (debug) logv("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
   if(destination < kNumPrograms)
@@ -301,11 +301,11 @@ bool ScoreGeneratorVst::copyProgram(long destination)
   return false;
 }
 
-long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
+VstInt32 ScoreGeneratorVst::getChunk(void** data, bool isPreset)
 {
   if (debug) logv("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
   ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
-  long returnValue = 0;
+  VstInt32 returnValue = 0;
   static std::string bankBuffer;
   bank[curProgram].text = getText();
   if(isPreset)
@@ -338,10 +338,10 @@ long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
   return returnValue;
 }
 
-long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
+VstInt32 ScoreGeneratorVst::setChunk(void* data, VstInt32 byteSize, bool isPreset)
 {
   if (debug) logv("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
-  long returnValue = 0;
+  VstInt32 returnValue = 0;
   if(isPreset)
     {
       bank[curProgram].text.assign((const char *)data, byteSize);
@@ -381,7 +381,7 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
       returnValue = byteSize;
     }
   setProgram(curProgram);
-  editor->update();
+  ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
   return returnValue;
 }
 
@@ -413,7 +413,7 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   load(filename_);
   setFilename(filename_);
   bank[getProgram()].text = getText();
-  editor->update();
+  ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
   logv("Opened file: '%s'.\n",
       filename.c_str());
   std::string drive, base, file, extension;
@@ -561,7 +561,7 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
   return scoreGeneratorEvents.size();
 }
 
-bool ScoreGeneratorVst::synchronizeScore(long frames)
+bool ScoreGeneratorVst::synchronizeScore(VstInt32 frames)
 {
   //vstInputLatency = getInputLatency();
   VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
@@ -583,7 +583,7 @@ bool ScoreGeneratorVst::synchronizeScore(long frames)
   return vstTransportActive;
 }
 
-void ScoreGeneratorVst::sendEvents(long frames)
+void ScoreGeneratorVst::sendEvents(VstInt32 frames)
 {
     if (!vstTransportActive || scoreGeneratorEvents.size() == 0) {
         return;

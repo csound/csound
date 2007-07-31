@@ -24,7 +24,7 @@
 
 class ScoreGeneratorVst;
 
-#include <AEffEditor.hpp>
+#include "public.sdk/source/vst2.x/aeffeditor.h"
 #include <FL/Fl_Help_View.H>
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Tabs.H>
@@ -71,6 +71,7 @@ public:
     xPad = 4,
     yPad = 4
   } AEffEditorSize;
+  bool updateFlag;
   Fl_Pack *mainPack;
   Fl_Tabs *mainTabs;
   Fl_Group *runtimeMessagesGroup;
@@ -90,8 +91,8 @@ public:
   virtual void log(char *message);
   virtual void logv(char *message,...);
   //    AEffEditor overrides.
-  virtual long getRect(ERect **rect);
-  virtual long open(void *windowHandle);
+  virtual bool getRect(ERect **rect);
+  virtual bool open(void *windowHandle);
   virtual void close();
   virtual void idle();
   virtual void update();
