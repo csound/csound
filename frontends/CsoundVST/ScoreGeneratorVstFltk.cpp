@@ -105,7 +105,8 @@ WaitCursor::~WaitCursor()
 ScoreGeneratorVstFltk::ScoreGeneratorVstFltk(AudioEffect *audioEffect) :
   scoreGeneratorVstUi(0),
   scoreGeneratorVst((ScoreGeneratorVst *)audioEffect),
-  useCount(0)
+  useCount(0),
+  updateFlag(false)
 {
   if (oneWaiter == 0)
     {
@@ -144,14 +145,14 @@ void ScoreGeneratorVstFltk::updateModel()
     }
 }
 
-long ScoreGeneratorVstFltk::getRect(ERect **erect)
+bool ScoreGeneratorVstFltk::getRect(ERect **erect)
 {
   static ERect r = {0, 0, kEditorHeight, kEditorWidth};
   *erect = &r;
   return true;
 }
 
-long ScoreGeneratorVstFltk::open(void *parentWindow)
+bool ScoreGeneratorVstFltk::open(void *parentWindow)
 {
   if (oneWaiter == this)
     {

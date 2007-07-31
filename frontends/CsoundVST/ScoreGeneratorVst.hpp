@@ -28,7 +28,7 @@
 #include <mmsystem.h>
 #endif
 
-#include "audioeffectx.h"
+#include "public.sdk/source/vst2.x/audioeffectx.h"
 #include "Shell.hpp"
 #include <list>
 #include <vector>
@@ -90,29 +90,29 @@ public:
   virtual bool getVendorString(char* name);
   virtual bool getProductString(char* name);
   virtual VstPlugCategory getPlugCategory();
-  virtual long canDo(char* text);
-  virtual bool getInputProperties(long index, VstPinProperties* properties);
-  virtual bool getOutputProperties(long index, VstPinProperties* properties);
+  virtual VstInt32 canDo(char* text);
+  virtual bool getInputProperties(VstInt32 index, VstPinProperties* properties);
+  virtual bool getOutputProperties(VstInt32 index, VstPinProperties* properties);
   virtual bool keysRequired();
-  virtual long getProgram();
-  virtual void setProgram(long program);
+  virtual VstInt32 getProgram();
+  virtual void setProgram(VstInt32 program);
   virtual void setProgramName(char *name);
   virtual void getProgramName(char *name);
-  virtual bool copyProgram(long destination);
-  virtual bool getProgramNameIndexed(long category, long index, char* text);
-  virtual long getChunk(void** data, bool isPreset);
-  virtual long setChunk(void* data, long byteSize, bool isPreset);
+  virtual bool copyProgram(VstInt32 destination);
+  virtual bool getProgramNameIndexed(VstInt32 category, VstInt32 index, char* text);
+  virtual VstInt32 getChunk(void** data, bool isPreset);
+  virtual VstInt32 setChunk(void* data, VstInt32 byteSize, bool isPreset);
   virtual void suspend();
   virtual void resume();
-  virtual long processEvents(VstEvents *vstEvents);
-  virtual void process(float **inputs, float **outputs, long sampleFrames);
-  virtual void processReplacing(float **inputs, float **outputs, long sampleFrames);
+  virtual VstInt32 processEvents(VstEvents *vstEvents);
+  virtual void process(float **inputs, float **outputs, VstInt32 sampleFrames);
+  virtual void processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames);
 
   // Peculiar to ScoreGeneratorVst.
   ScoreGeneratorVst();
   virtual std::string getText();
   virtual void setText(const std::string text);
-  virtual bool synchronizeScore(long blockSize);
+  virtual bool synchronizeScore(VstInt32 blockSize);
   virtual void reset();
   virtual void openFile(std::string filename);
   virtual void openView(bool doRun = true);
@@ -136,7 +136,7 @@ public:
    * relative to the start of the track or part,
    * to the host.
    */
-  virtual void sendEvents(long frames);
+  virtual void sendEvents(VstInt32 frames);
   // Shell overrides.
   /**
    * Initialize the embedded Python interpreter,

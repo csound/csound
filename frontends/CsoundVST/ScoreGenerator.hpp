@@ -25,18 +25,19 @@
 #include "Platform.hpp"
 #ifdef SWIG
 %module scoregen
+%include "typemaps.i"
 %include "std_vector.i"
 %{
 #include <vector>
 #include "Score.hpp"
-#include "audioeffectx.h"
+#include "public.sdk/source/vst2.x/audioeffectx.h"
 %}
 %template(VstMidiEventVector) std::vector<VstMidiEvent>;
 #else
 #include <Python.h>
 #include <vector>
 #include "Score.hpp"
-#include "audioeffectx.h"
+#include "public.sdk/source/vst2.x/audioeffectx.h"
 #endif
 
 class ScoreGeneratorVst;

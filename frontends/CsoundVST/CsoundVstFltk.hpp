@@ -24,7 +24,7 @@
 
 class CsoundVstFltk;
 
-#include <AEffEditor.hpp>
+#include "public.sdk/source/vst2.x/aeffeditor.h"
 #include <FL/Fl_Help_View.H>
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Tabs.H>
@@ -56,7 +56,7 @@ public:
   virtual ~WaitCursor();
 };
 
-class SILENCE_PUBLIC CsoundVstFltk :
+class CsoundVstFltk :
   public AEffEditor
 {
 public:
@@ -72,28 +72,21 @@ public:
   void *windowHandle;
   Fl_Window *csoundVstUi;
   int useCount;
-  Fl_Pack *mainPack;
+  bool updateFlag;
   Fl_Tabs *mainTabs;
   Fl_Input *commandInput;
-  Fl_Group *runtimeMessagesGroup;
   Fl_Browser *runtimeMessagesBrowser;
   Fl_Text_Editor *orchestraTextEdit;
   Fl_Text_Buffer *orchestraTextBuffer;
   Fl_Text_Editor *scoreTextEdit;
   Fl_Text_Buffer *scoreTextBuffer;
-  Fl_Text_Editor *scriptTextEdit;
-  Fl_Text_Buffer *scriptTextBuffer;
   Fl_Input *settingsEditSoundfileInput;
   Fl_Check_Button* settingsVstPluginModeEffect;
   Fl_Check_Button* settingsVstPluginModeInstrument;
-  Fl_Check_Button* settingsCsoundPerformanceModeClassic;
-  Fl_Check_Button* settingsCsoundPerformanceModePython;
-  Fl_Check_Button* autoPlayCheckButton;
   Fl_Text_Buffer *aboutTextBuffer;
   Fl_Text_Display *aboutTextDisplay;
   Fl_Group *orchestraGroup;
   Fl_Group *scoreGroup;
-  Fl_Group *scriptGroup;
   std::list<std::string> messages;
   std::string helpFilename;
   std::string messagebuffer;
@@ -103,8 +96,8 @@ public:
   virtual void updateCaption();
   virtual void updateModel();
   //    AEffEditor overrides.
-  virtual long getRect(ERect **rect);
-  virtual long open(void *windowHandle);
+  virtual bool getRect(ERect **rect);
+  virtual bool open(void *windowHandle);
   virtual void close();
   virtual void idle();
   virtual void update();
@@ -122,10 +115,7 @@ public:
   void onEdit(Fl_Button*, CsoundVstFltk* csoundVstFltk);
   void onSettingsVstPluginMode(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
   void onSettingsVstInstrumentMode(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
-  void onSettingsCsoundPerformanceModeClassic(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
-  void onSettingsCsoundPerformanceModePython(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
   void onSettingsApply(Fl_Button*, CsoundVstFltk* csoundVstFltk);
-  void onAutoPlayCheckButton(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
 };
 
 #endif
