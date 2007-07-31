@@ -1,7 +1,7 @@
 /*
  * C S O U N D   V S T
  *
- * A VST plugin version of Csound, with Python scripting.
+ * A VST plugin version of Csound.
  *
  * L I C E N S E
  *
@@ -29,10 +29,8 @@
 #include <mmsystem.h>
 #endif
 
-#include "audioeffectx.h"
+#include "public.sdk/source/vst2.x/audioeffectx.h"
 #include <CppSound.hpp>
-#include <Shell.hpp>
-#include <System.hpp>
 #include <list>
 
 class SILENCE_PUBLIC CsoundVstFltk;
@@ -44,9 +42,9 @@ public:
   std::string text;
 };
 
-class SILENCE_PUBLIC CsoundVST :
-  public AudioEffectX,
-  public csound::Shell
+class CsoundVST :
+  public CppSound,
+  public AudioEffectX
 {
 public:
   enum
@@ -67,13 +65,8 @@ public:
    * The thread that calls Fl::wait().
    */
   static void *fltkWaitThreadId;
-  CppSound cppSound_;
-  CppSound *cppSound;
   bool isSynth;
-  bool isVst;
-  bool isPython;
   bool isMultiThreaded;
-  bool isAutoPlayback;
   size_t csoundFrameI;
   size_t csoundLastFrame;
   size_t channelI;
@@ -94,56 +87,48 @@ public:
   virtual bool getEffectName(char* name);
   virtual bool getVendorString(char* name);
   virtual bool getProductString(char* name);
-  virtual long canDo(char* text);
-  virtual bool getInputProperties(long index, VstPinProperties* properties);
-  virtual bool getOutputProperties(long index, VstPinProperties* properties);
+  virtual VstInt32 canDo(char* text);
+  virtual bool getInputProperties(VstInt32 index, VstPinProperties* properties);
+  virtual bool getOutputProperties(VstInt32 index, VstPinProperties* properties);
   virtual bool keysRequired();
-  virtual long getProgram();
-  virtual void setProgram(long program);
+  virtual VstInt32 getProgram();
+  virtual void setProgram(VstInt32 program);
   virtual void setProgramName(char *name);
   virtual void getProgramName(char *name);
-  virtual bool copyProgram(long destination);
-  virtual bool getProgramNameIndexed(long category, long index, char* text);
-  virtual long getChunk(void** data, bool isPreset);
-  virtual long setChunk(void* data, long byteSize, bool isPreset);
+  virtual bool copyProgram(VstInt32 destination);
+  virtual bool getProgramNameIndexed(VstInt32 category, VstInt32 index, char* text);
+  virtual VstInt32 getChunk(void** data, bool isPreset);
+  virtual VstInt32 setChunk(void* data, VstInt32 byteSize, bool isPreset);
   virtual void suspend();
   virtual void resume();
-  virtual long processEvents(VstEvents *vstEvents);
-  virtual void process(float **inputs, float **outputs, long sampleFrames);
-  virtual void processReplacing(float **inputs, float **outputs, long sampleFrames);
-
+  virtual VstInt32 processEvents(VstEvents *vstEvents);
+  virtual void process(float **inputs, float **outputs, VstInt32 sampleFrames);
+  virtual void processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames);
   // Shell overrides.
   virtual void open();
   // Peculiar to CsoundVST.
   CsoundVST();
-  virtual CppSound *getCppSound();
   virtual bool getIsSynth() const;
   virtual void setIsSynth(bool isSynth);
   virtual bool getIsVst() const;
-  virtual void setIsVst(bool isSynth);
-  virtual bool getIsPython() const;
-  virtual void setIsPython(bool isPython);
-  virtual void performanceThreadRoutine();
-  virtual int perform();
+  virtual uintptr_t performanceThreadRoutine();
+  virtual int performance();
   virtual std::string getText();
   virtual void setText(const std::string text);
   virtual void synchronizeScore();
   virtual void reset();
   virtual void openFile(std::string filename);
-  virtual int run();
   virtual void openView(bool doRun = true);
   virtual void closeView();
   virtual bool getIsMultiThreaded() const;
   virtual void setIsMultiThreaded(bool isMultiThreaded);
-  virtual bool getIsAutoPlayback() const;
-  virtual void setIsAutoPlayback(bool autoPlay);
   virtual void fltklock();
   virtual void fltkunlock();
   virtual void fltkflush();
   virtual void fltkwait();
+  virtual int fltkrun();
   static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
-
   static int midiRead(CSOUND *csound, void *userData,
                       unsigned char *buf, int nbytes);
 };
@@ -152,7 +137,7 @@ public:
 
 extern "C"
 {
-   CsoundVST* SILENCE_PUBLIC CreateCsoundVST();
+   CsoundVST* CreateCsoundVST();
 }
 
 #endif

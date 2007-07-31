@@ -41,12 +41,8 @@ void *CsoundVST::fltkWaitThreadId = 0;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
-  cppSound(&cppSound_),
   isSynth(true),
-  isVst(true),
-  isPython(false),
   isMultiThreaded(true),
-  isAutoPlayback(false),
   csoundFrameI(0),
   csoundLastFrame(0),
   channelI(0),
@@ -67,11 +63,9 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
   setUniqueID('cVsT');  // identify
-  canMono();                            // makes sense to feed both inputs with the same signal
   canProcessReplacing();        // supports both accumulating and replacing output
   open();
   csoundVstFltk = new CsoundVstFltk(this);
-  setEditor(csoundVstFltk);
   int number = 0;
   csoundVstFltk->preferences.get("IsSynth", number, 0);
   if(audioMaster)
@@ -85,7 +79,6 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
           AudioEffectX::isSynth(false);
         }
     }
-  wantEvents(true);
   programsAreChunks(true);
   curProgram = 0;
   bank.resize(kNumPrograms);
@@ -99,12 +92,8 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
 
 CsoundVST::CsoundVST() :
   AudioEffectX(0, kNumPrograms, 0),
-  cppSound(&cppSound_),
   isSynth(true),
-  isVst(false),
-  isPython(false),
   isMultiThreaded(true),
-  isAutoPlayback(true),
   csoundFrameI(0),
   csoundLastFrame(0),
   channelI(0),
@@ -125,11 +114,9 @@ CsoundVST::CsoundVST() :
   setNumInputs(2);              // stereo in
   setNumOutputs(2);             // stereo out
   setUniqueID('cVsT');  // identify
-  canMono();                            // makes sense to feed both inputs with the same signal
   canProcessReplacing();        // supports both accumulating and replacing output
-  open();
+  //open();
   csoundVstFltk = new CsoundVstFltk(this);
-  setEditor(csoundVstFltk);
   bank.resize(kNumPrograms);
   curProgram = 0;
   for(size_t i = 0; i < bank.size(); i++)
@@ -142,10 +129,6 @@ CsoundVST::CsoundVST() :
 
 CsoundVST::~CsoundVST()
 {
-  if (getIsVst())
-    {
-      Shell::close();
-    }
 }
 
 bool CsoundVST::getIsSynth() const
@@ -160,22 +143,11 @@ void CsoundVST::setIsSynth(bool isSynth)
 
 bool CsoundVST::getIsVst() const
 {
-  return isVst;
-}
-
-void CsoundVST::setIsVst(bool isVst)
-{
-  this->isVst = isVst;
-}
-
-bool CsoundVST::getIsPython() const
-{
-  return isPython;
-}
-
-void CsoundVST::setIsPython(bool isPython)
-{
-  this->isPython = isPython;
+  if (audioMaster) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void CsoundVST::setProgramName(char *name)
@@ -197,7 +169,7 @@ void CsoundVST::openView(bool doRun)
 {
   editor->open(0);
   if(doRun) {
-    run();
+    fltkrun();
   }
 }
 
@@ -213,88 +185,61 @@ int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
   return 0;
 }
 
-void CsoundVST::performanceThreadRoutine()
+uintptr_t CsoundVST::performanceThreadRoutine()
 {
-  if (!getCppSound()) {
-      return;
+  stop();
+  Reset();
+  // Translate csd-style command lines to orc/sco style.
+  std::string command = getCommand();
+  std::string vstcommand;
+  bool updateCommand = false;
+  if (command.find("-") == 0 || command.length() == 0) {
+    updateCommand = true;
+    vstcommand = "csound ";
   }
-  getCppSound()->stop();
-  getCppSound()->Reset();
-  if(getIsPython())
+  vstcommand.append(command);
+  if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
+    updateCommand = true;
+    vstcommand.append(" temp.orc temp.sco");
+  }
+  if (updateCommand) {
+    setCommand(vstcommand);
+    std::string buffer = getCommand();
+    csoundVstFltk->commandInput->value(buffer.c_str());
+  }
+  exportForPerformance();
+  Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
+  reset();
+  PreCompile();
+  // FLTK flags is the sum of any of the following values:
+  //   1:  disable widget opcodes by setting up dummy opcodes instead
+  //   2:  disable FLTK graphs
+  //   4:  disable the use of a separate thread for widget opcodes
+  //   8:  disable the use of Fl::lock() and Fl::unlock()
+  //  16:  disable the use of Fl::awake()
+  // 128:  disable widget opcodes by not registering any opcodes
+  // 256:  disable the use of Fl::wait() (implies no widget thread)
+  CreateGlobalVariable("FLTK_Flags", sizeof(int));
+  int *fltkFlags = (int *)QueryGlobalVariable("FLTK_Flags");
+  //*fltkFlags = 274;
+  *fltkFlags = 286;
+  if(getIsVst())
     {
-      Shell::save(Shell::getFilename());
-      csound::System::inform("Saved as: '%s'.\n", Shell::getFilename().c_str());
-      reset();
-      if(getIsVst())
-        {
-          getCppSound()->SetHostData(this);
-          csound::System::inform("Python VST performance.\n");
-          getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-          getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
-        }
-      fltkflush();
-      runScript();
+      Message("Classic VST performance.\n");
+      SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
+      SetExternalMidiReadCallback(&CsoundVST::midiRead);
+      if(compile())
+	{
+	  Message("Csound compilation failed.\n");
+	  reset();
+	}
     }
   else
     {
-      // Translate csd-style command lines to orc/sco style.
-      std::string command = cppSound->getCommand();
-      std::string vstcommand;
-      bool updateCommand = false;
-      if (command.find("-") == 0 || command.length() == 0) {
-        updateCommand = true;
-        vstcommand = "csound ";
-      }
-      vstcommand.append(command);
-      if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
-        updateCommand = true;
-        vstcommand.append(" temp.orc temp.sco");
-      }
-      if (updateCommand) {
-        cppSound->setCommand(vstcommand);
-        std::string buffer = cppSound->getCommand();
-        csoundVstFltk->commandInput->value(buffer.c_str());
-      }
-      cppSound->exportForPerformance();
-      csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
-      reset();
-      getCppSound()->PreCompile();
-      // FLTK flags is the sum of any of the following values:
-      //   1:  disable widget opcodes by setting up dummy opcodes instead
-      //   2:  disable FLTK graphs
-      //   4:  disable the use of a separate thread for widget opcodes
-      //   8:  disable the use of Fl::lock() and Fl::unlock()
-      //  16:  disable the use of Fl::awake()
-      // 128:  disable widget opcodes by not registering any opcodes
-      // 256:  disable the use of Fl::wait() (implies no widget thread)
-      cppSound->CreateGlobalVariable("FLTK_Flags", sizeof(int));
-      int *fltkFlags = (int *)cppSound->QueryGlobalVariable("FLTK_Flags");
-      //*fltkFlags = 274;
-      *fltkFlags = 286;
-      if(getIsVst())
-        {
-          csound::System::inform("Classic VST performance.\n");
-          getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-          getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
-          if(getCppSound()->compile())
-            {
-              csound::System::inform("Csound compilation failed.\n");
-              reset();
-            }
-        }
-      else
-        {
-          csound::System::inform("Classic performance.\n");
-          cppSound->perform();
-        }
+      Message("Classic performance.\n");
+      perform();
     }
-  if(isAutoPlayback && !isVst)
-    {
-      if(csoundVstFltk)
-        {
-          csoundVstFltk->onEdit(0, 0);
-        }
-    }
+  return 0;
 }
 
 bool CsoundVST::getIsMultiThreaded() const
@@ -307,9 +252,9 @@ void CsoundVST::setIsMultiThreaded(bool isMultiThreaded)
   this->isMultiThreaded = isMultiThreaded;
 }
 
-void performanceThreadRoutine_(void *data)
+uintptr_t performanceThreadRoutine_(void *data)
 {
-  ((CsoundVST *)data)->performanceThreadRoutine();
+  return ((CsoundVST *)data)->performanceThreadRoutine();
 }
 
 static int threadYieldCallback(CSOUND *csound)
@@ -326,87 +271,48 @@ static int nonThreadYieldCallback(CSOUND *)
   return 1;
 }
 
-int CsoundVST::perform()
+int CsoundVST::performance()
 {
-  int result = 0;
-  if(getCppSound())
+  int result = true;
+  if(getIsVst())
     {
-      if(getIsVst())
-        {
-          csound::System::inform("VST performance.\n");
-          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
-          performanceThreadRoutine();
-        }
-      else if(getIsMultiThreaded())
-        {
-          csound::System::inform("Multi-threaded performance.\n");
-          getCppSound()->SetYieldCallback(threadYieldCallback);
-          void* result_ = csound::System::createThread(performanceThreadRoutine_, this, 0);
-          if (result_) {
-              result = true;
-          } else {
-              result = false;
-          }
-          csound::System::inform("Created Csound performance thread.\n");
-        }
-      else
-        {
-          csound::System::inform("Single-threaded performance.\n");
-          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
-          performanceThreadRoutine();
-        }
+      Message("VST performance.\n");
+      SetYieldCallback(nonThreadYieldCallback);
+      performanceThreadRoutine();
+    }
+  else if(getIsMultiThreaded())
+    {
+      Message("Multi-threaded performance.\n");
+      SetYieldCallback(threadYieldCallback);
+      void *result_ = csoundCreateThread(performanceThreadRoutine_, this);
+      if(result_) {
+	result = true;
+      } else {
+	result = false;
+      }
+      Message("Created Csound performance thread.\n");
+    }
+  else
+    {
+      Message("Single-threaded performance.\n");
+      SetYieldCallback(nonThreadYieldCallback);
+      performanceThreadRoutine();
     }
   return result;
 }
 
-CppSound *CsoundVST::getCppSound()
-{
-  return cppSound;
-}
-
 void CsoundVST::open()
 {
-  if (!getIsVst())
-    {
-      int result = 0;
-      Shell::open();
-      char *argv[] = {"",""};
-      PySys_SetArgv(1, argv);
-      PyObject *mainModule = PyImport_ImportModule("__main__");
-      result = runScript("import sys\n");
-      if(result)
-        {
-          PyErr_Print();
-        }
-      result = runScript("import CsoundAC\n");
-      if(result)
-        {
-          PyErr_Print();
-        }
-      PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
-      // No doubt SWIG or the Python API could do this directly,
-      // but damned if I could figure out how, and this works.
-      result = runScript("sys.stdout = sys.stderr = csound\n");
-      if(result)
-        {
-          PyErr_Print();
-        }
-      PyObject* pyCppSound = PyObject_CallMethod(pyCsound, "getThis", "");
-      cppSound = (CppSound *) PyLong_AsLong(pyCppSound);
-    }
-  if(!cppSound)
-    {
-      throw "No cppSound in CsoundVST::open()... check your Python environment.";
-    }
-  cppSound->SetHostData(this);
-  csound::System::setUserdata(cppSound->getCsound());
-  cppSound->SetMessageCallback(csound::System::message);
+  //Message("BEGAN CsoundVST::open()...\n");
+  SetHostData(this);
+  //SetMessageCallback(Message);
   std::string filename_ = getFilename();
   if(filename_.length() > 0)
     {
-      cppSound->setFilename(filename_);
+      setFilename(filename_);
     }
-  // cppSound->setFLTKThreadLocking(false);
+  // setFLTKThreadLocking(false);
+  //Message("ENDED CsoundVST::open().\n");
 }
 
 void CsoundVST::reset()
@@ -424,9 +330,9 @@ void CsoundVST::reset()
   midiEventQueue.clear();
 }
 
-void CsoundVST::setProgram(long program)
+void CsoundVST::setProgram(VstInt32 program)
 {
-  csound::System::message("RECEIVED CsoundVST::setProgram(%d)...\n", program);
+  //Message("RECEIVED CsoundVST::setProgram(%d)...\n", program);
   if(program < kNumPrograms && program >= 0)
     {
       curProgram = program;
@@ -436,20 +342,19 @@ void CsoundVST::setProgram(long program)
 
 void CsoundVST::suspend()
 {
-  csound::System::message("RECEIVED CsoundVST::suspend()...\n");
+  Message("RECEIVED CsoundVST::suspend()...\n");
   stop();
 }
 
 void CsoundVST::resume()
 {
-  csound::System::message("RECEIVED CsoundVST::resume()...\n");
-  perform();
-  wantEvents(true);
+  Message("RECEIVED CsoundVST::resume()...\n");
+  performance();
 }
 
-long CsoundVST::processEvents(VstEvents *vstEvents)
+VstInt32 CsoundVST::processEvents(VstEvents *vstEvents)
 {
-  if(getCppSound()->getIsGo())
+  if(getIsGo())
     {
       for(int i = 0; i < vstEvents->numEvents; i++)
         {
@@ -478,10 +383,10 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
     midiData[cnt + 1] = (unsigned char) event.midiData[1];
     midiData[cnt + 2] = (unsigned char) event.midiData[2];
     csoundVST->midiEventQueue.pop_front();
-    //~ csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
-                            //~ (int) midiData[cnt + 0],
-                            //~ (int) midiData[cnt + 1],
-                            //~ (int) midiData[cnt + 2]);
+    //~ Message("CsoundVST::midiRead(%x, %x, %x)\n",
+    //~ (int) midiData[cnt + 0],
+    //~ (int) midiData[cnt + 1],
+    //~ (int) midiData[cnt + 2]);
     switch ((int) midiData[cnt] & 0xF0) {
     case 0x80:    /* note off */
     case 0x90:    /* note on */
@@ -509,17 +414,17 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
   return cnt;
 }
 
-void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
+void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFrameN)
 {
-  if(getCppSound()->getIsGo())
+  if(getIsGo())
     {
       synchronizeScore();
-      MYFLT *csoundInput = cppSound->GetSpin();
-      MYFLT *csoundOutput = cppSound->GetSpout();
-      size_t csoundLastFrame = cppSound->GetKsmps() - 1;
-      size_t channelN = cppSound->GetNchnls();
+      MYFLT *csoundInput = GetSpin();
+      MYFLT *csoundOutput = GetSpout();
+      size_t csoundLastFrame = GetKsmps() - 1;
+      size_t channelN = GetNchnls();
       size_t channelI;
-      for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
         {
           for(channelI = 0; channelI < channelN; channelI++)
             {
@@ -527,7 +432,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
             }
           if(csoundFrameI == 0)
             {
-              cppSound->performKsmps(true);
+              performKsmps(true);
             }
           for(channelI = 0; channelI < channelN; channelI++)
             {
@@ -543,17 +448,17 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
     }
 }
 
-void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hostFrameN)
+void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32 hostFrameN)
 {
-  if(getCppSound()->getIsGo())
+  if(getIsGo())
     {
       synchronizeScore();
-      MYFLT *csoundInput = cppSound->GetSpin();
-      MYFLT *csoundOutput = cppSound->GetSpout();
-      size_t csoundLastFrame = cppSound->GetKsmps() - 1;
-      size_t channelN = cppSound->GetNchnls();
+      MYFLT *csoundInput = GetSpin();
+      MYFLT *csoundOutput = GetSpout();
+      size_t csoundLastFrame = GetKsmps() - 1;
+      size_t channelN = GetNchnls();
       size_t channelI;
-      for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
         {
           for(channelI = 0; channelI < channelN; channelI++)
             {
@@ -561,7 +466,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
             }
           if(csoundFrameI == 0)
             {
-              cppSound->performKsmps(true);
+              performKsmps(true);
             }
           for(channelI = 0; channelI < channelN; channelI++)
             {
@@ -589,47 +494,47 @@ void CsoundVST::synchronizeScore()
       if((vstCurrentSamplePosition && !vstPriorSamplePosition) ||
          (vstCurrentSamplePosition < vstPriorSamplePosition))
         {
-          if(getCppSound()->getIsGo())
+          if(getIsGo())
             {
-              getCppSound()->SetScorePending(1);
-              getCppSound()->RewindScore();
-              getCppSound()->SetScoreOffsetSeconds(vstCurrentSampleBlockStart);
-              csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
+              SetScorePending(1);
+              RewindScore();
+              SetScoreOffsetSeconds(vstCurrentSampleBlockStart);
+              Message("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
             }
         }
     }
   else
     {
-      if(getCppSound()->getIsGo())
+      if(getIsGo())
         {
-          getCppSound()->SetScorePending(0);
+          SetScorePending(0);
         }
     }
 }
 
-bool CsoundVST::getInputProperties(long index, VstPinProperties* properties)
+bool CsoundVST::getInputProperties(VstInt32 index, VstPinProperties* properties)
 {
   if(index < kNumInputs)
     {
-      sprintf(properties->label, "My %ld In", index + 1);
+      sprintf(properties->label, "My %d In", index + 1);
       properties->flags = kVstPinIsStereo | kVstPinIsActive;
       return true;
     }
   return false;
 }
 
-bool CsoundVST::getOutputProperties(long index, VstPinProperties* properties)
+bool CsoundVST::getOutputProperties(VstInt32 index, VstPinProperties* properties)
 {
   if(index < kNumOutputs)
     {
-      sprintf(properties->label, "My %ld Out", index + 1);
+      sprintf(properties->label, "My %d Out", index + 1);
       properties->flags = kVstPinIsStereo | kVstPinIsActive;
       return true;
     }
   return false;
 }
 
-bool CsoundVST::getProgramNameIndexed(long category, long index, char* text)
+bool CsoundVST::getProgramNameIndexed(VstInt32 category, VstInt32 index, char* text)
 {
   if(index < kNumPrograms)
     {
@@ -657,9 +562,9 @@ bool CsoundVST::getProductString(char* text)
   return true;
 }
 
-long CsoundVST::canDo(char* text)
+VstInt32 CsoundVST::canDo(char* text)
 {
-  csound::System::inform("RECEIVED CsoundVST::canDo('%s')...\n", text);
+  Message("RECEIVED CsoundVST::canDo('%s')...\n", text);
   if(strcmp(text, "receiveVstTimeInfo") == 0)
     {
       return 1;
@@ -701,20 +606,20 @@ long CsoundVST::canDo(char* text)
 
 bool CsoundVST::keysRequired()
 {
-  csound::System::message("RECEIVED CsoundVST::keysRequired...\n");
+  Message("RECEIVED CsoundVST::keysRequired...\n");
   return 1;
 }
 
-long CsoundVST::getProgram()
+VstInt32 CsoundVST::getProgram()
 {
-  //csound::System::message("RECEIVED CsoundVST::getProgram...\n");
+  //Message("RECEIVED CsoundVST::getProgram...\n");
   //bank[curProgram].text = getText();
   return curProgram;
 }
 
-bool CsoundVST::copyProgram(long destination)
+bool CsoundVST::copyProgram(VstInt32 destination)
 {
-  csound::System::message("RECEIVED CsoundVST::copyProgram(%d)...\n", destination);
+  Message("RECEIVED CsoundVST::copyProgram(%d)...\n", destination);
   if(destination < kNumPrograms)
     {
       bank[destination] = bank[curProgram];
@@ -723,17 +628,17 @@ bool CsoundVST::copyProgram(long destination)
   return false;
 }
 
-long CsoundVST::getChunk(void** data, bool isPreset)
+VstInt32 CsoundVST::getChunk(void** data, bool isPreset)
 {
-  csound::System::message("BEGAN CsoundVST::getChunk(%d)...\n", (int) isPreset);
+  Message("BEGAN CsoundVST::getChunk(%d)...\n", (int) isPreset);
   ((CsoundVstFltk *)getEditor())->updateModel();
-  long returnValue = 0;
+  VstInt32 returnValue = 0;
   static std::string bankBuffer;
   bank[curProgram].text = getText();
   if(isPreset)
     {
       *data = (void *)bank[curProgram].text.c_str();
-      returnValue = (long) strlen((char *)*data) + 1;
+      returnValue = (VstInt32) strlen((char *)*data) + 1;
     }
   else
     {
@@ -755,14 +660,14 @@ long CsoundVST::getChunk(void** data, bool isPreset)
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
     }
-  csound::System::message("ENDED CsoundVST::getChunk, returned %d...\n", returnValue);
+  Message("ENDED CsoundVST::getChunk, returned %d...\n", returnValue);
   return returnValue;
 }
 
-long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
+VstInt32 CsoundVST::setChunk(void* data, VstInt32 byteSize, bool isPreset)
 {
-  csound::System::message("RECEIVED CsoundVST::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
-  long returnValue = 0;
+  Message("RECEIVED CsoundVST::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
+  VstInt32 returnValue = 0;
   if(isPreset)
     {
       bank[curProgram].text = dupstr((const char *)data);
@@ -802,82 +707,30 @@ long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
       returnValue = byteSize;
     }
   setProgram(curProgram);
-  editor->update();
+  ((CsoundVstFltk *)getEditor())->updateModel();
   return returnValue;
 }
 
 std::string CsoundVST::getText()
 {
-  csound::System::debug("BEGAN CsoundVST::getText...\n");
-  std::string buffer;
-  if(getIsPython())
-    {
-      buffer = getScript();
-    }
-  else
-    {
-      buffer = getCppSound()->getCSD();
-    }
-  csound::System::debug("ENDED CsoundVST::getText.\n");
+  //Message("BEGAN CsoundVST::getText...\n");
+  std::string buffer = getCSD();
+  //Message("ENDED CsoundVST::getText.\n");
   return buffer;
 }
 
 void CsoundVST::setText(const std::string text)
 {
-  if(getIsPython())
-    {
-      setScript(text);
-    }
-  else
-    {
-      getCppSound()->setCSD(text);
-    }
+  setCSD(text);
 }
 
 void CsoundVST::openFile(std::string filename_)
 {
   WaitCursor wait;
-  if(filename_.find(".py", filename_.length() - 3) != std::string::npos)
-    {
-      setIsPython(true);
-    }
-  else
-    {
-      setIsPython(false);
-    }
-  if(getIsPython())
-    {
-      load(filename_);
-      setFilename(filename_);
-    }
-  else
-    {
-      getCppSound()->load(filename_);
-    }
+  load(filename_);
   bank[getProgram()].text = getText();
-  editor->update();
-  getCppSound()->setFilename(filename_);
-  csound::System::message("Opened file: '%s' in %s mode.\n",
-                          getCppSound()->getFilename().c_str(),
-                          getIsPython() ? "Python" : "classic");
-  std::string drive, base, file, extension;
-  csound::System::parsePathname(filename_, drive, base, file, extension);
-  chdir(base.c_str());
-}
-
-int CsoundVST::run()
-{
-  return Fl::run();
-}
-
-bool CsoundVST::getIsAutoPlayback() const
-{
-  return isAutoPlayback;
-}
-
-void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
-{
-  this->isAutoPlayback = isAutoPlayback;
+  ((CsoundVstFltk *)getEditor())->update();
+  setFilename(filename_);
 }
 
 void CsoundVST::fltklock()
@@ -906,21 +759,31 @@ void CsoundVST::fltkflush()
 
 void CsoundVST::fltkwait()
 {
-  if (fltkWaitThreadId == csoundGetCurrentThreadId() || isVst) {
+  if (fltkWaitThreadId == csoundGetCurrentThreadId() || getIsVst()) {
     Fl::wait(0.0);
   }
 }
 
+int CsoundVST::fltkrun()
+{
+  int status = -100;
+  //Message("BEGAN CsoundVST::run()...\n");
+  if (!getIsVst()) {
+    status = Fl::run();
+  } else {
+    Message("Sorry, can't run FLTK if running as a VST plugin.\n");
+  }
+  //Message("ENDED CsoundVST::fltkrun().\n");
+  return status;
+}
+
 extern "C"
 {
-#if __GNUC__ && (WIN32||BEOS)
-  extern "C" __declspec(dllexport) CsoundVST *CreateCsoundVST();
-#else
-  CsoundVST *CreateCsoundVST();
-#endif
   CsoundVST* SILENCE_PUBLIC CreateCsoundVST()
   {
-    return new CsoundVST;
+    CsoundVST *csoundVST = new CsoundVST;
+    std::fprintf(stderr, "CreateCsoundVST: created 0x%x\n", csoundVST);
+    return csoundVST;
   }
 }
 
