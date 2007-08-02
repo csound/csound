@@ -81,7 +81,7 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
 static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv);
 static void csoundapi_destroy(t_csoundapi *x);
 static void csoundapi_dsp(t_csoundapi *x, t_signal **sp);
-static t_int *csoundapi_perform(int *w);
+static t_int *csoundapi_perform(t_int *w);
 static void csoundapi_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv);
 static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f);
@@ -260,7 +260,7 @@ static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
       post("csoundapi~ warning: orchestra not compiled");
 }
 
-static t_int *csoundapi_perform(int *w)
+static t_int *csoundapi_perform(t_int *w)
 {
     t_csoundapi *x = (t_csoundapi *) w[1];
     t_int   size = x->vsize;
@@ -271,7 +271,7 @@ static t_int *csoundapi_perform(int *w)
     t_int   numlets = x->numlets;
     t_int   chans = x->chans, samps;
     t_sample *out[CS_MAX_CHANS], *in[CS_MAX_CHANS];
-    int     i, n, end = x->end, run = x->run;
+    t_int   i, n, end = x->end, run = x->run;
     MYFLT  *csout, *csin;
 
     csout = csoundGetSpout(x->csound);
