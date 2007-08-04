@@ -1,74 +1,154 @@
-; NSIS Modern Csound5 Install Script
-; This installer contains only free software.
-; CsoundVST and stk.dll have been removed.
+#######################################################################
+# C S O U N D   5   N U L L S O F T   I N S T A L L E R   S C R I P T
+# By Michael Gogins <gogins@pipeline.com>
+#
+# If this script is compiled with the /DFLOAT option,
+# the installer will install the 'float samples' version of Csound;
+# by default, the installer will install the 'double samples' version.
+# If this script is compiled with the /DNONFREE option,
+# the installer will install non-free software (stk.dll and CsoundVST);
+# by default, the installer will omit all non-free software.
+#######################################################################
 
-!define PRODUCT "Csound"
-; "-d" for double-precision audio samples,
-; "-f" for single-precision audio samples.
-!define VERSION "win32-d"
-; !define VERSION "win32-f"
-!define PROGRAM "Csound5.06"
-
-!include "MUI.nsh"
-
-!define ALL_USERS
-
+!include MUI.nsh
 !include WinMessages.nsh
 
+#######################################################################
+# DEFINITIONS
+#######################################################################
+
+!define PRODUCT "Csound"
+!define PROGRAM "Csound5.06"
+!echo "Building installer for: ${PROGRAM}"
+!ifdef FLOAT
+	!define VERSION "win32-f"
+	!echo "Building installer for single-precision samples."
+	!define OPCODEDIR_ENV "OPCODEDIR"
+	!define OPCODEDIR_VAL "plugins"
+!else
+	!define VERSION "win32-d"
+	!echo "Building installer for double-precision samples."
+	!define OPCODEDIR_ENV "OPCODE64DIR"
+	!define OPCODEDIR_VAL "plugins64"
+!endif
+!ifdef NONFREE
+	!echo "Building installer with VST and STK software."
+!else
+	!echo "Building installer without VST and STK software."
+!endif
+
+!define ALL_USERS
 !ifdef ALL_USERS
-  !define WriteEnvStr_RegKey \
-     'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+	!define WriteEnvStr_RegKey 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !else
   !define WriteEnvStr_RegKey 'HKCU "Environment"'
 !endif
 
-#
-# WriteEnvStr - Writes an environment variable
+!define PYTHON_VERSION 2.5
+!define PYTHON_URL "http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi"
+
+!define MUI_ABORTWARNING
+
+#######################################################################
+# GENERAL
+#######################################################################
+
+Name "${PRODUCT}"
+OutFile "${PROGRAM}-${VERSION}.exe"
+InstallDir "$PROGRAMFILES\${PRODUCT}"
+# Get installation folder from registry if Csound is already installed.
+InstallDirRegKey HKCU "Software\${PRODUCT}" ""
+
+#######################################################################
+# VARIABLES
+#######################################################################
+
+Var MUI_TEMP
+Var STARTMENU_FOLDER
+Var PYTHON_OUTPUT_PATH
+
+#######################################################################
+# FUNCTIONS
+#######################################################################
+
+# Check to see if the required version of Python is installed;
+# if not, ask the user if he or she wants to install it;
+# if so, try to install it.
+# if Python is installed, enable the Python features of Csound.
+# If Python is available, or not available, then
+# a Python backup output path is not defined, or defined, respectively.
+
+Function GetPython
+	ClearErrors
+	StrCpy $3 "Software\Python\PythonCore\${PYTHON_VERSION}\InstallPath"
+	ReadRegStr $1 HKLM $3 ""
+  	IfErrors tryToInstallPython enablePython
+tryToInstallPython:
+	MessageBox MB_YESNO "Csound can be scripted with Python ${PYTHON_VERSION}. Install Python ${PYTHON_VERSION}?" IDYES installPython IDNO disablePython
+installPython:
+   	DetailPrint "Attempting to install Python..."
+       	StrCpy $2 "$TEMP\python-2.5.1.msi"
+        nsisdl::download /TIMEOUT=30000 ${PYTHON_URL} $2
+        Pop $R0 #Get the return value
+        StrCmp $R0 "success" +3
+        MessageBox MB_OK "Download failed: $R0"
+        Goto disablePython
+        ExecWait $2
+        Delete $2
+enablePython:
+	DetailPrint "Python ${PYTHON_VERSION} is available, enabling Python features..."
+	StrCpy $PYTHON_OUTPUT_PATH ""
+	Goto done
+disablePython:
+	DetailPrint "Python ${PYTHON_VERSION} is not available. Python modules will be installed in the 'python_backup' directory."
+	StrCpy $PYTHON_OUTPUT_PATH "python_backup\"
+done:
+FunctionEnd
+
+# WriteEnvStr - Write an environment variable
 # Note: Win9x systems requires reboot
 #
 # Example:
 #  Push "HOMEDIR"           # name
 #  Push "C:\New Home Dir\"  # value
 #  Call WriteEnvStr
-#
+
 Function WriteEnvStr
-  Exch $1 ; $1 has environment variable value
+	Exch $1 # $1 has environment variable value
   Exch
-  Exch $0 ; $0 has environment variable name
+  	Exch $0 # $0 has environment variable name
   Push $2
   
   Call IsNT
   Pop $2
   StrCmp $2 1 WriteEnvStr_NT
-    ; Not on NT
-    StrCpy $2 $WINDIR 2 ; Copy drive of windows (c:)
+    	# Not on NT
+    	StrCpy $2 $WINDIR 2 # Copy drive of windows (c:)
     FileOpen $2 "$2\autoexec.bat" a
     FileSeek $2 0 END
     FileWrite $2 "$\r$\nSET $0=$1$\r$\n"
     FileClose $2
     SetRebootFlag true
     Goto WriteEnvStr_done
-
-  WriteEnvStr_NT:
+WriteEnvStr_NT:
       WriteRegExpandStr ${WriteEnvStr_RegKey} $0 $1
       SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-  
-  WriteEnvStr_done:
+WriteEnvStr_done:
     Pop $2
     Pop $1
     Pop $0
 FunctionEnd
 
-#
-# un.DeleteEnvStr - Removes an environment variable
+
+# un.DeleteEnvStr - Remove an environment variable
 # Note: Win9x systems requires reboot
 #
 # Example:
 #  Push "HOMEDIR"           # name
 #  Call un.DeleteEnvStr
-#
+
 Function un.DeleteEnvStr
-  Exch $0 ; $0 now has the name of the variable
+  	Exch $0 # $0 now has the name of the variable
   Push $1
   Push $2
   Push $3
@@ -78,15 +158,14 @@ Function un.DeleteEnvStr
   Call un.IsNT
   Pop $1
   StrCmp $1 1 DeleteEnvStr_NT
-    ; Not on NT
+    	# Not on NT
     StrCpy $1 $WINDIR 2
     FileOpen $1 "$1\autoexec.bat" r
     GetTempFileName $4
     FileOpen $2 $4 w
     StrCpy $0 "SET $0="
     SetRebootFlag true
-    
-    DeleteEnvStr_dosLoop:
+DeleteEnvStr_dosLoop:
       FileRead $1 $3
       StrLen $5 $0
       StrCpy $5 $3 $5
@@ -94,8 +173,7 @@ Function un.DeleteEnvStr
       StrCmp $5 "" DeleteEnvStr_dosLoopEnd
       FileWrite $2 $3
       Goto DeleteEnvStr_dosLoop
-    
-    DeleteEnvStr_dosLoopEnd:
+DeleteEnvStr_dosLoopEnd:
       FileClose $2
       FileClose $1
       StrCpy $1 $WINDIR 2
@@ -103,12 +181,10 @@ Function un.DeleteEnvStr
       CopyFiles /SILENT $4 "$1\autoexec.bat"
       Delete $4
       Goto DeleteEnvStr_done
-
-  DeleteEnvStr_NT:
+DeleteEnvStr_NT:
     DeleteRegValue ${WriteEnvStr_RegKey} $0
     SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-  
-  DeleteEnvStr_done:
+DeleteEnvStr_done:
     Pop $5
     Pop $4
     Pop $3
@@ -117,8 +193,7 @@ Function un.DeleteEnvStr
     Pop $0
 FunctionEnd
 
-#
-# [un.]IsNT - Pushes 1 if running on NT, 0 if not
+# [un.]IsNT - Push 1 if running on NT, 0 if not
 #
 # Example:
 #   Call IsNT
@@ -127,20 +202,19 @@ FunctionEnd
 #     MessageBox MB_OK "Not running on NT!"
 #     Goto +2
 #     MessageBox MB_OK "Running on NT!"
-#
+
 !macro IsNT UN
 Function ${UN}IsNT
   Push $0
   ReadRegStr $0 HKLM \
     "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
   StrCmp $0 "" 0 IsNT_yes
-  ; we are not NT.
+  	# we are not NT.
   Pop $0
   Push 0
   Return
-
-  IsNT_yes:
-    ; NT!!!
+IsNT_yes:
+    	# NT!!!
     Pop $0
     Push 1
 FunctionEnd
@@ -148,10 +222,9 @@ FunctionEnd
 !insertmacro IsNT ""
 !insertmacro IsNT "un."
 
-
-; AddToPath - Adds the given dir to the search path.
-;        Input - head of the stack
-;        Note - Win9x systems requires reboot
+# Add the given directory to the search path.
+#        Input - head of the stack
+#        Note - Win9x systems requires reboot
 
 Function AddToPath
   Exch $0
@@ -188,38 +261,36 @@ Function AddToPath
   Call IsNT
   Pop $1
   StrCmp $1 1 AddToPath_NT
-    ; Not on NT
+    	# Not on NT
     StrCpy $1 $WINDIR 2
     FileOpen $1 "$1\autoexec.bat" a
     FileSeek $1 -1 END
     FileReadByte $1 $2
     IntCmp $2 26 0 +2 +2 # DOS EOF
       FileSeek $1 -1 END # write over EOF
-    FileWrite $1 "$\r$\nSET PATH=%PATH%;$3$\r$\n"
+    	FileWrite $1 "$\r$\nSET PATH=%PATH%#$3$\r$\n"
     FileClose $1
     SetRebootFlag true
     Goto AddToPath_done
-
-  AddToPath_NT:
+AddToPath_NT:
     ReadRegStr $1 HKCU "Environment" "PATH"
     StrCpy $2 $1 1 -1 # copy last char
-    StrCmp $2 ";" 0 +2 # if last char == ;
+    	StrCmp $2 "#" 0 +2 # if last char == #
       StrCpy $1 $1 -1 # remove last char
     StrCmp $1 "" AddToPath_NTdoIt
-      StrCpy $0 "$1;$0"
-    AddToPath_NTdoIt:
+      	StrCpy $0 "$1#$0"
+AddToPath_NTdoIt:
       WriteRegExpandStr HKCU "Environment" "PATH" $0
       SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-
-  AddToPath_done:
+AddToPath_done:
     Pop $3
     Pop $2
     Pop $1
     Pop $0
 FunctionEnd
 
-; RemoveFromPath - Remove a given dir from the path
-;     Input: head of the stack
+# Remove a given directory from the path
+#     Input: head of the stack
 
 Function un.RemoveFromPath
   Exch $0
@@ -235,7 +306,7 @@ Function un.RemoveFromPath
   Call un.IsNT
   Pop $1
   StrCmp $1 1 unRemoveFromPath_NT
-    ; Not on NT
+    	# Not on NT
     StrCpy $1 $WINDIR 2
     FileOpen $1 "$1\autoexec.bat" r
     GetTempFileName $4
@@ -243,8 +314,7 @@ Function un.RemoveFromPath
     GetFullPathName /SHORT $0 $0
     StrCpy $0 "SET PATH=%PATH%;$0"
     Goto unRemoveFromPath_dosLoop
-
-    unRemoveFromPath_dosLoop:
+unRemoveFromPath_dosLoop:
       FileRead $1 $3
       StrCpy $5 $3 1 -1 # read last char
       StrCmp $5 $6 0 +2 # if DOS EOF
@@ -255,11 +325,10 @@ Function un.RemoveFromPath
       StrCmp $3 "" unRemoveFromPath_dosLoopEnd
       FileWrite $2 $3
       Goto unRemoveFromPath_dosLoop
-      unRemoveFromPath_dosLoopRemoveLine:
+unRemoveFromPath_dosLoopRemoveLine:
         SetRebootFlag true
         Goto unRemoveFromPath_dosLoop
-
-    unRemoveFromPath_dosLoopEnd:
+unRemoveFromPath_dosLoopEnd:
       FileClose $2
       FileClose $1
       StrCpy $1 $WINDIR 2
@@ -267,18 +336,17 @@ Function un.RemoveFromPath
       CopyFiles /SILENT $4 "$1\autoexec.bat"
       Delete $4
       Goto unRemoveFromPath_done
-
-  unRemoveFromPath_NT:
+unRemoveFromPath_NT:
     ReadRegStr $1 HKCU "Environment" "PATH"
     StrCpy $5 $1 1 -1 # copy last char
     StrCmp $5 ";" +2 # if last char != ;
       StrCpy $1 "$1;" # append ;
     Push $1
     Push "$0;"
-    Call un.StrStr ; Find `$0;` in $1
-    Pop $2 ; pos of our dir
+    	Call un.StrStr # Find `$0;` in $1
+    	Pop $2 # pos of our dir
     StrCmp $2 "" unRemoveFromPath_done
-      ; else, it is in path
+      	# else, it is in path
       # $0 - path to add
       # $1 - path var
       StrLen $3 "$0;"
@@ -293,8 +361,7 @@ Function un.RemoveFromPath
 
       WriteRegExpandStr HKCU "Environment" "PATH" $3
       SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-
-  unRemoveFromPath_done:
+unRemoveFromPath_done:
     Pop $6
     Pop $5
     Pop $4
@@ -304,39 +371,35 @@ Function un.RemoveFromPath
     Pop $0
 FunctionEnd
 
-###########################################
-#            Utility Functions            #
-###########################################
-
-; StrStr
-; input, top of stack = string to search for
-;        top of stack-1 = string to search in
-; output, top of stack (replaces with the portion of the string remaining)
-; modifies no other variables.
-;
-; Usage:
-;   Push "this is a long ass string"
-;   Push "ass"
-;   Call StrStr
-;   Pop $R0
-;  ($R0 at this point is "ass string")
+# StrStr
+# input, top of stack = string to search for
+#        top of stack-1 = string to search in
+# output, top of stack (replaces with the portion of the string remaining)
+# modifies no other variables.
+#
+# Usage:
+#   Push "this is a long ass string"
+#   Push "ass"
+#   Call StrStr
+#   Pop $R0
+#  ($R0 at this point is "ass string")
 
 !macro StrStr un
 Function ${un}StrStr
-Exch $R1 ; st=haystack,old$R1, $R1=needle
-  Exch    ; st=old$R1,haystack
-  Exch $R2 ; st=old$R1,old$R2, $R2=haystack
+	Exch $R1 # st=haystack,old$R1, $R1=needle
+  	Exch    # st=old$R1,haystack
+  	Exch $R2 # st=old$R1,old$R2, $R2=haystack
   Push $R3
   Push $R4
   Push $R5
   StrLen $R3 $R1
   StrCpy $R4 0
-  ; $R1=needle
-  ; $R2=haystack
-  ; $R3=len(needle)
-  ; $R4=cnt
-  ; $R5=tmp
-  loop:
+  	# $R1=needle
+  	# $R2=haystack
+  	# $R3=len(needle)
+  	# $R4=cnt
+  	# $R5=tmp
+loop:
     StrCpy $R5 $R2 $R3 $R4
     StrCmp $R5 $R1 done
     StrCmp $R5 "" done
@@ -354,99 +417,84 @@ FunctionEnd
 !insertmacro StrStr ""
 !insertmacro StrStr "un."
 
-
-;--------------------------------
-;General
-
-  ;Name and file
-  Name "${PRODUCT}"
-  OutFile "${PROGRAM}-${VERSION}.exe"
-
-  ;Default installation folder
-  InstallDir "$PROGRAMFILES\${PRODUCT}"
+#######################################################################
+# INSTALLER PAGES
+#######################################################################
   
-  ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "Software\${PRODUCT}" ""
+!insertmacro MUI_PAGE_WELCOME
 
-;--------------------------------
-;Variables
+!ifdef NONFREE
+	!insertmacro MUI_PAGE_LICENSE ..\..\readme-csound5-complete.txt
+!else
+	!insertmacro MUI_PAGE_LICENSE ..\..\readme-csound5.txt
+!endif
 
-  Var MUI_TEMP
-  Var STARTMENU_FOLDER
+!insertmacro MUI_PAGE_DIRECTORY
 
-;--------------------------------
-;Interface Settings
-
-  !define MUI_ABORTWARNING
-
-;--------------------------------
-;Pages
-
-  !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE ..\..\readme-csound5.txt
-  !insertmacro MUI_PAGE_DIRECTORY
+# Start Menu Folder Page Configuration
   
-  ;Start Menu Folder Page Configuration
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${PRODUCT}" 
-  !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${PRODUCT}" 
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   
-  !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
+!insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
   
-  !insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_INSTFILES
 
-  ;!define MUI_FINISHPAGE_SHOWREADME readme-csound5.txt
-  ;!define MUI_FINISHPAGE_SHOWREADME_CHECKED
-  !insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_PAGE_FINISH
 
-  !insertmacro MUI_UNPAGE_CONFIRM
-  !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_CONFIRM
 
-;--------------------------------
-;Languages
+!insertmacro MUI_UNPAGE_INSTFILES
  
-  !insertmacro MUI_LANGUAGE "English"
+#######################################################################
+# LANGUAGES AND DESCRIPTIONS
+#######################################################################
 
-;--------------------------------
-;Installer Sections
+!insertmacro MUI_LANGUAGE "English"
 
-Section -Prerequisites
-  SetOutPath $INSTDIR\Prerequisites
-  MessageBox MB_YESNO "Install Microsoft ActiveSync?" /SD IDYES IDNO endActiveSync
-;    File "..\Prerequisites\ActiveSyncSetup.exe"
-;    ExecWait "$INSTDIR\Prerequisites\ActiveSyncSetup.exe"
-   Goto endActiveSync
-  endActiveSync:
-SectionEnd
+LangString DESC_SecCopyUI ${LANG_ENGLISH} "Copy ${PRODUCT} to the application folder."
 
-[edit]
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+!insertmacro MUI_DESCRIPTION_TEXT ${SecCopyUI} $(DESC_SecCopyUI)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
+#######################################################################
+# INSTALLER SECTIONS
+#######################################################################
 
 Section "${PRODUCT}" SecCopyUI
-
+	# If Python is not available, ask the user if they want to install it.
+	Call GetPython
+	# First we do output paths for non-Python stuff.
   SetOutPath $INSTDIR
-  File ..\..\etc\.csoundrc
+!ifdef NONFREE
+		File ..\..\readme-csound5-complete.txt
+!else
   File ..\..\readme-csound5.txt
+!endif
+		File ..\..\etc\.csoundrc
   File ..\..\INSTALL
-  
   SetOutPath $INSTDIR\bin
-  ; "csound64" for double-precision audio samples;
-  ; "csound32" for single-precision audio samples.
+!ifdef FLOAT
+		File ..\..\csound32.dll.5.1
+!else
   File ..\..\csound64.dll.5.1
-  ; File ..\..\csound32.dll.5.1
+!endif
   File ..\..\csnd.dll
-  File ..\..\_csnd.pyd
   File ..\..\_jcsound.dll
   File ..\..\CsoundAC.dll
-  File ..\..\_CsoundAC.pyd
-  File ..\..\scoregen.dll
-  File ..\..\_scoregen.pyd
-  File ..\..\tclcsound.dll
+!ifdef NONFREE
+		File ..\..\CsoundVST.dll
+		File ..\..\*.exe
+!else
+		File /x CsoundVST.exe ..\..\*.exe
+!endif
+   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
   File D:\utah\opt\libsndfile-1.0.18pre11\src\.libs\libsndfile-1.dll
-  #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
@@ -455,19 +503,16 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\home\mkg\projects\liblo\src\liblo.dll
   File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
   File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
-  File ..\..\csnd.py
-  File ..\..\CsoundAC.py
-  File ..\..\scoregen.py
-  File ..\..\CompositionBase.py
-  File /x csoundvst.exe ..\..\*.exe
   File ..\..\csound.def
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
+#ifdef NONFREE
+		File ..\..\frontends\CsoundVST\_CsoundVST.def
+#endif
    SetOutPath $INSTDIR\pluginSDK
   File ..\..\pluginSDK\SConstruct
   File ..\..\pluginSDK\examplePlugin.c
   File ..\..\pluginSDK\custom.py
-  
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
   File ..\..\doc\latex\refman.pdf
@@ -478,64 +523,123 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\LICENSE.PortAudio
   SetOutPath $INSTDIR\doc\manual
   File /r ..\..\..\manual\html\*
-  
   SetOutPath $INSTDIR\tutorial
   File ..\..\tutorial\tutorial.pdf
   File ..\..\tutorial\*.csd
   File ..\..\tutorial\*.py
   File ..\..\tutorial\tutorial3.cpr
- 
-  
   SetOutPath $INSTDIR\examples
   File /x *.wav /x *.orc /x *.sco ..\..\examples\*.*
   SetOutPath $INSTDIR\examples\csoundapi_tilde
   File /x *.wav /x *.orc /x *.sco ..\..\examples\csoundapi_tilde\*.*
   SetOutPath $INSTDIR\examples\java
   File /x *.wav /x *.orc /x *.sco ..\..\examples\java\*.*
-  SetOutPath $INSTDIR\examples\python_demo
-  File /x *.wav /x *.orc /x *.pyc /x *.sco ..\..\examples\python_demo\*.*
   SetOutPath $INSTDIR\examples\tclcsound
   File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
   SetOutPath $INSTDIR\examples\gab
   File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
+		SetOutPath $INSTDIR\examples\python_demo
+			File /x *.wav /x *.orc /x *.pyc /x *.sco ..\..\examples\python_demo\*.*
   SetOutPath $INSTDIR\examples\py
   File /x *.wav  ..\..\Opcodes\py\examples\*.*
-  
   SetOutPath $INSTDIR\include
-  File /x aeff* ..\..\H\*.h
-  File /x aeff* ..\..\H\*.hpp
-  File ..\..\frontends\CsoundAC\*.hpp
+		File ..\..\H\*.h
+		File ..\..\H\*.hpp
   File ..\..\interfaces\*.hpp
-  
+!ifdef NONFREE
+		File ..\..\frontends\CsoundVST\*.h
+		File ..\..\frontends\CsoundVST\*.hpp
+!endif
+		File ..\..\frontends\CsoundAC\*.h
+		File ..\..\frontends\CsoundAC\*.hpp
   SetOutPath $INSTDIR\interfaces\java
   File ..\..\csnd.jar
-  
   SetOutPath $INSTDIR\interfaces\lisp
   File ..\..\interfaces\*.lisp
-  
-  SetOutPath $INSTDIR\plugins64
-  File ..\..\frontends\csladspa\csladspa.dll
-  File /x stk.dll /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
-  
+!ifdef NONFREE
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
-  
-  ;Store installation folder
+		File /r ..\..\Opcodes\stk\rawwaves\*.raw
+!endif
+	# Then we do output paths for Python stuff.
+	SetOutPath $INSTDIR\$PYTHON_OUTPUT_PATHbin
+		File ..\..\_CsoundAC.pyd
+		File ..\..\CsoundAC.py
+		FILE ..\..\_csnd.pyd
+		File ..\..\csnd.py
+		File ..\..\CompositionBase.py
+	# Then we do opcodes, which are a special case with respect to Python and non-free software.
+	SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+!ifdef PYTHON_AVAILABLE
+	!ifdef NONFREE
+		DetailPrint "Python available, free and non-free software."
+		File /x csound*.dll* \
+		/x *.pyd \       
+		/x libsndfile-1.dll \
+		/x portaudio.dll* \
+		/x tclcsound.dll \
+		/x csoundapi~.dll \
+		/x pm_midi.dll \
+		..\..\py.dll \
+		..\..\*.dll \
+		..\..\frontends\csladspa\csladspa.dll
+	!else
+		DetailPrint "Python available, only free software."
+		File /x csound*.dll* \
+		/x stk.dll \
+		/x vst4cs.dll \
+		/x *.pyd \       
+		/x libsndfile-1.dll \
+		/x portaudio.dll* \
+		/x tclcsound.dll \
+		/x csoundapi~.dll \
+		/x pm_midi.dll \
+		..\..\*.dll \
+		..\..\frontends\csladspa\csladspa.dll
+	!endif
+!else
+	!ifdef NONFREE
+		DetailPrint "Python not available, free and non-free software."
+		File /x csound*.dll* \
+		/x *.pyd \       
+		/x libsndfile-1.dll \
+		/x portaudio.dll* \
+		/x tclcsound.dll \
+		/x csoundapi~.dll \
+		/x pm_midi.dll \
+		..\..\*.dll \
+		..\..\frontends\csladspa\csladspa.dll
+	!else
+		DetailPrint "Python not available, only free software."
+		File /x csound*.dll* \
+		/x stk.dll \
+		/x py.dll \
+		/x vst4cs.dll \
+		/x *.pyd \       
+		/x libsndfile-1.dll \
+		/x portaudio.dll* \
+		/x tclcsound.dll \
+		/x csoundapi~.dll \
+		/x pm_midi.dll \
+		..\..\*.dll \
+		..\..\frontends\csladspa\csladspa.dll
+	!endif
+!endif
+	# Store the installation folder.
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
-  
-  ; back up old value of .csd
+	# Back up any old value of .csd.
   ReadRegStr $1 HKCR ".csd" ""
   StrCmp $1 "" noBackup
     StrCmp $1 "${PRODUCT}File" noBackup
     WriteRegStr HKCR ".csd" "backup_val" $1
-  noBackup:
+noBackup:
   WriteRegStr HKCR ".csd" "" "${PRODUCT}File"
   ReadRegStr $0 HKCR "${PRODUCT}File" ""
   StrCmp $0 "" 0 skipAssoc
 	WriteRegStr HKCR "${PRODUCT}File" "" "CSound Unified File"
 	WriteRegStr HKCR "${PRODUCT}File\shell" "" "open"
 	WriteRegStr HKCR "${PRODUCT}File\DefaultIcon" "" $INSTDIR\bin\${PROGRAM}.exe,0
-  skipAssoc:
+skipAssoc:
   WriteRegStr HKCR "${PRODUCT}File\shell\open\command" "" '$INSTDIR\bin${PROGRAM}.exe "%1"'
 
   Push $INSTDIR\bin
@@ -544,8 +648,8 @@ Section "${PRODUCT}" SecCopyUI
   Push "CSOUNDRC" 
   Push $INSTDIR\.csoundrc
   Call WriteEnvStr
-  Push "OPCODEDIR64" 
-  Push $INSTDIR\plugins64
+	Push ${OPCODEDIR_ENV}
+	Push $INSTDIR\${OPCODEDIR_VAL}
   Call WriteEnvStr
   Push "RAWWAVE_PATH" 
   Push "$INSTDIR\samples"
@@ -557,81 +661,62 @@ Section "${PRODUCT}" SecCopyUI
   Push "SFOUTYP"
   Push "WAV"
   Call WriteEnvStr
-
-  ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
-  
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-    
-    ; Create shortcuts
-    ; link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
-
+	# Create shortcuts. The format of these lines is:
+	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\csound.exe" "" "" "" "" "" "Command-line Csound"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csound5gui.lnk" "$INSTDIR\bin\csound5gui.exe" "" "" "" "" "" " Varga Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cseditor.lnk" "$INSTDIR\bin\cseditor.exe" "" "" "" "" "" "Csound editor"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt" "" "" "" "" "" "Csound README"
+!ifdef NONFREE
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe" "" "" "" "" "" "CsoundVST GUI"
+!endif
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\refman.pdf" "" "" "" "" "" "API reference"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
-  
   !insertmacro MUI_STARTMENU_WRITE_END
 
 SectionEnd
 
-;--------------------------------
-;Descriptions
-
-  ;Language strings
-  LangString DESC_SecCopyUI ${LANG_ENGLISH} "Copy ${PRODUCT} to the application folder."
-
-  ;Assign language strings to sections
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecCopyUI} $(DESC_SecCopyUI)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
-
-;--------------------------------
-;Uninstaller Section
-
 Section "Uninstall"
 
   RMDir /r $INSTDIR
-  
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-    
   Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\cseditor.lnk"
+!ifdef NONFREE
+	Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
+!endif
    Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
-  
-  ;Delete empty start menu parent diretories
+	# Delete empty start menu parent dircetories.
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
- 
-  startMenuDeleteLoop:
+startMenuDeleteLoop:
     RMDir $MUI_TEMP
     GetFullPathName $MUI_TEMP "$MUI_TEMP\.."
-    
     IfErrors startMenuDeleteLoopDone
-  
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
-  startMenuDeleteLoopDone:
-
+startMenuDeleteLoopDone:
   Push $INSTDIR
   Call un.RemoveFromPath
 
   Push "CSOUNDRC"
   Call un.DeleteEnvStr 
-  Push "OPCODEDIR64"
+	Push ${OPCODEDIR_ENV}
   Call un.DeleteEnvStr 
+!ifdef NONFREE
   Push "RAWWAVE_PATH"
   Call un.DeleteEnvStr 
+!endif
   Push "SFOUTYP"
   Call un.DeleteEnvStr
 
