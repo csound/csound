@@ -232,6 +232,7 @@ uintptr_t CsoundVST::performanceThreadRoutine()
 	{
 	  Message("Csound compilation failed.\n");
 	  reset();
+	  stop();
 	}
     }
   else
@@ -446,6 +447,16 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
             }
         }
     }
+  else 
+    {
+      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
+	{
+	  for (channelI = 0; channelI < channelN; channelI++) 
+	    {
+	      hostOutput[channelI][hostFrameI] += hostInput[channelI][hostFrameI];
+	    }
+	}
+    }
 }
 
 void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32 hostFrameN)
@@ -479,6 +490,16 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
               csoundFrameI = 0;
             }
         }
+    }
+  else 
+    {
+      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
+	{
+	  for (channelI = 0; channelI < channelN; channelI++) 
+	    {
+	      hostOutput[channelI][hostFrameI] = hostInput[channelI][hostFrameI];
+	    }
+	}
     }
 }
 

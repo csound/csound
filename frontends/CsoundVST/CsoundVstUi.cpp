@@ -26,13 +26,15 @@ Fl_Tabs *mainTabs=(Fl_Tabs *)0;
 
 Fl_Group *settingsGroup=(Fl_Group *)0;
 
-Fl_Group *settingsVstPluginModeGroup=(Fl_Group *)0;
-
 Fl_Check_Button *settingsVstPluginModeEffect=(Fl_Check_Button *)0;
 
 Fl_Check_Button *settingsVstPluginModeInstrument=(Fl_Check_Button *)0;
 
 Fl_Input *commandInput=(Fl_Input *)0;
+
+Fl_Input *settingsEditSoundfileInput=(Fl_Input *)0;
+
+Fl_Browser *runtimeMessagesBrowser=(Fl_Browser *)0;
 
 #include <FL/Fl_Image.H>
 static unsigned char idata_angel[] =
@@ -2744,10 +2746,6 @@ static unsigned char idata_angel[] =
 228,244,145,245,233,151,236,232,124,248,241,150,251,234,152,114,77,33,87,28,30};
 static Fl_RGB_Image image_angel(idata_angel, 145, 136, 3, 0);
 
-Fl_Input *settingsEditSoundfileInput=(Fl_Input *)0;
-
-Fl_Browser *runtimeMessagesBrowser=(Fl_Browser *)0;
-
 Fl_Group *orchestraGroup=(Fl_Group *)0;
 
 Fl_Text_Editor *orchestraTextEdit=(Fl_Text_Editor *)0;
@@ -2762,7 +2760,7 @@ Fl_Text_Display *aboutTextDisplay=(Fl_Text_Display *)0;
 
 Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
   Fl_Double_Window* w;
-  { Fl_Double_Window* o = new Fl_Double_Window(709, 390, "CsoundVST");
+  { Fl_Double_Window* o = new Fl_Double_Window(708, 389, "CsoundVST");
     w = o;
     o->color((Fl_Color)48);
     o->labelsize(12);
@@ -2899,33 +2897,25 @@ e");
         settingsGroup->selection_color(FL_DARK1);
         settingsGroup->labelfont(1);
         settingsGroup->labelsize(12);
-        { settingsVstPluginModeGroup = new Fl_Group(10, 67, 195, 36);
-          settingsVstPluginModeGroup->tooltip("Select VST plugin mode");
-          settingsVstPluginModeGroup->box(FL_THIN_DOWN_BOX);
-          settingsVstPluginModeGroup->selection_color((Fl_Color)46);
-          settingsVstPluginModeGroup->labelsize(12);
-          settingsVstPluginModeGroup->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
-          { settingsVstPluginModeEffect = new Fl_Check_Button(119, 77, 55, 15, "VST Effect");
-            settingsVstPluginModeEffect->tooltip("Plugin is a VST effect");
-            settingsVstPluginModeEffect->type(102);
-            settingsVstPluginModeEffect->down_box(FL_GTK_THIN_DOWN_BOX);
-            settingsVstPluginModeEffect->selection_color((Fl_Color)42);
-            settingsVstPluginModeEffect->labelsize(12);
-            settingsVstPluginModeEffect->callback((Fl_Callback*)onSettingsVstPluginMode, (void*)(csoundVstFltk));
-            settingsVstPluginModeEffect->when(FL_WHEN_CHANGED);
-          } // Fl_Check_Button* settingsVstPluginModeEffect
-          { settingsVstPluginModeInstrument = new Fl_Check_Button(16, 77, 83, 15, "VST Instrument");
-            settingsVstPluginModeInstrument->tooltip("Plugin is a VST instrument");
-            settingsVstPluginModeInstrument->type(102);
-            settingsVstPluginModeInstrument->down_box(FL_GTK_THIN_DOWN_BOX);
-            settingsVstPluginModeInstrument->selection_color((Fl_Color)42);
-            settingsVstPluginModeInstrument->labelsize(12);
-            settingsVstPluginModeInstrument->callback((Fl_Callback*)onSettingsVstInstrumentMode, (void*)(csoundVstFltk));
-            settingsVstPluginModeInstrument->when(FL_WHEN_CHANGED);
-          } // Fl_Check_Button* settingsVstPluginModeInstrument
-          settingsVstPluginModeGroup->end();
-        } // Fl_Group* settingsVstPluginModeGroup
-        { commandInput = new Fl_Input(10, 121, 590, 48, "Csound command line");
+        { settingsVstPluginModeEffect = new Fl_Check_Button(555, 114, 55, 22, "VST Effect");
+          settingsVstPluginModeEffect->tooltip("Plugin is a VST effect");
+          settingsVstPluginModeEffect->type(102);
+          settingsVstPluginModeEffect->down_box(FL_GTK_THIN_DOWN_BOX);
+          settingsVstPluginModeEffect->selection_color((Fl_Color)42);
+          settingsVstPluginModeEffect->labelsize(12);
+          settingsVstPluginModeEffect->callback((Fl_Callback*)onSettingsVstPluginMode, (void*)(csoundVstFltk));
+          settingsVstPluginModeEffect->when(FL_WHEN_CHANGED);
+        } // Fl_Check_Button* settingsVstPluginModeEffect
+        { settingsVstPluginModeInstrument = new Fl_Check_Button(450, 114, 83, 22, "VST Instrument");
+          settingsVstPluginModeInstrument->tooltip("Plugin is a VST instrument");
+          settingsVstPluginModeInstrument->type(102);
+          settingsVstPluginModeInstrument->down_box(FL_GTK_THIN_DOWN_BOX);
+          settingsVstPluginModeInstrument->selection_color((Fl_Color)42);
+          settingsVstPluginModeInstrument->labelsize(12);
+          settingsVstPluginModeInstrument->callback((Fl_Callback*)onSettingsVstInstrumentMode, (void*)(csoundVstFltk));
+          settingsVstPluginModeInstrument->when(FL_WHEN_CHANGED);
+        } // Fl_Check_Button* settingsVstPluginModeInstrument
+        { commandInput = new Fl_Input(100, 67, 535, 40, "Command line");
           commandInput->tooltip("Csound command line");
           commandInput->type(4);
           commandInput->box(FL_GTK_THIN_DOWN_BOX);
@@ -2933,36 +2923,29 @@ e");
           commandInput->labelsize(12);
           commandInput->textfont(4);
           commandInput->textsize(11);
-          commandInput->align(FL_ALIGN_TOP_LEFT);
         } // Fl_Input* commandInput
-        { Fl_Group* o = new Fl_Group(605, 66, 94, 105);
-          o->box(FL_GTK_THIN_DOWN_BOX);
-          o->image(image_angel);
-          o->labelsize(12);
-          o->align(FL_ALIGN_CLIP|FL_ALIGN_INSIDE);
-          o->end();
-        } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(209, 67, 391, 36);
-          o->box(FL_THIN_DOWN_BOX);
-          o->labelsize(12);
-          o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
-          { settingsEditSoundfileInput = new Fl_Input(305, 74, 290, 22, "Soundfile editor");
-            settingsEditSoundfileInput->tooltip("Program to be used for editing soundfiles");
-            settingsEditSoundfileInput->box(FL_GTK_THIN_DOWN_BOX);
-            settingsEditSoundfileInput->selection_color((Fl_Color)46);
-            settingsEditSoundfileInput->labelsize(12);
-            settingsEditSoundfileInput->textfont(4);
-            settingsEditSoundfileInput->textsize(11);
-          } // Fl_Input* settingsEditSoundfileInput
-          o->end();
-        } // Fl_Group* o
-        { runtimeMessagesBrowser = new Fl_Browser(10, 174, 690, 205);
+        { settingsEditSoundfileInput = new Fl_Input(100, 114, 345, 22, "Soundfile editor");
+          settingsEditSoundfileInput->tooltip("Program to be used for editing soundfiles");
+          settingsEditSoundfileInput->box(FL_GTK_THIN_DOWN_BOX);
+          settingsEditSoundfileInput->selection_color((Fl_Color)46);
+          settingsEditSoundfileInput->labelsize(12);
+          settingsEditSoundfileInput->textfont(4);
+          settingsEditSoundfileInput->textsize(11);
+        } // Fl_Input* settingsEditSoundfileInput
+        { runtimeMessagesBrowser = new Fl_Browser(10, 144, 690, 231);
           runtimeMessagesBrowser->box(FL_GTK_THIN_DOWN_BOX);
           runtimeMessagesBrowser->labelsize(12);
           runtimeMessagesBrowser->textfont(4);
           runtimeMessagesBrowser->textsize(11);
           Fl_Group::current()->resizable(runtimeMessagesBrowser);
         } // Fl_Browser* runtimeMessagesBrowser
+        { Fl_Group* o = new Fl_Group(640, 67, 59, 68);
+          o->box(FL_GTK_THIN_DOWN_BOX);
+          o->image(image_angel);
+          o->labelsize(12);
+          o->align(FL_ALIGN_CLIP|FL_ALIGN_INSIDE);
+          o->end();
+        } // Fl_Group* o
         settingsGroup->end();
         Fl_Group::current()->resizable(settingsGroup);
       } // Fl_Group* settingsGroup
@@ -2988,7 +2971,7 @@ e");
         scoreGroup->labelfont(1);
         scoreGroup->labelsize(12);
         scoreGroup->hide();
-        { scoreTextEdit = new Fl_Text_Editor(10, 65, 690, 314);
+        { scoreTextEdit = new Fl_Text_Editor(10, 65, 690, 312);
           scoreTextEdit->box(FL_GTK_THIN_DOWN_BOX);
           scoreTextEdit->labelsize(12);
           scoreTextEdit->textfont(4);
@@ -3003,10 +2986,11 @@ e");
         aboutGroup->labelfont(1);
         aboutGroup->labelsize(12);
         aboutGroup->hide();
-        { aboutTextDisplay = new Fl_Text_Display(10, 65, 690, 315);
-          aboutTextDisplay->box(FL_THIN_DOWN_BOX);
+        { aboutTextDisplay = new Fl_Text_Display(10, 65, 690, 312);
+          aboutTextDisplay->box(FL_GTK_THIN_DOWN_BOX);
           aboutTextDisplay->color(FL_LIGHT3);
           aboutTextDisplay->labelsize(12);
+          aboutTextDisplay->textfont(4);
           aboutTextDisplay->textsize(11);
           aboutTextDisplay->align(FL_ALIGN_CENTER);
         } // Fl_Text_Display* aboutTextDisplay

@@ -61,8 +61,8 @@ class CsoundVstFltk :
 {
 public:
   typedef enum {
-    kEditorWidth = 610,
-    kEditorHeight = 430,
+    kEditorWidth = 708,
+    kEditorHeight = 389,
     xPad = 4,
     yPad = 4
   } AEffEditorSize;
