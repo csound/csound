@@ -26,23 +26,12 @@
 #ifndef FXBANK_H
 #define FXBANK_H
 
-//#include "vstfxstore.h"
-//ma++ #include "audioeffectx.h"               /* VST header files                  */
-
 #if !defined(VST_2_1_EXTENSIONS)
 struct VstFileSelect;
-////---Structure and enum used for keyUp/keyDown-----
-//struct VstKeyCode
-//{
-//      long character;
-//      unsigned char virt;     // see enum VstVirtualKey
-//      unsigned char modifier; // see enum VstModifierKey
-//};
 struct MidiProgramName;
 struct MidiProgramCategory;
 struct MidiKeyName;
 #endif
-//#include "vstfxstore.h"   //If I try this instead of the copy below, it's not found
 
 /*****************************************************************************/
 /* this is a copy of vstfxstore.h!                                           */
@@ -111,7 +100,7 @@ struct VstSpeakerArrangement;
 struct VstPatchChunkInfo;
 #endif
 
-#include "AEffEditor.hpp"
+#include "public.sdk/source/vst2.x/aeffeditor.h"
 
 #if _MSC_VER > 1000
 #pragma once

@@ -27,8 +27,7 @@
 #define VSTPLUGIN_HOST_H
 
 #include "csdl.h"
-// ma++ #include "AEffectx.h"
-#include "AEffEditor.hpp"
+#include "../../../frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -163,7 +162,7 @@ inline void VSTPlugin::process(float **ins, float **outs, long frames)
 {
     if (aeffect) {
       SendMidi();
-      aeffect->process(aeffect, ins, outs, frames);
+      aeffect->processReplacing(aeffect, ins, outs, frames);
     }
 }
 
