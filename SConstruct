@@ -889,6 +889,7 @@ csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
 csoundProgramEnvironment.Append(LIBS = libCsoundLibs)
 
 vstEnvironment = commonEnvironment.Copy()
+vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
 guiProgramEnvironment = commonEnvironment.Copy()
 
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
@@ -1090,24 +1091,9 @@ else:
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
          '_csnd', csoundInterfacesSources)
     else:
-      csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-        'csnd', csoundInterfacesSources)
+        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
-    #if getPlatform() == 'darwin' and (pythonFound or luaFound):
-        #csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
-        #csoundInterfacesBundleSources = []
-        #if pythonFound:
-        #    csoundInterfacesBundleSources += csoundPythonInterface
-        #if luaFound:
-        #    csoundInterfacesBundleSources += csoundLuaInterface
-        #    csoundInterfacesBundleEnvironment.Prepend(LIBS = ['lua'])
-        #csoundInterfacesBundleEnvironment.Prepend(LIBS = ['_csnd'])
-        #csoundInterfacesBundle = makePythonModule(
-        #    csoundInterfacesBundleEnvironment,
-        #    'csnd', csoundInterfacesBundleSources)
-        #Depends(csoundInterfacesBundle, csoundInterfaces)
-        #Depends(csoundInterfacesBundle, csoundLibrary)
     if pythonFound:
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -1812,7 +1798,6 @@ else:
         acPythonEnvironment = acEnvironment.Copy()
         acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
         csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC', csoundAcPythonWrapper)
-        Depends(csoundAcPythonModule, csoundvst)
     else:
         acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         acEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -1828,37 +1813,22 @@ else:
         'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
 
-buildScoregen = False
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
 else:
     print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
-    if midiPluginSdkFound:
-        print 'CONFIGURATION DECISION: Building scoregen plugin.'
-        buildScoregen = True
-    else:
-        print 'CONFIGURATION DECISION: Not building scoregen plugin.'
-        buildScoregen = False
     headers += glob.glob('frontends/CsoundVST/*.h')
     headers += glob.glob('frontends/CsoundVST/*.hpp')
-    vstEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces', 'frontends/CsoundVST'])
-    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundAC', 'frontends/CsoundVST', 'interfaces'])
-    vstEnvironment.Append(CPPPATH = pythonIncludePath)
-    vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    vstEnvironment.Append(LIBPATH = pythonLibraryPath)
-    if getPlatform() != 'darwin':
-        vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = ['CsoundAC', 'csnd'])
+    vstEnvironment.Prepend(CPPPATH = ['interfaces', 'frontends/CsoundVST'])
+    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    vstEnvironment.Prepend(LIBS = ['csnd'])
     vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     vstEnvironment.Append(LIBS = libCsoundLibs)
-    vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
-        os.symlink('lib_CsoundVST.so', '_CsoundVST.so')
     elif getPlatform() == 'darwin':
         vstEnvironment.Append(LIBS = ['dl', 'm'])
         # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
@@ -1867,7 +1837,7 @@ else:
         vstEnvironment['SHLIBSUFFIX'] = '.dylib'
     elif getPlatform() == 'win32':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
+        vstEnvironment.Append(SHLINKFLAGS = Split('-Wl,--add-stdcall-alias --no-export-all-symbols'))
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
         guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
             -mwindows -Wl,--enable-runtime-pseudo-reloc
@@ -1876,21 +1846,11 @@ else:
             LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
         vstEnvironment.Append(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    for option in vstEnvironment['CCFLAGS']:
-        if string.find(option, '-D') == 0:
-            vstEnvironment.Append(SWIGFLAGS = [option])
-    for option in vstEnvironment['CPPFLAGS']:
-        if string.find(option, '-D') == 0:
-            vstEnvironment.Append(SWIGFLAGS = [option])
-    for option in vstEnvironment['CPPPATH']:
-        option = '-I' + option
-        vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
-    csoundVstBaseSources = []
-    for i in ['AudioEffect', 'audioeffectx']:
-        csoundVstBaseSources += vstEnvironment.SharedObject(
-            'frontends/CsoundVST/%s.cpp' % i)
-    csoundVstSources = csoundVstBaseSources + Split('''
+    csoundVstSources = Split('''
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/vstplugmain.cpp
     frontends/CsoundVST/CsoundVST.cpp
     frontends/CsoundVST/CsoundVstFltk.cpp
     frontends/CsoundVST/CsoundVSTMain.cpp
@@ -1901,69 +1861,11 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
-    if buildScoregen:
-	scoregenSources = csoundVstBaseSources + Split('''
-	frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base/funknown.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/pluginfactory.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/linkedlist.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugparams.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common/plugxmlgui.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/midieffect.cpp
-	frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi/eventqueue.cpp
-	frontends/CsoundVST/ScoreGenerator.cpp
-	frontends/CsoundVST/ScoreGeneratorVst.cpp
-	frontends/CsoundVST/ScoreGeneratorVstUi.cpp
-	frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
-	frontends/CsoundVST/ScoreGeneratorVstMain.cpp
-	''')
-	if getPlatform() == 'win32':
-	    scoregenSources.append('frontends/CsoundVST/_scoregen.def')
-    swigflags = vstEnvironment['SWIGFLAGS']
-    vstWrapperEnvironment = vstEnvironment.Copy()
-    fixCFlagsForSwig(vstWrapperEnvironment)
-    csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
+    csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
     libs.append(csoundvst)
-    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     Depends(csoundvst, csoundInterfaces)
     Depends(csoundvst, csoundLibrary)
-    if getPlatform() == 'darwin':
-        vstPythonEnvironment = vstEnvironment.Copy()
-        vstPythonEnvironment.Prepend(LIBS = ['CsoundVST'])
-    else:
-        vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        vstEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-        vstEnvironment.Prepend(LIBS = pythonLibs)
-        vstEnvironment.Append(CPPPATH = pythonIncludePath)
-        vstPythonEnvironment = vstEnvironment.Copy()
-        if buildScoregen:
-	    scoregenEnvironment = vstEnvironment.Copy()
-	    scoregenEnvironment.Append(CXXFLAGS = Split('''-DWIN32'''))
-            scoregenEnvironment.Append(CPPPATH = Split('''
-        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces
-        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/gui
-        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/base
-        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/host
-        frontends/CsoundVST/VSTModuleArchitectureSDK/pluginterfaces/midi
-        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/common
-        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/main
-        frontends/CsoundVST/VSTModuleArchitectureSDK/public.sdk/source/midi
-            '''))
-        vstPythonEnvironment.Append(LIBS = ['CsoundVST'])
-        if buildScoregen:
-            scoregen = scoregenEnvironment.SharedLibrary('scoregen', scoregenSources)
-            libs.append(scoregen)
-            Depends(scoregen, csoundInterfaces)
-            Depends(scoregen, csoundLibrary)
-            scoregenPythonWrapper = vstWrapperEnvironment.SharedObject(
-                'frontends/CsoundVST/ScoreGeneratorVST.i',
-                SWIGFLAGS = [swigflags, '-python'])
-            scoregenPythonEnvironment = scoregenEnvironment.Copy()
-            scoregenPythonEnvironment.Append(LIBS = ['scoregen'])
-            scoregenPythonModule = makePythonModule(scoregenPythonEnvironment, 'scoregen', [scoregenPythonWrapper])
-            pythonModules.append('scoregen.py')
-    guiProgramEnvironment.Prepend(LIBS = ['CsoundVST', 'CsoundAC', 'csnd'])
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    guiProgramEnvironment.Append(LIBS = libCsoundLibs)
     csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     executables.append(csoundvstGui)
