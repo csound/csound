@@ -1,3 +1,17 @@
+2007-07-24  Michael Gogins <gogins@pipeline.com>
+
+	* Folded all NSIS windows installer scripts into one script,
+	csoundd.nsi. See the top of this script for command-line options 
+	to build float sample or double sample versions of Csound,
+	or to omit or include non-free software components. The script
+	automatically detects Python, and can install Python if it is 
+	not available; if Python is not available, copies Python features
+	of Csound to a backup directory.
+
+	* Renamed some example .csd files for greater clarity.
+
+	* Improved GUI for CsoundVST.
+
 2007-07-28  jpff  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (tempset): Cannot set tempo if beatmode not in force
