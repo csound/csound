@@ -28,7 +28,7 @@
 !else
 	!define VERSION "win32-d"
 	!echo "Building installer for double-precision samples."
-	!define OPCODEDIR_ENV "OPCODE64DIR"
+	!define OPCODEDIR_ENV "OPCODEDIR64"
 	!define OPCODEDIR_VAL "plugins64"
 !endif
 !ifdef NONFREE
