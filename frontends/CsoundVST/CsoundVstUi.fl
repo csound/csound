@@ -7,7 +7,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
   Fl_Window {} {
     label CsoundVST
     user_data csoundVstFltk user_data_type {CsoundVstFltk*} open
-    xywh {436 152 709 390} type Double color 48 labelsize 12 align 48 resizable
+    xywh {436 152 708 389} type Double color 48 labelsize 12 align 48 resizable
     code0 {\#include "CsoundVstFltk.hpp"} visible
   } {
     Fl_Button newButton {
@@ -74,46 +74,38 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
       xywh {5 34 700 351} box GTK_THIN_UP_BOX color 50 labelsize 10 resizable
     } {
       Fl_Group settingsGroup {
-        label Settings open
+        label Settings open selected
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 resizable
       } {
-        Fl_Group settingsVstPluginModeGroup {
-          tooltip {Select VST plugin mode} xywh {10 67 195 36} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 20
-        } {
-          Fl_Check_Button settingsVstPluginModeEffect {
-            label {VST Effect}
-            user_data csoundVstFltk user_data_type {CsoundVstFltk*}
-            callback onSettingsVstPluginMode
-            tooltip {Plugin is a VST effect} xywh {119 77 55 15} type Radio down_box GTK_THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
-          }
-          Fl_Check_Button settingsVstPluginModeInstrument {
-            label {VST Instrument}
-            user_data csoundVstFltk user_data_type {CsoundVstFltk*}
-            callback onSettingsVstInstrumentMode
-            tooltip {Plugin is a VST instrument} xywh {16 77 83 15} type Radio down_box GTK_THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
-          }
+        Fl_Check_Button settingsVstPluginModeEffect {
+          label {VST Effect}
+          user_data csoundVstFltk user_data_type {CsoundVstFltk*}
+          callback onSettingsVstPluginMode
+          tooltip {Plugin is a VST effect} xywh {555 114 55 22} type Radio down_box GTK_THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
+        }
+        Fl_Check_Button settingsVstPluginModeInstrument {
+          label {VST Instrument}
+          user_data csoundVstFltk user_data_type {CsoundVstFltk*}
+          callback onSettingsVstInstrumentMode
+          tooltip {Plugin is a VST instrument} xywh {450 114 83 22} type Radio down_box GTK_THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
         }
         Fl_Input commandInput {
-          label {Csound command line}
-          tooltip {Csound command line} xywh {10 121 590 48} type Multiline box GTK_THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11
+          label {Command line}
+          tooltip {Csound command line} xywh {100 67 535 40} type Multiline box GTK_THIN_DOWN_BOX selection_color 46 labelsize 12 textfont 4 textsize 11
+        }
+        Fl_Input settingsEditSoundfileInput {
+          label {Soundfile editor}
+          tooltip {Program to be used for editing soundfiles} xywh {100 114 345 22} box GTK_THIN_DOWN_BOX selection_color 46 labelsize 12 textfont 4 textsize 11
+        }
+        Fl_Browser runtimeMessagesBrowser {
+          xywh {10 144 690 231} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11 resizable
         }
         Fl_Group {} {
-          image {D:/utah/home/mkg/projects/csoundd/frontends/CsoundVST/angel.PNG} xywh {605 66 94 105} box GTK_THIN_DOWN_BOX labelsize 12 align 80
+          image {D:/utah/home/mkg/projects/csoundd/frontends/CsoundVST/angel.PNG} xywh {640 67 59 68} box GTK_THIN_DOWN_BOX labelsize 12 align 80
         } {}
-        Fl_Group {} {
-          xywh {209 67 391 36} box THIN_DOWN_BOX labelsize 12 align 21
-        } {
-          Fl_Input settingsEditSoundfileInput {
-            label {Soundfile editor}
-            tooltip {Program to be used for editing soundfiles} xywh {305 74 290 22} box GTK_THIN_DOWN_BOX selection_color 46 labelsize 12 textfont 4 textsize 11
-          }
-        }
-        Fl_Browser runtimeMessagesBrowser {selected
-          xywh {10 174 690 205} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11 resizable
-        }
       }
       Fl_Group orchestraGroup {
-        label Orchestra
+        label Orchestra open
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
       } {
         Fl_Text_Editor orchestraTextEdit {
@@ -121,19 +113,19 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         }
       }
       Fl_Group scoreGroup {
-        label Score
+        label Score open
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
       } {
         Fl_Text_Editor scoreTextEdit {
-          xywh {10 65 690 314} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
+          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
         }
       }
       Fl_Group aboutGroup {
-        label About
+        label About open
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
       } {
         Fl_Text_Display aboutTextDisplay {
-          xywh {10 65 690 315} box THIN_DOWN_BOX color 54 labelsize 12 align 0 textsize 11
+          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX color 54 labelsize 12 align 0 textfont 4 textsize 11
         }
       }
     }

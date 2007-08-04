@@ -30,7 +30,6 @@ extern Fl_Button *settingsApplyButton;
 extern Fl_Tabs *mainTabs;
 #include <FL/Fl_Group.H>
 extern Fl_Group *settingsGroup;
-extern Fl_Group *settingsVstPluginModeGroup;
 #include <FL/Fl_Check_Button.H>
 extern void onSettingsVstPluginMode(Fl_Check_Button*, CsoundVstFltk*);
 extern Fl_Check_Button *settingsVstPluginModeEffect;
