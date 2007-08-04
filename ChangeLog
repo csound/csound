@@ -12,6 +12,9 @@
 
 	* Improved GUI for CsoundVST.
 
+	* Updated the Csound reference manual for the new installer script,
+	CsoundAC, and changes in CsoundVST.
+
 2007-07-28  jpff  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (tempset): Cannot set tempo if beatmode not in force
