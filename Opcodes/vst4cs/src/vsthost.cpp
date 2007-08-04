@@ -28,12 +28,9 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
-// ma++ #include "AEffEditor.hpp"
-// ma++ #include "aeffectx.h"
 #ifdef _WIN32 
   #pragma warning(disable:4786) //gab
 #endif
-
 
 #ifdef MSVC
 #define round int
@@ -49,7 +46,6 @@ void VSTPlugin::initializeOpcodes()
       opcodeRefCount++;
         return;
     }
-
     dispatchOpcodes.insert(std::pair<long, std::string>(
         (long) effOpen, "effOpen"));
     dispatchOpcodes.insert(std::pair<long, std::string>(
@@ -272,9 +268,9 @@ void VSTPlugin::initializeOpcodes()
     masterOpcodes.insert(std::pair<long, std::string>(
         (long) audioMasterSetOutputSampleRate,
         "audioMasterSetOutputSampleRate"));
-    masterOpcodes.insert(std::pair<long, std::string>(
-        (long) audioMasterGetSpeakerArrangement,
-        "audioMasterGetSpeakerArrangement"));
+//     masterOpcodes.insert(std::pair<long, std::string>(
+//         (long) audioMasterGetSpeakerArrangement,
+//         "audioMasterGetSpeakerArrangement"));
     masterOpcodes.insert(std::pair<long, std::string>(
         (long) audioMasterGetOutputSpeakerArrangement,
         "audioMasterGetOutputSpeakerArrangement"));
