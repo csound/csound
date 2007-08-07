@@ -444,12 +444,22 @@ int VSTPlugin::Instantiate(const char *libraryName_)
     Debug("Loaded plugin library '%s'.\n", libraryName_);
     
 #ifdef __MACH__
-    short   bundleRes = CFBundleOpenBundleResourceMap(vstBundle);
+    short bundleRes = CFBundleOpenBundleResourceMap(vstBundle);
+      /* For VST SDK 2.4 and later. */
     PVSTMAIN main =
       (PVSTMAIN) CFBundleGetFunctionPointerForName(vstBundle,
-                                                   CFSTR("main_macho"));
+                                                   CFSTR("VSTPluginMain"));
+      /* For VST SDK 2.3 and earlier. */
+    if (!main) {
+      main = CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
+    }
 #else
-    PVSTMAIN main = (PVSTMAIN) csound->GetLibrarySymbol(libraryHandle, "main");
+    /* For VST SDK 2.4 and later. */
+    PVSTMAIN main = (PVSTMAIN) csound->GetLibrarySymbol(libraryHandle, "VSTPluginMain");
+    if (!main) {
+      /* For VST SDK 2.3 and earlier. */
+      main = (PVSTMAIN) csound->GetLibrarySymbol(libraryHandle, "main");
+    }
 #endif
     if (!main) {
       Log("Failed to find 'main' function.\n");
