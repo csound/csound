@@ -2450,9 +2450,6 @@ int zkcl(CSOUND *csound, ZKCL *p)
       loopcount = last - first + 1;
       writeloc = csound->zkstart + first;
       memset(writeloc, 0, loopcount*sizeof(MYFLT));
-/*           do { */
-/*             *writeloc++ = FL(0.0); */
-/*           } while (--loopcount); */
     }
     return OK;
 }
@@ -2494,16 +2491,10 @@ int zar(CSOUND *csound, ZAR *p)
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *writeloc++ = FL(0.0); */
-/*       } while(--nsmps); */
       return csound->PerfError(csound, Str("zar index > isizea. Returning 0."));
     }
     else if (indx < 0) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *writeloc++ = FL(0.0); */
-/*       } while(--nsmps); */
       return csound->PerfError(csound, Str("zar index < 0. Returning 0."));
     }
     else {
@@ -2511,9 +2502,6 @@ int zar(CSOUND *csound, ZAR *p)
        * See notes in zkr() on pointer arithmetic.     */
       readloc = csound->zastart + (indx * csound->ksmps);
       memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *writeloc++ = *readloc++; */
-/*       } while(--nsmps); */
     }
     return OK;
 }
@@ -2527,7 +2515,7 @@ int zarg(CSOUND *csound, ZARG *p)
     MYFLT       *readloc, *writeloc;
     MYFLT       kgain;          /* Gain control */
     long        indx;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
     /*-----------------------------------*/
 
@@ -2538,27 +2526,21 @@ int zarg(CSOUND *csound, ZARG *p)
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *writeloc++ = FL(0.0); */
-/*       } while(--nsmps); */
       return csound->PerfError(csound,
                                Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (indx < 0) {
-      memset(writeloc, 0, nsmps*sizeof(MYFLT));
-/*         do { */
-/*           *writeloc++ = FL(0.0); */
-/*         } while(--nsmps); */
+        memset(writeloc, 0, nsmps*sizeof(MYFLT));
         return csound->PerfError(csound, Str("zarg index < 0. Returning 0."));
       }
       else {
         /* Now read from the array in za space multiply by kgain and write
          * to the destination.       */
         readloc = csound->zastart + (indx * csound->ksmps);
-        do {
-          *writeloc++ = *readloc++ * kgain;
-        } while(--nsmps);
+        for (n=0; n<nsmps; n++) {
+          writeloc[n] = readloc[n] * kgain;
+        }
       }
     }
     return OK;
@@ -2590,9 +2572,6 @@ int zaw(CSOUND *csound, ZAW *p)
         /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * csound->ksmps);
       memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *writeloc++ = *readloc++; */
-/*       } while(--nsmps); */
     }
     return OK;
 }
@@ -2606,7 +2585,7 @@ int zawm(CSOUND *csound, ZAWM *p)
 {
     MYFLT       *readloc, *writeloc;
     long indx;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     /*-----------------------------------*/
 
     /* Set up the pointer for the source of data to write. */
@@ -2626,16 +2605,12 @@ int zawm(CSOUND *csound, ZAWM *p)
       if (*p->mix == 0) {
         /* Normal write mode.  */
         memcpy(writeloc, readloc, nsmps*sizeof(MYFLT));
-/*         do { */
-/*           *writeloc++ = *readloc++; */
-/*         } while(--nsmps); */
       }
       else {
         /* Mix mode - add to the existing value.   */
-        do {
-          MYFLT x = *readloc++ + *writeloc;
-          *writeloc++ = x;
-        } while(--nsmps);
+        for (n-0; n<nsmps; n++) {
+          writeloc[n] += readloc[n];
+        }
       }
     }
     return OK;
@@ -2653,7 +2628,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
     MYFLT       *readsig;       /* Array of input floats */
     long indx;
     int mflag = 0;             /* non zero if modulation with multiplication  */
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
     /* Make a local copy of the pointer to the input signal, so we can auto-
      * increment it. Likewise the location to write the result to.     */
@@ -2680,14 +2655,14 @@ int zamod(CSOUND *csound, ZAMOD *p)
     else {                      /* Now read the values from za space.    */
       readloc = csound->zastart + (indx * csound->ksmps);
       if (mflag == 0) {
-        do {
-          *writeloc++ = *readsig++ + *readloc++;
-        } while (--nsmps);
+        for (n=0; n<nsmps; n++) {
+          writeloc[n] = readsig[n] + readloc[n];
+        }
       }
       else {
-        do {
-          *writeloc++ = *readsig++ * *readloc++;
-        } while (--nsmps);
+        for (n=0; n<nsmps; n++) {
+          writeloc[n] = readsig[n] * readloc[n];
+        }
       }
     }
     return OK;
