@@ -1689,7 +1689,7 @@ else:
     if getPlatform() == 'linux':
         csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx')
+        csEditor = csEditorEnvironment.Program('cseditor', 'frontends/cseditor/cseditor.cxx')
         executables.append(csEditor)
     elif getPlatform() == 'win32':
         csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
