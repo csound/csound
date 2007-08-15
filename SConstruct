@@ -869,6 +869,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             csoundLibraryName, libCsoundSources)
 else:
     print 'CONFIGURATION DECISION: Building static Csound library'
+    csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
 libs.append(csoundLibrary)
@@ -2029,7 +2030,6 @@ print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Copy()
 csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
-csLadspaEnv.Append(CCFLAGS='-fPIC')
 if getPlatform() == "darwin":
  csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -flat_namespace -framework CsoundLib'''))
  csladspa = csLadspaEnv.Program('csladspa.so', 'frontends/csladspa/csladspa.cpp' )
