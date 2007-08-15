@@ -1856,6 +1856,334 @@ static void fill_SfPointers(CSOUND *csound)
     soundFont->chunk.shdrChunk = shdrChunk;
 }
 
+typedef struct _sflooper {
+  OPDS h;
+  MYFLT *outL, *outR;  /* output */
+  MYFLT *ivel, *inotnum, *ipresethandle, *amp, *pitch, *loop_start, *loop_end,
+    *crossfade, *start, *imode, *ifn2, *iskip;
+  int     spltNum;
+  SHORT   *sBase[MAXSPLT];
+  FUNC *efunc;
+  MYFLT count;
+  int lstart, lend, cfade, mode;
+  double  ndx[MAXSPLT][2];    /* table lookup ndx */
+  double  freq[MAXSPLT];
+  int firsttime, init, end[MAXSPLT];
+  MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
+} sflooper;
+
+static int sflooper_init(CSOUND *csound, sflooper *p)
+{
+    DWORD index = (DWORD) *p->ipresethandle;
+    presetType *preset = presetp[index];
+    SHORT *sBase = sampleBase[index];
+    int layersNum, j, spltNum = 0;
+    if (!preset) {
+      return csound->InitError(csound, Str("sfplay: invalid or "
+                                           "out-of-range preset number"));
+    }
+    layersNum = preset->layers_num;
+    for (j =0; j < layersNum; j++) {
+      layerType *layer = &preset->layer[j];
+      int vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      if (notnum >= layer->minNoteRange &&
+          notnum <= layer->maxNoteRange &&
+          vel    >= layer->minVelRange  &&
+          vel    <= layer->maxVelRange) {
+        int splitsNum = layer->splits_num, k;
+        for (k = 0; k < splitsNum; k++) {
+          splitType *split = &layer->split[k];
+          if (notnum  >= split->minNoteRange &&
+              notnum  <= split->maxNoteRange &&
+              vel     >= split->minVelRange  &&
+              vel     <= split->maxVelRange) {
+            sfSample *sample = split->sample;
+            //DWORD start=sample->dwStart;
+            MYFLT attenuation;
+            double pan;
+            double freq, orgfreq;
+            double tuneCorrection = split->coarseTune + layer->coarseTune +
+              (split->fineTune + layer->fineTune)*0.01;
+            int orgkey = split->overridingRootKey;
+            if (orgkey == -1) orgkey = sample->byOriginalKey;
+            orgfreq = pitches[orgkey];
+            freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
+                pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
+            p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+            attenuation = (MYFLT) (layer->initialAttenuation +
+                                   split->initialAttenuation);
+            attenuation = (MYFLT) pow(2.0, (-1.0/60.0) * attenuation )
+              * GLOBAL_ATTENUATION;
+            pan = (double)(split->pan + layer->pan) / 1000.0 + 0.5;
+            if (pan > 1.0) pan = 1.0;
+            else if (pan < 0.0) pan = 0.0;
+            p->sBase[spltNum] = sBase;
+            p->end[spltNum] = sample->dwEnd + split->endOffset;
+            p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
+            p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
+            spltNum++;
+          }
+        }
+      }
+    }
+  p->spltNum = spltNum;
+  if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
+  else p->efunc = NULL;
+
+  if(*p->iskip == 0){
+  p->mode = (int) *p->imode;
+
+  for(j=0; j < spltNum; j++){
+  if(p->mode == 0 || p->mode == 2){
+    if((p->ndx[j][0] = *p->start*csound->GetSr(csound)) < 0)
+      p->ndx[j][0] = 0;
+    if(p->ndx[j][0] >= p->end[j])
+      p->ndx[j][0] = (double) p->end[j] - 1.;
+    p->count = 0;
+  }
+  }
+  p->init = 1;
+  p->firsttime = 1;
+  }
+  return OK;
+}
+
+static int sflooper_process(CSOUND *csound, sflooper *p)
+{
+    int i,k, n = csound->ksmps;
+    MYFLT *outL = p->outL, *outR = p->outR, out, sr = csound->GetSr(csound);
+    MYFLT amp = *(p->amp), pit = *(p->pitch);
+    SHORT **base = p->sBase, *tab;
+    double *ndx;
+    MYFLT frac0, frac1, *etab, left, right;
+    int *nend = p->end, loop_end = p->lend, loop_start = p->lstart,
+        crossfade = p->cfade, len, spltNum = p->spltNum;
+    MYFLT count = p->count,fadein, fadeout, pitch;
+    int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
+    unsigned long tndx0, tndx1;
+
+    if (p->efunc != NULL) {
+      etab = p->efunc->ftable;
+      elen = p->efunc->flen;
+    }
+    else {
+      etab = NULL;
+      elen = 0;
+    }
+
+    /* loop parameters & check */
+    if (pitch < FL(0.0)) pitch = FL(0.0);
+    memset(outL, 0, n*sizeof(MYFLT));
+    memset(outR, 0, n*sizeof(MYFLT));
+
+    for(k=0; k < spltNum; k++){
+   
+   tab = base[k];
+   len = nend[k];
+   ndx = p->ndx[k];
+   left = p->leftlevel[k];
+   right = p->rightlevel[k];
+   pitch = pit*p->freq[k];
+
+    if (*firsttime) {
+      int loopsize;
+      loop_start = (int) (*p->loop_start*sr);
+      loop_end =   (int) (*p->loop_end*sr);
+      p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
+      p->lend = loop_end =   loop_end > len ? len :
+        (loop_end < loop_start ? loop_start : loop_end);
+      loopsize = loop_end - loop_start;
+      crossfade = (int) (*p->crossfade*sr);
+
+      if (mode == 1) {
+        ndx[0] = (double) loop_end;
+        ndx[1] = (double) loop_end;
+        count = (MYFLT) crossfade;
+        p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
+      }
+      else if (mode == 2) {
+        ndx[1] = (double) loop_start - FL(1.0);
+        p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+      }
+      else {
+     ndx[1] = (double) loop_start;
+     p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
+      }
+      *firsttime = 0;
+    }
+    for (i=0; i < n; i++) {
+      if (mode == 1){ /* backwards */
+        tndx0 = (int) ndx[0];
+        frac0 = ndx[0] - tndx0;
+        if (ndx[0] > crossfade + loop_start)
+          out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+        else {
+          tndx1 = (int) ndx[1];
+          frac1 = ndx[1] - tndx1;
+          if (etab==NULL){
+            fadeout = count/crossfade;
+            fadein = FL(1.0) - fadeout;
+          }
+          else {
+            fadeout = elen*count/crossfade;
+            fadein = etab[elen - (int)fadeout];
+            fadeout = etab[(int)fadeout];
+          }
+          out = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
+   
+          ndx[1]-=pitch;
+          count-=pitch;
+        }
+        ndx[0]-=pitch;
+
+        if (ndx[0] <= loop_start) {
+          int loopsize;
+          loop_start = (int) (*p->loop_start*sr);
+          loop_end =   (int) (*p->loop_end*sr);
+          p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
+          p->lend = loop_end =   loop_end > len ? len :
+            (loop_end < loop_start ? loop_start : loop_end);
+          loopsize = loop_end - loop_start;
+          crossfade = (int) (*p->crossfade*sr);
+          p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
+          ndx[0] = ndx[1];
+          ndx[1] =  (double)loop_end;
+          count=(MYFLT)crossfade;
+        }
+          outR[i] += out*right;
+          outL[i] += out*left;
+      }
+      else if (mode==2) { /* back and forth */
+        out = 0;
+        /* this is the forward reader */
+        if (init && ndx[0] < loop_start + crossfade) {
+          tndx0 = (int) ndx[0];
+          frac0 = ndx[0] - tndx0;
+          out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          ndx[0] += pitch;
+        }
+        else if (ndx[0] < loop_start + crossfade) {
+          if (etab==NULL) fadein = count/crossfade;
+          else fadein = etab[(int)(elen*count/crossfade)];
+          tndx0 = (int) ndx[0];
+          frac0 = ndx[0] - tndx0;
+          out += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          ndx[0] += pitch;
+          count  += pitch;
+        }
+        else if(ndx[0] < loop_end - crossfade) {
+          tndx0 = (int) ndx[0];
+          frac0 = ndx[0] - tndx0;
+          out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          ndx[0] += pitch;
+          init = 0;
+          if (ndx[0] >= loop_end - crossfade) {
+            ndx[1] = (double) loop_end;
+            count = 0;
+          }
+        }
+        else if (ndx[0] < loop_end) {
+          if(etab==NULL) fadeout = FL(1.0) - count/crossfade;
+          else  fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
+          tndx0 = (int) ndx[0];
+          frac0 = ndx[0] - tndx0;
+          out += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          ndx[0] += pitch;
+          count  += pitch;
+        }
+        /* this is the backward reader */
+        if (ndx[1] > loop_end - crossfade) {
+          if (etab==NULL) fadein = count/crossfade;
+          else fadein = etab[(int)(elen*count/crossfade)];
+          tndx1 = (int) ndx[1];
+          frac1 = ndx[1] - tndx1;
+          out += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
+          ndx[1] -= pitch;
+        }
+        else if(ndx[1] > loop_start + crossfade) {
+          tndx1 = (int) ndx[1];
+          frac1 = ndx[1] - tndx1;
+          out = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
+          ndx[1] -= pitch;
+          if (ndx[1] <= loop_start + crossfade) {
+            ndx[0] = (double) loop_start;
+            count = 0;
+          }
+        }
+        else if (ndx[1] > loop_start) {
+          if(etab==NULL) fadeout = FL(1.0) - count/crossfade;
+          else fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
+          tndx1 = (int) ndx[1];
+          frac1 = ndx[1] - tndx1;
+          out += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
+          ndx[1] -= pitch;
+          if (ndx[1] <= loop_start) {
+            int loopsize;
+            loop_start = (int) (*p->loop_start*sr);
+            loop_end =   (int) (*p->loop_end*sr);
+            p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
+            p->lend = loop_end =   loop_end > len ? len :
+              (loop_end < loop_start ? loop_start : loop_end);
+            loopsize = loop_end - loop_start;
+            crossfade = (int) (*p->crossfade*sr);
+            p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+          }
+        }
+	outR[i] += out*right;
+        outL[i] += out*left;
+      }
+      else {  /* normal */
+        out = 0;
+        tndx0 = (unsigned long) ndx[0];
+        frac0 = ndx[0] - tndx0;
+        if (ndx[0] < loop_end-crossfade)
+          out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+        else {
+          tndx1 = (int) ndx[1];
+          frac1 = ndx[1] - tndx1;
+          if (etab==NULL) {
+            fadein = count/crossfade;
+            fadeout = FL(1.0) - fadein;
+          }
+          else {
+            fadein = elen*count/crossfade;
+            fadeout = etab[elen - (int)fadein];
+            fadein = etab[(int)fadein];
+          }
+          out = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
+          ndx[1]+=pitch;
+          count+=pitch;
+        }
+        ndx[0]+=pitch;
+        if (ndx[0] >= loop_end) {
+          int loopsize;
+          loop_start = (int) (*p->loop_start*sr);
+          loop_end =   (int) (*p->loop_end*sr);
+          p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
+          p->lend = loop_end =   loop_end > len ? len :
+            (loop_end < loop_start ? loop_start : loop_end);
+          loopsize = loop_end - loop_start;
+          crossfade = (int) (*p->crossfade*sr);
+          p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
+          ndx[0] = ndx[1];
+          ndx[1] = (double)loop_start;
+          count=0;
+        }
+          outR[i] += out*right;
+          outL[i] += out*left;
+      }
+    }
+    }
+    p->count = count;
+    p->cfade = crossfade;
+    p->lend = loop_end;
+    p->lstart = loop_start;
+    p->init = init;
+    return OK;
+}
+
 #define S       sizeof
 
 static OENTRY localops[] = {
