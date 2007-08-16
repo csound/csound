@@ -2608,7 +2608,7 @@ int zawm(CSOUND *csound, ZAWM *p)
       }
       else {
         /* Mix mode - add to the existing value.   */
-        for (n-0; n<nsmps; n++) {
+        for (n=0; n<nsmps; n++) {
           writeloc[n] += readloc[n];
         }
       }
