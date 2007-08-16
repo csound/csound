@@ -429,32 +429,13 @@ namespace csound
 
   double Voicelead::closestPitch(double pitch, const std::vector<double> &pitches_)
   {
-    std::vector<double> pitches = pitches_;
-    std::sort(pitches.begin(), pitches.end());
-    // its.first is the first iterator not less than pitch, or end if all are less.
-    // its.second is the first iterator greater than pitch, or end if none are greater.
-    std::pair< std::vector<double>::iterator, std::vector<double>::iterator > its = std::equal_range(pitches.begin(), pitches.end(), pitch);
-    if (its.first == pitches.end()) {
-      return pitches.back();
+    std::map<double, double> pitchesForDistances;
+    for (size_t i = 0, n = pitches_.size(); i < n; i++) {
+      double pitch_ = pitches_[i];
+      double distance = std::fabs(pitch_ - pitch);
+      pitchesForDistances[distance] = pitch_;
     }
-    if (its.first == pitches.begin()) {
-      return pitches.front();
-    }
-    double lower = *its.first;
-    if (pitch == lower) {
-      return pitch;
-    }
-    // If lower isn't pitch,
-    // then pitch always lies in the interval (first - 1, second).
-    double lowerP = *(its.first - 1);
-    double upperP = *its.second;
-    double lowerD = std::fabs(pitch - lowerP);
-    double upperD = std::fabs(upperP - pitch);
-    if (lowerD <= upperD) {
-      return lowerP;
-    } else {
-      return upperP;
-    }
+    return pitchesForDistances.begin()->second;
   }
 
   double Voicelead::conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave_)
