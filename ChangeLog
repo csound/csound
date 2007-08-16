@@ -1,3 +1,7 @@
+2007-08-16    <jpff@cs.bath.ac.uk>
+
+	* SConstruct: Separate Word64 (for PIC) and Lib64 for library name
+
 2007-08-14    <jpff@cs.bath.ac.uk>
 
 	* SConstruct: Use .Program rather than .Command in cseditor
@@ -5,10 +9,10 @@
 2007-07-24  Michael Gogins <gogins@pipeline.com>
 
 	* Folded all NSIS windows installer scripts into one script,
-	csoundd.nsi. See the top of this script for command-line options 
+	csoundd.nsi. See the top of this script for command-line options
 	to build float sample or double sample versions of Csound,
 	or to omit or include non-free software components. The script
-	automatically detects Python, and can install Python if it is 
+	automatically detects Python, and can install Python if it is
 	not available; if Python is not available, copies Python features
 	of Csound to a backup directory.
 

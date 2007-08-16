@@ -159,6 +159,9 @@ commandOptions.Add('useGprof',
 commandOptions.Add('Word64',
     'Build for 64bit computer',
     '0')
+commandOptions.Add('Lib64',
+    'Build for lib64 rather than lib',
+    '0')
 if getPlatform() == 'win32':
     commandOptions.Add('dynamicCsoundLibrary',
         'Set to 0 to build static Csound library instead of csound.dll',
@@ -325,13 +328,17 @@ if commonEnvironment['useGprof'] == '1':
 if not withMSVC():
   commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
+
 if commonEnvironment['buildRelease'] == '0':
     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
-if commonEnvironment['Word64'] == '1':
+
+if commonEnvironment['Lib64'] == '1':
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
-    commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 else:
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
+
+if commonEnvironment['Word64'] == '1':
+    commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
@@ -383,7 +390,7 @@ if getPlatform() == 'linux':
     path2 = '/usr/include/tk8.4'
     tclIncludePath = [path1, path2]
     pythonLinkFlags = []
-    if commonEnvironment['Word64'] == '1':
+    if commonEnvironment['Lib64'] == '1':
         tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
         pythonLibraryPath = ['/usr/local/lib64', '/usr/lib64', tmp]
     else:
@@ -487,7 +494,7 @@ if getPlatform() == 'linux' and not javaFound:
     if commonEnvironment['buildInterfaces'] != '0':
         if commonEnvironment['buildJavaWrapper'] != '0':
             baseDir = '/usr/lib'
-            if commonEnvironment['Word64'] == '1':
+            if commonEnvironment['Lib64'] == '1':
                 baseDir += '64'
             for i in ['java', 'jvm/java', 'jvm/java-1.5.0']:
                 javaIncludePath = '%s/%s/include' % (baseDir, i)
@@ -637,7 +644,7 @@ csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
 if commonEnvironment['buildRelease'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
     if getPlatform() == 'linux':
-        if commonEnvironment['Word64'] == '0':
+        if commonEnvironment['Lib64'] == '0':
             tmp = '%s/lib/csound/plugins' % commonEnvironment['prefix']
         else:
             tmp = '%s/lib64/csound/plugins' % commonEnvironment['prefix']
@@ -822,6 +829,7 @@ Engine/symbtab.c
 if commonEnvironment['buildNewParser'] != '0':
 	libCsoundSources += newParserSources
 
+csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
 if commonEnvironment['dynamicCsoundLibrary'] == '1':
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
     if getPlatform() == 'linux':
@@ -872,6 +880,7 @@ else:
     csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
+
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
@@ -2096,7 +2105,7 @@ PREFIX = commonEnvironment['prefix']
 BIN_DIR = PREFIX + "/bin"
 INCLUDE_DIR = PREFIX + "/include/csound"
 
-if (commonEnvironment['Word64'] == '1'):
+if (commonEnvironment['Lib64'] == '1'):
     LIB_DIR = PREFIX + "/lib64"
     PYTHON_DIR = '%s/lib64' % sys.prefix
 else:
