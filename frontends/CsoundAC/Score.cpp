@@ -544,7 +544,8 @@ namespace csound
     }
     for (size_t i = begin_; i < end_; i++) {
       Event &event = (*this)[i];
-      event.setKey(Voicelead::closestPitch(event.getKey(), pitches));
+      double pitch = double(event.getKeyNumber());
+      event.setKey(Voicelead::closestPitch(pitch, pitches));
     }
   }
 
