@@ -1859,7 +1859,7 @@ static void fill_SfPointers(CSOUND *csound)
 typedef struct _sflooper {
   OPDS h;
   MYFLT *outL, *outR;  /* output */
-  MYFLT *ivel, *inotnum, *ipresethandle, *amp, *pitch, *loop_start, *loop_end,
+  MYFLT *ivel, *inotnum, *amp, *pitch, *ipresethandle, *loop_start, *loop_end,
     *crossfade, *start, *imode, *ifn2, *iskip;
   int     spltNum;
   SHORT   *sBase[MAXSPLT];
@@ -2209,7 +2209,7 @@ static OENTRY localops[] = {
                                                   NULL, (SUBR)SfInstrPlay3 },
 { "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo",(SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono3 },
-{ "sflooper", S(sflooper), 5, "aa", "iiikkkkkoooo",        (SUBR)sflooper_init,
+{ "sflooper", S(sflooper), 5, "aa", "iikkikkkoooo",        (SUBR)sflooper_init,
                                                   NULL, (SUBR)sflooper_process    },
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
