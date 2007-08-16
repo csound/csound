@@ -1865,10 +1865,10 @@ typedef struct _sflooper {
   SHORT   *sBase[MAXSPLT];
   FUNC *efunc;
   MYFLT count;
-  int lstart, lend, cfade, mode;
+  int lstart[MAXSPLT], lend[MAXSPLT], cfade, mode;
   double  ndx[MAXSPLT][2];    /* table lookup ndx */
   double  freq[MAXSPLT];
-  int firsttime, init, end[MAXSPLT];
+  int firsttime, init, end[MAXSPLT], sstart[MAXSPLT];
   MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
 } sflooper;
 
@@ -1898,7 +1898,7 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
             sfSample *sample = split->sample;
-            //DWORD start=sample->dwStart;
+            DWORD start=sample->dwStart;
             MYFLT attenuation;
             double pan;
             double freq, orgfreq;
@@ -1918,6 +1918,7 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
             if (pan > 1.0) pan = 1.0;
             else if (pan < 0.0) pan = 0.0;
             p->sBase[spltNum] = sBase;
+            p->sstart[spltNum] = start;
             p->end[spltNum] = sample->dwEnd + split->endOffset;
             p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
             p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
@@ -1935,7 +1936,7 @@ static int sflooper_init(CSOUND *csound, sflooper *p)
 
   for(j=0; j < spltNum; j++){
   if(p->mode == 0 || p->mode == 2){
-    if((p->ndx[j][0] = *p->start*csound->GetSr(csound)) < 0)
+    if((p->ndx[j][0] = *p->start*csound->GetSr(csound)+p->sstart[j]) < 0)
       p->ndx[j][0] = 0;
     if(p->ndx[j][0] >= p->end[j])
       p->ndx[j][0] = (double) p->end[j] - 1.;
@@ -1956,7 +1957,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     SHORT **base = p->sBase, *tab;
     double *ndx;
     MYFLT frac0, frac1, *etab, left, right;
-    int *nend = p->end, loop_end = p->lend, loop_start = p->lstart,
+    int *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
         crossfade = p->cfade, len, spltNum = p->spltNum;
     MYFLT count = p->count,fadein, fadeout, pitch;
     int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
@@ -1972,7 +1973,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     }
 
     /* loop parameters & check */
-    if (pitch < FL(0.0)) pitch = FL(0.0);
+    if (pit < FL(0.0)) pit = FL(0.0);
     memset(outL, 0, n*sizeof(MYFLT));
     memset(outR, 0, n*sizeof(MYFLT));
 
@@ -1987,26 +1988,26 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 
     if (*firsttime) {
       int loopsize;
-      loop_start = (int) (*p->loop_start*sr);
-      loop_end =   (int) (*p->loop_end*sr);
-      p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
-      p->lend = loop_end =   loop_end > len ? len :
-        (loop_end < loop_start ? loop_start : loop_end);
-      loopsize = loop_end - loop_start;
+      loop_start[k] = (int) (*p->loop_start*sr) + p->sstart[k];
+      loop_end[k] =   (int) (*p->loop_end*sr) + p->sstart[k];
+      loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
+      loop_end[k] =   loop_end[k] > len ? len :
+        (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+      loopsize = loop_end[k] - loop_start[k];
       crossfade = (int) (*p->crossfade*sr);
 
       if (mode == 1) {
-        ndx[0] = (double) loop_end;
-        ndx[1] = (double) loop_end;
+        ndx[0] = (double) loop_end[k];
+        ndx[1] = (double) loop_end[k];
         count = (MYFLT) crossfade;
         p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
       }
       else if (mode == 2) {
-        ndx[1] = (double) loop_start - FL(1.0);
+        ndx[1] = (double) loop_start[k] - FL(1.0);
         p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
       }
       else {
-     ndx[1] = (double) loop_start;
+     ndx[1] = (double) loop_start[k];
      p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
       }
       *firsttime = 0;
@@ -2015,7 +2016,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
       if (mode == 1){ /* backwards */
         tndx0 = (int) ndx[0];
         frac0 = ndx[0] - tndx0;
-        if (ndx[0] > crossfade + loop_start)
+        if (ndx[0] > crossfade + loop_start[k])
           out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
         else {
           tndx1 = (int) ndx[1];
@@ -2037,18 +2038,18 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
         }
         ndx[0]-=pitch;
 
-        if (ndx[0] <= loop_start) {
+        if (ndx[0] <= loop_start[k]) {
           int loopsize;
-          loop_start = (int) (*p->loop_start*sr);
-          loop_end =   (int) (*p->loop_end*sr);
-          p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
-          p->lend = loop_end =   loop_end > len ? len :
-            (loop_end < loop_start ? loop_start : loop_end);
-          loopsize = loop_end - loop_start;
+          loop_start[k] = (int) (*p->loop_start*sr) + p->sstart[k];
+          loop_end[k] =   (int) (*p->loop_end*sr) + p->sstart[k];
+          loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
+          loop_end[k] =   loop_end[k] > len ? len :
+            (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+          loopsize = loop_end[k] - loop_start[k];
           crossfade = (int) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
           ndx[0] = ndx[1];
-          ndx[1] =  (double)loop_end;
+          ndx[1] =  (double)loop_end[k];
           count=(MYFLT)crossfade;
         }
           outR[i] += out*right;
@@ -2057,13 +2058,13 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
       else if (mode==2) { /* back and forth */
         out = 0;
         /* this is the forward reader */
-        if (init && ndx[0] < loop_start + crossfade) {
+        if (init && ndx[0] < loop_start[k] + crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
           out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
           ndx[0] += pitch;
         }
-        else if (ndx[0] < loop_start + crossfade) {
+        else if (ndx[0] < loop_start[k] + crossfade) {
           if (etab==NULL) fadein = count/crossfade;
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx0 = (int) ndx[0];
@@ -2072,18 +2073,18 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           ndx[0] += pitch;
           count  += pitch;
         }
-        else if(ndx[0] < loop_end - crossfade) {
+        else if(ndx[0] < loop_end[k] - crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
           out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
           ndx[0] += pitch;
           init = 0;
-          if (ndx[0] >= loop_end - crossfade) {
-            ndx[1] = (double) loop_end;
+          if (ndx[0] >= loop_end[k] - crossfade) {
+            ndx[1] = (double) loop_end[k];
             count = 0;
           }
         }
-        else if (ndx[0] < loop_end) {
+        else if (ndx[0] < loop_end[k]) {
           if(etab==NULL) fadeout = FL(1.0) - count/crossfade;
           else  fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx0 = (int) ndx[0];
@@ -2093,7 +2094,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           count  += pitch;
         }
         /* this is the backward reader */
-        if (ndx[1] > loop_end - crossfade) {
+        if (ndx[1] > loop_end[k] - crossfade) {
           if (etab==NULL) fadein = count/crossfade;
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx1 = (int) ndx[1];
@@ -2101,31 +2102,31 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           out += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
           ndx[1] -= pitch;
         }
-        else if(ndx[1] > loop_start + crossfade) {
+        else if(ndx[1] > loop_start[k] + crossfade) {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
           out = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
           ndx[1] -= pitch;
-          if (ndx[1] <= loop_start + crossfade) {
-            ndx[0] = (double) loop_start;
+          if (ndx[1] <= loop_start[k] + crossfade) {
+            ndx[0] = (double) loop_start[k];
             count = 0;
           }
         }
-        else if (ndx[1] > loop_start) {
+        else if (ndx[1] > loop_start[k]) {
           if(etab==NULL) fadeout = FL(1.0) - count/crossfade;
           else fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
           out += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
           ndx[1] -= pitch;
-          if (ndx[1] <= loop_start) {
+          if (ndx[1] <= loop_start[k]) {
             int loopsize;
-            loop_start = (int) (*p->loop_start*sr);
-            loop_end =   (int) (*p->loop_end*sr);
-            p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
-            p->lend = loop_end =   loop_end > len ? len :
-              (loop_end < loop_start ? loop_start : loop_end);
-            loopsize = loop_end - loop_start;
+            loop_start[k] = (int) (*p->loop_start*sr) + p->sstart[k];
+            loop_end[k] =   (int) (*p->loop_end*sr) + p->sstart[k];
+            loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
+            loop_end[k] =   loop_end[k] > len ? len :
+              (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+            loopsize = loop_end[k] - loop_start[k];
             crossfade = (int) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
           }
@@ -2137,7 +2138,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
         out = 0;
         tndx0 = (unsigned long) ndx[0];
         frac0 = ndx[0] - tndx0;
-        if (ndx[0] < loop_end-crossfade)
+        if (ndx[0] < loop_end[k]-crossfade)
           out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
         else {
           tndx1 = (int) ndx[1];
@@ -2157,29 +2158,29 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           count+=pitch;
         }
         ndx[0]+=pitch;
-        if (ndx[0] >= loop_end) {
+        if (ndx[0] >= loop_end[k]) {
           int loopsize;
-          loop_start = (int) (*p->loop_start*sr);
-          loop_end =   (int) (*p->loop_end*sr);
-          p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
-          p->lend = loop_end =   loop_end > len ? len :
-            (loop_end < loop_start ? loop_start : loop_end);
-          loopsize = loop_end - loop_start;
+          loop_start[k] = (int) (*p->loop_start*sr) + p->sstart[k];
+          loop_end[k] =   (int) (*p->loop_end*sr) + p->sstart[k];
+          loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
+          loop_end[k] =   loop_end[k] > len ? len :
+            (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+          loopsize = loop_end[k] - loop_start[k];
           crossfade = (int) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
           ndx[0] = ndx[1];
-          ndx[1] = (double)loop_start;
+          ndx[1] = (double)loop_start[k];
           count=0;
         }
           outR[i] += out*right;
           outL[i] += out*left;
       }
-    }
+    } 
+
     }
     p->count = count;
     p->cfade = crossfade;
-    p->lend = loop_end;
-    p->lstart = loop_start;
+   
     p->init = init;
     return OK;
 }
@@ -2208,6 +2209,8 @@ static OENTRY localops[] = {
                                                   NULL, (SUBR)SfInstrPlay3 },
 { "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo",(SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono3 },
+{ "sflooper", S(sflooper), 5, "aa", "iiikkkkkoooo",        (SUBR)sflooper_init,
+                                                  NULL, (SUBR)sflooper_process    },
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
