@@ -53,7 +53,9 @@
 using namespace std;
 
 #ifdef CS_VSTHOST
-#  include "Opcodes/vst4cs/src/vsthost.h"
+/* for the moment, to be able to build FLTK
+   without VST, until a fix is found */
+/* #include "Opcodes/vst4cs/src/vsthost.h" */
 #endif
 
 #include "csdl.h"

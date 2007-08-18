@@ -1590,6 +1590,9 @@ executables.append(commonEnvironment.Program('scot',
 executables.append(commonEnvironment.Program('sdif2ad',
     ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
+for i in executables:
+   Depends(i, csoundLibrary)
+
 makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
 zipDependencies.append(makedb)
 
