@@ -32,34 +32,34 @@
 static t_class *csoundapi_class = 0;
 
 typedef struct _channelname {
-    t_symbol *name;
-    MYFLT   value;
-    struct _channelname *next;
+  t_symbol *name;
+  MYFLT   value;
+  struct _channelname *next;
 } channelname;
 
 typedef struct t_csoundapi_ {
-    t_object x_obj;
-    t_float f;
-    t_sample *outs[CS_MAX_CHANS];
-    t_sample *ins[CS_MAX_CHANS];
-    t_int   vsize;
-    t_int   chans;
-    t_int   pksmps;
-    t_int   pos;
-    t_int   cleanup;
-    t_int   end;
-    t_int   numlets;
-    t_int   result;
-    t_int   run;
-    t_int   ver;
-    char  **cmdl;
-    int     argnum;
-    channelname *iochannels;
-    t_outlet *ctlout;
-    t_outlet *bangout;
-    t_int   messon;
-    CSOUND *csound;
-    char   *csmess;
+  t_object x_obj;
+  t_float f;
+  t_sample *outs[CS_MAX_CHANS];
+  t_sample *ins[CS_MAX_CHANS];
+  t_int   vsize;
+  t_int   chans;
+  t_int   pksmps;
+  t_int   pos;
+  t_int   cleanup;
+  t_int   end;
+  t_int   numlets;
+  t_int   result;
+  t_int   run;
+  t_int   ver;
+  char  **cmdl;
+  int     argnum;
+  channelname *iochannels;
+  t_outlet *ctlout;
+  t_outlet *bangout;
+  t_int   messon;
+  CSOUND *csound;
+  char   *csmess;
   t_symbol *curdir;
 } t_csoundapi;
 
@@ -91,314 +91,113 @@ static void csoundapi_mess(t_csoundapi *x, t_floatarg f);
 
 PUBLIC void csoundapi_tilde_setup(void)
 {
-    csoundapi_class =
-        class_new(gensym("csoundapi~"), (t_newmethod) csoundapi_new,
-                  (t_method) csoundapi_destroy, sizeof(t_csoundapi),
-                  CLASS_DEFAULT, A_GIMME, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_dsp, gensym("dsp"),
-                    (t_atomtype) 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_event,
-                    gensym("event"), A_GIMME, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_reset,
-                    gensym("reset"), 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_rewind,
-                    gensym("rewind"), 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_open, gensym("open"),
-                    A_GIMME, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_run, gensym("run"),
-                    A_DEFFLOAT, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_offset,
-                    gensym("offset"), A_DEFFLOAT, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_channel,
-                    gensym("set"), A_GIMME, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_control,
-                    gensym("control"), A_DEFSYMBOL, A_DEFFLOAT, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_set_channel,
-                    gensym("chnset"), A_GIMME, 0);
-    class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
-    CLASS_MAINSIGNALIN(csoundapi_class, t_csoundapi, f);
+  csoundapi_class =
+    class_new(gensym("csoundapi~"), (t_newmethod) csoundapi_new,
+	      (t_method) csoundapi_destroy, sizeof(t_csoundapi),
+	      CLASS_DEFAULT, A_GIMME, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_dsp, gensym("dsp"),
+		  (t_atomtype) 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_event,
+		  gensym("event"), A_GIMME, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_reset,
+		  gensym("reset"), 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_rewind,
+		  gensym("rewind"), 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_open, gensym("open"),
+		  A_GIMME, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_run, gensym("run"),
+		  A_DEFFLOAT, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_offset,
+		  gensym("offset"), A_DEFFLOAT, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_channel,
+		  gensym("set"), A_GIMME, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_control,
+		  gensym("control"), A_DEFSYMBOL, A_DEFFLOAT, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_set_channel,
+		  gensym("chnset"), A_GIMME, 0);
+  class_addmethod(csoundapi_class, (t_method) csoundapi_mess, gensym("messages"), A_DEFFLOAT, 0);
+  CLASS_MAINSIGNALIN(csoundapi_class, t_csoundapi, f);
 
    
 
-    {
-      int v1, v2, v3;
-      v1 = csoundGetVersion();
-      v3 = v1 % 10;
-      v2 = (v1 / 10) % 100;
-      v1 = v1 / 1000;
-      post("\ncsoundapi~ 1.01\n"
-           " A PD csound class using the Csound %d.%02d.%d API\n"
-           "(c) V Lazzarini, 2005-2007\n", v1, v2, v3);
-    }
-     csoundInitialize(NULL,NULL,0);
+  {
+    int v1, v2, v3;
+    v1 = csoundGetVersion();
+    v3 = v1 % 10;
+    v2 = (v1 / 10) % 100;
+    v1 = v1 / 1000;
+    post("\ncsoundapi~ 1.01\n"
+	 " A PD csound class using the Csound %d.%02d.%d API\n"
+	 "(c) V Lazzarini, 2005-2007\n", v1, v2, v3);
+  }
+  csoundInitialize(NULL,NULL,0);
 
 }
 
 
 int isCsoundFile(char *in)
 {
-    int     len;
-    int     i;
-    const char *extensions[6] = {".csd", ".orc", ".sco",".CSD",".ORC",".SCO"}; 
+  int     len;
+  int     i;
+  const char *extensions[6] = {".csd", ".orc", ".sco",".CSD",".ORC",".SCO"}; 
 
-    len = strlen(in);
-    for (i = 0; i < len; i++, in++) {
-      if (*in == '.')
-        break;
-    }
-    if (*in == '.') {
-      for(i=0; i<6;i++) 
-        if (strcmp(in,extensions[i])==0);
-           return 1;
-    }
-    return 0; 
+  len = strlen(in);
+  for (i = 0; i < len; i++, in++) {
+    if (*in == '.')
+      break;
+  }
+  if (*in == '.') {
+    for(i=0; i<6;i++) 
+      if (strcmp(in,extensions[i])==0);
+    return 1;
+  }
+  return 0; 
 }
 
 static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 {
-    char  **cmdl;
-    int     i;
+  char  **cmdl;
+  int     i;
 
-    t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
+  t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
 
-    x->csound = (CSOUND *) csoundCreate(x);
-    outlet_new(&x->x_obj, gensym("signal"));
-    x->numlets = 1;
-    x->result = 1;
-    x->run = 1;
-    x->chans = 1;
-    x->cleanup = 0;
-    x->cmdl = NULL;
-    x->iochannels = NULL;
-    x->csmess = malloc(MAXMESSTRING);
-    x->messon = 1;
-    x->curdir = canvas_getcurrentdir();
-    if (argc == 1 && argv[0].a_type == A_FLOAT) {
-      x->numlets = (t_int) atom_getfloat(&argv[0]);
-      for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++) {
-        inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"),
-                  gensym("signal"));
-        outlet_new(&x->x_obj, gensym("signal"));
-      }
+  x->csound = (CSOUND *) csoundCreate(x);
+  outlet_new(&x->x_obj, gensym("signal"));
+  x->numlets = 1;
+  x->result = 1;
+  x->run = 1;
+  x->chans = 1;
+  x->cleanup = 0;
+  x->cmdl = NULL;
+  x->iochannels = NULL;
+  x->csmess = malloc(MAXMESSTRING);
+  x->messon = 1;
+  x->curdir = canvas_getcurrentdir();
+  if (argc == 1 && argv[0].a_type == A_FLOAT) {
+    x->numlets = (t_int) atom_getfloat(&argv[0]);
+    for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++) {
+      inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"),
+		gensym("signal"));
+      outlet_new(&x->x_obj, gensym("signal"));
     }
-    else if (argc > 0) {
-      cmdl = (char **) malloc(sizeof(char *) * (argc + 3));
-      cmdl[0] = "csound";
-      for (i = 1; i < argc + 1; i++) {
-        cmdl[i] = (char *) malloc(64);
-        atom_string(&argv[i - 1], cmdl[i], 64);
-	if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
-          char *tmp = cmdl[i];
-          cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
-          strcpy(cmdl[i], x->curdir->s_name);
-          strcat(cmdl[i],"/");
-          strcat(cmdl[i],tmp);
-          post(cmdl[i]);
-          free(tmp);
-	  }
-        post(cmdl[i]);
-      }
-      cmdl[i] = "-d";
-      x->argnum = argc + 2;
-      x->cmdl = cmdl;
-      x->result = csoundPreCompile(x->csound);
-      if (x->result == CSOUND_SUCCESS) {
-        csoundSetHostImplementedAudioIO(x->csound, 1, 0);
-        csoundSetInputValueCallback(x->csound, in_channel_value_callback);
-        csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
-        csoundSetMessageCallback(x->csound, message_callback);
-        x->result = csoundCompile(x->csound, x->argnum, cmdl);
-      }
-
-      if (!x->result) {
-        x->end = 0;
-        x->cleanup = 1;
-        x->chans = csoundGetNchnls(x->csound);
-        x->pksmps = csoundGetKsmps(x->csound);
-        x->numlets = x->chans;
-        for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++)
-          inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"),
-                    gensym("signal"));
-        for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++)
-          outlet_new(&x->x_obj, gensym("signal"));
-        x->pos = 0;
-      }
-      else
-        post("csoundapi~ warning: could not compile");
-    }
-    x->ctlout = outlet_new(&x->x_obj, gensym("list"));
-    x->bangout = outlet_new(&x->x_obj, gensym("bang"));
-    return (void *) x;
-    return 0;
-}
-
-static void csoundapi_destroy(t_csoundapi *x)
-{
-   if (x->cmdl != NULL) free(x->cmdl);
-    if (x->iochannels != NULL)
-      destroy_channels(x->iochannels);
-    csoundDestroy(x->csound);
-    free(x->csmess);
-    
-}
-
-static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
-{
-    int     i, numlets = x->numlets;
-
-    x->vsize = sp[0]->s_n;
-
-    for (i = 0; i < numlets; i++) {
-      x->ins[i] = (t_sample *) sp[i]->s_vec;
-      x->outs[i] = (t_sample *) sp[i + numlets]->s_vec;
-    }
-
-    if (!x->result) {
-      dsp_add((t_perfroutine) csoundapi_perform, 1, x);
-    }
-    else
-      post("csoundapi~ warning: orchestra not compiled");
-}
-
-static t_int *csoundapi_perform(t_int *w)
-{
-    t_csoundapi *x = (t_csoundapi *) w[1];
-    t_int   size = x->vsize;
-    t_int   pos = x->pos;
-    t_int   posn = pos;
-    t_float scal = csoundGet0dBFS(x->csound);
-    t_int   pksmps = x->pksmps;
-    t_int   numlets = x->numlets;
-    t_int   chans = x->chans, samps;
-    t_sample *out[CS_MAX_CHANS], *in[CS_MAX_CHANS];
-    t_int   i, n, end = x->end, run = x->run;
-    MYFLT  *csout, *csin;
-
-    csout = csoundGetSpout(x->csound);
-    csin = csoundGetSpin(x->csound);
-
-    for (i = 0; i < numlets; i++) {
-      in[i] = x->ins[i];
-      out[i] = x->outs[i];
-    }
-
-    samps = pksmps * chans;
-    for (i = 0; i < size; i++) {
-      if (run && end == 0) {
-        if (pos == samps) {
-          if ((end = csoundPerformKsmps(x->csound)) != 0)
-            outlet_bang(x->bangout);
-          pos = 0;
-          posn = 0;
-        }
-        for (n = 0; n < numlets; n++) {
-          if (n < chans)
-            csin[posn] = (MYFLT) in[n][i] * scal;
-          posn++;
-        }
-        for (n = 0; n < numlets; n++) {
-          out[n][i] = (t_float) (n < chans ? csout[pos] / scal : 0.0);
-          pos++;
-        }
-      }
-      else
-        for (n = 0; n < numlets; n++)
-          out[n][i] = 0.f;
-    }
-
-    x->end = end;
-    x->pos = pos;
-    return (t_int *) (w + 2);
-}
-
-static void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
-{
-    char    type[10];
-    MYFLT   pFields[64];
-    int     num = argc - 1, i;
-
-    if (!x->result) {
-      atom_string(&argv[0], type, 10);
-      if (type[0] == 'i' || type[0] == 'f' || type[0] == 'e') {
-        for (i = 1; i < argc; i++)
-          pFields[i - 1] = atom_getfloat(&argv[i]);
-        csoundScoreEvent(x->csound, type[0], pFields, num);
-        x->cleanup = 1;
-        x->end = 0;
-      }
-      else
-        post("csoundapi~ warning: invalid realtime score event");
-    }
-    else
-      post("csoundapi~ warning: not compiled");
-}
-
-static void csoundapi_reset(t_csoundapi *x)
-{
-    if (x->cmdl != NULL) {
-
-      if (x->end && x->cleanup) {
-        csoundCleanup(x->csound);
-        x->cleanup = 0;
-      }
-
-      csoundReset(x->csound);
-      x->result = csoundPreCompile(x->csound);
-      if (x->result == CSOUND_SUCCESS) {
-      csoundSetHostImplementedAudioIO(x->csound, 1, 0);
-      x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
-      }
-
-      if (!x->result) {
-        x->end = 0;
-        x->pos = 0;
-        x->cleanup = 1;
-      }
-    }
-}
-
-static void csoundapi_rewind(t_csoundapi *x)
-{
-    if (!x->result) {
-      csoundSetScoreOffsetSeconds(x->csound, (MYFLT) 0);
-      csoundRewindScore(x->csound);
-      csoundSetScorePending(x->csound, 1);
-      x->end = 0;
-      x->pos = 0;
-      x->cleanup = 1;
-    }
-    else
-      post("csoundapi~ warning: not compiled");
-}
-
-static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
-{
-    char  **cmdl;
-    int     i;
-
-    if (x->end && x->cleanup) {
-      csoundCleanup(x->csound);
-      x->cleanup = 0;
-    }
-
-    if (x->cmdl != NULL)
-      free(x->cmdl);
-    csoundReset(x->csound);
-    x->result = 1;
+  }
+  else if (argc > 0) {
     cmdl = (char **) malloc(sizeof(char *) * (argc + 3));
     cmdl[0] = "csound";
     for (i = 1; i < argc + 1; i++) {
       cmdl[i] = (char *) malloc(64);
       atom_string(&argv[i - 1], cmdl[i], 64);
- if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
-         char *tmp = cmdl[i];
-          cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
-          strcpy(cmdl[i], x->curdir->s_name);
-          strcat(cmdl[i],"/");
-          strcat(cmdl[i],tmp);
-          post(cmdl[i]);
-          free(tmp);
+      if (*cmdl[i] != '-' && isCsoundFile(cmdl[i]))        
+	if(cmdl[i][0] != '/' || cmdl[i][1] != ':'){ 
+	char *tmp = cmdl[i];
+	cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
+	strcpy(cmdl[i], x->curdir->s_name);
+	strcat(cmdl[i],"/");
+	strcat(cmdl[i],tmp);
+	post(cmdl[i]);
+	free(tmp);
 	}
+      }
       post(cmdl[i]);
     }
     cmdl[i] = "-d";
@@ -407,6 +206,9 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     x->result = csoundPreCompile(x->csound);
     if (x->result == CSOUND_SUCCESS) {
       csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+      csoundSetInputValueCallback(x->csound, in_channel_value_callback);
+      csoundSetOutputValueCallback(x->csound, out_channel_value_callback);
+      csoundSetMessageCallback(x->csound, message_callback);
       x->result = csoundCompile(x->csound, x->argnum, cmdl);
     }
 
@@ -415,119 +217,321 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
       x->cleanup = 1;
       x->chans = csoundGetNchnls(x->csound);
       x->pksmps = csoundGetKsmps(x->csound);
+      x->numlets = x->chans;
+      for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++)
+	inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"),
+		  gensym("signal"));
+      for (i = 1; i < x->numlets && i < CS_MAX_CHANS; i++)
+	outlet_new(&x->x_obj, gensym("signal"));
       x->pos = 0;
-      csoundSetHostData(x->csound, x);
-      if (x->chans != x->numlets)
-        post("csoundapi~ warning: number of orchestra channels (%d)\n"
-             "does not match number of PD in/outlets (%d)\n"
-             "some channels will be muted", x->chans, x->numlets);
     }
     else
       post("csoundapi~ warning: could not compile");
+  }
+  x->ctlout = outlet_new(&x->x_obj, gensym("list"));
+  x->bangout = outlet_new(&x->x_obj, gensym("bang"));
+  return (void *) x;
+  return 0;
+}
+
+static void csoundapi_destroy(t_csoundapi *x)
+{
+  if (x->cmdl != NULL) free(x->cmdl);
+  if (x->iochannels != NULL)
+    destroy_channels(x->iochannels);
+  csoundDestroy(x->csound);
+  free(x->csmess);
+    
+}
+
+static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
+{
+  int     i, numlets = x->numlets;
+
+  x->vsize = sp[0]->s_n;
+
+  for (i = 0; i < numlets; i++) {
+    x->ins[i] = (t_sample *) sp[i]->s_vec;
+    x->outs[i] = (t_sample *) sp[i + numlets]->s_vec;
+  }
+
+  if (!x->result) {
+    dsp_add((t_perfroutine) csoundapi_perform, 1, x);
+  }
+  else
+    post("csoundapi~ warning: orchestra not compiled");
+}
+
+static t_int *csoundapi_perform(t_int *w)
+{
+  t_csoundapi *x = (t_csoundapi *) w[1];
+  t_int   size = x->vsize;
+  t_int   pos = x->pos;
+  t_int   posn = pos;
+  t_float scal = csoundGet0dBFS(x->csound);
+  t_int   pksmps = x->pksmps;
+  t_int   numlets = x->numlets;
+  t_int   chans = x->chans, samps;
+  t_sample *out[CS_MAX_CHANS], *in[CS_MAX_CHANS];
+  t_int   i, n, end = x->end, run = x->run;
+  MYFLT  *csout, *csin;
+
+  csout = csoundGetSpout(x->csound);
+  csin = csoundGetSpin(x->csound);
+
+  for (i = 0; i < numlets; i++) {
+    in[i] = x->ins[i];
+    out[i] = x->outs[i];
+  }
+
+  samps = pksmps * chans;
+  for (i = 0; i < size; i++) {
+    if (run && end == 0) {
+      if (pos == samps) {
+	if ((end = csoundPerformKsmps(x->csound)) != 0)
+	  outlet_bang(x->bangout);
+	pos = 0;
+	posn = 0;
+      }
+      for (n = 0; n < numlets; n++) {
+	if (n < chans)
+	  csin[posn] = (MYFLT) in[n][i] * scal;
+	posn++;
+      }
+      for (n = 0; n < numlets; n++) {
+	out[n][i] = (t_float) (n < chans ? csout[pos] / scal : 0.0);
+	pos++;
+      }
+    }
+    else
+      for (n = 0; n < numlets; n++)
+	out[n][i] = 0.f;
+  }
+
+  x->end = end;
+  x->pos = pos;
+  return (t_int *) (w + 2);
+}
+
+static void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
+{
+  char    type[10];
+  MYFLT   pFields[64];
+  int     num = argc - 1, i;
+
+  if (!x->result) {
+    atom_string(&argv[0], type, 10);
+    if (type[0] == 'i' || type[0] == 'f' || type[0] == 'e') {
+      for (i = 1; i < argc; i++)
+	pFields[i - 1] = atom_getfloat(&argv[i]);
+      csoundScoreEvent(x->csound, type[0], pFields, num);
+      x->cleanup = 1;
+      x->end = 0;
+    }
+    else
+      post("csoundapi~ warning: invalid realtime score event");
+  }
+  else
+    post("csoundapi~ warning: not compiled");
+}
+
+static void csoundapi_reset(t_csoundapi *x)
+{
+  if (x->cmdl != NULL) {
+
+    if (x->end && x->cleanup) {
+      csoundCleanup(x->csound);
+      x->cleanup = 0;
+    }
+
+    csoundReset(x->csound);
+    x->result = csoundPreCompile(x->csound);
+    if (x->result == CSOUND_SUCCESS) {
+      csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+      x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
+    }
+
+    if (!x->result) {
+      x->end = 0;
+      x->pos = 0;
+      x->cleanup = 1;
+    }
+  }
+}
+
+static void csoundapi_rewind(t_csoundapi *x)
+{
+  if (!x->result) {
+    csoundSetScoreOffsetSeconds(x->csound, (MYFLT) 0);
+    csoundRewindScore(x->csound);
+    csoundSetScorePending(x->csound, 1);
+    x->end = 0;
+    x->pos = 0;
+    x->cleanup = 1;
+  }
+  else
+    post("csoundapi~ warning: not compiled");
+}
+
+static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
+{
+  char  **cmdl;
+  int     i;
+
+  if (x->end && x->cleanup) {
+    csoundCleanup(x->csound);
+    x->cleanup = 0;
+  }
+
+  if (x->cmdl != NULL)
+    free(x->cmdl);
+  csoundReset(x->csound);
+  x->result = 1;
+  cmdl = (char **) malloc(sizeof(char *) * (argc + 3));
+  cmdl[0] = "csound";
+  for (i = 1; i < argc + 1; i++) {
+    cmdl[i] = (char *) malloc(64);
+    atom_string(&argv[i - 1], cmdl[i], 64);
+    if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
+      if(cmdl[i][0] != '/' || cmdl[i][1] != ':'){ 
+      char *tmp = cmdl[i];
+      cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
+      strcpy(cmdl[i], x->curdir->s_name);
+      strcat(cmdl[i],"/");
+      strcat(cmdl[i],tmp);
+      post(cmdl[i]);
+      free(tmp);
+      }
+    }
+    post(cmdl[i]);
+  }
+  cmdl[i] = "-d";
+  x->argnum = argc + 2;
+  x->cmdl = cmdl;
+  x->result = csoundPreCompile(x->csound);
+  if (x->result == CSOUND_SUCCESS) {
+    csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+    x->result = csoundCompile(x->csound, x->argnum, cmdl);
+  }
+
+  if (!x->result) {
+    x->end = 0;
+    x->cleanup = 1;
+    x->chans = csoundGetNchnls(x->csound);
+    x->pksmps = csoundGetKsmps(x->csound);
+    x->pos = 0;
+    csoundSetHostData(x->csound, x);
+    if (x->chans != x->numlets)
+      post("csoundapi~ warning: number of orchestra channels (%d)\n"
+	   "does not match number of PD in/outlets (%d)\n"
+	   "some channels will be muted", x->chans, x->numlets);
+  }
+  else
+    post("csoundapi~ warning: could not compile");
 }
 
 static void csoundapi_run(t_csoundapi *x, t_floatarg f)
 {
-    x->run = (int) f;
-    post("csoundapi~ run: %d", x->run);
+  x->run = (int) f;
+  post("csoundapi~ run: %d", x->run);
 }
 
 static void csoundapi_offset(t_csoundapi *x, t_floatarg f)
 {
-    csoundSetScoreOffsetSeconds(x->csound, (MYFLT) f);
+  csoundSetScoreOffsetSeconds(x->csound, (MYFLT) f);
 }
 
 static int set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value)
 {
-    channelname *ch = x->iochannels;
+  channelname *ch = x->iochannels;
 
-    if (ch != NULL)
-      while (strcmp(ch->name->s_name, channel->s_name)) {
-        ch = ch->next;
-        if (ch == NULL) {
-          return 0;
-        }
+  if (ch != NULL)
+    while (strcmp(ch->name->s_name, channel->s_name)) {
+      ch = ch->next;
+      if (ch == NULL) {
+	return 0;
       }
-    else
-      return 0;
-    ch->value = value;
-    return 1;
+    }
+  else
+    return 0;
+  ch->value = value;
+  return 1;
 }
 
 static MYFLT get_channel_value(t_csoundapi *x, char *channel)
 {
-    channelname *ch;
+  channelname *ch;
 
-    ch = x->iochannels;
-    if (ch != NULL)
-      while (strcmp(ch->name->s_name, channel)) {
-        ch = ch->next;
-        if (ch == NULL) {
-          return (MYFLT) 0;
-        }
+  ch = x->iochannels;
+  if (ch != NULL)
+    while (strcmp(ch->name->s_name, channel)) {
+      ch = ch->next;
+      if (ch == NULL) {
+	return (MYFLT) 0;
       }
-    else
-      return (MYFLT) 0;
-    return ch->value;
+    }
+  else
+    return (MYFLT) 0;
+  return ch->value;
 }
 
 static channelname *create_channel(channelname *ch, char *channel)
 {
-    channelname *tmp = ch, *newch = (channelname *) malloc(sizeof(channelname));
+  channelname *tmp = ch, *newch = (channelname *) malloc(sizeof(channelname));
 
-    newch->name = gensym(channel);
-    newch->value = 0.f;
-    newch->next = tmp;
-    ch = newch;
-    return ch;
+  newch->name = gensym(channel);
+  newch->value = 0.f;
+  newch->next = tmp;
+  ch = newch;
+  return ch;
 }
 
 static void destroy_channels(channelname *ch)
 {
-    channelname *tmp = ch;
+  channelname *tmp = ch;
 
-    while (ch != NULL) {
-      tmp = ch->next;
-      free(ch);
-      ch = tmp;
-    }
+  while (ch != NULL) {
+    tmp = ch->next;
+    free(ch);
+    ch = tmp;
+  }
 }
 
 static void csoundapi_channel(t_csoundapi *x, t_symbol *s,
                               int argc, t_atom *argv)
 {
-    int     i;
-    char    chs[64];
+  int     i;
+  char    chs[64];
 
-    for (i = 0; i < argc; i++) {
-      atom_string(&argv[i], chs, 64);
-      x->iochannels = create_channel(x->iochannels, chs);
-    }
+  for (i = 0; i < argc; i++) {
+    atom_string(&argv[i], chs, 64);
+    x->iochannels = create_channel(x->iochannels, chs);
+  }
 }
 
 static void csoundapi_control(t_csoundapi *x, t_symbol *s, float f)
 {
-    if (!set_channel_value(x, s, f))
-      post("channel not found");
+  if (!set_channel_value(x, s, f))
+    post("channel not found");
 }
 
 static void in_channel_value_callback(CSOUND *csound,
                                       const char *name, MYFLT *val)
 {
-    t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
+  t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
 
-    *val = get_channel_value(x, (char *) name);
+  *val = get_channel_value(x, (char *) name);
 }
 
 static void out_channel_value_callback(CSOUND *csound,
                                        const char *name, MYFLT val)
 {
-    t_atom  at[2];
-    t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
+  t_atom  at[2];
+  t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
 
-    SETFLOAT(&at[1], (t_float) val);
-    SETSYMBOL(&at[0], gensym((char *) name));
-    outlet_list(x->ctlout, gensym("list"), 2, at);
+  SETFLOAT(&at[1], (t_float) val);
+  SETSYMBOL(&at[0], gensym((char *) name));
+  outlet_list(x->ctlout, gensym("list"), 2, at);
 }
 
 static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
@@ -558,7 +562,7 @@ static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
 
 static void csoundapi_mess(t_csoundapi *x, t_floatarg f)
 {
-    x->messon = (int) f;
+  x->messon = (int) f;
 }
 
 static void message_callback(CSOUND *csound,
@@ -567,7 +571,7 @@ static void message_callback(CSOUND *csound,
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   
   if(x->csmess != NULL)
-  vsnprintf(x->csmess, MAXMESSTRING, format, valist);
+    vsnprintf(x->csmess, MAXMESSTRING, format, valist);
   for(i=0;i<MAXMESSTRING;i++)
     if(x->csmess != NULL && x->csmess[i] == '\0'){
       x->csmess[i-1]= ' ';
