@@ -187,8 +187,12 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     for (i = 1; i < argc + 1; i++) {
       cmdl[i] = (char *) malloc(64);
       atom_string(&argv[i - 1], cmdl[i], 64);
-      if (*cmdl[i] != '-' && isCsoundFile(cmdl[i]))        
-	if(cmdl[i][0] != '/' || cmdl[i][1] != ':'){ 
+      if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])) 
+#ifndef WIN32      
+	if(*cmdl[i] != '/'){
+#else
+	  if(cmdl[i][1] != ':'){
+#endif 
 	char *tmp = cmdl[i];
 	cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
 	strcpy(cmdl[i], x->curdir->s_name);
@@ -197,7 +201,6 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
 	post(cmdl[i]);
 	free(tmp);
 	}
-      }
       post(cmdl[i]);
     }
     cmdl[i] = "-d";
@@ -227,11 +230,10 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     }
     else
       post("csoundapi~ warning: could not compile");
-  }
+}  
   x->ctlout = outlet_new(&x->x_obj, gensym("list"));
   x->bangout = outlet_new(&x->x_obj, gensym("bang"));
   return (void *) x;
-  return 0;
 }
 
 static void csoundapi_destroy(t_csoundapi *x)
@@ -393,7 +395,11 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     cmdl[i] = (char *) malloc(64);
     atom_string(&argv[i - 1], cmdl[i], 64);
     if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])){
-      if(cmdl[i][0] != '/' || cmdl[i][1] != ':'){ 
+#ifndef WIN32      
+	if(*cmdl[i] != '/'){
+#else
+	if(cmdl[i][1] != ':'){
+#endif 
       char *tmp = cmdl[i];
       cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
       strcpy(cmdl[i], x->curdir->s_name);
