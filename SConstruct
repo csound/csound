@@ -1234,7 +1234,7 @@ else:
         if (not withMSVC()):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
-                LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
+                LINKFLAGS = ['-Wl'])#,'--enable-runtime-pseudo-reloc'])
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])

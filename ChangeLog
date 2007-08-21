@@ -1,3 +1,6 @@
+2007-08-21    <Victor.Lazzarini@nuim.ie>
+	* Opocddes/sfont.c: removed all global static variables
+
 2007-08-16    <jpff@cs.bath.ac.uk>
 
 	* SConstruct: Separate Word64 (for PIC) and Lib64 for library name
