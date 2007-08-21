@@ -2076,7 +2076,7 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-    FLEXECBUTTON *p = (FLEXECBUTTON *) a;
+    
 
 #if defined(LINUX)
 
@@ -3243,8 +3243,8 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
     }
   }
   ST(AddrSetValue).push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
-                                            (void *) o, (void *) p)),
-    ST(currentSnapGroup);
+                                            (void *) o, (void *) p));
+  /*ST(currentSnapGroup);*/
   *p->ihandle = ST(AddrSetValue).size()-1;
   return OK;
 }
