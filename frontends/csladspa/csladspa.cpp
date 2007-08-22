@@ -415,10 +415,10 @@ int CountCSD(char **csdnames)
 {
   DIR             *dip;
   struct dirent   *dit;
-  string          temp, name;
+  string          temp, name, path;
   char           *ladspa_path;
   int             i = 0;
-  int             indx = 0;
+  unsigned int             indx = 0;
 
 #ifndef MACOSX
   ladspa_path = getenv("LADSPA_PATH");
@@ -427,8 +427,15 @@ int CountCSD(char **csdnames)
 #endif
   // if no LADSPA_PATH attempt to open
   // current directory
+  path = ladspa_path;
+  indx = path.find(":");
   if(ladspa_path == NULL) dip = opendir(".");
-  else dip = opendir(ladspa_path);
+  else {
+     if(indx!=string::npos) 
+         dip = opendir(path.substr(0,indx-1).c_str());
+     else
+       dip = opendir(ladspa_path);
+  }
   if (dip == NULL){
     return -1;
   }
