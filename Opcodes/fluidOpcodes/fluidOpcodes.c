@@ -107,7 +107,7 @@ static CS_NOINLINE fluidSynthGlobals * fluid_allocGlobals(CSOUND *csound)
 
   if (csound->CreateGlobalVariable(csound, "fluid.engines",
                                    sizeof(fluidSynthGlobals)) != 0)
-    csound->Die(csound, "fluid: error allocating globals");
+    csound->Die(csound, "fluid: error allocating globals\n");
   p = (fluidSynthGlobals *) csound->QueryGlobalVariable(csound,
                                                         "fluid.engines");
   p->fluid_engines = (fluid_synth_t **) NULL;
@@ -174,7 +174,7 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   if (fluidSynth == NULL) {
     if (fluidSettings != NULL)
       delete_fluid_settings(fluidSettings);
-    return csound->InitError(csound, "error allocating fluid engine");
+    return csound->InitError(csound, "error allocating fluid engine\n");
   }
   csound_global_mutex_lock();
   fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
@@ -206,7 +206,7 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
   int     sfontId = -1;
 
   if (engineNum >= (int) pp->cnt || engineNum < 0) {
-    csound->InitError(csound, "Illegal Engine Number: %i.", engineNum);
+    csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
     return NOTOK;
   }
   filename = csound->strarg2name(csound,
@@ -367,7 +367,7 @@ static int fluidOutIopadr(CSOUND *csound, FLUIDOUT *p)
   int   engineNum = (int) *(p->iEngineNum);
 
   if (engineNum >= (int) pp->cnt || engineNum < 0) {
-    csound->InitError(csound, "Illegal Engine Number: %i.", engineNum);
+    csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
     return NOTOK;
   }
   p->fluidEngine = pp->fluid_engines[engineNum];
@@ -518,6 +518,33 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
   return OK;
 }
 
+static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
+{
+	fluidSynthGlobals *pp = fluid_getGlobals(csound);
+	int engineNum = (int) *(p->iEngineNumber);
+	int channelNum  = (int) *(p->iChannelNumber);
+	int interpMethod = (int) *(p->iInterpMethod);
+	
+	if (engineNum >= (int) pp->cnt || engineNum < 0) 
+	{
+		csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
+		return NOTOK;
+	}
+	
+	if(interpMethod != 0 || interpMethod != 1 || interpMethod != 4 || 
+			interpMethod != 7) 
+	{
+		csound->InitError(csound, 
+				"Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n");
+				return NOTOK;
+	}
+	
+	fluid_synth_set_interp_method(
+			pp->fluid_engines[engineNum], channelNum, interpMethod);
+	
+	return OK;
+}
+
 /* OPCODE LIBRARY STUFF */
 
 static OENTRY localops[] = {
@@ -539,6 +566,8 @@ static OENTRY localops[] = {
     (SUBR) fluidAllOutIopadr,       (SUBR) 0,   (SUBR) fluidAllOutAopadr  },
   { "fluidControl",         sizeof(FLUIDCONTROL),           3,  "",   "ikkkk",
     (SUBR) fluidControl_init,       (SUBR) fluidControl_kontrol, (SUBR) 0 },
+  { "fluidSetInterpMethod",         sizeof(FLUID_SET_INTERP_METHOD), 1,  "",   "iii",
+    (SUBR) fluidSetInterpMethod, (SUBR) 0, (SUBR) 0 }, 
   { NULL,                   0,                              0,  NULL, NULL,
     (SUBR) 0,                       (SUBR) 0,   (SUBR) 0                  }
 };
