@@ -49,6 +49,12 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
+  /* INPUTS */
+  MYFLT   *iEngineNumber, *iChannelNumber, *iInterpMethod;
+} FLUID_SET_INTERP_METHOD;
+
+typedef struct {
+  OPDS    h;
   /* OUTPUTS */
   MYFLT   *iInstrumentNumber;
   /* INPUTS */
