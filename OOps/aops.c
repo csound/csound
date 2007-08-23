@@ -694,7 +694,7 @@ int cps2pch(CSOUND *csound, XENH *p)
     fract = modf((double)*p->pc, &loct);        /* Get octave */
     if (*p->et > 0) {
       fract = pow(2.0, loct + (100.0*fract)/((double)*p->et));
-      *p->r = (MYFLT)(fract * <1.02197503906); /* Refer to base frequency */
+      *p->r = (MYFLT)(fract * 1.02197503906); /* Refer to base frequency */
     }
     else {
       MYFLT t = - *p->et;
