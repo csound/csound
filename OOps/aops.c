@@ -27,7 +27,7 @@
 #include <time.h>
 
 #define EIPT3       (25.0/3.0)
-#define LOGTWO      (0.69314718056)
+#define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
 #define INTERVAL    (4.0)
 #define ONEdLOG2    (1.4426950408889634074)
@@ -694,7 +694,7 @@ int cps2pch(CSOUND *csound, XENH *p)
     fract = modf((double)*p->pc, &loct);        /* Get octave */
     if (*p->et > 0) {
       fract = pow(2.0, loct + (100.0*fract)/((double)*p->et));
-      *p->r = (MYFLT)(fract * 1.02197503906); /* Refer to base frequency */
+      *p->r = (MYFLT)(fract * <1.02197503906); /* Refer to base frequency */
     }
     else {
       MYFLT t = - *p->et;
