@@ -531,7 +531,7 @@ static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
 		return NOTOK;
 	}
 	
-	if(interpMethod != 0 || interpMethod != 1 || interpMethod != 4 || 
+	if(interpMethod != 0 && interpMethod != 1 && interpMethod != 4 && 
 			interpMethod != 7) 
 	{
 		csound->InitError(csound, 
