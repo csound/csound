@@ -435,8 +435,10 @@ unsigned int CountCSD(char **csdnames)
 #endif
   if(ladspa_path == NULL) dip = opendir(".");
   else {
-    if(indx!=string::npos) 
+    if(indx!=string::npos){
       dip = opendir(path.substr(0,indx).c_str());
+      strcpy(ladspa_path, path.substr(0,indx).c_str());    
+    }
     else dip = opendir(ladspa_path);
   }
   if (dip == NULL){
