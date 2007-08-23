@@ -2077,12 +2077,13 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
     
- 
-#if defined(LINUX) || defined (MACOSX)
-    FLEXECBUTTON *p = (FLEXECBUTTON *)a;
-    CSOUND *csound = p->csound;
-    char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
+     FLEXECBUTTON *p = (FLEXECBUTTON *)a;
+	  CSOUND *csound = p->csound;
+     char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
 
+#if defined(LINUX) || defined (MACOSX)
+
+   
     pid_t pId = vfork();
     if (pId == 0) {
 
@@ -2108,7 +2109,7 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
     }
 
     csound->Free(csound, command);
-#elif defined(WINDOWS)
+#elif defined(WIN32)
     {
       char *v[40];
       int i = 0;
@@ -2122,7 +2123,7 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
           v[i++] = tok;
         }
         v[i] = NULL;
-        if (csoundRunCommand(v, 1)<0)
+        if (csound->RunCommand(v, 1)<0)
           p->csound->Message(p->csound, Str("Error: Unable to fork process\n"));
       }
     }
