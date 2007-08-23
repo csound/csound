@@ -1,10 +1,12 @@
 2007-08-21  Steven Yi   <stevenyi@gmail.com>
+	
     * Opcodes/fluidOpcodes/fluidOpcodes.c: added new fluidSetInterpMethod opcode
     that wraps fluidSynth's fluid_set_interp_method API method; allows user to
     choose interpolation method from 0 (none), 1 (Linear), 4 (4th order, 
     default), and 7 (7th order, highest quality) on a per channel basis 
 
 2007-08-21    <Victor.Lazzarini@nuim.ie>
+	
 	* Opcodes/sfont.c: removed all global static variables
 
 2007-08-16    <jpff@cs.bath.ac.uk>
