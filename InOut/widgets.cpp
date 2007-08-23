@@ -2076,10 +2076,9 @@ static void fl_callbackCloseButton(Fl_Button* w, void *a)
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-    
-     FLEXECBUTTON *p = (FLEXECBUTTON *)a;
-	  CSOUND *csound = p->csound;
-     char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
+    FLEXECBUTTON *p = (FLEXECBUTTON *);
+    CSOUND *csound = p->csound;
+    char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);
 
 #if defined(LINUX) || defined (MACOSX)
 
