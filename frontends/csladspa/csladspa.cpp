@@ -411,9 +411,9 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
 
 
 // count CSDs in the current directory
-int CountCSD(char **csdnames)
+unsigned int CountCSD(char **csdnames)
 {
-  DIR             *dip;
+  DIR             *dip = NULL;
   struct dirent   *dit;
   string          temp, name, path;
   char           *ladspa_path;
@@ -428,16 +428,19 @@ int CountCSD(char **csdnames)
   // if no LADSPA_PATH attempt to open
   // current directory
   path = ladspa_path;
+#ifdef WIN32
+  indx = path.find(";");
+#else
   indx = path.find(":");
+#endif
   if(ladspa_path == NULL) dip = opendir(".");
   else {
-     if(indx!=string::npos) 
-         dip = opendir(path.substr(0,indx-1).c_str());
-     else
-       dip = opendir(ladspa_path);
+    if(indx!=string::npos) 
+      dip = opendir(path.substr(0,indx).c_str());
+    else dip = opendir(ladspa_path);
   }
   if (dip == NULL){
-    return -1;
+    return 0;
   }
   while ((dit = readdir(dip))!=NULL)
     {
@@ -470,6 +473,7 @@ const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
   char **csdnames = new char*[100];
   unsigned int csds;
   csds = CountCSD(csdnames);
+  
   // if the requested index is in the range of CSD numbers
   if(Index<csds)
     {
