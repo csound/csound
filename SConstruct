@@ -398,7 +398,13 @@ if getPlatform() == 'linux':
         pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
-    pyBasePath = '/System/Library/Frameworks/Python.Framework'
+    vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
+    if vers[1] == 3:
+      print "Python version is 2.%s, using Apple Python Framework" % vers[1]
+      pyBasePath = '/System/Library/Frameworks/Python.Framework'
+    else:
+      print "Python version is 2.%s, using MacPython Framework" % vers[1]
+      pyBasePath = '/Library/Frameworks/Python.Framework'
     pythonIncludePath = ['%s/Headers' % pyBasePath]
     pythonLinkFlags = ['-framework', 'python']
     path1 = '%s/Versions/Current/lib' % pyBasePath
