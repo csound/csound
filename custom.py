@@ -21,7 +21,6 @@ elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
     customCPPPATH.append('/opt/local/include/boost-1_32/')
-    customCPPPATH.append('/usr/include/python2.3')
     customCXXFLAGS.append('-fabi-version=0')
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
