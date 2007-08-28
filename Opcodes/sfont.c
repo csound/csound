@@ -2290,7 +2290,7 @@ static OENTRY localops[] = {
                                                   NULL, (SUBR)SfPlayMono },
 { "sfplist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfplist          },
 { "sfilist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfilist          },
-{ "sfpassign",S(SFPASSIGN), 1,  "",     "iio",    (SUBR)SfAssignAllPresets },
+{ "sfpassign",S(SFPASSIGN), 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
 { "sfinstrm", S(SFIPLAYMONO),5, "a", "iixxiioo",  (SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono },
 { "sfinstr", S(SFIPLAY),  5,    "aa", "iixxiioo", (SUBR)SfInstrPlay_set,
