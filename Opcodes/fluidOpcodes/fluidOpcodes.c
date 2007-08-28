@@ -157,16 +157,34 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   int               ndx;
   int chorusEnabled = (int) *p->iChorusEnabled;
   int reverbEnabled = (int) *p->iReverbEnabled;
+  int numChannels = (int) *p->iNumChannels;
+  int polyphony = (int) *p->iPolyphony;
 
+  if (numChannels <= 0) {
+	  numChannels = 256;
+  } else if (numChannels < 16) {
+	  numChannels = 16;
+  } else if (numChannels > 256) {
+	  numChannels = 256;
+  }
+  
+  if (polyphony <= 0) {
+	  polyphony = 4096;
+  } else if (polyphony < 16) {
+	  polyphony = 16;
+  } else if (polyphony > 4096) {
+	  polyphony = 4096;
+  }
+  
   csound_global_mutex_lock();
   fluidSettings = new_fluid_settings();
   if (fluidSettings != NULL) {
     fluid_settings_setnum(fluidSettings,
                           "synth.sample-rate", (double) csound->esr);
     fluid_settings_setint(fluidSettings,
-                          "synth.polyphony", 4096);
+                          "synth.polyphony", polyphony);
     fluid_settings_setint(fluidSettings,
-                          "synth.midi-channels", 256);
+                          "synth.midi-channels", numChannels);
     fluidSynth = new_fluid_synth(fluidSettings);
   }
   csound_global_mutex_unlock();
@@ -183,10 +201,12 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
 
   ndx = fluidEngine_Alloc(csound, fluidSynth);
   csound->Message(csound, "Created fluidEngine %d with sampling rate = %f, "
-                          "chorus %s, reverb %s.\n",
+                          "chorus %s, reverb %s, channels %d, polyphony %d.\n",
                   ndx, (double) csound->esr,
                   chorusEnabled ? "on" : "off",
-                  reverbEnabled ? "on" : "off");
+                  reverbEnabled ? "on" : "off",
+                  numChannels, 
+                  polyphony);
   *(p->iEngineNum) = (MYFLT) ndx;
 
   return OK;
@@ -548,7 +568,7 @@ static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
 /* OPCODE LIBRARY STUFF */
 
 static OENTRY localops[] = {
-  { "fluidEngine",          sizeof(FLUIDENGINE),            1,  "i",  "pp",
+  { "fluidEngine",          sizeof(FLUIDENGINE),            1,  "i",  "ppoo",
     (SUBR) fluidEngineIopadr,       (SUBR) 0,   (SUBR) 0                  },
   { "fluidLoad",            sizeof(FLUIDLOAD),              1,  "i",  "Tio",
     (SUBR) fluidLoadIopadr,         (SUBR) 0,   (SUBR) 0                  },
