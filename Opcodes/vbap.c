@@ -63,13 +63,14 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
      /* Selects a vector base of a virtual source.
         Calculates gain factors in that base. */
 {
-    int i,j,k, tmp2;
+    int i,j,k, tmp2,tma;
     MYFLT vec[3], tmp;
     /* direction of the virtual source in cartesian coordinates*/
     vec[0] = cart_dir.x;
     vec[1] = cart_dir.y;
     vec[2] = cart_dir.z;
 
+    
     for (i=0; i< ls_set_am; i++) {
       sets[i].set_gains[0] = FL(0.0);
       sets[i].set_gains[1] = FL(0.0);
@@ -77,10 +78,7 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       sets[i].smallest_wt  = FL(1000.0);
       sets[i].neg_g_am = 0;
   }
-
-  /* Calculate gain factors in each triplet.
-     Select the smallest gain in each triplet */
-
+    
     for (i=0; i< ls_set_am; i++) {
       for (j=0; j< dim; j++) {
         for (k=0; k< dim; k++) {
@@ -93,8 +91,8 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       }
     }
 
-    /* Select the set with smallest amount of negative gains and
-       the set the smallest gain factor value is largest amoung all sets*/
+  
+
     j=0;
     tmp = sets[0].smallest_wt;
     tmp2=sets[0].neg_g_am;
@@ -113,28 +111,32 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
       }
     }
 
-    /* if all gains are negative, use brute force*/
-    if (sets[j].set_gains[0]<=FL(0.0) &&
+   
+        if (sets[j].set_gains[0]<=FL(0.0) &&
         sets[j].set_gains[1]<=FL(0.0) &&
         sets[j].set_gains[2]<=FL(0.0)) {
       sets[j].set_gains[0] = FL(1.0);
       sets[j].set_gains[1] = FL(1.0);
       sets[j].set_gains[2] = FL(1.0);
-    }
+      }
 
 /*     for (i=0;i<ls_amount;i++) { */
 /*       gains[i]=FL(0.0); */
 /*     } */
     memset(gains, 0, ls_amount*sizeof(MYFLT));
-
+    
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
     gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
-    gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
 
-    for (i=0;i<ls_amount;i++) {
+    tma = sets[j].ls_nos[2]-1;
+    /* VL, 08/07 fix to prevent memory leak */
+    if(tma>=0 && tma<ls_amount)
+    gains[tma] = sets[j].set_gains[2];
+
+      for (i=0;i<ls_amount;i++) {
       if (gains[i]<LOWEST_ACCEPTABLE_WT)
         gains[i]=FL(0.0);
-    }
+	}
 }
 
 void scale_angles(ANG_VEC *avec)

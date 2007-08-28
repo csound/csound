@@ -128,7 +128,6 @@ typedef struct {
                                            negative: angle velocities */
   MYFLT beg_gains[EIGHT];
   MYFLT curr_gains[EIGHT];
-  MYFLT end_gains[EIGHT];
   MYFLT updated_gains[EIGHT];
 /*   int counter; */
   int upd_interval;
@@ -142,6 +141,7 @@ typedef struct {
   ANG_VEC ang_dir, prev_ang_dir, next_ang_dir;
   int point_change_interval, point_change_counter, curr_fld, next_fld;
   MYFLT ele_vel;
+   MYFLT end_gains[EIGHT];
 } VBAP_EIGHT_MOVING;
 
 /* VBAP structure of SIXTEEN loudspeaker panning */
