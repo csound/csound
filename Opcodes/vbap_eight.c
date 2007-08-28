@@ -44,12 +44,14 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
     int nsmps = csound->ksmps;
     int i,j;
 
+    
     vbap_EIGHT_control(csound,p);
-    for (i=0;i< (EIGHT); i++) {
+    for (i=0;i< EIGHT; i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
-    }
-
+      }
+    
+   
     /* write audio to result audio streams weighted
        with gain factors*/
     invfloatn =  csound->onedksmps;
@@ -62,8 +64,7 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
           for (i = 0; i < nsmps; i++) {
-            outptr[i] = inptr[i] *
-              (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+            outptr[i] = inptr[i] * (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
             (MYFLT) (i) * invfloatn * gainsubstr;
@@ -87,6 +88,7 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
     ANG_VEC atmp;
     long i,j, spreaddirnum;
     MYFLT tmp_gains[EIGHT],sum=FL(0.0);
+    
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
@@ -101,9 +103,10 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
     p->ang_dir.ele = (MYFLT) *p->ele;
     p->ang_dir.length = FL(1.0);
     angle_to_cart(p->ang_dir, &(p->cart_dir));
+
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                   p->updated_gains, EIGHT, p->cart_dir);
-
+    
     /* Calculated gain factors of a spreaded virtual source*/
     if (*p->spread > FL(0.0)) {
       if (p->dim == 3) {
@@ -169,7 +172,7 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
       }
     }
     if (*p->spread > FL(70.0))
-      for (i=0;i<EIGHT ;i++) {
+      for (i=0;i<EIGHT;i++) {
         p->updated_gains[i] +=(*p->spread - FL(70.0))/FL(30.0) *
           (*p->spread - FL(70.0))/FL(30.0)*FL(20.0);
       }
