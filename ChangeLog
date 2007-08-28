@@ -1,3 +1,9 @@
+2007-08-28  Steven Yi   <stevenyi@gmail.com>
+    
+    * Opcodes/fluidOpcodes/fluidOpcodes.c: modified fluidEngine opcode to take
+    optional number of channels (range 16-256, default to 256) and polyphony 
+    (range 16-4096, default to 4096) to use.   
+
 2007-08-21  Steven Yi   <stevenyi@gmail.com>
 	
     * Opcodes/fluidOpcodes/fluidOpcodes.c: added new fluidSetInterpMethod opcode
