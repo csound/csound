@@ -45,6 +45,8 @@ typedef struct {
   MYFLT   *iEngineNum;
   MYFLT   *iReverbEnabled;
   MYFLT   *iChorusEnabled;
+  MYFLT   *iNumChannels;
+  MYFLT   *iPolyphony;
 } FLUIDENGINE;
 
 typedef struct {
