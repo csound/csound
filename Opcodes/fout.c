@@ -38,7 +38,6 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
 {
     FOUT_FILE         *p = (FOUT_FILE*) p_;
     struct fileinTag  *pp;
-
     p->sf = (SNDFILE*) NULL;
     p->f = (FILE*) NULL;
     if (p->idx) {
@@ -46,7 +45,9 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
       p->idx = 0;
       if (pp->refCount) {
         pp->refCount--;
-        if (pp->refCount == 0x80000000U) {
+        /* VL 29/08/07: files were not being closed properly,
+           changed check to 0 */
+        if (pp->refCount == 0/*0x80000000U*/) {
           pp->file = (SNDFILE*) NULL;
           pp->raw = (FILE*) NULL;
           csound->Free(csound, pp->name);
@@ -59,8 +60,8 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
                                       csound->GetFileName(pp->fd));
             csound->FileClose(csound, pp->fd);
             pp->fd = NULL;
-          }
-        }
+	    }
+	  }
       }
     }
 
