@@ -43,26 +43,30 @@ static void msg_callback(CSOUND *csound,
     if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
       vfprintf(logFile, format, args);
       fflush(logFile);
-    }
-#if defined(WIN32) || defined(MAC)
+     }
+    #if defined(WIN32) || defined(MAC)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
-      case CSOUNDMSG_ERROR:
-      case CSOUNDMSG_WARNING:
-      case CSOUNDMSG_REALTIME:
+        case CSOUNDMSG_ERROR:
+	case CSOUNDMSG_WARNING:
+	case CSOUNDMSG_REALTIME:
         break;
       default:
-        vfprintf(stdout, format, args);
+        vfprintf(logFile, format, args);
         return;
     }
-#endif
+    #endif
+
     vfprintf(stderr, format, args);
 }
+
+static void nomsg_callback(CSOUND *csound,
+  int attr, const char *format, va_list args){ return; }
 
 int main(int argc, char **argv)
 {
     CSOUND  *csound;
     char    *fname = NULL;
-    int     i, result;
+    int     i, result, nomessages=0;
 
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
@@ -85,7 +89,9 @@ int main(int argc, char **argv)
       else if (i < (argc - 1) && strcmp(argv[i], "-O") == 0)
         fname = argv[i + 1];
     }
-    if (fname != NULL) {
+    if (!strcmp(fname, "NULL") || !strcmp(fname, "null")) nomessages = 1;
+  
+     else if (fname != NULL) {
       if ((logFile = fopen(fname, "w")) == NULL) {
         fprintf(stderr, "Error opening log file '%s': %s\n",
                         fname, strerror(errno));
@@ -102,6 +108,8 @@ int main(int argc, char **argv)
     /* if logging to file, set message callback */
     if (logFile != NULL)
       csoundSetMessageCallback(csound, msg_callback);
+    else if (nomessages)
+      csoundSetMessageCallback(csound, nomsg_callback);
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
