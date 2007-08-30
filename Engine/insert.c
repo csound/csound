@@ -638,8 +638,8 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
       } while ((ip = ip->nxtinstance) != NULL);
     }
     csound->Message(csound,
-                    Str("could not find indefinitely playing instr %d\n"),
-                    insno);
+                    Str("could not find indefinitely playing instr %f\n"),
+                    p1);
 }
 
 int csoundInitError(CSOUND *csound, const char *s, ...)
