@@ -63,7 +63,7 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
      /* Selects a vector base of a virtual source.
         Calculates gain factors in that base. */
 {
-    int i,j,k, tmp2,tma;
+    int i,j,k, tmp2;
     MYFLT vec[3], tmp;
     /* direction of the virtual source in cartesian coordinates*/
     vec[0] = cart_dir.x;
@@ -127,11 +127,7 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
     
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
     gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
-
-    tma = sets[j].ls_nos[2]-1;
-    /* VL, 08/07 fix to prevent memory leak */
-    if(tma>=0 && tma<ls_amount)
-    gains[tma] = sets[j].set_gains[2];
+    if(dim==3) gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
 
       for (i=0;i<ls_amount;i++) {
       if (gains[i]<LOWEST_ACCEPTABLE_WT)
