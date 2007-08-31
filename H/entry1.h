@@ -110,6 +110,8 @@ int     ftchnls(CSOUND *, void *), rtclock(CSOUND *, void *);
 int     cpsoct(CSOUND *, void *), octpch(CSOUND *, void *);
 int     cpspch(CSOUND *, void *), pchoct(CSOUND *, void *);
 int     octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
+int     cpsmidinn(CSOUND *, void *), octmidinn(CSOUND *, void *);
+int     pchmidinn(CSOUND *, void *);
 int     massign(CSOUND *, void *), ctrlinit(CSOUND *, void *);
 int     notnum(CSOUND *, void *), veloc(CSOUND *, void *);
 int     pchmidi(CSOUND *, void *), pchmidib(CSOUND *, void *);
