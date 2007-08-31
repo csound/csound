@@ -89,10 +89,12 @@ int main(int argc, char **argv)
       else if (i < (argc - 1) && strcmp(argv[i], "-O") == 0)
         fname = argv[i + 1];
     }
-    if (!strcmp(fname, "NULL") || !strcmp(fname, "null")) nomessages = 1;
+   
   
-     else if (fname != NULL) {
-      if ((logFile = fopen(fname, "w")) == NULL) {
+    if (fname != NULL) {
+      if (!strcmp(fname, "NULL") || !strcmp(fname, "null")) 
+               nomessages = 1;
+      else if ((logFile = fopen(fname, "w")) == NULL) {
         fprintf(stderr, "Error opening log file '%s': %s\n",
                         fname, strerror(errno));
         return -1;
