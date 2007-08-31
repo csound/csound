@@ -31,6 +31,7 @@
 #define STEPS       (32768)
 #define INTERVAL    (4.0)
 #define ONEdLOG2    (1.4426950408889634074)
+#define MIDINOTE0   (3.00)  /* Lowest midi note is 3.00 in oct & pch formats */
 
 /* static lookup tables, initialised once at start-up */
         MYFLT   cpsocfrc[OCTRES] = { FL(0.0) };
@@ -655,6 +656,35 @@ int cpspch(CSOUND *csound, EVAL *p)
     fract *= EIPT3;
     loct = (long)((oct + fract) * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
+    return OK;
+}
+
+int cpsmidinn(CSOUND *csound, EVAL *p)
+{
+    /* Convert Midi Note number to 8ve.decimal format */
+    MYFLT oct = (*p->a / FL(12.0)) + FL(MIDINOTE0);
+    /* Lookup in cpsoct table */
+    long loct = (long)(oct * OCTRES);
+    *p->r = (MYFLT)CPSOCTL(loct);
+    return OK;
+}
+
+int octmidinn(CSOUND *csound, EVAL *p)
+{
+    /* Convert Midi Note number to 8ve.decimal format */
+    *p->r = (*p->a / FL(12.0)) + FL(MIDINOTE0);
+    return OK;
+}
+
+int pchmidinn(CSOUND *csound, EVAL *p)
+{
+    double fract, oct, octdec;
+    /* Convert Midi Note number to 8ve.decimal format */
+    octdec = ((double)*p->a / 12.0) + MIDINOTE0;
+    /* then convert to 8ve.pc format */
+    fract = modf(octdec, &oct);
+    fract *= 0.12;
+    *p->r = (MYFLT)(oct + fract);
     return OK;
 }
 

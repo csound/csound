@@ -1,3 +1,11 @@
+2007-08-31  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* OOps/aops.c:
+	* Engine/entry1.c:
+	* H/entry1.h: Added new value conversion functions to convert from Midi
+	note number to Csound's three pitch formats (cpsmidinn, pchmidinn,
+	and octmidinn).
+
 2007-08-28  Steven Yi   <stevenyi@gmail.com>
     
     * Opcodes/fluidOpcodes/fluidOpcodes.c: modified fluidEngine opcode to take
