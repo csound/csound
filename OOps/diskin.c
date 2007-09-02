@@ -150,7 +150,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     char    name[1024];
     void    *fd;
     SF_INFO sfinfo;
-    int     n;
+    int     n, bsize = (int) *p->ibufsize;
 
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
@@ -248,7 +248,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* initialise buffer */
-    p->bufSize = diskin_calc_buffer_size(p, 4096);
+    p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
     p->bufStartPos = -((long)(p->bufSize << 1));
     /* done initialisation */
     p->initDone = -1;
