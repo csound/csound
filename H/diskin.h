@@ -36,6 +36,7 @@ typedef struct {
     MYFLT   *iWrapMode;
     MYFLT   *iSampleFormat;
     MYFLT   *iSkipInit;
+    MYFLT   *ibufsize;
  /* ------------------------------------- */
     int     initDone;
     int     nChannels;

@@ -452,7 +452,7 @@ OENTRY opcodlst_1[] = {
 { "unirand.i",S(PRAND), 1,     "i",     "k",    ikuniform, NULL,  NULL  },
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
-{ "diskin",S(SOUNDINEW),5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooo",
+{ "diskin",S(SOUNDINEW),5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkooooo",
                             (SUBR) newsndinset, NULL, (SUBR) soundinew  },
 { "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
