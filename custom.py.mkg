@@ -29,8 +29,8 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('D:/utah/msys/1.0/mingw/include')
     customLIBPATH.append('D:/utah/msys/1.0/mingw/lib')
     # If libsndfile is not in a standard location add it here:
-    customCPPPATH.append(r'D:\utah\opt\libsndfile-1.0.18pre11\src')
-    customLIBPATH.append(r'D:\utah\opt\libsndfile-1.0.18pre11\src\.libs')
+    customCPPPATH.append(r'D:\utah\opt\libsndfile-1_0_17')
+    customLIBPATH.append(r'D:\utah\opt\libsndfile-1_0_17')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
