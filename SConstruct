@@ -356,6 +356,7 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
+    commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
@@ -483,7 +484,7 @@ if not tclhfound:
      for i in tclIncludePath:
         tmp = '%s/tcl.h' % i
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
-luaFound = configure.CheckHeader("lua.h", language = "C")
+luaFound = configure.CheckHeader("lua5.1/lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
 pythonFound = configure.CheckHeader("Python.h", language = "C")
@@ -1079,6 +1080,7 @@ else:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
+	csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
         csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/lua_interface.i',
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
