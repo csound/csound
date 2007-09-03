@@ -494,7 +494,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csoundapi~.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
-  File D:\utah\opt\libsndfile-1.0.18pre11\src\.libs\libsndfile-1.dll
+  File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
