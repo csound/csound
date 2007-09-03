@@ -33,23 +33,46 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
 static int pvsinit(CSOUND *csound, PVSINI *p)
 {
-    int     i;
+    int     i, n;
     float   *bframe;
     long    N = (long) *p->framesize;
 
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    p->fout->sliding = 0;
     p->fout->N = N;
     p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
     p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
     p->fout->wintype = (long) *p->wintype;
     p->fout->format = (long) *p->format;
     p->fout->framecount = 1;
-    bframe = (float *) p->fout->frame.auxp;
-    for (i = 0; i < N + 2; i += 2) {
-      bframe[i] = 0.0f;
-      bframe[i + 1] = (i / 2) * N * csound->onedsr;
+#ifdef BETA
+    if (p->fout->overlap < csound->ksmps || p->fout->overlap <10) {
+      int NB = 1+N/2;
+      p->fout->NB = NB;
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size * csound->ksmps < sizeof(float) * (N + 2)) {
+        csound->AuxAlloc(csound, (N + 2) * csound->ksmps * sizeof(float),
+                         &p->fout->frame);
+        p->fout->sliding = 1;
+        bframe = (float *) p->fout->frame.auxp;
+        for (n=0; n<csound->ksmps; n++)
+          for (i = 0; i < N + 2; i += 2) {
+            bframe[n+i*NB] = 0.0f; /* Wrong order??? */
+            bframe[n+i*NB + 1] = (i >>1) * N * csound->onedsr;
+          }
+      }
+    }
+    else {
+#endif
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2)) {
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      }
+        p->fout->sliding = 0;
+      bframe = (float *) p->fout->frame.auxp;
+      for (i = 0; i < N + 2; i += 2) {
+        bframe[i] = 0.0f;
+        bframe[i + 1] = (i >>1) * N * csound->onedsr;
+      }
     }
     return OK;
 }
@@ -290,26 +313,45 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 
 static int pvsoscset(CSOUND *csound, PVSOSC *p)
 {
-    int     i;
+    int     i, n;
     float   *bframe;
     long    N = (long) *p->framesize;
 
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N = N;
     p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
     p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
     p->fout->wintype = (long) *p->wintype;
     p->fout->format = (long) *p->format;
     p->fout->framecount = 0;
-    bframe = (float *) p->fout->frame.auxp;
-    for (i = 0; i < N + 2; i += 2) {
-      bframe[i] = 0.0f;
-      bframe[i + 1] = (i / 2) * N * csound->onedsr;
+#ifdef BETA
+    if (p->fout->overlap<csound->ksmps || p->fout->overlap<10) {
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < csound->ksmps*sizeof(float) * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * csound->ksmps* sizeof(float), &p->fout->frame);
+      else memset(p->fout->frame.auxp,
+                  '\0', (N + 2) * csound->ksmps* sizeof(float));
+      bframe = (float *) p->fout->frame.auxp;
+      for (n=0; n<csound->ksmps; n++)
+        for (i = 0; i < N + 2; i += 2) {
+          bframe[i+N*n] = 0.0f;
+          bframe[i + 1+N*n] = (i / 2) * N * csound->onedsr;
+        }
+      return csound->PerfError(csound, "Not implemented yet");
     }
-    p->lastframe = 1;
-    p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
+    else
+#endif
+      {
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      bframe = (float *) p->fout->frame.auxp;
+      for (i = 0; i < N + 2; i += 2) {
+        bframe[i] = 0.0f;
+        bframe[i + 1] = (i / 2) * N * csound->onedsr;
+      }
+      p->lastframe = 1;
+      p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
+    }
     return OK;
 }
 
@@ -634,10 +676,22 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     long    N = p->fin->N;
 
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+#ifdef BETA
+    if (p->fin->sliding) {
+      if (p->fout->frame.auxp==NULL ||
+          csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+        csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
+    }
+    else 
+#else
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+#endif
     p->fout->N = N;
+    p->fout->sliding = p->fin->sliding;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
     p->fout->wintype = p->fin->wintype;
@@ -662,9 +716,13 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvshift: not initialised"));
-
+#ifdef BETA
+    if (p->fin->sliding) {
+      return csound->PerfError(csound, Str("Not yet implemented"));
+    }
+#endif
     if (p->lastframe < p->fin->framecount) {
-
+      
       lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
 
       fout[0] = fin[0];
@@ -716,6 +774,11 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     long    N = p->fin->N, i, j;
     int     olap = p->fin->overlap;
     int     delayframes, framesize = N + 2;
+#ifdef BETA
+    if (p->fin->sliding) {
+      return csound->PerfError(csound, Str("Not yet implemented"));
+    }
+#endif
 
     p->frpsec = csound->esr / olap;
 
@@ -858,6 +921,11 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvstencil: not initialised"));
+#ifdef BETA
+    if (p->fin->sliding) {
+      return csound->PerfError(csound, Str("Not yet implemented"));
+    }
+#endif
 
     if (p->lastframe < p->fin->framecount) {
 
@@ -878,7 +946,8 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
-    if ((f1->overlap == f2->overlap) &&
+    if ((f1->sliding == f2->sliding) &&
+        (f1->overlap == f2->overlap) &&
         (f1->winsize == f2->winsize) &&
         (f1->wintype == f2->wintype) &&     /* harsh, maybe... */
         (f1->N == f2->N) &&
@@ -911,8 +980,8 @@ static OENTRY localops[] = {
          (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
      (SUBR) pvsmoothprocess, NULL},
-{"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
- (SUBR) pvsoscprocess, NULL},
+    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
+     (SUBR) pvsoscprocess, NULL},
     {"pvsdiskin", S(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
      (SUBR) pvsdiskinproc, NULL}
 

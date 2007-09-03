@@ -13,14 +13,14 @@ nchnls=2
 
 instr 1                                                                               
 asig oscili 16000, 100,1 
-fsig pvsanal  asig,1024,256,1024,1               
+fsig pvsanal  asig,1024,10,1024,1               
+aa pvsynth fsig
+;     pvsout fsig, 0
+;fbus pvsin  0                                     ;
 
-     pvsout fsig, 0
-fbus pvsin  0                                     ;
-
-aleft  pvsynth fbus
-aright pvsynth fsig
- outs aleft,aright     
+;aleft  pvsynth fbus
+;aright pvsynth fsig
+; outs aleft,aright     
 
 endin
 </CsInstruments>
