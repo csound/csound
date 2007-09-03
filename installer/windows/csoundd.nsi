@@ -524,10 +524,10 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\doc\manual
   File /r ..\..\..\manual\html\*
   SetOutPath $INSTDIR\tutorial
-  File ..\..\tutorial\tutorial.pdf
-  File ..\..\tutorial\*.csd
-  File ..\..\tutorial\*.py
-  File ..\..\tutorial\tutorial3.cpr
+  File ..\..\..\tutorial\tutorial.pdf
+  File ..\..\..\tutorial\*.csd
+  File ..\..\..\tutorial\*.py
+  File ..\..\..\tutorial\tutorial3.cpr
   SetOutPath $INSTDIR\examples
   File /x *.wav /x *.orc /x *.sco ..\..\examples\*.*
   SetOutPath $INSTDIR\examples\csoundapi_tilde
