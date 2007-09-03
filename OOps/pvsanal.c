@@ -2,7 +2,7 @@
     pvsanal.c:
 
     Copyright (C) 2002 Richard Dobson
-
+              (C) 2007 John ffitch/Richard Dobson (SDFT)
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -132,6 +132,7 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->wintype = wintype;
     p->fsig->format = PVS_COMPLEX;      /* only this, for now */
     p->fsig->N = p->nI  = N;
+    p->fsig->sliding = 1;
     /* Need space for NB sines and cosines */
     if (p->fsig->trig.auxp==NULL ||
         (N+2)*sizeof(double) > (unsigned int)p->fsig->trig.size)
@@ -178,6 +179,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     /* deal with iinit and iformat later on! */
 
 #ifdef BETA
+    
     if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
 #endif
@@ -259,6 +261,9 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->wintype = wintype;
     p->fsig->framecount = 1;
     p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
+#ifdef BETA
+    p->fsig->sliding = 0;
+#endif
     return OK;
 }
 
@@ -658,6 +663,18 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     long overlap = p->fsig->overlap;
     long M = p->fsig->winsize;
     int wintype = p->fsig->wintype;
+
+#ifdef BETA
+    if (p->fsig->sliding) {
+      /* get params from input fsig */
+      /* we TRUST they are legal */
+      int wintype = p->fsig->wintype;
+      /* and put into locals */
+      p->wintype = wintype;
+      p->format = p->fsig->format;
+      return OK;
+    }
+#endif
     /* and put into locals */
     p->fftsize = N;
     p->winsize = M;
@@ -920,11 +937,35 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
+#ifdef BETA
+int pvssynth(CSOUND *csound, PVSYNTH *p)
+{
+    int i, k;
+    int ksmps = csound->ksmps;
+    int N = p->fsig->N;
+    int NB = p->fsig->NB;
+    MYFLT *aout = p->aout;
+    CMPLX *ff;
+
+    for (i=0;i < ksmps;i++) {
+      MYFLT a = FL(0.0);
+      ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
+      for (k=1; k<NB-1; k++)
+        a += ff[k].re;
+      aout[i] = (a+a+ff[0].re-ff[NB-1].re)/N;
+    }
+    return OK;
+}
+#endif
+
 int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
     int i;
     MYFLT *aout = p->aout;
 
+#ifdef BETA
+    if (p->fsig->sliding) return pvssynth(csound, p);
+#endif
     if (p->output.auxp==NULL) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }

@@ -621,7 +621,7 @@ int pchoct(CSOUND *csound, EVAL *p)
 
 int cpsoct(CSOUND *csound, EVAL *p)
 {
-    long loct = (long)(*p->a * OCTRES);
+    int loct = (int)(*p->a * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
@@ -629,13 +629,13 @@ int cpsoct(CSOUND *csound, EVAL *p)
 int acpsoct(CSOUND *csound, EVAL *p)
 {
     MYFLT   *r, *a;
-    long    loct;
+    int    loct;
     int     n, nsmps = csound->ksmps;
 
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
-      loct = (long)(a[n] * OCTRES);
+      loct = (int)(a[n] * OCTRES);
       r[n] = CPSOCTL(loct);
     }
     return OK;
@@ -650,11 +650,11 @@ int octcps(CSOUND *csound, EVAL *p)
 int cpspch(CSOUND *csound, EVAL *p)
 {
     double fract, oct;
-    long   loct;
+    int    loct;
 
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
-    loct = (long)((oct + fract) * OCTRES);
+    loct = (int)((oct + fract) * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }

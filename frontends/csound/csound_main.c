@@ -89,8 +89,6 @@ int main(int argc, char **argv)
       else if (i < (argc - 1) && strcmp(argv[i], "-O") == 0)
         fname = argv[i + 1];
     }
-   
-  
     if (fname != NULL) {
       if (!strcmp(fname, "NULL") || !strcmp(fname, "null")) 
                nomessages = 1;

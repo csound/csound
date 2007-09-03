@@ -51,8 +51,8 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle.header.format  = p->fin->format;
     p->handle.header.framecount = p->fin->framecount;
     p->nframes = p->handle.frames = (*p->len) * csound->esr/hop; 
-       if (p->buffer.auxp == NULL || 
-         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
+    if (p->buffer.auxp == NULL || 
+        p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
     memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
 
