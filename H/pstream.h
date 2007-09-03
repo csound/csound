@@ -98,6 +98,7 @@ enum PVS_ANALFORMAT {
 typedef struct pvsdat {
         long            N;
 #ifdef BETA
+        int		sliding; /* Flag to indicate sliding case */
         long            NB;
         AUXCH           trig;
         double          *cosine, *sine;

@@ -30,17 +30,18 @@ typedef struct {
         MYFLT   *ans;
         PVSDAT  *fin;
         unsigned long   lastframe;
+        MYFLT   old;
 } PVSCENT;
 
 static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
-     p->lastframe = 0;
-     *p->ans = FL(0.0);
-     if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
-       return csound->InitError(csound,
-                                Str("pvscent: format must be amp-phase"
-                                    " or amp-freq.\n"));
-     return OK;
+    *p->ans = FL(0.0);
+    p->lastframe = 0;
+    if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
+      return csound->InitError(csound,
+                               Str("pvscent: format must be amp-phase"
+                                   " or amp-freq.\n"));
+    return OK;
 }
 
 static int pvscent(CSOUND *csound, PVSCENT *p)
@@ -61,6 +62,54 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
+#ifdef BETA
+static int pvsscent(CSOUND *csound, PVSCENT *p)
+{
+    MYFLT *a = p->ans;
+    int n, nsmps = csound->ksmps;
+    if (p->fin->sliding) {
+      int n, nsmps = csound->ksmps;
+      long i,N = p->fin->N;
+      MYFLT c = FL(0.0);
+      MYFLT d = FL(0.0);
+      MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
+      float *fin = (float *) p->fin->frame.auxp;
+      for (n=0; n<nsmps; n++) {
+        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+          c += j*fin[n+nsmps*i];         /* This ignores phase */
+          d += fin[n+nsmps*i];
+        }
+        a[n] = (d==FL(0.0) ? FL(0.0) : c/d);
+      }
+    }
+    else {
+      int n, nsmps = csound->ksmps;
+      MYFLT old = p->old;
+      long i,N = p->fin->N;
+      MYFLT c = FL(0.0);
+      MYFLT d = FL(0.0);
+      MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
+      float *fin = (float *) p->fin->frame.auxp;
+      for (n=0; n<nsmps; n++) {
+        if (p->lastframe < p->fin->framecount) {
+          for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+            c += fin[i]*j;         /* This ignores phase */
+            d += fin[i];
+          }
+          old = *a++ = (d==FL(0.0) ? FL(0.0) : c/d);
+          p->lastframe = p->fin->framecount;
+        }
+        else {
+          *a++ = old;
+        }
+      }
+      p->old = old;
+    }
+    return OK;
+}
+#endif
+
+ 
 /* PVSPITCH opcode by Ala OCinneide */
 
 typedef struct _pvspitch
@@ -235,8 +284,14 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  {"pvscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
-  {"pvspitch", S(PVSPITCH), 3, "kk", "fk",
+#ifndef BETA
+  { "pvsscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
+#else
+  { "pvsscent",  0,          0, "",  ""  },
+  { "pvsscent.k", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
+  { "pvsscent.a", S(PVSCENT), 5, "a", "f", (SUBR)pvscentset, NULL, (SUBR)pvsscent },
+#endif
+  { "pvspitch", S(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 
