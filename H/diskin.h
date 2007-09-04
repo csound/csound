@@ -49,7 +49,8 @@ typedef struct {
     SNDFILE *sf;
     MYFLT   prv_kTranspose;
     MYFLT   scaleFac;
-    float   buf[4120];          /* 4096 samples + guard point for 24 channels */
+    float   *buf;          /* variable */
+    AUXCH   auxch;
     FDCH    fdch;
 } SOUNDINEW;
 
