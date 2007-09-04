@@ -56,8 +56,8 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    #customCPPPATH.append('C:/Python24/include')
-    #customLIBPATH.append('C:/Python24/Libs')    
+    customCPPPATH.append('C:/Python24/include')
+    customLIBPATH.append('C:/Python24/Libs')    
     #customLIBPATH.append('D:/utah/msys/1.0/local/lib')
     customCPPPATH.append('C:/Python25/include')
     customLIBPATH.append('C:/Python25/Libs')    

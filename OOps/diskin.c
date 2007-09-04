@@ -250,8 +250,15 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
     p->bufStartPos = -((long)(p->bufSize << 1));
+
+   if(p->auxch.auxp == NULL || p->auxch.size < p->bufSize*sizeof(float)*p->nChannels)
+      csound->AuxAlloc(csound,sizeof(float)*p->bufSize*p->nChannels, &p->auxch);
+    p->buf = (float *) p->auxch.auxp;
+
     /* done initialisation */
     p->initDone = -1;
+
+    
 
     return OK;
 }
