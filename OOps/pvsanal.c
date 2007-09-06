@@ -95,10 +95,6 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
 }
 
 #ifdef BETA
-typedef struct {
-  MYFLT re;
-  MYFLT im;
-} CMPLX;
 
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -123,35 +119,36 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
         N*sizeof(MYFLT) > (unsigned int)p->input.size)
       csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
     else memset(p->input.auxp, 0, N*sizeof(MYFLT));
-    if (p->analwinbuf.auxp==NULL ||
+    csound->AuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
+   if (p->analwinbuf.auxp==NULL ||
         NB*sizeof(CMPLX) > (unsigned int)p->analwinbuf.size)
       csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
     else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
     p->inptr = 0;                 /* Pointer in circular buffer */
     p->fsig->NB = p->Ii = NB;
     p->fsig->wintype = wintype;
-    p->fsig->format = PVS_COMPLEX;      /* only this, for now */
+    p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
     p->fsig->N = p->nI  = N;
     p->fsig->sliding = 1;
-    /* Need space for NB sines and cosines */
-    if (p->fsig->trig.auxp==NULL ||
-        (N+2)*sizeof(double) > (unsigned int)p->fsig->trig.size)
-      csound->AuxAlloc(csound,(N+2)*sizeof(double),&p->fsig->trig);
+    /* Need space for NB sines, cosines and a scatch phase area */
+    if (p->trig.auxp==NULL ||
+        (2*NB)*sizeof(double) > (unsigned int)p->trig.size)
+      csound->AuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
     {
       double dc = cos(TWOPI/(double)N);
       double ds = sin(TWOPI/(double)N);
-      double *c = (double *)(p->fsig->trig.auxp);
-      double *s = (double *)(p->fsig->trig.auxp)+NB;
-      p->fsig->cosine = c;
-      p->fsig->sine = s;
+      double *c = (double *)(p->trig.auxp);
+      double *s = c+NB;
+      p->cosine = c;
+      p->sine = s;
       c[0] = 1.0; s[0] = 0.0;
         /*
           direct computation of c and s may be better for large n
-          c = cos(2*M_PI*i/n);
-          s = sin(2*M_PI*i/n);
+          c[i] = cos(2*M_PI*i/n);
+          s[i] = sin(2*M_PI*i/n);
           if (i % 16 == 15) {
-          c = cos(2*M_PI*(i+1)/n);
-          s = sin(2*M_PI*(i+1)/n);
+          c[i] = cos(2*M_PI*(i+1)/n);
+          s[i] = sin(2*M_PI*(i+1)/n);
         */
       for (i=1; i<NB; i++) {
           c[i] = dc*c[i-1] - ds*s[i-1];
@@ -179,8 +176,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     /* deal with iinit and iformat later on! */
 
 #ifdef BETA
-    
-    if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
+    if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
 #endif
     if (N <= 32)
@@ -191,7 +187,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
-#if !defined(BETA)
+#ifndef BETA
     if (overlap < csound->ksmps)
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
@@ -249,7 +245,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->nI = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
-    p->Ii = 0;
+    p->Ii = 0; 
     p->IOi = 0;
     p->buflen = buflen;
     p->nextIn = (MYFLT *) p->input.auxp;
@@ -347,7 +343,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
            i++,i0+=2,i1+=2, oi++) {
         real = *i0;
         imag = *i1;
-        *i0 =(MYFLT) sqrt((double)(real * real + imag * imag));
+        *i0 =(MYFLT) hypot((double)real, *(double)imag);
         /* phase unwrapping */
         /*if (*i0 == 0.)*/
         if (*i0 < FL(1.0E-10))
@@ -372,7 +368,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     for (i=0,i0=anal,i1=anal+1,oi=oldInPhase; i <= N2; i++,i0+=2,i1+=2, oi++) {
       real = *i0;
       imag = *i1;
-      *i0 =(MYFLT) sqrt((double)(real * real + imag * imag));
+      *i0 = (MYFLT)hypot((double)real, (double)imag);
       /* phase unwrapping */
       /*if (*i0 == 0.)*/
       if (*i0 < FL(1.0E-10))
@@ -431,38 +427,55 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 }
 
 #ifdef BETA
+static inline double mod2Pi(double x)
+{
+    x = fmod(x,TWOPI);
+    if (x <= -PI) {
+        return x + TWOPI;
+    }
+    if (x > PI) {
+        return x - TWOPI;
+    }
+    return x;
+}
+
 int pvssanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
-    int NB = p->Ii, i, k, loc;
+    int NB = p->Ii, i, loc;
+    int N = p->fsig->N;
     MYFLT *data = (MYFLT*)(p->input.auxp);
     CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
-    double *c = p->fsig->cosine;
-    double *s = p->fsig->sine;
-
+    double *c = p->cosine;
+    double *s = p->sine;
+    double *h = (double*)p->oldInPhase.auxp;
+    int nsmps = csound->ksmps;
+    int wintype = p->fsig->wintype;
     if (data==NULL) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
     loc = p->inptr;             /* Circular buffer */
-    for (i=0, k=csound->ksmps-1; i < csound->ksmps; i++, k=(k+1)%csound->ksmps) {
+    for (i=0; i < nsmps; i++) {
       MYFLT re, im, dx;
-      CMPLX* ff, *gg;
+      CMPLX* ff;
       int j;
 
+/*       printf("%d: in = %f\n", i, *ain); */
       dx = *ain - data[loc];    /* Change in sample */
       data[loc] = *ain++;       /* Remember input sample */
       /* get the frame for this sample */
       ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
-      gg = (CMPLX*)(p->fsig->frame.auxp) + k*NB;
+      /* fw is the current frame at this sample */
       for (j = 0; j < NB; j++) {
+        double ci = c[j], si = s[j];
         re = fw[j].re + dx;
         im = fw[j].im;
-        fw[j].re = c[j]*re - s[j]*im;
-        fw[j].im = c[j]*im + s[j]*re;
+        fw[j].re = ci*re - si*im;
+        fw[j].im = ci*im + si*re;
       }
       loc++; if (loc==p->nI) loc = 0; /* Circular buffer */
-      /* should apply window here */
+      /* apply window and transfer to ff buffer*/
       /* Rectang :Fw_t =     F_t                          */
       /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
       /* Hamming :Fw_t = 0.5 F_t - 0.25[ F_{t-1}+F_{t+1}] */
@@ -476,7 +489,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
                                       0.02838 [F_{t-2}+F_{t+2}] */
       /* BHarris_min:Fw_t = 0.42323 F_t - 0.2486703 [ F_{t-1}+F_{t+1}] + 
                                       0.0391396 [F_{t-2}+F_{t+2}] */
-      switch ((int)(*p->wintype+FL(0.5))) {
+      switch (wintype) {
       case PVS_WIN_HAMMING:
         for (j=0; j<NB; j++) {
           ff[j].re = FL(0.54)*fw[j].re;
@@ -488,7 +501,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         }
         ff[0].re -= FL(0.46)*fw[1].re;
         ff[NB-1].re -= FL(0.46)*fw[NB-2].re;
-        goto gook;
+        break;
       case PVS_WIN_HANN:
         for (j=0; j<NB; j++) {
           ff[j].re = FL(0.5)*fw[j].re;
@@ -500,7 +513,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         }
         ff[0].re -= FL(0.5)*fw[1].re;
         ff[NB-1].re -= FL(0.5)*fw[NB-2].re;
-        goto gook;
+        break;
       default:
         csound->Message(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
@@ -509,7 +522,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
           ff[j].re = fw[j].re;
           ff[j].im = fw[j].im;
         }
-        goto gook;
+        break;
       case PVS_WIN_BLACKMAN:
         for (j=0; j<NB; j++) {
           ff[j].re = FL(0.42)*fw[j].re;
@@ -567,6 +580,8 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         ff[NB-1].re += -FL(0.5) * fw[NB-2].re + FL(0.125) * fw[NB-3].re;
         ff[1].re    += -FL(0.5) * fw[2].re    + FL(0.125) * fw[3].re;
         ff[NB-2].re += -FL(0.5) * fw[NB-3].re + FL(0.125) * fw[NB-4].re;
+        ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
+        ff[1].im = 0.5 * (fw[2].im + fw[0].im);
         break;
       case PVS_WIN_BHARRIS_3:
         for (j=0; j<NB; j++) {
@@ -585,6 +600,8 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         ff[NB-1].re += -FL(0.49364) * fw[NB-2].re + FL(0.05677) * fw[NB-3].re;
         ff[1].re    += -FL(0.49364) * fw[2].re    + FL(0.05677) * fw[3].re;
         ff[NB-2].re += -FL(0.49364) * fw[NB-3].re + FL(0.05677) * fw[NB-4].re;
+        ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
+        ff[1].im = 0.5 * (fw[2].im + fw[0].im);
         break;
       case PVS_WIN_BHARRIS_MIN:
         for (j=0; j<NB; j++) {
@@ -603,27 +620,35 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         ff[NB-1].re += -FL(0.4973406) * fw[NB-2].re + FL(0.0782793) * fw[NB-3].re;
         ff[1].re    += -FL(0.4973406) * fw[2].re    + FL(0.0782793) * fw[3].re;
         ff[NB-2].re += -FL(0.4973406) * fw[NB-3].re + FL(0.0782793) * fw[NB-4].re;
+        ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
+        ff[1].im = 0.5 * (fw[2].im + fw[0].im);
         break;
       }
+/*       if (i==9) { */
+/*         printf("Frame as Amp/Freq %d\n", i); */
+/*         for (j = 0; j < NB; j++) */
+/*           printf("%d: %f\t%f\n", j, ff[j].re, ff[j].im); */
+/*       } */
+      for (j = 0; j < NB; j++) { /* Convert to AMP_FREQ */
+        double thismag = hypot(ff[j].re, ff[j].im);
+        double phase = atan2(ff[j].im, ff[j].re);
+        double angleDif  = phase -  h[j];
+        h[j] = phase;
+            /*subtract expected phase difference */
+        angleDif -= (double)j * TWOPI/N;
+        angleDif =  mod2Pi(angleDif);
+        angleDif =  angleDif * N /TWOPI;
+        ff[j].re = thismag;
+        ff[j].im = csound->esr * (j + angleDif)/N;
+      }
+/*       if (i==9) { */
+/*         printf("Frame as Amp/Freq %d\n", i); */
+/*         for (j = 0; j < NB; j++) */
+/*           printf("%d: %f\t%f\n", j, ff[j].re, ff[j].im); */
+/*       } */
     }
-#ifdef DO_HACK
-    ff[1].re = 0.5 * (fw[2].re + fw[0].re);
-    ff[1].im = 0.5 * (fw[2].im + fw[0].im);
-#endif
 
- gook:
-/*     for (i=0; i<ksmps; i++) { */
-/*       int j; */
-/*       CMPLX* ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB; */
-/*       printf("Frame %d %p\n", i, ff); */
-/*       for (j = 0; j < NB; j++) */
-/*         printf("%d: %f,%f\t%f,%f\n", j, fw[j].re, fw[j].im, ff[j].re, ff[j].im); */
-/*     } */
     p->inptr = loc;
-#ifdef somefineday
-    if (mode != PVS_COMPLEX)
-      sconvert(mode,n,Fexact,win_re,win_im,mag,freq,inPhase);
-#endif
     return OK;
 }
 #endif
@@ -664,6 +689,11 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     long M = p->fsig->winsize;
     int wintype = p->fsig->wintype;
 
+    p->fftsize = N;
+    p->winsize = M;
+    p->overlap = overlap;
+    p->wintype = wintype;
+    p->format = p->fsig->format;
 #ifdef BETA
     if (p->fsig->sliding) {
       /* get params from input fsig */
@@ -672,15 +702,12 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
       /* and put into locals */
       p->wintype = wintype;
       p->format = p->fsig->format;
+      csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->oldOutPhase);
+      csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->output);
       return OK;
     }
 #endif
     /* and put into locals */
-    p->fftsize = N;
-    p->winsize = M;
-    p->overlap = overlap;
-    p->wintype = wintype;
-    p->format = p->fsig->format;
     halfwinsize = M/2;
     buflen = M*4;
     IO = (double)overlap;         /* always, no time-scaling possible */
@@ -946,13 +973,32 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
     int NB = p->fsig->NB;
     MYFLT *aout = p->aout;
     CMPLX *ff;
+    double *h = (double*)p->oldOutPhase.auxp;
+    double *output = (double*)p->output.auxp;
 
-    for (i=0;i < ksmps;i++) {
-      MYFLT a = FL(0.0);
+    /* Get real part from AMP/FREQ */
+    for (i=0; i<ksmps; i++) {
+      MYFLT a;
       ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
-      for (k=1; k<NB-1; k++)
-        a += ff[k].re;
-      aout[i] = (a+a+ff[0].re-ff[NB-1].re)/N;
+      for (k=0; k<NB; k++) {
+        double tmp,phase;
+
+        tmp = ff[k].im; /* Actually frequency */
+        /* subtract bin mid frequency */
+        tmp -= (double)k * csound->esr/N;
+        /* get bin deviation from freq deviation */
+        tmp *= TWOPI /csound->esr;
+        /* add the overlap phase advance back in */
+        tmp += (double)k*TWOPI/N;
+        h[k] = phase = mod2Pi(h[k] + tmp);
+        output[k] = ff[k].re*cos(phase);
+      }
+      a = FL(0.0);
+      for (k=1; k<NB-1; k++) {
+        a -= output[k];
+        if (k+1<NB-1) a+=output[++k];
+      }
+      aout[i] = (a+a+output[0]-output[NB-1])/N;
     }
     return OK;
 }
@@ -963,12 +1009,12 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     int i;
     MYFLT *aout = p->aout;
 
-#ifdef BETA
-    if (p->fsig->sliding) return pvssynth(csound, p);
-#endif
     if (p->output.auxp==NULL) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
+#ifdef BETA
+    if (p->fsig->sliding) return pvssynth(csound, p);
+#endif
     for (i=0;i < csound->ksmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;
