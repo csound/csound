@@ -37,6 +37,10 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
+#ifdef BETA
+    if (p->fin->sliding)
+      return csound->InitError(csound, "SDFT case not implemented yet");
+#endif
     if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
       return csound->InitError(csound,
                                Str("pvscent: format must be amp-phase"
@@ -50,15 +54,28 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
     MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
-    float *fin = (float *) p->fin->frame.auxp;
-    if (p->lastframe < p->fin->framecount) {
-      for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-        c += fin[i]*j;         /* This ignores phase */
-        d += fin[i];
+#ifdef BETA
+    if (p->fin->sliding) {
+      CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
+      int NB = p->fin->NB;
+      for (i=0, j=FL(0.5)*binsize; i<NB; i++, j += binsize) {
+        c += fin[i].re*j;
+        d += fin[i].re;
       }
-      *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
-      p->lastframe = p->fin->framecount;
     }
+    else
+#endif
+      {
+        float *fin = (float *) p->fin->frame.auxp;
+        if (p->lastframe < p->fin->framecount) {
+          for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+            c += fin[i]*j;         /* This ignores phase */
+            d += fin[i];
+          }
+          p->lastframe = p->fin->framecount;
+        }
+      }
+    *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
     return OK;
 }
 
@@ -66,18 +83,19 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
 static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
-    int n, nsmps = csound->ksmps;
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       long i,N = p->fin->N;
+
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
       MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
-      float *fin = (float *) p->fin->frame.auxp;
+      int NB = p->fin->NB;
       for (n=0; n<nsmps; n++) {
+        CMPLX *fin = (CMPLX*) p->fin->frame.auxp + n*NB;
         for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-          c += j*fin[n+nsmps*i];         /* This ignores phase */
-          d += fin[n+nsmps*i];
+          c += j*fin[i].re;         /* This ignores phase */
+          d += fin[i].re;
         }
         a[n] = (d==FL(0.0) ? FL(0.0) : c/d);
       }
@@ -100,7 +118,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
           p->lastframe = p->fin->framecount;
         }
         else {
-          *a++ = old;
+          a[n] = old;
         }
       }
       p->old = old;
@@ -149,6 +167,10 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
     /* Initialise frame count to zero. */
     p->lastframe = 0;
 
+#ifdef BETA
+    if (p->fin->sliding)
+      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+#endif
     csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->peakfreq);
     csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->inharmonic);
     if (p->fin->format!=PVS_AMP_FREQ) {
@@ -287,9 +309,7 @@ static OENTRY localops[] = {
 #ifndef BETA
   { "pvsscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
 #else
-  { "pvsscent",  0,          0, "",  ""  },
-  { "pvsscent.k", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
-  { "pvsscent.a", S(PVSCENT), 5, "a", "f", (SUBR)pvscentset, NULL, (SUBR)pvsscent },
+  { "pvsscent", S(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
 #endif
   { "pvspitch", S(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}

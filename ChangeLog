@@ -1,3 +1,31 @@
+2007-09-06  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsdemix.c (pvsdemix_init): Added (under BETA) support
+	for streamed SDFT.
+
+	* Opcodes/pvsbasic.h (_pvsfreez): Added field in SDFT case
+
+	* Opcodes/pvsbuffer.c (pvsbufreadset, pvsbufferset): Added (under
+	BETA) support for streamed SDFT.
+
+	* Opcodes/pvscent.c (pvscentset, pvscent, pvsscent)
+	(pvspitch_init): Added (under BETA) support for
+	streamed SDFT.  Includes a-rate opcode for pvscent
+
+	* Opcodes/pvsbasic.c (pvsinit, pvsfwriteset, pvsdiskinset)
+	(pvsfreezeset, pvssfreezeprocess, pvsfreezeprocess, pvsoscset)
+	(pvsbinprocess, pvsbinprocessa, pvsmoothset, pvsmixset, pvsmix)
+	(pvsfilterset, pvsscaleset, pvsshiftset, pvsshift, pvsblurset)
+	(pvstencilset, pvstencil): Added (under BETA) support for
+	streamed SDFT.  Includes a-rate opcode for pvsbinprocess
+
+	* OOps/pvsanal.c (pvssanalset, pvsanalset, pvssanal, pvsanal)
+	(pvsynthset, pvssynth, pvsynth): Added (under BETA) support for
+	streamed SDFT 
+
+	* H/pstream.h: Added (under BETA) support for streamed SDFT.
+	Changes to PVSDAT and PVSANAL
+
 2007-08-31  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* OOps/aops.c:
