@@ -88,6 +88,7 @@ enum PVS_WINTYPE {
     PVS_WIN_RECT
 };
 
+
 enum PVS_ANALFORMAT {
     PVS_AMP_FREQ = 0,
     PVS_AMP_PHASE,
@@ -95,13 +96,18 @@ enum PVS_ANALFORMAT {
     PVS_TRACKS          /* added VL, 24.06.2005 */
 };
 
+#ifdef BETA
+typedef struct {
+  MYFLT re;
+  MYFLT im;
+} CMPLX;
+#endif
+
 typedef struct pvsdat {
         long            N;
 #ifdef BETA
         int		sliding; /* Flag to indicate sliding case */
         long            NB;
-        AUXCH           trig;
-        double          *cosine, *sine;
 #endif
         long            overlap;
         long            winsize;
@@ -109,6 +115,7 @@ typedef struct pvsdat {
         long            format;         /* fixed for now to AMP:FREQ */
         unsigned long   framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
+  					/* But not in sliding case when MYFLT */
 } PVSDAT;
 
 /* may be no point supporting Kaiser in an opcode unless we can support
@@ -137,6 +144,10 @@ typedef struct {
         AUXCH   analbuf;
         AUXCH   analwinbuf;     /* prewin in SDFT case */
         AUXCH   oldInPhase;
+#ifdef BETA
+        AUXCH           trig;
+        double          *cosine, *sine;
+#endif
 } PVSANAL;
 
 typedef struct {

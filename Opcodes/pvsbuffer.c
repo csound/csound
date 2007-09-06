@@ -43,7 +43,11 @@ typedef struct {
 
 static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 {
-     int N, hop;
+    int N, hop;
+#ifdef BETA
+    if (p->fin->sliding)
+      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+#endif
     p->handle.header.N = N = p->fin->N;
     p->handle.header.overlap = hop = p->fin->overlap;
     p->handle.header.winsize = p->fin->winsize;
@@ -122,7 +126,9 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->fout->frame.auxp == NULL || 
          p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
- 
+#ifdef BETA
+    p->fout->sliding = 0;
+#endif
     p->scnt = p->fout->overlap;
     return OK;
 }
