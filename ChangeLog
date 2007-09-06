@@ -21,7 +21,7 @@
 
 	* OOps/pvsanal.c (pvssanalset, pvsanalset, pvssanal, pvsanal)
 	(pvsynthset, pvssynth, pvsynth): Added (under BETA) support for
-	streamed SDFT 
+	streamed SDFT
 
 	* H/pstream.h: Added (under BETA) support for streamed SDFT.
 	Changes to PVSDAT and PVSANAL
@@ -35,20 +35,22 @@
 	and octmidinn).
 
 2007-08-28  Steven Yi   <stevenyi@gmail.com>
-    
-    * Opcodes/fluidOpcodes/fluidOpcodes.c: modified fluidEngine opcode to take
-    optional number of channels (range 16-256, default to 256) and polyphony 
-    (range 16-4096, default to 4096) to use.   
+
+	* Opcodes/fluidOpcodes/fluidOpcodes.c: modified fluidEngine opcode
+	to take optional number of channels (range 16-256, default to 256)
+	and polyphony (range 16-4096, default to 4096) to use.
 
 2007-08-21  Steven Yi   <stevenyi@gmail.com>
-	
-    * Opcodes/fluidOpcodes/fluidOpcodes.c: added new fluidSetInterpMethod opcode
-    that wraps fluidSynth's fluid_set_interp_method API method; allows user to
-    choose interpolation method from 0 (none), 1 (Linear), 4 (4th order, 
-    default), and 7 (7th order, highest quality) on a per channel basis 
+
+	* Opcodes/fluidOpcodes/fluidOpcodes.c: added new
+	fluidSetInterpMethod opcode that wraps fluidSynth's
+	fluid_set_interp_method API method; allows user to choose
+	interpolation method from 0 (none), 1 (Linear), 4 (4th order,
+	default), and 7 (7th order, highest quality) on a per channel
+	basis
 
 2007-08-21    <Victor.Lazzarini@nuim.ie>
-	
+
 	* Opcodes/sfont.c: removed all global static variables
 
 2007-08-16    <jpff@cs.bath.ac.uk>
@@ -95,7 +97,7 @@
 	vst4cs, and the STK opcodes as a convenience for those who will
 	build these components from source code.
 
-	* Speeded up the CsoundAC.Voicelead, CsoundAC.VoiceleadingNode, 
+	* Speeded up the CsoundAC.Voicelead, CsoundAC.VoiceleadingNode,
 	and CsoundAC.Score class methods that work with chord voicings
 	by using a new algorithm to iterate through all voicings of a chord
 	in a specified by range by adding octaves to the lowest and
@@ -164,8 +166,8 @@
 
 2007-06-03  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
-	* Top/cscorfns.c (cscoreRESET & cscoreFileOpen):  Fixed deallocation of 
-	SPACE blocks.  Clarified some error messages.  Searches in INCDIR now 
+	* Top/cscorfns.c (cscoreRESET & cscoreFileOpen):  Fixed deallocation of
+	SPACE blocks.  Clarified some error messages.  Searches in INCDIR now
 	when opening extra score files and calls csoundNotifyFileOpened().
 
 2007-06-02  Anthony Kozar  <anthonykozar@sbcglobal.net>
@@ -176,7 +178,7 @@
 	* util/srconv.c: Added calls to csound->NotifyFileOpened() as needed.
 
 	* Opcodes/fout.c (fout_open_file): Changed FileOpen() to FileOpen2(),
-	but the result is not ideal yet because we cannot always know the 
+	but the result is not ideal yet because we cannot always know the
 	correct file type for files opened with the fiopen opcode.
 
 	* H/csoundCore.h:
@@ -184,7 +186,7 @@
 
 	* Opcodes/py/pythonopcodes.c (exec_file_in_given_context):
 	* Opcodes/py/pyx-gen.py:
-	* Opcodes/py/pyx.auto.c: Replaced fopen() call with FileOpen2() in 
+	* Opcodes/py/pyx.auto.c: Replaced fopen() call with FileOpen2() in
 	exec_file_in_given_context(), adding a CSOUND* to the function arguments,
 	and updating the pyexec* opcode routines to pass it.
 
@@ -198,7 +200,7 @@
 
 2007-06-01  jpff  <jpff@codemist.co.uk>
 
-	* OOps/diskin2.c (diskin2_init): 
+	* OOps/diskin2.c (diskin2_init):
 	* OOps/diskin.c (newsndinset): Supress warning messages when no
 	warnings requested
 
@@ -227,9 +229,9 @@
 	* util/scale.c:
 	* util/xtrct.c: type2csfiletype() now does more audio formats and uses
 	sample-encoding information to distinguish between AIFF and AIFC.
-	
+
 	* H/csound.h:
-	* H/csoundCore.h: 
+	* H/csoundCore.h:
 	* H/prototyp.h:
 	* Engine/memfiles.c:
 	* Top/csound.c:
@@ -241,14 +243,14 @@
 	* Opcodes/ugnorman.c:
 	* util/het_export.c: New API function pointer ldmemfile2() to replace
 	ldmemfile().  Takes an additional parameter for the type of file being
-	opened. Updated all calls to ldmemfile() to use ldmemfile2() instead. 
+	opened. Updated all calls to ldmemfile() to use ldmemfile2() instead.
 	New API function pointer NotifyFileOpened() that calls the
 	FileOpenCallback when set.
 
 	* InOut/winEPS.c:
 	* Opcodes/ftgen.c:
 	* Opcodes/sfont.c:  Replaced fopen() calls with FileOpen2().
-	
+
 	* Top/main.c:
 	* Top/one_file.c
 	* Engine/musmon.c:
@@ -278,7 +280,7 @@
 
 2007-05-17  Andrés Cabrera  <andres@geminiflux.com>
 	* InOut/widgets.cpp, InOut/widgets.h: Added FlslidBnk2,
-	FlvslidBnk, FlvslidBnk2, by Gabriel Maldonado 
+	FlvslidBnk, FlvslidBnk2, by Gabriel Maldonado
 
 2007-05-14  Andrés Cabrera  <andres@geminiflux.com>
 	* InOut/widgets.cpp, InOut/widgets.h, Opcodes/gab/hvs.c,
@@ -288,11 +290,11 @@
 	lposcilsa, lposcilsa2, tabmorph, tabmorpha, tabmorphak, tabmorphi,
 	trandom, vtable1k, slider8table, slider16table, slider32table,
 	slider64table, slider8tablef, slider16tablef, slider32tablef,
-	slider64tablef, sliderKawai and an a-rate version of ctrl7. 
-	
+	slider64tablef, sliderKawai and an a-rate version of ctrl7.
+
 	* Opcodes/gab/vectorial.c,Opcodes/gab/vectorial.c: Added new
 	optional isize argument to vrandh and vrandi for more similarity
-	with randh and randi 
+	with randh and randi
 
 2007-05-02  Michael Gogins <gogins@pipeline.com>
 
@@ -301,15 +303,15 @@
 	act as a Python-programmable score generator in VST hosts.  As a
 	MIDI effect, ScoreGen can "freeze" generated events into a MIDI
 	part for manual editing or notation, using Cubase's "Free MIDI
-	Modifiers" command. 
+	Modifiers" command.
 
 	* A number of serious bugs were fixed in ScoreGen's VST event
-	processing. It will now properly play generated scores. 
+	processing. It will now properly play generated scores.
 
 2007-05-07  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (pitchset): Do not change parameters!
-	* Opcodes/partikkel.h: 
+	* Opcodes/partikkel.h:
 	* Opcodes/partikkel.c: Remove failed attempt at
 	aliasing-prevention that might result in segfaults or hangs when
 	using kdist. Small optimisations. Some cosmetic stuff.
@@ -322,15 +324,15 @@
 2007-05-02  Michael Gogins <gogins@pipeline.com>
 
 	* Updated the csnd and CsoundVST Python extension modules to be
-	compatible with Python version 2.5. 
+	compatible with Python version 2.5.
 	* Split all SWIG-generated Python stub code off into shared
-	libraries _csnd.pyd and _CsoundVST.pyd. 
+	libraries _csnd.pyd and _CsoundVST.pyd.
 	* All remaining code from the old _csnd.dll and _CsoundVST.dll is
-	now in csnd.dll and CsoundVST.dll. 
+	now in csnd.dll and CsoundVST.dll.
 	* Many classes and functions in CsoundVST are now exported so that
-	they can dynamically link with _CsoundVST.pyd. 
+	they can dynamically link with _CsoundVST.pyd.
 	* "Glue" code for message buffers, etc. has been moved into the
-	csound.h and csound.c files. 
+	csound.h and csound.c files.
 
 2007-04-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
@@ -356,23 +358,23 @@
 	* Top/main.c:
 	* Opcodes/gab/vectorial.c (vrand*): Move declarations before other code
 	and kperfThread() should return unsigned long instead of int.
- 
+
 2007-04-22  Michael Gogins <gogins@pipeline.com>
 
 	* Corrected the logic in the CsoundVST ImageToScore class.
 	* Added support for PNG and JPEG formats to the ImageToScore class.
-    
+
 2007-04-19  jpff  <jpff@codemist.co.uk>
 
-	* Opcodes/partikkel.h: 
+	* Opcodes/partikkel.h:
 	* Opcodes/partikkel.c: New code from Oeyvind
 
 2007-03-24  jpff  <jpff@codemist.co.uk>
 
-	* H/version.h (CS_APISUBVER): Increase 
+	* H/version.h (CS_APISUBVER): Increase
 
-	* Top/csound.c: 
-	* Top/argdecode.c: 
+	* Top/csound.c:
+	* Top/argdecode.c:
 	* H/csoundCore.h: Rearrange code on sr/kr override
 
 2007-03-19  Andrés Cabrera  <andres@geminiflux.com>
