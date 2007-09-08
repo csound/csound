@@ -569,7 +569,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
     (void) csound;
     if (p == NULL)
       return 0;
-    if (p->inDev == (HMIDIIN) 0) {
+    if (p->inDev != (HMIDIIN) 0) {
       midiInStop(p->inDev);
       midiInReset(p->inDev);
       midiInClose(p->inDev);
