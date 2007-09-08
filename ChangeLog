@@ -1,3 +1,8 @@
+2007-08-28  Steven Yi   <stevenyi@gmail.com>
+
+    * InOut/rtwinmm.c: midi_in_close had incorrect check causing device not to
+    be closed properly 
+
 2007-09-06  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsdemix.c (pvsdemix_init): Added (under BETA) support
