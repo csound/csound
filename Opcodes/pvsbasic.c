@@ -783,9 +783,10 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
         fout[0] = fin[0];
         fout[NB-1] = fin[NB-1];
+        if (XINARG2) pscal = (MYFLT) fabs((p->kscal)[n]);
 
         for (i = 1; i < NB; i++) {
-          max = max < fin[i].re ? fin[i].re : max;
+          if (keepform) max = max < fin[i].re ? fin[i].re : max;
           fout[i].re = FL(0.0);
           fout[i].im = -FL(1.0);
         }
@@ -851,7 +852,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
 static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
-    long    N = p->fin->N;
+    int    N = p->fin->N;
 
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -861,12 +862,13 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
       else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
     }
     else 
-#else
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
 #endif
+      {
+        if (p->fout->frame.auxp == NULL ||
+            p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
+          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+      }
     p->fout->N = N;
     p->fout->sliding = p->fin->sliding;
     p->fout->overlap = p->fin->overlap;
@@ -877,15 +879,13 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     p->lastframe = 0;
 #ifdef SDFT
     p->fout->NB = p->fin->NB;
-    p->fout->sliding = p->fin->sliding;
 #endif
-
     return OK;
 }
 
 static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
-    long    i, chan, newchan, N = p->fout->N;
+    int    i, chan, newchan, N = p->fout->N;
     MYFLT   pshift = (MYFLT) *p->kshift;
     int     lowest = abs((int) (*p->lowest * N * csound->onedsr));
     float   max = 0.0f;
@@ -900,28 +900,30 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 #ifdef SDFT
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
-      int NB    = p->fout->NB;
-      MYFLT   g = *p->gain;
+      int NB  = p->fout->NB;
+      MYFLT g = *p->gain;
       lowest = lowest ? (lowest > NB ? NB : lowest) : 1;
 
       for (n=0; n<nsmps; n++) {
-      CMPLX   *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
-      CMPLX   *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+        MYFLT max = FL(0.0);
+        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
+        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         fout[0] = fin[0];
-        fout[NB] = fin[NB];
-
+        fout[NB-1] = fin[NB-1];
+        if (XINARG2) {
+          pshift = (p->kshift)[n];
+          cshift = (int) (pshift * N * csound->onedsr);
+        } 
         for (i = 1; i < NB-1; i++) {
-          max = max < fin[i].re ? fin[i].re : max;
-
+          if (keepform) max = max < fin[i].re ? fin[i].re : max;
           if (i < lowest) {
-            fout[i] = fin[i*NB];
+            fout[i] = fin[i];
           }
           else {
             fout[i].re = FL(0.0);
             fout[i].im = -FL(1.0);
           }
         }
-        
         for (i = lowest; i < NB; i++) {
           newchan = (i + cshift);
           if (newchan < NB && newchan > lowest) {
@@ -932,7 +934,6 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
             fout[newchan].im = (fin[i].im + pshift);
           }
         }
-
         for (i = lowest; i < NB; i++) {
           if (fout[i].im == -FL(1.0))
             fout[i].re = FL(0.0);
@@ -944,7 +945,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     }
 #endif
     if (p->lastframe < p->fin->framecount) {
-      
+
       lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
 
       fout[0] = fin[0];
@@ -1221,9 +1222,9 @@ static OENTRY localops[] = {
 
     {"pvsfwrite", S(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
          (SUBR) pvsfwrite},
-    {"pvscale", S(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
+    {"pvscale", S(PVSSCALE), 3, "f", "fxop", (SUBR) pvsscaleset,
          (SUBR) pvsscale},
-    {"pvshift", S(PVSSHIFT), 3, "f", "fkkop", (SUBR) pvsshiftset,
+    {"pvshift", S(PVSSHIFT), 3, "f", "fxkop", (SUBR) pvsshiftset,
          (SUBR) pvsshift},
     {"pvsmix", S(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
     {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", (SUBR) pvsfilterset,
