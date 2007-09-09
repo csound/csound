@@ -1847,7 +1847,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
                 long outyp_m =                  /* ??? */
                   ST(typemask_tabl)[(unsigned char) argtyp(csound,
                                                        tp->outlist->arg[0])];
-                if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
+                if (outyp_m & (ARGTYP_a | ARGTYP_w | ARGTYP_f)) break;
               }
               else
                 break;
