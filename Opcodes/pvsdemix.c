@@ -44,7 +44,7 @@ static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     int M;
     p->beta = (int)(*p->slices);
 
- #ifdef BETA
+ #ifdef SDFT
     if (p->finleft->sliding)
       return csound->InitError(csound, "SDFT case not implemented yet");
 #endif

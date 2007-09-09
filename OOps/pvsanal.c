@@ -94,7 +94,7 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
 }
 
-#ifdef BETA
+#ifdef SDFT
 
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -175,7 +175,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
-#ifdef BETA
+#ifdef SDFT
     if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
 #endif
@@ -187,7 +187,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (overlap > N / 2)
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
-#ifndef BETA
+#ifndef SDFT
     if (overlap < csound->ksmps)
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
@@ -257,7 +257,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->wintype = wintype;
     p->fsig->framecount = 1;
     p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
-#ifdef BETA
+#ifdef SDFT
     p->fsig->sliding = 0;
 #endif
     return OK;
@@ -426,7 +426,7 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 
 }
 
-#ifdef BETA
+#ifdef SDFT
 static inline double mod2Pi(double x)
 {
     x = fmod(x,TWOPI);
@@ -664,7 +664,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     if (p->input.auxp==NULL) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
-#ifdef BETA
+#ifdef SDFT
     if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
       return pvssanal(csound, p);
 #endif
@@ -694,7 +694,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->overlap = overlap;
     p->wintype = wintype;
     p->format = p->fsig->format;
-#ifdef BETA
+#ifdef SDFT
     if (p->fsig->sliding) {
       /* get params from input fsig */
       /* we TRUST they are legal */
@@ -964,7 +964,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
-#ifdef BETA
+#ifdef SDFT
 int pvssynth(CSOUND *csound, PVSYNTH *p)
 {
     int i, k;
@@ -1012,7 +1012,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     if (p->output.auxp==NULL) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
-#ifdef BETA
+#ifdef SDFT
     if (p->fsig->sliding) return pvssynth(csound, p);
 #endif
     for (i=0;i < csound->ksmps;i++)

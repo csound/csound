@@ -37,7 +37,7 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return csound->InitError(csound, "SDFT case not implemented yet");
 #endif
@@ -54,7 +54,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
     MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -79,7 +79,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-#ifdef BETA
+#ifdef SDFT
 static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
@@ -167,7 +167,7 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
     /* Initialise frame count to zero. */
     p->lastframe = 0;
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
@@ -306,7 +306,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-#ifndef BETA
+#ifndef SDFT
   { "pvsscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
 #else
   { "pvsscent", S(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
