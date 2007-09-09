@@ -44,7 +44,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     p->fout->wintype = (long) *p->wintype;
     p->fout->format = (long) *p->format;
     p->fout->framecount = 1;
-#ifdef BETA
+#ifdef SDFT
     if (p->fout->overlap < csound->ksmps || p->fout->overlap <=10) {
       int NB = 1+N/2;
       p->fout->NB = NB;
@@ -96,7 +96,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     int N;
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
@@ -164,7 +164,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fout->sliding)
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
@@ -274,7 +274,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = (N/2)+1;
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
@@ -304,7 +304,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     return OK;
 }
 
-#ifdef BETA
+#ifdef SDFT
 static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 {
     int i, n, k, nsmps = csound->ksmps;
@@ -333,7 +333,7 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     long    framesize;
     MYFLT   freeza, freezf;
     float   *fout, *fin, *freez;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return pvssfreezeprocess(csound, p);
 #endif
@@ -371,7 +371,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->wintype = (long) *p->wintype;
     p->fout->format = (long) *p->format;
     p->fout->framecount = 0;
-#ifdef BETA
+#ifdef SDFT
     if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
       CMPLX *bframe;
       int NB = 1+N/2;
@@ -470,7 +470,7 @@ static int pvsbinset(CSOUND *csound, PVSBIN *p)
 static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
     long    framesize, pos;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
           framesize = p->fin->NB;
@@ -498,7 +498,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
     return OK;
 }
 
-#ifdef BETA
+#ifdef SDFT
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
     long    framesize, pos, k;
@@ -536,7 +536,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 {
     long    N = p->fin->N;
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return csound->InitError(csound,"SDFT Not implemented in thsi case yet");
 #endif
@@ -553,7 +553,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = p->fin->NB;
 #endif
     if (!(p->fout->format == PVS_AMP_FREQ) ||
@@ -605,7 +605,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     long    N = p->fa->N;
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fout->sliding)
       return csound->InitError(csound,"SDFT Not implemented in thsi case yet");
 #endif
@@ -619,7 +619,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
     p->fout->format = p->fa->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = p->fa->NB;
 #endif
     if (!(p->fout->format == PVS_AMP_FREQ) ||
@@ -638,7 +638,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
 
     if (!fsigs_equal(p->fa, p->fb))
       return csound->PerfError(csound, Str("pvsmix: formats are different."));
-#ifdef BETA
+#ifdef SDFT
     if (p->fa->sliding)
       return csound->InitError(csound, "SDFT Not implemented in thsi case yet");
 #endif
@@ -671,7 +671,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
     long    N = p->fin->N;
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding)
       return csound->InitError(csound, "SDFT Not implemented in thsi case yet");
 #endif
@@ -685,7 +685,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = p->fin->NB;
 #endif
 
@@ -730,13 +730,20 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
     long    N = p->fin->N;
 
-#ifdef BETA
-    if (p->fin->sliding)
-      return csound->InitError(csound, "SDFT Not implemented in thsi case yet");
+#ifdef SDFT
+    if (p->fin->sliding) {
+      if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < csound->ksmps * sizeof(MYFLT) * (N + 2))
+      csound->AuxAlloc(csound, csound->ksmps * (N + 2) * sizeof(float),
+                       &p->fout->frame);
+    }
+    else 
 #endif
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      {
+        if (p->fout->frame.auxp == NULL ||
+            p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
+          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      }
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -744,8 +751,9 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = p->fin->NB;
+    p->fout->sliding = p->fin->sliding;
 #endif
 
     return OK;
@@ -764,6 +772,45 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvscale: not initialised"));
 
+#ifdef SDFT
+    if (p->fout->sliding) {
+      int n, nsmps = csound->ksmps;
+      int NB    = p->fout->NB;
+      MYFLT   g = *p->gain;
+      for (n=0; n<nsmps; n++) {
+        CMPLX   *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
+        CMPLX   *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+
+        fout[0] = fin[0];
+        fout[NB-1] = fin[NB-1];
+
+        for (i = 1; i < NB; i++) {
+          max = max < fin[i].re ? fin[i].re : max;
+          fout[i].re = FL(0.0);
+          fout[i].im = -FL(1.0);
+        }
+
+        for (i = 1; i < NB; i++) {
+          newchan = (int) (i * pscal);
+          if (newchan < NB && newchan > 0) {
+            fout[newchan].re = keepform ?
+              (keepform == 1 ||
+               !max ? fin[newchan].re : fin[i].re * (fin[newchan].re / max))
+              : fin[i].re;
+            fout[newchan].im = fin[i].im * pscal;
+          }
+        }
+
+        for (i = 1; i < NB; i++) {
+          if (fout[i].im == -FL(1.0))
+            fout[i].re = FL(0.0);
+          else
+            fout[i].re *= g;
+        }
+      }
+      return OK;
+    }
+#endif
     if (p->lastframe < p->fin->framecount) {
 
       fout[0] = fin[0];
@@ -806,7 +853,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     long    N = p->fin->N;
 
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
           csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
@@ -828,8 +875,9 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef BETA
+#ifdef SDFT
     p->fout->NB = p->fin->NB;
+    p->fout->sliding = p->fin->sliding;
 #endif
 
     return OK;
@@ -849,9 +897,50 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvshift: not initialised"));
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
-      return csound->PerfError(csound, Str("Not yet implemented"));
+      int n, nsmps = csound->ksmps;
+      int NB    = p->fout->NB;
+      MYFLT   g = *p->gain;
+      lowest = lowest ? (lowest > NB ? NB : lowest) : 1;
+
+      for (n=0; n<nsmps; n++) {
+      CMPLX   *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
+      CMPLX   *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+        fout[0] = fin[0];
+        fout[NB] = fin[NB];
+
+        for (i = 1; i < NB-1; i++) {
+          max = max < fin[i].re ? fin[i].re : max;
+
+          if (i < lowest) {
+            fout[i] = fin[i*NB];
+          }
+          else {
+            fout[i].re = FL(0.0);
+            fout[i].im = -FL(1.0);
+          }
+        }
+        
+        for (i = lowest; i < NB; i++) {
+          newchan = (i + cshift);
+          if (newchan < NB && newchan > lowest) {
+            fout[newchan].re = keepform ?
+              (keepform == 1 ||
+               !max ? fin[newchan].re : fin[i].re * (fin[newchan].re / max))
+              : fin[i].re;
+            fout[newchan].im = (fin[i].im + pshift);
+          }
+        }
+
+        for (i = lowest; i < NB; i++) {
+          if (fout[i].im == -FL(1.0))
+            fout[i].re = FL(0.0);
+          else
+            fout[i].re *= g;
+        }
+      }
+      return OK;
     }
 #endif
     if (p->lastframe < p->fin->framecount) {
@@ -907,7 +996,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     long    N = p->fin->N, i, j;
     int     olap = p->fin->overlap;
     int     delayframes, framesize = N + 2;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
       return csound->PerfError(csound, Str("Not yet implemented"));
     }
@@ -941,7 +1030,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
     p->count = 0;
- #ifdef BETA
+ #ifdef SDFT
     p->fout->NB = p->fin->NB;
 #endif
    return OK;
@@ -1015,7 +1104,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
- #ifdef BETA
+ #ifdef SDFT
     p->fout->NB = chans;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
@@ -1056,7 +1145,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 {
     MYFLT   *ftable;
-#ifdef BETA
+#ifdef SDFT
     if (p->fin->sliding) {
       MYFLT g = (MYFLT)fabs(*p->kgain);
       MYFLT masklevel = (MYFLT) fabs(*p->klevel);
@@ -1144,7 +1233,7 @@ static OENTRY localops[] = {
     {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
          (SUBR) pvstencil},
     {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
-#ifdef BETA
+#ifdef SDFT
    {"pvsbin", S(PVSBIN), 3, "ss", "fk", (SUBR) pvsbinset,
          (SUBR) pvsbinprocess, (SUBR) pvsbinprocessa},
 #else
