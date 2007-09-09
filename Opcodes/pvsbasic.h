@@ -155,9 +155,6 @@ typedef struct _pvsfreez {
     MYFLT   *kfra, *kfrf;
     AUXCH   freez;
     unsigned long lastframe;
-#ifdef BETA
-    MYFLT   lastfreq;
-#endif
 } PVSFREEZE;
 
 typedef struct _pvsmooth {
