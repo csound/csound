@@ -1,3 +1,10 @@
+2007-09-09  jpff  <jpff@codemist.co.uk>
+
+	* Made SDFT dependent of SDFT macro and adjust SConstruct to set
+	it 
+
+	* Opcodes/pvsbasic.c (pvsshift, pvsscale): Added SDFT support
+
 2007-09-08  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsbasic.h (_pvsfreez): Remove unused lastfreq
