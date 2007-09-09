@@ -1,7 +1,11 @@
+2007-09-08  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.h (_pvsfreez): Remove unused lastfreq
+
 2007-08-28  Steven Yi   <stevenyi@gmail.com>
 
-    * InOut/rtwinmm.c: midi_in_close had incorrect check causing device not to
-    be closed properly 
+	* InOut/rtwinmm.c: midi_in_close had incorrect check causing
+	device not to be closed properly 
 
 2007-09-06  jpff  <jpff@codemist.co.uk>
 

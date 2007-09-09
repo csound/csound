@@ -783,7 +783,6 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
       for (i = 0; i < 25; i++) { 
         buf[i] = (p->swapped == 1 ? bswap(&frm0[firstband + i])
                                     : frm0[firstband + i]); /* output value */
-        printf("buf[%d] = %f\n", i, buf[i]);
       }
       return;
     }
