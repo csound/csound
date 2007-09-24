@@ -657,7 +657,6 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
     int i;
-    int overlap = (int)*p->overlap;
 
     ain = p->ain;
 
@@ -665,8 +664,11 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
 #ifdef SDFT
-    if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
-      return pvssanal(csound, p);
+    {
+      int overlap = (int)*p->overlap;
+      if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
+        return pvssanal(csound, p);
+    }
 #endif
     for (i=0; i < csound->ksmps; i++)
       anal_tick(csound,p,ain[i]);
