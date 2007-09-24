@@ -1,3 +1,25 @@
+2007-09-21  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c: Added tests all over to warn if the same
+	f-signal is used as in and out in the same opcode
+
+2007-09-20  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c (pvsblurset, pvsblur): Added SDFT support
+
+2007-09-19  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c (pvsfilterset, pvsfilter): Added SDFT support
+
+2007-09-18  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c (pvsmix): Added SDFT support
+
+2007-09-17  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c (pvsmoothprocess): Added SDFT support; also
+	a-rate parameters is wanted
+
 2007-09-09  jpff  <jpff@codemist.co.uk>
 
 	* Made SDFT dependent of SDFT macro and adjust SConstruct to set
