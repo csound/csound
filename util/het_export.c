@@ -63,13 +63,11 @@ static int het_export(CSOUND *csound, int argc, char **argv)
     adp = (short *) inf->beginp;
     endata = (short *) inf->endp;
     cc = 0;
+    
+    
     for (; adp<endata; adp++) {
       if (*adp == END) fputc('\n',outf), cc = 0;
-      else if (2== fprintf(outf, "%s%hd", (cc ? ",":""), *adp)) cc = 1;
-      else {
-        csound->Message(csound, Str("Cannot write output file %s\n"), argv[2]);
-        return 1;
-      }
+      else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
     }
     fclose(outf);
     return 0;
