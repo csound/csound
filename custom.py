@@ -17,6 +17,8 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
+    customCPPPATH.append('/usr/include/fltk-1.1')
+    customLIBPATH.append('/usr/lib/fltk-1.1')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
