@@ -1114,6 +1114,16 @@ else:
         ''' % ('5.1', ilibName)))
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
          '_csnd', csoundInterfacesSources)
+    elif getPlatform() == 'linux':
+        name = 'libcsnd.so'
+        soname = name + '.' + csoundLibraryVersion
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', name])
+        os.symlink(soname, name)
+        linkflags = csoundInterfacesEnvironment['SHLINKFLAGS']
+        linkflags += [ '-Wl,-soname=%s' % soname ]
+        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+          soname, csoundInterfacesSources, SHLINKFLAGS = linkflags,
+          SHLIBPREFIX = '', SHLIBSUFFIX = '')
     else:
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
@@ -1126,6 +1136,8 @@ else:
         csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
         if getPlatform() == 'darwin':
          csndPythonEnvironment.Append(LIBS = ['_csnd'])
+        elif getPlatform() == 'linux':
+         csndPythonEnvironment.Append(LIBS = csoundInterfaces)
         else:
          csndPythonEnvironment.Append(LIBS = ['csnd'])
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
