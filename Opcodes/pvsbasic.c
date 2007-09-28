@@ -375,13 +375,16 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->format = (long) *p->format;
     p->fout->framecount = 0;
 #ifdef SDFT
+    p->fout->sliding = 0;
     if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
       CMPLX *bframe;
       int NB = 1+N/2, n;
       p->fout->NB = NB;
+      p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < csound->ksmps*sizeof(MYFLT) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * csound->ksmps* sizeof(MYFLT), &p->fout->frame);
+        csound->AuxAlloc(csound,
+                         (N + 2) * csound->ksmps* sizeof(MYFLT), &p->fout->frame);
       else memset(p->fout->frame.auxp,
                   '\0', (N + 2) * csound->ksmps* sizeof(MYFLT));
       bframe = (CMPLX *)p->fout->frame.auxp;
@@ -390,7 +393,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
           bframe[i+NB*n].re = FL(0.0);
           bframe[i+NB*n].im = i * N * csound->onedsr;
         }
-      return csound->InitError(csound, "Not implemented yet");
+      return OK;
     }
     else
 #endif
@@ -427,19 +430,55 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
 
     framesize = p->fout->N + 2;
 
-    if (p->lastframe > p->fout->framecount) {
-      w = csound->esr/p->fout->N;
+#ifdef SDFT
+    if (p->fout->sliding) {
+      CMPLX *fout;
+      int m, nsmps = csound->ksmps;
+      int NB = p->fout->NB;
       harm = (int)(csound->esr/(2*ffun));
-      for (i = 0; i < framesize; i ++) fout[i] = 0.f;
-
-      if(type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
-      else if(type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
-      else if(type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+      if (type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
+      else if (type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
+      else if (type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
       else {
         harm = 1;
         famp *= (MYFLT)1.456;
       }
-      for(n=1; n <= harm; n++){
+
+      for (n=0; n<nsmps; n++) {
+        fout = (CMPLX*) p->fout->frame.auxp + n*NB;
+        w = csound->esr/p->fout->N;
+/*         harm = (int)(csound->esr/(2*ffun)); */
+        memset(fout, '\0', NB*sizeof(CMPLX));
+        for (m=1; m <= harm; m++){
+          if (type == 3) amp = famp/(harm);
+          else amp = (famp/m);
+          freq = ffun*m;
+          cfbin = freq/w;
+          cbin = (int)MYFLT2LRND(cfbin);
+          for (i=cbin-1;i < cbin+3 &&i < NB ; i++){
+            a = sin(i-cfbin)/(i-cfbin);
+            fout[i].re = amp*a*a*a;
+            fout[i].im = freq;
+          }
+          if (type==2) m++;
+        }
+      }
+      return OK;
+    }
+#endif
+    if (p->lastframe > p->fout->framecount) {
+      w = csound->esr/p->fout->N;
+      harm = (int)(csound->esr/(2*ffun));
+      if (type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
+      else if (type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
+      else if (type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+      else {
+        harm = 1;
+        famp *= (MYFLT)1.456;
+      }
+      for (i = 0; i < framesize; i ++) fout[i] = 0.f;
+
+     for(n=1; n <= harm; n++){
         if(type == 3) amp = famp/(harm);
         else amp = (famp/n);
         freq = ffun*n;
