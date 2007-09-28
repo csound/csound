@@ -1,5 +1,7 @@
 2007-09-28  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/pan2.c: New code
+
 	* Opcodes/pvsbasic.c (pvsoscprocess): Added SDFT support
 
 2007-09-21  jpff  <jpff@codemist.co.uk>
