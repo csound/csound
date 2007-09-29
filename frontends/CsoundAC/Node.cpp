@@ -67,6 +67,12 @@ namespace csound
     // Take the score and optionally transform Events between the bookmarks,
     // or append new Events.
     produceOrTransform(score, beginAt, endAt, compositeCoordinates);
+    size_t finalEndAt = score.size();
+    // Apply the global transformation of coordinate system to all child events,
+    // including events produced by this node.
+    for (size_t i = beginAt; i < finalEndAt; i++) {
+      score[i] = ublas::prod(compositeCoordinates, score[i]);
+    }
     // Return the composite transformation of coordinate system.
     return compositeCoordinates;
   }
