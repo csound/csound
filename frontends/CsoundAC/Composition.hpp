@@ -49,6 +49,10 @@ namespace csound
     bool conformPitches;
     CppSound cppSound_;
     CppSound *cppSound;
+    /**
+     * Prepended to generated score.
+     */
+    std::string csoundScoreHeader;
   public:
     Composition();
     virtual ~Composition();
@@ -96,6 +100,16 @@ namespace csound
     virtual double getTonesPerOctave() const;
     virtual void setConformPitches(bool conformPitches);
     virtual bool getConformPitches() const;
+    /**
+     * Set a Csound score fragment to be prepended
+     * to the generated score (createCsoundScore is called with it).
+     */
+    virtual void setCsoundScoreHeader(std::string header);
+    /**
+     * Return the Csound score header that is prepended
+     * to generated scores.
+     */
+    virtual std::string getCsoundScoreHeader() const;
   };
 }
 #endif

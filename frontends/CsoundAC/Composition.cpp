@@ -41,7 +41,7 @@ namespace csound
   void Composition::render()
   {
     generate();
-    createCsoundScore();
+    createCsoundScore(csoundScoreHeader);
     perform();
   }
 
@@ -121,5 +121,15 @@ namespace csound
   bool Composition::getConformPitches() const
   {
     return conformPitches;
+  }
+  
+  void Composition::setCsoundScoreHeader(std::string header)
+  {
+    csoundScoreHeader = header;
+  }
+  
+  std::string Composition::getCsoundScoreHeader() const
+  {
+    return csoundScoreHeader;
   }
 }
