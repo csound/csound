@@ -962,11 +962,11 @@ int CsoundFile::exportArrangementForPerformance(std::ostream &stream) const
     {
       stream << "; ARRANGEMENT " << getOrcFilename().c_str() << std::endl;
       stream << getOrchestraHeader() << std::endl;
-      for(i = 0, n = arrangement.size(); i < n; ++i)
-        {
-          stream << "massign " << (i + 1) << " , " << (i + 1) << std::endl;
-          stream.flush();
-        }
+//       for(i = 0, n = arrangement.size(); i < n; ++i)
+//         {
+//           stream << "massign " << (i + 1) << " , " << (i + 1) << std::endl;
+//           stream.flush();
+//         }
       for(i = 0, n = arrangement.size(); i < n; ++i)
         {
           std::string instrumentName = arrangement[i];
