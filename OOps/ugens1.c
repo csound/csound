@@ -421,15 +421,15 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       val = nxtval;
       dur = **argp++;
       nxtval = **argp++;
-      if (dur > FL(0.0)) {
+/*       if (dur > FL(0.0)) { */
         if (val * nxtval <= FL(0.0))
           goto experr;
         d = dur * csound->ekr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
-      }
-      else break;               /*  .. til 0 dur or done */
+/*       } */
+/*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
@@ -467,15 +467,15 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
       val = nxtval;
       dur = **argp++;
       nxtval = **argp++;
-      if (dur > FL(0.0)) {
+/*       if (dur > FL(0.0)) { */
         if (val * nxtval <= FL(0.0))
           goto experr;
         d = dur * csound->esr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->cnt = (long) (d + FL(0.5));
-      }
-      else break;               /*  .. til 0 dur or done */
+/*       } */
+/*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
