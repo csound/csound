@@ -1,5 +1,9 @@
-csound (5.04.0-1) unstable; urgency=low
+csound (5.07.0-1) unstable; urgency=low
 
+    * Updated version to 5.07.0
+
+ -- John ffitch <jpff@codemist.co.uk>  Mon, 01 Oct 2007
+	
     * Updated version to 5.06.0
 
  -- John ffitch <jpff@codemist.co.uk>  Mon, 04 Jun 2007

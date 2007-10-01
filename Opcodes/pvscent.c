@@ -37,10 +37,6 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
-#ifdef SDFT
-    if (p->fin->sliding)
-      return csound->InitError(csound, "SDFT case not implemented yet");
-#endif
     if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
       return csound->InitError(csound,
                                Str("pvscent: format must be amp-phase"
@@ -307,9 +303,9 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 
 static OENTRY localops[] = {
 #ifndef SDFT
-  { "pvsscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
+  { "pvscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
 #else
-  { "pvsscent", S(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "pvscent", S(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
 #endif
   { "pvspitch", S(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
