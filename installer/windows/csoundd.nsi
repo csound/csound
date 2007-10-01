@@ -496,7 +496,7 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
   File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
   File D:\utah\opt\lazzarini\portaudio.dll
-  File D:\utah\opt\csound5\bin\fluidsynth.dll
+  File D:\utah\home\mkg\projects\fluidsynth\winbuild\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
   File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
