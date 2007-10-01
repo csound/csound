@@ -17,6 +17,8 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
+    customCPPPATH.append('/usr/include/fltk-1.1')
+    customLIBPATH.append('/usr/lib/fltk-1.1')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
@@ -90,8 +92,8 @@ elif sys.platform[:3] == 'win':
     # add it here (you do NOT need to build it first):
     #customLIBPATH.append('D:/utah/opt/fluidsynth-1.0.3-win32')
     #customCPPPATH.append('D:/utah/opt/fluidsynth-1.0.3-win32/include')
-    customLIBPATH.append('D:/utah/home/mkg/projects/fluid/fluidsynth/src')
-    customCPPPATH.append('D:/utah/home/mkg/projects/fluid/fluidsynth/include')
+    customLIBPATH.append(r'D:\utah\home\mkg\projects\fluidsynth\winbuild')
+    customCPPPATH.append(r'D:\utah\home\mkg\projects\fluidsynth\include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location,
