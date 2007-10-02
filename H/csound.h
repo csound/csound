@@ -340,6 +340,10 @@ CSOUND_FILETYPES;
      the pvs bus interface */
   typedef struct pvsdat_ext {
         long            N;
+#ifdef SDFT
+        int		sliding; /* Flag to indicate sliding case */
+        long            NB;
+#endif
         long            overlap;
         long            winsize;
         int             wintype;
