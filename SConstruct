@@ -1497,7 +1497,7 @@ else:
     removeSources = Split('''
         Opcodes/stk/src/InetWvIn.cpp    Opcodes/stk/src/InetWvOut.cpp
         Opcodes/stk/src/Mutex.cpp       Opcodes/stk/src/RtAudio.cpp
-        Opcodes/stk/src/RtMidi.cpp      Opcodes/stk/src/RtDuplex.cpp
+        Opcodes/stk/src/RtMidi.cpp     
         Opcodes/stk/src/RtWvIn.cpp      Opcodes/stk/src/RtWvOut.cpp
         Opcodes/stk/src/Socket.cpp      Opcodes/stk/src/TcpClient.cpp
         Opcodes/stk/src/TcpServer.cpp   Opcodes/stk/src/Thread.cpp
