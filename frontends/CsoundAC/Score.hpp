@@ -120,7 +120,7 @@ namespace csound
      */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan);
     /**
-     * Re-assign instrument numbers for export to Csound score.
+     * Remove instrument number, gain, and pan assignments.
      */
     virtual void removeArrangement();
     /**
