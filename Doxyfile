@@ -17,7 +17,7 @@
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = "Csound and CsoundVST"
+PROJECT_NAME           = "Csound and CsoundAC"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -443,6 +443,7 @@ H/text.h \
 H/version.h \
 interfaces \
 frontends/CsoundVST \
+frontends/CsoundAC \
 frontends/tclcsound
 
 # If the value of the INPUT tag contains directories, you can use the 
