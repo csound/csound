@@ -495,7 +495,7 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
   File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
   File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
-  File D:\utah\opt\lazzarini\portaudio.dll
+  File D:\utah\home\mkg\projects\portaudio\build\msvc\Release_x86\portaudio.dll
   File D:\utah\home\mkg\projects\fluidsynth\winbuild\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
@@ -556,11 +556,9 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csnd.jar
   SetOutPath $INSTDIR\interfaces\lisp
   File ..\..\interfaces\*.lisp
-!ifdef NONFREE
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
 		File /r ..\..\Opcodes\stk\rawwaves\*.raw
-!endif
 	# Then we do output paths for Python stuff.
 	SetOutPath $INSTDIR\$PYTHON_OUTPUT_PATHbin
 		File ..\..\_CsoundAC.pyd
