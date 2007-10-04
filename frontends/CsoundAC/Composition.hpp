@@ -38,7 +38,8 @@ namespace csound
 {
   /**
    * Base class for user-derived musical compositions.
-   * Contains a Score object for collecting generated Events such as notes and control messages,
+   * Contains a Score object for collecting generated Events 
+   * such as notes and control messages,
    * and an Orchestra object for rendering the generated scores.
    */
   class SILENCE_PUBLIC Composition
@@ -62,10 +63,12 @@ namespace csound
      */
     virtual void generate();
     /**
-     * Translate the generated score to a Csound score and export it for performance.
+     * Translate the generated score to a Csound score 
+     * and export it for performance.
      * The time given by extendSeconds is used for a concluding e statement.
      */
-    virtual void createCsoundScore(std::string addToScore = "", double extendSeconds = 5.0);
+    virtual void createCsoundScore(std::string addToScore = "", 
+				   double extendSeconds = 5.0);
     /**
      * Convenience function that erases the existing score,
      * appends optional text to it,
@@ -77,7 +80,8 @@ namespace csound
      */
     virtual void perform();
     /**
-     * Clear all contents of this. Probably should be overridden in derived classes.
+     * Clear all contents of this. Probably should be overridden 
+     * in derived classes.
      */
     virtual void clear();
     /**
@@ -101,6 +105,16 @@ namespace csound
     virtual void setConformPitches(bool conformPitches);
     virtual bool getConformPitches() const;
     /**
+     * Set the Csound orchestra
+     * (convenience wrapper for CppSound::setOrchestra()).
+     */
+    virtual void setCsoundOrchestra(std::string orchestra);
+    /**
+     * Return the Csound orchestra
+     * (convenience wrapper for CppSound::getOrchestra()).
+      */
+    virtual std::string getCsoundOrchestra() const;
+    /**
      * Set a Csound score fragment to be prepended
      * to the generated score (createCsoundScore is called with it).
      */
@@ -110,6 +124,43 @@ namespace csound
      * to generated scores.
      */
     virtual std::string getCsoundScoreHeader() const;
+    /**
+     * Re-assign instrument numbers for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
+    /**
+     * Re-assign instrument numbers and adjust gains 
+     * for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber, 
+			 int newInstrumentNumber, 
+			 double gain);
+    /**
+     * Re-assign instrument numbers, adjust gains, 
+     * and change pans for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber, 
+			 int newInstrumentNumber, 
+			 double gain, 
+			 double pan);
+    /**
+     * Remove instrument number, gain, and pan assignments
+     * (convenience wrapper for Score::removeArrangement()).
+     */
+    virtual void removeArrangement();
+    /**
+     * Set Csound command line
+     * (convenience wrapper for CppSound::setCommand()).
+     */
+    virtual void setCsoundCommand(std::string command);
+    /**
+     * Return Csound command line
+     * (convenience wrapper for CppSound::getCommand()).
+     */
+    virtual std::string getCsoundCommand() const;
   };
 }
 #endif

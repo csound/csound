@@ -123,6 +123,16 @@ namespace csound
     return conformPitches;
   }
   
+  void Composition::setCsoundOrchestra(std::string orchestra)
+  {
+    cppSound->setOrchestra(orchestra);
+  }
+  
+  std::string Composition::getCsoundOrchestra() const
+  {
+    return cppSound->getOrchestra();
+  }
+  
   void Composition::setCsoundScoreHeader(std::string header)
   {
     csoundScoreHeader = header;
@@ -131,5 +141,40 @@ namespace csound
   std::string Composition::getCsoundScoreHeader() const
   {
     return csoundScoreHeader;
+  }
+  
+  void Composition::arrange(int oldInstrumentNumber, int newInstrumentNumber)
+  {
+    score.arrange(oldInstrumentNumber, newInstrumentNumber);
+  }
+  
+  void Composition::arrange(int oldInstrumentNumber, 
+			    int newInstrumentNumber, 
+			    double gain)
+  {
+    score.arrange(oldInstrumentNumber, newInstrumentNumber, gain);
+  }
+  
+  void Composition::arrange(int oldInstrumentNumber, 
+			    int newInstrumentNumber, 
+			    double gain, 
+			    double pan)
+  {
+    score.arrange(oldInstrumentNumber, newInstrumentNumber, gain, pan);
+  }
+  
+  void Composition::removeArrangement()
+  {
+    score.removeArrangement();
+  }
+  
+  void Composition::setCsoundCommand(std::string command)
+  {
+    cppSound->setCommand(command);
+  }
+  
+  std::string Composition::getCsoundCommand() const
+  {
+    return cppSound->getCommand();
   }
 }
