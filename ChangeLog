@@ -11,6 +11,23 @@
 	* OOps/ugens1.c (xsgset2, xsgset): Allow negative amd zero length
 	segments 
 
+2007-10-03  Michael Gogins <gogins@pipeline.com>
+
+	* Updated Windows installers to current versions: libsndfile,
+	PortAudio, Fluidsynth, Synthesis Toolkit in C++.
+
+	* Restored Synthesis Toolkit in C++ Csound opcode wrappers
+	for native STK C++ code, as STK now has BSD-type license.
+
+	* Convenience wrappers in high-level CsoundAC.Composition
+	class for Csound.Score.arrange(), csnd.CppSound.setOrchestra(),
+	and csnd.CppSound.setScoreHeader(), for more intuitive use
+	of CsoundAC with Csound.
+
+	* Updated Csound API documentation to reflect splitup between
+	CsoundAC and CsoundVST.
+
+
 2007-09-28  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pan2.c: New code
