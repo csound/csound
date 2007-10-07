@@ -491,11 +491,11 @@ Section "${PRODUCT}" SecCopyUI
   	File D:\utah\home\mkg\projects\liblo\src\liblo.dll
   	File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
   	File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
-#ifdef FLOAT
+!ifdef FLOAT
   	File ..\..\csound32.def
-#else
+!else
   	File ..\..\csound.def
-#endif
+!endif
   	File ..\..\_csnd.def
   	File ..\..\_jcsound.def
 #ifdef NONFREE
