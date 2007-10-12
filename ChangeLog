@@ -1,3 +1,7 @@
+2007-10-01  jpff  <jpff@codemist.co.uk>
+
+	* VERSION 5.07
+
 2007-09-30  jpff  <jpff@codemist.co.uk>
 
 	* OOps/goto_ops.c (turnoff2): Patch from Jonathan Murphy in mode4 case
@@ -5,8 +9,6 @@
 	* OOps/pstream.c (pvscross): SDFT support
 
 2007-09-29  jpff  <jpff@codemist.co.uk>
-
-	* VERSION 5.07
 
 	* OOps/ugens1.c (xsgset2, xsgset): Allow negative amd zero length
 	segments 
