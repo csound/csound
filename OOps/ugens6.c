@@ -535,7 +535,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
         y0 = *tap; y1 = *prv;
         {
           MYFLT w, x, y, z;
-          z = delfrac * delfrac; z--; z *= FL(0.1666666667);
+          z = delfrac * delfrac; z--; z *= FL(0.16666666666667);
           y = delfrac; y++; w = (y *= FL(0.5)); w--;
           x = FL(3.0) * z; y -= x; w -= z; x -= delfrac;
           ar[n] = (w*ym1 + x*y0 + y*y1 + z*y2) * delfrac + y0;
@@ -908,12 +908,7 @@ int rvbset(CSOUND *csound, REVERB *p)
       p->prvt = FL(0.0);
     }
     else if (!(*p->istor)) {                    /* else if istor = 0 */
-/*       MYFLT     *fp = p->adr1; */
-/*       long      nn = csound->revlpsum; */
       memset(p->adr1, '\0', csound->revlpsum * sizeof(MYFLT));
-/*       do { */
-/*         *fp++ = FL(0.0);                        /\*  clr existing spc *\/ */
-/*       } while (--nn); */
       p->p1 = p->adr1;                          /*  and reset   */
       p->p2 = p->adr2;
       p->p3 = p->adr3;
