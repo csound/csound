@@ -840,7 +840,6 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
       MYFLT g = *p->gain;
       kdepth = kdepth >= FL(0.0) ? (kdepth <= FL(1.0) ? kdepth*g : g) : FL(0.0);
       dirgain = (FL(1.0) - kdepth)*g;
-      printf("kdepth=%f dirgain=%f\n", kdepth, dirgain);
       for (n=0; n<nsmps; n++) {
         fin = (CMPLX *)p->fin->frame.auxp + NB*n;
         fout = (CMPLX *)p->fout->frame.auxp + NB*n;
@@ -849,25 +848,21 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
           kdepth = p->kdepth[n] >= FL(0.0) ?
             (p->kdepth[n] <= FL(1.0) ? p->kdepth[n]*g : g) : FL(0.0);
           dirgain = (FL(1.0) - kdepth)*g;
-          printf(".. kdepth=%f dirgain=%f\n", kdepth, dirgain);
         }
         for (i = 0; i < NB; i++) {
           fout[i].re = fin[i].re * (dirgain + fil[i].re * kdepth);
           fout[i].im = fin[i].im;
-          printf("%d: %f; %f -> %f\n", i, fin[i].re, fil[i].re, fout[i].re);
         }
       }
       return OK;
     }
 #endif
-    printf("kdepth=%f dirgain=%f\n", kdepth, dirgain);
     if (p->lastframe < p->fin->framecount) {
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth*g : g) : FL(0.0);
       dirgain = (1 - kdepth)*g;
       for (i = 0; i < N + 2; i += 2) {
         fout[i] = (float) (fin[i] * (dirgain + fil[i] * kdepth));
         fout[i + 1] = fin[i + 1];
-        printf("%d: %f; %f -> %f\n", i/2, fin[i], fil[i], fout[i]);
       }
 
       p->fout->framecount = p->lastframe = p->fin->framecount;
