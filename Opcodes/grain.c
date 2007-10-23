@@ -113,7 +113,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
 /*     i       = bufsize;                /\* Clear buffer *\/ */
     temp    = buf;
-    memset(buf, '\0', bufsize);
+    memset(buf, '\0', bufsize*sizeof(MYFLT));
 /*     do { */
 /*       *temp++ = FL(0.0); */
 /*     } while (--i); */
