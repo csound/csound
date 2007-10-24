@@ -249,10 +249,11 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->prv_kTranspose = FL(0.0);
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
+    csound->Message(csound, "bufsize %d\n", p->bufSize);
     p->bufStartPos = -((long)(p->bufSize << 1));
 
-   if(p->auxch.auxp == NULL || p->auxch.size < p->bufSize*sizeof(float)*p->nChannels)
-      csound->AuxAlloc(csound,sizeof(float)*p->bufSize*p->nChannels, &p->auxch);
+    if(p->auxch.auxp == NULL || p->auxch.size < 2*p->bufSize*sizeof(MYFLT)*p->nChannels)
+      csound->AuxAlloc(csound,2*sizeof(MYFLT)*p->bufSize*p->nChannels, &p->auxch);
     p->buf = (float *) p->auxch.auxp;
 
     /* done initialisation */
