@@ -111,12 +111,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     xamp    = p->xamp;
     xlfr    = p->xlfr;
 
-/*     i       = bufsize;                /\* Clear buffer *\/ */
-    temp    = buf;
     memset(buf, '\0', bufsize*sizeof(MYFLT));
-/*     do { */
-/*       *temp++ = FL(0.0); */
-/*     } while (--i); */
 
     for (i = 0 ; i < csound->ksmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
