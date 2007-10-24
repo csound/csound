@@ -121,7 +121,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     p->fout->wintype = 1;
     p->fout->format  = PVS_AMP_FREQ;
     p->fout->framecount = 1;
-    }
+    } 
 
     if (p->fout->frame.auxp == NULL || 
          p->fout->frame.size < sizeof(float) * (N + 2))
@@ -138,7 +138,8 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     unsigned int posi, frames;
     MYFLT pos, sr = csound->esr;
     FSIG_HANDLE *handle = (FSIG_HANDLE *) ((unsigned long)*p->hptr);
-    MYFLT frac, *fout, *buffer;
+    MYFLT frac; 
+    float *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;
     if(handle == NULL) 
        return csound->PerfError(csound, "Invalid buffer handle");
@@ -168,7 +169,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       
       for(i=strt; i < end; i+=2){
         fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
-        fout[i+1] =  frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
+        fout[i+1] = frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
 	} 
       }
       else 
