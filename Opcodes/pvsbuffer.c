@@ -140,7 +140,9 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     FSIG_HANDLE *handle = (FSIG_HANDLE *) ((unsigned long)*p->hptr);
     MYFLT frac, *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;
-   
+    if(handle == NULL) 
+       return csound->PerfError(csound, "Invalid buffer handle");
+  
     fout = (float *) p->fout->frame.auxp, 
     buffer = handle->data;
     N = p->fout->N;
