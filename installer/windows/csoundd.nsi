@@ -467,6 +467,8 @@ Section "${PRODUCT}" SecCopyUI
 !else
 	File ..\..\csound64.dll.5.1
 !endif
+	# Required for fluidOpcodes which is now built with MSVC:
+	File C:\windows\system32\MSVCRT.DLL
 	File ..\..\pmidi.dll
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
