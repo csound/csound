@@ -225,7 +225,7 @@ static int open_device(CSOUND *csound,
     DWORD           openFlags = CALLBACK_NULL;
 
     if (parm->devName != NULL)
-      return err_msg(csound, Str("must specify a device number, not a name"));
+      return err_msg(csound, Str("Must specify a device number, not a name"));
     if (set_format_params(csound, &wfx, parm) != 0)
       return -1;
     devNum = (parm->devNum == 1024 ? 0 : parm->devNum);
@@ -242,9 +242,9 @@ static int open_device(CSOUND *csound,
         csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (ndev < 1)
-        return err_msg(csound, Str("no output device is available"));
+        return err_msg(csound, Str("No output device is available"));
       if (devNum < 0 || devNum >= ndev) {
-        return err_msg(csound, Str("device number is out of range"));
+        return err_msg(csound, Str("Device number is out of range"));
       }
       waveOutGetDevCapsA((unsigned int) devNum, (LPWAVEOUTCAPSA) &caps,
                          sizeof(WAVEOUTCAPSA));
