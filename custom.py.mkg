@@ -37,8 +37,8 @@ elif sys.platform[:3] == 'win':
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
-    customCPPPATH.append(r'D:\utah\home\mkg\projects\portaudio\build\msvc\Debug_x86')
-    customLIBPATH.append(r'D:\utah\home\mkg\projects\portaudio\include')
+    customCPPPATH.append(r'D:\utah\home\mkg\projects\portaudio\include')
+    customLIBPATH.append(r'D:\utah\home\mkg\projects\portaudio\build\msvc\Debug_x86')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
