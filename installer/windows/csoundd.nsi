@@ -18,7 +18,7 @@
 #######################################################################
 
 !define PRODUCT "Csound"
-!define PROGRAM "Csound5.07"
+!define PROGRAM "Csound5.07.2"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
 !define VERSION "win32-f"
