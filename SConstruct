@@ -1316,7 +1316,10 @@ if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
 else:
     print "CONFIGURATION DECISION: Building PortAudio module."
     portaudioEnvironment = pluginEnvironment.Copy()
-    portaudioEnvironment.Append(LIBS = ['portaudio'])
+    if getPlatform() == 'win32':
+       portaudioEnvironment.Append(LIBS = ['portaudio_x86'])
+    else:
+       portaudioEnvironment.Append(LIBS = ['portaudio'])
     if (getPlatform() == 'linux'):
         if (commonEnvironment['useJack']=='1' and jackFound):
             print "Adding Jack library for PortAudio"
