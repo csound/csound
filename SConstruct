@@ -405,15 +405,19 @@ if getPlatform() == 'linux':
         pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
-    vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
+    vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)   
     if vers[1] == 3:
       print "Python version is 2.%s, using Apple Python Framework" % vers[1]
-      pyBasePath = '/System/Library/Frameworks/Python.Framework'
+      pyBasePath = '/System/Library/Frameworks/Python.framework'
     else:
       print "Python version is 2.%s, using MacPython Framework" % vers[1]
       pyBasePath = '/Library/Frameworks/Python.Framework'
+    pvers = "2.%s" % vers[1]
+    if commonEnvironment['pythonVersion'] != pvers:
+        commonEnvironment['pythonVersion'] = pvers
+        print "WARNING python version used is " + pvers 
     pythonIncludePath = ['%s/Headers' % pyBasePath]
-    pythonLinkFlags = ['-framework', 'python']
+    pythonLinkFlags = [ '-F' + pyBasePath, '-framework', 'python']
     path1 = '%s/Versions/Current/lib' % pyBasePath
     path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLibraryPath = [path1, path2]
@@ -1130,7 +1134,8 @@ else:
     libs.append(csoundInterfaces)
     if pythonFound:
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        if getPlatform() != 'darwin':
+            csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
         csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
@@ -1547,9 +1552,13 @@ if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
 else:
     print "CONFIGURATION DECISION: Building Python opcodes."
     pyEnvironment = pluginEnvironment.Copy()
-    pyEnvironment.Append(CPPPATH = pythonIncludePath)
-    pyEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    pyEnvironment.Append(LIBPATH = pythonLibraryPath)
+    if getPlatform() != 'darwin':
+       pyEnvironment.Append(CPPPATH = pythonIncludePath)
+       pyEnvironment.Append(LIBPATH = pythonLibraryPath)
+    else:
+       pyEnvironment.Append(CPPPATH = "/System/Library/Frameworks/Python.framework/Headers")
+       
+    pyEnvironment.Append(LINKFLAGS = pythonLinkFlags) 
     pyEnvironment.Append(LIBS = pythonLibs)
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
