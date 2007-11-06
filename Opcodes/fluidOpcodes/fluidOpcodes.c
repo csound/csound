@@ -179,8 +179,8 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   csound_global_mutex_lock();
   fluidSettings = new_fluid_settings();
   if (fluidSettings != NULL) {
-    fluid_settings_setnum(fluidSettings,
-                          "synth.sample-rate", (double) csound->esr);
+     fluid_settings_setnum(fluidSettings,
+                        "synth.sample-rate", (double) csound->esr);
     fluid_settings_setint(fluidSettings,
                           "synth.polyphony", polyphony);
     fluid_settings_setint(fluidSettings,
