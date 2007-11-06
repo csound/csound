@@ -153,9 +153,9 @@ static void PythonCallback(void *p){
   }
 }
 
-#ifndef MACOSX
+//#ifndef MACOSX
 %include "CsoundFile.hpp"
-#endif
+//#endif
 %include "CppSound.hpp"
 /*
 %include "filebuilding.h"
