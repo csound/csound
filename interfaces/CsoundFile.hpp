@@ -56,6 +56,8 @@
 #if defined(WIN32)
 #define PUBLIC __declspec(dllexport)
 #include <io.h>
+#elif defined(__GNUC__)
+#define PUBLIC __attribute__ ( (visibility("default")) )
 #else
 #define PUBLIC
 #endif
