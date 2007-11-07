@@ -36,6 +36,8 @@ using namespace std;
 
 #ifdef WIN32
 #define PUBLIC  __declspec(dllexport)
+#elif defined(__GNUC__)
+#define PUBLIC __attribute__ ( (visibility("default")) )
 #else
 #define PUBLIC
 #endif
