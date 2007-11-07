@@ -461,10 +461,27 @@ def CheckSndFile1016(context):
     context.Result(result)
     return result
 
+def CheckGcc4(context):
+    # We need gcc4 if we want -fvisibility=hidden
+    context.Message('Checking for gcc version 4 or later... ')
+    testProgram = '''int main() {
+        #if __GNUC__ >= 4
+        /* OK */
+           return 0;
+        #else /* GCC < 4.0 */
+        #error __GNUC__ < 4
+        #endif
+        }
+    '''
+    result = context.TryCompile(testProgram, '.c' )
+    context.Result(result)
+    return result
+
 configure = commonEnvironment.Configure(custom_tests = {
     'CheckSndFile1011' : CheckSndFile1011,
     'CheckSndFile1013' : CheckSndFile1013,
-    'CheckSndFile1016' : CheckSndFile1016
+    'CheckSndFile1016' : CheckSndFile1016,
+    'CheckGcc4'        : CheckGcc4
 })
 
 if not configure.CheckHeader("stdio.h", language = "C"):
@@ -856,9 +873,13 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         os.symlink(libName2, libName)
         tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
         tmp += ['-Wl,-soname=%s' % libName2]
+        cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
+        if configure.CheckGcc4():
+            cflags   += ['-fvisibility=hidden']
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             libName2, libCsoundSources,
-            SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
+            SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '',
+            CCFLAGS = cflags)
     elif getPlatform() == 'darwin':
         libName = CsoundLib_OSX
         libVersion = csoundLibraryVersion

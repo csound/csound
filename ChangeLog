@@ -1,3 +1,11 @@
+
+2007-11-07  Felipe Sateler <fsateler@gmail.com>
+
+	* H/csound.h,frontends/csladspa/csladspa.cpp,interfaces/CsoundFile.hpp,
+	interfaces/filebuilding.h
+
+	* SConstruct (CheckGcc4): Added stuff to limit visibility of symbols
+
 2007-10-01  jpff  <jpff@codemist.co.uk>
 
 	* VERSION 5.07
