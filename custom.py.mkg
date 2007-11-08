@@ -38,7 +38,7 @@ elif sys.platform[:3] == 'win':
     # If it is not in a standard location add it here
     # (of course you must build it first):
     customCPPPATH.append(r'D:\utah\home\mkg\projects\portaudio\include')
-    customLIBPATH.append(r'D:\utah\home\mkg\projects\portaudio\build\msvc\Win32\Release_x86')
+    customLIBPATH.append(r'D:\utah\home\mkg\projects\portaudio\build\msvc\Win32\Release')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
