@@ -469,7 +469,7 @@ Section "${PRODUCT}" SecCopyUI
 !endif
 	# Required for those components which are now built with MSVC:
 	File C:\windows\system32\MSVCRT.DLL
-	C:\WINDOWS\WinSxS\x86_Microsoft.VC80.CRT_1fc8b3b9a1e18e3b_8.0.50727.163_x-ww_681e29fb\msvcr80.dll
+	File C:\WINDOWS\WinSxS\x86_Microsoft.VC80.CRT_1fc8b3b9a1e18e3b_8.0.50727.163_x-ww_681e29fb\msvcr80.dll
 	File ..\..\pmidi.dll
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
