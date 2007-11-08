@@ -467,8 +467,9 @@ Section "${PRODUCT}" SecCopyUI
 !else
 	File ..\..\csound64.dll.5.1
 !endif
-	# Required for fluidOpcodes which is now built with MSVC:
+	# Required for those components which are now built with MSVC:
 	File C:\windows\system32\MSVCRT.DLL
+	C:\WINDOWS\WinSxS\x86_Microsoft.VC80.CRT_1fc8b3b9a1e18e3b_8.0.50727.163_x-ww_681e29fb\msvcr80.dll
 	File ..\..\pmidi.dll
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
@@ -485,7 +486,7 @@ Section "${PRODUCT}" SecCopyUI
   	File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
   	File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
   	File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
-  	File D:\utah\home\mkg\projects\portaudio\build\msvc\Release_x86\portaudio_x86.dll
+  	File D:\utah\home\mkg\projects\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
   	File D:\utah\home\mkg\projects\fluidsynth\winbuild\fluidsynth.dll
   	File D:\utah\opt\portmidi\pm_win\*.dll
   	File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
