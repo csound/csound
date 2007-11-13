@@ -552,9 +552,11 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         } else {
             /* softsync-like functionality where we advance the grain clock by
              * the amount given by the sync value */
-            p->grainphase += p->sync[n];
-            p->grainphase = p->grainphase > 1.0 ? 1.0 : p->grainphase;
-            p->grainphase = p->grainphase < 0.0 ? 0.0 : p->grainphase;
+            if (p->sync[n]) {
+                p->grainphase += p->sync[n];
+                p->grainphase = p->grainphase > 1.0 ? 1.0 : p->grainphase;
+                p->grainphase = p->grainphase < 0.0 ? 0.0 : p->grainphase;
+            }
             p->synced = 0;
         }
 
