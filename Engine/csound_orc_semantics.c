@@ -78,7 +78,7 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
      * useful; the number 400 is arbitrary, chosen as it seemed to be a value
      * higher than all the type numbers that were being printed out
      */
-    if(first->type > 400) {
+    if(first->type > 400 || first-> type < 0) {
         return newlast;
     }
 
