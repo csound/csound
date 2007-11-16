@@ -664,7 +664,7 @@ csoundLibraryEnvironment = commonEnvironment.Copy()
 
 if commonEnvironment['buildNewParser'] != '0':
     print 'CONFIGURATION DECISION: Building with new parser enabled'
-    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '-p','csound_orc'])
+    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '--report=itemset', '-p','csound_orc'])
     csoundLibraryEnvironment.Append(LEXFLAGS = ['-d', '-Pcsound_orc'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
