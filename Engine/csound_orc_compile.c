@@ -528,7 +528,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root) {
 
         if(current->type != T_INSTR && current->type != T_UDO) {
 
-            csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
+            /* csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme); */
 
             if(current->type == S_ASSIGN
                 && strcmp(current->value->lexeme, "=.r") == 0) {
