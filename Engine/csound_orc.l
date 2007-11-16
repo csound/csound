@@ -84,6 +84,11 @@ WHITE		[ \t]+
 
 "if"		{ return T_IF; }
 "then"		{ return T_THEN; }
+"ithen"      { return T_ITHEN; }
+"kthen"      { return T_KTHEN; }
+"elseif"      { return T_ELSEIF; }
+"else"      { return T_ELSE; }
+"endif"      { return T_ENDIF; }
 
 "goto"      { 	*lvalp = make_token(csound, yytext);
                 (*lvalp)->type = T_GOTO;
