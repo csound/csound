@@ -158,7 +158,9 @@ rootstatement	  : rootstatement topstatement
                         {
                         $$ = appendToTree(csound, $1, $2);
                         }
-                  | S_NL { }
+                  | topstatement
+                  | instrdecl
+                  | udodecl
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
@@ -196,115 +198,6 @@ udodecl	  : T_UDOSTART T_IDENT_S S_COM
               }
 
             ;
-
-/* rtparam  : T_SRATE S_ASSIGN T_NUMBER S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
-                //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
-              }
-              | T_SRATE S_ASSIGN T_INTGR S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                //csound->tran_sr = (MYFLT)(((ORCTOKEN*)$3)->value);
-                //csound->Message(csound, "sr set to %f\n", csound->tran_sr);
-              }
-              | T_KRATE S_ASSIGN T_NUMBER S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                ((TREE *)$$)->value->lexeme = "=.r";
-                //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->fvalue);
-                //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
-              }
-              | T_KRATE S_ASSIGN T_INTGR S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                //csound->tran_kr = (MYFLT)(((ORCTOKEN*)$3)->value);
-                //csound->Message(csound, "kr set to %f\n", csound->tran_kr);
-              }
-              | T_KSMPS S_ASSIGN T_INTGR S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                //csound->tran_ksmps = (MYFLT)(((ORCTOKEN*)$3)->value);
-                //csound->Message(csound, "ksmps set to %f\n", csound->tran_ksmps);
-              }
-              | T_NCHNLS S_ASSIGN T_INTGR S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = make_leaf(csound, $1->type, (ORCTOKEN *)$1);
-                ans->right = make_leaf(csound, $3->type, (ORCTOKEN *)$3);
-                ans->value->lexeme = get_assignment_type(csound, $1->lexeme);
-
-                $$ = ans;
-                //csound->tran_nchnls = ((ORCTOKEN*)$3)->value;
-                //csound->Message(csound, "nchnls set to %i\n",
-                //                csound->tran_nchnls);
-              }
-              | gident S_ASSIGN exprlist S_NL
-              {
-                TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$2);
-                ans->left = (TREE *)$1;
-                ans->right = (TREE *)$3;
-                ans->value->lexeme = get_assignment_type(csound,
-                                      ((TREE *)$1)->value->lexeme);
-
-                $$ = ans;
-                //instr0(csound, $2, $1, check_opcode($2, $1, $3));
-              }
-              | gans initop exprlist S_NL
-              { //instr0(csound, $2, $1, check_opcode($2, $1, $3));
-              }
-              | initop0 exprlist S_NL
-              {
-                //instr0(csound, $1, NULL, check_opcode0($1, $2));
-              }
-              | S_NL {
-                $$ = NULL;
-              }
-              ;
-
-initop0       : T_STRSET	{ $$ = make_leaf(csound, T_STRSET, NULL); }
-              | T_PSET		{ $$ = make_leaf(csound, T_PSET, NULL); }
-              | T_CTRLINIT	{ $$ = make_leaf(csound, T_CTRLINIT, NULL); }
-              | T_MASSIGN	{ $$ = make_leaf(csound, T_MASSIGN, NULL); }
-              | T_TURNON	{ $$ = make_leaf(csound, T_TURNON, NULL); }
-              | T_PREALLOC	{ $$ = make_leaf(csound, T_PREALLOC, NULL); }
-              | T_ZAKINIT	{ $$ = make_leaf(csound, T_ZAKINIT, NULL); }
-              ;
-initop        : T_FTGEN		{ $$ = make_leaf(csound, T_FTGEN, NULL); }
-              | T_INIT          { $$ = make_leaf(csound, T_INIT, NULL); }
-              ;
-
-gans          : gident              { $$ = $1; }
-              | gans S_COM gident   { $$ = appendToTree(csound, $1, $3); }
-              ;
-
-*/
 
 
 statementlist : statementlist statement
