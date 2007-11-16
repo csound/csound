@@ -100,6 +100,11 @@
 %token T_INTGR
 %token T_NUMBER
 %token T_THEN
+%token T_ITHEN
+%token T_KTHEN
+%token T_ELSEIF
+%token T_ELSE
+%token T_ENDIF
 
 %start orcfile
 %left S_AND S_OR
