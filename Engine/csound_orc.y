@@ -271,18 +271,19 @@ statement : ident S_ASSIGN expr S_NL
                     $$ = make_node(csound, T_IF, $3, $5);
                 }
 
-          | T_IF S_LB expr S_RB then S_NL statement T_ENDIF S_NL
-                {
-                    $5->right = $7;
-                    $$ = make_node(csound, T_IF, $3, $5);
-                }
-
-          
+          | ifthen          
           | S_NL { $$ = NULL; }
           ;
 
 ans       : ident               { $$ = $1; }
           | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
+          ;
+
+ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
+          {
+            $5->right = $7;
+            $$ = make_node(csound, T_IF, $3, $5);
+          }
           ;
 
 then      : T_THEN             
