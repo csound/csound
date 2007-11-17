@@ -217,6 +217,16 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"T_LABEL: %s\n", l->value->lexeme); break;
     case T_IF:
       csound->Message(csound,"T_IF:\n"); break;
+    case T_THEN:
+          csound->Message(csound,"T_THEN:\n"); break;
+    case T_ITHEN:
+          csound->Message(csound,"T_ITHEN:\n"); break;
+    case T_KTHEN:
+          csound->Message(csound,"T_KTHEN:\n"); break;
+    case T_ELSEIF:
+          csound->Message(csound,"T_ELSEIF:\n"); break;
+    case T_ELSE:
+          csound->Message(csound,"T_ELSE:\n"); break;          
     case T_GOTO:
       csound->Message(csound,"T_GOTO:\n"); break;
     case T_IGOTO:

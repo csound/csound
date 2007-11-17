@@ -270,16 +270,29 @@ statement : ident S_ASSIGN expr S_NL
                     $5->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$6);
                     $$ = make_node(csound, T_IF, $3, $5);
                 }
-          | T_IF S_LB expr S_RB error
-          | T_IF S_LB expr error
-          | T_IF error
+
+          | T_IF S_LB expr S_RB then S_NL statement T_ENDIF S_NL
+                {
+                    $5->right = $7;
+                    $$ = make_node(csound, T_IF, $3, $5);
+                }
+
+          
           | S_NL { $$ = NULL; }
           ;
-
 
 ans       : ident               { $$ = $1; }
           | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
           ;
+
+then      : T_THEN             
+            { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)yylval); }
+          | T_KTHEN  
+            { $$ = make_leaf(csound, T_KTHEN, (ORCTOKEN *)yylval); }
+          | T_ITHEN  
+            { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)yylval); }
+          ;
+
 
 goto	  : T_GOTO             
             { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
