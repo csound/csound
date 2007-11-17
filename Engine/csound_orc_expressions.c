@@ -172,6 +172,13 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
         case T_IGOTO:
             sprintf(op, "cigoto");
             break;
+        case T_ITHEN:
+	        sprintf(op, "cngoto");
+            break;            
+        case T_THEN:
+        case T_KTHEN:
+            sprintf(op, "cngoto");
+            break;            
         default:
             sprintf(op, "cggoto");
     }
@@ -461,18 +468,27 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
     return anchor;
 }
 
+static TREE *create_synthetic_label(CSOUND *csound, long count) {
+	char *label = (char *)csound->Calloc(csound, 20);
+	
+	sprintf(label, "__synthetic_%ld", count);
+	
+	return make_leaf(csound, T_LABEL, make_label(csound, label));
+}
 
 /* Expands expression nodes into opcode calls */
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
-    csound->Message(csound, "[Begin Expanding Expressions in AST]\n");
-
+	long labelCounter = 300L; 
+    
     TREE *anchor = NULL;
     TREE * expressionNodes = NULL;
 
     TREE *current = root;
     TREE *previous = NULL;
 
+    csound->Message(csound, "[Begin Expanding Expressions in AST]\n");
+    
     while(current != NULL) {
         switch(current->type) {
             case T_INSTR:
@@ -527,9 +543,59 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                     last->next = gotoToken;
                     current = gotoToken;
                     previous = last;
+                } else if(right->type == T_THEN ||
+                   right->type == T_ITHEN ||
+                   right->type == T_KTHEN) {
+                    csound->Message(csound, "Found if-then\n");
 
+                    // need to synthesize a label
+                    
+                    expressionNodes = create_boolean_expression(csound, left);
+
+                    print_tree(csound, expressionNodes);
+
+                    /* Set as anchor if necessary */
+                    if(anchor == NULL) {
+                        anchor = expressionNodes;
+                    }
+
+                    /* reconnect into chain */
+                    TREE* last = expressionNodes;
+
+                    while(last->next != NULL) {
+                        last = last->next;
+                    }
+
+
+                    if(previous != NULL) {
+                        previous->next = expressionNodes;
+                    }
+
+                    TREE *statements = right->right;
+                    
+                    TREE *label = create_synthetic_label(csound, labelCounter);
+                    TREE *labelEnd = create_synthetic_label(csound, labelCounter++);
+                    
+                    right->right = label; 
+                    
+                    TREE * gotoToken = create_goto_token(csound,
+                        expressionNodes->left->value->lexeme, right);
+
+                    gotoToken->next = statements;
+                    
+                    while(statements->next != NULL) {
+                    	statements = statements->next;
+                    }
+                    
+                    statements->next = labelEnd;
+                    labelEnd->next = current->next;
+
+                    last->next = gotoToken;
+                    current = gotoToken;
+                    previous = last;
+                                            
                 } else {
-                    csound->Message(csound, "WARNING: Implementing IF-THEN not yet done!\n");
+                    csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
                 }
 
                 break;
