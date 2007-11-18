@@ -749,7 +749,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
 
 int multitap_play(CSOUND *csound, MDEL *p)
 {                               /* assign object data to local variables   */
-    long  n, nn = csound->ksmps, indx = p->left, delay;
+    int  i, n, nn = csound->ksmps, indx = p->left, delay;
     MYFLT *out = p->sr, *in = p->ain;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT max = (MYFLT)p->max;
@@ -757,19 +757,19 @@ int multitap_play(CSOUND *csound, MDEL *p)
     if (buf==NULL) {            /* RWD fix */
       return csound->PerfError(csound, Str("multitap: not initialised"));
     }
-    do {
-      buf[indx] = *in++;      /*      Write input     */
-      *out = FL(0.0);            /*      Clear output buffer     */
+    for (i=0; i<nn; i++) {
+      MYFLT v = FL(0.0);
+      buf[indx] = in[i];        /*      Write input     */
 
       if (++indx == max) indx = 0;         /*      Advance input pointer   */
       for (n = 0; n < p->INOCOUNT - 1; n += 2) {
         delay = indx - (long)(csound->esr * *p->ndel[n]);
         if (delay < 0)
           delay += (long)max;
-        *out += buf[delay] * *p->ndel[n+1]; /*      Write output    */
+        v += buf[delay] * *p->ndel[n+1]; /*      Write output    */
       }
-      out++;                  /*      Advance output pointer  */
-    } while (--nn);
+      out[i] = v;
+    }
     p->left = indx;
     return OK;
 }
@@ -1050,10 +1050,6 @@ int reverbx(CSOUND *csound, NREV2 *p)
     in = p->in;
     memcpy(buf, in, nsmps*sizeof(MYFLT));
     memset(out, 0,  nsmps*sizeof(MYFLT));
-/*     do { */
-/*       *buf++ = *in++; */
-/*       *out++ = FL(0.0); */
-/*     } while (--n); */
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (hdif > FL(1.0)) {
         csound->Warning(csound, Str("High frequency diffusion>1\n"));
@@ -1105,9 +1101,6 @@ int reverbx(CSOUND *csound, NREV2 *p)
       in = (MYFLT*) p->temp.auxp;
       out = p->out;
       memcpy(in, out, nsmps*sizeof(MYFLT));
-/*       do { */
-/*         *in++ = *out++; */
-/*       } while (--n); */
       buf = p->pabuf_cur[i];
       end = p->abuf_cur[i + 1];
       gain = p->a_gain[i];

@@ -1177,7 +1177,7 @@ static int osckaikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask;
     MYFLT   pfrac, *ft, v, a, *ar, *xcps;
-    int     nn;
+    int     nn, nsmps=csound->ksmps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1191,14 +1191,13 @@ static int osckaikt(CSOUND *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; a = *(p->xamp); ar = p->sr; xcps = p->xcps;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = csound->ksmps;
-    do {
+    for (nn=0; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
-      *(ar++) = v * a;
+      ar[nn] = v * a;
       v = *(xcps++) * csound->onedsr;
       phs = (phs + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
-    } while (--nn);
+    }
     /* save new phase */
     p->phs = phs;
     return OK;
@@ -1223,7 +1222,7 @@ static int oscakikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq;
     MYFLT   pfrac, *ft, v, *ar, *xamp;
-    int     nn;
+    int     nn, nsmps = csound->ksmps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1238,13 +1237,12 @@ static int oscakikt(CSOUND *csound, OSCKT *p)
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
     v = *(p->xcps) * csound->onedsr; frq = OSCBNK_PHS2INT(v);
-    nn = csound->ksmps;
-    do {
+    for (nn=0; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
       phs = (phs + frq) & OSCBNK_PHSMSK;
-      *(ar++) = v * *(xamp++);
-    } while (--nn);
+      ar[nn] = v * *(xamp++);
+    }
     /* save new phase */
     p->phs = phs;
     return OK;
@@ -1255,7 +1253,7 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask;
     MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp;
-    int     nn;
+    int     nn, nsmps=csound->ksmps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1269,14 +1267,13 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
     ft = p->ft; phs = p->phs; ar = p->sr; xcps = p->xcps; xamp = p->xamp;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     /* read from table with interpolation */
-    nn = csound->ksmps;
-    do {
+    for (nn=0; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
-      *(ar++) = v * *(xamp++);
-      v = *(xcps++) * csound->onedsr;
+      ar[nn] = v * xamp[nn];
+      v = xcps[nn] * csound->onedsr;
       phs = (phs + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
-    } while (--nn);
+    }
     /* save new phase */
     p->phs = phs;
     return OK;
@@ -1303,7 +1300,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq;
     MYFLT   pfrac, *ft, v, *ar;
-    int     nn;
+    int     nn, nsmps = csound->ksmps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1330,13 +1327,12 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
-    nn = csound->ksmps;
-    do {
+    for (nn=0; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
       phs = (phs + frq) & OSCBNK_PHSMSK;
-      *(ar++) = v;
-    } while (--nn);
+      ar[nn] = v;
+    }
     /* save new phase */
     p->phs = phs;
     return OK;
@@ -1363,7 +1359,7 @@ static int osckts(CSOUND *csound, OSCKTS *p)
     FUNC    *ftp;
     unsigned long   n, phs, lobits, mask, frq = 0UL;
     MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp, *async;
-    int     nn, a_amp, a_cps;
+    int     nn, nsmps = csound->ksmps, a_amp, a_cps;
 
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
@@ -1389,22 +1385,21 @@ static int osckts(CSOUND *csound, OSCKTS *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* read from table with interpolation */
-    nn = csound->ksmps;
-    do {
-      if (*(async++) > FL(0.0)) {               /* re-initialise phase */
+    for (nn=0; nn<nsmps; nn++) {
+      if (async[nn] > FL(0.0)) {               /* re-initialise phase */
         v = *(p->kphs) - (MYFLT) ((long) *(p->kphs));
         phs = OSCBNK_PHS2INT(v);
       }
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((long) (phs & mask)) * pfrac;
-      *(ar++) = v * *xamp;
+      ar[nn] = v * *xamp;
       if (a_amp) xamp++;
       if (a_cps) {
-        v = *(xcps++) * csound->onedsr;
+        v = xcps[nn] * csound->onedsr;
         frq = OSCBNK_PHS2INT(v);
       }
       phs = (phs + frq) & OSCBNK_PHSMSK;
-    } while (--nn);
+    }
     /* save new phase */
     p->phs = phs;
     return OK;
