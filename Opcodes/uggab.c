@@ -455,7 +455,7 @@ static int lposc3(CSOUND *csound, LPOSC *p)
     MYFLT       *out = p->out, *ftab = p->ftp->ftable;
     MYFLT       fract;
     double      phs = p->phs, si= *p->freq * (p->fsr*csound->onedsr);
-    long        n = csound->ksmps;
+    long        n, nsmps = csound->ksmps;
     double      loop, end, looplength = p->looplength;
     MYFLT       amp = *p->amp;
     int         x0;
@@ -465,7 +465,7 @@ static int lposc3(CSOUND *csound, LPOSC *p)
     if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
     looplength = end - loop;
 
-    do {
+    for (n=0; n<nsmps; n++) {
       x0    = (long)phs;
       fract = (MYFLT)(phs - (double)x0);
       x0--;
@@ -480,14 +480,14 @@ static int lposc3(CSOUND *csound, LPOSC *p)
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
         MYFLT t1   = y2 + y0+y0+y0;
-        *out++     = amp * (y0 + FL(0.5)*frcu +
+        out[n]     = amp * (y0 + FL(0.5)*frcu +
                             fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
                             frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
                             frsq*(FL(0.5)* y1 - y0));
       }
       phs += si;
       while (phs >= end) phs -= looplength;
-    } while (--n);
+    }
     p->phs = phs;
     return OK;
 }
@@ -496,16 +496,15 @@ static int sum(CSOUND *csound, SUM *p)
 {
     int   count = (int) p->INOCOUNT, nsmps = csound->ksmps, k = 0;
     MYFLT *ar = p->ar, **args = p->argums;
-
-    do {
-      ar[k] = (*args)[k];
-    } while (++k < nsmps);
+    MYFLT *ag = *args;
+    for (k=0; k<nsmps; k++) {
+      ar[k] = ag[k];
+    }
     while (--count) {
-      args++;                           /* over all arguments */
-      k = 0;
-      do {
-        ar[k] += (*args)[k];            /* Over audio vector */
-      } while (++k < nsmps);
+      ag = *(++args);                   /* over all arguments */
+      for (k=0; k<nsmps; k++) {
+        ar[k] += ag[k];                 /* Over audio vector */
+      }
     }
     return OK;
 }
@@ -515,16 +514,16 @@ static int product(CSOUND *csound, SUM *p)
 {
     int   count = (int) p->INOCOUNT, nsmps = csound->ksmps, k = 0;
     MYFLT *ar = p->ar, **args = p->argums;
+    MYFLT *ag = *args;
 
-    do {
-      ar[k] = (*args)[k];
-    } while (++k < nsmps);
+    for (k=0; k<nsmps; k++) {
+      ar[k] = ag[k];
+    }
     while (--count) {
-      args++;                           /* over all arguments */
-      k = 0;
-      do {
-        ar[k] *= (*args)[k];            /* Over audio vector */
-      } while (++k < nsmps);
+      ag = *(++args);                   /* over all arguments */
+      for (k=0; k<nsmps; k++) {
+        ar[k] *= ag[k];                 /* Over audio vector */
+      }
     }
     return OK;
 }
@@ -573,9 +572,9 @@ static int resony(CSOUND *csound, RESONY *p)
     nsmps = csound->ksmps;
     asig = p->asig;
 
-/*     memset(buffer, 0, nsmps*sizeof(MYFLT)); */
-    for (n = 0; n < nsmps; n++)
-      buffer[n] = FL(0.0);
+    memset(buffer, 0, nsmps*sizeof(MYFLT));
+    /* for (n = 0; n < nsmps; n++) */
+    /*   buffer[n] = FL(0.0); */
 
     yt1 = p->yt1;
     yt2 = p->yt2;
@@ -623,23 +622,21 @@ static int fold_set(CSOUND *csound, FOLD *p)
 
 static int fold(CSOUND *csound, FOLD *p)
 {
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     MYFLT *ar = p->ar;
     MYFLT *asig = p->asig;
     MYFLT kincr = *p->kincr;
     double index = p->index;
     long sample_index = p->sample_index;
     MYFLT value = p->value;
-    do {
+    for (n=0; n<nsmps; n++) {
       if (index < (double)sample_index) {
         index += (double)kincr;
-        *ar = value = *asig;
+        ar[n]  = value = asig[n];
       }
-      else *ar = value;
+      else ar[n]= value;
       sample_index++;
-      ar++;
-      asig++;
-    } while (--nsmps);
+    }
     p->index = index;
     p->sample_index = sample_index;
     p->value = value;
@@ -1164,14 +1161,14 @@ static int jittersa(CSOUND *csound, JITTERS *p)
     MYFLT   f0= p->num0, df0 = p->df0;
     MYFLT   *ar = p->ar, *amp = p->amp;
     MYFLT   cpsMax = *p->cpsMax, cpsMin = *p->cpsMin;
-    int     n = csound->ksmps, cod = p->cod;
+    int     n, nsmps = csound->ksmps, cod = p->cod;
     double phs = p->phs, si = p->si;
 
     if (p->initflag) {
       p->initflag = 0;
       goto next;
     }
-    do {
+    for (n=0; n<nsmps; n++) {
       phs += si;
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
@@ -1191,9 +1188,9 @@ static int jittersa(CSOUND *csound, JITTERS *p)
         c2 = p->c2 = - (resd1 + FL(2.0)* resd0);
       }
       x = (MYFLT) phs;
-      *ar++ = (((c3 * x + c2) * x + df0) * x + f0) * *amp;
+      ar[n] = (((c3 * x + c2) * x + df0) * x + f0) * *amp;
       if (cod) amp++;
-    } while(--n);
+    }
     p->phs = phs;
     p->si =si;
     return OK;
@@ -1276,7 +1273,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
 { /* gab d5*/
     MYFLT min = *p->min, rge = *p->max;
     MYFLT *out = p->out, *table;
-    long n = csound->ksmps, flen, indx;
+    long n, nsmps = csound->ksmps, flen, indx;
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (long)*p->tableNum) {
@@ -1291,14 +1288,14 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
     flen = p->ftp->flen;
 
     rge -= min;
-    do {
+    for (n=0; n<nsmps; n++) {
       findx = (MYFLT) (randGab * flen + FL(0.5));
       indx = (long) findx;
       fract = findx - indx;
       v1 = table[indx];
       v2 = table[indx+1];
-      *out++ = (v1 + (v2 - v1) * fract) * rge + min;
-    } while (--n);
+      out[n] = (v1 + (v2 - v1) * fract) * rge + min;
+    }
     return OK;
 }
 
@@ -1311,12 +1308,12 @@ static int ikRangeRand(CSOUND *csound, RANGERAND *p)
 static int aRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
     MYFLT min = *p->min, max = *p->max, *out = p->out;
-    long n = csound->ksmps;
+    long n, nsmps = csound->ksmps;
     MYFLT rge = max - min;
 
-    do {
-      *out++ = randGab * rge + min;
-    } while (--n);
+    for (n=0; n<nsmps; n++) {
+      out[n] = randGab * rge + min;
+    }
     return OK;
 }
 
@@ -1343,7 +1340,7 @@ static int krandomi(CSOUND *csound, RANDOMI *p)
 static int randomi(CSOUND *csound, RANDOMI *p)
 {
     long        phs = p->phs, inc;
-    int         n = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       *ar, *cpsp;
     MYFLT       amp, min;
 
@@ -1352,8 +1349,8 @@ static int randomi(CSOUND *csound, RANDOMI *p)
     amp =  (*p->max - min);
     ar = p->ar;
     inc = (long)(*cpsp++ * csound->sicvt);
-    do {
-      *ar++ = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
+    for (n=0; n<nsmps; n++) {
+      ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
       if (p->cpscod)
         inc = (long)(*cpsp++ * csound->sicvt);
@@ -1363,7 +1360,7 @@ static int randomi(CSOUND *csound, RANDOMI *p)
         p->num2 = randGab;
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }
-    } while (--n);
+    }
     p->phs = phs;
     return OK;
 }
@@ -1388,7 +1385,7 @@ static int krandomh(CSOUND *csound, RANDOMH *p)
 static int randomh(CSOUND *csound, RANDOMH *p)
 {
     long        phs = p->phs, inc;
-    int         n = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       *ar, *cpsp;
     MYFLT       amp, min;
 
@@ -1397,8 +1394,8 @@ static int randomh(CSOUND *csound, RANDOMH *p)
     amp  = (*p->max - min);
     ar   = p->ar;
     inc  = (long)(*cpsp++ * csound->sicvt);
-    do {
-      *ar++     = p->num1 * amp + min;
+    for (n=0; n<nsmps; n++) {
+      ar[n]     = p->num1 * amp + min;
       phs      += inc;
       if (p->cpscod)
         inc     = (long)(*cpsp++ * csound->sicvt);
@@ -1406,7 +1403,7 @@ static int randomh(CSOUND *csound, RANDOMH *p)
         phs    &= PHMASK;
         p->num1 = randGab;
       }
-    } while (--n);
+    }
     p->phs = phs;
     return OK;
 }
@@ -1462,7 +1459,7 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     MYFLT       *ar = p->ar, *rangeMin = p->rangeMin;
     MYFLT       *rangeMax = p->rangeMax;
     MYFLT       cpsMin = *p->cpsMin, cpsMax = *p->cpsMax;
-    int         n = csound->ksmps, cod = p->cod;
+    int         n, nsmps = csound->ksmps, cod = p->cod;
     double      phs = p->phs, si = p->si;
 
     if (p->initflag) {
@@ -1470,7 +1467,7 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
       goto next;
 
     }
-    do {
+    for (n=0; n<nsmps; n++) {
       phs += si;
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
@@ -1490,13 +1487,13 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
         c2     = p->c2 = - (resd1 + FL(2.0)* resd0);
       }
       x = (MYFLT) phs;
-      *ar++ = (((c3 * x + c2) * x + df0) * x + f0) *
+      ar[n] = (((c3 * x + c2) * x + df0) * x + f0) *
         (*rangeMax - *rangeMin) + *rangeMin;
       if (cod) {
         rangeMin++;
         rangeMax++;
       }
-    } while(--n);
+    }
     p->phs = phs;
     p->si  = si;
     return OK;

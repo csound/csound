@@ -91,8 +91,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    n = 0;
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT yn;
       MYFLT out;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
@@ -113,7 +112,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
       ynm2 = ynm1;                      /* Shuffle along */
       ynm1 = yn;
       ynmL = fp[nmL];
-    } while (++n < nsmps);
+    }
     p->point = point;
     return OK;
 } /* end nlfilt(p) */

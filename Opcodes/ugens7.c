@@ -361,7 +361,7 @@ static int harmon(CSOUND *csound, HARMON *p)
         if (*autop > maxval) {          /* max autocorr gives new period */
           maxval = *autop;
           maxp = autop;
-#ifdef DEBUG
+#if 0
           csound->Message(csound, "new maxval %f at %ld\n", maxval, (long)maxp);
 #endif
         }
@@ -369,7 +369,7 @@ static int harmon(CSOUND *csound, HARMON *p)
       }
       period = p->mindist + maxp - p->autobuf;
       if (period != p->period) {
-#ifdef DEBUG
+#if 0
         csound->Message(csound, "New period\n");
 #endif
         p->period = period;

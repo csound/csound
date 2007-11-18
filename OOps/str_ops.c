@@ -523,7 +523,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       end = len;
     if (strt == end) {
       /* trivial case: empty output */
-      dst[0] = (char) 0;
+      dst[0] = '\0';
       return OK;
     }
     if (strt > end) {
@@ -536,7 +536,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     src += strt;
     len = end - strt;
     if (len >= csound->strVarMaxLen) {
-      ((char*) p->Sdst)[0] = (char) 0;
+      ((char*) p->Sdst)[0] = '\0';
       return StrOp_ErrMsg(p, "buffer overflow");
     }
     i = 0;
@@ -546,7 +546,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       do {
         dst[i] = src[i];
       } while (++i < len);
-      dst[i] = (char) 0;
+      dst[i] = '\0';
       if (rev) {
         int   j;
         /* if the destination string variable is the same as the source, */
@@ -566,7 +566,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       do {
         dst[i] = src[--j];
       } while (++i < len);
-      dst[i] = (char) 0;
+      dst[i] = '\0';
     }
 
     return OK;
@@ -591,7 +591,7 @@ int strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 
     (void) csound;
     if (pos < 0 || pos >= len)
-      *(p->ichr) = (MYFLT) 0;
+      *(p->ichr) = FL(0.0);
     else
       *(p->ichr) = (MYFLT) ((int) ((unsigned char) ((char*) p->Ssrc)[pos]));
 
@@ -630,7 +630,7 @@ int strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     (void) csound;
     src = (char*) p->Ssrc;
     dst = (char*) p->Sdst;
-    for (i = 0; src[i] != (char) 0; i++) {
+    for (i = 0; src[i] != '\0'; i++) {
       unsigned char   tmp;
       tmp = (unsigned char) src[i];
       dst[i] = (char) (islower(tmp) ? (unsigned char) toupper(tmp) : tmp);
@@ -648,7 +648,7 @@ int strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     (void) csound;
     src = (char*) p->Ssrc;
     dst = (char*) p->Sdst;
-    for (i = 0; src[i] != (char) 0; i++) {
+    for (i = 0; src[i] != '\0'; i++) {
       unsigned char   tmp;
       tmp = (unsigned char) src[i];
       dst[i] = (char) (isupper(tmp) ? (unsigned char) tolower(tmp) : tmp);
@@ -690,17 +690,17 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
            csound->oparms->outfilename : (char*) NULL);
       break;
     case 4:             /* is real-time audio being used ? (0: no, 1: yes) */
-      buf[0] = (char) '0';
-      buf[1] = (char) 0;
+      buf[0] = '0';
+      buf[1] = '\0';
       if ((csound->oparms->sfread && !csound->initonly &&
            check_rtaudio_name(csound->oparms->infilename, NULL, 0) >= 0) ||
           (csound->oparms->sfwrite && !csound->initonly &&
            check_rtaudio_name(csound->oparms->outfilename, NULL, 1) >= 0))
-        buf[0] = (char) '1';
+        buf[0] = '1';
       break;
     case 5:             /* is beat mode being used ? (0: no, 1: yes) */
-      buf[0] = (csound->oparms->Beatmode ? (char) '1' : (char) '0');
-      buf[1] = (char) 0;
+      buf[0] = (csound->oparms->Beatmode ? '1' : '0');
+      buf[1] = '\0';
       break;
     case 6:             /* host OS name */
 #ifdef LINUX
@@ -715,8 +715,8 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       break;
     case 7:             /* is the channel I/O callback set ? (0: no, 1: yes) */
       buf[0] = (csound->channelIOCallback_
-                == (CsoundChannelIOCallback_t) NULL ? (char) '0' : (char) '1');
-      buf[1] = (char) 0;
+                == (CsoundChannelIOCallback_t) NULL ? '0' : '1');
+      buf[1] = '\0';
       break;
     default:
       return csound->InitError(csound, Str("invalid option code: %g"),
@@ -749,9 +749,9 @@ int strindex_opcode(CSOUND *csound, STRINDEX_OP *p)
     /* search substring from left to right, */
     /* and return position of first match */
     i = j = 0;
-    while (s2[j] != (char) 0) {
-      if (s1[i] == (char) 0) {
-        *(p->ipos) = (MYFLT) -1;
+    while (s2[j] != '\0') {
+      if (s1[i] == '\0') {
+        *(p->ipos) = -FL(1.0);
         return OK;
       }
       j = (s1[i] != s2[j] ? 0 : j + 1);
@@ -783,11 +783,11 @@ int strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
     i = j = 0;
     k = -1;
     while (1) {
-      if (s2[j] == (char) 0) {
+      if (s2[j] == '\0') {
         k = i - j;
         j = 0;
       }
-      if (s1[i] == (char) 0)
+      if (s1[i] == '\0')
         break;
       j = (s1[i] != s2[j] ? 0 : j + 1);
       i++;
