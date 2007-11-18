@@ -69,8 +69,12 @@ def runTest():
         filename = t[0]
         desc = t[1]
 
-        command = "../csound --new-parser %s %s &> %s"%(runArgs, filename, tempfile)
-        retVal = os.system(command)
+        if(os.sep == '\\'):
+            command = "..\\csound.exe --new-parser %s %s 2> %s"%(runArgs, filename, tempfile)
+            retVal = os.system(command)
+        else:
+            command = "../csound --new-parser %s %s &> %s"%(runArgs, filename, tempfile)
+            retVal = os.system(command)
 
         print "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
 
