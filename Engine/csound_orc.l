@@ -55,7 +55,7 @@ STCOM		"/"\*
 WHITE		[ \t]+
 
 %%
-
+"\r"        { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 "\n"		{ yyline++; return S_NL; }
 "//"	    	{ comment(); return S_NL; }
 ";"		{ comment(); return S_NL; }
