@@ -305,10 +305,165 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     }
 }
 
+void print_tree_xml(CSOUND *csound, TREE *l, int n)
+{
+    int i;
+    if (l==NULL) {
+        return;
+    }
+    for (i=0; i<n; i++) {
+        csound->Message(csound, " ");
+    }
+
+    csound->Message(csound, "<tree type=\"%d\" ", l->type);
+
+    switch (l->type) {
+    case S_COM:
+      csound->Message(csound,"name=\"S_COM\""); break;
+    case S_Q:
+      csound->Message(csound,"name=\"S_Q\""); break;
+    case S_COL:
+      csound->Message(csound,"name=\"S_COL\""); break;
+    case S_NOT:
+      csound->Message(csound,"name=\"S_NOT\""); break;
+    case S_PLUS:
+      csound->Message(csound,"name=\"S_PLUS\""); break;
+    case S_MINUS:
+      csound->Message(csound,"name=\"S_MINUS\""); break;
+    case S_TIMES:
+      csound->Message(csound,"name=\"S_TIMES\""); break;
+    case S_DIV:
+      csound->Message(csound,"name=\"S_DIV\""); break;
+    case S_NL:
+      csound->Message(csound,"name=\"S_NL\""); break;
+    case S_LB:
+      csound->Message(csound,"name=\"S_LB\""); break;
+    case S_RB:
+      csound->Message(csound,"name=\"S_RB\""); break;
+    case S_NEQ:
+      csound->Message(csound,"name=\"S_NEQ\""); break;
+    case S_AND:
+      csound->Message(csound,"name=\"S_AND\""); break;
+    case S_OR:
+      csound->Message(csound,"name=\"S_OR\""); break;
+    case S_LT:
+      csound->Message(csound,"name=\"S_LT\""); break;
+    case S_LE:
+      csound->Message(csound,"name=\"S_LE\""); break;
+    case S_EQ:
+      csound->Message(csound,"name=\"S_EQ\""); break;
+    case S_ASSIGN:
+      csound->Message(csound,"name=\"S_ASSIGN\""); break;
+    case S_GT:
+      csound->Message(csound,"name=\"S_GT\""); break;
+    case S_GE:
+      csound->Message(csound,"name=\"S_GE\""); break;
+    case T_LABEL:
+      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"", l->value->lexeme); break;
+    case T_IF:
+      csound->Message(csound,"name=\"T_IF\""); break;
+    case T_THEN:
+          csound->Message(csound,"name=\"T_THEN\""); break;
+    case T_ITHEN:
+          csound->Message(csound,"name=\"T_ITHEN\""); break;
+    case T_KTHEN:
+          csound->Message(csound,"name=\"T_KTHEN\""); break;
+    case T_ELSEIF:
+          csound->Message(csound,"name=\"T_ELSEIF\""); break;
+    case T_ELSE:
+          csound->Message(csound,"name=\"T_ELSE\""); break;          
+    case T_GOTO:
+      csound->Message(csound,"name=\"T_GOTO\""); break;
+    case T_IGOTO:
+      csound->Message(csound,"name=\"T_IGOTO\""); break;
+    case T_KGOTO:
+      csound->Message(csound,"name=\"T_KGOTO\""); break;
+    case T_SRATE:
+      csound->Message(csound,"name=\"T_SRATE\""); break;
+    case T_KRATE:
+      csound->Message(csound,"name=\"T_KRATE\""); break;
+    case T_KSMPS:
+      csound->Message(csound,"name=\"T_KSMPS\""); break;
+    case T_NCHNLS:
+      csound->Message(csound,"name=\"T_NCHNLS\""); break;
+    case T_INSTR:
+      csound->Message(csound,"name=\"T_INSTR\""); break;
+    case T_STRCONST:
+      csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"", l->value->lexeme); break;
+    case T_IDENT:
+      csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_I:
+      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GI:
+      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_K:
+      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GK:
+      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_A:
+      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GA:
+      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_S:
+      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GS:
+      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_W:
+      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GW:
+      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_F:
+      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_GF:
+      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_P:
+      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_B:
+      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"", l->value->lexeme); break;
+    case T_IDENT_b:
+      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"", l->value->lexeme); break;
+    case T_INTGR:
+      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"", l->value->value); break;
+    case T_NUMBER:
+      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"", l->value->fvalue); break;
+    case S_ANDTHEN:
+      csound->Message(csound,"name=\"S_ANDTHEN\""); break;
+    case S_APPLY:
+      csound->Message(csound,"name=\"S_APPLY\""); break;
+    case T_OPCODE0:
+      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"", l->value->lexeme); break;
+    case T_OPCODE:
+      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"", l->value->lexeme); break;
+    case T_FUNCTION:
+      csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"", l->value->lexeme); break;
+    case S_UMINUS:
+        csound->Message(csound,"name=\"S_UMINUS\""); break;
+    default:
+      csound->Message(csound,"name=\"unknown\"");
+    }
+
+    csound->Message(csound, " >\n");
+    
+    print_tree_xml(csound, l->left,n+1);
+    print_tree_xml(csound, l->right,n+1);
+
+    for (i=0; i<n; i++) {
+        csound->Message(csound, " ");
+    }    
+    
+    csound->Message(csound, "</tree>\n");
+    
+    if(l->next != NULL) {
+        print_tree_xml(csound, l->next, n);
+    }
+}
+
 void print_tree(CSOUND * csound, TREE *l)
 {
     csound->Message(csound, "Printing Tree\n");
-    print_tree_i(csound, l, 0);
+    csound->Message(csound, "<ast>\n");
+    print_tree_xml(csound, l, 0);
+    csound->Message(csound, "</ast>\n");
 }
 
 
