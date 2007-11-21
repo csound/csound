@@ -74,11 +74,13 @@ void new_orc_parser(CSOUND *csound)
       csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
     }
 
+    csound->Message(csound, "AST - INITIAL\n");
     print_tree(csound, astTree);
 
     verify_tree(csound, astTree);
     astTree = csound_orc_expand_expressions(csound, astTree);
-
+    
+    csound->Message(csound, "AST - AFTER EXPANSION\n");
     print_tree(csound, astTree);
 
     astTree = csound_orc_optimize(csound, astTree);
