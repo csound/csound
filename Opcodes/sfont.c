@@ -208,10 +208,10 @@ static int Sfplist(CSOUND *csound, SFPLIST *p)
 {   
     sfontg *globals;
     SFBANK *sf;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    sf = &globals->sfArray[(int) *p->ihandle];
     char temp_string[24];
     int j;
+    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    sf = &globals->sfArray[(int) *p->ihandle];
     csound->Message(csound, Str("\nPreset list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->presets_num; j++) {
       presetType *prs = &sf->preset[j];
@@ -227,11 +227,13 @@ static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     sfontg *globals;
     SFBANK *sf;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    sf = &globals->sfArray[(int) *p->ihandle];
-    int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
+    int pHandle, pnum;
     int j, enableMsgs;
 
+    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    sf = &globals->sfArray[(int) *p->ihandle];
+    pHandle = (int) *p->startNum;
+    pnum = sf->presets_num;
     enableMsgs = (*p->msgs==FL(0.0));
     if (enableMsgs)
       csound->Message(csound,
@@ -257,9 +259,9 @@ static int Sfilist(CSOUND *csound, SFPLIST *p)
 {    
     sfontg *globals;
     SFBANK *sf;
+    int j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(int) *p->ihandle];
-    int j;
     csound->Message(csound, Str("\nInstrument list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->instrs_num; j++) {
       instrType *inst = &sf->instr[j];
@@ -272,8 +274,8 @@ static int Sfilist(CSOUND *csound, SFPLIST *p)
 static int SfPreset(CSOUND *csound, SFPRESET *p)
 {
     sfontg *globals; SFBANK *sf;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     int j, presetHandle = (int) *p->iPresetHandle;
+    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
 
     if (presetHandle >= MAX_SFPRESET) {
