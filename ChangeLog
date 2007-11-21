@@ -1,3 +1,6 @@
+2007-11-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Opcodes/sfont.c: Corrected code for C89 (all declarations at top).
 
 2007-11-07  Felipe Sateler <fsateler@gmail.com>
 
