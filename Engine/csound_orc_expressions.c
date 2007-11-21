@@ -29,6 +29,7 @@ extern char argtyp2(CSOUND *, char *);
 extern void print_tree(CSOUND *, TREE *);
 extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
+extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
 
 char *create_out_arg(CSOUND *csound, char outype) {
@@ -164,7 +165,7 @@ TREE * create_ans_token(CSOUND *csound, char* var) {
 TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
 /*     TREE *ans = create_empty_token(csound); */
 
-    char* op = (char *)csound->Malloc(csound, 6);
+    char* op = (char *)csound->Malloc(csound, 7);
 
     switch(gotoNode->type) {
         case T_KGOTO:
@@ -200,7 +201,10 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO TYPES LIKE IGOTO, ETC */
 TREE *create_simple_goto_token(CSOUND *csound, TREE *label) {
-	TREE * opTree = create_opcode_token(csound, "goto");
+	char* op = (char *)csound->Calloc(csound, 6);
+	sprintf(op, "kgoto");
+	
+	TREE * opTree = create_opcode_token(csound, op);
 
 	opTree->left = NULL;
 	opTree->right = label;
@@ -478,15 +482,51 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
     return anchor;
 }
 
-static TREE *create_synthetic_label(CSOUND *csound, long count) {
+
+static TREE *create_synthetic_ident(CSOUND *csound, long count) {
 	char *label = (char *)csound->Calloc(csound, 20);
 	
 	sprintf(label, "__synthetic_%ld", count);
 	
+	csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
+	
+	ORCTOKEN *token = make_token(csound, label);
+	token->type = T_IDENT;
+		
+	return make_leaf(csound, T_IDENT, token);
+}
+
+static TREE *create_synthetic_label(CSOUND *csound, long count) {
+	char *label = (char *)csound->Calloc(csound, 20);
+	
+	sprintf(label, "__synthetic_%ld:", count);
+	
+	csound->Message(csound, "Creating Synthetic label: %s\n", label);
+	
 	return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
 
-/* Expands expression nodes into opcode calls */
+/* Expands expression nodes into opcode calls 
+ * 
+ * 
+ * for if-goto, expands to:
+ *   1. Expression nodes - all of the expressions that lead to the boolean var
+ *   2. goto node - a conditional goto to evals the boolean var and goes to a 
+ *      label
+ * 
+ * for if-then-elseif-else, expands to:
+ *   1. for each conditional, converts to a set of:
+ *      -expression nodes
+ *      -conditional not-goto that goes to block end label if condition does
+ *       not pass (negative version of conditional is used to conditional skip
+ *       contents of block)
+ *      -statements (body of within conditional block)
+ *      -goto complete block end (this signifies that at the end of these 
+ *       statements, skip all other elseif or else branches and go to very end)
+ *      -block end label
+ *   2. for else statements found, do no conditional and just link in statements
+ * 
+ * */
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
 	long labelCounter = 300L; 
@@ -526,8 +566,6 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
                     expressionNodes = create_boolean_expression(csound, left);
 
-                    print_tree(csound, expressionNodes);
-
                     /* Set as anchor if necessary */
                     if(anchor == NULL) {
                         anchor = expressionNodes;
@@ -548,14 +586,15 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                     TREE * gotoToken = create_goto_token(csound,
                         expressionNodes->left->value->lexeme, right);
 
+                    last->next = gotoToken;
                     gotoToken->next = current->next;
 
-                    last->next = gotoToken;
                     current = gotoToken;
                     previous = last;
                 } else if(right->type == T_THEN ||
-                   right->type == T_ITHEN ||
-                   right->type == T_KTHEN) {
+                    right->type == T_ITHEN ||
+                    right->type == T_KTHEN) {
+                	
                     csound->Message(csound, "Found if-then\n");
 
                     int endLabelCounter = -1;
@@ -564,25 +603,36 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                     	endLabelCounter = labelCounter++; 
                     }
                     
-                    TREE *newCurrent = NULL;
-                    TREE *currentIfTree = current;
                     TREE *tempLeft;
                     TREE *tempRight;
                     
-                    while(currentIfTree != NULL) {
+                    TREE *ifBlockStart = NULL;
+                    TREE *ifBlockCurrent = current;
+                    TREE *ifBlockLast = NULL;
                     
-                    	tempLeft = currentIfTree->left;
-                    	tempRight = currentIfTree->right;
+                    while(ifBlockCurrent != NULL) {
+                    	                   	
+                    	tempLeft = ifBlockCurrent->left;
+                    	tempRight = ifBlockCurrent->right;
                     	
-                    	if(currentIfTree->type != T_ELSE) {
-                    		expressionNodes = create_boolean_expression(csound, tempLeft);
+                    	if(ifBlockCurrent->type == T_ELSE) {
+
+                    		ifBlockLast->next = ifBlockCurrent->right;
+                    		
+                    		while(ifBlockLast->next != NULL) {
+                    			ifBlockLast = ifBlockLast->next;
+                    		}
+                    		
+                    		break;
                     	}
 	
-	                    print_tree(csound, expressionNodes);
+                    	expressionNodes = create_boolean_expression(csound, tempLeft);
+                    	
+	                    /* print_tree(csound, expressionNodes); */
 	
 	                    /* Set as anchor if necessary */
-	                    if(anchor == NULL) {
-	                        anchor = expressionNodes;
+	                    if(ifBlockStart == NULL) {
+	                    	ifBlockStart = expressionNodes;
 	                    }
 	
 	                    /* reconnect into chain */
@@ -591,24 +641,23 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 	                    while(last->next != NULL) {
 	                        last = last->next;
 	                    }
-	
-	
-	                    if(previous != NULL) {
-	                        previous->next = expressionNodes;
+		
+	                    if(ifBlockLast != NULL) {
+	                        ifBlockLast->next = expressionNodes;
 	                    }
 	
 	                    TREE *statements = tempRight->right;
 	                    
-	                    TREE *label = create_synthetic_label(csound, labelCounter);
+	                    TREE *label = create_synthetic_ident(csound, labelCounter);
 	                    TREE *labelEnd = create_synthetic_label(csound, labelCounter++);
-	                    
+	                    	                    
 	                    tempRight->right = label; 
 	                    
 	                    TREE * gotoToken = create_goto_token(csound,
 	                        expressionNodes->left->value->lexeme, tempRight);
 	
-	                    
 	                    /* relinking */
+	                    last->next = gotoToken;
 	                    gotoToken->next = statements;
 	                    
 	                    while(statements->next != NULL) {
@@ -616,38 +665,52 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 	                    }
 	                    
 	                    if(endLabelCounter > 0) {
-	                    	TREE *endLabel = create_synthetic_label(csound, 
+	                    	TREE *endLabel = create_synthetic_ident(csound, 
 	                    			endLabelCounter);
+	                    	
+	                    	csound->Message(csound, "Creating simple goto token\n");
+	                    	
 	                    	TREE *gotoEndLabelToken = create_simple_goto_token(csound,
 	    	                        endLabel);
-	                    	
+	                    	                    	
 	                    	statements->next = gotoEndLabelToken;
 	                    	gotoEndLabelToken->next = labelEnd;
-	                    	labelEnd->next = current->next;
 	                    } else {
 	                    	statements->next = labelEnd;
-	                    	labelEnd->next = current->next;
-	                    }
-	
-	                    last->next = gotoToken;
-	                    
-	                    
-	                    if(newCurrent == NULL) {
-	                    	newCurrent = gotoToken;
 	                    }
 	                    
-	                    previous = last;
-                                       
-	                    currentIfTree = right->next;
+	                    ifBlockLast = labelEnd;
+                        	                    
+	                    ifBlockCurrent = tempRight->next;
+	                    
                     }
                     
-                    current = newCurrent;
                     
-                    if(endLabelCounter > 0) {
-                    	TREE *endLabel = create_synthetic_label(csound, 
-                    		                    			endLabelCounter);
-                    	
-                    }
+					if(endLabelCounter > 0) {
+						TREE *endLabel = create_synthetic_label(csound, 
+							                    			endLabelCounter);
+						endLabel->next = ifBlockLast->next;
+						ifBlockLast->next = endLabel;
+						ifBlockLast = endLabel;
+					}
+					
+					ifBlockLast->next = current->next;
+					
+					/* Connect in all of the TREE nodes that were flattened from
+					 * the if-else-else block 
+					 */
+					/* Set as anchor if necessary */
+					if(anchor == NULL) {
+						anchor = ifBlockStart;
+					}
+					
+					/* reconnect into chain */
+					
+					if(previous != NULL) {
+					    previous->next = ifBlockStart;
+					}
+					
+					current = ifBlockStart;     		
                     
                 } else {
                     csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
@@ -655,7 +718,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
                 break;
             default:
-
+            	
                 if(current->right != NULL) {
                     csound->Message(csound, "Found Statement.\n");
 

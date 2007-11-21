@@ -53,6 +53,7 @@ def runTest():
         ["test14.csd", "polymorphic test, 0xffff (init)"],
         ["test15.csd", "pluck test, 0xffff (init)"],
         ["test16.csd", "Simple if-then with multiple statements in body"],
+        ["test16.csd", "Simple if-then-else with multiple statements in body"],
     ]
 
 
