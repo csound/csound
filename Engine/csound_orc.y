@@ -284,6 +284,13 @@ ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
             $5->right = $7;
             $$ = make_node(csound, T_IF, $3, $5);
           }
+          | T_IF S_LB expr S_RB then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
+          {          
+            $5->right = $7;
+            $5->next = make_node(csound, T_ELSE, NULL, $9);
+            $$ = make_node(csound, T_IF, $3, $5);
+            
+          }
           ;
 
 then      : T_THEN             
