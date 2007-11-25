@@ -57,6 +57,7 @@ def runTest():
         ["test18.csd", "if-then-elseif with no else block"],
         ["test19.csd", "if-elseif-else"],
         ["test20.csd", "if-elseif-else with inner if-elseif-else blocks"],
+        ["test21.csd", "if-elseif-else with multiple elseif blocks"],
     ]
 
 
