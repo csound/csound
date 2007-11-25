@@ -1343,7 +1343,7 @@ else:
     print "CONFIGURATION DECISION: Building PortAudio module."
     portaudioEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'win32':
-       portaudioEnvironment.Append(LIBS = ['portaudio_x86'])
+       portaudioEnvironment.Append(LIBS = ['portaudio'])
     else:
        portaudioEnvironment.Append(LIBS = ['portaudio'])
     if (getPlatform() == 'linux'):
