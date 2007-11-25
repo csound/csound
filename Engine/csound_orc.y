@@ -321,10 +321,16 @@ ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
 
 elseiflist : elseiflist elseif
             {
-                $1->right->next = $2;
+                TREE * tempLastNode = $1;
+                
+                while(tempLastNode->right != NULL && tempLastNode->right->next != NULL) {
+                    tempLastNode = tempLastNode->right->next;
+                }
+                
+                tempLastNode->right->next = $2;
                 $$ = $1;
             }
-            | elseif 
+            | elseif { $$ = $1; }
            ;
 
 elseif    : T_ELSEIF S_LB expr S_RB then S_NL statementlist
