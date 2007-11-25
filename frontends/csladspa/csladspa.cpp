@@ -429,14 +429,14 @@ unsigned int CountCSD(char **csdnames)
 #endif
   // if no LADSPA_PATH attempt to open
   // current directory
-  path = ladspa_path;
+  if(ladspa_path == NULL) dip = opendir(".");
+  else {
+    path = ladspa_path;
 #ifdef WIN32
   indx = path.find(";");
 #else
   indx = path.find(":");
 #endif
-  if(ladspa_path == NULL) dip = opendir(".");
-  else {
     if(indx!=string::npos){
       dip = opendir(path.substr(0,indx).c_str());
       strcpy(ladspa_path, path.substr(0,indx).c_str());    
