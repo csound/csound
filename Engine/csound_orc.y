@@ -1,7 +1,7 @@
  /*
-    csound_orc.l:
+    csound_orc.y:
 
-    Copyright (C) 2006
+    Copyright (C) 2006, 2007
     John ffitch, Steven Yi
 
     This file is part of Csound.
@@ -109,6 +109,7 @@
 %start orcfile
 %left S_AND S_OR
 %nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
+%nonassoc T_THEN T_ITHEN T_KTHEN T_ELSE /* NOT SURE IF THIS IS NECESSARY */
 %left S_PLUS S_MINUS
 %left S_STAR S_SLASH
 %right S_UNOT
@@ -253,7 +254,6 @@ statement : ident S_ASSIGN expr S_NL
 
                     $$ = $1;
                 }
-          | /* NULL */  { $$ = NULL; }
           | T_LABEL S_NL
                 {
                     $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)yylval);
@@ -291,7 +291,49 @@ ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
             $$ = make_node(csound, T_IF, $3, $5);
             
           }
+          | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ENDIF S_NL
+          {          
+            csound->Message(csound, "IF-ELSEIF FOUND!\n");
+            $5->right = $7;
+            $5->next = $8;
+            $$ = make_node(csound, T_IF, $3, $5);
+          }
+          | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL
+          {     
+            csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");               
+            TREE * tempLastNode;
+            
+            $5->right = $7;
+            $5->next = $8;
+            
+            $$ = make_node(csound, T_IF, $3, $5);
+
+            tempLastNode = $$;
+            
+            while(tempLastNode->right != NULL && tempLastNode->right->next != NULL) {
+                tempLastNode = tempLastNode->right->next;
+            }
+            
+            tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $10);
+            
+          }
           ;
+
+elseiflist : elseiflist elseif
+            {
+                $1->right->next = $2;
+                $$ = $1;
+            }
+            | elseif 
+           ;
+
+elseif    : T_ELSEIF S_LB expr S_RB then S_NL statementlist
+            {
+                csound->Message(csound, "ELSEIF FOUND!\n");
+                $5->right = $7;
+                $$ = make_node(csound, T_ELSEIF, $3, $5);
+            }
+          ; 
 
 then      : T_THEN             
             { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)yylval); }
