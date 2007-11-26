@@ -180,27 +180,37 @@ instrdecl : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                     { csound->Message(csound, "No number following instr\n"); }
           ;
 
-udodecl	  : T_UDOSTART T_IDENT_S S_COM
-			{ udoflag = 0;}
+udodecl	  : T_UDOSTART
+						{ udoflag = -2; }
+     		  T_IDENT
+     		  			{ udoflag = -1; }
+     		  S_COM
+						{ udoflag = 0;}
               T_UDO_ANS
                         { udoflag = 1; }
               S_COM T_UDO_ARGS S_NL
                         { udoflag = 2; }
               statementlist T_UDOEND S_NL
               {
-                  udoflag = -1;
-                  {
-                    TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
-                    TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$5);
-                    TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$8);
+                udoflag = -1;
 
-                    udoTop->left = udoAns;
-                    udoAns->left = udoArgs;
 
-                    udoTop->right = (TREE *)$11;
+				csound->Message(csound, "UDO COMPLETE\n");
+				TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
+				TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
+                TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$7);
+                TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$10);
 
-                    $$ = udoTop;
-                  }
+                udoTop->left = ident;
+                ident->left = udoAns;
+                ident->right = udoArgs;
+
+                udoTop->right = (TREE *)$13;
+
+                $$ = udoTop;
+
+				print_tree(csound, (TREE *)$$);
+
               }
 
             ;
@@ -271,7 +281,7 @@ statement : ident S_ASSIGN expr S_NL
                     $$ = make_node(csound, T_IF, $3, $5);
                 }
 
-          | ifthen          
+          | ifthen
           | S_NL { $$ = NULL; }
           ;
 
@@ -285,48 +295,48 @@ ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
             $$ = make_node(csound, T_IF, $3, $5);
           }
           | T_IF S_LB expr S_RB then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
-          {          
+          {
             $5->right = $7;
             $5->next = make_node(csound, T_ELSE, NULL, $9);
             $$ = make_node(csound, T_IF, $3, $5);
-            
+
           }
           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ENDIF S_NL
-          {          
+          {
             csound->Message(csound, "IF-ELSEIF FOUND!\n");
             $5->right = $7;
             $5->next = $8;
             $$ = make_node(csound, T_IF, $3, $5);
           }
           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL
-          {     
-            csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");               
+          {
+            csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");
             TREE * tempLastNode;
-            
+
             $5->right = $7;
             $5->next = $8;
-            
+
             $$ = make_node(csound, T_IF, $3, $5);
 
             tempLastNode = $$;
-            
+
             while(tempLastNode->right != NULL && tempLastNode->right->next != NULL) {
                 tempLastNode = tempLastNode->right->next;
             }
-            
+
             tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $10);
-            
+
           }
           ;
 
 elseiflist : elseiflist elseif
             {
                 TREE * tempLastNode = $1;
-                
+
                 while(tempLastNode->right != NULL && tempLastNode->right->next != NULL) {
                     tempLastNode = tempLastNode->right->next;
                 }
-                
+
                 tempLastNode->right->next = $2;
                 $$ = $1;
             }
@@ -339,22 +349,22 @@ elseif    : T_ELSEIF S_LB expr S_RB then S_NL statementlist
                 $5->right = $7;
                 $$ = make_node(csound, T_ELSEIF, $3, $5);
             }
-          ; 
+          ;
 
-then      : T_THEN             
+then      : T_THEN
             { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)yylval); }
-          | T_KTHEN  
+          | T_KTHEN
             { $$ = make_leaf(csound, T_KTHEN, (ORCTOKEN *)yylval); }
-          | T_ITHEN  
+          | T_ITHEN
             { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)yylval); }
           ;
 
 
-goto	  : T_GOTO             
+goto	  : T_GOTO
             { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
-          | T_KGOTO  
+          | T_KGOTO
             { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)yylval); }
-          | T_IGOTO  
+          | T_IGOTO
             { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)yylval); }
           ;
 
@@ -476,7 +486,7 @@ constant  : T_INTGR 	{ $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           ;
 
-opcode0   : T_OPCODE0 
+opcode0   : T_OPCODE0
             {
                 csound->Message(csound, "opcode0 yylval=%p\n", yylval);
                 $$ = make_leaf(csound, T_OPCODE0, (ORCTOKEN *)yylval);
