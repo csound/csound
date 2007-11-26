@@ -296,6 +296,10 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
     strcpy(ans->lexeme, s);
     //ans->next = symbtab[h];
 
+    if(udoflag == -2) {
+        return ans;
+    }
+
     // NEED TO FIX: In case of looking for label for kgoto or other opcodes, need
     // to return T_IDENT instead of any sub-type
     if (s[0]=='i') type = T_IDENT_I;

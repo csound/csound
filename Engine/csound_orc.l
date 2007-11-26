@@ -166,7 +166,7 @@ void do_comment(void)              /* Skip until * and / chars */
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
 {
-    ORCTOKEN *ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
+    ORCTOKEN *ans = (ORCTOKEN*)mcalloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
     return ans;
 }
