@@ -58,6 +58,7 @@ def runTest():
         ["test19.csd", "if-elseif-else"],
         ["test20.csd", "if-elseif-else with inner if-elseif-else blocks"],
         ["test21.csd", "if-elseif-else with multiple elseif blocks"],
+        ["test22.csd", "simple UDO"],
     ]
 
 
