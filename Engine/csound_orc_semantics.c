@@ -226,7 +226,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case T_ELSEIF:
           csound->Message(csound,"T_ELSEIF:\n"); break;
     case T_ELSE:
-          csound->Message(csound,"T_ELSE:\n"); break;          
+          csound->Message(csound,"T_ELSE:\n"); break;
     case T_GOTO:
       csound->Message(csound,"T_GOTO:\n"); break;
     case T_IGOTO:
@@ -371,7 +371,7 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
     case T_ELSEIF:
           csound->Message(csound,"name=\"T_ELSEIF\""); break;
     case T_ELSE:
-          csound->Message(csound,"name=\"T_ELSE\""); break;          
+          csound->Message(csound,"name=\"T_ELSE\""); break;
     case T_GOTO:
       csound->Message(csound,"name=\"T_GOTO\""); break;
     case T_IGOTO:
@@ -438,21 +438,27 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"", l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"name=\"S_UMINUS\""); break;
+    case T_UDO:
+        csound->Message(csound,"name=\"T_UDO\""); break;
+    case T_UDO_ANS:
+        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"", l->value->lexeme); break;
+    case T_UDO_ARGS:
+        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"", l->value->lexeme); break;
     default:
       csound->Message(csound,"name=\"unknown\"");
     }
 
     csound->Message(csound, " >\n");
-    
+
     print_tree_xml(csound, l->left,n+1);
     print_tree_xml(csound, l->right,n+1);
 
     for (i=0; i<n; i++) {
         csound->Message(csound, " ");
-    }    
-    
+    }
+
     csound->Message(csound, "</tree>\n");
-    
+
     if(l->next != NULL) {
         print_tree_xml(csound, l->next, n);
     }
@@ -478,7 +484,7 @@ void handle_optional_args(CSOUND *csound, TREE *l) {
 
     csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
                     ep->opname, incnt, nreqd);
-    
+
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
         switch (ep->intypes[incnt]) {
@@ -496,7 +502,7 @@ void handle_optional_args(CSOUND *csound, TREE *l) {
           temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
           appendToTree(csound, l->right, temp);
           break;
-          
+
         case 'V':
         case 'v':
           temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
@@ -609,7 +615,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           break;
           /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
         }
-        
+
         /*if (!(isopcod(csound, str))) {*/
         /* if opcode is not found: report syntax error     */
         /*synterr(csound, Str("failed to find %s, input arg illegal type"), str);*/
@@ -620,7 +626,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           ST(linopcod) = ST(opcod);
           csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));*/
       }
-      
+
       /* free(str); */
     }
 }
