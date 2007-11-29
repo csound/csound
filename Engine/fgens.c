@@ -224,7 +224,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftp->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
     ftp->nchanls  = 1;                          /*    presume mono for now  */
     ftp->flenfrms = ff.flen;
-    if (nonpowof2_flag) ftp->lenmask = 0xFFFFFFFF;  /* gab: fixed for non-powoftwo function tables */
+    if (nonpowof2_flag)
+      ftp->lenmask = 0xFFFFFFFF; /* gab: fixed for non-powoftwo function tables */
 
     if (msg_enabled)
       csound->Message(csound, Str("ftable %d:\n"), ff.fno);
