@@ -40,12 +40,11 @@ instr 3
 endin
 
 instr 4
-;;       kl   line       100, p3, 1000
+      kl   line       1, p3, 2
       asig oscili     16000, 440, 1 
-;;      asig in
       fsig pvsanal    asig,512,1,512,0
-      fs   pvscale   fsig, 1.1
-      aclean  pvsynth  fs
+      fs   pvscale    fsig, kl
+      aclean  pvsynth fs
            out        aclean
 endin
 
@@ -140,7 +139,7 @@ f2 0 513 8 0 2 1 3 0 4 1 6 0 10 1 12 0 16 1 32 0 1 0 436 0
 ;i1 0 1.0 ; OK freeze
 ;i2 0 5 ; OK pvstencil
 ;i3 0 3 ; OK pvshift
-;i4 0 3 ; bad in arate version
+i4 0 6 ; bad in arate version
 ;i5 0 3 ; OK
 ;i6 0 3 ;very bad
 ;i7 0 3
@@ -153,6 +152,6 @@ f2 0 513 8 0 2 1 3 0 4 1 6 0 10 1 12 0 16 1 32 0 1 0 436 0
 ;i11 0 3
 ;i12 0 3
 ;i13 0 3
-i14 0 3
+;i14 0 3
 </CsScore>
 </CsoundSynthesizer>

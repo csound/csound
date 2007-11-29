@@ -98,7 +98,8 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
       delete_memfile(csound, filnam);
       return NULL;
     }
-    if (Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0) {  /* loadfile */
+    if (Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0) {
+      /* loadfile */
       csoundMessage(csound, Str("cannot load %s, or SADIR undefined\n"),
                             pathnam);
       mfree(csound, pathnam);

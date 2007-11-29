@@ -907,7 +907,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 
 static int pvsscale(CSOUND *csound, PVSSCALE *p)
 {
-    long    i, chan, newchan, N = p->fout->N;
+    int     i, chan, N = p->fout->N;
     float   max = 0.0f;
     MYFLT   pscal = (MYFLT) fabs(*p->kscal);
     int     keepform = (int) *p->keepform;
@@ -939,13 +939,15 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
         }
 
         for (i = 1; i < NB-1; i++) {
-          newchan = (int) (i * pscal);
+          int newchan = i; //(int) (i * pscal);
           if (newchan < NB && newchan > 0) {
             fout[newchan].re = keepform ?
               (keepform == 1 ||
                !max ? fin[newchan].re : fin[i].re * (fin[newchan].re / max))
               : fin[i].re;
             fout[newchan].im = fin[i].im * pscal;
+            /* Remove aliases */
+            if (fout[newchan].im>=csound->esr*0.5) fout[newchan].re=0.0;
           }
         }
 
@@ -972,10 +974,10 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
 
-        newchan = (int) (chan * pscal) << 1;
+        int newchan = ((int) (chan * pscal)) << 1;
 
         if (newchan < N && newchan > 0) {
-          fout[newchan] = keepform ?
+          fout[newchan] += keepform ?
               (keepform == 1 ||
                !max ? fin[newchan] : fin[i] * (fin[newchan] / max))
               : fin[i];
