@@ -833,14 +833,12 @@ static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
     h = name_hash_(name);
     /* find entry in database */
     pp = (csCfgVariable_t*) (db[(int) h]);
-    do {
-      if (pp == NULL)
-        return (csCfgVariable_t*) NULL;     /* not found */
+    while (pp!=NULL) {
       if (sCmp((char*) pp->h.name, name) == 0)
         return pp;                          /* found */
       pp = (csCfgVariable_t*) (pp->h.nxt);
-    } while (1);
-    return (csCfgVariable_t*) NULL;     /* compiler only */
+    }
+    return (csCfgVariable_t*) NULL;
 }
 
 /**
