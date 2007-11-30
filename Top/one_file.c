@@ -696,8 +696,12 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (blank_buffer(csound)) continue;
       else if (started && strchr(p, '<') == ST(buffer)) {
-        csoundMessage(csound, Str("unknown command: %s\n"), ST(buffer));
+        csoundMessage(csound, Str("unknown CSD tag: %s\n"), ST(buffer));
       }
+    }
+    if (!started) {
+      csoundMessage(csound, Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
+      result = FALSE;
     }
     *pname = ST(orcname);
     *score = ST(sconame);
