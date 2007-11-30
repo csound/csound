@@ -947,7 +947,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
               : fin[i].re;
             fout[newchan].im = fin[i].im * pscal;
             /* Remove aliases */
-            if (fout[newchan].im>=csound->esr*0.5) fout[newchan].re=0.0;
+            if (fout[newchan].im>=csound->esr*0.5 || fout[i].im<= -csound->esr*0.5)
+              fout[newchan].re=0.0;
           }
         }
 
@@ -1076,19 +1077,18 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
           }
         }
         for (i = lowest; i < NB; i++) {
-          newchan = (i + cshift);
-          if (newchan < NB && newchan > lowest) {
-            fout[newchan].re = keepform ?
-              (keepform == 1 ||
-               !max ? fin[newchan].re : fin[i].re * (fin[newchan].re / max))
-              : fin[i].re;
-            fout[newchan].im = (fin[i].im + pshift);
-          }
+          //newchan = (i + cshift);
+          fout[i].re = keepform ?
+            (keepform == 1 ||
+             !max ? fin[i].re : fin[i].re * (fin[i].re / max))
+            : fin[i].re;
+          fout[i].im = (fin[i].im + pshift);
+          /* Remove aliases */
+          if (fout[i].im>=csound->esr*0.5 || fout[i].im<= -csound->esr*0.5)
+            fout[newchan].re = 0.0;
         }
-        for (i = lowest; i < NB; i++) {
-          if (fout[i].im == -FL(1.0))
-            fout[i].re = FL(0.0);
-          else
+        if (g!=1.0f)
+          for (i = lowest; i < NB; i++) {
             fout[i].re *= g;
         }
       }
