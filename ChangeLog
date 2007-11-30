@@ -1,3 +1,8 @@
+2007-11-30  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsbasic.c (pvsscale): Improved algorithm for SDFT case
+	so no ampltitude variation
+
 2007-11-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/argdecode.c (argdecode, decode_long):
@@ -9,12 +14,12 @@
 	otran() and csoundCompile() return early when just checking syntax.
 	--i-only sets --nosound same as -I
 	Added initial value for numThreads to OPARMS.
-	
+
 	* Top/one_file.c (read_unified_file): CSD read should fail when no
 	<CsoundSynthesizer> tag found so that performance is aborted.
 
 	* Ops/str_ops.c (getcfg_opcode): Added mac_classic case for host OS name.
-	
+
 2007-11-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Opcodes/sfont.c: Corrected code for C89 (all declarations at top).
