@@ -142,7 +142,8 @@ int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern int csound_orclex (ORCTOKEN*, CSOUND *);
-
+extern void print_tree(CSOUND *, TREE *);
+extern void csound_orcerror(CSOUND *, TREE*, char*);
 %}
 %%
 
