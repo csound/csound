@@ -595,6 +595,8 @@ static const CSOUND cenviron_ = {
           0,            /*    midiVelocity      */
           0,            /*    midiVelocityAmp   */
           0,            /*    noDefaultPaths    */
+          1,            /*    numThreads        */
+          0,            /*    syntaxCheckOnly   */
 #ifdef ENABLE_NEW_PARSER
           0,            /*    newParser   */
 #endif
