@@ -573,6 +573,14 @@ void otran(CSOUND *csound)
       csound->Die(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid"), csound->synterrcnt);
     }
+    if (O->syntaxCheckOnly) {
+      /* no need to go any further, so cleanup */
+      delete_local_namepool(csound);
+      delete_global_namepool(csound);
+      mfree(csound, ST(constTbl));
+      ST(constTbl) = NULL;
+      return;
+    }
     if (O->odebug) {
       long  n;
       MYFLT *p;
@@ -650,6 +658,7 @@ void otran(CSOUND *csound)
     delete_global_namepool(csound);
     mfree(csound, ST(constTbl));
     ST(constTbl) = NULL;
+    return;
 }
 
 /* prep an instr template for efficient allocs  */

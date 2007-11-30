@@ -154,6 +154,7 @@ static const char *longUsageList[] = {
   "--nosound\t\tno sound onto disk or device",
   "--tempo=N\t\tuse uninterpreted beats of the score, initially at tempo N",
   "--i-only\t\tI-time only orch run",
+  "--syntax-check-only\tstop after checking orchestra and score syntax",
   "--control-rate=N\torchestra krate override",
   "--sample-rate=N\t\torchestra srate override",
   "--score-in=FNAME\tread Line-oriented realtime score events from device",
@@ -486,6 +487,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
      */
     else if (!(strcmp (s, "i-only"))) {
       csound->initonly = 1;
+      O->syntaxCheckOnly = 0;           /* overrides --syntax-check-only */
+      O->sfwrite = 0;                   /* and implies nosound */
       return 1;
     }
     /*
@@ -810,6 +813,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->numThreads = atoi(s);
       return 1;
     }
+    else if(!(strcmp (s, "syntax-check-only"))) {
+      O->syntaxCheckOnly = 1;
+      return 1;
+    }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
       csound->LongJmp(csound, 0);
@@ -868,7 +875,8 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           O->usingcscore = 1;           /* use cscore processing  */
           break;
         case 'I':
-          csound->initonly = 1;         /* I-only implies */
+          csound->initonly = 1;         /* I-only overrides */
+          O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
         case 'n':
           O->sfwrite = 0;               /* nosound        */
           break;

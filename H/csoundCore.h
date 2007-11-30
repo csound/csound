@@ -147,6 +147,7 @@ extern "C" {
     int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
                               from files */
     int     numThreads;
+    int     syntaxCheckOnly;
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
 #endif
