@@ -21,6 +21,7 @@
     02111-1307 USA
 */
 
+#include <ctype.h>
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
@@ -167,9 +168,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
       int   tmp = (int) strlen(csound->orchname) - 4;
       if (tmp >= 0 && csound->orchname[tmp] == '.' &&
-          (csound->orchname[tmp + 1] | (char) 0x20) == 'c' &&
-          (csound->orchname[tmp + 2] | (char) 0x20) == 's' &&
-          (csound->orchname[tmp + 3] | (char) 0x20) == 'd') {
+          tolower(csound->orchname[tmp + 1]) == 'c' &&
+          tolower(csound->orchname[tmp + 2]) == 's' &&
+          tolower(csound->orchname[tmp + 3]) == 'd') {
         /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
         csound->orcname_mode = 0;
         csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
@@ -187,7 +188,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
-          csound->Die(csound, Str("Decode failed....stopping"));
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
         }
 
         csdFound = 1;
@@ -372,6 +373,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     strcpy(O->playscore, playscore);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
+    if (O->syntaxCheckOnly) {
+      csound->Message(csound, Str("Syntax check completed.\n"));
+      return CSOUND_EXITJMP_SUCCESS;
+    }
 
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
