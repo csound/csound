@@ -28,7 +28,8 @@
 #include "csoundCore.h"
 #include "tok.h"
 #include "csound_orcparse.h"
-
+#include "insert.h"
+#include "namedins.h"
 
 ORCTOKEN** symbtab;
 extern int yyline;
@@ -330,4 +331,221 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
     //symbtab[h] = ans;
 
     return ans;
+}
+
+
+
+
+/* UDO code below was from otran, broken out and modified for new parser by
+ * SYY
+ */
+
+/* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
+static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
+{
+    OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
+    char    *types, *otypes;
+    int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
+    int     S_incnt, S_outcnt;
+    short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
+    short   *S_inlist, *S_outlist;
+
+    /* count the number of arguments, and check types */
+    i = i_incnt = S_incnt = a_incnt = k_incnt =
+        i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
+    types = inm->intypes; otypes = opc->intypes;
+    opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
+    if (!strcmp(types, "0"))
+      types++;                  /* no input args */
+    while (*types) {
+      switch (*types) {
+      case 'a':
+        a_incnt++; *otypes++ = *types;
+        break;
+      case 'K':
+        i_incnt++;              /* also updated at i-time */
+      case 'k':
+        k_incnt++; *otypes++ = 'k';
+        break;
+      case 'i':
+      case 'o':
+      case 'p':
+      case 'j':
+        i_incnt++; *otypes++ = *types;
+        break;
+      case 'S':
+        S_incnt++; *otypes++ = *types;
+        break;
+      default:
+        synterr(csound, "invalid input type for opcode %s", inm->name);
+        err++; i--;
+      }
+      i++; types++;
+      if (i > OPCODENUMOUTS_MAX) {
+        synterr(csound, "too many input args for opcode %s", inm->name);
+        csound->LongJmp(csound, 1);
+      }
+    }
+    *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
+    inm->inchns = i;                    /* total number of input chnls */
+    inm->perf_incnt = a_incnt + k_incnt;
+    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    /* same for outputs */
+    i = 0;
+    types = inm->outtypes; otypes = opc->outypes;
+    if (!strcmp(types, "0"))
+      types++;                  /* no output args */
+    while (*types) {
+      if (i >= OPCODENUMOUTS_MAX) {
+        synterr(csound, "too many output args for opcode %s", inm->name);
+        csound->LongJmp(csound, 1);
+      }
+      switch (*types) {
+      case 'a':
+        a_outcnt++; *otypes++ = *types;
+        break;
+      case 'K':
+        i_outcnt++;             /* also updated at i-time */
+      case 'k':
+        k_outcnt++; *otypes++ = 'k';
+        break;
+      case 'i':
+        i_outcnt++; *otypes++ = *types;
+        break;
+      case 'S':
+        S_outcnt++; *otypes++ = *types;
+        break;
+      default:
+        synterr(csound, "invalid output type for opcode %s", inm->name);
+        err++; i--;
+      }
+      i++; types++;
+    }
+    *otypes = '\0';
+    inm->outchns = i;                   /* total number of output chnls */
+    inm->perf_outcnt = a_outcnt + k_outcnt;
+    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
+                     & (~((unsigned short) 15)));   /* align (needed ?) */
+    /* now build index lists for the various types of arguments */
+    i = i_incnt + S_incnt + inm->perf_incnt +
+        i_outcnt + S_outcnt + inm->perf_outcnt;
+    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
+                                                   sizeof(short) * (i + 8));
+    S_inlist = i_inlist + i_incnt + 1;
+    a_inlist = S_inlist + S_incnt + 1;
+    k_inlist = a_inlist + a_incnt + 1;
+    i = 0; types = inm->intypes;
+    while (*types) {
+      switch (*types++) {
+        case 'a': *a_inlist++ = i; break;
+        case 'k': *k_inlist++ = i; break;
+        case 'K': *k_inlist++ = i;      /* also updated at i-time */
+        case 'i':
+        case 'o':
+        case 'p':
+        case 'j': *i_inlist++ = i; break;
+        case 'S': *S_inlist++ = i; break;
+      }
+      i++;
+    }
+    *i_inlist = *S_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
+    i_outlist = inm->out_ndx_list = k_inlist + 1;
+    S_outlist = i_outlist + i_outcnt + 1;
+    a_outlist = S_outlist + S_outcnt + 1;
+    k_outlist = a_outlist + a_outcnt + 1;
+    i = 0; types = inm->outtypes;
+    while (*types) {
+      switch (*types++) {
+        case 'a': *a_outlist++ = i; break;
+        case 'k': *k_outlist++ = i; break;
+        case 'K': *k_outlist++ = i;     /* also updated at i-time */
+        case 'i': *i_outlist++ = i; break;
+        case 'S': *S_outlist++ = i; break;
+      }
+      i++;
+    }
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
+    return err;
+}
+
+
+int add_udo_definition(CSOUND *csound, char *opname, char *outtypes, char *intypes) {
+    OENTRY    tmpEntry, *opc, *newopc;
+    long      newopnum;
+    OPCODINFO *inm;
+
+
+    /* IV - Oct 31 2002 */
+    if (!check_instr_name(opname)) {
+        synterr(csound, Str("invalid name for opcode"));
+        return -1;
+    }
+
+    /* IV - Oct 31 2002: check if opcode is already defined */
+    newopnum = find_opcode(csound, opname);
+
+    if (newopnum) {
+        /* IV - Oct 31 2002: redefine old opcode if possible */
+        if (newopnum < SETEND || !strcmp(opname, "subinstr")) {
+          synterr(csound, Str("cannot redefine %s"), opname);
+          return -2;
+        }
+
+        csound->Message(csound,
+                        Str("WARNING: redefined opcode: %s\n"), opname);
+    }
+
+    /* IV - Oct 31 2002 */
+    /* store the name in a linked list (note: must use mcalloc) */
+    inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
+    inm->name = (char*)mmalloc(csound, 1+strlen(opname));
+    strcpy(inm->name, opname);
+    inm->intypes = intypes;
+    inm->outtypes = outtypes;
+
+    /* NEED TO FIX */
+    /* inm->ip = ip; */
+
+    inm->prv = csound->opcodeInfo;
+    csound->opcodeInfo = inm;
+    /* IV - Oct 31 2002: */
+    /* create a fake opcode so we can call it as such */
+    opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
+    memcpy(&tmpEntry, opc, sizeof(OENTRY));
+    tmpEntry.opname = (char*)mmalloc(csound, 1+strlen(opname));
+    strcpy(tmpEntry.opname, opname);
+    csound->AppendOpcodes(csound, &tmpEntry, 1);
+
+    if (!newopnum) {
+        newopnum = (long) ((OENTRY*) csound->oplstend
+                           - (OENTRY*) csound->opcodlst) - 1L;
+    }
+
+    newopc = &(csound->opcodlst[newopnum]);
+    newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+
+
+    /* NEED TO FIX */
+    /*
+    ip->insname = (char*)mmalloc(csound, 1+strlen(opname));
+    strcpy(ip->insname, opname);
+    ip->opcode_info = inm; */ /* IV - Nov 10 2002 */
+
+    /* check in/out types and copy to the opcode's */
+    /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+    newopc->outypes = mmalloc(csound, strlen(outtypes) + 1
+                                      + strlen(intypes) + 2);
+    newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+
+    if (parse_opcode_args(csound, newopc) != 0)
+        return -3;
+
+    if(strcmp(outtypes, "0")==0) {
+        add_token(csound, opname, T_OPCODE0);
+    } else {
+        add_token(csound, opname, T_OPCODE);
+    }
+
+    return 0;
 }
