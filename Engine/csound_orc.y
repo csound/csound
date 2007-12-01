@@ -190,7 +190,13 @@ udodecl	  : T_UDOSTART
               T_UDO_ANS
                         { udoflag = 1; }
               S_COM T_UDO_ARGS S_NL
-                        { udoflag = 2; }
+              {
+              	udoflag = 2;
+              	add_udo_definition(csound,
+              		((ORCTOKEN *)$3)->lexeme,
+              		((ORCTOKEN *)$7)->lexeme,
+              		((ORCTOKEN *)$10)->lexeme);
+              }
               statementlist T_UDOEND S_NL
               {
                 udoflag = -1;
