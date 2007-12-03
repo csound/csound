@@ -28,6 +28,8 @@
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
+#define NAMELEN 40              /* array size of repeat macro names */
+#define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
 
 #define MARGS   (3)
 
@@ -78,14 +80,14 @@ typedef struct {
     int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
     int     linepos /* = -1 */;
     MARKED_SECTIONS names[30], *current_name;
-    char    repeat_name_n[40][40];
-    int     repeat_cnt_n[40];
-    long    repeat_point_n[40];
+    char    repeat_name_n[RPTDEPTH][NAMELEN];
+    int     repeat_cnt_n[RPTDEPTH];
+    long    repeat_point_n[RPTDEPTH];
     int     repeat_inc_n /* = 1 */;
-    MACRO   *repeat_mm_n[40];
+    MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
     /* Variable for repeat sections */
-    char    repeat_name[40];
+    char    repeat_name[NAMELEN];
     int     repeat_cnt;
     long    repeat_point;
     int     repeat_inc /* = 1 */;
@@ -816,27 +818,31 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         {
           char *old_nxp = ST(nxp)-2;
           ST(repeat_index)++;
+          if (ST(repeat_index) >= RPTDEPTH)
+            csound->Die(csound, Str("sread: Loops are nested too deeply"));
           if (ST(str)->string) {
             int c;
-            csound->Message(csound,Str("LOOP not at top level; ignored\n"));
-            do {    /* Ignore rest of line */
-              c = getscochar(csound, 1);
-            } while (c != LF && c != EOF);
+            csound->Message(csound,Str("sread: LOOP not at top level, "
+                                       "sect %d line %d,  ignored\n"),
+                                   csound->sectcnt, ST(lincnt));
+            flushlin(csound);     /* Ignore rest of line */
           }
           else {
-            char *nn = ST(repeat_name_n)[ST(repeat_index)];
-            int c;
+            int c, i;
             ST(repeat_mm_n)[ST(repeat_index)] =
               (MACRO*)mmalloc(csound, sizeof(MACRO));
             ST(repeat_cnt_n)[ST(repeat_index)] = 0;
             do {
               c = getscochar(csound, 1);
             } while (c==' '||c=='\t');
-            do {
+            while (isdigit(c)) {
               ST(repeat_cnt_n)[ST(repeat_index)] =
                 10 * ST(repeat_cnt_n)[ST(repeat_index)] + c - '0';
               c = getscochar(csound, 1);
-            } while (isdigit(c));
+            }
+            if (ST(repeat_cnt_n)[ST(repeat_index)] <= 0 
+                 || (c != ' ' && c != '\t' && c != '\n'))
+              csound->Die(csound, Str("sread: {: invalid repeat count"));
             if (ST(repeat_index) > 1) {
               char st[41];
               int j;
@@ -855,28 +861,26 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                                         ST(repeat_cnt_n)[ST(repeat_index)],
                                         ST(repeat_index));
             }
-            do {
+            while (c == ' ' || c == '\t') {
               c = getscochar(csound, 1);
-            } while (c == ' ' || c == '\t');
-            do {
-              *nn++ = c;
-            } while (isalpha(c = getscochar(csound, 1)) ||
-                     (nn != ST(repeat_name_n)[ST(repeat_index)] &&
-                      (isdigit(c) || c == '_')));
-            *nn = '\0';
+            }
+            for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+              ST(repeat_name_n)[ST(repeat_index)][i] = c;
+              c = getscochar(csound, 1);
+            }
+            ST(repeat_name_n)[ST(repeat_index)][i] = '\0';
+            ungetscochar(csound, c);
             /* Define macro for counter */
             ST(repeat_mm_n)[ST(repeat_index)]->name =
               mmalloc(csound, strlen(ST(repeat_name_n)[ST(repeat_index)])+1);
             strcpy(ST(repeat_mm_n)[ST(repeat_index)]->name,
                    ST(repeat_name_n)[ST(repeat_index)]);
             ST(repeat_mm_n)[ST(repeat_index)]->acnt = 0;
-            ST(repeat_mm_n)[ST(repeat_index)]->body = (char*)mmalloc(csound, 8);
+            ST(repeat_mm_n)[ST(repeat_index)]->body = (char*)mmalloc(csound, 12);
             sprintf(ST(repeat_mm_n)[ST(repeat_index)]->body, "%d", 0);
             ST(repeat_mm_n)[ST(repeat_index)]->next = ST(macros);
             ST(macros) = ST(repeat_mm_n)[ST(repeat_index)];
-            while (c != LF && c != EOF) {       /* Ignore rest of line */
-              c = getscochar(csound, 1);
-            }
+            flushlin(csound);     /* Ignore rest of line */
             ST(repeat_point_n)[ST(repeat_index)] = ftell(ST(str)->file);
           }
           ST(clock_base) = FL(0.0);
@@ -899,7 +903,9 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         if (ST(nxp) >= ST(memend))              /* if this memblk exhausted */
           expand_nxp(csound);
         if (ST(str)->string) {
-          csound->Message(csound,Str("Repeat not at top level; ignored\n"));
+          csound->Message(csound,Str("sread: Repeat not at top level, "
+                                     "sect %d line %d,  ignored\n"),
+                                 csound->sectcnt, ST(lincnt));
           flushlin(csound);     /* Ignore rest of line */
         }
         else {
@@ -919,13 +925,13 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           while (c == ' ' || c == '\t') {
             c = getscochar(csound, 1);
           }
-          for (i = 0; isNameChar(c, i); i++) {
+          for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
             ST(repeat_name)[i] = c;
             c = getscochar(csound, 1);
           }
           ST(repeat_name)[i] = '\0';
-          while (c != '\n' && c != EOF) /* Ignore rest of line */
-            c = getscochar(csound, 1);
+          ungetscochar(csound, c);
+          flushlin(csound);     /* Ignore rest of line */
           if (i) {
             /* Only if there is a name: define macro for counter */
             ST(repeat_mm) = (MACRO*) mmalloc(csound, sizeof(MACRO));
@@ -1347,6 +1353,7 @@ static void flushlin(CSOUND *csound)
     while ((c = getscochar(csound, 0)) != LF && c != EOF)
       ;
     ST(linpos) = 0;
+    ST(lincnt)++;
 }
 
 static inline int check_preproc_name(CSOUND *csound, const char *name)
@@ -1588,15 +1595,18 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
                     /* if non-numeric, and non-carry, and non-special-char: */
-    /*    if (strchr("0123456789.+-^np<>{}()\"~", c) == NULL) { */
+    /*    if (strchr("0123456789.+-^np<>()\"~", c) == NULL) { */
     if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
-        && c!='p' && c!='<' && c!='>' && c!='{' && c!='}' && c!='('
+        && c!='p' && c!='<' && c!='>' && c!='('
         && c!=')' && c!='"' && c!='~') {
       ungetscochar(csound, c);                /* then no more pfields    */
-      if (ST(linpos))
+      if (ST(linpos)) {
         csound->Message(csound,
                         Str("sread: unexpected char %c, sect %d line %d\n"),
                         c, csound->sectcnt, ST(lincnt));
+        csound->Message(csound, Str("      remainder of line flushed\n"));
+        flushlin(csound);
+      }
       return(0);                              /*    so return            */
     }
     p = ST(sp) = ST(nxp);                     /* else start copying to text */
@@ -1610,6 +1620,8 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
         csound->Message(csound, Str("sread: illegally placed string, "
                                     "sect %d line %d\n"),
                                 csound->sectcnt, ST(lincnt));
+        csound->Message(csound, Str("      remainder of line flushed\n"));
+        flushlin(csound);
         return(0);
       }
       while ((c = getscochar(csound, 1)) != '"') {

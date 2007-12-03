@@ -1,3 +1,11 @@
+2007-12-03  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Engine/sread.c (sread, flushlin, getpfld): Improved line counts for
+	error reporting (still much to do though).  Fixed some potential buffer
+	overflows.  Fixed {} repeat opcodes and improved their parameter reading
+	(similarly to previous changes for 'r' statement).  Now flushing rest of
+	line after finding an illegal character in getpfld().
+
 2007-11-30  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsbasic.c (pvsscale): Improved algorithm for SDFT case
