@@ -638,7 +638,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
         csound->Message(csound, "create_instrument: instr num %ld\n", instrNum);
 
         ip->t.inlist->arg[0] = strsav_string(csound, c);
-        
+
         csound->Free(csound, c);
     }
 
@@ -904,6 +904,23 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, long instrNum) {
     csound->instrtxtp[instrNum] = instrtxt;
 }
 
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
+    OPCODINFO *opinfo = csound->opcodeInfo;
+    if(opinfo == NULL) {
+        csound->Message(csound, "!!! csound->opcodeInfo is NULL !!!\n");
+        return NULL;
+    }
+
+    while(opinfo != NULL) {
+        csound->Message(csound, "%s : %s\n", opinfo->name, opname);
+        if(strcmp(opinfo->name, opname) == 0) {
+            return opinfo;
+        }
+    }
+
+    return NULL;
+}
+
 /**
  * Compile the given TREE node into structs for Csound to use
  */
@@ -911,9 +928,11 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     csound->Message(csound, "Begin Compiling AST (Currently Implementing)\n");
 
     OPARMS      *O = csound->oparms;
+    INSTRTXT    *instrtxt = NULL;
     INSTRTXT    *ip = NULL;
     INSTRTXT    *prvinstxt = &(csound->instxtanchor);
     OPTXT       *bp;
+    char        *opname;
     long        count, sumcount, instxtcount, optxtcount;
 
     strsav_create(csound);
@@ -923,7 +942,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     }
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
                                                       * sizeof(INSTRTXT*));
-    csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
+    // csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
 
     strconstndx(csound, "\"\"");
 
@@ -961,7 +980,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 resetouts(csound); /* reset #out counts */
                 lblclear(csound); /* restart labelist  */
 
-                INSTRTXT * instrtxt = create_instrument(csound, current);
+                instrtxt = create_instrument(csound, current);
 
                 prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
@@ -983,6 +1002,31 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 resetouts(csound); /* reset #out counts */
                 lblclear(csound); /* restart labelist  */
 
+                instrtxt = create_instrument(csound, current->right);
+
+                //prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+
+                opname = current->left->value->lexeme;
+
+                csound->Message(csound,
+                    "Searching for OPCODINFO for opname: %s\n", opname);
+
+                OPCODINFO *opinfo = find_opcode_info(csound, opname);
+
+                if(opinfo == NULL) {
+                    csound->Message(csound,
+                        "ERROR: Could not find OPCODINFO for opname: %s\n",
+                        opname);
+                } else {
+                    opinfo->ip = instrtxt;
+                    instrtxt->insname = (char*)mmalloc(csound, 1+strlen(opname));
+                    strcpy(instrtxt->insname, opname);
+                    instrtxt->opcode_info = opinfo;
+                }
+
+                /* Handle Inserting into CSOUND here by checking id's (name or
+                 * numbered) and using new insert_instrtxt?
+                 */
 
                 break;
             default:
@@ -1014,6 +1058,9 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
           while (++i <= csound->maxopcno) csound->instrtxtp[i] = NULL;
         }
         inm->instno = num;
+
+        csound->Message(csound, "UDO INSTR NUM: %d\n", num);
+
         csound->instrtxtp[num] = inm->ip;
         inm = inm->prv;
       }
