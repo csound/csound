@@ -55,9 +55,9 @@ STCOM		"/"\*
 WHITE		[ \t]+
 
 %%
-"\r"        { } /* EATUP THIS PART OF WINDOWS NEWLINE */
+"\r"		{ } /* EATUP THIS PART OF WINDOWS NEWLINE */
 "\n"		{ yyline++; return S_NL; }
-"//"	    	{ comment(); return S_NL; }
+"//"		{ comment(); return S_NL; }
 ";"		{ comment(); return S_NL; }
 {STCOM}		{ do_comment(); }
 "("		{ return S_LB; }
@@ -76,46 +76,46 @@ WHITE		[ \t]+
 "<"		{ return S_LT; }
 "<="		{ return S_LE; }
 "=="		{ return S_EQ; }
-"="		{   *lvalp = make_token(csound, yytext);
-            (*lvalp)->type = S_ASSIGN;
-            return S_ASSIGN; }
+"="		{ *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = S_ASSIGN;
+                  return S_ASSIGN; }
 ">"		{ return S_GT; }
 ">="		{ return S_GE; }
 
 "if"		{ return T_IF; }
 "then"		{ return T_THEN; }
-"ithen"      { return T_ITHEN; }
-"kthen"      { return T_KTHEN; }
-"elseif"      { return T_ELSEIF; }
-"else"      { return T_ELSE; }
-"endif"      { return T_ENDIF; }
+"ithen"		{ return T_ITHEN; }
+"kthen"		{ return T_KTHEN; }
+"elseif"	{ return T_ELSEIF; }
+"else"		{ return T_ELSE; }
+"endif"		{ return T_ENDIF; }
 
-"goto"      { 	*lvalp = make_token(csound, yytext);
-                (*lvalp)->type = T_GOTO;
-                return T_GOTO; };
-"igoto"     { 	*lvalp = make_token(csound, yytext);
-                (*lvalp)->type = T_IGOTO;
-                return T_IGOTO; };
-"kgoto"    	{ 	*lvalp = make_token(csound, yytext);
-                (*lvalp)->type = T_KGOTO;
-                return T_KGOTO; };
+"goto"      	{ *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_GOTO;
+                  return T_GOTO; };
+"igoto"		{ *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_IGOTO;
+                  return T_IGOTO; };
+"kgoto"    	{ *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_KGOTO;
+                  return T_KGOTO; };
 
-"sr"		{ 	*lvalp = make_token(csound, yytext);
+"sr"		{ *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_SRATE;
                   return T_SRATE; }
-"kr"		{ 	*lvalp = make_token(csound, yytext);
+"kr"		{ *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_KRATE;
-                return T_KRATE; }
-"ksmps"		{ 	*lvalp = make_token(csound, yytext);
+                  return T_KRATE; }
+"ksmps"		{ *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_KSMPS;
-                return T_KSMPS; }
-"nchnls"	{ 	*lvalp = make_token(csound, yytext);
+                  return T_KSMPS; }
+"nchnls"	{ *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_NCHNLS;
-                return T_NCHNLS; }
+                  return T_NCHNLS; }
 "instr"		{ return T_INSTR; }
 "endin"		{ return T_ENDIN; }
 "opcode"	{ return T_UDOSTART; }
-"endop"	    { *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
+"endop"		{ *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
 
 {LABEL}		{ *lvalp = make_label(csound, yytext); return T_LABEL; }
 
