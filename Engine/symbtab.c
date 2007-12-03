@@ -470,7 +470,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 }
 
 
-int add_udo_definition(CSOUND *csound, char *opname, char *outtypes, char *intypes) {
+/** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
+ * used at parse time.  An OENTRY is also added at this time so that at
+ * verification time the opcode can be looked up to get its signature.
+ */
+int add_udo_definition(CSOUND *csound, char *opname,
+        char *outtypes, char *intypes) {
+
     OENTRY    tmpEntry, *opc, *newopc;
     long      newopnum;
     OPCODINFO *inm;
@@ -504,11 +510,9 @@ int add_udo_definition(CSOUND *csound, char *opname, char *outtypes, char *intyp
     inm->intypes = intypes;
     inm->outtypes = outtypes;
 
-    /* NEED TO FIX */
-    /* inm->ip = ip; */
-
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
+
     /* IV - Oct 31 2002: */
     /* create a fake opcode so we can call it as such */
     opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
@@ -524,13 +528,6 @@ int add_udo_definition(CSOUND *csound, char *opname, char *outtypes, char *intyp
 
     newopc = &(csound->opcodlst[newopnum]);
     newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-
-
-    /* NEED TO FIX */
-    /*
-    ip->insname = (char*)mmalloc(csound, 1+strlen(opname));
-    strcpy(ip->insname, opname);
-    ip->opcode_info = inm; */ /* IV - Nov 10 2002 */
 
     /* check in/out types and copy to the opcode's */
     /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
