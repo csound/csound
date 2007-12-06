@@ -1259,6 +1259,7 @@ makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
+makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
 
 makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
