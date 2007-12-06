@@ -139,7 +139,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
 
     do {
       xn1 = *in;
-      /* 6th order allpass filter for cosine output. Structure is
+      /* 6th order allpass filter for sine output. Structure is
        * 6 first-order allpass sections in series. Coefficients
        * taken from arrays calculated at i-time.
        */
@@ -150,7 +150,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
         xn1 = yn1;
       }
       xn2 = *in++;
-      /* 6th order allpass filter for sine output. Structure is
+      /* 6th order allpass filter for cosine output. Structure is
        * 6 first-order allpass sections in series. Coefficients
        * taken from arrays calculated at i-time.
        */
@@ -160,8 +160,8 @@ static int hilbert(CSOUND *csound, HILBERT *p)
         p->ynm1[j] = yn2;
         xn2 = yn2;
       }
-      *out1++ = yn1;
-      *out2++ = yn2;
+      *out1++ = yn2;
+      *out2++ = yn1;
     } while (--nsmps);
     return OK;
 }
