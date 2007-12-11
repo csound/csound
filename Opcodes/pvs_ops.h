@@ -30,6 +30,7 @@ extern int psynth_init_(CSOUND *);
 extern int pvsbasic_init_(CSOUND *);
 extern int pvscent_init_(CSOUND *);
 extern int pvsdemix_init_(CSOUND *);
+extern int pvsband_init_(CSOUND *);
 
 #endif  /* CSOUND_PVS_OPS_H */
 
