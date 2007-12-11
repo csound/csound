@@ -1,9 +1,15 @@
+2007-12-11  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvscent.c: New code
+
+	* Opcodes/pvs_ops.c (csoundModuleInit): Initialise pvsband
+
 2007-12-06  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* SConstruct:
-	* Opcodes/shape.c: New opcodes powershape, polynomial, chebyshevpoly, 
+	* Opcodes/shape.c: New opcodes powershape, polynomial, chebyshevpoly,
 	pdclip, pdhalf, pdhalfy, and syncphasor.
-	
+
 2007-12-03  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/sread.c (sread, flushlin, getpfld): Improved line counts for

@@ -37,6 +37,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= pvsbasic_init_(csound);
     err |= pvscent_init_(csound);
     err |= pvsdemix_init_(csound);
+    err |= pvsband_init_(csound);
 
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
