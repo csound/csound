@@ -1244,7 +1244,7 @@ makePlugin(pluginEnvironment, 'pvoc', Split('''
 '''))
 makePlugin(pluginEnvironment, 'pvs_ops', Split('''
     Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
-    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c
+    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
 '''))
 makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
