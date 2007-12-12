@@ -74,16 +74,16 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
 static int pvsband(CSOUND *csound, PVSBAND *p)
 {
     int     i, N = p->fout->N;
-    int     lowest = MYFLT2LRND(*p->klowest);
-    int     highest = MYFLT2LRND(*p->khighest);
+    MYFLT   lowest = *p->klowest;
+    MYFLT   highest = *p->khighest;
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvsband: not initialised"));
 
-    if (lowest<0) lowest = 0;
-    if (highest>N) highest = N;
+    if (lowest<FL(0.0)) lowest = FL(0.0);
+    if (highest>FL(0.5)*csound->esr) highest = FL(0.5)*csound->esr;
 #ifdef SDFT
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
@@ -92,10 +92,17 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       for (n=0; n<nsmps; n++) {
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-        if (XINARG2) lowest = MYFLT2LRND(p->klowest[n]);
-        if (XINARG3) highest = MYFLT2LRND(p->khighest[n]);
-        for (i = 1; i < NB-1; i++) {
-          if (i < lowest || i>highest) {
+        if (XINARG2) {
+          lowest = p->klowest[n];
+          if (lowest<FL(0.0)) lowest = FL(0.0);
+        }
+        if (XINARG3) {
+          highest = p->khighest[n];
+          if (highest>FL(0.5)*csound->esr)
+            highest = FL(0.5)*csound->esr;
+        }
+        for (i = 0; i < NB-1; i++) {
+          if (fout[i].im < lowest || fout[i].im>highest) {
             fout[i].re = FL(0.0);
             fout[i].im = -FL(1.0);
           }
@@ -109,13 +116,8 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
 #endif
     if (p->lastframe < p->fin->framecount) {
 
-      lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
-
-      fout[0] = fin[0];
-      fout[N] = fin[N];
-
-      for (i = 0; i <= N; i += 2) {
-        if (i < lowest || i > highest) {
+      for (i = 0; i < N; i += 2) {
+        if (fout[i + 1] < lowest || fout[i + 1] > highest) {
           fout[i] = 0.0f;
           fout[i + 1] = -1.0f;
         }
