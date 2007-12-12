@@ -550,6 +550,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             case T_UDO:
                 csound->Message(csound, "UDO found\n");
 
+                current->right = csound_orc_expand_expressions(csound, current->right);
+                
                 break;
 
             case T_IF:

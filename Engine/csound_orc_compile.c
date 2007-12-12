@@ -587,7 +587,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
     char *c;
 
     TREE *statements, *current;
-
+    
     ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
     op = (OPTXT *)ip;
     statements = root->right;
@@ -1002,9 +1002,9 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 resetouts(csound); /* reset #out counts */
                 lblclear(csound); /* restart labelist  */
 
-                instrtxt = create_instrument(csound, current->right);
+                instrtxt = create_instrument(csound, current);
 
-                //prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+                prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
                 opname = current->left->value->lexeme;
 
