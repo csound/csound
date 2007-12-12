@@ -1118,10 +1118,11 @@ static void copypflds(CSOUND *csound)
 static void ifa(CSOUND *csound)
 {
     SRTBLK *prvbp;
-    int n;
+    int n, nocarry;
 
     ST(bp)->pcnt = 0;
     while (getpfld(csound)) {   /* while there's another pfield,  */
+      nocarry = 0;
       if (++ST(bp)->pcnt == PMAX) {
         csound->Message(csound, Str("sread: instr pcount exceeds PMAX\n"));
         csound->Message(csound, Str("\t sect %d line %d\n"),
@@ -1167,6 +1168,40 @@ static void ifa(CSOUND *csound)
         }
         else carryerror(csound);
       }
+      else if (*ST(sp) == '!') {
+        int getmore = 0;
+        if (ST(op) != 'i') {
+          *(ST(nxp)-1) = '\0';
+          getmore = 1;
+          csound->Message(csound, Str("sread: ignoring '%s' in '%c' event, "
+                                      "sect %d line %d\n"), ST(sp), ST(op),
+                                  csound->sectcnt, ST(lincnt));
+        }
+        else if (ST(bp)->pcnt < 4) {
+          csound->Message(csound, Str("sread: ! invalid in p1, p2, or p3, "
+                                      "sect %d line %d\n"),
+                                  csound->sectcnt, ST(lincnt));
+          csound->Message(csound, Str("      remainder of line flushed\n"));
+          flushlin(csound);
+        }
+        else if (ST(nxp)-ST(sp) != 2) {
+          csound->Message(csound, Str("sread: illegal character after !: '%c', "
+                                      "sect %d line %d\n"), *(ST(sp)+1),
+                                  csound->sectcnt, ST(lincnt));
+          csound->Message(csound, Str("      remainder of line flushed\n"));
+          flushlin(csound);
+        }
+        else {
+          nocarry = 1;         /* only set when no syntax errors */
+          flushlin(csound);
+        }
+        /* but always delete the pfield beginning with '!' */
+        ST(nxp) = ST(sp);
+        ST(bp)->pcnt--;
+        if (getmore) continue; /* not the best, but not easy to delete event */
+                               /* since ifa() doesn't return anything */
+        else break;
+      } 
       else switch (ST(bp)->pcnt) {      /*  watch for p1,p2,p3, */
       case 1:                           /*   & MYFLT, setinsno..*/
         if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"')
@@ -1203,7 +1238,7 @@ static void ifa(CSOUND *csound)
       break;
       }
     }
-    if (ST(op) == 'i' &&                /* then carry any rem pflds */
+    if (ST(op) == 'i' && !nocarry &&    /* then carry any rem pflds */
         ((prvbp = ST(prvibp)) != NULL ||
          (!ST(bp)->pcnt && (prvbp = ST(bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i')) &&
@@ -1595,10 +1630,10 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
                     /* if non-numeric, and non-carry, and non-special-char: */
-    /*    if (strchr("0123456789.+-^np<>()\"~", c) == NULL) { */
+    /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
     if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
-        && c!='p' && c!='<' && c!='>' && c!='('
-        && c!=')' && c!='"' && c!='~') {
+        && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
+        && c!='"' && c!='~' && c!='!') {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (ST(linpos)) {
         csound->Message(csound,
