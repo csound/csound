@@ -7,6 +7,8 @@
 
 2007-12-11  jpff  <jpff@codemist.co.uk>
 
+	* H/version.h (CS_PATCHLEVEL): 3
+
 	* Opcodes/pvscent.c: New code
 
 	* Opcodes/pvs_ops.c (csoundModuleInit): Initialise pvsband
