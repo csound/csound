@@ -9,6 +9,7 @@ giamp = 10000
 
 		opcode testUDO, i, i
 ipch	xin
+print ipch
 ipch 	= ipch * 2
 		xout ipch
 		endop
