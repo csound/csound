@@ -63,6 +63,7 @@ extern "C" {
 #  define XINARG2   (p->XINCODE & 2)
 #  define XINARG3   (p->XINCODE & 4)
 #  define XINARG4   (p->XINCODE & 8)
+#  define XINARG5   (p->XINCODE &16)
 #define XOUTCODE    ORTXT.xoutcod
 #define XSTRCODE    ORTXT.xincod_str
 #define XOUTSTRCODE ORTXT.xoutcod_str
