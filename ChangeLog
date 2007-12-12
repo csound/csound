@@ -1,3 +1,10 @@
+2007-12-11  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Engine/sread.c (ifa, getpfld): New "no-carry" operator (!) for score
+	language that prevents implicit carrying of p-fields in i-statements.
+	(eg.  i 2 1 1 4.0 ! will only have 4 p-fields regardless of whether
+	previous i2 statements had more).
+
 2007-12-11  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pvscent.c: New code
