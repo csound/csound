@@ -42,6 +42,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 void comment(void);
 void do_comment(void);
 extern int udoflag;
+extern int namedInstrFlag;
 int yyline = 0;
 %}
 
@@ -112,7 +113,10 @@ WHITE		[ \t]+
 "nchnls"	{ *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_NCHNLS;
                   return T_NCHNLS; }
-"instr"		{ return T_INSTR; }
+"instr"		{ 
+                namedInstrFlag = 1;
+                return T_INSTR; 
+            }
 "endin"		{ return T_ENDIN; }
 "opcode"	{ return T_UDOSTART; }
 "endop"		{ *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }

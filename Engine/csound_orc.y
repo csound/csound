@@ -139,6 +139,7 @@
 #include "csound_orc.h"
 
 int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
+int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern int csound_orclex (TREE*, CSOUND *);
@@ -173,13 +174,31 @@ rootstatement	  : rootstatement topstatement
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 /* FIXME: Does not allow named instruments i.e. "instr trumpet" */
-instrdecl : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
-                    {
-                        TREE *leaf = make_leaf(csound, T_INTGR, (ORCTOKEN *)$2);
-                        $$ = make_node(csound, T_INSTR, leaf, $4);
-                    }
+instrdecl : T_INSTR 
+                { namedInstrFlag = 1; }
+            T_INTGR S_NL 
+                { namedInstrFlag = 0; }
+            statementlist T_ENDIN S_NL
+                {
+                    TREE *leaf = make_leaf(csound, T_INTGR, (ORCTOKEN *)$3);
+                    $$ = make_node(csound, T_INSTR, leaf, $6);
+                }
+                
+          | T_INSTR 
+                { namedInstrFlag = 1; }
+            T_IDENT S_NL 
+                { namedInstrFlag = 0; }
+            statementlist T_ENDIN S_NL
+                {
+                    TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
+                    $$ = make_node(csound, T_INSTR, ident, $6);
+                }
+                
           | T_INSTR S_NL error
-                    { csound->Message(csound, "No number following instr\n"); }
+                { 
+                    namedInstrFlag = 0; 
+                    csound->Message(csound, "No number following instr\n"); 
+                }
           ;
 
 udodecl	  : T_UDOSTART
