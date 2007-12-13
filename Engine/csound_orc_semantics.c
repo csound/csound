@@ -52,7 +52,7 @@ int csound_orcwrap()
 }
 
 /* BISON PARSER FUNCTION */
-void csound_orcerror(CSOUND *csound, char *str)
+void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 {
     csound->Message(csound, "csound_orcerror: %s\n", str);
 }
