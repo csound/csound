@@ -34,6 +34,7 @@
 ORCTOKEN** symbtab;
 extern int yyline;
 extern int udoflag;
+extern int namedInstrFlag;
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 
@@ -297,7 +298,9 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
     strcpy(ans->lexeme, s);
     //ans->next = symbtab[h];
 
-    if(udoflag == -2) {
+    csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag); 
+    
+    if(udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }
 
