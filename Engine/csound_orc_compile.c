@@ -640,6 +640,25 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
         ip->t.inlist->arg[0] = strsav_string(csound, c);
 
         csound->Free(csound, c);
+    } else if(root->left->type == T_IDENT) { /* named instrument */
+    	long  insno_priority = -1L;
+    	c = root->left->value->lexeme;
+    	
+    	csound->Message(csound, "create_instrument: instr name %s\n", c);
+    	
+	      if (*c == '+') {
+	        insno_priority--; c++;
+	      }
+	      /* IV - Oct 31 2002: some error checking */
+	      if (!check_instr_name(c)) {
+	        synterr(csound, Str("invalid name for instrument"));
+	      }
+	      /* IV - Oct 31 2002: store the name */
+	      if (!named_instr_alloc(csound, c, ip, insno_priority)) {
+	        synterr(csound, "instr %s redefined", c);
+	      }
+	      ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
+    	
     }
 
 
