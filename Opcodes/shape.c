@@ -1,5 +1,4 @@
 /*    shape.c
-
     A Csound opcode library implementing ugens
     for various waveshaping methods.
 
@@ -112,8 +111,8 @@ static int Polynomial(CSOUND* csound, POLYNOMIAL* data)
 typedef struct {
     OPDS    h;
     MYFLT   *aout, *ain, *kcoefficients[VARGMAX];
-    MYFLT    *chebn;
-    AUXCH    coeff;
+    MYFLT   *chebn;
+    AUXCH   coeff;
 } CHEBPOLY;
 
 static int ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* data)
@@ -421,8 +420,6 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
 }
 #endif
-
-
 /* code for linking dynamic libraries under Csound 5 */
 
 #define S(x)    sizeof(x)
