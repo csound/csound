@@ -14,7 +14,7 @@ ipch 	= ipch * 2
 		xout ipch
 		endop
 
-	instr test	;untitled
+	instr itest	;untitled
 
 iamp = giamp
 
@@ -35,11 +35,11 @@ aout	vco2 kenv, ifreq
 
 <CsScore>
 
-i"test"	0.0	1 440
-i"test"  + . 550
-i"test"  + . 660
-i"test"  + . 770
-i"test"  + . 880
+i"itest"	0.0	1 440
+i"itest"  + . 550
+i"itest"  + . 660
+i"itest"  + . 770
+i"itest"  + . 880
 
 e
 
