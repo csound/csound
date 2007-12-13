@@ -75,7 +75,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
 
 static int pvsband(CSOUND *csound, PVSBAND *p)
 {
-    int     i, N = p->fout->N;
+    int     i, N = p->fin->N;
     MYFLT   lowcut = *p->klowcut;
     MYFLT   lowbnd = *p->klowbnd;
     MYFLT   higbnd = *p->khigbnd;
@@ -110,20 +110,21 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           if (higcut<higbnd) higcut = higbnd;
         }
         for (i = 0; i < NB-1; i++) {
-          if (fout[i].im < lowcut || fout[i].im>higcut) {
+          MYFLT frq = fin[i].im;
+          if (frq < lowcut || frq>higcut) {
             fout[i].re = FL(0.0);
             fout[i].im = -FL(1.0);
           }
-          else if (fout[i].im > lowbnd && fout[i].im>higbnd) {
+          else if (frq > lowbnd && frq<higbnd) {
             fout[i] = fin[i];
           }
-          else if (fout[i].im > lowcut && fout[i].im < lowbnd) {
-            fout[i].re = fin[i].re * (fin[i].im - lowcut)/(lowbnd - lowcut);
-            fout[i].im = fin[i].im;
+          else if (frq > lowcut && frq < lowbnd) {
+            fout[i].re = fin[i].re * (frq - lowcut)/(lowbnd - lowcut);
+            fout[i].im = frq;
           }
           else {
-            fout[i].re = fin[i].re * (fin[i].im - higbnd)/(higcut - higbnd);
-            fout[i].im = fin[i].im;
+            fout[i].re = fin[i].re * (frq - higbnd)/(higcut - higbnd);
+            fout[i].im = frq;
           }
         }
       }
@@ -131,22 +132,22 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     }
 #endif
     if (p->lastframe < p->fin->framecount) {
-
       for (i = 0; i < N; i += 2) {
-        if (fout[i+1] < lowcut || fout[i+1]>higcut) {
+        MYFLT frq = fin[i+1];
+        if (frq < lowcut || frq>higcut) {
             fout[i] = FL(0.0);
             fout[i+1] = -FL(1.0);
           }
-          else if (fout[i+1] > lowbnd && fout[i+1]>higbnd) {
+          else if (frq > lowbnd && frq<higbnd) {
             fout[i] = fin[i];
           }
-          else if (fout[i+1] > lowcut && fout[i+1] < lowbnd) {
-            fout[i] = fin[i] * (fin[i+1] - lowcut)/(lowbnd - lowcut);
-            fout[i+1] = fin[i+1];
+          else if (frq > lowcut && frq < lowbnd) {
+            fout[i] = fin[i] * (frq - lowcut)/(lowbnd - lowcut);
+            fout[i+1] = frq;
           }
           else {
-            fout[i] = fin[i] * (fin[i+1] - higbnd)/(higcut - higbnd);
-            fout[i+1] = fin[i+1];
+            fout[i] = fin[i] * (frq - higbnd)/(higcut - higbnd);
+            fout[i+1] = frq;
           }
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
@@ -157,7 +158,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  {"pvsband", S(PVSBAND), 3, "f", "fxx", (SUBR) pvsbandinit, (SUBR) pvsband }
+  {"pvsband", S(PVSBAND), 3, "f", "fxxxx", (SUBR) pvsbandinit, (SUBR) pvsband }
 };
 
 int pvsband_init_(CSOUND *csound)
