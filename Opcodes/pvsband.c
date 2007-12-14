@@ -142,6 +142,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           }
           else if (afrq > lowbnd && afrq<higbnd) {
             fout[i] = fin[i];
+            fout[i+1] = fin[i+1];
           }
           else if (afrq > lowcut && afrq < lowbnd) {
             fout[i] = fin[i] * (frq - lowcut)/(lowbnd - lowcut);
@@ -157,10 +158,96 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     return OK;
 }
 
+static int pvsbrej(CSOUND *csound, PVSBAND *p)
+{
+    int     i, N = p->fin->N;
+    MYFLT   lowcut = *p->klowcut;
+    MYFLT   lowbnd = *p->klowbnd;
+    MYFLT   higbnd = *p->khigbnd;
+    MYFLT   higcut = *p->khigcut;
+    float   *fin = (float *) p->fin->frame.auxp;
+    float   *fout = (float *) p->fout->frame.auxp;
+
+    if (fout == NULL)
+      return csound->PerfError(csound, Str("pvsband: not initialised"));
+
+    if (lowcut<FL(0.0)) lowcut = FL(0.0);
+    if (lowbnd<lowcut) lowbnd = lowcut;
+    if (higbnd<lowbnd) higbnd = lowbnd;
+    if (higcut<higbnd) higcut = higbnd;
+#ifdef SDFT
+    if (p->fin->sliding) {
+      int n, nsmps = csound->ksmps;
+      int NB  = p->fout->NB;
+
+      for (n=0; n<nsmps; n++) {
+        int change = 0;
+        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
+        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+        if (XINARG2) lowcut = p->klowcut[n], change = 1;
+        if (XINARG3) lowbnd = p->klowbnd[n], change = 1;
+        if (XINARG4) higbnd = p->khigbnd[n], change = 1;
+        if (XINARG5) higcut = p->khigcut[n], change = 1;
+        if (change) {
+          if (lowcut<FL(0.0)) lowcut = FL(0.0);
+          if (lowbnd<lowcut) lowbnd = lowcut;
+          if (higbnd<lowbnd) higbnd = lowbnd;
+          if (higcut<higbnd) higcut = higbnd;
+        }
+        for (i = 0; i < NB-1; i++) {
+          MYFLT frq = fin[i].im;
+          MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+          if (afrq < lowcut || afrq>higcut) {
+            fout[i] = fin[i];
+          }
+          else if (afrq > lowbnd && afrq<higbnd) {
+            fout[i].re = FL(0.0);
+            fout[i].im = -FL(1.0);
+          }
+          else if (afrq > lowcut && afrq < lowbnd) {
+            fout[i].re = fin[i].re * (lowbnd - afrq)/(lowbnd - lowcut);
+            fout[i].im = frq;
+          }
+          else {
+            fout[i].re = fin[i].re * (afrq - higbnd)/(higcut - higbnd);
+            fout[i].im = frq;
+          }
+        }
+      }
+      return OK;
+    }
+#endif
+    if (p->lastframe < p->fin->framecount) {
+      for (i = 0; i < N; i += 2) {
+        MYFLT frq = fin[i+1];
+        MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+        if (afrq < lowcut || afrq>higcut) {
+            fout[i] = fin[i];
+            fout[i+1] = fin[i+1];
+          }
+          else if (afrq > lowbnd && afrq<higbnd) {
+            fout[i] = FL(0.0);
+            fout[i+1] = -FL(1.0);
+          }
+          else if (afrq > lowcut && afrq < lowbnd) {
+            fout[i] = fin[i] * (lowbnd - afrq)/(lowbnd - lowcut);
+            fout[i+1] = frq;
+          }
+          else {
+            fout[i] = fin[i] * (afrq - higbnd)/(higcut - higbnd);
+            fout[i+1] = frq;
+          }
+      }
+      p->fout->framecount = p->lastframe = p->fin->framecount;
+    }
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  {"pvsband", S(PVSBAND), 3, "f", "fxxxx", (SUBR) pvsbandinit, (SUBR) pvsband }
+  {"pvsbandp", S(PVSBAND), 3, "f", "fxxxx", (SUBR) pvsbandinit, (SUBR) pvsband },
+  {"pvsbandr", S(PVSBAND), 3, "f", "fxxxx", (SUBR) pvsbandinit, (SUBR) pvsbrej }
 };
 
 int pvsband_init_(CSOUND *csound)
