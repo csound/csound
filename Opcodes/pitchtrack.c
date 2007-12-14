@@ -426,7 +426,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->amphi = MAXAMPS;
     p->npartial = 7;
     p->dbfs = 32768.0/csound->e0dbfs;
-
+    p->cps = 100.0;
     return (OK);
 }
 
