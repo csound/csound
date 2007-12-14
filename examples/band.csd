@@ -12,10 +12,12 @@ nchnls = 2
 instr  1
        kl   line       70, p3, 10000
        asig oscil      16000, kl, 1 
-       fsig pvsanal    asig,128,1,128,1
-       fs   pvsband    fsig, 100, 200, 1000, 9000
+       fsig pvsanal    asig,128,50,128,1
+       fs   pvsbandp   fsig, 100, 200, 1000, 9000
+       ft   pvsbandr   fsig, 100, 200, 1000, 9000
        acln pvsynth    fs
-            outs       acln, asig
+       acrn pvsynth    ft
+            outs       acln, acrn
 endin
 </CsInstruments>
 
