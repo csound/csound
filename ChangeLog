@@ -1,3 +1,8 @@
+2007-12-14  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Opcodes/shape.c: Added unipolar option to pdclip, pdhalf, and pdhalfy,
+	making it the default.
+
 2007-12-11  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/sread.c (ifa, getpfld): New "no-carry" operator (!) for score
