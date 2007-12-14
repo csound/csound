@@ -1,4 +1,5 @@
-/*    shape.c
+/*  shape.c
+
     A Csound opcode library implementing ugens
     for various waveshaping methods.
 
@@ -35,8 +36,8 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT    *aout, *ain, *kshapeamount, *ifullscale;
-    MYFLT    maxamplitude, one_over_maxamp;
+    MYFLT   *aout, *ain, *kshapeamount, *ifullscale;
+    MYFLT   maxamplitude, one_over_maxamp;
 } POWER_SHAPE;
 
 static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* data)
@@ -196,42 +197,62 @@ static int ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* data)
 
 typedef struct {
     OPDS    h;
-    MYFLT    *aout, *ain, *kwidth, *kcenter, *ifullscale;
+    MYFLT   *aout, *ain, *kwidth, *kcenter, *ibipolar, *ifullscale;
 } PD_CLIP;
 
 static int PDClip(CSOUND* csound, PD_CLIP* data)
 {
     MYFLT     cur, low, high, maxampl, width, unwidth, center, outscalar;
-    int       nsmps = csound->ksmps;
+    int       bipolarMode, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
+    bipolarMode = (int) *(data->ibipolar);
     maxampl = *(data->ifullscale);
     width = (*(data->kwidth) > FL(1.0) ? FL(1.0) :
              (*(data->kwidth) < FL(0.0) ? FL(0.0) : *(data->kwidth)));
-    unwidth = FL(1.0) - width;            /* width of unclipped region */
+    unwidth = FL(1.0) - width;           /* width of 1/2 unclipped region */
 
-    /* the unclipped region can only shift left or right by up to width */
-    if      (*(data->kcenter) < - width)  center = - width * maxampl;
-    else if (*(data->kcenter) > width)    center = width * maxampl;
-    else                                  center = *(data->kcenter) * maxampl;
+    if (bipolarMode) {
+      /* the unclipped region can only shift left or right by up to width */
+      if      (*(data->kcenter) < - width) center = - width * maxampl;
+      else if (*(data->kcenter) > width)   center = width * maxampl;
+      else                                 center = *(data->kcenter) * maxampl;
+    }
+    else {
+    	width = FL(0.5) * width;   /* range reduced by 1/2 in unipolar mode */
+    	unwidth = FL(0.5) * unwidth;
+      center = *(data->kcenter) * FL(0.5) + FL(0.5);     /* make unipolar */
+      if      (center < (FL(0.5) - width)) center = (FL(0.5) - width) * maxampl;
+      else if (center > (FL(0.5) + width)) center = (FL(0.5) + width) * maxampl;
+      else                                 center = center * maxampl;
+    }
+    low = center - unwidth*maxampl;       /* min value of unclipped input */
+    high = unwidth*maxampl + center;      /* max value of unclipped input */
 
-    low = center - unwidth*maxampl;        /* min value of unclipped input */
-    high = unwidth*maxampl + center;        /* max value of unclipped input */
-    outscalar = (unwidth == FL(0.0)) ? FL(0.0) : (FL(1.0) / unwidth);
-
-    do {
-      cur = *in++;
-      *out++ = (cur < low ? -maxampl :
-                (cur > high ? maxampl : (outscalar * (cur-center))));
-    } while (--nsmps);
+    if (bipolarMode) {
+      outscalar = (unwidth == FL(0.0)) ? FL(0.0) : (FL(1.0) / unwidth);
+      do {
+        cur = *in++;
+        *out++ = (cur <= low ? -maxampl :
+                  (cur >= high ? maxampl : (outscalar * (cur-center))));
+      } while (--nsmps);
+    }
+    else {
+      outscalar = (unwidth == FL(0.0)) ? FL(0.0) : (FL(0.5) / unwidth);
+      do {
+        cur = *in++;
+        *out++ = (cur <= low ? FL(0.0) :
+                  (cur >= high ? maxampl : (outscalar * (cur-low))));
+      } while (--nsmps);
+    }
 
     return OK;
 }
 
 typedef struct {
     OPDS    h;
-    MYFLT    *aout, *ain, *kamount, *ifullscale, *iunipolar;
+    MYFLT   *aout, *ain, *kamount, *ibipolar, *ifullscale;
 } PD_HALF;
 
 /* Casio-style phase distortion with "pivot point" on the X axis */
@@ -243,19 +264,45 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
     MYFLT*    in = data->ain;
 
     maxampl = *(data->ifullscale);
-    midpoint = (*(data->kamount) > FL(1.0) ? maxampl :
-                (*(data->kamount) < FL(-1.0) ? -maxampl :
-                 (*(data->kamount) * maxampl)));
+    if (maxampl == FL(0.0))  maxampl = FL(1.0);
 
-    rightslope = maxampl / (maxampl - midpoint);
-    leftslope  = maxampl / (midpoint + maxampl);
-
-    do {
-      cur = *in++;
-      if (cur < midpoint) *out++ = leftslope*(cur - midpoint);
-      else                *out++ = rightslope*(cur - midpoint);
-    } while (--nsmps);
-
+    if (*(data->ibipolar) != FL(0.0)) {    /* bipolar mode */
+      /* clamp kamount in range [-1,1] */
+      midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
+                  (*(data->kamount) <= FL(-1.0) ? -maxampl :
+                   (*(data->kamount) * maxampl)));
+  
+      if (midpoint != -maxampl) leftslope  = maxampl / (midpoint + maxampl);
+      else                      leftslope  = FL(0.0);
+      if (midpoint != maxampl)  rightslope = maxampl / (maxampl - midpoint);
+      else                      rightslope = FL(0.0);
+  
+      do {
+        cur = *in++;
+        if (cur < midpoint) *out++ = leftslope * (cur - midpoint);
+        else                *out++ = rightslope * (cur - midpoint);
+      } while (--nsmps);
+    }
+    else {  /* unipolar mode */
+      MYFLT  halfmaxampl = FL(0.5) * maxampl;
+      
+      /* clamp kamount in range [-1,1] and make unipolar */
+      midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
+                  (*(data->kamount) <= FL(-1.0) ? FL(0.0) :
+                   ((*(data->kamount) + FL(1.0)) * halfmaxampl)));
+  
+      if (midpoint != FL(0.0)) leftslope  = halfmaxampl / midpoint;
+      else                     leftslope  = FL(0.0);
+      if (midpoint != maxampl) rightslope = halfmaxampl / (maxampl - midpoint);
+      else                     rightslope = FL(0.0);
+  
+      do {
+        cur = *in++;
+        if (cur < midpoint) *out++ = leftslope * cur;
+        else                *out++ = rightslope*(cur - midpoint) + halfmaxampl;
+      } while (--nsmps);
+    }
+        
     return OK;
 }
 
@@ -268,19 +315,41 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
     MYFLT*    in = data->ain;
 
     maxampl = *(data->ifullscale);
-    midpoint = (*(data->kamount) > FL(1.0) ? maxampl :
-                (*(data->kamount) < FL(-1.0) ? -maxampl :
-                 (*(data->kamount) * maxampl)));
-
-    rightslope = (maxampl - midpoint) / maxampl;
-    leftslope  = (midpoint + maxampl) / maxampl;
-
-    do {
-      cur = *in++;
-      if (cur < FL(0.0)) *out++ = leftslope*cur + midpoint;
-      else               *out++ = rightslope*cur + midpoint;
-    } while (--nsmps);
-
+    if (maxampl == FL(0.0))  maxampl = FL(1.0);
+    
+    if (*(data->ibipolar) != FL(0.0)) {    /* bipolar mode */
+      /* clamp kamount in range [-1,1] */
+      midpoint = (*(data->kamount) > FL(1.0) ? maxampl :
+                  (*(data->kamount) < FL(-1.0) ? -maxampl :
+                   (*(data->kamount) * maxampl)));
+  
+      leftslope  = (midpoint + maxampl) / maxampl;
+      rightslope = (maxampl - midpoint) / maxampl;
+  
+      do {
+        cur = *in++;
+        if (cur < FL(0.0)) *out++ = leftslope*cur + midpoint;
+        else               *out++ = rightslope*cur + midpoint;
+      } while (--nsmps);
+    }
+    else {  /* unipolar mode */
+      MYFLT  halfmaxampl = FL(0.5) * maxampl;
+      
+      /* clamp kamount in range [-1,1] and make unipolar */
+      midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
+                  (*(data->kamount) <= FL(-1.0) ? FL(0.0) :
+                   ((*(data->kamount) + FL(1.0)) * halfmaxampl)));
+  
+      leftslope  = midpoint / halfmaxampl;
+      rightslope = (maxampl - midpoint) / halfmaxampl;
+  
+      do {
+        cur = *in++;
+        if (cur < halfmaxampl)
+              *out++ = leftslope * cur;
+        else  *out++ = rightslope*(cur - halfmaxampl) + midpoint;
+      } while (--nsmps);
+    }
     return OK;
 }
 
@@ -289,9 +358,9 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
 /* Code for syncphasor based on phasor from ugens2.c in Csound */
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *aphase, *asyncout, *xcps, *asyncin, *initphase;
-        double  curphase;
+    OPDS    h;
+    MYFLT   *aphase, *asyncout, *xcps, *asyncin, *initphase;
+    double  curphase;
 } SYNCPHASOR;
 
 int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
@@ -380,8 +449,8 @@ int SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 #if 0
 typedef struct {
     OPDS    h;
-    MYFLT    *aout, *ain, *kphaseadjust, *ifullscale;
-    MYFLT    lastin, maxamplitude;
+    MYFLT   *aout, *ain, *kphaseadjust, *ifullscale;
+    MYFLT   lastin, maxamplitude;
 } PHASINE;
 
 static int PhasineInit(CSOUND* csound, PHASINE* data)
@@ -393,8 +462,8 @@ static int PhasineInit(CSOUND* csound, PHASINE* data)
 
 static int Phasine(CSOUND* csound, PHASINE* data)
 {
-    MYFLT        last, cur, phase, adjust, maxampl;
-    int        nsmps = csound->ksmps;
+    MYFLT     last, cur, phase, adjust, maxampl;
+    int       nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
@@ -420,6 +489,7 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
 }
 #endif
+
 /* code for linking dynamic libraries under Csound 5 */
 
 #define S(x)    sizeof(x)
@@ -432,9 +502,9 @@ static OENTRY localops[] = {
   { "polynomial", S(POLYNOMIAL), 4, "a", "az", NULL, NULL, (SUBR)Polynomial },
   { "chebyshevpoly", S(CHEBPOLY), 5, "a", "az",
                      (SUBR)ChebyshevPolyInit, NULL, (SUBR)ChebyshevPolynomial },
-  { "pdclip", S(PD_CLIP), 4, "a", "akkp", NULL, NULL, (SUBR)PDClip },
-  { "pdhalf", S(PD_HALF), 4, "a", "akp", NULL, NULL, (SUBR)PDHalfX },
-  { "pdhalfy", S(PD_HALF), 4, "a", "akp", NULL, NULL, (SUBR)PDHalfY },
+  { "pdclip", S(PD_CLIP), 4, "a", "akkop", NULL, NULL, (SUBR)PDClip },
+  { "pdhalf", S(PD_HALF), 4, "a", "akop", NULL, NULL, (SUBR)PDHalfX },
+  { "pdhalfy", S(PD_HALF), 4, "a", "akop", NULL, NULL, (SUBR)PDHalfY },
   { "syncphasor", S(SYNCPHASOR), 5, "aa", "xao",
                   (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
 };
