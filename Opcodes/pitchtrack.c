@@ -421,7 +421,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->cnt = 0;
     p->histcnt = 0;
     p->sr = csound->GetSr(csound);
-    for (i = 0; i < NPREV; i++) p->dbs[i] = FL(0.0);
+    for (i = 0; i < NPREV; i++) p->dbs[i] = FL(-144);
     p->amplo = MINAMPS;
     p->amphi = MAXAMPS;
     p->npartial = 7;
