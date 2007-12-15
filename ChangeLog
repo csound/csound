@@ -1,3 +1,7 @@
+2007-12-15  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pvsband.c (pvsbrej): New opcode for band reject
+
 2007-12-14  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Opcodes/shape.c: Added unipolar option to pdclip, pdhalf, and pdhalfy,
@@ -14,7 +18,7 @@
 
 	* H/version.h (CS_PATCHLEVEL): 3
 
-	* Opcodes/pvscent.c: New code
+	* Opcodes/pvsband.c: New code
 
 	* Opcodes/pvs_ops.c (csoundModuleInit): Initialise pvsband
 
