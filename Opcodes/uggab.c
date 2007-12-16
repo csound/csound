@@ -134,26 +134,32 @@ static int trig(CSOUND *csound, TRIG *p)
 {
     switch ((int) (*p->kmode + FL(0.5))) {
     case 0:       /* down-up */
-      if (p->old_sig <= *p->kthreshold && *p->ksig > *p->kthreshold)
+      if (p->old_sig <= *p->kthreshold &&
+          *p->ksig > *p->kthreshold)
         *p->kout = FL(1.0);
       else
         *p->kout = FL(0.0);
       break;
     case 1:      /* up-down */
-      if (p->old_sig >= *p->kthreshold && *p->ksig < *p->kthreshold)
+      if (p->old_sig >= *p->kthreshold &&
+          *p->ksig < *p->kthreshold)
         *p->kout = FL(1.0);
       else
         *p->kout = FL(0.0);
       break;
     case 2:      /* both */
-      if ((p->old_sig <= *p->kthreshold && *p->ksig > *p->kthreshold) ||
-          (p->old_sig >= *p->kthreshold && *p->ksig < *p->kthreshold ) )
+      if ((p->old_sig <= *p->kthreshold &&
+           *p->ksig > *p->kthreshold) ||
+          (p->old_sig >= *p->kthreshold &&
+           *p->ksig < *p->kthreshold ) )
         *p->kout = FL(1.0);
       else
         *p->kout = FL(0.0);
       break;
     default:
-      return csound->PerfError(csound, Str(" bad imode value"));
+      return
+        csound->PerfError(csound,
+                          Str(" bad imode value"));
     }
     p->old_sig = *p->ksig;
     return OK;
