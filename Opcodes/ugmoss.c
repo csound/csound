@@ -48,7 +48,8 @@ static int dconvset(CSOUND *csound, DCONV *p)
     else {
       return csound->InitError(csound, Str("No table for dconv"));
     }
-    if (p->sigbuf.auxp == NULL || p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
+    if (p->sigbuf.auxp == NULL ||
+        p->sigbuf.size < (int)(p->len*sizeof(MYFLT)))
       csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
