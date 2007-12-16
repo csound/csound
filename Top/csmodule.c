@@ -225,12 +225,33 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     /* load library */
     err = csound->OpenLibrary(&h, libraryPath);
     if (err) {
-#if defined(LINUX)
+#ifdef BETA
+      char ERRSTR[256];
+ #if defined(LINUX)
+      sprintf(ERRSTR, Str("could not open library '%s' (%s)"),
+                      libraryPath, dlerror());
+ #else
+      sprintf(ERRSTR, Str("could not open library '%s' (%d)"),
+                      libraryPath, err);
+ #endif
+      if (csound->sstrbuf == NULL) {
+        csound->sstrbuf = malloc(strlen(ERRSTR)+1);
+        strcpy(csound->sstrbuf, ERRSTR);
+      }
+      else {
+        csound->sstrbuf = realloc(csound->sstrbuf,
+                                  strlen(csound->sstrbuf)+strlen(ERRSTR)+11);
+        strcat(csound->sstrbuf, "\nWARNING: ");
+        strcat(csound->sstrbuf, ERRSTR);
+      }
+#else
+ #if defined(LINUX)
       csound->Warning(csound, Str("could not open library '%s' (%s)"),
                       libraryPath, dlerror());
-#else
+ #else
       csound->Warning(csound, Str("could not open library '%s' (%d)"),
                       libraryPath, err);
+ #endif
 #endif
       return CSOUND_ERROR;
     }

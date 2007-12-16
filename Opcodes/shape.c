@@ -220,8 +220,8 @@ static int PDClip(CSOUND* csound, PD_CLIP* data)
       else                                 center = *(data->kcenter) * maxampl;
     }
     else {
-    	width = FL(0.5) * width;   /* range reduced by 1/2 in unipolar mode */
-    	unwidth = FL(0.5) * unwidth;
+      width = FL(0.5) * width;   /* range reduced by 1/2 in unipolar mode */
+      unwidth = FL(0.5) * unwidth;
       center = *(data->kcenter) * FL(0.5) + FL(0.5);     /* make unipolar */
       if      (center < (FL(0.5) - width)) center = (FL(0.5) - width) * maxampl;
       else if (center > (FL(0.5) + width)) center = (FL(0.5) + width) * maxampl;
@@ -271,12 +271,12 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
       midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
                   (*(data->kamount) <= FL(-1.0) ? -maxampl :
                    (*(data->kamount) * maxampl)));
-  
+
       if (midpoint != -maxampl) leftslope  = maxampl / (midpoint + maxampl);
       else                      leftslope  = FL(0.0);
       if (midpoint != maxampl)  rightslope = maxampl / (maxampl - midpoint);
       else                      rightslope = FL(0.0);
-  
+
       do {
         cur = *in++;
         if (cur < midpoint) *out++ = leftslope * (cur - midpoint);
@@ -285,24 +285,24 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
     }
     else {  /* unipolar mode */
       MYFLT  halfmaxampl = FL(0.5) * maxampl;
-      
+
       /* clamp kamount in range [-1,1] and make unipolar */
       midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
                   (*(data->kamount) <= FL(-1.0) ? FL(0.0) :
                    ((*(data->kamount) + FL(1.0)) * halfmaxampl)));
-  
+
       if (midpoint != FL(0.0)) leftslope  = halfmaxampl / midpoint;
       else                     leftslope  = FL(0.0);
       if (midpoint != maxampl) rightslope = halfmaxampl / (maxampl - midpoint);
       else                     rightslope = FL(0.0);
-  
+
       do {
         cur = *in++;
         if (cur < midpoint) *out++ = leftslope * cur;
         else                *out++ = rightslope*(cur - midpoint) + halfmaxampl;
       } while (--nsmps);
     }
-        
+
     return OK;
 }
 
@@ -316,16 +316,16 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
 
     maxampl = *(data->ifullscale);
     if (maxampl == FL(0.0))  maxampl = FL(1.0);
-    
+
     if (*(data->ibipolar) != FL(0.0)) {    /* bipolar mode */
       /* clamp kamount in range [-1,1] */
       midpoint = (*(data->kamount) > FL(1.0) ? maxampl :
                   (*(data->kamount) < FL(-1.0) ? -maxampl :
                    (*(data->kamount) * maxampl)));
-  
+
       leftslope  = (midpoint + maxampl) / maxampl;
       rightslope = (maxampl - midpoint) / maxampl;
-  
+
       do {
         cur = *in++;
         if (cur < FL(0.0)) *out++ = leftslope*cur + midpoint;
@@ -334,15 +334,15 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
     }
     else {  /* unipolar mode */
       MYFLT  halfmaxampl = FL(0.5) * maxampl;
-      
+
       /* clamp kamount in range [-1,1] and make unipolar */
       midpoint = (*(data->kamount) >= FL(1.0) ? maxampl :
                   (*(data->kamount) <= FL(-1.0) ? FL(0.0) :
                    ((*(data->kamount) + FL(1.0)) * halfmaxampl)));
-  
+
       leftslope  = midpoint / halfmaxampl;
       rightslope = (maxampl - midpoint) / halfmaxampl;
-  
+
       do {
         cur = *in++;
         if (cur < halfmaxampl)

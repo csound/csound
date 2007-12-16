@@ -997,8 +997,17 @@ static const CSOUND cenviron_ = {
     p->engineState |= CS_STATE_PRE;
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
-    return csoundLoadModules(p);
+    {
+      int err = csoundLoadModules(p);
+      if (p->sstrbuf) {
+        p->Warning(p, p->sstrbuf);
+        free(p->sstrbuf);
+        p->sstrbuf = NULL;
+      }
+      return err;
+    }
   }
+
 
   PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
   {
