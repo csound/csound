@@ -75,6 +75,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
+      csound->printerrormessagesflag = (void*)1234;
       if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
         return n;
     }
@@ -162,6 +163,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csound->FileClose(csound, fd);
       }
     }
+#ifdef BETA
+      if (csound->delayederrormessages) {
+        if (O->msglevel>8)
+          csound->Warning(csound, csound->delayederrormessages);
+        free(csound->delayederrormessages);
+        csound->delayederrormessages = NULL;
+      }
+#endif
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
