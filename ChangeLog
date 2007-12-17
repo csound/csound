@@ -1,3 +1,17 @@
+2007-12-17    <jpff@cs.bath.ac.uk>
+
+	* H/csoundCore.h (CSOUND): added fields delayederrormessages and
+	printerrormessagesflag and reduced number of dummies
+
+	* Top/csmodule.c (csoundLoadExternal): Store messages about
+	non-modules
+
+	* Top/csound.c (csoundPreCompile): Print delayed messages at end
+	if any and in API version
+
+	* Top/main.c (csoundCompile): If delayed messages print after arg
+	decode
+
 2007-12-15  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pvsband.c (pvsbrej): New opcode for band reject

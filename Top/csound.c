@@ -314,8 +314,9 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
         NULL,  /*  flgraphsGlobals */
+        NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
         (OPDS*) NULL,   /*  pds                 */
@@ -999,11 +1000,13 @@ static const CSOUND cenviron_ = {
     /* this function returns an error value that may be worth checking */
     {
       int err = csoundLoadModules(p);
-      if (p->sstrbuf) {
-        p->Warning(p, p->sstrbuf);
-        free(p->sstrbuf);
-        p->sstrbuf = NULL;
+#ifdef BETA
+      if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
+        p->Warning(p, p->delayederrormessages);
+        free(p->delayederrormessages);
+        p->delayederrormessages = NULL;
       }
+#endif
       return err;
     }
   }

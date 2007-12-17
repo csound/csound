@@ -968,8 +968,10 @@ extern const uint32_t csPlayScoMask;
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[90];
+    SUBR dummyfn_2[88];
     void          *flgraphGlobals;
+    char          *delayederrormessages;
+    void          *printerrormessagesflag;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
