@@ -35,7 +35,7 @@ midiFilename = scriptFilename + '.mid'
 print 'MIDI filename:      %s' % midiFilename
 soundfileName = scriptFilename + '.wav'
 print 'Soundfile name:     %s' % soundfileName
-soundfilePlayer = r'D:/utah/opt/Audacity/audacity.exe'
+soundfilePlayer = r'C:\WINDOWS\system32\sndrec32.exe'
 print 'Soundfile player:   %s' % soundfilePlayer
 author = 'Michael_Gogins'
 print 'Author:             %s' % author
@@ -139,7 +139,7 @@ e   10.0
         self.gkChebyshevpoly2Scale = 1000000.0
         self.gkChebyshevpoly3Scale = 10000000.0
         self.gkReverbscFeedbackScale = 1000000.0
-        self.gkMasterLevelScale = 100000.0
+        self.gkMasterLevelScale = 1000000.0
         self.output = 'dac'
         self.player = soundfilePlayer
 
@@ -422,7 +422,7 @@ class PythonDemoFrame(wx.Frame):
               id=wxID_PYTHONDEMOFRAMERENDERBUTTON)
 
         self.playButton = wx.Button(id=wxID_PYTHONDEMOFRAMEPLAYBUTTON,
-              label=u'Play', name=u'playButton', parent=self.outputPanel,
+              label=u'Edit', name=u'playButton', parent=self.outputPanel,
               pos=wx.Point(304, 32), size=wx.Size(64, 32), style=0)
         self.playButton.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD, False,
               u'MS Shell Dlg 2'))
@@ -556,7 +556,7 @@ class PythonDemoFrame(wx.Frame):
             self.csound.SetChannel('gkReverbscFeedback', self.configuration.gkReverbscFeedback)
             self.configuration.gkMasterLevel = float(self.gkMasterLevel.GetValue()) / self.configuration.gkMasterLevelScale
             self.csound.SetChannel('gkMasterLevel', self.configuration.gkMasterLevel)
-            self.configuration.player = self.playerBrowser.GetValue()
+            self.configuration.player = str(self.playerBrowser.GetValue())
         except:
             traceback.print_exc()
         
@@ -674,8 +674,8 @@ class PythonDemoFrame(wx.Frame):
             print 'OnPlayButtonButton...'
             print 'OPENING SOUNDFILE FOR PLAYBACK...'
             print
-            print 'Soundfile:             "%s"' % soundfileName
-            os.spawnl(os.P_NOWAIT, soundfilePlayer, soundfilePlayer, soundfileName)
+            print 'Player: %s  Soundfile:             "%s"' % (self.configuration.player, soundfileName)
+            os.spawnl(os.P_NOWAIT, self.configuration.player, self.configuration.player, soundfileName)
             print
         except:
             print traceback.print_exc()
