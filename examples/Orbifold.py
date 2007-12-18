@@ -639,7 +639,7 @@ endin
             f0 600
             e
             ''')
-        model.csound.setCommand('csound -h -d -r 44100 -k 441 -m128 -b100 -B100 -odac8 temp.orc temp.sco')
+        model.csound.setCommand('csound -h -d -r 44100 -k 441 -m128 -b100 -B100 -odac6 temp.orc temp.sco')
         model.csound.exportForPerformance()
         gc.disable()
         model.csound.compile()
