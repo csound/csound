@@ -532,8 +532,6 @@ Section "${PRODUCT}" SecCopyUI
   	File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
   	SetOutPath $INSTDIR\examples\gab
   	File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
-  	SetOutPath $INSTDIR\examples\python_demo
-  	File /x *.wav /x *.orc /x *.pyc /x *.sco ..\..\examples\python_demo\*.*
   	SetOutPath $INSTDIR\examples\py
   	File /x *.wav  ..\..\Opcodes\py\examples\*.*
   	SetOutPath $INSTDIR\include
