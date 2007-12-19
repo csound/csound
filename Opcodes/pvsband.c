@@ -34,7 +34,6 @@ typedef struct {
     MYFLT  *khigbnd;
     MYFLT  *khigcut;
     MYFLT  *fade;
-    int    fadetype;
     MYFLT  lastframe;
 } PVSBAND;
 
@@ -72,7 +71,6 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     p->fout->sliding = p->fin->sliding;
     p->fout->NB = p->fin->NB;
 #endif
-    p->fadetype = (*p->fade!=FL(0.0));
     return OK;
 }
 
@@ -85,7 +83,8 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     MYFLT   higcut = *p->khigcut;
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
-    int     fade = p->fadetype;
+    MYFLT   fade = *p->fade;
+    MYFLT   opef = FL(1.0) - (MYFLT)exp(fade);
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvsband: not initialised"));
@@ -124,18 +123,18 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
             fout[i] = fin[i];
           }
           else if (afrq > lowcut && afrq < lowbnd) { /* ramp up */
-            if (fade) {
+            if (fade != FL(0.0)) {
               fout[i].re = fin[i].re *
-                (pow(10,(afrq-lowcut)/(lowbnd-lowcut))-1.0)/9.0;
+                (FL(1.0) - (MYFLT)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             }
             else
               fout[i].re = fin[i].re * (afrq - lowcut)/(lowbnd - lowcut);
             fout[i].im = frq;
           }
           else {                /* ramp down */
-            if (fade) {
+            if (fade != FL(0.0)) {
               fout[i].re = fin[i].re *
-                (pow(10,(higcut-afrq)/(higcut-higbnd)-1.0)/9.0);
+                (FL(1.0) - (MYFLT)exp(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
             }
             else
               fout[i].re = fin[i].re * (higcut - afrq)/(higcut - higbnd);
@@ -159,17 +158,17 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
             fout[i+1] = fin[i+1];
           }
           else if (afrq > lowcut && afrq < lowbnd) {
-            if (fade)
+            if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (float)(pow(10,(afrq-lowcut)/(lowbnd-lowcut))-1.0)/9.0f;
+                (1.0f - (float)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             else
               fout[i] = fin[i] * (frq - lowcut)/(lowbnd - lowcut);
             fout[i+1] = frq;
           }
           else {
-            if (fade) 
+            if (fade != FL(0.0)) 
               fout[i] = fin[i] *
-                (float)(pow(10,(higcut-afrq)/(higcut-higbnd)-1.0)/9.0f);
+                (1.0f - (float)exp(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
             else
               fout[i] = fin[i] * (higcut - frq)/(higcut - higbnd);
             fout[i+1] = frq;
@@ -189,7 +188,8 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     MYFLT   higcut = *p->khigcut;
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
-    int     fade = p->fadetype;
+    MYFLT   fade = *p->fade;
+    MYFLT   opef = FL(1.0) - (MYFLT)exp(fade);
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvsband: not initialised"));
@@ -229,14 +229,16 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
           }
           else if (afrq > lowcut && afrq < lowbnd) {
             if (fade)
-              fout[i].re = fin[i].re * (pow(10,(lowbnd - afrq)/(lowbnd - lowcut))-1.0)/9.0;
+              fout[i].re = fin[i].re *
+                (FL(1.0) - (MYFLT)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             else
               fout[i].re = fin[i].re * (lowbnd - afrq)/(lowbnd - lowcut);
             fout[i].im = frq;
           }
           else {
             if (fade)
-              fout[i].re = fin[i].re * (pow(10,(afrq - higbnd)/(higcut - higbnd))-1.0)/9.0;
+              fout[i].re = fin[i].re *
+                (FL(1.0) - (MYFLT)exp(fade*(afrq-higbnd)/(higcut-higbnd)))/opef;
             else
               fout[i].re = fin[i].re * (afrq - higbnd)/(higcut - higbnd);
             fout[i].im = frq;
@@ -259,17 +261,17 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
             fout[i+1] = -FL(1.0);
           }
           else if (afrq > lowcut && afrq < lowbnd) {
-            if (fade)
+            if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (pow(10,(lowbnd - afrq)/(lowbnd - lowcut))-1.0)/9.0;
+                (1.0f - (float)exp(fade*(lowbnd - afrq)/(lowbnd - lowcut)))/opef;
             else
               fout[i] = fin[i] * (lowbnd - afrq)/(lowbnd - lowcut);
             fout[i+1] = frq;
           }
           else {
-            if (fade)
+            if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (pow(10,(afrq - higbnd)/(higcut - higbnd))-1.0)/9.0;
+                (1.0f - (float)exp(fade*(afrq - higbnd)/(higcut - higbnd)))/opef;
             else
               fout[i] = fin[i] * (afrq - higbnd)/(higcut - higbnd);
             fout[i+1] = frq;
