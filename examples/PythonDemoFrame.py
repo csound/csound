@@ -10,7 +10,7 @@ import traceback
 import sys
 
 '''
-Psyco (http://www.psyco.org) is a just-in-time compiler for Python.
+Psyco (http://psyco.sourceforge.net) is a just-in-time compiler for Python.
 One imagines that using Psyco here will make execution 
 faster and therefore smoother.
 '''
