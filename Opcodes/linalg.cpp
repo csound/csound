@@ -3,198 +3,239 @@
  * Michael Gogins
  *
  * These opcodes implement many BLAS and LAPACK 
- * linear algebra operations, up to eigenvalue decomposition.
+ * linear algebra operations, up to and including eigenvalue decompositions.
  * They are designed to facilitate MATLAB style signal processing
- * in the Csound orchestra language.
+ * in the Csound orchestra language, and of course other mathematical
+ * operations.
+ *
+ * The opcodes work with any combination of the the following data types:
+ * 1. Csound i-rate and k-rate variables, as real (r) or complex (cr, ci) scalars.
+ * 2. Csound a-rate signals and variables, as real vectors (rv) of size ksmps.
+ * 3. Csound function tables (FUNC), as real vectors (rv).
+ * 4. Csound fsigs (PVS signals, PVSDAT), as complex vectors (cv).
+ * 5. Csound wsigs (spectral signals, SPECDAT), as complex vectors (cv).
+ * 6. Allocated vectors, real and complex, considered to be 
+ *    column vectors (rv, rc).
+ * 7. Allocated matrices, real and complex (mr, mc), considered to be
+ *    row-major (x or i goes along rows, y or j goes along columns).
+ * 8. In the opcode signatures, the type codes are prefixed first 
+ *    with the Csound rate, then with the data type, then with an
+ *    underscore. Thus, the i-rate BLAS complex vector x is ivc_x;
+ *    the i-rate or k-rate BLAS real vector y is xvr_y.
+ * 9. As in BLAS, stride arguments can be negative.
  *
  * Note the following limitations and caveats:
- * 1. The rate (irate versus krate or arate) of the result (return value)
- *    determines the rate of the operation. The exact same function 
- *    is called for irate, krate, and arate; the only difference is that
- *    a function with an irate result is evaluated only once per init,
- *    while the same function with a krate or arate result is evaluated 
- *    for each kperiod.
- * 2. Operations that return scalars return irate or krate values
+ * 1. All opcodes in this library are prefixed "la_" for "Linear Algebra".
+ * 2. The body of the opcode name is taken from the BLAS or LAPACK name.
+ *    The BLAS type codes (S, D, C, Z) are omitted from the name, because
+ *    Csound infers the BLAS types from the Csound types of the arguments
+ *    and return values.
+ * 3. Operations that return scalars return i-rate or k-rate values
  *    on the left-hand side of the opcode.
- * 3. Operations that return vectors or matrices copy the return value 
+ * 4. Operations that return vectors or matrices copy the return value 
  *    into a preallocated argument on the right-hand side of the opcode.
- * 4. For double-precision Csound, all array elements are doubles;
+ * 5. Because all Csound data types know their own size,
+ *    the BLAS and LAPACK size arguments are omitted,
+ *    except from creator functions.
+ * 6. For double-precision Csound, all array elements are doubles;
  *    for single-precision Csound, all array elements are floats.
- * 5. All arrays are row-major.
- * 6. All arrays are 0-based.
- * 7. All arrays are dense.
+ * 7. All arrays are row-major.
+ * 8. All arrays are 0-based.
+ * 9. All arrays are dense.
+ *10. The rate (i-rate versus k-rate or a-rate) of the result (return value)
+ *    determines the rate of the operation. The exact same function 
+ *    is called for i-rate, k-rate, and a-rate; the only difference is that
+ *    a function with an i-rate result is evaluated only in the init pass,
+ *    while the same function with a k-rate or a-rate result is evaluated 
+ *    for each kperiod pass.
  *
- * The opcodes work with any combination of the the following data types
- * (S scalar, C complex, V real or complex vector, M real or complex matrix):
- * 1. Csound irate and krate variables, as real scalars [S], 
- *    complex scalars as pairs of S.
- * 2. Csound arate signals and variables, as real vectors of size ksmps [V]
- * 3. Csound function tables (FUNC), as real vectors [V].
- * 4. Csound fsigs (PVS signals, PVSDAT), as complex vectors [V].
- * 5. Csound wsigs (spectral signals, SPECDAT), as complex vectors [V].
- * 6. Allocated complex scalars [C].
- * 7. Allocated vectors, real and complex, considered to be 
- *    column vectors [V].
- * 8. Allocated matrices, real and complex [M], considered to be
- *    row-major.
+ * To understand how to use the opcodes, what the arguments are, 
+ * which arguments are inputs, which arguments are outputs, and so on, 
+ * consult the BLAS and LAPACK documentation. The operations are:
  *
- * The operations are:
- * Level 1 BLAS
-void cblas ♦rotg (TYPE *a, TYPE *b, TYPE *c, TYPE *s) Generate plane rotation S, D
-void cblas ♦rotg (TYPE *a, TYPE *b, TYPE *c, TYPE *s) Generate plane rotation C, Z
-void cblas ♦rotmg (TYPE *d1, TYPE *d2, TYPE *b1, SCALAR b2, TYPE *P) Generate modified plane rotation S,D
-void cblas ♦rot (const int N, TYPE *X, const int incX, TYPE *Y, const int incY, SCALAR c, SCALAR s) Apply plane rotation S,D
-void cblas ♦rot (const int N, TYPE *X, const int incX, TYPE *Y, const int incY, const UTYPE c, const UTYPE s) Apply plane rotation CS,ZD
-void cblas ♦rotm (const int N, TYPE *X, const int incX, TYPE *Y, const int incY, SCALAR c, TYPE *P) Apply modified plane rotation S,D
-void cblas ♦scal (const int N, SCALAR alpha, TYPE *X, const int incX) x ↔ y S,D,C,Z,CS,ZD
-void cblas ♦copy (const int N, const TYPE *X, const int incX, TYPE *Y, const int incY) y ← x S,D,C,Z
-void cblas ♦axpy (const int N, SCALAR alpha, const TYPE *X, const int incX, TYPE *Y, const int incY) y ← x + y S,D,C,Z
-TYPE cblas ♦dot (const int N, const TYPE *X, const int incX, const TYPE *Y, const int incY) cblas dot ← xT y S,D,DS
-void
-cblas ♦dotu sub
-(const int N, const TYPE *X, const int incX, const TYPE *Y, const int incY, TYPE *dotu) dotu ← xT y C,Z
-void
-cblas ♦dotc sub
-(const int N, const TYPE *X, const int incX, const TYPE *Y, const int incY, TYPE *dotc) dotc ← xHy C,Z
-float cblas sdsdot (const int N, const float alpha, const float *X, const int incX, const float *Y, const int incY) dot ←  + xT y SDS
-UTYPE
-cblas ♦nrm2
-(const int N, const TYPE *X, const int incX) cblas nrm2 ← ||x||2 S,D,SC,DZ
-UTYPE
-cblas ♦asum
-(const int N, const TYPE *X, const int incX) cblas asum ← ||re(x)||1 + ||im(x)||1 S,D,SC,DZ
+ * ALLOCATORS
+ *
+ * Allocate real vector.
+ * ivr la_rv ir_size
+ *
+ * Allocate complex vector.
+ * ivc la_cv ir_size
+ *
+ * Allocate real matrix, with optional diagonal.
+ * imr la_rm ir_rows, ir_columns [, jr_diagonal]
+ * 
+ * Allocate complex matrix, with optional diagonal.
+ * imc la_cm irows, icolumns [, jr_diagonal, ji_diagonal]
+ *
+ * LEVEL 1 BLAS -- VECTOR-VECTOR OPERATIONS
+ *
+ * Generate a Givens plane rotation.
+ * la_rotg xvr_a, xvr_b, xvr_c, xvr_s
+ * la_rotg xvc_a, xvc_b, xvc_c, xvc_s
+ *
+ * Apply a Givens plane rotation to a set of points.
+ * la_rot xvr_x, xr_xstride, xvr_y, xr_ystride, xr_c, xr_s
+ * la_rot xvc_x, xr_xstride, xvc_y, xr_ystride, xr_c, xr_s
+ *
+ * Scale a vector by a scalar.
+ * la_scal xr_alpha, xvr, xvr_stride
+ * la_scal xr_alpha, xcr, xvr_stride
+ *
+ * Copy vector x into vector y.
+ * la_copy xvr_x, xr_xstride, xvr_y, xr_ystride
+ * la_copy xcr_x, xr_xstride, xvc_y, xr_ystride
+ *
+ * Add a scalar multiple of vector x to to another vector y.
+ * la_axpy xr_a, xvr_x, xr_xstride, xvr_y, xr_ystride
+ * la_axpy xr_a, xcr_x, xr_xstride, xcr_y, xr_ystride
+ *
+ * Return the dot product of vectors x and y.
+ * xr la_dot xvr_x, xr_xstride, xvr_y, xr_ystride
+ * xcr, xci la_dotu xvc_x, xr_xstride, xvc_y, xr_ystride
+ *
+ * Return the dot product of the conjugate of vector x with vector y.
+ * xcr, xci la_dotc xvc_x, xr_xstride, xvc_y, xr_ystride
+ *
+ * Return the Euclidean norm of the vector.
+ * xr nrm2 xvr_x, xr_xstride
+ * xcr, xci nrm2 xcr_x, xr_xstride
+ *
+ * Return the real sum of the absolute values of the vector elements.
+ * xr asum xvr_x, xr_xstride
+ * xr axum xcr_x, xr_xstride
+
 CBLAS INDEX
 cblas i♦amax
-(const int N, const TYPE *X, const int incX) amax ← 1stk ∋ |re(xk)| + |im(xk)| S,D,C,Z
+ const TYPE *X, const int incX) amax ← 1stk ∋ |re(xk)| + |im(xk)| S,D,C,Z
  * Level 2 BLAS
-void cblas ♦gemv ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const int M, const int N, SCALAR
+la_gemv ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const int M, const int N, SCALAR
 alpha, const TYPE *A, const int lda, const TYPE *X, const int incX, SCALAR beta, TYPE *Y, const int incY )
 y ← Ax + y, y ← AT x + y,
 y ← AHx + y, A − m × n
 S,D,C,Z
-void cblas ♦gbmv ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const int M, const int N, const int
+la_gbmv ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const int M, const int N, const int
 KL, const int KU, SCALAR alpha, const TYPE *A, const int lda, const TYPE *X, const int incX, SCALAR beta,
 TYPE *Y, const int incY )
 y ← Ax + y, y ← AT x + y,
 y ← AHx + y, A − m × n
 S,D,C,Z
-void cblas ♦hemv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *A,
+la_hemv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *A,
 const int lda, const void *X, const int incX, const void *beta, void *Y, const int incY )
 y ← Ax + y C,Z
-void cblas ♦hbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const int K, const void *alpha,
+void la_hbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const int K, const void *alpha,
 const void *A, const int lda, const void *X, const int incX, const void *beta, void *Y, const int incY )
 y ← Ax + y C,Z
-void cblas ♦hpmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *Ap,
+void la_hpmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *Ap,
 const void *X, const int incX, const void *beta, void *Y, const int incY )
 y ← Ax + y C,Z
-void cblas ♦symv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *A,
+void la_symv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *A,
 const int lda, const TYPE *X, const int incX, SCALAR beta, TYPE *Y, const int incY )
 y ← Ax + y S,D
-void cblas ♦sbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const int K, SCALAR alpha, const
+void la_sbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const int K, SCALAR alpha, const
 TYPE *A, const int lda, const TYPE *X, const int incX, SCALAR beta, TYPE *Y, const int incY )
 y ← Ax + y S,D
-void cblas ♦spmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *Ap,
+void la_spmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *Ap,
 const TYPE *X, const int incX, SCALAR beta, TYPE *Y, const int incY )
 y ← Ax + y S,D
-void cblas ♦trmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_trmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const TYPE *A, const int lda, TYPE *X, const int incX )
 x ← Ax, x ← AT x, x ← AHx S,D,C,Z
-void cblas ♦tbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_tbmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const int K, const TYPE *A, const int lda, TYPE *X, const int incX )
 x ← Ax, x ← AT x, x ← AHx S,D,C,Z
-void cblas ♦tpmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_tpmv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const TYPE *Ap, TYPE *X, const int incX )
 x ← Ax, x ← AT x, x ← AHx S,D,C,Z
-void cblas ♦trsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_trsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const TYPE *A, const int lda, TYPE *X, const int incX )
 x ← A−1x, x ← A−T x, x ← A−Hx S,D,C,Z
-void cblas ♦tbsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_tbsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const int K, const TYPE *A, const int lda, TYPE *X, const int incX )
 x ← A−1x, x ← A−T x, x ← A−Hx S,D,C,Z
-void cblas ♦tpsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
+void la_tpsv ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE TransA,
 const enum CBLAS DIAG Diag, const int N, const TYPE *Ap, TYPE *X, const int incX )
 x ← A−1x, x ← A−T x, x ← A−Hx S,D,C,Z
-void cblas ♦ger ( const enum CBLAS ORDER Order, const int M, const int N, SCALAR alpha, const TYPE *X, const int incX, const
+void la_ger ( const enum CBLAS ORDER Order, const int M, const int N, SCALAR alpha, const TYPE *X, const int incX, const
 TYPE *Y, const int incY, TYPE *A, const int lda )
 A ← xyT + A, A − m × n S,D
-void cblas ♦geru ( const enum CBLAS ORDER Order, const int M, const int N, const void *alpha, const void *X, const int incX, const
+void la_geru ( const enum CBLAS ORDER Order, const int M, const int N, const void *alpha, const void *X, const int incX, const
 void *Y, const int incY, void *A, const int lda )
 A ← xyT + A, A − m × n C,Z
-void cblas ♦gerc ( const enum CBLAS ORDER Order, const int M, const int N, const void *alpha, const void *X, const int incX, const
+void la_gerc ( const enum CBLAS ORDER Order, const int M, const int N, const void *alpha, const void *X, const int incX, const
 void *Y, const int incY, void *A, const int lda )
 A ← xyH + A, A − m × n C,Z
-void cblas ♦her ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const UTYPE alpha, const void
+void la_her ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const UTYPE alpha, const void
 *X, const int incX, void *A, const int lda )
 A ← xxH + A C,Z
-void cblas ♦hpr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const UTYPE alpha, const void
+void la_hpr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const UTYPE alpha, const void
 *X, const int incX, void *A )
 A ← xxH + A C,Z
-void cblas ♦her2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *X,
+void la_her2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *X,
 const int incX, const void *Y, const int incY, void *A, const int lda )
 A ← xyH + y(x)H + A C,Z
-void cblas ♦hpr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *X,
+void la_hpr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, const void *alpha, const void *X,
 const int incX, const void *Y, const int incY, void *Ap )
 A ← xyH + y(x)H + A C,Z
-void cblas ♦syr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
+void la_syr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
 const int incX, TYPE *A, const int lda )
 A ← xxT + A S,D
-void cblas ♦spr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
+void la_spr ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
 const int incX, TYPE *Ap )
 A ← xxT + A S,D
-void cblas ♦syr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
+void la_syr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
 const int incX, const TYPE *Y, const int incY, TYPE *A, const int lda )
 A ← xyT + yxT + A S,D
-void cblas ♦spr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
+void la_spr2 ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const int N, SCALAR alpha, const TYPE *X,
 const int incX, const TYPE *Y, const int incY, TYPE *A )
 A ← xyT + yxT + A S,
  * Level 3 BLAS
-void cblas ♦gemm ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const enum CBLAS TRANSPOSE
+void la_gemm ( const enum CBLAS ORDER Order, const enum CBLAS TRANSPOSE TransA, const enum CBLAS TRANSPOSE
 TransB, const int M, const int N, const int K, const SCALAR alpha, const TYPE *A, const int lda, const TYPE *B,
 const int ldb, const SCALAR beta, TYPE *C, const int ldc )
 C ← op(A)op(B) + C,
 op(X) = X,XT ,XH, C − m × n
 S,D,C,Z
-void cblas ♦symm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const int M,
+void la_symm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const int M,
 const int N, SCALAR alpha, const TYPE *A, const int lda, const TYPE *B, const int ldb, SCALAR beta, TYPE *C,
 const int ldc )
 C ← AB + C, C ← BA + C, C −
 m × n, A = AT
 S,D,C,Z
-void cblas ♦hemm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const int M,
+void la_hemm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const int M,
 const int N, const void *alpha, const void *A, const int lda, const void *B, const int ldb, const void *beta, void *C,
 const int ldc )
 C ← AB + C, C ← BA + C, C −
 m × n,A = AH
 C,Z
-void cblas ♦syrk ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
+void la_syrk ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
 int N, const int K, SCALAR alpha, const TYPE *A, const int lda, SCALAR beta, TYPE *C, const int ldc )
 C ← AAT + C, C ← ATA + C,
 C − n × n
 S,D,C,Z
-void cblas ♦herk ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
+void la_herk ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
 int N, const int K, const UTYPE alpha, const void *A, const int lda, const UTYPE beta, void *C, const int ldc )
 C ← AAH + C, C ← AHA + C,
 C − n × n
 C,Z
-void cblas ♦syr2k ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
+void la_syr2k ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
 int N, const int K, SCALAR alpha, const TYPE *A, const int lda, const TYPE *B, const int ldb, SCALAR beta, TYPE
 *C, const int ldc )
 C ← ABT + ¯BAT +C, C ← ATB+
 ¯BTA + C, C − n × n
 S,D,C,Z
-void cblas ♦her2k ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
+void la_her2k ( const enum CBLAS ORDER Order, const enum CBLAS UPLO Uplo, const enum CBLAS TRANSPOSE Trans, const
 int N, const int K, const void *alpha, const void *A, const int lda, const void *B, const int ldb, const UTYPE beta,
 void *C, const int ldc )
 C ← ABH+¯BAH+C, C ← AHB+
 ¯BHA + C, C − n × n
 C,Z
-void cblas ♦trmm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const enum
+void la_trmm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const enum
 CBLAS TRANSPOSE TransA, const enum CBLAS DIAG Diag, const int M, const int N, SCALAR alpha, const TYPE
 *A, const int lda, TYPE *B, const int ldb )
 B ← op(A)B, B ← Bop(A), op(A) =
 A,AT ,AH, B − m × n
 S,D,C,Z
-void cblas ♦trsm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const enum
+void la_trsm ( const enum CBLAS ORDER Order, const enum CBLAS SIDE Side, const enum CBLAS UPLO Uplo, const enum
 CBLAS TRANSPOSE TransA, const enum CBLAS DIAG Diag, const int M, const int N, SCALAR alpha, const TYPE
 *A, const int lda, TYPE *B, const int ldb )
 B ← op(A−1)B, B ← Bop(A−1),
@@ -348,7 +389,7 @@ CGGEVX( BALANC, JOBVL, JOBVR, SENSE, N, A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, VL
 
 extern "C" 
 {
-  // arate, krate, FUNC, SPECDAT
+  // a-rate, k-rate, FUNC, SPECDAT
 #include <csoundCore.h> 
   // PVSDAT
 #include <pstream.h>
