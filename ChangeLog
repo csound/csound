@@ -1,3 +1,15 @@
+2007-12-25  jpff  <jpff@codemist.co.uk>
+
+	* po/french.po: 
+	* po/american.po: Translations
+
+	* po/csound.po: New; gettext template
+
+	* Top/getstring.c (init_getstring): Alternative version for GNU
+	gettext version
+
+	* InOut/widgets.cpp: Correct double negatives in error messages
+
 2007-12-17    <jpff@cs.bath.ac.uk>
 
 	* H/csoundCore.h (CSOUND): added fields delayederrormessages and

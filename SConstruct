@@ -224,6 +224,9 @@ commandOptions.Add('buildvst4cs',
 commandOptions.Add('buildSDFT',
     'Set to 0 to avoid building SDFT code',
     '1')
+commandOptions.Add('useGettext',
+    'Set to 1 to use the GBU internationalisation/localisation scheme)',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -303,6 +306,9 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
 if commonEnvironment['useLrint'] != '0':
   commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
+if commonEnvironment['useGettext'] != '0':
+  print "Usung GNU gettext scheme"
+  commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
   if commonEnvironment['gcc4opt'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
@@ -2125,7 +2131,7 @@ else:
     zipDependencies.append(tags)
     Depends(tags, csoundLibrary)
 
-if commonEnvironment['generateXmg'] == '1':
+if commonEnvironment['generateXmg'] == '1' and commonEnvironment['useGettext'] != '1':
     print "CONFIGURATION DECISION: Calling makedb"
     if getPlatform() == 'win32':
         makedbCmd = 'makedb'

@@ -1075,7 +1075,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
           /* Remove aliases */
           if (fout[i].im>=csound->esr*0.5 ||
               fout[i].im<= -csound->esr*0.5)
-            fout[newchan].re = 0.0;
+            fout[i].re = 0.0;
         }
         if (g!=1.0f)
           for (i = lowest; i < NB; i++) {
