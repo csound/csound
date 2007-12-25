@@ -31,7 +31,7 @@
 int downset(CSOUND *csound, DOWNSAMP *p)
 {
     if ((p->len = (int)*p->ilen) > csound->ksmps)
-      return csound->InitError(csound, Str("ilen > ksmps"));
+      return csound->InitError(csound, "ilen > ksmps");
     return OK;
 }
 

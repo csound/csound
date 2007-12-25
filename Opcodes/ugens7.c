@@ -266,7 +266,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = (long)(*p->iptrkprd * csound->ekr + FL(0.5))) < 1)
+    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * csound->ekr)) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     p->lsicvt = FL(65536.0) * csound->onedsr;

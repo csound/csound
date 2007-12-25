@@ -75,7 +75,7 @@ int maxalloc(CSOUND *csound, CPU_PERC *p)
 
 int pfun(CSOUND *csound, PFUN *p)
 {
-    int n = (int)(*p->pnum + FL(0.5));
+    int n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->currevent->p[n];

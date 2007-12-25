@@ -56,7 +56,7 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if ((delsmps = (long) (*p->ilook * csound->esr + FL(0.5))) <= 0L)
+    if ((delsmps = MYFLT2LONG(*p->ilook * csound->esr)) <= 0L)
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;

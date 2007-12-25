@@ -48,6 +48,7 @@ static CS_NOINLINE int chan_realloc(CSOUND *csound,
     newp = (MYFLT*)mrealloc(csound, (void*)(*p), sizeof(MYFLT) * newSize);
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     i = (*oldSize);
+    /* memset(&newp[i], '\0', (&newp[newSize-1]-&newp[i])); */
     do {
       newp[i] = FL(0.0);
     } while (++i < newSize);

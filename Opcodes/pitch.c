@@ -773,12 +773,12 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
     downs = *p->idowns;
     if (downs < (-1.9)) {
-      upsamp = (int)((-downs) + FL(0.5));
+      upsamp = (int)MYFLT2LONG((-downs));
       downsamp = 0;
       srate = csound->esr * (MYFLT)upsamp;
     }
     else {
-      downsamp = (int)(downs+FL(0.5));
+      downsamp = (int)MYFLT2LONG(downs);
       if (downsamp < 1)
         downsamp = 1;
       srate = csound->esr / (MYFLT)downsamp;
@@ -824,7 +824,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->irmsmedi < 1)
         p->rmsmedisize = 0;
     else
-        p->rmsmedisize = (int)(*p->irmsmedi+FL(0.5))*2+1;
+      p->rmsmedisize = ((int)MYFLT2LONG(*p->irmsmedi))*2+1;
     p->rmsmediptr = 0;
 
     if (p->medisize) {
