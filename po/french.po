@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-25 13:32+0000\n"
+"PO-Revision-Date: 2007-12-25 16:49+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -43,12 +43,12 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:654 Engine/otran.c:338
 msgid "invalid name for instrument"
-msgstr ""
+msgstr "nom inadmissible pour l'instrument"
 
 #: Engine/csound_orc_compile.c:919 Engine/otran.c:326
 #, c-format
 msgid "instr %ld redefined"
-msgstr ""
+msgstr "instr %ld redéfini"
 
 #: Engine/csound_orc_compile.c:1108 Engine/otran.c:550 Engine/otran.c:1394
 #, c-format
@@ -68,7 +68,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:1115 Engine/otran.c:557 Engine/otran.c:1398
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
-msgstr ""
+msgstr "%s contradictoire sr, kr, ksmps"
 
 #: Engine/csound_orc_compile.c:1127
 msgid "perf-pass statements illegal in header blk\n"
@@ -77,7 +77,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:1131
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
-msgstr ""
+msgstr "%d erreurs de syntaxe dans l'orchestre. Invalide de compilation\n"
 
 #: Engine/csound_orc_compile.c:1191 Engine/otran.c:641
 msgid "inconsistent argoff sumcount"
@@ -86,7 +86,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:1263 Engine/otran.c:710
 #, c-format
 msgid "LABELS list is full...extending to %d\n"
-msgstr ""
+msgstr "La liste d'ÉTIQUETTES est plein... se prolonger à %d\n"
 
 #: Engine/csound_orc_compile.c:1301 Engine/otran.c:748
 #, c-format
@@ -187,7 +187,7 @@ msgstr ""
 
 #: Engine/express.c:307
 msgid "WARNING: i() should not be used with expression argument\n"
-msgstr ""
+msgstr "AVERTISSEMENT : l'i() ne devrait pas être employé avec l'argument d'expression\n"
 
 #: Engine/express.c:326 Engine/express.c:346 Engine/express.c:357
 msgid "Expression got lost\n"
@@ -358,7 +358,7 @@ msgstr ""
 
 #: Engine/fgens.c:1223 Engine/fgens.c:1270
 msgid "x coordindates must all be in increasing order:"
-msgstr ""
+msgstr "les coordindates x doivent tout être dans l'ordre croissant"
 
 #: Engine/fgens.c:1226 Engine/fgens.c:1272
 msgid "x coordindate greater than function size:"
@@ -378,7 +378,7 @@ msgstr ""
 
 #: Engine/fgens.c:1354
 msgid "Time values must be in increasing order"
-msgstr ""
+msgstr "Les valeurs de temps doivent être dans l'ordre croissant"
 
 #: Engine/fgens.c:1375
 msgid "GEN30: source ftable not found"
@@ -3029,7 +3029,7 @@ msgid ""
 msgstr ""
 
 #: InOut/widgets.cpp:4978 InOut/widgets.cpp:5062
-msgid "FLsldBnkSetk: invalid table number"
+msgid "FLslidBnkSetk: invalid table number"
 msgstr ""
 
 #: InOut/widgets.cpp:4982 InOut/widgets.cpp:5066
@@ -3037,20 +3037,20 @@ msgid "FLslidBnkSetk: table too short!"
 msgstr ""
 
 #: InOut/widgets.cpp:4990 InOut/widgets.cpp:5074
-msgid "FLsldBnkSetk: invalid outable number"
+msgid "FLslidBnkSetk: invalid outable number"
 msgstr ""
 
 #: InOut/widgets.cpp:4996 InOut/widgets.cpp:5080
 msgid "FLslidBnkSetk: too many sliders to reset!"
-msgstr ""
+msgstr "FLslidBnkSetk : trop de glisseurs à remettre à zéro !"
 
 #: InOut/widgets.cpp:5151
-msgid "FLxyin : none of X limits cannot be zero in exponential mode!"
-msgstr ""
+msgid "FLxyin : none of X limits can be zero in exponential mode!"
+msgstr "FLxyin : aucune de limites de X ne peut être zéro en mode exponentiel !"
 
 #: InOut/widgets.cpp:5177
-msgid "FLxyin : none of Y limits cannot be zero in exponential mode!"
-msgstr ""
+msgid "FLxyin : none of Y limits can be zero in exponential mode!"
+msgstr "FLxyin : aucune de limites de Y ne peut être zéro en mode exponentiel !""
 
 #: InOut/winEPS.c:132
 #, c-format

@@ -3029,7 +3029,7 @@ msgid ""
 msgstr ""
 
 #: InOut/widgets.cpp:4978 InOut/widgets.cpp:5062
-msgid "FLsldBnkSetk: invalid table number"
+msgid "FLslidBnkSetk: invalid table number"
 msgstr ""
 
 #: InOut/widgets.cpp:4982 InOut/widgets.cpp:5066
@@ -3037,7 +3037,7 @@ msgid "FLslidBnkSetk: table too short!"
 msgstr ""
 
 #: InOut/widgets.cpp:4990 InOut/widgets.cpp:5074
-msgid "FLsldBnkSetk: invalid outable number"
+msgid "FLslidBnkSetk: invalid outable number"
 msgstr ""
 
 #: InOut/widgets.cpp:4996 InOut/widgets.cpp:5080
@@ -3045,12 +3045,12 @@ msgid "FLslidBnkSetk: too many sliders to reset!"
 msgstr ""
 
 #: InOut/widgets.cpp:5151
-msgid "FLxyin: none of X limits cannot be zero in exponential mode!"
-msgstr "FLxyin: none of X limits can't be zero in exponential mode!"
+msgid "FLxyin: none of X limits can be zero in exponential mode!"
+msgstr ""
 
 #: InOut/widgets.cpp:5177
-msgid "FLxyin: none of Y limits cannot be zero in exponential mode!"
-msgstr "FLxyin: none of Y limits can't be zero in exponential mode!"
+msgid "FLxyin: none of Y limits can be zero in exponential mode!"
+msgstr ""
 
 #: InOut/winEPS.c:132
 #, c-format

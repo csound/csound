@@ -5059,7 +5059,7 @@ static int fl_mouse(CSOUND *csound,FLMOUSE *p)
     
     if((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->table = ftp->ftable; 
     else {
-      return csound->InitError(csound, Str("FLsldBnkSetk: invalid table number"));  
+      return csound->InitError(csound, Str("FLslidBnkSetk: invalid table number"));  
     }
         // *startInd, *startSlid, *numSlid
     if ( ftp->flen < p->startind + p->numslid) {
@@ -5071,7 +5071,7 @@ static int fl_mouse(CSOUND *csound,FLMOUSE *p)
       p->outable = ftp->ftable; 
     else {
       return csound->InitError(csound,
-                               Str("FLsldBnkSetk: invalid outable number"));  
+                               Str("FLslidBnkSetk: invalid outable number"));  
     }
     
     if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
@@ -5148,7 +5148,7 @@ static int FLxyin_set(CSOUND *csound, FLXYIN *p)
     p->expx = EXP_;
     if (*p->ioutx_min == 0 || *p->ioutx_max==0)
       return csound->InitError(csound,
-                               Str("FLxyin: none of X limits cannot be zero in"
+                               Str("FLxyin: none of X limits can be zero in"
                                    " exponential mode!"));
     p->basex = pow((double) (*p->ioutx_max / *p->ioutx_min),
                    (double) (1/p->rangex));
@@ -5174,7 +5174,7 @@ static int FLxyin_set(CSOUND *csound, FLXYIN *p)
   case -1: // EXP
     p->expy = EXP_;
     if (*p->iouty_min == 0 || *p->iouty_max==0)
-      return csound->InitError(csound, Str("FLxyin: none of Y limits cannot "
+      return csound->InitError(csound, Str("FLxyin: none of Y limits can "
                                            "be zero in exponential mode!"));
     p->basey = pow((double) (*p->iouty_max / *p->iouty_min),
                    (double) (1/p->rangey));

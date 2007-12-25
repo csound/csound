@@ -3,6 +3,7 @@
 
     Copyright (C) 1999 John ffitch
     Jan 27 2005: replaced with new implementation by Istvan Varga
+    Dec 25 2007: added GNU gettext implementation as alternative -- John ffitch
 
     This file is part of Csound.
 
@@ -50,6 +51,26 @@ int closedir(DIR*);
 /*     0x82     (1 byte)                                                    */
 /*     translated string, terminated with '\0' (maximum length is 16383)    */
 /*   there should be as many string pairs as defined by bytes 8 to 11.      */
+
+#ifdef GNU_GETTEXT
+#define CSSTRNGS_VERSION 0x2000
+#include <locale.h>
+
+void init_getstring(void)
+{
+    const char  *s;
+    printf("%s\n", setlocale (LC_MESSAGES, NULL));
+    s = csoundGetEnv(NULL, "CS_LANG");
+    if (s == NULL)              /* Default locale */
+      setlocale (LC_ALL, "");
+    else 
+      setlocale (LC_ALL, s);    /* Set to particular value */
+    textdomain("csound5");
+    /* This is experomental; where should these be?? */
+    bindtextdomain("csound5", ".");
+    printf("%s\n", setlocale (LC_MESSAGES, NULL));
+}
+#else
 
 #define CSSTRNGS_VERSION 0x1000
 
@@ -449,3 +470,4 @@ void init_getstring(void)
     }
 }
 
+#endif
