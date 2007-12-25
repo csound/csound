@@ -132,7 +132,7 @@ static int trig_set(CSOUND *csound, TRIG *p)
 
 static int trig(CSOUND *csound, TRIG *p)
 {
-    switch ((int) (*p->kmode + FL(0.5))) {
+    switch ((int) MYFLT2LONG(*p->kmode)) {
     case 0:       /* down-up */
       if (p->old_sig <= *p->kthreshold &&
           *p->ksig > *p->kthreshold)
@@ -539,7 +539,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
     int scale;
     int j;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+    if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4;  /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (long) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
@@ -1211,7 +1211,7 @@ static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
       }
       p->pfn = (long)*p->tableNum;
     }
-    *p->out = p->ftp->ftable[(long)(randGab * p->ftp->flen+FL(0.5))];
+    *p->out = p->ftp->ftable[(long)(randGab * MYFLT2LONG(p->ftp->flen))];
     return OK;
 }
 
@@ -1237,7 +1237,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
     table = p->ftp->ftable;
     flen = p->ftp->flen;
     for (n=0; n<nsmps; n++) {
-      out[n] = table[(long)(randGab * flen +FL(0.5))];
+      out[n] = table[(long)(randGab) * MYFLT2LONG(flen)];
     }
     return OK;
 }
@@ -1253,7 +1253,7 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
       }
       p->pfn = (long)*p->tableNum;
     }
-    findx = (MYFLT) (randGab * p->ftp->flen+FL(0.5));
+    findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
     indx = (long) findx;
     fract = findx - indx;
     v1 = *(p->ftp->ftable + indx);
@@ -1295,7 +1295,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
 
     rge -= min;
     for (n=0; n<nsmps; n++) {
-      findx = (MYFLT) (randGab * flen + FL(0.5));
+      findx = (MYFLT) (randGab * MYFLT2LONG(flen));
       indx = (long) findx;
       fract = findx - indx;
       v1 = table[indx];

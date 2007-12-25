@@ -96,8 +96,8 @@ static int bar_run(CSOUND *csound, BAR *p)
     int n, N = p->N, rr;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    int bcL = (int)(*p->kbcL+FL(0.5));    /*  boundary condition pair */
-    int bcR = (int)(*p->kbcR+FL(0.5));    /*  1: clamped, 2: pivoting, 3: free */
+    int bcL = (int)MYFLT2LONG(*p->kbcL);    /*  boundary condition pair */
+    int bcR = (int)MYFLT2LONG(*p->kbcR);    /*  1: clamped, 2: pivoting, 3: free */
     double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
     double COSNW = cos(xofreq*step); /* formula rather than many calls    */
     double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */

@@ -364,7 +364,7 @@ static int vcombset(CSOUND *csound, VCOMB *p)
     long        lpsiz, nbytes;
 
     if (*p->insmps != FL(0.0)) {
-      if ((lpsiz = (long)(FL(0.5)+*p->imaxlpt)) <= 0) {
+      if ((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0) {
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
@@ -518,7 +518,7 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
       p->ftfn = ftp;
     }
     else {
-      return csound->InitError(csound, Str("iftfn for ftmorf doesnt exist"));
+      return csound->InitError(csound, Str("iftfn for ftmorf does not exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
