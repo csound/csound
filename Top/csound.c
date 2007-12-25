@@ -203,7 +203,11 @@ static const CSOUND cenviron_ = {
         csoundSeedRandMT,
         csoundRandMT,
         csoundPerformKsmpsAbsolute,
+#ifdef GNU_GETTEXT
+        NULL,
+#else
         csoundLocalizeString,
+#endif
         csoundCreateGlobalVariable,
         csoundQueryGlobalVariable,
         csoundQueryGlobalVariableNoCheck,
@@ -661,7 +665,11 @@ static const CSOUND cenviron_ = {
       csoundDestroy(p->csound);
     }
  delete_str_db:
+#ifndef GNU_GETTEXT
     csound_free_string_database();
+#else
+    p = p;
+#endif
   }
 
 #if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
