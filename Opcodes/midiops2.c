@@ -531,7 +531,7 @@ static int initc14(CSOUND *csound, INITC14 *p)
              !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (int)(fvalue * f14bit +FL(0.5));
+      value = (int)MYFLT2LONG(fvalue * f14bit);
       msb = value >> 7;
       lsb = value & 0x7F;
       csound->m_chnbp[chan]->ctl_val[(int) *p->ictlno1] = (MYFLT)msb;
@@ -550,7 +550,7 @@ static int initc21(CSOUND *csound, INITC21 *p)
              !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (int)(fvalue * f21bit +FL(0.5));
+      value = (int)MYFLT2LONG(fvalue * f21bit);
       msb = value >> 14;
       xsb = (value >> 7) & 0x7F;
       lsb = value & 0x7F;
@@ -574,7 +574,7 @@ static int midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
     int     channelNum;
 
     *(p->ipgm) = FL(0.0);
-    channelNum = (int) (*(p->ichn) + FL(0.5));
+    channelNum = (int) MYFLT2LONG(*(p->ichn));
     if (channelNum > 0) {
       if (channelNum > 16)
         return csound->InitError(csound, Str("invalid channel number: %d"),

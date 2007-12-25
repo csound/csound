@@ -192,7 +192,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     int     i, j, indx;
     MYFLT   *ls_table, *ptr; /* , *gains; */
     LS_SET  *ls_set_ptr;
-    int n = p->n = (int)(*p->numb + FL(0.5)); /* Set size */
+    int n = p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {
@@ -491,7 +491,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
     int n = p->n;
-    p->n = (int)(*p->numb + FL(0.5)); /* Set size */
+    p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
     if (indx > csound->zalast) {

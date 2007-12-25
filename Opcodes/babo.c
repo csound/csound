@@ -139,11 +139,13 @@ static const int sound_speed = 330;
 
 #define square(x)   ((x)*(x))
 
+#ifdef never
 static inline long
 bround(MYFLT x)
 {
     return (long)(x >= 0 ? x + FL(0.5) : x - FL(0.5));
 }
+#endif
 
 /*
  * Memory allocation object methods
@@ -198,7 +200,7 @@ static void
 _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
     size_t num_floats =
-      (size_t)bround((MYFLT)ceil((double)(max_time*csound->esr)));
+      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*csound->esr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }

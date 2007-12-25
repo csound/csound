@@ -278,16 +278,16 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
     MYFLT   x;
 
     p->init_k = 1;
-    p->nr_osc = (int) (*(p->args[5]) + FL(0.5));            /* number of oscs */
+    p->nr_osc = (int) MYFLT2LONG(*(p->args[5]));            /* number of oscs */
     if (p->nr_osc <= 0) p->nr_osc = -1;                     /* no output */
     oscbnk_seedrand(csound, &(p->seed), *(p->args[6]));     /* random seed */
-    p->ilfomode = (int) (*(p->args[11]) + FL(0.5)) & 0xFF;  /* LFO mode */
+    p->ilfomode = (int) MYFLT2LONG(*(p->args[11])) & 0xFF;  /* LFO mode */
     p->eq_interp = 0;                                       /* EQ mode */
     if (*(p->args[18]) < FL(-0.5)) {
       p->ieqmode = -1; p->ilfomode &= 0xEE;                 /* disable EQ */
     }
     else {
-      p->ieqmode = (int) (*(p->args[18]) + FL(0.5));
+      p->ieqmode = (int) MYFLT2LONG(*(p->args[18]));
       if (p->ieqmode > 2) {
         p->ieqmode -= 3;
       }
@@ -552,11 +552,11 @@ static int grain2set(CSOUND *csound, GRAIN2 *p)
 
     /* check opcode params */
 
-    i = (int) (*(p->imode) + FL(0.5));  /* mode */
+    i = (int) MYFLT2LONG(*(p->imode));  /* mode */
     if (i & 1) return OK;               /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x0E;
-    p->nr_osc = (int) (*(p->iovrlp) + FL(0.5));       /* nr of oscillators */
+    p->nr_osc = (int) MYFLT2LONG(*(p->iovrlp));       /* nr of oscillators */
     if (p->nr_osc < 1) p->nr_osc = -1;
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed)); /* initialise seed */
     p->rnd_pow = *(p->irpow);                         /* random distribution */
@@ -748,13 +748,13 @@ static int grain3set(CSOUND *csound, GRAIN3 *p)
 
     /* check opcode params */
 
-    i = (int) (*(p->imode) + FL(0.5));  /* mode */
+    i = (int) MYFLT2LONG(*(p->imode));  /* mode */
     if (i & 1) return OK;                  /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x7E;
     p->x_phs = OSCBNK_PHSMAX;
 
-    p->ovrlap = (int) (*(p->imaxovr) + FL(0.5));        /* max. overlap */
+    p->ovrlap = (int) MYFLT2LONG(*(p->imaxovr));        /* max. overlap */
     p->ovrlap = (p->ovrlap < 1 ? 1 : p->ovrlap) + 1;
 
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed));   /* initialise seed */
@@ -1700,7 +1700,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
                                *(p->iwaveforms));
     }
     /* base ftable number (required by user defined waveforms except -1) */
-    ftnum = base_ftable = (int) (*(p->iftnum) + FL(0.5));
+    ftnum = base_ftable = (int) MYFLT2LONG(*(p->iftnum));
     if (ftnum < 1) ftnum = base_ftable = -1;
     if ((waveforms < -1 && ftnum < 1) || ftnum > 1000000) {
       return csound->InitError(csound,
@@ -1721,7 +1721,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
       tp.npart_mul = (double) *(p->ipmul);
     }
     if (*(p->iminsiz) > FL(0.0)) {
-      i = (int) (*(p->iminsiz) + FL(0.5));
+      i = (int) MYFLT2LONG(*(p->iminsiz));
       if (i < 16 || i > 262144 || (i & (i - 1))) {
         return csound->InitError(csound,
                                  Str("vco2init: invalid min table size"));
@@ -1729,7 +1729,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
       tp.min_size = i;
     }
     if (*(p->imaxsiz) > FL(0.0)) {
-      i = (int) (*(p->imaxsiz) + FL(0.5));
+      i = (int) MYFLT2LONG(*(p->imaxsiz));
       if (i < 16 || i > 16777216 || (i & (i - 1)) || i < tp.min_size) {
         return csound->InitError(csound,
                                  Str("vco2init: invalid max table size"));
@@ -1889,7 +1889,7 @@ static int vco2set(CSOUND *csound, VCO2 *p)
     if (p->INOCOUNT > 6) {
       return csound->InitError(csound, Str("vco2: too many input arguments"));
     }
-    mode = (int) (*(p->imode) + FL(0.5)) & 0x1F;
+    mode = (int) MYFLT2LONG(*(p->imode)) & 0x1F;
     if (mode & 1) return OK;               /* skip initialisation */
     /* more checks */
     min_args = 2;
@@ -2106,7 +2106,7 @@ static int denorms(CSOUND *csound, DENORMS *p)
 
 static int delaykset(CSOUND *csound, DELAYK *p)
 {
-    int npts, mode = (int) (*p->imode + FL(0.5)) & 3;
+    int npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
@@ -2145,7 +2145,7 @@ static int delayk(CSOUND *csound, DELAYK *p)
 
 static int vdelaykset(CSOUND *csound, VDELAYK *p)
 {
-    int npts, mode = (int) (*p->imode + FL(0.5)) & 3;
+    int npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1)
       return OK;                /* skip initialisation */
@@ -2173,7 +2173,7 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
     if (!buf)
       return csound->PerfError(csound, Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
-    n = (int) (*(p->kdel) * csound->ekr + FL(0.5)); /* calculate delay time */
+    n = (int) MYFLT2LONG(*(p->kdel) * csound->ekr); /* calculate delay time */
     if (n < 0)
       return csound->PerfError(csound, Str("vdel_k: invalid delay time "
                                            "(must be >= 0)"));
@@ -2226,7 +2226,7 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
 
 static int rbjeqset(CSOUND *csound, RBJEQ *p)
 {
-    int mode = (int) (*p->imode + FL(0.5)) & 0xF;
+    int mode = (int) MYFLT2LONG(*p->imode) & 0xF;
 
     if (mode & 1)
       return OK;                /* skip initialisation */

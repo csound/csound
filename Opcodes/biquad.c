@@ -694,7 +694,7 @@ static int pareqset(CSOUND *csound, PAREQ *p)
     if (*p->iskip == FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
       p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
-      p->imode = (int) (*p->mode + FL(0.5));
+      p->imode = (int) MYFLT2LONG(*p->mode);
     }
     return OK;
 } /* end pareqset(p) */

@@ -2140,12 +2140,17 @@ if commonEnvironment['generateXmg'] == '1':
     xmgs2 = commonEnvironment.Command(
                 'csound.xmg', ['strings/english-strings'],
                 '%s strings/english-strings csound' % makedbCmd)
+    xmgs3 = commonEnvironment.Command(
+                'French.xmg', ['strings/french-strings'],
+                '%s strings/french-strings French' % makedbCmd)
     Depends(xmgs, makedb)
     zipDependencies.append(xmgs)
     Depends(xmgs1, makedb)
     zipDependencies.append(xmgs1)
     Depends(xmgs2, makedb)
     zipDependencies.append(xmgs2)
+    Depends(xmgs3, makedb)
+    zipDependencies.append(xmgs3)
 else:
     print "CONFIGURATION DECISION: Not calling makedb"
 

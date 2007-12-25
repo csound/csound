@@ -158,7 +158,7 @@ static void readvalues(CONTROL_GLOBALS *p)
 
 static int cntrl_set(CSOUND *csound, CNTRL *p)
 {
-    ensure_slider(get_globals(csound, &(p->p)), (int) (*p->kcntl + FL(0.5)));
+    ensure_slider(get_globals(csound, &(p->p)), (int) MYFLT2LONG(*p->kcntl));
     return OK;
 }
 
@@ -166,7 +166,7 @@ static int control(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
-    *p->kdest = pp->values[(int) (*p->kcntl + FL(0.5))];
+    *p->kdest = pp->values[(int)MYFLT2LONG(*p->kcntl)];
     return OK;
 }
 
@@ -174,7 +174,7 @@ static int ocontrol(CSOUND *csound, SCNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int c = (int) *p->which;
-    int slider = (int) (*p->kcntl + FL(0.5));
+    int slider = (int) MYFLT2LONG(*p->kcntl);
 
 /*  csound->Message(csound, "ocontrol: %d %d %f\n", slider, c, *p->val); */
     ensure_slider(pp, slider);
@@ -212,7 +212,7 @@ static int ocontrol(CSOUND *csound, SCNTRL *p)
 static int button_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int n = (int) (FL(0.5) + *p->kcntl);
+    int n = (int) MYFLT2LONG(*p->kcntl);
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
@@ -229,16 +229,17 @@ static int button_set(CSOUND *csound, CNTRL *p)
 static int button(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
+    int t = (int)MYFLT2LONG(*p->kcntl);
     readvalues(pp);
-    *p->kdest = pp->buttons[(int) (*p->kcntl + FL(0.5))];
-    pp->buttons[(int) (*p->kcntl + FL(0.5))] = 0;
+    *p->kdest = pp->buttons[t];
+    pp->buttons[t] = 0;
     return OK;
 }
 
 static int check_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int n = (int) (FL(0.5) + *p->kcntl);
+    int n = (int) MYFLT2LONG(*p->kcntl);
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
@@ -256,7 +257,7 @@ static int check(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
-    *p->kdest = pp->checks[(int) (*p->kcntl + FL(0.5))];
+    *p->kdest = pp->checks[(int) MYFLT2LONG(*p->kcntl)];
     return OK;
 }
 
@@ -265,7 +266,7 @@ static int check(CSOUND *csound, CNTRL *p)
 static int textflash(CSOUND *csound, TXTWIN *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int   wind = (int) (*p->kcntl + FL(0.5));
+    int   wind = (int) MYFLT2LONG(*p->kcntl);
     char  buffer[100];
 
     if (pp->wish_pid == 0)

@@ -307,7 +307,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
 
 static int phaser1set(CSOUND *csound, PHASER1 *p)
 {
-    int   loop = (int) (*p->iorder + FL(0.5));
+    int   loop = (int) MYFLT2LONG(*p->iorder);
     long  nBytes = (long) loop * (long) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || p->auxx.size<nBytes ||
@@ -392,7 +392,7 @@ static int phaser2set(CSOUND *csound, PHASER2 *p)
                                Str("Phaser mode must be either 1 or 2"));
     }
 
-    loop = p->loop = (int) (*p->order + FL(0.5));
+    loop = p->loop = (int) MYFLT2LONG(*p->order);
     csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux1);
     csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux2);
     p->nm1 = (MYFLT *) p->aux1.auxp;
