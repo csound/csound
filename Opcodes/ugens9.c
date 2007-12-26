@@ -90,7 +90,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 
     if (cvh->samplingRate != csound->esr) {
       /* & chk the data */
-      csound->Warning(csound, Str("%s''s srate = %8.0f, orch's srate = %8.0f"),
+      csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               cvfilnam, cvh->samplingRate, csound->esr);
     }
     if (cvh->dataFormat != CVMYFLT) {

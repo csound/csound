@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-26 10:28+0000\n"
+"PO-Revision-Date: 2007-12-26 18:36+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -162,11 +162,11 @@ msgstr "erreur interne : csoundCreateFileHandle() : type inadmissible : %d"
 #: Engine/express.c:64
 #, c-format
 msgid "Token length extended to %ld\n"
-msgstr ""
+msgstr "La longueur symbolique s'est prolongée à %ld\n"
 
 #: Engine/express.c:107
 msgid "divide by unary minus"
-msgstr ""
+msgstr "divisez par unaire sans"
 
 #: Engine/express.c:115
 msgid "unary mult or divide"
@@ -256,7 +256,7 @@ msgstr ""
 
 #: Engine/fgens.c:208 Engine/fgens.c:215
 msgid "illegal table length"
-msgstr ""
+msgstr "longueur illégale de table"
 
 #: Engine/fgens.c:274 Engine/fgens.c:1940
 #, c-format
@@ -281,11 +281,11 @@ msgstr ""
 
 #: Engine/fgens.c:383 Engine/fgens.c:1156
 msgid "unknown srctable number"
-msgstr ""
+msgstr "nombre inconnu de srctable"
 
 #: Engine/fgens.c:396
 msgid "table size too large"
-msgstr ""
+msgstr "taille de table trop grande"
 
 #: Engine/fgens.c:463 Engine/fgens.c:496
 msgid "gen call has negative segment size:"
@@ -313,7 +313,7 @@ msgstr ""
 
 #: Engine/fgens.c:794
 msgid "uneven number of args"
-msgstr ""
+msgstr "nombre inégal des arguments"
 
 #: Engine/fgens.c:889
 msgid "gen call has illegal x-ordinate values:"
@@ -325,7 +325,7 @@ msgstr ""
 
 #: Engine/fgens.c:911
 msgid "a range given exceeds table length"
-msgstr ""
+msgstr "une gamme indiquée excède la longueur de table"
 
 #: Engine/fgens.c:918
 msgid "an input function does not exist"
@@ -399,17 +399,17 @@ msgstr ""
 
 #: Engine/fgens.c:1803
 msgid "unknown source table number"
-msgstr ""
+msgstr "nombre inconnu de table de source"
 
 #: Engine/fgens.c:1875
 #, c-format
 msgid "ftable %d: "
-msgstr ""
+msgstr "ftable %d : "
 
 #: Engine/fgens.c:1919
 #, c-format
 msgid "ftable %d:"
-msgstr ""
+msgstr "ftable %d :"
 
 #: Engine/fgens.c:1935
 #, c-format
@@ -876,7 +876,7 @@ msgid "error reading pvoc-ex file %s after %d frames"
 msgstr ""
 
 #: Engine/memfiles.c:268 Opcodes/pvinterp.c:71 Opcodes/pvinterp.c:174
-#: Opcodes/pvinterp.c:344 Opcodes/vpvoc.c:202
+#: Opcodes/pvinterp.c:344 Opcodes/vpvoc.c:202 Opcodes/ugens9.c:93
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr ""
@@ -913,7 +913,7 @@ msgstr ""
 #: Engine/musmon.c:182 Top/main.c:104
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
-msgstr ""
+msgstr "Csound version en français %s beta (double samples) %s\n"
 
 #: Engine/musmon.c:185 Top/main.c:107
 #, c-format
@@ -923,7 +923,7 @@ msgstr ""
 #: Engine/musmon.c:190 Top/main.c:96
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
-msgstr ""
+msgstr "Csound version en français %s beta (float samples) %s\n"
 
 #: Engine/musmon.c:193 Top/main.c:99
 #, c-format
@@ -4301,7 +4301,7 @@ msgstr ""
 
 #: OOps/ugens5.c:691 OOps/ugens5.c:1116
 msgid "Interpolation failed"
-msgstr ""
+msgstr "L'interpolation échoue"
 
 #: OOps/ugens5.c:831
 msgid "Pole file not supported for this opcode !"
@@ -4409,7 +4409,7 @@ msgstr ""
 
 #: OOps/ugens6.c:929
 msgid "reverb: not intialised"
-msgstr ""
+msgstr "reverb : non initialisé"
 
 #: OOps/ugens6.c:1004
 msgid "pan: not initialised"
@@ -6919,11 +6919,6 @@ msgstr ""
 msgid "CONVOLVE: channel number greater than number of channels in source"
 msgstr ""
 
-#: Opcodes/ugens9.c:93
-#, c-format
-msgid "%s''s srate = %8.0f, orch's srate = %8.0f"
-msgstr ""
-
 #: Opcodes/ugens9.c:98
 #, c-format
 msgid "unsupported CONVOLVE data format %ld in %s"
@@ -7123,7 +7118,7 @@ msgstr ""
 #: Opcodes/ugnorman.c:1234
 msgid ""
 "ATSSINNOI: only positive time pointer values are allowed, setting to zero\n"
-msgstr ""
+msgstr "ATSSINNOI : seulement on permet des valeurs d'indicateur positives de temps, plaçant au zero\n"
 
 #: Opcodes/ugnorman.c:1243
 msgid "ATSSINNOI: time pointer out of range, truncating to last frame\n"
@@ -7990,7 +7985,7 @@ msgstr ""
 
 #: Top/main.c:176
 msgid "no orchestra name"
-msgstr ""
+msgstr "aucun nom d'orchestre"
 
 #: Top/main.c:200
 msgid "Reading CSD failed ... stopping"
@@ -8145,7 +8140,7 @@ msgstr ""
 #: Top/one_file.c:183
 #, c-format
 msgid "WARNING: could not remove %s\n"
-msgstr ""
+msgstr "AVERTISSEMENT : n'a pas pu enlever %s\n"
 
 #: Top/one_file.c:301 Top/one_file.c:331
 #, c-format
@@ -8155,7 +8150,7 @@ msgstr ""
 #: Top/one_file.c:304
 #, c-format
 msgid "Failed to create %s"
-msgstr ""
+msgstr "N'a pas créé %s"
 
 #: Top/one_file.c:362 Top/one_file.c:447
 #, c-format
@@ -8214,7 +8209,7 @@ msgstr ""
 
 #: Top/one_file.c:646
 msgid "Creating options\n"
-msgstr ""
+msgstr "Créer des options\n"
 
 #: Top/one_file.c:652
 msgid "Skipping <CsOptions>\n"
@@ -8222,11 +8217,11 @@ msgstr ""
 
 #: Top/one_file.c:664
 msgid "Creating orchestra\n"
-msgstr ""
+msgstr "Créer l'orchestre\n"
 
 #: Top/one_file.c:669
 msgid "Creating score\n"
-msgstr ""
+msgstr "Créer des points\n"
 
 #: Top/one_file.c:699
 #, c-format
@@ -8296,7 +8291,7 @@ msgstr ""
 #: Top/pvanal.c:215 util/pvanal.c:289
 #, c-format
 msgid "%ld output frames estimated\n"
-msgstr ""
+msgstr "%ld ont produit des armatures estimées\n"
 
 #: Top/pvanal.c:227 util/pvanal.c:298
 msgid "pvanal: creating pvocex file\n"
@@ -8525,7 +8520,7 @@ msgstr ""
 #, c-format
 msgid ""
 "\n"
-"ERROR: can't open file %s for writing\n"
+"ERROR: canbot open file %s for writing\n"
 msgstr ""
 
 #: util/atsa.c:1908
@@ -8721,7 +8716,7 @@ msgstr ""
 
 #: util/envext.c:59
 msgid "envext: error: "
-msgstr ""
+msgstr "envext : erreur : "
 
 #: util/het_import.c:44
 msgid "Usage: het_import cstext_file het_file\n"
@@ -8771,11 +8766,11 @@ msgstr ""
 
 #: util/lpanal.c:462
 msgid "poles exceeds maximum allowed"
-msgstr ""
+msgstr "les poteaux excède le maximum permis"
 
 #: util/lpanal.c:468
 msgid "WARNING: hopsize may be too small, recommend at least poleCount * 5\n"
-msgstr ""
+msgstr "AVERTISSEMENT : hopsize peut être trop petit, recommande au moins poleCount * 5\n"
 
 #: util/lpanal.c:472
 msgid "input framesize (inter-frame-offset*2) exceeds maximum allowed"
@@ -8784,7 +8779,7 @@ msgstr ""
 #: util/lpanal.c:478
 #, c-format
 msgid "Reading sound from %s, writing lpfile to %s\n"
-msgstr ""
+msgstr "Bruit de lecture de %s, écriture lpfile à %s\n"
 
 #: util/lpanal.c:481
 #, c-format
@@ -8813,7 +8808,7 @@ msgstr ""
 
 #: util/lpanal.c:497
 msgid "Using filter coefficient storage method\n"
-msgstr ""
+msgstr "Employer la méthode de stockage de coefficient de filtre\n"
 
 #: util/lpanal.c:544
 msgid "soundfile read error, could not fill first frame"
@@ -8919,7 +8914,7 @@ msgstr ""
 
 #: util/mixer.c:349
 msgid "Input formats not the same"
-msgstr ""
+msgstr "L'entrée compose pas la même chose"
 
 #: util/mixer.c:410
 #, c-format
@@ -8995,7 +8990,7 @@ msgstr ""
 #: util/scale.c:296
 #, c-format
 msgid "writing %d-byte blks of %s to %s %s\n"
-msgstr ""
+msgstr "inscription des blocs de %d-byte de %s au %s %s\n"
 
 #: util/scale.c:326
 #, c-format
@@ -9020,91 +9015,91 @@ msgstr ""
 #: util/sndinfo.c:129
 #, c-format
 msgid "  Velocity    : %d - %d\n"
-msgstr ""
+msgstr "  Vitesse     : %d - %d\n"
 
 #: util/sndinfo.c:131
 #, c-format
 msgid "  Key         : %d - %d\n"
-msgstr ""
+msgstr "  Clef        : %d - %d\n"
 
 #: util/sndinfo.c:133
 #, c-format
 msgid "  Loop points : %d\n"
-msgstr ""
+msgstr "points de boucle : %d\n"
 
 #: util/sndinfo.c:137
 #, c-format
 msgid "  %-2d    Mode : %s    Start : %6d   End : %6d   Count : %6d\n"
-msgstr ""
+msgstr "  %-2d    Mode : %s    Début : %6d   Fin : %6d   Compte : %6d\n"
 
 #: util/sndinfo.c:157
 #, c-format
 msgid "Description      : %.*s\n"
-msgstr ""
+msgstr "Description       : %.*s\n"
 
 #: util/sndinfo.c:159
 #, c-format
 msgid "Originator       : %.*s\n"
-msgstr ""
+msgstr "Créateur          : %.*s\n"
 
 #: util/sndinfo.c:161
 #, c-format
 msgid "Origination ref  : %.*s\n"
-msgstr ""
+msgstr "Ref d'origines    : %.*s\n"
 
 #: util/sndinfo.c:164
 #, c-format
 msgid "Origination date : %.*s\n"
-msgstr ""
+msgstr "Date d'origines   : %.*s\n"
 
 #: util/sndinfo.c:167
 #, c-format
 msgid "Origination time : %.*s\n"
-msgstr ""
+msgstr "Temps d'origines  : %.*s\n"
 
 #: util/sndinfo.c:170
 #, c-format
 msgid "BWF version      : %d\n"
-msgstr ""
+msgstr "BWF version       : %d\n"
 
 #: util/sndinfo.c:172
 #, c-format
 msgid "UMID             : %.*s\n"
-msgstr ""
+msgstr "UMID              : %.*s\n"
 
 #: util/sndinfo.c:174
 #, c-format
 msgid "Coding history   : %.*s\n"
-msgstr ""
+msgstr "Histoire de codage: %.*s\n"
 
 #: util/srconv.c:97
 #, c-format
 msgid "Sound format -%c has been overruled by -%c"
-msgstr ""
+msgstr "Le format son -%c a été outrepassé par -%c"
 
 #: util/srconv.c:365
-msgid "srconv: can't specify both -r and -P"
-msgstr ""
+msgid "srconv: cannot specify both -r and -P"
+msgstr "srconv : ne peut pas indiquer -r et -P"
 
 #: util/srconv.c:376
-msgid "srconv: can't open time-vary function file"
-msgstr ""
+msgid "srconv: cannot open time-vary function file"
+msgstr "srconv : trop peu de paires de x/y temps-changent dedans le dossier de fonction"
 
 #: util/srconv.c:392
 msgid "srconv: too few x-y pairs in time-vary function file"
-msgstr ""
+msgstr "srconv : trop peu de paires de x/y temps-changent dedans le dossier de fonction"
 
 #: util/srconv.c:406
 msgid "srconv: first x value in time-vary function must be 0"
-msgstr ""
+msgstr "srconv : la première valeur de x temps-changent dedans la fonction doit être 0"
 
 #: util/srconv.c:411
 msgid "srconv: invalid initial y value in time-vary function"
-msgstr ""
+msgstr "srconv : la valeur inadmissible de l'initiale y temps-changent dedans la fonction"
 
 #: util/srconv.c:416 util/srconv.c:708
 msgid "srconv: invalid x values in time-vary function"
-msgstr ""
+msgstr "srconv : les valeurs inadmissibles de x temps-changent dedans la fonction"
 
 #: util/xtrct.c:84
 msgid "extractor: error: "

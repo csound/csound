@@ -66,7 +66,7 @@ void init_getstring(void)
     else 
       setlocale (LC_MESSAGES, s);    /* Set to particular value */
     textdomain("csound5");
-    bind_textdomain_codeset("csound5", "UTF-8");
+    /* bind_textdomain_codeset("csound5", "UTF-8"); */
 #ifdef BETA
     /* This is experimental; where should these be?? */
     bindtextdomain("csound5", "/home/jpff/Sourceforge/csound5/po");
