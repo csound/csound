@@ -203,11 +203,7 @@ static const CSOUND cenviron_ = {
         csoundSeedRandMT,
         csoundRandMT,
         csoundPerformKsmpsAbsolute,
-#ifdef GNU_GETTEXT
-        NULL,
-#else
         csoundLocalizeString,
-#endif
         csoundCreateGlobalVariable,
         csoundQueryGlobalVariable,
         csoundQueryGlobalVariableNoCheck,
