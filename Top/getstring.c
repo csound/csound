@@ -59,16 +59,24 @@ int closedir(DIR*);
 void init_getstring(void)
 {
     const char  *s;
-    printf("%s\n", setlocale (LC_MESSAGES, NULL));
+
     s = csoundGetEnv(NULL, "CS_LANG");
     if (s == NULL)              /* Default locale */
-      setlocale (LC_ALL, "");
+      setlocale (LC_MESSAGES, "");
     else 
-      setlocale (LC_ALL, s);    /* Set to particular value */
+      setlocale (LC_MESSAGES, s);    /* Set to particular value */
     textdomain("csound5");
-    /* This is experomental; where should these be?? */
-    bindtextdomain("csound5", ".");
-    printf("%s\n", setlocale (LC_MESSAGES, NULL));
+    bind_textdomain_codeset("csound5", "UTF-8");
+#ifdef BETA
+    /* This is experimental; where should these be?? */
+    bindtextdomain("csound5", "/home/jpff/Sourceforge/csound5/po");
+    printf("%s\n", setlocale(LC_MESSAGES, NULL));
+#endif
+}
+
+PUBLIC char *csoundLocalizeString(const char *s)
+{
+    return gettext(s);
 }
 #else
 
