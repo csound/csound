@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-25 11:30+0000\n"
+"PO-Revision-Date: 2007-12-26 18:37+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (UK)\n"
 "MIME-Version: 1.0\n"
@@ -870,7 +870,7 @@ msgid "error reading pvoc-ex file %s after %d frames"
 msgstr ""
 
 #: Engine/memfiles.c:268 Opcodes/pvinterp.c:71 Opcodes/pvinterp.c:174
-#: Opcodes/pvinterp.c:344 Opcodes/vpvoc.c:202
+#: Opcodes/pvinterp.c:344 Opcodes/vpvoc.c:202 Opcodes/ugens9.c:93
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr ""
@@ -6472,7 +6472,7 @@ msgid "sfload: cannot open SoundFont file \"%s\" (error %s)"
 msgstr ""
 
 #: Opcodes/sfont.c:140
-msgid "Sfload: can't use globals"
+msgid "Sfload: cannot use globals"
 msgstr ""
 
 #: Opcodes/sfont.c:215
@@ -6547,7 +6547,7 @@ msgid ""
 msgstr ""
 
 #: Opcodes/sfont.c:1768 Opcodes/sfont.c:1774
-msgid "Sfont: can't use globals/"
+msgid "Sfont: cannot use globals/"
 msgstr ""
 
 #: Opcodes/sfont.c:1777
@@ -6906,11 +6906,6 @@ msgstr ""
 
 #: Opcodes/ugens9.c:79
 msgid "CONVOLVE: channel number greater than number of channels in source"
-msgstr ""
-
-#: Opcodes/ugens9.c:93
-#, c-format
-msgid "%s''s srate = %8.0f, orch's srate = %8.0f"
 msgstr ""
 
 #: Opcodes/ugens9.c:98
@@ -8514,7 +8509,7 @@ msgstr ""
 #, c-format
 msgid ""
 "\n"
-"ERROR: can't open file %s for writing\n"
+"ERROR: cannot open file %s for writing\n"
 msgstr ""
 
 #: util/atsa.c:1908
@@ -9072,11 +9067,11 @@ msgid "Sound format -%c has been overruled by -%c"
 msgstr ""
 
 #: util/srconv.c:365
-msgid "srconv: can't specify both -r and -P"
+msgid "srconv: cannot specify both -r and -P"
 msgstr ""
 
 #: util/srconv.c:376
-msgid "srconv: can't open time-vary function file"
+msgid "srconv: cannot open time-vary function file"
 msgstr ""
 
 #: util/srconv.c:392

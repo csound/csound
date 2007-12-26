@@ -1765,13 +1765,13 @@ static void fill_SfPointers(CSOUND *csound)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
     if (globals == NULL) {
-      csound->Die(csound, Str("Sfont: can't use globals/"));
+      csound->Die(csound, Str("Sfont: cannot use globals/"));
     }
 
     soundFont = globals->soundFont;
     if(soundFont != NULL)
     main_chunk=&(soundFont->chunk.main_chunk);
-    else  csound->Die(csound, Str("Sfont: can't use globals/"));
+    else  csound->Die(csound, Str("Sfont: cannot use globals/"));
 
     if (main_chunk->ckDATA == NULL) {
       csound->Die(csound, Str("Sfont format not compatible"));

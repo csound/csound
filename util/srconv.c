@@ -362,7 +362,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       Chans = 1;
 
     if ((P != FL(0.0)) && (Rout != FL(0.0))) {
-      sprintf(err_msg, Str("srconv: can't specify both -r and -P"));
+      sprintf(err_msg, Str("srconv: cannot specify both -r and -P"));
       goto err_rtn_msg;
     }
     if (P != FL(0.0))
@@ -373,7 +373,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile, "r")) == NULL) {
-        sprintf(err_msg, Str("srconv: can't open time-vary function file"));
+        sprintf(err_msg, Str("srconv: cannot open time-vary function file"));
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */

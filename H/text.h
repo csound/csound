@@ -31,7 +31,8 @@
 extern "C" {
 #endif
 #include <libintl.h>
-#define Str(x) gettext(x)
+  /* This could be gettext but this indirection helps debugging */
+#define Str(x) csoundLocalizeString(x)
 typedef enum {
     CSLANGUAGE_DEFAULT = 0,
     CSLANGUAGE_AFRIKAANS,
