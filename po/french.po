@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-26 18:36+0000\n"
+"PO-Revision-Date: 2007-12-26 21:52+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:1113 Engine/otran.c:555 Engine/otran.c:1392
 #, c-format
 msgid "%s invalid ksmps value"
-msgstr ""
+msgstr "%s valeur inadmissible de ksmps"
 
 #: Engine/csound_orc_compile.c:1115 Engine/otran.c:557 Engine/otran.c:1398
 #, c-format
@@ -72,7 +72,7 @@ msgstr "%s contradictoire sr, kr, ksmps"
 
 #: Engine/csound_orc_compile.c:1127
 msgid "perf-pass statements illegal in header blk\n"
-msgstr ""
+msgstr "perf-pass rapports illégaux dans le bloc d'en-tête\n"
 
 #: Engine/csound_orc_compile.c:1131
 #, c-format
@@ -96,7 +96,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:1334 Engine/otran.c:781
 #, c-format
 msgid "target label '%s' not found"
-msgstr ""
+msgstr "étiquette '%s' de cible non trouvée"
 
 #: Engine/csound_orc_compile.c:1399 Engine/otran.c:836
 #, c-format
@@ -123,7 +123,7 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:1567 Engine/otran.c:1037
 msgid "unexpected global name"
-msgstr ""
+msgstr "nom global inattendu"
 
 #: Engine/csound_orc_compile.c:1590 Engine/otran.c:1059
 msgid "unknown nametype"
@@ -131,7 +131,7 @@ msgstr "type nommé inconnu"
 
 #: Engine/csound_orc_semantics.c:525 Engine/rdorch.c:1780
 msgid "insufficient required arguments"
-msgstr ""
+msgstr "arguments requis insuffisants"
 
 #: Engine/csound_orc_semantics.c:582 Engine/rdorch.c:1538 Engine/rdorch.c:1556
 #: Engine/rdorch.c:1597 Engine/rdorch.c:1732 Engine/rdorch.c:1893
@@ -142,7 +142,7 @@ msgstr ""
 #: Engine/envvar.c:260 Engine/jpff_envvar.c:261
 #, c-format
 msgid "Environment variable '%s' has been set to "
-msgstr ""
+msgstr "La variable d'environnement '%s' a été placée à "
 
 #: Engine/envvar.c:532 Engine/jpff_envvar.c:496
 #, c-format
@@ -179,7 +179,7 @@ msgstr ""
 #: Engine/express.c:293 Engine/express.c:336 Engine/express.c:366
 #: Engine/express.c:402
 msgid "misplaced relational op"
-msgstr ""
+msgstr "opération apparentée mal placée"
 
 #: Engine/express.c:302
 msgid "i() with expression argument not allowed with --expression-opt"
@@ -191,7 +191,7 @@ msgstr "AVERTISSEMENT : l'i() ne devrait pas être employé avec l'argument d'ex
 
 #: Engine/express.c:326 Engine/express.c:346 Engine/express.c:357
 msgid "Expression got lost\n"
-msgstr ""
+msgstr "L'expression est perdue\n"
 
 #: Engine/express.c:400
 msgid "audio relational"
@@ -264,10 +264,12 @@ msgid ""
 "ftable %d relocating due to size change\n"
 "         currently active instruments may find this disturbing"
 msgstr ""
+"replacer %d ftable dû au changement de taille.\n"
+"          Actuellement les instruments actifs peuvent trouver ce déranger"
 
 #: Engine/fgens.c:345
 msgid "no coefs present"
-msgstr ""
+msgstr "aucuns coefficients actuels"
 
 #: Engine/fgens.c:350 Engine/fgens.c:554 Engine/fgens.c:562
 msgid "illegal x interval"
@@ -580,7 +582,7 @@ msgstr ""
 
 #: Engine/insert.c:104 Engine/insert.c:244 Engine/insert.c:1148
 msgid "cannot allocate last note because it exceeds instr maxalloc"
-msgstr ""
+msgstr "ne peut pas assigner la dernière note parce qu'elle excède le maxalloc d'instr"
 
 #: Engine/insert.c:118 Engine/insert.c:256 Engine/insert.c:1172
 #, c-format
@@ -664,7 +666,7 @@ msgstr ""
 
 #: Engine/insert.c:717
 msgid "   note aborted\n"
-msgstr ""
+msgstr "    notez avorté\n"
 
 #: Engine/insert.c:744
 msgid "subinstr: number of output args greater than nchnls"
@@ -747,7 +749,7 @@ msgstr ""
 #: util/jpff_hetro.c:248
 #, c-format
 msgid "Cannot open %s"
-msgstr ""
+msgstr "Ne peut pas s'ouvrir %s"
 
 #: Engine/linevent.c:108 Engine/linevent.c:122
 #, c-format
@@ -928,7 +930,7 @@ msgstr "Csound version en français %s beta (float samples) %s\n"
 #: Engine/musmon.c:193 Top/main.c:99
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
-msgstr ""
+msgstr "Csound version en français %s (float samples) %s\n"
 
 #: Engine/musmon.c:219
 msgid "orch now loaded\n"
@@ -966,11 +968,11 @@ msgstr ""
 
 #: Engine/musmon.c:308
 msgid "sorting cscore.out ..\n"
-msgstr ""
+msgstr "assortir cscore.out ..\n"
 
 #: Engine/musmon.c:312 Top/main.c:379
 msgid "\t... done\n"
-msgstr ""
+msgstr "\t... fait\n"
 
 #: Engine/musmon.c:316
 msgid "playing from cscore.srt\n"
@@ -980,7 +982,7 @@ msgstr ""
 #: Engine/musmon.c:1200
 #, c-format
 msgid "SECTION %d:\n"
-msgstr ""
+msgstr "SECTION %d :\n"
 
 #: Engine/musmon.c:396
 msgid "end of score.\t\t   overall amps:"
@@ -990,18 +992,18 @@ msgstr ""
 msgid ""
 "\n"
 "\t   overall samples out of range:"
-msgstr ""
+msgstr "\n\t   échantillons globaux hors de gamme :"
 
 #: Engine/musmon.c:411
 #, c-format
 msgid ""
 "\n"
 "%d errors in performance\n"
-msgstr ""
+msgstr "\n%d erreurs dans l'exécution\n"
 
 #: Engine/musmon.c:413
 msgid "end of performance"
-msgstr ""
+msgstr "fin d'exécution"
 
 #: Engine/musmon.c:425
 msgid "no sound written to disk\n"
@@ -1019,7 +1021,7 @@ msgstr ""
 #: Engine/musmon.c:544
 #, c-format
 msgid "end of section %d\t sect peak amps:"
-msgstr ""
+msgstr "extrémité de la section %d\tamplitudes maximales de section :"
 
 #: Engine/musmon.c:546
 msgid "end of lplay event list\t      peak amps:"
@@ -1033,15 +1035,15 @@ msgstr " - note effacée. instr %s non défini"
 #: Engine/musmon.c:614
 #, c-format
 msgid "Setting instrument %s %s\n"
-msgstr ""
+msgstr "Plaçant l'instrument  %s %s\n"
 
 #: Engine/musmon.c:615 Engine/musmon.c:628
 msgid "off"
-msgstr ""
+msgstr "au loin"
 
 #: Engine/musmon.c:615 Engine/musmon.c:628
 msgid "on"
-msgstr ""
+msgstr "dessus"
 
 #: Engine/musmon.c:623 Engine/musmon.c:662
 #, c-format
@@ -1051,7 +1053,7 @@ msgstr " - note effacée. instr %d(%d) non défini"
 #: Engine/musmon.c:627
 #, c-format
 msgid "Setting instrument %d %s\n"
-msgstr ""
+msgstr "Plaçant l'instrument %d %s\n"
 
 #: Engine/musmon.c:653
 #, c-format
@@ -1066,12 +1068,12 @@ msgstr " - note effacée.  i%d a eu %d erreurs d'initialisation"
 #: Engine/musmon.c:704
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
-msgstr ""
+msgstr "le temps a avancé des battements de %5.3f par demande de points\n"
 
 #: Engine/musmon.c:721
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
-msgstr ""
+msgstr "\t\t   T%7.3f - note supprimée. "
 
 #: Engine/musmon.c:722
 #, c-format
@@ -1089,7 +1091,7 @@ msgstr ""
 
 #: Engine/musmon.c:1116
 msgid "insert_score_event(): invalid instrument number or name\n"
-msgstr ""
+msgstr "insert_score_event() : nombre ou nom inadmissible d'instrument\n"
 
 #: Engine/musmon.c:1136
 #, c-format
@@ -2792,7 +2794,7 @@ msgstr ""
 #: InOut/winFLTK.c:135
 #, c-format
 msgid "Error registering opcode '%s'"
-msgstr ""
+msgstr "Erreur enregistrant le opcode '%s'"
 
 #: InOut/widgets.cpp:1070
 msgid ""
@@ -2819,14 +2821,16 @@ msgid ""
 "Saving could overwrite the old file.\n"
 "Are you sure you want to save ?"
 msgstr ""
+"L'économie a pu recouvrir le vieux dossier.\n"
+"Êtes-vous sûr vous voulez-vous sauver ?"
 
 #: InOut/widgets.cpp:1486
 msgid "No"
-msgstr ""
+msgstr "Non"
 
 #: InOut/widgets.cpp:1486
 msgid "Yes"
-msgstr ""
+msgstr "Oui"
 
 #: InOut/widgets.cpp:1495
 msgid "FLsavesnap: cannot open file"
@@ -2848,7 +2852,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:2002
 msgid "FLrun was already called"
-msgstr ""
+msgstr "FLrun s'est déjà appelé"
 
 #: InOut/widgets.cpp:2005
 msgid "FL_run: memory allocation failure"
@@ -2885,7 +2889,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:2605
 msgid "FLgroup_end: invalid stack pointer: verify its placement"
-msgstr ""
+msgstr "FLgroup_end : indicateur de pile inadmissible : vérifiez son placement"
 
 #: InOut/widgets.cpp:2608
 msgid ""
@@ -2895,7 +2899,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:2638
 msgid "FLpack_end: invalid stack pointer: verify its placement"
-msgstr ""
+msgstr "FLpack_end : indicateur de pile inadmissible : vérifiez son placement"
 
 #: InOut/widgets.cpp:2641
 msgid ""
@@ -2913,7 +2917,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:2826
 msgid "FLvalue cannot be set by FLsetVal\n"
-msgstr ""
+msgstr "FLvalue ne peut pas être placé par FLsetVal\n"
 
 #: InOut/widgets.cpp:2839
 #, c-format
@@ -2922,7 +2926,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:3189 InOut/widgets.cpp:4556
 msgid "FLslider exponential, using non-labeled slider"
-msgstr ""
+msgstr "FLslider exponentiel, à l'aide du glisseur non-marqué"
 
 #: InOut/widgets.cpp:3210
 msgid "FLslider: invalid slider type"
@@ -6913,11 +6917,11 @@ msgstr ""
 
 #: Opcodes/ugens9.c:63 Opcodes/ugens9.c:71
 msgid "CONVOLVE: output channels not equal to number of channels in source"
-msgstr ""
+msgstr "CONVOLVE : canaux de rendement non égaux au nombre de canaux dans la source"
 
 #: Opcodes/ugens9.c:79
 msgid "CONVOLVE: channel number greater than number of channels in source"
-msgstr ""
+msgstr "CONVOLVE : nombre plus grand que de nombre de canal des canaux dans la source"
 
 #: Opcodes/ugens9.c:98
 #, c-format
