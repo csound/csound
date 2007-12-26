@@ -1810,7 +1810,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (fd == NULL) {
-      csound->Die(csound, Str("\nERROR: can't open file %s for writing\n"),
+      csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
                   output_file);
     }
     sf_set_string(sf, SF_STR_SOFTWARE, "created by ATSA");
