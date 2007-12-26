@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-25 16:49+0000\n"
+"PO-Revision-Date: 2007-12-26 10:28+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -127,7 +127,7 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:1590 Engine/otran.c:1059
 msgid "unknown nametype"
-msgstr ""
+msgstr "type nommé inconnu"
 
 #: Engine/csound_orc_semantics.c:525 Engine/rdorch.c:1780
 msgid "insufficient required arguments"
@@ -152,12 +152,12 @@ msgstr ""
 #: Engine/envvar.c:1077 Engine/jpff_envvar.c:809
 #, c-format
 msgid "internal error: csoundFileOpen(): invalid type: %d"
-msgstr ""
+msgstr "erreur interne : csoundFileOpen() : type inadmissible : %d"
 
 #: Engine/envvar.c:1259 Engine/jpff_envvar.c:983
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
-msgstr ""
+msgstr "erreur interne : csoundCreateFileHandle() : type inadmissible : %d"
 
 #: Engine/express.c:64
 #, c-format
@@ -329,7 +329,7 @@ msgstr ""
 
 #: Engine/fgens.c:918
 msgid "an input function does not exist"
-msgstr ""
+msgstr "une fonction d'entrée n'existe pas"
 
 #: Engine/fgens.c:1035
 msgid "No such window!"
@@ -345,7 +345,7 @@ msgstr ""
 
 #: Engine/fgens.c:1074
 msgid "error opening ASCII file"
-msgstr ""
+msgstr "fichier ASCII d'ouverture d'erreur"
 
 #: Engine/fgens.c:1103
 #, c-format
@@ -354,7 +354,7 @@ msgstr ""
 
 #: Engine/fgens.c:1164
 msgid "table size must be the same of source table"
-msgstr ""
+msgstr "la taille de table doit être la même de la table de source"
 
 #: Engine/fgens.c:1223 Engine/fgens.c:1270
 msgid "x coordindates must all be in increasing order:"
@@ -621,37 +621,41 @@ msgid ""
 "\n"
 "INIT ERROR: "
 msgstr ""
+"\n"
+"INIT ERREUR : "
 
 #: Engine/insert.c:667
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
-msgstr ""
+msgstr "INIT ERREUR dans l'instr %d (opcode %s) : "
 
 #: Engine/insert.c:670
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
-msgstr ""
+msgstr "INIT ERREUR dans l'instr %d (subinstr %d) : "
 
 #: Engine/insert.c:674
 #, c-format
 msgid "INIT ERROR in instr %d: "
-msgstr ""
+msgstr "INIT ERREUR dans l'instr %d : "
 
 #: Engine/insert.c:692
 msgid ""
 "\n"
 "PERF ERROR: "
 msgstr ""
+"\n"
+"PERF ERREUR : "
 
 #: Engine/insert.c:705
-#, c-format
+#, c-format, fuzzy
 msgid "PERF ERROR in instr %d (opcode %s): "
-msgstr ""
+msgstr "PERF ERREUR dans l'instr %d (opcode %s) : <"
 
 #: Engine/insert.c:708
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
-msgstr ""
+msgstr "PERF ERREUR dans l'instr %d (subinstr %d) : "
 
 #: Engine/insert.c:712
 #, c-format
@@ -834,6 +838,8 @@ msgid ""
 "PVOCEX_LoadFile(): error:\n"
 "    "
 msgstr ""
+"PVOCEX_LoadFile() : erreur :\n"
+"    "
 
 #: Engine/memfiles.c:193
 msgid "Empty or NULL file name"
@@ -3050,7 +3056,7 @@ msgstr "FLxyin : aucune de limites de X ne peut être zéro en mode exponentiel 
 
 #: InOut/widgets.cpp:5177
 msgid "FLxyin : none of Y limits can be zero in exponential mode!"
-msgstr "FLxyin : aucune de limites de Y ne peut être zéro en mode exponentiel !""
+msgstr "FLxyin : aucune de limites de Y ne peut être zéro en mode exponentiel !"
 
 #: InOut/winEPS.c:132
 #, c-format
@@ -7370,7 +7376,7 @@ msgstr ""
 
 #: Top/argdecode.c:227 Top/argdecode.c:243
 msgid "Legal flags are:\n"
-msgstr ""
+msgstr "Les drapeaux légaux sont :\n"
 
 #: Top/argdecode.c:228
 msgid ""
@@ -8860,7 +8866,7 @@ msgstr ""
 
 #: util/mixer.c:196 util/scale.c:165
 msgid "Insufficient arguments"
-msgstr ""
+msgstr "Arguments insuffisants"
 
 #: util/mixer.c:211
 msgid "mixer: -o cannot be stdin"
@@ -9102,4 +9108,4 @@ msgstr ""
 
 #: util/xtrct.c:84
 msgid "extractor: error: "
-msgstr ""
+msgstr "extractor : erreur : "
