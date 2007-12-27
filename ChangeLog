@@ -1,3 +1,8 @@
+2007-12-27  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/imageOpcodes.h: 
+	* Opcodes/imageOpcodes.c: New code
+
 2007-12-25  jpff  <jpff@codemist.co.uk>
 
 	* po/french.po: 
