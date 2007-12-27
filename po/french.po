@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-26 21:52+0000\n"
+"PO-Revision-Date: 2007-12-27 08:06+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -53,12 +53,12 @@ msgstr "instr %ld redéfini"
 #: Engine/csound_orc_compile.c:1108 Engine/otran.c:550 Engine/otran.c:1394
 #, c-format
 msgid "%s invalid sample rate"
-msgstr ""
+msgstr "%s taux inadmissible d'échantillon"
 
 #: Engine/csound_orc_compile.c:1110 Engine/otran.c:552 Engine/otran.c:1396
 #, c-format
 msgid "%s invalid control rate"
-msgstr ""
+msgstr "%s taux inadmissible de commande"
 
 #: Engine/csound_orc_compile.c:1113 Engine/otran.c:555 Engine/otran.c:1392
 #, c-format
@@ -91,7 +91,7 @@ msgstr "La liste d'ÉTIQUETTES est plein... se prolonger à %d\n"
 #: Engine/csound_orc_compile.c:1301 Engine/otran.c:748
 #, c-format
 msgid "GOTOS list is full..extending to %d\n"
-msgstr ""
+msgstr "La liste de GOTOS est plein... se prolonger à %d\n"
 
 #: Engine/csound_orc_compile.c:1334 Engine/otran.c:781
 #, c-format
@@ -174,7 +174,7 @@ msgstr ""
 
 #: Engine/express.c:252
 msgid "within parens"
-msgstr ""
+msgstr "dans des parenthèses"
 
 #: Engine/express.c:293 Engine/express.c:336 Engine/express.c:366
 #: Engine/express.c:402
@@ -183,7 +183,7 @@ msgstr "opération apparentée mal placée"
 
 #: Engine/express.c:302
 msgid "i() with expression argument not allowed with --expression-opt"
-msgstr ""
+msgstr "i() avec l'argument d'expression non permis avec --expression-opt"
 
 #: Engine/express.c:307
 msgid "WARNING: i() should not be used with expression argument\n"
@@ -223,12 +223,12 @@ msgstr ""
 
 #: Engine/fgens.c:130
 msgid "ftable does not exist"
-msgstr ""
+msgstr "ftable n'existe pas"
 
 #: Engine/fgens.c:135
 #, c-format
 msgid "ftable %d now deleted\n"
-msgstr ""
+msgstr "ftable %d maintenant supprimés\n"
 
 #: Engine/fgens.c:150 Engine/fgens.c:1368 Engine/fgens.c:1449
 #: Engine/fgens.c:1512 Engine/fgens.c:1627 Engine/fgens.c:1706
@@ -279,7 +279,7 @@ msgstr ""
 #: Engine/fgens.c:1151 Engine/fgens.c:2099 Top/cvanal.c:69 Top/main.c:124
 #: Top/pvanal.c:104 util/cvanal.c:66 util/lpanal.c:385 util/pvanal.c:170
 msgid "insufficient arguments"
-msgstr ""
+msgstr "arguments insuffisants"
 
 #: Engine/fgens.c:383 Engine/fgens.c:1156
 msgid "unknown srctable number"
@@ -323,7 +323,7 @@ msgstr ""
 
 #: Engine/fgens.c:904
 msgid "wrong number of args"
-msgstr ""
+msgstr "faux numéro des arguments"
 
 #: Engine/fgens.c:911
 msgid "a range given exceeds table length"
@@ -434,7 +434,7 @@ msgstr ""
 #: Engine/fgens.c:2002
 #, c-format
 msgid "Deferred load of '%s' failed"
-msgstr ""
+msgstr "La charge reportée de '%s' a échoué"
 
 #: Engine/fgens.c:2064
 #, c-format
@@ -578,7 +578,7 @@ msgstr ""
 #: Engine/insert.c:98 Engine/insert.c:238 Engine/insert.c:1143
 #, c-format
 msgid "cannot allocate last note because it exceeds 100%% of cpu time"
-msgstr ""
+msgstr "ne peut pas assigner la dernière note parce qu'elle excède 100%% du temps CPU"
 
 #: Engine/insert.c:104 Engine/insert.c:244 Engine/insert.c:1148
 msgid "cannot allocate last note because it exceeds instr maxalloc"
@@ -611,7 +611,7 @@ msgstr ""
 
 #: Engine/insert.c:617
 msgid "inactive allocs returned to freespace\n"
-msgstr ""
+msgstr "attributions inactives retournées au freespace\n"
 
 #: Engine/insert.c:641
 #, c-format
@@ -662,7 +662,7 @@ msgstr "PERF ERREUR dans l'instr %d (subinstr %d) : "
 #: Engine/insert.c:712
 #, c-format
 msgid "PERF ERROR in instr %d: "
-msgstr ""
+msgstr "PERF ERREUR dans l'instr %d : "
 
 #: Engine/insert.c:717
 msgid "   note aborted\n"
@@ -763,7 +763,7 @@ msgstr ""
 #: Engine/linevent.c:248
 #, c-format
 msgid "unknown opcode %c"
-msgstr ""
+msgstr "opcode inconnu %c"
 
 #: Engine/linevent.c:262
 msgid "multiple string p-fields"
@@ -845,7 +845,7 @@ msgstr ""
 
 #: Engine/memfiles.c:193
 msgid "Empty or NULL file name"
-msgstr ""
+msgstr "Nom de fichier vide ou NULL"
 
 #: Engine/memfiles.c:211
 #, c-format
@@ -865,7 +865,7 @@ msgstr ""
 #: Engine/memfiles.c:229
 #, c-format
 msgid "pvoc-ex file %s is empty!"
-msgstr ""
+msgstr "le dossier pvoc-ex %s est vide !"
 
 #: Engine/memfiles.c:259
 #, c-format
@@ -920,7 +920,7 @@ msgstr "Csound version en français %s beta (double samples) %s\n"
 #: Engine/musmon.c:185 Top/main.c:107
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
-msgstr ""
+msgstr "Csound version en français %s (double samples) %s\n"
 
 #: Engine/musmon.c:190 Top/main.c:96
 #, c-format
@@ -934,7 +934,7 @@ msgstr "Csound version en français %s (float samples) %s\n"
 
 #: Engine/musmon.c:219
 msgid "orch now loaded\n"
-msgstr ""
+msgstr "orchestre maintenant chargé\n"
 
 #: Engine/musmon.c:244
 msgid "k-period aligned audio buffering\n"
@@ -1016,7 +1016,7 @@ msgstr "%c\tsignal sonore !\n"
 
 #: Engine/musmon.c:505 Engine/musmon.c:551
 msgid "\t number of samples out of range:"
-msgstr ""
+msgstr "\t nombre d'échantillons hors de gamme :"
 
 #: Engine/musmon.c:544
 #, c-format
@@ -1096,7 +1096,7 @@ msgstr "insert_score_event() : nombre ou nom inadmissible d'instrument\n"
 #: Engine/musmon.c:1136
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
-msgstr ""
+msgstr "insert_score_event() : opcode inconnu : %c\n"
 
 #: Engine/musmon.c:1159
 msgid "insert_score_event(): insufficient p-fields\n"
@@ -1163,7 +1163,7 @@ msgstr ""
 #: Engine/otran.c:573
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid"
-msgstr ""
+msgstr "%d erreurs de syntaxe dans l'orchestre. invalide de compilation"
 
 #: Engine/otran.c:1220
 msgid "bad value for 0dbfs: must be positive."
@@ -1209,12 +1209,12 @@ msgstr ""
 
 #: Engine/rdorch.c:438
 msgid "orch compiler:\n"
-msgstr ""
+msgstr "compilateur d'orchestre :\n"
 
 #: Engine/rdorch.c:444
 #, c-format
 msgid "cannot find end of file %s"
-msgstr ""
+msgstr "ne peut pas trouver l'extrémité du dossier %s"
 
 #: Engine/rdorch.c:446
 #, c-format
@@ -1233,7 +1233,7 @@ msgstr ""
 #: Engine/rdorch.c:683 Engine/sread.c:1551
 #, c-format
 msgid "Cannot open #include'd file %s\n"
-msgstr ""
+msgstr "Ne peut pas ouvrir le dossier #inclus %s\n"
 
 #: Engine/rdorch.c:730
 msgid "unmatched #ifdef"
@@ -1258,7 +1258,7 @@ msgstr ""
 
 #: Engine/rdorch.c:806
 msgid "Unexpected # character"
-msgstr ""
+msgstr "Inattendu # caractère"
 
 #: Engine/rdorch.c:808
 #, c-format
@@ -3341,7 +3341,7 @@ msgstr ""
 #: OOps/disprep.c:117
 #, c-format
 msgid "instr %d, signal %s:"
-msgstr ""
+msgstr "instr %d, signal %s :"
 
 #: OOps/disprep.c:129
 msgid "display: not initialised"
@@ -3769,7 +3769,7 @@ msgstr ""
 
 #: OOps/remote.c:100
 msgid "insufficient memory to initialize remote globals."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser des globals de remote."
 
 #: OOps/remote.c:109
 msgid "insufficient memory to initialize outgoing socket table."
@@ -8989,7 +8989,7 @@ msgstr ""
 #: util/scale.c:293 util/xtrct.c:305
 #, c-format
 msgid "Failed to open output file %s"
-msgstr ""
+msgstr "N'a pas ouvert le dossier de rendement %s"
 
 #: util/scale.c:296
 #, c-format
@@ -8999,7 +8999,7 @@ msgstr "inscription des blocs de %d-byte de %s au %s %s\n"
 #: util/scale.c:326
 #, c-format
 msgid "Failed to open %s"
-msgstr ""
+msgstr "N'a pas ouvert %s"
 
 #: util/sndinfo.c:112
 #, c-format
@@ -9014,7 +9014,7 @@ msgstr ""
 #: util/sndinfo.c:127
 #, c-format
 msgid "  Base note   : %d\n"
-msgstr ""
+msgstr "  Note basse  : %d\n"
 
 #: util/sndinfo.c:129
 #, c-format
