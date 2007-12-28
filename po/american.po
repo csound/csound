@@ -5606,6 +5606,33 @@ msgstr ""
 msgid "pvsifd: unsupported value for iwintype\n"
 msgstr ""
 
+#: Opcodes/imageOpcodes.c:99
+#, c-format
+msgid "imageload: cannot open image %s.\n"
+msgstr "imageload: can't open image %s.\n"
+
+#: Opcodes/imageOpcodes.c:108
+#, c-format
+msgid "imageload: file %s is not in PNG format.\n"
+msgstr ""
+
+#: Opcodes/imageOpcodes.c:116 Opcodes/imageOpcodes.c:123
+#: Opcodes/imageOpcodes.c:131 Opcodes/imageOpcodes.c:160
+#: Opcodes/imageOpcodes.c:169 Opcodes/imageOpcodes.c:183
+#: Opcodes/imageOpcodes.c:281 Opcodes/imageOpcodes.c:289
+#: Opcodes/imageOpcodes.c:304
+msgid "imageload: out of memory.\n"
+msgstr ""
+
+#: Opcodes/imageOpcodes.c:273
+#, c-format
+msgid "imageload: cannot open image %s for writing.\n"
+msgstr "imageload: can't open image %s for writing.\n"
+
+#: Opcodes/imageOpcodes.c:387
+msgid "Cannot allocate memory.\n"
+msgstr ""
+
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
 msgstr ""
