@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-27 08:06+0000\n"
+"PO-Revision-Date: 2007-12-28 12:20+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -24,7 +24,7 @@ msgstr ""
 #: Engine/auxfd.c:144
 #, c-format
 msgid "auxlist for instr %d (%p):\n"
-msgstr ""
+msgstr "auxlist pour instr %d (%p) :\n"
 
 #: Engine/auxfd.c:148
 #, c-format
@@ -101,12 +101,12 @@ msgstr "étiquette '%s' de cible non trouvée"
 #: Engine/csound_orc_compile.c:1399 Engine/otran.c:836
 #, c-format
 msgid "string syntax '%s'"
-msgstr ""
+msgstr "syntaxe de corde '%s'"
 
 #: Engine/csound_orc_compile.c:1449 Engine/otran.c:886
 #, c-format
 msgid "numeric syntax '%s'"
-msgstr ""
+msgstr "syntaxe numérique '%s'"
 
 #: Engine/csound_orc_compile.c:1475 Engine/otran.c:912
 #, c-format
@@ -115,11 +115,11 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:1514 Engine/otran.c:984
 msgid "gblnamset(): memory allocation failure"
-msgstr ""
+msgstr "gblnamset(): échec d'attribution de mémoire"
 
 #: Engine/csound_orc_compile.c:1542 Engine/otran.c:1012
 msgid "lclnamset(): memory allocation failure"
-msgstr ""
+msgstr "lclnamset(): échec d'attribution de mémoire"
 
 #: Engine/csound_orc_compile.c:1567 Engine/otran.c:1037
 msgid "unexpected global name"
@@ -137,7 +137,7 @@ msgstr "arguments requis insuffisants"
 #: Engine/rdorch.c:1597 Engine/rdorch.c:1732 Engine/rdorch.c:1893
 #, c-format
 msgid "modified opcod: %s"
-msgstr ""
+msgstr "opcode modifié : %s"
 
 #: Engine/envvar.c:260 Engine/jpff_envvar.c:261
 #, c-format
@@ -147,7 +147,7 @@ msgstr "La variable d'environnement '%s' a été placée à "
 #: Engine/envvar.c:532 Engine/jpff_envvar.c:496
 #, c-format
 msgid "Creating search path cache for '%s':"
-msgstr ""
+msgstr "Créer la cachette de chemin de recherche pour '%s':"
 
 #: Engine/envvar.c:1077 Engine/jpff_envvar.c:809
 #, c-format
@@ -234,7 +234,7 @@ msgstr "ftable %d maintenant supprimés\n"
 #: Engine/fgens.c:1512 Engine/fgens.c:1627 Engine/fgens.c:1706
 #: Engine/fgens.c:2420
 msgid "insufficient gen arguments"
-msgstr ""
+msgstr "arguments insuffisants de gen"
 
 #: Engine/fgens.c:165
 #, c-format
@@ -252,7 +252,7 @@ msgstr ""
 #: Engine/fgens.c:183 Engine/fgens.c:231
 #, c-format
 msgid "ftable %d:\n"
-msgstr ""
+msgstr "ftable %d :\n"
 
 #: Engine/fgens.c:208 Engine/fgens.c:215
 msgid "illegal table length"
@@ -273,7 +273,7 @@ msgstr "aucuns coefficients actuels"
 
 #: Engine/fgens.c:350 Engine/fgens.c:554 Engine/fgens.c:562
 msgid "illegal x interval"
-msgstr ""
+msgstr "intervalle illégal de x"
 
 #: Engine/fgens.c:379 Engine/fgens.c:506 Engine/fgens.c:547 Engine/fgens.c:750
 #: Engine/fgens.c:1151 Engine/fgens.c:2099 Top/cvanal.c:69 Top/main.c:124
@@ -295,7 +295,7 @@ msgstr ""
 
 #: Engine/fgens.c:465
 msgid "illegal input vals for gen call, beginning:"
-msgstr ""
+msgstr "les valeurs illégales d'entrée pour la gen appellent, commençant"
 
 #: Engine/fgens.c:515
 msgid "negative segsiz"
@@ -833,7 +833,7 @@ msgstr ""
 #: Engine/memfiles.c:113 Engine/memfiles.c:296
 #, c-format
 msgid "file %s (%ld bytes) loaded into memory\n"
-msgstr ""
+msgstr "classez %s (%ld bytes) chargé en la mémoire\n"
 
 #: Engine/memfiles.c:176
 msgid ""
@@ -881,7 +881,7 @@ msgstr ""
 #: Opcodes/pvinterp.c:344 Opcodes/vpvoc.c:202 Opcodes/ugens9.c:93
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
-msgstr ""
+msgstr "srate de %s = %8.0f, srate s'orchestre = %8.0f"
 
 #: Engine/memfiles.c:365
 #, c-format
@@ -1078,7 +1078,7 @@ msgstr "\t\t   T%7.3f - note supprimée. "
 #: Engine/musmon.c:722
 #, c-format
 msgid "instr %d had %d init errors\n"
-msgstr ""
+msgstr "l'instr %d a eu %d erreurs d'init\n"
 
 #: Engine/musmon.c:812
 msgid "terminating.\n"
@@ -1087,7 +1087,7 @@ msgstr "terminaison.\n"
 #: Engine/musmon.c:893
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
-msgstr ""
+msgstr "erreur dans les points. opcode illégal %c (ASCII %d)\n"
 
 #: Engine/musmon.c:1116
 msgid "insert_score_event(): invalid instrument number or name\n"
@@ -1109,7 +1109,7 @@ msgstr ""
 
 #: Engine/namedins.c:325
 msgid "cannot find the specified instrument or opcode"
-msgstr ""
+msgstr "ne peut pas trouver l'instrument ou l'opcode indiqué"
 
 #: Engine/new_orc_parser.c:61 Engine/rdorch.c:442
 #, c-format
@@ -1130,7 +1130,7 @@ msgstr ""
 
 #: Engine/otran.c:366 Engine/symbtab.c:490
 msgid "invalid name for opcode"
-msgstr ""
+msgstr "nom inadmissible pour l'opcode"
 
 #: Engine/otran.c:370
 #, c-format
@@ -1141,12 +1141,12 @@ msgstr ""
 #: Engine/otran.c:381 Engine/symbtab.c:500
 #, c-format
 msgid "cannot redefine %s"
-msgstr ""
+msgstr "ne peut pas redéfinir %s"
 
 #: Engine/otran.c:385 Engine/symbtab.c:505
 #, c-format
 msgid "WARNING: redefined opcode: %s\n"
-msgstr ""
+msgstr "AVERTISSEMENT : opcode redéfini : %s\n"
 
 #: Engine/otran.c:476
 msgid "string constant used as output"
@@ -1189,6 +1189,8 @@ msgid ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 "error:"
 msgstr ""
+"sr = %.7g, kr = %.7g, ksmps = %.7g\n"
+"erreur :"
 
 #: Engine/otran.c:1423
 msgid "header init errors"
@@ -1196,7 +1198,7 @@ msgstr ""
 
 #: Engine/rdorch.c:285
 msgid "Unexpected end of orchestra file"
-msgstr ""
+msgstr "Extrémité inattendue de dossier d'orchestre"
 
 #: Engine/rdorch.c:367 Engine/sread.c:683
 #, c-format
@@ -1237,20 +1239,20 @@ msgstr "Ne peut pas ouvrir le dossier #inclus %s\n"
 
 #: Engine/rdorch.c:730
 msgid "unmatched #ifdef"
-msgstr ""
+msgstr "inégalé #ifdef"
 
 #: Engine/rdorch.c:741
 msgid "Unmatched #else"
-msgstr ""
+msgstr "inégalé #else"
 
 #: Engine/rdorch.c:755
 msgid "Unmatched #endif"
-msgstr ""
+msgstr "inégalé #endif"
 
 #: Engine/rdorch.c:776 Engine/sread.c:1572
 #, c-format
 msgid "macro %s undefined\n"
-msgstr ""
+msgstr "le macro %s a éliminé\n"
 
 #: Engine/rdorch.c:790 Engine/sread.c:241
 msgid "Undefining undefined macro"
@@ -1289,6 +1291,8 @@ msgid ""
 "Missing argument terminator\n"
 "%.98s"
 msgstr ""
+"Terminateur absent d'argument\n"
+"%.98s"
 
 #: Engine/rdorch.c:905
 msgid "Unmatched #ifdef"
@@ -1301,12 +1305,12 @@ msgstr ""
 #: Engine/rdorch.c:913
 #, c-format
 msgid "%d lines read\n"
-msgstr ""
+msgstr "%d lignes lues\n"
 
 #: Engine/rdorch.c:980
 #, c-format
 msgid "LINE %d:"
-msgstr ""
+msgstr "LIGNE %d :"
 
 #: Engine/rdorch.c:999
 msgid "invalid 'elseif' statement.  must have a corresponding 'if'"
@@ -1318,7 +1322,7 @@ msgstr ""
 
 #: Engine/rdorch.c:1062
 msgid "Unmatched comment"
-msgstr ""
+msgstr "Commentaire inégalé"
 
 #: Engine/rdorch.c:1116
 msgid "misplaced comma"
@@ -1347,7 +1351,7 @@ msgstr ""
 
 #: Engine/rdorch.c:1360
 msgid "no legal opcode"
-msgstr ""
+msgstr "aucun opcode légal"
 
 #: Engine/rdorch.c:1494
 msgid "illegal opcod from expr anal"
@@ -5621,6 +5625,33 @@ msgstr ""
 msgid "pvsifd: unsupported value for iwintype\n"
 msgstr ""
 
+#: Opcodes/imageOpcodes.c:99
+#, c-format
+msgid "imageload: cannot open image %s.\n"
+msgstr "ne peut pas ouvrir l'image %s.\n"
+
+#: Opcodes/imageOpcodes.c:108
+#, c-format
+msgid "imageload: file %s is not in PNG format.\n"
+msgstr ""
+
+#: Opcodes/imageOpcodes.c:116 Opcodes/imageOpcodes.c:123
+#: Opcodes/imageOpcodes.c:131 Opcodes/imageOpcodes.c:160
+#: Opcodes/imageOpcodes.c:169 Opcodes/imageOpcodes.c:183
+#: Opcodes/imageOpcodes.c:281 Opcodes/imageOpcodes.c:289
+#: Opcodes/imageOpcodes.c:304
+msgid "imageload: out of memory.\n"
+msgstr "imageload : hors de la mémoire.\n"
+
+#: Opcodes/imageOpcodes.c:273
+#, c-format
+msgid "imageload: cannot open image %s for writing.\n"
+msgstr "imageload: ne peut pas ouvrir l'image %s pour l'écriture.\n"
+
+#: Opcodes/imageOpcodes.c:387
+msgid "Cannot allocate memory.\n"
+msgstr "Ne peut pas assigner la mémoire.\n"
+
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
 msgstr ""
@@ -5641,7 +5672,7 @@ msgstr ""
 
 #: Opcodes/loscilx.c:170
 msgid "loscilx: invalid number of output arguments"
-msgstr ""
+msgstr "loscilx: nombre inadmissible des arguments de rendement"
 
 #: Opcodes/loscilx.c:190 Opcodes/loscilx.c:219
 msgid ""
@@ -5658,7 +5689,7 @@ msgstr ""
 
 #: Opcodes/mandolin.c:80
 msgid "No table for Mandolin"
-msgstr ""
+msgstr "Aucune table pour la Mandoline"
 
 #: Opcodes/mandolin.c:90
 msgid "No base frequency for mandolin"
@@ -5888,7 +5919,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:121
 msgid "No table for Clarinet"
-msgstr ""
+msgstr "Aucune table pour le Clarinet"
 
 #: Opcodes/physmod.c:129
 msgid "No base frequency for clarinet -- assuming 50Hz\n"
@@ -5896,7 +5927,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:279
 msgid "No table for Flute"
-msgstr ""
+msgstr "Aucune table pour la Flute"
 
 #: Opcodes/physmod.c:287
 msgid "No base frequency for flute -- assumed to be 50Hz\n"
@@ -6066,7 +6097,7 @@ msgstr ""
 #: Opcodes/pluck.c:370
 #, c-format
 msgid "Error: %s, %s"
-msgstr ""
+msgstr "Erreur : %s, %s"
 
 #: Opcodes/psynth.c:97 Opcodes/psynth.c:249
 msgid "psynth: first input not in TRACKS format\n"
@@ -7828,6 +7859,8 @@ msgid ""
 "(disk may be full...\n"
 " closing the file ...)\n"
 msgstr ""
+"(le disque peut être plein...\n"
+" fermeture le dossier ...)\n"
 
 #: Top/exphet.c:45 util/het_export.c:55 util/lpc_export.c:60
 #: util/lpc_import.c:56 util/pv_export.c:56 util/pv_import.c:66
