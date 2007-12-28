@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-28 16:00+0000\n"
+"PO-Revision-Date: 2007-12-28 15:53+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -196,8 +196,8 @@ msgid "Expression got lost\n"
 msgstr "Expression perdue\n"
 
 #: Engine/express.c:400
-msgid "opérateur relationnel audio"
-msgstr ""
+msgid "audio relational"
+msgstr "opérateur relationnel audio"
 
 #: Engine/express.c:419
 msgid "incorrect logical argumemts"
@@ -216,8 +216,8 @@ msgid "term count"
 msgstr "compte des termes"
 
 #: Engine/express.c:521
-msgid "syntaxe de l'expression"
-msgstr ""
+msgid "expression syntax"
+msgstr "syntaxe de l'expression"
 
 #: Engine/fgens.c:89
 msgid "unknown GEN number"
@@ -1371,7 +1371,7 @@ msgstr "impossible de trouver %s, l'argument de sortie %s est de type illégal"
 #: Engine/rdorch.c:1591
 #, c-format
 msgid "failed to find %s, input arg illegal type"
-msgstr "impossible de trouver %s, l'argument d'entrée %s est de type illégal"
+msgstr "impossible de trouver %1$s, l'argument d'entrée %1$s est de type illégal"
 
 #: Engine/rdorch.c:1605
 msgid "setksmps is allowed only in user defined opcodes"
@@ -1672,7 +1672,7 @@ msgstr "Dupliquer %d : %s (%s,%ld)\n"
 #: Engine/sread.c:1030
 #, c-format
 msgid "cannot open input file %s"
-msgstr "impossible d'ouvrir le fichier en entrée"
+msgstr "impossible d'ouvrir le fichier en entrée %s"
 
 #: Engine/sread.c:1050
 #, c-format
@@ -2015,7 +2015,7 @@ msgstr "l'entrée audio %s a %d voix, l'orchestre a %d voix"
 #: InOut/libsnd.c:359
 #, c-format
 msgid "reading %d-byte blks of %s from %s (%s)\n"
-msgstr "lecture de blocs de %s de %d octets à partir de %s (%s)\n"
+msgstr "lecture de blocs de %2$s de %1$d octets à partir de %3$s (%4$s)\n"
 
 #: InOut/libsnd.c:394
 msgid "Output file type changed to IRCAM for use in pipe\n"
@@ -2033,7 +2033,7 @@ msgstr "sfinit : impossible d'ouvrir %s"
 #: InOut/libsnd.c:493 Top/dnoise.c:644 util/srconv.c:488
 #, c-format
 msgid "writing %d-byte blks of %s to %s"
-msgstr "écriture de blocs de %s de %d octets vers %s"
+msgstr "écriture de blocs de %2$s de %1$d octets vers %3$s"
 
 #: InOut/libsnd.c:500 InOut/libsnd.c:570
 msgid " (raw)\n"
@@ -2042,7 +2042,7 @@ msgstr " (raw)\n"
 #: InOut/libsnd.c:563
 #, c-format
 msgid "%ld %d-byte soundblks of %s written to %s"
-msgstr "%ld blocs de %s de %d octets écrits vers %s"
+msgstr "%1$ld blocs de %3$s de %2$d octets écrits vers %4$s"
 
 #: InOut/libsnd.c:582
 #, c-format
@@ -2103,7 +2103,7 @@ msgstr "-s %d prend la place de sr %d du fichier son"
 #: InOut/libsnd_u.c:165
 #, c-format
 msgid "error: req chan %d, file %s has only %d"
-msgstr "erreur : canal %d demandé alors que le fichier n'en a que %d"
+msgstr "erreur : canal %d demandé alors que le fichier %s n'en a que %d"
 
 #: InOut/libsnd_u.c:171
 #, c-format
@@ -2313,7 +2313,7 @@ msgstr "msg sys temps réel %x non défini\n"
 #: InOut/midirecv.c:535
 #, c-format
 msgid "undefined sys_common msg %x\n"
-msgstr "msg sys_common %s non défini\n"
+msgstr "msg sys_common %x non défini\n"
 
 #: InOut/midirecv.c:593
 #, c-format
@@ -2598,7 +2598,7 @@ msgstr "PortAudio : périphériques %s disponibles :\n"
 #: InOut/rtpa.c:153
 #, c-format
 msgid "%s device number %d is out of range"
-msgstr "Le numéro %d du périphérique %s est hors limites"
+msgstr "Le numéro %2$d du périphérique %1$s est hors limites"
 
 #: InOut/rtpa.c:169 InOut/rtpa_new.c:159
 #, c-format
@@ -9049,7 +9049,7 @@ msgstr "L'ouverture du fichier de sortie %s a échoué"
 #: util/scale.c:296
 #, c-format
 msgid "writing %d-byte blks of %s to %s %s\n"
-msgstr "écriture de blocs de %s de %d octets vers %s %s\n"
+msgstr "écriture de blocs de %2$s de %1$d octets vers %3$s %4$s\n"
 
 #: util/scale.c:326
 #, c-format
