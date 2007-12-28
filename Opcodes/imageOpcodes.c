@@ -96,7 +96,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     fp = fopen(filename, "rb");
     if (!fp) {
       csound->InitError(csound,
-                        Str("imageload: can't open image %s.\n"), filename);
+                        Str("imageload: cannot open image %s.\n"), filename);
       return NULL;
     }
 
