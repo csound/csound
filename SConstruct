@@ -928,7 +928,7 @@ else:
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
-pluginEnvironment.Append(LIBS = ['sndfile'])
+pluginEnvironment.Append(LIBS = Split('''sndfile png z'''))
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
