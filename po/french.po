@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-28 15:53+0000\n"
+"PO-Revision-Date: 2007-12-29 07:38+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -759,7 +759,7 @@ msgstr "Impossible d'ouvrir %s"
 #: Engine/linevent.c:108 Engine/linevent.c:122
 #, c-format
 msgid "stdmode = %.8x Linefd = %d\n"
-msgstr ""
+msgstr "stdmode = %.8x Linefd = %d\n"
 
 #: Engine/linevent.c:195
 msgid "LineBuffer Overflow - Input Data has been Lost"
@@ -820,8 +820,8 @@ msgstr "event : erreur lors de la création de l'évènement '%c'"
 
 #: Engine/linevent.c:426
 #, c-format
-msgid "event_i: erreur lors de la création de l'évènement '%c'"
-msgstr ""
+msgid "event_i: error creating '%c' event"
+msgstr "event_i: erreur lors de la création de l'évènement '%c'"
 
 #: Engine/memalloc.c:51
 #, c-format
@@ -1001,7 +1001,7 @@ msgstr "fin de la partition.\t\t   amplitudes globales :"
 msgid ""
 "\n"
 "\t   overall samples out of range:"
-msgstr "\n\t   Echantillons hors limites :"
+msgstr "\n\t   Nombre d'échantillons hors limites :"
 
 #: Engine/musmon.c:411
 #, c-format
@@ -1191,7 +1191,7 @@ msgstr "erreur interne : constante chaîne de caractères utilisée comme argume
 #: Engine/otran.c:1326
 #, c-format
 msgid "i%d pset args != pmax"
-msgstr ""
+msgstr "i%d pset args != pmax"
 
 #: Engine/otran.c:1389
 #, c-format
@@ -1371,7 +1371,7 @@ msgstr "impossible de trouver %s, l'argument de sortie %s est de type illégal"
 #: Engine/rdorch.c:1591
 #, c-format
 msgid "failed to find %s, input arg illegal type"
-msgstr "impossible de trouver %1$s, l'argument d'entrée %1$s est de type illégal"
+msgstr "impossible de trouver %s, l'argument d'entrée est de type illégal"
 
 #: Engine/rdorch.c:1605
 msgid "setksmps is allowed only in user defined opcodes"
@@ -2108,7 +2108,7 @@ msgstr "erreur : canal %d demandé alors que le fichier %s n'en a que %d"
 #: InOut/libsnd_u.c:171
 #, c-format
 msgid "audio sr = %d, "
-msgstr ""
+msgstr "audio sr = %d, "
 
 #: InOut/libsnd_u.c:173 Top/sndinfo.c:60 util/sndinfo.c:93
 msgid "monaural"
@@ -2124,11 +2124,11 @@ msgstr "quadro"
 
 #: InOut/libsnd_u.c:176 Top/sndinfo.c:69 util/sndinfo.c:102
 msgid "hex"
-msgstr ""
+msgstr "hex"
 
 #: InOut/libsnd_u.c:177 Top/sndinfo.c:72 util/sndinfo.c:105
 msgid "oct"
-msgstr ""
+msgstr "oct"
 
 #: InOut/libsnd_u.c:178
 #, c-format
@@ -2289,7 +2289,7 @@ msgstr "le canal MIDI %d est muet\n"
 #: InOut/midirecv.c:424
 #, c-format
 msgid "Insno = %d\n"
-msgstr ""
+msgstr "Insno = %d\n"
 
 #: InOut/midirecv.c:425
 msgid "unknown instr"
@@ -3008,90 +3008,92 @@ msgstr "FLbuttonBank : type de bouton non valide"
 #: InOut/widgets.cpp:3912
 #, c-format
 msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
-msgstr ""
+msgstr "FLcount \"%s\" ignore les instantanés de capture et de restitution"
 
 #: InOut/widgets.cpp:3979
 msgid "FLroller: invalid roller type"
-msgstr ""
+msgstr "FLroller : type de molette non valide"
 
 #: InOut/widgets.cpp:4170
 msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
-msgstr ""
+msgstr "FLhvsBox : une surface carrée doit être délimitée par au moins 2 lignes"
 
 #: InOut/widgets.cpp:4217
 msgid "FLkeyIn: invalid table number"
-msgstr ""
+msgstr "FLkeyIn : numéro de table non valide"
 
 #: InOut/widgets.cpp:4220
 msgid "FLkeyIn: table too short!"
-msgstr ""
+msgstr "FLkeyIn : table trop courte !"
 
 #: InOut/widgets.cpp:4437
 msgid "FLvslidBnk: zero is illegal in exponential operations"
-msgstr ""
+msgstr "FLvslidBnk : zéro est illégal dans les opérations exponentielles"
 
 #: InOut/widgets.cpp:4606 InOut/widgets.cpp:4776
 msgid "FLsliderBank: zero is illegal in exponential operations"
-msgstr ""
+msgstr "FLsliderBank : zéro est illégal dans les opérations exponentielles"
 
 #: InOut/widgets.cpp:4726
 msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
-msgstr ""
+msgstr "FLslidBnk2 : FLslider exponentiel, utilisant une réglette sans étiquette"
 
 #: InOut/widgets.cpp:4847 InOut/widgets.cpp:4907
 msgid "FLsldBnkSet: invalid table number"
-msgstr ""
+msgstr "FLsldBnkSet : numéro de table non valide"
 
 #: InOut/widgets.cpp:4851 InOut/widgets.cpp:4911
 msgid "FLslidBnkSet: table too short!"
-msgstr ""
+msgstr "FLslidBnkSet : table trop courte !"
 
 #: InOut/widgets.cpp:4857 InOut/widgets.cpp:4917
 msgid "FLsldBnkSet: invalid outable number"
-msgstr ""
+msgstr "FLsldBnkSet : numéro de outable non valide"
 
 #: InOut/widgets.cpp:4862 InOut/widgets.cpp:4923
 msgid "FLslidBnkSet: too many sliders to reset!"
-msgstr ""
+msgstr "FLslidBnkSet : trop de réglettes à réinitialiser !"
 
 #: InOut/widgets.cpp:4885
 msgid "FLslidBnkSet: function mapping not available"
-msgstr ""
+msgstr "FLslidBnkSet : type de fonction (lin. ou exp.) non disponible"
 
 #: InOut/widgets.cpp:4950 InOut/widgets.cpp:5034 InOut/widgets.cpp:5119
 msgid ""
 "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
 "for input"
 msgstr ""
+"FLslidBnk2Setk : valeur hors limites : le mappage de fonction nécessite en "
+"entrée l'intervalle de 0 à 1"
 
 #: InOut/widgets.cpp:4978 InOut/widgets.cpp:5062
 msgid "FLslidBnkSetk: invalid table number"
-msgstr ""
+msgstr "FLslidBnkSetk : numéro de table non valide"
 
 #: InOut/widgets.cpp:4982 InOut/widgets.cpp:5066
 msgid "FLslidBnkSetk: table too short!"
-msgstr ""
+msgstr "FLslidBnkSetk : table trop courte !"
 
 #: InOut/widgets.cpp:4990 InOut/widgets.cpp:5074
 msgid "FLslidBnkSetk: invalid outable number"
-msgstr ""
+msgstr "FLslidBnkSetk : numéro de outable non valide"
 
 #: InOut/widgets.cpp:4996 InOut/widgets.cpp:5080
 msgid "FLslidBnkSetk: too many sliders to reset!"
-msgstr "FLslidBnkSetk : trop de glisseurs Ã  remettre Ã  zéro !"
+msgstr "FLslidBnkSetk : trop de réglettes à réinitialiser !"
 
 #: InOut/widgets.cpp:5151
 msgid "FLxyin : none of X limits can be zero in exponential mode!"
-msgstr "FLxyin : aucune de limites de X ne peut Ãªtre zéro en mode exponentiel !"
+msgstr "FLxyin : aucune des limites de X ne peut être zéro en mode exponentiel !"
 
 #: InOut/widgets.cpp:5177
 msgid "FLxyin : none of Y limits can be zero in exponential mode!"
-msgstr "FLxyin : aucune de limites de Y ne peut Ãªtre zéro en mode exponentiel !"
+msgstr "FLxyin : aucune des limites de Y ne peut être zéro en mode exponentiel !"
 
 #: InOut/winEPS.c:132
 #, c-format
 msgid "** Warning **  PostScript file %s cannot be opened\n"
-msgstr ""
+msgstr "** Avertissement **  Impossible d'ouvrir le fichier PostScript %s\n"
 
 #: InOut/winEPS.c:138
 #, c-format
@@ -3100,164 +3102,169 @@ msgid ""
 " PostScript graphs written to file %s\n"
 "\n"
 msgstr ""
+"\n"
+" Graphiques PostScript écrits dans le fichier %s\n"
+"\n"
 
 #: InOut/winFLTK.c:53
 #, c-format
 msgid "%s: widget opcodes have been disabled by the host application"
-msgstr ""
+msgstr "%s : les opcodes de widgets ont été désactivés par l'application hôte"
 
 #: InOut/winFLTK.c:76
 msgid "widgets.cpp: error allocating FLTK flags"
-msgstr ""
+msgstr "widgets.cpp : erreur lors de l'allocation des drapeaux de FLTK"
 
 #: InOut/winascii.c:75
 #, c-format
 msgid "%s\t%ld points, scalemax %5.3f\n"
-msgstr ""
+msgstr "%s\t%ld points, échelle max %5.3f\n"
 
 #: InOut/windin.c:46 OOps/disprep.c:93 OOps/disprep.c:247 Opcodes/pitch.c:72
 #: Opcodes/spectra.c:76
 msgid "illegal iprd"
-msgstr ""
+msgstr "iprd illégal"
 
 #: InOut/window.c:90
 msgid "displays suppressed\n"
-msgstr ""
+msgstr "les affichages ont été supprimés\n"
 
 #: InOut/window.c:96
 #, c-format
 msgid "graphics %s, ascii substituted\n"
-msgstr ""
+msgstr "graphiques %s, remplacés par une sortie ascii\n"
 
 #: InOut/window.c:98
 msgid "suppressed"
-msgstr ""
+msgstr "supprimé"
 
 #: InOut/window.c:99
 msgid "not supported on this terminal"
-msgstr ""
+msgstr "pas supporté sur ce terminal"
 
 #: OOps/aops.c:564
 msgid "non-looping sample"
-msgstr ""
+msgstr "son échantillonné sans boucle"
 
 #: OOps/aops.c:706 OOps/aops.c:734
 #, c-format
 msgid "No tuning table %d"
-msgstr ""
+msgstr "Pas de table d'accordage %d"
 
 #: OOps/aops.c:759 OOps/aops.c:793
 msgid "cpstun: invalid table"
-msgstr ""
+msgstr "cpstun : table non valide"
 
 #: OOps/aops.c:1542
 msgid "k-rate invalue ChannelName cannot start with $"
-msgstr ""
+msgstr "Un nom de canal d'entrée au taux-k ne peut pas commencer par un $"
 
 #: OOps/bus.c:254 OOps/bus.c:286 OOps/bus.c:335
 msgid "chani: invalid index"
-msgstr ""
+msgstr "chani : index non valide"
 
 #: OOps/bus.c:259 OOps/bus.c:291 OOps/bus.c:341
 msgid "chani: memory allocation failure"
-msgstr ""
+msgstr "chani : échec de l'allocation mémoire"
 
 #: OOps/bus.c:270 OOps/bus.c:302 OOps/bus.c:360
 msgid "chano: invalid index"
-msgstr ""
+msgstr "chano : index non valide"
 
 #: OOps/bus.c:275 OOps/bus.c:307 OOps/bus.c:367
 msgid "chano: memory allocation failure"
-msgstr ""
+msgstr "chano : échec de l'allocation mémoire"
 
 #: OOps/bus.c:1001
 msgid "string is too long"
-msgstr ""
+msgstr "la chaîne est trop longue"
 
 #: OOps/bus.c:1017 OOps/bus.c:1045 OOps/bus.c:1066 OOps/bus.c:1110
 msgid "invalid mode parameter"
-msgstr ""
+msgstr "paramètre de mode non valide"
 
 #: OOps/bus.c:1033 OOps/bus.c:1134
 msgid "invalid channel parameters"
-msgstr ""
+msgstr "paramètres de canal non valides"
 
 #: OOps/bus.c:1118
 msgid "channel already exists"
-msgstr ""
+msgstr "le canal existe déjà"
 
 #: OOps/bus.c:1137
 msgid "invalid export variable"
-msgstr ""
+msgstr "variable d'export non valide"
 
 #: OOps/bus.c:1194
 #, c-format
 msgid "channel '%s' does not exist"
-msgstr ""
+msgstr "le canal '%s' n'existe pas"
 
 #: OOps/bus.c:1199
 #, c-format
 msgid "channel '%s' is not an %s channel"
-msgstr ""
+msgstr "le canal '%s' n'est pas un canal %s"
 
 #: OOps/bus.c:1214
 #, c-format
 msgid "invalid mode parameter: %d"
-msgstr ""
+msgstr "paramètre de mode non valide : %d"
 
 #: OOps/cmath.c:36 OOps/cmath.c:53
 msgid "NaN in pow\n"
-msgstr ""
+msgstr "NaN dans pow\n"
 
 #: OOps/cmath.c:74
 #, c-format
 msgid "Seeding from current time %u\n"
-msgstr ""
+msgstr "Graine à partir de l'horloge %u\n"
 
 #: OOps/cmath.c:78
 #, c-format
 msgid "Seeding with %u\n"
-msgstr ""
+msgstr "Graine à partir de %u\n"
 
 #: OOps/diskin.c:158
 msgid "diskin: invalid number of channels"
-msgstr ""
+msgstr "diskin : nombre de canaux non valide"
 
 #: OOps/diskin.c:179
 msgid "diskin: unknown sample format"
-msgstr ""
+msgstr "diskin : format d'échantillon inconnu"
 
 #: OOps/diskin.c:189
 #, c-format
 msgid "diskin: %s: failed to open file"
-msgstr ""
+msgstr "diskin : %s : l'ouverture du fichier a échoué"
 
 #: OOps/diskin.c:197
 #, c-format
 msgid "diskin: opened '%s':\n"
-msgstr ""
+msgstr "diskin : '%s' est ouvert :\n"
 
 #: OOps/diskin.c:199
 #, c-format
 msgid "        %d Hz, %d channel(s), %ld sample frames\n"
-msgstr ""
+msgstr "        %d Hz, %d voix, %ld frames d'échantillon\n"
 
 #: OOps/diskin.c:208
 msgid "diskin: number of output args inconsistent with number of file channels"
-msgstr ""
+msgstr "diskin : le nombre d'arguments en sortie est en contradiction avec le "
+"nombre de canaux du fichier"
 
 #: OOps/diskin.c:218
 #, c-format
 msgid "diskin: warning: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr ""
+msgstr "diskin : avertissement : taux d'échantillonnage du fichier (%d) "
+"!= sr de l'orchestre (%d)\n"
 
 #: OOps/diskin.c:238
 msgid "skip time larger than audio data, substituting zero."
-msgstr ""
+msgstr "temps de décalage supérieur aux données audio, remplacé par zéro"
 
 #: OOps/diskin.c:243
 msgid "negative skip time, substituting zero."
-msgstr ""
+msgstr "temps de décalage négatif, remplacé par zéro"
 
 #: OOps/diskin.c:293
 msgid "diskin: not initialised"
@@ -3266,17 +3273,17 @@ msgstr "diskin : non initialisé"
 #: OOps/diskin.c:406
 #, c-format
 msgid "%s: invalid sample format: %d"
-msgstr ""
+msgstr "%s : format d'échantillon non valide : %d"
 
 #: OOps/diskin.c:413
 #, c-format
 msgid "%s cannot open %s"
-msgstr ""
+msgstr "%s ne peut pas ouvrir %s"
 
 #: OOps/diskin.c:426
 #, c-format
 msgid "%s: opening RAW outfile %s\n"
-msgstr ""
+msgstr "%s : ouverture du fichier RAW %s en sortie\n"
 
 #: OOps/diskin.c:439
 msgid "soundout: not initialised"
@@ -3288,36 +3295,38 @@ msgstr "soundouts : non initialisé"
 
 #: OOps/diskin2.c:198
 msgid "diskin2: invalid number of channels"
-msgstr ""
+msgstr "diskin2 : nombre de canaux non valide"
 
 #: OOps/diskin2.c:214
 msgid "diskin2: unknown sample format"
-msgstr ""
+msgstr "diskin2 : format d'échantillon inconnu"
 
 #: OOps/diskin2.c:223
 #, c-format
 msgid "diskin2: %s: failed to open file"
-msgstr ""
+msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
 
 #: OOps/diskin2.c:231
 #, c-format
 msgid "diskin2: opened '%s':\n"
-msgstr ""
+msgstr "diskin2 : '%s' est ouvert :\n"
 
 #: OOps/diskin2.c:233 OOps/diskin2.c:603
 #, c-format
 msgid "         %d Hz, %d channel(s), %ld sample frames\n"
-msgstr ""
+msgstr "         %d Hz, %d voix, %ld frames d'échantillons\n"
 
 #: OOps/diskin2.c:241
 msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
-msgstr ""
+msgstr "diskin2 : le nombre d'arguments en sortie est en contradiction "
+"avec le nombre de canaux du fichier"
 
 #: OOps/diskin2.c:272
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr ""
+msgstr "diskin2 : avertissement: taux d'échantillonnage (%d) du fichier != "
+"sr (%d) de l'orchestre\n"
 
 #: OOps/diskin2.c:333
 msgid "diskin2: not initialised"
@@ -3325,31 +3334,33 @@ msgstr "diskin2 : non initialisé"
 
 #: OOps/diskin2.c:562
 msgid "soundin: invalid number of channels"
-msgstr ""
+msgstr "soundin : nombre de canaux non valide"
 
 #: OOps/diskin2.c:583
 msgid "soundin: unknown sample format"
-msgstr ""
+msgstr "soundin : format d'échantillon inconnu"
 
 #: OOps/diskin2.c:593
 #, c-format
 msgid "soundin: %s: failed to open file"
-msgstr ""
+msgstr "soundin : %s : l'ouverture du fichier a échoué"
 
 #: OOps/diskin2.c:601
 #, c-format
 msgid "soundin: opened '%s':\n"
-msgstr ""
+msgstr "soundin : '%s' est ouvert : \n"
 
 #: OOps/diskin2.c:611
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
-msgstr ""
+msgstr "soundin : le nombre d'arguments en sortie est en contradiction avec "
+"le nombre de canaux du fichier"
 
 #: OOps/diskin2.c:620
 #, c-format
 msgid "soundin: warning: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr ""
+msgstr "soundin : avertissement : taux d'échantillonnage (%d) du fichier != "
+"sr (%d) de l'orchestre\n"
 
 #: OOps/diskin2.c:653
 msgid "soundin: not initialised"
@@ -3358,11 +3369,11 @@ msgstr "soundin : non initialisé"
 #: OOps/disprep.c:61
 #, c-format
 msgid "instr %d, pvs-signal %s:"
-msgstr ""
+msgstr "instr %d, signal pvs %s :"
 
 #: OOps/disprep.c:64 OOps/disprep.c:120
 msgid "display"
-msgstr ""
+msgstr "affichage"
 
 #: OOps/disprep.c:117
 #, c-format
@@ -3371,36 +3382,36 @@ msgstr "instr %d, signal %s :"
 
 #: OOps/disprep.c:129
 msgid "display: not initialised"
-msgstr "display : non initialisé"
+msgstr "affichage : non initialisé"
 
 #: OOps/disprep.c:235
 msgid "too many points requested"
-msgstr ""
+msgstr "trop de points demandés"
 
 #: OOps/disprep.c:238
 msgid "too few points requested"
-msgstr ""
+msgstr "pas assez de points demandés"
 
 #: OOps/disprep.c:241
 msgid "window size must be power of two"
-msgstr ""
+msgstr "la taille de la fenêtre doit être une puissance de deux"
 
 #: OOps/disprep.c:274
 #, c-format
 msgid "instr %d, signal %s, fft (%s):"
-msgstr ""
+msgstr "instr %d, signal %s, fft (%s) :"
 
 #: OOps/disprep.c:276
 msgid "db"
-msgstr ""
+msgstr "dB"
 
 #: OOps/disprep.c:276
 msgid "mag"
-msgstr ""
+msgstr "mag"
 
 #: OOps/disprep.c:278
 msgid "fft"
-msgstr ""
+msgstr "fft"
 
 #: OOps/disprep.c:349 OOps/disprep.c:386
 msgid "dispfft: not initialised"
@@ -3408,44 +3419,44 @@ msgstr "dispfft : non initialisé"
 
 #: OOps/disprep.c:432 Opcodes/spectra.c:518
 msgid "illegal iperiod"
-msgstr ""
+msgstr "iperiod illégal"
 
 #: OOps/disprep.c:434
 msgid "illegal idisprd"
-msgstr ""
+msgstr "idisprd illégal"
 
 #: OOps/disprep.c:436
 msgid "illegal itweek"
-msgstr ""
+msgstr "itweek illégal"
 
 #: OOps/disprep.c:439
 msgid "illegal imindur"
-msgstr ""
+msgstr "imindur illégal"
 
 #: OOps/disprep.c:441
 msgid "illegal imemdur"
-msgstr ""
+msgstr "imemdur illégal"
 
 #: OOps/disprep.c:444
 msgid "illegal ihtim"
-msgstr ""
+msgstr "ihtim illégal"
 
 #: OOps/disprep.c:446
 msgid "illegal startempo"
-msgstr ""
+msgstr "startempo illégal"
 
 #: OOps/disprep.c:449
 msgid "ifn table begins with zero"
-msgstr ""
+msgstr "la table ifn commence par zéro"
 
 #: OOps/disprep.c:476
 msgid "tempest"
-msgstr ""
+msgstr "tempest"
 
 #: OOps/disprep.c:526
 #, c-format
 msgid "kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"
-msgstr ""
+msgstr "kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"
 
 #: OOps/disprep.c:557
 msgid "tempest: not initialised"
@@ -3454,53 +3465,53 @@ msgstr "tempest : non initialisé"
 #: OOps/dumpf.c:45 OOps/dumpf.c:70 OOps/dumpf.c:95 OOps/dumpf.c:120
 #: OOps/dumpf.c:261 OOps/dumpf.c:288 OOps/dumpf.c:315 OOps/dumpf.c:342
 msgid "unknown format request"
-msgstr ""
+msgstr "le format demandé est inconnu"
 
 #: OOps/dumpf.c:49 OOps/dumpf.c:74 OOps/dumpf.c:99 OOps/dumpf.c:124
 #: OOps/dumpf.c:265 OOps/dumpf.c:292 OOps/dumpf.c:319 OOps/dumpf.c:346
 msgid "alaw and ulaw not implemented here"
-msgstr ""
+msgstr "alaw et ulaw ne sont pas implémentés"
 
 #: OOps/dumpf.c:193 OOps/dumpf.c:441
 msgid "unknown kdump format"
-msgstr ""
+msgstr "format kdump inconnu"
 
 #: OOps/fftlib.c:3195
 #, c-format
 msgid " *** fftlib.c: internal error: invalid FFT size: %d"
-msgstr ""
+msgstr " *** fftlib.x : erreur interne : taille de FFT non valide : %d"
 
 #: OOps/goto_ops.c:92
 msgid "negative time period"
-msgstr ""
+msgstr "durée négative"
 
 #: OOps/goto_ops.c:181
 msgid "turnoff2: invalid instrument number"
-msgstr ""
+msgstr "turnoff2 : numéro d'instrument non valide"
 
 #: OOps/goto_ops.c:186
 msgid "turnoff2: invalid mode parameter"
-msgstr ""
+msgstr "turnoff2 : paramètre de mode non valide"
 
 #: OOps/lptrkfns.c:53 util/lpanal.c:1155
 msgid "LPTRKFNS: inconsistent MAXWindow defines"
-msgstr ""
+msgstr "LPTRKFNS : définitions de MAXWindow incohérentes"
 
 #: OOps/lptrkfns.c:60 util/lpanal.c:1162
 msgid "LPTRKFNS: called with excessive Windsiz"
-msgstr ""
+msgstr "LPTRKFNS : appelé avec un Windsiz trop grand"
 
 #: OOps/midiops.c:84
 msgid "uneven ctrl pairs"
-msgstr ""
+msgstr "paires de ctrl en nombre impair"
 
 #: OOps/midiops.c:94
 msgid "illegal ctrl no"
-msgstr ""
+msgstr "no de ctrl illégal"
 
 #: OOps/midiops.c:120
 msgid "cpstabm: invalid modulator table"
-msgstr ""
+msgstr "cpstabm : table de modulateur non valide"
 
 #: OOps/midiops.c:304 OOps/midiops.c:314 OOps/midiops.c:334 OOps/midiops.c:344
 #: OOps/midiops.c:421 OOps/midiops.c:435 Opcodes/gab/sliderTable.c:562
@@ -3509,35 +3520,35 @@ msgstr ""
 #: Opcodes/midiops2.c:298 Opcodes/midiops2.c:317 Opcodes/midiops2.c:357
 #: Opcodes/midiops2.c:388 Opcodes/midiops2.c:438 Opcodes/midiops2.c:472
 msgid "illegal controller number"
-msgstr ""
+msgstr "numéro de contrôleur illégal"
 
 #: OOps/midiops.c:401
 msgid "pgmassign: invalid program number"
-msgstr ""
+msgstr "pgmassign : numéro de programme non valide"
 
 #: OOps/midiout.c:118
 msgid "illegal mrtmsg argument"
-msgstr ""
+msgstr "argument de mrtmsg illégal"
 
 #: OOps/midiout.c:384
 #, c-format
 msgid "out contr14 msb:%x lsb:%x\n"
-msgstr ""
+msgstr "out contr14 msb :%x lsb :%x\n"
 
 #: OOps/mxfft.c:168
 #, c-format
 msgid ""
 "\n"
 "error - fft parameter n has more than 15 factors : %d"
-msgstr ""
+msgstr "\nerreur - le paramètre de fft n a plus de 15 facteurs : %d"
 
 #: OOps/mxfft.c:933
 msgid "csoundRealFFTnp2(): invalid FFT size"
-msgstr ""
+msgstr "csoundRealFFTnp2() : taille de FFT non valide"
 
 #: OOps/mxfft.c:954
 msgid "csoundInverseRealFFTnp2(): invalid FFT size"
-msgstr ""
+msgstr "csoundInverseRealFFTnp2() : taille de FFT non valide"
 
 #: OOps/oscils.c:214
 msgid "tablexkt: not initialised"
@@ -3545,27 +3556,27 @@ msgstr "tablexkt : non initialisé"
 
 #: OOps/pstream.c:63
 msgid "fsig = : formats are different.\n"
-msgstr ""
+msgstr "fsig = : les formats sont différents.\n"
 
 #: OOps/pstream.c:106
 msgid "pvadsyn: bad value for inoscs\n"
-msgstr ""
+msgstr "pvadsyn : mauvaise valeur de inoscs\n"
 
 #: OOps/pstream.c:109
 msgid "pvadsyn: format must be amp-freq (0).\n"
-msgstr ""
+msgstr "pvadsyn : le format doit être amp-fréq (0).\n"
 
 #: OOps/pstream.c:119
 msgid "pvsadsyn: ibin parameter out of range.\n"
-msgstr ""
+msgstr "pvsadsyn : le paramètre ibin est hors limites.\n"
 
 #: OOps/pstream.c:121
 msgid "pvsadsyn: ibin + inoscs too large.\n"
-msgstr ""
+msgstr "pvsadsyn : la somme ibin + inoscs est trop grande.\n"
 
 #: OOps/pstream.c:125
 msgid "pvsadsyn: ibin + (inoscs * ibinoffset) too large."
-msgstr ""
+msgstr "pvsadsyn : l'expression ibin + (inoscs * ibinoffset) est trop grande"
 
 #: OOps/pstream.c:233
 msgid "pvsynth: Not initialised.\n"
@@ -3573,7 +3584,7 @@ msgstr "pvsynth : non initialisé.\n"
 
 #: OOps/pstream.c:254
 msgid "pvscross: source and dest signals must have same format\n"
-msgstr ""
+msgstr "pvscross : les signaux source et destination doivent avoir le même format\n"
 
 #: OOps/pstream.c:288
 msgid "pvscross: not initialised\n"
@@ -3581,31 +3592,31 @@ msgstr "pvscross : non initialisé\n"
 
 #: OOps/pstream.c:292
 msgid "pvscross: mismatch in fsrc format\n"
-msgstr ""
+msgstr "pvscross : disparités dans le format de fsrc\n"
 
 #: OOps/pstream.c:294
 msgid "pvscross: mismatch in fdest format\n"
-msgstr ""
+msgstr "pvscross : disparités dans le format de fdest\n"
 
 #: OOps/pstream.c:356
 msgid "pvsfread: file is empty!\n"
-msgstr ""
+msgstr "pvsfread : le fichier est vide !\n"
 
 #: OOps/pstream.c:359
 msgid "pvsfread: file has only one frame (= impulse response).\n"
-msgstr ""
+msgstr "pvsfread : le fichier n'a qu'un frame (= réponse impulsionnelle).\n"
 
 #: OOps/pstream.c:362
 msgid "pvsfread: analysis frame overlap must be >= ksmps\n"
-msgstr ""
+msgstr "pvsfread : le chevauchement des frames d'analyse doit être >= ksmps\n"
 
 #: OOps/pstream.c:366
 msgid "pvsfread: ichan value exceeds file channel count.\n"
-msgstr ""
+msgstr "pvsfread : la valeur de ichan dépasse le nombre de canaux.\n"
 
 #: OOps/pstream.c:369
 msgid "pvsfread: ichan cannot be negative.\n"
-msgstr ""
+msgstr "pvsfread : ichan ne peut pas être négatif.\n"
 
 #: OOps/pstream.c:403
 msgid "pvsfread: not initialised.\n"
@@ -3613,11 +3624,11 @@ msgstr "pvsfread : non initialisé.\n"
 
 #: OOps/pstream.c:461
 msgid "pvsmaska: signal format must be amp-phase or amp-freq."
-msgstr ""
+msgstr "pvsmaska : le format du signal doit être amp-phase ou amp-fréq."
 
 #: OOps/pstream.c:490
 msgid "pvsmaska: ftable too small.\n"
-msgstr ""
+msgstr "pvsmaska : ftable trop petite.\n"
 
 #: OOps/pstream.c:515
 msgid "pvsmaska: not initialised\n"
@@ -3625,31 +3636,31 @@ msgstr "pvsmaska : non initialisé\n"
 
 #: OOps/pstream.c:521
 msgid "WARNING: pvsmaska: negative value for kdepth; clipped to zero.\n"
-msgstr ""
+msgstr "AVERTISSEMENT : pvsmaska : valeur de kdepth négative ; ramenée à zéro.\n"
 
 #: OOps/pstream.c:530
 msgid "WARNING: pvsmaska: kdepth > 1: clipped.\n"
-msgstr ""
+msgstr "AVERTISSEMENT : pvsmaska : kdepth > 1 : limité.\n"
 
 #: OOps/pstream.c:598
 msgid "pvsftw: signal format must be amp-phase or amp-freq.\n"
-msgstr ""
+msgstr "pvsftw : le format du signal doit être amp-phase ou amp-fréq.\n"
 
 #: OOps/pstream.c:601
 msgid "pvsftw: bad value for ifna.\n"
-msgstr ""
+msgstr "pvsftw : mauvaise valeur de ifna.\n"
 
 #: OOps/pstream.c:603
 msgid "pvsftw: bad value for ifnf.\n"
-msgstr ""
+msgstr "pvsftw : mauvaise valeur de ifnf.\n"
 
 #: OOps/pstream.c:617
 msgid "pvsftw: amps ftable too small.\n"
-msgstr ""
+msgstr "pvsftw : la ftable des amps est trop petite.\n"
 
 #: OOps/pstream.c:633
 msgid "pvsftw: freqs ftable too small.\n"
-msgstr ""
+msgstr "pvsftw : la ftable des fréqs est trop petite.\n"
 
 #: OOps/pstream.c:653
 msgid "pvsftw: not initialised\n"
@@ -3657,31 +3668,31 @@ msgstr "pvsftw : non initialisé\n"
 
 #: OOps/pstream.c:655
 msgid "pvsftw: no amps ftable!\n"
-msgstr ""
+msgstr "pvsftw : pas de ftable d'amps !\n"
 
 #: OOps/pstream.c:659
 msgid "pvsftw: no freqs ftable!\n"
-msgstr ""
+msgstr "pvsftw : pas de ftable de fréqs !\n"
 
 #: OOps/pstream.c:701
 msgid "pvsftr: signal format must be amp-phase or amp-freq.\n"
-msgstr ""
+msgstr "pvsftr : le format du signal doit être amp-phase ou amp-fréq.\n"
 
 #: OOps/pstream.c:705
 msgid "pvsftr: bad value for ifna.\n"
-msgstr ""
+msgstr "pvsftr : mauvaise valeur de ifna.\n"
 
 #: OOps/pstream.c:707
 msgid "pvsftr: bad value for ifnf.\n"
-msgstr ""
+msgstr "pvsftr : mauvaise valeur de ifnf.\n"
 
 #: OOps/pstream.c:719
 msgid "pvsftr: amps ftable too small.\n"
-msgstr ""
+msgstr "pvsftr : ftable d'amps trop petite.\n"
 
 #: OOps/pstream.c:740
 msgid "pvsftr: freqs ftable too small.\n"
-msgstr ""
+msgstr "pvsftr : ftable des fréqs trop petite.\n"
 
 #: OOps/pstream.c:757
 msgid "pvsftr: not initialised\n"
@@ -3690,36 +3701,36 @@ msgstr "pvsftr : non initialisé\n"
 #: OOps/pvoc.c:75
 #, c-format
 msgid "PVRdH: wanted %d got %d\n"
-msgstr ""
+msgstr "PVRdH : attendus %d, reçus %d\n"
 
 #: OOps/pvoc.c:177
 #, c-format
 msgid "PVRead: wanted %d got %ld\n"
-msgstr ""
+msgstr "PVRead : attendus %d, reçus %ld\n"
 
 #: OOps/pvoc.c:300
 msgid "No PV error"
-msgstr ""
+msgstr "Pas d'erreur PV"
 
 #: OOps/pvoc.c:301
 msgid "Cannot open PV file"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier PV"
 
 #: OOps/pvoc.c:302
 msgid "Object/file not PVOC"
-msgstr ""
+msgstr "Objet/fichier pas PVOC"
 
 #: OOps/pvoc.c:303
 msgid "No memory for PVOC"
-msgstr ""
+msgstr "Pas de mémoire pour PVOC"
 
 #: OOps/pvoc.c:304
 msgid "Error reading PVOC file"
-msgstr ""
+msgstr "Erreur lors de la lecture du fichier PVOC"
 
 #: OOps/pvoc.c:305
 msgid "Error writing PVOC file"
-msgstr ""
+msgstr "Erreur lors de l'écriture du fichier PVOC"
 
 #: OOps/pvoc.c:315
 #, c-format
@@ -3733,65 +3744,65 @@ msgstr "%s : erreur : %s\n"
 
 #: OOps/pvsanal.c:74
 msgid "invalid window type"
-msgstr ""
+msgstr "type de fenêtre non valide"
 
 #: OOps/pvsanal.c:79
 msgid "ftable for window not found"
-msgstr ""
+msgstr "la ftable de la fenêtre n'a pas été trouvée"
 
 #: OOps/pvsanal.c:183
 msgid "pvsanal: fftsize of 32 is too small!\n"
-msgstr ""
+msgstr "pvsanal : une taille de tfr de 32 est trop petite !\n"
 
 #: OOps/pvsanal.c:187
 msgid "pvsanal: window size too small for fftsize\n"
-msgstr ""
+msgstr "pvsanal : la taille de la fenêtre est trop petite pour la taille de tfr\n"
 
 #: OOps/pvsanal.c:189
 msgid "pvsanal: overlap too big for fft size\n"
-msgstr ""
+msgstr "pvsanal : taille de chevauchement trop grande pour la taille de tfr\n"
 
 #: OOps/pvsanal.c:192
 msgid "pvsanal: overlap must be >= ksmps\n"
-msgstr ""
+msgstr "pvsanal : le chevauchement doit être >= ksmps\n"
 
 #: OOps/pvsanal.c:455 OOps/pvsanal.c:664
 msgid "pvsanal: Not Initialised.\n"
-msgstr "pvsanal : non Initialisé.\n"
+msgstr "pvsanal : non initialisé.\n"
 
 #: OOps/pvsanal.c:519
 msgid "Unknown window type; replaced by rectangular\n"
-msgstr ""
+msgstr "Type de fenêtre inconnu ; remplacé par rectangulaire\n"
 
 #: OOps/pvsanal.c:1015
 msgid "pvsynth: Not Initialised.\n"
-msgstr "pvsynth : non Initialisé.\n"
+msgstr "pvsynth : non initialisé.\n"
 
 #: OOps/pvxanal.c:86
 msgid "pvxanal: outfile name must use extension .pvx\n"
-msgstr ""
+msgstr "pvxanal : le nom du fichier de sortie doit avoir l'extension .pvx\n"
 
 #: OOps/pvxanal.c:90 Top/pvanal.c:223 util/pvanal.c:294
 #, c-format
 msgid "pvxanal - source has too many channels: Maxchans = %d.\n"
-msgstr ""
+msgstr "pvxanal - la source a trop de canaux : Maxchans = %d.\n"
 
 #: OOps/pvxanal.c:139 util/pvanal.c:472
 #, c-format
 msgid "pvxanal: unable to create analysis file: %s"
-msgstr ""
+msgstr "pvxanal : impossible de créer le fichier d'analyse : %s"
 
 #: OOps/pvxanal.c:162 OOps/pvxanal.c:187 util/pvanal.c:502 util/pvanal.c:533
 #, c-format
 msgid "pvxanal: error writing analysis frames: %s\n"
-msgstr ""
+msgstr "pvxanal : erreur lors de l'écriture des frames d'analyse : %s\n"
 
 #: OOps/pvxanal.c:195 util/pvanal.c:543
 #, c-format
 msgid ""
 "\n"
 "%ld %d-chan blocks written to %s\n"
-msgstr ""
+msgstr "\n%ld blocs de %d octets écrits vers %s\n"
 
 #: OOps/remote.c:100
 msgid "insufficient memory to initialize remote globals."
@@ -3799,231 +3810,233 @@ msgstr "mémoire insuffisante pour initialiser les valeurs globales de remote"
 
 #: OOps/remote.c:109
 msgid "insufficient memory to initialize outgoing socket table."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser la table de socket sortant"
 
 #: OOps/remote.c:116
 msgid "insufficient memory to initialize incoming socket table."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser la table de socket entrant"
 
 #: OOps/remote.c:124
 msgid "insufficient memory to initialize insrfd_list."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser insrfd_list."
 
 #: OOps/remote.c:132
 msgid "insufficient memory to initialize chnrfd_list."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser chnrfd_list."
 
 #: OOps/remote.c:139
 msgid "insufficient memory to initialize insrfd table."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser la table insrfd."
 
 #: OOps/remote.c:146
 msgid "insufficient memory to initialize chnrfd table."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser la table chnrfd."
 
 #: OOps/remote.c:153
 msgid "insufficient memory to initialize local ip address."
-msgstr ""
+msgstr "mémoire insuffisante pour initialiser l'adresse IP locale."
 
 #: OOps/remote.c:161
 msgid "unable to get local ip address."
-msgstr ""
+msgstr "impossible d'obtenir une adresse IP locale."
 
 #: OOps/remote.c:222
 msgid "could not open remote port"
-msgstr ""
+msgstr "impossible d'ouvrir le port distant"
 
 #: OOps/remote.c:237
 msgid "---> Could not connect \n"
-msgstr ""
+msgstr "---> Connexion impossible \n"
 
 #: OOps/remote.c:241
 msgid "---> Failed all attempts to connect. \n"
-msgstr ""
+msgstr "---> Toutes les tentatives de connexion ont échoué. \n"
 
 #: OOps/remote.c:244
 msgid "--->  Connected. \n"
-msgstr ""
+msgstr "---> Connecté. \n"
 
 #: OOps/remote.c:258
 msgid "write to socket failed"
-msgstr ""
+msgstr "l'écriture sur le socket a échoué"
 
 #: OOps/remote.c:278
 msgid "creating socket\n"
-msgstr ""
+msgstr "création du socket\n"
 
 #: OOps/remote.c:280
 msgid "created socket \n"
-msgstr ""
+msgstr "socket créé \n"
 
 #: OOps/remote.c:292
 msgid "setting socket option to reuse the addresse \n"
-msgstr ""
+msgstr "avtivation de l'option du socket pour la réutilisation de l'adresse \n"
 
 #: OOps/remote.c:309
 msgid "bind failed"
-msgstr ""
+msgstr "la liaison a échoué"
 
 #: OOps/remote.c:313
 msgid "listen failed"
-msgstr ""
+msgstr "l'écoute a échoué"
 
 #: OOps/remote.c:318
 msgid "accept failed"
-msgstr ""
+msgstr "l'acceptation a échoué"
 
 #: OOps/remote.c:321
 #, c-format
 msgid "accepted, conn=%d \n"
-msgstr ""
+msgstr "accepté, cnx=%d \n"
 
 #: OOps/remote.c:353 OOps/remote.c:374 OOps/remote.c:417 OOps/remote.c:449
 #: OOps/remote.c:489
 msgid "failed to initialize remote globals."
-msgstr ""
+msgstr "l'initialisation des valeurs globales distantes a échoué."
 
 #: OOps/remote.c:378 OOps/remote.c:421
 msgid "missing instr nos"
-msgstr ""
+msgstr "il manque les numéros d'instr"
 
 #: OOps/remote.c:390 OOps/remote.c:430
 msgid "illegal instr no"
-msgstr ""
+msgstr "numéro d'instr illégal"
 
 #: OOps/remote.c:393
 msgid "insno already remote"
-msgstr ""
+msgstr "insno est déjà distant"
 
 #: OOps/remote.c:403 OOps/remote.c:474
 msgid "Failed to open port to listen"
-msgstr ""
+msgstr "L'ouverture d'un port pour écouter a échoué"
 
 #: OOps/remote.c:423
 #, c-format
 msgid "*** str1: %s own:%s\n"
-msgstr ""
+msgstr "*** strl : %s own : %s\n"
 
 #: OOps/remote.c:433
 msgid "insno already specific remote"
-msgstr ""
+msgstr "insno est déjà distant spécifique"
 
 #: OOps/remote.c:453 OOps/remote.c:493
 msgid "missing channel nos"
-msgstr ""
+msgstr "il manque les numéros de canal"
 
 #: OOps/remote.c:463 OOps/remote.c:502
 msgid "illegal channel no"
-msgstr ""
+msgstr "numéro de canal illégal"
 
 #: OOps/remote.c:466
 msgid "channel already remote"
-msgstr ""
+msgstr "canal déjà distant"
 
 #: OOps/remote.c:505
 msgid "channel already specific remote"
-msgstr ""
+msgstr "canal déjà distant spécifique"
 
 #: OOps/remote.c:531 OOps/remote.c:555 OOps/remote.c:579
 msgid "CLsend failed"
-msgstr ""
+msgstr "CLsend a échoué"
 
 #: OOps/remote.c:645 OOps/remote.c:653 OOps/remote.c:661 OOps/remote.c:669
 #: OOps/remote.c:677
 msgid ""
 "*** This version of Csound was not compiled with remote event support ***\n"
-msgstr ""
+msgstr "*** Cette version de Csound n'a pas été compilée avec le support "
+"des évènements distants ***\n"
 
 #: OOps/schedule.c:105 OOps/schedule.c:190
 msgid "Instrument not defined"
-msgstr ""
+msgstr "Instrument non défini"
 
 #: OOps/schedule.c:115 OOps/schedule.c:195
 msgid "schedule in MIDI mode is not implemented correctly, do not use it\n"
-msgstr ""
+msgstr "schedule n'est pas implémenté correctement en mode MIDI, ne pas l'utiliser\n"
 
 #: OOps/schedule.c:266 OOps/schedule.c:284 OOps/schedule.c:340
 #, c-format
 msgid "LFO: unknown oscilator type %d"
-msgstr ""
+msgstr "LFO : type d'oscillateur inconnu %d"
 
 #: OOps/schedule.c:427
 #, c-format
 msgid "schedkwhen ignored. Instrument %d undefined\n"
-msgstr ""
+msgstr "schedkwhen ignoré. L'instrument %d n'est pas défini\n"
 
 #: OOps/schedule.c:506
 msgid "schedkwhen warning: negative kwhen reset to zero"
-msgstr ""
+msgstr "avertissement schedkwhen : kwhen négatif ramené à zéro"
 
 #: OOps/schedule.c:522 OOps/schedule.c:545
 msgid "trigseq: incorrect table number"
-msgstr "trigseq : nombre incorrect de table"
+msgstr "trigseq : numéro de table incorrect"
 
 #: OOps/sndinfUG.c:51 OOps/sndinfUG.c:190
 msgid "no infile specified in the commandline"
-msgstr ""
+msgstr "pas de fichier d'entrée spécifié dans la ligne de commande"
 
 #: OOps/sndinfUG.c:59 OOps/sndinfUG.c:123 OOps/sndinfUG.c:197
 #, c-format
 msgid "diskinfo cannot open %s"
-msgstr ""
+msgstr "diskinfo ne peut pas ouvrir %s"
 
 #: OOps/sndinfUG.c:203 OOps/sndinfUG.c:223
 #, c-format
 msgid "%s: no PEAK chunk was found, scanning file for maximum amplitude"
-msgstr ""
+msgstr "%s : aucun PEAK chunk n'a été trouvé, parcours du fichier pour "
+"déterminer l'amplitude maximale"
 
 #: OOps/sndinfUG.c:217
 msgid "Input channel for peak exceeds number of channels in file"
-msgstr ""
+msgstr "Le canal d'entrée pour la crête dépasse le nombre de canaux dans le fichier"
 
 #: OOps/sndinfUG.c:234
 msgid "filepeak: error getting peak value"
-msgstr ""
+msgstr "filepeak: erreur lors de l'obtention de la valeur de crête"
 
 #: OOps/str_ops.c:59
 msgid "illegal strset index"
-msgstr ""
+msgstr "index de strset illégal"
 
 #: OOps/str_ops.c:65
 #, c-format
 msgid "strset index conflict at %d"
-msgstr ""
+msgstr "index de strset en conflit à %d"
 
 #: OOps/str_ops.c:66
 #, c-format
 msgid "previous value: '%s', replaced with '%s'"
-msgstr ""
+msgstr "valeur précédente : '%s', remplacée par '%s'"
 
 #: OOps/str_ops.c:90 OOps/str_ops.c:95
 msgid "--strset: invalid format"
-msgstr ""
+msgstr "--strset : format non valide"
 
 #: OOps/str_ops.c:108 OOps/str_ops.c:117
 msgid "strget: buffer overflow"
-msgstr ""
+msgstr "strget : dépassement de tampon"
 
 #: OOps/str_ops.c:724
 #, c-format
 msgid "invalid option code: %g"
-msgstr ""
+msgstr "code d'option non valide : %g"
 
 #: OOps/str_ops.c:729
 msgid "getcfg: buffer overflow"
-msgstr ""
+msgstr "getcfg : dépassement de tampon"
 
 #: OOps/ugens1.c:77
 msgid "arg1 is zero"
-msgstr "arg1 est zéro"
+msgstr "arg1 vaut zéro"
 
 #: OOps/ugens1.c:79
 msgid "arg2 is zero"
-msgstr "arg2 est zéro"
+msgstr "arg2 vaut zéro"
 
 #: OOps/ugens1.c:80
 msgid "unlike signs"
-msgstr ""
+msgstr "signes différents"
 
 #: OOps/ugens1.c:152
 msgid ""
@@ -4031,7 +4044,7 @@ msgid ""
 "Error: linseg not initialised (krate)\n"
 msgstr ""
 "\n"
-"linseg non initialisé (krate)\n"
+"Erreur : linseg non initialisé (krate)\n"
 
 #: OOps/ugens1.c:187
 msgid "linseg: not initialised (arate)\n"
@@ -4041,12 +4054,12 @@ msgstr "linseg : non initialisé (arate)\n"
 #: OOps/ugens1.c:648 OOps/ugens1.c:650
 #, c-format
 msgid "ival%d is zero"
-msgstr "ival%d est zéro"
+msgstr "ival%d vaut zéro"
 
 #: OOps/ugens1.c:443 OOps/ugens1.c:489 OOps/ugens1.c:651
 #, c-format
 msgid "ival%d sign conflict"
-msgstr ""
+msgstr "ival%d conflit de signe"
 
 #: OOps/ugens1.c:575
 msgid "expseg (krate): not initialised"
@@ -4059,15 +4072,15 @@ msgstr "expseg (arate) : non initialisé"
 
 #: OOps/ugens1.c:885 OOps/ugens1.c:1023 OOps/ugens1.c:1186
 msgid "non-positive iatdec"
-msgstr ""
+msgstr "iatdec non positif"
 
 #: OOps/ugens1.c:980 OOps/ugens1.c:1148
 msgid "ixmod out of range."
-msgstr ""
+msgstr "ixmod hors limites"
 
 #: OOps/ugens1.c:1008 OOps/ugens1.c:1176
 msgid "rise func ends with zero"
-msgstr ""
+msgstr "la fonction d'attaque se termine par zéro"
 
 #: OOps/ugens1.c:1042 OOps/ugens1.c:1090
 msgid "envlpx(krate): not initialised"
@@ -4075,16 +4088,16 @@ msgstr "envlpx(krate) : non initialisé"
 
 #: OOps/ugens1.c:1055 OOps/ugens1.c:1101
 msgid "envlpx rise func ends with zero"
-msgstr ""
+msgstr "la fonction d'attaque de envlpx se termine par zéro"
 
 #: OOps/ugens2.c:48 Opcodes/shape.c:374
 msgid "WARNING: init phase truncation\n"
-msgstr ""
+msgstr "AVERTISSEMENT : la phase initiale a été tronquée\n"
 
 #: OOps/ugens2.c:154 OOps/ugens2.c:842
 #, c-format
 msgid "Offset %f < 0 or > tablelength"
-msgstr ""
+msgstr "Décalage %f < 0 ou > longueur de la table"
 
 #: OOps/ugens2.c:205 OOps/ugens2.c:223
 #, c-format
