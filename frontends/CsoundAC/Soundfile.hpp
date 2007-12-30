@@ -188,8 +188,7 @@ namespace csound
      * envelope components of the two grains are out of phase by pi 
      * (the half amplitude point of the envelope) without introducing artifacts,
      * if the sinusoidal components of the two grains are in phase.
-     * The algorithm uses an efficient difference equation,
-     * namely a direct-form, second-order digital resonator.
+     * The algorithm uses an efficient difference equation.
      */
     virtual void cosineGrain(double centerTime, double duration, double sineFrequency, double gain,
                              double sinePhase, double pan);
