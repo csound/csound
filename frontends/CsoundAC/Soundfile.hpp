@@ -177,16 +177,19 @@ namespace csound
      */
     virtual void blank(double duration);
     /**
-     * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo, the grain will be panned.
-     * The algorithm uses an efficient difference equation.
+     * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo, 
+     * the grain will be panned. The algorithm uses an efficient difference equation.
      */
     virtual void jonesParksGrain(double centerTime, double duration, double beginningFrequency,
                                  double centerFrequency, double centerAmplitude, double centerPhase, double pan);
     /**
-     * Mix a cosine grain into the soundfile. If the soundfile is stereo, the grain will be panned.
-     * The algorithm uses an efficient difference equation. Cosine grains can be overlapped
-     * at the half-amplitude point without introducing artifacts, if the correct phase difference
-     * is used.
+     * Mix a cosine grain into the soundfile. If the soundfile is stereo, 
+     * the grain will be panned. Cosine grains can be overlapped if the
+     * envelope components of the two grains are out of phase by pi 
+     * (the half amplitude point of the envelope) without introducing artifacts,
+     * if the sinusoidal components of the two grains are in phase.
+     * The algorithm uses an efficient difference equation,
+     * namely a direct-form, second-order digital resonator.
      */
     virtual void cosineGrain(double centerTime, double duration, double sineFrequency, double gain,
                              double sinePhase, double pan);
