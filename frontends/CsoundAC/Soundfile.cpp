@@ -222,50 +222,58 @@ namespace csound
     mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
   }
 
-  void Soundfile::cosineGrain(double centerTime, double duration, double sineFrequency, double gain, double sinePhase, double pan)
+  void Soundfile::cosineGrain(double centerTimeSeconds, double durationSeconds, double frequencyHz, double gain, double phaseOffsetRadians, double pan)
   {
-    int framesPerSecond = getFramesPerSecond();
+    size_t frameN = size_t(Conversions::round(durationSeconds * getFramesPerSecond()));
+    size_t channelN = getChannelsPerFrame();
+    boost::numeric::ublas::matrix<double> grainOutput(frameN, channelN);
+    boost::numeric::ublas::matrix<double> grainBuffer(frameN, channelN);
     double leftGain = Conversions::leftPan(pan);
     double rightGain = Conversions::rightPan(pan);
-    double sineAngularFrequency = Conversions::get2PI() * sineFrequency / double(framesPerSecond);
-    double sineCoefficient = 2.0 * std::cos (sineAngularFrequency);
-    double sineSignal2 = std::sin (sinePhase + sineAngularFrequency);
-    double sineSignal1 = std::sin (sinePhase + 2.0 * sineAngularFrequency);
-    double cosineFrequency = 1.0 / duration;
-    size_t frameCount = (size_t) Conversions::round (duration * getFramesPerSecond());
-    double cosineAngularFrequency =  Conversions::get2PI() * cosineFrequency / double(framesPerSecond);
-    double cosineCoefficient = 2.0 * std::cos (cosineAngularFrequency);
-    double cosineSignal2 = std::cos (cosineAngularFrequency);
-    double cosineSignal1 = std::cos (2.0 * cosineAngularFrequency);
+    // The signal is a cosine sinusoid.
+    double framesPerSecond = double(getFramesPerSecond()); 
+    double sinusoidRadiansPerFrame = Conversions::get2PI() * frequencyHz / framesPerSecond;
+    double sinusoidCoefficient = 2.0 * std::cos(sinusoidRadiansPerFrame);
+    // The initial frame.
+    double sinusoid1 = std::cos(phaseOffsetRadians);
+    // What would have been the previous frame.
+    double sinusoid2 = std::cos(-sinusoidRadiansPerFrame + phaseOffsetRadians);
+    // The envelope is exactly 1 cycle of a cosine sinusoid, offset by -1.
+    double envelopeFrequencyHz = 1.0 / durationSeconds;
+    double envelopeRadiansPerFrame =  Conversions::get2PI() * envelopeFrequencyHz / framesPerSecond;
+    double envelopeCoefficient = 2.0 * std::cos(envelopeRadiansPerFrame);
+    // The initial frame.
+    double envelope1 = std::cos(0);
+    // What would have been the previous frame.
+    double envelope2 = std::cos(-envelopeRadiansPerFrame);
+     // Precompute grain into buffer.
     double signal = 0.0;
-    double sineSignal = 0.0;
-    double cosineSignal = 0.0;
-    size_t channelCount = getChannelsPerFrame();
-    boost::numeric::ublas::matrix<double> grainOutput(frameCount, channelCount);
-    boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
-    for(size_t frameI = 0; frameI < frameCount; frameI++)
+    double temporary = 0.0;
+    double envelopeTemp = 0.0;
+    for(size_t frameI = 0; frameI < frameN; frameI++)
       {
-        if (channelCount == 2) {
+        signal = (sinusoid1 * (envelope1 - 1.0)) * gain;
+        if (channelN == 2) {
           grainOutput(frameI, 0) = leftGain * signal;
           grainOutput(frameI, 1) = rightGain * signal;
-        } else if (channelCount == 1) {
+        } else if (channelN == 1) {
           grainOutput(frameI, 0) = signal;
         } else {
-          for(size_t channelI = 0; channelI < channelCount; channelI++) {
+          for(size_t channelI = 0; channelI < channelN; channelI++) {
             grainOutput(frameI, channelI) = signal;
           }
         }
-        sineSignal = sineCoefficient * sineSignal1 - sineSignal2;
-        sineSignal2 = sineSignal1;
-        sineSignal1 = sineSignal;
-        cosineSignal = cosineCoefficient * cosineSignal1 - cosineSignal2;
-        cosineSignal2 = cosineSignal1;
-        cosineSignal1 = cosineSignal;
-        signal = (sineSignal * (cosineSignal - 1.0)) * gain;
+	temporary = sinusoid1;
+        sinusoid1 = sinusoidCoefficient * sinusoid1 - sinusoid2;
+        sinusoid2 = temporary;
+	temporary = envelope1;
+        envelope1 = envelopeCoefficient * envelope1 - envelope2;
+        envelope2 = temporary;
       }
-    seekSeconds(centerTime - (duration / 2.0));
-    int sampleCount = frameCount * channelCount;
-    mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
+    // Actually mix the grain into the soundfile.
+    seekSeconds(centerTimeSeconds - (durationSeconds / 2.0));
+    int sampleN = frameN * channelN;
+    mixFrames(&grainOutput(0, 0), sampleN, &grainBuffer(0, 0));
   }
 
 }
