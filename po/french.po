@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: csound-dev@sourceforge.net\n"
 "POT-Creation-Date: 2007-12-25 10:52+0000\n"
-"PO-Revision-Date: 2007-12-29 07:38+0000\n"
+"PO-Revision-Date: 2007-12-30 08:19+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4831,7 +4831,7 @@ msgstr "DLineN : longueur de délai trop grande ... réglé à la longueur "
 #: Opcodes/bowedbar.c:100 Opcodes/physmod.c:485
 msgid "unknown lowest frequency for bowed string -- assuming 50Hz\n"
 msgstr "La fréquence la plus basse pour la corde frottée est inconnue -- "
-"on suppose qu'elle vaut 50Hz\n"
+"on suppose qu'elle vaut 50 Hz\n"
 
 #: Opcodes/clfilt.c:53
 msgid "filter type not lowpass or highpass in clfilt"
@@ -5161,35 +5161,35 @@ msgstr "vtable1 : numéro de table incorrect"
 
 #: Opcodes/gab/newgabopc.c:339
 msgid "inrg: channel number cannot be < 1 (1 is the first channel)"
-msgstr ""
+msgstr "inrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
 #: Opcodes/gab/newgabopc.c:381
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
-msgstr ""
+msgstr "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
 #: Opcodes/gab/newgabopc.c:420 Opcodes/gab/newgabopc.c:645
 msgid "invalid function"
-msgstr ""
+msgstr "fonction non valide"
 
 #: Opcodes/gab/newgabopc.c:423
 msgid "lposc: no sample rate stored in function; assuming=sr\n"
-msgstr ""
+msgstr "lposc : pas de taux d'échantillonnage dans la fonction ; on suppose = sr\n"
 
 #: Opcodes/gab/newgabopc.c:647
 msgid "lposcil: no sample rate stored in function; assuming=sr\n"
-msgstr ""
+msgstr "lposcil : pas de taux d'échantillonnage dans la fonction ; on suppose = sr\n"
 
 #: Opcodes/gab/sliderTable.c:45 Opcodes/gab/sliderTable.c:254
 #: Opcodes/midiops3.c:44 Opcodes/midiops3.c:146 Opcodes/midiops3.c:259
 #: Opcodes/midiops3.c:317 Opcodes/midiops3.c:413
 msgid "illegal channel"
-msgstr ""
+msgstr "canal illégal"
 
 #: Opcodes/gab/sliderTable.c:65 Opcodes/gab/sliderTable.c:277
 #: Opcodes/midiops3.c:58 Opcodes/midiops3.c:162 Opcodes/midiops3.c:273
 #, c-format
 msgid "illegal control number at position n.%d"
-msgstr ""
+msgstr "numéro de contrôle illégal à la position n.%d"
 
 #: Opcodes/gab/sliderTable.c:74
 #, c-format
@@ -5197,21 +5197,23 @@ msgid ""
 "sliderXtable: illegal initvalue at position %d.  When using table indexing, "
 "the init range is 0 to 1"
 msgstr ""
+"sliderXtable : valeur d'initialisation illégale à la position %d. Lorsque l'on "
+"utilise une indexation de table, l'intervalle d'initialisation va de 0 à 1"
 
 #: Opcodes/gab/sliderTable.c:84 Opcodes/gab/sliderTable.c:284
 #: Opcodes/gab/sliderTable.c:509 Opcodes/midiops3.c:64 Opcodes/midiops3.c:168
 #: Opcodes/midiops3.c:347
 #, c-format
 msgid "illegal initvalue at position n.%d"
-msgstr ""
+msgstr "valeur d'initialisation illégale à la position n.%d"
 
 #: Opcodes/gab/sliderTable.c:96
 msgid "sliderXtable: zero is illegal in exponential operations"
-msgstr ""
+msgstr "sliderXtable : zéro est illégal dans les opérations exponentielles"
 
 #: Opcodes/gab/sliderTable.c:296
 msgid "sliderXtable: zero is illegalin exponential operations"
-msgstr ""
+msgstr "sliderXtable : zéro est illégal dans les opérations exponentielles"
 
 #: Opcodes/gab/sliderTable.c:312
 #, c-format
@@ -5219,322 +5221,324 @@ msgid ""
 "sliderXtable: illegal initvalue at position %d. When using table indexing, "
 "the init range is 0 to 1"
 msgstr ""
+"sliderXtable : valeur d'initialisation illégale à la position %d. Lorsque l'on "
+"utilise une indexation de table, l'intervalle d'initialisation va de 0 à 1"
 
 #: Opcodes/gab/sliderTable.c:564 Opcodes/midiops2.c:321 Opcodes/midiops2.c:359
 #: Opcodes/midiops2.c:391 Opcodes/midiops2.c:440 Opcodes/midiops2.c:475
 #: Opcodes/midiops2.c:517 Opcodes/midiops2.c:532 Opcodes/midiops2.c:551
 msgid "illegal midi channel"
-msgstr ""
+msgstr "canal midi illégal"
 
 #: Opcodes/gab/tabmorph.c:42
 msgid "tabmorph: invalid table number"
-msgstr ""
+msgstr "tabmorph : numéro de table non valide"
 
 #: Opcodes/gab/tabmorph.c:46
 msgid "tabmorph: all tables must have the same length!"
-msgstr ""
+msgstr "tabmorph : toutes les tables doivent avoir la même longueur !"
 
 #: Opcodes/gab/vectorial.c:33
 msgid "mtablei: incorrect table number"
-msgstr ""
+msgstr "mtablei : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:63 Opcodes/gab/vectorial.c:83
 #: Opcodes/gab/vectorial.c:133 Opcodes/gab/vectorial.c:200
 msgid "mtable: incorrect table number"
-msgstr ""
+msgstr "mtable : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:185
 msgid "mtabi: incorrect table number"
-msgstr ""
+msgstr "mtabi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:252
 msgid "mtablewi: incorrect table number"
-msgstr ""
+msgstr "mtablewi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:268 Opcodes/gab/vectorial.c:288
 #: Opcodes/gab/vectorial.c:317 Opcodes/gab/vectorial.c:362
 #: Opcodes/gab/vectorial.c:406
 msgid "mtabw: incorrect table number"
-msgstr ""
+msgstr "mtabw : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:348
 msgid "mtabwi: incorrect table number"
-msgstr ""
+msgstr "mtabwi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:380
 msgid "mtablew: incorrect table number"
-msgstr ""
+msgstr "mtablew : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:454 Opcodes/gab/vectorial.c:514
 #, c-format
 msgid "vadd_i: invalid table number %i"
-msgstr ""
+msgstr "vadd_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:471
 msgid "vadd_i: ifn length exceeded"
-msgstr ""
+msgstr "vadd_i : la longueur de ifn a été dépassée"
 
 #: Opcodes/gab/vectorial.c:498
 msgid "vadd: ifn1 length exceeded"
-msgstr ""
+msgstr "vadd : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:531
 msgid "vmult_i: ifn length exceeded"
-msgstr ""
+msgstr "vmult_i : la longueur de ifn a été dépassée"
 
 #: Opcodes/gab/vectorial.c:558
 msgid "vmult: ifn1 length exceeded"
-msgstr ""
+msgstr "vmult : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:574
 #, c-format
 msgid "vpow_i: invalid table number %i"
-msgstr ""
+msgstr "vpow_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:591
 msgid "vpow_i: ifn length exceeded"
-msgstr ""
+msgstr "vpow_i : la longueur de ifn a été dépassée"
 
 #: Opcodes/gab/vectorial.c:619
 msgid "vpow: ifn1 length exceeded"
-msgstr ""
+msgstr "vpow : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:635
 #, c-format
 msgid "vexp_i: invalid table number %i"
-msgstr ""
+msgstr "vexp_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:652
 msgid "vexp_i: ifn length exceeded"
-msgstr ""
+msgstr "vexp_i : la longueur de ifn a été dépassée"
 
 #: Opcodes/gab/vectorial.c:679
 msgid "vexp: ifn1 length exceeded"
-msgstr ""
+msgstr "vexp : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:697
 #, c-format
 msgid "vectorsop: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vectorsop : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:703
 #, c-format
 msgid "vectorsop: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vectorsop : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:743
 msgid "vcopy: ifn1 length exceeded"
-msgstr ""
+msgstr "vcopy : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:761
 msgid "vcopy: ifn2 length exceeded"
-msgstr ""
+msgstr "vcopy : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:788
 #, c-format
 msgid "vcopy_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vcopy_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:794
 #, c-format
 msgid "vcopy_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vcopy_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:817
 msgid "vcopy_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vcopy_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:834
 msgid "vcopy_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vcopy_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:873
 msgid "vaddv: ifn1 length exceeded"
-msgstr ""
+msgstr "vaddv : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:892
 msgid "vaddv: ifn2 length exceeded"
-msgstr ""
+msgstr "vaddv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:918
 #, c-format
 msgid "vaddv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vaddv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:924
 #, c-format
 msgid "vaddv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vaddv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:947
 msgid "vaddv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vaddv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:965
 msgid "vaddv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vaddv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:996
 msgid "vsubv: ifn1 length exceeded"
-msgstr ""
+msgstr "vsubv :  la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1015
 msgid "vsubv: ifn2 length exceeded"
-msgstr ""
+msgstr "vsubv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1042
 #, c-format
 msgid "vsubv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vsubv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1048
 #, c-format
 msgid "vsubv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vsubv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1071
 msgid "vsubv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vsubv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1089
 msgid "vsubv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vsubv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1126
 msgid "vmultv: ifn1 length exceeded"
-msgstr ""
+msgstr "vmultv : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1145
 msgid "vmultv: ifn2 length exceeded"
-msgstr ""
+msgstr "vmultv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1172
 #, c-format
 msgid "vmultv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vmultv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1178
 #, c-format
 msgid "vmultv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vmultv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1201
 msgid "vmultv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vmultv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1218
 msgid "vmultv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vmultv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1255
 msgid "vdivv: ifn1 length exceeded"
-msgstr ""
+msgstr "vdivv : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1274
 msgid "vdivv: ifn2 length exceeded"
-msgstr ""
+msgstr "vdivv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1301
 #, c-format
 msgid "vdivv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vdivv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1307
 #, c-format
 msgid "vdivv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vdivv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1330
 msgid "vdivv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vdivv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1348
 msgid "vdivv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vdivv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1385
 msgid "vpowv: ifn1 length exceeded"
-msgstr ""
+msgstr "vpowv : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1404
 msgid "vpowv: ifn2 length exceeded"
-msgstr ""
+msgstr "vpowv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1431
 #, c-format
 msgid "vpowv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vpowv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1437
 #, c-format
 msgid "vpowv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vpowv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1460
 msgid "vpowv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vpowv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1477
 msgid "vpowv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vpowv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1514
 msgid "vexpv: ifn1 length exceeded"
-msgstr ""
+msgstr "vexpv : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1533
 msgid "vexpv: ifn2 length exceeded"
-msgstr ""
+msgstr "vexpv : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1560
 #, c-format
 msgid "vexpv_i: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vexpv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1566
 #, c-format
 msgid "vexpv_i: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vexpv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1589
 msgid "vexpv_i: ifn1 length exceeded"
-msgstr ""
+msgstr "vexpv_i : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1607
 msgid "vexpv_i: ifn2 length exceeded"
-msgstr ""
+msgstr "vexpv_i : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1644
 msgid "vmap: Error: ifn1 and ifn2 can not be the same"
-msgstr ""
+msgstr "vmap : Erreur : ifn1 et ifn2 ne peuvent pas être les mêmes"
 
 #: Opcodes/gab/vectorial.c:1649
 #, c-format
 msgid "vmap: ifn1 invalid table number %i"
-msgstr ""
+msgstr "vmap : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1655
 #, c-format
 msgid "vmap: ifn2 invalid table number %i"
-msgstr ""
+msgstr "vmap : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1678
 msgid "vmap: ifn1 length exceeded"
-msgstr ""
+msgstr "vmap : la longueur de ifn1 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1695
 msgid "vmap: ifn2 length exceeded"
-msgstr ""
+msgstr "vmap : la longueur de ifn2 a été dépassée"
 
 #: Opcodes/gab/vectorial.c:1887
 #, c-format
 msgid "vrandh: Seeding from current time %lu\n"
-msgstr ""
+msgstr "vrandh : graine à partir de l'horloge %lu\n"
 
 #: Opcodes/gab/vectorial.c:1981
 #, c-format
 msgid "vrandi: Seeding from current time %lu\n"
-msgstr ""
+msgstr "vrandi : graine à partir de l'horloge %lu\n"
 
 #: Opcodes/grain.c:90
 msgid "grain: not initialised"
@@ -5542,85 +5546,86 @@ msgstr "grain : non initialisé"
 
 #: Opcodes/grain4.c:57
 msgid "granule_set: Unable to find function table"
-msgstr ""
+msgstr "granule_set : impossible de trouver la table de fonction"
 
 #: Opcodes/grain4.c:67
 msgid "granule_set: Unable to find function table for envelope"
-msgstr ""
+msgstr "granule_set : impossible de trouver la table de fonction pour l'enveloppe"
 
 #: Opcodes/grain4.c:73
 msgid "granule_set: Too many voices"
-msgstr ""
+msgstr "granule_set : trop de voix"
 
 #: Opcodes/grain4.c:76
 msgid "granule_set: iratio must be greater then 0"
-msgstr ""
+msgstr "granule_set : iratio doit être supérieur à 0"
 
 #: Opcodes/grain4.c:80
 msgid "granule_set: imode must be -1, 0 or +1"
-msgstr ""
+msgstr "granule_set : imode doit valoir -1, 0 ou +1"
 
 #: Opcodes/grain4.c:84
 msgid "granule_set: Illegal ithd, must be greater than zero"
-msgstr ""
+msgstr "granule_set : ithd illégal, doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:89
 msgid "granule_set: ipshift must be integer between 0 and 4"
-msgstr ""
+msgstr "granule_set : ipshift doit être un entier entre 0 et 4"
 
 #: Opcodes/grain4.c:94
 msgid "granule_set: Not enough voices for the number of pitches"
-msgstr ""
+msgstr "granule_set : pas assez de voix pour le nombre de hauteurs"
 
 #: Opcodes/grain4.c:101
 msgid "granule_set: ipitch1 must be greater then zero"
-msgstr ""
+msgstr "granule_set : ipitch1 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:106
 msgid "granule_set: ipitch2 must be greater then zero"
-msgstr ""
+msgstr "granule_set : ipitch2 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:111
 msgid "granule_set: ipitch3 must be greater then zero"
-msgstr ""
+msgstr "granule_set : ipitch3 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:116
 msgid "granule_set: ipitch4 must be greater then zero"
-msgstr ""
+msgstr "granule_set : ipitch4 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:121
 msgid "granule_set: must be positive and less than function table length"
-msgstr ""
+msgstr "granule_set : doit être positif et inférieur à la longueur de la table "
+"de fonction"
 
 #: Opcodes/grain4.c:125
 msgid "granule_set: igskip_os must be greater then 0"
-msgstr ""
+msgstr "granule_set : igskip_os doit être supérieur à 0"
 
 #: Opcodes/grain4.c:134
 msgid "granule_set: kgap must be greater then 0"
-msgstr ""
+msgstr "granule_set : kgap doit être supérieur à 0"
 
 #: Opcodes/grain4.c:138
 #, c-format
 msgid "granule_set: igap_os must be 0%% to 100%%"
-msgstr ""
+msgstr "granule_set : igap_os doit être entre 0%% et 100%%"
 
 #: Opcodes/grain4.c:142
 msgid "granule_set: kgsize must be greater then 0"
-msgstr ""
+msgstr "granule_set : kgsize doit être supérieur à 0"
 
 #: Opcodes/grain4.c:146
 #, c-format
 msgid "granule_set: igsize_os must be 0%% to 100%%"
-msgstr ""
+msgstr "granule_set : igsize_os doit être entre 0%% et 100%%"
 
 #: Opcodes/grain4.c:152
 msgid "granule_set: Illegal value of iatt and/or idec"
-msgstr ""
+msgstr "granule_set : valeur illégale de iatt et/ou de idec"
 
 #: Opcodes/grain4.c:236
 msgid "granule_set: Illegal combination of igskip and ilength"
-msgstr ""
+msgstr "granule_set : combinaison illégale de igskip et de ilength"
 
 #: Opcodes/grain4.c:243
 #, c-format
@@ -5631,6 +5636,11 @@ msgid ""
 "            be taken into consideration.\n"
 "ilength is %f Sec, kgsize is %f Sec\n"
 msgstr ""
+"granule_set : AVERTISSEMENT * ilength est peut être trop courte * \n"
+"              ilength doit être supérieure à kgsize * max de la\n"
+"              transposition de hauteur vers le haut. Il faut aussi\n"
+"              prendre en considération igsize_os et igskip_os.\n"
+"ilength vaut %f sec, kgsize vaut %f sec\n"
 
 #: Opcodes/grain4.c:278
 msgid "grain4: not initialised"
@@ -5638,15 +5648,15 @@ msgstr "grain4 : non initialisé"
 
 #: Opcodes/harmon.c:221
 msgid "harm signal has positive lead\n"
-msgstr ""
+msgstr "le signal de l'harmonizer a une conduite positive\n"
 
 #: Opcodes/harmon.c:228
 msgid "harm signal has negative lead\n"
-msgstr ""
+msgstr "le signal de l'harmonizer a une conduite négative\n"
 
 #: Opcodes/harmon.c:357
 msgid "harmon234: out of range\n"
-msgstr ""
+msgstr "harmon234 : hors limites\n"
 
 #: Opcodes/hrtferX.c:79
 #, c-format
@@ -5654,12 +5664,16 @@ msgid ""
 "Orchestra sampling rate is not compatible with HRTF.\n"
 "Should be %d...exiting."
 msgstr ""
+"Le taux d'évhantillonnage de l'orchestre n'est pas compatible avec HRTF.\n"
+"Il devrait valoir %d... fin du traitement."
 
 #: Opcodes/hrtferX.c:87
 msgid ""
 "\n"
 "Last argument must be the string 'HRTFcompact' ...correcting.\n"
 msgstr ""
+"\n"
+"Le dernier argument doit être la chaîne 'HRTFcompact' ... correction.\n"
 
 #: Opcodes/hrtferX.c:183
 msgid "hrtfer: not initialised"
@@ -5667,25 +5681,25 @@ msgstr "hrtfer : non initialisé"
 
 #: Opcodes/ifd.c:74
 msgid "pvsifd: fftsize should be an integral multiple of hopsize"
-msgstr ""
+msgstr "pvsifd : fftsize doit être un multiple entier de hopsize"
 
 #: Opcodes/ifd.c:78
 msgid "pvsifd: fftsize should be power-of-two"
-msgstr ""
+msgstr "pvsifd : fftsize doit être une puissance de deux"
 
 #: Opcodes/ifd.c:139
 msgid "pvsifd: unsupported value for iwintype\n"
-msgstr ""
+msgstr "pvsifd : valeur non supportée pout iwintype\n"
 
 #: Opcodes/imageOpcodes.c:99
 #, c-format
 msgid "imageload: cannot open image %s.\n"
-msgstr "ne peut pas ouvrir l'image %s.\n"
+msgstr "imageload : impossible d'ouvrir l'image %s.\n"
 
 #: Opcodes/imageOpcodes.c:108
 #, c-format
 msgid "imageload: file %s is not in PNG format.\n"
-msgstr ""
+msgstr "imageload : le fichier %s n'est pas au format PNG.\n"
 
 #: Opcodes/imageOpcodes.c:116 Opcodes/imageOpcodes.c:123
 #: Opcodes/imageOpcodes.c:131 Opcodes/imageOpcodes.c:160
@@ -5693,34 +5707,34 @@ msgstr ""
 #: Opcodes/imageOpcodes.c:281 Opcodes/imageOpcodes.c:289
 #: Opcodes/imageOpcodes.c:304
 msgid "imageload: out of memory.\n"
-msgstr "imageload : hors de la mémoire.\n"
+msgstr "imageload : dépassement mémoire.\n"
 
 #: Opcodes/imageOpcodes.c:273
 #, c-format
 msgid "imageload: cannot open image %s for writing.\n"
-msgstr "imageload: ne peut pas ouvrir l'image %s pour l'écriture.\n"
+msgstr "imageload : impossible d'ouvrir l'image %s en écriture.\n"
 
 #: Opcodes/imageOpcodes.c:387
 msgid "Cannot allocate memory.\n"
-msgstr "Ne peut pas assigner la mémoire.\n"
+msgstr "Impossible d'allouer la mémoire.\n"
 
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
-msgstr ""
+msgstr "Nombre de sorties incorrect dans locsig ; doit valoir 2 ou 4"
 
 #: Opcodes/locsig.c:145
 msgid "Number of outputs must be the same as the previous locsig"
-msgstr ""
+msgstr "Le nombre de sorties doit être le même que celui du locsig précédent"
 
 #: Opcodes/loscilx.c:74 Opcodes/loscilx.c:178
 #, c-format
 msgid "could not load '%s'"
-msgstr ""
+msgstr "impossible de charger '%s'"
 
 #: Opcodes/loscilx.c:88 Opcodes/loscilx.c:258
 #, c-format
 msgid "invalid loop mode: %d"
-msgstr ""
+msgstr "mode de boucle non valide : %d"
 
 #: Opcodes/loscilx.c:170
 msgid "loscilx: invalid number of output arguments"
@@ -5729,7 +5743,8 @@ msgstr "loscilx : nombre d'arguments de sortie non valide"
 #: Opcodes/loscilx.c:190 Opcodes/loscilx.c:219
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
-msgstr ""
+msgstr "nombre d'arguments de sortie en contradiction avec le nombre de canaux du "
+"fichier son"
 
 #: Opcodes/loscilx.c:353
 msgid "loscilx: not initialised"
@@ -5737,7 +5752,7 @@ msgstr "loscilx : non initialisé"
 
 #: Opcodes/lowpassr.c:77 Opcodes/lowpassr.c:125
 msgid "illegal order num. (min 1, max 10)"
-msgstr ""
+msgstr "numéro d'ordre illégal (min 1, max 10)"
 
 #: Opcodes/mandolin.c:80
 msgid "No table for Mandolin"
@@ -5749,54 +5764,54 @@ msgstr "Pas de fréquence de base pour la mandoline"
 
 #: Opcodes/metro.c:58
 msgid "metro:init phase truncation"
-msgstr ""
+msgstr "metro : la phase initiale est tronquée"
 
 #: Opcodes/metro.c:105
 msgid "splitrig: incorrect table number"
-msgstr ""
+msgstr "splitrig : numéro de table incorrect"
 
 #: Opcodes/midiops2.c:514 Opcodes/midiops2.c:529 Opcodes/midiops2.c:548
 msgid "value out of range"
-msgstr ""
+msgstr "valeur hors limites"
 
 #: Opcodes/midiops2.c:580
 #, c-format
 msgid "invalid channel number: %d"
-msgstr ""
+msgstr "numéro de canal non valide : %d"
 
 #: Opcodes/midiops3.c:333 Opcodes/midiops3.c:428
 #, c-format
 msgid "illegal msb control number at position n.%d"
-msgstr ""
+msgstr "msb du numéro de contrôleur illégal à la position n.%d"
 
 #: Opcodes/midiops3.c:340 Opcodes/midiops3.c:435
 #, c-format
 msgid "illegal lsb control number at position n.%d"
-msgstr ""
+msgstr "lsb du numéro de contrôleur illégal à la position n.%d"
 
 #: Opcodes/modal4.c:45
 msgid "No table for Modal4 case"
-msgstr ""
+msgstr "Pas de table pour le cas de Modal4 "
 
 #: Opcodes/modal4.c:254
 msgid "No table for Marimba strike"
-msgstr ""
+msgstr "Pas de table pour l'excitation du Marimba"
 
 #: Opcodes/modal4.c:293
 msgid "striking three times here!!!\n"
-msgstr ""
+msgstr "trois frappes ici !!!\n"
 
 #: Opcodes/modal4.c:298
 msgid "striking twice here!!\n"
-msgstr ""
+msgstr "deux frappes ici !!\n"
 
 #: Opcodes/modal4.c:368
 msgid "No table for Vibraphone strike"
-msgstr ""
+msgstr "Pas de table pour l'excitation du Vibraphone"
 
 #: Opcodes/modal4.c:449
 msgid "No table for Agogobell strike"
-msgstr ""
+msgstr "Pas de table pour l'excitation d'Agogobell"
 
 #: Opcodes/nlfilt.c:74
 msgid "nlfilt: not initialised"
@@ -5804,48 +5819,50 @@ msgstr "nlfilt : non initialisé"
 
 #: Opcodes/ogg.c:53
 msgid "oggread: invalid number of channels"
-msgstr ""
+msgstr "oggread : nombre de canaux non valide"
 
 #: Opcodes/ogg.c:59
 msgid "oggread: Failed to open file"
-msgstr ""
+msgstr "oggread : l'ouverture du fichier a échoué"
 
 #: Opcodes/ogg.c:65
 msgid "oggread: Failed to open input as vorbis"
-msgstr ""
+msgstr "oggread : l'ouverture de l'entrée en vorbis a échoué"
 
 #: Opcodes/ogg.c:70
 msgid ""
 "oggread: number of output args inconsistent with number of file channels"
-msgstr ""
+msgstr "oggread : nombre d'args de sortie en contradiction avec le nombre "
+"de canaux du fichier"
 
 #: Opcodes/ogg.c:77
 #, c-format
 msgid ""
 "oggread: warning: sample rate of file is %d which coes not match sr (=%f)\n"
-msgstr ""
+msgstr "oggread : avertissement : le taux d'échantillonnage du fichier vaut %d "
+"qui ne correspond pas à sr (=%f)\n"
 
 #: Opcodes/ogg.c:91
 #, c-format
 msgid "oggread: seek file to sec=%f\n"
-msgstr ""
+msgstr "oggread : positionnement dans le fichier à %f sec\n"
 
 #: Opcodes/ogg.c:96
 #, c-format
 msgid "oggread: seek_point=%f > file_length=%f\n"
-msgstr ""
+msgstr "oggread : seek_point=%f > file_lenth=%f\n"
 
 #: Opcodes/ogg.c:100
 msgid "oggread: file is not seekable\n"
-msgstr ""
+msgstr "oggread : le fichier n'est pas à accès aléatoire\n"
 
 #: Opcodes/ogg.c:117
 msgid "oggread: Only one logical bitstream currently supported\n"
-msgstr ""
+msgstr "oggread : un seul flot numérique logique est actuellement supporté\n"
 
 #: Opcodes/ogg.c:120
 msgid "oggread: Warning hole in data\n"
-msgstr ""
+msgstr "oggread : avertissement, trou dans les données\n"
 
 #: Opcodes/oscbnk.c:416
 msgid "oscbnk: not initialised"
@@ -5861,15 +5878,15 @@ msgstr "grain3 : non initialisé"
 
 #: Opcodes/oscbnk.c:889
 msgid "grain3: invalid grain duration"
-msgstr ""
+msgstr "grain3 : durée de grain non valide"
 
 #: Opcodes/oscbnk.c:895
 msgid "grain3: invalid grain density"
-msgstr ""
+msgstr "grain3 : densité de grain non valide"
 
 #: Opcodes/oscbnk.c:919 Opcodes/oscbnk.c:940
 msgid "grain3 needs more overlaps"
-msgstr ""
+msgstr "grain3 nécessite plus de chevauchements"
 
 #: Opcodes/oscbnk.c:1044 Opcodes/oscbnk.c:1071
 msgid "rnd31: not initialised"
@@ -5878,36 +5895,36 @@ msgstr "rnd31 : non initialisé"
 #: Opcodes/oscbnk.c:1614
 #, c-format
 msgid "WARNING: redefined table array for waveform %d\n"
-msgstr ""
+msgstr "AVERTISSEMENT : redéfinition de la table pour la forme d'onde %d\n"
 
 #: Opcodes/oscbnk.c:1699
 #, c-format
 msgid "vco2init: invalid waveform number: %f"
-msgstr ""
+msgstr "vco2init : numéro de forme d'onde non valide : %f"
 
 #: Opcodes/oscbnk.c:1707
 msgid "vco2init: invalid base ftable number"
-msgstr ""
+msgstr "vco2init : numéro de la ftable de base non valide"
 
 #: Opcodes/oscbnk.c:1718
 msgid "vco2init: invalid partial number multiplier"
-msgstr ""
+msgstr "vco2init : multiplicateur du nombre d'harmoniques non valide"
 
 #: Opcodes/oscbnk.c:1727
 msgid "vco2init: invalid min table size"
-msgstr ""
+msgstr "vco2init : taille min de table non valide"
 
 #: Opcodes/oscbnk.c:1735
 msgid "vco2init: invalid max table size"
-msgstr ""
+msgstr "vco2init : taille max de table non valide"
 
 #: Opcodes/oscbnk.c:1757
 msgid "vco2init: invalid source ftable"
-msgstr ""
+msgstr "vco2init : ftable source non valide"
 
 #: Opcodes/oscbnk.c:1800
 msgid "vco2ft: table array not found for this waveform"
-msgstr ""
+msgstr "vco2ft : le tableau de tables pour cette forme d'onde n'a pas été trouvé"
 
 #: Opcodes/oscbnk.c:1871
 msgid "vco2ft: not initialised"
@@ -5915,19 +5932,20 @@ msgstr "vco2ft : non initialisé"
 
 #: Opcodes/oscbnk.c:1890
 msgid "vco2: too many input arguments"
-msgstr ""
+msgstr "vco2 : trop d'arguments en entrée"
 
 #: Opcodes/oscbnk.c:1900
 msgid "vco2: insufficient required arguments"
-msgstr ""
+msgstr "vco2 : pas assez d'arguments requis"
 
 #: Opcodes/oscbnk.c:1903
 msgid "vco2: invalid argument type"
-msgstr ""
+msgstr "vco2 : type d'argument non valide"
 
 #: Opcodes/oscbnk.c:1914
 msgid "vco2: table array not found for user defined waveform"
-msgstr ""
+msgstr "vco2 : le tableau de tables pour la forme d'onde définie par "
+"l'utilisateur n'a pas été trouvé"
 
 #: Opcodes/oscbnk.c:1959
 msgid "vco2: not initialised"
@@ -5935,7 +5953,7 @@ msgstr "vco2 : non initialisé"
 
 #: Opcodes/oscbnk.c:2116
 msgid "delayk: invalid delay time (must be >= 0)"
-msgstr ""
+msgstr "delayk : durée de délai non valide (doit être >= 0)"
 
 #: Opcodes/oscbnk.c:2133
 msgid "delayk: not initialised"
@@ -5943,7 +5961,7 @@ msgstr "delayk : non initialisé"
 
 #: Opcodes/oscbnk.c:2156
 msgid "vdel_k: invalid max delay time (must be >= 0)"
-msgstr ""
+msgstr "vdel_k : durée de délai max non valide (doit être >= 0)"
 
 #: Opcodes/oscbnk.c:2174
 msgid "vdel_k: not initialised"
@@ -5951,23 +5969,23 @@ msgstr "vdel_k : non initialisé"
 
 #: Opcodes/oscbnk.c:2178
 msgid "vdel_k: invalid delay time (must be >= 0)"
-msgstr ""
+msgstr "vdel_k : durée de délai non valide (doit être >= 0)"
 
 #: Opcodes/oscbnk.c:2442
 msgid "rbjeq: invalid filter type"
-msgstr ""
+msgstr "rbjeq : type de filtre non valide"
 
 #: Opcodes/partikkel.c:25 Opcodes/partikkel.c:26 Opcodes/partikkel.c:27
 msgid "partikkel: "
-msgstr ""
+msgstr "partikkel :"
 
 #: Opcodes/partikkel.c:780
 msgid "partikkelsync: opcode id needs to be a non-zero integer"
-msgstr ""
+msgstr "partikkelsync : l'id de l'opcode doit être un entier non nul"
 
 #: Opcodes/partikkel.c:784 Opcodes/partikkel.c:790
 msgid "partikkelsync: could not find opcode id"
-msgstr ""
+msgstr "partikkelsync : impossible de trouver l'id de l'opcode"
 
 #: Opcodes/physmod.c:121
 msgid "No table for Clarinet"
@@ -5975,7 +5993,8 @@ msgstr "Aucune table pour la clarinette"
 
 #: Opcodes/physmod.c:129
 msgid "No base frequency for clarinet -- assuming 50Hz\n"
-msgstr ""
+msgstr "Pas de fréquence de base pour la clarinette -- "
+"on suppose qu'elle vaut 50 Hz\n"
 
 #: Opcodes/physmod.c:279
 msgid "No table for Flute"
@@ -5983,11 +6002,12 @@ msgstr "Aucune table pour la flûte"
 
 #: Opcodes/physmod.c:287
 msgid "No base frequency for flute -- assumed to be 50Hz\n"
-msgstr ""
+msgstr "Pas de fréquence de base pour la flûte -- "
+"on suppose qu'elle vaut 50 Hz\n"
 
 #: Opcodes/physmod.c:477
 msgid "No table for wgbow vibrato"
-msgstr ""
+msgstr "Pas de table pour le vibrato de wgbow"
 
 #: Opcodes/physmod.c:673
 msgid "DlineA not initialised"
@@ -5995,49 +6015,50 @@ msgstr "DlineA non initialisé"
 
 #: Opcodes/physmod.c:752
 msgid "No table for Brass"
-msgstr ""
+msgstr "Pas de table pour Brass"
 
 #: Opcodes/physmod.c:761
 msgid "No base frequency for brass -- assumed to be 50Hz\n"
-msgstr ""
+msgstr "Pas de fréquence de base pour brass -- "
+"on suppose qu'elle vaut 50 Hz\n"
 
 #: Opcodes/physutil.c:137 Opcodes/physutil.c:311 Opcodes/physutil.c:323
 #: Opcodes/physutil.c:344
 msgid "negative rates not allowed!!, correcting\n"
-msgstr ""
+msgstr "les vitesses négatives sont interdites !!, correction\n"
 
 #: Opcodes/physutil.c:181
 #, c-format
 msgid "Envelope: value=%f target=%f rate=%f state=%d\n"
-msgstr ""
+msgstr "Enveloppe : valeur=%f cible=%f vitesse=%f état=%d\n"
 
 #: Opcodes/physutil.c:334
 msgid "Sustain level out of range!!, correcting\n"
-msgstr ""
+msgstr "Niveau d'entretien hors limites !!, correction\n"
 
 #: Opcodes/physutil.c:355 Opcodes/physutil.c:365 Opcodes/physutil.c:375
 msgid "negative times not allowed!!, correcting\n"
-msgstr ""
+msgstr "les valeurs de temps négatives sont interdites !!, correction\n"
 
 #: Opcodes/pitch.c:73 Opcodes/spectra.c:78
 msgid "illegal iocts"
-msgstr ""
+msgstr "iocts illégal"
 
 #: Opcodes/pitch.c:74 Opcodes/spectra.c:80
 msgid "illegal ifrqs"
-msgstr ""
+msgstr "ifrqs illégal"
 
 #: Opcodes/pitch.c:170 Opcodes/spectra.c:586
 msgid "illegal no of partials"
-msgstr ""
+msgstr "nombre de partiels illégal"
 
 #: Opcodes/pitch.c:195 Opcodes/spectra.c:613
 msgid "per oct rolloff too steep"
-msgstr ""
+msgstr "pente par octave trop raide"
 
 #: Opcodes/pitch.c:209 Opcodes/spectra.c:627
 msgid "illegal lo-hi values"
-msgstr ""
+msgstr "valeurs lo-hi illégales"
 
 #: Opcodes/pitch.c:340
 msgid "pitch: not initialised"
@@ -6045,31 +6066,31 @@ msgstr "pitch : non initialisé"
 
 #: Opcodes/pitch.c:454
 msgid "Must have even number of arguments in mac\n"
-msgstr ""
+msgstr "Il doit y avoir un nombre pair d'arguments dans mac\n"
 
 #: Opcodes/pitch.c:543
 msgid "clockread: clock still running, call clockoff first"
-msgstr ""
+msgstr "clockread : l'horloge est toujours active, appeler clockoff d'abord"
 
 #: Opcodes/pitch.c:567
 msgid "adsynt: wavetable not found!"
-msgstr ""
+msgstr "adsynt : table d'onde non trouvée !"
 
 #: Opcodes/pitch.c:580
 msgid "adsynt: freqtable not found!"
-msgstr ""
+msgstr "adsynt : table de fréq non trouvée !"
 
 #: Opcodes/pitch.c:585
 msgid "adsynt: partial count is greater than freqtable size!"
-msgstr ""
+msgstr "adsynt : le nombre de partiels est supérieur à la taille de la table de fréq !"
 
 #: Opcodes/pitch.c:593
 msgid "adsynt: amptable not found!"
-msgstr ""
+msgstr "adsynt : table d'amp non trouvée !"
 
 #: Opcodes/pitch.c:598
 msgid "adsynt: partial count is greater than amptable size!"
-msgstr ""
+msgstr "adsynt : le nombre de partiels est supérieur à la taille de la table d'amp !"
 
 #: Opcodes/pitch.c:629
 msgid "adsynt: not initialised"
@@ -6081,7 +6102,7 @@ msgstr "hsboscil : non initialisé"
 
 #: Opcodes/pitch.c:793
 msgid "pitchamdf: maxcps must be > mincps !"
-msgstr ""
+msgstr "pitchamdf : maxcps doit être > mincps !"
 
 #: Opcodes/pitch.c:947
 msgid "pitchamdf: not initialised"
@@ -6093,11 +6114,11 @@ msgstr "phasorbnk : non initialisé"
 
 #: Opcodes/pitch.c:1209
 msgid "pinkish: Invalid method code"
-msgstr ""
+msgstr "pinkish : code de méthode non valide"
 
 #: Opcodes/pitch.c:1220
 msgid "pinkish: Filter method requires a-rate (noise) input"
-msgstr ""
+msgstr "pinkish : la méthode de filtrage nécessite une entrée (bruit) de taux-a"
 
 #: Opcodes/pitch.c:1343
 #, c-format
@@ -6105,6 +6126,8 @@ msgid ""
 "pinkish: Gardner method requires 4-%d bands. Default %ld substituted for %"
 "d.\n"
 msgstr ""
+"pinkish : la méthode de Gardner nécessitre 4-%d bandes. La valeur par défaut "
+"%ld a été substituée à %d.\n"
 
 #: Opcodes/pitch.c:1771
 msgid ""
@@ -6112,39 +6135,39 @@ msgid ""
 "Error: transeg not initialised (krate)"
 msgstr ""
 "\n"
-"Erreur : transeg non initialisé (krate)"
+"Erreur : transeg non initialisé (taux-k)"
 
 #: Opcodes/pitch.c:1806
 msgid "transeg: not initialised (arate)\n"
-msgstr "transeg : non initialisé (arate)\n"
+msgstr "transeg : non initialisé (taux-a)\n"
 
 #: Opcodes/pitch0.c:37
 #, c-format
 msgid "Muting new instances of instr %d\n"
-msgstr ""
+msgstr "Muting des nouvelles instances de l'instr %d\n"
 
 #: Opcodes/pitch0.c:40
 #, c-format
 msgid "Allowing instrument %d to start\n"
-msgstr ""
+msgstr "L'instrument %d est autorisé à démarrer\n"
 
 #: Opcodes/pitchtrack.c:368
 #, c-format
 msgid "ptrack: FFT size out of range; using %d\n"
-msgstr ""
+msgstr "ptrack : taille de TFR hors limites ; on utilise %d\n"
 
 #: Opcodes/pitchtrack.c:381
 #, c-format
 msgid "ptrack: FFT size not a power of 2; using %d\n"
-msgstr ""
+msgstr "ptrack : la taille de TFR n'est pas une puissance de 2 ; on utilise %d\n"
 
 #: Opcodes/pluck.c:174
 msgid "Couldn't allocate for initial shape"
-msgstr ""
+msgstr "Impossible d'allouer la forme initiale"
 
 #: Opcodes/pluck.c:244
 msgid "Buffer memory not allocated!"
-msgstr ""
+msgstr "Mémoire tampon non allouée !"
 
 #: Opcodes/pluck.c:370
 #, c-format
@@ -6153,39 +6176,39 @@ msgstr "Erreur : %s, %s"
 
 #: Opcodes/psynth.c:97 Opcodes/psynth.c:249
 msgid "psynth: first input not in TRACKS format\n"
-msgstr ""
+msgstr "psynth : la première entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:101 Opcodes/psynth.c:253
 msgid "psynth: function table not found\n"
-msgstr ""
+msgstr "psynth : table de fonction non trouvée\n"
 
 #: Opcodes/psynth.c:558 Opcodes/psynth.c:651
 msgid "Input not in TRACKS format\n"
-msgstr ""
+msgstr "L'entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:756
 msgid "trsplit: input not in TRACKS format\n"
-msgstr ""
+msgstr "trsplit : l'entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:852 Opcodes/psynth.c:1016
 msgid "trmix: first input not in TRACKS format\n"
-msgstr ""
+msgstr "trmix : la première entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:857 Opcodes/psynth.c:1021
 msgid "trmix: second input not in TRACKS format\n"
-msgstr ""
+msgstr "trmix : la seconde entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:932
 msgid "trfil: input not in TRACKS format\n"
-msgstr ""
+msgstr "trfil : l'entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/psynth.c:937
 msgid "trfil: could not find function table\n"
-msgstr ""
+msgstr "trfil : impossible de trouver la table de fonction\n"
 
 #: Opcodes/psynth.c:1124
 msgid "binit: first input not in TRACKS format\n"
-msgstr ""
+msgstr "binit : la première entrée n'est pas au format TRACKS\n"
 
 #: Opcodes/pvadd.c:148
 msgid "pvadd: not initialised"
@@ -6193,58 +6216,58 @@ msgstr "pvadd : non initialisé"
 
 #: Opcodes/pvadd.c:151
 msgid "PVADD timpnt < 0"
-msgstr ""
+msgstr "PVADD timpnt < 0"
 
 #: Opcodes/pvadd.c:157
 msgid "PVADD ktimpnt truncated to last frame"
-msgstr ""
+msgstr "PVADD ktimpnt a été tronqué au dernier frame"
 
 #: Opcodes/pvadd.c:203
 #, c-format
 msgid "PVADD cannot load %s"
-msgstr ""
+msgstr "PVADD ne peut pas charger %s"
 
 #: Opcodes/pvadd.c:207 Opcodes/ugens8.c:216
 #, c-format
 msgid "pvoc-ex file %s: FFT size %d too large for Csound"
-msgstr ""
+msgstr "pvoc-ex fichier %s : la taille de TFR %d est trop grande pour Csound"
 
 #: Opcodes/pvadd.c:212
 #, c-format
 msgid "PV frame %ld seems too small in %s"
-msgstr ""
+msgstr "Le frame PV %ld semble trop petit dans %s"
 
 #: Opcodes/pvadd.c:217 Opcodes/pvread.c:115 Opcodes/ugens8.c:222
 #, c-format
 msgid "pvoc-ex file %s is not mono"
-msgstr ""
+msgstr "pvoc-ex : le fichier %s n'est pas mono"
 
 #: Opcodes/pvinterp.c:63
 #, c-format
 msgid "PVBUFREAD cannot load %s"
-msgstr ""
+msgstr "PVBUFREAD ne peut pas charger %s"
 
 #: Opcodes/pvinterp.c:76 Opcodes/vpvoc.c:207
 #, c-format
 msgid "PVOC frame %ld bigger than %ld in %s"
-msgstr ""
+msgstr "Le frame PVOC %ld est plus grand que %ld dans %s"
 
 #: Opcodes/pvinterp.c:81 Opcodes/vpvoc.c:212
 #, c-format
 msgid "PVOC frame %ld seems too small in %s"
-msgstr ""
+msgstr "Le frame PVOC %ld semble trop petit dans %s"
 
 #: Opcodes/pvinterp.c:85 Opcodes/pvinterp.c:184 Opcodes/pvinterp.c:354
 #: Opcodes/vpvoc.c:216
 #, c-format
 msgid "%d chans (not 1) in PVOC file %s"
-msgstr ""
+msgstr "%d canaux (pas 1) dans le fichier PVOC %s"
 
 #: Opcodes/pvinterp.c:101 Opcodes/pvinterp.c:212 Opcodes/pvinterp.c:380
 #: Opcodes/ugens8.c:94 Opcodes/vpvoc.c:244
 #, c-format
 msgid "ksmps of %d needs wdw of %d, max is %d for pv %s"
-msgstr ""
+msgstr "Un ksmps de %d necécessite une fenêtre de %d, max vaut %d pour pv %s"
 
 #: Opcodes/pvinterp.c:117
 msgid "pvbufread: not initialised"
@@ -6253,26 +6276,27 @@ msgstr "pvbufread : non initialisé"
 #: Opcodes/pvinterp.c:120 Opcodes/pvinterp.c:256 Opcodes/pvinterp.c:428
 #: Opcodes/pvread.c:91 Opcodes/ugens8.c:152 Opcodes/vpvoc.c:292
 msgid "PVOC timpnt < 0"
-msgstr ""
+msgstr "PVOC timpnt < 0"
 
 #: Opcodes/pvinterp.c:126 Opcodes/pvinterp.c:262 Opcodes/pvinterp.c:434
 #: Opcodes/pvread.c:97 Opcodes/ugens8.c:158 Opcodes/vpvoc.c:298
 msgid "PVOC ktimpnt truncated to last frame"
-msgstr ""
+msgstr "PVOC ktimpnt a été tronqué au dernier frame"
 
 #: Opcodes/pvinterp.c:149
 msgid "pvinterp: associated pvbufread not found"
-msgstr ""
+msgstr "pvinterp : pas de pvbufread associé"
 
 #: Opcodes/pvinterp.c:166
 #, c-format
 msgid "PVINTERP cannot load %s"
-msgstr ""
+msgstr "PVINTERP ne peut pas charger %s"
 
 #: Opcodes/pvinterp.c:179
 #, c-format
 msgid "pvinterp: %s: frame size %d does not match pvbufread frame size %d\n"
-msgstr ""
+msgstr "pvinterp : %s : la taille de frame %d ne correspond pas à la taille "
+"de frame %d de pvbufread\n"
 
 #: Opcodes/pvinterp.c:242
 msgid "pvinterp: not initialised"
@@ -6281,26 +6305,27 @@ msgstr "pvinterp : non initialisé"
 #: Opcodes/pvinterp.c:249 Opcodes/pvinterp.c:421 Opcodes/ugens8.c:145
 #: Opcodes/vpvoc.c:285
 msgid "PVOC transpose too low"
-msgstr ""
+msgstr "PVOC transpose trop bas"
 
 #: Opcodes/pvinterp.c:252 Opcodes/pvinterp.c:424 Opcodes/ugens8.c:148
 #: Opcodes/vpvoc.c:288
 msgid "PVOC transpose too high"
-msgstr ""
+msgstr "PVOC transpose trop haut"
 
 #: Opcodes/pvinterp.c:321
 msgid "pvcross: associated pvbufread not found"
-msgstr ""
+msgstr "pvcross : pas de pvbufread associé"
 
 #: Opcodes/pvinterp.c:337
 #, c-format
 msgid "PVCROSS cannot load %s"
-msgstr ""
+msgstr "PVCROSS ne peut pas charger %s"
 
 #: Opcodes/pvinterp.c:349
 #, c-format
 msgid "pvcross: %s: frame size %d does not match pvbufread frame size %d\n"
-msgstr ""
+msgstr "pvcross : %s : la taille de frame %d ne correspond à la taille "
+"de frame %d de pvbufread\n"
 
 #: Opcodes/pvinterp.c:414
 msgid "pvcross: not initialised"
