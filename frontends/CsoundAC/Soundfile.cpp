@@ -167,26 +167,34 @@ namespace csound
     seekSeconds(0.0);
   }
 
-  void Soundfile::jonesParksGrain(double centerTime_,
-                                  double duration,
-                                  double beginningFrequency,
-                                  double centerFrequency,
+  void Soundfile::jonesParksGrain(double centerTimeSeconds,
+                                  double durationSeconds,
+                                  double beginningFrequencyHz,
+                                  double centerFrequencyHz,
                                   double centerAmplitude,
-                                  double centerPhase,
-                                  double pan)
+                                  double centerPhaseOffsetRadians,
+                                  double pan,
+				  bool synchronousPhase)
   {
+    if (synchronousPhase) {
+      double wavelengthSeconds = 1.0 / centerFrequencyHz;
+      double wavelengths = centerTimeSeconds / wavelengthSeconds;
+      double wholecycles = 0;
+      double fractionalCycle = std::modf(wavelengths, &wholecycles);
+      centerPhaseOffsetRadians = Conversions::get2PI() * fractionalCycle;
+    }
     double leftGain = Conversions::leftPan(pan);
     double rightGain = Conversions::rightPan(pan);
-    double centerTime = - (duration / 2.0);
+    double centerTime = - (durationSeconds / 2.0);
     int samplingRate = getFramesPerSecond();
     double samplingInterval = 1.0 / double(samplingRate);
-    size_t frameCount = size_t(2.0 * duration / samplingInterval);
-    double gaussianWidth = std::exp(1.0) / std::pow(duration / 4.0, 2.0);
-    double endingFrequency = centerFrequency + (centerFrequency - beginningFrequency);
-    double chirpRate = (endingFrequency - beginningFrequency) / duration;
-    double omega = Conversions::TWO_PI_ * centerFrequency;
+    size_t frameCount = size_t(2.0 * durationSeconds / samplingInterval);
+    double gaussianWidth = std::exp(1.0) / std::pow(durationSeconds / 4.0, 2.0);
+    double endingFrequencyHz = centerFrequencyHz + (centerFrequencyHz - beginningFrequencyHz);
+    double chirpRate = (endingFrequencyHz - beginningFrequencyHz) / durationSeconds;
+    double omega = Conversions::TWO_PI_ * centerFrequencyHz;
     std::complex<double> c0(log(centerAmplitude) - (gaussianWidth * std::pow(centerTime, 2.0)),
-                            (centerPhase - (chirpRate / 2.0) * centerTime) - (omega * centerTime));
+                            (centerPhaseOffsetRadians - (chirpRate / 2.0) * centerTime) - (omega * centerTime));
     std::complex<double> c1(-2.0 * gaussianWidth * samplingInterval * centerTime,
                             - (samplingInterval * (chirpRate * centerTime + omega)));
     std::complex<double> c2 = (-std::complex<double>(gaussianWidth, chirpRate / 2.0)) * std::pow(samplingInterval, 2.0);
@@ -217,13 +225,26 @@ namespace csound
         f1 = h1 * f0;
         f0 = f1;
       }
-    seekSeconds(centerTime_ - (duration / 2.0));
+    seekSeconds(centerTimeSeconds - (durationSeconds / 2.0));
     int sampleCount = frameCount * channelCount;
     mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
   }
 
-  void Soundfile::cosineGrain(double centerTimeSeconds, double durationSeconds, double frequencyHz, double gain, double phaseOffsetRadians, double pan)
+  void Soundfile::cosineGrain(double centerTimeSeconds, 
+			      double durationSeconds, 
+			      double frequencyHz, 
+			      double amplitude, 
+			      double phaseOffsetRadians, 
+			      double pan,
+			      bool synchronousPhase)
   {
+    if (synchronousPhase) {
+      double wavelengthSeconds = 1.0 / frequencyHz;
+      double wavelengths = centerTimeSeconds / wavelengthSeconds;
+      double wholecycles = 0;
+      double fractionalCycle = std::modf(wavelengths, &wholecycles);
+      phaseOffsetRadians = Conversions::get2PI() * fractionalCycle;
+    }
     size_t frameN = size_t(Conversions::round(durationSeconds * getFramesPerSecond()));
     size_t channelN = getChannelsPerFrame();
     boost::numeric::ublas::matrix<double> grainOutput(frameN, channelN);
@@ -252,7 +273,7 @@ namespace csound
     double envelopeTemp = 0.0;
     for(size_t frameI = 0; frameI < frameN; frameI++)
       {
-        signal = (sinusoid1 * (envelope1 - 1.0)) * gain;
+        signal = (sinusoid1 * (envelope1 - 1.0)) * amplitude;
         if (channelN == 2) {
           grainOutput(frameI, 0) = leftGain * signal;
           grainOutput(frameI, 1) = rightGain * signal;

@@ -60,19 +60,19 @@ print 'CREATING 2 440 Hz 1 second grains of different phase at 50 seconds.'
 print 'Check sonogram -- verify that frequencies are identical.'
 print
 soundfile.cosineGrain(50.0, 1.0, 440.0, 0.1, 0.0, 0.0)
-soundfile.cosineGrain(52.0, 1.0, 440.0, 0.1, math.pi, 0.0)
+soundfile.cosineGrain(52.0, 1.0, 440.0, 0.1, math.pi, 0.0, False)
 
 print 'CREATING 2 440 Hz 1 second grains out of phase by pi at 53 seconds.'
 print 'Check sonogram -- verify that amplitude cancels to 0.'
 print
 soundfile.cosineGrain(53.0, 1.0, 440.0, 0.1, 0.0, 0.0)
-soundfile.cosineGrain(53.0, 1.0, 440.0, 0.1, math.pi, 0.0)
+soundfile.cosineGrain(53.0, 1.0, 440.0, 0.1, math.pi, 0.0, False)
 
 print 'CREATING 2 440 Hz 1 second grains out of phase by pi / 2 at 55 seconds.'
 print 'Check sonogram -- verify that amplitude reinforces x 1.5.'
 print
 soundfile.cosineGrain(55.0, 1.0, 440.0, 0.1, 0.0, 0.0)
-soundfile.cosineGrain(55.0, 1.0, 440.0, 0.1, math.pi / 2.0, 0.0)
+soundfile.cosineGrain(55.0, 1.0, 440.0, 0.1, math.pi / 2.0, 0.0, False)
 
 print 'CREATING 500 880 Hz 0.01 second grains overlapped at 60 seconds'
 print
@@ -83,7 +83,7 @@ A = 0.1
 phase = 0.0
 for i in xrange(500):
 	print 'grain:  t: %9.4f  d: %9.4f  f: %9.4f  A: %9.4f  phi: %9.4f' % (d,t,f,A,phase)
-	soundfile.cosineGrain(t, d, f, A, phase, 0.0)
+	soundfile.cosineGrain(t, d, f, A, phase, 0.0, False)
 	t = t + d / 2.0
 	
 print 'CREATING 500 880 Hz 0.01 second grains overlapped at 75 seconds, with synchronous phase.'
@@ -94,11 +94,12 @@ t = 75.0
 f = 880.0
 A = 0.1
 w = 1.0 / f
+phase = True
 for i in xrange(500):
-	# Convert fractional wavelengths to radians.
-	wavelengths = t / w
-	fraction, wholecycles = math.modf(wavelengths)	
-	phase = fraction * 2.0 * math.pi
+##	# Convert fractional wavelengths to radians.
+##	wavelengths = t / w
+##	fraction, wholecycles = math.modf(wavelengths)	
+##	phase = fraction * 2.0 * math.pi
 	print 'grain:  t: %9.4f  d: %9.4f  f: %9.4f  A: %9.4f  phi: %9.4f' % (d,t,f,A,phase)
 	soundfile.cosineGrain(t, d, f, A, phase, 0.0)
 	t = t + d / 2.0
