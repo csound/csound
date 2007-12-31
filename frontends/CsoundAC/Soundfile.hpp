@@ -185,12 +185,12 @@ namespace csound
      * 
      * The algorithm uses an efficient difference equation.
      */
-    virtual void jonesParksGrain(double centerTime, 
-				 double duration, 
-				 double beginningFrequency,
-                                 double centerFrequency, 
+    virtual void jonesParksGrain(double centerTimeSeconds, 
+				 double durationSeconds, 
+				 double beginningFrequencyHz,
+                                 double centerFrequencyHz, 
 				 double centerAmplitude, 
-				 double centerPhase, 
+				 double centerPhaseOffsetRadians, 
 				 double pan,
 				 bool synchronousPhase = true);
     /**
@@ -204,11 +204,11 @@ namespace csound
      *
      * The algorithm uses an efficient difference equation. 
      */
-    virtual void cosineGrain(double centerTime, 
-			     double duration, 
-			     double sineFrequency, 
-			     double gain,
-                             double sinePhase, 
+    virtual void cosineGrain(double centerTimeSeconds, 
+			     double durationSeconds, 
+			     double frequencyHz, 
+			     double amplitude,
+                             double phaseOffsetRadians, 
 			     double pan,
 			     bool synchronousPhase = true);
   };
