@@ -1,7 +1,8 @@
 /*
- * C S O U N D   V S T
+ * C s o u n d A C
  *
- * A VST plugin version of Csound, with Python scripting.
+ * A Python extension module for algorithmic composition
+ * with Csound.
  *
  * L I C E N S E
  *
@@ -178,20 +179,38 @@ namespace csound
     virtual void blank(double duration);
     /**
      * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo, 
-     * the grain will be panned. The algorithm uses an efficient difference equation.
-     */
-    virtual void jonesParksGrain(double centerTime, double duration, double beginningFrequency,
-                                 double centerFrequency, double centerAmplitude, double centerPhase, double pan);
-    /**
-     * Mix a cosine grain into the soundfile. If the soundfile is stereo, 
-     * the grain will be panned. Cosine grains can be overlapped if the
-     * envelope components of the two grains are out of phase by pi 
-     * (the half amplitude point of the envelope) without introducing artifacts,
-     * if the sinusoidal components of the two grains are in phase.
+     * the grain will be panned. If the synchronousPhase argument is true
+     * (the default value), then all grains of the same frequency 
+     * will have synchronous phases, which can be useful in avoiding certain artifacts.
+     * 
      * The algorithm uses an efficient difference equation.
      */
-    virtual void cosineGrain(double centerTime, double duration, double sineFrequency, double gain,
-                             double sinePhase, double pan);
+    virtual void jonesParksGrain(double centerTime, 
+				 double duration, 
+				 double beginningFrequency,
+                                 double centerFrequency, 
+				 double centerAmplitude, 
+				 double centerPhase, 
+				 double pan,
+				 bool synchronousPhase = true);
+    /**
+     * Mix a cosine grain into the soundfile. If the soundfile is stereo, 
+     * the grain will be panned. If the synchronousPhase argument is true
+     * (the default value), then all grains of the same frequency 
+     * will have synchronous phases, which can be useful in avoiding certain artifacts.
+     * For example, if cosine grains of the same frequency have synchronous phases,
+     * they can be overlapped by 1/2 their duration without artifacts
+     * to produce a continuous cosine tone.
+     *
+     * The algorithm uses an efficient difference equation. 
+     */
+    virtual void cosineGrain(double centerTime, 
+			     double duration, 
+			     double sineFrequency, 
+			     double gain,
+                             double sinePhase, 
+			     double pan,
+			     bool synchronousPhase = true);
   };
 }
 #endif
