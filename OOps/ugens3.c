@@ -203,7 +203,7 @@ int losset(CSOUND *csound, LOSC *p)
       if ((p->mod1 = (short) *p->imod1) < 0) {
         if ((p->mod1 = ftp->loopmode1) == 0) {
           if (csound->oparms->msglevel & WARNMSG)
-            csound->Warning(csound, Str("locscil: sustain defers to "
+            csound->Warning(csound, Str("loscil: sustain defers to "
                                         "non-looping source"));
         }
         p->beg1 = ftp->begin1 << LOBITS;

@@ -2167,9 +2167,9 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                       anargs->SMR_thres, ATSA_MAX_DB_SPL, ATSA_MSEGSMR);
       anargs->min_seg_SMR = ATSA_MSEGSMR;
     }
-    /* last peak contibution */
+    /* last peak contribution */
     if (!(anargs->last_peak_cont >= 0.0 && anargs->last_peak_cont <= 1.0)) {
-      csound->Warning(csound, Str("last peak contibution %f out of bounds, "
+      csound->Warning(csound, Str("last peak contribution %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->last_peak_cont, ATSA_LPKCONT);
@@ -2177,7 +2177,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* SMR cont. */
     if (!(anargs->SMR_cont >= 0.0 && anargs->SMR_cont <= 1.0)) {
-      csound->Warning(csound, Str("SMR contibution %f out of bounds, "
+      csound->Warning(csound, Str("SMR contribution %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->SMR_cont, ATSA_SMRCONT);

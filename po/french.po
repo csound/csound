@@ -361,11 +361,11 @@ msgid "table size must be the same of source table"
 msgstr "la taille de la table doit être la même que celle de la table source"
 
 #: Engine/fgens.c:1223 Engine/fgens.c:1270
-msgid "x coordindates must all be in increasing order:"
+msgid "x coordinates must all be in increasing order:"
 msgstr "les coordonnées x doivent être toutes en ordre croissant"
 
 #: Engine/fgens.c:1226 Engine/fgens.c:1272
-msgid "x coordindate greater than function size:"
+msgid "x coordinate greater than function size:"
 msgstr "coordonnée x supérieure à la taille de la fonction"
 
 #: Engine/fgens.c:1230
@@ -4188,7 +4188,7 @@ msgid "no legal base frequency"
 msgstr "pas de fréquence de base légale"
 
 #: OOps/ugens3.c:206
-msgid "locscil: sustain defers to non-looping source"
+msgid "loscil: sustain defers to non-looping source"
 msgstr "loscil : entretien supposé alors que la source n'a pas de boucle"
 
 #: OOps/ugens3.c:261
@@ -4753,7 +4753,7 @@ msgid "Not a string when needed"
 msgstr "Pas de chaîne alors qu'il en faut une"
 
 #: Opcodes/OSC.c:211 Opcodes/OSC_iv.c:210
-msgid "Time stanmp is two values"
+msgid "Time stamp is two values"
 msgstr "Le timestamp comprend deux valeurs"
 
 #: Opcodes/OSC.c:217
@@ -5208,12 +5208,8 @@ msgstr ""
 msgid "illegal initvalue at position n.%d"
 msgstr "valeur d'initialisation illégale à la position n.%d"
 
-#: Opcodes/gab/sliderTable.c:96
+#: Opcodes/gab/sliderTable.c:96 Opcodes/gab/sliderTable.c:296
 msgid "sliderXtable: zero is illegal in exponential operations"
-msgstr "sliderXtable : zéro est illégal dans les opérations exponentielles"
-
-#: Opcodes/gab/sliderTable.c:296
-msgid "sliderXtable: zero is illegalin exponential operations"
 msgstr "sliderXtable : zéro est illégal dans les opérations exponentielles"
 
 #: Opcodes/gab/sliderTable.c:312
@@ -5558,7 +5554,7 @@ msgid "granule_set: Too many voices"
 msgstr "granule_set : trop de voix"
 
 #: Opcodes/grain4.c:76
-msgid "granule_set: iratio must be greater then 0"
+msgid "granule_set: iratio must be greater than 0"
 msgstr "granule_set : iratio doit être supérieur à 0"
 
 #: Opcodes/grain4.c:80
@@ -5578,19 +5574,19 @@ msgid "granule_set: Not enough voices for the number of pitches"
 msgstr "granule_set : pas assez de voix pour le nombre de hauteurs"
 
 #: Opcodes/grain4.c:101
-msgid "granule_set: ipitch1 must be greater then zero"
+msgid "granule_set: ipitch1 must be greater than zero"
 msgstr "granule_set : ipitch1 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:106
-msgid "granule_set: ipitch2 must be greater then zero"
+msgid "granule_set: ipitch2 must be greater than zero"
 msgstr "granule_set : ipitch2 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:111
-msgid "granule_set: ipitch3 must be greater then zero"
+msgid "granule_set: ipitch3 must be greater than zero"
 msgstr "granule_set : ipitch3 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:116
-msgid "granule_set: ipitch4 must be greater then zero"
+msgid "granule_set: ipitch4 must be greater than zero"
 msgstr "granule_set : ipitch4 doit être supérieur à zéro"
 
 #: Opcodes/grain4.c:121
@@ -5599,11 +5595,11 @@ msgstr "granule_set : doit être positif et inférieur à la longueur de la tabl
 "de fonction"
 
 #: Opcodes/grain4.c:125
-msgid "granule_set: igskip_os must be greater then 0"
+msgid "granule_set: igskip_os must be greater than 0"
 msgstr "granule_set : igskip_os doit être supérieur à 0"
 
 #: Opcodes/grain4.c:134
-msgid "granule_set: kgap must be greater then 0"
+msgid "granule_set: kgap must be greater than 0"
 msgstr "granule_set : kgap doit être supérieur à 0"
 
 #: Opcodes/grain4.c:138
@@ -5612,7 +5608,7 @@ msgid "granule_set: igap_os must be 0%% to 100%%"
 msgstr "granule_set : igap_os doit être entre 0%% et 100%%"
 
 #: Opcodes/grain4.c:142
-msgid "granule_set: kgsize must be greater then 0"
+msgid "granule_set: kgsize must be greater than 0"
 msgstr "granule_set : kgsize doit être supérieur à 0"
 
 #: Opcodes/grain4.c:146
@@ -5839,7 +5835,7 @@ msgstr "oggread : nombre d'args de sortie en contradiction avec le nombre "
 #: Opcodes/ogg.c:77
 #, c-format
 msgid ""
-"oggread: warning: sample rate of file is %d which coes not match sr (=%f)\n"
+"oggread: warning: sample rate of file is %d which does not match sr (=%f)\n"
 msgstr "oggread : avertissement : le taux d'échantillonnage du fichier vaut %d "
 "qui ne correspond pas à sr (=%f)\n"
 
@@ -6896,7 +6892,7 @@ msgid "missing fscale table"
 msgstr "la table de fscale est manquante"
 
 #: Opcodes/spectra.c:1034
-msgid "specscal: not intiialised"
+msgid "specscal: not initialised"
 msgstr "specscal : non initialisé"
 
 #: Opcodes/spectra.c:1083
@@ -6973,7 +6969,7 @@ msgid "grain size smaller than 1 sample\n"
 msgstr "la taille de grain est inférieure à 1 échantillon\n"
 
 #: Opcodes/syncgrain.c:370
-msgid "disgrain: invalid number of channels"
+msgid "diskgrain: invalid number of channels"
 msgstr "diskgrain : nombre de canaux non valide"
 
 #: Opcodes/syncgrain.c:401
@@ -8400,7 +8396,7 @@ msgstr "pas de taille de trame"
 
 #: Top/pvanal.c:145
 #, c-format
-msgid "frameSize must be between %d &%d\n"
+msgid "frameSize must be between %d & %d\n"
 msgstr "la taille de trame doit être comprise entre %d et %d\n"
 
 #: Top/pvanal.c:150
@@ -8678,7 +8674,7 @@ msgstr "atsa : le fichier de résiduels a %d voix, doit être stéréo !"
 #, c-format
 msgid ""
 "\n"
-"ERROR: canbot open file %s for writing\n"
+"ERROR: cannot open file %s for writing\n"
 msgstr "\nERREUR : impossible d'ouvrir le fichier %s en écriture\n"
 
 #: util/atsa.c:1908
@@ -8802,7 +8798,7 @@ msgstr "SMR min. de seg. %f hors limites, doit être >= %f et < %f dB SPL, "
 #: util/atsa.c:2172
 #, c-format
 msgid ""
-"last peak contibution %f out of bounds, should be >= 0.0 and <= 1.0, forced "
+"last peak contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced "
 "to default: %f"
 msgstr "contribution du dernier pic %f hors limites, doit être >= 0.0 et <= 1.0, "
 "forcé à la valeur par défaut : %f"
@@ -8810,7 +8806,7 @@ msgstr "contribution du dernier pic %f hors limites, doit être >= 0.0 et <= 1.0
 #: util/atsa.c:2180
 #, c-format
 msgid ""
-"SMR contibution %f out of bounds, should be >= 0.0 and <= 1.0, forced to "
+"SMR contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced to "
 "default: %f"
 msgstr "contribution du SMR %f hors limites, doit être >= 0.0 et <= 1.0, "
 "forcé à la valeur par défaut : %f"
@@ -8886,7 +8882,7 @@ msgid "envext: error: "
 msgstr "envext : erreur : "
 
 #: util/het_import.c:44
-msgid "Usage: het_import cstext_file het_file\n"
+msgid "Usage: het_import csvtext_file het_file\n"
 msgstr "Utilisation : het_import fichier_textcsv fichier_het\n"
 
 #: util/het_import.c:76
