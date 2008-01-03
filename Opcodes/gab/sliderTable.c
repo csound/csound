@@ -294,7 +294,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
           if (*min == 0 || *max == 0) {                                 \
             return csound->InitError(csound,                            \
                                      Str("sliderXtable: zero is illegal"\
-                                         "in exponential operations")); \
+                                         " in exponential operations"));\
           }                                                             \
           {                                                             \
             MYFLT range = *max-*min;                                    \

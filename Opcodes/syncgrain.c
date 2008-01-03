@@ -367,7 +367,8 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
 
     p->nChannels = (int) (p->OUTOCOUNT);
      if (p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN) {
-      return csound->InitError(csound, Str("disgrain: invalid number of channels"));
+      return csound->InitError(csound, 
+                               Str("diskgrain: invalid number of channels"));
     }
     p->efunc = csound->FTFind(csound, p->ifn2);
     if (p->efunc == NULL)
