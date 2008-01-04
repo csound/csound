@@ -330,7 +330,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
       thishet->max_amp = FL(0.0);
 
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
-      csound->Message(csound,Str("freq est %6.1f,"), thishet->cur_est);
+      csound->Message(csound,Str("freq estimate %6.1f,"), thishet->cur_est);
       if (hetdyn(csound, thishet, hno) != 0)  /* perform actual computation */
         return -1;
       if (!csound->CheckEvents(csound))
