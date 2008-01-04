@@ -7922,7 +7922,7 @@ msgstr ""
 
 #: Top/hetro.c:296 util/hetro.c:333 util/jpff_hetro.c:332
 #, c-format
-msgid "freq est %6.1f,"
+msgid "freq estimate %6.1f,"
 msgstr ""
 
 #: Top/hetro.c:299 util/hetro.c:338 util/jpff_hetro.c:337
