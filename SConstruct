@@ -227,6 +227,9 @@ commandOptions.Add('buildSDFT',
 commandOptions.Add('useGettext',
     'Set to 1 to use the GBU internationalisation/localisation scheme)',
     '0')
+commandOptions.Add('buildImageOpcodes',
+    'Set to 0 to avoid building image opcodes',
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1266,8 +1269,12 @@ makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
-
+if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckHeader("png.h", language="C"):
+    print 'CONFIGURATION DECISION: Building image opcodes'
+    makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+else:
+    print 'CONFIGURATION DECISION: Not building image opcodes'
+ 
 makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
