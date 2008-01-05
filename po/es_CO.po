@@ -358,11 +358,11 @@ msgid "table size must be the same of source table"
 msgstr "el tamaño de la tabla fuente y de la de destino debe ser igual"
 
 #: Engine/fgens.c:1223 Engine/fgens.c:1270
-msgid "x coordindates must all be in increasing order:"
+msgid "x coordinates must all be in increasing order:"
 msgstr "las coordenadas x deben estar en orden ascendente:"
 
 #: Engine/fgens.c:1226 Engine/fgens.c:1272
-msgid "x coordindate greater than function size:"
+msgid "x coordinate greater than function size:"
 msgstr "coordenada x mayor que el tamaño de la función:"
 
 #: Engine/fgens.c:1230
@@ -5535,7 +5535,7 @@ msgid "granule_set: igap_os must be 0%% to 100%%"
 msgstr ""
 
 #: Opcodes/grain4.c:142
-msgid "granule_set: kgsize must be greater then 0"
+msgid "granule_set: kgsize must be greater than 0"
 msgstr ""
 
 #: Opcodes/grain4.c:146
@@ -7916,7 +7916,7 @@ msgstr "analizando armónico #%d\n"
 
 #: Top/hetro.c:296 util/hetro.c:333 util/jpff_hetro.c:332
 #, c-format
-msgid "freq est %6.1f,"
+msgid "freq estimate %6.1f,"
 msgstr ""
 
 #: Top/hetro.c:299 util/hetro.c:338 util/jpff_hetro.c:337
