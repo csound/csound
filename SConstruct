@@ -310,8 +310,10 @@ commonEnvironment.Prepend(CPPPATH = ['.', './H'])
 if commonEnvironment['useLrint'] != '0':
   commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
 if commonEnvironment['useGettext'] != '0':
-  print "Usung GNU gettext scheme"
+  print "Using GNU gettext scheme"
   commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
+else:
+  print "Using Istvan localisation"
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
   if commonEnvironment['gcc4opt'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
@@ -509,9 +511,9 @@ if fltkFound:
 else:
     fltk117Found = 0
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
-alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
-jackFound = configure.CheckHeader("jack/jack.h", language = "C")
-oscFound = configure.CheckHeader("lo/lo.h", language = "C")
+alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
+jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
+oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
@@ -2167,6 +2169,24 @@ if commonEnvironment['generateXmg'] == '1' and commonEnvironment['useGettext'] !
     zipDependencies.append(xmgs3)
 else:
     print "CONFIGURATION DECISION: Not calling makedb"
+
+def gettextTarget(env, dirName, baseName, target):
+    gtFile = dirName + '/' + baseName + '.po'
+    ttFile = dirName + '/' + target + '/LC_MESSAGES/csound5.mo'
+    env.Command(ttFile, gtFile,
+                'msgfmt -o %s %s' % (ttFile, gtFile))
+    Depends(gtFile, ttFile)
+    return ttFile
+
+if commonEnvironment['useGettext'] == '1':
+    print('Building translations')
+    csound5GettextEnvironment = csoundProgramEnvironment.Copy()
+    gettextTarget(csound5GettextEnvironment, 'po', 'french', 'fr')
+    gettextTarget(csound5GettextEnvironment, 'po', 'american', 'en_US')
+    gettextTarget(csound5GettextEnvironment, 'po', 'csound', 'en_GB')
+    gettextTarget(csound5GettextEnvironment, 'po', 'es_CO', 'es_CO')
+    gettextTarget(csound5GettextEnvironment, 'po', 'german', 'de')
+    gettextTarget(csound5GettextEnvironment, 'po', 'romanian', 'ro')
 
 zipDependencies += executables
 zipDependencies += libs
