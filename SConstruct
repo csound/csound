@@ -498,12 +498,12 @@ if not configure.CheckHeader("stdio.h", language = "C"):
     print " *** possibly not set up correctly, or is used with invalid flags."
     print " *** Check config.log to find out more about the error."
     Exit(-1)
-if not configure.CheckHeader("sndfile.h", language = "C"):
+if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
     print "The sndfile library is required to build Csound 5."
     Exit(-1)
-portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
-portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
-fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
+portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
+portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
+fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
 if fltkFound:
     fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
 else:
@@ -1269,7 +1269,7 @@ makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckHeader("png.h", language="C"):
+if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C"):
     print 'CONFIGURATION DECISION: Building image opcodes'
     makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
