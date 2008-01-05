@@ -517,6 +517,7 @@ oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
+zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
 if not tclhfound:
      for i in tclIncludePath:
@@ -933,7 +934,7 @@ else:
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
-pluginEnvironment.Append(LIBS = Split('''sndfile png z'''))
+pluginEnvironment.Append(LIBS = 'sndfile')
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
@@ -1271,8 +1272,9 @@ makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C"):
+if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
     print 'CONFIGURATION DECISION: Building image opcodes'
+    pluginEnvironment.Append(LIBS= Split(''' png z '''))
     makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
