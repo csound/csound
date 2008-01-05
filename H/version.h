@@ -28,15 +28,15 @@
 #define CS_PACKAGE_NAME     "Csound"
 
 /* Define to the full name and version of this package. */
-#define CS_PACKAGE_STRING   "Csound 5.07"
+#define CS_PACKAGE_STRING   "Csound 5.08"
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define CS_PACKAGE_VERSION  "5.07"
+#define CS_PACKAGE_VERSION  "5.08"
 #define CS_VERSION          (5)
-#define CS_SUBVER           (7)
+#define CS_SUBVER           (8)
 #define CS_PATCHLEVEL       (4)
 
 #define CS_APIVERSION       1   /* should be increased anytime a new version
