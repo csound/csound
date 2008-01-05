@@ -2170,23 +2170,22 @@ if commonEnvironment['generateXmg'] == '1' and commonEnvironment['useGettext'] !
 else:
     print "CONFIGURATION DECISION: Not calling makedb"
 
-def gettextTarget(env, dirName, baseName, target):
-    gtFile = dirName + '/' + baseName + '.po'
-    ttFile = dirName + '/' + target + '/LC_MESSAGES/csound5.mo'
+def gettextTarget(env, baseName, target):
+    gtFile = 'po/' + baseName + '.po'
+    ttFile = 'po/' + target + '/LC_MESSAGES/csound5.mo'
     env.Command(ttFile, gtFile,
                 'msgfmt -o %s %s' % (ttFile, gtFile))
     Depends(gtFile, ttFile)
     return ttFile
 
 if commonEnvironment['useGettext'] == '1':
-    print('Building translations')
     csound5GettextEnvironment = csoundProgramEnvironment.Copy()
-    gettextTarget(csound5GettextEnvironment, 'po', 'french', 'fr')
-    gettextTarget(csound5GettextEnvironment, 'po', 'american', 'en_US')
-    gettextTarget(csound5GettextEnvironment, 'po', 'csound', 'en_GB')
-    gettextTarget(csound5GettextEnvironment, 'po', 'es_CO', 'es_CO')
-    gettextTarget(csound5GettextEnvironment, 'po', 'german', 'de')
-    gettextTarget(csound5GettextEnvironment, 'po', 'romanian', 'ro')
+    gettextTarget(csound5GettextEnvironment, 'french', 'fr')
+    gettextTarget(csound5GettextEnvironment, 'american', 'en_US')
+    gettextTarget(csound5GettextEnvironment, 'csound', 'en_GB')
+    gettextTarget(csound5GettextEnvironment, 'es_CO', 'es_CO')
+    gettextTarget(csound5GettextEnvironment, 'german', 'de')
+    gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
 
 zipDependencies += executables
 zipDependencies += libs
