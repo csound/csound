@@ -1167,7 +1167,7 @@ static int jittersa(CSOUND *csound, JITTERS *p)
     MYFLT   f0= p->num0, df0 = p->df0;
     MYFLT   *ar = p->ar, *amp = p->amp;
     MYFLT   cpsMax = *p->cpsMax, cpsMin = *p->cpsMin;
-    int     n, nsmps = csound->ksmps, cod = p->cod;
+    int     n = 0, nsmps = csound->ksmps, cod = p->cod;
     double phs = p->phs, si = p->si;
 
     if (p->initflag) {
@@ -1465,7 +1465,7 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     MYFLT       *ar = p->ar, *rangeMin = p->rangeMin;
     MYFLT       *rangeMax = p->rangeMax;
     MYFLT       cpsMin = *p->cpsMin, cpsMax = *p->cpsMax;
-    int         n, nsmps = csound->ksmps, cod = p->cod;
+    int         n = 0, nsmps = csound->ksmps, cod = p->cod;
     double      phs = p->phs, si = p->si;
 
     if (p->initflag) {
