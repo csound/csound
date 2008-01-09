@@ -1,5 +1,5 @@
 /*
- * C S O U N D   V S T
+ * C s o u n d A C
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -21,8 +21,6 @@
  */
 #include "Soundfile.hpp"
 #include "Conversions.hpp"
-#include <complex>
-#include <boost/numeric/ublas/matrix.hpp>
 
 namespace csound
 {
@@ -174,7 +172,8 @@ namespace csound
                                   double centerAmplitude,
                                   double centerPhaseOffsetRadians,
                                   double pan,
-				  bool synchronousPhase)
+				  bool synchronousPhase,
+				  bool buffer)
   {
     if (synchronousPhase) {
       double wavelengthSeconds = 1.0 / centerFrequencyHz;
@@ -204,30 +203,31 @@ namespace csound
     std::complex<double> f0 = std::exp(c0);
     std::complex<double> f1(0.0, 0.0);
     size_t channelCount = getChannelsPerFrame();
-    boost::numeric::ublas::matrix<double> grainOutput(frameCount, channelCount);
-    boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
-    for(size_t frameI = 0; frameI < frameCount; frameI++)
-      {
-        double sample = f0.real();
-        //std::cout << sample << std::endl;
-        if (channelCount == 2) {
-          grainOutput(frameI, 0) = leftGain * sample;
-          grainOutput(frameI, 1) = rightGain * sample;
-        } else if (channelCount == 1) {
-          grainOutput(frameI, 0) = sample;
-        } else {
-          for(size_t channelI = 0; channelI < channelCount; channelI++) {
-            grainOutput(frameI, channelI) = sample;
-          }
-        }
-        h1 = h0 * exp_2_c2;
-        h0 = h1;
-        f1 = h1 * f0;
-        f0 = f1;
+    grainOutput.resize(frameCount, channelCount);
+    grainBuffer.resize(frameCount, channelCount);
+    for(size_t frameI = 0; frameI < frameCount; frameI++) {
+      double sample = f0.real();
+      //std::cout << sample << std::endl;
+      if (channelCount == 2) {
+	grainOutput(frameI, 0) += (leftGain * sample);
+	grainOutput(frameI, 1) += (rightGain * sample);
+      } else if (channelCount == 1) {
+	grainOutput(frameI, 0) += sample;
+      } else {
+	for(size_t channelI = 0; channelI < channelCount; channelI++) {
+	  grainOutput(frameI, channelI) += sample;
+	}
       }
-    seekSeconds(centerTimeSeconds - (durationSeconds / 2.0));
-    int sampleCount = frameCount * channelCount;
-    mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
+      h1 = h0 * exp_2_c2;
+      h0 = h1;
+      f1 = h1 * f0;
+      f0 = f1;
+    }
+    sampleCount = frameCount * channelCount;
+    startTimeSeconds = centerTimeSeconds - (durationSeconds / 2.0);
+    if (!buffer) {
+      mixGrain();
+    }
   }
 
   void Soundfile::cosineGrain(double centerTimeSeconds, 
@@ -236,7 +236,8 @@ namespace csound
 			      double amplitude, 
 			      double phaseOffsetRadians, 
 			      double pan,
-			      bool synchronousPhase)
+			      bool synchronousPhase,
+			      bool buffer)
   {
     if (synchronousPhase) {
       double wavelengthSeconds = 1.0 / frequencyHz;
@@ -247,8 +248,8 @@ namespace csound
     }
     size_t frameN = size_t(Conversions::round(durationSeconds * getFramesPerSecond()));
     size_t channelN = getChannelsPerFrame();
-    boost::numeric::ublas::matrix<double> grainOutput(frameN, channelN);
-    boost::numeric::ublas::matrix<double> grainBuffer(frameN, channelN);
+    grainOutput.resize(frameN, channelN);
+    grainBuffer.resize(frameN, channelN);
     double leftGain = Conversions::leftPan(pan);
     double rightGain = Conversions::rightPan(pan);
     // The signal is a cosine sinusoid.
@@ -275,13 +276,13 @@ namespace csound
       {
         signal = (sinusoid1 * (envelope1 - 1.0)) * amplitude;
         if (channelN == 2) {
-          grainOutput(frameI, 0) = leftGain * signal;
-          grainOutput(frameI, 1) = rightGain * signal;
+          grainOutput(frameI, 0) += (leftGain * signal);
+          grainOutput(frameI, 1) += (rightGain * signal);
         } else if (channelN == 1) {
-          grainOutput(frameI, 0) = signal;
+          grainOutput(frameI, 0) += signal;
         } else {
           for(size_t channelI = 0; channelI < channelN; channelI++) {
-            grainOutput(frameI, channelI) = signal;
+            grainOutput(frameI, channelI) += signal;
           }
         }
 	temporary = sinusoid1;
@@ -291,10 +292,18 @@ namespace csound
         envelope1 = envelopeCoefficient * envelope1 - envelope2;
         envelope2 = temporary;
       }
-    // Actually mix the grain into the soundfile.
-    seekSeconds(centerTimeSeconds - (durationSeconds / 2.0));
-    int sampleN = frameN * channelN;
-    mixFrames(&grainOutput(0, 0), sampleN, &grainBuffer(0, 0));
+    sampleCount = frameN * channelN;
+    startTimeSeconds = centerTimeSeconds - (durationSeconds / 2.0);
+    if (!buffer) {
+      mixGrain();
+    }
   }
 
+  void Soundfile::mixGrain()
+  {
+    seekSeconds(startTimeSeconds);
+    mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
+    grainOutput *= 0.0;
+  }
 }
+
