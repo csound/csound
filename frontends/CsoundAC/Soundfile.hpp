@@ -70,6 +70,8 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <complex>
+#include <boost/numeric/ublas/matrix.hpp>
 #endif
 
 namespace csound
@@ -85,6 +87,10 @@ namespace csound
   {
     SNDFILE *sndfile;
     SF_INFO sf_info;
+    boost::numeric::ublas::matrix<double> grainOutput;
+    boost::numeric::ublas::matrix<double> grainBuffer;
+    size_t sampleCount;
+    double startTimeSeconds;
   protected:
     virtual void initialize() ;
   public:
@@ -182,6 +188,11 @@ namespace csound
      * the grain will be panned. If the synchronousPhase argument is true
      * (the default value), then all grains of the same frequency 
      * will have synchronous phases, which can be useful in avoiding certain artifacts.
+     *
+     * If the buffer argument is true (the default is false), 
+     * the grain is mixed into a buffer; this can be used
+     * to speed up writing grains that are arrangement in columns.
+     * To actually write the grain, call writeGrain().
      * 
      * The algorithm uses an efficient difference equation.
      */
@@ -192,7 +203,8 @@ namespace csound
 				 double centerAmplitude, 
 				 double centerPhaseOffsetRadians, 
 				 double pan,
-				 bool synchronousPhase = true);
+				 bool synchronousPhase = true,
+				 bool buffer = false);
     /**
      * Mix a cosine grain into the soundfile. If the soundfile is stereo, 
      * the grain will be panned. If the synchronousPhase argument is true
@@ -202,6 +214,11 @@ namespace csound
      * they can be overlapped by 1/2 their duration without artifacts
      * to produce a continuous cosine tone.
      *
+     * If the buffer argument is true (the default is false), 
+     * the grain is mixed into a buffer; this can be used 
+     * to speed up writing grains that are arrangement in columns.
+     * To actually write the grain, call writeGrain().
+      *
      * The algorithm uses an efficient difference equation. 
      */
     virtual void cosineGrain(double centerTimeSeconds, 
@@ -210,7 +227,12 @@ namespace csound
 			     double amplitude,
                              double phaseOffsetRadians, 
 			     double pan,
-			     bool synchronousPhase = true);
+			     bool synchronousPhase = true,
+			     bool buffer = false);
+    /**
+     * Mix a grain that has already been computed into the soundfile.
+     */
+    virtual void mixGrain();
   };
 }
 #endif
