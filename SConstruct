@@ -964,8 +964,8 @@ except:
     print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = Split('''
-        fltk fltk_images fltk_png z fltk_jpeg
-    '''))
+        fltk fltk_images 
+    ''')) # fltk_png z fltk_jpeg are not on OSX at the mo
 if getPlatform() == 'win32':
     if not withMSVC():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
