@@ -1,5 +1,5 @@
 /*
-    pan.h:
+    pan2.c:
 
     Copyright (C) 2007 John ffitch
 
@@ -51,11 +51,11 @@ static int pan2(CSOUND *csound, PAN2 *p)
     int n, nsmps=csound->ksmps;
     switch (type) {
     case 0: {
-      double kangl = PI*0.5 * (*p->pan + 0.5);
+      double kangl = PI*0.5 * *p->pan;
       for (n=0; n<nsmps; n++) {
-        if (XINARG2) kangl = PI*0.5 * (p->pan[n] + 0.5);
-        al[n] = ain[n] * (MYFLT)sin(kangl);
-        ar[n] = ain[n] * (MYFLT)cos(kangl);
+        if (XINARG2) kangl = PI*0.5 * p->pan[n];
+        ar[n] = ain[n] * (MYFLT)sin(kangl);
+        al[n] = ain[n] * (MYFLT)cos(kangl);
       }
       break;
     }
@@ -63,8 +63,8 @@ static int pan2(CSOUND *csound, PAN2 *p)
       double kangl = *p->pan;
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
-        al[n] = ain[n] * (MYFLT)sqrt(kangl);
-        ar[n] = ain[n] * (MYFLT)sqrt(1-kangl);
+        ar[n] = ain[n] * (MYFLT)sqrt(kangl);
+        al[n] = ain[n] * (MYFLT)sqrt(1-kangl);
       }
       break;
     }
@@ -72,8 +72,8 @@ static int pan2(CSOUND *csound, PAN2 *p)
       MYFLT kangl = *p->pan;
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
-        al[n] = ain[n] * kangl;
-        ar[n] = ain[n] * (1-kangl);
+        ar[n] = ain[n] * kangl;
+        al[n] = ain[n] * (1-kangl);
       }
       break;
     }
