@@ -22,7 +22,6 @@
 */
 
 #include "csdl.h"
-
 typedef struct _inmess {
   OPDS h;
   MYFLT *SMess, *ktrig;
