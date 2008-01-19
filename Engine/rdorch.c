@@ -131,6 +131,8 @@ typedef struct {
 } RDORCH_GLOBALS;
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
+#define CURLINE (csound->oparms->useCsdLineCounts ? \
+                  csound->orcLineOffset + ST(curline) : ST(curline))
 
 static  void    intyperr(CSOUND *, int, char, char);
 static  void    printgroups(CSOUND *, int);
@@ -977,7 +979,7 @@ static int splitline(CSOUND *csound)
  nxtlin:
     if ((lp = ST(linadr)[++ST(curline)]) == NULL)   /* point at next line   */
       return 0;
-    csound->DebugMsg(csound, Str("LINE %d:"), ST(curline));
+    csound->DebugMsg(csound, Str("LINE %d:"), CURLINE);
     ST(linlabels) = ST(opgrpno) = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = ST(collectbuf);
@@ -2117,7 +2119,7 @@ void synterr(CSOUND *csound, const char *s, ...)
 #endif
     ) {
       csound->MessageS(csound, CSOUNDMSG_ERROR,
-                               Str(", line %d:\n"), ST(curline));
+                               Str(", line %d:\n"), CURLINE);
       do {
         csound->MessageS(csound, CSOUNDMSG_ERROR, "%c", (c = *cp++));
       } while (c != '\n');
