@@ -1,3 +1,12 @@
+2008-01-19  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/csoundCore.h (CSOUND):
+	* Top/csound.c:
+	* Top/one_file.c (read_unified_file, etc.):
+	* Engine/rdorch.c (synterr): Count lines while reading a CSD and save the
+	offsets of the orchestra and score; add offset to line numbers reported
+	with errors in the orchestra.  (Score yet to be done).
+
 2008-01-13  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pan2.c (pan2): Corrected so it agrees with documentation

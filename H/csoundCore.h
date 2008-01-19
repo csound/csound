@@ -149,6 +149,7 @@ extern "C" {
                               from files */
     int     numThreads;
     int     syntaxCheckOnly;
+    int     useCsdLineCounts;
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
 #endif
@@ -1248,7 +1249,9 @@ extern const uint32_t csPlayScoMask;
     THREADINFO    *multiThreadedThreadInfo;
     INSDS         *multiThreadedStart;
     INSDS         *multiThreadedEnd;
-    uint32_t      tempStatus;  /* keeps track of which files are temps */
+    uint32_t      tempStatus;    /* keeps track of which files are temps */
+    int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
+    int           scoLineOffset; /* 1 less than 1st score line in the CSD */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

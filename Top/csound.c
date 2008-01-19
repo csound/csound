@@ -598,6 +598,7 @@ static const CSOUND cenviron_ = {
           0,            /*    noDefaultPaths    */
           1,            /*    numThreads        */
           0,            /*    syntaxCheckOnly   */
+          1,            /*    useCsdLineCounts  */
 #ifdef ENABLE_NEW_PARSER
           0,            /*    newParser   */
 #endif
@@ -620,7 +621,9 @@ static const CSOUND cenviron_ = {
         NULL,           /* multiThreadedThreadInfo */
         NULL,           /* multiThreadedStart */
         NULL,           /* multiThreadedEnd */
-        0               /* tempStatus */
+        0,              /* tempStatus */
+        0,              /* orcLineOffset */
+        0               /* scoLineOffset */
 };
 
   /* from threads.c */
