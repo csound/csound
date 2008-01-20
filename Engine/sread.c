@@ -173,6 +173,7 @@ static void scorerr(CSOUND *csound, const char *s, ...)
 {
     IN_STACK  *curr = ST(str);
     va_list   args;
+    int       lasttime = 0;
 
     va_start(args, s);
     csound->ErrMsgV(csound, Str("score error:  "), s, args);
@@ -180,12 +181,19 @@ static void scorerr(CSOUND *csound, const char *s, ...)
     csound->ErrorMsg(csound, Str("    on line %d position %d"),
                              ST(str)->line, ST(linepos));
 
-    while (curr != ST(inputs)) {
+    do {
+      if (curr == ST(inputs)) lasttime = 1;
       if (curr->string) {
         MACRO *mm = NULL;
         while (mm != curr->mac) mm = mm->next;
         csound->ErrorMsg(csound, Str("called from line %d of macro %s"),
                                  curr->line, mm->name);
+      }
+      else if (lasttime && csound->oparms->useCsdLineCounts 
+                                                  && csound->csdname) {
+        /* print name & line # of CSD instead of temp sco */
+        csound->ErrorMsg(csound, Str("in line %d of file input %s"),
+                         csound->scoLineOffset + curr->line, csound->csdname);
       }
       else {
         csound->ErrorMsg(csound, Str("in line %d of file input %s"),
@@ -193,6 +201,7 @@ static void scorerr(CSOUND *csound, const char *s, ...)
       }
       curr--;
     }
+    while (!lasttime);
     csound->LongJmp(csound, 1);
 }
 
@@ -1548,6 +1557,9 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         ST(str)->fd = fopen_path(csound, &(ST(str)->file), mname,
                                          csound->scorename, "INCDIR", 1);
         if (ST(str)->fd == NULL) {
+          ST(str)--;
+          ST(str)->line--; /* include was one line earlier */
+          ST(linepos) = 0;
           scorerr(csound, Str("Cannot open #include'd file %s\n"), mname);
         }
         else {

@@ -195,6 +195,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
           mfree(csound, fileDir);
         }
 
+        csound->csdname = csound->orchname; /* save original CSD name */
         if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));

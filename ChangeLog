@@ -1,3 +1,12 @@
+2008-01-20  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/csoundCore.h (CSOUND):
+	* Top/csound.c:
+	* Top/main.c (csoundCompile): Save the original CSD file name.
+
+	* Engine/sread.c (scorerr, sget1): Fixed backtrace of score includes in
+	scorerr() and a possible crash when a #include file is not found.
+
 2008-01-19  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* H/csoundCore.h (CSOUND):

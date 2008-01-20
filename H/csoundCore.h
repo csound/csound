@@ -1252,6 +1252,7 @@ extern const uint32_t csPlayScoMask;
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
+    char*         csdname;       /* original CSD name; do not free() */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

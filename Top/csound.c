@@ -623,7 +623,8 @@ static const CSOUND cenviron_ = {
         NULL,           /* multiThreadedEnd */
         0,              /* tempStatus */
         0,              /* orcLineOffset */
-        0               /* scoLineOffset */
+        0,              /* scoLineOffset */
+        NULL            /* csdname */
 };
 
   /* from threads.c */
