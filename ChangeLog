@@ -1,3 +1,10 @@
+2008-01-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Engine/sread.c (scorerr, sreaderr, getscochar, sread, getpfld, etc.):
+	Major changes to score error reporting; now accurately reports the line
+	numbers for the chain of inputs for most errors.  Many error messages
+	were changed to avoid redundancy and for clarity. 
+
 2008-01-20  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* H/csoundCore.h (CSOUND):

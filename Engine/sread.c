@@ -94,6 +94,8 @@ typedef struct {
     MACRO   *repeat_mm;
 } SREAD_GLOBALS;
 
+static void print_input_backtrace(CSOUND *csound, int needLFs,
+                                  void (*msgfunc)(CSOUND*, const char*, ...));
 static  void    copylin(CSOUND *), copypflds(CSOUND *);
 static  void    ifa(CSOUND *), setprv(CSOUND *);
 static  void    carryerror(CSOUND *), pcopy(CSOUND *, int, int, SRTBLK*);
@@ -104,6 +106,8 @@ static  int     getop(CSOUND *), getpfld(CSOUND *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 #define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
+static SREAD_GLOBALS* sread_globals;  /* temp!  please remove! */
+static SRTBLK*        current_srtblk; /* temp!  please remove! */
 
 static void sread_alloc_globals(CSOUND *csound)
 {
@@ -111,6 +115,7 @@ static void sread_alloc_globals(CSOUND *csound)
       return;
     csound->sreadGlobals = (SREAD_GLOBALS*)
                                 csound->Calloc(csound, sizeof(SREAD_GLOBALS));
+    sread_globals = csound->sreadGlobals;   /* temp!  please remove! */
     ST(prvp2) = -FL(1.0);
     ST(clock_base) = FL(0.0);
     ST(warp_factor) = FL(1.0);
@@ -169,40 +174,78 @@ static intptr_t expand_nxp(CSOUND *csound)
     return offs;
 }
 
+/* sreaderr() - for non-fatal "warnings" */
+static void sreaderr(CSOUND *csound, const char *s, ...)
+{
+    va_list   args;
+
+    csoundMessage(csound, Str("sread: "));
+    va_start(args, s);
+    csoundMessageV(csound, 0, s, args);
+    va_end(args);
+    csoundMessage(csound, "\n");
+    print_input_backtrace(csound, 1, csoundMessage);
+    return;
+}
+
+/* scorerr() - for fatal errors in score parsing */
 static void scorerr(CSOUND *csound, const char *s, ...)
 {
-    IN_STACK  *curr = ST(str);
     va_list   args;
-    int       lasttime = 0;
 
     va_start(args, s);
     csound->ErrMsgV(csound, Str("score error:  "), s, args);
     va_end(args);
-    csound->ErrorMsg(csound, Str("    on line %d position %d"),
-                             ST(str)->line, ST(linepos));
+    print_input_backtrace(csound, 0, csoundErrorMsg);
+    csound->LongJmp(csound, 1);
+}
+
+static void print_input_backtrace(CSOUND *csound, int needLFs,
+                                  void (*msgfunc)(CSOUND*, const char*, ...))
+{
+    IN_STACK  *curr = ST(str);
+    char      *m, *lf = (needLFs ? "\n" : "");
+    int       lastinput = 0;
+    int       lastsource = 2; /* 2=current file, 1=macro, 0=#include */
+
+    msgfunc(csound, Str("  section %d:  at position %d%s"), csound->sectcnt,
+                    ST(linepos), lf);
 
     do {
-      if (curr == ST(inputs)) lasttime = 1;
-      if (curr->string) {
-        MACRO *mm = NULL;
-        while (mm != curr->mac) mm = mm->next;
-        csound->ErrorMsg(csound, Str("called from line %d of macro %s"),
-                                 curr->line, mm->name);
+      if (curr == ST(inputs)) lastinput = 1;
+      if (curr->string) {  /* macro input */
+        if (!curr->mac || !curr->mac->name)
+          csoundDie(csound, "Internal error in print_input_backtrace()");
+        switch(lastsource) {
+          case 0: m = Str("  included from line %d of macro %s%s"); break;
+          case 1: m = Str("  called from line %d of macro %s%s"); break;
+          case 2: m = Str("  in line %d of macro %s%s"); break;
+        }
+        msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
+                curr->mac->name, lf);  /* #include is one line before */
       }
-      else if (lasttime && csound->oparms->useCsdLineCounts 
-                                                  && csound->csdname) {
-        /* print name & line # of CSD instead of temp sco */
-        csound->ErrorMsg(csound, Str("in line %d of file input %s"),
-                         csound->scoLineOffset + curr->line, csound->csdname);
+      else {  /* file input */
+        switch(lastsource) {
+          case 0: m = Str("  included from line %d of file input %s%s"); break;
+          case 1: m = Str("  called from line %d of file input %s%s"); break;
+          case 2: m = Str("  in line %d of file input %s%s"); break;
+        }
+        if (lastinput && csound->oparms->useCsdLineCounts && csound->csdname) {
+          /* print name & line # of CSD instead of temp sco */
+          msgfunc(csound, m,
+                  (lastsource == 0 ? csound->scoLineOffset + curr->line - 1 :
+                   csound->scoLineOffset + curr->line), csound->csdname, lf);
+        }
+        else {
+          msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
+                  curr->body, lf);  /* #include is one line before */
+        }
       }
-      else {
-        csound->ErrorMsg(csound, Str("in line %d of file input %s"),
-                                 curr->line, curr->body);
-      }
+      lastsource = curr->string;
       curr--;
     }
-    while (!lasttime);
-    csound->LongJmp(csound, 1);
+    while (!lastinput);
+    return;
 }
 
 static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
@@ -422,7 +465,7 @@ static int getscochar(CSOUND *csound, int expand)
       MYFLT *pv = vv - 1;
       char  buffer[100];
       int   i;
-      int   type = 0;
+      int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
       *++op = '[';
       c = getscochar(csound, 1);
       do {
@@ -431,7 +474,8 @@ static int getscochar(CSOUND *csound, int expand)
         case '5': case '6': case '7': case '8': case '9':
         case '.':
           if (type) {
-            csoundDie(csound, Str("Number not allowed in context []"));
+            scorerr(csound, Str("illegal placement of number in [] "
+                                "expression"));
           }
  parseNumber:
           i = 0;
@@ -457,7 +501,8 @@ static int getscochar(CSOUND *csound, int expand)
           break;
         case '~':
           if (type) {
-            csoundDie(csound, Str("Random not in context []"));
+            scorerr(csound, Str("illegal placement of operator ~ in [] "
+                                "expression"));
           }
           *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
                   / FL(2147483645);
@@ -466,7 +511,8 @@ static int getscochar(CSOUND *csound, int expand)
           break;
         case '@':
           if (type) {
-            csoundDie(csound, Str("Upper not in context []"));
+            scorerr(csound, Str("illegal placement of operator @ or @@ in"
+                                " [] expression"));
           }
           {
             int n = 0;
@@ -497,7 +543,8 @@ static int getscochar(CSOUND *csound, int expand)
         case '/':
         case '%':
           if (!type) {
-            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
+            scorerr(csound, Str("illegal placement of operator %c in [] "
+                                "expression"), c);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -510,7 +557,8 @@ static int getscochar(CSOUND *csound, int expand)
         case '|':
         case '#':
           if (!type) {
-            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
+            scorerr(csound, Str("illegal placement of operator %c in [] "
+                                "expression"), c);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -521,13 +569,13 @@ static int getscochar(CSOUND *csound, int expand)
           *++op = c; c = getscochar(csound, 1); break;
         case '(':
           if (type) {
-            csoundDie(csound, Str("Open bracket not allowed in context []"));
+            scorerr(csound, Str("illegal placement of '(' in [] expression"));
           }
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case ')':
           if (!type) {
-            csoundDie(csound, Str("Closing bracket not allowed in context []"));
+            scorerr(csound, Str("missing operand before ')' in [] expression"));
           }
           while (*op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -541,7 +589,7 @@ static int getscochar(CSOUND *csound, int expand)
           *++op = c; c = getscochar(csound, 1); break;
         case ']':
           if (!type) {
-            csoundDie(csound, Str("Closing bracket not allowed in context []"));
+            scorerr(csound, Str("missing operand before closing bracket in []"));
           }
           while (*op != '[') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -556,8 +604,8 @@ static int getscochar(CSOUND *csound, int expand)
           c = getscochar(csound, 1);
           continue;
         default:
-          csound->Message(csound, "read %c(%.2x)\n", c, c);
-          csoundDie(csound, Str("Incorrect evaluation"));
+          scorerr(csound, Str("illegal character %c(%.2x) in [] expression"),
+                  c, c);
         }
       } while (c != '$');
       /* Make string macro or value */
@@ -828,12 +876,11 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           char *old_nxp = ST(nxp)-2;
           ST(repeat_index)++;
           if (ST(repeat_index) >= RPTDEPTH)
-            csound->Die(csound, Str("sread: Loops are nested too deeply"));
+            scorerr(csound, Str("Loops are nested too deeply"));
           if (ST(str)->string) {
-            int c;
-            csound->Message(csound,Str("sread: LOOP not at top level, "
-                                       "sect %d line %d,  ignored\n"),
-                                   csound->sectcnt, ST(lincnt));
+            /* seems too dangerous at this point to continue  -- akozar */
+            scorerr(csound, Str("Loop cannot start inside of a macro"));
+            ST(repeat_index)--;
             flushlin(csound);     /* Ignore rest of line */
           }
           else {
@@ -851,7 +898,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             }
             if (ST(repeat_cnt_n)[ST(repeat_index)] <= 0 
                  || (c != ' ' && c != '\t' && c != '\n'))
-              csound->Die(csound, Str("sread: {: invalid repeat count"));
+              scorerr(csound, Str("{: invalid repeat count"));
             if (ST(repeat_index) > 1) {
               char st[41];
               int j;
@@ -912,9 +959,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         if (ST(nxp) >= ST(memend))              /* if this memblk exhausted */
           expand_nxp(csound);
         if (ST(str)->string) {
-          csound->Message(csound,Str("sread: Repeat not at top level, "
-                                     "sect %d line %d,  ignored\n"),
-                                 csound->sectcnt, ST(lincnt));
+          sreaderr(csound,Str("Repeat cannot start inside of a macro "
+                                                           "(ignored)"));
           flushlin(csound);     /* Ignore rest of line */
         }
         else {
@@ -928,7 +974,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           if (ST(repeat_cnt) <= 0 || (c != ' ' && c != '\t' && c != '\n'))
-            csound->Die(csound, Str("sread: r: invalid repeat count"));
+            scorerr(csound, Str("r: invalid repeat count"));
           if (csound->oparms->msglevel)
             csound->Message(csound, Str("Repeats=%d\n"), ST(repeat_cnt));
           while (c == ' ' || c == '\t') {
@@ -1018,7 +1064,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           for (i = 0; i<=ST(next_name); i++)
             if (strcmp(buff, ST(names)[i].name)==0) break;
           if (i > ST(next_name))
-            csound->Message(csound, Str("Name %s not found"), buff);
+            sreaderr(csound, Str("Name %s not found"), buff);
           else {
             csound->Message(csound, Str("Duplicate %d: %s (%s,%ld)\n"),
                             i, buff, ST(names)[i].file, ST(names)[i].posit);
@@ -1133,9 +1179,7 @@ static void ifa(CSOUND *csound)
     while (getpfld(csound)) {   /* while there's another pfield,  */
       nocarry = 0;
       if (++ST(bp)->pcnt == PMAX) {
-        csound->Message(csound, Str("sread: instr pcount exceeds PMAX\n"));
-        csound->Message(csound, Str("\t sect %d line %d\n"),
-                                csound->sectcnt, ST(lincnt));
+        sreaderr(csound, Str("instr pcount exceeds PMAX"));
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
         continue;
@@ -1144,16 +1188,13 @@ static void ifa(CSOUND *csound)
         int foundplus = 0;
         if (*(ST(sp)+1)=='+') { ST(sp)++; foundplus = 1; }
         if (ST(prvp2)<0) {
-          csound->Message(csound,Str("No previous event in ^\n"));
+          sreaderr(csound,Str("No previous event for ^"));
           ST(prvp2) = ST(bp)->p2val = ST(warp_factor) * stof(csound, ST(sp)+1);
         }
         else if (isspace(*(ST(sp)+1))) {
           /* stof() assumes no leading whitespace -- 070204, akozar */
-          csound->Message(csound, Str("sread: illegal space following %s, "
-                                      "sect %d line %d:  "),
-                                  (foundplus ? "^+" : "^"),
-                                  csound->sectcnt, ST(lincnt));
-          csound->Message(csound, Str("   zero substituted.\n"));
+          sreaderr(csound, Str("illegal space following %s, zero substituted"),
+                           (foundplus ? "^+" : "^"));
           ST(prvp2) = ST(bp)->p2val = ST(prvp2);
         }
         else ST(prvp2) = ST(bp)->p2val =
@@ -1182,21 +1223,15 @@ static void ifa(CSOUND *csound)
         if (ST(op) != 'i') {
           *(ST(nxp)-1) = '\0';
           getmore = 1;
-          csound->Message(csound, Str("sread: ignoring '%s' in '%c' event, "
-                                      "sect %d line %d\n"), ST(sp), ST(op),
-                                  csound->sectcnt, ST(lincnt));
+          sreaderr(csound, Str("ignoring '%s' in '%c' event"), ST(sp), ST(op));
         }
         else if (ST(bp)->pcnt < 4) {
-          csound->Message(csound, Str("sread: ! invalid in p1, p2, or p3, "
-                                      "sect %d line %d\n"),
-                                  csound->sectcnt, ST(lincnt));
+          sreaderr(csound, Str("sread: ! invalid in p1, p2, or p3"));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
         else if (ST(nxp)-ST(sp) != 2) {
-          csound->Message(csound, Str("sread: illegal character after !: '%c', "
-                                      "sect %d line %d\n"), *(ST(sp)+1),
-                                  csound->sectcnt, ST(lincnt));
+          sreaderr(csound, Str("illegal character after !: '%c'"), *(ST(sp)+1));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
@@ -1290,13 +1325,13 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
     char *p;
 
     csound->Message(csound, Str("sread: illegal use of carry, "
-                                "sect %d line %d,   0 substituted\n"),
-                            csound->sectcnt, ST(lincnt));
+                                "  0 substituted\n"));
     *(ST(nxp) - 3) = SP;
     p = ST(bp)->text;
     while (p <= ST(nxp) - 2)
       csound->Message(csound, "%c", *p++);
     csound->Message(csound, "<=\n");
+    print_input_backtrace(csound, 1, csoundMessage);
     *(ST(nxp) - 2) = '0';
 }
 
@@ -1361,6 +1396,7 @@ static void salcblk(CSOUND *csound)
     /* now allocate a srtblk from this space: */
     prvbp = ST(bp);
     ST(bp) = (SRTBLK*) (((uintptr_t) ST(nxp) + (uintptr_t)7) & ~((uintptr_t)7));
+    current_srtblk = ST(bp);  /* temp!  please remove! */
     if (csound->frstbp == NULL)
       csound->frstbp = ST(bp);
     if (prvbp != NULL)
@@ -1560,7 +1596,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           ST(str)--;
           ST(str)->line--; /* include was one line earlier */
           ST(linepos) = 0;
-          scorerr(csound, Str("Cannot open #include'd file %s\n"), mname);
+          scorerr(csound, Str("Cannot open #include'd file %s"), mname);
         }
         else {
           ST(str)->body = csound->GetFileName(ST(str)->fd);
@@ -1587,7 +1623,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           c = getscochar(csound, 1); /* ignore rest of line */
       }
       else {
-        csound->Message(csound, Str("unknown # option"));
+        sreaderr(csound, Str("unknown # option"));
         flushlin(csound);
       }
       goto srch;
@@ -1623,9 +1659,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     case EOF:
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
-      csound->Message(csound,
-                       Str("sread: illegal opcode %c, sect %d line %d\n"),
-                       c,csound->sectcnt,ST(lincnt));
+      sreaderr(csound, Str("illegal opcode %c"), c);
       csound->Message(csound,Str("      remainder of line flushed\n"));
       flushlin(csound);
       goto nextc;
@@ -1648,9 +1682,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
         && c!='"' && c!='~' && c!='!') {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (ST(linpos)) {
-        csound->Message(csound,
-                        Str("sread: unexpected char %c, sect %d line %d\n"),
-                        c, csound->sectcnt, ST(lincnt));
+        sreaderr(csound, Str("unexpected char %c"), c);
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
       }
@@ -1664,18 +1696,14 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
       if (ST(bp)->pcnt < 3 &&
           !((ST(op) == 'i' || ST(op) == 'q') &&
           !ST(bp)->pcnt)) {
-        csound->Message(csound, Str("sread: illegally placed string, "
-                                    "sect %d line %d\n"),
-                                csound->sectcnt, ST(lincnt));
+        sreaderr(csound, Str("illegally placed string"));
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
         return(0);
       }
       while ((c = getscochar(csound, 1)) != '"') {
         if (c == LF || c == EOF) {
-          csound->Message(csound,
-                           Str("sread: unmatched quote, sect %d line %d\n"),
-                           csound->sectcnt, ST(lincnt));
+          sreaderr(csound, Str("unmatched quote"));
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */
@@ -1719,14 +1747,14 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
 
     if (s == p || !(*p == '\0' || isspace(*p))) {
       csound->Message(csound,
-                      Str("sread: illegal number format, sect %d line %d:  "),
-                      csound->sectcnt, ST(lincnt));
+                      Str("sread: illegal number format:  "));
       p = s;
       while (!(*p == '\0' || isspace(*p))) {
         csound->Message(csound, "%c", *p);
         *p++ = '0';
       }
       csound->Message(csound,Str("   zero substituted.\n"));
+      print_input_backtrace(csound, 1, csoundMessage);
       return FL(0.0);
     }
     return x;
