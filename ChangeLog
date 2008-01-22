@@ -1,3 +1,7 @@
+2008-01-22  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/argdecode.c (decode_long): Added --csd-line-nums= option.
+
 2008-01-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/sread.c (scorerr, sreaderr, getscochar, sread, getpfld, etc.):

@@ -171,6 +171,8 @@ static const char *longUsageList[] = {
   "--m-dB=[01]\tamp messages in dB",
   "--m-colours=[01]\tcolour amp messages",
   "--m-benchmarks=[01]\tprint benchmark information",
+  "--csd-line-nums=[01]\tcontrols how error line numbers are printed:",
+  "\t\t\t1=use CSD line #s (default), 0=use ORC/SCO-relative line #s",
   "--extract-score=FNAME\textract from score.srt using extract file",
   "--keep-sorted-score",
   "--expression-opt\toptimise use of temporary variables in expressions",
@@ -608,6 +610,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       sscanf(s, "%n", &n);
       if (n) O->msglevel |= TIMEMSG;
       else O->msglevel &= ~TIMEMSG;
+      return 1;
+    }
+    else if (!(strncmp (s, "csd-line-nums=",14))) {
+      s += 14;
+      if (*s=='\0') dieu(csound, Str("no value for --csd-line-nums"));
+      O->useCsdLineCounts = (atoi(s) != 0);
       return 1;
     }
     /*
