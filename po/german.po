@@ -7660,7 +7660,7 @@ msgstr ""
 
 #: Top/csound.c:1626
 msgid "WARNING: "
-msgstr ""
+msgstr "WARNUNG: "
 
 #: Top/csound.c:1745
 msgid "rtdummy: failed to allocate globals"
