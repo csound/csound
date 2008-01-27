@@ -440,7 +440,7 @@ again:
         char d[256];
         char *e;
         strcmp(d,namelist[i]->d_name);
-        e = strstr(d, ".po");
+        e = strstr(d, ".mo");
         if (e!=NULL) {
           *e ='\0';
           sprintf(c, "%s/LC_MESSAGES", e);
