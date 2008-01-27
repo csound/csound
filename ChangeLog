@@ -38,12 +38,12 @@
 
 2007-12-27  jpff  <jpff@codemist.co.uk>
 
-	* Opcodes/imageOpcodes.h: 
+	* Opcodes/imageOpcodes.h:
 	* Opcodes/imageOpcodes.c: New code
 
 2007-12-25  jpff  <jpff@codemist.co.uk>
 
-	* po/french.po: 
+	* po/french.po:
 	* po/american.po: Translations
 
 	* po/csound.po: New; gettext template
@@ -151,7 +151,7 @@
 2007-09-29  jpff  <jpff@codemist.co.uk>
 
 	* OOps/ugens1.c (xsgset2, xsgset): Allow negative amd zero length
-	segments 
+	segments
 
 2007-10-03  Michael Gogins <gogins@pipeline.com>
 
@@ -7479,7 +7479,7 @@
 
 	* aops.h: New structures OUTX and OUTCH
 
-	* entry.c: New opcodes 2outx, out32 and outch
+	* entry.c: New opcodes outx, out32 and outch
 
 2000-04-22    <jpff@cage>
 
@@ -10034,9 +10034,9 @@ Tue Apr 14 12:41:54 1998    <jpff@montague>
 
 	* cwin.cpp (class CGrapicsWindow): Add methods for Next and Prev
 	Added vectors to remember old graphs
-	(Clear): Copy old picture to teh vectors if not already saved.
+	(Clear): Copy old picture to the vectors if not already saved.
 	(Next): Next function to cycle through graphs
-	(Prev): And previosu graph
+	(Prev): And previous graph
 	Altered menus etc to fit, and calls from main window
 
 1997-12-19  John Fitch  <jpff@lansky>
@@ -10124,7 +10124,7 @@ Sat Dec 06 16:44:29 1997  John Fitch  <jpff@weir>
 	* rdorch.c: Make lblreq into a dynamic object
 	(rdorchfile): Alloc space to lblreq and initialise lblmax
 	(lblrequest): Rewrite to use arrary access
-	(lblfound): Rewrite to allow growth of lblreq space
+	(lblfound): Rewrite to allow gro
 	(lblchk): And again
 
 1997-11-09  John Fitch  <jpff@lansky>
@@ -11158,7 +11158,7 @@ Mon Dec 30 16:13:40 1996  John Fitch  <jpff@lansky>
 
 Sun Dec 29 13:15:57 1996  John Fitch  <jpff@lansky>
 
-	* aops.c (cps2pch): New functiomn for ET tuning
+	* aops.c (cps2pch): New function for ET tuning
 	(cpsxpch): Remove attempt at optional arguments
 
 	* entry.c: Added cps2pch for ET tunings
@@ -11718,7 +11718,7 @@ Tue Dec 19 09:34:52 1995  John Fitch  <jpff@lansky>
 	* grain4.c: NEW FILE for granular synthesis
 
 	* entry.c: Added buthp, butlp, butbp, butbr as synonyms for
-	butterXX, and convle and an abbreive for convolve.
+	butterXX, and convle and an abbreviation for convolve.
 	Added grain4 operator
 
 	* cs.h: Added a next field in MEMFIL to relax memfiles.c
