@@ -1,3 +1,8 @@
+2008-01-27  jpff  <jpff@codemist.co.uk>
+
+	* installer/linux/installer.fl: 
+	* installer/linux/new_install.cxx: Added support for installing locales
+
 2008-01-22  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/argdecode.c (decode_long): Added --csd-line-nums= option.

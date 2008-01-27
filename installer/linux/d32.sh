@@ -1,4 +1,5 @@
-#!/bin/sh
+
+        #!/bin/sh
 
 DIR=linux_d32
 
@@ -8,6 +9,7 @@ mkdir -p -m 0755 ../../../CSDIST/$DIR/hdr
 mkdir -p -m 0755 ../../../CSDIST/$DIR/lib
 mkdir -p -m 0755 ../../../CSDIST/$DIR/opc
 mkdir -p -m 0755 ../../../CSDIST/$DIR/opc/frontends
+mkdir -p -m 0755 ../../../CSDIST/$DIR/loc
 
 rm ../../../CSDIST/$DIR/bin/*
 
@@ -39,7 +41,16 @@ cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../
 cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
 find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
 
+###en_GB/  es_CO/    fr/  ro/  de/   en_US/
+cp -upv ../../po/de/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+cp -upv ../../po/en_GB/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+cp -upv ../../po/en_US/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+cp -upv ../../po/es_CO/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+cp -upv ../../po/fr/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+cp -upv ../../po/ro/LC_MESSAGE/csound5.po ../../../CSDIST/$DIR/loc
+
 cp -upv installer ../../../CSDIST/$DIR
+
 cat > ../../../CSDIST/$DIR/def.ins <<'EOF'
 Linux Doubles
 /usr/local/bin
@@ -47,6 +58,7 @@ Linux Doubles
 /usr/local/csound
 /usr/local/doc/csound
 /usr/local/lib
+/usr/local/share/locale
 OPCODEDIR64
 libcsound64.a
 'EOF'
