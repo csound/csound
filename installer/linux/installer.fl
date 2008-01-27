@@ -1,12 +1,12 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0106 
+version 1.0107 
 header_name {.h} 
 code_name {.cxx}
 Function {make_window(char* type)} {open
 } {
   Fl_Window {} {
     label {Csound5 Installer} open
-    xywh {487 64 370 360} type Double visible
+    xywh {487 88 370 390} type Double visible
   } {
     Fl_Text_Display {} {
       label {Csound5 Installer for}
@@ -41,18 +41,22 @@ Function {make_window(char* type)} {open
       label Headers
       xywh {90 235 235 30}
     }
-    Fl_Progress progress {selected
-      xywh {150 315 210 30}
+    Fl_File_Input locdir {
+      label Locales
+      xywh {90 275 235 30}
+    }
+    Fl_Progress progress {
+      xywh {150 350 210 30}
     }
     Fl_Button {} {
       label INSTALL
       callback {do_install = 1;}
-      xywh {10 285 70 60} color 1 labelfont 9 labelsize 12
+      xywh {10 320 70 60} color 1 labelfont 9 labelsize 12
     }
     Fl_Button {} {
       label ABORT
       callback {exit(0);}
-      xywh {90 300 50 45} color 10 labelfont 9 labelsize 12
+      xywh {90 335 50 45} color 10 labelfont 9 labelsize 12
     }
     Fl_Check_Button doBin {
       xywh {10 80 25 25} down_box DOWN_BOX
@@ -69,6 +73,9 @@ Function {make_window(char* type)} {open
     Fl_Check_Button doHdr {
       xywh {10 235 25 25} down_box DOWN_BOX
     }
+    Fl_Check_Button doLoc {selected
+      xywh {10 280 25 25} down_box DOWN_BOX
+    }
   }
 } 
 
@@ -76,7 +83,7 @@ Function {make_alert()} {open
 } {
   Fl_Window {} {
     label {Installer Alert} open
-    xywh {557 649 345 75} type Double color 1 labelcolor 7 visible
+    xywh {557 673 345 75} type Double color 1 labelcolor 7 visible
   } {
     Fl_Output err_text {
       xywh {5 10 310 25} color 1 textcolor 7
@@ -92,7 +99,7 @@ Function {make_alert()} {open
 Function {make_libraries()} {open
 } {
   Fl_Window {} {open
-    xywh {605 553 255 210} type Double visible
+    xywh {605 569 255 210} type Double visible
   } {
     Fl_Text_Display {} {
       label {Optional Libraries Installation}
