@@ -40,6 +40,7 @@ char    hdr[256];
 char    opc[256];
 char    doh[256];
 char    lib[256];
+char    loc[256];
 char    envy[256];
 
 #include "installer.cxx"
@@ -59,11 +60,12 @@ void set_system(Fl_Check_Button *, void *)
     opcdir->value(opc);
     doc->value(doh);
     libdir->value(lib);
+    locdir->value(loc);
 }
 
 Fl_Double_Window *err;
 
-void do_alert(char *msg)
+void do_alert(const char *msg)
 {
     err_text->value(msg);
     end_alert = 0;
@@ -416,6 +418,40 @@ again:
           system(buff);
           progress->value(n += 1.0f);
         }
+      }
+    }
+    if (doLoc->value() && strlen(locdir->value()) != 0) {
+      struct dirent **namelist;
+      char    b[256];
+      int     n = scandir("./loc", &namelist, NULL, alphasort);
+      int     i;
+      char    c[256];
+
+      progress->label("locales");
+      strcpy(b, locdir->value());
+      if (b[strlen(b) - 1] != '/')
+        strcat(b, "/");
+      check_exists(b);
+      progress->minimum(0.0f);
+      progress->maximum((float) n); // Number of locales
+      progress->value(0.0f);
+      Fl::wait(0.1);
+      for (i = 0; i < n; i++) {
+        char d[256];
+        char *e;
+        strcmp(d,namelist[i]->d_name);
+        e = strstr(d, ".po");
+        if (e!=NULL) {
+          *e ='\0';
+          sprintf(c, "%s/LC_MESSAGES", e);
+          check_exists(c);
+          sprintf(d, "cp -pv ./loc/%s %s>/dev/null", namelist[i]->d_name, c);
+          system(d);
+          progress->value((float) (i + 1));
+          Fl::wait(0.1);
+        }
+        else
+          progress->value((float) (i + 1));
       }
     }
     err->color(FL_GRAY);
