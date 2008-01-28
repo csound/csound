@@ -587,7 +587,8 @@ static int checkLicence(CSOUND *csound, FILE *unf)
     licence = (char*) mcalloc(csound, len);
     while (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
-      if (strstr(p, "</CsLicence>") != NULL) {
+      if (strstr(p, "</CsLicence>") != NULL ||
+          strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         mfree(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
@@ -706,7 +707,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         r = checkVersion(csound, unf);
         result = r && result;
       }
-      else if (strstr(p, "<CsLicence>") == p) {
+      else if (strstr(p, "<CsLicence>") == p ||
+               strstr(p, "<CsLicense>") == p) {
         r = checkLicence(csound, unf);
         result = r && result;
       }
