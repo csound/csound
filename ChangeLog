@@ -1,3 +1,8 @@
+2008-01-27  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/one_file.c (read_unified_file, checkLicence): Added <CsLicense> as
+	an acceptable alternate spelling of <CsLicence>.
+
 2008-01-27  jpff  <jpff@codemist.co.uk>
 
 	* installer/linux/installer.fl: 
