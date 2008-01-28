@@ -5,6 +5,8 @@
 
 2008-01-27  jpff  <jpff@codemist.co.uk>
 
+	* version 5.08Beta
+
 	* installer/linux/installer.fl: 
 	* installer/linux/new_install.cxx: Added support for installing locales
 

@@ -112,9 +112,6 @@ commandOptions.Add('generateTags',
 commandOptions.Add('generatePdf',
     'Set to 1 to generate PDF documentation',
     '0')
-commandOptions.Add('generateXmg',
-    'Set to 1 to generate string database',
-    '1')
 commandOptions.Add('generateZip',
     'Set to 1 to generate zip archive',
     '0')
@@ -2143,35 +2140,6 @@ else:
     zipDependencies.append(tags)
     Depends(tags, csoundLibrary)
 
-if commonEnvironment['generateXmg'] == '1' and commonEnvironment['useGettext'] != '1':
-    print "CONFIGURATION DECISION: Calling makedb"
-    if getPlatform() == 'win32':
-        makedbCmd = 'makedb'
-    else:
-        makedbCmd = './makedb'
-    xmgs = commonEnvironment.Command(
-                'American.xmg', ['strings/all_strings'],
-                '%s strings/all_strings American' % makedbCmd)
-    xmgs1 = commonEnvironment.Command(
-                'English.xmg', ['strings/english-strings'],
-                '%s strings/english-strings English' % makedbCmd)
-    xmgs2 = commonEnvironment.Command(
-                'csound.xmg', ['strings/english-strings'],
-                '%s strings/english-strings csound' % makedbCmd)
-    xmgs3 = commonEnvironment.Command(
-                'French.xmg', ['strings/french-strings'],
-                '%s strings/french-strings French' % makedbCmd)
-    Depends(xmgs, makedb)
-    zipDependencies.append(xmgs)
-    Depends(xmgs1, makedb)
-    zipDependencies.append(xmgs1)
-    Depends(xmgs2, makedb)
-    zipDependencies.append(xmgs2)
-    Depends(xmgs3, makedb)
-    zipDependencies.append(xmgs3)
-else:
-    print "CONFIGURATION DECISION: Not calling makedb"
-
 def gettextTarget(env, baseName, target):
     gtFile = 'po/' + baseName + '.po'
     ttFile = 'po/' + target + '/LC_MESSAGES/csound5.mo'
@@ -2186,7 +2154,9 @@ if commonEnvironment['useGettext'] == '1':
     gettextTarget(csound5GettextEnvironment, 'american', 'en_US')
     gettextTarget(csound5GettextEnvironment, 'csound', 'en_GB')
     gettextTarget(csound5GettextEnvironment, 'es_CO', 'es_CO')
+    ##  The following are incomplete
     gettextTarget(csound5GettextEnvironment, 'german', 'de')
+    gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
 
 zipDependencies += executables
