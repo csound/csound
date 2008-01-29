@@ -1281,6 +1281,7 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
 '''))
+makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 
 # Plugins with External Dependencies
 
