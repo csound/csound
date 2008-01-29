@@ -277,10 +277,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         if (*s++ == '-') {                        /* read all flags:  */
           while ((c = *s++) != '\0') {
             switch (c) {
-            case 'j':
-              FIND("");
-              while (*++s);
-              break;
             case 'o':
               FIND("no outfilename");
               O->outfilename = s;                 /* soundout name */
