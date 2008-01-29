@@ -1,3 +1,8 @@
+2008-01-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/one_file.c (readOptions, checkVersion, etc.): Fixed version checks;
+	prevented crashes in readOptions(), and improved error reporting for CSD.
+
 2008-01-27  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/one_file.c (read_unified_file, checkLicence): Added <CsLicense> as
