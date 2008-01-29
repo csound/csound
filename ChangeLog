@@ -1,5 +1,7 @@
 2008-01-29 veplaini <Victor.Lazzarini@nuim.ie>
        * Opcodes/hrtfopcodes.c: New HRTF opcodes by Brian Carty
+       * Opcodes/syncgrain.c: fixed bug in period counter preventing
+	                      accurate tuning of grain frequency
 	
 2008-01-29  jpff  <jpff@codemist.co.uk>
 
