@@ -44,18 +44,18 @@ extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 static void set_stdin_assign(CSOUND *csound, int type, int state)
 {
-  if (state)
-    csound->stdin_assign_flg |= type;
-  else
-    csound->stdin_assign_flg &= (~type);
+    if (state)
+      csound->stdin_assign_flg |= type;
+    else
+      csound->stdin_assign_flg &= (~type);
 }
 
 static void set_stdout_assign(CSOUND *csound, int type, int state)
 {
-  if (state)
-    csound->stdout_assign_flg |= type;
-  else
-    csound->stdout_assign_flg &= (~type);
+    if (state)
+      csound->stdout_assign_flg |= type;
+    else
+      csound->stdout_assign_flg &= (~type);
 }
 
 /* IV - Feb 19 2005 */
@@ -210,31 +210,31 @@ static const char *longUsageList[] = {
 /* IV - Feb 19 2005 */
 void print_short_usage(CSOUND *csound)
 {
-  char    buf[256];
-  int     i;
-  i = -1;
-  while (shortUsageList[++i] != NULL) {
-    sprintf(buf, "%s\n", shortUsageList[i]);
-    csound->Message(csound, Str(buf));
-  }
-  csound->Message(csound,
-                  Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n"),
-                  IOBUFSAMPS, IODACSAMPS, csound->oparms->msglevel);
+    char    buf[256];
+    int     i;
+    i = -1;
+    while (shortUsageList[++i] != NULL) {
+      sprintf(buf, "%s\n", shortUsageList[i]);
+      csound->Message(csound, Str(buf));
+    }
+    csound->Message(csound,
+                    Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n"),
+                    IOBUFSAMPS, IODACSAMPS, csound->oparms->msglevel);
 }
 
 static void longusage(CSOUND *p)
 {
-  const char **sp;
-  p->Message(p, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  p->Message(p, Str("Legal flags are:\n"));
-  p->Message(p, Str("Long format:\n\n"));
-  for (sp = &(longUsageList[0]); *sp != NULL; sp++)
-    p->Message(p, "%s\n", Str(*sp));
-  /* IV - Feb 19 2005 */
-  dump_cfg_variables(p);
-  p->Message(p, Str("\nShort form:\n"));
-  print_short_usage(p);
-  p->LongJmp(p, 0);
+    const char **sp;
+    p->Message(p, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+    p->Message(p, Str("Legal flags are:\n"));
+    p->Message(p, Str("Long format:\n\n"));
+    for (sp = &(longUsageList[0]); *sp != NULL; sp++)
+      p->Message(p, "%s\n", Str(*sp));
+    /* IV - Feb 19 2005 */
+    dump_cfg_variables(p);
+    p->Message(p, Str("\nShort form:\n"));
+    print_short_usage(p);
+    p->LongJmp(p, 0);
 }
 
 void dieu(CSOUND *csound, char *s, ...)
@@ -253,46 +253,46 @@ void dieu(CSOUND *csound, char *s, ...)
 
 void set_output_format(OPARMS *O, char c)
 {
-  switch (c) {
-  case 'a':
-    O->outformat = AE_ALAW;    /* a-law soundfile */
-    break;
+    switch (c) {
+    case 'a':
+      O->outformat = AE_ALAW;    /* a-law soundfile */
+      break;
+      
+    case 'c':
+      O->outformat = AE_CHAR;    /* signed 8-bit soundfile */
+      break;
+      
+    case '8':
+      O->outformat = AE_UNCH;    /* unsigned 8-bit soundfile */
+      break;
 
-  case 'c':
-    O->outformat = AE_CHAR;    /* signed 8-bit soundfile */
-    break;
+    case 'f':
+      O->outformat = AE_FLOAT;   /* float soundfile */
+      break;
 
-  case '8':
-    O->outformat = AE_UNCH;    /* unsigned 8-bit soundfile */
-    break;
+    case 's':
+      O->outformat = AE_SHORT;   /* short_int soundfile*/
+      break;
 
-  case 'f':
-    O->outformat = AE_FLOAT;   /* float soundfile */
-    break;
+    case 'l':
+      O->outformat = AE_LONG;    /* long_int soundfile */
+      break;
 
-  case 's':
-    O->outformat = AE_SHORT;   /* short_int soundfile*/
-    break;
+    case 'u':
+      O->outformat = AE_ULAW;    /* mu-law soundfile */
+      break;
 
-  case 'l':
-    O->outformat = AE_LONG;    /* long_int soundfile */
-    break;
+    case '3':
+      O->outformat = AE_24INT;   /* 24bit packed soundfile*/
+      break;
 
-  case 'u':
-    O->outformat = AE_ULAW;    /* mu-law soundfile */
-    break;
+    case 'e':
+      O->outformat = AE_FLOAT;   /* float soundfile (for rescaling) */
+      break;
 
-  case '3':
-    O->outformat = AE_24INT;   /* 24bit packed soundfile*/
-    break;
-
-  case 'e':
-    O->outformat = AE_FLOAT;   /* float soundfile (for rescaling) */
-    break;
-
-  default:
-    return; /* do nothing */
-  };
+    default:
+      return; /* do nothing */
+    };
 }
 
 typedef struct  {
@@ -374,7 +374,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         }
         csoundErrorMsg(csound, Str("unknown output format: '%s'"), s);
         return 0;
- nxtToken:
+      nxtToken:
         s = t;
       } while (s != NULL);
       return 1;
@@ -842,13 +842,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 
 int argdecode(CSOUND *csound, int argc, char **argv_)
 {
-  OPARMS  *O = csound->oparms;
-  char    *s, **argv;
-  int     n;
-  char    c;
+    OPARMS  *O = csound->oparms;
+    char    *s, **argv;
+    int     n;
+    char    c;
 
-  /* make a copy of the option list */
-  {
+    /* make a copy of the option list */
     char  *p1, *p2;
     int   nbytes, i;
     /* calculate the number of bytes to allocate */
@@ -864,297 +863,293 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
       strcpy(p2, argv_[i]);
       p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
     }
-  }
-  csound->keep_tmp = 0;
-
-  do {
-    s = *++argv;
-    if (*s++ == '-') {                  /* read all flags:  */
-      while ((c = *s++) != '\0') {
-        switch (c) {
-        case 'U':
-          FIND(Str("no utility name"));
-          {
-            int retval = csoundRunUtility(csound, s, argc, argv);
-            csound->LongJmp(csound, retval);
-          }
-          break;
-        case 'C':
-          O->usingcscore = 1;           /* use cscore processing  */
-          break;
-        case 'I':
-          csound->initonly = 1;         /* I-only overrides */
-          O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
-        case 'n':
-          O->sfwrite = 0;               /* nosound        */
-          break;
-        case 'i':
-          FIND(Str("no infilename"));
-          O->infilename = s;            /* soundin name */
-          s += (int) strlen(s);
-          if (strcmp(O->infilename, "stdout") == 0)
-            csoundDie(csound, Str("input cannot be stdout"));
-          if (strcmp(O->infilename, "stdin") == 0) {
-            set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+    csound->keep_tmp = 0;
+    
+    do {
+      s = *++argv;
+      if (*s++ == '-') {                  /* read all flags:  */
+        while ((c = *s++) != '\0') {
+          switch (c) {
+          case 'U':
+            FIND(Str("no utility name"));
+            {
+              int retval = csoundRunUtility(csound, s, argc, argv);
+              csound->LongJmp(csound, retval);
+            }
+            break;
+          case 'C':
+            O->usingcscore = 1;           /* use cscore processing  */
+            break;
+          case 'I':
+            csound->initonly = 1;         /* I-only overrides */
+            O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
+          case 'n':
+            O->sfwrite = 0;               /* nosound        */
+            break;
+          case 'i':
+            FIND(Str("no infilename"));
+            O->infilename = s;            /* soundin name */
+            s += (int) strlen(s);
+            if (strcmp(O->infilename, "stdout") == 0)
+              csoundDie(csound, Str("input cannot be stdout"));
+            if (strcmp(O->infilename, "stdin") == 0) {
+              set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
-            csoundDie(csound, Str("stdin audio not supported"));
+              csoundDie(csound, Str("stdin audio not supported"));
 #endif
-          }
-          else
-            set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
-          O->sfread = 1;
-          break;
-        case 'o':
-          FIND(Str("no outfilename"));
-          O->outfilename = s;           /* soundout name */
-          s += (int) strlen(s);
-          if (strcmp(O->outfilename, "stdin") == 0)
-            dieu(csound, Str("-o cannot be stdin"));
-          if (strcmp(O->outfilename, "stdout") == 0) {
-            set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+            }
+            else
+              set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
+            O->sfread = 1;
+            break;
+          case 'o':
+            FIND(Str("no outfilename"));
+            O->outfilename = s;           /* soundout name */
+            s += (int) strlen(s);
+            if (strcmp(O->outfilename, "stdin") == 0)
+              dieu(csound, Str("-o cannot be stdin"));
+            if (strcmp(O->outfilename, "stdout") == 0) {
+              set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
-            csoundDie(csound, Str("stdout audio not supported"));
+              csoundDie(csound, Str("stdout audio not supported"));
 #endif
-          }
-          else
-            set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
-          O->sfwrite = 1;
-          break;
-        case 'b':
-          FIND(Str("no iobufsamps"));
-          sscanf(s, "%d%n", &(O->outbufsamps), &n);
-          /* defaults in musmon.c */
-          O->inbufsamps = O->outbufsamps;
-          s += n;
-          break;
-        case 'B':
-          FIND(Str("no hardware bufsamps"));
-          sscanf(s, "%d%n", &(O->oMaxLag), &n);
-          /* defaults in rtaudio.c */
-          s += n;
-          break;
-        case 'A':
-          O->filetyp = TYP_AIFF;        /* AIFF output request*/
-          break;
-        case 'J':
-          O->filetyp = TYP_IRCAM;       /* IRCAM output request */
-          break;
-        case 'W':
-          O->filetyp = TYP_WAV;         /* WAV output request */
-          break;
-        case 'h':
-          O->filetyp = TYP_RAW;         /* RAW output request */
-          break;
-        case 'c':
-        case 'a':
-        case 'u':
-        case '8':
-        case 's':
-        case '3':
-        case 'l':
-        case 'f':
-          set_output_format(O, c);
-          break;
-        case 'r':
-          FIND(Str("no sample rate"));
-          O->sr_override = (float)atof(s);
-          while (*++s);
-          break;
-        case 'j':
-          FIND("");
-          while (*++s);
-          break;
-        case 'k':
-          FIND(Str("no control rate"));
-          O->kr_override = (float)atof(s);
-          while (*++s);
-          break;
-        case 'v':
-          O->odebug = 1;                /* verbose otran  */
-          break;
-        case 'm':
-          FIND(Str("no message level"));
-          sscanf(s, "%d%n", &(O->msglevel), &n);
-          s += n;
-          break;
-        case 'd':
-          O->displays = 0;              /* no func displays */
-          break;
-        case 'g':
-          O->graphsoff = 1;             /* don't use graphics */
-          break;
-        case 'G':
-          O->postscript = 1;            /* Postscript graphics*/
-          break;
-        case 'x':
-          FIND(Str("no xfilename"));
-          csound->xfilename = s;        /* extractfile name */
-          while (*++s);
-          break;
-        case 't':
-          FIND(Str("no tempo value"));
-          {
-            int val;
-            sscanf(s, "%d%n", &val, &n); /* use this tempo .. */
+            }
+            else
+              set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+            O->sfwrite = 1;
+            break;
+          case 'b':
+            FIND(Str("no iobufsamps"));
+            sscanf(s, "%d%n", &(O->outbufsamps), &n);
+            /* defaults in musmon.c */
+            O->inbufsamps = O->outbufsamps;
             s += n;
-            if (val < 0) dieu(csound, Str("illegal tempo"));
-            else if (val == 0) {
-              csound->keep_tmp = 1;
+            break;
+          case 'B':
+            FIND(Str("no hardware bufsamps"));
+            sscanf(s, "%d%n", &(O->oMaxLag), &n);
+            /* defaults in rtaudio.c */
+            s += n;
+            break;
+          case 'A':
+            O->filetyp = TYP_AIFF;        /* AIFF output request*/
+            break;
+          case 'J':
+            O->filetyp = TYP_IRCAM;       /* IRCAM output request */
+            break;
+          case 'W':
+            O->filetyp = TYP_WAV;         /* WAV output request */
+            break;
+          case 'h':
+            O->filetyp = TYP_RAW;         /* RAW output request */
+            break;
+          case 'c':
+          case 'a':
+          case 'u':
+          case '8':
+          case 's':
+          case '3':
+          case 'l':
+          case 'f':
+            set_output_format(O, c);
+            break;
+          case 'r':
+            FIND(Str("no sample rate"));
+            O->sr_override = (float)atof(s);
+            while (*++s);
+            break;
+          case 'k':
+            FIND(Str("no control rate"));
+            O->kr_override = (float)atof(s);
+            while (*++s);
+            break;
+          case 'v':
+            O->odebug = 1;                /* verbose otran  */
+            break;
+          case 'm':
+            FIND(Str("no message level"));
+            sscanf(s, "%d%n", &(O->msglevel), &n);
+            s += n;
+            break;
+          case 'd':
+            O->displays = 0;              /* no func displays */
+            break;
+          case 'g':
+            O->graphsoff = 1;             /* don't use graphics */
+            break;
+          case 'G':
+            O->postscript = 1;            /* Postscript graphics*/
+            break;
+          case 'x':
+            FIND(Str("no xfilename"));
+            csound->xfilename = s;        /* extractfile name */
+            while (*++s);
+            break;
+          case 't':
+            FIND(Str("no tempo value"));
+            {
+              int val;
+              sscanf(s, "%d%n", &val, &n); /* use this tempo .. */
+              s += n;
+              if (val < 0) dieu(csound, Str("illegal tempo"));
+              else if (val == 0) {
+                csound->keep_tmp = 1;
+                break;
+              }
+              else O->cmdTempo = val;
+              O->Beatmode = 1;            /* on uninterpreted Beats */
+            }
+            break;
+          case 'L':
+            FIND(Str("no Linein score device_name"));
+            O->Linename = s;              /* Linein device name */
+            s += (int) strlen(s);
+            if (!strcmp(O->Linename, "stdin")) {
+              set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
+#if defined(mac_classic)
+              csoundDie(csound, Str("-L: stdin not supported on this platform"));
+#endif
+            }
+            else
+              set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
+            O->Linein = 1;
+            break;
+          case 'M':
+            FIND(Str("no midi device_name"));
+            O->Midiname = s;              /* Midi device name */
+            s += (int) strlen(s);
+            if (!strcmp(O->Midiname, "stdin")) {
+              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+#if defined(WIN32) || defined(mac_classic)
+              csoundDie(csound, Str("-M: stdin not supported on this platform"));
+#endif
+            }
+            else
+              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
+            O->Midiin = 1;
+            break;
+          case 'F':
+            FIND(Str("no midifile name"));
+            O->FMidiname = s;             /* Midifile name */
+            s += (int) strlen(s);
+            if (!strcmp(O->FMidiname, "stdin")) {
+              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+#if defined(WIN32) || defined(mac_classic)
+              csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#endif
+            }
+            else
+              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+            O->FMidiin = 1;               /*****************/
+            break;
+          case 'Q':
+            FIND(Str("no MIDI output device"));
+            O->Midioutname = s;
+            s += (int) strlen(s);
+            break;
+          case 'R':
+            O->rewrt_hdr = 1;
+            break;
+          case 'H':
+            if (isdigit(*s)) {
+              sscanf(s, "%d%n", &(O->heartbeat), &n);
+              s += n;
+            }
+            else O->heartbeat = 1;
+            break;
+          case 'N':
+            O->ringbell = 1;              /* notify on completion */
+            break;
+          case 'T':
+            O->termifend = 1;             /* terminate on midifile end */
+            break;
+          case 'D':
+            O->gen01defer = 1;            /* defer GEN01 sample loads
+                                             until performance time */
+            break;
+          case 'K':
+            csound->peakchunks = 0;       /* Do not write peak information */
+            break;
+          case 'z':
+            {
+              int full = 0;
+              if (*s != '\0') {
+                if (isdigit(*s)) full = *s++ - '0';
+              }
+              csoundLoadExternals(csound);
+              if (csoundInitModules(csound) != 0)
+                csound->LongJmp(csound, 1);
+              list_opcodes(csound, full);
+            }
+            csound->LongJmp(csound, 0);
+            break;
+          case 'Z':
+            csound->dither_output = 1;
+            break;
+          case '@':
+            FIND(Str("No indirection file"));
+            {
+              FILE *ind;
+              void *fd;
+              fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
+                                     s, "rb", NULL, CSFTYPE_OPTIONS, 0);
+              if (fd == NULL) {
+                dieu(csound, Str("Cannot open indirection file %s\n"), s);
+              }
+              else {
+                readOptions(csound, ind);
+                csound->FileClose(csound, fd);
+              }
+              while (*s++); s--;
+            }
+            break;
+          case 'O':
+            FIND(Str("no log file"));
+            while (*s++); s--;
+            break;
+          case '-':
+#if defined(LINUX)
+            if (!(strcmp (s, "sched"))) {             /* ignore --sched */
+              while (*(++s));
               break;
             }
-            else O->cmdTempo = val;
-            O->Beatmode = 1;            /* on uninterpreted Beats */
-          }
-          break;
-        case 'L':
-          FIND(Str("no Linein score device_name"));
-          O->Linename = s;              /* Linein device name */
-          s += (int) strlen(s);
-          if (!strcmp(O->Linename, "stdin")) {
-            set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mac_classic)
-            csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
-          }
-          else
-            set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
-          O->Linein = 1;
-          break;
-        case 'M':
-          FIND(Str("no midi device_name"));
-          O->Midiname = s;              /* Midi device name */
-          s += (int) strlen(s);
-          if (!strcmp(O->Midiname, "stdin")) {
-            set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mac_classic)
-            csoundDie(csound, Str("-M: stdin not supported on this platform"));
-#endif
-          }
-          else
-            set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
-          O->Midiin = 1;
-          break;
-        case 'F':
-          FIND(Str("no midifile name"));
-          O->FMidiname = s;             /* Midifile name */
-          s += (int) strlen(s);
-          if (!strcmp(O->FMidiname, "stdin")) {
-            set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mac_classic)
-            csoundDie(csound, Str("-F: stdin not supported on this platform"));
-#endif
-          }
-          else
-            set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
-          O->FMidiin = 1;               /*****************/
-          break;
-        case 'Q':
-          FIND(Str("no MIDI output device"));
-          O->Midioutname = s;
-          s += (int) strlen(s);
-          break;
-        case 'R':
-          O->rewrt_hdr = 1;
-          break;
-        case 'H':
-          if (isdigit(*s)) {
-            sscanf(s, "%d%n", &(O->heartbeat), &n);
-            s += n;
-          }
-          else O->heartbeat = 1;
-          break;
-        case 'N':
-          O->ringbell = 1;              /* notify on completion */
-          break;
-        case 'T':
-          O->termifend = 1;             /* terminate on midifile end */
-          break;
-        case 'D':
-          O->gen01defer = 1;            /* defer GEN01 sample loads
-                                           until performance time */
-          break;
-        case 'K':
-          csound->peakchunks = 0;       /* Do not write peak information */
-          break;
-        case 'z':
-          {
-            int full = 0;
-            if (*s != '\0') {
-              if (isdigit(*s)) full = *s++ - '0';
+            if (!(strncmp(s, "sched=", 6))) {
+              while (*(++s));
+              break;
             }
-            csoundLoadExternals(csound);
-            if (csoundInitModules(csound) != 0)
+#endif
+            if (!decode_long(csound, s, argc, argv))
               csound->LongJmp(csound, 1);
-            list_opcodes(csound, full);
-          }
-          csound->LongJmp(csound, 0);
-          break;
-        case 'Z':
-          csound->dither_output = 1;
-          break;
-        case '@':
-          FIND(Str("No indirection file"));
-          {
-            FILE *ind;
-            void *fd;
-            fd = csound->FileOpen2(csound, &ind, CSFILE_STD, s, "rb", NULL, CSFTYPE_OPTIONS, 0);
-            if (fd == NULL) {
-              dieu(csound, Str("Cannot open indirection file %s\n"), s);
-            }
-            else {
-              readOptions(csound, ind);
-              csound->FileClose(csound, fd);
-            }
-            while (*s++); s--;
-          }
-          break;
-        case 'O':
-          FIND(Str("no log file"));
-          while (*s++); s--;
-          break;
-        case '-':
-#if defined(LINUX)
-          if (!(strcmp (s, "sched"))) {             /* ignore --sched */
             while (*(++s));
             break;
-          }
-          if (!(strncmp(s, "sched=", 6))) {
+          case '+':                                   /* IV - Feb 01 2005 */
+            if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
+              csound->LongJmp(csound, 1);
             while (*(++s));
             break;
+          default:
+            dieu(csound, Str("unknown flag -%c"), c);
           }
-#endif
-          if (!decode_long(csound, s, argc, argv))
-            csound->LongJmp(csound, 1);
-          while (*(++s));
-          break;
-        case '+':                                   /* IV - Feb 01 2005 */
-          if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
-            csound->LongJmp(csound, 1);
-          while (*(++s));
-          break;
-        default:
-          dieu(csound, Str("unknown flag -%c"), c);
         }
       }
-    }
-    else {
-      /* 0: normal, 1: ignore, 2: fail */
-      if (csound->orcname_mode == 2) {
-        csound->Die(csound, Str("error: orchestra and score name not "
-                                "allowed in .csoundrc"));
-      }
-      else if (csound->orcname_mode == 0) {
-        if (csound->orchname == NULL)
-          csound->orchname = --s;
-        else if (csound->scorename == NULL)
-          csound->scorename = --s;
-        else {
-          csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
-          dieu(csound, Str("too many arguments"));
+      else {
+        /* 0: normal, 1: ignore, 2: fail */
+        if (csound->orcname_mode == 2) {
+          csound->Die(csound, Str("error: orchestra and score name not "
+                                  "allowed in .csoundrc"));
+        }
+        else if (csound->orcname_mode == 0) {
+          if (csound->orchname == NULL)
+            csound->orchname = --s;
+          else if (csound->scorename == NULL)
+            csound->scorename = --s;
+          else {
+            csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
+            dieu(csound, Str("too many arguments"));
+          }
         }
       }
-    }
-  } while (--argc);
-  return 1;
+    } while (--argc);
+    return 1;
 }
 
