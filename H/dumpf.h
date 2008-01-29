@@ -60,7 +60,8 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *ifilcod, *iformat, *iprd, *interp;
+        MYFLT  *k1, *ifilcod, *iformat, *iprd;
+        /* MYFLT  *interp; */
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
@@ -70,7 +71,8 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *ifilcod, *iformat, *iprd, *interp;
+        MYFLT  *k1, *k2, *ifilcod, *iformat, *iprd;
+        /* MYFLT  *interp; */
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
@@ -80,7 +82,8 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *k3, *ifilcod, *iformat, *iprd, *interp;
+        MYFLT  *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
+        /* MYFLT  *interp; */
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
@@ -90,7 +93,8 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd, *interp;
+        MYFLT  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
+        /* MYFLT  *interp; */
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
