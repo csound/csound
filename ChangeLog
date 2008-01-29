@@ -1,3 +1,8 @@
+2008-01-29  jpff  <jpff@codemist.co.uk>
+
+	* H/dumpf.h: Commented out the interpolation argument as not
+	implemented.
+
 2008-01-29  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/one_file.c (readOptions, checkVersion, etc.): Fixed version checks;

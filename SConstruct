@@ -1669,9 +1669,6 @@ executables.append(commonEnvironment.Program('sdif2ad',
 for i in executables:
    Depends(i, csoundLibrary)
 
-makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
-zipDependencies.append(makedb)
-
 # Front ends.
 
 def addOSXResourceFork(env, baseName, dirName):
