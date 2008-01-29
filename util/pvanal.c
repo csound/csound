@@ -172,9 +172,6 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
         char *s = *++argv;
         if (*s++ == '-')
           switch (*s++) {
-          case 'j': FIND("");
-            while (*s++); s--;
-            break;
           case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
             sscanf(s, "%lf", &sr);
