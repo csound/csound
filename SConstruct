@@ -2154,7 +2154,8 @@ if commonEnvironment['useGettext'] == '1':
     gettextTarget(csound5GettextEnvironment, 'es_CO', 'es_CO')
     ##  The following are incomplete
     gettextTarget(csound5GettextEnvironment, 'german', 'de')
-    gettextTarget(csound5GettextEnvironment, 'italian', 'it')
+    ## italian is not in the repository (VL 28-01-08), will not build
+    #gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
 
 zipDependencies += executables
