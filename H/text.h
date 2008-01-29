@@ -214,17 +214,8 @@ typedef enum {
  * from the directory specified by the CSSTRNGS environment
  * variable.
  */
-/* void csoundSetLanguage(cslanguage_t lang_code); */
-
-/*
- * Translate string 's' to the current language, and return
- * pointer to the translated message. This may be the same as
- * 's' if language was set to CSLANGUAGE_DEFAULT.
- */
-/* char *csoundLocalizeString(const char *s); */
 
 void init_getstring(void);
-void csound_free_string_database(void);
 
 #endif  /* __BUILDING_LIBCSOUND */
 

@@ -20,7 +20,7 @@
 
 	* version 5.08Beta
 
-	* installer/linux/installer.fl: 
+	* installer/linux/installer.fl:
 	* installer/linux/new_install.cxx: Added support for installing locales
 
 2008-01-22  Anthony Kozar  <anthonykozar@sbcglobal.net>
@@ -32,7 +32,7 @@
 	* Engine/sread.c (scorerr, sreaderr, getscochar, sread, getpfld, etc.):
 	Major changes to score error reporting; now accurately reports the line
 	numbers for the chain of inputs for most errors.  Many error messages
-	were changed to avoid redundancy and for clarity. 
+	were changed to avoid redundancy and for clarity.
 
 2008-01-20  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
