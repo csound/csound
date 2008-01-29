@@ -408,7 +408,8 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         } while (isspace(*bp));
         do {                    /* Absorb digits */
           *(++bp) = (char)getc(ifd);
-        } while (isdigit(*bp));
+        } while (isdigit(*bp) ||
+                 *bp=='-' || *bp=='+' || *bp=='.' || *bp=='e' ||*bp=='E');
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE

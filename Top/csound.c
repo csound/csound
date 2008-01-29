@@ -654,7 +654,7 @@ static const CSOUND cenviron_ = {
     init_done = -1;     /* prevent the creation of any new instances */
     if (instance_list == NULL) {
       csoundUnLock();
-      goto delete_str_db;
+      return;
     }
     csoundUnLock();
     csoundSleep(250);
@@ -664,12 +664,6 @@ static const CSOUND cenviron_ = {
         break;
       csoundDestroy(p->csound);
     }
- delete_str_db:
-#ifndef GNU_GETTEXT
-    csound_free_string_database();
-#else
-    p = p;
-#endif
   }
 
 #if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
