@@ -1,13 +1,30 @@
-//Csound hrtf magnitude interpolation, phase truncation object: September 07
 
-//aleft,aright hrtfphtrunc asrc, kaz, kel, ifilel, ifiler [, imode =0, ifade =8, sr = 44100]...imode: minphase/phase truncation, ifades: no of buffers per fade for phase trunc., sr can be 44.1/48/96k
+/*
+    hrtfopcodes.c: new HRTF opcodes
+
+    (c) Brian Carty, 2008
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 
 #include "csdl.h"
-#include <stdio.h>
 #include <math.h>
-#include <stdlib.h>
-
-#include <sndfile.h>
 
 //definitions
 #define minelev -40			//from mit
@@ -136,8 +153,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   if(fade<1||fade>24)		//fade length: default 8, max 24, min 1 
     fade=8;		
 
-  if(sr!=44100&&sr!=48000&&sr!=96000)
-    sr=44100;
+  if(sr!=44100 && sr!=48000 && sr!=96000)
+   sr=44100;
   p->sr = sr;
 	
   if(p->minphase)csound->Message(csound, Str("\n\nMinimum Phase Processing\n\n"));
