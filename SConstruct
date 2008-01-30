@@ -309,6 +309,8 @@ if commonEnvironment['useLrint'] != '0':
 if commonEnvironment['useGettext'] != '0':
   print "Using GNU gettext scheme"
   commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
+  if getPlatform() == "win32":
+    commonEnvironment.Append(LIBS=['intl'])
 else:
   print "Using Istvan localisation"
   commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
