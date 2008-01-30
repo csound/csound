@@ -2215,3 +2215,7 @@ if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     addOSXResourceFork(commonEnvironment, 'csound', '')
 
+
+#env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])
+#env['prefix'] = '/usr/local'
+#env.ScanReplace('csound5.pc.in')

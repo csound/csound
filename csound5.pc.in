@@ -1,0 +1,14 @@
+# csound5 pkg-config file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: csound5
+Description: csound5 is suite of sound generating software
+Version: @VERSION@
+Requires:
+Conflicts:
+Libs: -L${libdir} -lcsound5
+Cflags: -I${includedir}
