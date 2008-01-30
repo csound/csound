@@ -1,6 +1,6 @@
 /*
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2007 Øyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2008 Øyvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -325,6 +325,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     MYFLT maskgain, maskchannel;
     int samples;
     double rcp_samples; /* 1/samples */
+    double phase_corr;
     GRAIN *grain = &node->grain;
     unsigned int i;
     unsigned int chan;
@@ -404,6 +405,12 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     rcp_samples = 1.0/(double)samples;
     grain->start = n;
     grain->stop = n + samples;
+    /* if grainphase is larger than graininc, the grain is not synchronous and
+     * we'll skip sub-sample grain placement. also check for divide by zero */
+    if (p->grainphase < p->graininc && p->graininc != 0.0)
+        phase_corr = p->graininc != 0.0 ? p->grainphase/p->graininc : 0.0;
+    else
+        phase_corr = 0;
 
     /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
@@ -463,6 +470,10 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
              * the grain where it'll probably be enveloped away anyway */
             curwav->phase = 0.5;
         }
+        /* place grain between samples. this is especially important to make
+         * high frequency synchronous grain streams sounds right */
+        curwav->phase += phase_corr*startfreq*csound->onedsr;
+
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
         curwav->phase = curwav->phase < 0.0 ? 0.0 : curwav->phase;
@@ -502,7 +513,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
     }
 
     grain->envinc = rcp_samples;
-    grain->envphase = 0.0;
+    grain->envphase = phase_corr*grain->envinc;
     /* link new grain into the list */
     node->next = p->grainroot;
     p->grainroot = node;
@@ -634,7 +645,7 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         if (curwav->table == NULL)
             continue;
 
-        /* the main synthesis loop is duplicated for both wavetable and
+        /* NOTE: the main synthesis loop is duplicated for both wavetable and
          * trainlet synthesis for speed */
         if (i != WAV_TRAINLET) {
             /* wavetable synthesis */
