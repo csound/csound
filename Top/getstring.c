@@ -46,7 +46,7 @@ void init_getstring(void)
 }
 PUBLIC char *csoundLocalizeString(const char *s)
 {
-    return s;
+    return (char*)s;
 }
 #else
 void init_getstring(void)
