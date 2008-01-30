@@ -311,6 +311,7 @@ if commonEnvironment['useGettext'] != '0':
   commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
 else:
   print "Using Istvan localisation"
+  commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
   if commonEnvironment['gcc4opt'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
