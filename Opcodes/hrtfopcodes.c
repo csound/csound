@@ -237,12 +237,12 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   p->fadebuffer = (int)fade*IMPLENGTH;		//the amount of buffers to fade over.
 	
   //file handles
-  //if(fpl && fpr) {
+  
   p->fpl = fpl;
   p->fpr = fpr;
   p->fpbeginl = (MYFLT *) fpl->beginp;
   p->fpbeginr = (MYFLT *) fpr->beginp;
-  // }	
+  	
   /*csound->Message(csound, Str("\n\nFiles Stored\n\n\n"));*/
     
   //common buffers (used by both min phase and phasetrunc)
@@ -423,7 +423,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
   int ptl = p->ptl;
   int ptr = p->ptr;
 
-  int mdtl=0,mdtr=0;
+  int mdtl,mdtr;
   float outvdl,outvdr,rpl,rpr,vdtl,vdtr,fracl,fracr;
 
   //start indices at correct value (start of file)/ zero indices.
@@ -833,6 +833,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
 	  if(minphase)		//use output direcly and add delay in time domain
 	    {
+             
 	      for(i=0;i<IMPLENGTH;i++)
 		{
 		  outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : 0);
@@ -930,7 +931,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 		{
 		  vdtl = (delayfloat + 0.0001f)*sr;
 		  mdtl = (int)(.00095f*sr);
-		  if(vdtl > mdtr) vdtl = (float)mdtl;
+		  if(vdtl > mdtl) vdtl = (float)mdtl;
 		  for(i=0;i<IMPLENGTH;i++){
 		    rpl = ptl - vdtl;                     
 		    if(rpl < 0) rpl += mdtl;         
