@@ -96,11 +96,11 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         numstreams--; /* decrease the no of streams */
         firststream=(firststream+1)%olaps; /* first stream is the next */
       }
-
+              
       /* if a fund period has elapsed */
       /* start a new grain */
-      period = fperiod + frac;
-      if (count >= (period-FL(1.0))) {
+      period = fperiod - frac;
+      if (count >= period) {
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
@@ -249,8 +249,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 
       /* if a fund period has elapsed */
       /* start a new grain */
-      period = fperiod + frac;
-      if (count >= (period-FL(1.0))) {
+      period = fperiod - frac;
+      if (count >= period) {
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
@@ -479,8 +479,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
       }
       /* if a fund period has elapsed */
       /* start a new grain */
-      period = fperiod + frac;
-      if (count >= (period-FL(1.0))) {
+      period = fperiod - frac;
+      if (count >= period) {
         frac = count - period;
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1;
