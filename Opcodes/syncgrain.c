@@ -101,7 +101,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
       /* start a new grain */
       period = fperiod + frac;
       if (count >= (period-FL(1.0))) {
-        frac = count - fperiod; /* frac part to be accummulated */
+        frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
         envindex[newstream] = 0.0;
@@ -251,7 +251,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
       /* start a new grain */
       period = fperiod + frac;
       if (count >= (period-FL(1.0))) {
-        frac = count - fperiod; /* frac part to be accummulated */
+        frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
         envindex[newstream] = 0.0;
@@ -481,7 +481,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
       /* start a new grain */
       period = fperiod + frac;
       if (count >= (period-FL(1.0))) {
-        frac = count - fperiod;
+        frac = count - period;
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1;
         envindex[newstream] = 0.0;
