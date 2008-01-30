@@ -914,7 +914,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
 		  vdtl = 0.0001f*sr;
 		  mdtl = (int)(.00095f*sr);
-		  if(vdtl > mdtr) vdtl = (float)mdtl;
+		  if(vdtl > mdtl) vdtl = (float)mdtl;
 		  for(i=0;i<IMPLENGTH;i++){
 		    rpl = ptl - vdtl;                     
 		    if(rpl < 0) rpl += mdtl;         
