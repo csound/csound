@@ -145,7 +145,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   int complexfftbuff;			//complex fft used(min phase needs it)
 
 
-  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
+  /*  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n")); */
 	
   if(mode==1) p->minphase=1;		//flag for process type: default phase trunc
   else p->phasetrunc=1;
@@ -157,8 +157,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
    sr=44100;
   p->sr = sr;
 	
-  if(p->minphase)csound->Message(csound, Str("\n\nMinimum Phase Processing\n\n"));
-  if(p->phasetrunc)csound->Message(csound, Str("\n\nPhase Truncation Processing\n\n"));
+  /*if(p->minphase)csound->Message(csound, Str("\n\nMinimum Phase Processing\n\n"));
+    if(p->phasetrunc)csound->Message(csound, Str("\n\nPhase Truncation Processing\n\n"));*/
 
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
@@ -173,7 +173,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound, "\ndatafile should be:44.1k\n");		//added ldmemfile2: reading floats without a header!
+      /*csound->Message(csound, "\ndatafile should be:44.1k\n");	*/	//added ldmemfile2: reading floats without a header!
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -192,7 +192,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound,"\ndatafile should be:48k\n");
+      /* csound->Message(csound,"\ndatafile should be:48k\n"); */
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -211,7 +211,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound,"\ndatafile should be:96k\n");
+      /*csound->Message(csound,"\ndatafile should be:96k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -243,7 +243,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   p->fpbeginl = (MYFLT *) fpl->beginp;
   p->fpbeginr = (MYFLT *) fpr->beginp;
   }	
-  csound->Message(csound, Str("\n\nFiles Stored\n\n\n"));
+  /*csound->Message(csound, Str("\n\nFiles Stored\n\n\n"));*/
     
   //common buffers (used by both min phase and phasetrunc)
   csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->insig);
@@ -1073,8 +1073,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     sr=44100;
   p->sr = sr;
 
-  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
-  csound->Message(csound, Str("\n\nNon Linear ITD Woodworth Based Static Processing\n\n"));
+  /*  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
+      csound->Message(csound, Str("\n\nNon Linear ITD Woodworth Based Static Processing\n\n"));*/
 
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
@@ -1089,7 +1089,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound,"\ndatafile:44.1k\n");
+      /*csound->Message(csound,"\ndatafile:44.1k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1108,7 +1108,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound,"\ndatafile:48k\n");
+      /* csound->Message(csound,"\ndatafile:48k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1127,7 +1127,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      csound->Message(csound,"\ndatafile:96k\n");
+      /* csound->Message(csound,"\ndatafile:96k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1603,10 +1603,10 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
   if(sr!=44100&&sr!=48000&&sr!=96000)
     sr=44100;
   p->sr = sr;
-
+  /*
   csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
   csound->Message(csound, Str("\n\nNon Linear ITD Woodworth Based Dynamic Processing\n\n"));
-
+  */
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
 
@@ -1618,7 +1618,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       IMPLENGTH = 128;					
       complexIMPLENGTH = 256;						
 
-      csound->Message(csound,"\ndatafile:44.1k\n");
+      /*  csound->Message(csound,"\ndatafile:44.1k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1635,7 +1635,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       IMPLENGTH = 128;					
       complexIMPLENGTH = 256;								
 
-      csound->Message(csound,"\ndatafile:48k\n");
+      /*csound->Message(csound,"\ndatafile:48k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1652,7 +1652,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       IMPLENGTH = 256;					
       complexIMPLENGTH = 512;								
 
-      csound->Message(csound,"\ndatafile:96k\n");
+      /*csound->Message(csound,"\ndatafile:96k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
