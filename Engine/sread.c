@@ -214,18 +214,20 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
         if (!curr->mac || !curr->mac->name)
           csoundDie(csound, Str("Internal error in print_input_backtrace()"));
         switch(lastsource) {
-          case 0: m = Str("  included from line %d of macro %s%s"); break;
-          case 1: m = Str("  called from line %d of macro %s%s"); break;
-          case 2: m = Str("  in line %d of macro %s%s"); break;
+        case 0: m = Str("  included from line %d of macro %s%s"); break;
+        case 1: m = Str("  called from line %d of macro %s%s"); break;
+        default:
+        case 2: m = Str("  in line %d of macro %s%s"); break;
         }
         msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
                 curr->mac->name, lf);  /* #include is one line before */
       }
       else {  /* file input */
         switch(lastsource) {
-          case 0: m = Str("  included from line %d of file input %s%s"); break;
-          case 1: m = Str("  called from line %d of file input %s%s"); break;
-          case 2: m = Str("  in line %d of file input %s%s"); break;
+        case 0: m = Str("  included from line %d of file input %s%s"); break;
+        case 1: m = Str("  called from line %d of file input %s%s"); break;
+        default:
+        case 2: m = Str("  in line %d of file input %s%s"); break;
         }
         if (lastinput && csound->oparms->useCsdLineCounts && csound->csdname) {
           /* print name & line # of CSD instead of temp sco */
@@ -1170,7 +1172,7 @@ static void copypflds(CSOUND *csound)
 static void ifa(CSOUND *csound)
 {
     SRTBLK *prvbp;
-    int n, nocarry;
+    int n, nocarry = 0;
 
     ST(bp)->pcnt = 0;
     while (getpfld(csound)) {   /* while there's another pfield,  */
