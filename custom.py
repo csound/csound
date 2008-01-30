@@ -29,6 +29,8 @@ elif sys.platform[:3] == 'win':
     # Add them here:
     customCPPPATH.append('c:/msys/1.0/local/include')
     customLIBPATH.append('c:/msys/1.0/local/lib')
+    customCPPPATH.append('c:/msys/1.0/include')
+    customLIBPATH.append('c:/msys/1.0/lib')
     # If libsndfile is not in a standard location add it here:
     #customCPPPATH.append('D:/utah/opt/libsndfile-1_0_17')
     #customLIBPATH.append('D:/utah/opt/libsndfile-1_0_17')
