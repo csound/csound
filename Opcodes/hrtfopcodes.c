@@ -237,12 +237,12 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   p->fadebuffer = (int)fade*IMPLENGTH;		//the amount of buffers to fade over.
 	
   //file handles
-  if(fpl && fpr) {
+  //if(fpl && fpr) {
   p->fpl = fpl;
   p->fpr = fpr;
   p->fpbeginl = (MYFLT *) fpl->beginp;
   p->fpbeginr = (MYFLT *) fpr->beginp;
-  }	
+  // }	
   /*csound->Message(csound, Str("\n\nFiles Stored\n\n\n"));*/
     
   //common buffers (used by both min phase and phasetrunc)
