@@ -106,8 +106,6 @@ static  int     getop(CSOUND *), getpfld(CSOUND *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 #define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
-static SREAD_GLOBALS* sread_globals;  /* temp!  please remove! */
-static SRTBLK*        current_srtblk; /* temp!  please remove! */
 
 static void sread_alloc_globals(CSOUND *csound)
 {
@@ -115,7 +113,6 @@ static void sread_alloc_globals(CSOUND *csound)
       return;
     csound->sreadGlobals = (SREAD_GLOBALS*)
                                 csound->Calloc(csound, sizeof(SREAD_GLOBALS));
-    sread_globals = csound->sreadGlobals;   /* temp!  please remove! */
     ST(prvp2) = -FL(1.0);
     ST(clock_base) = FL(0.0);
     ST(warp_factor) = FL(1.0);
@@ -215,7 +212,7 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
       if (curr == ST(inputs)) lastinput = 1;
       if (curr->string) {  /* macro input */
         if (!curr->mac || !curr->mac->name)
-          csoundDie(csound, "Internal error in print_input_backtrace()");
+          csoundDie(csound, Str("Internal error in print_input_backtrace()"));
         switch(lastsource) {
           case 0: m = Str("  included from line %d of macro %s%s"); break;
           case 1: m = Str("  called from line %d of macro %s%s"); break;
@@ -1226,7 +1223,7 @@ static void ifa(CSOUND *csound)
           sreaderr(csound, Str("ignoring '%s' in '%c' event"), ST(sp), ST(op));
         }
         else if (ST(bp)->pcnt < 4) {
-          sreaderr(csound, Str("sread: ! invalid in p1, p2, or p3"));
+          sreaderr(csound, Str("! invalid in p1, p2, or p3"));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
@@ -1396,7 +1393,6 @@ static void salcblk(CSOUND *csound)
     /* now allocate a srtblk from this space: */
     prvbp = ST(bp);
     ST(bp) = (SRTBLK*) (((uintptr_t) ST(nxp) + (uintptr_t)7) & ~((uintptr_t)7));
-    current_srtblk = ST(bp);  /* temp!  please remove! */
     if (csound->frstbp == NULL)
       csound->frstbp = ST(bp);
     if (prvbp != NULL)
@@ -1746,8 +1742,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     MYFLT   x = (MYFLT) strtod(s, &p);
 
     if (s == p || !(*p == '\0' || isspace(*p))) {
-      csound->Message(csound,
-                      Str("sread: illegal number format:  "));
+      csound->Message(csound, Str("sread: illegal number format:  "));
       p = s;
       while (!(*p == '\0' || isspace(*p))) {
         csound->Message(csound, "%c", *p);
