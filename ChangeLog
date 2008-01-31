@@ -1,3 +1,10 @@
+2008-01-31  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/csound.h (CSOUND_FILETYPES): Added CSFTYPE_IMAGE_PNG.
+
+	* Opcodes/imageOpcodes.c (__doOpenImage, __doSaveImage): Use FileOpen2()
+	and FileClose() instead of fopen() and fclose().  Other minor fixes.
+
 2008-01-30  jpff  <jpff@codemist.co.uk>
 
 	* retagged  5.08b
