@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-31 13:00+0000\n"
+"POT-Creation-Date: 2008-01-31 13:31+0000\n"
 "PO-Revision-Date: 2008-01-03 07:34+0000\n"
 "Last-Translator: Chuckk Hubbard <badmuthahubbard@gmail.com>\n"
 "Language-Team: Romanian\n"
@@ -1109,6 +1109,11 @@ msgstr ""
 #: Opcodes/control.c:56
 #, c-format
 msgid "Closing down wish(%d)\n"
+msgstr ""
+
+#: Opcodes/Loris/lorisgens5.C:599
+#, c-format
+msgid "lorisread cannot load %s"
 msgstr ""
 
 #: Opcodes/OSC_iv.c:115 Opcodes/OSC.c:116
@@ -2738,7 +2743,7 @@ msgid "missing fscale table"
 msgstr ""
 
 #: Opcodes/spectra.c:1034
-msgid "specscal: not intiialised"
+msgid "specscal: not initialised"
 msgstr ""
 
 #: Opcodes/spectra.c:1083
@@ -2794,7 +2799,7 @@ msgstr ""
 
 #: Opcodes/imageOpcodes.c:273
 #, c-format
-msgid "imageload: can't open image %s for writing.\n"
+msgid "imageload: cannot open image %s for writing.\n"
 msgstr ""
 
 #: Opcodes/imageOpcodes.c:387

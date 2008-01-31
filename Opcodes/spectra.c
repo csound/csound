@@ -1031,7 +1031,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
         (p->wscaled->auxch.auxp==NULL)
         ||
         (p->fscale==NULL)) {
-      return csound->PerfError(csound, Str("specscal: not intiialised"));
+      return csound->PerfError(csound, Str("specscal: not initialised"));
     }
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       SPECDAT *outspecp = p->wscaled;
