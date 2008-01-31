@@ -272,6 +272,9 @@ typedef enum
     CSFTYPE_INTEGER_TEXT = 53,   /* used by dumpk, readk, etc. */
     CSFTYPE_INTEGER_BINARY = 54, /* used by dumpk, readk, etc. */
 
+    /* image file formats */
+    CSFTYPE_IMAGE_PNG = 59,
+
     /* For files that don't match any of the above */
     CSFTYPE_POSTSCRIPT = 55,     /* EPS format used by graphs */
     CSFTYPE_SCRIPT_TEXT = 56,    /* executable script files (eg. Python) */
