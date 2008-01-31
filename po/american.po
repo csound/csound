@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-31 13:00+0000\n"
+"POT-Creation-Date: 2008-01-31 13:31+0000\n"
 "PO-Revision-Date: 2007-12-26 18:36+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
@@ -1112,6 +1112,11 @@ msgstr ""
 #, c-format
 msgid "Closing down wish(%d)\n"
 msgstr ""
+
+#: Opcodes/Loris/lorisgens5.C:599
+#, c-format
+msgid "lorisread cannot load %s"
+msgstr "lorisread can't load %s"
 
 #: Opcodes/OSC_iv.c:115 Opcodes/OSC.c:116
 msgid "Too many arguments to OSCsend"
@@ -2743,8 +2748,8 @@ msgstr ""
 
 #: Opcodes/spectra.c:1034
 #, fuzzy
-msgid "specscal: not intiialised"
-msgstr "pvscale: not initialized"
+msgid "specscal: not initialised"
+msgstr "specscal: not initialized"
 
 #: Opcodes/spectra.c:1083
 msgid "spechist: local buffers not intiialised"
@@ -2799,7 +2804,7 @@ msgstr ""
 
 #: Opcodes/imageOpcodes.c:273
 #, fuzzy, c-format
-msgid "imageload: can't open image %s for writing.\n"
+msgid "imageload: cannot open image %s for writing.\n"
 msgstr "imageload: can't open image %s for writing.\n"
 
 #: Opcodes/imageOpcodes.c:387
@@ -2864,7 +2869,7 @@ msgstr ""
 
 #: Opcodes/jackTransport.c:99
 msgid "Cannot find Jack client.\n"
-msgstr ""
+msgstr "Can't find Jack client.\n"
 
 #: Opcodes/jackTransport.c:105
 msgid "jack_transport playing.\n"
@@ -2879,9 +2884,8 @@ msgid "jack_transport rewinded.\n"
 msgstr ""
 
 #: Opcodes/jackTransport.c:117
-#, fuzzy
 msgid "jack_transport: invalid parameter.\n"
-msgstr "transeg: not initialized (arate)\n"
+msgstr ""
 
 #: util/pvanal.c:170 util/cvanal.c:66 util/lpanal.c:385 Engine/fgens.c:379
 #: Engine/fgens.c:506 Engine/fgens.c:547 Engine/fgens.c:750
@@ -4960,7 +4964,7 @@ msgstr ""
 #: Engine/sread.c:1597
 #, fuzzy, c-format
 msgid "Cannot open #include'd file %s"
-msgstr "Can't open #include'd file %s\n"
+msgstr "Can't open #include'd file %s"
 
 #: Engine/sread.c:1607
 msgid "Not #undef"
@@ -8128,9 +8132,8 @@ msgid "Nested next-parameter passing"
 msgstr ""
 
 #: util1/scot/scot.c:268
-#, fuzzy
 msgid "Unrecognised keyword"
-msgstr "unrecognized message type %d"
+msgstr ""
 
 #: util1/scot/scot.c:317
 msgid "Wrong number of beats in bar"
@@ -8186,9 +8189,8 @@ msgstr ""
 
 #: util1/scot/scot.c:925 util1/scot/scot.c:1039 util1/scot/scot.c:1053
 #: util1/scot/scot.c:1060 util1/scot/scot.c:1085
-#, fuzzy
 msgid "Unexpected end of file"
-msgstr "can't find end of file %s"
+msgstr ""
 
 #: util1/scot/scot.c:968
 msgid "Syntax error: no ="
@@ -9445,9 +9447,3 @@ msgstr ""
 msgid "not supported on this terminal"
 msgstr ""
 
-#, fuzzy
-#~ msgid "could not find indefinitely playing instr %d\n"
-#~ msgstr "couldn't find indefinitely playing instr %f\n"
-
-#~ msgid "lorisread cannot load %s"
-#~ msgstr "lorisread can't load %s"
