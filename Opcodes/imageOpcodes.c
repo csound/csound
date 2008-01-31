@@ -63,7 +63,7 @@
 /* #include <SDL/SDL.h> */
 /* #include <SDL/SDL_image.h> */
 
-#include <csdl.h>
+#include "csdl.h"
 #include "imageOpcodes.h"
 
 /*
@@ -78,7 +78,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 {
 #ifdef USE_LIBPNG
     FILE *fp;
-    int hs = 8;
+    const int hs = 8;
     unsigned char header[hs];
     png_structp png_ptr;
     png_infop info_ptr;
