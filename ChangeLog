@@ -1,9 +1,13 @@
+2008-01-30  jpff  <jpff@codemist.co.uk>
+
+	* retagged  5.08b
+
 2008-01-29 veplaini <Victor.Lazzarini@nuim.ie>
        * Opcodes/hrtfopcodes.c: New HRTF opcodes by Brian Carty
        * Opcodes/syncgrain.c: fixed bug in period counter preventing
 	                      accurate tuning of grain frequency
        * SConstruct: added token NOGETTEXT to useGettext=0 option
-	
+
 2008-01-29  jpff  <jpff@codemist.co.uk>
 
 	* H/dumpf.h: Commented out the interpolation argument as not
