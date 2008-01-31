@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-30 09:26+0000\n"
+"POT-Creation-Date: 2008-01-31 13:00+0000\n"
 "PO-Revision-Date: 2008-01-17 07:09+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
@@ -50,8 +50,7 @@ msgstr "trop d'arguments"
 msgid "the stack is already allocated"
 msgstr "la pile est déjà allouée"
 
-#: Opcodes/stackops.c:293 Engine/insert.c:962 Engine/UNSAFE/insert.c:954
-#: OOps/bus.c:762
+#: Opcodes/stackops.c:293 Engine/insert.c:962 OOps/bus.c:762
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s : non initialisé"
@@ -2616,11 +2615,11 @@ msgstr "vermp : la table de trajectoire contient des valeurs hors limites"
 msgid "partikkel: "
 msgstr "partikkel :"
 
-#: Opcodes/partikkel.c:780
+#: Opcodes/partikkel.c:791
 msgid "partikkelsync: opcode id needs to be a non-zero integer"
 msgstr "partikkelsync : l'id de l'opcode doit être un entier non nul"
 
-#: Opcodes/partikkel.c:784 Opcodes/partikkel.c:790
+#: Opcodes/partikkel.c:795 Opcodes/partikkel.c:801
 msgid "partikkelsync: could not find opcode id"
 msgstr "partikkelsync : impossible de trouver l'id de l'opcode"
 
@@ -2974,34 +2973,8 @@ msgstr "imageload : impossible d'ouvrir l'image %s en écriture.\n"
 msgid "Cannot allocate memory.\n"
 msgstr "Impossible d'allouer la mémoire.\n"
 
-#: Opcodes/hrtfopcodes.c:148 Opcodes/hrtfopcodes.c:1076
-#: Opcodes/hrtfopcodes.c:1607
-msgid ""
-"\n"
-"\n"
-"Hrtf Based Binarual Spatialisation\n"
-"\n"
-msgstr ""
-
-#: Opcodes/hrtfopcodes.c:160
-#, fuzzy
-msgid ""
-"\n"
-"\n"
-"Minimum Phase Processing\n"
-"\n"
-msgstr "utilisation du traitement Cscore\n"
-
-#: Opcodes/hrtfopcodes.c:161
-msgid ""
-"\n"
-"\n"
-"Phase Truncation Processing\n"
-"\n"
-msgstr ""
-
-#: Opcodes/hrtfopcodes.c:164 Opcodes/hrtfopcodes.c:1080
-#: Opcodes/hrtfopcodes.c:1611
+#: Opcodes/hrtfopcodes.c:164 Opcodes/hrtfopcodes.c:1081
+#: Opcodes/hrtfopcodes.c:1612
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -3015,10 +2988,10 @@ msgstr ""
 "Il devrait valoir %d... fin du traitement."
 
 #: Opcodes/hrtfopcodes.c:178 Opcodes/hrtfopcodes.c:197
-#: Opcodes/hrtfopcodes.c:216 Opcodes/hrtfopcodes.c:1094
-#: Opcodes/hrtfopcodes.c:1113 Opcodes/hrtfopcodes.c:1132
-#: Opcodes/hrtfopcodes.c:1623 Opcodes/hrtfopcodes.c:1640
-#: Opcodes/hrtfopcodes.c:1657
+#: Opcodes/hrtfopcodes.c:216 Opcodes/hrtfopcodes.c:1095
+#: Opcodes/hrtfopcodes.c:1114 Opcodes/hrtfopcodes.c:1133
+#: Opcodes/hrtfopcodes.c:1624 Opcodes/hrtfopcodes.c:1641
+#: Opcodes/hrtfopcodes.c:1658
 msgid ""
 "\n"
 "\n"
@@ -3028,10 +3001,10 @@ msgid ""
 msgstr ""
 
 #: Opcodes/hrtfopcodes.c:183 Opcodes/hrtfopcodes.c:202
-#: Opcodes/hrtfopcodes.c:221 Opcodes/hrtfopcodes.c:1099
-#: Opcodes/hrtfopcodes.c:1118 Opcodes/hrtfopcodes.c:1137
-#: Opcodes/hrtfopcodes.c:1628 Opcodes/hrtfopcodes.c:1645
-#: Opcodes/hrtfopcodes.c:1662
+#: Opcodes/hrtfopcodes.c:221 Opcodes/hrtfopcodes.c:1100
+#: Opcodes/hrtfopcodes.c:1119 Opcodes/hrtfopcodes.c:1138
+#: Opcodes/hrtfopcodes.c:1629 Opcodes/hrtfopcodes.c:1646
+#: Opcodes/hrtfopcodes.c:1663
 msgid ""
 "\n"
 "\n"
@@ -3040,22 +3013,13 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/hrtfopcodes.c:227 Opcodes/hrtfopcodes.c:1142
-#: Opcodes/hrtfopcodes.c:1668
+#: Opcodes/hrtfopcodes.c:227 Opcodes/hrtfopcodes.c:1143
+#: Opcodes/hrtfopcodes.c:1669
 msgid ""
 "\n"
 "\n"
 "\n"
 " Sampling rate not supported, exiting\n"
-"\n"
-msgstr ""
-
-#: Opcodes/hrtfopcodes.c:246
-msgid ""
-"\n"
-"\n"
-"Files Stored\n"
-"\n"
 "\n"
 msgstr ""
 
@@ -3067,21 +3031,26 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/hrtfopcodes.c:1077
-msgid ""
-"\n"
-"\n"
-"Non Linear ITD Woodworth Based Static Processing\n"
-"\n"
+#: Opcodes/jackTransport.c:99
+msgid "Cannot find Jack client.\n"
 msgstr ""
 
-#: Opcodes/hrtfopcodes.c:1608
-msgid ""
-"\n"
-"\n"
-"Non Linear ITD Woodworth Based Dynamic Processing\n"
-"\n"
+#: Opcodes/jackTransport.c:105
+msgid "jack_transport playing.\n"
 msgstr ""
+
+#: Opcodes/jackTransport.c:109
+msgid "jack_transport stopped.\n"
+msgstr ""
+
+#: Opcodes/jackTransport.c:113
+msgid "jack_transport rewinded.\n"
+msgstr ""
+
+#: Opcodes/jackTransport.c:117
+#, fuzzy
+msgid "jack_transport: invalid parameter.\n"
+msgstr "turnoff2 : paramètre de mode non valide"
 
 #: util/pvanal.c:170 util/cvanal.c:66 util/lpanal.c:385 Engine/fgens.c:379
 #: Engine/fgens.c:506 Engine/fgens.c:547 Engine/fgens.c:750
@@ -3090,23 +3059,23 @@ msgstr ""
 msgid "insufficient arguments"
 msgstr "pas assez d'arguments"
 
-#: util/pvanal.c:175 util/jpff_hetro.c:155 util/hetro.c:156 util/cvanal.c:73
-#: util/lpanal.c:390 Top/pvanal.c:109 Top/hetro.c:141 Top/cvanal.c:76
+#: util/pvanal.c:175 util/hetro.c:156 util/cvanal.c:73 util/lpanal.c:390
+#: Top/pvanal.c:109 Top/hetro.c:141 Top/cvanal.c:76
 msgid "no sampling rate"
 msgstr "pas de taux d'échantillonnage"
 
-#: util/pvanal.c:182 util/jpff_hetro.c:163 util/hetro.c:164 util/cvanal.c:81
-#: util/lpanal.c:396 Top/pvanal.c:116 Top/hetro.c:148 Top/cvanal.c:84
+#: util/pvanal.c:182 util/hetro.c:164 util/cvanal.c:81 util/lpanal.c:396
+#: Top/pvanal.c:116 Top/hetro.c:148 Top/cvanal.c:84
 msgid "no channel"
 msgstr "pas de canal"
 
-#: util/pvanal.c:185 util/jpff_hetro.c:167 util/hetro.c:168 util/cvanal.c:87
-#: util/lpanal.c:398 Top/pvanal.c:119 Top/hetro.c:151 Top/cvanal.c:90
+#: util/pvanal.c:185 util/hetro.c:168 util/cvanal.c:87 util/lpanal.c:398
+#: Top/pvanal.c:119 Top/hetro.c:151 Top/cvanal.c:90
 msgid "no begin time"
 msgstr "pas de date de début"
 
-#: util/pvanal.c:192 util/jpff_hetro.c:175 util/hetro.c:176 util/cvanal.c:95
-#: util/lpanal.c:404 Top/pvanal.c:126 Top/hetro.c:158 Top/cvanal.c:98
+#: util/pvanal.c:192 util/hetro.c:176 util/cvanal.c:95 util/lpanal.c:404
+#: Top/pvanal.c:126 Top/hetro.c:158 Top/cvanal.c:98
 msgid "no duration time"
 msgstr "pas de durée"
 
@@ -3556,159 +3525,6 @@ msgstr "Impossible d'ouvrir le fichier de sortie %s\n"
 msgid "Failed to read LPC header\n"
 msgstr "La lecture de l'en-tête LPC a échoué\n"
 
-#: util/jpff_hetro.c:148 util/hetro.c:149 Top/hetro.c:135
-msgid "no arguments"
-msgstr "pas d'arguments"
-
-#: util/jpff_hetro.c:183 util/hetro.c:184 Top/hetro.c:165
-msgid "no fundamental estimate"
-msgstr "pas d'estimation du fondamental"
-
-#: util/jpff_hetro.c:191 util/hetro.c:192 Top/hetro.c:172
-msgid "no harmonic count"
-msgstr "pas de nombre d'harmoniques"
-
-#: util/jpff_hetro.c:194 util/hetro.c:195 Top/hetro.c:175
-#, c-format
-msgid "over %d harmonics but continuing"
-msgstr "plus de %d harmoniques mais on continue"
-
-#: util/jpff_hetro.c:197 util/hetro.c:198 Top/hetro.c:178
-#, c-format
-msgid "h of %d too low, reset to 1\n"
-msgstr "h de %d trop bas, réinitialisé à 1\n"
-
-#: util/jpff_hetro.c:203 util/hetro.c:204 Top/hetro.c:183
-msgid "no amplitude maximum"
-msgstr "pas de maximum d'amplitude"
-
-#: util/jpff_hetro.c:207 util/hetro.c:208 Top/hetro.c:186
-msgid "no amplitude minimum"
-msgstr "pas de minimum d'amplitude"
-
-#: util/jpff_hetro.c:211 util/hetro.c:212 Top/hetro.c:189
-msgid "no number of output points"
-msgstr "pas de nombre de points de sortie"
-
-#: util/jpff_hetro.c:215 util/hetro.c:216 Top/hetro.c:192
-msgid "no filter cutoff"
-msgstr "pas de coupure de filtre"
-
-#: util/jpff_hetro.c:223 util/hetro.c:224 Top/argdecode.c:668
-#: Top/argdecode.c:1107 Top/hetro.c:199
-msgid "no log file"
-msgstr "pas de fichier journal"
-
-#: util/jpff_hetro.c:227 util/hetro.c:228 Top/hetro.c:202
-msgid "Invalid switch option"
-msgstr "Option non valide"
-
-#: util/jpff_hetro.c:233 util/hetro.c:234 util/lpanal.c:455 Top/hetro.c:207
-msgid "incorrect number of filenames"
-msgstr "nombre de noms de fichier incorrect"
-
-#: util/jpff_hetro.c:238 util/hetro.c:239 Top/hetro.c:212
-#, c-format
-msgid "Filter cutoff freq. = %f\n"
-msgstr "Fréq. de coupure du filtre = %f\n"
-
-#: util/jpff_hetro.c:242 util/hetro.c:243 util/lpanal.c:471 util/lpanal.c:489
-#: Top/hetro.c:215
-msgid "input and begin times cannot be less than zero"
-msgstr "les dates d'entrée et de début ne peuvent pas être inférieures à zéro"
-
-#: util/jpff_hetro.c:248 util/hetro.c:249 Engine/linevent.c:98
-#: Engine/linevent.c:107 Top/hetro.c:220 OOps/dumpf.c:57 OOps/dumpf.c:82
-#: OOps/dumpf.c:107 OOps/dumpf.c:132 OOps/dumpf.c:274 OOps/dumpf.c:301
-#: OOps/dumpf.c:328 OOps/dumpf.c:355
-#, c-format
-msgid "Cannot open %s"
-msgstr "Impossible d'ouvrir %s"
-
-#: util/jpff_hetro.c:259 util/hetro.c:260 Top/hetro.c:229
-#, c-format
-msgid "Read error on %s\n"
-msgstr "Erreur de lecture sur %s\n"
-
-#: util/jpff_hetro.c:269 util/jpff_hetro.c:275 util/hetro.c:270
-#: util/hetro.c:276 Top/hetro.c:239 Top/hetro.c:242
-msgid "number of output points is too great"
-msgstr "le nombre de points de sortie est trop grand"
-
-#: util/jpff_hetro.c:331 util/hetro.c:332 Top/hetro.c:295
-#, c-format
-msgid "analyzing harmonic #%d\n"
-msgstr "analyse de l'harmonique numéro %d\n"
-
-#: util/jpff_hetro.c:332 util/hetro.c:333 Top/hetro.c:296
-#, c-format
-msgid "freq estimate %6.1f,"
-msgstr "fréq estimée à %6.1f, "
-
-#: util/jpff_hetro.c:337 util/hetro.c:338 Top/hetro.c:299
-#, c-format
-msgid " max found %6.1f, rel amp %6.1f\n"
-msgstr " max trouvé %6.1f, amp rel %6.1f\n"
-
-#: util/jpff_hetro.c:345 util/hetro.c:346 Top/hetro.c:309
-msgid "Unable to write to SDIF file\n"
-msgstr "Impossible d'écrire dans le fichier SDIF\n"
-
-#: util/jpff_hetro.c:557 util/hetro.c:569
-#, c-format
-msgid ""
-"hetro:  %s\n"
-"\tanalysis aborted"
-msgstr ""
-"hetro:  %s\n"
-"\tanalyse interrompue"
-
-#: util/jpff_hetro.c:592 util/hetro.c:604 Top/hetro.c:542
-msgid "cannot create output file\n"
-msgstr "impossible de créer le fichier de sortie\n"
-
-#: util/jpff_hetro.c:604 util/hetro.c:616 Top/hetro.c:554
-#, c-format
-msgid "scale = %f\n"
-msgstr "scale = %f\n"
-
-#: util/jpff_hetro.c:699 util/hetro.c:711 Top/hetro.c:646
-#, c-format
-msgid "harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"
-msgstr ""
-"harmonique %d :\tpoints d'amp %d,\tpoints de frq %d,\tamp de crête %d\n"
-
-#: util/jpff_hetro.c:703 util/hetro.c:715 Top/hetro.c:649
-#, c-format
-msgid "wrote %ld bytes to %s\n"
-msgstr "%ld octets écrits vers %s\n"
-
-#: util/jpff_hetro.c:736 util/hetro.c:747 Top/hetro.c:677
-msgid "OOPS: SDIF does not work on this machine!\n"
-msgstr "OOPS : SDIF ne fonctionne pas sur cette machine !\n"
-
-#: util/jpff_hetro.c:762 util/hetro.c:773 Top/hetro.c:704
-#, c-format
-msgid "Error creating %s\n"
-msgstr "Erreur en créant %s\n"
-
-#: util/jpff_hetro.c:789 util/hetro.c:801 Top/hetro.c:730
-msgid "Error writing SDIF frame header.\n"
-msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
-
-#: util/jpff_hetro.c:798 util/hetro.c:810 Top/hetro.c:739
-msgid "Error writing SDIF matrix header.\n"
-msgstr "Erreur en écrivant un en-tête de matrice SDIF.\n"
-
-#: util/jpff_hetro.c:811 util/hetro.c:823 Top/hetro.c:752
-msgid "Error writing SDIF data.\n"
-msgstr "Erreur en écrivant des données SDIF.\n"
-
-#: util/jpff_hetro.c:818 util/hetro.c:830 Top/hetro.c:758
-#, c-format
-msgid "wrote %ld 1TRC frames to %s\n"
-msgstr "%ld trames 1TRC on été écrites vers %s\n"
-
 #: util/srconv.c:97
 #, c-format
 msgid "Sound format -%c has been overruled by -%c"
@@ -4015,6 +3831,155 @@ msgstr "%d échantillons %s hors limites\n"
 msgid "Max scale factor = %.3f\n"
 msgstr "Facteur d'échelle max = %.3f\n"
 
+#: util/hetro.c:149 Top/hetro.c:135
+msgid "no arguments"
+msgstr "pas d'arguments"
+
+#: util/hetro.c:184 Top/hetro.c:165
+msgid "no fundamental estimate"
+msgstr "pas d'estimation du fondamental"
+
+#: util/hetro.c:192 Top/hetro.c:172
+msgid "no harmonic count"
+msgstr "pas de nombre d'harmoniques"
+
+#: util/hetro.c:195 Top/hetro.c:175
+#, c-format
+msgid "over %d harmonics but continuing"
+msgstr "plus de %d harmoniques mais on continue"
+
+#: util/hetro.c:198 Top/hetro.c:178
+#, c-format
+msgid "h of %d too low, reset to 1\n"
+msgstr "h de %d trop bas, réinitialisé à 1\n"
+
+#: util/hetro.c:204 Top/hetro.c:183
+msgid "no amplitude maximum"
+msgstr "pas de maximum d'amplitude"
+
+#: util/hetro.c:208 Top/hetro.c:186
+msgid "no amplitude minimum"
+msgstr "pas de minimum d'amplitude"
+
+#: util/hetro.c:212 Top/hetro.c:189
+msgid "no number of output points"
+msgstr "pas de nombre de points de sortie"
+
+#: util/hetro.c:216 Top/hetro.c:192
+msgid "no filter cutoff"
+msgstr "pas de coupure de filtre"
+
+#: util/hetro.c:224 Top/argdecode.c:668 Top/argdecode.c:1107 Top/hetro.c:199
+msgid "no log file"
+msgstr "pas de fichier journal"
+
+#: util/hetro.c:228 Top/hetro.c:202
+msgid "Invalid switch option"
+msgstr "Option non valide"
+
+#: util/hetro.c:234 util/lpanal.c:455 Top/hetro.c:207
+msgid "incorrect number of filenames"
+msgstr "nombre de noms de fichier incorrect"
+
+#: util/hetro.c:239 Top/hetro.c:212
+#, c-format
+msgid "Filter cutoff freq. = %f\n"
+msgstr "Fréq. de coupure du filtre = %f\n"
+
+#: util/hetro.c:243 util/lpanal.c:471 util/lpanal.c:489 Top/hetro.c:215
+msgid "input and begin times cannot be less than zero"
+msgstr "les dates d'entrée et de début ne peuvent pas être inférieures à zéro"
+
+#: util/hetro.c:249 Engine/linevent.c:98 Engine/linevent.c:107 Top/hetro.c:220
+#: OOps/dumpf.c:57 OOps/dumpf.c:82 OOps/dumpf.c:107 OOps/dumpf.c:132
+#: OOps/dumpf.c:274 OOps/dumpf.c:301 OOps/dumpf.c:328 OOps/dumpf.c:355
+#, c-format
+msgid "Cannot open %s"
+msgstr "Impossible d'ouvrir %s"
+
+#: util/hetro.c:260 Top/hetro.c:229
+#, c-format
+msgid "Read error on %s\n"
+msgstr "Erreur de lecture sur %s\n"
+
+#: util/hetro.c:270 util/hetro.c:276 Top/hetro.c:239 Top/hetro.c:242
+msgid "number of output points is too great"
+msgstr "le nombre de points de sortie est trop grand"
+
+#: util/hetro.c:332 Top/hetro.c:295
+#, c-format
+msgid "analyzing harmonic #%d\n"
+msgstr "analyse de l'harmonique numéro %d\n"
+
+#: util/hetro.c:333 Top/hetro.c:296
+#, c-format
+msgid "freq estimate %6.1f,"
+msgstr "fréq estimée à %6.1f, "
+
+#: util/hetro.c:338 Top/hetro.c:299
+#, c-format
+msgid " max found %6.1f, rel amp %6.1f\n"
+msgstr " max trouvé %6.1f, amp rel %6.1f\n"
+
+#: util/hetro.c:346 Top/hetro.c:309
+msgid "Unable to write to SDIF file\n"
+msgstr "Impossible d'écrire dans le fichier SDIF\n"
+
+#: util/hetro.c:569
+#, c-format
+msgid ""
+"hetro:  %s\n"
+"\tanalysis aborted"
+msgstr ""
+"hetro:  %s\n"
+"\tanalyse interrompue"
+
+#: util/hetro.c:604 Top/hetro.c:542
+msgid "cannot create output file\n"
+msgstr "impossible de créer le fichier de sortie\n"
+
+#: util/hetro.c:616 Top/hetro.c:554
+#, c-format
+msgid "scale = %f\n"
+msgstr "scale = %f\n"
+
+#: util/hetro.c:711 Top/hetro.c:646
+#, c-format
+msgid "harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"
+msgstr ""
+"harmonique %d :\tpoints d'amp %d,\tpoints de frq %d,\tamp de crête %d\n"
+
+#: util/hetro.c:715 Top/hetro.c:649
+#, c-format
+msgid "wrote %ld bytes to %s\n"
+msgstr "%ld octets écrits vers %s\n"
+
+#: util/hetro.c:747 Top/hetro.c:677
+msgid "OOPS: SDIF does not work on this machine!\n"
+msgstr "OOPS : SDIF ne fonctionne pas sur cette machine !\n"
+
+#: util/hetro.c:773 Top/hetro.c:704
+#, c-format
+msgid "Error creating %s\n"
+msgstr "Erreur en créant %s\n"
+
+#: util/hetro.c:801 Top/hetro.c:730
+msgid "Error writing SDIF frame header.\n"
+msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
+
+#: util/hetro.c:810 Top/hetro.c:739
+msgid "Error writing SDIF matrix header.\n"
+msgstr "Erreur en écrivant un en-tête de matrice SDIF.\n"
+
+#: util/hetro.c:823 Top/hetro.c:752
+msgid "Error writing SDIF data.\n"
+msgstr "Erreur en écrivant des données SDIF.\n"
+
+#: util/hetro.c:830 Top/hetro.c:758
+#, c-format
+msgid "wrote %ld 1TRC frames to %s\n"
+msgstr "%ld trames 1TRC on été écrites vers %s\n"
+
 #: util/cvanal.c:84 Top/cvanal.c:87
 msgid "channel must be in the range 1 to 4"
 msgstr "le canal doit être dans l'intervalle de 1 à 4"
@@ -4264,20 +4229,17 @@ msgstr "écriture de blocs de %2$s de %1$d octets vers %3$s %4$s\n"
 msgid "Failed to open %s"
 msgstr "L'ouverture de %s a échoué"
 
-#: Engine/insert.c:85 Engine/UNSAFE/insert.c:85
+#: Engine/insert.c:85
 #, c-format
 msgid "Instrument %d muted\n"
 msgstr "Instrument %d muet\n"
 
-#: Engine/insert.c:89 Engine/insert.c:1156 Engine/UNSAFE/insert.c:89
-#: Engine/UNSAFE/insert.c:1152
+#: Engine/insert.c:89 Engine/insert.c:1156
 #, c-format
 msgid "instr %d expects midi event data, cannot run from score\n"
 msgstr "l'instr %d attend des évènements midi, et pas une partition\n"
 
 #: Engine/insert.c:98 Engine/insert.c:238 Engine/insert.c:1143
-#: Engine/UNSAFE/insert.c:98 Engine/UNSAFE/insert.c:238
-#: Engine/UNSAFE/insert.c:1139
 #, c-format
 msgid "cannot allocate last note because it exceeds 100%% of cpu time"
 msgstr ""
@@ -4285,31 +4247,27 @@ msgstr ""
 "disponible"
 
 #: Engine/insert.c:104 Engine/insert.c:244 Engine/insert.c:1148
-#: Engine/UNSAFE/insert.c:104 Engine/UNSAFE/insert.c:244
-#: Engine/UNSAFE/insert.c:1144
 msgid "cannot allocate last note because it exceeds instr maxalloc"
 msgstr ""
 "impossible d'allouer la dernière note car le nombre maximum d'allocations "
 "d'instr est atteint"
 
 #: Engine/insert.c:118 Engine/insert.c:256 Engine/insert.c:1172
-#: Engine/UNSAFE/insert.c:118 Engine/UNSAFE/insert.c:256
-#: Engine/UNSAFE/insert.c:1168
 #, c-format
 msgid "new alloc for instr %d:\n"
 msgstr "nouvelle allocation de l'instr %d :\n"
 
-#: Engine/insert.c:157 Engine/UNSAFE/insert.c:157
+#: Engine/insert.c:157
 #, c-format
 msgid "instr %d uses %d p-fields but is given %d"
 msgstr "l'instr %d utilise %d p-champs alors qu'il n'en a reçu que %d"
 
-#: Engine/insert.c:268 Engine/UNSAFE/insert.c:268
+#: Engine/insert.c:268
 #, c-format
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr "la note MIDI chevauche la touche %d sur le même canal"
 
-#: Engine/insert.c:292 Engine/UNSAFE/insert.c:292
+#: Engine/insert.c:292
 #, c-format
 msgid "instr %d p%d illegal for MIDI"
 msgstr "l'instr %d p%d est illégal pour le MIDI"
@@ -4319,7 +4277,7 @@ msgstr "l'instr %d p%d est illégal pour le MIDI"
 msgid "removed instance of instr %d\n"
 msgstr "une instance de l'instrument %d a été enlevée\n"
 
-#: Engine/insert.c:617 Engine/UNSAFE/insert.c:609
+#: Engine/insert.c:617
 msgid "inactive allocs returned to freespace\n"
 msgstr "les allocation inactives ont été rendues à l'espace libre\n"
 
@@ -4328,7 +4286,7 @@ msgstr "les allocation inactives ont été rendues à l'espace libre\n"
 msgid "could not find indefinitely playing instr %f\n"
 msgstr "impossible de trouver l'instrument indéfiniment actif %f\n"
 
-#: Engine/insert.c:654 Engine/UNSAFE/insert.c:646
+#: Engine/insert.c:654
 msgid ""
 "\n"
 "INIT ERROR: "
@@ -4336,22 +4294,22 @@ msgstr ""
 "\n"
 "ERREUR D'INITIALISATION : "
 
-#: Engine/insert.c:667 Engine/UNSAFE/insert.c:659
+#: Engine/insert.c:667
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d (opcode %s) : "
 
-#: Engine/insert.c:670 Engine/UNSAFE/insert.c:662
+#: Engine/insert.c:670
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d (subinstr %d) : "
 
-#: Engine/insert.c:674 Engine/UNSAFE/insert.c:666
+#: Engine/insert.c:674
 #, c-format
 msgid "INIT ERROR in instr %d: "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d : "
 
-#: Engine/insert.c:692 Engine/UNSAFE/insert.c:684
+#: Engine/insert.c:692
 msgid ""
 "\n"
 "PERF ERROR: "
@@ -4359,68 +4317,68 @@ msgstr ""
 "\n"
 "ERREUR D'EXECUTION : "
 
-#: Engine/insert.c:705 Engine/UNSAFE/insert.c:697
+#: Engine/insert.c:705
 #, c-format
 msgid "PERF ERROR in instr %d (opcode %s): "
 msgstr "ERREUR D'EXECUTION dans l'instr %d (opcode %s) : "
 
-#: Engine/insert.c:708 Engine/UNSAFE/insert.c:700
+#: Engine/insert.c:708
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
 msgstr "ERREUR D'EXECUTION dans l'instr %d (subinstr %d) : "
 
-#: Engine/insert.c:712 Engine/UNSAFE/insert.c:704
+#: Engine/insert.c:712
 #, c-format
 msgid "PERF ERROR in instr %d: "
 msgstr "ERREUR D'EXECUTION dans l'instr %d :"
 
-#: Engine/insert.c:717 Engine/UNSAFE/insert.c:709
+#: Engine/insert.c:717
 msgid "   note aborted\n"
 msgstr "    note interrompue\n"
 
-#: Engine/insert.c:744 Engine/UNSAFE/insert.c:736
+#: Engine/insert.c:744
 msgid "subinstr: number of output args greater than nchnls"
 msgstr "subinstr : nombre d'arguments de sortie supérieur à nchnls"
 
-#: Engine/insert.c:784 Engine/UNSAFE/insert.c:776
+#: Engine/insert.c:784
 msgid "subinstr: too many p-fields"
 msgstr "subinstr : trop de p-champs"
 
-#: Engine/insert.c:843 Engine/UNSAFE/insert.c:835
+#: Engine/insert.c:843
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr "%s : valeur locale de ksmps non valide : %d"
 
-#: Engine/insert.c:1077 Engine/UNSAFE/insert.c:1073
+#: Engine/insert.c:1077
 #, c-format
 msgid "setksmps: invalid ksmps value: %d"
 msgstr "setksmps : valeur de ksmps non valide : %d"
 
-#: Engine/insert.c:1134 Engine/UNSAFE/insert.c:1130
+#: Engine/insert.c:1134
 #, c-format
 msgid "schedule event ignored. instr %d undefined\n"
 msgstr "évènement programmé ignoré. L'instr %d n'est pas défini\n"
 
-#: Engine/insert.c:1199 Engine/UNSAFE/insert.c:1195
+#: Engine/insert.c:1199
 #, c-format
 msgid "instr %d pmax = %d, note pcnt = %d"
 msgstr "instr %d pmax = %d, pcnt de note = %d"
 
-#: Engine/insert.c:1206 Engine/UNSAFE/insert.c:1202
+#: Engine/insert.c:1206
 #, c-format
 msgid "psave beg at %p\n"
 msgstr "psave début à %p\n"
 
-#: Engine/insert.c:1213 Engine/UNSAFE/insert.c:1209
+#: Engine/insert.c:1213
 #, c-format
 msgid "   ending at %p\n"
 msgstr "   fin à %p\n"
 
-#: Engine/insert.c:1349 Engine/UNSAFE/insert.c:1345
+#: Engine/insert.c:1349
 msgid "subinstr: not initialised"
 msgstr "subinstr : non initialisé"
 
-#: Engine/insert.c:1607 Engine/UNSAFE/insert.c:1603
+#: Engine/insert.c:1607
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -4429,20 +4387,20 @@ msgstr ""
 "instr %d alloué à %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:1624 Engine/UNSAFE/insert.c:1620
+#: Engine/insert.c:1624
 #, c-format
 msgid "op %d (%s) allocated at %p\n"
 msgstr "op %d (%s) alloué à %p\n"
 
-#: Engine/insert.c:1650 Engine/UNSAFE/insert.c:1646
+#: Engine/insert.c:1650
 msgid "null iopadr"
 msgstr "iopadr null"
 
-#: Engine/insert.c:1661 Engine/UNSAFE/insert.c:1657
+#: Engine/insert.c:1661
 msgid "null opadr"
 msgstr "opadr null"
 
-#: Engine/insert.c:1718 Engine/UNSAFE/insert.c:1714
+#: Engine/insert.c:1718
 msgid "inconsistent opds total"
 msgstr "total d'opds non cohérent"
 
@@ -4487,35 +4445,32 @@ msgstr "twarp : t a un tempo non positif\n"
 msgid "twarp: t segments exceed twarp array\n"
 msgstr "twarp : les segments t dépassent la capacité du tableau twarp\n"
 
-#: Engine/otran.c:299 Engine/otran.c:306 Engine/UNSAFE/otran.c:299
-#: Engine/UNSAFE/otran.c:306
+#: Engine/otran.c:299 Engine/otran.c:306
 msgid "missing instrument number or name"
 msgstr "il manque un numéro ou un nom d'instrument"
 
-#: Engine/otran.c:311 Engine/UNSAFE/otran.c:311
+#: Engine/otran.c:311
 msgid "illegal instr number"
 msgstr "numéro d'instrument illégal"
 
-#: Engine/otran.c:326 Engine/UNSAFE/otran.c:326
-#: Engine/csound_orc_compile.c:919
+#: Engine/otran.c:326 Engine/csound_orc_compile.c:919
 #, c-format
 msgid "instr %ld redefined"
 msgstr "instr %ld redéfini"
 
-#: Engine/otran.c:338 Engine/UNSAFE/otran.c:338
-#: Engine/csound_orc_compile.c:654
+#: Engine/otran.c:338 Engine/csound_orc_compile.c:654
 msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
-#: Engine/otran.c:361 Engine/UNSAFE/otran.c:361
+#: Engine/otran.c:361
 msgid "No opcode name"
 msgstr "Aucun nom d'opcode"
 
-#: Engine/otran.c:366 Engine/symbtab.c:490 Engine/UNSAFE/otran.c:366
+#: Engine/otran.c:366 Engine/symbtab.c:490
 msgid "invalid name for opcode"
 msgstr "nom d'opcode non valide"
 
-#: Engine/otran.c:370 Engine/UNSAFE/otran.c:370
+#: Engine/otran.c:370
 #, c-format
 msgid ""
 "opcode declaration error (usage: opcode name, outtypes, intypes) -- opcode %s"
@@ -4523,119 +4478,104 @@ msgstr ""
 "erreur de déclaration d'opcode (utilisation : nom d'opcode, types en sortie, "
 "types en entrée) -- opcode %s"
 
-#: Engine/otran.c:381 Engine/symbtab.c:500 Engine/UNSAFE/otran.c:381
+#: Engine/otran.c:381 Engine/symbtab.c:500
 #, c-format
 msgid "cannot redefine %s"
 msgstr "impossible de redéfinir %s"
 
-#: Engine/otran.c:385 Engine/symbtab.c:505 Engine/UNSAFE/otran.c:385
+#: Engine/otran.c:385 Engine/symbtab.c:505
 #, c-format
 msgid "WARNING: redefined opcode: %s\n"
 msgstr "AVERTISSEMENT : opcode redéfini : %s\n"
 
-#: Engine/otran.c:476 Engine/UNSAFE/otran.c:476
+#: Engine/otran.c:476
 msgid "string constant used as output"
 msgstr "constante chaîne de caractères utilisée comme sortie"
 
-#: Engine/otran.c:505 Engine/UNSAFE/otran.c:505
+#: Engine/otran.c:505
 msgid "Missing endin"
 msgstr "Il manque endin"
 
-#: Engine/otran.c:550 Engine/otran.c:1394 Engine/UNSAFE/otran.c:550
-#: Engine/UNSAFE/otran.c:1385 Engine/csound_orc_compile.c:1108
+#: Engine/otran.c:550 Engine/otran.c:1394 Engine/csound_orc_compile.c:1108
 #, c-format
 msgid "%s invalid sample rate"
 msgstr "%s taux d'échantillonnage non valide"
 
-#: Engine/otran.c:552 Engine/otran.c:1396 Engine/UNSAFE/otran.c:552
-#: Engine/UNSAFE/otran.c:1387 Engine/csound_orc_compile.c:1110
+#: Engine/otran.c:552 Engine/otran.c:1396 Engine/csound_orc_compile.c:1110
 #, c-format
 msgid "%s invalid control rate"
 msgstr "%s taux de contrôle non valide"
 
-#: Engine/otran.c:555 Engine/otran.c:1392 Engine/UNSAFE/otran.c:555
-#: Engine/UNSAFE/otran.c:1383 Engine/csound_orc_compile.c:1113
+#: Engine/otran.c:555 Engine/otran.c:1392 Engine/csound_orc_compile.c:1113
 #, c-format
 msgid "%s invalid ksmps value"
 msgstr "%s valeur de ksmps non valide"
 
-#: Engine/otran.c:557 Engine/otran.c:1398 Engine/UNSAFE/otran.c:557
-#: Engine/UNSAFE/otran.c:1389 Engine/csound_orc_compile.c:1115
+#: Engine/otran.c:557 Engine/otran.c:1398 Engine/csound_orc_compile.c:1115
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr, ksmps contradictoires"
 
-#: Engine/otran.c:569 Engine/UNSAFE/otran.c:569
+#: Engine/otran.c:569
 msgid "perf-pass statements illegal in header blk"
 msgstr "les instructions d'exécution sont interdites dans le bloc d'en-tête"
 
-#: Engine/otran.c:573 Engine/UNSAFE/otran.c:573
+#: Engine/otran.c:573
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid"
 msgstr "%d erreurs de syntaxe dans l'orchestre.  Compilation non valide"
 
-#: Engine/otran.c:641 Engine/UNSAFE/otran.c:633
-#: Engine/csound_orc_compile.c:1191
+#: Engine/otran.c:641 Engine/csound_orc_compile.c:1191
 msgid "inconsistent argoff sumcount"
 msgstr "nombre d'arguments incohérent"
 
-#: Engine/otran.c:710 Engine/UNSAFE/otran.c:701
-#: Engine/csound_orc_compile.c:1263
+#: Engine/otran.c:710 Engine/csound_orc_compile.c:1263
 #, c-format
 msgid "LABELS list is full...extending to %d\n"
 msgstr "la liste des ETIQUETTES est pleine... extension à %d\n"
 
-#: Engine/otran.c:748 Engine/UNSAFE/otran.c:739
-#: Engine/csound_orc_compile.c:1301
+#: Engine/otran.c:748 Engine/csound_orc_compile.c:1301
 #, c-format
 msgid "GOTOS list is full..extending to %d\n"
 msgstr "la liste des GOTOS est pleine... extension à %d\n"
 
-#: Engine/otran.c:781 Engine/UNSAFE/otran.c:772
-#: Engine/csound_orc_compile.c:1334
+#: Engine/otran.c:781 Engine/csound_orc_compile.c:1334
 #, c-format
 msgid "target label '%s' not found"
 msgstr "étiquette cible '%s' non trouvée"
 
-#: Engine/otran.c:836 Engine/UNSAFE/otran.c:827
-#: Engine/csound_orc_compile.c:1399
+#: Engine/otran.c:836 Engine/csound_orc_compile.c:1399
 #, c-format
 msgid "string syntax '%s'"
 msgstr "syntaxe de chaîne '%s'"
 
-#: Engine/otran.c:886 Engine/UNSAFE/otran.c:877
-#: Engine/csound_orc_compile.c:1449
+#: Engine/otran.c:886 Engine/csound_orc_compile.c:1449
 #, c-format
 msgid "numeric syntax '%s'"
 msgstr "syntaxe numérique '%s'"
 
-#: Engine/otran.c:912 Engine/UNSAFE/otran.c:903
-#: Engine/csound_orc_compile.c:1475
+#: Engine/otran.c:912 Engine/csound_orc_compile.c:1475
 #, c-format
 msgid "extending Floating pool to %d\n"
 msgstr "agrandissement du réservoir de valeurs flottantes à %d\n"
 
-#: Engine/otran.c:984 Engine/UNSAFE/otran.c:975
-#: Engine/csound_orc_compile.c:1514
+#: Engine/otran.c:984 Engine/csound_orc_compile.c:1514
 msgid "gblnamset(): memory allocation failure"
 msgstr "gblnamset() : échec de l'allocation de mémoire"
 
-#: Engine/otran.c:1012 Engine/UNSAFE/otran.c:1003
-#: Engine/csound_orc_compile.c:1542
+#: Engine/otran.c:1012 Engine/csound_orc_compile.c:1542
 msgid "lclnamset(): memory allocation failure"
 msgstr "lclnamset() : échec de l'allocation de mémoire"
 
-#: Engine/otran.c:1037 Engine/UNSAFE/otran.c:1028
-#: Engine/csound_orc_compile.c:1567
+#: Engine/otran.c:1037 Engine/csound_orc_compile.c:1567
 msgid "unexpected global name"
 msgstr "nom global inattendu"
 
-#: Engine/otran.c:1059 Engine/UNSAFE/otran.c:1050
-#: Engine/csound_orc_compile.c:1590
+#: Engine/otran.c:1059 Engine/csound_orc_compile.c:1590
 msgid "unknown nametype"
 msgstr "type nommé inconnu"
 
-#: Engine/otran.c:1220 Engine/UNSAFE/otran.c:1211
+#: Engine/otran.c:1220
 msgid "bad value for 0dbfs: must be positive."
 msgstr "mauvaise valeur pour 0dbfs : elle doit être positive"
 
@@ -4646,18 +4586,18 @@ msgstr ""
 "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = %"
 "d\n"
 
-#: Engine/otran.c:1300 Engine/UNSAFE/otran.c:1291
+#: Engine/otran.c:1300
 msgid "internal error: string constant outarg"
 msgstr ""
 "erreur interne : constante chaîne de caractères utilisée comme argument en "
 "sortie"
 
-#: Engine/otran.c:1326 Engine/UNSAFE/otran.c:1317
+#: Engine/otran.c:1326
 #, c-format
 msgid "i%d pset args != pmax"
 msgstr "i%d pset args != pmax"
 
-#: Engine/otran.c:1389 Engine/UNSAFE/otran.c:1380
+#: Engine/otran.c:1389
 #, c-format
 msgid ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
@@ -4666,26 +4606,9 @@ msgstr ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 "Erreur :"
 
-#: Engine/otran.c:1423 Engine/UNSAFE/otran.c:1414
+#: Engine/otran.c:1423
 msgid "header init errors"
 msgstr "Erreurs dans l'initialisation de l'en-tête"
-
-#: Engine/UNSAFE/insert.c:633
-#, fuzzy, c-format
-msgid "could not find indefinitely playing instr %d\n"
-msgstr "impossible de trouver l'instrument indéfiniment actif %f\n"
-
-#: Engine/UNSAFE/insert.c:1711
-#, c-format
-msgid "nxtopds = %p opdslim = %p\n"
-msgstr ""
-
-#: Engine/UNSAFE/otran.c:1221
-#, fuzzy, c-format
-msgid "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"
-msgstr ""
-"redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = %"
-"d\n"
 
 #: Engine/express.c:64
 #, c-format
@@ -9082,142 +9005,6 @@ msgstr "erreur en fermant le périphérique d'entrée"
 msgid "error closing output device"
 msgstr "erreur en fermant le périphérique de sortie"
 
-#: InOut/jpff_midifile.c:83 InOut/midifile.c:83
-msgid " *** unexpected end of MIDI file\n"
-msgstr " *** terminaison anormale du fichier MIDI\n"
-
-#: InOut/jpff_midifile.c:88 InOut/midifile.c:88
-msgid " *** unexpected end of MIDI track\n"
-msgstr " *** terminaison anormale de piste MIDI\n"
-
-#: InOut/jpff_midifile.c:103 InOut/midifile.c:103
-msgid " *** invalid dynamic length data in MIDI file\n"
-msgstr " *** donnée de longueur dynamique non valide dans le fichier MIDI\n"
-
-#: InOut/jpff_midifile.c:208 InOut/midifile.c:208
-#, c-format
-msgid " *** unexpected event 0x%02X\n"
-msgstr " *** évènement anormal 0x%02X\n"
-
-#: InOut/jpff_midifile.c:231 InOut/midifile.c:231
-msgid " *** invalid MIDI file data\n"
-msgstr " *** données de fichier MIDI non valides\n"
-
-#: InOut/jpff_midifile.c:266 InOut/midifile.c:266
-msgid " *** unexpected end of system exclusive message\n"
-msgstr " *** terminaison anormale d'un message system exclusive\n"
-
-#: InOut/jpff_midifile.c:277 InOut/midifile.c:277
-msgid " *** invalid system exclusive message in MIDI file\n"
-msgstr " *** message system exclusive non valide dans le fichier MIDI\n"
-
-#: InOut/jpff_midifile.c:302 InOut/midifile.c:302
-msgid "  Message: "
-msgstr "  Message : "
-
-#: InOut/jpff_midifile.c:303 InOut/midifile.c:303
-msgid "  Copyright info: "
-msgstr "  Information de Copyright : "
-
-#: InOut/jpff_midifile.c:304 InOut/midifile.c:304
-msgid "  Track name: "
-msgstr "  Nom de piste : "
-
-#: InOut/jpff_midifile.c:305 InOut/midifile.c:305
-msgid "  Instrument name: "
-msgstr "  Nom d'instrument : "
-
-#: InOut/jpff_midifile.c:306 InOut/midifile.c:306
-msgid "  Song lyric: "
-msgstr "  Parole de chanson : "
-
-#: InOut/jpff_midifile.c:325 InOut/midifile.c:325
-msgid " *** invalid tempo\n"
-msgstr " *** tempo non valide\n"
-
-#: InOut/jpff_midifile.c:331 InOut/midifile.c:331
-msgid " *** invalid end of track event\n"
-msgstr " *** terminaison d'un évènement de piste non valide\n"
-
-#: InOut/jpff_midifile.c:335 InOut/midifile.c:335
-msgid " *** trailing garbage at end of MIDI track\n"
-msgstr " *** données incohérentes en fin de piste MIDI\n"
-
-#: InOut/jpff_midifile.c:351 InOut/midifile.c:351
-#, c-format
-msgid " *** unknown MIDI message: 0x%02X\n"
-msgstr " *** message MIDI inconnu : 0x%02X\n"
-
-#: InOut/jpff_midifile.c:367 InOut/midifile.c:367
-msgid " *** invalid MIDI track header\n"
-msgstr " *** en-tête de piste MIDI non valide\n"
-
-#: InOut/jpff_midifile.c:567 InOut/midifile.c:567
-#, c-format
-msgid " *** error opening MIDI file '%s': %s"
-msgstr " *** erreur à l'ouverture du fichier MIDI '%s' : %s"
-
-#: InOut/jpff_midifile.c:572 InOut/midifile.c:572
-#, c-format
-msgid "Reading MIDI file '%s'...\n"
-msgstr "Lecture du fichier MIDI '%s'...\n"
-
-#: InOut/jpff_midifile.c:578 InOut/jpff_midifile.c:590 InOut/midifile.c:578
-#: InOut/midifile.c:590
-msgid " *** invalid MIDI file header\n"
-msgstr " *** en-tête de fichier MIDI non valide\n"
-
-#: InOut/jpff_midifile.c:602 InOut/midifile.c:602
-#, c-format
-msgid " *** MIDI file format %d is not supported\n"
-msgstr " *** le format de fichier MIDI %d n'est pas supporté\n"
-
-#: InOut/jpff_midifile.c:614 InOut/midifile.c:614
-msgid " *** invalid number of tracks\n"
-msgstr " *** nombre de pistes non valide\n"
-
-#: InOut/jpff_midifile.c:618 InOut/midifile.c:618
-msgid "WARNING: format 0 MIDI file with multiple tracks\n"
-msgstr "AVERTISSEMENT : fichier MIDI 0 avec plusieurs pistes\n"
-
-#: InOut/jpff_midifile.c:632 InOut/jpff_midifile.c:649 InOut/midifile.c:632
-#: InOut/midifile.c:649
-#, c-format
-msgid " *** invalid time code: %d\n"
-msgstr " *** time code non valide : %d\n"
-
-#: InOut/jpff_midifile.c:672 InOut/midifile.c:672
-msgid " *** invalid mute track list format\n"
-msgstr " *** format non valide de liste de pistes muettes\n"
-
-#: InOut/jpff_midifile.c:678 InOut/midifile.c:678
-#, c-format
-msgid " Track %2d\n"
-msgstr " Piste %2d\n"
-
-#: InOut/jpff_midifile.c:680 InOut/midifile.c:680
-#, c-format
-msgid " Track %2d is muted\n"
-msgstr " La piste %2d est muette\n"
-
-#: InOut/jpff_midifile.c:691 InOut/midifile.c:691
-msgid "done.\n"
-msgstr "fait.\n"
-
-#: InOut/jpff_midifile.c:719 InOut/midifile.c:719
-#, c-format
-msgid "end of midi track in '%s'\n"
-msgstr "fin de la piste midi dans '%s'\n"
-
-#: InOut/jpff_midifile.c:721 InOut/midifile.c:721
-#, c-format
-msgid "%d forced decays, %d extra noteoffs\n"
-msgstr "%d chutes forcées, %d extra noteoffs\n"
-
-#: InOut/jpff_midifile.c:748 InOut/midifile.c:748
-msgid " *** buffer overflow while reading MIDI file events\n"
-msgstr " *** dépassement de tampon en lisant les évènements du fichier MIDI\n"
-
 #: InOut/rtwinmm.c:84
 msgid "winmm: error: "
 msgstr "winmm : erreur :"
@@ -9468,6 +9255,140 @@ msgid "WARNING: buffer underrun in real-time audio output\n"
 msgstr ""
 "AVERTISSEMENT : déficit de remplissage du tampon sur la sortie audio en "
 "temps réel\n"
+
+#: InOut/midifile.c:83
+msgid " *** unexpected end of MIDI file\n"
+msgstr " *** terminaison anormale du fichier MIDI\n"
+
+#: InOut/midifile.c:88
+msgid " *** unexpected end of MIDI track\n"
+msgstr " *** terminaison anormale de piste MIDI\n"
+
+#: InOut/midifile.c:103
+msgid " *** invalid dynamic length data in MIDI file\n"
+msgstr " *** donnée de longueur dynamique non valide dans le fichier MIDI\n"
+
+#: InOut/midifile.c:208
+#, c-format
+msgid " *** unexpected event 0x%02X\n"
+msgstr " *** évènement anormal 0x%02X\n"
+
+#: InOut/midifile.c:231
+msgid " *** invalid MIDI file data\n"
+msgstr " *** données de fichier MIDI non valides\n"
+
+#: InOut/midifile.c:266
+msgid " *** unexpected end of system exclusive message\n"
+msgstr " *** terminaison anormale d'un message system exclusive\n"
+
+#: InOut/midifile.c:277
+msgid " *** invalid system exclusive message in MIDI file\n"
+msgstr " *** message system exclusive non valide dans le fichier MIDI\n"
+
+#: InOut/midifile.c:302
+msgid "  Message: "
+msgstr "  Message : "
+
+#: InOut/midifile.c:303
+msgid "  Copyright info: "
+msgstr "  Information de Copyright : "
+
+#: InOut/midifile.c:304
+msgid "  Track name: "
+msgstr "  Nom de piste : "
+
+#: InOut/midifile.c:305
+msgid "  Instrument name: "
+msgstr "  Nom d'instrument : "
+
+#: InOut/midifile.c:306
+msgid "  Song lyric: "
+msgstr "  Parole de chanson : "
+
+#: InOut/midifile.c:325
+msgid " *** invalid tempo\n"
+msgstr " *** tempo non valide\n"
+
+#: InOut/midifile.c:331
+msgid " *** invalid end of track event\n"
+msgstr " *** terminaison d'un évènement de piste non valide\n"
+
+#: InOut/midifile.c:335
+msgid " *** trailing garbage at end of MIDI track\n"
+msgstr " *** données incohérentes en fin de piste MIDI\n"
+
+#: InOut/midifile.c:351
+#, c-format
+msgid " *** unknown MIDI message: 0x%02X\n"
+msgstr " *** message MIDI inconnu : 0x%02X\n"
+
+#: InOut/midifile.c:367
+msgid " *** invalid MIDI track header\n"
+msgstr " *** en-tête de piste MIDI non valide\n"
+
+#: InOut/midifile.c:567
+#, c-format
+msgid " *** error opening MIDI file '%s': %s"
+msgstr " *** erreur à l'ouverture du fichier MIDI '%s' : %s"
+
+#: InOut/midifile.c:572
+#, c-format
+msgid "Reading MIDI file '%s'...\n"
+msgstr "Lecture du fichier MIDI '%s'...\n"
+
+#: InOut/midifile.c:578 InOut/midifile.c:590
+msgid " *** invalid MIDI file header\n"
+msgstr " *** en-tête de fichier MIDI non valide\n"
+
+#: InOut/midifile.c:602
+#, c-format
+msgid " *** MIDI file format %d is not supported\n"
+msgstr " *** le format de fichier MIDI %d n'est pas supporté\n"
+
+#: InOut/midifile.c:614
+msgid " *** invalid number of tracks\n"
+msgstr " *** nombre de pistes non valide\n"
+
+#: InOut/midifile.c:618
+msgid "WARNING: format 0 MIDI file with multiple tracks\n"
+msgstr "AVERTISSEMENT : fichier MIDI 0 avec plusieurs pistes\n"
+
+#: InOut/midifile.c:632 InOut/midifile.c:649
+#, c-format
+msgid " *** invalid time code: %d\n"
+msgstr " *** time code non valide : %d\n"
+
+#: InOut/midifile.c:672
+msgid " *** invalid mute track list format\n"
+msgstr " *** format non valide de liste de pistes muettes\n"
+
+#: InOut/midifile.c:678
+#, c-format
+msgid " Track %2d\n"
+msgstr " Piste %2d\n"
+
+#: InOut/midifile.c:680
+#, c-format
+msgid " Track %2d is muted\n"
+msgstr " La piste %2d est muette\n"
+
+#: InOut/midifile.c:691
+msgid "done.\n"
+msgstr "fait.\n"
+
+#: InOut/midifile.c:719
+#, c-format
+msgid "end of midi track in '%s'\n"
+msgstr "fin de la piste midi dans '%s'\n"
+
+#: InOut/midifile.c:721
+#, c-format
+msgid "%d forced decays, %d extra noteoffs\n"
+msgstr "%d chutes forcées, %d extra noteoffs\n"
+
+#: InOut/midifile.c:748
+msgid " *** buffer overflow while reading MIDI file events\n"
+msgstr " *** dépassement de tampon en lisant les évènements du fichier MIDI\n"
 
 #: InOut/virtual_keyboard/virtual_keyboard.cpp:435
 msgid "virtual_keyboard.cpp: error allocating FLTK flags"
@@ -9939,6 +9860,24 @@ msgstr "supprimé"
 #: InOut/window.c:99
 msgid "not supported on this terminal"
 msgstr "pas supporté sur ce terminal"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "Minimum Phase Processing\n"
+#~ "\n"
+#~ msgstr "utilisation du traitement Cscore\n"
+
+#, fuzzy
+#~ msgid "could not find indefinitely playing instr %d\n"
+#~ msgstr "impossible de trouver l'instrument indéfiniment actif %f\n"
+
+#, fuzzy
+#~ msgid "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"
+#~ msgstr ""
+#~ "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps "
+#~ "= %d\n"
 
 #~ msgid "Number not allowed in context []"
 #~ msgstr "Nombre interdit dans le contexte []"
