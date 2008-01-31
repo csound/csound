@@ -1,4 +1,3 @@
-
 /*
     hrtfopcodes.c: new HRTF opcodes
 
@@ -21,8 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
-
 #include "csdl.h"
 #include <math.h>
 
@@ -40,9 +37,9 @@
 //hrtf data sets were analysed for low frequency phase values, as it is the important part of the
 //spectrum for phase based localisation cues. The values below were extracted and are used to 
 //scale the functional phase spectrum.
-static const double nonlinitd[5] = {1.535133f,1.347668f,1.111214f,1.071324f,1.0f};
-static const double nonlinitd48k[5] = {1.515308f,1.268052f,1.086033f,1.086159f,1.0f};
-static const double nonlinitd96k[5] = {1.515846f,1.268239f,1.086041f,1.086115f,1.0f};
+static const float nonlinitd[5] = {1.535133f,1.347668f,1.111214f,1.071324f,1.0f};
+static const float nonlinitd48k[5] = {1.515308f,1.268052f,1.086033f,1.086159f,1.0f};
+static const float nonlinitd96k[5] = {1.515846f,1.268239f,1.086041f,1.086115f,1.0f};
 
 //number of measurements per elev: mit data const:read only, static:exists for whoe process...
 static const int elevationarray[14] = {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, 36, 24, 12, 1 };
@@ -79,13 +76,19 @@ static const float minphasedels[368] = {
   0.000159f,0.000181f,0.000181f,0.000181f,0.000159f,0.000136f,0.000091f,0.000045f,0.000000f,0.000000f,0.000045f,0.000068f,0.000091f,
   0.000068f,0.000045f,0.000000f,0.000000f};
 
+
+//Csound hrtf magnitude interpolation, phase truncation object: Jan 08
+
+//aleft,aright hrtfmove asrc, kaz, kel, ifilel, ifiler [, imode =0, ifade =8, sr = 44100]...
+//imode: minphase/phase truncation, ifade: no of buffers per fade for phase trunc., sr can be 44.1/48/96k
+
 typedef struct {
   OPDS  h;
   MYFLT *outsigl, *outsigr;
   MYFLT	*in, *kangle, *kelev, *ifilel, *ifiler, *omode, *ofade, *osr;   // outputs and inputs
   
   MEMFIL *fpl,*fpr,*fpdel;				// file pointers
-  MYFLT *fpbeginl,*fpbeginr;
+  float *fpbeginl,*fpbeginr;
 
   int IMPLENGTH, complexIMPLENGTH, overlapsize, complexfftbuff;		//see definitions in INIT
 
@@ -156,9 +159,6 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   if(sr!=44100 && sr!=48000 && sr!=96000)
    sr=44100;
   p->sr = sr;
-	
-  /*if(p->minphase)csound->Message(csound, Str("\n\nMinimum Phase Processing\n\n"));
-    if(p->phasetrunc)csound->Message(csound, Str("\n\nPhase Truncation Processing\n\n"));*/
 
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
@@ -173,7 +173,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /*csound->Message(csound, "\ndatafile should be:44.1k\n");	*/	//added ldmemfile2: reading floats without a header!
+      //added ldmemfile2: reading floats without a header!
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -192,7 +192,6 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /* csound->Message(csound,"\ndatafile should be:48k\n"); */
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -211,7 +210,6 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /*csound->Message(csound,"\ndatafile should be:96k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -237,13 +235,12 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
   p->fadebuffer = (int)fade*IMPLENGTH;		//the amount of buffers to fade over.
 	
   //file handles
-  
+  if(fpl && fpr) {
   p->fpl = fpl;
   p->fpr = fpr;
-  p->fpbeginl = (MYFLT *) fpl->beginp;
-  p->fpbeginr = (MYFLT *) fpr->beginp;
-  	
-  /*csound->Message(csound, Str("\n\nFiles Stored\n\n\n"));*/
+  p->fpbeginl = (float *) fpl->beginp;
+  p->fpbeginr = (float *) fpr->beginp;
+  }	
     
   //common buffers (used by both min phase and phasetrunc)
   csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->insig);
@@ -308,7 +305,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
   win = p->win.auxp;	
 
-  //min phase win defined FOR IMPLENGTH POINT IMPULSE!
+  //min phase win defined for implength point impulse!
   win[0]=1;
   for(i=1;i<(IMPLENGTH/2);i++)win[i]=2;
   win[(IMPLENGTH/2)]=1;
@@ -352,8 +349,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
   int counter = p->counter;
   int n;
 
-  MYFLT *fpindexl;			// pointers into HRTF files
-  MYFLT *fpindexr;
+  float *fpindexl;			// pointers into HRTF files: floating point data (even in 64 bit csound)
+  float *fpindexr;
 
   int i,j,elevindex, angleindex, switchchannels=0, skip=0;
 
@@ -423,12 +420,12 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
   int ptl = p->ptl;
   int ptr = p->ptr;
 
-  int mdtl,mdtr;
+  int mdtl=0,mdtr=0;
   float outvdl,outvdr,rpl,rpr,vdtl,vdtr,fracl,fracr;
 
   //start indices at correct value (start of file)/ zero indices.
-  fpindexl = (MYFLT *) p->fpbeginl;
-  fpindexr = (MYFLT *) p->fpbeginr;
+  fpindexl = (float *) p->fpbeginl;
+  fpindexr = (float *) p->fpbeginr;
 
   n=csound->ksmps;
 
@@ -755,7 +752,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 			
 	  if(phasetrunc)
 	    {
-	      //real values, scaled (by a little more than usual to ensure no clipping)
+	      //real values, scaled (by a little more than usual to ensure no clipping) sr related?
 	      for(i = 0; i < complexIMPLENGTH; i++)
 		{
 		  outl[i] = outspecl[2*i]/(float)(sr/38000.0);	
@@ -767,7 +764,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 	    {
 	      //real values
 
-	      //scaling relative to sr not necessary for min phase???...just scaling by a little > 1 to avoid any possible overlap add clips
+	      //scaling relative to sr not necessary for min phase?...just scaling by a little > 1 to avoid any possible overlap add clips
 
 	      for(i = 0; i < complexIMPLENGTH; i++)
 		{
@@ -795,9 +792,6 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 		  csound->InverseComplexFFT(csound, outspecoldr, complexIMPLENGTH);
 
 		  //real values, scaled
-
-		  //scaling based on sr...?
-
 		  for(i = 0; i < complexIMPLENGTH; i++)
 		    {
 		      outlold[i] = outspecoldl[2*i]/(float)(sr/38000.0);	
@@ -833,7 +827,6 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
 	  if(minphase)		//use output direcly and add delay in time domain
 	    {
-             
 	      for(i=0;i<IMPLENGTH;i++)
 		{
 		  outl[i] = outl[i] + (i < overlapsize ? overlapl[i] : 0);
@@ -986,10 +979,10 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
 
 
-//Csound hrtf magnitude interpolation, woodworth phase, static source: September 07
+//Csound hrtf magnitude interpolation, woodworth phase, static source: January 08
 //overlap add convolution
 
-//aleft, aright	hrtfwwstat	ain, iang, iel, ifilel, ifiler [,iradius = 9.0, isr = 44100]...options of 48 and 96k sr
+//aleft, aright	hrtfstat	ain, iang, iel, ifilel, ifiler [,iradius = 9.0, isr = 44100]...options of 48 and 96k sr
 
 //definitions above
 typedef struct {
@@ -1045,8 +1038,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
   MYFLT r = *p->oradius;
   MYFLT sr = *p->osr;
 
-  MYFLT *fpindexl=NULL;			// pointers into HRTF files
-  MYFLT *fpindexr=NULL;
+  float *fpindexl=NULL;			// pointers into HRTF files
+  float *fpindexr=NULL;
 
   int IMPLENGTH;				//time domain impulse length 
   int complexIMPLENGTH;		//freq domain impulse length
@@ -1074,9 +1067,6 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     sr=44100;
   p->sr = sr;
 
-  /*  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
-      csound->Message(csound, Str("\n\nNon Linear ITD Woodworth Based Static Processing\n\n"));*/
-
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
 
@@ -1090,7 +1080,6 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /*csound->Message(csound,"\ndatafile:44.1k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1109,7 +1098,6 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /* csound->Message(csound,"\ndatafile:48k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1128,7 +1116,6 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);				
       complexfftbuff = (complexIMPLENGTH*2);			
 
-      /* csound->Message(csound,"\ndatafile:96k\n");*/
       if ((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL) {
         csound->InitError(csound, Str("\n\n\ncannot load left data file, exiting\n\n"));
         return NOTOK;
@@ -1154,8 +1141,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 	
   if(fpl && fpr) {
   //start indices at correct value (start of file)/ zero indices.
-  fpindexl = (MYFLT *) fpl->beginp;
-  fpindexr = (MYFLT *) fpr->beginp;
+  fpindexl = (float *) fpl->beginp;
+  fpindexr = (float *) fpr->beginp;
   }
   //buffers 
   csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->insig);
@@ -1333,7 +1320,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
   // magnitude interpolation
   for(i=0; i < complexIMPLENGTH; i+=2)
     {	
-      // interpolate HIGH AND LOW MAGS
+      // interpolate high and low mags
       magllow = lowl1[i]+(MYFLT)((lowl2[i]-lowl1[i])*(MYFLT)angleindex2per);
       maglhigh = highl1[i]+(MYFLT)((highl2[i]-highl1[i])*(MYFLT)angleindex4per);
 
@@ -1504,7 +1491,7 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
 	  //real values
 
-	  //scaled by a factor related to sr...
+	  //scaled by a factor related to sr...?
 
 	  for(i = 0; i < complexIMPLENGTH; i++)
 	    {
@@ -1541,7 +1528,8 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
 //ifft.cpp zeros current overlapskipout,then decrements t...not possible here as t needs to be decremented before fft...
 //***
 
-//aleft, aright	hrtfwwdyn	ain, kang, kel, ifilel, ifiler [,ioverlap = 4, iradius = 9.0, isr = 44100] sr can also be 48000 and 96000
+//aleft, aright	hrtfmove2	ain, kang, kel, ifilel, ifiler [,ioverlap = 4, iradius = 9.0, isr = 44100] 
+//ioverlap is stft overlap, iradius is head radius, sr can also be 48000 and 96000
 
 //definitions above
 typedef struct {
@@ -1560,7 +1548,7 @@ typedef struct {
   int hopsize;
   
   MEMFIL *fpl,*fpr;				// file pointers
-  MYFLT *fpbeginl,*fpbeginr;
+  float *fpbeginl,*fpbeginr;
 
   int counter, t;					//to keep track of process
   
@@ -1604,10 +1592,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
   if(sr!=44100&&sr!=48000&&sr!=96000)
     sr=44100;
   p->sr = sr;
-  /*
-  csound->Message(csound, Str("\n\nHrtf Based Binarual Spatialisation\n\n"));
-  csound->Message(csound, Str("\n\nNon Linear ITD Woodworth Based Dynamic Processing\n\n"));
-  */
+ 
   if (csound->esr != sr)
     csound->Message(csound, Str("\n\nWARNING!!:\nOrchestra sampling rate is not compatible with HRTF data files\nShould be %.0f, see Csound help for object\n\n"), sr);
 
@@ -1680,8 +1665,8 @@ csound->InitError(csound, Str("\n\n\n Sampling rate not supported, exiting\n\n")
   if(fpl && fpr){
   p->fpl = fpl;
   p->fpr = fpr;
-  p->fpbeginl = (MYFLT *) fpl->beginp;
-  p->fpbeginr = (MYFLT *) fpr->beginp;
+  p->fpbeginl = (float *) fpl->beginp;
+  p->fpbeginr = (float *) fpr->beginp;
   }
   
  if(overlap!=2&&overlap!=4&&overlap!=8&&overlap!=16)
@@ -1783,8 +1768,8 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
   int t = p ->t;
   int n;
 
-  MYFLT *fpindexl;			// pointers into HRTF files
-  MYFLT *fpindexr;
+  float *fpindexl;			// pointers into HRTF files
+  float *fpindexr;
 
   int i,j,elevindex, angleindex, switchchannels=0, skip=0;
 
@@ -1811,8 +1796,8 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
   /*int complexfftbuff = p->complexfftbuff;*/	
 
   //start indices at correct value (start of file)/ zero indices.
-  fpindexl = (MYFLT *) p->fpbeginl;
-  fpindexr = (MYFLT *) p->fpbeginr;
+  fpindexl = (float *) p->fpbeginl;
+  fpindexr = (float *) p->fpbeginr;
 
   n=csound->ksmps;
 
@@ -1960,7 +1945,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 	  // magnitude interpolation
 	  for(i=0; i < complexIMPLENGTH; i+=2)
 	    {	
-	      // interpolate HIGH AND LOW MAGS
+	      // interpolate high and low mags
 	      magllow = lowl1[i]+(MYFLT)((lowl2[i]-lowl1[i])*(MYFLT)angleindex2per);
 	      maglhigh = highl1[i]+(MYFLT)((highl2[i]-highl1[i])*(MYFLT)angleindex4per);
 
@@ -2037,10 +2022,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 			
 	  //real values, scaled
 
-	  //***
-	  //Should be simply scaled by rms of window(.707)...however need scaling based on overlap (more overlaps -> louder) and sr...?
-	  //***
-
+	  //Should be simply scaled by rms of window(.707)?...however need scaling based on overlap (more overlaps -> louder) and sr...?
 	  for(i = 0; i < IMPLENGTH; i++)
 	    {
 	      outbufl[(t*IMPLENGTH)+i] = outspecl[2*i] / (overlap*0.5f*(float)(sr/44100.0f));			
