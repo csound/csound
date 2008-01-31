@@ -270,7 +270,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     FILE *fp = fopen(filename, "wb");
     if (!fp) {
       csound->InitError(csound,
-                        Str("imageload: can't open image %s for writing.\n"),
+                        Str("imageload: cannot open image %s for writing.\n"),
                         filename);
       return 0;
     }
@@ -419,7 +419,7 @@ static int imageload (CSOUND *csound, IMGLOAD * p)
     }
     else {
       /* csound->InitError(csound,
-         Str("imageload: can't open image %s.\n"), filename); */
+         Str("imageload: cannot open image %s.\n"), filename); */
       return NOTOK;
     }
 }
