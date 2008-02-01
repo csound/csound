@@ -366,7 +366,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     csound->AuxAlloc(csound, IMPLENGTH*sizeof(MYFLT), &p->win);
 
-    win = p->win.auxp;
+    win = (MYFLT *)p->win.auxp;
 
     /*min phase win defined for implength point impulse!*/
     win[0]=1;
@@ -390,9 +390,9 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *outsigr = p->outsigr;
 
     /*common buffers and variables*/
-    MYFLT *insig = p->insig.auxp;
-    MYFLT *outl = p->outl.auxp;
-    MYFLT *outr = p->outr.auxp;
+    MYFLT *insig = (MYFLT *)p->insig.auxp;
+    MYFLT *outl = (MYFLT *)p->outl.auxp;
+    MYFLT *outr = (MYFLT *)p->outr.auxp;
 
     MYFLT *hrtflpad = (MYFLT *)p->hrtflpad.auxp;
     MYFLT *hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
@@ -1861,12 +1861,12 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     csound->AuxAlloc(csound, overlap*sizeof(int), &p->overlapskipin);
     csound->AuxAlloc(csound, overlap*sizeof(int), &p->overlapskipout);
 
-    win = p->win.auxp;
-    overlapskipin = p->overlapskipin.auxp;
-    overlapskipout = p->overlapskipout.auxp;
-    inbuf = p->inbuf.auxp;
-    outbufl = p->outbufl.auxp;
-    outbufr = p->outbufr.auxp;
+    win = (MYFLT *)p->win.auxp;
+    overlapskipin = (int *)p->overlapskipin.auxp;
+    overlapskipout = (int *)p->overlapskipout.auxp;
+    inbuf = (MYFLT *)p->inbuf.auxp;
+    outbufl = (MYFLT *)p->outbufl.auxp;
+    outbufr = (MYFLT *)p->outbufr.auxp;
 
     for(i=0; i< (overlap*IMPLENGTH); i++){
       inbuf[i] = FL(0.0);
@@ -1898,7 +1898,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     MYFLT *outsigr = p->outsigr;
 
     /*common buffers and variables*/
-    MYFLT *inbuf = p->inbuf.auxp;
+    MYFLT *inbuf = (MYFLT *)p->inbuf.auxp;
 
     MYFLT *outbufl = (MYFLT *)p->outbufl.auxp;
     MYFLT *outbufr = (MYFLT *)p->outbufr.auxp;
