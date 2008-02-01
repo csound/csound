@@ -1910,14 +1910,14 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 }
 
 static void ScalePartials(
-			  CSOUND *csound,
+                          CSOUND *csound,
                 ATS_DATA_LOC *cbuf, /* the current buffer */
                 int cbufnp,     /* the current buffer's number of partials */
                 MYFLT cbufamp,  /* the amplitude for the current buffer */
                 ATS_DATA_LOC *tbuf, /* the table buffer */
                 int tbufnp,     /* the table buffer's n partials */
                 MYFLT tbufamp,  /* the amp of the table buffer */
-			  MYFLT kthresh )
+                          MYFLT kthresh )
 {
     MYFLT   tempamp;            /* hold the cbufn amp for a bit */
     MYFLT   frac;               /* for interpilation */
@@ -2003,7 +2003,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
         *(p->kmyamp),           /* the amplitude for the current buffer */
         atsbufreadaddr->table,  /* the table buffer */
         (int) *(atsbufreadaddr->iptls), /* the table buffer's n partials */
-		  *p->katsbufamp,
+                  *p->katsbufamp,
          *p->kthresh);        /* the amp of the table buffer */
 
     oscphase = p->oscphase;

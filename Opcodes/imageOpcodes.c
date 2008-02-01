@@ -546,10 +546,10 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
       y = ty[i]*h;
 
       if (x >= 0 && x < w && y >= 0 && y < h ) {
-	pixel = (w*y+x)*3;
-	img->imageData[pixel] = (unsigned char)(r[i]*255) % 256;
-	img->imageData[pixel+1] = (unsigned char)(g[i]*255) % 256;
-	img->imageData[pixel+2] = (unsigned char)(b[i]*255) % 256;
+        pixel = (w*y+x)*3;
+        img->imageData[pixel] = (unsigned char)(r[i]*255) % 256;
+        img->imageData[pixel+1] = (unsigned char)(g[i]*255) % 256;
+        img->imageData[pixel+2] = (unsigned char)(b[i]*255) % 256;
       }
 
     }
