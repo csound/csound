@@ -32,7 +32,7 @@
                                   sr to get no of samples for memory allocation*/
 
 /*additional definitions for woodworth models*/
-#define c 34400.0f
+#define c 34400.0
 
 /*hrtf data sets were analysed for low frequency phase values, as it
   is the important part of the spectrum for phase based localisation
@@ -394,17 +394,17 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *outl = p->outl.auxp;
     MYFLT *outr = p->outr.auxp;
 
-    MYFLT *hrtflpad = p->hrtflpad.auxp;
-    MYFLT *hrtfrpad = p->hrtfrpad.auxp;
+    MYFLT *hrtflpad = (MYFLT *)p->hrtflpad.auxp;
+    MYFLT *hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
 
-    MYFLT *complexinsig = p->complexinsig.auxp;
-    MYFLT *hrtflfloat = p->hrtflfloat.auxp;
-    MYFLT *hrtfrfloat = p->hrtfrfloat.auxp;
-    MYFLT *outspecl = p->outspecl.auxp;
-    MYFLT *outspecr = p->outspecr.auxp;
+    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
+    MYFLT *hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
+    MYFLT *hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
+    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
+    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
 
-    MYFLT *overlapl = p->overlapl.auxp;
-    MYFLT *overlapr = p->overlapr.auxp;
+    MYFLT *overlapl = (MYFLT *)p->overlapl.auxp;
+    MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
 
     MYFLT elev = *p->kelev;
     MYFLT angle = *p->kangle;
@@ -429,16 +429,16 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int complexfftbuff = p->complexfftbuff;
 
     /*interpolation values*/
-    MYFLT *lowl1 = p->lowl1.auxp;
-    MYFLT *lowr1 = p->lowr1.auxp;
-    MYFLT *lowl2 = p->lowl2.auxp;
-    MYFLT *lowr2 = p->lowr2.auxp;
-    MYFLT *highl1 = p->highl1.auxp;
-    MYFLT *highr1 = p->highr1.auxp;
-    MYFLT *highl2 = p->highl2.auxp;
-    MYFLT *highr2 = p->highr2.auxp;
-    MYFLT *currentphasel = p->currentphasel.auxp;
-    MYFLT *currentphaser = p->currentphaser.auxp;
+    MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
+    MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
+    MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
+    MYFLT *lowr2 = (MYFLT *)p->lowr2.auxp;
+    MYFLT *highl1 = (MYFLT *)p->highl1.auxp;
+    MYFLT *highr1 = (MYFLT *)p->highr1.auxp;
+    MYFLT *highl2 = (MYFLT *)p->highl2.auxp;
+    MYFLT *highr2 = (MYFLT *)p->highr2.auxp;
+    MYFLT *currentphasel = (MYFLT *)p->currentphasel.auxp;
+    MYFLT *currentphaser = (MYFLT *)p->currentphaser.auxp;
 
     /*local interpolation values*/
     MYFLT elevindexlowper,elevindexhighper,angleindex1per,
@@ -448,20 +448,20 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /*phase truncation buffers and variables*/
-    MYFLT *oldhrtflpad = p->oldhrtflpad.auxp;
-    MYFLT *oldhrtfrpad = p->oldhrtfrpad.auxp;
-    MYFLT *outlold = p->outlold.auxp;
-    MYFLT *outrold = p->outrold.auxp;
-    MYFLT *outspecoldl = p->outspecoldl.auxp;
-    MYFLT *outspecoldr = p->outspecoldr.auxp;
-    MYFLT *overlapoldl = p->overlapoldl.auxp;
-    MYFLT *overlapoldr = p->overlapoldr.auxp;
+    MYFLT *oldhrtflpad = (MYFLT *)p->oldhrtflpad.auxp;
+    MYFLT *oldhrtfrpad = (MYFLT *)p->oldhrtfrpad.auxp;
+    MYFLT *outlold = (MYFLT *)p->outlold.auxp;
+    MYFLT *outrold = (MYFLT *)p->outrold.auxp;
+    MYFLT *outspecoldl = (MYFLT *)p->outspecoldl.auxp;
+    MYFLT *outspecoldr = (MYFLT *)p->outspecoldr.auxp;
+    MYFLT *overlapoldl = (MYFLT *)p->overlapoldl.auxp;
+    MYFLT *overlapoldr = (MYFLT *)p->overlapoldr.auxp;
 
     int oldelevindex = p ->oldelevindex;
     int oldangleindex = p ->oldangleindex;
 
     int cross = p ->cross;
-    int l = p ->l;
+    int l = p->l;
     int initialfade = p ->initialfade;
 
     int crossfade = 0;
@@ -470,24 +470,24 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int fadebuffer = p->fadebuffer;
 
     /*minimum phase buffers*/
-    MYFLT *logmagl = p->logmagl.auxp;
-    MYFLT *logmagr = p->logmagr.auxp;
-    MYFLT *xhatwinl = p->xhatwinl.auxp;
-    MYFLT *xhatwinr = p->xhatwinr.auxp;
-    MYFLT *expxhatwinl = p->expxhatwinl.auxp;
-    MYFLT *expxhatwinr = p->expxhatwinr.auxp;
+    MYFLT *logmagl = (MYFLT *)p->logmagl.auxp;
+    MYFLT *logmagr = (MYFLT *)p->logmagr.auxp;
+    MYFLT *xhatwinl = (MYFLT *)p->xhatwinl.auxp;
+    MYFLT *xhatwinr = (MYFLT *)p->xhatwinr.auxp;
+    MYFLT *expxhatwinl = (MYFLT *)p->expxhatwinl.auxp;
+    MYFLT *expxhatwinr = (MYFLT *)p->expxhatwinr.auxp;
 
-    MYFLT *win = p->win.auxp;     /*min phase window*/
+    MYFLT *win = (MYFLT *)p->win.auxp;     /*min phase window*/
 
     /*min phase delay variables*/
-    MYFLT *delmeml = p->delmeml.auxp;
-    MYFLT *delmemr = p->delmemr.auxp;
+    MYFLT *delmeml = (MYFLT *)p->delmeml.auxp;
+    MYFLT *delmemr = (MYFLT *)p->delmemr.auxp;
     MYFLT delaylow1,delaylow2,delayhigh1,delayhigh2,delaylow,delayhigh,delayfloat;
     int ptl = p->ptl;
     int ptr = p->ptr;
 
     int mdtl=0,mdtr=0;
-    float outvdl,outvdr,rpl,rpr,vdtl,vdtr,fracl,fracr;
+    MYFLT outvdl,outvdr,rpl,rpr,vdtl,vdtr,fracl,fracr;
 
     /*start indices at correct value (start of file)/ zero indices.*/
     fpindexl = (float *) p->fpbeginl;
@@ -895,13 +895,13 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
           if(crossout) {            /*do fade       */
             for(i=0;i<IMPLENGTH;i++) {
               outl[i] = ((outlold[i] + (i<overlapsize ? overlapoldl[i] : 0)) *
-                         ((MYFLT)1.0 - (MYFLT)l/(MYFLT)fadebuffer)) +
+                         (FL(1.0) - FL(l)/fadebuffer)) +
                 ((outl[i] + (i < overlapsize ? overlapl[i] : 0)) *
-                 (MYFLT)l/(MYFLT)fadebuffer);
+                 FL(l)/fadebuffer);
               outr[i] = ((outrold[i] + (i<overlapsize ? overlapoldr[i] : 0)) *
-                         ((MYFLT)1.0 - (MYFLT)l/(MYFLT)fadebuffer)) +
+                         (FL(1.0) - FL(l)/fadebuffer)) +
                 ((outr[i] + (i < overlapsize ? overlapr[i] : 0)) *
-                 (MYFLT)l/(MYFLT)fadebuffer);
+                 FL(l)/fadebuffer);
               l++;
             }
           }
@@ -979,11 +979,11 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
           /*delay interp*/
           delaylow = delaylow1 +
-            (MYFLT)((delaylow2 - delaylow1)*(MYFLT)angleindex2per);
+            ((delaylow2 - delaylow1)*angleindex2per);
           delayhigh = delayhigh1 +
-            (MYFLT)((delayhigh2 - delayhigh1)*(MYFLT)angleindex4per);
+            ((delayhigh2 - delayhigh1)*angleindex4per);
           delayfloat = delaylow +
-            (MYFLT)((delayhigh - delaylow)*(MYFLT)elevindexhighper);
+            ((delayhigh - delaylow)*elevindexhighper);
 
           /*standard variable delay function for each ear, according
             to interpolated delay value*/
@@ -1296,23 +1296,23 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->leftshiftbuffer);
     csound->AuxAlloc(csound, complexIMPLENGTH*sizeof(MYFLT), &p->rightshiftbuffer);
 
-    lowl1 = p->lowl1.auxp;
-    lowr1 = p->lowr1.auxp;
-    lowl2 = p->lowl2.auxp;
-    lowr2 = p->lowr2.auxp;
-    highl1 = p->highl1.auxp;
-    highr1 = p->highr1.auxp;
-    highl2 = p->highl2.auxp;
-    highr2 = p->highr2.auxp;
+    lowl1 = (MYFLT *)p->lowl1.auxp;
+    lowr1 = (MYFLT *)p->lowr1.auxp;
+    lowl2 = (MYFLT *)p->lowl2.auxp;
+    lowr2 = (MYFLT *)p->lowr2.auxp;
+    highl1 = (MYFLT *)p->highl1.auxp;
+    highr1 = (MYFLT *)p->highr1.auxp;
+    highl2 = (MYFLT *)p->highl2.auxp;
+    highr2 = (MYFLT *)p->highr2.auxp;
 
-    leftshiftbuffer = p->leftshiftbuffer.auxp;
-    rightshiftbuffer = p->rightshiftbuffer.auxp;
+    leftshiftbuffer = (MYFLT *)p->leftshiftbuffer.auxp;
+    rightshiftbuffer = (MYFLT *)p->rightshiftbuffer.auxp;
 
-    hrtflfloat = p->hrtflfloat.auxp;
-    hrtfrfloat = p->hrtfrfloat.auxp;
+    hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
+    hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
 
-    hrtflpad = p->hrtflpad.auxp;
-    hrtfrpad = p->hrtfrpad.auxp;
+    hrtflpad = (MYFLT *)p->hrtflpad.auxp;
+    hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
 
     if(r<=0||r>15)
       r=9.0;
@@ -1560,21 +1560,21 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
     MYFLT *outsigr = p->outsigr;
 
     /*common buffers and variables*/
-    MYFLT *insig = p->insig.auxp;
-    MYFLT *outl = p->outl.auxp;
-    MYFLT *outr = p->outr.auxp;
+    MYFLT *insig = (MYFLT *)p->insig.auxp;
+    MYFLT *outl = (MYFLT *)p->outl.auxp;
+    MYFLT *outr = (MYFLT *)p->outr.auxp;
 
-    MYFLT *hrtflpad = p->hrtflpad.auxp;
-    MYFLT *hrtfrpad = p->hrtfrpad.auxp;
+    MYFLT *hrtflpad = (MYFLT *)p->hrtflpad.auxp;
+    MYFLT *hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
 
-    MYFLT *complexinsig = p->complexinsig.auxp;
-    MYFLT *outspecl = p->outspecl.auxp;
-    MYFLT *outspecr = p->outspecr.auxp;
+    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
+    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
+    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
 
-    MYFLT *overlapl = p->overlapl.auxp;
-    MYFLT *overlapr = p->overlapr.auxp;
+    MYFLT *overlapl = (MYFLT *)p->overlapl.auxp;
+    MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
 
-    int counter = p ->counter;
+    int counter = p->counter;
     int n,j,i;
 
     int IMPLENGTH = p->IMPLENGTH;
@@ -1900,16 +1900,16 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     /*common buffers and variables*/
     MYFLT *inbuf = p->inbuf.auxp;
 
-    MYFLT *outbufl = p->outbufl.auxp;
-    MYFLT *outbufr = p->outbufr.auxp;
+    MYFLT *outbufl = (MYFLT *)p->outbufl.auxp;
+    MYFLT *outbufr = (MYFLT *)p->outbufr.auxp;
 
     MYFLT outsuml=FL(0.0), outsumr=FL(0.0);
 
-    MYFLT *complexinsig = p->complexinsig.auxp;
-    MYFLT *hrtflfloat = p->hrtflfloat.auxp;
-    MYFLT *hrtfrfloat = p->hrtfrfloat.auxp;
-    MYFLT *outspecl = p->outspecl.auxp;
-    MYFLT *outspecr = p->outspecr.auxp;
+    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
+    MYFLT *hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
+    MYFLT *hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
+    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
+    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
 
     MYFLT elev = *p->kelev;
     MYFLT angle = *p->kangle;
@@ -1921,9 +1921,9 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     int hopsize = p->hopsize;
 
-    MYFLT *win = p->win.auxp;
-    int *overlapskipin = p->overlapskipin.auxp;
-    int *overlapskipout = p->overlapskipout.auxp;
+    MYFLT *win = (MYFLT *)p->win.auxp;
+    int *overlapskipin = (int *)p->overlapskipin.auxp;
+    int *overlapskipout = (int *)p->overlapskipout.auxp;
 
     int counter = p ->counter;
     int t = p ->t;
@@ -1935,14 +1935,14 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     int i,j,elevindex, angleindex, switchchannels=0, skip=0;
 
     /*interpolation values*/
-    MYFLT *lowl1 = p->lowl1.auxp;
-    MYFLT *lowr1 = p->lowr1.auxp;
-    MYFLT *lowl2 = p->lowl2.auxp;
-    MYFLT *lowr2 = p->lowr2.auxp;
-    MYFLT *highl1 = p->highl1.auxp;
-    MYFLT *highr1 = p->highr1.auxp;
-    MYFLT *highl2 = p->highl2.auxp;
-    MYFLT *highr2 = p->highr2.auxp;
+    MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
+    MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
+    MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
+    MYFLT *lowr2 = (MYFLT *)p->lowr2.auxp;
+    MYFLT *highl1 = (MYFLT *)p->highl1.auxp;
+    MYFLT *highr1 = (MYFLT *)p->highr1.auxp;
+    MYFLT *highl2 = (MYFLT *)p->highl2.auxp;
+    MYFLT *highr2 = (MYFLT *)p->highr2.auxp;
 
     /*local interpolation values*/
     MYFLT elevindexlowper,elevindexhighper,angleindex1per,

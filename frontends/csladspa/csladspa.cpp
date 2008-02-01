@@ -346,8 +346,8 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
                     PortRangeHints[portcnt].HintDescriptor =
                       (LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE
                        | LADSPA_HINT_LOGARITHMIC | LADSPA_HINT_DEFAULT_MIDDLE);
-                    lower =  atoi((char*)temp.substr(0, indx).c_str());
-                    upper =  atoi((char*)temp.substr(indx+1, indx2).c_str());
+                    lower =  atof((char*)temp.substr(0, indx).c_str());
+                    upper =  atof((char*)temp.substr(indx+1, indx2).c_str());
                   }
                   else {
                     PortRangeHints[portcnt].HintDescriptor =
