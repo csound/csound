@@ -64,7 +64,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
    Please use ldmemfile2() in all new code instead. */
 MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 {
-	return ldmemfile2(csound, filnam, CSFTYPE_UNKNOWN);
+        return ldmemfile2(csound, filnam, CSFTYPE_UNKNOWN);
 }
 
 /* Takes an additional parameter specifying the type of the file being opened.
