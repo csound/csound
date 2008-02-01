@@ -21,11 +21,11 @@
  *
  * U S A G E
  *
- *  jack_transport 0 - to start jack transport
+ *  jack_transport 1 - to start jack transport
  *
- *  jack_transport 1 - to stop
+ *  jack_transport 0 - to stop
  *
- *  jack_transport 2 - to rewind to 0.
+ *  the second optional parameter tells where the transport should be located
  *
  */
 
@@ -35,12 +35,13 @@
 
 #include "cs_jack.h"
 
-enum { START, STOP, REWIND };
+enum { STOP, START };
 
 typedef struct
 {
   OPDS h;
-  MYFLT *command ;
+  MYFLT *command;
+  MYFLT *location;
 } JACKTRANSPORT;
 
 static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
@@ -55,20 +56,25 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
     if (client == NULL) {
       csound->InitError(csound, Str("Cannot find Jack client.\n"));
       return NOTOK;
-  }
+    }
     else {
+      //move to specified location (in seconds)
+      if ((int)(*p->location)>=0){
+	MYFLT loc_sec = *p->location;
+	MYFLT loc_sec_per_sr = loc_sec*csound->GetSr(csound);
+	jack_transport_locate(client, loc_sec_per_sr);
+	csound->Message(csound, Str("jacktransport: playback head moved at %f seconds\n"), loc_sec);
+	
+      }
+      //start or stop
       switch ((int)(*p->command)){
       case START: 
-        csound->Message(csound, Str("jack_transport playing.\n"));
+        csound->Message(csound, Str("jacktransport: playing.\n"));
         jack_transport_start(client);
         break;
       case STOP:
-        csound->Message(csound, Str("jack_transport stopped.\n"));
+        csound->Message(csound, Str("jacktransport: stopped.\n"));
         jack_transport_stop(client);
-        break;
-      case REWIND:
-        csound->Message(csound, Str("jack_transport rewinded.\n"));
-        jack_transport_locate(client, 0);
         break;
       default:
         csound->Message(csound, Str("jack_transport: invalid parameter.\n"));
@@ -83,7 +89,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
 
 static OENTRY localops[] = {
 
-  { "jack_transport",  S(JACKTRANSPORT),  1, "", "i",
+  { "jacktransport",  S(JACKTRANSPORT),  1, "", "ij",
                        (SUBR)jack_transport, NULL, NULL   },
 
 };
