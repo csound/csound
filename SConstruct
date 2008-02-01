@@ -1285,7 +1285,8 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/newgabopc.c
 '''))
 makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
-makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+if jackFound:
+ makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 
 # Plugins with External Dependencies
 
