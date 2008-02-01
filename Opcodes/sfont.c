@@ -62,8 +62,8 @@ static SFBANK sfArray[MAX_SFONT];
 static int currSFndx = 0;
 static presetType *presetp[MAX_SFPRESET];
 static SHORT *sampleBase[MAX_SFPRESET];
-static instrType *instrp[MAX_SFINSTR]; 
-static SHORT *isampleBase[MAX_SFINSTR]; 
+static instrType *instrp[MAX_SFINSTR];
+static SHORT *isampleBase[MAX_SFINSTR];
 static MYFLT pitches[128];
 */
 typedef struct _sfontg {
@@ -83,7 +83,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sfArray = globals->sfArray;
-   
+
     for (j=0; j<globals->currSFndx; j++) {
       for (k=0; k< sfArray[j].presets_num; k++) {
         for (l=0; l<sfArray[j].preset[k].layers_num; l++) {
@@ -161,7 +161,7 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-static int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its handle */
+static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
     SFBANK *sf;
@@ -205,7 +205,7 @@ static char *filter_string(char *s, char temp_string[24])
 }
 
 static int Sfplist(CSOUND *csound, SFPLIST *p)
-{   
+{
     sfontg *globals;
     SFBANK *sf;
     char temp_string[24];
@@ -256,7 +256,7 @@ static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 }
 
 static int Sfilist(CSOUND *csound, SFPLIST *p)
-{    
+{
     sfontg *globals;
     SFBANK *sf;
     int j;
@@ -297,8 +297,9 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     if (globals->presetp[presetHandle] == NULL) {
       csound->Die(csound, Str("sfpreset: cannot find any preset having prog "
                               "number %d and bank number %d in SoundFont file "
-                              "\"%s\""), (int) *p->iprog, (int) *p->ibank,
-                                         globals->sfArray[(DWORD) *p->isfhandle].name);
+                              "\"%s\""),
+                  (int) *p->iprog, (int) *p->ibank,
+                  globals->sfArray[(DWORD) *p->isfhandle].name);
     }
     return OK;
 }
@@ -308,7 +309,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset;
     SHORT *sBase;
-    
+
     int layersNum, j, spltNum = 0, flag = (int) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -580,7 +581,7 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
-    
+
     if (!preset) {
       return csound->InitError(csound, Str("sfplaym: invalid or "
                                            "out-of-range preset number"));
@@ -784,7 +785,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 {
     sfontg *globals;
-    SFBANK *sf;    
+    SFBANK *sf;
     int index = (int) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[index];
@@ -1754,7 +1755,7 @@ static void fill_SfPointers(CSOUND *csound)
 {
     char *chkp;
     DWORD chkid, j, size;
-    
+
     CHUNK *main_chunk;
     CHUNK *smplChunk=NULL, *phdrChunk=NULL, *pbagChunk=NULL, *pmodChunk=NULL;
     CHUNK *pgenChunk=NULL, *instChunk=NULL, *ibagChunk=NULL, *imodChunk=NULL;
@@ -1777,9 +1778,9 @@ static void fill_SfPointers(CSOUND *csound)
       csound->Die(csound, Str("Sfont format not compatible"));
     }
     chkp = (char *) main_chunk->ckDATA+4;
-    
+
     for  (j=4; j< main_chunk->ckSize;) {
-        
+
       chkid = /* (DWORD *) chkp*/ dword(chkp);
 /* #ifdef BETA */
       /*    csound->Message(csound, "Looking at %.4s\n", (char*) &chkid); */
@@ -1791,10 +1792,6 @@ static void fill_SfPointers(CSOUND *csound)
         j += 4; chkp += 4;
         ChangeByteOrder("d", chkp, 4);
         size = /* (DWORD *) chkp */ dword(chkp);
-/* #ifdef BETA */
-/*         csound->Message(csound, "**size %u %u\n", */
-/*                         (unsigned int) size, (unsigned int) *((DWORD *) chkp)); */
-/* #endif */
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
 /* #ifdef BETA */
@@ -1811,10 +1808,6 @@ static void fill_SfPointers(CSOUND *csound)
           j +=4; chkp += 4;
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
-/* #ifdef BETA */
-/*           csound->Message(csound, "Change %d and then %u times w\n", */
-/*                                   (int) *(chkp + 4), (unsigned int) size - 12U); */
-/* #endif */
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
 /* #ifdef BETA */
@@ -1832,7 +1825,7 @@ static void fill_SfPointers(CSOUND *csound)
           j += 4; chkp += 4;
           do {
             chkid = /* (DWORD *) chkp */ dword(chkp);
-	    /* csound->Message(csound, "::Looking at %.4s (%d)\n",&chkid,size); */
+            /* csound->Message(csound, "::Looking at %.4s (%d)\n",&chkid,size); */
             if (chkid == s2d("phdr")) {
               phdrChunk = (CHUNK *) chkp;
               soundFont->chunk.phdr= (sfPresetHeader *) &phdrChunk->ckDATA;
@@ -2074,7 +2067,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
     memset(outR, 0, n*sizeof(MYFLT));
 
     for(k=0; k < spltNum; k++){
-   
+
    tab = base[k];
    len = nend[k];
    ndx = p->ndx[k];
@@ -2128,7 +2121,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           }
           out = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]))
                         + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
-   
+
           ndx[1]-=pitch;
           count-=pitch;
         }
@@ -2224,10 +2217,11 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
               (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int) (*p->crossfade*sr);
-            p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+            p->cfade = crossfade =
+              crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
           }
         }
-	outR[i] += out*right;
+        outR[i] += out*right;
         outL[i] += out*left;
       }
       else {  /* normal */
@@ -2271,12 +2265,12 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
           outR[i] += out*right;
           outL[i] += out*left;
       }
-    } 
+    }
 
     }
     p->count = count;
     p->cfade = crossfade;
-   
+
     p->init = init;
     return OK;
 }
@@ -2306,7 +2300,7 @@ static OENTRY localops[] = {
 { "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo",(SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono3 },
 { "sflooper", S(sflooper), 5, "aa", "iikkikkkoooo",        (SUBR)sflooper_init,
-                                                  NULL, (SUBR)sflooper_process    },
+                                                  NULL, (SUBR)sflooper_process },
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
@@ -2316,11 +2310,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   csound->CreateGlobalVariable(csound, "::sfontg",
                                sizeof(sfontg));
   globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-  if (globals == NULL) csound->InitError(csound, 
+  if (globals == NULL) csound->InitError(csound,
            "error... could not create sfont globals\n");
 
   globals->currSFndx = 0;
-  
+
   return 0;
 }
 
