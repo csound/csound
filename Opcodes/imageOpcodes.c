@@ -1,3 +1,4 @@
+
 /**
  * IMAGE OPCODES
  *
@@ -462,7 +463,7 @@ static int imagegetpixel (CSOUND *csound, IMGGETPIXEL * p)
     x = *p->kx*w;
     y = *p->ky*h;
 
-    if (x >= 0 && x <= w && y >= 0 && y <= h ) {
+    if (x >= 0 && x < w && y >= 0 && y < h ) {
       int pixel = (w*y+x)*3;
       *p->kr = img->imageData[pixel]/FL(255.0);
       *p->kg = img->imageData[pixel+1]/FL(255.0);
@@ -502,7 +503,7 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
       x = tx[i]*w;
       y = ty[i]*h;
 
-      if (x >= 0 && x <= w && y >= 0 && y <= h ) {
+      if (x >= 0 && x < w && y >= 0 && y < h ) {
         pixel = (w*y+x)*3;
         r[i] = img->imageData[pixel]/FL(255.0);
         g[i] = img->imageData[pixel+1]/FL(255.0);
@@ -544,10 +545,12 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
       x = tx[i]*w;
       y = ty[i]*h;
 
-      pixel = (w*y+x)*3;
-      img->imageData[pixel] = (unsigned char)(r[i]*255) % 256;
-      img->imageData[pixel+1] = (unsigned char)(g[i]*255) % 256;
-      img->imageData[pixel+2] = (unsigned char)(b[i]*255) % 256;
+      if (x >= 0 && x < w && y >= 0 && y < h ) {
+	pixel = (w*y+x)*3;
+	img->imageData[pixel] = (unsigned char)(r[i]*255) % 256;
+	img->imageData[pixel+1] = (unsigned char)(g[i]*255) % 256;
+	img->imageData[pixel+2] = (unsigned char)(b[i]*255) % 256;
+      }
 
     }
 
@@ -569,11 +572,12 @@ static int imagesetpixel (CSOUND *csound, IMGSETPIXEL * p)
     x = *p->kx*w;
     y = *p->ky*h;
 
-    pixel = (w*y+x)*3;
-    img->imageData[pixel] = (unsigned char)((*p->kr)*255) % 256;
-    img->imageData[pixel+1] = (unsigned char)((*p->kg)*255) % 256;
-    img->imageData[pixel+2] = (unsigned char)((*p->kb)*255) % 256;
-
+    if (x >= 0 && x < w && y >= 0 && y < h ) {
+      pixel = (w*y+x)*3;
+      img->imageData[pixel] = (unsigned char)((*p->kr)*255) % 256;
+      img->imageData[pixel+1] = (unsigned char)((*p->kg)*255) % 256;
+      img->imageData[pixel+2] = (unsigned char)((*p->kb)*255) % 256;
+    }
     return OK;
 }
 
