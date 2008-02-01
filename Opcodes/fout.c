@@ -60,8 +60,8 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
                                       csound->GetFileName(pp->fd));
             csound->FileClose(csound, pp->fd);
             pp->fd = NULL;
-	    }
-	  }
+            }
+          }
       }
     }
 
