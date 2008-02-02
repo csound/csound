@@ -82,7 +82,7 @@ static const char *language_names[] = {"", /* Default */
                             "ar", /* CSLANGUAGE_ARABIC */
                             "hy", /* CSLANGUAGE_ARMENIAN */
                             "as", /* CSLANGUAGE_ASSAMESE */
-                            "", /* CSLANGUAGE_AZERI */
+                            "az", /* CSLANGUAGE_AZERI */
                             "eu", /* CSLANGUAGE_BASQUE */
                             "be", /* CSLANGUAGE_BELARUSIAN */
                             "bn", /* CSLANGUAGE_BENGALI */
