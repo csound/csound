@@ -106,7 +106,7 @@ typedef struct {
 typedef struct pvsdat {
         long            N;
 #ifdef SDFT
-        int		sliding; /* Flag to indicate sliding case */
+        int             sliding; /* Flag to indicate sliding case */
         long            NB;
 #endif
         long            overlap;
@@ -115,7 +115,7 @@ typedef struct pvsdat {
         long            format;         /* fixed for now to AMP:FREQ */
         unsigned long   framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
-  					/* But not in sliding case when MYFLT */
+                                        /* But not in sliding case when MYFLT */
 } PVSDAT;
 
 /* may be no point supporting Kaiser in an opcode unless we can support
