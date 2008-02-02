@@ -6,7 +6,7 @@ typedef struct TREE {
   int           type;
   ORCTOKEN         *value;
   int           rate;
-  int		len;
+  int           len;
   struct TREE   *left;
   struct TREE   *right;
   struct TREE   *next;

@@ -32,8 +32,8 @@
  * and R = specified dynamic range in decibels.
  * See Roger Dannenberg, "The Interpretation of MIDI Velocity,"
  * in Georg Essl and Ichiro Fujinaga (Eds.), Proceedings of the
- * 2006 International Computer Music Conference, 
- * November 6-11, 2006 (San Francisco: 
+ * 2006 International Computer Music Conference,
+ * November 6-11, 2006 (San Francisco:
  * The International Computer Music Association), pp. 193-196.
  */
 class KAMPMIDID : public OpcodeBase<KAMPMIDID>
@@ -97,36 +97,36 @@ public:
 };
 
 extern "C" {
-  
+
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
     return 0;
   }
-  
+
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-    int status = csound->AppendOpcode(csound, 
-				      "kampmidid",
-				      sizeof(KAMPMIDID), 
-				      3,
-				      "k", 
-				      "ki",
-				      (int (*)(CSOUND*,void*)) KAMPMIDID::init_,
-				      (int (*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
-				      (int (*)(CSOUND*,void*)) 0);
+    int status = csound->AppendOpcode(csound,
+                                      "kampmidid",
+                                      sizeof(KAMPMIDID),
+                                      3,
+                                      "k",
+                                      "ki",
+                                      (int (*)(CSOUND*,void*)) KAMPMIDID::init_,
+                                      (int (*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
+                                      (int (*)(CSOUND*,void*)) 0);
 
-     status |= csound->AppendOpcode(csound, 
-				      "iampmidid",
-				      sizeof(IAMPMIDID), 
-				      1,
-				      "i", 
-				      "ii",
-				      (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
-				      (int (*)(CSOUND*,void*)) 0,
-				      (int (*)(CSOUND*,void*)) 0);
+     status |= csound->AppendOpcode(csound,
+                                      "iampmidid",
+                                      sizeof(IAMPMIDID),
+                                      1,
+                                      "i",
+                                      "ii",
+                                      (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
+                                      (int (*)(CSOUND*,void*)) 0,
+                                      (int (*)(CSOUND*,void*)) 0);
     return status;
   }
-  
+
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     return 0;
