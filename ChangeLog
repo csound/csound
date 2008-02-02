@@ -1,3 +1,7 @@
+2008-02-02  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h: 5.08.1
+
 2008-02-01  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* H/version.h (CS_APISUBVER): Increased to 6 for Csound 5.08.
