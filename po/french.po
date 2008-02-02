@@ -6310,7 +6310,7 @@ msgstr "**** Fin de l'Information de Licence ****\n"
 #: Top/one_file.c:629
 #, fuzzy
 msgid "Missing end tag </CsLicence>"
-msgstr "Il manque endin"
+msgstr "La balise fermante </CsLicence> est absente"
 
 #: Top/one_file.c:659
 #, c-format
