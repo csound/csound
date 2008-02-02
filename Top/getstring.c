@@ -71,3 +71,9 @@ PUBLIC char *csoundLocalizeString(const char *s)
     return gettext(s);
 }
 #endif
+
+/* This stub is needed for backwards compatibility */
+PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
+{
+    return;
+}
