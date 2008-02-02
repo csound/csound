@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-01-31 13:52+0000\n"
-"PO-Revision-Date: 2008-01-17 07:09+0000\n"
+"PO-Revision-Date: 2008-02-02 09:48+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -3004,6 +3004,11 @@ msgid ""
 "cannot load left data file, exiting\n"
 "\n"
 msgstr ""
+"\n"
+"\n"
+"\n"
+"impossible de charger le fichier des données de gauche, abandon\n"
+"\n"
 
 #: Opcodes/hrtfopcodes.c:183 Opcodes/hrtfopcodes.c:202
 #: Opcodes/hrtfopcodes.c:221 Opcodes/hrtfopcodes.c:1100
@@ -3017,6 +3022,11 @@ msgid ""
 "cannot load right data file, exiting\n"
 "\n"
 msgstr ""
+"\n"
+"\n"
+"\n"
+"impossible de charger le fichier des données de droite, abandon\n"
+"\n"
 
 #: Opcodes/hrtfopcodes.c:227 Opcodes/hrtfopcodes.c:1143
 #: Opcodes/hrtfopcodes.c:1669
@@ -3027,6 +3037,11 @@ msgid ""
 " Sampling rate not supported, exiting\n"
 "\n"
 msgstr ""
+"\n"
+"\n"
+"\n"
+" Taux d'échantillonnage non supporté, abandon\n"
+"\n"
 
 #: Opcodes/hrtfopcodes.c:502
 msgid ""
@@ -3035,27 +3050,31 @@ msgid ""
 "or change trajectory\n"
 "\n"
 msgstr ""
+"\n"
+"AVERTISSEMENT : les fondus se chevauchent : ceci peut provoquer du bruit : réduisez "
+"la taille des fondus ou changez la trajectoire\n"
+"\n"
 
 #: Opcodes/jackTransport.c:56
 msgid "Cannot find Jack client.\n"
-msgstr ""
+msgstr "Client Jack introuvable.\n"
 
 #: Opcodes/jackTransport.c:62
 msgid "jack_transport playing.\n"
-msgstr ""
+msgstr "jack_transport actif.\n"
 
 #: Opcodes/jackTransport.c:66
 msgid "jack_transport stopped.\n"
-msgstr ""
+msgstr "jack_transport arrêté.\n"
 
 #: Opcodes/jackTransport.c:70
 msgid "jack_transport rewinded.\n"
-msgstr ""
+msgstr "jack_transport rembobiner.\n"
 
 #: Opcodes/jackTransport.c:74
 #, fuzzy
 msgid "jack_transport: invalid parameter.\n"
-msgstr "turnoff2 : paramètre de mode non valide"
+msgstr "jack_transport: paramètre non valide.\n"
 
 #: util/pvanal.c:170 util/cvanal.c:66 util/lpanal.c:385 Engine/fgens.c:379
 #: Engine/fgens.c:506 Engine/fgens.c:547 Engine/fgens.c:750
@@ -4914,7 +4933,7 @@ msgstr "sread : dépassement de l'espace de texte, augmenter MARGIN"
 
 #: Engine/sread.c:179
 msgid "sread: "
-msgstr ""
+msgstr "sread: "
 
 #: Engine/sread.c:194
 msgid "score error:  "
@@ -4923,7 +4942,7 @@ msgstr "erreur de partition :  "
 #: Engine/sread.c:208
 #, fuzzy, c-format
 msgid "  section %d:  at position %d%s"
-msgstr "    à la ligne %d position %d"
+msgstr "  section %d : position %d%s"
 
 #: Engine/sread.c:215
 #, fuzzy
@@ -4996,28 +5015,28 @@ msgstr "numéro de contrôle illégal à la position n.%d"
 
 #: Engine/sread.c:503
 msgid "illegal placement of operator ~ in [] expression"
-msgstr ""
+msgstr "placement illégal de l'opérateur ~ dans l'expression []"
 
 #: Engine/sread.c:513
 msgid "illegal placement of operator @ or @@ in [] expression"
-msgstr ""
+msgstr "placement illégal des opérateurs @ ou @@ dans l'expression []"
 
 #: Engine/sread.c:545 Engine/sread.c:559
 #, c-format
 msgid "illegal placement of operator %c in [] expression"
-msgstr ""
+msgstr "placement illégal de l'opérateur %c dans l'expression []"
 
 #: Engine/sread.c:571
 msgid "illegal placement of '(' in [] expression"
-msgstr ""
+msgstr "placement illégal de '(' dans l'expression []"
 
 #: Engine/sread.c:577
 msgid "missing operand before ')' in [] expression"
-msgstr ""
+msgstr "pas d'opérande avant ')' dans l'expression []"
 
 #: Engine/sread.c:591
 msgid "missing operand before closing bracket in []"
-msgstr ""
+msgstr "pas d'opérande avant la parenthèse fermante dans []"
 
 #: Engine/sread.c:606
 #, fuzzy, c-format
@@ -5078,7 +5097,7 @@ msgstr "sread : trop de boucles imbriquées"
 
 #: Engine/sread.c:881
 msgid "Loop cannot start inside of a macro"
-msgstr ""
+msgstr "Une boucle ne peut pas commencer à l'intérieure d'une macro"
 
 #: Engine/sread.c:900
 #, fuzzy
@@ -5097,7 +5116,7 @@ msgstr "BOUCLE externe=%d, Niveau : %d\n"
 
 #: Engine/sread.c:961
 msgid "Repeat cannot start inside of a macro (ignored)"
-msgstr ""
+msgstr "Une répétition ne peut pas commencer à l'intérieur d'une macro (ignorée)"
 
 #: Engine/sread.c:976
 #, fuzzy
@@ -6180,12 +6199,12 @@ msgstr "AVERTISSEMENT : impossible de supprimer %s\n"
 #: Top/one_file.c:252 Top/one_file.c:279
 #, c-format
 msgid "More than %d arguments in <CsOptions>"
-msgstr ""
+msgstr "Plus de %d arguments dans <CsOptions>"
 
 #: Top/one_file.c:294
 #, c-format
 msgid "Invalid arguments in <CsOptions>: %s"
-msgstr ""
+msgstr "Arguments non valides dans <CsOptions> : %s"
 
 #: Top/one_file.c:299
 #, fuzzy
@@ -6204,11 +6223,11 @@ msgstr "La création de %s a échoué"
 
 #: Top/one_file.c:331
 msgid "Missing end tag </CsInstruments>"
-msgstr ""
+msgstr "La balise fermante </CsInstruments> est absente"
 
 #: Top/one_file.c:364
 msgid "Missing end tag </CsScore>"
-msgstr ""
+msgstr "La balise fermante </CsScore> est absente"
 
 #: Top/one_file.c:380 Top/one_file.c:476
 #, c-format
@@ -6226,7 +6245,7 @@ msgstr "Erreur en lisant le sous-fichier MIDI -- aucune taille n'a été lue"
 
 #: Top/one_file.c:404
 msgid "Missing end tag </CsMidifile>"
-msgstr ""
+msgstr "La balise fermante </CsMidifile> est absente"
 
 #: Top/one_file.c:442
 #, c-format
@@ -6239,7 +6258,7 @@ msgstr "Octet tronqué à la fin du flux base64"
 
 #: Top/one_file.c:493
 msgid "Missing end tag </CsMidifileB>"
-msgstr ""
+msgstr "La balise fermante </CsMidifileB> est absente"
 
 #: Top/one_file.c:508 Top/one_file.c:543
 #, c-format
@@ -6253,7 +6272,7 @@ msgstr "Impossible d'ouvrir le sous-fichier du fichier d'échantillons (%s)"
 
 #: Top/one_file.c:527
 msgid "Missing end tag </CsSampleB>"
-msgstr ""
+msgstr "La balise fermante </CsSampleB> est absente"
 
 #: Top/one_file.c:548
 #, c-format
@@ -6263,22 +6282,22 @@ msgstr "Impossible d'ouvrir le sous-fichier du fichier (%s)"
 #: Top/one_file.c:563
 #, fuzzy
 msgid "Missing end tag </CsFileB>"
-msgstr "Il manque endin"
+msgstr "La balise fermante </CsFileB> est absente"
 
 #: Top/one_file.c:582
 #, c-format
 msgid "This CSD file requires a version of Csound before %d.%02d"
-msgstr ""
+msgstr "Ce fichier CSD nécessite une version de Csound antérieure à la %d.%02d"
 
 #: Top/one_file.c:590 Top/one_file.c:597
 #, c-format
 msgid "This CSD file requires a version of Csound after %d.%02d"
-msgstr ""
+msgstr "Ce fichier CSD nécessite une version de Csound ultérieure à la %d.%02d"
 
 #: Top/one_file.c:603
 #, fuzzy
 msgid "Missing end tag </CsVersion>"
-msgstr "Il manque endin"
+msgstr "La balise fermante </CsVersion> est absente"
 
 #: Top/one_file.c:612
 msgid "**** Licence Information ****\n"
@@ -6706,7 +6725,7 @@ msgstr "pas de niveau de test de performance"
 
 #: Top/argdecode.c:617
 msgid "no value for --csd-line-nums"
-msgstr ""
+msgstr "pas de valeur pour --csd-line-nums"
 
 #: Top/argdecode.c:626 Top/argdecode.c:1018
 msgid "no midi device_name"
@@ -8441,27 +8460,27 @@ msgstr "%s : erreur : %s\n"
 
 #: util1/scot/scot.c:51
 msgid "Score must start with orchestra section"
-msgstr ""
+msgstr "Une partition doit débuter par une section d'orchestre"
 
 #: util1/scot/scot.c:61
 msgid "Expected score or functions section"
-msgstr ""
+msgstr "Il manque une section de partition ou de fonctions"
 
 #: util1/scot/scot.c:117
 msgid "Tempo must be specified"
-msgstr ""
+msgstr "Le tempo doit être spécifié"
 
 #: util1/scot/scot.c:121
 msgid "Redefinition of tempo"
-msgstr ""
+msgstr "Redéfinition du tempo"
 
 #: util1/scot/scot.c:133
 msgid "Must specify 2 or more letters of keyword"
-msgstr ""
+msgstr "Il faut spécifier un mot-clé d'au moins 2 lettres"
 
 #: util1/scot/scot.c:136 util1/scot/scot.c:145 util1/scot/scot.c:154
 msgid "Must be \"on\" or \"off\""
-msgstr ""
+msgstr "Doit être \"on\" ou \"off\""
 
 #: util1/scot/scot.c:165
 #, fuzzy
@@ -8470,7 +8489,7 @@ msgstr "nom de fichier non valide"
 
 #: util1/scot/scot.c:202
 msgid "Bad key signature"
-msgstr ""
+msgstr "Mauvaise armature de clé"
 
 #: util1/scot/scot.c:237 util1/scot/scot.c:243
 #, fuzzy
@@ -8479,7 +8498,7 @@ msgstr "descripteur de fichier non valide"
 
 #: util1/scot/scot.c:254 util1/scot/scot.c:258
 msgid "Nested next-parameter passing"
-msgstr ""
+msgstr "Passage de paramètre next imbriqué"
 
 #: util1/scot/scot.c:268
 #, fuzzy
@@ -8508,7 +8527,7 @@ msgstr "les entrées ont des types d'amplitude différents"
 
 #: util1/scot/scot.c:510
 msgid "Warning: params changed on tie"
-msgstr ""
+msgstr "Avertissement : paramètres changés pendant la liaison"
 
 #: util1/scot/scot.c:562
 #, fuzzy
@@ -8537,15 +8556,15 @@ msgstr "Instrument non défini"
 
 #: util1/scot/scot.c:870
 msgid "unresolved tie"
-msgstr ""
+msgstr "liaison non résolue"
 
 #: util1/scot/scot.c:872
 msgid "unresolved slur"
-msgstr ""
+msgstr "articulation non résolue"
 
 #: util1/scot/scot.c:879
 msgid "Circular note list\n"
-msgstr ""
+msgstr "Liste de notes circulaire\n"
 
 #: util1/scot/scot.c:925 util1/scot/scot.c:1039 util1/scot/scot.c:1053
 #: util1/scot/scot.c:1060 util1/scot/scot.c:1085
@@ -8570,7 +8589,7 @@ msgstr "Instrument non défini"
 
 #: util1/scot/scot.c:1003
 msgid "Expected ="
-msgstr ""
+msgstr "Il manque ="
 
 #: util1/scot/scot.c:1151
 #, fuzzy
