@@ -48,6 +48,11 @@ PUBLIC char *csoundLocalizeString(const char *s)
 {
     return (char*)s;
 }
+/* This stub is needed for backwards compatibility */
+PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
+{
+    return;
+}
 #else
 void init_getstring(void)
 {
@@ -70,10 +75,94 @@ PUBLIC char *csoundLocalizeString(const char *s)
 {
     return gettext(s);
 }
-#endif
 
-/* This stub is needed for backwards compatibility */
+static const char *language_names[] = {"", /* Default */
+                            "af", /* CSLANGUAGE_AFRIKAANS */
+                            "sq", /* CSLANGUAGE_ALBANIAN */
+                            "ar", /* CSLANGUAGE_ARABIC */
+                            "hy", /* CSLANGUAGE_ARMENIAN */
+                            "as", /* CSLANGUAGE_ASSAMESE */
+                            "", /* CSLANGUAGE_AZERI */
+                            "eu", /* CSLANGUAGE_BASQUE */
+                            "be", /* CSLANGUAGE_BELARUSIAN */
+                            "bn", /* CSLANGUAGE_BENGALI */
+                            "bg", /* CSLANGUAGE_BULGARIAN */
+                            "ca", /* CSLANGUAGE_CATALAN */
+                            "zh", /* CSLANGUAGE_CHINESE */
+                            "hr", /* CSLANGUAGE_CROATIAN */
+                            "cs", /* CSLANGUAGE_CZECH */
+                            "da", /* CSLANGUAGE_DANISH */
+                            "nl", /* CSLANGUAGE_DUTCH */
+                            "en_GB",
+                            "en_US",
+                            "et", /* CSLANGUAGE_ESTONIAN */
+                            "fo", /* CSLANGUAGE_FAEROESE */
+                            "fa", /* CSLANGUAGE_FARSI */
+                            "fi", /* CSLANGUAGE_FINNISH */
+                            "fr",
+                            "ka", /* CSLANGUAGE_GEORGIAN */
+                            "de",
+                            "el", /* CSLANGUAGE_GREEK */
+                            "gu", /* CSLANGUAGE_GUJARATI */
+                            "he", /* CSLANGUAGE_HEBREW */
+                            "hi", /* CSLANGUAGE_HINDI */
+                            "hu", /* CSLANGUAGE_HUNGARIAN */
+                            "is", /* CSLANGUAGE_ICELANDIC */
+                            "id", /* CSLANGUAGE_INDONESIAN */
+                            "it", /* CSLANGUAGE_ITALIAN */
+                            "ja", /* CSLANGUAGE_JAPANESE */
+                            "kn", /* CSLANGUAGE_KANNADA */
+                            "ks", /* CSLANGUAGE_KASHMIRI */
+                            "kk", /* CSLANGUAGE_KAZAK */
+                            "kok", /* CSLANGUAGE_KONKANI */
+                            "ko", /* CSLANGUAGE_KOREAN */
+                            "lv", /* CSLANGUAGE_LATVIAN */
+                            "lt", /* CSLANGUAGE_LITHUANIAN */
+                            "mk", /* CSLANGUAGE_MACEDONIAN */
+                            "ms", /* CSLANGUAGE_MALAY */
+                            "ml", /* CSLANGUAGE_MALAYALAM */
+                            "mni", /* CSLANGUAGE_MANIPURI */
+                            "mr", /* CSLANGUAGE_MARATHI */
+                            "ne", /* CSLANGUAGE_NEPALI */
+                            "no", /* CSLANGUAGE_NORWEGIAN */
+                            "or", /* CSLANGUAGE_ORIYA */
+                            "pl", /* CSLANGUAGE_POLISH */
+                            "pt", /* CSLANGUAGE_PORTUGUESE */
+                            "pa", /* CSLANGUAGE_PUNJABI */
+                            "ro",
+                            "ru", /* CSLANGUAGE_RUSSIAN */
+                            "sa", /* CSLANGUAGE_SANSKRIT */
+                            "sr", /* CSLANGUAGE_SERBIAN */
+                            "sd", /* CSLANGUAGE_SINDHI */
+                            "sk", /* CSLANGUAGE_SLOVAK */
+                            "sl", /* CSLANGUAGE_SLOVENIAN */
+                            "es",
+                            "sw", /* CSLANGUAGE_SWAHILI */
+                            "sv", /* CSLANGUAGE_SWEDISH */
+                            "ta", /* CSLANGUAGE_TAMIL */
+                            "tt", /* CSLANGUAGE_TATAR */
+                            "te", /* CSLANGUAGE_TELUGU */
+                            "th", /* CSLANGUAGE_THAI */
+                            "tr", /* CSLANGUAGE_TURKISH */
+                            "uk", /* CSLANGUAGE_UKRAINIAN */
+                            "ur", /* CSLANGUAGE_URDU */
+                            "uz", /* CSLANGUAGE_UZBEK */
+                            "vi", /* CSLANGUAGE_VIETNAMES */
+                            "es_CO", /* COLUMBIAN */
+  };
+
 PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 {
+    char *name;
+    if (lang_code == CSLANGUAGE_DEFAULT)
+      fprintf(stderr, "Localisation of messages is disabled, using "
+                      "default language.\n");
+    else {
+      fprintf(stderr, "Setting language of messages to %s ...\n",
+                      name=language_names[(int) lang_code]);
+      setlocale(LC_MESSAGES, name);
+    }
     return;
 }
+#endif
+
