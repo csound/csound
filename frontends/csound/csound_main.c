@@ -47,8 +47,8 @@ static void msg_callback(CSOUND *csound,
     #if defined(WIN32) || defined(MAC)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
         case CSOUNDMSG_ERROR:
-	case CSOUNDMSG_WARNING:
-	case CSOUNDMSG_REALTIME:
+        case CSOUNDMSG_WARNING:
+        case CSOUNDMSG_REALTIME:
         break;
       default:
         vfprintf(logFile, format, args);
@@ -71,14 +71,14 @@ int main(int argc, char **argv)
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
-	}
+        }
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
 #ifdef LINUX
     if (set_rt_priority(argc, argv) != 0)
       return -1;
 
-#endif 
+#endif
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
         fname = argv[i + 1];
     }
     if (fname != NULL) {
-      if (!strcmp(fname, "NULL") || !strcmp(fname, "null")) 
+      if (!strcmp(fname, "NULL") || !strcmp(fname, "null"))
                nomessages = 1;
       else if ((logFile = fopen(fname, "w")) == NULL) {
         fprintf(stderr, "Error opening log file '%s': %s\n",

@@ -192,7 +192,7 @@ extern "C" {
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
 
-  /** 
+  /**
    * The following constants are used with csound->FileOpen2() and
    * csound->ldmemfile2() to specify the format of a file that is being
    * opened.  This information is passed by Csound to a host's FileOpen
@@ -204,7 +204,7 @@ typedef enum
 {
     CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
     CSFTYPE_ORCHESTRA = 2,     /* the primary orc file (may be temporary) */
-    CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary) 
+    CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary)
                                   or any additional score opened by Cscore */
     CSFTYPE_ORC_INCLUDE = 4,   /* a file #included by the orchestra */
     CSFTYPE_SCO_INCLUDE = 5,   /* a file #included by the score */
@@ -212,7 +212,7 @@ typedef enum
     CSFTYPE_SCOT = 7,          /* Scot score input format */
     CSFTYPE_OPTIONS = 8,       /* for .csoundrc and -@ flag */
     CSFTYPE_EXTRACT_PARMS = 9, /* extraction file specified by -x */
-    
+
     /* audio file types that Csound can write (10-19) or read */
     CSFTYPE_RAW_AUDIO = 10,
     CSFTYPE_IRCAM = 11,
@@ -238,12 +238,12 @@ typedef enum
     CSFTYPE_XI = 31,
     CSFTYPE_UNKNOWN_AUDIO = 32, /* used when opening audio file for reading
                                    or temp file written with <CsSampleB> */
-    
+
     /* miscellaneous music formats */
     CSFTYPE_SOUNDFONT = 33,
     CSFTYPE_STD_MIDI = 34,     /* Standard MIDI file */
     CSFTYPE_MIDI_SYSEX = 35,   /* Raw MIDI codes, eg. SysEx dump */
-    
+
     /* analysis formats */
     CSFTYPE_HETRO = 36,
     CSFTYPE_PVC = 37,          /* original PVOC format */
@@ -259,13 +259,13 @@ typedef enum
     CSFTYPE_VST_PLUGIN = 45,
     CSFTYPE_LADSPA_PLUGIN = 46,
     CSFTYPE_SNAPSHOT = 47,
-    
-    /* Special formats for Csound ftables or scanned synthesis 
+
+    /* Special formats for Csound ftables or scanned synthesis
        matrices with header info */
     CSFTYPE_FTABLES_TEXT = 48,   /* for ftsave and ftload  */
     CSFTYPE_FTABLES_BINARY = 49, /* for ftsave and ftload  */
     CSFTYPE_XSCANU_MATRIX = 50,  /* for xscanu opcode  */
-    
+
     /* These are for raw lists of numbers without header info */
     CSFTYPE_FLOATS_TEXT = 51,    /* used by GEN23, GEN28, dumpk, readk */
     CSFTYPE_FLOATS_BINARY = 52,  /* used by dumpk, readk, etc. */
@@ -280,11 +280,11 @@ typedef enum
     CSFTYPE_SCRIPT_TEXT = 56,    /* executable script files (eg. Python) */
     CSFTYPE_OTHER_TEXT = 57,
     CSFTYPE_OTHER_BINARY = 58,
-    
+
     /* This should only be used internally by the original FileOpen()
        API call or for temp files written with <CsFileB> */
-    CSFTYPE_UNKNOWN = 0 
-}    
+    CSFTYPE_UNKNOWN = 0
+}
 CSOUND_FILETYPES;
 
   /*
@@ -346,7 +346,7 @@ CSOUND_FILETYPES;
   typedef struct pvsdat_ext {
         long            N;
 #ifdef SDFT
-        int		sliding; /* Flag to indicate sliding case */
+        int             sliding; /* Flag to indicate sliding case */
         long            NB;
 #endif
         long            overlap;
@@ -1572,7 +1572,7 @@ CSOUND_FILETYPES;
    */
   PUBLIC void csoundRemoveCallback(CSOUND *,
                                    int (*func)(void *, void *, unsigned int));
-                                   
+
 
 
   /**
@@ -1624,7 +1624,7 @@ CSOUND_FILETYPES;
    *     int    a file type code from the enumeration CSOUND_FILETYPES
    *     int    1 if Csound is writing the file, 0 if reading
    *     int    1 if a temporary file that Csound will delete; 0 if not
-   * 
+   *
    * Pass NULL to disable the callback.
    * This callback is retained after a csoundReset() call.
    */

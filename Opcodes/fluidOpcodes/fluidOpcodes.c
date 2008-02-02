@@ -161,21 +161,21 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   int polyphony = (int) *p->iPolyphony;
 
   if (numChannels <= 0) {
-	  numChannels = 256;
+          numChannels = 256;
   } else if (numChannels < 16) {
-	  numChannels = 16;
+          numChannels = 16;
   } else if (numChannels > 256) {
-	  numChannels = 256;
+          numChannels = 256;
   }
-  
+
   if (polyphony <= 0) {
-	  polyphony = 4096;
+          polyphony = 4096;
   } else if (polyphony < 16) {
-	  polyphony = 16;
+          polyphony = 16;
   } else if (polyphony > 4096) {
-	  polyphony = 4096;
+          polyphony = 4096;
   }
-  
+
   csound_global_mutex_lock();
   fluidSettings = new_fluid_settings();
   if (fluidSettings != NULL) {
@@ -205,7 +205,7 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
                   ndx, (double) csound->esr,
                   chorusEnabled ? "on" : "off",
                   reverbEnabled ? "on" : "off",
-                  numChannels, 
+                  numChannels,
                   polyphony);
   *(p->iEngineNum) = (MYFLT) ndx;
 
@@ -540,29 +540,29 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
 
 static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
 {
-	fluidSynthGlobals *pp = fluid_getGlobals(csound);
-	int engineNum = (int) *(p->iEngineNumber);
-	int channelNum  = (int) *(p->iChannelNumber);
-	int interpMethod = (int) *(p->iInterpMethod);
-	
-	if (engineNum >= (int) pp->cnt || engineNum < 0) 
-	{
-		csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
-		return NOTOK;
-	}
-	
-	if(interpMethod != 0 && interpMethod != 1 && interpMethod != 4 && 
-			interpMethod != 7) 
-	{
-		csound->InitError(csound, 
-				"Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n");
-				return NOTOK;
-	}
-	
-	fluid_synth_set_interp_method(
-			pp->fluid_engines[engineNum], channelNum, interpMethod);
-	
-	return OK;
+        fluidSynthGlobals *pp = fluid_getGlobals(csound);
+        int engineNum = (int) *(p->iEngineNumber);
+        int channelNum  = (int) *(p->iChannelNumber);
+        int interpMethod = (int) *(p->iInterpMethod);
+
+        if (engineNum >= (int) pp->cnt || engineNum < 0)
+        {
+                csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
+                return NOTOK;
+        }
+
+        if(interpMethod != 0 && interpMethod != 1 && interpMethod != 4 &&
+                        interpMethod != 7)
+        {
+                csound->InitError(csound,
+                                "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n");
+                                return NOTOK;
+        }
+
+        fluid_synth_set_interp_method(
+                        pp->fluid_engines[engineNum], channelNum, interpMethod);
+
+        return OK;
 }
 
 /* OPCODE LIBRARY STUFF */
@@ -587,7 +587,7 @@ static OENTRY localops[] = {
   { "fluidControl",         sizeof(FLUIDCONTROL),           3,  "",   "ikkkk",
     (SUBR) fluidControl_init,       (SUBR) fluidControl_kontrol, (SUBR) 0 },
   { "fluidSetInterpMethod",         sizeof(FLUID_SET_INTERP_METHOD), 1,  "",   "iii",
-    (SUBR) fluidSetInterpMethod, (SUBR) 0, (SUBR) 0 }, 
+    (SUBR) fluidSetInterpMethod, (SUBR) 0, (SUBR) 0 },
   { NULL,                   0,                              0,  NULL, NULL,
     (SUBR) 0,                       (SUBR) 0,   (SUBR) 0                  }
 };
