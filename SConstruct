@@ -904,7 +904,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
             -install_name /Library/Frameworks/%s/%s
         ''' % (OSXFrameworkCurrentVersion, libName)))
-        csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(
+        csoundLibraryFile = csoundFrameworkEnvironment.SharedLibrary(
             libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
         csoundFrameworkEnvironment.Command(
             '%s/%s' % (OSXFrameworkCurrentVersion, libName),
@@ -912,7 +912,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             'cp -f %s %s/' % (libName, OSXFrameworkCurrentVersion))
         for i in headers:
             MacOSX_InstallHeader(i)
-        csoundFrameworkEnvironment.Command(
+        csoundLibrary = csoundFrameworkEnvironment.Command(
             'CsoundLib_install',
             libName,
             'rm -r /Library/Frameworks/%s; cp -R %s /Library/Frameworks/' % (OSXFrameworkBaseDir, OSXFrameworkBaseDir))
