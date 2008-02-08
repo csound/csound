@@ -118,6 +118,7 @@ typedef struct pitchtrack
   MYFLT amphi;
   MYFLT npartial;
   MYFLT dbfs;
+  MYFLT prevf;
 } PITCHTRACK;
 
 void ptrack(CSOUND *csound,PITCHTRACK *p)
@@ -426,7 +427,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->amphi = MAXAMPS;
     p->npartial = 7;
     p->dbfs = 32768.0/csound->e0dbfs;
-    p->cps = 100.0;
+    p->prevf = p->cps = 100.0;
     return (OK);
 }
 
@@ -445,7 +446,10 @@ int pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
       }
       buf[pos] = sig[i]*scale;
     }
+    //if(p->cps) 
     *p->freq = p->cps;
+    //else *p->freq = p->prevf;
+    //p->prevf = *p->freq;
     *p->amp =  p->dbs[p->histcnt];
     p->cnt = pos;
 
