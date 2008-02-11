@@ -198,7 +198,7 @@ namespace csound
     /**
      *  Prints a message.
      */
-#if defined(_MSC_VER)
+#if defined(MSVC)
     static void message(const char *format, va_list valist);
 #else
     PUBLIC static void message(const char *format, va_list valist);

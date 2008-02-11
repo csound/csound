@@ -22,7 +22,7 @@
 #include "Conversions.hpp"
 #include <sstream>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(MSVC)
 extern "C"
 {
   extern __stdcall void OutputDebugStringA(const char *text);
@@ -334,7 +334,7 @@ namespace csound
   }
   double Conversions::hzToOctave(double Hz)
   {
-    return log(Hz / middleCHz) / log(2) + 8.0;
+    return log(Hz / middleCHz) / std::log(2.0) + 8.0;
   }
   double Conversions::hzToSamplingIncrement(double Hz, double SR, double SamplesPerCycle)
   {
