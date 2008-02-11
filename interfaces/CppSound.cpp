@@ -23,6 +23,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 
 CppSound::CppSound() : Csound(),
                        go(false),
@@ -76,7 +77,7 @@ int CppSound::compile()
 
 int CppSound::perform(int argc, char **argv_)
 {
-  double beganAt = double(clock()) / double(CLOCKS_PER_SEC);
+  double beganAt = double(std::clock()) / double(CLOCKS_PER_SEC);
   isCompiled = false;
   go = false;
   Message("BEGAN CppSound::perform(%d, %p)...\n", argc, argv_);
