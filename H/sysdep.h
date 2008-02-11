@@ -190,7 +190,7 @@ typedef unsigned __int64    uint64_t;
 typedef __int64             int_least64_t;
 typedef unsigned __int64    uint_least64_t;
 #  endif
-#if !defined(_MSC_VER)
+#if !defined(MSVC)
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
 #endif

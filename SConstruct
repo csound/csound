@@ -73,6 +73,9 @@ commandOptions.Add('CC')
 commandOptions.Add('CXX')
 commandOptions.Add('LINK')
 commandOptions.Add('LINKFLAGS')
+commandOptions.Add('custom',
+    'Specify name of custom options file (default is "custom.py")',
+    'custom.py')
 commandOptions.Add('useDouble',
     'Set to 1 to use double-precision floating point for audio samples.',
     '0')
@@ -228,14 +231,8 @@ commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
 
-# Define the common part of the build environment.
-# This section also sets up customized options for third-party libraries, which
-# should take priority over default options.
-
 commonEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
 commandOptions.Update(commonEnvironment)
-
-Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 def withMSVC():
     if getPlatform() == 'win32':
@@ -245,6 +242,19 @@ def withMSVC():
     else:
         return 0
 
+if withMSVC():
+    # To enable the Microsoft tools, 
+    # the WHOLE environment must be imported,
+    # not just the PATH; so we replace the 
+    # enviroment with a more complete one.
+    commonEnvironment = Environment(ENV = os.environ)
+    commandOptions.Update(commonEnvironment)
+
+# Define the common part of the build environment.
+# This section also sets up customized options for third-party libraries, which
+# should take priority over default options.
+
+Help(commandOptions.GenerateHelpText(commonEnvironment))
 def isNT():
     if getPlatform() == 'win32' and os.environ['SYSTEMROOT'].find('WINDOWS') != -1:
         return
@@ -259,6 +269,11 @@ if getPlatform() == 'win32':
         optionsFilename = 'custom.py'
 else:
     optionsFilename = 'custom.py'
+
+if commonEnvironment['custom']:
+    optionsFilename = commonEnvironment['custom']
+    print "Using options from custom '%s.'" % optionsFilename
+
 print "Using options from '%s.'" % optionsFilename
 
 fileOptions = Options(optionsFilename)
