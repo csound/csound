@@ -173,7 +173,7 @@ namespace csound
       }
 #ifdef MSVC
     } else if (!(operation.C == DBL_MAX)) {
-      if (!operation.V == DBL_MAX) {
+      if (!(operation.V == DBL_MAX)) {
 #else
     } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
@@ -212,7 +212,7 @@ namespace csound
       }
     } else {
 #ifdef MSVC
-      if (!operation.V == DBL_MAX) {
+	if (!(operation.V == DBL_MAX)) {
 #else
       if (!std::isnan(operation.V)) {
 #endif
