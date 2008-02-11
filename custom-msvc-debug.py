@@ -36,11 +36,18 @@ customSHLINKFLAGS = []
 customSWIGFLAGS = []
 
 if sys.platform[:3] == 'win':
-    customCXXFLAGS.append('-EHsc')
     customCCFLAGS.append("-DMSVC")
-    customCCFLAGS.append("-MD")
+    customCXXFLAGS.append('-EHsc')
+    customCCFLAGS.append("-Zi")
+    customCCFLAGS.append("-DDEBUG")
+    customCCFLAGS.append("-D_DEBUG")
+    customCCFLAGS.append("-D_CRT_SECURE_NO_DEPRECATE")
+    customCCFLAGS.append("-MDd")
     customCCFLAGS.append("-W2")
-    #customCCFLAGS.append("-Ob2")
+    customCCFLAGS.append("-wd4251")
+    customCCFLAGS.append("-wd4996")
+    customCCFLAGS.append("-D_AFXDLL")
+    customCCFLAGS.append("-U_USRDLL")
     ################################################################
     # If you want to build Csound,
     # libsndfile is REQUIRED.
@@ -91,7 +98,9 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build Lua interfaces, you need Lua.
     customCPPPATH.append(r'U:\\')
+    customCPPPATH.append(r'U:\lua5.1')
     customLIBPATH.append(r'U:\\')
+    customLIBPATH.append(r'U:\lua5.1')
     ################################################################
     # If you want to build Tcl\Tk interfaces
     # or Tclcsound, you need Tcl\Tk.
