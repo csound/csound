@@ -89,7 +89,7 @@ namespace csound
      * of the voiceleading between chord1 and chord2.
      */
     static double smoothness(const std::vector<double> &chord1,
-                             const std::vector<double> &chord1);
+                             const std::vector<double> &chord2);
 
     /**
      * Return the Euclidean distance between two chords,

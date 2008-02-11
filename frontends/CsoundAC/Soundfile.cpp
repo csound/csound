@@ -265,7 +265,7 @@ namespace csound
     double envelopeRadiansPerFrame =  Conversions::get2PI() * envelopeFrequencyHz / framesPerSecond;
     double envelopeCoefficient = 2.0 * std::cos(envelopeRadiansPerFrame);
     // The initial frame.
-    double envelope1 = std::cos(0);
+    double envelope1 = std::cos(0.0);
     // What would have been the previous frame.
     double envelope2 = std::cos(-envelopeRadiansPerFrame);
      // Precompute grain into buffer.
