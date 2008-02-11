@@ -433,7 +433,7 @@ static const CSOUND cenviron_ = {
         NULL,           /*  pool                */
         NULL,           /*  argoffspace         */
         NULL,           /*  frstoff             */
-#if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mac_classic) || \
+#if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || defined(mac_classic) || \
     (defined(_WIN32) && defined(__GNUC__))
         {0},
 #else
@@ -2957,8 +2957,11 @@ static const CSOUND cenviron_ = {
   /**
    * Returns the first message from the buffer.
    */
-
+#ifdef MSVC
+  const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
+#else
   const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+#endif
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
     char        *msg = (char*) 0;
