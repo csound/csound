@@ -1138,8 +1138,8 @@ else:
 		print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
 	else:
 		print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-	csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
-	csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
+	        csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
+	        csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
 			'interfaces/lua_interface.i',
 			SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
 	if getPlatform() != 'darwin':
@@ -1153,6 +1153,7 @@ else:
 		# os.symlink('lib_csnd.so', '_csnd.so')
 		csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
 	if getPlatform() == 'darwin':
+             if commonEnvironment['dynamicCsoundLibrary'] == '1': 
 		ilibName = "lib_csnd.dylib"
 		ilibVersion = csoundLibraryVersion
 		csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''
@@ -1166,6 +1167,11 @@ else:
 		''' % ('5.1', ilibName)))
 		csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
 		 '_csnd', csoundInterfacesSources)
+             else:
+                 csoundInterfaces = csoundInterfacesEnvironment.Library(
+		 '_csnd', csoundInterfacesSources)
+                 
+
 	elif getPlatform() == 'linux':
 		name = 'libcsnd.so'
 		soname = name + '.' + csoundLibraryVersion
@@ -1188,7 +1194,10 @@ else:
 		csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
 		csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
 		if getPlatform() == 'darwin':
-		 csndPythonEnvironment.Append(LIBS = ['_csnd'])
+                  if commonEnvironment['dynamicCsoundLibrary'] == '1': 
+		    csndPythonEnvironment.Append(LIBS = ['_csnd'])
+                  else:
+                    csndPythonEnvironment.Append(LIBS = ['csound','_csnd'])
 		elif getPlatform() == 'linux':
 		 csndPythonEnvironment.Append(LIBS = csoundInterfaces)
 		else:
@@ -1831,7 +1840,9 @@ else:
 	acEnvironment.Append(LIBPATH = pythonLibraryPath)
 	if getPlatform() != 'darwin':
 		acEnvironment.Prepend(LIBS = pythonLibs)
-	acEnvironment.Prepend(LIBS = ['csnd'])
+                acEnvironment.Prepend(LIBS = ['csnd'])
+        else:
+	        acEnvironment.Prepend(LIBS = ['_csnd'])
 	acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
 	acEnvironment.Append(LIBS = libCsoundLibs)
 	acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
@@ -1898,7 +1909,10 @@ else:
 	swigflags = acEnvironment['SWIGFLAGS']
 	acWrapperEnvironment = acEnvironment.Copy()
 	fixCFlagsForSwig(acWrapperEnvironment)
-	csoundac = acEnvironment.SharedLibrary('CsoundAC', csoundAcSources)
+        if commonEnvironment['dynamicCsoundLibrary'] == '1': 
+        	csoundac = acEnvironment.SharedLibrary('CsoundAC', csoundAcSources)
+        else:
+                csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
 	libs.append(csoundac)
 	Depends(csoundac, csoundInterfaces)
 	Depends(csoundac, csoundLibrary)
@@ -2146,7 +2160,7 @@ if getPlatform() == "darwin":
  if commonEnvironment['dynamicCsoundLibrary'] != '0':
   csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -flat_namespace -framework CsoundLib'''))
  else:
-  csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -L. -lcsound'''))
+  csLadspaEnv.Append(LINKFLAGS="-bundle")
  csladspa = csLadspaEnv.Program('csladspa.so', 'frontends/csladspa/csladspa.cpp' )
 else:
  csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
