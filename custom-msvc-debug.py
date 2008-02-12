@@ -1,5 +1,7 @@
 '''
 S C O N S   C U S T O M I Z A T I O N   F I L E
+F O R   M I C R O S O F T   V I S U A L   C + + 
+
 Michael Gogins
 
 In general, the purpose of a customization file for SCons
@@ -36,13 +38,15 @@ customSHLINKFLAGS = []
 customSWIGFLAGS = []
 
 if sys.platform[:3] == 'win':
+    # It is imperative to build for release,
+    # but with debugging information and no optimization,
+    # in order not to have to build debugging versions of
+    # Python and of every other blessed Python extension module.
     customCCFLAGS.append("-DMSVC")
     customCXXFLAGS.append('-EHsc')
     customCCFLAGS.append("-Zi")
-    customCCFLAGS.append("-DDEBUG")
-    customCCFLAGS.append("-D_DEBUG")
     customCCFLAGS.append("-D_CRT_SECURE_NO_DEPRECATE")
-    customCCFLAGS.append("-MDd")
+    customCCFLAGS.append("-MD")
     customCCFLAGS.append("-W2")
     customCCFLAGS.append("-wd4251")
     customCCFLAGS.append("-wd4996")
@@ -57,7 +61,7 @@ if sys.platform[:3] == 'win':
     # If you want to build PortAudio,
     # for real-time audio performance.
     customCPPPATH.append(r'U:\portaudio\include')
-    customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Debug')
+    customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
     ################################################################
     # If you want to build PortMidi,
     # for real-time MIDI performance.
@@ -66,7 +70,7 @@ if sys.platform[:3] == 'win':
     customCPPPATH.append(r'U:\portmidi\porttime')
     customLIBPATH.append(r'U:\portmidi\pm_win')
     customLIBPATH.append(r'U:\portmidi\porttime')
-    customLIBPATH.append(r'U:\portmidi\pm_win\Debug')
+    customLIBPATH.append(r'U:\portmidi\pm_win\Release')
     ################################################################
     # If you want to build the FLTK widgets, csound5gui, cseditor,
     # CsoundAC, or CsoundVST, FLTK 1.1x is required.
@@ -77,12 +81,12 @@ if sys.platform[:3] == 'win':
     # libpng and libz are required.
     customCPPPATH.append(r'U:\zlib')
     customCPPPATH.append(r'U:\libpng-1.2.24')
-    customLIBPATH.append(r'U:\libpng-1.2.24\projects\visualc71\Win32_DLL_Debug')
+    customLIBPATH.append(r'U:\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
     ################################################################
     # If you want to build the Python opcodes, the Python interfaces
     # to Csound, or CsoundAC, Python 2.5 is required.
     customCPPPATH.append(r'U:\Python25\include')
-    customLIBPATH.append(r'U:\Python25\Libs')
+    customLIBPATH.append(r'U:\Python25\libs')
     ################################################################
     # If you want to build CsoundVST, you need the 
     # Steinberg VST SDK.
