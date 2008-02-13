@@ -27,13 +27,11 @@
 #define VSTPLUGIN_HOST_H
 
 #include "csdl.h"
-/* commented out to allow Csound to build on Windows without vst SDK installed 
-// #include "../../../frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
-   if you wish to build these opcodes, then comment this in, but please do
-   not commit to CVS. Scons will always fail on Windows if this is included,
-   without the sdk being installed, as it ignores #ifdefs when building its
-   dependency tree. 
-*/
+
+#if !defined(SWIG) && defined(HAVE_VST_SDK)
+#include "../../../frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
+#endif
+
 #include <vector>
 #include <map>
 #include <string>
