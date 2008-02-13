@@ -1301,7 +1301,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     else if (opcode_name == "FLbutton") {
       FLBUTTON *p = (FLBUTTON*) (opcode);
       //  don't allow to retreive its value if >= 10 or between 21 and 29
-      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+      if ((*p->itype < 10) || (*p->itype < 30 && *p->itype > 20)) {
         if(fld->value >= *p->ioff - 0.0001 &&
            fld->value <= *p->ioff + 0.0001)  // to avoid eventual  math rounding
           ((Fl_Button*) o)->value(0);
@@ -1315,7 +1315,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     }
     else if (opcode_name == "FLbutBank") {
       FLBUTTONBANK *p = (FLBUTTONBANK*) (opcode);
-      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+      if (*p->itype < 10 || (*p->itype < 30 && *p->itype > 20)) {
         //  don't allow to retreive its value if >= 10
         //((Fl_Group*) o)->value(fld->value);
         set_butbank_value((Fl_Group*) o, fld->value);
@@ -1327,7 +1327,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     }
     else if (opcode_name == "FLcount") {
       FLCOUNTER *p = (FLCOUNTER*) (opcode);
-      if (*p->itype < 10 or (*p->itype < 30 and *p->itype > 20)) {
+      if (*p->itype < 10 || (*p->itype < 30 && *p->itype > 20)) {
         //  don't allow to retreive its value if >= 10
         ((Fl_Counter*) o)->value(fld->value);
         o->do_callback(o, opcode);
@@ -3320,7 +3320,7 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     if ((int) *p->itypetable <= 0) {    // no slider type table
       if (*p->itypetable >= -7)         //  all sliders are of the same type
         slider_type = -((int) *p->itypetable);
-      else if (*p->itypetable >= -27 and *p->itypetable < -20) {
+      else if (*p->itypetable >= -27 && *p->itypetable < -20) {
         slider_type = -((int) *p->itypetable) - 20;
         plastic = true;
       }
@@ -4356,7 +4356,7 @@ static int fl_mouse(CSOUND *csound,FLMOUSE *p)
       if ((int) *p->itypetable <= 0) {    // no slider type table
         if (*p->itypetable >= -7)         //  all sliders are of the same type
           slider_type = -((int) *p->itypetable);
-        else if (*p->itypetable >= -27 and *p->itypetable < -20) {
+        else if (*p->itypetable >= -27 && *p->itypetable < -20) {
           slider_type = -((int) *p->itypetable) - 20;
           plastic = true;
         }
