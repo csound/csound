@@ -453,10 +453,10 @@ void FLTKKeyboard::draw() {
     // Draw White Keys
     for(i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
-            int newX = (int)round(runningX);
+            int newX = int(runningX + 0.5);
 
             if(keyStates[i] == 1) {
-                int newW = (int)(round(runningX + whiteKeyWidth) - newX);
+                int newW = (int(runningX + whiteKeyWidth + 0.5) - newX);
                 fl_draw_box(box(), newX, yval, newW,
                     whiteKeyHeight - 1, FL_BLUE);
             }
