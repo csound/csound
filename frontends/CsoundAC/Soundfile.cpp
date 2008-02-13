@@ -191,7 +191,7 @@ namespace csound
     double gaussianWidth = std::exp(1.0) / std::pow(durationSeconds / 4.0, 2.0);
     double endingFrequencyHz = centerFrequencyHz + (centerFrequencyHz - beginningFrequencyHz);
     double chirpRate = (endingFrequencyHz - beginningFrequencyHz) / durationSeconds;
-    double omega = Conversions::TWO_PI_ * centerFrequencyHz;
+    double omega = Conversions::get2PI() * centerFrequencyHz;
     std::complex<double> c0(log(centerAmplitude) - (gaussianWidth * std::pow(centerTime, 2.0)),
                             (centerPhaseOffsetRadians - (chirpRate / 2.0) * centerTime) - (omega * centerTime));
     std::complex<double> c1(-2.0 * gaussianWidth * samplingInterval * centerTime,
