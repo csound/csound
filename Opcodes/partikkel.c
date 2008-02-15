@@ -396,7 +396,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
 
     graingain = *p->amplitude*maskgain;
     /* duration in samples */
-    samples = (int)round(csound->esr*(*p->duration)/1000.0);
+    samples = (int)((csound->esr*(*p->duration)/1000.0) + 0.5);
     /* if grainlength is below one sample, we'll just cancel it */
     if (samples <= 0) {
         return_grain(&p->gpool, node);
