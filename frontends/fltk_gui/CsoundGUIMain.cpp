@@ -241,7 +241,7 @@ bool CsoundGUIMain::browseFile(string& fileName, const char *title,
     fdlg->filter(fileNameFilters[fileType]);
     fdlg->preset_file(fileName.c_str());
     // Do not activate preview for binary files or directory browsing
-    if (fileType != 3 or fileType != 5 or fileType != 6 or
+    if (fileType != 3 || fileType != 5 || fileType != 6 || 
         fileType != CSOUND5GUI_FILETYPE_DIRECTORY)
       fdlg->options(Fl_Native_File_Chooser::PREVIEW & Fl_Native_File_Chooser::NEW_FOLDER);
 //       fdlg->preview(1);
@@ -261,7 +261,7 @@ bool CsoundGUIMain::browseFile(string& fileName, const char *title,
 
 void CsoundGUIMain::updateGUIState_orcName()
 {
-    if (isCSDFile(currentPerformanceSettings.orcName) or
+    if (isCSDFile(currentPerformanceSettings.orcName) || 
         currentPerformanceSettings.orcName.size() == 0) {
       scoreNameInput->value("");
       scoreNameInput->deactivate();
@@ -588,7 +588,7 @@ void CsoundGUIMain::setRealtimeCheckbox(int checked)
       currentPerformanceSettings.runRealtime = false;
       if (performanceSettingsWindow)
         performanceSettingsWindow->performanceSettings.runRealtime = false;
-      if (isRtAudioDevice(currentPerformanceSettings.outputFileName, true) and
+      if (isRtAudioDevice(currentPerformanceSettings.outputFileName, true) &&
          isEmptyString(oldOutFilename))
         oldOutFilename = "test";
       outfileNameInput->value(oldOutFilename.c_str());
