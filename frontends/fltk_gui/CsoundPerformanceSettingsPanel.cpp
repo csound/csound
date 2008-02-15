@@ -58,7 +58,7 @@ static void getCsoundMessages(CSOUND *csound, int attr,
 {
     char newMessage[180];
     vsprintf( newMessage, format,  valist);
-    if (strstr(newMessage, startText) and !relevantText) {
+    if (strstr(newMessage, startText) && !relevantText) {
       relevantText = true;
       return;
     }
@@ -257,8 +257,8 @@ void CsoundPerformanceSettingsPanel::makeAudioDeviceName(std::string Name, bool 
           outputDeviceName = rtAudioOutputDevices[i].description;
           stripSlash(outputDeviceName);
         }
-        if ((isInput and inputDeviceName == Name) or
-            (!isInput and outputDeviceName == Name))  {
+        if ((isInput && inputDeviceName == Name) ||
+            (!isInput && outputDeviceName == Name))  {
           if (performanceSettings.rtAudioModule == "ALSA")  {
             if (Name != "default") {
               char temp [] = "  ";
@@ -308,10 +308,10 @@ void CsoundPerformanceSettingsPanel::makeMidiDeviceName(std::string Name, bool i
         outputDeviceName = rtMidiOutputDevices[i].description;
         stripSlash(outputDeviceName);
       }
-      if ((isInput and inputDeviceName == Name) or
-          (!isInput and outputDeviceName == Name))  {
+      if ((isInput && inputDeviceName == Name) ||
+          (!isInput && outputDeviceName == Name))  {
         if (performanceSettings.rtMidiModule == "ALSA")  {
-          if (Name != "default" and Name != "NONE") {
+          if (Name != "default" && Name != "NONE") {
             char temp [] = "  ";
             deviceName.append("hw:");
             sprintf(temp, "%i", (isInput ? rtMidiInputDevices[i].cardNum :
@@ -652,7 +652,7 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
           int i;
           char *line_ = (char *) calloc (128, sizeof(char));
           strcpy(line_, line);
-          if (strstr(line, "Client") == line and strchr(line, ':'))  {
+          if (strstr(line, "Client") == line && strchr(line, ':'))  {
             temp = strtok (line, "\"");
             temp = strtok (NULL, "\"");
             strncpy (name, temp, 20);
