@@ -410,7 +410,7 @@ else
             callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
 if (!button_->text()) return;
-if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
+if ( strcmp(button_->text(),input_->value()) == 0 || button_->changed() )
   makeAudioDeviceName(std::string(o->value()), true);
 else
   CsoundGUIMain::stripString(performanceSettings.rtAudioInputDevice, input_->value());} open
@@ -421,7 +421,7 @@ else
             callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
 if (!button_->text()) return;
-if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
+if ( strcmp(button_->text(),input_->value()) == 0 || button_->changed() )
   makeAudioDeviceName(std::string(o->value()), false);
 else
   CsoundGUIMain::stripString(performanceSettings.rtAudioOutputDevice, input_->value());} open
@@ -521,7 +521,7 @@ else {
               callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
 if (!button_->text()) return;
-if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
+if ( strcmp(button_->text(),input_->value()) == 0 || button_->changed() )
   makeMidiDeviceName(std::string(o->value()), true);
 else
   CsoundGUIMain::stripString(performanceSettings.midiInDevName, input_->value());} open
@@ -533,7 +533,7 @@ else
               callback {Fl_Menu_Button *button_ = o->menubutton();
 Fl_Input *input_ = o->input();
 if (!button_->text()) return;
-if ( strcmp(button_->text(),input_->value()) == 0 or button_->changed() )
+if ( strcmp(button_->text(),input_->value()) == 0 || button_->changed() )
   makeMidiDeviceName(std::string(o->value()), false);
 else
   CsoundGUIMain::stripString(performanceSettings.midiOutDevName, input_->value());} open
