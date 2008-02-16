@@ -59,6 +59,7 @@ namespace csound
     public Node
   {
   protected:
+#if !defined(SWIG)
     void *generator_;
     boost::variate_generator<boost::mt19937, boost::uniform_smallint<> > *uniform_smallint_generator;
     boost::variate_generator<boost::mt19937, boost::uniform_int<> > *uniform_int_generator;
@@ -71,6 +72,7 @@ namespace csound
     boost::variate_generator<boost::mt19937, boost::lognormal_distribution<> > *lognormal_distribution_generator;
   public:
     static boost::mt19937 mersenneTwister;
+#endif
     std::string distribution;
     int row;
     int column;
