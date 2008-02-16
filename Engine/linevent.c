@@ -103,6 +103,9 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 #else
 #define MODE ,0
 #endif
+#if defined(MSVC)
+#define O_RDONLY _O_RDONLY
+#endif
     else if ((csound->Linefd = open(O->Linename, O_RDONLY|O_NDELAY  MODE)) < 0)
       csoundDie(csound, Str("Cannot open %s"), O->Linename);
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
