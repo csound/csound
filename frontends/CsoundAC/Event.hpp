@@ -95,8 +95,6 @@ namespace csound
       {
         INDEFINITE = 16384
       };
-    static int SORT_ORDER[];
-    static const char *labels[];
     std::map<std::string,std::string> properties;
     Event();
     Event(const Event &a);
@@ -164,6 +162,10 @@ namespace csound
     virtual void createNoteOffEvent(Event &event) const;
     virtual Event &operator = (const Event &a);
     virtual Event &operator = (const ublas::vector<double> &a);
+#ifndef SWIG
+    static int SORT_ORDER[];
+    static const char *labels[];
+#endif
   };
 
   bool SILENCE_PUBLIC operator < (const Event& a, const Event &b);
