@@ -342,20 +342,24 @@ if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
 	flags = '-O3 -march=%s'%(cpuType)
   commonEnvironment.Prepend(CCFLAGS = Split(flags))
 elif commonEnvironment['buildRelease'] != '0':
-  if not withMSVC():
+     if not withMSVC():
 	commonEnvironment.Prepend(CCFLAGS = Split('''
-	  -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
+	-O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
 	'''))
-  else:
+     else:
+	# With Visual C++ it is now necessary to embed the manifest into the target.
 	commonEnvironment.Append(CCFLAGS = Split('''
 	/O2 
 	/fp:fast
 	'''))
+	commonEnvironment['LINKCOM'] = [commonEnvironment['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
+       	commonEnvironment['SHLINKCOM'] = [commonEnvironment['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
+
 elif commonEnvironment['noDebug'] == '0':
 	if not withMSVC():
 		commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
 	else:
-	    # In order not to have to build debugging versions of
+		# In order not to have to build debugging versions of
 		# Python and of every other blessed Python extension module,
 		# the debug version of Csound is built as if for release,
 		# but without optimizations and with debugging information,
@@ -363,13 +367,17 @@ elif commonEnvironment['noDebug'] == '0':
 		commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
 		commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
 		commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
+		# With Visual C++ it is now necessary to embed the manifest into the target.
+		commonEnvironment['LINKCOM'] = [commonEnvironment['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
+        	commonEnvironment['SHLINKCOM'] = [commonEnvironment['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
 else:
-	commonEnvironment.Prepend(CCFLAGS = ['-O2'])
+		commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if commonEnvironment['useGprof'] == '1':
 	commonEnvironment.Append(CCFLAGS = ['-pg'])
 	commonEnvironment.Append(LINKFLAGS = ['-pg'])
 if not withMSVC():
 	commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
+
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 
 if commonEnvironment['buildRelease'] == '0':
@@ -414,28 +422,26 @@ elif getPlatform() == 'darwin':
 		print 'CONFIGURATION DECISION using Altivec optmisation'
 		commonEnvironment.Append(CCFLAGS = "-faltivec")
 elif getPlatform() == 'win32':
-	commonEnvironment.Append(CCFLAGS = "-D_WIN32")
-	commonEnvironment.Append(CCFLAGS = "-DWIN32")
-	commonEnvironment.Append(CCFLAGS = "-DPIPES")
-	commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
-	commonEnvironment.Append(CXXFLAGS = "-D_WIN32")
-	commonEnvironment.Append(CXXFLAGS = "-DWIN32")
-	commonEnvironment.Append(CXXFLAGS = "-DPIPES")
-	commonEnvironment.Append(CXXFLAGS = "-DOS_IS_WIN32")
+	commonEnvironment.Append(CCFLAGS =  '-D_WIN32')
+	commonEnvironment.Append(CCFLAGS =  '-DWIN32')
+	commonEnvironment.Append(CCFLAGS =  '-DPIPES')
+	commonEnvironment.Append(CCFLAGS =  '-DOS_IS_WIN32')
+	commonEnvironment.Append(CXXFLAGS = '-D_WIN32')
+	commonEnvironment.Append(CXXFLAGS = '-DWIN32')
+	commonEnvironment.Append(CXXFLAGS = '-DPIPES')
+	commonEnvironment.Append(CXXFLAGS = '-DOS_IS_WIN32')
 	if not withMSVC():
 		commonEnvironment.Append(CPPPATH = '/usr/local/include')
 		commonEnvironment.Append(CPPPATH = '/usr/include')
-		commonEnvironment.Append(CCFLAGS = "-mthreads")
+		commonEnvironment.Append(CCFLAGS = '-mthreads')
 	else:
-		commonEnvironment.Append(CCFLAGS = "-DMSVC")
+		commonEnvironment.Append(CCFLAGS =  '-DMSVC')
     		commonEnvironment.Append(CXXFLAGS = '-EHsc')
-    		commonEnvironment.Append(CCFLAGS = "-D_CRT_SECURE_NO_DEPRECATE")
-    		commonEnvironment.Append(CCFLAGS = "-MD")
-    		commonEnvironment.Append(CCFLAGS = "-W2")
-    		commonEnvironment.Append(CCFLAGS = "-wd4251")
-    		commonEnvironment.Append(CCFLAGS = "-wd4996")
-    		commonEnvironment.Append(CCFLAGS = "-D_AFXDLL")
-    		commonEnvironment.Append(CCFLAGS = "-U_USRDLL")
+    		commonEnvironment.Append(CCFLAGS =  '-D_CRT_SECURE_NO_DEPRECATE')
+    		commonEnvironment.Append(CCFLAGS =  '-MD')
+    		commonEnvironment.Append(CCFLAGS =  '-W2')
+    		commonEnvironment.Append(CCFLAGS =  '-wd4251')
+    		commonEnvironment.Append(CCFLAGS =  '-wd4996')
 
 if getPlatform() == 'linux':
 	path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
