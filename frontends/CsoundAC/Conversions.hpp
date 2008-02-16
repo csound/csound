@@ -65,8 +65,7 @@ namespace csound
     static void subfill(std::string root, char *cname, double pcs);
     static void fill(char *cname, char *cpitches);
     static std::string listPitchClassSets();
-  public:
-#if !defined(SWIGJAVA)
+#if !defined(SWIG)
     static const double PI_;
     static const double TWO_PI_;
     static const double middleCHz;
@@ -76,6 +75,7 @@ namespace csound
     static const double floatMaximumAmplitude;
     static int sampleSize;
 #endif
+  public:
     static double getPI(void);
     static double get2PI(void);
     static double getMiddleCHz(void);
