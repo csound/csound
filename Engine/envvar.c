@@ -22,9 +22,13 @@
 */
 
 #include "csoundCore.h"
+#include "envvar.h"
 #include <ctype.h>
 #include <math.h>
-#include "envvar.h"
+
+#if defined(MSVC)
+#include <fcntl.h>
+#endif
 
 #if defined(mac_classic) && defined(__MWERKS__)
 #include <unix.h>
@@ -58,9 +62,9 @@ static const char *envVar_list[] = {
 
 #define ENV_DB          (((CSOUND*) csound)->envVarDB)
 
-#if defined MSVC
-#define RD_OPTS  O_RDONLY | O_BINARY
-#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY,_S_IWRITE
+#if defined(MSVC)
+#define RD_OPTS  _O_RDONLY | _O_BINARY
+#define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
 #elif defined(mac_classic) || defined(SYMANTEC) || defined(WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
