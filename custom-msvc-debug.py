@@ -38,25 +38,15 @@ customSHLINKFLAGS = []
 customSWIGFLAGS = []
 
 if sys.platform[:3] == 'win':
-    # It is imperative to build for release,
-    # but with debugging information and no optimization,
-    # in order not to have to build debugging versions of
-    # Python and of every other blessed Python extension module.
-    customCCFLAGS.append("-DMSVC")
-    customCXXFLAGS.append('-EHsc')
-    customCCFLAGS.append("-Zi")
-    customCCFLAGS.append("-D_CRT_SECURE_NO_DEPRECATE")
-    customCCFLAGS.append("-MD")
-    customCCFLAGS.append("-W2")
-    customCCFLAGS.append("-wd4251")
-    customCCFLAGS.append("-wd4996")
-    customCCFLAGS.append("-D_AFXDLL")
-    customCCFLAGS.append("-U_USRDLL")
-    ################################################################
+	################################################################
     # If you want to build Csound,
     # libsndfile is REQUIRED.
     customCPPPATH.append(r'U:\libsndfile-1_0_17')
     customLIBPATH.append(r'U:\libsndfile-1_0_17')
+    ################################################################
+    # You need dirent.h, put its path here.
+    # You can get it from http://www.softagalleria.net/dirent.php.
+    customCPPPATH.append(r'U:\dirent')
     ################################################################
     # If you want to build PortAudio,
     # for real-time audio performance.
@@ -64,12 +54,13 @@ if sys.platform[:3] == 'win':
     customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
     ################################################################
     # If you want to build PortMidi,
-    # for real-time MIDI performance.
+    # for real-time MIDI performance.,
+    # you need both portmidi and porttime.
     customCPPPATH.append(r'U:\portmidi\pm_common')
     customCPPPATH.append(r'U:\portmidi\pm_win')
     customCPPPATH.append(r'U:\portmidi\porttime')
     customLIBPATH.append(r'U:\portmidi\pm_win')
-    customLIBPATH.append(r'U:\portmidi\porttime')
+    customLIBPATH.append(r'U:\portmidi\porttime\Release')
     customLIBPATH.append(r'U:\portmidi\pm_win\Release')
     ################################################################
     # If you want to build the FLTK widgets, csound5gui, cseditor,
@@ -110,12 +101,14 @@ if sys.platform[:3] == 'win':
     # or Tclcsound, you need Tcl\Tk.
     # Add it here:
     customCPPPATH.append(r'U:\Tcl\include')
-    customLIBPATH.append(r'U:\Tcl\bin')
+    customLIBPATH.append(r'U:\Tcl\lib')
     ################################################################
     # If you want to build the FluidSynth opcodes,
     # you need FluidSynth. 
-    customLIBPATH.append(r'U:\fluidsynth\winbuild\fluidsynth_dll\Debug')
+    customLIBPATH.append(r'U:\fluidsynth\winbuild')
     customCPPPATH.append(r'U:\fluidsynth\include')
+    # And the dsound library from the Microsoft DirectX SDK.
+    customLIBPATH.append(r'U:\dxsdk\Lib\x86')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. 
