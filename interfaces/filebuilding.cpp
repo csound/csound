@@ -9,14 +9,14 @@
 #define gcvt(val,dig,buf) snprintf(buf,dig,"%f",val)
 #endif
 
-struct CsoundFile
+struct CsoundFile_
 {
   std::string options;
   std::string orchestra;
   std::vector<std::string> score;
 };
 
-static std::map<CSOUND *, CsoundFile> files;
+static std::map<CSOUND *, CsoundFile_> files;
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +58,7 @@ extern "C" {
 
   PUBLIC void csoundCsdCreate(CSOUND *csound)
   {
-    CsoundFile csoundFile;
+    CsoundFile_ csoundFile;
     files[csound] = csoundFile;
   }
 
@@ -151,7 +151,7 @@ extern "C" {
 
   PUBLIC int csoundCsdSave(CSOUND *csound, char *filename)
   {
-    CsoundFile &csoundFile = files[csound];
+    CsoundFile_ &csoundFile = files[csound];
     FILE *file = fopen(filename, "w+");
     fprintf(file, "<CsoundSynthesizer>");
     fprintf(file, "<CsOptions>");

@@ -91,22 +91,7 @@ static __attribute__ ((__destructor__)) void csound_global_mutex_destroy_(void)
 
 static  int     csound_global_lock_init_done_ = 0;
 
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    (void) hinstDLL;
-    (void) lpvReserved;
-    switch ((int) fdwReason) {
-    case (int) DLL_PROCESS_ATTACH:
-      InitializeCriticalSection(&csound_global_lock_);
-      csound_global_lock_init_done_ = 1;
-      break;
-    case (int) DLL_PROCESS_DETACH:
-      csound_global_lock_init_done_ = 0;
-      DeleteCriticalSection(&csound_global_lock_);
-      break;
-    }
-    return TRUE;
-}
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
 
 #endif
 
