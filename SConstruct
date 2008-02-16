@@ -346,16 +346,30 @@ elif commonEnvironment['buildRelease'] != '0':
 	commonEnvironment.Prepend(CCFLAGS = Split('''
 	  -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
 	'''))
+  else:
+	commonEnvironment.Append(CCFLAGS = Split('''
+	/O2 
+	/fp:fast
+	'''))
 elif commonEnvironment['noDebug'] == '0':
-  if not withMSVC():
-	commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
+	if not withMSVC():
+		commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
+	else:
+	    # In order not to have to build debugging versions of
+		# Python and of every other blessed Python extension module,
+		# the debug version of Csound is built as if for release,
+		# but without optimizations and with debugging information,
+		# and so links with release versions of all libraries.
+		commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
+		commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
+		commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
 else:
-  commonEnvironment.Prepend(CCFLAGS = ['-O2'])
+	commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if commonEnvironment['useGprof'] == '1':
-  commonEnvironment.Append(CCFLAGS = ['-pg'])
-  commonEnvironment.Append(LINKFLAGS = ['-pg'])
+	commonEnvironment.Append(CCFLAGS = ['-pg'])
+	commonEnvironment.Append(LINKFLAGS = ['-pg'])
 if not withMSVC():
-  commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
+	commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 
 if commonEnvironment['buildRelease'] == '0':
@@ -414,6 +428,14 @@ elif getPlatform() == 'win32':
 		commonEnvironment.Append(CCFLAGS = "-mthreads")
 	else:
 		commonEnvironment.Append(CCFLAGS = "-DMSVC")
+    		commonEnvironment.Append(CXXFLAGS = '-EHsc')
+    		commonEnvironment.Append(CCFLAGS = "-D_CRT_SECURE_NO_DEPRECATE")
+    		commonEnvironment.Append(CCFLAGS = "-MD")
+    		commonEnvironment.Append(CCFLAGS = "-W2")
+    		commonEnvironment.Append(CCFLAGS = "-wd4251")
+    		commonEnvironment.Append(CCFLAGS = "-wd4996")
+    		commonEnvironment.Append(CCFLAGS = "-D_AFXDLL")
+    		commonEnvironment.Append(CCFLAGS = "-U_USRDLL")
 
 if getPlatform() == 'linux':
 	path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
@@ -518,6 +540,7 @@ if not configure.CheckHeader("stdio.h", language = "C"):
 if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
 	print "The sndfile library is required to build Csound 5."
 	Exit(-1)
+vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
 portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
 portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
 fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
@@ -573,6 +596,10 @@ if getPlatform() == 'win32':
 
 if (commonEnvironment['useFLTK'] == '1' and fltkFound):
    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_FLTK'])
+
+if vstSdkFound:
+   commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_VST_SDK'])
+
 
 # Define macros that configure and config.h used to define.
 headerMacroCheck = [
@@ -1171,7 +1198,6 @@ else:
                  csoundInterfaces = csoundInterfacesEnvironment.Library(
 		 '_csnd', csoundInterfacesSources)
                  
-
 	elif getPlatform() == 'linux':
 		name = 'libcsnd.so'
 		soname = name + '.' + csoundLibraryVersion
@@ -1329,11 +1355,13 @@ else:
 		widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
 		widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
 	elif getPlatform() == 'win32':
-		widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 		if not withMSVC():
 			widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
 			widgetsEnvironment.Prepend(
 				LINKFLAGS = ['-Wl'])#,'--enable-runtime-pseudo-reloc'])
+			widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+		else:
+			widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
 		widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
 	elif getPlatform() == 'darwin':
 		widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
@@ -1461,12 +1489,16 @@ if not configure.CheckHeader("fluidsynth.h", language = "C"):
 else:
 	print "CONFIGURATION DECISION: Building fluid opcodes."
 	fluidEnvironment = pluginEnvironment.Copy()
-	fluidEnvironment.Append(LIBS = ['fluidsynth'])
 	if getPlatform() == 'win32':
+	   	if not withMSVC():
+		   fluidEnvironment.Append(LIBS = ['fluidsynth'])
+		else:
+		   fluidEnvironment.Append(LIBS = ['fluidsynth_lib'])
 		fluidEnvironment.Append(CPPFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL'])
 		fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
 		fluidEnvironment.Append(LIBS = csoundWindowsLibraries)
 	elif getPlatform() == 'linux' or getPlatform() == 'darwin':
+	     	fluidEnvironment.Append(LIBS = ['fluidsynth'])
 		fluidEnvironment.Append(LIBS = ['pthread'])
 	makePlugin(fluidEnvironment, 'fluidOpcodes',
 			   ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
@@ -1478,11 +1510,13 @@ else:
 	print "CONFIGURATION DECISION: Building vst4cs opcodes."
 	if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
 		vst4Environment = vstEnvironment.Copy()
-		vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 		vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
 		vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
 		if not withMSVC():
+			vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 			vst4Environment.Append(LIBS = ['stdc++'])
+		else:
+			vst4Environment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
 		if getPlatform() == 'win32':
 			vst4Environment.Append(LIBS = csoundWindowsLibraries)
 		makePlugin(vst4Environment, 'vst4cs', Split('''
@@ -1684,7 +1718,8 @@ executables.append(csoundProgramEnvironment.Program('scsort',
 	['util1/sortex/smain.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
 	['util1/sortex/xmain.c']))
-executables.append(commonEnvironment.Program('cs',
+if not withMSVC():
+   executables.append(commonEnvironment.Program('cs',
 	['util1/csd_util/cs.c']))
 executables.append(commonEnvironment.Program('csb64enc',
 	['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
@@ -1742,12 +1777,14 @@ else:
 		csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
 		csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
 	elif getPlatform() == 'win32':
-		csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 		if not withMSVC():
 			csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
 			csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
 				-mwindows -Wl,--enable-runtime-pseudo-reloc
 			'''))
+			csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+		else:
+			csound5GUIEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
 		csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
 	elif getPlatform() == 'darwin':
 		csound5GUIEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
@@ -1810,10 +1847,12 @@ else:
 		csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
 		executables.append(csEditor)
 	elif getPlatform() == 'win32':
-		csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 		if not withMSVC():
 			csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
 			csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
+			csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+		else:
+			csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
 		csEditorEnvironment.Append(LIBS = csoundWindowsLibraries)
 		csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
 		executables.append(csEditor)
@@ -1934,7 +1973,7 @@ else:
 			Depends(csoundvstPythonModule, pythonImportLibrary)
 		pythonModules.append('CsoundAC.py')
 	counterpoint = acEnvironment.Program(
-		'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'])
+		'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'], LIBS = Split('CsoundAC csnd csound64'))
 	zipDependencies.append(counterpoint)
 
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
@@ -2096,12 +2135,14 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
 		csWinEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
 		csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
 	elif getPlatform() == 'win32':
-		csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 		if not withMSVC():
+			csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
 			csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
 			csWinEnvironment.Prepend(LINKFLAGS = Split('''
 				-mwindows -Wl,--enable-runtime-pseudo-reloc
 			'''))
+		else:
+			csWinEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
 		csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
 	elif getPlatform() == 'darwin':
 		csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
