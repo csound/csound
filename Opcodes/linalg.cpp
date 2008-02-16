@@ -8,7 +8,7 @@
  * and of course other mathematical operations, 
  * in the Csound orchestra language.
  *
- * These opcodes work with the following data types (and data type codes):
+ * The opcodes work with the following data types (and data type codes):
  * 1. Real scalars, which are Csound i-rate (ir) or k-rate scalars (kr), 
  *    where x stands for either i or k (xr).
  * 2. Complex scalars, which are ordered pairs of Csound scalars (xcr, xci).
