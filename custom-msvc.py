@@ -98,9 +98,9 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
 	customCPPPATH.append(r'U:\\')
-	customCPPPATH.append(r'U:\lua5.1')
+	customCPPPATH.append(r'U:\Lua5.1')
 	customLIBPATH.append(r'U:\\')
-	customLIBPATH.append(r'U:\lua5.1')
+	customLIBPATH.append(r'U:\Lua5.1')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
@@ -123,7 +123,7 @@ if sys.platform[:3] == 'win':
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
 	# add it here (you do NOT need to build it first):
-	customCPPPATH.append(r'U:\pd-0.38-4-devel-2\src')
+	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd-0.38-4-devel-2\bin')
 	################################################################
 	# If you want to build the Loris opcodes,
