@@ -349,32 +349,28 @@ elif commonEnvironment['buildRelease'] != '0':
 		-O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
 	'''))
 	else:
-		commonEnvironment.Append(CCFLAGS = Split('''
-		/O2 
-		/fp:fast
-		'''))
-		commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
-		commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
-		commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
-		# With Visual C++ it is now necessary to embed the manifest into the target.
-		# Or, do we want /ALLOWISOLATION:NO?
-		commonEnvironment['LINKCOM'] = [commonEnvironment['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
-		commonEnvironment['SHLINKCOM'] = [commonEnvironment['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
+		print '''
+BUILDING FOR RELEASE
+
+With MSVC, the release build is the same as the debug build,
+except that the build is optimized for speed.
+It is still debuggable!
+'''
+		commonEnvironment.Append(CCFLAGS = Split('/O2'))
 elif commonEnvironment['noDebug'] == '0':
 	if not withMSVC():
 		commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
 	else:
-		# In order not to have to build debugging versions of
-		# Python and of every other blessed Python extension module,
-		# the debug version of Csound is built as if for release,
-		# but without optimizations and with debugging information,
-		# and so links with release versions of all libraries.
-		commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
-		commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
-		commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
-		# With Visual C++ it is now necessary to embed the manifest into the target.
-		commonEnvironment['LINKCOM'] = [commonEnvironment['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
-		commonEnvironment['SHLINKCOM'] = [commonEnvironment['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
+		print '''
+
+BUILDING FOR DEBUG
+
+With MSVC, the debug build is the same as the release build,
+except that the build is not optimized. All libraries linked
+with are release versions of those libraries. This is to
+avoid having to build a debug version of Python and every last
+blessed Python extension module.
+'''
 else:
 		commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if commonEnvironment['useGprof'] == '1':
@@ -438,13 +434,20 @@ elif getPlatform() == 'win32':
 		commonEnvironment.Append(CPPPATH = '/usr/include')
 		commonEnvironment.Append(CCFLAGS = '-mthreads')
 	else:
-		commonEnvironment.Append(CCFLAGS =  '-DMSVC')
-		commonEnvironment.Append(CXXFLAGS = '-EHsc')
-		commonEnvironment.Append(CCFLAGS =  '-D_CRT_SECURE_NO_DEPRECATE')
-		commonEnvironment.Append(CCFLAGS =  '-MD')
-		commonEnvironment.Append(CCFLAGS =  '-W2')
-		commonEnvironment.Append(CCFLAGS =  '-wd4251')
-		commonEnvironment.Append(CCFLAGS =  '-wd4996')
+		commonEnvironment.Append(CCFLAGS =  '/DMSVC')
+		commonEnvironment.Append(CXXFLAGS = '/EHsc')
+		commonEnvironment.Append(CCFLAGS =  '/D_CRT_SECURE_NO_DEPRECATE')
+		commonEnvironment.Append(CCFLAGS =  '/MD')
+		commonEnvironment.Append(CCFLAGS =  '/W2')
+		commonEnvironment.Append(CCFLAGS =  '/wd4251')
+		commonEnvironment.Append(CCFLAGS =  '/wd4996')
+		commonEnvironment.Append(CCFLAGS =  '/MP')
+		commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
+		commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
+		commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
+		# With Visual C++ it is now necessary to embed the manifest into the target.
+		commonEnvironment['LINKCOM'] = [commonEnvironment['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
+		commonEnvironment['SHLINKCOM'] = [commonEnvironment['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
 
 if getPlatform() == 'linux':
 	path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
