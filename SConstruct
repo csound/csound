@@ -1120,8 +1120,6 @@ else:
 	swigflags = csoundWrapperEnvironment['SWIGFLAGS']
 	if javaFound and commonEnvironment['buildJavaWrapper'] != '1':
 		print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-	else:
-		print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
 		csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Copy()
 		if getPlatform() == 'darwin':
 			csoundWrapperEnvironment.Append(CPPPATH =
@@ -1166,6 +1164,8 @@ else:
 			'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
 		Depends(jcsndJar, jcsnd)
 		libs.append(jcsndJar)
+	else:
+		print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
 	csoundInterfacesSources.insert(0,
 		csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
 	if not luaFound:
@@ -1176,11 +1176,11 @@ else:
 		csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
 			'interfaces/lua_interface.i',
 			SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
-	if getPlatform() != 'darwin':
-		csoundInterfacesSources.insert(0, csoundLuaInterface)
-		if getPlatform() == 'win32':
+                if getPlatform() != 'darwin':
+		   csoundInterfacesSources.insert(0, csoundLuaInterface)
+		   if getPlatform() == 'win32':
 			csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
-		else:
+                   else:
 			csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
 	if getPlatform() == 'linux':
 		os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
@@ -1552,9 +1552,9 @@ else:
 	if getPlatform() == 'win32':
 		lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
 	if not withMSVC():
+		lorisEnvironment.Prepend(LIBS = ['stdc++'])
 		lorisEnvironment.Append(CCFLAGS = Split('''
 			-Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
-		lorisEnvironment.Prepend(LIBS = ['stdc++'])
 		'''))
 	lorisEnvironment.Append(CPPPATH = Split('''
 		Opcodes/Loris Opcodes/Loris/src ./
