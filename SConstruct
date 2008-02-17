@@ -342,7 +342,7 @@ if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
 		flags = '-O3 -mcpu=%s -mtune=%s'%(cpuType, cpuType)
 	else:
 		flags = '-O3 -march=%s'%(cpuType)
-	ommonEnvironment.Prepend(CCFLAGS = Split(flags))
+	commonEnvironment.Prepend(CCFLAGS = Split(flags))
 elif commonEnvironment['buildRelease'] != '0':
 	if not withMSVC():
 		commonEnvironment.Prepend(CCFLAGS = Split('''
