@@ -4,9 +4,12 @@
    this code for any purpose whatsoever.
  */
 #include "csound.h"
-#include <errno.h>
 #include "winsound.h"
+#include <errno.h>
 #include <stdarg.h>
+#if defined(MSVC)
+#include <direct.h>
+#endif
 #include <FL/Fl_Preferences.H>
 extern int do_exit;
 extern Fl_Double_Window *ew, *xw, *uw, *textw;
