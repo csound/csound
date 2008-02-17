@@ -41,7 +41,7 @@ customSWIGFLAGS = []
 
 if sys.platform[:3] == 'win':
 	################################################################
-	# The Visual C++ include path is implicit:
+	# The Visual C++ include path is IMPLICIT:
 	# customCPPPATH.append(r'U:\msvc2008\VC\INCLUDE')
 	################################################################
 	# If you want to build Csound,
