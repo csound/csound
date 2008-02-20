@@ -247,14 +247,20 @@ def withMSVC():
         return False
 
 if withMSVC():
-    # To enable the Microsoft tools,
-    # the WHOLE environment must be imported,
-    # not just the PATH; so we replace the
-    # enviroment with a more complete one.
-    print 'Importing complete environment for MSVC...'
-    commonEnvironment = Environment(ENV = os.environ)
-    commandOptions.Update(commonEnvironment)
-
+	# To enable the Microsoft tools, 
+	# the WHOLE environment must be imported,
+	# not just the PATH; so we replace the 
+	# enviroment with a more complete one.
+	print 'Importing complete environment for MSVC...'
+	commonEnvironment = Environment(ENV = os.environ)
+	commandOptions.Update(commonEnvironment)
+elif getPlatform() == 'win32':
+        # Similarly, on Windows, to exclude MSVC tools,
+	# we have to force MinGW tools and then re-create
+	# the environment from scratch.
+     	commonEnvironment = Environment(tools = ['mingw', 'swig'])
+	commandOptions.Update(commonEnvironment)
+        
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 def isNT():
@@ -274,7 +280,6 @@ else:
 
 if commonEnvironment['custom']:
     optionsFilename = commonEnvironment['custom']
-    print "Using options from custom '%s.'" % optionsFilename
 
 print "Using options from '%s.'" % optionsFilename
 
@@ -442,6 +447,8 @@ elif getPlatform() == 'win32':
         commonEnvironment.Append(CCFLAGS =  '/wd4251')
         commonEnvironment.Append(CCFLAGS =  '/wd4996')
         commonEnvironment.Append(CCFLAGS =  '/MP')
+        commonEnvironment.Append(CCFLAGS =  '/arch:sse')
+        commonEnvironment.Append(CCFLAGS =  '/G7')
         commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
         commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
         commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
@@ -1487,21 +1494,21 @@ else:
 if not configure.CheckHeader("fluidsynth.h", language = "C"):
     print "CONFIGURATION DECISION: Not building fluid opcodes."
 else:
-    print "CONFIGURATION DECISION: Building fluid opcodes."
-    fluidEnvironment = pluginEnvironment.Copy()
-    if getPlatform() == 'win32':
-        if not withMSVC():
-           fluidEnvironment.Append(LIBS = ['fluidsynth'])
-        else:
-           fluidEnvironment.Append(LIBS = ['fluidsynth_lib'])
-        fluidEnvironment.Append(CPPFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL'])
-        fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
-        fluidEnvironment.Append(LIBS = csoundWindowsLibraries)
-    elif getPlatform() == 'linux' or getPlatform() == 'darwin':
-             fluidEnvironment.Append(LIBS = ['fluidsynth'])
-             fluidEnvironment.Append(LIBS = ['pthread'])
-    makePlugin(fluidEnvironment, 'fluidOpcodes',
-               ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
+	print "CONFIGURATION DECISION: Building fluid opcodes."
+	fluidEnvironment = pluginEnvironment.Copy()
+	if getPlatform() == 'win32':
+	   	if not withMSVC():
+		   fluidEnvironment.Append(LIBS = ['fluidsynth'])
+		else:
+		   fluidEnvironment.Append(LIBS = ['fluidsynth'])
+		fluidEnvironment.Append(CPPFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL'])
+		fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
+		fluidEnvironment.Append(LIBS = csoundWindowsLibraries)
+	elif getPlatform() == 'linux' or getPlatform() == 'darwin':
+	     	fluidEnvironment.Append(LIBS = ['fluidsynth'])
+		fluidEnvironment.Append(LIBS = ['pthread'])
+	makePlugin(fluidEnvironment, 'fluidOpcodes',
+			   ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
 
 # VST HOST OPCODES
 if (commonEnvironment['buildvst4cs'] != '1'):
