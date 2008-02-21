@@ -42,8 +42,9 @@ typedef struct MACRO {          /* To store active macros */
     char        *arg[MARGS];    /* With these arguments */
 } MACRO;
 
-typedef struct in_stack {       /* Stack of active inputs */
+typedef struct in_stack_s {     /* Stack of active inputs */
     short string;               /* Flag to say if string or file */
+    short is_marked_repeat;     /* 1 if this input created by 'n' statement */
     short args;                 /* Argument count for macro */
     char  *body;                /* String */
     FILE  *file;                /* File case only */
@@ -57,6 +58,7 @@ typedef struct in_stack {       /* Stack of active inputs */
 typedef struct marked_sections {
   char  *name;
   long  posit;
+  int   line;
   char  *file;
 } MARKED_SECTIONS;
 
@@ -443,11 +445,12 @@ static int getscochar(CSOUND *csound, int expand)
         int old = ST(str)-ST(inputs);
         ST(input_size) += 20;
         ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
-                                                  * sizeof(struct in_stack));
+                                                  * sizeof(IN_STACK));
         ST(str) = &ST(inputs)[old];     /* In case it moves */
       }
       ST(str)++;
       ST(str)->string = 1; ST(str)->body = mm->body; ST(str)->args = mm->acnt;
+      ST(str)->is_marked_repeat = 0;
       ST(str)->mac = mm; ST(str)->line = 1; ST(str)->unget_cnt = 0;
 #ifdef MACDEBUG
       csound->Message(csound,
@@ -623,11 +626,12 @@ static int getscochar(CSOUND *csound, int expand)
           int old = ST(str)-ST(inputs);
           ST(input_size) += 20;
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
-                                                    * sizeof(struct in_stack));
+                                                    * sizeof(IN_STACK));
           ST(str) = &ST(inputs)[old];     /* In case it moves */
         }
         ST(str)++;
         ST(str)->string = 1; ST(str)->body = nn->body; ST(str)->args = 0;
+        ST(str)->is_marked_repeat = 0;
         ST(str)->mac = NULL; ST(str)->line = 1; ST(str)->unget_cnt = 0;
 #ifdef MACDEBUG
         csound->Message(csound,"[] defined as >>%s<<\n", nn->body);
@@ -685,7 +689,6 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
           csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
                           i, ST(repeat_index));
       }
-      *(ST(nxp)-2) = 's'; *ST(nxp)++ =  LF;
       return 1;
     }
     return 0;
@@ -714,9 +717,8 @@ static int do_repeat(CSOUND *csound)
       }
       else
         csound->Message(csound, Str("Repeat section\n"));
-      *(ST(nxp)-2) = 's'; *ST(nxp)++ = LF;
-      if (ST(nxp) >= ST(memend))                /* if this memblk exhausted */
-        expand_nxp(csound);
+      /* replace 'e' or 'r' with 's' and end section */
+      ST(bp)->text[0] = 's';
       ST(clock_base) = FL(0.0);
       ST(warp_factor) = FL(1.0);
       ST(prvp2) = -FL(1.0);
@@ -776,6 +778,7 @@ void sread_init(CSOUND *csound)
     ST(str)->file = csound->scorein;
     ST(str)->fd = NULL;
     ST(str)->string = 0; ST(str)->body = csound->scorename;
+    ST(str)->is_marked_repeat = 0;
     ST(str)->line = 1; ST(str)->unget_cnt = 0; ST(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
 }
@@ -828,10 +831,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         }
       case 's':
       case 'e':
-        if (ST(repeat_cnt) != 0) {
-          if (do_repeat(csound))
-            return rtncod;
-        }
+        /* check for optional p1 before doing repeats */
         copylin(csound);
         {
           char  *p = &(ST(bp)->text[1]);
@@ -851,6 +851,19 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
               ST(bp)->p1val = ST(bp)->p2val = ST(bp)->newp2 = (MYFLT) tt;
             }
           }
+        }
+        /* If we are in a repeat of a marked section ('n' statement),
+           we must pop those inputs before doing an 'r' repeat. */
+        while (ST(str)->is_marked_repeat && ST(input_cnt) > 0) {
+          /* close all marked repeat inputs */
+          if (ST(str)->fd != NULL) {
+            csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+          }
+          ST(str)--; ST(input_cnt)--;
+        }
+        if (ST(repeat_cnt) != 0) {
+          if (do_repeat(csound))
+            return rtncod;
         }
         if (ST(op) != 'e') {
           ST(clock_base) = FL(0.0);
@@ -938,9 +951,10 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             flushlin(csound);     /* Ignore rest of line */
             ST(repeat_point_n)[ST(repeat_index)] = ftell(ST(str)->file);
           }
-          ST(clock_base) = FL(0.0);
+          /* { does not start a new section - akozar */
+          /* ST(clock_base) = FL(0.0);
           ST(warp_factor) = FL(1.0);
-          ST(prvp2) = -FL(1.0);
+          ST(prvp2) = -FL(1.0); */
           ST(op) = getop(csound);
           ST(nxp) = old_nxp;
           *ST(nxp)++ = ST(op);
@@ -949,6 +963,28 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         }
       case 'r':                 /* For now treat as s */
                                 /* First deal with previous section */
+        /* If we are in a repeat of a marked section ('n' statement),
+           we must pop those inputs before doing an 'r' repeat. */
+        if (ST(str)->is_marked_repeat) {
+          while (ST(str)->is_marked_repeat && ST(input_cnt) > 0) {
+            /* close all marked repeat inputs */
+            if (ST(str)->fd != NULL) {
+              csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+            }
+            ST(str)--; ST(input_cnt)--;
+          }
+          /* last time thru an 'r', cleanup up 'r' before finishing 'n' */
+          if (ST(repeat_cnt) == 1)  do_repeat(csound);
+          if (ST(repeat_cnt) == 0) {
+            /* replace with 's' and end section if no previous 'r'
+               or just finished an 'r' loop */
+            ST(bp)->text[0] = 's';
+            ST(clock_base) = FL(0.0);
+            ST(warp_factor) = FL(1.0);
+            ST(prvp2) = -FL(1.0);
+            return rtncod;
+          }
+        }
         if (ST(repeat_cnt) != 0) {
           if (do_repeat(csound))
             return rtncod;
@@ -1015,6 +1051,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
+          if (c != '\n' && c != EOF) flushlin(csound);
           if (csound->oparms->msglevel)
             csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (j=0; j<=ST(next_name); j++)
@@ -1025,9 +1062,9 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             strcpy(ST(names)[j].name, buff);
           }
           else mfree(csound, ST(names)[j].file);
-          flushlin(csound);
           if (!ST(str)->string) {
             ST(names)[ST(next_name)].posit = ftell(ST(str)->file);
+            ST(names)[ST(next_name)].line = ST(str)->line;
             ST(names)[ST(next_name)].file = mmalloc(csound,
                                                     strlen(ST(str)->body) + 1);
             strcpy(ST(names)[ST(next_name)].file, ST(str)->body);
@@ -1059,7 +1096,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
-          flushlin(csound);
+          if (c != '\n' && c != EOF) flushlin(csound);
           for (i = 0; i<=ST(next_name); i++)
             if (strcmp(buff, ST(names)[i].name)==0) break;
           if (i > ST(next_name))
@@ -1077,6 +1114,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             }
             ST(str)++;
             ST(str)->string = 0;
+            ST(str)->is_marked_repeat = 1;
             ST(str)->fd = fopen_path(csound, &(ST(str)->file),
                                              ST(names)[i].file, NULL, NULL, 1);
             /* RWD 3:2000 */
@@ -1085,7 +1123,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                                 ST(names)[i].file);
             }
             ST(str)->body = csound->GetFileName(ST(str)->fd);
-            ST(str)->line = 1;  /* may be wrong */
+            ST(str)->line = ST(names)[i].line;
             ST(str)->unget_cnt = 0;
             fseek(ST(str)->file, ST(names)[i].posit, SEEK_SET);
           }
@@ -1583,11 +1621,12 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           int old = ST(str)-ST(inputs);
           ST(input_size) += 20;
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
-                                                    * sizeof(struct in_stack));
+                                                    * sizeof(IN_STACK));
           ST(str) = &ST(inputs)[old];     /* In case it moves */
         }
         ST(str)++;
         ST(str)->string = 0;
+        ST(str)->is_marked_repeat = 0;
         ST(str)->fd = fopen_path(csound, &(ST(str)->file), mname,
                                          csound->scorename, "INCDIR", 1);
         if (ST(str)->fd == NULL) {
