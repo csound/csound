@@ -1,3 +1,14 @@
+2008-02-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Engine/sread.c (nested_repeat, do_repeat, sread, etc.):
+	Renamed struct in_stack_s to avoid debugging conflict with rdorch.c.
+	Fixed some endless loops caused by the 'm' and 'n' statements.
+	Prevented 'm' and 'n' statements from eating next line.
+	Fixed line counts when using 'm' and 'n'.
+	nested_repeat() does not need to change event opcode to 's'.
+	Fixed 'r' repeats to work with optional p1 of 's' and 'e' statements.
+	'{' statement should not reset clock_base, warp_factor, or prvp2.
+
 2008-02-02  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h: 5.08.1
