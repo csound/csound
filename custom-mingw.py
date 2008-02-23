@@ -47,24 +47,18 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build PortAudio,
 	# for real-time audio performance.
-	#customCPPPATH.append(r'U:\portaudio\include')
-	#customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
-	################################################################
-	# If you want to build the Open Sound Control (OSC) opcodes,
-	# for real-time network communication and control,
-        # you need liblo.
-	#customCPPPATH.append(r'D:\utah\opt\liblo')
-	#customLIBPATH.append(r'D:\utah\opt\liblo\src\.libs')
+	customCPPPATH.append(r'U:\portaudio\include')
+	customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
 	#################################################################
 	# If you want to build PortMidi,
 	# for real-time MIDI performance.,
 	# you need both portmidi and porttime.
-	#customCPPPATH.append(r'D:\utah\opt\portmidi\pm_common')
-	#customCPPPATH.append(r'D:\utah\opt\portmidi\pm_win')
-	#customCPPPATH.append(r'D:\utah\opt\portmidi\porttime')
-	#customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win')
-	#customLIBPATH.append(r'D:\utah\opt\portmidi\porttime\Release')
-	#customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win\Release')
+	customCPPPATH.append(r'D:\utah\opt\portmidi\pm_common')
+	customCPPPATH.append(r'D:\utah\opt\portmidi\pm_win')
+	customCPPPATH.append(r'D:\utah\opt\portmidi\porttime')
+	customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win')
+	customLIBPATH.append(r'D:\utah\opt\portmidi\porttime\Release')
+	customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win\Release')
 	################################################################
 	# If you want to build the FLTK widgets, csound5gui, cseditor,
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
@@ -73,9 +67,9 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
-	#customCPPPATH.append(r'D:\utah\opt\zlib')
-	#customCPPPATH.append(r'D:\utah\opt\libpng-1.2.24')
-	#customLIBPATH.append(r'D:\utah\opt\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
+	customCPPPATH.append(r'D:\utah\opt\zlib')
+	customCPPPATH.append(r'D:\utah\opt\libpng-1.2.24')
+	customLIBPATH.append(r'D:\utah\opt\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
 	################################################################
 	# If you want to build the Python opcodes, the Python interfaces
 	# to Csound, or CsoundAC, Python 2.5 is required.
@@ -116,6 +110,15 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'D:\utah\opt\jdk1.5.0\include')
 	customCPPPATH.append(r'D:\utah\opt\jdk1.5.0\include\win32')
 	################################################################
+	# If you want to build the OSC opcodes,
+	# you need liblo.
+	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\lo')
+	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\src')
+	customLIBPATH.append(r'D:\utah\opt\liblo')
+	# For OSC on Windows, you will also need a Windows pthread library.
+	customCPPPATH.append(r'D:\utah\opt\pthreads\Pre-built.2\include')
+	customLIBPATH.append(r'D:\utah\opt\pthreads\Pre-built.2\lib')
+	################################################################
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
 	# add it here (you do NOT need to build it first):
@@ -128,15 +131,6 @@ if sys.platform[:3] == 'win':
 	# add it here (you do need to build it first):
 	#customCPPPATH.append(r'D:\utah\opt\fftw-3.0.1\api')
 	#customLIBPATH.append(r'D:\utah\opt\fftw-3.0.1\.libs')
-	################################################################
-	# If you want to build the OSC opcodes,
-	# you need liblo.
-	#customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\lo')
-	#customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\src')
-	#customLIBPATH.append(r'D:\utah\home\mkg\projects\liblo\src\.libs')
-	# For OSC on Windows, you will also need a Windows pthread library.
-	#customCPPPATH.append(r'D:\utah\opt\pthreads\Pre-built.2\include')
-	#customLIBPATH.append(r'D:\utah\opt\pthreads\Pre-build.2\lib')
 	################################################################
 	# print "Adding custom path"
 else:
