@@ -81,7 +81,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     FILE *fp;
     void *fd;
     const int hs = 8;
-    unsigned char header[hs];
+    unsigned char header[8];
     png_structp png_ptr;
     png_infop info_ptr;
     png_infop end_ptr;
