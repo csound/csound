@@ -1,4 +1,4 @@
-# vim:syntax=python
+#J vim:syntax=python
 print '''
 C S O U N D 5
 
@@ -1127,7 +1127,9 @@ else:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
-    if javaFound and commonEnvironment['buildJavaWrapper'] != '1':
+    if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
+        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
+    else:
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Copy()
         if getPlatform() == 'darwin':
@@ -1173,8 +1175,6 @@ else:
             'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
         Depends(jcsndJar, jcsnd)
         libs.append(jcsndJar)
-    else:
-        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     csoundInterfacesSources.insert(0,
         csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
     if not luaFound:
