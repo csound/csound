@@ -800,11 +800,7 @@ int CsoundVST::fltkrun()
 
 extern "C"
 {
-#ifdef MSVC
-  CsoundVST* CreateCsoundVST()
-#else
   CsoundVST* SILENCE_PUBLIC CreateCsoundVST()
-#endif
   {
     CsoundVST *csoundVST = new CsoundVST;
     std::fprintf(stderr, "CreateCsoundVST: created 0x%x\n", csoundVST);

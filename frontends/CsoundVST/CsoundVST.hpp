@@ -137,7 +137,8 @@ public:
 
 extern "C"
 {
-   CsoundVST* CreateCsoundVST();
+  CsoundVST* SILENCE_PUBLIC CreateCsoundVST();
+  void SILENCE_PUBLIC RunCsoundVST(const char *filename);
 }
 
 #endif
