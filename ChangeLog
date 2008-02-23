@@ -1,3 +1,17 @@
+2008-02-23  Michael Gogins  <gogins@pipeline.com>
+
+	* InOut/widgets.cpp
+	Fixed a major bug in which the Csound memory manager (C style) was
+	allocating and deallocating a C++ structure (WIDGETS_GLOBALS). 
+	If new is not called for WIDGETS_GLOBALS, the constructors of its 
+	std::vector collections are not called. Then in the widget 
+	csoundDestroyModule function, invalid vectors are iterated, 
+	causing an access violation. Fixed by using standard C++
+	new and delete for the structure to ensure proper creation of its
+	vector members. This is OK because by calling csoundModuleInit
+	and csoundModuleDestroy, Csound is permitting the module to 
+	manage its own memory.
+	
 2008-02-22  Michael Gogins  <gogins@pipeline.com>
 
 	* SConstruct 
