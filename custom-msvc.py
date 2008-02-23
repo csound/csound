@@ -80,9 +80,10 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
-	customCPPPATH.append(r'U:\zlib')
-	customCPPPATH.append(r'U:\libpng-1.2.24')
-	customLIBPATH.append(r'U:\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
+	customCPPPATH.append(r'U:\zlib-1.2.3.win32\include')
+	customLIBPATH.append(r'U:\zlib-1.2.3.win32\lib')
+	customCPPPATH.append(r'U:\libpng-1.2.24-msvc')
+	customLIBPATH.append(r'U:\libpng-1.2.24-msvc\projects\visualc71\Win32_DLL_Release')
 	################################################################
 	# If you want to build the Python opcodes, the Python interfaces
 	# to Csound, or CsoundAC, Python 2.5 is required.
