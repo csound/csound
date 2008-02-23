@@ -26,27 +26,17 @@
 
 int main(int argc, char **argv)
 {
-  std::fprintf(stderr, "Starting CsoundVST...\n" );
 #if defined(WIN32)
   HINSTANCE lib = LoadLibrary("CsoundVST.dll");
   if(!lib) {
     DWORD lastError = GetLastError();
-    std::fprintf(stderr, "DLL load error: %d.\n", lastError);
   }
-  std::fprintf(stderr, "lib = 0x%x\n", lib);
-  AEffect* (*VSTPluginMain_)(audioMasterCallback audioMaster) = (AEffect* (*)(audioMasterCallback audioMaster)) GetProcAddress(lib, "VSTPluginMain");
-  std::fprintf(stderr, "VSTPluginMain = 0x%x\n", VSTPluginMain_);
-  CsoundVST *(*CreateCsoundVST_)() = (CsoundVST *(*)()) GetProcAddress(lib, "CreateCsoundVST");
-  std::fprintf(stderr, "CreateCsoundVST_ = 0x%x\n", CreateCsoundVST_);
+  void (*RunCsoundVST_)(const char *) =  (void (*)(const char *)) GetProcAddress(lib, "RunCsoundVST");
 #endif
-  CsoundVST *csoundVST = CreateCsoundVST_();
-  std::fprintf(stderr, "csoundVST = 0x%x\n", (void*) csoundVST);
-  AEffEditor *editor = csoundVST->getEditor();
-  editor->open(0);
-  if(argc == 2) {
-    csoundVST->openFile(argv[1]);
+  const char *filename = 0;
+  if (argc > 1) {
+    filename = argv[1];
   }
-  int status = csoundVST->fltkrun();
-  std::fprintf(stderr, "Quitting...\n");
+  RunCsoundVST_(filename);
 }
 
