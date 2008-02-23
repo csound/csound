@@ -444,6 +444,8 @@ Section "${PRODUCT}" SecCopyUI
 	# If Python is not available, ask the user if they want to install it.
 	Call GetPython
 	# First we do output paths for non-Python stuff.
+	SetOutPath $INSTDIR\Microsoft.VC90.CRT
+	File ..\..\Microsoft.VC90.CRT\*
   	SetOutPath $INSTDIR
 !ifdef NONFREE
 	File ..\..\readme-csound5-complete.txt
@@ -459,7 +461,6 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\csound64.dll.5.1
 !endif
 	File C:\windows\system32\MSVCRT.DLL
-	File Microsoft.VC90.CRT\*
 	File ..\..\pmidi.dll
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
