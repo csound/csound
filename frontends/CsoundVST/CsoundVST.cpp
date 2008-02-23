@@ -800,18 +800,18 @@ int CsoundVST::fltkrun()
 
 extern "C"
 {
-  CsoundVST* SILENCE_PUBLIC CreateCsoundVST()
+  SILENCE_PUBLIC CsoundVST* CreateCsoundVST()
   {
     CsoundVST *csoundVST = new CsoundVST;
     std::fprintf(stderr, "CreateCsoundVST: created 0x%x\n", csoundVST);
     return csoundVST;
   }
-  void SILENCE_PUBLIC RunCsoundVST(const char *filename)
+  SILENCE_PUBLIC void RunCsoundVST(const char *filename)
   {
-    CsoundVST *csoundVST =new CsoundVST;
+    CsoundVST *csoundVST = new CsoundVST;
     AEffEditor *editor = csoundVST->getEditor();
     editor->open(0);
-    if(filename) {
+    if (filename) {
       csoundVST->openFile(filename);
     }
     csoundVST->fltkrun(); 

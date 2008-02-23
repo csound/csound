@@ -23,7 +23,7 @@
 #define SILENCE_PLATFORM_HPP
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
-#define SILENCE_PUBLIC __declspec(dllexport)
+#define SILENCE_PUBLIC __declspec( dllexport )
 #else
 #define SILENCE_PUBLIC
 #endif
