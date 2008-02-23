@@ -1,3 +1,23 @@
+2008-02-22  Michael Gogins  <gogins@pipeline.com>
+
+	* SConstruct 
+	Many changes to enable all features of Csound to build with 
+	Microsoft Visual C++ 2008 (MSVC). Also changes to enable
+	build with MinGW 3.4.5/MSys 1.0.11/SCons 0.97.
+
+	* custom-mingw.py and custom-msvc.py
+	Rationalized locations of third-party libraries in 
+	network mounted "U:/" drive root directory.
+
+	* Frontends/CsoundAC/Counterpoint.cpp 
+	Many changes to enable MSVC compilation.
+
+	* CsoundVST
+	Renamed CsoundVST.exe to CsoundVstShell.exe to 
+	enable MSVC build.
+	Exported new RunCsoundVST function to enable CsoundVstShell to run
+	with MSVC build.
+
 2008-02-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/sread.c (nested_repeat, do_repeat, sread, etc.):
