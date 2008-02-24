@@ -42,6 +42,9 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Csound,
 	# libsndfile is REQUIRED.
+ 	################################################################
+	# If you want to build Csound,
+	# libsndfile is REQUIRED.
 	customCPPPATH.append(r'U:\libsndfile-1_0_17')
 	customLIBPATH.append(r'U:\libsndfile-1_0_17')
 	################################################################
