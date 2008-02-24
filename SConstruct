@@ -258,7 +258,7 @@ elif getPlatform() == 'win32':
         # Similarly, on Windows, to exclude MSVC tools,
 	# we have to force MinGW tools and then re-create
 	# the environment from scratch.
-     	commonEnvironment = Environment(tools = ['mingw', 'swig'])
+     	commonEnvironment = Environment(tools = ['mingw', 'swig', 'javac', 'jar'])
 	commandOptions.Update(commonEnvironment)
         
 Help(commandOptions.GenerateHelpText(commonEnvironment))
@@ -350,9 +350,14 @@ if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     commonEnvironment.Prepend(CCFLAGS = Split(flags))
 elif commonEnvironment['buildRelease'] != '0':
     if not withMSVC():
-        commonEnvironment.Prepend(CCFLAGS = Split('''
-        -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
-    '''))
+        print '''
+BUILDING FOR RELEASE
+
+With MinGW, the release build is the same as the debug build,
+except that the build is optimized for speed.
+It is still debuggable!
+'''
+        commonEnvironment.Prepend(CCFLAGS = Split('-mtune=nocona -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math'))
     else:
         print '''
 BUILDING FOR RELEASE
@@ -773,18 +778,17 @@ if getPlatform() == 'win32':
     # These are the Windows system call libraries.
     if not withMSVC():
         csoundWindowsLibraries = Split('''
-            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
-            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
+            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm 
+            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm 
         ''')
     else:
-        print 'MSVC'
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
-            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib bufferoverflowu
             kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
             advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-            odbc32.lib odbccp32.lib
+            odbc32.lib odbccp32.lib bufferoverflowu
         ''')
 if getPlatform() == 'win32':
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -1457,7 +1461,7 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     if getPlatform() != 'darwin':
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
-        portMidiEnvironment.Append(LIBS = ['winmm'])
+        portMidiEnvironment.Append(LIBS = ['winmm', 'bufferoverflowu'])
     if getPlatform() == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
