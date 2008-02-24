@@ -56,84 +56,85 @@ if sys.platform[:3] == 'win':
 	# If you want to build PortMidi,
 	# for real-time MIDI performance.,
 	# you need both portmidi and porttime.
-	customCPPPATH.append(r'D:\utah\opt\portmidi\pm_common')
-	customCPPPATH.append(r'D:\utah\opt\portmidi\pm_win')
-	customCPPPATH.append(r'D:\utah\opt\portmidi\porttime')
-	customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win')
-	customLIBPATH.append(r'D:\utah\opt\portmidi\porttime\Release')
-	customLIBPATH.append(r'D:\utah\opt\portmidi\pm_win\Release')
+	customCPPPATH.append(r'U:\portmidi\pm_common')
+	customCPPPATH.append(r'U:\portmidi\pm_win')
+	customCPPPATH.append(r'U:\portmidi\porttime')
+	customLIBPATH.append(r'U:\portmidi\pm_win')
+	customLIBPATH.append(r'U:\portmidi\porttime\Release')
+	customLIBPATH.append(r'U:\portmidi\pm_win\Release')
 	################################################################
 	# If you want to build the FLTK widgets, csound5gui, cseditor,
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
-	customCPPPATH.append(r'D:\utah\opt\fltk-mingw')
-	customLIBPATH.append(r'D:\utah\opt\fltk-mingw\lib')
+	customCPPPATH.append(r'U:\fltk-mingw')
+	customLIBPATH.append(r'U:\fltk-mingw\lib')
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
-	customCPPPATH.append(r'D:\utah\opt\zlib')
-	customCPPPATH.append(r'D:\utah\opt\libpng-1.2.24')
-	customLIBPATH.append(r'D:\utah\opt\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
+	customCPPPATH.append(r'U:\zlib')
+	customCPPPATH.append(r'U:\libpng-1.2.24')
+	customLIBPATH.append(r'U:\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
 	################################################################
 	# If you want to build the Python opcodes, the Python interfaces
 	# to Csound, or CsoundAC, Python 2.5 is required.
-	customCPPPATH.append(r'D:\utah\opt\Python25\include')
-	customLIBPATH.append(r'D:\utah\opt\Python25\libs')
+	customCPPPATH.append(r'U:\Python25\include')
+	customLIBPATH.append(r'U:\Python25\libs')
 	################################################################
 	# If you want to build CsoundVST, you need the 
 	# Steinberg VST SDK.
-	customCPPPATH.append(r'D:\utah\opt\vstsdk2.4')    
+	customCPPPATH.append(r'U:\vstsdk2.4')    
 	################################################################
 	# If you want to build CsoundAC, you need the 
 	# boost C++ libraries.
-	customCPPPATH.append(r'D:\utah\opt\boost')
+	customCPPPATH.append(r'U:\boost')
 	################################################################
 	# If you want to build scoregen, you need the include
 	# path to VST MIDI plugin SDK header files. 
-	customCPPPATH.append(r'D:\utah\opt\VSTModuleArchitectureSDK\pluginterfaces\base')    
+	customCPPPATH.append(r'U:\VSTModuleArchitectureSDK\pluginterfaces\base')    
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
-	customCPPPATH.append(r'D:\utah\opt\LuaJIT-1.1.4')
-	customLIBPATH.append(r'D:\utah\opt\LuaJIT-1.1.4')
+	customCPPPATH.append(r'U:\LuaJIT-1.1.4')
+	customLIBPATH.append(r'U:\LuaJIT-1.1.4')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
 	# Add it here:
-	customCPPPATH.append(r'D:\utah\opt\Tcl\include')
-	customLIBPATH.append(r'D:\utah\opt\Tcl\lib')
+	customCPPPATH.append(r'U:\Tcl\include')
+	customLIBPATH.append(r'U:\Tcl\lib')
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'D:\utah\opt\fluidsynth\winbuild')
-	customCPPPATH.append(r'D:\utah\opt\fluidsynth\include')
+	customLIBPATH.append(r'U:\fluidsynth\winbuild')
+	customCPPPATH.append(r'U:\fluidsynth\include')
 	# And the dsound library from the Microsoft DirectX SDK.
-	customLIBPATH.append(r'D:\utah\opt\dxsdk\Lib\x86')
+	customLIBPATH.append(r'U:\dxsdk\Lib\x86')
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'D:\utah\opt\jdk1.5.0\include')
-	customCPPPATH.append(r'D:\utah\opt\jdk1.5.0\include\win32')
+	customCPPPATH.append(r'U:\jdk1.5.0\include')
+	customCPPPATH.append(r'U:\jdk1.5.0\include\win32')
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
-	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\lo')
-	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\src')
-	customLIBPATH.append(r'D:\utah\opt\liblo')
+	customCPPPATH.append(r'U:\liblo')
+	customCPPPATH.append(r'U:\liblo\lo')
+	customCPPPATH.append(r'U:\liblo\src')
+	customLIBPATH.append(r'U:\liblo\src\.libs')
 	# For OSC on Windows, you will also need a Windows pthread library.
-	customCPPPATH.append(r'D:\utah\opt\pthreads\Pre-built.2\include')
-	customLIBPATH.append(r'D:\utah\opt\pthreads\Pre-built.2\lib')
+	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
+	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
 	################################################################
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
 	# add it here (you do NOT need to build it first):
-	#customCPPPATH.append(r'D:\utah\opt\pure-data\trunk\pd\src')
-	#customLIBPATH.append(r'D:\utah\opt\pd-0.38-4-devel-2\bin')
+	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
+	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
 	# If you want to build the Loris opcodes,
 	# then copy Loris to csound5\Opcodes\Loris. Loris also
 	# requires FFTW, if it is not in a standard location,
 	# add it here (you do need to build it first):
-	#customCPPPATH.append(r'D:\utah\opt\fftw-3.0.1\api')
-	#customLIBPATH.append(r'D:\utah\opt\fftw-3.0.1\.libs')
+	#customCPPPATH.append(r'U:\fftw-3.0.1\api')
+	#customLIBPATH.append(r'U:\fftw-3.0.1\.libs')
 	################################################################
 	# print "Adding custom path"
 else:
