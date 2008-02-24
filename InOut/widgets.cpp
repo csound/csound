@@ -1801,8 +1801,8 @@ public:
   }
 };
 
-extern "C" {
-
+extern "C" 
+{
   static int fltkKeyboardCallback(void *userData, void *p, unsigned int type)
   {
     switch (type) {
@@ -1819,39 +1819,41 @@ extern "C" {
     }
     return 0;
   }
-
+  
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     int j;
 #ifndef NO_FLTK_THREADS
-    if ((getFLTKFlags(csound) & 260) ^ 4) {
-      widgetsGlobals_t *p;
-      p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-							  "_widgets_globals");
-      if (p != NULL) {
-        if (!(getFLTKFlags(csound) & 256)) {
-          /* if window(s) still open: */
-          if (!p->exit_now) {
-            /* notify GUI thread... */
-            p->end_of_perf = -1;
-            Fl_lock(csound);
-            Fl_awake(csound);
-            Fl_unlock(csound);
-            /* ...and wait for it to close */
-            csound->JoinThread(p->threadHandle);
-            p->threadHandle = NULL;
-          }
-        }
-        /* clean up */
-        csound->LockMutex(p->mutex_);
-        while (p->eventQueue != NULL) {
-          rtEvt_t *nxt = p->eventQueue->nxt;
-          free(p->eventQueue);
-          p->eventQueue = nxt;
-        }
-        csound->UnlockMutex(p->mutex_);
-        csound->DestroyMutex(p->mutex_);
-        csound->DestroyGlobalVariable(csound, "_widgets_globals");
+    int *fltkflags = getFLTKFlagsPtr(csound);
+    if (fltkflags) {
+      if ((*fltkflags & 260) ^ 4) {
+	widgetsGlobals_t *p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+									      "_widgets_globals");
+	if (p) {
+	  if (!(*fltkflags & 256)) {
+	    /* if window(s) still open: */
+	    if (!p->exit_now) {
+	      /* notify GUI thread... */
+	      p->end_of_perf = -1;
+	      Fl_lock(csound);
+	      Fl_awake(csound);
+	      Fl_unlock(csound);
+	      /* ...and wait for it to close */
+	      csound->JoinThread(p->threadHandle);
+	      p->threadHandle = NULL;
+	    }
+	  }
+	  /* clean up */
+	  csound->LockMutex(p->mutex_);
+	  while (p->eventQueue != NULL) {
+	    rtEvt_t *nxt = p->eventQueue->nxt;
+	    free(p->eventQueue);
+	    p->eventQueue = nxt;
+	  }
+	  csound->UnlockMutex(p->mutex_);
+	  csound->DestroyMutex(p->mutex_);
+	  csound->DestroyGlobalVariable(csound, "_widgets_globals");
+	}
       }
     }
 #endif  // NO_FLTK_THREADS
@@ -1871,14 +1873,14 @@ extern "C" {
 	} while (j);
 	Fl_wait_locked(csound, 0.0);
       }
-	  for (size_t si = 0, sn = ST(snapshots).size(); si < sn; ++si) {
-        SNAPVEC &svec = ST(snapshots)[si];
-        int ss = svec.size();
-        for (j = 0; j < ss; j++) {
-          svec[j].fields.erase(svec[j].fields.begin(),
-                                  svec[j].fields.end());
-          svec.resize(svec.size() + 1);
-        }
+      for (size_t si = 0, sn = ST(snapshots).size(); si < sn; ++si) {
+	SNAPVEC &svec = ST(snapshots)[si];
+	int ss = svec.size();
+	for (j = 0; j < ss; j++) {
+	  svec[j].fields.erase(svec[j].fields.begin(),
+			       svec[j].fields.end());
+	  svec.resize(svec.size() + 1);
+	}
       }
       ST(AddrSetValue).clear();
       ST(stack_count)       = 0;
@@ -1898,20 +1900,20 @@ extern "C" {
     }
     return 0;
   }
-}       // extern "C"
+} // extern "C"
 
 //-----------
 
 #ifndef NO_FLTK_THREADS
 
 extern "C" {
-
+  
   static uintptr_t fltkRun(void *userdata)
   {
     volatile widgetsGlobals_t *p;
     CSOUND    *csound = (CSOUND*) userdata;
     int       j;
-
+    
     p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
 							"_widgets_globals");
 #ifdef LINUX
@@ -1922,7 +1924,7 @@ extern "C" {
       pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
     }
 #endif
-
+    
     if (!(p->fltkFlags & 8))
       Fl::lock();
     for (j = 0; j < (int) ST(fl_windows).size(); j++) {
