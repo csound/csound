@@ -103,7 +103,7 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'D:\utah\opt\fluidsynth\winbuild\fluidsynth_dll\Release')
+	customLIBPATH.append(r'D:\utah\opt\fluidsynth\winbuild')
 	customCPPPATH.append(r'D:\utah\opt\fluidsynth\include')
 	# And the dsound library from the Microsoft DirectX SDK.
 	customLIBPATH.append(r'D:\utah\opt\dxsdk\Lib\x86')
