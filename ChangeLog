@@ -11,6 +11,15 @@
 	vector members. This is OK because by calling csoundModuleInit
 	and csoundModuleDestroy, Csound is permitting the module to 
 	manage its own memory.
+
+	The code accessed FLTK flags as a value when the flags had not been 
+	initialized as a global variable. This caused an access violation 
+	in csoundModuleDestroy. The code has been changed to get the flags 
+	as a pointer, and only dereference the pointer if it is not null.
+
+	* Opcodes/vst4cs/src/vst4cs.cpp
+	Cleaned up csoundModuleDestroy code for Windows MSVC build,
+	which was causing an access violation.
 	
 2008-02-22  Michael Gogins  <gogins@pipeline.com>
 
