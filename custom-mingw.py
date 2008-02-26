@@ -71,8 +71,9 @@ if sys.platform[:3] == 'win':
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
 	customCPPPATH.append(r'U:\zlib')
+	customLIBPATH.append(r'U:\zlib')
 	customCPPPATH.append(r'U:\libpng-1.2.24')
-	customLIBPATH.append(r'U:\libpng-1.2.24\projects\visualc71\Win32_DLL_Release')
+	customLIBPATH.append(r'U:\libpng-1.2.24\.libs')
 	################################################################
 	# If you want to build the Python opcodes, the Python interfaces
 	# to Csound, or CsoundAC, Python 2.5 is required.
@@ -118,7 +119,7 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\liblo')
 	customCPPPATH.append(r'U:\liblo\lo')
 	customCPPPATH.append(r'U:\liblo\src')
-	customLIBPATH.append(r'U:\liblo\src\.libs')
+	customLIBPATH.append(r'U:\liblo')
 	# For OSC on Windows, you will also need a Windows pthread library.
 	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
 	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
