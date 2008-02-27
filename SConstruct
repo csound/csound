@@ -553,20 +553,20 @@ if not configure.CheckHeader("stdio.h", language = "C"):
     print " *** Check config.log to find out more about the error."
     Exit(-1)
 if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
-    print "The sndfile library is required to build Csound 5."
-    Exit(-1)
+	print "The sndfile library is required to build Csound 5."
+	Exit(-1)
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
-portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
-portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
-fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
+portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
+portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
+fltkFound = configure.CheckHeader( "FL/Fl.H", language = "C++")
 if fltkFound:
     fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
 else:
     fltk117Found = 0
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
-jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
-oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+jackFound = configure.CheckHeader("jack/jack.h", language = "C")
+oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
@@ -1184,11 +1184,11 @@ else:
         if getPlatform() != 'darwin':
             csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
-            csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
-            csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
+        csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
+        csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
         if getPlatform() == 'darwin':
             if commonEnvironment['dynamicCsoundLibrary'] == '1':
-                csndPythonEnvironment.Append(LIBS = ['_csnd'])
+                csndPythonEnvironment.Append(LIBS = ['_csnd'])                 
             else:
                 csndPythonEnvironment.Append(LIBS = ['csound','_csnd'])
         elif getPlatform() == 'linux':
@@ -1292,10 +1292,10 @@ makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
-    print 'CONFIGURATION DECISION: Building image opcodes'
-    pluginEnvironment.Append(LIBS= Split(''' png z '''))
-    makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckHeader("png.h", language="C") and zlibhfound:
+	print 'CONFIGURATION DECISION: Building image opcodes'
+	pluginEnvironment.Append(LIBS= Split(''' png z '''))
+	makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
  
@@ -1306,6 +1306,7 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
 '''))
 makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if jackFound:
+ pluginEnvironment.Append(LIBS="jack")
  makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 
 #############################################################################
