@@ -611,11 +611,12 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i)
-      {
-        delete stkInstances[csound][i];
+    if (stkInstances.find(csound) != stkInstances.end()) {
+      for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i) {
+	delete stkInstances[csound][i];
       }
-    stkInstances[csound].clear();
+      stkInstances[csound].clear();
+    }
     return 0;
   }
 }
