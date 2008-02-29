@@ -109,7 +109,7 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     PyObject *res;
     int i=0;
     CSOUND *p = in; 
-    PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
+    //PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
     PyObject **pyfunc = (PyObject **) csoundQueryGlobalVariable(p,"::pyfunc");
     
     char *mbuf = new char[strlen(format)*10];
