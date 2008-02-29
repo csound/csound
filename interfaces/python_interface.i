@@ -90,18 +90,6 @@ typedef unsigned int uint32_t;
 
 %include "exclusions.i"
 
-%include "csound.h"
-%include "cfgvar.h"
-
-%apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
-%apply MYFLT &OUTPUT { MYFLT &value };
-
-%include "csound.hpp"
-
-%clear MYFLT &dflt;
-%clear MYFLT &min;
-%clear MYFLT &max;
-%clear MYFLT &value;
 
 // typemap for callbacks
 %typemap(in) PyObject *pyfunc {
@@ -111,6 +99,71 @@ typedef unsigned int uint32_t;
 }
 $1 = $input;
 }
+
+%{
+// this will be used as an interface to the
+// message callback
+static void PythonMessageCallback(CSOUND *in, int attr,
+                                     const char *format, va_list valist){
+
+    PyObject *res;
+    int i=0;
+    CSOUND *p = in; 
+    PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
+    PyObject **pyfunc = (PyObject **) csoundQueryGlobalVariable(p,"::pyfunc");
+    
+    char *mbuf = new char[strlen(format)*10];
+    // this is the thread safety mechanism that is not working yet
+    //if(*tstate == NULL)
+    //    *tstate = PyThreadState_New(PyInterpreterState_New()); 
+    //PyEval_AcquireThread(*tstate); 
+    vsprintf(mbuf, format, valist);
+    // attempt to remove some of the newlines
+    while(mbuf[i] != '\0') i++; mbuf[i-1] = '\0'; 
+  
+    // evaluation
+    res =  PyEval_CallFunction(*pyfunc, "(s)", mbuf);
+    if (res == NULL){
+    PyErr_SetString(PyExc_TypeError, "Exception in callback");
+     }
+    else Py_DECREF(res);    
+
+    //PyEval_ReleaseThread(*tstate);
+   delete[] mbuf;
+}
+%}
+
+
+%include "csound.h"
+%include "cfgvar.h"
+
+%apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
+%apply MYFLT &OUTPUT { MYFLT &value };
+
+%include "csound.hpp"
+%extend Csound {
+   void SetPythonMessageCallback(PyObject *pyfunc){
+     // thread safety mechanism   
+     // PyEval_InitThreads();
+     PyObject **p;
+     PyThreadState **tstate;
+     // Py_XDECREF(pyfunc);  
+     self->CreateGlobalVariable("::pyfunc", sizeof(PyObject *));
+     self->CreateGlobalVariable("::tstate", sizeof(int));
+     p = (PyObject **) self->QueryGlobalVariable("::pyfunc");
+     *p = pyfunc;
+     tstate = (PyThreadState **) self->QueryGlobalVariable("::tstate");
+     *tstate = NULL;     
+     self->SetMessageCallback(PythonMessageCallback);
+     Py_XINCREF(pyfunc); 
+}
+}
+
+%clear MYFLT &dflt;
+%clear MYFLT &min;
+%clear MYFLT &max;
+%clear MYFLT &value;
+
 
 %{
 // this will be used as an interface to the
