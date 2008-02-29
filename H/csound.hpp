@@ -46,6 +46,7 @@
 
 #if defined(__cplusplus)
 
+
 /**
  * C++ interface to the "C" Csound API.
  */
