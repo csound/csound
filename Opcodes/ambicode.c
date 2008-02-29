@@ -161,9 +161,8 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     /* update coefficients */
     ambicode_set_coefficients(p);
 
-    if (p->OUTOCOUNT == 4 && p->INOCOUNT == 5) {
+    if (p->OUTOCOUNT == 4 && p->INOCOUNT >= 5) {
       /* 1st order */
-
       do {
         /* 0th order */
         *rsltp_w++ = *inptp * p->w * *p->kin[0];
@@ -178,7 +177,7 @@ static int aambicode(CSOUND *csound, AMBIC *p)
       }
       while (--nn);
     }
-    else if (p->OUTOCOUNT == 9 && p->INOCOUNT == 6) {
+    else if (p->OUTOCOUNT == 9 && p->INOCOUNT >= 6) {
       /* 2nd order */
 
       do {
@@ -202,7 +201,7 @@ static int aambicode(CSOUND *csound, AMBIC *p)
       }
       while (--nn);
     }
-    else if (p->OUTOCOUNT == 16 && p->INOCOUNT == 7) {
+    else if (p->OUTOCOUNT == 16 && p->INOCOUNT >= 7) {
       /* 3rd order */
 
       do {
