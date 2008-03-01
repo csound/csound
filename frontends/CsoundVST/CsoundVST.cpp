@@ -60,10 +60,11 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       Fl::lock();
       fltkWaitThreadId == csoundGetCurrentThreadId();
     }
-  setNumInputs(kNumInputs);             // stereo in
-  setNumOutputs(kNumOutputs);           // stereo out
-  setUniqueID('cVsT');  // identify
-  canProcessReplacing();        // supports both accumulating and replacing output
+  setNumInputs(kNumInputs);            
+  setNumOutputs(kNumOutputs);           
+  setUniqueID('cVsT');  
+  canProcessReplacing();        
+  setIsSynth(true);
   open();
   csoundVstFltk = new CsoundVstFltk(this);
   int number = 0;
@@ -222,7 +223,8 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   CreateGlobalVariable("FLTK_Flags", sizeof(int));
   int *fltkFlags = (int *)QueryGlobalVariable("FLTK_Flags");
   //*fltkFlags = 274;
-  *fltkFlags = 286;
+  //*fltkFlags = 286;
+  *fltkFlags = 256 + 16 + 8 + 4 + 2;
   if(getIsVst())
     {
       Message("Classic VST performance.\n");
@@ -304,7 +306,7 @@ int CsoundVST::performance()
 
 void CsoundVST::open()
 {
-  //Message("BEGAN CsoundVST::open()...\n");
+  Message("BEGAN CsoundVST::open()...\n");
   SetHostData(this);
   //SetMessageCallback(Message);
   std::string filename_ = getFilename();
@@ -313,7 +315,7 @@ void CsoundVST::open()
       setFilename(filename_);
     }
   // setFLTKThreadLocking(false);
-  //Message("ENDED CsoundVST::open().\n");
+  Message("ENDED CsoundVST::open().\n");
 }
 
 void CsoundVST::reset()
@@ -355,6 +357,7 @@ void CsoundVST::resume()
 
 VstInt32 CsoundVST::processEvents(VstEvents *vstEvents)
 {
+  Message("CsoundVST::processEvents: %d events.\n", vstEvents->numEvents);
   if(getIsGo())
     {
       for(int i = 0; i < vstEvents->numEvents; i++)
@@ -598,30 +601,6 @@ VstInt32 CsoundVST::canDo(char* text)
     {
       return 1;
     }
-  if(strcmp(text, "sendVstMidiEvents") == 0)
-    {
-      return 1;
-    }
-  if(strcmp(text, "plugAsChannelInsert") == 0)
-    {
-      return 1;
-    }
-  if(strcmp(text, "plugAsSend") == 0)
-    {
-      return 1;
-    }
-  if(strcmp(text, "sizeWindow") == 0)
-    {
-      return 1;
-    }
-  if(strcmp(text, "asyncProcessing") == 0)
-    {
-      return 1;
-    }
-  if(strcmp(text, "2in2out") == 0)
-    {
-      return 1;
-    }
   return 0;
 }
 
@@ -633,7 +612,7 @@ bool CsoundVST::keysRequired()
 
 VstInt32 CsoundVST::getProgram()
 {
-  //Message("RECEIVED CsoundVST::getProgram...\n");
+  Message("RECEIVED CsoundVST::getProgram...\n");
   //bank[curProgram].text = getText();
   return curProgram;
 }
