@@ -432,6 +432,7 @@ elif getPlatform() == 'win32':
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
         commonEnvironment.Append(CCFLAGS = '-mthreads')
+	commonEnvironment.Append(SHLINKFLAGS = Split('-mwindows -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
     else:
         commonEnvironment.Append(CCFLAGS =  '/DMSVC')
         commonEnvironment.Append(CXXFLAGS = '/EHsc')
@@ -861,9 +862,41 @@ if getPlatform() == 'win32':
     # These are the Windows system call libraries.
     if not withMSVC():
         csoundWindowsLibraries = Split('''
-            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm 
-            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm 
-        ''')
+advapi32 
+bufferoverflowu
+comctl32 
+comdlg32 
+glu32 
+kernel32 
+odbc32 
+odbccp32 
+ole32 
+oleaut32 
+shell32             
+user32 
+uuid             
+winmm 
+winspool 
+ws2_32 
+wsock32 
+advapi32 
+bufferoverflowu
+comctl32 
+comdlg32 
+glu32 
+kernel32 
+odbc32 
+odbccp32 
+ole32 
+oleaut32 
+shell32             
+user32 
+uuid             
+winmm 
+winspool 
+ws2_32 
+wsock32 
+         ''')
     else:
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
@@ -1007,6 +1040,7 @@ if getPlatform() == 'darwin':
 #
 #   Build csound command line front end
 #############################################################################
+
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
 csoundProgramEnvironment.Append(LIBS = libCsoundLibs)
@@ -1931,7 +1965,7 @@ else:
     else:
         acEnvironment.Prepend(LIBS = ['_csnd'])
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    acEnvironment.Append(LIBS = libCsoundLibs)
+    acEnvironment.Prepend(LIBS = libCsoundLibs)
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         acEnvironment.Append(LIBS = ['util', 'dl', 'm'])
@@ -1947,16 +1981,9 @@ else:
         acEnvironment['SHLIBSUFFIX'] = '.dylib'
     elif getPlatform() == 'win32':
         if  not withMSVC():
-            acEnvironment['ENV']['PATH'] = os.environ['PATH']
-            acEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
-            guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
-                                -mwindows -Wl,--enable-runtime-pseudo-reloc
-                                '''))
-            acEnvironment.Prepend(LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
-            guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-            acEnvironment.Append(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+            acEnvironment.Prepend(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
         else:
-            acEnvironment.Append(LIBS = Split('fltk fltkimages fltkpng fltkjpeg fltkz'))
+            acEnvironment.Prepend(LIBS = Split('fltk fltkimages fltkpng fltkjpeg fltkz'))
     for option in acEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             acEnvironment.Append(SWIGFLAGS = [option])
