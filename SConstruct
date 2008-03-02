@@ -2038,12 +2038,12 @@ else:
         csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
                                                 csoundAcPythonWrapper)
     else:
-        acEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        acEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-        acEnvironment.Prepend(LIBS = pythonLibs)
-        acEnvironment.Append(CPPPATH = pythonIncludePath)
         acPythonEnvironment = acEnvironment.Copy()
-        acPythonEnvironment.Append(LIBS = ['CsoundAC'])
+        acPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        acPythonEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        acPythonEnvironment.Prepend(LIBS = pythonLibs)
+        acPythonEnvironment.Append(CPPPATH = pythonIncludePath)
+        acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
         csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
                                                 [csoundAcPythonWrapper])
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
