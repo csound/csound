@@ -42,7 +42,7 @@
 
 namespace csound
 {
-  class SILENCE_PUBLIC Logger
+  class Logger
   {
   public:
     Logger();
@@ -55,7 +55,7 @@ namespace csound
   /**
    * Abstraction layer for a minimal set of system services.
    */
-  class SILENCE_PUBLIC System
+  class System
   {
     static void *userdata_;
     static int messageLevel;
@@ -254,7 +254,7 @@ namespace csound
   /**
    * Encapsulates a thread monitor, such as a Windows event handle.
    */
-  class SILENCE_PUBLIC ThreadLock
+  class ThreadLock
   {
     void *lock;
   public:

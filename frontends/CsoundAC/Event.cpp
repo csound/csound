@@ -57,7 +57,7 @@ namespace csound
     "Homogeneity"
   };
 
-  bool SILENCE_PUBLIC operator < (const Event &a, const Event &b)
+  bool operator < (const Event &a, const Event &b)
   {
     for(int i = 0; i < Event::ELEMENT_COUNT; i++)
       {

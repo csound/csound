@@ -2024,7 +2024,7 @@ else:
     acWrapperEnvironment = acEnvironment.Copy()
     fixCFlagsForSwig(acWrapperEnvironment)
     if commonEnvironment['dynamicCsoundLibrary'] == '1':
-        csoundac = acEnvironment.SharedLibrary('CsoundAC', csoundAcSources)
+        csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
     else:
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
     libs.append(csoundac)
