@@ -101,7 +101,7 @@ public:
   virtual VstInt32 setChunk(void* data, VstInt32 byteSize, bool isPreset);
   virtual void suspend();
   virtual void resume();
-  virtual VstInt32 processEvents(VstEvents *vstEvents);
+  virtual VstInt32 processEvents (VstEvents* events);
   virtual void process(float **inputs, float **outputs, VstInt32 sampleFrames);
   virtual void processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames);
   // Shell overrides.
