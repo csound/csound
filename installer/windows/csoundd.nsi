@@ -1,4 +1,4 @@
-#######################################################################
+######################################################################
 # C S O U N D   5   N U L L S O F T   I N S T A L L E R   S C R I P T
 # By Michael Gogins <gogins@pipeline.com>
 #
@@ -21,12 +21,12 @@
 !define PROGRAM "Csound5.08.1"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
-!define VERSION "win32-f"
+!define VERSION "gnu-win32-f"
 !echo "Building installer for single-precision samples."
 !define OPCODEDIR_ENV "OPCODEDIR"
 !define OPCODEDIR_VAL "plugins"
 !else
-!define VERSION "win32-d"
+!define VERSION "gnu-win32-d"
 !echo "Building installer for double-precision samples."
 !define OPCODEDIR_ENV "OPCODEDIR64"
 !define OPCODEDIR_VAL "plugins64"
@@ -84,17 +84,9 @@ Function GetPython
 	ReadRegStr $1 HKLM $3 ""
   	IfErrors tryToInstallPython enablePython
 tryToInstallPython:
-	MessageBox MB_YESNO "Csound can be scripted with Python ${PYTHON_VERSION}. Install Python ${PYTHON_VERSION}?" IDYES installPython IDNO disablePython
+	MessageBox MB_YESNO "Python ${PYTHON_VERSION} is not installed.\nDo you wish to abort the installation\nso that you can download and install Python ${PYTHON_VERSION}?\nOtherwise, Python features will be disabled." IDYES installPython IDNO disablePython
 installPython:
-   	DetailPrint "Attempting to install Python..."
-       	StrCpy $2 "$TEMP\python-2.5.1.msi"
-        nsisdl::download /TIMEOUT=30000 ${PYTHON_URL} $2
-        Pop $R0 #Get the return value
-        StrCmp $R0 "success" +3
-        MessageBox MB_OK "Download failed: $R0"
-        Goto disablePython
-        ExecWait $2
-        Delete $2
+   	Abort 
 enablePython:
 	DetailPrint "Python ${PYTHON_VERSION} is available, enabling Python features..."
 	StrCpy $PYTHON_OUTPUT_PATH ""
@@ -190,222 +182,254 @@ DeleteEnvStr_done:
     	Pop $0
 FunctionEnd
 
-# [un.]IsNT - Push 1 if running on NT, 0 if not
-#
-# Example:
-#   Call IsNT
-#   Pop $0
-#   StrCmp $0 1 +3
-#     MessageBox MB_OK "Not running on NT!"
-#     Goto +2
-#     MessageBox MB_OK "Running on NT!"
-
+;----------------------------------------
+; based upon a script of "Written by KiCHiK 2003-01-18 05:57:02"
+;----------------------------------------
+!verbose 3
+!include "WinMessages.NSH"
+!verbose 4
+;====================================================
+; get_NT_environment 
+;     Returns: the selected environment
+;     Output : head of the stack
+;====================================================
+!macro select_NT_profile UN
+Function ${UN}select_NT_profile
+   MessageBox MB_YESNO|MB_ICONQUESTION "Change the environment for all users?$\r$\nSaying no here will change the envrironment for the current user only.$\r$\n(Administrator permissions required for all users)" \
+      IDNO environment_single
+      DetailPrint "Selected environment for all users"
+      Push "all"
+      Return
+   environment_single:
+      DetailPrint "Selected environment for current user only."
+      Push "current"
+      Return
+FunctionEnd
+!macroend
+!insertmacro select_NT_profile ""
+!insertmacro select_NT_profile "un."
+;----------------------------------------------------
+!define NT_current_env 'HKCU "Environment"'
+!define NT_all_env     'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+;====================================================
+; IsNT - Returns 1 if the current system is NT, 0
+;        otherwise.
+;     Output: head of the stack
+;====================================================
 !macro IsNT UN
 Function ${UN}IsNT
-  	 Push $0
-  	 ReadRegStr $0 HKLM \
-    	 "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
-  	 StrCmp $0 "" 0 IsNT_yes
-  	 # we are not NT.
-  	 Pop $0
-  	 Push 0
-  	 Return
-IsNT_yes:
-	# NT!!!
-    	Pop $0
-    	Push 1
+  Push $0
+  ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+  StrCmp $0 "" 0 IsNT_yes
+  ; we are not NT.
+  Pop $0
+  Push 0
+  Return
+ 
+  IsNT_yes:
+    ; NT!!!
+    Pop $0
+    Push 1
 FunctionEnd
 !macroend
 !insertmacro IsNT ""
 !insertmacro IsNT "un."
-
-# Add the given directory to the search path.
-#        Input - head of the stack
-#        Note - Win9x systems requires reboot
-
+;====================================================
+; AddToPath - Adds the given dir to the search path.
+;        Input - head of the stack
+;        Note - Win9x systems requires reboot
+;====================================================
 Function AddToPath
-  	Exch $0
-  	Push $1
-  	Push $2
-  	Push $3
-  	# don't add if the path doesn't exist
-  	IfFileExists "$0\*.*" "" AddToPath_done
-  	ReadEnvStr $1 PATH
-  	Push "$1;"
-  	Push "$0;"
-  	Call StrStr
-  	Pop $2
-  	StrCmp $2 "" "" AddToPath_done
-  	Push "$1;"
-  	Push "$0\;"
-  	Call StrStr
-  	Pop $2
-  	StrCmp $2 "" "" AddToPath_done
-  	GetFullPathName /SHORT $3 $0
-  	Push "$1;"
-  	Push "$3;"
-  	Call StrStr
-  	Pop $2
-  	StrCmp $2 "" "" AddToPath_done
-  	Push "$1;"
-  	Push "$3\;"
-  	Call StrStr
-  	Pop $2
-  	StrCmp $2 "" "" AddToPath_done
-  	Call IsNT
-  	Pop $1
-  	StrCmp $1 1 AddToPath_NT
-    	# Not on NT
-    	StrCpy $1 $WINDIR 2
-    	FileOpen $1 "$1\autoexec.bat" a
-    	FileSeek $1 -1 END
-    	FileReadByte $1 $2
-    	IntCmp $2 26 0 +2 +2 # DOS EOF
-	FileSeek $1 -1 END # write over EOF
-    	FileWrite $1 "$\r$\nSET PATH=%PATH%#$3$\r$\n"
-    	FileClose $1
-    	SetRebootFlag true
-    	Goto AddToPath_done
-AddToPath_NT:
-	ReadRegStr $1 HKCU "Environment" "PATH"
-    	StrCpy $2 $1 1 -1 # copy last char
-    	StrCmp $2 "#" 0 +2 # if last char == #
-      	StrCpy $1 $1 -1 # remove last char
-    	StrCmp $1 "" AddToPath_NTdoIt
-      	StrCpy $0 "$1#$0"
-AddToPath_NTdoIt:
-	WriteRegExpandStr HKCU "Environment" "PATH" $0
-      	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-AddToPath_done:
-	Pop $3
-    	Pop $2
-    	Pop $1
-    	Pop $0
+   Exch $0
+   Push $1
+   Push $2
+  
+   Call IsNT
+   Pop $1
+   StrCmp $1 1 AddToPath_NT
+      ; Not on NT
+      StrCpy $1 $WINDIR 2
+      FileOpen $1 "$1\autoexec.bat" a
+      FileSeek $1 0 END
+      GetFullPathName /SHORT $0 $0
+      FileWrite $1 "$\r$\nSET PATH=%PATH%;$0$\r$\n"
+      FileClose $1
+      Goto AddToPath_done
+ 
+   AddToPath_NT:
+      Push $4
+      Call select_NT_profile
+      Pop  $4
+ 
+      AddToPath_NT_selection_done:
+      StrCmp $4 "current" read_path_NT_current
+         ReadRegStr $1 ${NT_all_env} "PATH"
+         Goto read_path_NT_resume
+      read_path_NT_current:
+         ReadRegStr $1 ${NT_current_env} "PATH"
+      read_path_NT_resume:
+      StrCpy $2 $0
+      StrCmp $1 "" AddToPath_NTdoIt
+         StrCpy $2 "$1;$0"
+      AddToPath_NTdoIt:
+         StrCmp $4 "current" write_path_NT_current
+            ClearErrors
+            WriteRegExpandStr ${NT_all_env} "PATH" $2
+            IfErrors 0 write_path_NT_resume
+            MessageBox MB_YESNO|MB_ICONQUESTION "The path could not be set for all users$\r$\nShould I try for the current user?" \
+               IDNO write_path_NT_failed
+            ; change selection
+            StrCpy $4 "current"
+            Goto AddToPath_NT_selection_done
+         write_path_NT_current:
+            ClearErrors
+            WriteRegExpandStr ${NT_current_env} "PATH" $2
+            IfErrors 0 write_path_NT_resume
+            MessageBox MB_OK|MB_ICONINFORMATION "The path could not be set for the current user."
+            Goto write_path_NT_failed
+         write_path_NT_resume:
+         SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+         DetailPrint "added path for user ($4), $0"
+         write_path_NT_failed:
+      
+      Pop $4
+   AddToPath_done:
+   Pop $2
+   Pop $1
+   Pop $0
 FunctionEnd
-
-# Remove a given directory from the path
-#     Input: head of the stack
-
+ 
+;====================================================
+; RemoveFromPath - Remove a given dir from the path
+;     Input: head of the stack
+;====================================================
 Function un.RemoveFromPath
-	Exch $0
-  	Push $1
-  	Push $2
-  	Push $3
-  	Push $4
-  	Push $5
-  	Push $6
-  	IntFmt $6 "%c" 26 # DOS EOF
-	Call un.IsNT
-  	Pop $1
-  	StrCmp $1 1 unRemoveFromPath_NT
-    	# Not on NT
-    	StrCpy $1 $WINDIR 2
-    	FileOpen $1 "$1\autoexec.bat" r
-    	GetTempFileName $4
-    	FileOpen $2 $4 w
-    	GetFullPathName /SHORT $0 $0
-    	StrCpy $0 "SET PATH=%PATH%;$0"
-    	Goto unRemoveFromPath_dosLoop
-unRemoveFromPath_dosLoop:
-	FileRead $1 $3
-      	StrCpy $5 $3 1 -1 # read last char
-      	StrCmp $5 $6 0 +2 # if DOS EOF
-        StrCpy $3 $3 -1 # remove DOS EOF so we can compare
-      	StrCmp $3 "$0$\r$\n" unRemoveFromPath_dosLoopRemoveLine
-      	StrCmp $3 "$0$\n" unRemoveFromPath_dosLoopRemoveLine
-      	StrCmp $3 "$0" unRemoveFromPath_dosLoopRemoveLine
-      	StrCmp $3 "" unRemoveFromPath_dosLoopEnd
-      	FileWrite $2 $3
-      	Goto unRemoveFromPath_dosLoop
-unRemoveFromPath_dosLoopRemoveLine:
-        SetRebootFlag true
-        Goto unRemoveFromPath_dosLoop
-unRemoveFromPath_dosLoopEnd:
-	FileClose $2
-      	FileClose $1
-      	StrCpy $1 $WINDIR 2
-      	Delete "$1\autoexec.bat"
-      	CopyFiles /SILENT $4 "$1\autoexec.bat"
-      	Delete $4
-      	Goto unRemoveFromPath_done
-unRemoveFromPath_NT:
-	ReadRegStr $1 HKCU "Environment" "PATH"
-    	StrCpy $5 $1 1 -1 # copy last char
-    	StrCmp $5 ";" +2 # if last char != ;
-      	StrCpy $1 "$1;" # append ;
-    	Push $1
-    	Push "$0;"
-    	Call un.StrStr # Find `$0;` in $1
-    	Pop $2 # pos of our dir
-    	StrCmp $2 "" unRemoveFromPath_done
-      	# else, it is inpath
-      	# $0 - path to add
-      	# $1 - path var
-      	StrLen $3 "$0;"
-      	StrLen $4 $2
-      	StrCpy $5 $1 -$4 # $5 is now the part before the path to remove
-      	StrCpy $6 $2 "" $3 # $6 is now the part after the path to remove
-      	StrCpy $3 $5$6
-      	StrCpy $5 $3 1 -1 # copy last char
-      	StrCmp $5 ";" 0 +2 # if last char == ;
-        StrCpy $3 $3 -1 # remove last char
-      	WriteRegExpandStr HKCU "Environment" "PATH" $3
-      	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-unRemoveFromPath_done:
-	Pop $6
-    	Pop $5
-    	Pop $4
-    	Pop $3
-    	Pop $2
-    	Pop $1
-    	Pop $0
+   Exch $0
+   Push $1
+   Push $2
+   Push $3
+   Push $4
+   
+   Call un.IsNT
+   Pop $1
+   StrCmp $1 1 unRemoveFromPath_NT
+      ; Not on NT
+      StrCpy $1 $WINDIR 2
+      FileOpen $1 "$1\autoexec.bat" r
+      GetTempFileName $4
+      FileOpen $2 $4 w
+      GetFullPathName /SHORT $0 $0
+      StrCpy $0 "SET PATH=%PATH%;$0"
+      SetRebootFlag true
+      Goto unRemoveFromPath_dosLoop
+     
+      unRemoveFromPath_dosLoop:
+         FileRead $1 $3
+         StrCmp $3 "$0$\r$\n" unRemoveFromPath_dosLoop
+         StrCmp $3 "$0$\n" unRemoveFromPath_dosLoop
+         StrCmp $3 "$0" unRemoveFromPath_dosLoop
+         StrCmp $3 "" unRemoveFromPath_dosLoopEnd
+         FileWrite $2 $3
+         Goto unRemoveFromPath_dosLoop
+ 
+      unRemoveFromPath_dosLoopEnd:
+         FileClose $2
+         FileClose $1
+         StrCpy $1 $WINDIR 2
+         Delete "$1\autoexec.bat"
+         CopyFiles /SILENT $4 "$1\autoexec.bat"
+         Delete $4
+         Goto unRemoveFromPath_done
+ 
+   unRemoveFromPath_NT:
+      StrLen $2 $0
+      Call un.select_NT_profile
+      Pop  $4
+ 
+      StrCmp $4 "current" un_read_path_NT_current
+         ReadRegStr $1 ${NT_all_env} "PATH"
+         Goto un_read_path_NT_resume
+      un_read_path_NT_current:
+         ReadRegStr $1 ${NT_current_env} "PATH"
+      un_read_path_NT_resume:
+ 
+      Push $1
+      Push $0
+      Call un.StrStr ; Find $0 in $1
+      Pop $0 ; pos of our dir
+      IntCmp $0 -1 unRemoveFromPath_done
+         ; else, it is in path
+         StrCpy $3 $1 $0 ; $3 now has the part of the path before our dir
+         IntOp $2 $2 + $0 ; $2 now contains the pos after our dir in the path (';')
+         IntOp $2 $2 + 1 ; $2 now containts the pos after our dir and the semicolon.
+         StrLen $0 $1
+         StrCpy $1 $1 $0 $2
+         StrCpy $3 "$3$1"
+ 
+         StrCmp $4 "current" un_write_path_NT_current
+            WriteRegExpandStr ${NT_all_env} "PATH" $3
+            Goto un_write_path_NT_resume
+         un_write_path_NT_current:
+            WriteRegExpandStr ${NT_current_env} "PATH" $3
+         un_write_path_NT_resume:
+         SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+   unRemoveFromPath_done:
+   Pop $4
+   Pop $3
+   Pop $2
+   Pop $1
+   Pop $0
 FunctionEnd
-
-# StrStr
-# input, top of stack = string to search for
-#        top of stack-1 = string to search in
-# output, top of stack (replaces with the portion of the string remaining)
-# modifies no other variables.
-#
-# Usage:
-#   Push "this is a long ass string"
-#   Push "ass"
-#   Call StrStr
-#   Pop $R0
-#  ($R0 at this point is "ass string")
-
-!macro StrStr un
-Function ${un}StrStr
-	Exch $R1 # st=haystack,old$R1, $R1=needle
-  	Exch    # st=old$R1,haystack
-  	Exch $R2 # st=old$R1,old$R2, $R2=haystack
-  	Push $R3
-  	Push $R4
-  	Push $R5
-  	StrLen $R3 $R1
-  	StrCpy $R4 0
-  	# $R1=needle
-  	# $R2=haystack
-  	# $R3=len(needle)
-  	# $R4=cnt
-  	# $R5=tmp
-loop:
-	StrCpy $R5 $R2 $R3 $R4
-    	StrCmp $R5 $R1 done
-    	StrCmp $R5 "" done
-    	IntOp $R4 $R4 + 1
-    	Goto loop
-done:
-	StrCpy $R1 $R2 "" $R4
-  	Pop $R5
-  	Pop $R4
-  	Pop $R3
-  	Pop $R2
-  	Exch $R1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Uninstall sutff
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 
+ 
+;====================================================
+; StrStr - Finds a given string in another given string.
+;               Returns -1 if not found and the pos if found.
+;          Input: head of the stack - string to find
+;                      second in the stack - string to find in
+;          Output: head of the stack
+;====================================================
+Function un.StrStr
+  Push $0
+  Exch
+  Pop $0 ; $0 now have the string to find
+  Push $1
+  Exch 2
+  Pop $1 ; $1 now have the string to find in
+  Exch
+  Push $2
+  Push $3
+  Push $4
+  Push $5
+ 
+  StrCpy $2 -1
+  StrLen $3 $0
+  StrLen $4 $1
+  IntOp $4 $4 - $3
+ 
+  unStrStr_loop:
+    IntOp $2 $2 + 1
+    IntCmp $2 $4 0 0 unStrStrReturn_notFound
+    StrCpy $5 $1 $3 $2
+    StrCmp $5 $0 unStrStr_done unStrStr_loop
+ 
+  unStrStrReturn_notFound:
+    StrCpy $2 -1
+ 
+  unStrStr_done:
+    Pop $5
+    Pop $4
+    Pop $3
+    Exch $2
+    Exch 2
+    Pop $0
+    Pop $1
 FunctionEnd
-!macroend
-!insertmacro StrStr ""
-!insertmacro StrStr "un."
+;====================================================Retrieved from "http://nsis.sourceforge.net/Path_manipulation_with_all_users/current_user_selection_in_run-time"
+
 
 #######################################################################
 # INSTALLER PAGES
@@ -469,11 +493,9 @@ Section "${PRODUCT}" SecCopyUI
 !endif
 	# Required for those components which are now built with MSVC:
 	File C:\windows\system32\MSVCRT.DLL
-	File ..\..\pmidi.dll
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
   	File ..\..\_jcsound.dll
-  	File ..\..\CsoundAC.dll
 !ifdef NONFREE
 	File ..\..\CsoundVST.dll
 	File ..\..\*.exe
@@ -482,21 +504,29 @@ Section "${PRODUCT}" SecCopyUI
 !endif
 	File ..\..\tclcsound.dll
   	File ..\..\csoundapi~.dll
-  	File D:\utah\msys\1.0\local\bin\mgwfltknox-1.1.dll
-  	File D:\utah\msys\1.0\local\bin\mgwfltknox_images-1.1.dll
-  	File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
-  	File D:\utah\home\mkg\projects\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
-  	File D:\utah\home\mkg\projects\fluidsynth\winbuild\fluidsynth.dll
-  	File D:\utah\opt\portmidi\pm_win\*.dll
-  	File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
-  	File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
-  	File D:\utah\home\mkg\projects\liblo\src\liblo.dll
-  	File D:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
-  	File D:\utah\opt\fftw-3.1.2\.libs\libfftw3-3.dll
+
+        # Third party libraries:
+
+	# libsndfile
+	File U:\libsndfile-1_0_17\libsndfile-1.dll
+	# PortAudio
+	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
+	# Fluidsynth
+	File U:\fluidsynth\winbuild\fluidsynth.dll
+	# Image opcodes
+	File U:\zlib-1.2.3.win32\bin\zlib1.dll
+	File U:\libpng-1.2.24\.libs\libpng-3.dll
+	# Lua
+	File U:\Lua5.1\lua51.dll
+	File U:\Lua5.1\luajit.exe
+	# OSC
+	File U:\liblo\lo.dll
+	File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
+
 !ifdef FLOAT
   	File ..\..\csound32.def
 !else
-  	File ..\..\csound.def
+  	File ..\..\csound64.def
 !endif
   	File ..\..\_csnd.def
   	File ..\..\_jcsound.def
@@ -552,7 +582,7 @@ Section "${PRODUCT}" SecCopyUI
   	File /r ..\..\samples\*
 	File /r ..\..\Opcodes\stk\rawwaves\*.raw
 	# Then we do output paths for Python stuff.
-	SetOutPath $INSTDIR\$PYTHON_OUTPUT_PATHbin
+	SetOutPath $INSTDIR\$PYTHON_OUTPUT_PATH\bin
 	File ..\..\_CsoundAC.pyd
 	File ..\..\CsoundAC.py
 	FILE ..\..\_csnd.pyd
@@ -659,7 +689,7 @@ skipAssoc:
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cseditor.lnk" "$INSTDIR\bin\cseditor.exe" "" "" "" "" "" "Csound editor"
 !ifdef NONFREE
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe" "" "" "" "" "" "CsoundVST GUI"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVSTShell.exe" "" "" "" "" "" "CsoundVST GUI"
 !endif
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
