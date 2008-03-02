@@ -21,18 +21,12 @@
  */
 #ifndef RANDOM_H
 #define RANDOM_H
-#if defined(_MSC_VER) && !defined(__GNUC__)
-#pragma warning (disable:4786)
-#endif
 
 #include "Platform.hpp"
 #ifdef SWIG
 %module CsoundAC
 %{
 #include "Node.hpp"
-#include <boost/random.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <cmath>
   %}
 #else
 #include "Node.hpp"
@@ -73,6 +67,7 @@ namespace csound
   public:
     static boost::mt19937 mersenneTwister;
 #endif
+  public:
     std::string distribution;
     int row;
     int column;
