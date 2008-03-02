@@ -73,7 +73,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
     {
       if(number)
         {
-          AudioEffectX::isSynth(true);
+  AudioEffectX::isSynth(true);
         }
       else
         {
@@ -308,7 +308,6 @@ void CsoundVST::open()
 {
   Message("BEGAN CsoundVST::open()...\n");
   SetHostData(this);
-  //SetMessageCallback(Message);
   std::string filename_ = getFilename();
   if(filename_.length() > 0)
     {
@@ -355,11 +354,12 @@ void CsoundVST::resume()
   performance();
 }
 
+
 VstInt32 CsoundVST::processEvents(VstEvents *vstEvents)
 {
-  Message("CsoundVST::processEvents: %d events.\n", vstEvents->numEvents);
   if(getIsGo())
     {
+      //Message("CsoundVST::processEvents: %d events.\n", vstEvents->numEvents);
       for(int i = 0; i < vstEvents->numEvents; i++)
         {
           if(vstEvents->events[i]->type == kVstMidiType)
@@ -597,7 +597,7 @@ VstInt32 CsoundVST::canDo(char* text)
     {
       return 1;
     }
-  if(strcmp(text, "receiveVstMidiEvents") == 0)
+  if(strcmp(text, "receiveVstMidiEvent") == 0)
     {
       return 1;
     }
