@@ -215,9 +215,6 @@ namespace csound
   {
     return NORM_7_;
   }
-  /**
-   * Returns the maximum soundfile amplitude for the sample size.
-   */
   int Conversions::getSampleSize(void)
   {
     return sampleSize;
