@@ -5,7 +5,7 @@ class Timebase;
 class Event;
 class Audio;
 
-class SILENCE_PUBLIC OrchestraNode
+class OrchestraNode
 {
 public:
   OrchestraNode();

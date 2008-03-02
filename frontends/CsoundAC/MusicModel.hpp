@@ -52,7 +52,7 @@ namespace csound
    * with the coordinate system of its parent to derive a new local coordinate system,
    * which is applied to all child events.
    */
-  class SILENCE_PUBLIC MusicModel :
+  class MusicModel :
     public Composition,
     public Node
   {

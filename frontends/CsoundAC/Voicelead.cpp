@@ -56,10 +56,10 @@ namespace csound
   void Voicelead::initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave)
   {
     if (primeChordsForDivisionsPerOctave.find(divisionsPerOctave) == primeChordsForDivisionsPerOctave.end()) {
-      double C = double(0);
-      double P = double(0);
-      double N = std::pow(double(2), double(divisionsPerOctave)) - double(1);
-      for ( ; C < N; C = C + double(1)) {
+      double C = 0.0;
+      double P = 0.0;
+      double N = std::pow(2.0, double(divisionsPerOctave)) - 1.0;
+      for ( ; C < N; C = C + 1.0) {
 	std::vector<double> chord = mToPitchClassSet(cToM(C, divisionsPerOctave), divisionsPerOctave);
 	std::vector<double> normalChord_ = normalChord(chord);
 	std::vector<double> zeroChord = toOrigin(normalChord_);
@@ -68,7 +68,7 @@ namespace csound
 	  pForCForDivisionsPerOctave[divisionsPerOctave][C] = P;
 	  cForPForDivisionsPerOctave[divisionsPerOctave][P] = C;
 	  pForPrimeChordsForDivisionsPerOctave[divisionsPerOctave][zeroChord] = P;
-	  P = P + double(1);
+	  P = P + 1.0;
 	}
       }
     }
@@ -84,7 +84,7 @@ namespace csound
   }
   double round(double x)
   {
-    return std::floor(x + double(0.5));
+    return std::floor(x + 0.5);
   }
 
   std::vector<double> sort(const std::vector<double> &chord)
@@ -103,7 +103,7 @@ namespace csound
   double Voicelead::pitchClassSetToM(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
     std::set<double> pcs_;
-    double M = double(0);
+    double M = 0.0;
     for (size_t i = 0, n = chord.size(); i < n; i++) {
       double pc_ = pc(chord[i], divisionsPerOctave);
       if (pcs_.find(pc_) == pcs_.end()) {
@@ -118,8 +118,8 @@ namespace csound
   {
     size_t M_ = size_t(round(M));
     std::vector<double> pcs;
-    double i = double(0);
-    for ( ; i < double(divisionsPerOctave); i = i + double(1)) {
+    double i = 0.0;
+    for ( ; i < double(divisionsPerOctave); i = i + 1.0) {
       size_t p2 = size_t(std::pow(2.0, i));
       if ((p2 & M_) == p2) {
         pcs.push_back(i);
@@ -176,7 +176,7 @@ namespace csound
   double Voicelead::smoothness(const std::vector<double> &a,
                                const std::vector<double> &b)
   {
-    double L1 = double(0);
+    double L1 = 0.0;
     for (size_t i = 0, n = a.size(); i < n; i++) {
       L1 += std::fabs(b[i] - a[i]);
     }
@@ -477,7 +477,7 @@ namespace csound
     for (size_t i = 1, n = chord.size(); i < n; i++) {
       inversion.push_back(chord[i]);
     }
-    inversion.push_back(chord[0] + double(12));
+    inversion.push_back(chord[0] + 12.0);
     return inversion;
   }
 
@@ -496,9 +496,9 @@ namespace csound
   std::vector<double>  Voicelead::normalChord(const std::vector<double> &chord)
   {
     std::vector< std::vector<double> > inversions_ = inversions(chord);
-    std::vector<double> origin(chord.size(), double(0));
+    std::vector<double> origin(chord.size(), 0.0);
     std::vector<double> normalChord;
-    double minDistance = double(0);
+    double minDistance = 0.0;
     for (size_t i = 0, n = inversions_.size(); i < n; i++) {
       std::vector<double> zeroChordInversion = toOrigin(inversions_[i]);
       if (i == 0) {
@@ -554,7 +554,7 @@ namespace csound
   double Voicelead::pToC(double P, size_t divisionsPerOctave)
   {
     initializePrimeChordsForDivisionsPerOctave(divisionsPerOctave);
-    int p = int(std::fabs(P + double(0.5)));
+    int p = int(std::fabs(P + 0.5));
     int modulus = int(primeChordsForDivisionsPerOctave.size());
     P = double(p % modulus);
     return cForPForDivisionsPerOctave[divisionsPerOctave][P];
@@ -603,7 +603,7 @@ namespace csound
       double pcA = Voicelead::pc(a, divisionsPerOctave);
       double pcB = Voicelead::pc(b, divisionsPerOctave);
       double d = pcB - pcA;
-      if (d < double(0)) {
+      if (d < 0.0) {
 	d  = (pcB + double(divisionsPerOctave)) - pcA;
       }
       return d;  
@@ -898,9 +898,9 @@ namespace csound
   }
 
   std::vector< std::vector<double> > Voicelead::voicings(const std::vector<double> &chord_,
-							    double lowestPitch,
-							    double highestPitch,
-							    size_t divisionsPerOctave)
+							 double lowestPitch,
+							 double highestPitch,
+							 size_t divisionsPerOctave)
   {
     std::vector< std::vector<double> > voicings;
     std::vector<double> zeroIterator = pcs(chord_, divisionsPerOctave);

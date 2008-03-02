@@ -41,7 +41,7 @@ namespace csound
         * Translates images in various RGB formats to scores.
         * Hue is mapped to instrument, value is mapped to loudness.
         */
-        class SILENCE_PUBLIC ImageToScore : public ScoreNode
+        class ImageToScore : public ScoreNode
         {
         protected:
                 std::string imageFilename;
