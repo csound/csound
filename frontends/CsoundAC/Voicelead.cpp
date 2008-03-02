@@ -56,7 +56,10 @@ namespace csound
   void Voicelead::initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave)
   {
     if (primeChordsForDivisionsPerOctave.find(divisionsPerOctave) == primeChordsForDivisionsPerOctave.end()) {
-      for (double C = 0.0, P = 0.0, N = std::pow(2.0, double(divisionsPerOctave)) - 1; C < N; ++C) {
+      double C = double(0);
+      double P = double(0);
+      double N = std::pow(double(2), double(divisionsPerOctave)) - double(1);
+      for ( ; C < N; C = C + double(1)) {
 	std::vector<double> chord = mToPitchClassSet(cToM(C, divisionsPerOctave), divisionsPerOctave);
 	std::vector<double> normalChord_ = normalChord(chord);
 	std::vector<double> zeroChord = toOrigin(normalChord_);
@@ -65,7 +68,7 @@ namespace csound
 	  pForCForDivisionsPerOctave[divisionsPerOctave][C] = P;
 	  cForPForDivisionsPerOctave[divisionsPerOctave][P] = C;
 	  pForPrimeChordsForDivisionsPerOctave[divisionsPerOctave][zeroChord] = P;
-	  P = P + 1.0;
+	  P = P + double(1);
 	}
       }
     }
