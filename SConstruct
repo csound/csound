@@ -821,6 +821,9 @@ if getPlatform() == 'darwin':
 csoundLibraryEnvironment = commonEnvironment.Copy()
 
 if commonEnvironment['buildNewParser'] != '0':
+    if getPlatform() == "win32":
+        Tool('lex')(csoundLibraryEnvironment)
+        Tool('yacc')(csoundLibraryEnvironment)
     print 'CONFIGURATION DECISION: Building with new parser enabled'
     csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '--report=itemset', '-p','csound_orc'])
     csoundLibraryEnvironment.Append(LEXFLAGS = ['-d', '-Pcsound_orc'])
@@ -830,9 +833,6 @@ if commonEnvironment['buildNewParser'] != '0':
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
     libCsoundSources += newParserSources
-    if getPlatform == "win32":
-        Tool('lex')(commonEnvironment)
-        Tool('yacc')(commonEnvironment)
 else:
     print 'CONFIGURATION DECISION: Not building with new parser'
 
