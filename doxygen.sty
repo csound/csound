@@ -3,8 +3,6 @@
 \RequirePackage{calc}
 \RequirePackage{array}
 \pagestyle{fancyplain}
-\addtolength{\headwidth}{\marginparsep}
-\addtolength{\headwidth}{\marginparwidth}
 \newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
@@ -12,16 +10,29 @@
         {\fancyplain{}{\bfseries\rightmark}}
 \rhead[\fancyplain{}{\bfseries\leftmark}]
         {\fancyplain{}{\bfseries\thepage}}
-\rfoot[\fancyplain{}{\bfseries\scriptsize Generated on Sun Sep 19 09:41:16 2004 for csound by Doxygen }]{}
-\lfoot[]{\fancyplain{}{\bfseries\scriptsize Generated on Sun Sep 19 09:41:16 2004 for csound by Doxygen }}
+\rfoot[\fancyplain{}{\bfseries\scriptsize Generated on Sat Mar 1 22:26:05 2008 for Csound and CsoundAC by doxygen\lfoot[]{\fancyplain{}{\bfseries\scriptsize Generated on Sat Mar 1 22:26:05 2008 for Csound and CsoundAC by doxygen}}
 \cfoot{}
+\newenvironment{Code}
+{\footnotesize}
+{\normalsize}
+\newcommand{\doxyref}[3]{\textbf{#1} (\textnormal{#2}\,\pageref{#3})}
+\newenvironment{DocInclude}
+{\footnotesize}
+{\normalsize}
+\newenvironment{VerbInclude}
+{\footnotesize}
+{\normalsize}
+\newenvironment{Image}
+{\begin{figure}[H]}
+{\end{figure}}
+\newenvironment{ImageNoCaption}{}{}
 \newenvironment{CompactList}
 {\begin{list}{}{
   \setlength{\leftmargin}{0.5cm}
   \setlength{\itemsep}{0pt}
   \setlength{\parsep}{0pt}
   \setlength{\topsep}{0pt}
-  \renewcommand{\makelabel}{}}}
+  \renewcommand{\makelabel}{\hfill}}}
 {\end{list}}
 \newenvironment{CompactItemize}
 {
@@ -43,7 +54,7 @@
 }
 {\end{tabular*}\par}
 \newcommand{\entrylabel}[1]{
-   {\parbox[b]{\labelwidth-4pt}{\makebox[0pt][l]{\textbf{#1}}\\}}}
+   {\parbox[b]{\labelwidth-4pt}{\makebox[0pt][l]{\textbf{#1}}\vspace{1.5\baselineskip}}}}
 \newenvironment{Desc}
 {\begin{list}{}
   {
@@ -63,3 +74,4 @@
 \setlength{\parskip}{0.2cm}
 \addtocounter{secnumdepth}{1}
 \sloppy
+\usepackage[T1]{fontenc}
