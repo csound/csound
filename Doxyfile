@@ -23,7 +23,7 @@ PROJECT_NAME           = "Csound and CsoundAC"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 5.07
+PROJECT_NUMBER         = 5.08
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -217,7 +217,7 @@ EXTRACT_ALL            = YES
 # If the EXTRACT_PRIVATE tag is set to YES all private members of a class 
 # will be included in the documentation.
 
-EXTRACT_PRIVATE        = YES
+EXTRACT_PRIVATE        = NO
 
 # If the EXTRACT_STATIC tag is set to YES all static members of a file 
 # will be included in the documentation.
@@ -365,7 +365,7 @@ MAX_INITIALIZER_LINES  = 30
 # at the bottom of the documentation of classes and structs. If set to YES the 
 # list will mention the files that were used to generate the documentation.
 
-SHOW_USED_FILES        = YES
+SHOW_USED_FILES        = NO
 
 # If the sources in your project are distributed over multiple directories 
 # then setting the SHOW_DIRECTORIES tag to YES will show the directory hierarchy 
@@ -424,23 +424,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = \
-H/cfgvar.h \
-H/cscore.h \
-H/csdl.h \
-H/csmodule.h  \   
-H/csound.h \
-H/csound.hpp \
-H/csoundCore.h \
-H/cwindow.h \
-H/fftlib.h \
-H/msg_attr.h \
-H/OpcodeBase.hpp \
-H/pstream.h \
-H/pvfileio.h \
-H/soundio.h \
-H/sysdep.h \
-H/text.h \
-H/version.h \
+H \
 interfaces \
 frontends/CsoundVST \
 frontends/CsoundAC \
@@ -753,7 +737,7 @@ EXTRA_PACKAGES         =
 # the first chapter. If it is left blank doxygen will generate a 
 # standard header. Notice: only use this tag if you know what you are doing!
 
-LATEX_HEADER           = refman_header.tex
+# LATEX_HEADER           = refman_header.tex
 
 # If the PDF_HYPERLINKS tag is set to YES, the LaTeX that is generated 
 # is prepared for conversion to pdf (using ps2pdf). The pdf file will 
