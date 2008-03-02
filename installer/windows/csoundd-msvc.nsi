@@ -447,6 +447,7 @@ Section "${PRODUCT}" SecCopyUI
 	SetOutPath $INSTDIR\Microsoft.VC90.CRT
 	File ..\..\Microsoft.VC90.CRT\*
   	SetOutPath $INSTDIR
+	File /nonfatal /x test ..\..\test
 !ifdef NONFREE
 	File ..\..\readme-csound5-complete.txt
 !else
@@ -475,13 +476,25 @@ Section "${PRODUCT}" SecCopyUI
 	File /x CsoundVSTShell.exe ..\..\*.exe
 !endif
 	File ..\..\tclcsound.dll
-	File U:\portaudio\build\msvc\Win32\Release\*.dll
-	File U:\portmidi\pm_win\Release\*.dll
-	File U:\fltk\vc2005\fltkdll.dll
-  	File U:\libsndfile-1_0_17\libsndfile-1.dll
-  	File U:\fluidsynth\winbuild\fluidsynth.dll
-	File U:\Lua5.1\*.exe
-	File U:\Lua5.1\*.dll
+
+        # Third party libraries:
+
+	# libsndfile
+	File U:\libsndfile-1_0_17\libsndfile-1.dll
+	# PortAudio
+	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
+	# Fluidsynth
+	File U:\fluidsynth\winbuild\fluidsynth.dll
+	# Image opcodes
+	File U:\zlib-1.2.3.win32\bin\zlib1.dll
+	File U:\libpng-1.2.24-msvc\projects\visualc71\Win32_DLL_Release\libpng13.dll
+	# Lua
+	File U:\Lua5.1\lua51.dll
+	File U:\Lua5.1\luajit.exe
+	# OSC
+	File U:\liblo\lo.dll
+	File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
+
 !ifdef FLOAT
   	File ..\..\csound32.def
 !else
@@ -555,7 +568,7 @@ Section "${PRODUCT}" SecCopyUI
 	File /x csound*.dll* \
 	/x *.pyd \       
 	/x libsndfile-1.dll \
-	/x portaudio.dll* \
+	/x portaudio*.dll* \
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
 	/x pm_midi.dll \

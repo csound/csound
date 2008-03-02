@@ -1,14 +1,15 @@
 <CsoundSynthesizer>
-
+-m3 -otest1
 <CsInstruments>
-instr 1
-    OSCsend     1, "xenakis.cs.bath.ac.uk",7770, "/foo/bar", "sis", "FOO", 42, "bar"
-endin
+
+	instr 1
+OSCsend 1, "", 7770, "/foo/bar", "fs", 42.0, "bar"
+    	endin
 
 </CsInstruments>
 
 <CsScore>
-i1 0 1
+i 1 0 1000.0
 e
 </CsScore>
 
