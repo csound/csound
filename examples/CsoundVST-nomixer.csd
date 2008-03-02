@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 temp.orc temp.sco
+-f -h -+rtmidi=null -M0 -d -n -m7
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
