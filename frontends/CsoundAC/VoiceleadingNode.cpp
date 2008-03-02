@@ -30,7 +30,6 @@
 
 namespace csound
 {
-
   extern void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
 
   extern void printChord(std::string label, const std::vector<double> &chord); 
@@ -75,7 +74,7 @@ namespace csound
   {
   }
 
-  std::ostream SILENCE_PUBLIC &operator << (std::ostream &stream, const VoiceleadingOperation &operation)
+  std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &operation)
   {
     stream << "  beginTime:         " << operation.beginTime << std::endl;
     stream << "  endTime:           " << operation.endTime << std::endl;

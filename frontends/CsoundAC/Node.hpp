@@ -47,7 +47,7 @@ namespace csound
    * Nodes can transform silence::Events produced by child nodes.
    * Nodes can produce silence::Events.
    */
-  class SILENCE_PUBLIC Node
+  class Node
   {
   protected:
     ublas::matrix<double> localCoordinates;

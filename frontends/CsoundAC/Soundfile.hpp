@@ -83,7 +83,7 @@ namespace csound
    * See http://www.mega-nerd.com/libsndfile for more information
    * on the underlying libsndfile library.
    */
-  class SILENCE_PUBLIC Soundfile
+  class Soundfile
   {
     SNDFILE *sndfile;
     SF_INFO sf_info;

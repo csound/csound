@@ -42,7 +42,7 @@ namespace csound
    * such as notes and control messages,
    * and an Orchestra object for rendering the generated scores.
    */
-  class SILENCE_PUBLIC Composition
+  class Composition
   {
   protected:
     Score score;

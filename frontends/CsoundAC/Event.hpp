@@ -71,7 +71,7 @@ namespace csound
    * but they are always real-time score statements at time 0, suitable
    * for use with Csound's -L or line event option.
    */
-  class SILENCE_PUBLIC Event :
+  class Event :
     public ublas::vector<double>
   {
   public:
@@ -168,6 +168,6 @@ namespace csound
 #endif
   };
 
-  bool SILENCE_PUBLIC operator < (const Event& a, const Event &b);
+  bool operator < (const Event& a, const Event &b);
 }
 #endif

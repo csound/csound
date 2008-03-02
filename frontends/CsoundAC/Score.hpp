@@ -48,7 +48,7 @@ namespace csound
    * The implementation is a std::vector of Events.
    * The elements of the vector are value objects, not references.
    */
-  class SILENCE_PUBLIC Score :
+  class Score :
     public std::vector<csound::Event>
   {
   protected:

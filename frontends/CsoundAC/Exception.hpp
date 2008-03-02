@@ -36,7 +36,7 @@ namespace csound
   /**
    * Base class for C++ exceptions in the Silence system.
    */
-  class SILENCE_PUBLIC Exception
+  class Exception
   {
     std::string message;
   public:

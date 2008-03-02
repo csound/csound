@@ -49,7 +49,7 @@ namespace csound
    * for each of eventCount samples,
    * which will be transformed by the newly sampled local coordinates.
    */
-  class SILENCE_PUBLIC Random :
+  class Random :
     public Node
   {
   protected:

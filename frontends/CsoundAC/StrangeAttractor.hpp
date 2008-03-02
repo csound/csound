@@ -54,7 +54,7 @@ namespace csound
    * as the order of iteration, or as a dimension of the attractor.
    * See Julien C. Sprott's book "Strange Attractors".
    */
-  class SILENCE_PUBLIC StrangeAttractor :
+  class StrangeAttractor :
     public ScoreNode
   {
   protected:
