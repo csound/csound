@@ -1,21 +1,21 @@
 /*
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
- */
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
 /*
  * CSOUND 5 OPCODES FOR PERRY COOK'S SYNTHESIS TOOLKIT IN C++ (STK) INSTRUMENT
  *
@@ -85,7 +85,11 @@
 
 #include "csGblMtx.h"
 
-std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
+static std::map<CSOUND *, std::vector<Instrmnt *> > &getStkInstances()
+{
+  static std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
+  return stkInstances;
+}
 
 template<typename T>
 class STKInstrumentAdapter : public OpcodeBase< STKInstrumentAdapter<T> >
@@ -123,7 +127,7 @@ public:
       {
         Stk::setSampleRate(csound->esr);
         instrument = new T();
-        stkInstances[csound].push_back(instrument);
+        getStkInstances()[csound].push_back(instrument);
       }
     ksmps = csound->ksmps;
     instrument->noteOn(*ifrequency, *igain);
@@ -224,7 +228,7 @@ public:
       {
         Stk::setSampleRate(csound->esr);
         instrument = new T((StkFloat) 10.0);
-        stkInstances[csound].push_back(instrument);
+        getStkInstances()[csound].push_back(instrument);
       }
     ksmps = csound->ksmps;
     instrument->noteOn(*ifrequency, *igain);
@@ -611,11 +615,12 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    if (stkInstances.find(csound) != stkInstances.end()) {
-      for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i) {
-	delete stkInstances[csound][i];
+    if (getStkInstances().find(csound) != getStkInstances().end()) {
+      for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
+	delete getStkInstances()[csound][i];
       }
-      stkInstances[csound].clear();
+      getStkInstances()[csound].clear();
+      getStkInstances().erase(csound);
     }
     return 0;
   }

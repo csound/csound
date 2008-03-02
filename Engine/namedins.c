@@ -952,6 +952,9 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
     h = name_hash_2(csnd, name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
+	if (!p) {
+		return 0;
+	}
     while (p->nxt != NULL && sCmp(name, (char*) (p->name)) != 0)
       p = (GlobalVariableEntry_t*) p->nxt;
     return (void*) (p->p);
