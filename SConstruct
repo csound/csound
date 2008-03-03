@@ -863,7 +863,6 @@ if getPlatform() == 'win32':
     if not withMSVC():
         csoundWindowsLibraries = Split('''
 advapi32 
-bufferoverflowu
 comctl32 
 comdlg32 
 glu32 
@@ -880,7 +879,6 @@ winspool
 ws2_32 
 wsock32 
 advapi32 
-bufferoverflowu
 comctl32 
 comdlg32 
 glu32 
