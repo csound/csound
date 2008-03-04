@@ -466,7 +466,7 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
   	File ..\..\_jcsound.dll
-  	File ..\..\CsoundAC.dll
+  	File ..\..\CsoundAC.lib
   	File ..\..\*.manifest
   	File ..\..\*.lib
 !ifdef NONFREE
