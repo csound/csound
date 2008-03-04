@@ -346,7 +346,7 @@ With MinGW, the release build is the same as the debug build,
 except that the build is optimized for speed.
 It is still debuggable!
 '''
-        commonEnvironment.Prepend(CCFLAGS = Split('-mtune=nocona -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math'))
+        commonEnvironment.Prepend(CCFLAGS = Split('-g -mtune=nocona -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math'))
     else:
         print '''
 BUILDING FOR RELEASE
