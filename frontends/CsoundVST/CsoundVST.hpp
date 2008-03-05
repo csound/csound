@@ -33,9 +33,9 @@
 #include <CppSound.hpp>
 #include <list>
 
-class SILENCE_PUBLIC CsoundVstFltk;
+class CsoundVstFltk;
 
-class SILENCE_PUBLIC Preset
+class Preset
 {
 public:
   std::string name;
