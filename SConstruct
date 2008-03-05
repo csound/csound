@@ -1203,9 +1203,9 @@ else:
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', name])
         os.symlink(soname, name)
         linkflags = csoundInterfacesEnvironment['SHLINKFLAGS']
-        linkflags += [ '-Wl,-soname=%s' % soname ]
+        soflag = [ '-Wl,-soname=%s' % soname ]
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-            soname, csoundInterfacesSources, SHLINKFLAGS = linkflags,
+            soname, csoundInterfacesSources, SHLINKFLAGS = linkflags+soflag,
             SHLIBPREFIX = '', SHLIBSUFFIX = '')
     else:
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources)
