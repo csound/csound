@@ -23,9 +23,10 @@
 
 #include "csdl.h"
 
+#include <math.h>
+
 typedef struct {
     OPDS h;
-
     MYFLT *aleft;                /* Left output  */
     MYFLT *aright;               /* Right output   */
     MYFLT *asig;
@@ -34,16 +35,14 @@ typedef struct {
     int   type;
 } PAN2;
 
-#include <math.h>
-
-static int pan2init(CSOUND *csound, PAN2 *p)
+static int pan2set(CSOUND *csound, PAN2 *p)
 {
     int type = p->type = MYFLT2LRND(*p->itype);
     if (type <0 || type > 2) csound->InitError(csound, "Unknown panning type");
     return OK;
 }
 
-static int pan2(CSOUND *csound, PAN2 *p)
+static int pan2run(CSOUND *csound, PAN2 *p)
 {
     int type = p->type;
     MYFLT *ain = p->asig;
@@ -81,10 +80,9 @@ static int pan2(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
-#define S(x)    sizeof(x)
-
-static OENTRY localops[] = {
-{ "pan2",     S(PAN2),     5,     "aa",    "axo",(SUBR)pan2init, NULL, (SUBR)pan2 },
+static OENTRY localops[] = 
+{
+  { "pan2", sizeof(PAN2), 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
 };
 
 LINKAGE

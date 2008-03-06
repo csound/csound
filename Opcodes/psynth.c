@@ -1188,7 +1188,8 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
     return OK;
 }
 
-static OENTRY localops[] = {
+static OENTRY localops[] = 
+  {
     {"tradsyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth_process}
     ,
@@ -1224,11 +1225,11 @@ static OENTRY localops[] = {
     ,
     {"binit", sizeof(_PSBIN), 3, "f", "fi", (SUBR) binit_init,
      (SUBR) binit_process}
-};
+  };
 
 int psynth_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+  return csound->AppendOpcodes(csound, &(localops[0]),
+			       (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 

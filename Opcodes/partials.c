@@ -443,14 +443,14 @@ static int partials_process(CSOUND * csound, _PARTS * p)
     return OK;
 }
 
-static OENTRY localops[] = {
-    {"partials", sizeof(_PARTS), 3, "f", "ffkkki", (SUBR) partials_init,
-     (SUBR) partials_process}
-};
+static OENTRY localops[] = 
+  {
+    { "partials", sizeof(_PARTS), 3, "f", "ffkkki", (SUBR) partials_init, (SUBR) partials_process }
+  };
 
 int partials_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+  return csound->AppendOpcodes(csound, &(localops[0]),
+			       (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 

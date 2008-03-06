@@ -1409,59 +1409,57 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
     return 0;
 }
 
-#define S(x)    sizeof(x)
-
 static OENTRY localops[] = {
 
-    {"pvsfwrite", S(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
+    {"pvsfwrite", sizeof(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
          (SUBR) pvsfwrite},
 #ifdef SDFT
-    {"pvsfilter", S(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
+    {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
-    {"pvscale", S(PVSSCALE), 3, "f", "fxop", (SUBR) pvsscaleset,
+    {"pvscale", sizeof(PVSSCALE), 3, "f", "fxop", (SUBR) pvsscaleset,
          (SUBR) pvsscale},
-    {"pvshift", S(PVSSHIFT), 3, "f", "fxkop", (SUBR) pvsshiftset,
+    {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkop", (SUBR) pvsshiftset,
          (SUBR) pvsshift},
 #else
-    {"pvsfilter", S(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
+    {"pvsfilter", sizeof(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
-    {"pvscale", S(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
+    {"pvscale", sizeof(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
          (SUBR) pvsscale},
-    {"pvshift", S(PVSSHIFT), 3, "f", "fkkop", (SUBR) pvsshiftset,
+    {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkop", (SUBR) pvsshiftset,
          (SUBR) pvsshift},
 #endif
-    {"pvsmix", S(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
+    {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
 #ifdef SDFT
-    {"pvsfilter", S(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
+    {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
 #else
-    {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", (SUBR) pvsfilterset,
+    {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffkp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
 #endif
-    {"pvsblur", S(PVSBLUR), 3, "f", "fki", (SUBR) pvsblurset, (SUBR) pvsblur,
+    {"pvsblur", sizeof(PVSBLUR), 3, "f", "fki", (SUBR) pvsblurset, (SUBR) pvsblur,
          NULL},
-    {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
+    {"pvstencil", sizeof(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
          (SUBR) pvstencil},
-    {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
+    {"pvsinit", sizeof(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
 #ifdef SDFT
-   {"pvsbin", S(PVSBIN), 3, "ss", "fk", (SUBR) pvsbinset,
+   {"pvsbin", sizeof(PVSBIN), 3, "ss", "fk", (SUBR) pvsbinset,
          (SUBR) pvsbinprocess, (SUBR) pvsbinprocessa},
 #else
-   {"pvsbin", S(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset,
+   {"pvsbin", sizeof(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset,
          (SUBR) pvsbinprocess, NULL},
 #endif
-    {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
+    {"pvsfreeze", sizeof(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
          (SUBR) pvsfreezeprocess, NULL},
 #ifdef SDFT
-    {"pvsmooth", S(PVSFREEZE), 3, "f", "fxx", (SUBR) pvsmoothset,
+    {"pvsmooth", sizeof(PVSFREEZE), 3, "f", "fxx", (SUBR) pvsmoothset,
      (SUBR) pvsmoothprocess, NULL},
 #else
-    {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
+    {"pvsmooth", sizeof(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
      (SUBR) pvsmoothprocess, NULL},
 #endif
-    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
+    {"pvsosc", sizeof(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
      (SUBR) pvsoscprocess, NULL},
-    {"pvsdiskin", S(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
+    {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
      (SUBR) pvsdiskinproc, NULL}
 
 };

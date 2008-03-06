@@ -324,57 +324,31 @@ if commonEnvironment['useGettext'] != '0':
 else:
     print "Using Istvan localisation"
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
+    
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
+    commonEnvironment.Prepend(CCFLAGS = Split('-fomit-frame-pointer -ffast-math'))
     if commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = commonEnvironment['gcc4opt']
     else:
         cpuType = commonEnvironment['gcc3opt']
-    commonEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer', '-ffast-math'])
     if getPlatform() == 'darwin':
-        flags = '-O3 -mcpu=%s -mtune=%s'%(cpuType, cpuType)
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mcpu=%s -mtune=%s' % (cpuType, cpuType)))
     else:
-        flags = '-O3 -march=%s'%(cpuType)
-    commonEnvironment.Prepend(CCFLAGS = Split(flags))
-elif commonEnvironment['buildRelease'] != '0':
-    if not withMSVC():
-        if getPlatform() == "win32":
-            print '''
-BUILDING FOR RELEASE
-
-With MinGW, the release build is the same as the debug build,
-except that the build is optimized for speed.
-It is still debuggable!
-'''
-        commonEnvironment.Prepend(CCFLAGS = Split('-g -mtune=nocona -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math'))
-    else:
-        print '''
-BUILDING FOR RELEASE
-
-With MSVC, the release build is the same as the debug build,
-except that the build is optimized for speed.
-It is still debuggable!
-'''
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
+     
+if commonEnvironment['buildRelease'] != '0':
+    if withMSVC():
         commonEnvironment.Append(CCFLAGS = Split('/O2'))
-elif commonEnvironment['noDebug'] == '0':
+ 
+if commonEnvironment['noDebug'] == '0':
     if not withMSVC():
-        commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
-    else:
-        print '''
-
-BUILDING FOR DEBUG
-
-With MSVC, the debug build is the same as the release build,
-except that the build is not optimized. All libraries linked
-with are release versions of those libraries. This is to
-avoid having to build a debug version of Python and every last
-blessed Python extension module.
-'''
-else:
-        commonEnvironment.Prepend(CCFLAGS = ['-O2'])
+        commonEnvironment.Append(CCFLAGS = ['-g'])
+         
 if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(CCFLAGS = ['-pg'])
     commonEnvironment.Append(LINKFLAGS = ['-pg'])
+
 if not withMSVC():
     commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 
@@ -1023,7 +997,7 @@ else:
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
-pluginEnvironment.Append(LIBS = 'sndfile')
+pluginEnvironment.Append(LIBS = Split('sndfile m'))
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
@@ -1300,13 +1274,13 @@ makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
 makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
-makePlugin(pluginEnvironment, 'pan2', ['Opcodes/pan2.c'])
+makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
 makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
 makePlugin(pluginEnvironment, 'pvoc', Split('''
     Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
     Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
 '''))
-makePlugin(pluginEnvironment, 'pvs_ops', Split('''
+makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
     Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
     Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
 '''))
@@ -1318,7 +1292,7 @@ makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
 makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
 makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
-makePlugin(pluginEnvironment, 'date', ['Opcodes/date.c'])
+makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
 makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
 makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
 makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
