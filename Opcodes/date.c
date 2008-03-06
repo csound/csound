@@ -22,30 +22,29 @@
 */
 
 #include "csdl.h"
-#include <time.h>
+#include <time.h> 
 
 typedef struct {
    OPDS h;
-   MYFLT *ans;
-} DATE;
+   MYFLT *time_;
+} DATEMYFLT;
 
 typedef struct {
    OPDS h;
-   MYFLT *Sans;
+   MYFLT *Stime_;
    MYFLT *timstmp;
-} DATES;
+} DATESTRING;
 
-static int dateinit(CSOUND *csound, DATE *p)
+static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
-    time_t tt = time(NULL);
-    *p->ans = (MYFLT) tt;
+    *p->time_ = (MYFLT) time(NULL);
     return OK;
 }
 
-static int dates_init(CSOUND *csound, DATES *p)
+static int datestringset(CSOUND *csound, DATESTRING *p)
 {
-    time_t tt;
-    char *s;
+    time_t temp_time;
+    char *time_string;
     long tmp;
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
     tmp = (long) MYFLT2LRND(*(p->timstmp));
@@ -53,26 +52,26 @@ static int dates_init(CSOUND *csound, DATES *p)
     tmp = (long) (*(p->timstmp) + FL(0.5));
 #endif
     if (tmp < 0) {
-      tt = time(NULL);
+      temp_time = time(NULL);
+/*       printf("Timestamp = %f\n", *p->timstmp); */
+    } else {
+      temp_time = (time_t)tmp;
 /*       printf("Timestamp = %f\n", *p->timstmp); */
     }
-    else {
-      tt = (time_t)tmp;
-/*       printf("Timestamp = %f\n", *p->timstmp); */
-    }
-    s = ctime(&tt);
-    ((char*) p->Sans)[0] = '\0';
-    if ((int) strlen(s) >= csound->strVarMaxLen)
+    time_string = ctime(&temp_time);
+    ((char*) p->Stime_)[0] = '\0';
+    if ((int) strlen(time_string) >= csound->strVarMaxLen) {
       return csound->InitError(csound, Str("dates: buffer overflow"));
-    strcpy((char*) p->Sans, s);
+    }
+    strcpy((char*) p->Stime_, time_string);
     return OK;
 }
 
-#define S(x)    sizeof(x)
-
-static OENTRY localops[] = {
-{ "date",    S(DATE),     1,     "i",    "",(SUBR)dateinit, NULL, NULL },
-{ "dates",   S(DATES),    1,     "S",    "j",(SUBR)dates_init, NULL, NULL },
+static OENTRY localops[] = 
+{
+    { "date",    sizeof(DATEMYFLT),     1,     "i",    "",(SUBR)datemyfltset, NULL, NULL },
+    { "dates",   sizeof(DATESTRING),    1,     "S",    "j",(SUBR)datestringset, NULL, NULL },
 };
 
 LINKAGE
+

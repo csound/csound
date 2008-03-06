@@ -298,16 +298,13 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
     return OK;
 }
 
-
-#define S(x)    sizeof(x)
-
 static OENTRY localops[] = {
 #ifndef SDFT
-  { "pvscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
+  { "pvscent", sizeof(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
 #else
-  { "pvscent", S(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "pvscent", sizeof(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
 #endif
-  { "pvspitch", S(PVSPITCH), 3, "kk", "fk",
+  { "pvspitch", sizeof(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 
