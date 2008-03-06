@@ -45,7 +45,6 @@
 !endif
 
 !define PYTHON_VERSION 2.5
-!define PYTHON_URL "http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi"
 
 !define MUI_ABORTWARNING
 
@@ -477,7 +476,10 @@ Section "${PRODUCT}" SecCopyUI
 	# If Python is not available, ask the user if they want to install it.
 	Call GetPython
 	# First we do output paths for non-Python stuff.
+	SetOutPath $INSTDIR\Microsoft.VC90.CRT
+	File ..\..\Microsoft.VC90.CRT\*
   	SetOutPath $INSTDIR
+	File /nonfatal /x test ..\..\test
 !ifdef NONFREE
 	File ..\..\readme-csound5-complete.txt
 !else
@@ -491,7 +493,6 @@ Section "${PRODUCT}" SecCopyUI
 !else
 	File ..\..\csound64.dll.5.1
 !endif
-	# Required for those components which are now built with MSVC:
 	File C:\windows\system32\MSVCRT.DLL
 	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
@@ -500,7 +501,7 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\CsoundVST.dll
 	File ..\..\*.exe
 !else
-	File /x CsoundVST.exe ..\..\*.exe
+	File /x CsoundVSTShell.exe ..\..\*.exe
 !endif
 	File ..\..\tclcsound.dll
   	File ..\..\csoundapi~.dll
@@ -596,7 +597,7 @@ Section "${PRODUCT}" SecCopyUI
 	File /x csound*.dll* \
 	/x *.pyd \       
 	/x libsndfile-1.dll \
-	/x portaudio.dll* \
+	/x portaudio*.dll* \
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
 	/x pm_midi.dll \
