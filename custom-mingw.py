@@ -1,4 +1,3 @@
-
 '''
 S C O N S   C U S T O M I Z A T I O N   F I L E
 F O R   M i n G W / M S y s 
