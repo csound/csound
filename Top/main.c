@@ -152,14 +152,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       }
       /* read global .csoundrc file (if exists) */
       if (fd != NULL) {
-        readOptions(csound, csrc);
+        readOptions(csound, csrc, 0);
         csound->FileClose(csound, fd);
       }
       /* check for .csoundrc in current directory */
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csoundrc", "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL) {
-        readOptions(csound, csrc);
+        readOptions(csound, csrc, 0);
         csound->FileClose(csound, fd);
       }
     }

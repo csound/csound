@@ -204,7 +204,9 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     ST(toremove) = tmp;
 }
 
-int readOptions(CSOUND *csound, FILE *unf)
+/* readingCsOptions should be non-zero when readOptions() is called
+   while reading the <CsOptions> tag, but zero in other cases. */
+int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
 {
     char  *p;
     int   argc = 0;
@@ -249,7 +251,8 @@ int readOptions(CSOUND *csound, FILE *unf)
 
           if (*p== '"') {
             if (argc == CSD_MAX_ARGS) 
-              csoundDie(csound, Str("More than %d arguments in <CsOptions>"), CSD_MAX_ARGS);
+              csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
+                        CSD_MAX_ARGS);
             argv[++argc] = ++p;
             while (*p != '"' && *p != '\0') p++;
 
@@ -276,7 +279,8 @@ int readOptions(CSOUND *csound, FILE *unf)
             p = ST(buffer); goto top;
           }
           if (argc == CSD_MAX_ARGS) 
-            csoundDie(csound, Str("More than %d arguments in <CsOptions>"), CSD_MAX_ARGS);
+            csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
+                      CSD_MAX_ARGS);
           argv[++argc] = p;
         }
         else if (*p=='\n') {
@@ -291,12 +295,17 @@ int readOptions(CSOUND *csound, FILE *unf)
       /*      argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
       if (argc == 0) {
-        csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"), 
-                       ST(buffer));
+        if (readingCsOptions)
+          csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"),
+                         ST(buffer));
+        else csoundErrorMsg(csound, 
+                         Str("Invalid arguments in .csoundrc or -@ file: %s"),
+                         ST(buffer));
       }
       else argdecode(csound, argc, argv);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));      
+    if (readingCsOptions) 
+      csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));      
     return FALSE;
 }
 
@@ -689,13 +698,14 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         if (!csound->disable_csd_options) {
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
-          r = readOptions(csound, unf);
+          r = readOptions(csound, unf, 1);
           result = r && result;
         }
         else {
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
           do {
             if (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf) == NULL) {
+              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));      
               result = FALSE;
               break;
             }
