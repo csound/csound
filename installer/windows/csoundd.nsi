@@ -476,8 +476,8 @@ Section "${PRODUCT}" SecCopyUI
 	# If Python is not available, ask the user if they want to install it.
 	Call GetPython
 	# First we do output paths for non-Python stuff.
-	SetOutPath $INSTDIR\Microsoft.VC90.CRT
-	File ..\..\Microsoft.VC90.CRT\*
+	SetOutPath $INSTDIR\bin\Microsoft.VC90.CRT
+	File U:\msvc2008\VC\redist\x86\Microsoft.VC90.CRT\*
   	SetOutPath $INSTDIR
 	File /nonfatal /x test ..\..\test
 !ifdef NONFREE
@@ -494,7 +494,6 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\csound64.dll.5.1
 !endif
 	File C:\windows\system32\MSVCRT.DLL
-	File ..\..\rtpa.dll
 	File ..\..\csnd.dll
   	File ..\..\_jcsound.dll
 !ifdef NONFREE
@@ -591,9 +590,9 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\CompositionBase.py
 	# Then we do opcodes, which are a special case with respect to Python and non-free software.
 	SetOutPath $INSTDIR\${OPCODEDIR_VAL}
-!ifdef PYTHON_AVAILABLE
+	File ..\..\rtpa.dll
 !ifdef NONFREE
-	DetailPrint "Python available, free and non-free software."
+	DetailPrint "Free and non-free software."
 	File /x csound*.dll* \
 	/x *.pyd \       
 	/x libsndfile-1.dll \
@@ -601,12 +600,10 @@ Section "${PRODUCT}" SecCopyUI
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
 	/x pm_midi.dll \
-	/x rtpa.dll \
-	..\..\py.dll \
 	..\..\*.dll \
 	..\..\frontends\csladspa\csladspa.dll
 !else
-	DetailPrint "Python available, only free software."
+	DetailPrint "Only free software."
 	File /x csound*.dll* \
 	/x vst4cs.dll \
 	/x *.pyd \       
@@ -615,37 +612,13 @@ Section "${PRODUCT}" SecCopyUI
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
 	/x pm_midi.dll \
-	/x rtpa.dll \
 	..\..\*.dll \
 	..\..\frontends\csladspa\csladspa.dll
 !endif
-!else
-!ifdef NONFREE
-	DetailPrint "Python not available, free and non-free software."
-	File /x csound*.dll* \
-	/x *.pyd \       
-	/x libsndfile-1.dll \
-	/x portaudio.dll* \
-	/x tclcsound.dll \
-	/x csoundapi~.dll \
-	/x pm_midi.dll \
-	..\..\*.dll \
-	..\..\frontends\csladspa\csladspa.dll
-!else
-	DetailPrint "Python not available, only free software."
-	File /x csound*.dll* \
-	/x py.dll \
-	/x vst4cs.dll \
-	/x *.pyd \       
-	/x libsndfile-1.dll \
-	/x portaudio.dll* \
-	/x tclcsound.dll \
-	/x csoundapi~.dll \
-	/x pm_midi.dll \
-	..\..\*.dll \
-	..\..\frontends\csladspa\csladspa.dll
-!endif
-!endif
+	DetailPrint "Python opcodes."
+	SetOutPath $INSTDIR\${OPCODEDIR_VAL}\$PYTHON_OUTPUT_PATH
+	File ..\..\py.dll \
+
 	# Store the installation folder.
 	WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
 	# Back up any old value of .csd.

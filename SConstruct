@@ -282,11 +282,10 @@ elif getPlatform() == 'win32':
         # Similarly, on Windows, to exclude MSVC tools,
 	# we have to force MinGW tools and then re-create
 	# the environment from scratch.
-	commonEnvironment = Environment(tools = ['mingw', 'swig', 'javac', 'jar'])
+	commonEnvironment = Environment(ENV = os.environ, tools = ['mingw', 'swig', 'javac', 'jar'])
 	commandOptions.Update(commonEnvironment)
-	# If the user selects MinGW as the build platform,
-	# force the use of MinGW tools even if SCons prefers MSVC.
 	#Tool('mingw')(commonEnvironment)
+	optionsFilename = 'custom-mingw.py'
 
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
