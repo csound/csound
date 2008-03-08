@@ -1097,7 +1097,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);
               }
               else {
-                readOptions(csound, ind);
+                readOptions(csound, ind, 0);
                 csound->FileClose(csound, fd);
               }
               while (*s++); s--;
