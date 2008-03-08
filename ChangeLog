@@ -1,3 +1,11 @@
+2008-03-08  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* H/prototyp.h:
+	* Top/argdecode.c:
+	* Top/main.c:
+	* Top/one_file.c (readOptions, read_unified_file): readOptions() only
+	prints "missing </CsOptions>" message when reading from CSD file.
+
 2008-03-02  Michael Gogins  <gogins@pipeline.com>
 
 	* SConstruct, csoundd.nsi
