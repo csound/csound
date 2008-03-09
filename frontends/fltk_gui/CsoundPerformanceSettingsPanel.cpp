@@ -629,10 +629,13 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
     deviceInfo a;
     a.cardNum = -1;
     a.description = "NONE";
+  // virtual keyboard not working with csound5gui on Mac OS X for now
+#ifndef MACOSX
     if (rtModule != "virtual") {
       rtMidiOutputDevices.push_back(a);
       rtMidiInputDevices.push_back(a);
     }
+#endif
 #ifdef LINUX
     if (rtModule == "ALSA") {
       a.description = "";
