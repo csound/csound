@@ -11,12 +11,12 @@ class CsoundGlobalSettingsPanel {open
   decl {CsoundGlobalSettings *g_cfg;} {}
   Function {CsoundGlobalSettingsPanel(CsoundGUIMain *p)} {open
   } {
-    code {{
+    code {{ // Init Code
   this->p = p;
   g_cfg = &(p->currentGlobalSettings);
 }} {}
     Fl_Window window {
-      label {Csound GUI options} open selected
+      label {Csound GUI options} open
       xywh {700 469 390 505} type Double box PLASTIC_UP_BOX color 139 visible
     } {
       Fl_Input textEditorInput {
@@ -308,6 +308,7 @@ if (g_cfg->useBuiltInEditor)
     delete window;
     window = (Fl_Double_Window*) 0;
   }
-}} {}
+}} {selected
+    }
   }
 } 

@@ -610,18 +610,29 @@ void CsoundGUIMain::runHelpBrowser(string page)
       return;
     }
     if (cmd[cmd.size() - 1] != 47)  // 47 = "/"
-        cmd.append("/");
-      cmd.insert(0, "\"");
-      cmd += page + "\"";
-    if (FILE * file = fopen(cmd.c_str(), "r")) //Check if file exists
+      cmd.append("/");
+    cmd.insert(0, "\"");
+    cmd += page + "\"";
+    if (FILE * file = fopen(cmd.substr(1, cmd.size()-2).c_str(), "r")) //Check if file exists
     {
       fclose(file);
       cmd.insert(0, " ");
-      if (!isEmptyString(currentGlobalSettings.helpBrowserProgram)) {
-        cmd.insert(0, currentGlobalSettings.helpBrowserProgram);
+      string app;
+#ifdef MACOSX
+      app = "/Applications/Safari.app/Contents/MacOS/Safari \"\"/Library/Frameworks/CsoundLib.Framework/\" ";
+#else
+      app = currentGlobalSettings.helpBrowserProgram + "\" ";
+#endif
+      if (!isEmptyString(app)) {
+        cmd.insert(0, app);
         cmd.insert(0, "\"");
+        cmd.append(" &\"");
         runCmd(cmd);
       }
+    }
+    else {
+      string label = "Manual file not found\n" + cmd.c_str();
+      fl_alert(label.c_str());
     }
 }
 

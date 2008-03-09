@@ -39,7 +39,7 @@ class CsoundGUIMain {open
   }
   Function {CsoundGUIMain()} {open
   } {
-    code {{
+    code {{ // Init Code
   csound = (CSOUND*) 0;
   csPerf = (CsoundPerformance*) 0;
   prvTime = -1;
@@ -63,7 +63,7 @@ class CsoundGUIMain {open
 }} {}
     Fl_Window window {
       label {Csound 5 GUI} open
-      xywh {865 485 440 335} type Double color 0 visible
+      xywh {836 485 440 335} type Double color 0 visible
     } {
       Fl_Group {} {open
         xywh {5 5 430 100} box PLASTIC_UP_BOX color 139 selection_color 35
@@ -71,7 +71,7 @@ class CsoundGUIMain {open
         Fl_Input orcNameInput {
           label {Orchestra/CSD}
           callback {stripString(currentPerformanceSettings.orcName, o->value());
-updateGUIState_orcName();}
+updateGUIState_orcName();} selected
           xywh {45 25 325 25} box THIN_DOWN_BOX color 55 align 1
           code0 {o->value(currentPerformanceSettings.orcName.c_str());}
         }
@@ -103,7 +103,7 @@ updateGUIState_scoName();}
           tooltip {Open score file with external editor} xywh {375 70 50 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 25
         }
       }
-      Fl_Group {} {open selected
+      Fl_Group {} {open
         xywh {5 110 430 85} box PLASTIC_UP_BOX color 139 selection_color 35 align 17
       } {
         Fl_Input outfileNameInput {
