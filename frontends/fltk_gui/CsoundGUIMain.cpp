@@ -619,7 +619,7 @@ void CsoundGUIMain::runHelpBrowser(string page)
       cmd.insert(0, " ");
       string app;
 #ifdef MACOSX
-      app = "/Applications/Safari.app/Contents/MacOS/Safari \"\"/Library/Frameworks/CsoundLib.Framework/\" ";
+      app = "/Applications/Safari.app/Contents/MacOS/Safari \" \"/Library/Frameworks/CsoundLib.Framework/\" ";
 #else
       app = currentGlobalSettings.helpBrowserProgram + "\" ";
 #endif
