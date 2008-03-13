@@ -1,7 +1,7 @@
 /*
 * C S O U N D
 *
-* External language interfaces for the "C" Csound API.
+* External language interfaces for the "C" and "C++" Csound API.
 *
 * L I C E N S E
 *
@@ -89,7 +89,7 @@ typedef unsigned int uint32_t;
 } */
 
 %include "exclusions.i"
-
+%ignore  csoundSetCscoreCallback(CSOUND *,void (*cscoreCallback_)(CSOUND *));
 
 // typemap for callbacks
 %typemap(in) PyObject *pyfunc {
@@ -109,30 +109,27 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     PyObject *res;
     int i=0;
     CSOUND *p = in; 
-    //PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
-    PyObject **pyfunc = (PyObject **) csoundQueryGlobalVariable(p,"::pyfunc");
+    PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
+    PyObject **pyfunc = (PyObject **) csoundQueryGlobalVariable(p,"::pyfunc"), *arg;
     
     char *mbuf = new char[strlen(format)*10];
-    // this is the thread safety mechanism that is not working yet
-    //if(*tstate == NULL)
-    //    *tstate = PyThreadState_New(PyInterpreterState_New()); 
-    //PyEval_AcquireThread(*tstate); 
+    if(*tstate == NULL)
+        *tstate = PyThreadState_New(PyInterpreterState_New()); 
+    PyEval_AcquireThread(*tstate); 
     vsprintf(mbuf, format, valist);
     // attempt to remove some of the newlines
-    while(mbuf[i] != '\0') i++; mbuf[i-1] = '\0'; 
-  
-    // evaluation
-    res =  PyEval_CallFunction(*pyfunc, "(s)", mbuf);
+    while(mbuf[i] != '\0') i++; mbuf[i-1] = '\0';
+    arg = Py_BuildValue("(s)", mbuf); 
+    res =  PyEval_CallObject(*pyfunc, arg);
     if (res == NULL){
-    PyErr_SetString(PyExc_TypeError, "Exception in callback");
-     }
+     PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }
     else Py_DECREF(res);    
 
-    //PyEval_ReleaseThread(*tstate);
+   PyEval_ReleaseThread(*tstate);
    delete[] mbuf;
 }
 %}
-
 
 %include "csound.h"
 %include "cfgvar.h"
@@ -140,18 +137,21 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 %apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
 %apply MYFLT &OUTPUT { MYFLT &value };
 
+%ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
 %include "csound.hpp"
 %extend Csound {
    void SetPythonMessageCallback(PyObject *pyfunc){
      // thread safety mechanism   
-     // PyEval_InitThreads();
-     PyObject **p;
+     PyEval_InitThreads();
+     PyObject **p, *arg;
      PyThreadState **tstate;
      // Py_XDECREF(pyfunc);  
      self->CreateGlobalVariable("::pyfunc", sizeof(PyObject *));
-     self->CreateGlobalVariable("::tstate", sizeof(int));
+     self->CreateGlobalVariable("::tstate", sizeof(PyThreadState *));
      p = (PyObject **) self->QueryGlobalVariable("::pyfunc");
      *p = pyfunc;
+     arg = Py_BuildValue("(s)", "Message Callback set\n"); 
+     PyEval_CallObject(pyfunc, arg);
      tstate = (PyThreadState **) self->QueryGlobalVariable("::tstate");
      *tstate = NULL;     
      self->SetMessageCallback(PythonMessageCallback);
