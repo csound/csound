@@ -629,9 +629,9 @@ void CsoundGUIMain::runHelpBrowser(string page)
         cmd.append(" &\"");
         runCmd(cmd);
       }
-    }
-    else {
-      string label = "Manual file not found\n" + cmd.c_str();
+    } else {
+      string label = "Manual file not found: \n";
+      label += cmd.c_str();
       fl_alert(label.c_str());
     }
 }
