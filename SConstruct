@@ -867,6 +867,7 @@ comctl32
 comdlg32 
 glu32 
 kernel32 
+msvcrt
 odbc32 
 odbccp32 
 ole32 
@@ -893,8 +894,9 @@ uuid
 winmm 
 winspool 
 ws2_32 
-wsock32 
-         ''')
+wsock32  
+bufferoverflowu
+        ''')
     else:
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
@@ -1498,10 +1500,7 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     if getPlatform() != 'darwin':
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
-        if compilerMicrosoft():
-         portMidiEnvironment.Append(LIBS = ['winmm', 'bufferoverflowu'])
-        else:
-         portMidiEnvironment.Append(LIBS = ['winmm'])
+        portMidiEnvironment.Append(LIBS = csoundWindowsLibraries)
     if getPlatform() == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])

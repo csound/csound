@@ -31,6 +31,18 @@
 #include <portmidi.h>
 #include <porttime.h>
 
+/* Stub for compiling this file with MinGW and linking
+   with portmidi.lib built witn MSVC AND with Windows
+   libraries from MinGW (missing __wassert).
+*/
+#if defined(WIN32) && !defined(MSVC)
+
+void _wassert(wchar_t *condition)
+{
+}
+
+#endif
+
 static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 static int portMidiErrMsg(CSOUND *csound, const char *msg, ...)
