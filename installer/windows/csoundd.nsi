@@ -44,7 +44,7 @@
 !define WriteEnvStr_RegKey 'HKCU "Environment"'
 !endif
 
-!define PYTHON_VERSION 2.5
+!define PYTHON_VERSION 2.6
 
 !define MUI_ABORTWARNING
 
@@ -83,7 +83,7 @@ Function GetPython
 	ReadRegStr $1 HKLM $3 ""
   	IfErrors tryToInstallPython enablePython
 tryToInstallPython:
-	MessageBox MB_YESNO "Python ${PYTHON_VERSION} is not installed.\nDo you wish to abort the installation\nso that you can download and install Python ${PYTHON_VERSION}?\nOtherwise, Python features will be disabled." IDYES installPython IDNO disablePython
+	MessageBox MB_YESNO "Python ${PYTHON_VERSION} is not installed. Abort installation so you can install Python ${PYTHON_VERSION}? Otherwise, Python features are disabled." IDYES installPython IDNO disablePython
 installPython:
    	Abort 
 enablePython:
@@ -92,7 +92,7 @@ enablePython:
 	Goto done
 disablePython:
 	DetailPrint "Python ${PYTHON_VERSION} is not available. Python modules will be installed in the 'python_backup' directory."
-	StrCpy $PYTHON_OUTPUT_PATH "python_backup\"
+	StrCpy $PYTHON_OUTPUT_PATH "\python_backup"
 done:
 FunctionEnd
 
@@ -584,7 +584,7 @@ Section "${PRODUCT}" SecCopyUI
   	File /r ..\..\samples\*
 	File /r ..\..\Opcodes\stk\rawwaves\*.raw
 	# Then we do output paths for Python stuff.
-	SetOutPath $INSTDIR\$PYTHON_OUTPUT_PATH\bin
+	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\bin
 	File ..\..\_CsoundAC.pyd
 	File ..\..\CsoundAC.py
 	FILE ..\..\_csnd.pyd
@@ -619,7 +619,7 @@ Section "${PRODUCT}" SecCopyUI
 	..\..\frontends\csladspa\csladspa.dll
 !endif
 	DetailPrint "Python opcodes."
-	SetOutPath $INSTDIR\${OPCODEDIR_VAL}\$PYTHON_OUTPUT_PATH
+	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\${OPCODEDIR_VAL}
 	File ..\..\py.dll \
 
 	# Store the installation folder.
