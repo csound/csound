@@ -2046,9 +2046,14 @@ else:
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
+if commonEnvironment['useDouble'] != '0':
     counterpoint = acEnvironment.Program(
         'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
         LIBS = Split('CsoundAC csnd csound64'))
+else:
+    counterpoint = acEnvironment.Program(
+        'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+        LIBS = Split('CsoundAC csnd csound32'))
     zipDependencies.append(counterpoint)
 
 # Build CsoundVST
@@ -2109,9 +2114,14 @@ else:
     Depends(csoundvst, csoundInterfaces)
     Depends(csoundvst, csoundLibrary)
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+if commonEnvironment['useDouble'] != '0':
     csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
         LIBS = Split('csound64 csnd CsoundVST'))
+else:
+    csoundvstGui = guiProgramEnvironment.Program(
+        'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
+        LIBS = Split('csound32 csnd CsoundVST'))
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
