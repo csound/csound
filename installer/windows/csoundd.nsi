@@ -21,12 +21,20 @@
 !define PROGRAM "Csound5.08.2"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
+!ifdef NONFREE
+!define VERSION "gnu-win32-vst-f"
+!else
 !define VERSION "gnu-win32-f"
+!endif
 !echo "Building installer for single-precision samples."
 !define OPCODEDIR_ENV "OPCODEDIR"
 !define OPCODEDIR_VAL "plugins"
 !else
+!ifdef NONFREE
+!define VERSION "gnu-win32-vst-d"
+!else
 !define VERSION "gnu-win32-d"
+!endif
 !echo "Building installer for double-precision samples."
 !define OPCODEDIR_ENV "OPCODEDIR64"
 !define OPCODEDIR_VAL "plugins64"
