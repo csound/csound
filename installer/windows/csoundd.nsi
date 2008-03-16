@@ -511,6 +511,8 @@ Section "${PRODUCT}" SecCopyUI
 	File U:\libsndfile-1_0_17\libsndfile-1.dll
 	# PortAudio
 	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
+	# PortMIDI
+	File U:\portmidi\pm_win\Release\pm_dll.dll
 	# Fluidsynth
 	File U:\fluidsynth\winbuild\fluidsynth.dll
 	# Image opcodes
@@ -590,6 +592,7 @@ Section "${PRODUCT}" SecCopyUI
 	File ..\..\CompositionBase.py
 	# Then we do opcodes, which are a special case with respect to Python and non-free software.
 	SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+	File ..\..\rtpa.dll
 	File ..\..\rtpa.dll
 !ifdef NONFREE
 	DetailPrint "Free and non-free software."
