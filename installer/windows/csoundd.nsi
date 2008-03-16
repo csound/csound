@@ -44,7 +44,7 @@
 !define WriteEnvStr_RegKey 'HKCU "Environment"'
 !endif
 
-!define PYTHON_VERSION 2.6
+!define PYTHON_VERSION 2.5
 
 !define MUI_ABORTWARNING
 
