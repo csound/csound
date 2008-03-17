@@ -2054,7 +2054,7 @@ else:
     counterpoint = acEnvironment.Program(
         'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
         LIBS = Split('CsoundAC csnd csound32'))
-    zipDependencies.append(counterpoint)
+zipDependencies.append(counterpoint)
 
 # Build CsoundVST
 
@@ -2122,8 +2122,8 @@ else:
     csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
         LIBS = Split('csound32 csnd CsoundVST'))
-    executables.append(csoundvstGui)
-    Depends(csoundvstGui, csoundvst)
+executables.append(csoundvstGui)
+Depends(csoundvstGui, csoundvst)
 
 # Build csoundapi~ (pd class)
 
