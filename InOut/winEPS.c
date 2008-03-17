@@ -122,10 +122,10 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     /**
      *  Remove extension from sound-file and add ".eps"
      */
-    strcpy(pathnam, filenam);
+    strncpy(pathnam, filenam, 1024);
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
-    strcat(pathnam, ".eps");
+    strncat(pathnam, ".eps", 1024);
     pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
     if (pp->psfd == NULL) {

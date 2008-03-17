@@ -235,51 +235,51 @@ extern "C"
 
   static OENTRY localops[] = {
     {
-      "MixerSetLevel",
+      (char*)"MixerSetLevel",
       sizeof(MixerSetLevel),
       3,
-      "",
-      "iik",
+      (char*)"",
+      (char*)"iik",
       (SUBR)&MixerSetLevel::init_,
       (SUBR)&MixerSetLevel::kontrol_,
       0
     },
     {
-      "MixerGetLevel",
+      (char*)"MixerGetLevel",
       sizeof(MixerGetLevel),
       3,
-      "k",
-      "ii",
+      (char*)"k",
+      (char*)"ii",
       (SUBR)&MixerGetLevel::init_,
       (SUBR)&MixerGetLevel::kontrol_,
       0
     },
     {
-      "MixerSend",
+      (char*)"MixerSend",
       sizeof(MixerSend),
       5,
-      "",
-      "aiii",
+      (char*)"",
+      (char*)"aiii",
       (SUBR)&MixerSend::init_,
       0,
       (SUBR)&MixerSend::audio_
     },
     {
-      "MixerReceive",
+      (char*)"MixerReceive",
       sizeof(MixerReceive),
       5,
-      "a",
-      "ii",
+      (char*)"a",
+      (char*)"ii",
       (SUBR)&MixerReceive::init_,
       0,
       (SUBR)&MixerReceive::audio_
     },
     {
-      "MixerClear",
+      (char*)"MixerClear",
       sizeof(MixerClear),
       4,
-      "",
-      "",
+      (char*)"",
+      (char*)"",
       0,
       0,
       (SUBR)&MixerClear::audio_

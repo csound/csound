@@ -95,10 +95,14 @@ static int mutexUnlock(CSOUND *csound, OPCODE_MUTEX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "mutex_lock",   S(OPCODE_MUTEX),  2, "", "i", NULL, (SUBR)mutexLock, NULL   },
-  { "mutex_unlock",  S(OPCODE_MUTEX), 2, "", "i", NULL, (SUBR)mutexUnlock, NULL },
-  { "mutex_locki",  S(OPCODE_MUTEX),  1, "", "i", (SUBR)mutexLock, NULL, NULL   },
-  { "mutex_unlocki", S(OPCODE_MUTEX), 1, "", "i", (SUBR)mutexUnlock, NULL, NULL }
+  { (char*)"mutex_lock",   S(OPCODE_MUTEX),  2, (char*)"", (char*)"i",
+    NULL, (SUBR)mutexLock, NULL   },
+  { (char*)"mutex_unlock",  S(OPCODE_MUTEX), 2, (char*)"", (char*)"i",
+    NULL, (SUBR)mutexUnlock, NULL },
+  { (char*)"mutex_locki",  S(OPCODE_MUTEX),  1, (char*)"", (char*)"i",
+    (SUBR)mutexLock, NULL, NULL   },
+  { (char*)"mutex_unlocki", S(OPCODE_MUTEX), 1, (char*)"", (char*)"i",
+    (SUBR)mutexUnlock, NULL, NULL }
 
 };
 

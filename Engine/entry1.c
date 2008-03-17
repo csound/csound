@@ -373,20 +373,24 @@ OENTRY opcodlst_1[] = {
 { "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo1set, NULL, soundouts },
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
 { "ins",    S(INS),     4,      "aa",   "",     NULL,   NULL,   ins     },
+#ifndef OLPC
 { "inq",    S(INQ),     4,      "aaaa", "",     NULL,   NULL,   inq     },
+#endif
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
    */
 { "out",    S(OUTM),    4,      "",     "a",    NULL,   NULL,   out     },
 { "outs",   S(OUTS),    4,      "",     "aa",   NULL,   NULL,   outs    },
-{ "outq",   S(OUTQ),    4,      "",     "aaaa", NULL,   NULL,   outq    },
 { "outs1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs1   },
 { "outs2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs2   },
+#ifndef OLPC
+{ "outq",   S(OUTQ),    4,      "",     "aaaa", NULL,   NULL,   outq    },
 { "outq1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq1   },
 { "outq2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq2   },
 { "outq3",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq3   },
 { "outq4",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq4   },
+#endif
 { "igoto",  S(GOTO),    1,      "",     "l",    igoto                   },
 { "kgoto",  S(GOTO),    2,      "",     "l",    NULL,   kgoto           },
 { "goto",   S(GOTO),    3,      "",     "l",    igoto,  kgoto           },
@@ -562,6 +566,7 @@ OENTRY opcodlst_1[] = {
 { "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
 { "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                         "",     NULL,   NULL,   inall_opcode },
+#ifndef OLPC
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
@@ -571,6 +576,7 @@ OENTRY opcodlst_1[] = {
 { "outx",   S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaa",NULL,NULL, outx },
 { "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                                 NULL,   NULL,   outX    },
+#endif
 { "outch",  S(OUTCH),   4,      "",     "Z",    NULL,   NULL,   outch   },
 { "outc",   S(OUTX),    4,      "",     "y",    NULL,   NULL,   outall  },
 { "cpsxpch", S(XENH),   1,      "i",    "iiii", cpsxpch, NULL,  NULL    },

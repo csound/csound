@@ -102,9 +102,9 @@ CsoundPlugin::CsoundPlugin(const char *csd,
 
   // csound parameters
   cmdl = new char*[5];
-  cmdl[0] = "csound";
-  cmdl[1] =  (char *)csd;;
-  cmdl[2] = "-n";
+  cmdl[0] = (char*)"csound";
+  cmdl[1] =  (char *)csd;
+  cmdl[2] = (char*)"-n";
 
   // sampling-rate override
   sr = new char[32];
@@ -290,7 +290,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
           // we proceed to read it
           if (plugin_found) {
             cerr << csddata << "\n";
-	    if(csddata.find("Name")!=string::npos){
+            if(csddata.find("Name")!=string::npos){
               equals = csddata.find('=');
               temp = csddata.substr(equals+1);
               temp = trim(temp);
@@ -299,7 +299,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
               desc->Name = (const char*) tmp;
             }
             else if(csddata.find("Maker")!=string::npos){
-	      equals = csddata.find('=');
+              equals = csddata.find('=');
               temp = csddata.substr(equals+1) +
                 "     (csLADSPA: Lazzarini, Walsh)";
               temp = trim(temp);
@@ -323,7 +323,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
             }
             else if(csddata.find("ControlPort")!=string::npos)
               {
-		equals = csddata.find('=');
+                equals = csddata.find('=');
                 if(portcnt < MAXPORTS) {
                   PortDescriptors[portcnt] =
                     LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
@@ -439,7 +439,7 @@ unsigned int CountCSD(char **csdnames)
 #endif
     if(indx!=string::npos){
       dip = opendir(path.substr(0,indx).c_str());
-      strcpy(ladspa_path, path.substr(0,indx).c_str());    
+      strcpy(ladspa_path, path.substr(0,indx).c_str());
     }
     else dip = opendir(ladspa_path);
   }
@@ -477,7 +477,7 @@ const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
   char **csdnames = new char*[100];
   unsigned int csds;
   csds = CountCSD(csdnames);
-  
+
   // if the requested index is in the range of CSD numbers
   if(Index<csds)
     {

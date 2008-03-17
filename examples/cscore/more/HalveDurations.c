@@ -1,16 +1,16 @@
-/*	HalveDurations.c
+/*      HalveDurations.c
 
-	Cscore control program which multiplies the durations of all
-	i-statements by 0.5.
-	
-	Anthony Kozar
-	July 6, 2004
-	
-	Sep 30 2005: Modified for Csound 5.
+        Cscore control program which multiplies the durations of all
+        i-statements by 0.5.
+
+        Anthony Kozar
+        July 6, 2004
+
+        Sep 30 2005: Modified for Csound 5.
  */
 
 
-/*  
+/*
     derived from
     cscore.c:
 
@@ -41,21 +41,24 @@ void cscore(CSOUND* cs)
     EVLIST *a;
     int i;
 
-    while ((a = cscoreListGetSection(cs)) != NULL && a->nevents > 0) {	/* read each sect from score */
-      for (i = 1; i <= a->nevents; i++) {			/* iterate over the events */
-    	  if ( a->e[i]->op == 'i' )				/* only change if a note */
-    	    a->e[i]->p[3] *= 0.5;				/* halve duration */
-    	}        
-      a = cscoreListAppendStringEvent(cs,a,"s");     	/* re-append the s statement */
-      cscoreListPlay(cs,a);                 		/* play this section         */
-      cscoreListFreeEvents(cs,a);                	/* reclaim the space         */
+    while ((a = cscoreListGetSection(cs)) != NULL && a->nevents > 0) {
+      /* read each sect from score */
+      for (i = 1; i <= a->nevents; i++) {       /* iterate over the events */
+          if ( a->e[i]->op == 'i' )             /* only change if a note */
+            a->e[i]->p[3] *= 0.5;               /* halve duration */
+        }
+      a = cscoreListAppendStringEvent(cs,a,"s");/* re-append the s statement */
+      cscoreListPlay(cs,a);                     /* play this section         */
+      cscoreListFreeEvents(cs,a);               /* reclaim the space         */
     }
-    
-    if (a)  cscoreListFreeEvents(cs,a);          	/* must reclaim space from last lget() */
-    a = cscoreListCreate(cs,1);              		/* create a new event list with at least 1 event */
-    a = cscoreListAppendStringEvent(cs,a,"e");		/* append the end-of-score event */
-    cscoreListPlay(cs,a);                   		/* end-of-score for summaries */
+
+    if (a)  cscoreListFreeEvents(cs,a);         /* must reclaim space from last
+                                                   lget() */
+    a = cscoreListCreate(cs,1);                 /* create a new event list with
+                                                   at least 1 event */
+    a = cscoreListAppendStringEvent(cs,a,"e");  /* append the end-of-score event */
+    cscoreListPlay(cs,a);                       /* end-of-score for summaries */
     cscoreListFreeEvents(cs,a);
-    
+
     return;
 }

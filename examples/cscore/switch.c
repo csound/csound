@@ -1,4 +1,4 @@
-/*  
+/*
     switch.c: for cscore
 
     Copyright (C) 1991 Barry Vercoe
@@ -25,31 +25,31 @@
 /* cscore control test: switch between two 2-sect scores */
 /* the warped/un-warped quality should be preserved      */
 
-cscore(CSOUND* cs)             /* callable from either Csound or standalone cscore */ 
-{ 
-  EVLIST *a, *b; 
-  FILE   *fp1, *fp2;                      /* declare two scorefile stream pointers */ 
+cscore(CSOUND* cs)             /* callable from either Csound or standalone cscore */
+{
+  EVLIST *a, *b;
+  FILE   *fp1, *fp2;                      /* declare two scorefile stream pointers */
 
-  fp1 = cscoreFileGetCurrent(cs);         /* this is the command-line score */ 
-  fp2 = cscoreFileOpen(cs, "score2.srt"); /* this is an additional score file */ 
+  fp1 = cscoreFileGetCurrent(cs);         /* this is the command-line score */
+  fp2 = cscoreFileOpen(cs, "score2.srt"); /* this is an additional score file */
 
-  a = cscoreListGetSection(cs);           /* read section from score 1 */ 
-  cscoreListPut(cs, a);                   /* write it out as is */ 
-  cscorePutString(cs, "s"); 
-  cscoreFileSetCurrent(cs, fp2); 
-  b = cscoreListGetSection(cs);           /* read section from score 2 */ 
-  cscoreListPut(cs, b);                   /* write it out as is */ 
-  cscorePutString(cs, "s"); 
+  a = cscoreListGetSection(cs);           /* read section from score 1 */
+  cscoreListPut(cs, a);                   /* write it out as is */
+  cscorePutString(cs, "s");
+  cscoreFileSetCurrent(cs, fp2);
+  b = cscoreListGetSection(cs);           /* read section from score 2 */
+  cscoreListPut(cs, b);                   /* write it out as is */
+  cscorePutString(cs, "s");
 
-  cscoreListFreeEvents(cs, a);            /* optional to reclaim space */ 
-  cscoreListFreeEvents(cs, b); 
+  cscoreListFreeEvents(cs, a);            /* optional to reclaim space */
+  cscoreListFreeEvents(cs, b);
 
-  cscoreFileSetCurrent(cs, fp1); 
-  a = cscoreListGetSection(cs);           /* read next section from score 1 */ 
-  cscoreListPut(cs, a);                   /* write it out */ 
-  cscorePutString(cs, "s"); 
-  cscoreFileSetCurrent(cs, fp2); 
-  b = cscoreListGetSection(cs);           /* read next sect from score 2 */ 
-  cscoreListPut(cs, b);                   /* write it out */ 
+  cscoreFileSetCurrent(cs, fp1);
+  a = cscoreListGetSection(cs);           /* read next section from score 1 */
+  cscoreListPut(cs, a);                   /* write it out */
+  cscorePutString(cs, "s");
+  cscoreFileSetCurrent(cs, fp2);
+  b = cscoreListGetSection(cs);           /* read next sect from score 2 */
+  cscoreListPut(cs, b);                   /* write it out */
   cscorePutString(cs, "e");
 }
