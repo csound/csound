@@ -903,13 +903,13 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vbap4",      S(VBAP_FOUR),             5,  "aaaa",             "aioo",
+  { "vbap4",      S(VBAP_FOUR),             5,  "aaaa",             "akoo",
     (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
-  { "vbap8",      S(VBAP_EIGHT),            5,  "aaaaaaaa",         "aioo",
+  { "vbap8",      S(VBAP_EIGHT),            5,  "aaaaaaaa",         "akoo",
     (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
-  { "vbap16",     S(VBAP_SIXTEEN),          5,  "aaaaaaaaaaaaaaaa", "aioo",
+  { "vbap16",     S(VBAP_SIXTEEN),          5,  "aaaaaaaaaaaaaaaa", "akoo",
     (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
-  { "vbapz",      S(VBAP_ZAK),              5,  "",                 "iiaioo",
+  { "vbapz",      S(VBAP_ZAK),              5,  "",                 "iiakoo",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), 1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },

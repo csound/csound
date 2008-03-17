@@ -298,7 +298,7 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
     newval = (char*) mmalloc(csound, (size_t) strlen(oldval)
                                      + (size_t) strlen(value) + (size_t) 2);
     /* append to old value */
-    strcpy(newval, oldval);
+    strcpy(newval, oldval);     /* These are safe as space calculated above */
     strcat(newval, ";");
     strcat(newval, value);
     /* set variable */

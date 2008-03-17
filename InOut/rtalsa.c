@@ -904,6 +904,23 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
+#ifdef OLPC
+int initialise_rtalsa (void)
+{
+    csound->SetPlayopenCallback(csound, playopen_);
+    csound->SetRecopenCallback(csound, recopen_);
+    csound->SetRtplayCallback(csound, rtplay_);
+    csound->SetRtrecordCallback(csound, rtrecord_);
+    csound->SetRtcloseCallback(csound, rtclose_);
+    csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
+    csound->SetExternalMidiReadCallback(csound, midi_in_read);
+    csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
+    csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
+    csound->SetExternalMidiWriteCallback(csound, midi_out_write);
+    csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+    return 0;
+}
+#else
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *s;
@@ -959,3 +976,4 @@ PUBLIC int csoundModuleInfo(void)
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
+#endif

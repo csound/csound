@@ -89,7 +89,7 @@ public:
   virtual int Compile(char *csdName)
   {
     char  *argv[3];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
     return csoundCompile(csound, 2, &(argv[0]));
@@ -97,7 +97,7 @@ public:
   virtual int Compile(char *orcName, char *scoName)
   {
     char  *argv[4];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
@@ -106,7 +106,7 @@ public:
   virtual int Compile(char *arg1, char *arg2, char *arg3)
   {
     char  *argv[5];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
@@ -116,7 +116,7 @@ public:
   virtual int Compile(char *arg1, char *arg2, char *arg3, char *arg4)
   {
     char  *argv[6];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
@@ -128,7 +128,7 @@ public:
                       char *arg4, char *arg5)
   {
     char  *argv[7];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
@@ -153,7 +153,7 @@ public:
   {
     char  *argv[3];
     int   retval;
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
     if (!(retval = csoundCompile(csound, 2, &(argv[0]))))
@@ -165,7 +165,7 @@ public:
   {
     char  *argv[4];
     int   retval;
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
@@ -178,7 +178,7 @@ public:
   {
     char  *argv[5];
     int   retval;
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
@@ -192,7 +192,7 @@ public:
   {
     char  *argv[6];
     int   retval;
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
@@ -208,7 +208,7 @@ public:
   {
     char  *argv[7];
     int   retval;
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;

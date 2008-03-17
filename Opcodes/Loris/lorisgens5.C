@@ -1099,9 +1099,12 @@ extern "C"
 {
   static OENTRY localops[] =
     {
-      {"lorisread",  sizeof(LORISREAD),  3, "",  "kTikkko", (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
-      {"lorisplay",  sizeof(LORISPLAY),  5, "a", "ikkk",    (SUBR) lorisplay_setup,  0,                 (SUBR) lorisplay },
-      {"lorismorph", sizeof(LORISMORPH), 3, "",  "iiikkk",  (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
+      {(char*)"lorisread",  sizeof(LORISREAD),  3, (char*)"", (char*)"kTikkko",
+       (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
+      {(char*)"lorisplay",  sizeof(LORISPLAY),  5, (char*)"a", (char*)"ikkk",
+       (SUBR) lorisplay_setup,  0,                 (SUBR) lorisplay },
+      {(char*)"lorismorph", sizeof(LORISMORPH), 3, (char*)"",  (char*)"iiikkk",
+       (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
 
 LINKAGE

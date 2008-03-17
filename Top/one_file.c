@@ -72,8 +72,9 @@ typedef struct {
 
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 {
+    size_t  nBytes = L_tmpnam+4;
     if (buf == NULL) {
-      size_t  nBytes = (size_t) (L_tmpnam);
+      nBytes = (size_t) (L_tmpnam);
       if (ext != NULL && ext[0] != (char) 0)
         nBytes += strlen(ext);
       buf = csound->Malloc(csound, nBytes);
@@ -97,7 +98,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
           s = _tempnam(s, "cs");
           if (s == NULL)
             csound->Die(csound, Str(" *** cannot create temporary file"));
-          strcpy(buf, s);
+          strncpy(buf, s, nBytes);
           free(s);
         }
 #endif
@@ -109,7 +110,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
           if ((p = strrchr(buf, '.')) != NULL)
             *p = '\0';
 #endif
-          strcat(buf, ext);
+          strncat(buf, ext, nBytes);
         }
 #ifdef __MACH__
         /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
@@ -632,7 +633,7 @@ static int checkLicence(CSOUND *csound, FILE *unf)
       csoundMessage(csound, "%s", p);
       len += strlen(p);
       licence = mrealloc(csound, licence, len);
-      strcat(licence, p);
+      strncat(licence, p, len);
     }
     mfree(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));      
