@@ -184,7 +184,7 @@ extern "C" {
   PUBLIC int csoundCompileCsd(CSOUND *csound, char *csdFilename)
   {
     char *argv[2];
-    argv[0] = "csound";
+    argv[0] = (char*)"csound";
     argv[1] = csdFilename;
     return csoundCompile(csound, 2, argv);
   }

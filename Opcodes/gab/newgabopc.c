@@ -63,247 +63,250 @@ static int  mtable1_k(CSOUND *csound, MTABLE1 *p)
 
 /* -------------------------------------------------------------------- */
 
+#if 0
+static void unquote(char *dst, char *src)
+{
+    if (src[0] == '"') {
+      int len = (int) strlen(src) - 2;
+      strcpy(dst, src + 1);
+      if (len >= 0 && dst[len] == '"')
+        dst[len] = '\0';
+    }
+    else
+      strcpy(dst, src);
+}
 
-// static void unquote(char *dst, char *src)
-// {
-//     if (src[0] == '"') {
-//       int len = (int) strlen(src) - 2;
-//       strcpy(dst, src + 1);
-//       if (len >= 0 && dst[len] == '"')
-//         dst[len] = '\0';
-//     }
-//     else
-//       strcpy(dst, src);
-// }
+PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
+    double  starttime;
+    int     i;
+    EVTBLK  evt;
+    char    name[512];
 
-// PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
-//     double  starttime;
-//     int     i;
-//     EVTBLK  evt;
-//     char    name[512];
-//
-// /*    if (p->XSTRCODE) {
-//              evt.strarg = (char*) p->args[0];
-//              evt.p[1] = SSTRCOD;
-//     }
-//     else */
-//      if (*args[1] == SSTRCOD) {
-//              unquote(name, csound->currevent->strarg);
-//              evt.strarg = name;
-//              evt.p[1] = SSTRCOD;
-//     }
-//     else {
-//              evt.strarg = NULL;
-//              evt.p[1] = *args[1];
-//     }
-//     evt.opcod = (char) *args[0];
-//      if (evt.opcod == 0) evt.opcod = 'i';
-//
-//     evt.pcnt = numargs -1;
-//     /* Add current time (see note about kadjust in triginset() above) */
-//      starttime = *args[2];
-//      if(starttime < FL(0.0)) {
-//              starttime = FL(0.0);
-//      }
-//     starttime += (double) csound->global_kcounter / (double)csound->global_ekr;
-//    /* Copy all arguments to the new event */
-//     for (i = 0; i < numargs; i++)
-//              evt.p[i] = *args[i];
-//
-//     if (evt.p[2] < FL(0.0)) {
-//              evt.p[2] = FL(0.0);
-//     }
-//     return (csound->insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK);
-// }
+/*    if (p->XSTRCODE) {
+             evt.strarg = (char*) p->args[0];
+             evt.p[1] = SSTRCOD;
+    }
+    else */
+    if (*args[1] == SSTRCOD) {
+      unquote(name, csound->currevent->strarg);
+      evt.strarg = name;
+      evt.p[1] = SSTRCOD;
+    }
+    else {
+      evt.strarg = NULL;
+      evt.p[1] = *args[1];
+    }
+    evt.opcod = (char) *args[0];
+    if (evt.opcod == 0) evt.opcod = 'i';
 
-// These opcode has not been implemented because very similar ones exist
+    evt.pcnt = numargs -1;
+    /* Add current time (see note about kadjust in triginset() above) */
+    starttime = *args[2];
+    if(starttime < FL(0.0)) {
+      starttime = FL(0.0);
+    }
+    starttime += (double) csound->global_kcounter / (double)csound->global_ekr;
+   /* Copy all arguments to the new event */
+    for (i = 0; i < numargs; i++)
+      evt.p[i] = *args[i];
+    
+    if (evt.p[2] < FL(0.0)) {
+      evt.p[2] = FL(0.0);
+    }
+    return (csound->insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK);
+}
 
-// typedef struct { /* GAB 11/Jan/2001 */
-//      OPDS   h;
-//      MYFLT  *trigger;
-//      MYFLT  *args[PMAX+1];
-// } SCHEDK;
+/* These opcode has not been implemented because very similar ones exist */
+
+typedef struct { /* GAB 11/Jan/2001 */
+     OPDS   h;
+     MYFLT  *trigger;
+     MYFLT  *args[PMAX+1];
+} SCHEDK;
 
 
-// static int schedk(CSOUND *csound, SCHEDK *p) { /* based on code by rasmus */
-//      if (*p->trigger) /* Only do something if triggered */
-//              Sched(csound, p->args, p->INOCOUNT-1);
-//      return OK;
-// }
-//
-// static int schedk_i(CSOUND *csound, SCHEDK *p) { /* based on code by rasmus */
-//     OPARMS    *O = csound->oparms;
-//
-//      O->RTevents = 1;     /* Make sure kperf() looks for RT events */
-// //   O->ksensing = 1;
-// //   O->OrcEvts  = 1;     /* - of the appropriate type */
-//     if (csound->kcounter > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
-//              schedk(csound,p);
-//      return OK;
-// }
+static int schedk(CSOUND *csound, SCHEDK *p) 
+{ /* based on code by rasmus */
+    if (*p->trigger) /* Only do something if triggered */
+      Sched(csound, p->args, p->INOCOUNT-1);
+    return OK;
+}
+
+static int schedk_i(CSOUND *csound, SCHEDK *p)
+{ /* based on code by rasmus */
+    OPARMS    *O = csound->oparms;
+
+    O->RTevents = 1;     /* Make sure kperf() looks for RT events */
+    /*   O->ksensing = 1; */
+    /*   O->OrcEvts  = 1;     /* - of the appropriate type */
+    if (csound->kcounter > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
+      schedk(csound,p);
+    return OK;
+}
 /* -------------------------------------------------------------------- */
 
-// These opcodes have not been implemented
+/* These opcodes have not been implemented */
 
-// typedef struct { /* GAB 11/Jan/2001 */
-//      OPDS   h;
-//      MYFLT  *trigger;
-//      MYFLT  *args[PMAX+1];
-//      MYFLT  args2[PMAX+1];
-//      MYFLT  *argums[PMAX+1];
-//      int nargs, done, doneRel;
-//      char *relesing;
-//      MYFLT frac;
-// } SCHEDINTIME;
-//
-//
-// static int schedInTime_set(CSOUND *csound, SCHEDINTIME *p)
-// {
-//      int *xtra;
-//      int j;
-//     OPARMS    *O = csound->oparms;
-//      static MYFLT frac = 0; // hugly hack, needs to be inserted in the CSOUND structure
-//
-//      O->RTevents = 1;     /* Make sure kperf() looks for RT events */
-// //   O.ksensing = 1;
-// //   O.OrcEvts  = 1;     /* - of the appropriate type */
-//      p->frac = frac;
-//      p->nargs = p->INOCOUNT; // num of arguments
-//      for( j = 1; j < p->nargs; j++) {
-//              p->args2[j] = *p->args[j-1];
-//              p->argums[j]= &p->args2[j];
-//      }
-//      p->args2[0]=0;
-//      p->argums[0]=&p->args2[0];
-//
-//
-//     if (csound->kcounter > 0 && *p->trigger != 0 && p->h.insdshead->p3 == 0) {
-//              if (*p->argums[3] >= 0) *p->argums[3] = -1; // start a held note
-//              *p->argums[1] += p->frac;
-//              Sched(csound, p->argums, p->nargs);
-//              p->done = 1; // only once
-//      }
-//      else
-//              p->done = 0;
-//      p->doneRel = 0;
-//      xtra = &(p->h.insdshead->xtratim);
-//      if (*xtra < 1)
-//              *xtra = 1;
-//      p->relesing = &(p->h.insdshead->relesing);
-//
-//      frac += INCR;
-//      frac = (frac >= 1) ? frac = 0 : frac;
-//      return OK;
-// }
-//
-//
-// static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
-// {
-//      if (*p->trigger && !p->done) {/* Only do something if triggered */
-//              if (*p->argums[3] >= 0) *p->argums[3] = -1; // start a held note
-//              *p->argums[1] += p->frac;
-//              Sched(csound, p->argums, p->nargs);
-//              p->done = 1; // only once
-//      }
-//      if (*p->relesing && !p->doneRel) {
-//              *p->argums[1] = -*p->argums[1]; // turn off the note with a negative p1
-//              Sched(csound, p->argums, p->nargs);
-//              p->doneRel = 1; // only once
-//      }
-//      return OK;
-// }
+typedef struct { /* GAB 11/Jan/2001 */
+     OPDS   h;
+     MYFLT  *trigger;
+     MYFLT  *args[PMAX+1];
+     MYFLT  args2[PMAX+1];
+     MYFLT  *argums[PMAX+1];
+     int nargs, done, doneRel;
+     char *relesing;
+     MYFLT frac;
+} SCHEDINTIME;
+
+
+static int schedInTime_set(CSOUND *csound, SCHEDINTIME *p)
+{
+     int *xtra;
+     int j;
+     OPARMS    *O = csound->oparms;
+     static MYFLT frac = 0; /* hugly hack, needs to be inserted in the CSOUND structure */
+
+     O->RTevents = 1;     /* Make sure kperf() looks for RT events */
+     /*   O.ksensing = 1; */
+     /*   O.OrcEvts  = 1; \/\* - of the appropriate type */
+     p->frac = frac;
+     p->nargs = p->INOCOUNT; /* num of arguments */
+     for( j = 1; j < p->nargs; j++) {
+       p->args2[j] = *p->args[j-1];
+       p->argums[j]= &p->args2[j];
+     }
+     p->args2[0]=0;
+     p->argums[0]=&p->args2[0];
+
+
+     if (csound->kcounter > 0 && *p->trigger != 0 && p->h.insdshead->p3 == 0) {
+       if (*p->argums[3] >= 0) *p->argums[3] = -1; /* start a held note */
+       *p->argums[1] += p->frac;
+       Sched(csound, p->argums, p->nargs);
+       p->done = 1; /* only once */
+     }
+     else
+       p->done = 0;
+     p->doneRel = 0;
+     xtra = &(p->h.insdshead->xtratim);
+     if (*xtra < 1)
+       *xtra = 1;
+     p->relesing = &(p->h.insdshead->relesing);
+
+     frac += INCR;
+     frac = (frac >= 1) ? frac = 0 : frac;
+     return OK;
+}
+
+
+static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
+{
+    if (*p->trigger && !p->done) {/* Only do something if triggered */
+      if (*p->argums[3] >= 0) *p->argums[3] = -1; /* start a held note */
+      *p->argums[1] += p->frac;
+      Sched(csound, p->argums, p->nargs);
+      p->done = 1; /* only once */
+    }
+    if (*p->relesing && !p->doneRel) {
+      *p->argums[1] = -*p->argums[1]; /* turn off the note with a negative p1 */
+      Sched(csound, p->argums, p->nargs);
+      p->doneRel = 1; /* only once */
+    }
+    return OK;
+}
 
 
 /* -------------------------------------------------------------------- */
 
-// These opocdes were not implemented because the functionality of CopyTabElements
-// has already been included in vcopy and vcopy_i
+/* These opocdes were not implemented because the functionality of CopyTabElements */
+/* has already been included in vcopy and vcopy_i */
 
-// typedef struct { /* GAB 11/Jan/2001 */
-//      OPDS   h;
-//      MYFLT  *ktrigger, *idestTab, *kdestIndex, *isourceTab, *ksourceIndex, *inumElems;
-//      MYFLT *dTable, *sTable;
-//      long sLen, dLen;
-// } COPYTABELEMS;
-//
-//
-// static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
-// {
-//      FUNC *ftp;
-//      int nelems = (int) *p->inumElems;
-//      if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
-//                return csound->InitError(csound, "copyTabElems: incorrect destination table number");
-//
-//      p->dLen = ftp->flen;
-//      if (nelems > p->dLen)
-//                return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
-//
-//      p->dTable = ftp->ftable;
-//              if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
-//                return csound->InitError(csound, "copyTabElems: incorrect source table number");
-//
-//      p->sLen = ftp->flen;
-//      if (nelems > p->sLen)
-//                return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
-//
-//      p->sTable = ftp->ftable;
-//
-//      return OK;
-// }
-//
-//
-// static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
-// {
-//      if(*p->ktrigger) {
-//              int nelems = (int) *p->inumElems;
-//              int j, sNdx = (int) *p->ksourceIndex * nelems, dNdx = (int) *p->kdestIndex * nelems;
-//              if (sNdx + nelems > p->sLen)
-//                      return csound->PerfError(csound, "copyTabElems: source table too short");
-//              if (dNdx + nelems > p->dLen)
-//                      return csound->PerfError(csound, "copyTabElems: destination table too short");
-//
-//              for (j = 0; j< nelems; j++)
-//                      p->dTable[dNdx+j] = p->sTable[sNdx+j];
-//      }
-//      return OK;
-// }
-//
-// typedef struct { /* GAB 11/Jan/2001 */
-//      OPDS   h;
-//      MYFLT  *idestTab, *idestIndex, *isourceTab, *isourceIndex, *inumElems;
-// } COPYTABELEMS_I;
-//
-// static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
-// {
-//      FUNC *ftp;
-//      int nelems = (int) *p->inumElems, dLen, sLen;
-//      MYFLT *sTable, *dTable;
-//      if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
-//                return csound->InitError(csound, "copyTabElems: incorrect destination table number");
-//      dLen = ftp->flen;
-//      if (nelems > dLen)
-//                return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
-//      dTable = ftp->ftable;
-//      if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
-//                return csound->InitError(csound, "copyTabElems: incorrect source table number");
-//      sLen = ftp->flen;
-//      if (nelems > sLen)
-//                return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
-//      sTable = ftp->ftable;
-//
-//      {
-//              int j, sNdx = (int) *p->isourceIndex * nelems, dNdx = (int) *p->idestIndex * nelems;
-//              if (sNdx + nelems > sLen)
-//                      return csound->PerfError(csound, "copyTabElems: source table too short");
-//              if (dNdx + nelems > dLen)
-//                      return csound->PerfError(csound, "copyTabElems: destination table too short");
-//              for (j = 0; j< nelems; j++) {
-//                      dTable[dNdx+j] = sTable[sNdx+j];
-//              }
-//      }
-//      return OK;
-// }
-//
+typedef struct { /* GAB 11/Jan/2001 */
+     OPDS   h;
+     MYFLT  *ktrigger, *idestTab, *kdestIndex, *isourceTab, *ksourceIndex, *inumElems;
+     MYFLT *dTable, *sTable;
+     long sLen, dLen;
+} COPYTABELEMS;
+
+
+static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
+{
+    FUNC *ftp;
+    int nelems = (int) *p->inumElems;
+    if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
+      return csound->InitError(csound, "copyTabElems: incorrect destination table number");
+    
+    p->dLen = ftp->flen;
+    if (nelems > p->dLen)
+      return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
+
+    p->dTable = ftp->ftable;
+    if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
+      return csound->InitError(csound, "copyTabElems: incorrect source table number");
+    
+    p->sLen = ftp->flen;
+    if (nelems > p->sLen)
+      return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
+    
+    p->sTable = ftp->ftable;
+    
+    return OK;
+}
+
+
+static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
+{
+    if(*p->ktrigger) {
+      int nelems = (int) *p->inumElems;
+      int j, sNdx = (int) *p->ksourceIndex * nelems, dNdx = (int) *p->kdestIndex * nelems;
+      if (sNdx + nelems > p->sLen)
+        return csound->PerfError(csound, "copyTabElems: source table too short");
+      if (dNdx + nelems > p->dLen)
+        return csound->PerfError(csound, "copyTabElems: destination table too short");
+      
+      for (j = 0; j< nelems; j++)
+        p->dTable[dNdx+j] = p->sTable[sNdx+j];
+    }
+    return OK;
+}
+
+typedef struct { /* GAB 11/Jan/2001 */
+     OPDS   h;
+     MYFLT  *idestTab, *idestIndex, *isourceTab, *isourceIndex, *inumElems;
+} COPYTABELEMS_I;
+
+static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
+{
+    FUNC *ftp;
+    int nelems = (int) *p->inumElems, dLen, sLen;
+    MYFLT *sTable, *dTable;
+    if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
+      return csound->InitError(csound, "copyTabElems: incorrect destination table number");
+    dLen = ftp->flen;
+    if (nelems > dLen)
+      return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
+    dTable = ftp->ftable;
+    if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
+      return csound->InitError(csound, "copyTabElems: incorrect source table number");
+    sLen = ftp->flen;
+    if (nelems > sLen)
+      return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
+    sTable = ftp->ftable;
+    
+    {
+      int j, sNdx = (int) *p->isourceIndex * nelems, dNdx = (int) *p->idestIndex * nelems;
+      if (sNdx + nelems > sLen)
+        return csound->PerfError(csound, "copyTabElems: source table too short");
+      if (dNdx + nelems > dLen)
+        return csound->PerfError(csound, "copyTabElems: destination table too short");
+      for (j = 0; j< nelems; j++) {
+        dTable[dNdx+j] = sTable[sNdx+j];
+      }
+    }
+    return OK;
+}
+
+#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -314,12 +317,12 @@ typedef struct {
 } INRANGE;
 
 /* extern       MYFLT   *spin, *spout; */
-/*extern    int spoutactive, PortaudioNumOfInPorts; // gab default, = nchnls */
+/* extern    int spoutactive, PortaudioNumOfInPorts; /* gab default, = nchnls */ */
 
 static int inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
-    //p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; //gab
+    /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; /*gab */
     if (!csound->oparms->sfread)
       return csound->InitError(csound, "inrg: audio input is not enabled");
     p->numChans = csound->nchnls;
@@ -333,15 +336,15 @@ static int inRange(CSOUND *csound, INRANGE *p)
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spin + startChan;
     int narg = p->narg, numchans = p->numChans;
-
+    
     if (startChan < 0)
       return csound->PerfError(csound,
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
-
+    
     for (j = 0; j < narg; j++)
       ara[j] = p->argums[j];
-
+    
     nsmps = csound->ksmps;
     do  {
       int i;
@@ -387,8 +390,8 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     nsmps = ksmps;
     if (!csound->spoutactive) {
       MYFLT *sptemp = sp;
-      for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; // clear all channels
-
+      for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; /* clear all channels */
+      
       do        {
         int i;
         MYFLT *sptemp = sp;
@@ -440,65 +443,68 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     return OK;
 }
 
-// These opcodes left out while GEN22 is implemented
-// static int lposcint(CSOUND *csound, LPOSC *p)
-// {
-//      double  *phs= &p->phs;
-//      double  si= *p->freq * (p->fsr/ csound->esr);
-//
-//      MYFLT   *out = p->out;
-//      short   *ft = (short *) p->ftp->ftable, *curr_samp;
-//      MYFLT   fract;
-//     long     n = csound->ksmps;
-//     long     loop, end, looplength /* = p->looplength */ ;
-//
-//      if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-//      else if (loop > p->tablen-3) loop = p->tablen-3;
-//      if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-//      else if (end <= 2) end = 2;
-//      if (end < loop+2) end = loop + 2;
-//
-//      looplength = end - loop;
-//
-//      do {
-//              curr_samp= ft + (long)*phs;
-//              fract= (MYFLT)(*phs - (long)*phs);
-//              *out++ = *p->amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-//              *phs += si;
-//              while (*phs  >= end) *phs -= looplength;
-//              while (*phs  < loop) *phs += looplength;
-//      } while (--n);
-//      return OK;
-// }
-//
-// static int lposcinta(CSOUND *csound, LPOSC *p)
-// {
-//
-//      double  *phs= &p->phs;
-//      double  si= *p->freq * (p->fsr/csound->esr);
-//     MYFLT    *out = p->out,  *amp=p->amp;
-//      short   *ft = (short *) p->ftp->ftable, *curr_samp;
-//      MYFLT   fract;
-//     long     n = csound->ksmps;
-//     long     loop, end, looplength /* = p->looplength */ ;
-//
-//      if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-//      else if (loop > p->tablen-3) loop = p->tablen-3;
-//      if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-//      else if (end <= 2) end = 2;
-//      if (end < loop+2) end = loop + 2;
-//
-//      looplength = end - loop;
-//      do {
-//              curr_samp= ft + (long)*phs;
-//          fract= (MYFLT)(*phs - (long)*phs);
-//          *out++ = *amp++ * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-//          *phs += si;
-//          while (*phs  >= end) *phs -= looplength;
-//          while (*phs  < loop) *phs += looplength;
-//      }while (--n);
-//      return OK;
-// }
+#if 0
+
+/* These opcodes left out while GEN22 is implemented */
+static int lposcint(CSOUND *csound, LPOSC *p)
+{
+    double  *phs= &p->phs;
+    double  si= *p->freq * (p->fsr/ csound->esr);
+    
+    MYFLT   *out = p->out;
+    short   *ft = (short *) p->ftp->ftable, *curr_samp;
+    MYFLT   fract;
+    long     n = csound->ksmps;
+    long     loop, end, looplength; /* = p->looplength ; */
+      
+    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    else if (loop > p->tablen-3) loop = p->tablen-3;
+    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+    else if (end <= 2) end = 2;
+    if (end < loop+2) end = loop + 2;
+     
+    looplength = end - loop;
+
+    do {
+      curr_samp= ft + (long)*phs;
+      fract= (MYFLT)(*phs - (long)*phs);
+      *out++ = *p->amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
+      *phs += si;
+      while (*phs  >= end) *phs -= looplength;
+      while (*phs  < loop) *phs += looplength;
+    } while (--n);
+    return OK;
+}
+
+static int lposcinta(CSOUND *csound, LPOSC *p)
+{
+
+    double  *phs= &p->phs;
+    double  si= *p->freq * (p->fsr/csound->esr);
+    MYFLT    *out = p->out,  *amp=p->amp;
+    short   *ft = (short *) p->ftp->ftable, *curr_samp;
+    MYFLT   fract;
+    long     n = csound->ksmps;
+    long     loop, end, looplength; /* = p->looplength ; */
+
+    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    else if (loop > p->tablen-3) loop = p->tablen-3;
+    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+    else if (end <= 2) end = 2;
+    if (end < loop+2) end = loop + 2;
+
+    looplength = end - loop;
+    do {
+      curr_samp= ft + (long)*phs;
+      fract= (MYFLT)(*phs - (long)*phs);
+      *out++ = *amp++ * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
+      *phs += si;
+      while (*phs  >= end) *phs -= looplength;
+      while (*phs  < loop) *phs += looplength;
+    } while (--n);
+    return OK;
+}
+#endif
 
 
 static int lposca(CSOUND *csound, LPOSC *p)
@@ -511,7 +517,7 @@ static int lposca(CSOUND *csound, LPOSC *p)
     long    n = csound->ksmps;
     long    loop, end, looplength /* = p->looplength */ ;
 
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
     else if (end <= 2) end = 2;
@@ -524,106 +530,108 @@ static int lposca(CSOUND *csound, LPOSC *p)
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
-    }while (--n);
+    } while (--n);
     return OK;
 }
 
 /* -------------------------------------------------------------------- */
 
-// These opcodes left out while GEN22 is implemented
+/* These opcodes left out while GEN22 is implemented */
 
-// typedef struct       {
-//      OPDS    h;
-//      MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
-//      long    tablen;
-//      MYFLT   fsr;
-//      short *ft;
-//      double  phs, fsrUPsr /* , looplength */;
-//      long    phs_int;
-// } LPOSCINT_ST;
+#if 0
+typedef struct {
+     OPDS    h;
+     MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
+     long    tablen;
+     MYFLT   fsr;
+     short *ft;
+     double  phs, fsrUPsr /* , looplength; */
+     long    phs_int;
+} LPOSCINT_ST;
 
-// static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
-// {
-//     FUNC *ftp;
-//     double  loop, end, looplength, fsr;
-//     if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-//              return csound->InitError(csound, "invalid function");
-//     if (!(fsr = ftp->gen01args.sample_rate)){
-//       csound->Message(csound, "lposcil: no sample rate stored in function assuming=sr\n");
-//       p->fsr=csound->esr;
-//     }
-//      p->fsrUPsr = fsr/csound->esr;
-//     p->ft    = (short *) ftp->ftable;
-//     p->tablen = ftp->flen/2;
-//     /* changed from
-//        p->phs    = *p->iphs * p->tablen;   */
-//      if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-//      else if (loop > p->tablen-3) loop = p->tablen-3;
-//      if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-//      else if (end <= 2) end = 2;
-//      if (end < loop+2) end = loop + 2;
-//     looplength = end - loop;
-//
-//      if (*p->iphs >= 0)
-//         p->phs_int = (long) (p->phs = *p->iphs);
-//
-//      while (p->phs >= end)
-//         p->phs_int = (long) (p->phs -= looplength);
-//      return OK;
-// }
+static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
+{
+    FUNC *ftp;
+    double  loop, end, looplength, fsr;
+    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
+      return csound->InitError(csound, "invalid function");
+    if (!(fsr = ftp->gen01args.sample_rate)){
+      csound->Message(csound, "lposcil: no sample rate stored in function assuming=sr\n");
+      p->fsr=csound->esr;
+    }
+    p->fsrUPsr = fsr/csound->esr;
+    p->ft    = (short *) ftp->ftable;
+    p->tablen = ftp->flen/2;
+    /* changed from
+       p->phs    = *p->iphs * p->tablen; */
+    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    else if (loop > p->tablen-3) loop = p->tablen-3;
+    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+    else if (end <= 2) end = 2;
+    if (end < loop+2) end = loop + 2;
+    looplength = end - loop;
+    
+    if (*p->iphs >= 0)
+      p->phs_int = (long) (p->phs = *p->iphs);
+    
+    while (p->phs >= end)
+      p->phs_int = (long) (p->phs -= looplength);
+    return OK;
+}
 
-// static int lposcinta_stereo(CSOUND *csound, LPOSCINT_ST *p) // stereo lposcinta
-// {
-//      double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
-//     MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-//      short   *ft =  p->ft;
-//      long    n = csound->ksmps;
-//     long     loop, end, looplength;
-//      if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-//      else if (loop > p->tablen-3) loop = p->tablen-3;
-//      if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-//      else if (end <= 2) end = 2;
-//      if (end < loop+2) end = loop + 2;
-//      looplength = end - loop;
-//      do {
-//              double fract;
-//              short *curr_samp1 = ft + (long) *phs * 2;
-//              short *curr_samp2 = curr_samp1 +1;
-//          fract= *phs - (long) *phs;
-//          *out1++ = *amp   * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-//              *out2++ = *amp++ * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
-//          *phs += si;
-//          while (*phs  >= end) *phs -= looplength;
-//          while (*phs  < loop) *phs += looplength;
-//      } while (--n);
-//      return OK;
-// }
+static int lposcinta_stereo(CSOUND *csound, LPOSCINT_ST *p) // stereo lposcinta
+{
+    double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
+    MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
+    short   *ft =  p->ft;
+    long    n = csound->ksmps;
+    long     loop, end, looplength;
+    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    else if (loop > p->tablen-3) loop = p->tablen-3;
+    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+    else if (end <= 2) end = 2;
+    if (end < loop+2) end = loop + 2;
+    looplength = end - loop;
+    do {
+      double fract;
+      short *curr_samp1 = ft + (long) *phs * 2;
+      short *curr_samp2 = curr_samp1 +1;
+      fract= *phs - (long) *phs;
+      *out1++ = *amp   * (MYFLT) (*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
+      *out2++ = *amp++ * (MYFLT) (*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
+      *phs += si;
+      while (*phs  >= end) *phs -= looplength;
+      while (*phs  < loop) *phs += looplength;
+    } while (--n);
+    return OK;
+}
 
-// static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p) // trasposition is allowed only
-// {                                                                                    //in integer values (twice, three times etc.)
-//                                                                                      // so it is faster
-//      long *phs = &p->phs_int, si = (long) *p->freq;
-//     MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-//      short   *ft =  p->ft;
-//      long    n = csound->ksmps;
-//     long     loop, end, looplength /* = p->looplength */ ;
-//      if ((loop = (long) *p->kloop) < 0) loop=0;// gab
-//      else if (loop > p->tablen-3) loop = p->tablen-3;
-//      if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-//      else if (end <= 2) end = 2;
-//      if (end < loop+2) end = loop + 2;
-//      looplength = end - loop;
-//
-//      do {
-//              short *curr_samp1 = ft + *phs * 2;
-//          *out1++ = *amp   * (MYFLT) *curr_samp1 ;
-//              *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
-//           *phs += si;
-//          while (*phs  >= end) *phs -= looplength;
-//          while (*phs  < loop) *phs += looplength;
-//      } while (--n);
-//      return OK;
-// }
+static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p) /* trasposition is allowed only */
+{                                                                                    /*in integer values (twice, three times etc.) */
+                                                                                     /* so it is faster */
+     long *phs = &p->phs_int, si = (long) *p->freq;
+    MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
+     short   *ft =  p->ft;
+     long    n = csound->ksmps;
+    long     loop, end, looplength /* = p->looplength ; */
+      if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
+     else if (loop > p->tablen-3) loop = p->tablen-3;
+     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+     else if (end <= 2) end = 2;
+     if (end < loop+2) end = loop + 2;
+     looplength = end - loop;
+
+     do {
+             short *curr_samp1 = ft + *phs * 2;
+         *out1++ = *amp   * (MYFLT) *curr_samp1 ;
+             *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
+          *phs += si;
+         while (*phs  >= end) *phs -= looplength;
+         while (*phs  < loop) *phs += looplength;
+     } while (--n);
+     return OK;
+}
+#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -632,7 +640,7 @@ typedef struct  {
         MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
         long    tablen;
         MYFLT   fsr;
-        MYFLT *ft; //table
+        MYFLT *ft; /*table */
         double  phs, fsrUPsr /* , looplength */;
         long    phs_int;
 } LPOSC_ST;
@@ -653,7 +661,7 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
     p->tablen = ftp->flen/2;
     /* changed from
        p->phs    = *p->iphs * p->tablen;   */
-    if ((loop = *p->kloop) < 0) loop=0;// gab
+    if ((loop = *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = *p->kend) > p->tablen-1 ) end = p->tablen - 1;
     else if (end <= 2) end = 2;
@@ -668,14 +676,14 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
     return OK;
 }
 
-static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) // stereo lposcinta
+static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 {
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
     MYFLT       *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
     long    n = csound->ksmps;
     long        loop, end, looplength /* = p->looplength */ ;
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
         else if (end <= 2) end = 2;
@@ -703,7 +711,7 @@ static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     MYFLT   *ft =  p->ft;
     long    n = csound->ksmps;
     long    loop, end, looplength /* = p->looplength */ ;
-    if ((loop = (long) *p->kloop) < 0) loop=0;// gab
+    if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
     else if (end <= 2) end = 2;
@@ -744,26 +752,27 @@ static int trRangeRand(CSOUND *csound, TRANGERAND *p)
 
 
 /* -------------------------------------------------------------------- */
-// Note: this opcode has been left out because it is undocumented
+/* Note: this opcode has been left out because it is undocumented */
 
-// typedef struct
-// {
-//      OPDS    h;
-//      MYFLT   *rcar, *rmod, *kfreq_max, *kfreq_min, *kband_max, *kband_min;
-// } DSH;
-//
-//
-//
-// static int dashow (CSOUND *csound, DSH *p)
-// {
-//         *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
-//         *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
-//
-//         if (*p->rmod <= 0.f) *p->rmod = (MYFLT) fabs (*p->rmod);
-//         if (*p->rcar <= 0.f) *p->rcar = (MYFLT) fabs (*p->rcar);
-//      return OK;
-// }
+#if 0
+typedef struct
+{
+     OPDS    h;
+     MYFLT   *rcar, *rmod, *kfreq_max, *kfreq_min, *kband_max, *kband_min;
+} DSH;
 
+
+
+static int dashow (CSOUND *csound, DSH *p)
+{
+        *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+        *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
+
+        if (*p->rmod <= 0.f) *p->rmod = (MYFLT) fabs (*p->rmod);
+        if (*p->rcar <= 0.f) *p->rcar = (MYFLT) fabs (*p->rcar);
+     return OK;
+}
+#endif
 
 /* -------------------------------------------------------------------- */
 
@@ -772,20 +781,20 @@ static int trRangeRand(CSOUND *csound, TRANGERAND *p)
 
 static OENTRY localops[] = {
   { "vtable1k",       S(MTABLE1),         3,  "",  "kz",          (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
-  //      { "schedk",         S(SCHEDK),          3,  "",  "kkz",         (SUBR)schedk_i,         (SUBR) schedk,          (SUBR) NULL },
-  //      { "schedInTime",    S(SCHEDINTIME),     3,  "",  "kz",          (SUBR)schedInTime_set,  (SUBR)schedInTime ,     (SUBR) NULL },
-  //      { "copyTabElems",   S(COPYTABELEMS),    3,  "",  "kikiki",      (SUBR)copyTabElems_set, (SUBR)copyTabElems,     (SUBR)NULL  },
-  //      { "copyTabElemsi",  S(COPYTABELEMS_I),  1,  "",  "iiiii",       (SUBR)copyTabElemsi,    (SUBR)NULL,             (SUBR)NULL  },
-  //      { "Trandom",        S(TRANGERAND),              2,  "k", "kkk",                 NULL,                                   (SUBR)trRangeRand },
+  /*      { "schedk",         S(SCHEDK),          3,  "",  "kkz",         (SUBR)schedk_i,         (SUBR) schedk,          (SUBR) NULL }, */
+  /*      { "schedInTime",    S(SCHEDINTIME),     3,  "",  "kz",          (SUBR)schedInTime_set,  (SUBR)schedInTime ,     (SUBR) NULL }, */
+  /*      { "copyTabElems",   S(COPYTABELEMS),    3,  "",  "kikiki",      (SUBR)copyTabElems_set, (SUBR)copyTabElems,     (SUBR)NULL  }, */
+  /*      { "copyTabElemsi",  S(COPYTABELEMS_I),  1,  "",  "iiiii",       (SUBR)copyTabElemsi,    (SUBR)NULL,             (SUBR)NULL  }, */
+  /*      { "Trandom",        S(TRANGERAND),              2,  "k", "kkk",                 NULL,                                   (SUBR)trRangeRand }, */
   { "trandom",        S(TRANGERAND),              2,  "k", "kkk",                 NULL,                                   (SUBR)trRangeRand },
-  //      { "lposcinta",      S(LPOSC),           5,      "a", "akkkio",      (SUBR)lposc_set,            NULL,                                   (SUBR)lposcinta},
-  //      { "lposcintsa",     S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo},
-  //      { "lposcintsa2",    S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo_no_trasp},
+  /*      { "lposcinta",      S(LPOSC),           5,      "a", "akkkio",      (SUBR)lposc_set,            NULL,                                   (SUBR)lposcinta}, */
+  /*      { "lposcintsa",     S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo}, */
+  /*      { "lposcintsa2",    S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo_no_trasp}, */
   { "lposcila",       S(LPOSC),           5,      "a", "akkkio",          (SUBR)lposc_set,                NULL,                                   (SUBR)lposca},
   { "lposcilsa",      S(LPOSC_ST),        5,  "aa","akkkio",              (SUBR)lposc_stereo_set, NULL,                                   (SUBR)lposca_stereo},
   { "lposcilsa2",     S(LPOSC_ST),        5,  "aa","akkkio",              (SUBR)lposc_stereo_set, NULL,                                   (SUBR)lposca_stereo_no_trasp},
-  //      { "dashow.i",       S(DSH),             1,  "ii","iiii",        (SUBR)dashow                                                  },
-  //      { "dashow.k",       S(DSH),             2,  "kk","kkkk",        NULL,                   (SUBR)dashow                          },
+  /*      { "dashow.i",       S(DSH),             1,  "ii","iiii",        (SUBR)dashow                                                  }, */
+  /*      { "dashow.k",       S(DSH),             2,  "kk","kkkk",        NULL,                   (SUBR)dashow                          }, */
   { "inrg",           S(INRANGE),         5,  "",  "ky",          (SUBR)inRange_i,        (SUBR)NULL,             (SUBR)inRange },
   { "outrg",          S(OUTRANGE),        5,  "",  "ky",          (SUBR)outRange_i,       (SUBR)NULL,             (SUBR)outRange}
 

@@ -175,19 +175,19 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
       outbuf[0] = '\0';
       while (--nk) {
         sprintf(buf1, "%ld\t", (long) *kp++);
-        strcat(outbuf, buf1);
+        strncat(outbuf, buf1, 256);
       }
       sprintf(buf1, "%ld\n", (long) *kp);
-      strcat(outbuf, buf1);
+      strncat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
         sprintf(buf1, "%6.4f\t", *kp++);
-        strcat(outbuf, buf1);
+        strncat(outbuf, buf1, 256);
       }
       sprintf(buf1, "%6.4f\n", *kp);
-      strcat(outbuf, buf1);
+      strncat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
     default: csound->Die(csound, Str("unknown kdump format"));

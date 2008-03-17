@@ -1146,6 +1146,7 @@ int outs(CSOUND *csound, OUTS *p)
     return OK;
 }
 
+#ifndef OLPC
 int outq(CSOUND *csound, OUTQ *p)
 {
     MYFLT       *sp, *ap1, *ap2, *ap3, *ap4;
@@ -1177,6 +1178,7 @@ int outq(CSOUND *csound, OUTQ *p)
     }
     return OK;
 }
+#endif
 
 int outs1(CSOUND *csound, OUTM *p)
 {
@@ -1250,6 +1252,7 @@ int outs12(CSOUND *csound, OUTM *p)
     return OK;
 }
 
+#ifndef OLPC
 int outq1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp, *ap1;
@@ -1435,6 +1438,7 @@ int outo(CSOUND *csound, OUTO *p)
     }
     return OK;
 }
+#endif
 
 static int outn(CSOUND *csound, int n, OUTX *p)
 {
@@ -1464,6 +1468,7 @@ static int outn(CSOUND *csound, int n, OUTX *p)
     return OK;
 }
 
+#ifndef OLPC
 int outx(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 16, p);
@@ -1473,6 +1478,7 @@ int outX(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 32, p);
 }
+#endif
 
 int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {

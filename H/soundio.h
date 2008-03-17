@@ -93,6 +93,10 @@
 #    define TYP_FLAC  (SF_FORMAT_FLAC >> 16)
 #    define TYP_CAF   (SF_FORMAT_CAF >> 16)
 #  endif
+#  if HAVE_LIBSNDFILE >= 1018
+#    define TYP_WVE   (SF_FORMAT_WVE >> 16)
+#    define TYP_OGG   (SF_FORMAT_OGG >> 16)
+#  endif
 #endif
 
 #define FORMAT2SF(x) ((int) (x))

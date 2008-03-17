@@ -1,6 +1,6 @@
 2008-03-16  jpff  <jpff@codemist.co.uk>
 
-	* Release Version 5.08.2
+	* H/version.h: 5.08.2
 
 2008-03-08  Anthony Kozar  <akozar@users.sourceforge.net>
 
@@ -77,10 +77,6 @@
 	nested_repeat() does not need to change event opcode to 's'.
 	Fixed 'r' repeats to work with optional p1 of 's' and 'e' statements.
 	'{' statement should not reset clock_base, warp_factor, or prvp2.
-
-2008-02-02  jpff  <jpff@codemist.co.uk>
-
-	* H/version.h: 5.08.1
 
 2008-02-01  Anthony Kozar  <anthonykozar@sbcglobal.net>
 

@@ -337,9 +337,9 @@ int express(CSOUND *csound, char *s)
         if (c == '\254' || c == '~') {
           strcpy(op, "not");                /*   to complete optxt  */
           switch (e) {
-            case 'a':   strcat(op, ".a");   outype = 'a';   break;
-            case 'k':   strcat(op, ".k");   outype = 'k';   break;
-            default:    strcat(op, ".i");   outype = 'i';   break;
+          case 'a':   strncat(op, ".a", 12);   outype = 'a';   break;
+          case 'k':   strncat(op, ".k", 12);   outype = 'k';   break;
+          default:    strncat(op, ".i", 12);   outype = 'i';   break;
           }
         }
         else
@@ -348,12 +348,12 @@ int express(CSOUND *csound, char *s)
       else if (prec >= AOPS && prec < BITNOT && argcnt >= 2) {  /* arith op: */
         c = *(*csound->revp)->str;
         switch (c) {                                    /*   create op text */
-          case '+': strcpy(op, "add");  break;
-          case '-': strcpy(op, "sub");  break;
-          case '*': strcpy(op, "mul");  break;
-          case '/': strcpy(op, "div");  break;
-          case '%': strcpy(op, "mod");  break;
-          case '^': strcpy(op, "pow");  break;
+          case '+': strncpy(op, "add", 12);  break;
+          case '-': strncpy(op, "sub", 12);  break;
+          case '*': strncpy(op, "mul", 12);  break;
+          case '/': strncpy(op, "div", 12);  break;
+          case '%': strncpy(op, "mod", 12);  break;
+          case '^': strncpy(op, "pow", 12);  break;
           default:  csound->Message(csound, Str("Expression got lost\n"));
         }
  common_ops:
@@ -367,30 +367,30 @@ int express(CSOUND *csound, char *s)
 /*      csound->Message(csound, "op=%s e=%c c=%c d=%c\n", op, e, c, d); */
         if (e == 'a') {                     /*   to complet optxt*/
           if (c=='^' && (d == 'c' || d == 'k'|| d == 'i' || d == 'p'))
-            strcat(op,".a");
-          else if (d == 'a') strcat(op,".aa");
-          else               strcat(op,".ak");
+            strncat(op,".a",12);
+          else if (d == 'a') strncat(op,".aa",12);
+          else               strncat(op,".ak",12);
           outype = 'a';
         }
         else if (d == 'a') {
-          strcat(op,".ka");
+          strncat(op,".ka",12);
           outype = 'a';
         }
         else if (e == 'k' || d == 'k') {
-          if (c == '^') strcat(op,".k");
-          else          strcat(op,".kk");
+          if (c == '^') strncat(op,".k",12);
+          else          strncat(op,".kk",12);
           outype = 'k';
         }
         else {
-          if (c == '^') strcat(op,".i");
-          else          strcat(op,".ii");
+          if (c == '^') strncat(op,".i",12);
+          else          strncat(op,".ii",12);
           outype = 'i';
         }
       }
       else if (prec == RELOPS && argcnt >= 2) { /* relationals:     */
-        strcpy(op, (*csound->revp)->str);       /*   copy rel op    */
+        strncpy(op, (*csound->revp)->str, 12);   /*   copy rel op    */
         if (strcmp(op, "=") == 0)
-          strcpy(op, "==");
+          strncpy(op, "==", 12);
         pp->incount = 2;                        /*   & 2 arg txts   */
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
@@ -405,7 +405,7 @@ int express(CSOUND *csound, char *s)
         else outype = 'b';
       }
       else if (prec >= LOGOPS && prec < RELOPS && argcnt >= 2) { /* logicals: */
-        strcpy(op, (*csound->revp)->str);   /*   copy rel op  */
+        strncpy(op, (*csound->revp)->str, 12);   /*   copy rel op  */
         pp->incount = 2;                    /*   & 2 arg txts */
         pp->arg[2] = copystring((*--csound->argp)->str);
         pp->arg[1] = copystring((*--csound->argp)->str);
@@ -419,7 +419,7 @@ int express(CSOUND *csound, char *s)
         else XERROR(Str("incorrect logical argumemts"))
       }
       else if (prec == CONDVAL && argcnt >= 3) { /* cond vals:     */
-        strcpy(op, ": ");                   /*   init op as ': ' */
+        strncpy(op, ": ", 12);                   /*   init op as ': ' */
         pp->incount = 3;                    /*   & cpy 3 argtxts */
         pp->arg[3] = copystring((*--csound->argp)->str);
         pp->arg[2] = copystring((*--csound->argp)->str);
@@ -442,6 +442,7 @@ int express(CSOUND *csound, char *s)
       s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
       if (!csound->oparms->expr_opt) {
         /* IV - Jan 08 2003: old code: should work ... */
+        /* Should use snprintf for safety */
         switch (outype) {
           case 'a': sprintf(s, "#a%d", csound->acount++); break;
           case 'K':
@@ -461,7 +462,7 @@ int express(CSOUND *csound, char *s)
           /* opcode, the output type is appropriate, and the argument stack */
           /* is empty, there is no need for a temporary variable, */
           /* instead just use the opcode outarg */
-          strcpy(s, csound->assign_outarg);
+          strncpy(s, csound->assign_outarg, 1024);
           /* note: this is not safe if the expression contains the output */
           /* variable; if that is the case, opcode_is_assign is set to 2 */
         }

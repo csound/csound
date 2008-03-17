@@ -106,21 +106,21 @@ extern "C" {
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
     int status = csound->AppendOpcode(csound,
-                                      "kampmidid",
+                                      (char*)"kampmidid",
                                       sizeof(KAMPMIDID),
                                       3,
-                                      "k",
-                                      "ki",
+                                      (char*)"k",
+                                      (char*)"ki",
                                       (int (*)(CSOUND*,void*)) KAMPMIDID::init_,
                                       (int (*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
                                       (int (*)(CSOUND*,void*)) 0);
 
      status |= csound->AppendOpcode(csound,
-                                      "iampmidid",
+                                      (char*)"iampmidid",
                                       sizeof(IAMPMIDID),
                                       1,
-                                      "i",
-                                      "ii",
+                                      (char*)"i",
+                                      (char*)"ii",
                                       (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
                                       (int (*)(CSOUND*,void*)) 0,
                                       (int (*)(CSOUND*,void*)) 0);

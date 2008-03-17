@@ -56,19 +56,19 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2) {
 
     if (arg1 == 'a') {
         if (arg2 == 'a') {
-            strcat(op,".aa");
+          strncat(op,".aa",80);
         } else {
-            strcat(op,".ak");
+          strncat(op,".ak",80);
         }
         outype = 'a';
     } else if (arg2 == 'a') {
-        strcat(op,".ka");
+        strncat(op,".ka",80);
         outype = 'a';
     } else if (arg1 == 'k' || arg2 == 'k') {
-        strcat(op,".kk");
+        strncat(op,".kk",80);
         outype = 'k';
     } else {
-        strcat(op,".ii");
+        strncat(op,".ii",80);
         outype = 'i';
     }
 
@@ -317,19 +317,19 @@ TREE * create_expression(CSOUND *csound, TREE *root) {
 
     switch(root->type) {
         case S_PLUS:
-            strcpy(op, "add");
+          strncpy(op, "add", 80);
             outarg = set_expression_type(csound, op, arg1, arg2);
             break;
         case S_MINUS:
-            strcpy(op, "sub");
+            strncpy(op, "sub", 80);
             outarg = set_expression_type(csound, op, arg1, arg2);
             break;
         case S_TIMES:
-            strcpy(op, "mul");
+            strncpy(op, "mul", 80);
             outarg = set_expression_type(csound, op, arg1, arg2);
             break;
         case S_DIV:
-            strcpy(op, "div");
+            strncpy(op, "div", 80);
             outarg = set_expression_type(csound, op, arg1, arg2);
             break;
         case T_FUNCTION: /* assumes on single arg input */
@@ -347,7 +347,7 @@ TREE * create_expression(CSOUND *csound, TREE *root) {
             csound->Message(csound, "HANDLING UNARY MINUS!");
             root->left = create_minus_token(csound);
             arg1 = 'k';
-            strcpy(op, "mul");
+            strncpy(op, "mul", 80);
             outarg = set_expression_type(csound, op, arg1, arg2);
             break;
     }
@@ -428,28 +428,28 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
 
     switch(root->type) {
         case S_EQ:
-            strcpy(op, "==");
+            strncpy(op, "==", 80);
             break;
         case S_NEQ:
-            strcpy(op, "!=");
+            strncpy(op, "!=", 80);
             break;
         case S_GE:
-            strcpy(op, ">=");
+            strncpy(op, ">=", 80);
             break;
         case S_LE:
-            strcpy(op, "<=");
+            strncpy(op, "<=", 80);
             break;
         case S_GT:
-            strcpy(op, ">");
+            strncpy(op, ">", 80);
             break;
         case S_LT:
-            strcpy(op, "<");
+            strncpy(op, "<", 80);
             break;
         case S_AND:
-            strcpy(op, "&&");
+            strncpy(op, "&&", 80);
             break;
         case S_OR:
-            strcpy(op, "||");
+            strncpy(op, "||", 80);
             break;
     }
 

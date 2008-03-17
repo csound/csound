@@ -101,7 +101,7 @@ int isCsoundFile(char *in)
         fprintf(stderr, "%d: %c%c%c%c\n", i, in[0], in[1], in[2], in[3]);
       if (tmp == '.csd' || tmp == '.orc' || tmp == '.sco' ||
           tmp == '.CSD' || tmp == '.ORC' || tmp == '.SCO' ||
-		  tmp == 'dsc.' || tmp == 'cro.' || tmp == 'ocs.' ||
+          tmp == 'dsc.' || tmp == 'cro.' || tmp == 'ocs.' ||
           tmp == 'DSC.' || tmp == 'CRO.' || tmp == 'OCS.' )
         return 1;
       else
