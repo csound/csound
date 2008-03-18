@@ -65,10 +65,12 @@ public:
   {
     return csoundPreCompile(csound);
   }
+#ifndef OLPC
   virtual int InitializeCscore(FILE *insco, FILE *outsco)
   {
     return csoundInitializeCscore(csound, insco, outsco);
   }
+#endif
   virtual void *GetHostData()
   {
     return csoundGetHostData(csound);
@@ -334,10 +336,12 @@ public:
   {
     csoundRewindScore(csound);
   }
+#ifndef OLPC
   virtual void SetCscoreCallback(void (*cscoreCallback_)(CSOUND *))
   {
     csoundSetCscoreCallback(csound, cscoreCallback_);
   }
+#endif
   virtual int ScoreSort(FILE *inFile, FILE *outFile)
   {
     return csoundScoreSort(csound, inFile, outFile);

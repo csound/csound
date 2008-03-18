@@ -26,6 +26,8 @@
 assisting functions for VBAP
 functions for loudspeaker table initialization */
 
+#ifndef OLPC
+
 #include "csdl.h"
 #include "vbap.h"
 #include <math.h>
@@ -935,3 +937,4 @@ PUBLIC int csoundModuleInfo(void)
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
+#endif

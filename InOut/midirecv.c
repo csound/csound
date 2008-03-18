@@ -587,6 +587,10 @@ void MidiClose(CSOUND *csound)
     MGLOBAL *p = csound->midiGlobals;
     int     retval;
 
+    if (p==NULL) {
+      printf("No MIDI\n");
+      return;
+    }
     if (p->MidiInCloseCallback != NULL) {
       retval = p->MidiInCloseCallback(csound, p->midiInUserData);
       if (retval != 0)

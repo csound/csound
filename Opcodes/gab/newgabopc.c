@@ -309,6 +309,7 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
 #endif
 
 /* -------------------------------------------------------------------- */
+#ifndef OLPC
 
 typedef struct {
         OPDS    h;
@@ -350,7 +351,7 @@ static int inRange(CSOUND *csound, INRANGE *p)
       int i;
       MYFLT *sptemp = sp;
       for (i=0; i<narg; i++)
-        *ara[i]++ = *sptemp++;
+        *ara[i]++ = sp[i];
       sp += numchans;
     } while (--nsmps);
     return OK;
@@ -396,7 +397,7 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
-          *sptemp++ = *ara[i]++;
+          sptemp[i] = *ara[i]++;
         sp += nchnls;
       } while (--nsmps);
       csound->spoutactive = 1;
@@ -406,12 +407,13 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
-          *sptemp++ += *ara[i]++;
+          sptemp[i] += *ara[i]++;
         sp += nchnls;
       } while (--nsmps);
     }
     return OK;
 }
+#endif
 /* -------------------------------------------------------------------- */
 #include "Opcodes/uggab.h"
 
@@ -790,14 +792,15 @@ static OENTRY localops[] = {
   /*      { "lposcinta",      S(LPOSC),           5,      "a", "akkkio",      (SUBR)lposc_set,            NULL,                                   (SUBR)lposcinta}, */
   /*      { "lposcintsa",     S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo}, */
   /*      { "lposcintsa2",    S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo_no_trasp}, */
-  { "lposcila",       S(LPOSC),           5,      "a", "akkkio",          (SUBR)lposc_set,                NULL,                                   (SUBR)lposca},
-  { "lposcilsa",      S(LPOSC_ST),        5,  "aa","akkkio",              (SUBR)lposc_stereo_set, NULL,                                   (SUBR)lposca_stereo},
-  { "lposcilsa2",     S(LPOSC_ST),        5,  "aa","akkkio",              (SUBR)lposc_stereo_set, NULL,                                   (SUBR)lposca_stereo_no_trasp},
-  /*      { "dashow.i",       S(DSH),             1,  "ii","iiii",        (SUBR)dashow                                                  }, */
-  /*      { "dashow.k",       S(DSH),             2,  "kk","kkkk",        NULL,                   (SUBR)dashow                          }, */
-  { "inrg",           S(INRANGE),         5,  "",  "ky",          (SUBR)inRange_i,        (SUBR)NULL,             (SUBR)inRange },
-  { "outrg",          S(OUTRANGE),        5,  "",  "ky",          (SUBR)outRange_i,       (SUBR)NULL,             (SUBR)outRange}
-
+  { "lposcila", S(LPOSC),      5, "a", "akkkio", (SUBR)lposc_set, NULL, (SUBR)lposca},
+  { "lposcilsa", S(LPOSC_ST),  5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo},
+  { "lposcilsa2", S(LPOSC_ST), 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
+  /* { "dashow.i", S(DSH), 1,  "ii","iiii", (SUBR)dashow     }, */
+  /* { "dashow.k", S(DSH), 2,  "kk","kkkk", NULL, (SUBR)dashow   }, */
+#ifndef OLPC
+  { "inrg", S(INRANGE), 5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange },
+  { "outrg", S(OUTRANGE), 5, "", "ky", (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange}
+#endif
 };
 
 

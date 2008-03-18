@@ -739,9 +739,9 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     char *retval;
     char *cwd;
     int  len;
-    
+
     char *tempPath = csoundConvertPathname(csound, path);
-    
+
     char *lastIndex = strrchr(tempPath, DIRSEP);
 
     if (csoundIsNameFullpath(tempPath))
@@ -1048,7 +1048,7 @@ char *csoundFindOutputFile(CSOUND *csound,
 void *csoundFileOpen(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env)
 {
-    return csoundFileOpenWithType(csound, fd, type, name, param, env, 
+    return csoundFileOpenWithType(csound, fd, type, name, param, env,
                                   CSFTYPE_UNKNOWN, 0);
 }
 
@@ -1057,7 +1057,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int type,
  *
  * Same as csoundFileOpen() with two additional parameters describing the
  * type of file being opened and whether it is a temporary file.  This
- * function replaces csoundFileOpen().  This additional information is 
+ * function replaces csoundFileOpen().  This additional information is
  * used as metadata to be passed to the host application's FileOpenCallback.
  *
  * int csFileType:
@@ -1186,7 +1186,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     csound->open_files = (void*) p;
     /* notify the host if it asked */
     if (csound->FileOpenCallback_ != NULL) {
-      int writing = (type == CSFILE_SND_W || type == CSFILE_FD_W || 
+      int writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
                       (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
         csFileType = sftype2csfiletype(((SF_INFO*)param)->format);

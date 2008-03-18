@@ -55,8 +55,10 @@ static const char *usage_txt[] = {
     "-F file \tfile of scaling information (alternative)",
     "-M fpnum\tScale file to given maximum",
     "-P fpnum\tscale file to given percentage of full",
+#ifndef OLPC
     "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
     "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+#endif
     "-N\tnotify (ring the bell) when score or miditrack is done",
     "-- fnam\tlog output to file",
     "flag defaults: scale -s -otest -F 0.0",
@@ -220,6 +222,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
           case 'f':
             outformch = set_output_format(csound, O, c, outformch);
             break;
+#ifndef OLPC
           case 'R':
             O->rewrt_hdr = 1;
             break;
@@ -231,6 +234,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
             }
             else O->heartbeat = 1;
             break;
+#endif
           case 'N':
             O->ringbell = 1;             /* notify on completion */
             break;
