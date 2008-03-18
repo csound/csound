@@ -2046,15 +2046,15 @@ else:
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
-if commonEnvironment['useDouble'] != '0':
-    counterpoint = acEnvironment.Program(
-        'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-        LIBS = Split('CsoundAC csnd csound64'))
-else:
-    counterpoint = acEnvironment.Program(
-        'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-        LIBS = Split('CsoundAC csnd csound32'))
-zipDependencies.append(counterpoint)
+    if commonEnvironment['useDouble'] != '0' :
+        counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound64'))
+    else:
+        counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound32'))
+    zipDependencies.append(counterpoint)
 
 # Build CsoundVST
 
