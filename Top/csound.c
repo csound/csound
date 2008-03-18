@@ -1025,13 +1025,13 @@ static const CSOUND cenviron_ = {
     /* this function returns an error value that may be worth checking */
     {
       int err = csoundLoadModules(p);
-#ifdef BETA
+/* #ifdef BETA */
       if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
         p->Warning(p, p->delayederrormessages);
         free(p->delayederrormessages);
         p->delayederrormessages = NULL;
       }
-#endif
+/* #endif */
       return err;
     }
   }

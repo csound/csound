@@ -231,7 +231,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     /* load library */
     err = csound->OpenLibrary(&h, libraryPath);
     if (err) {
-#ifdef BETA
+/* #ifdef BETA */
       char ERRSTR[256];
  #if defined(LINUX)
       sprintf(ERRSTR, Str("could not open library '%s' (%s)"),
@@ -251,15 +251,15 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         strcat(csound->delayederrormessages, "\nWARNING: ");
         strcat(csound->delayederrormessages, ERRSTR);
       }
-#else
- #if defined(LINUX)
-      csound->Warning(csound, Str("could not open library '%s' (%s)"),
-                      libraryPath, dlerror());
- #else
-      csound->Warning(csound, Str("could not open library '%s' (%d)"),
-                      libraryPath, err);
- #endif
-#endif
+/* #else */
+/*  #if defined(LINUX) */
+/*       csound->Warning(csound, Str("could not open library '%s' (%s)"), */
+/*                       libraryPath, dlerror()); */
+/*  #else */
+/*       csound->Warning(csound, Str("could not open library '%s' (%d)"), */
+/*                       libraryPath, err); */
+/*  #endif */
+/* #endif */
       return CSOUND_ERROR;
     }
     /* check if the library is compatible with this version of Csound */
