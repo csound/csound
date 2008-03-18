@@ -179,7 +179,7 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     return OK;
 }
 
-static OENTRY localops[] = 
+static OENTRY localops[] =
   {
     {"pvsdemix", sizeof(PVSDEMIX), 3, "f", "ffkki", (SUBR) pvsdemix_init, (SUBR) pvsdemix_process, (SUBR) NULL }
   };
@@ -187,6 +187,6 @@ static OENTRY localops[] =
 int pvsdemix_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-			       (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 

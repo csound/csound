@@ -296,7 +296,7 @@ int CsoundPerformanceThread::Perform()
         csoundNotifyThreadLock(pauseLock);
       }
       if(processcallback != NULL)
-	   processcallback(cdata);
+           processcallback(cdata);
       retval = csoundPerformKsmps(csound);
     } while (!retval);
  endOfPerf:
