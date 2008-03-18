@@ -1,3 +1,7 @@
+2008-03-18  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/Vosim.c: New file and opcode
+
 2008-03-16  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h: 5.08.2
