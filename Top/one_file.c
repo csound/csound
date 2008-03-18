@@ -138,7 +138,7 @@ static void alloc_globals(CSOUND *csound)
 {
     if (csound->oneFileGlobals == NULL) {
       csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS));
-      /* count lines from 0 so that it adds OK to orc/sco counts */ 
+      /* count lines from 0 so that it adds OK to orc/sco counts */
       ST(csdlinecount) = 0;
     }
 }
@@ -251,7 +251,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
           while (*p == ' ' || *p=='\t') p++;
 
           if (*p== '"') {
-            if (argc == CSD_MAX_ARGS) 
+            if (argc == CSD_MAX_ARGS)
               csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
                         CSD_MAX_ARGS);
             argv[++argc] = ++p;
@@ -279,7 +279,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
             my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf);
             p = ST(buffer); goto top;
           }
-          if (argc == CSD_MAX_ARGS) 
+          if (argc == CSD_MAX_ARGS)
             csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
                       CSD_MAX_ARGS);
           argv[++argc] = p;
@@ -299,14 +299,14 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         if (readingCsOptions)
           csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"),
                          ST(buffer));
-        else csoundErrorMsg(csound, 
+        else csoundErrorMsg(csound,
                          Str("Invalid arguments in .csoundrc or -@ file: %s"),
                          ST(buffer));
       }
       else argdecode(csound, argc, argv);
     }
-    if (readingCsOptions) 
-      csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));      
+    if (readingCsOptions)
+      csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
     return FALSE;
 }
 
@@ -338,7 +338,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
       }
       else fputs(ST(buffer), orcf);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
     return FALSE;
 }
 
@@ -371,7 +371,7 @@ static int createScore(CSOUND *csound, FILE *unf)
       }
       else fputs(ST(buffer), scof);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 }
 
@@ -411,7 +411,7 @@ static int createMIDI(CSOUND *csound, FILE *unf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsMidifile>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsMidifile>"));
     return FALSE;
 }
 
@@ -426,7 +426,7 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
         if (c == '\n') {               /* count lines */
           ++(ST(csdlinecount));
           c = getc(in);
-        } 
+        }
         else if (c == '\r') {
           ++(ST(csdlinecount));
           c = getc(in);
@@ -500,7 +500,7 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>"));
     return FALSE;
 }
 
@@ -534,7 +534,7 @@ static int createSample(CSOUND *csound, FILE *unf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>"));
     return FALSE;
 }
 
@@ -570,7 +570,7 @@ static int createFile(CSOUND *csound, FILE *unf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsFileB>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsFileB>"));
     return FALSE;
 }
 
@@ -610,7 +610,7 @@ static int checkVersion(CSOUND *csound, FILE *unf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsVersion>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsVersion>"));
     return FALSE;
 }
 
@@ -636,7 +636,7 @@ static int checkLicence(CSOUND *csound, FILE *unf)
       strncat(licence, p, len);
     }
     mfree(csound, licence);
-    csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));      
+    csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
     return FALSE;
 }
 
@@ -706,7 +706,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
           do {
             if (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf) == NULL) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));      
+              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
               result = FALSE;
               break;
             }

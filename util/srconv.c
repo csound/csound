@@ -280,6 +280,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'f':
             outformch = set_output_format(csound, c, outformch);
             break;
+#ifndef OLPC
           case 'R':
             O->rewrt_hdr = 1;
             break;
@@ -291,6 +292,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             }
             else O->heartbeat = 1;
             break;
+#endif
           case 'N':
             O->ringbell = 1;        /* notify on completion */
             break;
@@ -747,8 +749,10 @@ static const char *usage_txt[] = {
     "-f\tfloat sound samples",
     "-r N\torchestra srate override",
     "-K\tDo not generate PEAK chunks",
+#ifndef OLPC
     "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
     "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+#endif
     "-N\tnotify (ring the bell) when score or miditrack is done",
     "-- fnam\tlog output to file",
     NULL

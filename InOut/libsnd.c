@@ -175,6 +175,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (n < nbytes)
       sndwrterr(csound, n, nbytes);
+#ifndef OLPC
     if (O->rewrt_hdr)
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
@@ -200,6 +201,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
         break;
     }
+#endif
 }
 
 static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)

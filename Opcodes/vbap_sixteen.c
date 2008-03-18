@@ -28,6 +28,8 @@ functions specific to sixteen loudspeaker VBAP
 Ville Pulkki
 */
 
+#ifndef OLPC
+
 #include "csdl.h"
 #include "vbap.h"
 #include <math.h>
@@ -541,3 +543,4 @@ int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING *p)
     return OK;
 }
 
+#endif

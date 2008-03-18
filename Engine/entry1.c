@@ -558,15 +558,17 @@ OENTRY opcodlst_1[] = {
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
+#ifndef OLPC
 { "inh",    S(INH),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
 { "ino",    S(INO),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
 { "inx",    S(INALL),   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
 { "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                         "",     NULL,   NULL,   in32 },
+#endif
 { "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
+#ifndef OLPC
 { "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                         "",     NULL,   NULL,   inall_opcode },
-#ifndef OLPC
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***

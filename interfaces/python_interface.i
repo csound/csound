@@ -41,7 +41,6 @@
 %array_class(float, floatArray);
 %array_class(double, doubleArray)
 
-
 %feature("autodoc", "1");
 %{
     #include "csound.h"

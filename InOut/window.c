@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
-#include "winEPS.h"                             /* PostSCript routines  */
+/*#include "winEPS.h"                             /* PostSCript routines  */
 #include "namedins.h"                           /*  dpwe 16may90        */
 
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
@@ -93,10 +93,12 @@ void dispinit(CSOUND *csound)
       csound->csoundKillGraphCallback_ = DummyFn2;
     }
     else {
+#ifndef OLPC
       csound->Message(csound, Str("graphics %s, ascii substituted\n"),
                       ((O->graphsoff || O->postscript) ?
                        Str("suppressed")
                        : Str("not supported on this terminal")));
+#endif
       csound->csoundMakeGraphCallback_ = MakeAscii;
       csound->csoundDrawGraphCallback_ = DrawAscii;
       csound->csoundKillGraphCallback_ = KillAscii;
@@ -122,8 +124,10 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     if (!csound->oparms->displays) return;    /* return if displays disabled */
     if (!wdptr->windid) {   /* if no window defined for this str, create one */
       csound->csoundMakeGraphCallback_(csound, wdptr, label);
+#ifndef OLPC
       if (csound->oparms->postscript)
         PS_MakeGraph(csound, wdptr, label); /* open PS file + write header    */
+#endif
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
@@ -141,8 +145,10 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 int dispexit(CSOUND *csound)
 {
+#ifndef OLPC
     if (csound->oparms->postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
+#endif
     /* prompt for exit from last active window */
     return csound->csoundExitGraphCallback_(csound);
 }
@@ -180,7 +186,9 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
     /* Write postscript code */
+#ifndef OLPC
     if (csound->oparms->postscript)
       PS_DrawGraph(csound, wdptr);
+#endif
 }
 

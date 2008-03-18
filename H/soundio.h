@@ -95,7 +95,7 @@
 #  endif
 #  if HAVE_LIBSNDFILE >= 1018
 #    define TYP_WVE   (SF_FORMAT_WVE >> 16)
-#    define TYP_OGG   (SF_FORMAT_OGG >> 16)
+#    define TYP_OGG   (SF_FORMAT_OFF >> 16)
 #  endif
 #endif
 

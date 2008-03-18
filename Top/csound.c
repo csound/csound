@@ -394,7 +394,11 @@ static const CSOUND cenviron_ = {
         defaultCsoundMakeXYin,
         defaultCsoundReadKillXYin,
         defaultCsoundReadKillXYin,
+#ifdef OLPC
+        NULL,
+#else
         cscore_,        /*  cscoreCallback_     */
+#endif
         (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
         (SUBR) NULL,    /*  last_callback_      */
         /* these are not saved on RESET */
@@ -578,7 +582,12 @@ static const CSOUND cenviron_ = {
           0, 1, 1, 0,   /*    sfread, ...       */
           0, 0, 0, 0,   /*    inbufsamps, ...   */
           0,            /*    sfsampsize        */
-          1, 0, 0, 135, /*    displays, ...     */
+#ifdef OLPC
+          0,            /*    displays          */
+#else
+          1,            /*    displays          */
+#endif
+             0, 0, 135, /*    disp.. graphsoff ... */
           0, 0, 0,      /*    Beatmode, ...     */
           0, 0,         /*    usingcscore, ...  */
           0, 0, 0, 0,   /*    RTevents, ...     */
@@ -841,6 +850,10 @@ static const CSOUND cenviron_ = {
     return 0;
   }
 
+#ifdef OLPC
+  int initialise_rtalsa(CSOUND *csound);
+#endif
+
   PUBLIC CSOUND *csoundCreate(void *hostdata)
   {
     CSOUND        *csound;
@@ -910,12 +923,17 @@ static const CSOUND cenviron_ = {
     max_len = 21;
     csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(p, "_RTAUDIO");
+#ifdef OLPC
+    strcpy(s, "alsa");
+#else
     strcpy(s, "PortAudio");
+#endif
     csoundCreateConfigurationVariable(
         p, "rtaudio", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
         "Real time audio module name", NULL);
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
+#ifndef OLPC
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
     p->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
     p->midiGlobals->MidiReadCallback = DummyMidiRead;
@@ -930,9 +948,14 @@ static const CSOUND cenviron_ = {
     p->midiGlobals->midiOutFileData = NULL;
     p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
     p->midiGlobals->endatp = p->midiGlobals->bufp;
+#endif
     csoundCreateGlobalVariable(p, "_RTMIDI", (size_t) max_len);
     s = csoundQueryGlobalVariable(p, "_RTMIDI");
-    strcpy(s, "PortMIDI");
+#ifdef OLPC
+    strcpy(s, "alsa");
+#else
+    strcpy(s, "PortAudio");
+#endif
     csoundCreateConfigurationVariable(
         p, "rtmidi", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
         "Real time MIDI module name", NULL);
@@ -1538,11 +1561,23 @@ static const CSOUND cenviron_ = {
     midifile_rewind_score(csound);
   }
 
+#ifndef OLPC
   PUBLIC void csoundSetCscoreCallback(CSOUND *p,
                                       void (*cscoreCallback)(CSOUND *))
   {
     p->cscoreCallback_ = (cscoreCallback != NULL ? cscoreCallback : cscore_);
   }
+#else
+  PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE *insco, FILE *outsco)
+  {
+      return -2;
+  }
+  PUBLIC void csoundSetCscoreCallback(CSOUND *p,
+                                      void (*cscoreCallback)(CSOUND *))
+  {
+      return;
+  }
+#endif
 
   static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                            const char *format, va_list args)
@@ -2244,7 +2279,9 @@ static const CSOUND cenviron_ = {
     csoundDeleteAllConfigurationVariables(csound);
     csoundDeleteAllGlobalVariables(csound);
 
+#ifdef CSCORE
     cscoreRESET(csound);
+#endif
     tranRESET(csound);
 
     csound->oparms_.odebug = 0;
@@ -2964,7 +3001,7 @@ static const CSOUND cenviron_ = {
 #endif
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-    char        *msg = (char*) 0;
+    char        *msg = NULL;
 
     if (pp && pp->msgCnt) {
       csoundLockMutex(pp->mutex_);

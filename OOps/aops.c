@@ -969,6 +969,7 @@ int ins(CSOUND *csound, INS *p)
     return OK;
 }
 
+#ifndef OLPC
 int inq(CSOUND *csound, INQ *p)
 {
     MYFLT       *sp, *ar1, *ar2, *ar3, *ar4;
@@ -1066,6 +1067,7 @@ int in32(CSOUND *csound, INALL *p)
 {
     return inn(csound, p, 32);
 }
+#endif
 
 int inch_opcode(CSOUND *csound, INCH *p)
 {

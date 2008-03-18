@@ -67,7 +67,9 @@ int scale_process(CSOUND *csound, scale *p)
 
 int expcurve_perf(CSOUND *csound, expcurve *p)
 {
-    *p->kout = EXPCURVE(*p->kin, *p->ksteepness);
+    double ki = (double)*p->kin;
+    double ks = (double)*p->ksteepness;
+    *p->kout = EXPCURVE(ki, ks);
 
     return OK;
 }
@@ -76,7 +78,9 @@ int expcurve_perf(CSOUND *csound, expcurve *p)
 
 int logcurve_perf(CSOUND *csound, logcurve *p)
 {
-    *p->kout = LOGCURVE(*p->kin, *p->ksteepness);
+    double ki = (double)*p->kin;
+    double ks = (double)*p->ksteepness;
+    *p->kout = LOGCURVE(ki, ks);
 
     return OK;
 }

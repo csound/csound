@@ -27,26 +27,27 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int   err = 0;
 
+#ifndef OLPC
     err |= atsa_init_(csound);
-    err |= cvanal_init_(csound);
-    err |= dnoise_init_(csound);
     err |= envext_init_(csound);
     err |= het_export_init_(csound);
     err |= het_import_init_(csound);
-    err |= hetro_init_(csound);
-    err |= lpanal_init_(csound);
     err |= lpc_export_init_(csound);
     err |= lpc_import_init_(csound);
+    err |= pv_export_init_(csound);
+    err |= pv_import_init_(csound);
+#endif
+    err |= cvanal_init_(csound);
+    err |= dnoise_init_(csound);
+    err |= hetro_init_(csound);
+    err |= lpanal_init_(csound);
     err |= mixer_init_(csound);
     err |= pvanal_init_(csound);
     err |= pvlook_init_(csound);
-    err |= pv_export_init_(csound);
-    err |= pv_import_init_(csound);
     err |= scale_init_(csound);
     err |= sndinfo_init_(csound);
     err |= srconv_init_(csound);
     err |= xtrct_init_(csound);
-
     return err;
 }
 
