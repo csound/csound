@@ -741,7 +741,6 @@ if commonEnvironment['buildNewParser'] != '0':
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
-    libCsoundSources += newParserSources
 else:
     print 'CONFIGURATION DECISION: Not building with new parser'
 
@@ -1424,6 +1423,7 @@ if buildOLPC :
    oggEnvironment = pluginEnvironment.Copy()
    makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
    oggEnvironment.Append(LIBS=['vorbisfile'])
+makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
 
 if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
 	print 'CONFIGURATION DECISION: Building image opcodes'
@@ -2236,17 +2236,16 @@ else:
     Depends(csoundvst, csoundInterfaces)
     Depends(csoundvst, csoundLibrary)
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-if not buildOLPC:
-  if commonEnvironment['useDouble'] != '0':
-    csoundvstGui = guiProgramEnvironment.Program(
+    if commonEnvironment['useDouble'] != '0':
+      csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
         LIBS = Split('csound64 csnd CsoundVST'))
-  else:
-    csoundvstGui = guiProgramEnvironment.Program(
+    else:
+      csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
         LIBS = Split('csound32 csnd CsoundVST'))
-  executables.append(csoundvstGui)
-  Depends(csoundvstGui, csoundvst)
+    executables.append(csoundvstGui)
+    Depends(csoundvstGui, csoundvst)
 
 # Build csoundapi~ (pd class)
 
