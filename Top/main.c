@@ -312,7 +312,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
       new_orc_parser(csound);
-    } 
+    }
     else {
       otran(csound);                  /* read orcfile, setup desblks & spaces */
     }
@@ -360,7 +360,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
                           csound->scorename);
       if (!(xfile = fopen(csound->xfilename, "r")))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
-      csoundNotifyFileOpened(csound, csound->xfilename, 
+      csoundNotifyFileOpened(csound, csound->xfilename,
                                      CSFTYPE_EXTRACT_PARMS, 0, 0);
       if (!(scorin = fopen(sortedscore, "r")))
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);

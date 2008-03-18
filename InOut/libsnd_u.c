@@ -341,6 +341,10 @@ char *type2string(int x)
       case TYP_FLAC:  return "FLAC";
       case TYP_CAF:   return "CAF";
 #  endif
+#  if HAVE_LIBSNDFILE >= 1018
+      case TYP_WVE:   return "WVE";
+      case TYP_OGG:   return "OGG";
+#  endif
 #endif
       default:        return Str("unknown");
     }
@@ -411,6 +415,10 @@ int type2csfiletype(int type, int encoding)
 #  if HAVE_LIBSNDFILE >= 1013
       case TYP_FLAC:   return CSFTYPE_FLAC;
       case TYP_CAF:    return CSFTYPE_CAF;
+#  endif
+#  if HAVE_LIBSNDFILE >= 1018
+      case TYP_WVE:    return CSFTYPE_WVE;
+      case TYP_OGG:    return CSFTYPE_OGG;
 #  endif
 #endif
       default:         return CSFTYPE_UNKNOWN_AUDIO;

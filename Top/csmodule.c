@@ -121,6 +121,9 @@ static  const   char    *plugindir_envvar =   "OPCODEDIR";
 static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 
 /* default directory to load plugins from if environment variable is not set */
+#ifdef OLPC
+# define CS_DEFAULT_PLUGINDIR  "/usr/lib/csound/plugins"
+#else
 #if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
@@ -132,10 +135,11 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 #  ifndef CS_DEFAULT_PLUGINDIR
 #    ifndef USE_DOUBLE
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins"
-#    else
+#    Else
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
 #    endif
 #  endif
+#endif
 #endif
 
 typedef struct opcodeLibFunc_s {
@@ -190,7 +194,9 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       if (majorVersion != (int) CS_APIVERSION ||
           minorVersion > (int) CS_APISUBVER) {
         csound->Warning(csound, Str("not loading '%s' (incompatible "
-                                    "with this version of Csound)"), fname);
+                                    "with this version of Csound %(%d.%d/%d.%d)"),
+                        fname, majorVersion,minorVersion,
+                        CS_APIVERSION,CS_APISUBVER);
         return -1;
       }
     }
@@ -691,6 +697,7 @@ int csoundLoadModules(CSOUND *csound)
       if (csoundCheckOpcodePluginFile(csound, fname) != 0)
         continue;               /* skip file if marked for deferred loading */
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
+/*       printf("Loading: %s\n", buf); */
       n = csoundLoadExternal(csound, buf);
       if (n == CSOUND_ERROR)
         continue;               /* ignore non-plugin files */
@@ -698,6 +705,10 @@ int csoundLoadModules(CSOUND *csound)
         err = n;                /* record serious errors */
     }
     closedir(dir);
+#ifdef OLPC
+    initialise_rtalsa(csound);       /* Strange play but... */
+#endif
+
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
     return CSOUND_SUCCESS;

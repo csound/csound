@@ -103,7 +103,6 @@ static OENTRY localops[] = {
     (SUBR)mutexLock, NULL, NULL   },
   { (char*)"mutex_unlocki", S(OPCODE_MUTEX), 1, (char*)"", (char*)"i",
     (SUBR)mutexUnlock, NULL, NULL }
-
 };
 
 

@@ -28,6 +28,8 @@ functions specific to four loudspeaker VBAP
 Ville Pulkki
 */
 
+#ifndef OLPC
+
 #include "csdl.h"
 #include "vbap.h"
 #include <math.h>
@@ -544,3 +546,4 @@ int vbap_EIGHT_moving_init(CSOUND *csound, VBAP_EIGHT_MOVING *p)
     return OK;
 }
 
+#endif
