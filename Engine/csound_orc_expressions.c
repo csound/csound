@@ -175,7 +175,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
             sprintf(op, "cigoto");
             break;
         case T_ITHEN:
-	        sprintf(op, "cngoto");
+            sprintf(op, "cngoto");
             break;
         case T_THEN:
         case T_KTHEN:
@@ -201,13 +201,13 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode) {
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO TYPES LIKE IGOTO, ETC */
 TREE *create_simple_goto_token(CSOUND *csound, TREE *label) {
-	char* op = (char *)csound->Calloc(csound, 6);
-	sprintf(op, "kgoto");
+        char* op = (char *)csound->Calloc(csound, 6);
+        sprintf(op, "kgoto");
 
-	TREE * opTree = create_opcode_token(csound, op);
+        TREE * opTree = create_opcode_token(csound, op);
 
-	opTree->left = NULL;
-	opTree->right = label;
+        opTree->left = NULL;
+        opTree->right = label;
 
     return opTree;
 }
@@ -484,26 +484,26 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
 
 
 static TREE *create_synthetic_ident(CSOUND *csound, long count) {
-	char *label = (char *)csound->Calloc(csound, 20);
+        char *label = (char *)csound->Calloc(csound, 20);
 
-	sprintf(label, "__synthetic_%ld", count);
+        sprintf(label, "__synthetic_%ld", count);
 
-	csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
+        csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
 
-	ORCTOKEN *token = make_token(csound, label);
-	token->type = T_IDENT;
+        ORCTOKEN *token = make_token(csound, label);
+        token->type = T_IDENT;
 
-	return make_leaf(csound, T_IDENT, token);
+        return make_leaf(csound, T_IDENT, token);
 }
 
 static TREE *create_synthetic_label(CSOUND *csound, long count) {
-	char *label = (char *)csound->Calloc(csound, 20);
+        char *label = (char *)csound->Calloc(csound, 20);
 
-	sprintf(label, "__synthetic_%ld:", count);
+        sprintf(label, "__synthetic_%ld:", count);
 
-	csound->Message(csound, "Creating Synthetic label: %s\n", label);
+        csound->Message(csound, "Creating Synthetic label: %s\n", label);
 
-	return make_leaf(csound, T_LABEL, make_label(csound, label));
+        return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
 
 /* Expands expression nodes into opcode calls
@@ -529,7 +529,7 @@ static TREE *create_synthetic_label(CSOUND *csound, long count) {
  * */
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
-	long labelCounter = 300L;
+        long labelCounter = 300L;
 
     TREE *anchor = NULL;
     TREE * expressionNodes = NULL;
@@ -602,7 +602,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                     int endLabelCounter = -1;
 
                     if(right->next != NULL) {
-                    	endLabelCounter = labelCounter++;
+                        endLabelCounter = labelCounter++;
                     }
 
                     TREE *tempLeft;
@@ -614,105 +614,105 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
                     while(ifBlockCurrent != NULL) {
 
-                    	tempLeft = ifBlockCurrent->left;
-                    	tempRight = ifBlockCurrent->right;
+                        tempLeft = ifBlockCurrent->left;
+                        tempRight = ifBlockCurrent->right;
 
-                    	if(ifBlockCurrent->type == T_ELSE) {
+                        if(ifBlockCurrent->type == T_ELSE) {
 
-                    		ifBlockLast->next = ifBlockCurrent->right;
+                                ifBlockLast->next = ifBlockCurrent->right;
 
-                    		while(ifBlockLast->next != NULL) {
-                    			ifBlockLast = ifBlockLast->next;
-                    		}
+                                while(ifBlockLast->next != NULL) {
+                                        ifBlockLast = ifBlockLast->next;
+                                }
 
-                    		break;
-                    	}
+                                break;
+                        }
 
-                    	expressionNodes = create_boolean_expression(csound, tempLeft);
+                        expressionNodes = create_boolean_expression(csound, tempLeft);
 
-	                    /* print_tree(csound, expressionNodes); */
+                            /* print_tree(csound, expressionNodes); */
 
-	                    /* Set as anchor if necessary */
-	                    if(ifBlockStart == NULL) {
-	                    	ifBlockStart = expressionNodes;
-	                    }
+                            /* Set as anchor if necessary */
+                            if(ifBlockStart == NULL) {
+                                ifBlockStart = expressionNodes;
+                            }
 
-	                    /* reconnect into chain */
-	                    TREE* last = expressionNodes;
+                            /* reconnect into chain */
+                            TREE* last = expressionNodes;
 
-	                    while(last->next != NULL) {
-	                        last = last->next;
-	                    }
+                            while(last->next != NULL) {
+                                last = last->next;
+                            }
 
-	                    if(ifBlockLast != NULL) {
-	                        ifBlockLast->next = expressionNodes;
-	                    }
+                            if(ifBlockLast != NULL) {
+                                ifBlockLast->next = expressionNodes;
+                            }
 
-	                    TREE *statements = tempRight->right;
+                            TREE *statements = tempRight->right;
 
-	                    TREE *label = create_synthetic_ident(csound, labelCounter);
-	                    TREE *labelEnd = create_synthetic_label(csound, labelCounter++);
+                            TREE *label = create_synthetic_ident(csound, labelCounter);
+                            TREE *labelEnd = create_synthetic_label(csound, labelCounter++);
 
-	                    tempRight->right = label;
+                            tempRight->right = label;
 
-	                    TREE * gotoToken = create_goto_token(csound,
-	                        expressionNodes->left->value->lexeme, tempRight);
+                            TREE * gotoToken = create_goto_token(csound,
+                                expressionNodes->left->value->lexeme, tempRight);
 
-	                    /* relinking */
-	                    last->next = gotoToken;
-	                    gotoToken->next = statements;
+                            /* relinking */
+                            last->next = gotoToken;
+                            gotoToken->next = statements;
 
-	                    while(statements->next != NULL) {
-	                    	statements = statements->next;
-	                    }
+                            while(statements->next != NULL) {
+                                statements = statements->next;
+                            }
 
-	                    if(endLabelCounter > 0) {
-	                    	TREE *endLabel = create_synthetic_ident(csound,
-	                    			endLabelCounter);
+                            if(endLabelCounter > 0) {
+                                TREE *endLabel = create_synthetic_ident(csound,
+                                                endLabelCounter);
 
-	                    	csound->Message(csound, "Creating simple goto token\n");
+                                csound->Message(csound, "Creating simple goto token\n");
 
-	                    	TREE *gotoEndLabelToken = create_simple_goto_token(csound,
-	    	                        endLabel);
+                                TREE *gotoEndLabelToken = create_simple_goto_token(csound,
+                                        endLabel);
 
-	                    	statements->next = gotoEndLabelToken;
-	                    	gotoEndLabelToken->next = labelEnd;
-	                    } else {
-	                    	statements->next = labelEnd;
-	                    }
+                                statements->next = gotoEndLabelToken;
+                                gotoEndLabelToken->next = labelEnd;
+                            } else {
+                                statements->next = labelEnd;
+                            }
 
-	                    ifBlockLast = labelEnd;
+                            ifBlockLast = labelEnd;
 
-	                    ifBlockCurrent = tempRight->next;
+                            ifBlockCurrent = tempRight->next;
 
                     }
 
 
-					if(endLabelCounter > 0) {
-						TREE *endLabel = create_synthetic_label(csound,
-							                    			endLabelCounter);
-						endLabel->next = ifBlockLast->next;
-						ifBlockLast->next = endLabel;
-						ifBlockLast = endLabel;
-					}
+                                        if(endLabelCounter > 0) {
+                                                TREE *endLabel = create_synthetic_label(csound,
+                                                                                                endLabelCounter);
+                                                endLabel->next = ifBlockLast->next;
+                                                ifBlockLast->next = endLabel;
+                                                ifBlockLast = endLabel;
+                                        }
 
-					ifBlockLast->next = current->next;
+                                        ifBlockLast->next = current->next;
 
-					/* Connect in all of the TREE nodes that were flattened from
-					 * the if-else-else block
-					 */
-					/* Set as anchor if necessary */
-					if(anchor == NULL) {
-						anchor = ifBlockStart;
-					}
+                                        /* Connect in all of the TREE nodes that were flattened from
+                                         * the if-else-else block
+                                         */
+                                        /* Set as anchor if necessary */
+                                        if(anchor == NULL) {
+                                                anchor = ifBlockStart;
+                                        }
 
-					/* reconnect into chain */
+                                        /* reconnect into chain */
 
-					if(previous != NULL) {
-					    previous->next = ifBlockStart;
-					}
+                                        if(previous != NULL) {
+                                            previous->next = ifBlockStart;
+                                        }
 
-					current = ifBlockStart;
+                                        current = ifBlockStart;
 
                 } else {
                     csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
