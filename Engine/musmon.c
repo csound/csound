@@ -29,6 +29,9 @@
 #include "oload.h"
 #include "remote.h"
 #include <math.h>
+#ifndef OLPC
+# include "cscore.h"
+#endif
 
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
@@ -59,7 +62,7 @@ typedef struct {
     short   sectno;
     int     lplayed;
     int     segamps, sormsg;
-#ifdef CSCORE
+#ifndef OLPC
     EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
     EVENT   *lsect;
 #endif
@@ -281,7 +284,7 @@ int musmon(CSOUND *csound)
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, O->playscore, CSFTYPE_SCORE_OUT, 0,
                              (csound->tempStatus & csPlayScoMask)!=0);
-#ifdef CSCORE
+#ifndef OLPC
     if (O->usingcscore) {
       if (ST(lsect) == NULL) {
         ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
@@ -443,7 +446,7 @@ void cs_beep(CSOUND *csound)
 #endif
 }
 
-#ifdef CSCORE
+#ifndef OLPC
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
     if (csound->musmonGlobals == NULL)
@@ -868,7 +871,7 @@ int sensevents(CSOUND *csound)
       }
       else {
         /* else read next score event */
-#ifdef CSCORE
+#ifndef OLPC
         if (O->usingcscore) {           /*    get next lplay event      */
           /* FIXME: this may be non-portable */
           if (ST(ep) < ST(epend))                       /* nxt event    */

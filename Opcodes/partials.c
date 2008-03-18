@@ -133,7 +133,7 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     memset(p->tstart.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->lastpk.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->cflag.auxp, 0, sizeof(int) * maxtracks);
-    memset(p->fout->frame.auxp, 0,sizeof(float) * numbins * 4); 
+    memset(p->fout->frame.auxp, 0,sizeof(float) * numbins * 4);
     memset(p->mags.auxp, 0,sizeof(MYFLT) * numbins );
     memset(p->lmags.auxp, 0,sizeof(double) * numbins );
     memset(p->magex.auxp, 0,sizeof(MYFLT) * numbins );
@@ -443,7 +443,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
     return OK;
 }
 
-static OENTRY localops[] = 
+static OENTRY localops[] =
   {
     { "partials", sizeof(_PARTS), 3, "f", "ffkkki", (SUBR) partials_init, (SUBR) partials_process }
   };
@@ -451,6 +451,6 @@ static OENTRY localops[] =
 int partials_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-			       (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 

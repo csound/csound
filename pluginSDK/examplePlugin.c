@@ -38,15 +38,15 @@ typedef struct {
 } AVAR_SET;
 
 static int avar_get(CSOUND *csound, AVAR_GET *p) {
-	long ndx = (long) FLOOR((double)*p->kindx);
-	*p->kout = *(p->avar + ndx);
-	return OK;
+        long ndx = (long) FLOOR((double)*p->kindx);
+        *p->kout = *(p->avar + ndx);
+        return OK;
 }
 
 static int avar_set(CSOUND *csound, AVAR_SET *p) {
-	long ndx = (long) FLOOR((double)*p->kindx);
-	*(p->avar + ndx) = *p->kval;
-	return OK;
+        long ndx = (long) FLOOR((double)*p->kindx);
+        *(p->avar + ndx) = *p->kval;
+        return OK;
 }
 
 #define S(x)    sizeof(x)

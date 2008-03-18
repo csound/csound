@@ -249,7 +249,7 @@ static int ifd_process(CSOUND * csound, _IFD * p)
     return OK;
 }
 
-static OENTRY localops[] = 
+static OENTRY localops[] =
   {
     { "pvsifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0, (SUBR) ifd_process}
   };
@@ -257,6 +257,6 @@ static OENTRY localops[] =
 int ifd_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-			       (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 
