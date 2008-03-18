@@ -317,7 +317,7 @@ typedef struct {
 } INRANGE;
 
 /* extern       MYFLT   *spin, *spout; */
-/* extern    int spoutactive, PortaudioNumOfInPorts; /* gab default, = nchnls */ */
+/* extern    int spoutactive, PortaudioNumOfInPorts; gab default, = nchnls */
 
 static int inRange_i(CSOUND *csound, INRANGE *p)
 {
