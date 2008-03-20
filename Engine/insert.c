@@ -288,10 +288,6 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->prvact = prvp;
     prvp->nxtact = ip;
     ip->actflg++;                         /* and mark the instr active */
-    if (tp->pmax > 3 && tp->psetdata == NULL) {
-      csoundWarning(csound, Str("instr %d p%d illegal for MIDI"),
-                            insno, tp->pmax);
-    }
     ip->m_chnbp = chn;                    /* rec address of chnl ctrl blk */
     ip->m_pitch = (unsigned char) mep->dat1;    /* rec MIDI data   */
     ip->m_veloc = (unsigned char) mep->dat2;
