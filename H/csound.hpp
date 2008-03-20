@@ -31,6 +31,15 @@
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
 
+#ifdef SWIGPYTHON
+#define MESSAGE_BUFFER_LENGTH 8192
+struct PUBLIC pycbdata {
+  PyObject *mfunc;
+  char messageBuffer[MESSAGE_BUFFER_LENGTH];
+  int messageBufferIndex;
+};
+#endif
+
 #ifdef SWIG
 %module csnd
 %{
@@ -54,6 +63,11 @@ class PUBLIC Csound
 {
 protected:
   CSOUND *csound;
+#ifdef SWIGPYTHON
+ public:
+  pycbdata *pydata;
+#endif
+
 
 public:
   virtual CSOUND *GetCsound()
@@ -757,15 +771,32 @@ public:
   Csound()
   {
     csound = csoundCreate((CSOUND*) 0);
+    #ifdef SWIGPYTHON
+    pydata = new pycbdata;
+    pydata->mfunc = NULL;
+    pydata->messageBufferIndex = 0;
+    csoundSetHostData(csound, this);
+    #endif
   }
   Csound(void *hostData)
   {
     csound = csoundCreate(hostData);
+    #ifdef SWIGPYTHON
+    pydata = new pycbdata;
+    pydata->mfunc = NULL;
+    pydata->messageBufferIndex = 0;
+    csoundSetHostData(csound, this);
+    #endif
   }
   // destructor
   virtual ~Csound()
   {
     csoundDestroy(csound);
+    #ifdef SWIGPYTHON
+    pydata->mfunc = NULL;
+    delete pydata;
+    #endif
+    
   }
   // Functions for embedding.
 //#ifdef __BUILDING_CSOUND_INTERFACES
