@@ -107,57 +107,46 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 
     PyObject *res;
     int i=0;
-    CSOUND *p = in; 
-    PyThreadState **tstate = (PyThreadState **) csoundQueryGlobalVariable(p,"::tstate");
-    PyObject **pyfunc = (PyObject **) csoundQueryGlobalVariable(p,"::pyfunc"), *arg;
-    
-    char *mbuf = new char[strlen(format)*10];
-    if(*tstate == NULL)
-        *tstate = PyThreadState_New(PyInterpreterState_New()); 
-    PyEval_AcquireThread(*tstate); 
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    PyObject *pyfunc = p->pydata->mfunc, *arg;    
+    char *mbuf = new char[strlen(format)*10], *ch;
     vsprintf(mbuf, format, valist);
-    // attempt to remove some of the newlines
-    while(mbuf[i] != '\0') i++; mbuf[i-1] = '\0';
+    if(ch = strrchr(mbuf, '\n')) *ch = '\0';
+    if (strlen(mbuf) > 1){
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
     arg = Py_BuildValue("(s)", mbuf); 
-    res =  PyEval_CallObject(*pyfunc, arg);
+    res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
-     PyErr_SetString(PyExc_TypeError, "Exception in callback");
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else Py_DECREF(res);
+   PyGILState_Release(gst);
     }
-    else Py_DECREF(res);    
-
-   PyEval_ReleaseThread(*tstate);
    delete[] mbuf;
 }
 %}
 
 %include "csound.h"
 %include "cfgvar.h"
-
 %apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
 %apply MYFLT &OUTPUT { MYFLT &value };
 
+
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
 %include "csound.hpp"
+
 %extend Csound {
-   void SetPythonMessageCallback(PyObject *pyfunc){
-     // thread safety mechanism   
-     PyEval_InitThreads();
-     PyObject **p, *arg;
-     PyThreadState **tstate;
-     // Py_XDECREF(pyfunc);  
-     self->CreateGlobalVariable("::pyfunc", sizeof(PyObject *));
-     self->CreateGlobalVariable("::tstate", sizeof(PyThreadState *));
-     p = (PyObject **) self->QueryGlobalVariable("::pyfunc");
-     *p = pyfunc;
-     arg = Py_BuildValue("(s)", "Message Callback set\n"); 
-     PyEval_CallObject(pyfunc, arg);
-     tstate = (PyThreadState **) self->QueryGlobalVariable("::tstate");
-     *tstate = NULL;     
-     self->SetMessageCallback(PythonMessageCallback);
-     Py_XINCREF(pyfunc); 
-}
+ void SetPythonMessageCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    if(self->pydata->mfunc == NULL)  
+        PyEval_InitThreads();
+    else Py_XDECREF(self->pydata->mfunc);
+        self->pydata->mfunc = pyfunc;
+        self->SetMessageCallback(PythonMessageCallback);
+        Py_XINCREF(pyfunc); 
 }
 
+}
 %clear MYFLT &dflt;
 %clear MYFLT &min;
 %clear MYFLT &max;
@@ -171,15 +160,14 @@ static void PythonCallback(void *p){
 
     PyObject *res;
     CsoundPerformanceThread *t = (CsoundPerformanceThread *) p;
-    if(t->_tstate == NULL)
-        t->_tstate = PyThreadState_New(PyInterpreterState_New()); 
-    PyEval_AcquireThread(t->_tstate);    
+    PyGILState_STATE stat = PyGILState_Ensure();    
     res = PyEval_CallObject(t->pydata.func, t->pydata.data);
     if (res == NULL){
     PyErr_SetString(PyExc_TypeError, "Exception in callback");
      }
     else Py_DECREF(res);    
-   PyEval_ReleaseThread(t->_tstate);
+    PyGILState_Release(stat);
+   
 }
 %}
 
@@ -194,7 +182,6 @@ static void PythonCallback(void *p){
    void SetProcessCallback(PyObject *pyfunc, PyObject *p){
     if(self->GetProcessCallback() == NULL) {
        PyEval_InitThreads();
-       self->_tstate = NULL;
      }
      else Py_XDECREF(self->pydata.func);  
     self->pydata.func = pyfunc;
@@ -203,6 +190,8 @@ static void PythonCallback(void *p){
     Py_XINCREF(pyfunc);
 
   }
+ 
+ 
 }
 
 //#ifndef MACOSX

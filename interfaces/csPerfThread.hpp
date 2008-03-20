@@ -60,13 +60,14 @@ class PUBLIC CsoundPerformanceThread {
     int     paused;
     int     status;
     void *    cdata;
+    int  running;
     // --------
     int  Perform();
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
     void (*processcallback)(void *cdata);
  public:
-
+    int isRunning() { return running;}
 #ifdef SWIGPYTHON
   PyThreadState *_tstate;
   pycallbackdata pydata;
