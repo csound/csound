@@ -49,6 +49,7 @@ void SPECset(CSOUND *p, SPECDAT *specdp, long npts)
     specdp->npts = npts;
 }
 
+#ifndef OLPC
 static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
 int spectset(CSOUND *csound, SPECTRUM *p)
@@ -1200,10 +1201,12 @@ int specfilt(CSOUND *csound, SPECFILT *p)
     }
     return OK;
 }
+#endif
 
 #define S       sizeof
 
 static OENTRY localops[] = {
+#ifndef OLPC
 { "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
@@ -1215,6 +1218,7 @@ static OENTRY localops[] = {
                                              (SUBR)sptrkset,NULL,(SUBR)specptrk},
 { "specsum",  S(SPECSUM), 5, "k",  "wo",   (SUBR)spsumset,NULL,  (SUBR)specsum },
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
+#endif
 { "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo",
                                              (SUBR)pitchset, NULL, (SUBR)pitch },
 { "maca", S(SUM),        5,  "a", "y",    (SUBR)macset,      NULL, (SUBR)maca  },
