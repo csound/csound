@@ -52,7 +52,7 @@
 !define WriteEnvStr_RegKey 'HKCU "Environment"'
 !endif
 
-!define PYTHON_VERSION 2.5
+!define PYTHON_VERSION 2.6
 
 !define MUI_ABORTWARNING
 
@@ -91,7 +91,7 @@ Function GetPython
 	ReadRegStr $1 HKLM $3 ""
   	IfErrors tryToInstallPython enablePython
 tryToInstallPython:
-	MessageBox MB_YESNO "Python ${PYTHON_VERSION} is not installed. Abort installation so you can install Python ${PYTHON_VERSION}? Otherwise, Python features are disabled." IDYES installPython IDNO disablePython
+	MessageBox MB_OKCANCEL "You don't have Python ${PYTHON_VERSION} installed. Continue installing Csound without Python features (OK), or quit installing Csound so you can install Python first (Cancel)?" IDOK disablePython IDCANCEL installPython
 installPython:
    	Abort 
 enablePython:
@@ -486,8 +486,14 @@ Section "${PRODUCT}" SecCopyUI
 	# First we do output paths for non-Python stuff.
 	SetOutPath $INSTDIR\bin\Microsoft.VC90.CRT
 	File U:\msvc2008\VC\redist\x86\Microsoft.VC90.CRT\*
+
+	# Outputs to root installation directory.
+
   	SetOutPath $INSTDIR
+	# Exclude junk soundfiles.
 	File /nonfatal /x test ..\..\test
+	# Exclude all Python stuff. We will install it later, perhaps.
+	File /nonfatal /x  ..\..\*.pyd  ..\..\csnd.dll  ..\..\csnd.py  ..\..\CsoundAC.dll  ..\..\CsoundAC.py  ..\..\py.dll 
 !ifdef NONFREE
 	File ..\..\readme-csound5-complete.txt
 !else
@@ -495,6 +501,9 @@ Section "${PRODUCT}" SecCopyUI
 !endif
 	File ..\..\etc\.csoundrc
   	File ..\..\INSTALL
+
+	# Outputs to bin directory.
+
   	SetOutPath $INSTDIR\bin
 !ifdef FLOAT
 	File ..\..\csound32.dll.5.1
@@ -591,14 +600,10 @@ Section "${PRODUCT}" SecCopyUI
   	SetOutPath $INSTDIR\samples
   	File /r ..\..\samples\*
 	File /r ..\..\Opcodes\stk\rawwaves\*.raw
-	# Then we do output paths for Python stuff.
-	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\bin
-	File ..\..\_CsoundAC.pyd
-	File ..\..\CsoundAC.py
-	FILE ..\..\_csnd.pyd
-	File ..\..\csnd.py
 	File ..\..\CompositionBase.py
+
 	# Then we do opcodes, which are a special case with respect to Python and non-free software.
+
 	SetOutPath $INSTDIR\${OPCODEDIR_VAL}
 	File ..\..\rtpa.dll
 	File ..\..\rtpa.dll
@@ -610,6 +615,7 @@ Section "${PRODUCT}" SecCopyUI
 	/x portaudio*.dll* \
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
+	/x py.dll \
 	/x pm_midi.dll \
 	..\..\*.dll \
 	..\..\frontends\csladspa\csladspa.dll
@@ -622,11 +628,18 @@ Section "${PRODUCT}" SecCopyUI
 	/x portaudio.dll* \
 	/x tclcsound.dll \
 	/x csoundapi~.dll \
+	/x py.dll \
 	/x pm_midi.dll \
 	..\..\*.dll \
 	..\..\frontends\csladspa\csladspa.dll
 !endif
+	DetailPrint "Python executables."
+	
+  	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\bin
+	File ..\..\_CsoundAC.pyd  ..\..\CsoundAC.py  ..\..\_csnd.pyd  ..\..\csnd.py
+
 	DetailPrint "Python opcodes."
+
 	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\${OPCODEDIR_VAL}
 	File ..\..\py.dll \
 
