@@ -2175,11 +2175,12 @@ else:
         counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound64'))
+        zipDependencies.append(counterpoint)
     else:
         counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound32'))
-    zipDependencies.append(counterpoint)
+        zipDependencies.append(counterpoint)
 
 # Build CsoundVST
 
