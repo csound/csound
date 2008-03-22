@@ -1598,7 +1598,6 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
         portMidiEnvironment.Append(LIBS = csoundWindowsLibraries)
-        portMidiEnvironment.Append(LIBS = ['bufferoverflowu'])
     if getPlatform() == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])

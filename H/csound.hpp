@@ -63,11 +63,8 @@ class PUBLIC Csound
 {
 protected:
   CSOUND *csound;
-#ifdef SWIGPYTHON
- public:
-  pycbdata *pydata;
-#endif
-
+public:
+  void *pydata;
 
 public:
   virtual CSOUND *GetCsound()
@@ -771,20 +768,20 @@ public:
   Csound()
   {
     csound = csoundCreate((CSOUND*) 0);
-    #ifdef SWIGPYTHON
+    /*   #ifdef SWIGPYTHON
     pydata = new pycbdata;
     pydata->mfunc = NULL;
     pydata->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
-    #endif
+    #endif*/
   }
   Csound(void *hostData)
   {
     csound = csoundCreate(hostData);
     #ifdef SWIGPYTHON
-    pydata = new pycbdata;
-    pydata->mfunc = NULL;
-    pydata->messageBufferIndex = 0;
+    pydata =(pycbdata *) new pycbdata;
+    ((pycbdata *)pydata)->mfunc = NULL;
+    ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
     #endif
   }
@@ -793,8 +790,8 @@ public:
   {
     csoundDestroy(csound);
     #ifdef SWIGPYTHON
-    pydata->mfunc = NULL;
-    delete pydata;
+    ((pycbdata *)pydata)->mfunc = NULL;
+    delete (pycbdata *)pydata;
     #endif
     
   }
