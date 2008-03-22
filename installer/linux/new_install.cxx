@@ -186,6 +186,10 @@ int main(void)
     p = strchr(lib, '\n');
     if (p != lib)
       *p = '\0';
+    fgets(lib, 256, defs);
+    p = strchr(loc, '\n');
+    if (p != lib)
+      *p = '\0';
     fgets(envy, 256, defs);
     p = strchr(envy, '\n');
     if (p != envy)
