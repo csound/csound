@@ -10,6 +10,7 @@ csound = csnd.CppSound()
 # Enables CppSound to print to Python's console output.
 csound.setPythonMessageCallback()
 # Set the Csound file.
+print "OK"
 csound.setCSD('''
 <CsoundSynthesizer>
 <CsOptions>

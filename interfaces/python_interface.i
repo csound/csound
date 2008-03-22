@@ -106,9 +106,9 @@ static void PythonMessageCallback(CSOUND *in, int attr,
                                      const char *format, va_list valist){
 
     PyObject *res;
-    int i=0;
     Csound *p = (Csound *) csoundGetHostData(in); 
-    PyObject *pyfunc = p->pydata->mfunc, *arg;    
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->mfunc, *arg;    
     char *mbuf = new char[strlen(format)*10], *ch;
     vsprintf(mbuf, format, valist);
     if(ch = strrchr(mbuf, '\n')) *ch = '\0';
@@ -126,6 +126,7 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 }
 %}
 
+
 %include "csound.h"
 %include "cfgvar.h"
 %apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
@@ -136,12 +137,13 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 %include "csound.hpp"
 
 %extend Csound {
- void SetPythonMessageCallback(PyObject *pyfunc){
+  void SetPythonMessageCallback(PyObject *pyfunc){
      // thread safety mechanism 
-    if(self->pydata->mfunc == NULL)  
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->mfunc == NULL)  
         PyEval_InitThreads();
-    else Py_XDECREF(self->pydata->mfunc);
-        self->pydata->mfunc = pyfunc;
+    else Py_XDECREF(pydata->mfunc);
+        pydata->mfunc = pyfunc;
         self->SetMessageCallback(PythonMessageCallback);
         Py_XINCREF(pyfunc); 
 }
