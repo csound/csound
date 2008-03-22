@@ -31,6 +31,7 @@
 #define FZERO   (FL(0.0))
 #define LOGTWO  (0.69314718056)
 
+#ifndef OLPC
 void DOWNset(CSOUND *p, DOWNDAT *downdp, long npts)
 {
     long nbytes = npts * sizeof(MYFLT);
