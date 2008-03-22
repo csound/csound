@@ -5,8 +5,10 @@ Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
-BuildRoot: /home/jpff/Sourceforge/OLPC/__package
-Source: /home/jpff/Sourceforge/OLPC/csound5
+BuildRoot: /home/victor/csoundxo/__package
+Source: /home/victor/csoundxo/csound5
+# set this to match the source directory above
+%define csdir /home/victor/csoundxo/csound5
 
 %description
 Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient...
@@ -55,8 +57,8 @@ rm -Rf "$RPM_BUILD_ROOT"
 %build
 mkdir -p -m 0755 "$RPM_BUILD_ROOT"
 cd "$RPM_BUILD_ROOT"
-cp -aiR /home/jpff/Sourceforge/OLPC/csound5/custom.py /home/jpff/Sourceforge/OLPC/csound5/AUTHORS /home/jpff/Sourceforge/OLPC/csound5/COPYING /home/jpff/Sourceforge/OLPC/csound5/ChangeLog /home/jpff/Sourceforge/OLPC/csound5/Engine /home/jpff/Sourceforge/OLPC/csound5/H /home/jpff/Sourceforge/OLPC/csound5/INSTALL /home/jpff/Sourceforge/OLPC/csound5/InOut/ /home/jpff/Sourceforge/OLPC/csound5/OOps/ /home/jpff/Sourceforge/OLPC/csound5/Opcodes/ /home/jpff/Sourceforge/OLPC/csound5/SDIF/ .
-cp -aiR /home/jpff/Sourceforge/OLPC/csound5/SConstruct /home/jpff/Sourceforge/OLPC/csound5/Top/ /home/jpff/Sourceforge/OLPC/csound5/anal/ /home/jpff/Sourceforge/OLPC/csound5/frontends/ /home/jpff/Sourceforge/OLPC/csound5/interfaces/ /home/jpff/Sourceforge/OLPC/csound5/po/ /home/jpff/Sourceforge/OLPC/csound5/readme-csound5.txt /home/jpff/Sourceforge/OLPC/csound5/util .
+cp -aiR %{csdir}/custom.py %{csdir}/AUTHORS %{csdir}/COPYING %{csdir}/ChangeLog %{csdir}/Engine %{csdir}/H %{csdir}/INSTALL %{csdir}/InOut/ %{csdir}/OOps/ %{csdir}/Opcodes/ %{csdir}/SDIF/ .
+cp -aiR %{csdir}/SConstruct %{csdir}/Top/  %{csdir}/frontends/ %{csdir}/interfaces/ %{csdir}/po/ %{csdir}/readme-csound5.txt %{csdir}/util .
 scons buildOLPC=1 gcc3opt=i686
 
 %install
@@ -104,7 +106,7 @@ mv ./COPYING $RPM_BUILD_ROOT/usr/share/doc/csound/COPYING
 mv ./INSTALL $RPM_BUILD_ROOT/usr/share/doc/csound/INSTALL
 mv ./readme-csound5.txt $RPM_BUILD_ROOT/usr/share/doc/csound/readme-csound5.txt
 cp /usr/lib/liblo.so.0.6.0 $RPM_BUILD_ROOT/usr/lib
-rm -rf AUTHORS COPYING ChangeLog Engine/ H/ INSTALL InOut/ OOps/ Opcodes/ SConstruct Top/ anal/ frontends/ interfaces/ po/ readme-csound5.txt util
+rm -rf AUTHORS COPYING ChangeLog Engine/ H/ INSTALL InOut/ OOps/ Opcodes/ SConstruct Top/ frontends/ interfaces/ po/ readme-csound5.txt util
 rm -rf .sconf_temp .sconsign.dblite config.log custom.py envext SDIF
 
 %clean
@@ -162,6 +164,7 @@ ln -s /usr/lib/liblo.so.0 /usr/lib /usr/lib/liblo.so
 /usr/lib/csound/plugins/libudpsend.so
 /usr/lib/csound/plugins/libugakbari.so
 /usr/lib/csound/plugins/libvaops.so
+/usr/lib/csound/plugins/libvosim.so
 /usr/lib/libcsound.so.5.1
 /usr/lib/libcsnd.so.5.1
 /usr/lib/liblo.so.0.6.0
