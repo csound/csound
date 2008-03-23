@@ -7,8 +7,8 @@ URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
 BuildRoot: /home/victor/csoundxo/__package
-Source: /home/victor/csoundxo/csound%version.tar.gz
-# set this to match the source directory above
+Source: csound%version.tar.gz
+# set this to match your Csound5 source directory above
 %define csdir /home/victor/csoundxo/csound5
 
 %description
