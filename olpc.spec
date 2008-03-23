@@ -1,7 +1,7 @@
 Summary: Csound - sound synthesis language and library
 Name: csound
-Version: 5.08.91
 %define version 5.08.91
+Version: %version
 Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
@@ -61,7 +61,7 @@ cd "$RPM_BUILD_ROOT"
 cp -aiR %{csdir}/custom.py %{csdir}/AUTHORS %{csdir}/COPYING %{csdir}/ChangeLog %{csdir}/Engine %{csdir}/H %{csdir}/INSTALL %{csdir}/InOut/ %{csdir}/OOps/ %{csdir}/Opcodes/ %{csdir}/SDIF/ .
 cp -aiR %{csdir}/SConstruct %{csdir}/Top/  %{csdir}/frontends/ %{csdir}/interfaces/ %{csdir}/po/ %{csdir}/readme-csound5.txt %{csdir}/util .
 tar cf "$RPM_SOURCE_DIR"/csound%{version}.tar ../csound5
-gzip  "$RPM_SOURCE_DIR"/csound%{version}.tar 
+gzip -f "$RPM_SOURCE_DIR"/csound%{version}.tar 
 scons buildOLPC=1 gcc3opt=i386 useJack=0
 
 
