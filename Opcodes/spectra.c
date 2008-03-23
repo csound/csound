@@ -31,7 +31,6 @@
 #define FZERO   (FL(0.0))
 #define LOGTWO  (0.69314718056)
 
-#ifndef OLPC
 void DOWNset(CSOUND *p, DOWNDAT *downdp, long npts)
 {
     long nbytes = npts * sizeof(MYFLT);
@@ -49,8 +48,8 @@ void SPECset(CSOUND *p, SPECDAT *specdp, long npts)
       p->AuxAlloc(p, nbytes, &specdp->auxch);
     specdp->npts = npts;
 }
-
 #ifndef OLPC
+
 static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
 int spectset(CSOUND *csound, SPECTRUM *p)
