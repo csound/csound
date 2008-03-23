@@ -1,12 +1,13 @@
 Summary: Csound - sound synthesis language and library
 Name: csound
 Version: 5.08.91
+%define version 5.08.91
 Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
 BuildRoot: /home/victor/csoundxo/__package
-Source: /home/victor/csoundxo/csound5
+Source: /home/victor/csoundxo/csound%version.tar.gz
 # set this to match the source directory above
 %define csdir /home/victor/csoundxo/csound5
 
@@ -59,7 +60,10 @@ mkdir -p -m 0755 "$RPM_BUILD_ROOT"
 cd "$RPM_BUILD_ROOT"
 cp -aiR %{csdir}/custom.py %{csdir}/AUTHORS %{csdir}/COPYING %{csdir}/ChangeLog %{csdir}/Engine %{csdir}/H %{csdir}/INSTALL %{csdir}/InOut/ %{csdir}/OOps/ %{csdir}/Opcodes/ %{csdir}/SDIF/ .
 cp -aiR %{csdir}/SConstruct %{csdir}/Top/  %{csdir}/frontends/ %{csdir}/interfaces/ %{csdir}/po/ %{csdir}/readme-csound5.txt %{csdir}/util .
-scons buildOLPC=1 gcc3opt=i686
+tar cf "$RPM_SOURCE_DIR"/csound%{version}.tar ../csound5
+gzip  "$RPM_SOURCE_DIR"/csound%{version}.tar 
+scons buildOLPC=1 gcc3opt=i386 useJack=0
+
 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
