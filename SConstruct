@@ -1277,8 +1277,9 @@ else:
         os.symlink(soname, name)
         linkflags = csoundInterfacesEnvironment['SHLINKFLAGS']
         soflag = [ '-Wl,-soname=%s' % soname ]
+        extraflag = ['-L.']
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-            soname, csoundInterfacesSources, SHLINKFLAGS = linkflags+soflag,
+            soname, csoundInterfacesSources, SHLINKFLAGS = linkflags+soflag+extraflag,
             SHLIBPREFIX = '', SHLIBSUFFIX = '')
     else:
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources)
