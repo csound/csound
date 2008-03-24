@@ -1,3 +1,8 @@
+2008-03-23  jpff  <jpff@codemist.co.uk>
+
+	* Top/argdecode.c (decode_long): Change incorrect %n to %d (shades
+	of BCPL)I
+
 2008-03-18  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/Vosim.c: New file and opcode
