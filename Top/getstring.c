@@ -58,11 +58,11 @@ void init_getstring(void)
 {
     const char  *s;
 
-    s = csoundGetEnv(NULL, "CS_LANG");
-    if (s == NULL)              /* Default locale */
-      setlocale (LC_MESSAGES, "");
-    else 
-      setlocale (LC_MESSAGES, s);    /* Set to particular value */
+/*     s = csoundGetEnv(NULL, "CS_LANG"); */
+/*     if (s == NULL)              /\* Default locale *\/ */
+/*       setlocale (LC_MESSAGES, ""); */
+/*     else  */
+/*       setlocale (LC_MESSAGES, s);    /\* Set to particular value *\/ */
     textdomain("csound5");
     /* bind_textdomain_codeset("csound5", "UTF-8"); */
 #ifdef never
@@ -73,7 +73,7 @@ void init_getstring(void)
 
 PUBLIC char *csoundLocalizeString(const char *s)
 {
-    return gettext(s);
+    return dgettext("csound5", s);
 }
 
 static const char *language_names[] = {"", /* Default */
