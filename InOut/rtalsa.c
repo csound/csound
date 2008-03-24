@@ -904,57 +904,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-#ifdef OLPC
-int initialise_rtalsa(CSOUND *csound)
-{
-    char    *s;
-    int     i;
-    char    buf[9];
 
-    s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
-    i = 0;
-    if (s != NULL) {
-      while (*s != (char) 0 && i < 8)
-        buf[i++] = *(s++) | (char) 0x20;
-    }
-    buf[i] = (char) 0;
-    if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, "rtaudio: ALSA module enabled\n");
-      csound->SetPlayopenCallback(csound, playopen_);
-      csound->SetRecopenCallback(csound, recopen_);
-      csound->SetRtplayCallback(csound, rtplay_);
-      csound->SetRtrecordCallback(csound, rtrecord_);
-      csound->SetRtcloseCallback(csound, rtclose_);
-    }
-    s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
-    i = 0;
-    if (s != NULL) {
-      while (*s != (char) 0 && i < 8)
-        buf[i++] = *(s++) | (char) 0x20;
-    }
-    buf[i] = (char) 0;
-    if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, "rtmidi: ALSA module enabled\n");
-      csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
-      csound->SetExternalMidiReadCallback(csound, midi_in_read);
-      csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
-      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
-      csound->SetExternalMidiWriteCallback(csound, midi_out_write);
-      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
-    }
-    else if (strcmp(&(buf[0]), "devfile") == 0) {
-      csound->Message(csound, "rtmidi: devfile module enabled\n");
-      csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
-      csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
-      csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);
-      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open_file);
-      csound->SetExternalMidiWriteCallback(csound, midi_out_write_file);
-      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close_file);
-    }
-
-    return 0;
-}
-#else
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *s;
@@ -1010,4 +960,3 @@ PUBLIC int csoundModuleInfo(void)
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
-#endif

@@ -850,10 +850,6 @@ static const CSOUND cenviron_ = {
     return 0;
   }
 
-#ifdef OLPC
-  int initialise_rtalsa(CSOUND *csound);
-#endif
-
   PUBLIC CSOUND *csoundCreate(void *hostdata)
   {
     CSOUND        *csound;
@@ -933,7 +929,6 @@ static const CSOUND cenviron_ = {
         "Real time audio module name", NULL);
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
-#ifndef OLPC
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
     p->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
     p->midiGlobals->MidiReadCallback = DummyMidiRead;
@@ -948,7 +943,6 @@ static const CSOUND cenviron_ = {
     p->midiGlobals->midiOutFileData = NULL;
     p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
     p->midiGlobals->endatp = p->midiGlobals->bufp;
-#endif
     csoundCreateGlobalVariable(p, "_RTMIDI", (size_t) max_len);
     s = csoundQueryGlobalVariable(p, "_RTMIDI");
 #ifdef OLPC

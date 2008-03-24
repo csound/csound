@@ -335,7 +335,7 @@ if commonEnvironment['buildOLPC'] == '1':
     commonEnvironment['buildCsound5GUI'] = '0'
     commonEnvironment['useDouble'] = '0'
     commonEnvironment['usePortMIDI'] = '0'
-    commonEnvironment['useALSA'] = '0'
+    commonEnvironment['useALSA'] = '1'
     commonEnvironment['useFLTK'] = '0'
     commonEnvironment['buildCsoundVST'] = '0'
     commonEnvironment['buildCsoundAC'] = '0'
@@ -944,7 +944,7 @@ Top/one_file.c
 Top/opcode.c
 Top/threads.c
 Top/utility.c
-InOut/rtalsa.c
+
 ''')
 else:
   libCsoundSources = Split('''
