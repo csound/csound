@@ -705,10 +705,6 @@ int csoundLoadModules(CSOUND *csound)
         err = n;                /* record serious errors */
     }
     closedir(dir);
-#ifdef OLPC
-    initialise_rtalsa(csound);       /* Strange play but... */
-#endif
-
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
     return CSOUND_SUCCESS;
