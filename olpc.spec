@@ -62,7 +62,7 @@ cp -aiR %{csdir}/custom.py %{csdir}/AUTHORS %{csdir}/COPYING %{csdir}/ChangeLog 
 cp -aiR %{csdir}/SConstruct %{csdir}/Top/  %{csdir}/frontends/ %{csdir}/interfaces/ %{csdir}/po/ %{csdir}/readme-csound5.txt %{csdir}/util .
 tar cf "$RPM_SOURCE_DIR"/csound%{version}.tar ../csound5
 gzip -f "$RPM_SOURCE_DIR"/csound%{version}.tar 
-scons buildOLPC=1 gcc3opt=i386 useJack=0
+scons buildRelease=1 buildOLPC=1 gcc3opt=i386 useJack=0
 
 
 %install
@@ -117,10 +117,10 @@ rm -rf .sconf_temp .sconsign.dblite config.log custom.py envext SDIF
 rm -rf $RPM_BUILD_ROOT
 
 %post
-ln -s /usr/lib/libcsound.so.5.1 /usr/lib/libcsound.so
-ln -s /usr/lib/libcsnd.so.5.1 /usr/lib/libcsnd.so
-ln -s /usr/lib/liblo.so.0.6.0 /usr/lib /usr/lib/liblo.so.0
-ln -s /usr/lib/liblo.so.0 /usr/lib /usr/lib/liblo.so
+ln -sf /usr/lib/libcsound.so.5.1 /usr/lib/libcsound.so
+ln -sf /usr/lib/libcsnd.so.5.1 /usr/lib/libcsnd.so
+ln -sf /usr/lib/liblo.so.0.6.0 /usr/lib/liblo.so.0
+ln -sf /usr/lib/liblo.so.0 /usr/lib/liblo.so
 /sbin/ldconfig
 
 %postun
@@ -169,6 +169,7 @@ ln -s /usr/lib/liblo.so.0 /usr/lib /usr/lib/liblo.so
 /usr/lib/csound/plugins/libugakbari.so
 /usr/lib/csound/plugins/libvaops.so
 /usr/lib/csound/plugins/libvosim.so
+/usr/lib/csound/plugins/librtalsa.so
 /usr/lib/libcsound.so.5.1
 /usr/lib/libcsnd.so.5.1
 /usr/lib/liblo.so.0.6.0
