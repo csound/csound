@@ -104,6 +104,7 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
+    init_getstring();
 
     /* if logging to file, set message callback */
     if (logFile != NULL)
