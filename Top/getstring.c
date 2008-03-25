@@ -63,7 +63,7 @@ void init_getstring(void)
 /*       setlocale (LC_MESSAGES, ""); */
 /*     else  */
 /*       setlocale (LC_MESSAGES, s);    /\* Set to particular value *\/ */
-    textdomain("csound5");
+/*    textdomain("csound5"); */  /* This is not needed when using dgettext */
     /* bind_textdomain_codeset("csound5", "UTF-8"); */
 #ifdef never
     /* This is experimental; where should these be?? */
