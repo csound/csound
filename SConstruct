@@ -2435,7 +2435,6 @@ def gettextTarget(env, baseName, target):
     ttFile = 'po/' + target + '/LC_MESSAGES/csound5.mo'
     env.Command(ttFile, gtFile,
                 'msgfmt -o %s %s' % (ttFile, gtFile))
-    Depends(gtFile, ttFile)
     return ttFile
 
 if commonEnvironment['useGettext'] == '1':
