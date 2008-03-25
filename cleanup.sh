@@ -1,9 +1,9 @@
 #!/bin/sh
 
-if [ "$#" == "2" ] ; then
-  if [ "$1" == "remove" ] ; then
+if [ "$#" = "2" ] ; then
+  if [ "$1" = "remove" ] ; then
     if ( test -e "$2" ) ; then
-      echo -e "Removing '$2'"
+      echo "Removing '$2'"
       rm -Rf "$2" ;
     fi ;
     exit 0 ;
