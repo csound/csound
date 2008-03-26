@@ -712,7 +712,7 @@ elif getPlatform() == 'win32':
     csoundLibraryName += '32'
 # flags for linking with the Csound library
 libCsoundLinkFlags = []
-libCsoundLibs = [csoundLibraryName, 'sndfile']
+libCsoundLibs = ['sndfile']
 
 buildOSXFramework = 0
 if getPlatform() == 'darwin':
@@ -1094,6 +1094,7 @@ else:
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
 
+libCsoundLibs.append(csoundLibrary)
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
@@ -1304,6 +1305,7 @@ else:
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+        csndPythonEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundPythonInterface, pythonImportLibrary)
         csndModule = makePythonModule(csndPythonEnvironment, 'csnd', [csoundPythonInterface])
@@ -1955,7 +1957,7 @@ def fluidTarget(env, dirName, baseName, objFiles):
     flFile = dirName + '/' + baseName + '.fl'
     cppFile = dirName + '/' + baseName + '.cpp'
     hppFile = dirName + '/' + baseName + '.hpp'
-    env.Command(cppFile, flFile,
+    env.Command([cppFile, hppFile], flFile,
                 'fluid -c -o %s -h %s %s' % (cppFile, hppFile, flFile))
     for i in objFiles:
         Depends(i, cppFile)
@@ -2082,9 +2084,7 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-        acEnvironment.Prepend(LIBS = ['csnd'])
-    else:
-        acEnvironment.Prepend(LIBS = ['_csnd'])
+    acEnvironment.Prepend(LIBS = csndModule)
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     acEnvironment.Prepend(LIBS = libCsoundLibs)
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
@@ -2153,6 +2153,7 @@ else:
     Depends(csoundac, csoundLibrary)
     csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
         'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, '-python'])
+    acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
     if getPlatform() == 'darwin':
         acPythonEnvironment = acEnvironment.Copy()
         acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
@@ -2379,7 +2380,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     winsoundSrc = 'frontends/winsound/winsound.cxx'
     winsoundHdr = 'frontends/winsound/winsound.h'
     csWinEnvironment.Command(
-        winsoundSrc, winsoundFL,
+        [winsoundSrc, winsoundHdr], winsoundFL,
         'fluid -c -o %s -h %s %s' % (winsoundSrc, winsoundHdr, winsoundFL))
     winsoundMain = csWinEnvironment.Object('frontends/winsound/main.cxx')
     Depends(winsoundMain, winsoundSrc)
