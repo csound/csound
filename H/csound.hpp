@@ -31,15 +31,6 @@
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
 
-#ifdef SWIGPYTHON
-#define MESSAGE_BUFFER_LENGTH 8192
-struct PUBLIC pycbdata {
-  PyObject *mfunc;
-  char messageBuffer[MESSAGE_BUFFER_LENGTH];
-  int messageBufferIndex;
-};
-#endif
-
 #ifdef SWIG
 %module csnd
 %{
@@ -51,6 +42,15 @@ struct PUBLIC pycbdata {
 #ifdef __BUILDING_CSOUND_INTERFACES
 //#include "cs_glue.h"
 #endif
+#endif
+
+#ifdef SWIGPYTHON
+#define MESSAGE_BUFFER_LENGTH 8192
+struct PUBLIC pycbdata {
+  PyObject *mfunc;
+  char messageBuffer[MESSAGE_BUFFER_LENGTH];
+  int messageBufferIndex;
+};
 #endif
 
 #if defined(__cplusplus)
