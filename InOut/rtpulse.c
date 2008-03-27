@@ -1,3 +1,26 @@
+/*
+  rtpulse.c:
+
+  Copyright (C) 2005 Victor Lazzarini
+
+  This file is part of Csound.
+
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
+
 #include <csdl.h>
 #include <pulse/simple.h>
 #include <pulse/error.h>
@@ -11,8 +34,9 @@ typedef struct _pulse_params {
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-    if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "\n");
+  if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, "PulseAudio client RT IO module for Csound"
+                               "by Victor Lazzarini\n");
     return 0;
 }
 
@@ -26,21 +50,24 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 {
   pulse_params *pulse;
   const char *server;
-  pa_buffer_attr attr;
+  /* pa_buffer_attr attr */
   int pulserror;
 
   pulse = (pulse_params *) malloc(sizeof(pulse_params));
-  pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);   
+  pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_HW);   
   csound->rtPlay_userdata = (void *) pulse;
   pulse->spec.rate = csound->GetSr(csound);
   pulse->spec.channels = csound->GetNchnls(csound);
   pulse->spec.format = PA_SAMPLE_FLOAT32;
 
+  /*
   attr.maxlength = parm->bufSamp_HW; 
-  attr.prebuf = 0;
+  attr.prebuf = parm->bufSamp_SW;
   attr.tlength = parm->bufSamp_SW;
   attr.minreq = parm->bufSamp_SW;
   attr.fragsize = parm->bufSamp_SW;
+  */
+
   server = NULL;
 
   pulse->ps = pa_simple_new (server,
@@ -50,7 +77,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 		 "playback",
 		 &(pulse->spec),
 		 NULL,
-		 &attr,
+		/*&attrib*/ NULL,
 		 &pulserror	 
 			     ) ;
    
@@ -70,9 +97,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(float);
   buf = pulse->buf;
-
-  for(i=0;i<bufsiz;i++) buf[i] = outbuf[i]/norm;
-  
+  for(i=0;i<bufsiz;i++) buf[i] = outbuf[i];
   if(pa_simple_write(pulse->ps, buf, nbytes, &pulserror) < 0) 
       csound->ErrorMsg(csound,"Pulse audio module error: %s\n", pa_strerror(pulserror));
 }
@@ -100,23 +125,25 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 {
   pulse_params *pulse;
   const char *server;
-  pa_buffer_attr attr;
+  /*pa_buffer_attr attr;*/
   int pulserror;
 
   pulse = (pulse_params *) malloc(sizeof(pulse_params));
-  pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);   
+  pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_HW);   
   csound->rtPlay_userdata = (void *) pulse;
   pulse->spec.rate = csound->GetSr(csound);
   pulse->spec.channels = csound->GetNchnls(csound);
   pulse->spec.format = PA_SAMPLE_FLOAT32;
 
+  /*
   attr.maxlength = parm->bufSamp_HW; 
   attr.prebuf = 0;
   attr.tlength = parm->bufSamp_SW;
   attr.minreq = parm->bufSamp_SW;
   attr.fragsize = parm->bufSamp_SW;
-  server = NULL;
+  */
 
+  server = NULL;
   pulse->ps = pa_simple_new (server,
 		"csound",
 		 PA_STREAM_RECORD,
@@ -124,9 +151,8 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 		 "record",
 		 &(pulse->spec),
 		 NULL,
-		 &attr,
-		 &pulserror	 
-			     ); 
+		 /*&attr*/ NULL,
+		 &pulserror ); 
    
     if(pulse->ps) return 0;
     else {
@@ -150,7 +176,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
       return -1;
   }
   else {
-    for(i=0;i<bufsiz/sizeof(float);i++) inbuf[i] = buf[i]*norm;
+    for(i=0;i<bufsiz/sizeof(float);i++) inbuf[i] = buf[i];
     return bufsiz;
   }
 
