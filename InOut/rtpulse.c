@@ -1,3 +1,4 @@
+#include <csdl.h>
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <string.h>
@@ -35,11 +36,11 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
   pulse->spec.channels = csound->GetNchnls(csound);
   pulse->spec.format = PA_SAMPLE_FLOAT32;
 
-  attr->maxlength = parm->bufSamp_HW; 
-  attr->prebuf = 0;
-  attr->tlength = parm->bufSamp_SW;
-  attr->minreq = parm->bufSamp_SW;
-  attr->fragsize = parm->bufSamp_SW;
+  attr.maxlength = parm->bufSamp_HW; 
+  attr.prebuf = 0;
+  attr.tlength = parm->bufSamp_SW;
+  attr.minreq = parm->bufSamp_SW;
+  attr.fragsize = parm->bufSamp_SW;
   server = NULL;
 
   pulse->ps = pa_simple_new (server,
@@ -49,9 +50,9 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 		 "playback",
 		 &(pulse->spec),
 		 NULL,
-		 attr,
+		 &attr,
 		 &pulserror	 
-	) 
+			     ) ;
    
     if(pulse->ps) return 0;
     else {
@@ -63,10 +64,10 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
 static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
-  int i, bufsiz;
+  int i, bufsiz, pulserror;
   float *buf;
-  pulse_params *pulse = (pulse*) csound->rtPlay_userdata;
-  MYFLT norm = csound->Get0dbfs();
+  pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
+  MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(float);
   buf = pulse->buf;
 
@@ -79,23 +80,23 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
 static void pulse_close(CSOUND *csound){
 
-  pulse_params *pulse = (pulse*) csound->rtPlay_userdata;
+  pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
 
   if(pulse != NULL){
     pa_simple_free(pulse->ps);  
-    free(pulse->buf)   
+    free(pulse->buf);   
     }
 
-  *pulse = (pulse*) csound->rtRecord_userdata; 
+   pulse = (pulse_params*) csound->rtRecord_userdata; 
 
     if(pulse != NULL){
     pa_simple_free(pulse->ps);  
-    free(pulse->buf)   
+    free(pulse->buf);   
     }
 
 }
 
-static int pulse_rcopen(CSOUND *csound, const csRtAudioParams *parm)
+static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 {
   pulse_params *pulse;
   const char *server;
@@ -109,11 +110,11 @@ static int pulse_rcopen(CSOUND *csound, const csRtAudioParams *parm)
   pulse->spec.channels = csound->GetNchnls(csound);
   pulse->spec.format = PA_SAMPLE_FLOAT32;
 
-  attr->maxlength = parm->bufSamp_HW; 
-  attr->prebuf = 0;
-  attr->tlength = parm->bufSamp_SW;
-  attr->minreq = parm->bufSamp_SW;
-  attr->fragsize = parm->bufSamp_SW;
+  attr.maxlength = parm->bufSamp_HW; 
+  attr.prebuf = 0;
+  attr.tlength = parm->bufSamp_SW;
+  attr.minreq = parm->bufSamp_SW;
+  attr.fragsize = parm->bufSamp_SW;
   server = NULL;
 
   pulse->ps = pa_simple_new (server,
@@ -123,9 +124,9 @@ static int pulse_rcopen(CSOUND *csound, const csRtAudioParams *parm)
 		 "record",
 		 &(pulse->spec),
 		 NULL,
-		 attr,
+		 &attr,
 		 &pulserror	 
-	) 
+			     ); 
    
     if(pulse->ps) return 0;
     else {
@@ -135,19 +136,23 @@ static int pulse_rcopen(CSOUND *csound, const csRtAudioParams *parm)
 
 }
 
-static void pulse_record(CSOUND *csound, MYFLT *outbuf, int nbytes){
+static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
 
-  int i, bufsiz;
+  int i, bufsiz,pulserror;
   float *buf;
-  pulse_params *pulse = (pulse*) csound->rtPlay_userdata;
-  MYFLT norm = csound->Get0dbfs();
+  pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
+  MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(float);
   buf = pulse->buf;
   
-  if(pa_simple_write(pulse->ps, buf, nbytes, &pulserror) < 0) 
+  if((bufsiz = pa_simple_read(pulse->ps, buf, nbytes, &pulserror)) < 0){ 
       csound->ErrorMsg(csound,"Pulse audio module error: %s\n", pa_strerror(pulserror));
-
-   for(i=0;i<bufsiz;i++) outbuf[i] = buf[i]*norm;
+      return -1;
+  }
+  else {
+    for(i=0;i<bufsiz/sizeof(float);i++) inbuf[i] = buf[i]*norm;
+    return bufsiz;
+  }
 
 }
 

@@ -616,6 +616,8 @@ alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language 
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 if not buildOLPC:
     jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
+
+pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
@@ -1555,6 +1557,12 @@ else:
     alsaEnvironment = pluginEnvironment.Copy()
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
+
+if pulseaudioFound:
+   print "CONFIGURATION DECISION: Building PulseAudio plugin"
+   pulseaudioEnv = pluginEnvironment.Copy()
+   pulseaudioEnv.Append(LIBS = ['pulse-simple'])
+   makePlugin(pulseaudioEnv, 'rtpulse', ['InOut/rtpulse.c'])
 
 if getPlatform() == 'win32':
     winmmEnvironment = pluginEnvironment.Copy()
