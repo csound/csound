@@ -1558,7 +1558,7 @@ else:
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
 
-if pulseaudioFound:
+if pulseaudioFound and getPlatform() == 'linux':
    print "CONFIGURATION DECISION: Building PulseAudio plugin"
    pulseaudioEnv = pluginEnvironment.Copy()
    pulseaudioEnv.Append(LIBS = ['pulse-simple'])
