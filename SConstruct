@@ -1607,9 +1607,6 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
-#makePlugin(pluginEnvironment, 'asciimidi',
-#                   ['InOut/ascii_midi_driver/ascii_midi_driver.cpp'])
-                    
 
 # OSC opcodes
 
