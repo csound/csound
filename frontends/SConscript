@@ -164,7 +164,7 @@ else:
 # csLadspa
 print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Copy()
-csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
+csLadspaEnv.Append(CPPPATH='#/frontends/csladspa')
 if util.getPlatform() == "darwin":
     if commonEnvironment['dynamicCsoundLibrary'] != '0':
         csLadspaEnv.Append(LINKFLAGS=Split('''
@@ -174,7 +174,7 @@ if util.getPlatform() == "darwin":
     else:
         csLadspaEnv.Append(LINKFLAGS="-bundle")
     csladspa = csLadspaEnv.Program('csladspa.so',
-         'frontends/csladspa/csladspa.cpp' )
+         'csladspa/csladspa.cpp' )
 else:
-    csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
+    csladspa = csLadspaEnv.SharedLibrary('csladspa/csladspa.cpp')
 
