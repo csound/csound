@@ -1095,8 +1095,10 @@ else:
     csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
-
-libCsoundLibs.append(csoundLibrary)
+if getPlatform() != 'win32':
+ libCsoundLibs.append(csoundLibrary)
+else:
+ libCsoundLibs.append('csound32')
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
