@@ -213,9 +213,6 @@ commandOptions.Add('buildCsoundVST',
 commandOptions.Add('buildCsoundAC',
     'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
     '0')
-commandOptions.Add('buildCsound5GUI',
-    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
-    '0')
 commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')

@@ -7,7 +7,7 @@ Import("configure")
 
 # Add all the options first
 commandOptions.Add('buildCsound5GUI',
-    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).'
+    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
     '0')
 commandOptions.Add('buildWinsound',
     "Build Winsound frontend. Requires FLTK headers and libs",
