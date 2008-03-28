@@ -768,12 +768,12 @@ public:
   Csound()
   {
     csound = csoundCreate((CSOUND*) 0);
-    /*   #ifdef SWIGPYTHON
-    pydata = new pycbdata;
-    pydata->mfunc = NULL;
-    pydata->messageBufferIndex = 0;
+     #ifdef SWIGPYTHON
+      pydata =(pycbdata *) new pycbdata;
+    ((pycbdata *)pydata)->mfunc = NULL;
+    ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
-    #endif*/
+    #endif
   }
   Csound(void *hostData)
   {
