@@ -1,0 +1,180 @@
+# vim: filetype=python expandtab sw=4 tabstop=4
+# Since all frontends require very little code, we don't split this
+# SConscript into several.
+
+Import("commonEnvironment", "commandOptions", "util" )
+Import("configure")
+
+# Add all the options first
+commandOptions.Add('buildCsound5GUI',
+    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).'
+    '0')
+commandOptions.Add('buildWinsound',
+    "Build Winsound frontend. Requires FLTK headers and libs",
+    '0')
+commandOptions.Add('buildOSXGUI',
+    'On OSX, set to 1 to build the basic GUI frontend',
+    '0')
+
+commandOptions.Update(commonEnvironment)
+
+# First the csound program with no dependencies
+programEnvironment = commonEnvironment.Copy()
+csoundSources = ['csound/csound_main.c']
+if util.getPlatform() == 'linux':
+    csoundSources += ['csound/sched.c'] 
+csoundProgram = programEnvironment.Program('csound/csound', csoundSources)
+
+# FLTK csound5gui
+
+
+if commonEnvironment['buildCsound5GUI'] != '0':
+    util.confDecision("Building FLTK GUI CSOUND5GUI frontend.")
+    found117 = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
+    if not found117:
+        util.fatal("You specified buildCsound5GUI, but you don't have FLTK 1.17 installed.")
+    
+    csound5GUIEnvironment = programEnvironment.Copy()
+    if configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C", autoadd=False):
+        csound5GUIEnvironment.Append(LIBS = ['jack'])
+        csound5GUIEnvironment.Prepend(CPPFLAGS = ['-DHAVE_JACK'])
+    if util.getPlatform() == 'linux':
+        csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif util.getPlatform() == 'win32':
+        if util.compilerGNU():
+            csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
+                -mwindows -Wl,--enable-runtime-pseudo-reloc
+            '''))
+            csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+        else:
+            csound5GUIEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
+    elif util.getPlatform() == 'darwin':
+        csound5GUIEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+        csound5GUIEnvironment.Append(LIBS = Split('''
+            fltk stdc++ pthread m
+        '''))
+        csound5GUIEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework ApplicationServices
+        '''))
+
+    csound5GUISources = Split('''
+        fltk_gui/ConfigFile.cpp
+        fltk_gui/CsoundCopyrightInfo.cpp
+        fltk_gui/CsoundGlobalSettings.cpp
+        fltk_gui/CsoundGUIConsole.cpp
+        fltk_gui/CsoundGUIMain.cpp
+        fltk_gui/CsoundPerformance.cpp
+        fltk_gui/CsoundPerformanceSettings.cpp
+        fltk_gui/CsoundUtility.cpp
+        fltk_gui/CsoundEditor.cpp
+        fltk_gui/Fl_Native_File_Chooser.cxx
+        fltk_gui/main.cpp
+    ''')
+    csound5GUIFluidSources = Split('''
+        CsoundAboutWindow_FLTK
+        CsoundGlobalSettingsPanel_FLTK
+        CsoundGUIConsole_FLTK
+        CsoundGUIMain_FLTK
+        CsoundPerformanceSettingsPanel_FLTK
+        CsoundUtilitiesWindow_FLTK
+    ''')
+    csound5GUIObjectFiles = []
+    csound5GUIFluidObjectFiles = []
+    for i in csound5GUISources:
+        csound5GUIObjectFiles += csound5GUIEnvironment.Object(i)
+    csound5GUIEnvironment.Append( CPPPATH = '#interfaces' )
+    csound5GUIObjectFiles += csound5GUIEnvironment.Object(
+        'fltk_gui/csPerfThread', '#/interfaces/csPerfThread.cpp')
+    for i in csound5GUIFluidSources:
+        csound5GUIFluidObjectFiles += csound5GUIEnvironment.Object(
+            util.fluidTarget(csound5GUIEnvironment, 'fltk_gui', i,
+                        csound5GUIObjectFiles, 'frontends'))
+    csound5GUIObjectFiles += csound5GUIFluidObjectFiles
+    csound5GUI = csound5GUIEnvironment.Program('fltk_gui/csound5gui',
+                                  csound5GUIObjectFiles)
+    if util.getPlatform() == 'darwin':
+        appDir = 'fltk_gui/Csound5GUI.app/Contents/MacOS'
+        util.addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', '')
+        csound5GUIEnvironment.Command(
+            '%s/csound5gui' % appDir, 'csound5gui', "cp $SOURCE %s/" % appDir)
+        util.addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', appDir)
+ 
+else:
+    util.confDecision("Not building FLTK CSOUND5GUI frontend.")
+
+# Winsound
+if commonEnvironment['buildWinsound'] == '1':
+    fltkfound = configure.CheckLibWithHeader("fltk", "FL/Fl.H",
+            language = "C++", autoadd = False)
+    util.confDecision("Building Winsound frontend")
+    # should these be installed ?
+    # headers += glob.glob('frontends/winsound/*.h')
+    csWinEnvironment = commonEnvironment.Copy()
+    # not used
+    # if (commonEnvironment['noFLTKThreads'] == '1'):
+    #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+    if util.getPlatform() == 'linux':
+        csWinEnvironment.ParseConfig('fltk-config --use-images --cflags \
+                --cxxflags --ldflags')
+        csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif util.getPlatform() == 'win32':
+        if util.compilerGNU():
+            csWinEnvironment.Append(LIBS = Split(
+                'fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+            csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csWinEnvironment.Prepend(LINKFLAGS = Split('''
+                -mwindows -Wl,--enable-runtime-pseudo-reloc
+            '''))
+        else:
+            csWinEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
+    elif util.getPlatform() == 'darwin':
+        csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
+        csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
+        csWinEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework CoreAudio -framework CoreMidi
+            -framework ApplicationServices
+        '''))
+        appDir = 'frontends/winsound/Winsound.app/Contents/MacOS'
+        util.addOSXResourceFork(csWinEnvironment, 'winsound', '')
+        csWinEnvironment.Command(
+            '%s/winsound' % appDir, 'winsound', "cp $SOURCE %s/" % appDir)
+        util.addOSXResourceFork(csWinEnvironment, 'winsound', appDir)
+    winsoundSrc = util.fluidTarget( csWinEnvironment,
+            'winsound', 'winsound', [], 'frontends')
+    winsoundMain = csWinEnvironment.Object('winsound/main.cxx')
+    Depends(winsoundMain, winsoundSrc)
+    winsound5 = csWinEnvironment.Program(
+        'winsound/winsound', [winsoundMain, winsoundSrc])
+else:
+    util.confDecision("Not building Winsound")
+
+# OSX frontend
+if (util.getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
+    util.confDecision("Building OSX GUI frontend")
+    csOSXGUIEnvironment = commonEnvironment.Copy()
+    OSXGUI = csOSXGUIEnvironment.Command(
+        '''OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
+        'OSX/main.c',
+        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
+else:
+    util.confDecision("Not building OSX GUI frontend")
+
+# csLadspa
+print "CONFIGURATION DEFAULT:  Building csLadspa."
+csLadspaEnv = commonEnvironment.Copy()
+csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
+if util.getPlatform() == "darwin":
+    if commonEnvironment['dynamicCsoundLibrary'] != '0':
+        csLadspaEnv.Append(LINKFLAGS=Split('''
+            -bundle -undefined suppress -flat_namespace
+             -framework CsoundLib
+        '''))
+    else:
+        csLadspaEnv.Append(LINKFLAGS="-bundle")
+    csladspa = csLadspaEnv.Program('csladspa.so',
+         'frontends/csladspa/csladspa.cpp' )
+else:
+    csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
+
