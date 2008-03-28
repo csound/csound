@@ -213,6 +213,9 @@ commandOptions.Add('buildCsoundVST',
 commandOptions.Add('buildCsoundAC',
     'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
     '0')
+commandOptions.Add('buildCsound5GUI',
+    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
+    '0')
 commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
@@ -1601,7 +1604,9 @@ else:
         if (commonEnvironment['useJack']=='1' and jackFound):
             print "Adding Jack library for PortAudio"
             portaudioEnvironment.Append(LIBS = ['jack'])
-        portaudioEnvironment.Append(LIBS = ['asound', 'pthread'])
+        portaudioEnvironment.Append(LIBS = ['pthread'])
+        if alsaFound:
+          portaudioEnvironment.Append(LIBS = ['asound'])
     elif util.getPlatform() == 'win32':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
     util.makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
@@ -1612,7 +1617,9 @@ else:
     print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Copy()
     if util.getPlatform() == 'linux':
-        jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+        jackEnvironment.Append(LIBS = ['jack', 'pthread'])
+        if alsaFound:
+          portaudioEnvironment.Append(LIBS = ['asound'])
     elif util.getPlatform() == 'win32':
         jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
     else:
@@ -1725,7 +1732,7 @@ else:
 # DSSI HOST OPCODES
 
 if (commonEnvironment['buildDSSI'] == '1' and (util.getPlatform() == 'linux' or util.getPlatform() == 'darwin') and
-configure.CheckHeader("ladspa.h", language = "C")):
+configure.CheckHeader("ladspa.h", language = "C") and alsaFound):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
     dssiEnvironment = pluginEnvironment.Copy()
     dssiEnvironment.Append(LIBS = ['dl'])
