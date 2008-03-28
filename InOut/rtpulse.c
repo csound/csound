@@ -66,14 +66,14 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     siz = 32;
 
     csound->CreateConfigurationVariable(
-        csound,"output-stream", (void*) &(p->oname[0]),
+        csound,"output_stream", (void*) &(p->oname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio output stream name (default: csound-out)", NULL);
 
     strcpy(&(p->iname[0]), "csound-in");
   
     csound->CreateConfigurationVariable(
-        csound,"input-stream", (void*) &(p->iname[0]),
+        csound,"input_stream", (void*) &(p->iname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio input stream name (default: csound-in)", NULL);
 
