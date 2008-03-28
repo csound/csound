@@ -34,6 +34,8 @@ typedef struct _pulse_params {
 
 typedef struct _pulse_globals {
   char server[64];
+  char oname[32];
+  char iname[32];
 } pulse_globals;
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -58,6 +60,23 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
         csound,"server", (void*) &(p->server[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio server name (default: default server)", NULL);
+
+    strcpy(&(p->oname[0]), "csound-out");
+  
+    siz = 32;
+
+    csound->CreateConfigurationVariable(
+        csound,"output-stream", (void*) &(p->oname[0]),
+        CSOUNDCFG_STRING, 0, NULL, &siz,
+        "PulseAudio output stream name (default: csound-out)", NULL);
+
+    strcpy(&(p->iname[0]), "csound-in");
+  
+    csound->CreateConfigurationVariable(
+        csound,"input-stream", (void*) &(p->iname[0]),
+        CSOUNDCFG_STRING, 0, NULL, &siz,
+        "PulseAudio input stream name (default: csound-in)", NULL);
+
 
     return 0;
 }
@@ -107,7 +126,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 		"csound",
 		 PA_STREAM_PLAYBACK,
 		 parm->devName,
-		 "playback",
+		 &(pg->oname[0]),
 		 &(pulse->spec),
 		 NULL,
 		/*&attrib*/ NULL,
@@ -193,7 +212,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 		"csound",
 		 PA_STREAM_RECORD,
 		 parm->devName,
-		 "record",
+		 &(pg->iname[0]),
 		 &(pulse->spec),
 		 NULL,
 		 /*&attr*/ NULL,
