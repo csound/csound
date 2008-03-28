@@ -1,7 +1,7 @@
 /*
   rtpulse.c:
 
-  Copyright (C) 2005 Victor Lazzarini
+  Copyright (C) 2008 Victor Lazzarini
 
   This file is part of Csound.
 
@@ -32,11 +32,33 @@ typedef struct _pulse_params {
   float *buf;
 } pulse_params;
 
+typedef struct _pulse_globals {
+  char server[64];
+} pulse_globals;
+
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
+  pulse_globals *p;
+  int siz = 64;
+
   if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "PulseAudio client RT IO module for Csound"
                                "by Victor Lazzarini\n");
+
+  if (csound->CreateGlobalVariable(csound, "_pulse_globals",
+				   sizeof(pulse_globals)) != 0) {
+      csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
+      return -1;
+    }
+    p = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_pulse_globals");
+    strcpy(&(p->server[0]), "default");
+  
+    csound->CreateConfigurationVariable(
+        csound,"server", (void*) &(p->server[0]),
+        CSOUNDCFG_STRING, 0, NULL, &siz,
+        "PulseAudio server name (default: default server)", NULL);
+
     return 0;
 }
 
@@ -49,6 +71,7 @@ PUBLIC int csoundModuleInfo(void)
 static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 {
   pulse_params *pulse;
+  pulse_globals *pg;
   const char *server;
   /* pa_buffer_attr attr */
   int pulserror;
@@ -67,8 +90,18 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
   attr.minreq = parm->bufSamp_SW;
   attr.fragsize = parm->bufSamp_SW;
   */
+   
+  pg = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_pulse_globals");  
 
-  server = NULL;
+  if(!strcmp(pg->server,"default")){
+   server = NULL;
+   csound->Message(csound, "PulseAudio output server: default\n");
+  }
+  else {
+  server = pg->server;
+  csound->Message(csound, "PulseAudio output server %s\n", server);
+  }
 
   pulse->ps = pa_simple_new (server,
 		"csound",
@@ -118,12 +151,13 @@ static void pulse_close(CSOUND *csound){
     pa_simple_free(pulse->ps);  
     free(pulse->buf);   
     }
-
+   csound->DestroyGlobalVariable(csound, "pulse_globals");
 }
 
 static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 {
   pulse_params *pulse;
+  pulse_globals *pg;
   const char *server;
   /*pa_buffer_attr attr;*/
   int pulserror;
@@ -143,7 +177,18 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
   attr.fragsize = parm->bufSamp_SW;
   */
 
-  server = NULL;
+  pg = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_pulse_globals");    
+
+  if(!strcmp(pg->server,"default")){
+   server = NULL;
+   csound->Message(csound, "PulseAudio input server: default\n");
+  }
+  else {
+  server = pg->server;
+  csound->Message(csound, "PulseAudio input server %s\n", server);
+  }
+
   pulse->ps = pa_simple_new (server,
 		"csound",
 		 PA_STREAM_RECORD,
@@ -203,6 +248,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, pulse_record);
       csound->SetRtcloseCallback(csound, pulse_close);
     }
+    
 
     return 0;
 }
