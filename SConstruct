@@ -1098,7 +1098,7 @@ else:
 if getPlatform() != 'win32':
  libCsoundLibs.append(csoundLibrary)
 else:
- libCsoundLibs.append('csound32')
+ libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
