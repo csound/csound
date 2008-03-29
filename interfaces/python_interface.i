@@ -126,7 +126,8 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 }
 %}
 
-
+%ignore csoundSetHostData(CSOUND *, void *);
+%ignore csoundGetHostData(CSOUND *);
 %include "csound.h"
 %include "cfgvar.h"
 %apply MYFLT &OUTPUT { MYFLT &dflt, MYFLT &min, MYFLT &max };
@@ -134,10 +135,20 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 
 
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
+%ignore Csound::SetHostData(void *);
+%ignore Csound::GetHostData();
+%ignore Csound::SetMessageCallback(void (*)(CSOUND *, int attr,const char *format, va_list valist));
 %include "csound.hpp"
 
 %extend Csound {
-  void SetPythonMessageCallback(PyObject *pyfunc){
+  void SetHostData(PyObject *data){
+   ((pycbdata *)self->pydata)->hostdata = data;
+}
+  PyObject *GetHostData() {
+   return ((pycbdata *)self->pydata)->hostdata;
+}
+
+  void SetMessageCallback(PyObject *pyfunc){
      // thread safety mechanism 
     pycbdata *pydata = (pycbdata *) self->pydata;
     if(pydata->mfunc == NULL)  
