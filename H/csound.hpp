@@ -47,7 +47,7 @@
 #ifdef SWIGPYTHON
 #define MESSAGE_BUFFER_LENGTH 8192
 struct PUBLIC pycbdata {
-  PyObject *mfunc;
+  PyObject *mfunc,*invalfunc,*outvalfunc;
   PyObject *hostdata;
   char messageBuffer[MESSAGE_BUFFER_LENGTH];
   int messageBufferIndex;
