@@ -7,6 +7,11 @@
 
 	* Opcodes/Vosim.c: New file and opcode
 
+2008-02-27  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/vbap.c (localops): Changed vbap* to gave a k-rate last
+	required arg.
+
 2008-03-16  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h: 5.08.2
