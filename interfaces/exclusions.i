@@ -28,7 +28,7 @@
 
 %ignore Csound::SetCscoreCallback;
 %ignore Csound::MessageV;
-%ignore Csound::SetMessageCallback;
+//%ignore Csound::SetMessageCallback;
 %ignore Csound::SetInputValueCallback;
 %ignore Csound::SetOutputValueCallback;
 %ignore Csound::SetExternalMidiInOpenCallback;
