@@ -91,7 +91,9 @@ typedef unsigned int uint32_t;
 %ignore  csoundSetCscoreCallback(CSOUND *,void (*cscoreCallback_)(CSOUND *));
 
 // typemap for callbacks
-%typemap(in) PyObject *pyfunc {
+%typemap(in) PyObject 
+
+*pyfunc {
   if(!PyCallable_Check($input)){
     PyErr_SetString(PyExc_TypeError, "Not a callable object!");
     return NULL;
@@ -111,7 +113,7 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     PyObject *pyfunc = pydata->mfunc, *arg;    
     char *mbuf = new char[strlen(format)*10], *ch;
     vsprintf(mbuf, format, valist);
-    if(ch = strrchr(mbuf, '\n')) *ch = '\0';
+    //if(ch = strrchr(mbuf, '\n')) *ch = '\0';
     if (strlen(mbuf) > 1){
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
@@ -124,6 +126,48 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     }
    delete[] mbuf;
 }
+
+static void PythonInValueCallback(CSOUND *in, const char *chan, MYFLT *val){
+
+    PyObject *res;
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->invalfunc, *arg;    
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
+    arg = Py_BuildValue("(s)", chan); 
+    res =  PyEval_CallObject(pyfunc, arg);
+    if (res == NULL){
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else{
+     if(PyFloat_Check(res)) *val = (MYFLT) PyFloat_AsDouble(res);
+     else *val = 0.0;
+     Py_DECREF(res);
+    }
+   PyGILState_Release(gst);
+    
+
+}
+
+static void PythonOutValueCallback(CSOUND *in, const char *chan, MYFLT val) {
+
+    PyObject *res;
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->outvalfunc, *arg;    
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
+    arg = Py_BuildValue("(s,d)", chan, (double) val); 
+    res =  PyEval_CallObject(pyfunc, arg);
+    if (res == NULL){
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else Py_DECREF(res);
+   PyGILState_Release(gst);
+    
+}
+
+
+
 %}
 
 %ignore csoundSetHostData(CSOUND *, void *);
@@ -135,6 +179,9 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 
 
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
+%ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
+%ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
+
 %ignore Csound::SetHostData(void *);
 %ignore Csound::GetHostData();
 %ignore Csound::SetMessageCallback(void (*)(CSOUND *, int attr,const char *format, va_list valist));
@@ -152,12 +199,36 @@ static void PythonMessageCallback(CSOUND *in, int attr,
      // thread safety mechanism 
     pycbdata *pydata = (pycbdata *) self->pydata;
     if(pydata->mfunc == NULL)  
-        PyEval_InitThreads();
+        if(!PyEval_ThreadsInitialized())  PyEval_InitThreads();
     else Py_XDECREF(pydata->mfunc);
         pydata->mfunc = pyfunc;
         self->SetMessageCallback(PythonMessageCallback);
         Py_XINCREF(pyfunc); 
 }
+
+  void SetInputValueCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->invalfunc == NULL)  
+       if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    else Py_XDECREF(pydata->invalfunc);
+        pydata->invalfunc = pyfunc;
+        self->SetInputValueCallback(PythonInValueCallback);
+        Py_XINCREF(pyfunc); 
+}
+
+  void SetOutputValueCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->outvalfunc == NULL)  
+        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    else Py_XDECREF(pydata->outvalfunc);
+        pydata->outvalfunc = pyfunc;
+        self->SetOutputValueCallback(PythonOutValueCallback);
+        Py_XINCREF(pyfunc); 
+}
+
+
 
 }
 %clear MYFLT &dflt;
@@ -194,7 +265,7 @@ static void PythonCallback(void *p){
    // Set the Python callback
    void SetProcessCallback(PyObject *pyfunc, PyObject *p){
     if(self->GetProcessCallback() == NULL) {
-       PyEval_InitThreads();
+       if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
      }
      else Py_XDECREF(self->pydata.func);  
     self->pydata.func = pyfunc;
