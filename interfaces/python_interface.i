@@ -166,6 +166,65 @@ static void PythonOutValueCallback(CSOUND *in, const char *chan, MYFLT val) {
     
 }
 
+static int PythonMidiInOpen(CSOUND *in, void **udata, const char *name){
+
+    PyObject *res;
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->midiinopenfunc, *arg;    
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
+    arg = Py_BuildValue("(s)", name); 
+    res =  PyEval_CallObject(pyfunc, arg);
+    if (res == NULL){
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else {
+       *udata = (void *) res;
+    }
+    PyGILState_Release(gst);
+    return 0;
+}
+
+static int PythonMidiInClose(CSOUND *in, void *udata){
+    PyObject *res;
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->midiinclosefunc, *arg;    
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
+    arg = Py_BuildValue("(O)", (PyObject *) udata);
+    res =  PyEval_CallObject(pyfunc, arg);
+    if (res == NULL){
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else  Py_DECREF(res);
+    Py_DECREF((PyObject *) udata);
+    PyGILState_Release(gst);
+    return 0;
+}
+      
+static int PythonMidiRead(CSOUND *in, void *udata,
+                                  unsigned char *buf, int nBytes){
+    PyObject *res;
+    int i;
+    Csound *p = (Csound *) csoundGetHostData(in); 
+    pycbdata *pydata = (pycbdata *)p->pydata;
+    PyObject *pyfunc = pydata->midireadfunc, *arg;    
+    PyGILState_STATE gst;
+    gst = PyGILState_Ensure();
+    arg = Py_BuildValue("(O,i)", (PyObject *) udata, nBytes);
+    res =  PyEval_CallObject(pyfunc, arg);
+    if (res == NULL){
+       PyErr_SetString(PyExc_TypeError, "Exception in callback");
+    }else {
+    if(PyList_Check(res)) 
+       for(i=0; i < nBytes; i++)
+          buf[i] = (char) PyInt_AsLong(PyList_GetItem(res,i));
+     else for(i=0; i < nBytes; i++)  buf[i] = 0;
+     Py_DECREF(res);
+     }
+    PyGILState_Release(gst);
+    return 0;
+}
 
 
 %}
@@ -181,6 +240,9 @@ static void PythonOutValueCallback(CSOUND *in, const char *chan, MYFLT val) {
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
 %ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
 %ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
+%ignore Csound::SetExternalMidiInOpenCallback(int (*)(CSOUND *, void *, const char*));
+%ignore Csound::SetExternalMidiReadCallback(int (*)(CSOUND *, void *, unsigned char *, int));
+%ignore Csound::SetExternalMidiInCloseCallback(int (*)(CSOUND *, void *));
 
 %ignore Csound::SetHostData(void *);
 %ignore Csound::GetHostData();
@@ -228,6 +290,39 @@ static void PythonOutValueCallback(CSOUND *in, const char *chan, MYFLT val) {
         Py_XINCREF(pyfunc); 
 }
 
+  void SetExternalMidiInOpenCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->midiinopenfunc == NULL)  
+        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    else Py_XDECREF(pydata->midiinopenfunc);
+        pydata->midiinopenfunc = pyfunc;
+        self->SetExternalMidiInOpenCallback(PythonMidiInOpen);
+        Py_XINCREF(pyfunc); 
+}
+
+void SetExternalMidiInCloseCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->midiinclosefunc == NULL)  
+        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    else Py_XDECREF(pydata->midiinclosefunc);
+        pydata->midiinopenfunc = pyfunc;
+        self->SetExternalMidiInCloseCallback(PythonMidiInClose);
+        Py_XINCREF(pyfunc); 
+}
+
+
+void SetExternalMidiReadCallback(PyObject *pyfunc){
+     // thread safety mechanism 
+    pycbdata *pydata = (pycbdata *) self->pydata;
+    if(pydata->midireadfunc == NULL)  
+        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    else Py_XDECREF(pydata->midireadfunc);
+        pydata->midiinopenfunc = pyfunc;
+        self->SetExternalMidiReadCallback(PythonMidiRead);
+        Py_XINCREF(pyfunc); 
+}
 
 
 }

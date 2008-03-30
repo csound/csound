@@ -31,9 +31,9 @@
 //%ignore Csound::SetMessageCallback;
 //%ignore Csound::SetInputValueCallback;
 //%ignore Csound::SetOutputValueCallback;
-%ignore Csound::SetExternalMidiInOpenCallback;
-%ignore Csound::SetExternalMidiReadCallback;
-%ignore Csound::SetExternalMidiInCloseCallback;
+//%ignore Csound::SetExternalMidiInOpenCallback;
+//%ignore Csound::SetExternalMidiReadCallback;
+//%ignore Csound::SetExternalMidiInCloseCallback;
 %ignore Csound::SetExternalMidiOutOpenCallback;
 %ignore Csound::SetExternalMidiWriteCallback;
 %ignore Csound::SetExternalMidiOutCloseCallback;
