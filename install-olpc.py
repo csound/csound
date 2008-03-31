@@ -22,8 +22,8 @@ exeFiles = ['csound']
 
 docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
 
-localeFiles = ['en_GB/LC_MESSAGES/csound5.mo', 'en_US/LC_MESSAGES/csound5.mo', 'es_CO/LC_MESSAGES/csound5.mo',
-               'de/LC_MESSAGES/csound5.mo' , 'fr/LC_MESSAGES/csound5.mo']
+locales = ['/en_GB/LC_MESSAGES/', '/en_US/LC_MESSAGES/', '/es_CO/LC_MESSAGES/',
+               '/de/LC_MESSAGES/' , '/fr/LC_MESSAGES/']
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ print ''
 prefix = '/usr'
 instDir = '/'
 fileList = []
+libList = []
 installErrors = 0
 useDouble = 0
 md5List = ''
@@ -48,8 +49,8 @@ def printUsage():
 
 # parse command line options
 
-install-headers = True
-install-python = True
+install_headers = True
+install_python = True
 if sys.argv.__len__() > 1:
     for i in range(1, sys.argv.__len__()):
         if sys.argv[i] == '--help':
@@ -58,11 +59,11 @@ if sys.argv.__len__() > 1:
         elif sys.argv[i][:9] == '--prefix=':
             prefix = sys.argv[i][9:]
         elif sys.argv[i][:10] == '--instdir=':
-            instDir = sys.argv[i][17:]
-        elif sys.argv[i][:22] == '--dont-install-headers'
-            install-headers = False
-        elif sys.argv[i][:21] == '--dont-install-python'
-            install-python = False
+            instDir = sys.argv[i][10:]
+        elif sys.argv[i][:22] == '--dont-install-headers':
+            install_headers = False
+        elif sys.argv[i][:21] == '--dont-install-python':
+            install_python = False
         else:
             printUsage()
             print 'Error: unknown option: %s' % sys.argv[i]
@@ -96,9 +97,9 @@ pluginDir32 = concatPath([libDir, '/csound/plugins'])
 # documentation
 docDir      = concatPath([prefix, '/share/doc/csound'])
 # locale
-locDir   = concatPath([prefix, '/share/locale'])
+localeDir   = concatPath([prefix, '/share/locale'])
 # python module
-pythonDir   = '/usr/lib%s/python%s/site-packages' % (word64Suffix, pyVersion)
+pythonDir   = '/usr/lib/python%s/site-packages' % (pyVersion)
 
 def runCmd(args):
     return os.spawnvp(os.P_WAIT, args[0], args)
@@ -185,30 +186,6 @@ def findFiles(dir, pat):
     return lst
 
 
-# check for an already existing installation
-
-makeDir(concatPath([binDir]))
-installedBinaries = findFiles(concatPath([instDir, binDir]), '.+')
-if ('csound' in installedBinaries) or ('csound64' in installedBinaries):
-    if 'uninstall-csound5' in installedBinaries:
-        print ' *** WARNING: found an already existing installation of Csound'
-        tmp = ''
-        while (tmp != 'yes\n') and (tmp != 'no\n'):
-            sys.__stderr__.write(
-                ' *** Uninstall it ? Type \'yes\', or \'no\' to quit: ')
-            tmp = sys.__stdin__.readline()
-        if tmp != 'yes\n':
-            print ' *** Csound installation has been aborted'
-            print ''
-            raise SystemExit(1)
-        print ' --- Removing old Csound installation...'
-        runCmd([concatPath([instDir, binDir, 'uninstall-csound5'])])
-        print ''
-    else:
-        print ' *** Error: an already existing installation of Csound was found'
-        print ' *** Try removing it first, and then run this script again'
-        print ''
-        raise SystemExit(1)
 
 # copy binaries
 
@@ -221,13 +198,14 @@ for i in exeFiles:
 # copy libraries
 
 print ' === Installing libraries ==='
+version = 5.1
 libList += findFiles('.', 'libcsound\\.so\\..+')
-libList += findFiles('.', 'libcsnd\\.so')
+libList += findFiles('.', 'libcsnd\\.so\\..+')
 for i in libList:
         err = installXFile('--strip-debug', i, libDir)
-    if err == 0:
-            err = installLink(i, concatPath([libDir,i]))
-    installErrors = installErrors or err
+        #if err == 0:
+         #err = installLink(i, concatPath([libDir,i]))
+        installErrors = installErrors or err
 
 # copy plugin libraries
 
@@ -243,16 +221,16 @@ for i in pluginList:
     installErrors = installErrors or err
 
 # copy header files
-if install-headers:
+if install_headers:
  print ' === Installing header files ==='
  err = installFiles(headerFiles, includeDir)
  installErrors = installErrors or err
 
 # copy language interfaces
-if install-python:
+if install_python:
  print ' === Installing language interfaces ==='
  wrapperList = [['csnd\\.py', '0', pythonDir],
-               ['_csnd\\.so', '1', pythonDir2]]
+               ['_csnd\\.so', '1', pythonDir]]
 
 for i in wrapperList:
     tmp = findFiles('.', i[0])
@@ -272,7 +250,8 @@ installErrors = installErrors or err
 
 # copy locale files
 print ' === Installing localisation ==='
-err = installFiles(localeFiles, localeDir)
+for i in locales:
+   err = installFile('po%scsound5.mo' % i, localeDir + i)
 installErrors = installErrors or err
 
 
