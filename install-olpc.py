@@ -257,39 +257,114 @@ installErrors = installErrors or err
 
 # create uninstall script
 
-print ' === Installing uninstall script ==='
-fileList += [concatPath([prefix, md5Name])]
-fileList += [concatPath([binDir, 'uninstall-csound5'])]
-try:
-    f = open(concatPath([instDir, binDir, 'uninstall-csound5']), 'w')
-    print >> f, '#!/bin/sh'
-    print >> f, ''
-    for i in fileList:
-        print >> f, 'rm -f "%s"' % i
-    print >> f, ''
-    print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
-    print >> f, ''
-    f.close()
-    os.chmod(concatPath([instDir, binDir, 'uninstall-csound5']), 0755)
-    addMD5(concatPath([instDir, binDir, 'uninstall-csound5']),
-           concatPath([binDir, 'uninstall-csound5']))
-    print '  %s' % concatPath([binDir, 'uninstall-csound5'])
-except:
-    print ' *** Error creating uninstall script'
-    installErrors = 1
-
+#print ' === Installing uninstall script ==='
+#fileList += [concatPath([prefix, md5Name])]
+#fileList += [concatPath([binDir, 'uninstall-csound5'])]
+#try:
+#    f = open(concatPath([instDir, binDir, 'uninstall-csound5']), 'w')
+#    print >> f, '#!/bin/sh'
+#    print >> f, ''
+#    for i in fileList:
+#        print >> f, 'rm -f "%s"' % i
+#    print >> f, ''
+#    print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
+#    print >> f, ''
+#    f.close()
+#    os.chmod(concatPath([instDir, binDir, 'uninstall-csound5']), 0755)
+#    addMD5(concatPath([instDir, binDir, 'uninstall-csound5']),
+#           concatPath([binDir, 'uninstall-csound5']))
+#    print '  %s' % concatPath([binDir, 'uninstall-csound5'])
+#except:
+#    print ' *** Error creating uninstall script'
+#    installErrors = 1
+/usr/bin/csound
+/usr/lib/csound/plugins/libampmidid.so
+/usr/lib/csound/plugins/libbarmodel.so
+/usr/lib/csound/plugins/libcompress.so
+/usr/lib/csound/plugins/libcs_date.so
+/usr/lib/csound/plugins/libcs_pan2.so
+/usr/lib/csound/plugins/libcs_pvs_ops.so
+/usr/lib/csound/plugins/libeqfil.so
+/usr/lib/csound/plugins/libgabnew.so
+/usr/lib/csound/plugins/libgrain4.so
+/usr/lib/csound/plugins/libharmon.so
+/usr/lib/csound/plugins/libhrtfnew.so
+/usr/lib/csound/plugins/libimage.so
+/usr/lib/csound/plugins/libloscilx.so
+/usr/lib/csound/plugins/libminmax.so
+/usr/lib/csound/plugins/libmixer.so
+/usr/lib/csound/plugins/libmodal4.so
+/usr/lib/csound/plugins/libmutexops.so
+/usr/lib/csound/plugins/libogg.so
+/usr/lib/csound/plugins/liboggplay.so
+/usr/lib/csound/plugins/libosc.so
+/usr/lib/csound/plugins/libpartikkel.so
+/usr/lib/csound/plugins/libphisem.so
+/usr/lib/csound/plugins/libphysmod.so
+/usr/lib/csound/plugins/libpitch.so
+/usr/lib/csound/plugins/libptrack.so
+/usr/lib/csound/plugins/libpvoc.so
+/usr/lib/csound/plugins/libpvsbuffer.so
+/usr/lib/csound/plugins/libscansyn.so
+/usr/lib/csound/plugins/libscoreline.so
+/usr/lib/csound/plugins/libsfont.so
+/usr/lib/csound/plugins/libshape.so
+/usr/lib/csound/plugins/libstackops.so
+/usr/lib/csound/plugins/libstdopcod.so
+/usr/lib/csound/plugins/libstdutil.so
+/usr/lib/csound/plugins/libsystem_call.so
+/usr/lib/csound/plugins/libudprecv.so
+/usr/lib/csound/plugins/libudpsend.so
+/usr/lib/csound/plugins/libugakbari.so
+/usr/lib/csound/plugins/libvaops.so
+/usr/lib/csound/plugins/libvosim.so
+/usr/lib/csound/plugins/librtalsa.so
+/usr/lib/libcsound.so.5.1
+/usr/lib/libcsnd.so.5.1
+/usr/lib/liblo.so.0.6.0
+/usr/lib/python2.5/site-packages/_csnd.so
+/usr/lib/python2.5/site-packages/csnd.py
+/usr/lib/python2.5/site-packages/csnd.pyc
+/usr/lib/python2.5/site-packages/csnd.pyo
+/usr/share/doc/csound/ChangeLog
+/usr/share/doc/csound/COPYING
+/usr/share/doc/csound/INSTALL
+/usr/share/doc/csound/readme-csound5.txt
+/usr/share/locale/en_GB/LC_MESSAGES/csound5.mo
+/usr/share/locale/en_US/LC_MESSAGES/csound5.mo
+/usr/share/locale/es_CO/LC_MESSAGES/csound5.mo
+/usr/share/locale/fr/LC_MESSAGES/csound5.mo
+/usr/share/locale/de/LC_MESSAGES/csound5.mo
+/usr/include/csound/cfgvar.h
+/usr/include/csound/cscore.h
+/usr/include/csound/csdl.h
+/usr/include/csound/csound.h
+/usr/include/csound/csound.hpp
+/usr/include/csound/csoundCore.h
+/usr/include/csound/cwindow.h
+/usr/include/csound/msg_attr.h
+/usr/include/csound/OpcodeBase.hpp
+/usr/include/csound/pstream.h
+/usr/include/csound/pvfileio.h
+/usr/include/csound/soundio.h
+/usr/include/csound/sysdep.h
+/usr/include/csound/text.h
+/usr/include/csound/version.h 
+/usr/include/csound/CsoundFile.hpp 
+/usr/include/csound/CppSound.hpp 
+/usr/include/csound/filebuilding.h
 # save MD5 checksums
-
-print ' === Installing MD5 checksums ==='
-try:
-    f = open(concatPath([instDir, prefix, md5Name]), 'w')
-    print >> f, md5List,
-    f.close()
-    os.chmod(concatPath([instDir, prefix, md5Name]), 0644)
-    print '  %s' % concatPath([prefix, md5Name])
-except:
-    print ' *** Error installing MD5 checksums'
-    installErrors = 1
+#
+#print ' === Installing MD5 checksums ==='
+#try:
+#    f = open(concatPath([instDir, prefix, md5Name]), 'w')
+#    print >> f, md5List,
+#    f.close()
+#    os.chmod(concatPath([instDir, prefix, md5Name]), 0644)
+#    print '  %s' % concatPath([prefix, md5Name])
+#except:
+#    print ' *** Error installing MD5 checksums'
+#    installErrors = 1
 
 # -----------------------------------------------------------------------------
 
@@ -307,8 +382,8 @@ if installErrors:
 else:
     print 'Csound OLPC installation has been successfully completed.'
    
-if os.getuid() == 0:
-    runCmd(['/sbin/ldconfig'])
+#if os.getuid() == 0:
+#    runCmd(['/sbin/ldconfig'])
 
 print ''
 
