@@ -616,8 +616,10 @@ alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language 
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 if not buildOLPC:
     jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
-
-pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
+if not buildOLPC:
+ pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
+else:
+ pulseaudioFound = 0
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
