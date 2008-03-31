@@ -1167,8 +1167,10 @@ else:
             ''')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
-
-libCsoundLibs.append(csoundLibrary)
+if not util.getPlatform() == 'win32':
+ libCsoundLibs.append(csoundLibrary)
+else:
+ libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
 # Make everything link (correctly) against libcsound, even if not needed.
 # FIXME: when linking statically this may lead to larger than normal binaries.
