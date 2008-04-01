@@ -55,9 +55,12 @@ Authors:
     Ville Pulkki
 
 %prep
-%setup -q
+cd %{_builddir}
+rm -rf csound5
+/bin/gzip -dc %{_sourcedir}/csound-%{version}.tar.gz | tar -xf -
 
 %build
+cd %{_builddir}/csound5
 scons buildOLPC=1
 
 %install
@@ -75,25 +78,23 @@ ln -sf /usr/lib/libcsnd.so.5.1 /usr/lib/libcsnd.so
 %postun
 rm -f /usr/lib/libcsound.so
 
-
 %files
 %defattr(-,root,root,-)
 /usr/bin/csound
 %{_libdir}/csound/plugins/*
 %{_libdir}/lib*
-%{python_site_dir}/*
 %{_datadir}/doc/csound/*
 %{_datadir}/locale/en_GB/LC_MESSAGES/csound5.mo
 %{_datadir}/locale/en_US/LC_MESSAGES/csound5.mo
 %{_datadir}/locale/es_CO/LC_MESSAGES/csound5.mo
 %{_datadir}/locale/fr/LC_MESSAGES/csound5.mo
 %{_datadir}/locale/de/LC_MESSAGES/csound5.mo
-%{_includedir}/csound/*
 
 %changelog
 
 * Tue Apr 01 2008  Victor Lazzarini <vlazzarini@nuim.ie>
  - simplified the filelist in this spec
+ - removed python module and headers for dev and python RPM packaging
 * Mon Mar 31 2008  Victor Lazzarini <vlazzarini@nuim.ie>
  - initial version of this spec
 
