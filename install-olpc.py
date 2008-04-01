@@ -7,7 +7,6 @@ import md5
 import time
 
 # get Python version
-
 pyVersion = sys.version.split()[0][:3]
  
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
@@ -26,7 +25,6 @@ locales = ['/en_GB/LC_MESSAGES/', '/en_US/LC_MESSAGES/', '/es_CO/LC_MESSAGES/',
                '/de/LC_MESSAGES/' , '/fr/LC_MESSAGES/']
 
 # -----------------------------------------------------------------------------
-
 print 'Csound5 OLPC installer'
 print ''
 
@@ -44,13 +42,15 @@ def printUsage():
     print "Allowed options are:"
     print "    --prefix=DIR    base directory (default: /usr)"
     print "    --instdir=DIR   installation root directory (default: /)"
+    print "    --install-python install python module only"
+    print "    --install-headers install headers only"
     print "    --help          print this message"
     print ""
 
 # parse command line options
-
-install_headers = True
-install_python = True
+install_csound = True
+install_headers = False
+install_python = False
 if sys.argv.__len__() > 1:
     for i in range(1, sys.argv.__len__()):
         if sys.argv[i] == '--help':
@@ -60,10 +60,12 @@ if sys.argv.__len__() > 1:
             prefix = sys.argv[i][9:]
         elif sys.argv[i][:10] == '--instdir=':
             instDir = sys.argv[i][10:]
-        elif sys.argv[i][:22] == '--dont-install-headers':
-            install_headers = False
-        elif sys.argv[i][:21] == '--dont-install-python':
-            install_python = False
+        elif sys.argv[i][:17] == '--install-headers':
+            install_headers = True
+            install_csound = False
+        elif sys.argv[i][:16] == '--install-python':
+            install_python = True
+            install_csound = False
         else:
             printUsage()
             print 'Error: unknown option: %s' % sys.argv[i]
@@ -71,7 +73,6 @@ if sys.argv.__len__() > 1:
 
 # concatenates a list of directory names,
 # and returns full path without a trailing '/'
-
 def concatPath(lst):
     s = '/'
     for i in lst:
@@ -185,40 +186,45 @@ def findFiles(dir, pat):
             lst += [fName]
     return lst
 
-
-
 # copy binaries
-
-print ' === Installing executables ==='
-for i in exeFiles:
+if install_csound:
+ print ' === Installing executables ==='
+ for i in exeFiles:
     if findFiles('.', i).__len__() > 0:
-        err = installXFile('--strip-unneeded', i, binDir)
-        installErrors = installErrors or err
+     err = installXFile('--strip-unneeded', i, binDir)
+     installErrors = installErrors or err
 
 # copy libraries
-
-print ' === Installing libraries ==='
-version = 5.1
-libList += findFiles('.', 'libcsound\\.so\\..+')
-libList += findFiles('.', 'libcsnd\\.so\\..+')
-for i in libList:
+ print ' === Installing libraries ==='
+ version = 5.1
+ libList += findFiles('.', 'libcsound\\.so\\..+')
+ libList += findFiles('.', 'libcsnd\\.so\\..+')
+ for i in libList:
         err = installXFile('--strip-debug', i, libDir)
-        #if err == 0:
-         #err = installLink(i, concatPath([libDir,i]))
         installErrors = installErrors or err
 
 # copy plugin libraries
-
-print ' === Installing plugins ==='
-pluginDir = pluginDir32
-installErrors = installErrors or err
-pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
-for i in ['libcsound.so', 'libcsnd.so']:
+ print ' === Installing plugins ==='
+ pluginDir = pluginDir32
+ installErrors = installErrors or err
+ pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
+ for i in ['libcsound.so', 'libcsnd.so']:
     if i in pluginList:
         pluginList.remove(i)
-for i in pluginList:
+ for i in pluginList:
     err = installXFile('--strip-unneeded', i, pluginDir)
     installErrors = installErrors or err
+
+# copy documentation
+ print ' === Installing documentation ==='
+ err = installFiles(docFiles, docDir)
+ installErrors = installErrors or err
+
+# copy locale files
+ print ' === Installing localisation ==='
+ for i in locales:
+   err = installFile('po%scsound5.mo' % i, localeDir + i)
+ installErrors = installErrors or err
 
 # copy header files
 if install_headers:
@@ -231,8 +237,7 @@ if install_python:
  print ' === Installing language interfaces ==='
  wrapperList = [['csnd\\.py', '0', pythonDir],
                ['_csnd\\.so', '1', pythonDir]]
-
-for i in wrapperList:
+ for i in wrapperList:
     tmp = findFiles('.', i[0])
     if tmp.__len__() > 0:
         fName = tmp[0]
@@ -242,61 +247,9 @@ for i in wrapperList:
             err = installXFile('--strip-debug', fName, i[2])
         installErrors = installErrors or err
 
-# copy documentation
-
-print ' === Installing documentation ==='
-err = installFiles(docFiles, docDir)
-installErrors = installErrors or err
-
-# copy locale files
-print ' === Installing localisation ==='
-for i in locales:
-   err = installFile('po%scsound5.mo' % i, localeDir + i)
-installErrors = installErrors or err
-
-
-# create uninstall script
-
-#print ' === Installing uninstall script ==='
-#fileList += [concatPath([prefix, md5Name])]
-#fileList += [concatPath([binDir, 'uninstall-csound5'])]
-#try:
-#    f = open(concatPath([instDir, binDir, 'uninstall-csound5']), 'w')
-#    print >> f, '#!/bin/sh'
-#    print >> f, ''
-#    for i in fileList:
-#        print >> f, 'rm -f "%s"' % i
-#    print >> f, ''
-#    print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
-#    print >> f, ''
-#    f.close()
-#    os.chmod(concatPath([instDir, binDir, 'uninstall-csound5']), 0755)
-#    addMD5(concatPath([instDir, binDir, 'uninstall-csound5']),
-#           concatPath([binDir, 'uninstall-csound5']))
-#    print '  %s' % concatPath([binDir, 'uninstall-csound5'])
-#except:
-#    print ' *** Error creating uninstall script'
-#    installErrors = 1
-
-# save MD5 checksums
-#
-#print ' === Installing MD5 checksums ==='
-#try:
-#    f = open(concatPath([instDir, prefix, md5Name]), 'w')
-#    print >> f, md5List,
-#    f.close()
-#    os.chmod(concatPath([instDir, prefix, md5Name]), 0644)
-#    print '  %s' % concatPath([prefix, md5Name])
-#except:
-#    print ' *** Error installing MD5 checksums'
-#    installErrors = 1
-
-# -----------------------------------------------------------------------------
-
 print ''
 
 # check for errors
-
 if installErrors:
     print ' *** Errors occured during installation, deleting files...'
     for i in fileList:
@@ -307,8 +260,5 @@ if installErrors:
 else:
     print 'Csound OLPC installation has been successfully completed.'
    
-#if os.getuid() == 0:
-#    runCmd(['/sbin/ldconfig'])
-
 print ''
 
