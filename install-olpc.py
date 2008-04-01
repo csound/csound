@@ -206,7 +206,6 @@ if install_csound:
 # copy plugin libraries
  print ' === Installing plugins ==='
  pluginDir = pluginDir32
- installErrors = installErrors or err
  pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
  for i in ['libcsound.so', 'libcsnd.so']:
     if i in pluginList:
