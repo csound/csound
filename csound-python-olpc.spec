@@ -1,5 +1,5 @@
-Summary: Csound - sound synthesis language and library
-Name:   csound        
+Summary: Csound-python - python bindings for Csound
+Name:   csound-python        
 %define version 5.08.91
 Version: %version
 Release: 0
@@ -9,11 +9,13 @@ Group: Applications/Multimedia
 Source: csound-%version.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-#BuildRequires: python scons # ?  
-Requires: liblo libsndfile      
+#BuildRequires: python scons # ?
+Requires: liblo libsndfile csound-%{version}     
+%define python_site_dir /usr/lib/python2.5/site-packages
 
 %description
-Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient...
+Csound Python bindings allow Python scripts to access the
+Csound API
 
 Authors:
 --------
@@ -65,37 +67,22 @@ scons buildOLPC=1
 %install
 rm -rf $RPM_BUILD_ROOT
 cd %{_builddir}/csound5
-python install-olpc.py --instdir=$RPM_BUILD_ROOT
+python install-olpc.py --install-python --instdir=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-ln -sf /usr/lib/libcsound.so.5.1 /usr/lib/libcsound.so
-ln -sf /usr/lib/libcsnd.so.5.1 /usr/lib/libcsnd.so
 /sbin/ldconfig
 
 %postun
-rm -f /usr/lib/libcsound.so
-rm -f /usr/lib/libcsnd.so
 
 %files
 %defattr(-,root,root,-)
-/usr/bin/csound
-%{_libdir}/csound/plugins/*
-%{_libdir}/lib*
-%{_datadir}/doc/csound/*
-%{_datadir}/locale/en_GB/LC_MESSAGES/csound5.mo
-%{_datadir}/locale/en_US/LC_MESSAGES/csound5.mo
-%{_datadir}/locale/es_CO/LC_MESSAGES/csound5.mo
-%{_datadir}/locale/fr/LC_MESSAGES/csound5.mo
-%{_datadir}/locale/de/LC_MESSAGES/csound5.mo
+%{python_site_dir}/*
 
 %changelog
 
 * Tue Apr 01 2008  Victor Lazzarini <vlazzarini@nuim.ie>
- - simplified the filelist in this spec
- - removed python module and headers for dev and python RPM packaging
-* Mon Mar 31 2008  Victor Lazzarini <vlazzarini@nuim.ie>
- - initial version of this spec
+ - first version of this spec
 
