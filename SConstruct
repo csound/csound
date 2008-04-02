@@ -539,6 +539,13 @@ elif getPlatform() == 'win32':
     pythonLibraryPath = []
     tclIncludePath = []
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion'].replace('.', '')]
+else:
+    pythonIncludePath = []
+    pythonLinkFlags = []
+    pythonLibaryPath = []
+    tclIncludePath = []
+    pythonLibs = []
+
 
 # Check for prerequisites.
 # We check only for headers; checking for libs may fail
