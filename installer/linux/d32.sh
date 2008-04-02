@@ -19,6 +19,7 @@ strip ../../../CSDIST/$DIR/bin/*
 
 rm ../../../CSDIST/$DIR/opc/*
 rm ../../../CSDIST/$DIR/opc/frontends/*
+cp -puv ../../li*.so ../../opcodes.dir ../../../CSDIST/$DIR/opc
 
 mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
 mv ../../../CSDIST/$DIR/opc/lib_jcsound.so ../../../CSDIST/$DIR/opc/frontends
