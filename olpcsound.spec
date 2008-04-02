@@ -5,11 +5,11 @@ Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
-Source: olpcsound-%version.tar.bz
+Source: olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel 
 Requires: liblo libsndfile      
-%define python_site_dir {%_libdir}/python2.5/site-packages
+%define python_site_dir %{_libdir}/python2.5/site-packages
 
 %description
 Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient...
@@ -77,7 +77,7 @@ ln -sf %{_libdir}/libcsnd.so.5.1  %{_libdir}/libcsnd.so
 rm -f %{_libdir}/libcsound.so
 rm -f %{_libdir}/libcsnd.so
 
-%files -f csound5/csound5.lang
+%files -f %{_builddir}/%{name}-%{version}/csound5.lang
 %defattr(-,root,root,-)
 %{_bindir}/*
 %{_libdir}/csound/plugins/*
