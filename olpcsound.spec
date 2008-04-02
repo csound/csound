@@ -1,16 +1,15 @@
 Summary: Csound - sound synthesis language and library, OLPC subset
 Name:   olpcsound        
-%define version 5.08.91
-Version: %version
+Version: 5.08.91
 Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
-Source: olpcsound-%version.tar.gz
+Source: olpcsound-%version.tar.bz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: python scons alsa-devel liblo-devel libsndfile-devel
+BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel 
 Requires: liblo libsndfile      
-%define python_site_dir /usr/lib/python2.5/site-packages
+%define python_site_dir {%_libdir}/python2.5/site-packages
 
 %description
 Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient...
@@ -54,36 +53,33 @@ Authors:
     Ville Pulkki
 
 %prep
-cd %{_builddir}
-rm -rf csound5
-/bin/gzip -dc %{_sourcedir}/csound-%{version}.tar.gz | tar -xf -
+%setup -q
+
 
 %build
-cd %{_builddir}/csound5
 /usr/bin/scons buildOLPC=1
 
 %install
-rm -rf $RPM_BUILD_ROOT
-cd %{_builddir}/csound5
-/usr/bin/python install-olpc.py --instdir=$RPM_BUILD_ROOT
-/usr/bin/python install-olpc.py --install-python --instdir=$RPM_BUILD_ROOT
+rm -rf %{buildroot}
+/usr/bin/python install-olpc.py --instdir=%{buildroot}
+/usr/bin/python install-olpc.py --install-python --instdir=%{buildroot}
 %find_lang csound5
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
-ln -sf /usr/lib/libcsound.so.5.1 /usr/lib/libcsound.so
-ln -sf /usr/lib/libcsnd.so.5.1 /usr/lib/libcsnd.so
+ln -sf %{_libdir}/libcsound.so.5.1  %{_libdir}/libcsound.so
+ln -sf %{_libdir}/libcsnd.so.5.1  %{_libdir}/libcsnd.so
 /sbin/ldconfig
 
 %postun
-rm -f /usr/lib/libcsound.so
-rm -f /usr/lib/libcsnd.so
+rm -f %{_libdir}/libcsound.so
+rm -f %{_libdir}/libcsnd.so
 
-%files -f csound5.lang
+%files -f csound5/csound5.lang
 %defattr(-,root,root,-)
-/usr/bin/csound
+%{_bindir}/*
 %{_libdir}/csound/plugins/*
 %{_libdir}/lib*
 %{python_site_dir}/*
@@ -91,6 +87,6 @@ rm -f /usr/lib/libcsnd.so
 
 %changelog
 
-* Tue Apr 01 2008  Victor Lazzarini <vlazzarini@nuim.ie>
+* Wed Apr 02 2008  Victor Lazzarini <vlazzarini@nuim.ie>
  - initial version of this spec
 
