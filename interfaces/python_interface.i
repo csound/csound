@@ -249,6 +249,7 @@ static int PythonMidiRead(CSOUND *in, void *udata,
 %ignore Csound::SetMessageCallback(void (*)(CSOUND *, int attr,const char *format, va_list valist));
 %include "csound.hpp"
 
+
 %extend Csound {
   void SetHostData(PyObject *data){
    ((pycbdata *)self->pydata)->hostdata = data;
@@ -256,11 +257,11 @@ static int PythonMidiRead(CSOUND *in, void *udata,
   PyObject *GetHostData() {
    return ((pycbdata *)self->pydata)->hostdata;
 }
-
+#ifndef MACOSX
   void SetMessageCallback(PyObject *pyfunc){
      // thread safety mechanism 
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->mfunc == NULL)  
+    if(pydata->mfunc == NULL)   
         if(!PyEval_ThreadsInitialized())  PyEval_InitThreads();
     else Py_XDECREF(pydata->mfunc);
         pydata->mfunc = pyfunc;
@@ -323,9 +324,9 @@ void SetExternalMidiReadCallback(PyObject *pyfunc){
         self->SetExternalMidiReadCallback(PythonMidiRead);
         Py_XINCREF(pyfunc); 
 }
-
-
+#endif
 }
+
 %clear MYFLT &dflt;
 %clear MYFLT &min;
 %clear MYFLT &max;
@@ -360,7 +361,10 @@ static void PythonCallback(void *p){
    // Set the Python callback
    void SetProcessCallback(PyObject *pyfunc, PyObject *p){
     if(self->GetProcessCallback() == NULL) {
-       if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+#ifndef MACOSX
+       if(!PyEval_ThreadsInitialized()) 
+#endif                      
+                          PyEval_InitThreads();
      }
      else Py_XDECREF(self->pydata.func);  
     self->pydata.func = pyfunc;
