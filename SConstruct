@@ -1099,7 +1099,7 @@ else:
         csoundLibraryName, libCsoundSources)
 if getPlatform() == 'linux':
  libCsoundLibs.append(csoundLibrary)
-else:
+elif getPlatform() == 'win32' or (getPlatform() == 'darwin' and commonEnvironment['dynamicCsoundLibrary']=='0'):
  libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
 
