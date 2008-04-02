@@ -1097,7 +1097,7 @@ else:
     csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
-if getPlatform() != 'win32':
+if getPlatform() == 'linux':
  libCsoundLibs.append(csoundLibrary)
 else:
  libCsoundLibs.append(csoundLibraryName)
@@ -1207,7 +1207,7 @@ else:
         if getPlatform() == 'darwin':
             csoundWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        if getPlatform() == 'linux':
+        if getPlatform() == 'linux' or getPlatform() == 'darwin':
             # ugly hack to work around bug that requires running scons twice
             tmp = [csoundWrapperEnvironment['SWIG']]
             for i in swigflags:
@@ -1221,8 +1221,8 @@ else:
                 'interfaces/java_interface_wrap.cc')]
         else:
             csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
-                'interfaces/java_interface.i',
-                SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
+                'interfaces/java_interface.i')]#,
+               # SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
         csoundJavaWrapperSources += csoundInterfacesSources
         if getPlatform() == 'darwin':
@@ -1916,7 +1916,7 @@ if not buildOLPC:
         ['sndinfo',     'util/sndinfo_main.c' ],
         ['srconv',      'util/srconv_main.c'  ]]
     for i in utils:
-      executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
+       executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
 
 if not buildOLPC:
   executables.append(csoundProgramEnvironment.Program('scsort',
@@ -2092,9 +2092,13 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-    acEnvironment.Prepend(LIBS = csndModule)
+        acEnvironment.Prepend(LIBS = csndModule)
+    else: acEnvironment.Prepend(LIBS = '_csnd')
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-    acEnvironment.Prepend(LIBS = libCsoundLibs)
+    if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':
+      acEnvironment.Prepend(LIBS = libCsoundLibs)
+    else:
+      acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib'])
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         acEnvironment.Append(LIBS = ['util', 'dl', 'm'])
@@ -2184,9 +2188,15 @@ else:
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound64'))
     else:
-        counterpoint = acEnvironment.Program(
+       if getPlatform() != 'darwin':
+         counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound32'))
+       else: 
+          counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd'))
+ 
 
 # Build CsoundVST
 
