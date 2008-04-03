@@ -7,7 +7,8 @@ License: LGPL
 Group: Applications/Multimedia
 Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel gettext
+BuildRequires: swig python scons alsa-lib-devel liblo-devel libsndfile-devel 
+BuildRequires: libpng-devel libjpeg-devel libvorbis-devel libogg-devel gettext python-devel
 Requires: liblo libsndfile      
 %define python_site_dir %{_libdir}/python2.5/site-packages
 
@@ -26,7 +27,7 @@ Authors:
     Greg Sullivan
     Hans Mikelson
     Istvan Varga
-    Jean Piché
+    Jean Pich
     John ffitch
     John Ramsdell
     Marc Resibois
@@ -52,6 +53,14 @@ Authors:
     Victor Lazzarini
     Ville Pulkki
 
+%package devel
+Summary: Csound development files and libraries
+Group: Development/Libraries
+Requires: %{name}=%{version}-%{release}
+
+%description devel
+Headers and libraries for Csound-based application development
+
 %prep
 %setup -q
 
@@ -59,31 +68,31 @@ Authors:
 /usr/bin/scons buildOLPC=1
 
 %install
-rm -rf %{buildroot}
-/usr/bin/python install-olpc.py --instdir=%{buildroot}
-/usr/bin/python install-olpc.py --install-python --instdir=%{buildroot}
+%{__rm} -rf %{buildroot}
+%{__python} install-olpc.py --install-python --install-headers --instdir=%{buildroot}
 %find_lang csound5
 
 %clean
-rm -rf %{buildroot}
+%{__rm} -rf %{buildroot}
 
-%post
-ln -sf %{_libdir}/libcsound.so.5.1  %{_libdir}/libcsound.so
-ln -sf %{_libdir}/libcsnd.so.5.1  %{_libdir}/libcsnd.so
-/sbin/ldconfig
+%post -p /sbin/ldconfig
 
-%postun
-rm -f %{_libdir}/libcsound.so
-rm -f %{_libdir}/libcsnd.so
-/sbin/ldconfig
+%postun -p /sbin/ldconfig
 
 %files -f %{_builddir}/%{name}-%{version}/csound5.lang
 %defattr(-,root,root,-)
 %{_bindir}/*
 %{_libdir}/csound/plugins/*
-%{_libdir}/lib*
+%{_libdir}/libcsound.so.5.1
+%{_libdir}/libcsnd.so.5.1
 %{python_site_dir}/*
 %{_datadir}/doc/csound/*
+
+%files devel
+%defattr(-,root,root,0755)
+%{_includedir}/csound/*
+%{_libdir}/libcsound.so
+%{_libdir}/libcsnd.so
 
 
 %changelog

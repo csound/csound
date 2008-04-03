@@ -62,9 +62,9 @@ if sys.argv.__len__() > 1:
             instDir = sys.argv[i][10:]
         elif sys.argv[i][:17] == '--install-headers':
             install_headers = True
-            install_csound = False
         elif sys.argv[i][:16] == '--install-python':
             install_python = True
+        elif sys.argv[i][:21] == '--dont-install-csound':
             install_csound = False
         else:
             printUsage()
@@ -200,8 +200,8 @@ if install_csound:
  libList += findFiles('.', 'libcsound\\.so\\..+')
  libList += findFiles('.', 'libcsnd\\.so\\..+')
  for i in libList:
-        err = installXFile('--strip-debug', i, libDir)
-        installErrors = installErrors or err
+     err = installXFile('--strip-debug', i, libDir) 
+     installErrors = installErrors or err
 
 # copy plugin libraries
  print ' === Installing plugins ==='
@@ -230,6 +230,15 @@ if install_headers:
  print ' === Installing header files ==='
  err = installFiles(headerFiles, includeDir)
  installErrors = installErrors or err
+ version = 5.1
+ libList += findFiles('.', 'libcsound\\.so\\..+')
+ libList += findFiles('.', 'libcsnd\\.so\\..+')
+ for i in libList: 
+        if i[:13] == 'libcsound.so.':
+            err = installLink(i, concatPath([libDir, 'libcsound.so']))
+        elif i[:11] == 'libcsnd.so.':
+            err = installLink(i, concatPath([libDir, 'libcsnd.so']))
+        installErrors = installErrors or err
 
 # copy language interfaces
 if install_python:
