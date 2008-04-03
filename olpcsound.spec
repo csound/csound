@@ -7,7 +7,7 @@ License: LGPL
 Group: Applications/Multimedia
 Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel 
+BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel gettext
 Requires: liblo libsndfile      
 %define python_site_dir %{_libdir}/python2.5/site-packages
 
