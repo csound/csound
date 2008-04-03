@@ -5,14 +5,14 @@ Release: 0
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
-Source: olpcsound-%version.tar.bz2
+Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: python scons alsa-lib-devel liblo-devel libsndfile-devel 
 Requires: liblo libsndfile      
 %define python_site_dir %{_libdir}/python2.5/site-packages
 
 %description
-Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient...
+olpcsound is a subset of the Csound sound and music synthesis system, tailored specifically for  XO platform. It provides facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient... 
 
 Authors:
 --------
@@ -55,7 +55,6 @@ Authors:
 %prep
 %setup -q
 
-
 %build
 /usr/bin/scons buildOLPC=1
 
@@ -76,6 +75,7 @@ ln -sf %{_libdir}/libcsnd.so.5.1  %{_libdir}/libcsnd.so
 %postun
 rm -f %{_libdir}/libcsound.so
 rm -f %{_libdir}/libcsnd.so
+/sbin/ldconfig
 
 %files -f %{_builddir}/%{name}-%{version}/csound5.lang
 %defattr(-,root,root,-)
@@ -84,6 +84,7 @@ rm -f %{_libdir}/libcsnd.so
 %{_libdir}/lib*
 %{python_site_dir}/*
 %{_datadir}/doc/csound/*
+
 
 %changelog
 
