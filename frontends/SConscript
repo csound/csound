@@ -18,6 +18,9 @@ commandOptions.Add('buildOSXGUI',
 commandOptions.Add('buildCSEditor',
     'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
     '0')
+commandOptions.Add('buildPDClass',
+    "build csoundapi~ PD class (needs m_pd.h in the standard places)",
+    '0')
 
 commandOptions.Update(commonEnvironment)
 
@@ -36,8 +39,8 @@ if commonEnvironment['buildCsound5GUI'] != '0':
     found117 = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
     if not found117:
         util.fatal("You specified buildCsound5GUI, but you don't have FLTK 1.17 installed.")
-    
-    csound5GUIEnvironment = programEnvironment.Copy()
+
+    csound5GUIEnvironment = programEnvironment.Clone()
     if configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C", autoadd=False):
         csound5GUIEnvironment.Append(LIBS = ['jack'])
         csound5GUIEnvironment.Prepend(CPPFLAGS = ['-DHAVE_JACK'])
@@ -223,7 +226,7 @@ if commonEnvironment['buildCSEditor'] == '1':
 else:
     util.confDecision('Not building Csound Text Editor.')
 
-if commonEnvironment['buildPDCLass'] != '0':
+if commonEnvironment['buildPDClass'] != '0':
     if not configure.CheckHeader('m_pd.h', language = 'C'):
         util.fatal('You specified buildPDClass but PD was not found')
     pdClassEnvironment = commonEnvironment.Copy()
@@ -233,16 +236,17 @@ if commonEnvironment['buildPDCLass'] != '0':
             -framework Carbon -framework ApplicationServices
         '''))
         pdClass = pdClassEnvironment.Program(
-            'csoundapi~.pd_darwin',
-            'frontends/csoundapi_tilde/csoundapi_tilde.c')
+            'csoundapi_tilde/csoundapi~.pd_darwin',
+            'csoundapi_tilde/csoundapi_tilde.c')
     elif util.getPlatform() == 'linux':
         pdClass = pdClassEnvironment.SharedLibrary(
-            'csoundapi~.pd_linux',
-            'frontends/csoundapi_tilde/csoundapi_tilde.c',
+            'csoundapi_tilde/csoundapi~.pd_linux',
+            'csoundapi_tilde/csoundapi_tilde.c',
             SHLIBPREFIX = '', SHLIBSUFFIX = '')
     elif util.getPlatform() == 'win32':
         pdClassEnvironment.Append(LIBS = ['pd'])
         pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
         pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
         pdClass = pdClassEnvironment.SharedLibrary(
-            'csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c'
+            'csoundapi_tilde/csoundapi~',
+            'csoundapi_tilde/csoundapi_tilde.c')

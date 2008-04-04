@@ -3,6 +3,18 @@
 Import("commonEnvironment", "commandOptions", "util" )
 Import("configure")
 
+commandOptions.Add('useFLTK',
+    'Set to 1 to use FLTK for graphs and widget opcodes.',
+    '1')
+commandOptions.Add('noFLTKThreads',
+    'Set to 1 to disable use of a separate thread for FLTK widgets.',
+    '1')
+commandOptions.Add('buildVirtual',
+    "Build Virtual MIDI keyboard. Requires FLTK 1.1.7 or later headers and libs",
+    '0')
+
+commandOptions.Update(commonEnvironment)
+
 # widgets
 if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0':
     fltkfound = configure.CheckLibWithHeader("fltk", "FL/Fl.H",
