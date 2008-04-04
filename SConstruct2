@@ -198,12 +198,6 @@ commandOptions.Add('useALSA',
 commandOptions.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack; also builds Jack plugin.',
     '1')
-commandOptions.Add('useFLTK',
-    'Set to 1 to use FLTK for graphs and widget opcodes.',
-    '1')
-commandOptions.Add('noFLTKThreads',
-    'Set to 1 to disable use of a separate thread for FLTK widgets.',
-    '1')
 commandOptions.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
@@ -277,9 +271,6 @@ commandOptions.Add('buildStkOpcodes',
 commandOptions.Add('install',
     'Enables the Install targets',
     '0')
-commandOptions.Add('buildPDClass',
-    "build csoundapi~ PD class (needs m_pd.h in the standard places)",
-    '0')
 commandOptions.Add('useCoreAudio',
     "Set to 1 to use CoreAudio for real-time audio input and output.",
     '1')
@@ -294,9 +285,6 @@ commandOptions.Add('buildUtilities',
     '1')
 commandOptions.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
-    '0')
-commandOptions.Add('buildVirtual',
-    "Build Virtual MIDI keyboard. Requires FLTK 1.1.7 or later headers and libs",
     '0')
 commandOptions.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
@@ -454,6 +442,11 @@ else:
         print "Build platform is MinGW/MSYS"
 
 print "SCons tools on this platform: ", commonEnvironment['TOOLS']
+
+if util.compilerGNU():
+    # Avoid warnings about things we won't fix anyway
+    commonEnvironment.Append(CCFLAGS  = '-Wno-write-strings')
+    commonEnvironment.Append(CXXFLAGS = '-Wno-write-strings')
 
 commonEnvironment.Prepend(CPPPATH = ['#/.', '#/H'])
 commonEnvironment.Prepend(CPPPATH = ['.', './H']) # The swig builder sucks
@@ -1092,8 +1085,11 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         libCsoundLibs = []
         libName = 'lib' + csoundLibraryName + '.so'
         libName2 = libName + '.' + csoundLibraryVersion
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', libName])
-        os.symlink(libName2, libName)
+        try:
+            os.symlink(libName2, libName)
+        except:
+            pass
+        Clean(libName2, libName) # Delete the symlink on clean
         tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
         tmp += ['-Wl,-soname=%s' % libName2]
         cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
@@ -1292,8 +1288,11 @@ else:
     elif util.getPlatform() == 'linux':
         name = 'libcsnd.so'
         soname = name + '.' + csoundLibraryVersion
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', name])
-        os.symlink(soname, name)
+        try:
+            os.symlink(soname, name)
+        except:
+            pass
+        Clean(soname, name) #Delete symlink on clean
         linkflags = csoundInterfacesEnvironment['SHLINKFLAGS']
         soflag = [ '-Wl,-soname=%s' % soname ]
         extraflag = ['-L.']
@@ -1795,8 +1794,11 @@ else:
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
-        os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        try:
+            os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        except:
+            pass
+        Clean('lib_CsoundAC.so', '_CsoundAC.so')
     elif util.getPlatform() == 'darwin':
         acEnvironment.Append(LIBS = ['dl', 'm'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
