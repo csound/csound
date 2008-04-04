@@ -156,7 +156,6 @@ if commonEnvironment['buildWinsound'] == '1':
     Depends(winsoundMain, winsoundSrc)
     winsound5 = csWinEnvironment.Program(
         'winsound/winsound', [winsoundMain, winsoundSrc])
-    print csWinEnvironment['CPPPATH']
 else:
     util.confDecision("Not building Winsound")
 
