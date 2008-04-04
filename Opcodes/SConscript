@@ -1,0 +1,145 @@
+# vim: filetype=python expandtab sw=4 tabstop=4
+
+import sys
+
+Import("commonEnvironment", "commandOptions", "util" )
+Import("configure")
+
+pluginEnvironment = commonEnvironment.Copy()
+
+buildOLPC = (commonEnvironment['buildOLPC'] != '0')
+
+if util.getPlatform() == 'darwin':
+    pluginEnvironment.Append(LINKFLAGS = Split('''
+        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
+    '''))
+    # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+    pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
+    pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+
+stdsrcs = Split( '''
+                    bbcut.c         biquad.c
+    butter.c        clfilt.c        cross2.c
+    dam.c           dcblockr.c      filter.c
+    flanger.c       follow.c        fout.c
+    freeverb.c      ftconv.c        ftgen.c
+    gab/gab.c       gab/vectorial.c grain.c
+    locsig.c        lowpassr.c      metro.c
+    midiops2.c      midiops3.c      newfils.c
+    nlfilt.c        oscbnk.c        pluck.c
+    repluck.c       reverbsc.c      seqtime.c
+    sndloop.c       sndwarp.c       space.c
+                    syncgrain.c     ugens7.c
+    ugens9.c        ugensa.c        uggab.c
+    ugmoss.c                        ugsc.c
+    wave-terrain.c  stdopcod.c
+        ''')
+if not buildOLPC:
+    stdsrcs.append(Split('ambicode.c spat3d.c ugnorman.c') )
+
+util.makePlugin(pluginEnvironment, 'stdopcod', stdsrcs)
+
+if util.getPlatform() != 'win32' and not buildOLPC:
+    util.makePlugin(pluginEnvironment, 'control', 'control.c')
+
+util.makePlugin(pluginEnvironment, 'eqfil', 'eqfil.c')
+util.makePlugin(pluginEnvironment, 'pvsbuffer', 'pvsbuffer.c')
+util.makePlugin(pluginEnvironment, 'scoreline', 'scoreline.c')
+
+if not buildOLPC:
+  util.makePlugin(pluginEnvironment, 'ftest', 'ftest.c')
+
+util.makePlugin(pluginEnvironment, 'mixer', 'mixer.cpp')
+util.makePlugin(pluginEnvironment, 'modal4',
+    ['modal4.c', 'physutil.c'])
+util.makePlugin(pluginEnvironment, 'physmod', Split('''
+    physmod.c physutil.c mandolin.c singwave.c
+    fm4op.c moog1.c shaker.c bowedbar.c
+'''))
+util.makePlugin(pluginEnvironment, 'pitch',
+    ['pitch.c', 'pitch0.c', 'spectra.c'])
+util.makePlugin(pluginEnvironment, 'scansyn',
+    ['scansyn.c', 'scansynx.c'])
+
+sfontEnvironment = pluginEnvironment.Copy()
+if util.compilerGNU():
+    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
+if sys.byteorder == 'big':
+    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+util.makePlugin(sfontEnvironment, 'sfont', ['sfont.c'])
+
+if not buildOLPC:
+  util.makePlugin(pluginEnvironment, 'babo', ['babo.c'])
+
+util.makePlugin(pluginEnvironment, 'barmodel', ['bilbar.c'])
+util.makePlugin(pluginEnvironment, 'compress', ['compress.c'])
+util.makePlugin(pluginEnvironment, 'grain4', ['grain4.c'])
+
+if not buildOLPC:
+  util.makePlugin(pluginEnvironment, 'hrtferX', ['hrtferX.c'])
+
+util.makePlugin(pluginEnvironment, 'loscilx', ['loscilx.c'])
+util.makePlugin(pluginEnvironment, 'minmax', ['minmax.c'])
+util.makePlugin(pluginEnvironment, 'cs_pan2', ['pan2.c'])
+util.makePlugin(pluginEnvironment, 'phisem', ['phisem.c'])
+util.makePlugin(pluginEnvironment, 'pvoc', Split('''
+    dsputil.c pvadd.c pvinterp.c pvocext.c
+    pvread.c ugens8.c vpvoc.c pvoc.c
+'''))
+util.makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
+    ifd.c partials.c psynth.c pvsbasic.c
+    pvscent.c pvsdemix.c pvs_ops.c pvsband.c
+'''))
+util.makePlugin(pluginEnvironment, 'stackops', ['stackops.c'])
+
+if not buildOLPC:
+  util.makePlugin(pluginEnvironment, 'vbap',
+           ['vbap.c', 'vbap_eight.c', 'vbap_four.c',
+            'vbap_sixteen.c', 'vbap_zak.c'])
+
+util.makePlugin(pluginEnvironment, 'vaops', ['vaops.c'])
+util.makePlugin(pluginEnvironment, 'harmon', ['harmon.c'])
+util.makePlugin(pluginEnvironment, 'ampmidid', ['ampmidid.cpp'])
+util.makePlugin(pluginEnvironment, 'cs_date', ['date.c'])
+util.makePlugin(pluginEnvironment, 'system_call', ['system_call.c'])
+util.makePlugin(pluginEnvironment, 'ptrack', ['pitchtrack.c'])
+util.makePlugin(pluginEnvironment, 'mutexops', ['mutexops.cpp'])
+util.makePlugin(pluginEnvironment, 'partikkel', ['partikkel.c'])
+util.makePlugin(pluginEnvironment, 'shape', ['shape.c'])
+
+if buildOLPC :
+   oggEnvironment = pluginEnvironment.Copy()
+   util.makePlugin(oggEnvironment, 'ogg', ['ogg.c'])
+   oggEnvironment.Append(LIBS=['vorbisfile'])
+
+util.makePlugin(pluginEnvironment, 'vosim', ['Vosim.c'])
+
+util.makePlugin(pluginEnvironment, 'gabnew', Split('''
+    gab/tabmorph.c  gab/hvs.c
+    gab/sliderTable.c
+    gab/newgabopc.c
+'''))
+util.makePlugin(pluginEnvironment, 'hrtfnew', 'hrtfopcodes.c')
+
+if not buildOLPC:
+    jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h",
+        language = "C", autoadd=False)
+    if jackFound:
+        jackEnv = pluginEnvironment.Copy()
+        jackEnv.Append(LIBS = 'jack')
+        util.makePlugin(jackEnv, 'jackTransport', 'jackTransport.c')
+
+if commonEnvironment['buildImageOpcodes'] == '1':
+    pngFound = configure.CheckLibWithHeader("png", "png.h", language="C",
+            autoadd = False)
+    zlibFound = configure.CheckHeader("zlib.h", language = "C")
+    if not (pngFound and zlibFound):
+        util.fatal("You specified buildImageOpcodes but don't have png or libz installed")
+    util.confDecision('Building image opcodes')
+    imgEnvironment = pluginEnvironment.Copy()
+    imgEnvironment.Append(LIBS= Split(''' png z '''))
+    util.makePlugin(imgEnvironment, 'image', ['imageOpcodes.c'])
+else:
+    util.confDecision('Not building image opcodes')
+
+
