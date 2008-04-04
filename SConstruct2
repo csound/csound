@@ -685,23 +685,17 @@ if not buildOLPC:
    portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
    portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
    fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
-if fltkFound:
-    fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
-else:
-    fltk117Found = 0
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 if not buildOLPC:
     jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
-pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
 if not tclhfound:
     for i in tclIncludePath:
         tmp = '%s/tcl.h' % i
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
-zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
 luaFound = configure.CheckHeader("lua5.1/lua.h", language = "C")
 if not buildOLPC:
@@ -737,9 +731,6 @@ if util.getPlatform() == 'linux' and not javaFound:
 if util.getPlatform() == 'win32':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
     commonEnvironment['SYSTEMROOT'] = os.environ['SYSTEMROOT']
-
-if (commonEnvironment['useFLTK'] == '1' and fltkFound):
-    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_FLTK'])
 
 if vstSdkFound:
     commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_VST_SDK'])
@@ -1957,31 +1948,6 @@ else:
     Depends(csoundvstGui, csoundvst)
 
 # Build csoundapi~ (pd class)
-
-if commonEnvironment['buildPDClass'] == '1' and pdhfound:
-    print "CONFIGURATION DECISION: Building PD csoundapi~ class"
-    pdClassEnvironment = commonEnvironment.Copy()
-    if util.getPlatform() == 'darwin':
-        pdClassEnvironment.Append(LINKFLAGS = Split('''
-            -bundle -flat_namespace -undefined suppress
-            -framework Carbon -framework ApplicationServices
-        '''))
-        pdClass = pdClassEnvironment.Program(
-            'csoundapi~.pd_darwin',
-            'frontends/csoundapi_tilde/csoundapi_tilde.c')
-    elif util.getPlatform() == 'linux':
-        pdClass = pdClassEnvironment.SharedLibrary(
-            'csoundapi~.pd_linux',
-            'frontends/csoundapi_tilde/csoundapi_tilde.c',
-            SHLIBPREFIX = '', SHLIBSUFFIX = '')
-    elif util.getPlatform() == 'win32':
-        pdClassEnvironment.Append(LIBS = ['pd'])
-        pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
-        pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
-        pdClass = pdClassEnvironment.SharedLibrary(
-            'csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
-    Depends(pdClass, csoundLibrary)
-    libs.append(pdClass)
 
 # Build tclcsound
 
