@@ -223,3 +223,26 @@ if commonEnvironment['buildCSEditor'] == '1':
 else:
     util.confDecision('Not building Csound Text Editor.')
 
+if commonEnvironment['buildPDCLass'] != '0':
+    if not configure.CheckHeader('m_pd.h', language = 'C'):
+        util.fatal('You specified buildPDClass but PD was not found')
+    pdClassEnvironment = commonEnvironment.Copy()
+    if util.getPlatform() == 'darwin':
+        pdClassEnvironment.Append(LINKFLAGS = Split('''
+            -bundle -flat_namespace -undefined suppress
+            -framework Carbon -framework ApplicationServices
+        '''))
+        pdClass = pdClassEnvironment.Program(
+            'csoundapi~.pd_darwin',
+            'frontends/csoundapi_tilde/csoundapi_tilde.c')
+    elif util.getPlatform() == 'linux':
+        pdClass = pdClassEnvironment.SharedLibrary(
+            'csoundapi~.pd_linux',
+            'frontends/csoundapi_tilde/csoundapi_tilde.c',
+            SHLIBPREFIX = '', SHLIBSUFFIX = '')
+    elif util.getPlatform() == 'win32':
+        pdClassEnvironment.Append(LIBS = ['pd'])
+        pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
+        pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
+        pdClass = pdClassEnvironment.SharedLibrary(
+            'csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c'
