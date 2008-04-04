@@ -304,9 +304,6 @@ commandOptions.Add('buildInterfaces',
 commandOptions.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the interface library.',
     '0')
-commandOptions.Add('buildCSEditor',
-    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
-    '0')
 commandOptions.Add('withICL',
     'On Windows, set to 1 to build with the Intel C++ Compiler (also requires Microsoft Visual C++), or set to 0 to build with MinGW',
     '0')
@@ -1961,38 +1958,6 @@ for i in executables:
 # Front ends.
 #############################################################################
 
-#executables.append(csoundProgram)
-
-# Build Cseditor
-
-if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
-    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
-else:
-    csEditorEnvironment = commonEnvironment.Copy()
-    if util.getPlatform() == 'linux':
-        csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        csEditor = csEditorEnvironment.Program( 'cseditor', 'frontends/cseditor/cseditor.cxx')
-        executables.append(csEditor)
-    elif util.getPlatform() == 'win32':
-        if util.compilerGNU():
-            csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
-            csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-        else:
-            csEditorEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-        csEditor = csEditorEnvironment.Program('cseditor', ['frontends/cseditor/cseditor.cxx'])
-        executables.append(csEditor)
-    elif util.getPlatform() == 'darwin':
-        csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
-        csEditorEnvironment.Append(LIBS = Split('''
-            fltk stdc++ pthread m
-        '''))
-        csEditorEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework ApplicationServices
-        '''))
-        csEditor = csEditorEnvironment.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
-        executables.append(csEditor)
 
 # Build CsoundAC
 
