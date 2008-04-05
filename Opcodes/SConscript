@@ -5,6 +5,14 @@ import sys
 Import("commonEnvironment", "commandOptions", "util" )
 Import("configure")
 
+commandOptions.Add('buildImageOpcodes',
+    'Set to 0 to avoid building image opcodes',
+    '1')
+
+commandOptions.Update(commonEnvironment)
+
+util.fixEnvForOLPC(commonEnvironment)
+
 pluginEnvironment = commonEnvironment.Copy()
 
 buildOLPC = (commonEnvironment['buildOLPC'] != '0')
