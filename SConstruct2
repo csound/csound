@@ -423,6 +423,11 @@ customSWIGFLAGS = initialEnvironment['customSWIGFLAGS']
 initialEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
 buildOLPC = ( initialEnvironment['buildOLPC'] == '1')
+if buildOLPC:
+    jackFound = False
+    fltkFound = False   
+    portaudioFound = False   
+    oscFound = True
 util.fixEnvForOLPC( initialEnvironment )
 
 # Define options for different platforms.
