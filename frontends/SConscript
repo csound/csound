@@ -24,6 +24,8 @@ commandOptions.Add('buildPDClass',
 
 commandOptions.Update(commonEnvironment)
 
+util.fixEnvForOLPC(commonEnvironment)
+
 # First the csound program with no dependencies
 programEnvironment = commonEnvironment.Copy()
 csoundSources = ['csound/csound_main.c']
