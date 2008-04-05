@@ -27,7 +27,7 @@ if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0'
     util.confDecision('building with FLTK graphs and widgets.')
 
     is117 = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
-    widgetsEnvironment = commonEnvironment.Copy()
+    widgetsEnvironment = commonEnvironment.Clone()
     if util.getPlatform() == 'darwin':
         widgetsEnvironment['SHLIBSUFFIX'] = '.dylib'
         widgetsEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
