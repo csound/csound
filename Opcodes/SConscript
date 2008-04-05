@@ -13,7 +13,7 @@ commandOptions.Update(commonEnvironment)
 
 util.fixEnvForOLPC(commonEnvironment)
 
-pluginEnvironment = commonEnvironment.Copy()
+pluginEnvironment = commonEnvironment.Clone()
 
 buildOLPC = (commonEnvironment['buildOLPC'] != '0')
 
@@ -69,7 +69,7 @@ util.makePlugin(pluginEnvironment, 'pitch',
 util.makePlugin(pluginEnvironment, 'scansyn',
     ['scansyn.c', 'scansynx.c'])
 
-sfontEnvironment = pluginEnvironment.Copy()
+sfontEnvironment = pluginEnvironment.Clone()
 if util.compilerGNU():
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 if sys.byteorder == 'big':
@@ -116,7 +116,7 @@ util.makePlugin(pluginEnvironment, 'partikkel', ['partikkel.c'])
 util.makePlugin(pluginEnvironment, 'shape', ['shape.c'])
 
 if buildOLPC :
-   oggEnvironment = pluginEnvironment.Copy()
+   oggEnvironment = pluginEnvironment.Clone()
    util.makePlugin(oggEnvironment, 'ogg', ['ogg.c'])
    oggEnvironment.Append(LIBS=['vorbisfile'])
 
@@ -133,7 +133,7 @@ if not buildOLPC:
     jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h",
         language = "C", autoadd=False)
     if jackFound:
-        jackEnv = pluginEnvironment.Copy()
+        jackEnv = pluginEnvironment.Clone()
         jackEnv.Append(LIBS = 'jack')
         util.makePlugin(jackEnv, 'jackTransport', 'jackTransport.c')
 
@@ -144,7 +144,7 @@ if commonEnvironment['buildImageOpcodes'] == '1':
     if not (pngFound and zlibFound):
         util.fatal("You specified buildImageOpcodes but don't have png or libz installed")
     util.confDecision('Building image opcodes')
-    imgEnvironment = pluginEnvironment.Copy()
+    imgEnvironment = pluginEnvironment.Clone()
     imgEnvironment.Append(LIBS= Split(''' png z '''))
     util.makePlugin(imgEnvironment, 'image', ['imageOpcodes.c'])
 else:

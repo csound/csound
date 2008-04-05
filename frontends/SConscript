@@ -27,7 +27,7 @@ commandOptions.Update(commonEnvironment)
 util.fixEnvForOLPC(commonEnvironment)
 
 # First the csound program with no dependencies
-programEnvironment = commonEnvironment.Copy()
+programEnvironment = commonEnvironment.Clone()
 csoundSources = ['csound/csound_main.c']
 if util.getPlatform() == 'linux':
     csoundSources += ['csound/sched.c'] 
@@ -119,7 +119,7 @@ if commonEnvironment['buildWinsound'] == '1':
     util.confDecision("Building Winsound frontend")
     # should these be installed ?
     # headers += glob.glob('frontends/winsound/*.h')
-    csWinEnvironment = commonEnvironment.Copy()
+    csWinEnvironment = commonEnvironment.Clone()
     # not used
     # if (commonEnvironment['noFLTKThreads'] == '1'):
     #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
@@ -167,7 +167,7 @@ else:
 # OSX frontend
 if (util.getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     util.confDecision("Building OSX GUI frontend")
-    csOSXGUIEnvironment = commonEnvironment.Copy()
+    csOSXGUIEnvironment = commonEnvironment.Clone()
     OSXGUI = csOSXGUIEnvironment.Command(
         '''OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
         'OSX/main.c',
@@ -177,7 +177,7 @@ else:
 
 # csLadspa
 print "CONFIGURATION DEFAULT:  Building csLadspa."
-csLadspaEnv = commonEnvironment.Copy()
+csLadspaEnv = commonEnvironment.Clone()
 csLadspaEnv.Append(CPPPATH='#/frontends/csladspa')
 if util.getPlatform() == "darwin":
     if commonEnvironment['dynamicCsoundLibrary'] != '0':
@@ -199,7 +199,7 @@ if commonEnvironment['buildCSEditor'] == '1':
     if not fltkfound:
         util.Fatal("You specified buildCSeditor, but FLTK was not found")
     util.confDecision('Building Csound Text Editor.')
-    csEditorEnvironment = commonEnvironment.Copy()
+    csEditorEnvironment = commonEnvironment.Clone()
     if util.getPlatform() == 'linux':
         csEditorEnvironment.ParseConfig(
                 'fltk-config --use-images --cflags --cxxflags --ldflags')
@@ -231,7 +231,7 @@ else:
 if commonEnvironment['buildPDClass'] != '0':
     if not configure.CheckHeader('m_pd.h', language = 'C'):
         util.fatal('You specified buildPDClass but PD was not found')
-    pdClassEnvironment = commonEnvironment.Copy()
+    pdClassEnvironment = commonEnvironment.Clone()
     if util.getPlatform() == 'darwin':
         pdClassEnvironment.Append(LINKFLAGS = Split('''
             -bundle -flat_namespace -undefined suppress
