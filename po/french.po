@@ -6218,7 +6218,7 @@ msgstr "Arguments non valides dans <CsOptions> : %s"
 #: Top/one_file.c:309 Top/one_file.c:709
 #, fuzzy
 msgid "Missing end tag </CsOptions>"
-msgstr "On ignore <CsOptions>\n"
+msgstr "La balise fermante <CsOptions> est absente"
 
 #: Top/one_file.c:325 Top/one_file.c:357
 #, c-format
@@ -9898,15 +9898,15 @@ msgstr "pas supporté sur ce terminal"
 #: Opcodes/Vosim.c:49
 #, fuzzy
 msgid "vosim: pulse table not found"
-msgstr "vosim : table d'amp non trouvée !"
+msgstr "vosim : table d'impulsion non trouvée !"
 
 #: Opcodes/Vosim.c:111
 #, fuzzy
 msgid "vosim: not initialised"
-msgstr "oscil : non initialisé"
+msgstr "vosim : non initialisé"
 
 #~ msgid "jack_transport rewinded.\n"
-#~ msgstr "jack_transport rembobiner.\n"
+#~ msgstr "jack_transport rembobiné.\n"
 
 #, fuzzy
 #~ msgid ""
