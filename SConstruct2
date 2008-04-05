@@ -1428,7 +1428,7 @@ else:
     jackEnvironment = pluginEnvironment.Copy()
     if util.getPlatform() == 'linux':
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
-        if alsaFound:
+        if alsaFound and portaudioFound:
           portaudioEnvironment.Append(LIBS = ['asound'])
     elif util.getPlatform() == 'win32':
         jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
