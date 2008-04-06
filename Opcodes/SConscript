@@ -17,7 +17,7 @@ pluginEnvironment = commonEnvironment.Clone()
 
 buildOLPC = (commonEnvironment['buildOLPC'] != '0')
 
-if util.getPlatform() == 'darwin':
+if util.platform == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
         -framework CoreMidi -framework CoreFoundation -framework CoreAudio
     '''))
@@ -47,7 +47,7 @@ if not buildOLPC:
 
 util.makePlugin(pluginEnvironment, 'stdopcod', stdsrcs)
 
-if util.getPlatform() != 'win32' and not buildOLPC:
+if util.platform != 'win32' and not buildOLPC:
     util.makePlugin(pluginEnvironment, 'control', 'control.c')
 
 util.makePlugin(pluginEnvironment, 'eqfil', 'eqfil.c')
