@@ -104,7 +104,7 @@ pluginDir32 = concatPath([libDir, '/csound/plugins'])
 # double precision plugin libraries
 pluginDir64 = concatPath([libDir, '/csound/plugins64'])
 # XMG files
-xmgDir      = concatPath([prefix, '/share/csound/xmg'])
+xmgDir      = concatPath([prefix, '/share/locale'])
 # documentation
 docDir      = concatPath([prefix, '/share/doc/csound'])
 # tclcsound.so
@@ -323,13 +323,25 @@ for i in wrapperList:
 
 # copy XMG files
 
-print ' === Installing XMG files ==='
-xmgList = findFiles('.', '.+\\.xmg')
-if xmgList.__len__() > 0:
-    err = installFiles(xmgList, xmgDir)
-    installErrors = installErrors or err
+#print ' === Installing XMG files ==='
+#xmgList = findFiles('.', '.+\\.xmg')
+#if xmgList.__len__() > 0:
+#    err = installFiles(xmgList, xmgDir)
+#    installErrors = installErrors or err
+xmgList = ['de', 'en_GB','en_US', 'es_CO', 'fr', 'it','ro']
+for i in xmgList:
+  makeDir(concatPath([xmgDir, i, 'LC_MESSAGES']))
+  src = 'po/' + i + '/LC_MESSAGES/csound5.mo'
+  fileName = concatPath([xmgDir, i, 'LC_MESSAGES/csound5.mo'])
+  err = runCmd(['install', '-p', '-m', '0644', src, fileName])
+  if err == 0:
+      addMD5(fileName, fileName)
+      print '  %s' % fileName
+  else:
+      print ' *** error copying %s' % fileName
+      installErrors = installErrors or err
 
-# copy documentation
+# Copy documentation
 
 print ' === Installing documentation ==='
 err = installFiles(docFiles, docDir)
