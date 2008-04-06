@@ -28,7 +28,7 @@ if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0'
 
     is117 = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
     widgetsEnvironment = commonEnvironment.Clone()
-    if util.getPlatform() == 'darwin':
+    if util.platform == 'darwin':
         widgetsEnvironment['SHLIBSUFFIX'] = '.dylib'
         widgetsEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
@@ -36,11 +36,11 @@ if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0'
         widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-    if util.getPlatform() == 'linux':
+    if util.platform == 'linux':
         ## dont do this  widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif util.getPlatform() == 'win32':
+    elif util.platform == 'win32':
         if util.compilerGNU():
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
@@ -48,7 +48,7 @@ if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0'
             widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-    elif util.getPlatform() == 'darwin':
+    elif util.platform == 'darwin':
         widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
         widgetsEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
