@@ -29,7 +29,7 @@ util.fixEnvForOLPC(commonEnvironment)
 # First the csound program with no dependencies
 programEnvironment = commonEnvironment.Clone()
 csoundSources = ['csound/csound_main.c']
-if util.getPlatform() == 'linux':
+if util.platform == 'linux':
     csoundSources += ['csound/sched.c'] 
 csoundProgram = programEnvironment.Program('csound/csound', csoundSources)
 
@@ -46,10 +46,10 @@ if commonEnvironment['buildCsound5GUI'] != '0':
     if configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C", autoadd=False):
         csound5GUIEnvironment.Append(LIBS = ['jack'])
         csound5GUIEnvironment.Prepend(CPPFLAGS = ['-DHAVE_JACK'])
-    if util.getPlatform() == 'linux':
+    if util.platform == 'linux':
         csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif util.getPlatform() == 'win32':
+    elif util.platform == 'win32':
         if util.compilerGNU():
             csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
@@ -58,7 +58,7 @@ if commonEnvironment['buildCsound5GUI'] != '0':
             csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         else:
             csound5GUIEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-    elif util.getPlatform() == 'darwin':
+    elif util.platform == 'darwin':
         csound5GUIEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
         csound5GUIEnvironment.Append(LIBS = Split('''
             fltk stdc++ pthread m
@@ -102,7 +102,7 @@ if commonEnvironment['buildCsound5GUI'] != '0':
     csound5GUIObjectFiles += csound5GUIFluidObjectFiles
     csound5GUI = csound5GUIEnvironment.Program('fltk_gui/csound5gui',
                                   csound5GUIObjectFiles)
-    if util.getPlatform() == 'darwin':
+    if util.platform == 'darwin':
         appDir = 'fltk_gui/Csound5GUI.app/Contents/MacOS'
         util.addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', '')
         csound5GUIEnvironment.Command(
@@ -123,11 +123,11 @@ if commonEnvironment['buildWinsound'] == '1':
     # not used
     # if (commonEnvironment['noFLTKThreads'] == '1'):
     #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-    if util.getPlatform() == 'linux':
+    if util.platform == 'linux':
         csWinEnvironment.ParseConfig('fltk-config --use-images --cflags \
                 --cxxflags --ldflags')
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif util.getPlatform() == 'win32':
+    elif util.platform == 'win32':
         if util.compilerGNU():
             csWinEnvironment.Append(LIBS = Split(
                 'fltk_images fltk_png fltk_z fltk_jpeg fltk'))
@@ -137,7 +137,7 @@ if commonEnvironment['buildWinsound'] == '1':
             '''))
         else:
             csWinEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-    elif util.getPlatform() == 'darwin':
+    elif util.platform == 'darwin':
         csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
         csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
         csWinEnvironment.Append(LINKFLAGS = Split('''
@@ -165,7 +165,7 @@ else:
     util.confDecision("Not building Winsound")
 
 # OSX frontend
-if (util.getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
+if (util.platform == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     util.confDecision("Building OSX GUI frontend")
     csOSXGUIEnvironment = commonEnvironment.Clone()
     OSXGUI = csOSXGUIEnvironment.Command(
@@ -179,7 +179,7 @@ else:
 print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Clone()
 csLadspaEnv.Append(CPPPATH='#/frontends/csladspa')
-if util.getPlatform() == "darwin":
+if util.platform == "darwin":
     if commonEnvironment['dynamicCsoundLibrary'] != '0':
         csLadspaEnv.Append(LINKFLAGS=Split('''
             -bundle -undefined suppress -flat_namespace
@@ -200,11 +200,11 @@ if commonEnvironment['buildCSEditor'] == '1':
         util.Fatal("You specified buildCSeditor, but FLTK was not found")
     util.confDecision('Building Csound Text Editor.')
     csEditorEnvironment = commonEnvironment.Clone()
-    if util.getPlatform() == 'linux':
+    if util.platform == 'linux':
         csEditorEnvironment.ParseConfig(
                 'fltk-config --use-images --cflags --cxxflags --ldflags')
         csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif util.getPlatform() == 'win32':
+    elif util.platform == 'win32':
         if util.compilerGNU():
             csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csEditorEnvironment.Prepend(LINKFLAGS =
@@ -214,7 +214,7 @@ if commonEnvironment['buildCSEditor'] == '1':
         else:
             csEditorEnvironment.Append(LIBS =
                     Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
-    elif util.getPlatform() == 'darwin':
+    elif util.platform == 'darwin':
         csEditorEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
         csEditorEnvironment.Append(LIBS = Split('fltk stdc++ pthread m'))
         csEditorEnvironment.Append(LINKFLAGS = Split('''
@@ -232,7 +232,7 @@ if commonEnvironment['buildPDClass'] != '0':
     if not configure.CheckHeader('m_pd.h', language = 'C'):
         util.fatal('You specified buildPDClass but PD was not found')
     pdClassEnvironment = commonEnvironment.Clone()
-    if util.getPlatform() == 'darwin':
+    if util.platform == 'darwin':
         pdClassEnvironment.Append(LINKFLAGS = Split('''
             -bundle -flat_namespace -undefined suppress
             -framework Carbon -framework ApplicationServices
@@ -240,12 +240,12 @@ if commonEnvironment['buildPDClass'] != '0':
         pdClass = pdClassEnvironment.Program(
             'csoundapi_tilde/csoundapi~.pd_darwin',
             'csoundapi_tilde/csoundapi_tilde.c')
-    elif util.getPlatform() == 'linux':
+    elif util.platform == 'linux':
         pdClass = pdClassEnvironment.SharedLibrary(
             'csoundapi_tilde/csoundapi~.pd_linux',
             'csoundapi_tilde/csoundapi_tilde.c',
             SHLIBPREFIX = '', SHLIBSUFFIX = '')
-    elif util.getPlatform() == 'win32':
+    elif util.platform == 'win32':
         pdClassEnvironment.Append(LIBS = ['pd'])
         pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
         pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
