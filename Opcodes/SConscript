@@ -19,6 +19,9 @@ else:
     commandOptions.Add('useUDP',
         'Set to 1 if you want UDP support',
         '0')
+commandOptions.Add('buildFluidOpcodes',
+    'Set to 1 to build the Fluid Opcodes',
+    '0')
 
 commandOptions.Update(commonEnvironment)
 
@@ -187,3 +190,20 @@ if commonEnvironment['useUDP'] != '0':
 else:
     util.confDecision("Not building UDP plugins.")
 
+if commonEnvironment['buildFluidOpcodes']!='0':
+    if not configure.CheckHeader("fluidsynth.h", language = "C"):
+        util.fatal("You specified buildFluidOpcodes but fluidsynth was not found")
+    else:
+        util.confDecision("Building fluid opcodes.")
+        fluidEnvironment = pluginEnvironment.Clone()
+        fluidEnvironment.Append(LIBS        = ['fluidsynth'])
+        if util.platform == 'win32':
+            fluidEnvironment.Append(CPPFLAGS    = ['-DFLUIDSYNTH_NOT_A_DLL'])
+            fluidEnvironment.Append(LIBS        = ['winmm', 'dsound'])
+        elif util.platform == 'linux' or util.platform == 'darwin':
+            fluidEnvironment.Append(LIBS        = ['pthread'])
+        util.makePlugin(fluidEnvironment, 'fluidOpcodes',
+                        ['fluidOpcodes/fluidOpcodes.c'])
+else:
+    util.confDecision("Not building fluid opcodes.")
+   
