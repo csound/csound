@@ -1936,10 +1936,6 @@ if commonEnvironment['install'] == '1':
         Install(PYTHON_DIR, pythonModules))
     Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installPythonModules])
 
-if util.platform == 'darwin' and commonEnvironment['useFLTK'] == '1':
-    print "CONFIGURATION DECISION: Adding resource fork for csound"
-    util.addOSXResourceFork(commonEnvironment, 'csound', '')
-
 
 ###Code to create pkconfig files
 #env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])
@@ -1951,3 +1947,9 @@ Export( "configure" )
 SConscript('frontends/SConscript')
 SConscript('Opcodes/SConscript')
 SConscript('InOut/SConscript')
+
+
+if util.platform == 'linux' and commonEnvironment['useFLTK'] == '1':
+    print "CONFIGURATION DECISION: Adding resource fork for csound"
+    util.addOSXResourceFork(commonEnvironment, 'csound', '')
+
