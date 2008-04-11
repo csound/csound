@@ -252,17 +252,6 @@ commandOptions.Add('generatePdf',
 commandOptions.Add('buildLoris',
     'Set to 1 to build the Loris Python extension and opcodes',
     '1')
-commandOptions.Add('useOSC',
-    'Set to 1 if you want OSC support',
-    '0')
-if util.platform != 'win32':
-    commandOptions.Add('useUDP',
-        'Set to 0 if you do not want UDP support',
-        '1')
-else:
-    commandOptions.Add('useUDP',
-        'Set to 1 if you want UDP support',
-        '0')
 commandOptions.Add('buildPythonOpcodes',
     'Set to 1 to build Python opcodes',
     '0')
@@ -1330,33 +1319,6 @@ else:
 
 #util.makePlugin(pluginEnvironment, 'asciimidi',
 #                   ['InOut/ascii_midi_driver/ascii_midi_driver.cpp'])
-                    
-
-# OSC opcodes
-
-if not (commonEnvironment['useOSC'] == '1' and oscFound):
-    print "CONFIGURATION DECISION: Not building OSC plugin."
-else:
-    print "CONFIGURATION DECISION: Building OSC plugin."
-    oscEnvironment = pluginEnvironment.Clone()
-    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
-    if util.platform == 'win32':
-        if util.compilerGNU():
-            oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
-    util.makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
-
-# UDP opcodes
-
-if commonEnvironment['useUDP'] == '0':
-    print "CONFIGURATION DECISION: Not building UDP plugins."
-else:
-    print "CONFIGURATION DECISION: Building UDP plugins."
-    udpEnvironment = pluginEnvironment.Clone()
-    udpEnvironment.Append(LIBS = ['pthread'])
-    util.makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
-    util.makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
-
-# end udp opcodes
 
 # OGG opcodes
 if buildOLPC:

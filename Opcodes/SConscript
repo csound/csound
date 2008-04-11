@@ -8,6 +8,17 @@ Import("configure")
 commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
+commandOptions.Add('useOSC',
+    'Set to 1 if you want OSC support',
+    '0')
+if util.platform != 'win32':
+    commandOptions.Add('useUDP',
+        'Set to 0 if you do not want UDP support',
+        '1')
+else:
+    commandOptions.Add('useUDP',
+        'Set to 1 if you want UDP support',
+        '0')
 
 commandOptions.Update(commonEnvironment)
 
@@ -150,4 +161,29 @@ if commonEnvironment['buildImageOpcodes'] == '1':
 else:
     util.confDecision('Not building image opcodes')
 
+
+# OSC opcodes
+if commonEnvironment['useOSC'] == '1':
+    if not configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C"):
+        util.fatal("You specified useOSC but OSC was not found.")
+    util.confDecision("Building OSC plugin.")
+    oscEnvironment = pluginEnvironment.Clone()
+    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
+    if util.platform == 'win32':
+        if util.compilerGNU():
+            oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
+    util.makePlugin(oscEnvironment, 'osc', ['OSC.c'])
+else:
+    util.confDecision("Not building OSC plugin.")
+
+# UDP opcodes
+
+if commonEnvironment['useUDP'] != '0':
+    util.confDecision("Building UDP plugins.")
+    udpEnvironment = pluginEnvironment.Clone()
+    udpEnvironment.Append(LIBS = ['pthread'])
+    util.makePlugin(udpEnvironment, 'udprecv', ['sockrecv.c'])
+    util.makePlugin(udpEnvironment, 'udpsend', ['socksend.c'])
+else:
+    util.confDecision("Not building UDP plugins.")
 
