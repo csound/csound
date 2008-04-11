@@ -1895,7 +1895,7 @@ SConscript('Opcodes/SConscript')
 SConscript('InOut/SConscript')
 
 
-if util.platform == 'linux' and commonEnvironment['useFLTK'] == '1':
+if util.platform == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     util.addOSXResourceFork(commonEnvironment, 'csound', '')
 
