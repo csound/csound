@@ -28,6 +28,9 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <cstring>
+
+using namespace std;
 
 namespace csound
 {

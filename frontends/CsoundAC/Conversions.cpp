@@ -21,6 +21,10 @@
  */
 #include "Conversions.hpp"
 #include <sstream>
+#include <cstring>
+#include <cstdlib>
+
+using namespace std;
 
 #if defined(WIN32) && !defined(MSVC)
 extern "C"
