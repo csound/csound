@@ -2,6 +2,8 @@
 # Since all frontends require very little code, we don't split this
 # SConscript into several.
 
+import os
+
 Import("commonEnvironment", "commandOptions", "util" )
 Import("configure")
 
