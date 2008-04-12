@@ -83,4 +83,5 @@ rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
 rm -f "./_csnd.so"
 rm -f "./_CsoundVST.so"
+rm -f "./libcsnd.so"
 
