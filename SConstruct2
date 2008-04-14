@@ -340,6 +340,9 @@ commandOptions.Add('useGettext',
 commandOptions.Add('buildOLPC',
     'Set to 1 to build OLPC version',
     '0')
+commandOptions.Add('useBufferOverflowLibrary',
+    'Set to 1 to use the Microsoft buffer overflow library (required for linking with some MSVC-built DLLs)',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -843,6 +846,9 @@ if util.platform == 'win32':
             oleaut32    shell32     user32      uuid        winmm
             winspool    ws2_32      wsock32
         ''')
+       	if initialEnvironment['useBufferOverflowLibrary'] != '0':
+           csoundWindowsLibraries.append('bufferoverflowu')       	  
+           csoundWindowsLibraries.append('winmm')       	  
     else:
         csoundWindowsLibraries = Split('''
             kernel32        gdi32           wsock32         ole32
@@ -1049,6 +1055,10 @@ else:
     if util.platform == 'win32' and util.compilerGNU():
         csoundInterfacesEnvironment.Append(
             SHLINKFLAGS = '-Wl,--add-stdcall-alias')
+	if commonEnvironment['useDouble'] != '0' :
+	    csoundInterfacesEnvironment.Prepend(LIBS = Split('csound64'))
+	else:
+	    csoundInterfacesEnvironment.Prepend(LIBS = Split('csound32'))
     elif util.platform == 'linux':
         csoundInterfacesEnvironment.Prepend(LIBS = ['util'])
     if util.compilerGNU():
@@ -1314,6 +1324,8 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if util.platform == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
+    if util.platform == 'win32' and initialEnvironment['useBufferOverflowLibrary'] != '0':
+        portMidiEnvironment.Append(LIBS = ['bufferoverflowu', 'winmm'])
     util.makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
