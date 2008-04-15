@@ -463,9 +463,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     coef = (MYFLT*) csound->Malloc(csound, (NDATA+lpc.poleCount*2)*sizeof(MYFLT));
     /* Space allocated */
     if (slice < lpc.poleCount * 5)
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound,Str("WARNING: hopsize may be too small, "
-                   "recommend at least poleCount * 5\n"));
+      csound->Warning(csound,Str("hopsize may be too small, "
+                                 "recommend at least poleCount * 5\n"));
 
     if ((lpc.WINDIN = slice * 2) > MAXWINDIN)
       quit(csound,Str("input framesize (inter-frame-offset*2) exceeds maximum allowed"));

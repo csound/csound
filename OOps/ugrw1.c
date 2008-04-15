@@ -2210,13 +2210,11 @@ int zkr(CSOUND *csound, ZKR *p)
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
       *p->rslt = FL(0.0);
-      if (csound->oparms_.msglevel & WARNMSG)
-        csound->Warning(csound, Str("zkr index > isizek. Returning 0."));
+      csound->Warning(csound, Str("zkr index > isizek. Returning 0."));
     }
     else if (indx < 0) {
       *p->rslt = FL(0.0);
-      if (csound->oparms_.msglevel & WARNMSG)
-        csound->Warning(csound, Str("zkr index < 0. Returning 0."));
+      csound->Warning(csound, Str("zkr index < 0. Returning 0."));
     }
     else {
       MYFLT *readloc;
@@ -2244,13 +2242,11 @@ int zir(CSOUND *csound, ZKR *p)
     /* Check to see this index is within the limits of zk space. */
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
-      if (csound->oparms_.msglevel & WARNMSG)
-        csound->Warning(csound, Str("zir index > isizek. Returning 0."));
+      csound->Warning(csound, Str("zir index > isizek. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else if (indx < 0) {
-      if (csound->oparms_.msglevel & WARNMSG)
-        csound->Warning(csound, Str("zir index < 0. Returning 0."));
+      csound->Warning(csound, Str("zir index < 0. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else {

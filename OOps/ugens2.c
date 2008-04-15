@@ -44,8 +44,7 @@ int phsset(CSOUND *csound, PHSOR *p)
     long  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
       if ((longphs = (long)phs)) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: init phase truncation\n"));
+        csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
     }
@@ -892,8 +891,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     if (*p->idur <= FL(0.0)) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: duration < zero\n"));
+      csound->Warning(csound, Str("duration < zero\n"));
     }
     p->ftp = ftp;
     p->phs = 0;

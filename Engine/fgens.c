@@ -1931,8 +1931,7 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     FUNC    *ftp = csound->flist[ff->fno];
 
     if (ftp != NULL) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
+      csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
         mfree(csound, (void*) ftp);         /*   release old space   */
         csound->flist[ff->fno] = ftp = NULL;
