@@ -826,7 +826,7 @@ wsock32
             advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
             odbc32.lib odbccp32.lib 
         ''')
-    if commonEnvironment['bufferoverflowu' != '0':
+    if commonEnvironment['bufferoverflowu'] != '0':
         csoundWindowsLibraries.append('bufferoverflowu')
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if compilerGNU():
