@@ -517,8 +517,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
       if (!p->nwarned)  {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: pvsmaska: negative value for kdepth; "
+        csound->Warning(csound, Str("pvsmaska: negative value for kdepth; "
                      "clipped to zero.\n"));
         p->nwarned = 1;
       }
@@ -526,8 +525,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     }
     if (depth > 1.0f) {
       if (!p->pwarned)  {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: pvsmaska: kdepth > 1: clipped.\n"));
+        csound->Warning(csound, Str("pvsmaska: kdepth > 1: clipped.\n"));
         p->pwarned = 1;
       }
       depth = FL(1.0);
