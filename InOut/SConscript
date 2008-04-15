@@ -19,8 +19,8 @@ util.fixEnvForOLPC(commonEnvironment)
 
 # widgets
 if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0':
-    fltkfound = configure.CheckLibWithHeader("fltk", "FL/Fl.H",
-            language = "C++", autoadd=False)
+    fltkfound = configure.CheckHeader("FL/Fl.H",
+            language = "C++")
     if not fltkfound:
         util.fatal('You specified useFLTK but FLTK was not found')
 
