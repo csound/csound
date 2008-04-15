@@ -2104,7 +2104,9 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-        acEnvironment.Prepend(LIBS = csndModule)
+        if getPlatform() != 'win32':
+         acEnvironment.Prepend(LIBS = csndModule)
+        else:  acEnvironment.Prepend(LIBS = 'csnd')
     else: acEnvironment.Prepend(LIBS = '_csnd')
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':

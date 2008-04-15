@@ -152,8 +152,7 @@ if not buildOLPC:
         util.makePlugin(jackEnv, 'jackTransport', 'jackTransport.c')
 
 if commonEnvironment['buildImageOpcodes'] == '1':
-    pngFound = configure.CheckLibWithHeader("png", "png.h", language="C",
-            autoadd = False)
+    pngFound = configure.CheckHeader("png.h", language="C")
     zlibFound = configure.CheckHeader("zlib.h", language = "C")
     if not (pngFound and zlibFound):
         util.fatal("You specified buildImageOpcodes but don't have png or libz installed")
