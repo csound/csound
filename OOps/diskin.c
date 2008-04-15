@@ -371,6 +371,8 @@ int sndo1set(CSOUND *csound, void *pp)
     SF_INFO sfinfo;
 
     opname = csound->GetOpcodeName(pp);
+    csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),
+                      opname);
     if (strcmp(opname, "soundouts") == 0) {
       p = &(((SNDOUTS*) pp)->c);
       ifilcod = ((SNDOUTS*) pp)->ifilcod;
@@ -421,8 +423,7 @@ int sndo1set(CSOUND *csound, void *pp)
 #else
     sf_command(p->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
-    if ((csound->oparms_.msglevel & WARNMSG) != 0)
-      csound->Message(csound, Str("%s: opening RAW outfile %s\n"),
+    csound->Warning(csound, Str("%s: opening RAW outfile %s\n"),
                       opname, sfname);
     p->outbufp = p->outbuf;                 /* fix - isro 20-11-96 */
     p->bufend = p->outbuf + SNDOUTSMPS;     /* fix - isro 20-11-96 */
