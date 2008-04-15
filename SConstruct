@@ -121,6 +121,9 @@ commandOptions.Add('buildLoris',
 commandOptions.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
+commandOptions.Add('bufferoverflowu',
+    'Set to 1 to use the Windows buffer overflow library, required if you use MinGW to link with MSVC-built libraries',
+    '0')
 if getPlatform() != 'win32':
     commandOptions.Add('useUDP',
         'Set to 0 if you do not want UDP support',
@@ -818,11 +821,13 @@ wsock32
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
-            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib bufferoverflowu
+            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib 
             kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
             advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-            odbc32.lib odbccp32.lib bufferoverflowu
+            odbc32.lib odbccp32.lib 
         ''')
+    if commonEnvironment['bufferoverflowu' != '0':
+        csoundWindowsLibraries.append('bufferoverflowu')
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if compilerGNU():
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
