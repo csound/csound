@@ -3166,9 +3166,8 @@ extern "C" {
       itype = itype - 20;
     }
     if (itype > 10 && iexp == EXP_) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Warning(csound,
-                        Str("FLslider exponential, using non-labeled slider"));
+      csound->Warning(csound,
+                      Str("FLslider exponential, using non-labeled slider"));
       itype -= 10;
     }
 
@@ -3687,10 +3686,9 @@ extern "C" {
       plastic = true;
     }
     if (type > 9) {       // ignored when getting ST(snapshots)
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Warning(csound,
-                        Str("FLbutton \"%s\" ignoring snapshot capture retrieve"),
-                        Name);
+      csound->Warning(csound,
+                      Str("FLbutton \"%s\" ignoring snapshot capture retrieve"),
+                      Name);
       type = type - 10;
     }
     Fl_Button *w;
@@ -3889,10 +3887,9 @@ extern "C" {
     widget_attributes(csound, o);
     int type = (int) *p->itype;
     if (type >9 ) { // ignored when getting ST(snapshots)
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Warning(csound,
-                        Str("FLcount \"%s\" ignoring snapshot capture retrieve"),
-                        controlName);
+      csound->Warning(csound,
+                      Str("FLcount \"%s\" ignoring snapshot capture retrieve"),
+                      controlName);
       type = type-10;
     }
     switch(type) {
@@ -4533,9 +4530,8 @@ extern "C" {
         slider_type = slider_type - 20;
       }
       if (slider_type > 10 && iexp == EXP_) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Warning(csound,
-                          Str("FLslider exponential, using non-labeled slider"));
+        csound->Warning(csound,
+                        Str("FLslider exponential, using non-labeled slider"));
         slider_type -= 10;
       }
       if (slider_type <= 10)
@@ -4704,9 +4700,8 @@ extern "C" {
         slider_type -= 20;
       }
       if (slider_type > 10 && iexp == EXP_) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Warning(csound, Str("FLslidBnk2: FLslider exponential, "
-                                      "using non-labeled slider"));
+        csound->Warning(csound, Str("FLslidBnk2: FLslider exponential, "
+                                    "using non-labeled slider"));
         slider_type -= 10;
       }
       if (slider_type <= 10)

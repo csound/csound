@@ -370,8 +370,7 @@ int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 
     if ((phs = *p->initphase) >= FL(0.0)) {
       if ((longphs = (long)phs)) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: init phase truncation\n"));
+        csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;
     }

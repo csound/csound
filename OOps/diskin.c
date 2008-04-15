@@ -217,7 +217,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
         (csound->oparms_.msglevel & WARNMSG) != 0) {
       csound->Message(csound, Str("diskin: warning: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
-                              sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
+                      sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
     }
     /* apply dBFS scale unless reading "raw" float file */
     if ((SF2FORMAT(sfinfo.format) == AE_FLOAT ||

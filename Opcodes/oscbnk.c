@@ -1609,9 +1609,8 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
     /* clear table array if already initialised */
     if (pp->vco2_tables[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
-   /* if (csound->oparms->msglevel & WARNMSG) */
-      csound->Message(csound,
-                      Str("WARNING: redefined table array for waveform %d\n"),
+      csound->Warning(csound,
+                      Str("redefined table array for waveform %d\n"),
                       (waveform > 4 ? 4 - waveform : waveform));
     }
     /* calculate number of tables */
