@@ -1238,6 +1238,8 @@ else:
                # SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
         csoundJavaWrapperSources += csoundInterfacesSources
+	if getPlatform() == 'win32':
+	    csoundJavaWrapperEnvironment.Prepend(LIBS = 'csnd')
         if getPlatform() == 'darwin':
             csoundJavaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             csoundJavaWrapperEnvironment.Append(LINKFLAGS =
@@ -2105,8 +2107,8 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-        if getPlatform() != 'win32':
-         acEnvironment.Prepend(LIBS = csndModule)
+	if getPlatform() != 'win32':
+           acEnvironment.Prepend(LIBS = csndModule)
         else:  acEnvironment.Prepend(LIBS = 'csnd')
     else: acEnvironment.Prepend(LIBS = '_csnd')
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
