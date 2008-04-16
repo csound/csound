@@ -31,11 +31,11 @@ typedef struct {
         MYFLT   *igskip_os;
         MYFLT   *ilength, *kgap, *igap_os, *kgsize, *igsize_os, *iatt, *idec;
         MYFLT   *iseed, *ipitch1, *ipitch2, *ipitch3, *ipitch4, *ifnenv;
-        long    fpnt[MAXVOICE], cnt[MAXVOICE], gskip[MAXVOICE], gap[MAXVOICE];
-        long    gsize[MAXVOICE], stretch[MAXVOICE], mode[MAXVOICE];
+        int32   fpnt[MAXVOICE], cnt[MAXVOICE], gskip[MAXVOICE], gap[MAXVOICE];
+        int32   gsize[MAXVOICE], stretch[MAXVOICE], mode[MAXVOICE];
         MYFLT   pshift[MAXVOICE], phs[MAXVOICE];
-        short   grnd;
-        long    clock, gskip_os,gstart, gend, glength;
+        int16   grnd;
+        int32   clock, gskip_os,gstart, gend, glength;
         MYFLT   gap_os, gsize_os;
         FUNC    *ftp, *ftp_env;
 } GRAINV4;

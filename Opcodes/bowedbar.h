@@ -53,9 +53,9 @@
 typedef struct DLineN {
   AUXCH inputs;
   MYFLT lastOutput;
-  long inPoint;
-  long outPoint;
-  long length;
+  int32 inPoint;
+  int32 outPoint;
+  int32 length;
 } DLINEN;
 
 typedef struct BowedBar {

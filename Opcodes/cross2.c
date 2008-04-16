@@ -29,9 +29,9 @@
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)
 
-static long plog2(long x)
+static int32 plog2(int32 x)
 {
-    long mask, i;
+    int32 mask, i;
 
     if (x == 0) return (-1);
     x--;
@@ -42,10 +42,10 @@ static long plog2(long x)
     }
 }
 
-static void getmag(MYFLT *x, long size)
+static void getmag(MYFLT *x, int32 size)
 {
     MYFLT       *i = x + 1, *j = x + size - 1, max = FL(0.0);
-    long        n = size/2 - 1;
+    int32        n = size/2 - 1;
 
     do {
       MYFLT ii = *i;
@@ -64,7 +64,7 @@ static void getmag(MYFLT *x, long size)
     } while ( --n);
 }
 
-static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
+static void mult(MYFLT *x, MYFLT *y, int32 size, MYFLT w)
 {
     MYFLT *j = x + size - 1;
 
@@ -76,9 +76,9 @@ static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
     } while (--size);
 }
 
-static void lineaprox(MYFLT *x, long size, long m)
+static void lineaprox(MYFLT *x, int32 size, int32 m)
 {
-    long i, c;
+    int32 i, c;
     MYFLT a, f;
     MYFLT rm = FL(1.0)/(MYFLT)m;
 
@@ -101,10 +101,10 @@ static void lineaprox(MYFLT *x, long size, long m)
     }
 }
 
-static void do_fht(MYFLT *real, long n)
+static void do_fht(MYFLT *real, int32 n)
 {
     MYFLT       a, b;
-    long        i, j, k;
+    int32        i, j, k;
 
     pfht(real,n);
     for (i = 1, j = n-1, k = n/2 ; i < k ; i++, j--) {
@@ -115,10 +115,10 @@ static void do_fht(MYFLT *real, long n)
     }
 }
 
-static void do_ifht(MYFLT *real, long n)
+static void do_ifht(MYFLT *real, int32 n)
 {
     MYFLT       a, b;
-    long        i, j, k;
+    int32        i, j, k;
 
     for (i = 1, j = n-1, k = n/2 ; i < k ; i++, j--) {
       a = real[i];
@@ -130,9 +130,9 @@ static void do_ifht(MYFLT *real, long n)
     pfht(real,n);
 }
 
-static void pfht(MYFLT *fz, long n)
+static void pfht(MYFLT *fz, int32 n)
 {
-    long        i, k, k1, k2, k3, k4, kx;
+    int32        i, k, k1, k2, k3, k4, kx;
     MYFLT       *fi, *fn, *gi;
     TRIG_VARS;
 
@@ -305,18 +305,18 @@ static void pfht(MYFLT *fz, long n)
 
 static int Xsynthset(CSOUND *csound, CON *p)
 {
-    long flen, bufsize;
+    int32 flen, bufsize;
     MYFLT       *b;
     FUNC        *ftp;
     MYFLT       ovlp = *p->ovlp;
 
-    flen = (long)*p->len;
+    flen = (int32)*p->len;
     p->m = plog2(flen);
     flen = 1L << p->m;
 
     if (ovlp < FL(2.0)) ovlp = FL(2.0);
     else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
-    ovlp = (MYFLT)(1 << (int)plog2((long)ovlp));
+    ovlp = (MYFLT)(1 << (int)plog2((int32)ovlp));
 
     bufsize = 10 * flen * sizeof(MYFLT);
 
@@ -344,8 +344,8 @@ static int Xsynthset(CSOUND *csound, CON *p)
 static int Xsynth(CSOUND *csound, CON *p)
 {
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
-    long                n, size, samps, div;
-    long                m;
+    int32                n, size, samps, div;
+    int32                m;
 
     s = p->as;
     f = p->af;
@@ -355,21 +355,21 @@ static int Xsynth(CSOUND *csound, CON *p)
     buf1 = p->buffer_in1;
     buf2 = p->buffer_in2;
 
-    size = (long)*p->len;
-    div = size / (long)p->s_ovlp;
+    size = (int32)*p->len;
+    div = size / (int32)p->s_ovlp;
     rfn = (MYFLT)p->win->flen / (MYFLT)size; /* Moved here for efficiency */
 
     n = p->count;
     m = n % div;
     for (samps = 0; samps < csound->ksmps; samps++) {
-      *(buf1 + n) = *s++;
-      *(buf2 + n) = *f++;
+      buf1[n] = *s++;
+      buf2[n] = *f++;
 
       *out++ = *(outbuf + n);
       n++; m++; if (m==div) m = 0;
 
       if (m == 0) {
-        long            i, mask, index;
+        int32           i, mask, index;
         MYFLT           window;
         MYFLT           *x, *y, *win;
 
@@ -380,17 +380,19 @@ static int Xsynth(CSOUND *csound, CON *p)
 
         for (i = 0 ; i < size ; i++) {
 
-          window = *(win + (long)( i * rfn));
+          window = win[(int32)(i * rfn)];
           index = (i + n) & mask;
 
-          x[i] = *(buf1 + index) * window;
-          y[i] = *(buf2 + index) * window;
+          x[i] = buf1[index] * window;
+          y[i] = buf2[index] * window;
         }
 
-        for (; i < 2 * size ; i++) {
-          x[i] = FL(0.0);
-          y[i] = FL(0.0);
-        }
+        memset(&x[size], 0, sizeof(MYFLT)*size);
+        memset(&y[size], 0, sizeof(MYFLT)*size);
+        /* for (; i < 2 * size ; i++) { */
+        /*   x[i] = FL(0.0); */
+        /*   y[i] = FL(0.0); */
+        /* } */
 
         if (*p->bias != FL(0.0)) {
           int nsize = (int)(size+size);
@@ -407,12 +409,12 @@ static int Xsynth(CSOUND *csound, CON *p)
         }
 
         for (i =  n + size - div ; i < n + size ; i++)
-          *(outbuf + (i&mask)) = FL(0.0);
+          outbuf[i&mask] = FL(0.0);
 
         window = FL(5.0) / p->s_ovlp;
 
         for (i = 0 ; i < size ; i++)
-          *(outbuf + ((i+n)&mask)) += x[i] * window;
+          outbuf[(i+n)&mask] += x[i] * window;
 
       }
       if (n == size) n = 0;     /* Moved to here from inside loop */

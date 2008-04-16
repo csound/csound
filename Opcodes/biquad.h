@@ -62,13 +62,13 @@ typedef struct {
     MYFLT   *ar,
             *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs, *iskip;
     MYFLT   ynm1, ynm2, leaky, nyq;
-    short   ampcod, cpscod;
-    long    lphs;
+    int16   ampcod, cpscod;
+    int32   lphs;
     FUNC    *ftp;
  /* Insert VDelay here */
     AUXCH   aux;
  /* AUXCH   auxd; */
-    long    left;
+    int32   left;
  /* End VDelay insert  */
 } VCO;
 
@@ -96,7 +96,7 @@ typedef struct {
     MYFLT   *curp, out1, out2, out3;
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
-    long    npts;
+    int32   npts;
     AUXCH   auxch;
 } NESTEDAP;
 
@@ -114,13 +114,13 @@ typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *dist, *asym, *iskip;
     double  y, y1, y2;
-    short   fcocod, rezcod;
+    int16   fcocod, rezcod;
 } TBVCF;
 
 /* Structure for mode opcode */
 typedef struct {
-        OPDS    h;
-        MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
-        double  xnm1, ynm1, ynm2;
+    OPDS    h;
+    MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
+    double  xnm1, ynm1, ynm2;
 } MODE;
 

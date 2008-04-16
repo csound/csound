@@ -37,7 +37,7 @@ typedef struct {
   MYFLT                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
   MYFLT                 g, rvt, lpt, *pntr, maxlpt;
   AUXCH                 auxch;
-  short                 lpta;
+  int16                 lpta;
 } VCOMB;
 
 typedef struct {

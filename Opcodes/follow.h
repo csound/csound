@@ -29,8 +29,8 @@ typedef struct  {
         OPDS            h;
         MYFLT           *out, *in, *len;
         MYFLT           max, wgh;
-        long            length;
-        long            count;
+        int32           length;
+        int32           count;
 } FOL;
 
 /* For implementation of Jot envelope follower -- JPff Feb 2000 */

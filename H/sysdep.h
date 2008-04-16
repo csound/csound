@@ -49,6 +49,13 @@
 #  define HAVE_C99 1
 #endif
 
+#include <stdint.h>
+
+typedef int_least32_t int32;
+typedef int_least16_t int16;
+typedef uint_least32_t uint32;
+typedef uint_least16_t uint16;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

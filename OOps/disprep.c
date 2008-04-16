@@ -380,12 +380,12 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
-    int   nsmps = csound->ksmps;
+    int   n, nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) {
       return csound->PerfError(csound, Str("dispfft: not initialised"));
     }
-    do {
+    for (n=0; n<nsmps; n++) {
       if (bufp < p->sampbuf) {            /* skip any spare samples */
         bufp++; sigp++;
       }
@@ -412,7 +412,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
           else bufp = p->sampbuf + p->overlap;
         }
       }
-    } while (--nsmps);
+    }
     p->bufp = bufp;
     return OK;
 }

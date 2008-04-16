@@ -359,7 +359,7 @@ static int distort(CSOUND *csound, DISTORT *p)
 static int vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
-    unsigned long ndel = (long)(*p->maxd * csound->esr);
+    uint32 ndel = (uint32)(*p->maxd * csound->esr);
     MYFLT *buf;    /* Delay buffer */
     FUNC  *ftp;    /* Pointer to a sine function */
     MYFLT ndsave;
@@ -373,7 +373,7 @@ static int vcoset(CSOUND *csound, VCO *p)
     if ((ftp = csound->FTFind(csound, p->sine)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= FL(0.0))
-        p->lphs = (long)(*p->iphs * FL(0.5) * FMAXLEN);
+        p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
       p->ampcod = (XINARG1) ? 1 : 0;
       p->cpscod = (XINARG2) ? 1 : 0;
     }
@@ -416,7 +416,7 @@ static int vco(CSOUND *csound, VCO *p)
 {
     FUNC  *ftp;
     MYFLT *ar, *ampp, *cpsp, *ftbl;
-    long  phs, inc, lobits, dwnphs, tnp1, lenmask, maxd, indx;
+    int32  phs, inc, lobits, dwnphs, tnp1, lenmask, maxd, indx;
     MYFLT leaky, rtfqc, amp, fqc;
     MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
     MYFLT sqr = FL(0.0), tri = FL(0.0);
@@ -425,14 +425,14 @@ static int vco(CSOUND *csound, VCO *p)
     /* VDelay Inserted here */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT fv1, out1;
-    long  v1, v2;
+    int32  v1, v2;
 
     leaky = p->leaky;
 
     if (buf==NULL) {            /* RWD fix */
       return csound->PerfError(csound, Str("vco: not initialised"));
     }
-    maxd = (unsigned long) (*p->maxd * csound->esr);
+    maxd = (uint32) (*p->maxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
     /* End of VDelay insert */
@@ -460,7 +460,7 @@ static int vco(CSOUND *csound, VCO *p)
 
     amp  = *ampp;
     scal = over2n;
-    inc = (long)(fqc * sicvt2);
+    inc = (int32)(fqc * sicvt2);
     ar = p->ar;
     phs = p->lphs;
 
@@ -485,14 +485,14 @@ static int vco(CSOUND *csound, VCO *p)
         }
         if (p->cpscod) {
           fqc = cpsp[n];
-          inc  = (long)(fqc* sicvt2);
+          inc  = (int32)(fqc* sicvt2);
         }
 
         /* VDelay inserted here */
         buf[indx] = pulse;
         fv1 = (MYFLT) indx - csound->esr * pw / fqc;
 
-        v1 = (long) fv1;
+        v1 = (int32) fv1;
         if (fv1 < FL(0.0)) v1--;
         fv1 -= (MYFLT) v1;
         /* Make sure Inside the buffer */
@@ -535,14 +535,14 @@ static int vco(CSOUND *csound, VCO *p)
         }
         if (p->cpscod) {
           fqc = cpsp[n];
-          inc  = (long)(fqc* sicvt2);
+          inc  = (int32)(fqc* sicvt2);
         }
 
         /* VDelay inserted here */
         buf[indx] = pulse;
         fv1 = (MYFLT) indx - csound->esr * pw / fqc;
 
-        v1 = (long) fv1;
+        v1 = (int32) fv1;
         if (fv1 < FL(0.0)) v1--;
         fv1 -= (MYFLT) v1;
         /* Make sure Inside the buffer */
@@ -588,7 +588,7 @@ static int vco(CSOUND *csound, VCO *p)
         }
         if (p->cpscod) {
           fqc = cpsp[n];
-          inc  = (long)(fqc*sicvt2);
+          inc  = (int32)(fqc*sicvt2);
         }
 
         /* Leaky Integration */
@@ -779,24 +779,24 @@ static int pareq(CSOUND *csound, PAREQ *p)
 
 static int nestedapset(CSOUND *csound, NESTEDAP *p)
 {
-    long    npts, npts1=0, npts2=0, npts3=0;
+    int32    npts, npts1=0, npts2=0, npts3=0;
     void    *auxp;
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
 
-    npts2 = (long)(*p->del2 * csound->esr);
-    npts3 = (long)(*p->del3 * csound->esr);
-    npts1 = (long)(*p->del1 * csound->esr) - npts2 -npts3;
+    npts2 = (int32)(*p->del2 * csound->esr);
+    npts3 = (int32)(*p->del3 * csound->esr);
+    npts1 = (int32)(*p->del1 * csound->esr) - npts2 -npts3;
 
-    if (((long)(*p->del1 * csound->esr)) <=
-        ((long)(*p->del2 * csound->esr) + (long)(*p->del3 * csound->esr))) {
+    if (((int32)(*p->del1 * csound->esr)) <=
+        ((int32)(*p->del2 * csound->esr) + (int32)(*p->del3 * csound->esr))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
     /* new space if reqd */
     if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-      csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
 
@@ -821,8 +821,8 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
           return csound->InitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
-        p->beg2p = (MYFLT *) p->auxch.auxp + (long)npts1;
-        p->beg3p = (MYFLT *) p->auxch.auxp + (long)npts1 + (long)npts2;
+        p->beg2p = (MYFLT *) p->auxch.auxp + (int32)npts1;
+        p->beg3p = (MYFLT *) p->auxch.auxp + (int32)npts1 + (int32)npts2;
         p->end1p = p->beg2p - 1;
         p->end2p = p->beg3p - 1;
         p->end3p = (MYFLT *) p->auxch.endp;
@@ -830,7 +830,7 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     }
     /* else if requested */
     else if (!(*p->istor)) {
-      memset(auxp, 0, npts*sizeof(long));
+      memset(auxp, 0, npts*sizeof(int32));
 /*       long *lp = (long *)auxp; */
 /*       /\*   clr old to zero *\/ */
 /*       do { */
@@ -988,7 +988,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 {
     MYFLT   *outx, *outy, *outz;
     MYFLT   x, y, z, xx, yy, s, r, b, hstep;
-    long    n, nsmps = csound->ksmps, skip;
+    int32    n, nsmps = csound->ksmps, skip;
 
     outx  = p->outx;
     outy  = p->outy;
@@ -998,7 +998,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
     r     = *p->r;
     b     = *p->b;
     hstep = *p->hstep;
-    skip  = (long) *p->skip;
+    skip  = (int32) *p->skip;
     x     = p->valx;
     y     = p->valy;
     z     = p->valz;
@@ -1045,7 +1045,7 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
 
 static int tbvcf(CSOUND *csound, TBVCF *p)
 {
-    long n, nsmps = csound->ksmps;
+    int32 n, nsmps = csound->ksmps;
     MYFLT *out, *in;
     MYFLT x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
@@ -1119,7 +1119,7 @@ static int bqrezset(CSOUND *csound, REZZY *p)
 
 static int bqrez(CSOUND *csound, REZZY *p)
 {
-    long n, nsmps = csound->ksmps;
+    int32 n, nsmps = csound->ksmps;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double sin2=0.0, cos2=0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;

@@ -35,7 +35,7 @@
 
 /* Number of banded waveguide modes */
 
-static void make_DLineN(CSOUND *csound, DLINEN *p, long length)
+static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
 {
     /* Writing before reading allows delays from 0 to length-1.
        Thus, if we want to allow a delay of max_length, we need
@@ -56,7 +56,7 @@ static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
     }
     else
-      p->outPoint = p->inPoint - (long) lag;   /* read chases write */
+      p->outPoint = p->inPoint - (int32) lag;   /* read chases write */
     while (p->outPoint<0)
       p->outPoint += p->length;                /* modulo maximum length */
 }
@@ -75,7 +75,7 @@ static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 
 int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 {
-    long i;
+    int32 i;
     MYFLT amplitude = *p->amp * AMP_RSCALE;
 
     p->modes[0] = FL(1.0);
@@ -92,14 +92,14 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        p->length = (long) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
         csound->Message(csound,
                         Str("unknown lowest frequency for bowed string -- "
                             "assuming 50Hz\n"));
-        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
     }
 
@@ -132,7 +132,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    long k;
+    int32 k;
     int i;
     MYFLT       maxVelocity;
     MYFLT       integration_const = *p->integration_const;

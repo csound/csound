@@ -48,10 +48,10 @@ static CS_NOINLINE int chan_realloc(CSOUND *csound,
     newp = (MYFLT*)mrealloc(csound, (void*)(*p), sizeof(MYFLT) * newSize);
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     i = (*oldSize);
-    /* memset(&newp[i], '\0', (&newp[newSize-1]-&newp[i])); */
-    do {
-      newp[i] = FL(0.0);
-    } while (++i < newSize);
+    memset(&newp[i], '\0', (&newp[newSize-1]-&newp[i]));
+    /* do { */
+    /*   newp[i] = FL(0.0); */
+    /* } while (++i < newSize); */
     (*p) = newp;
     (*oldSize) = newSize;
     return CSOUND_SUCCESS;
@@ -425,7 +425,7 @@ static inline channelEntry_t *find_channel(CSOUND *csound, const char *name)
         while (1) {
           if (*p1 != *p2)
             break;
-          if (*p1 == (char) 0)
+          if (*p1 == '\0')
             return pp;
           p1++, p2++;
         }
@@ -795,9 +795,10 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
 
-    do {
-      p->arg[i] = p->fp[i];
-    } while (++i < csound->ksmps);
+    memcpy(p->arg, p->fp, sizeof(MYFLT)*csound->ksmps);
+    /* do { */
+    /*   p->arg[i] = p->fp[i]; */
+    /* } while (++i < csound->ksmps); */
 
     return OK;
 }
@@ -876,9 +877,10 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
 
-    do {
-      p->fp[i] = p->arg[i];
-    } while (++i < csound->ksmps);
+    memcpy(p->fp, p->arg, sizeof(MYFLT)*csound->ksmps);
+    /* do { */
+    /*   p->fp[i] = p->arg[i]; */
+    /* } while (++i < csound->ksmps); */
 
     return OK;
 }
@@ -902,7 +904,7 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
 /*     int   i = 0; */
 
-    memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
+    memcpy(p->fp, 0, csound->ksmps*sizeof(MYFLT));
 /*     do { */
 /*       p->fp[i] = FL(0.0); */
 /*     } while (++i < csound->ksmps); */

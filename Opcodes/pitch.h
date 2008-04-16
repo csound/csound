@@ -97,7 +97,7 @@ typedef struct {
     OPDS        h;
     MYFLT       *sr, *kamp, *ktona, *kbrite, *ibasef, *ifn;
     MYFLT       *imixtbl, *ioctcnt, *iphs;
-    long        lphs[10];
+    int32       lphs[10];
     int         octcnt;
     MYFLT       prevamp;
     FUNC        *ftp;
@@ -110,18 +110,18 @@ typedef struct {
             *imedi, *idowns, *iexcps, *irmsmedi;
     MYFLT   srate;
     MYFLT   lastval;
-    long    downsamp;
-    long    upsamp;
-    long    minperi;
-    long    maxperi;
-    long    index;
-    long    readp;
-    long    size;
-    long    peri;
-    long    medisize;
-    long    mediptr;
-    long    rmsmedisize;
-    long    rmsmediptr;
+    int32   downsamp;
+    int32   upsamp;
+    int32   minperi;
+    int32   maxperi;
+    int32   index;
+    int32   readp;
+    int32   size;
+    int32   peri;
+    int32   medisize;
+    int32   mediptr;
+    int32   rmsmedisize;
+    int32   rmsmediptr;
     int     inerr;
     AUXCH   median;
     AUXCH   rmsmedian;
@@ -143,14 +143,14 @@ typedef struct {
     OPDS        h;
     MYFLT       *aout;
     MYFLT       *xin, *imethod, *iparam1, *iseed, *iskip;
-    long        ampinc;         /* Scale output to range */
-    unsigned long randSeed;     /* Used by local random generator */
+    int32       ampinc;         /* Scale output to range */
+    uint32	randSeed;     /* Used by local random generator */
                                 /* for Paul Kellet's filter bank */
     double      b0, b1, b2, b3, b4, b5, b6;
                                 /* for Gardner method */
-    long        grd_Rows[GRD_MAX_RANDOM_ROWS];
-    long        grd_NumRows;    /* Number of rows (octave bands of noise) */
-    long        grd_RunningSum; /* Used to optimize summing of generators. */
+    int32       grd_Rows[GRD_MAX_RANDOM_ROWS];
+    int32       grd_NumRows;    /* Number of rows (octave bands of noise) */
+    int32       grd_RunningSum; /* Used to optimize summing of generators. */
     int         grd_Index;      /* Incremented each sample. */
     int         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
     MYFLT       grd_Scalar;     /* Used to scale to normalize generated noise. */
@@ -172,7 +172,7 @@ typedef struct {
 } IMPULSE;
 
 typedef struct {
-        long    cnt;
+        int32   cnt;
         MYFLT   alpha;
         MYFLT   val, nxtpt;
         MYFLT   c1;
@@ -182,12 +182,12 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *argums[VARGMAX];
         NSEG    *cursegp;
-        long    nsegs;
-        long    segsrem, curcnt;
+        int32   nsegs;
+        int32   segsrem, curcnt;
         MYFLT   curval, curinc, alpha;
         MYFLT   curx;
         AUXCH   auxch;
-        long    xtra;
+        int32   xtra;
 } TRANSEG;
 
 typedef struct {
