@@ -456,9 +456,10 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
  put0:
-    do {
-      *ar1++ = FL(0.0);
-    } while (--nsmps);
+    memset(ar1, 0, sizeof(MYFLT)*nsmps);
+    /* do { */
+    /*   *ar1++ = FL(0.0); */
+    /* } while (--nsmps); */
     return OK;
 
  phsck2:
@@ -541,10 +542,12 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    do {
-      *ar1++ = FL(0.0);
-      *ar2++ = FL(0.0);
-    } while (--nsmps);
+    memset(ar1, 0, sizeof(MYFLT)*nsmps);
+    memset(ar2, 0, sizeof(MYFLT)*nsmps);
+    /* do { */
+    /*   *ar1++ = FL(0.0); */
+    /*   *ar2++ = FL(0.0); */
+    /* } while (--nsmps); */
 
     return OK;
 }
@@ -654,9 +657,10 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
  put0:
-    do {
-      *ar1++ = FL(0.0);
-    } while (--nsmps);
+    memset(ar1, 0, sizeof(MYFLT)*nsmps);
+    /* do { */
+    /*   *ar1++ = FL(0.0); */
+    /* } while (--nsmps); */
     return OK;
 
  phsck2:
@@ -739,10 +743,12 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    do {
-      *ar1++ = FL(0.0);
-      *ar2++ = FL(0.0);
-    } while (--nsmps);
+    memset(ar1, 0, sizeof(MYFLT)*nsmps);
+    memset(ar2, 0, sizeof(MYFLT)*nsmps);
+   /*  do { */
+   /*    *ar1++ = FL(0.0); */
+   /*    *ar2++ = FL(0.0); */
+   /*  } while (--nsmps); */
 
     return OK;
 }
@@ -841,9 +847,10 @@ int adsyn(CSOUND *csound, ADSYN *p)
     timkincr = (long)(*p->ksmod*FL(1024000.0)*csound->onedkr);
     sp = (long *) p->rslt;                      /* use out array for sums */
     nsmps = csound->ksmps;
-    do {
-      *sp++ = 0L;                               /* cleared first to zero */
-    } while (--nsmps);
+    memset(p->rslt,0,sizeof(long)*nsmps);
+    /* do { */
+    /*   *sp++ = 0L;                               /\* cleared first to zero *\/ */
+    /* } while (--nsmps); */
     curtim = (short)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
@@ -889,9 +896,6 @@ int adsyn(CSOUND *csound, ADSYN *p)
          buffers and should replace hetro format anyway.... */
     for (n=0; n<nsmps; n++)
       ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG);
-/*     do { */
-/*       *ar++ = (MYFLT) ((*sp++ * ampscale) / ADSYN_MAXLONG); */
-/*     } while (--nsmps); */
     return OK;
 }
 

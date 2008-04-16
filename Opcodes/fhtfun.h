@@ -28,7 +28,7 @@ typedef struct{
     MYFLT         *buffer_in1, *buffer_in2, *buffer_out;
     FUNC          *win;
     MYFLT         *in1, *in2, *w;
-    long          m, count;
+    int32         m, count;
     MYFLT         s_ovlp;
 } CON;
 
@@ -39,7 +39,7 @@ typedef struct{
 /*   MYFLT              *buffer_in, *buffer_out; */
 /*   FUNC               *win; */
 /*   MYFLT              *in, *in2, norm; */
-/*   long               flen, count, count2; */
+/*   int32               flen, count, count2; */
 /* } CNV; */
 
 /* typedef struct{ */
@@ -49,7 +49,7 @@ typedef struct{
 /*   MYFLT              *buffer_in, *buffer_out; */
 /*   FUNC               *win; */
 /*   MYFLT              *in; */
-/*   long               m, count; */
+/*   int32               m, count; */
 /* } STCH; */
 
 /* typedef struct{ */
@@ -59,14 +59,14 @@ typedef struct{
 /*   MYFLT              *buffer_in, *buffer_in2, *buffer_out; */
 /*   FUNC               *win; */
 /*   MYFLT              *in, *in2, *mor; */
-/*   long               *clx, *cly; */
-/*   long               m, count; */
+/*   int32               *clx, *cly; */
+/*   int32               m, count; */
 /* } MRH; */
 
-static void getmag(MYFLT *x, long size);
-static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w);
-static void lineaprox(MYFLT *x, long size, long m);
-static void do_fht(MYFLT *real, long n);
-static void do_ifht(MYFLT *real, long n);
-static void pfht(MYFLT *fz, long n);
+static void getmag(MYFLT *x, int32 size);
+static void mult(MYFLT *x, MYFLT *y, int32 size, MYFLT w);
+static void lineaprox(MYFLT *x, int32 size, int32 m);
+static void do_fht(MYFLT *real, int32 n);
+static void do_ifht(MYFLT *real, int32 n);
+static void pfht(MYFLT *fz, int32 n);
 

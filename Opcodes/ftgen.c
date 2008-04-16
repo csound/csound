@@ -240,9 +240,9 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         fgets(s, 64, file);  s1 = strchr(s, ' ')+1;
         header.cpscvt = (MYFLT)atof(s1);
         fgets(s, 64, file);  s1 = strchr(s, ' ')+1;
-        header.loopmode1 = (short) atol(s1);
+        header.loopmode1 = (int16) atol(s1);
         fgets(s, 64, file);  s1 = strchr(s, ' ')+1;
-        header.loopmode2 = (short) atol(s1);
+        header.loopmode2 = (int16) atol(s1);
         fgets(s, 64, file);  s1 = strchr(s, ' ')+1;
         header.begin1 = atol(s1);
         fgets(s, 64, file);  s1 = strchr(s, ' ')+1;

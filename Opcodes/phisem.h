@@ -67,7 +67,7 @@ typedef struct Cabasa {
     MYFLT       resons;
     MYFLT       soundDecay;
     MYFLT       systemDecay;
-    long        num_objects;
+    int32       num_objects;
     MYFLT       last_num;
     MYFLT       totalEnergy;
     MYFLT       decayScale;

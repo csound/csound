@@ -70,21 +70,21 @@ int buzz(CSOUND *csound, BUZZ *p)
     ar = p->ar;
     phs = p->lphs;
     nn = csound->ksmps;
-    do {
+    for (n=0; n<nn; n++) {
       dwnphs = phs >> lobits;
       denom = *(ftbl+dwnphs);
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
         num = *(ftbl +(dwnphs * tnp1 & lenmask));
-        *ar++ = (num / denom - FL(1.0)) * scal;
+        ar[n] = (num / denom - FL(1.0)) * scal;
       }
-      else *ar++ = *ampp;
+      else ar[n] = *ampp;
       phs += inc;
       phs &= PHMASK;
       if (p->ampcod)
-        scal = *(++ampp) * over2n;
+        scal = ampp[n+1] * over2n;
       if (p->cpscod)
-        inc = (long)(*(++cpsp)* sicvt2);
-    } while (--nn);
+        inc = (long)(cpsp[n+1]* sicvt2);
+    }
     p->lphs = phs;
     return OK;
 }
@@ -164,27 +164,27 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     inc = (long)(*cpsp * csound->sicvt);
     ar = p->ar;
     nn = csound->ksmps;
-    do {
+    for (n=0; n<nn; n++) {
       phs = lphs >>lobits;
-      denom = p->rsqp1 - p->twor * *(ftbl + phs);
+      denom = p->rsqp1 - p->twor * ftbl[phs];
       num = *(ftbl + (phs * k & lenmask))
         - r * *(ftbl + (phs * km1 & lenmask))
         - p->rtn * *(ftbl + (phs * kpn & lenmask))
         + p->rtnp1 * *(ftbl + (phs * kpnm1 & lenmask));
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        *ar++ = last = num / denom * scal;
+        ar[n] = last = num / denom * scal;
       }
       else if (last<0)
-        *ar++ = last = - *ampp;
+        ar[n] = last = - *ampp;
       else
-        *ar++ = last = *ampp;
+        ar[n] = last = *ampp;
       if (p->ampcod)
-        scal =  p->rsumr * *(++ampp);
+        scal =  p->rsumr * ampp[n+1];
       lphs += inc;
       lphs &= PHMASK;
       if (p->cpscod)
-        inc = (long)(*(++cpsp) * csound->sicvt);
-    } while (--nn);
+        inc = (long)(cpsp[n+1] * csound->sicvt);
+    }
     p->last = last;
     p->lphs = lphs;
     return OK;

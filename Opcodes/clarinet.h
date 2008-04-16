@@ -97,7 +97,7 @@ typedef struct CLARIN {
     OneZero     filter;
     Envelope    envelope;
     Noise       noise;
-    long        length;
+    int32       length;
     MYFLT       outputGain;
     int         kloop;
 } CLARIN;

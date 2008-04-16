@@ -34,5 +34,5 @@ typedef struct {
     AUXCH       aux;
     MYFLT       *x, *y;
     FUNC        *gftp, *eftp;
-    short       dnsadv, ampadv, lfradv;
+    int16       dnsadv, ampadv, lfradv;
 } PGRA;

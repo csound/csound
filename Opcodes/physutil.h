@@ -53,15 +53,15 @@ MYFLT Noise_tick(CSOUND *, Noise *);
 typedef struct DLineL{
     AUXCH       inputs;
     MYFLT       lastOutput;
-    long        inPoint;
-    long        outPoint;
-    long        length;
+    int32        inPoint;
+    int32        outPoint;
+    int32        length;
     MYFLT       alpha;
     MYFLT       omAlpha;
 } DLineL;
 
 #define DLineL_lastOut(d)       ((d)->lastOutput)
-void make_DLineL(CSOUND *,DLineL *, long);
+void make_DLineL(CSOUND *,DLineL *, int32);
 void DLineL_setDelay(DLineL *, MYFLT);
 MYFLT DLineL_tick(DLineL *, MYFLT);
 

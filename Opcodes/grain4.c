@@ -45,7 +45,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     int         nvoice, cnt;
-    long        tmplong1, tmplong2;
+    int32       tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
 
@@ -126,8 +126,8 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
                                            "igskip_os must be greater then 0"));
     }
 
-    p->gstart = (long)(*p->igskip * csound->esr);
-    p->glength = (long)(*p->ilength * csound->esr);
+    p->gstart = (int32)(*p->igskip * csound->esr);
+    p->glength = (int32)(*p->ilength * csound->esr);
     p->gend = p->gstart + p->glength;
 
     if (*p->kgap < 0) {
@@ -158,7 +158,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
                                 /* Initialize variables....*/
-    p->gskip_os = (long)(*p->igskip_os * csound->esr);/* in number of samples */
+    p->gskip_os = (int32)(*p->igskip_os * csound->esr);/* in number of samples */
     p->gap_os = *p->igap_os / FL(100.0);
     p->gsize_os = *p->igsize_os / FL(100.0);
 
@@ -166,13 +166,13 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
       p->fpnt[nvoice] = 0;
       p->cnt[nvoice]  = 0;
       p->phs[nvoice]  = FL(0.0);
-      p->gskip[nvoice] = (long)(*p->igskip * csound->esr);
-      p->gap[nvoice] = (long)(*p->kgap * csound->esr);
+      p->gskip[nvoice] = (int32)(*p->igskip * csound->esr);
+      p->gap[nvoice] = (int32)(*p->kgap * csound->esr);
     }
 
     if (*p->igap_os != 0) {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-        p->gap[nvoice] += (long)((MYFLT)p->gap[nvoice] * p->gap_os * grand(p));
+        p->gap[nvoice] += (int32)((MYFLT)p->gap[nvoice] * p->gap_os * grand(p));
     }
 
     if (*p->imode == 0) {
@@ -181,7 +181,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
     else {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-        p->mode[nvoice] = (long)*p->imode;
+        p->mode[nvoice] = (int32)*p->imode;
     }
 
     if ((*p->ipshift >=1) && (*p->ipshift <=4)) {
@@ -204,11 +204,11 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
     for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-      p->gsize[nvoice] = (long)(*p->kgsize * csound->esr * p->pshift[nvoice]);
+      p->gsize[nvoice] = (int32)(*p->kgsize * csound->esr * p->pshift[nvoice]);
 
     if (*p->igsize_os != 0) {
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
-        p->gsize[nvoice] += (long)(p->gsize[nvoice] * p->gsize_os * grand(p));
+        p->gsize[nvoice] += (int32)(p->gsize[nvoice] * p->gsize_os * grand(p));
     }
 
     for (nvoice = 0; nvoice < *p->ivoice; nvoice++)
@@ -216,7 +216,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->igskip_os != 0)
       for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
-        tmplong1 = (long)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
+        tmplong1 = (int32)((p->gskip_os * grand(p)) + (MYFLT)p->gskip[nvoice]);
         p->gskip[nvoice] = (tmplong1 < p->gstart) ? p->gstart : tmplong1;
         p->gskip[nvoice]=
           ((p->gskip[nvoice]+p->stretch[nvoice])>p->gend) ?
@@ -261,15 +261,15 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     int         nsmps = csound->ksmps;
     int         nvoice;
-    long        flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
+    int32       flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
-    long        att_len, dec_len, att_sus;
+    int32       att_len, dec_len, att_sus;
     MYFLT       envlop;
 
     /* Optimisations */
-    long        gstart  = p->gstart;
-    long        gend    = p->gend;
-    long        glength = p->glength;
+    int32       gstart  = p->gstart;
+    int32       gend    = p->gend;
+    int32       glength = p->glength;
     MYFLT       iratio  = *p->iratio;
 
  /* Recover parameters from previous call.... */
@@ -292,9 +292,9 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
    /* *** Start the loop .... *** */
    do {                         /* while (--nsmps) */
                                 /* Optimisations */
-     long       *fpnt = p->fpnt, *cnt = p->cnt, *gskip = p->gskip;
-     long       *gap = p->gap, *gsize = p->gsize;
-     long       *stretch = p->stretch, *mode = p->mode;
+     int32      *fpnt = p->fpnt, *cnt = p->cnt, *gskip = p->gskip;
+     int32      *gap = p->gap, *gsize = p->gsize;
+     int32      *stretch = p->stretch, *mode = p->mode;
      MYFLT      *pshift = p->pshift, *phs = p->phs;
      *ar = FL(0.0);
 
@@ -329,8 +329,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
              tmpfpnt = *gskip + *fpnt;
          }
 
-         att_len = (long)(*gsize * *p->iatt * FL(0.01));
-         dec_len = (long)(*gsize * *p->idec * FL(0.01));
+         att_len = (int32)(*gsize * *p->iatt * FL(0.01));
+         dec_len = (int32)(*gsize * *p->idec * FL(0.01));
          att_sus =  *gsize -  dec_len;
 
          if (*fpnt < att_sus) {
@@ -350,15 +350,15 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
            tmpfpnt = gstart + (tmpfpnt - gend) - 1;
 
          if (*p->ifnenv > 0) {
-           tmplong3 = (long)(envlop * flen_env) -1L;
+           tmplong3 = (int32)(envlop * flen_env) -1L;
            envlop = *(ftbl_env + tmplong3);
          }
 
          *ar +=(v1 + ( *(ftbl + tmpfpnt)   - v1) * fract ) * envlop ;
 
          *phs += *pshift;
-         *fpnt = (long)*phs;
-         *cnt  = (long)*phs;
+         *fpnt = (int32)*phs;
+         *cnt  = (int32)*phs;
        } /* end if (*fpnt >= (*gsize -1)) */
 
        if (*cnt >= *stretch) {
@@ -374,10 +374,10 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
                       ((*gsize / *pshift) +
                       *gap) * iratio;
                       */
-         *gskip += (long)((*gsize / *pshift) * iratio);
+         *gskip += (int32)((*gsize / *pshift) * iratio);
 
          if (*p->igskip_os != 0)
-           *gskip  += (long)(p->gskip_os * grand(p));
+           *gskip  += (int32)(p->gskip_os * grand(p));
 
          if (*gskip >= gend) {
            tmplong1 = *gskip - gend;
@@ -397,14 +397,14 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
                (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
            }
 
-           *gap = (long)(*p->kgap * csound->esr);
+           *gap = (int32)(*p->kgap * csound->esr);
            if (*p->igap_os != 0) {
-             *gap += (long)((*gap * p->gap_os) * grand(p));
+             *gap += (int32)((*gap * p->gap_os) * grand(p));
            }
 
-           *gsize = (long)(*p->kgsize * csound->esr * *pshift);
+           *gsize = (int32)(*p->kgsize * csound->esr * *pshift);
            if (*p->igsize_os != 0)
-             *gsize += (long)((*gsize * p->gsize_os) * grand(p));
+             *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
 
              *stretch = *gsize + *gap;
 
