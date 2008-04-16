@@ -53,7 +53,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
-    long    currpos;
+    int32   currpos;
     int     flag;
     int     nargs;
     FOUT_FILE f;
@@ -63,7 +63,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
-    long    currpos;
+    int32   currpos;
     int     flag;
     int     nargs;
     FOUT_FILE f;
@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    long    currpos;
+    int32   currpos;
     int     flag;
 } I_INFILE;
 
@@ -106,7 +106,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    long    counter;
+    int32   counter;
     int     done;
 } IOUTFILE_R;
 

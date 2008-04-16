@@ -63,15 +63,15 @@
 typedef struct DLineA {
     AUXCH       inputs;
     MYFLT       lastOutput;
-    long        inPoint;
-    long        outPoint;
-    long        length;
+    int32        inPoint;
+    int32        outPoint;
+    int32        length;
     MYFLT       alpha;
     MYFLT       coeff;
     MYFLT       lastIn;
 } DLineA;
 
-void make_DLineA(CSOUND *,DLineA *, long max_length);
+void make_DLineA(CSOUND *,DLineA *, int32 max_length);
 /* void DLineA_clear(DLineA *); */
 int DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
 MYFLT DLineA_tick(DLineA *, MYFLT sample);
@@ -111,7 +111,7 @@ typedef struct BRASS {
     LipFilt     lipFilter;
     DCBlock     dcBlock;
     ADSR        adsr;
-    long        length;
+    int32       length;
     MYFLT       slideTarget;
     MYFLT       maxPressure;
     MYFLT       lipTarget;

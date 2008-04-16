@@ -58,10 +58,10 @@ typedef struct Mandolin {
     DLineL      combDelay;
     OneZero     filter1;
     OneZero     filter2;
-    long        length;
+    int32       length;
     MYFLT       lastFreq;
     MYFLT       lastLength;
-    long        dampTime;
+    int32       dampTime;
     int         waveDone;
     int         kloop;
 } MANDOL;

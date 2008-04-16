@@ -66,9 +66,9 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
     q = (int)(s*p);     \
     p -= PI_F*(MYFLT)((int)((q+((q>=0)?(q&1):-(q&1) )))); \
 
-void RewrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
+void RewrapPhase(MYFLT *buf, int32 size, MYFLT *oldPh)
 {
-    long    i;
+    int32    i;
     MYFLT   *pha;
     MYFLT   p,oneOnPi;
     int     z;
@@ -86,14 +86,14 @@ void RewrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
 }
 
 /* Undo a pile of frequencies back into phase differences */
-void FrqToPhase(MYFLT *buf, long size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
+void FrqToPhase(MYFLT *buf, int32 size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
     /* the fixup phase shift ... ? */
 {
     MYFLT   *pha;
     MYFLT   twoPiOnSr, binMidFrq, frqPerBin;
     MYFLT   expectedDphas,eDphIncr;
     MYFLT   p;
-    long    i;
+    int32    i;
     int     j;
     MYFLT   oneOnPi;
 
@@ -124,20 +124,20 @@ void FrqToPhase(MYFLT *buf, long size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
 void FetchIn(
     float   *inp,       /* pointer to input data */
     MYFLT   *buf,       /* where to put our nice mag/frq pairs */
-    long    fsize,      /* frame size we're working with */
+    int32    fsize,      /* frame size we're working with */
     MYFLT   pos)        /* fractional frame we want */
 {
-    long    j;
+    int32    j;
     float   *frm0, *frm1;
-    long    base;
+    int32    base;
     MYFLT   frac;
 
     /***** WITHOUT INFO ON WHERE LAST FRAME IS, MAY 'INTERP' BEYOND IT ****/
-    base = (long) pos;          /* index of basis frame of interpolation */
+    base = (int32) pos;          /* index of basis frame of interpolation */
     frac = (MYFLT) pos - (MYFLT) base;
     /* & how close to get to next */
-    frm0 = inp  + ((long) fsize + 2L) * base;
-    frm1 = frm0 + ((long) fsize + 2L);          /* addresses of both frames */
+    frm0 = inp  + ((int32) fsize + 2L) * base;
+    frm1 = frm0 + ((int32) fsize + 2L);          /* addresses of both frames */
     if (frac != FL(0.0)) {      /* must have 2 cases to avoid poss seg vlns */
                                 /* and failed computes, else may interp     */
                                         /* bd valid data                    */
@@ -155,11 +155,11 @@ void FetchIn(
     }
 }
 
-void ApplyHalfWin(MYFLT *buf, MYFLT *win, long len)
+void ApplyHalfWin(MYFLT *buf, MYFLT *win, int32 len)
     /* Window only store 1st half, is symmetric */
 {
-    long j;
-    long    lenOn2 = (len/2L);
+    int32 j;
+    int32    lenOn2 = (len/2L);
 
     for (j = lenOn2 + 1; j--; )
       *buf++ *= *win++;
@@ -171,12 +171,12 @@ void ApplyHalfWin(MYFLT *buf, MYFLT *win, long len)
    in circular buffer */
 void addToCircBuf(
     MYFLT   *sce, MYFLT *dst, /* linear source and circular destination */
-    long    dstStart,         /* Current starting point index in circular dst */
-    long    numToDo,          /* how many points to add ( <= circBufSize ) */
-    long    circBufSize)      /* Size of circ buf i.e. dst[0..circBufSize-1] */
+    int32    dstStart,         /* Current starting point index in circular dst */
+    int32    numToDo,          /* how many points to add ( <= circBufSize ) */
+    int32    circBufSize)      /* Size of circ buf i.e. dst[0..circBufSize-1] */
 {
-    long    i;
-    long    breakPoint;     /* how many points to add before having to wrap */
+    int32    i;
+    int32    breakPoint;     /* how many points to add before having to wrap */
 
     breakPoint = circBufSize-dstStart;/* i.e. if we start at (dIndx = lim -2) */
     if (numToDo > breakPoint) {   /*   we will do 2 in 1st loop, rest in 2nd. */
@@ -195,12 +195,12 @@ void addToCircBuf(
 /* Write from a circular buffer into a linear output buffer CLEARING DATA */
 void writeClrFromCircBuf(
     MYFLT   *sce, MYFLT *dst, /* Circular source and linear destination */
-    long    sceStart,         /* Current starting point index in circular sce */
-    long    numToDo,          /* How many points to write ( <= circBufSize ) */
-    long    circBufSize)      /* Size of circ buf i.e. sce[0..circBufSize-1] */
+    int32    sceStart,         /* Current starting point index in circular sce */
+    int32    numToDo,          /* How many points to write ( <= circBufSize ) */
+    int32    circBufSize)      /* Size of circ buf i.e. sce[0..circBufSize-1] */
 {
-    long    i;
-    long    breakPoint;     /* how many points to add before having to wrap */
+    int32    i;
+    int32    breakPoint;     /* how many points to add before having to wrap */
 
     breakPoint = circBufSize-sceStart; /* i.e. if we start at (Indx = lim -2) */
     if (numToDo > breakPoint) { /*  we will do 2 in 1st loop, rest in 2nd. */
@@ -239,8 +239,8 @@ void UDSample(
     MYFLT   *inSnd,
     MYFLT   stindex,
     MYFLT   *outSnd,
-    long    inLen,
-    long    outLen,
+    int32    inLen,
+    int32    outLen,
     MYFLT   fex)
 /*  Perform the sample rate conversion:
     inSnd   is the existing sample to be converted
@@ -255,11 +255,11 @@ void UDSample(
  */
 {
     int     in2out;
-    long    i,j,x;
+    int32    i,j,x;
     MYFLT   a;
     MYFLT   phasePerInStep, fracInStep;
     MYFLT   realInStep, stepInStep;
-    long    nrstInStep;
+    int32    nrstInStep;
     MYFLT   posPhase, negPhase;
     MYFLT   lex = FL(1.0)/fex;
     int     nrst;
@@ -274,7 +274,7 @@ void UDSample(
     stepInStep = fex;
     for (i = 0; i<outLen; ++i) {      /* output sample loop */
                                       /* i = lex*nrstIp, so .. */
-      nrstInStep = (long)realInStep;  /* imm. prec actual sample */
+      nrstInStep = (int32)realInStep;  /* imm. prec actual sample */
       fracInStep = realInStep-(MYFLT)nrstInStep;  /* Fractional part */
       negPhase = phasePerInStep * fracInStep;
       posPhase = -negPhase;
@@ -348,12 +348,12 @@ void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
 void PreWarpSpec(
     PVOC_GLOBALS  *p,
     MYFLT   *spec,      /* spectrum as magnitude,phase */
-    long    size,       /* full frame size, tho' we only use n/2+1 */
+    int32    size,       /* full frame size, tho' we only use n/2+1 */
     MYFLT   warpFactor) /* How much pitches are being multd by */
 {
     MYFLT   eps,slope;
     MYFLT   mag, lastmag, nextmag, pkOld;
-    long    pkcnt, i, j;
+    int32    pkcnt, i, j;
 
     if (p->dsputil_env == (MYFLT*) NULL)
       p->dsputil_env =
@@ -405,7 +405,7 @@ void PreWarpSpec(
     }
 
     for (i = 0; i < someof(size); i++) {  /* warp spectral env.*/
-      j = (long)((MYFLT) i * warpFactor);
+      j = (int32)((MYFLT) i * warpFactor);
       mag = spec[2*i];
       if ((j < someof(size)) && (p->dsputil_env[i] != FL(0.0)))
         spec[2 * i] *= p->dsputil_env[j] / p->dsputil_env[i];

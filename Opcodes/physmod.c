@@ -122,13 +122,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
-        p->length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency)
-        p->length = (long) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
         csound->Message(csound, Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
-        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->delayLine, p->length);
       p->reedTable.offSet = FL(0.7);
@@ -144,8 +144,8 @@ int clarinset(CSOUND *csound, CLARIN *p)
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((long) (p->h.insdshead->offtim * csound->ekr)
-                        - (long) (csound->ekr * *p->attack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
+                        - (int32) (csound->ekr * *p->attack));
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
       p->envelope.rate = FL(0.0);
@@ -187,7 +187,7 @@ int clarin(CSOUND *csound, CLARIN *p)
     for (n=0;n<nsmps;n++) {
         MYFLT   pressureDiff;
         MYFLT   breathPressure;
-        long    temp;
+        int32    temp;
         MYFLT   temp_time, alpha;
         MYFLT   nextsamp;
         MYFLT   v_lastOutput;
@@ -213,7 +213,7 @@ int clarin(CSOUND *csound, CLARIN *p)
             temp_time += v_len;            /*  loop back to beginning */
         }
 #endif
-        temp = (long) temp_time;    /*  Integer part of time address    */
+        temp = (int32) temp_time;    /*  Integer part of time address    */
                                     /*  fractional part of time address */
         alpha = temp_time - (MYFLT)temp;
         v_lastOutput = v_data[temp]; /* Do linear interpolation */
@@ -272,7 +272,7 @@ static MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
 int fluteset(CSOUND *csound, FLUTE *p)
 {
     FUNC        *ftp;
-    long        length;
+    int32        length;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
     else {                                   /* Expect sine wave */
@@ -280,13 +280,13 @@ int fluteset(CSOUND *csound, FLUTE *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0))
-        length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
+        length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        length = (long) (csound->esr / *p->frequency + FL(1.0));
+        length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
         csound->Message(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
-        length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->boreDelay, length);
       length = length >> 1;        /* ??? really; yes from later version */
@@ -377,7 +377,7 @@ int flute(CSOUND *csound, FLUTE *p)
     }
     noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
     for (n=0;n<nsmps;n++) {
-      long      temp;
+      int32      temp;
       MYFLT     temf;
       MYFLT     temp_time, alpha;
       MYFLT     pressDiff;
@@ -407,7 +407,7 @@ int flute(CSOUND *csound, FLUTE *p)
       }
 #endif
 
-      temp = (long) temp_time;        /*  Integer part of time address    */
+      temp = (int32) temp_time;        /*  Integer part of time address    */
                                       /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];    /* Do linear interpolation */
@@ -468,7 +468,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
 
 int bowedset(CSOUND *csound, BOWED *p)
 {
-    long        length;
+    int32        length;
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
@@ -478,13 +478,13 @@ int bowedset(CSOUND *csound, BOWED *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
-        length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
+        length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
-        length = (long) (csound->esr / *p->frequency + FL(1.0));
+        length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
         csound->Message(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
-        length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->neckDelay, length);
       length = length >> 1; /* Unsure about this; seems correct in later code */
@@ -585,7 +585,7 @@ int bowed(CSOUND *csound, BOWED *p)
       DLineL_tick(&p->bridgeDelay, nutRefl + newVel);   /*   propagations  */
 
       if (*p->vibAmt > FL(0.0)) {
-        long    temp;
+        int32    temp;
         MYFLT   temp_time, alpha;
                                 /* Tick on vibrato table */
         p->v_time += p->v_rate;              /*  Update current time    */
@@ -605,7 +605,7 @@ int bowed(CSOUND *csound, BOWED *p)
             temp_time += p->vibr->flen;      /*  loop back to beginning */
         }
 #endif
-        temp = (long) temp_time;    /*  Integer part of time address    */
+        temp = (int32) temp_time;    /*  Integer part of time address    */
                                 /*  fractional part of time address */
         alpha = temp_time - (MYFLT)temp;
         p->v_lastOutput = p->vibr->ftable[temp]; /* Do linear interpolation */
@@ -653,7 +653,7 @@ int bowed(CSOUND *csound, BOWED *p)
 /*  often (each sample)).                                                   */
 /****************************************************************************/
 
-void make_DLineA(CSOUND *csound, DLineA *p, long max_length)
+void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
 {
     p->length = max_length;
     csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
@@ -674,7 +674,7 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     }
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
-    p->outPoint = (long) outputPointer;    /* Integer part of delay          */
+    p->outPoint = (int32) outputPointer;    /* Integer part of delay          */
     p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
     if (p->alpha<FL(0.1)) {
       outputPointer += FL(1.0);             /*  Hack to avoid pole/zero       */
@@ -754,13 +754,13 @@ int brassset(CSOUND *csound, BRASS *p)
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
       if (*p->lowestFreq!=FL(0.0))
-        p->length = (long) (csound->esr / *p->lowestFreq + FL(1.0));
+        p->length = (int32) (csound->esr / *p->lowestFreq + FL(1.0));
       else if (p->frq!=FL(0.0))
-        p->length = (long) (csound->esr / p->frq + FL(1.0));
+        p->length = (int32) (csound->esr / p->frq + FL(1.0));
       else {
         csound->Message(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
-        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
@@ -793,8 +793,8 @@ int brassset(CSOUND *csound, BRASS *p)
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((long) (p->h.insdshead->offtim * csound->ekr)
-                        - (long) (csound->ekr * *p->dettack));
+      p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
+                        - (int32) (csound->ekr * *p->dettack));
     }
     return OK;
 }

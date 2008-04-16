@@ -204,7 +204,7 @@ extern "C" {
     int     lclwcnt, lclacnt;
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
-    short   muted;
+    int16   muted;
     long    localen;
     long    opdstot;                /* Total size of opds structs in instr */
     long    *inslist;               /* Only used in parsing (?) */
@@ -244,7 +244,7 @@ extern "C" {
   } AUXCH;
 
   typedef struct monblk {
-    short   pch;
+    int16   pch;
     struct monblk *prv;
   } MONPCH;
 
@@ -267,11 +267,11 @@ extern "C" {
 
   typedef struct mchnblk {
     /** most recently received program change */
-    short   pgmno;
+    int16   pgmno;
     /** instrument number assigned to this channel */
-    short   insno;
-    short   RegParNo;
-    short   mono;
+    int16   insno;
+    int16   RegParNo;
+    int16   mono;
     MONPCH  *monobas;
     MONPCH  *monocur;
     /** list of active notes (NULL: not active) */
@@ -281,7 +281,7 @@ extern "C" {
     /** ... with GS vib_rate, stored in c128-c135 */
     MYFLT   ctl_val[136];
     /** program change to instr number (<=0: ignore) */
-    short   pgm2ins[128];
+    int16   pgm2ins[128];
     /** channel pressure (0-127) */
     MYFLT   aftouch;
     /** pitch bend (-1 to 1) */
@@ -291,9 +291,9 @@ extern "C" {
     /** unused */
     MYFLT   dummy_;
     /** number of held (sustaining) notes */
-    short   ksuscnt;
+    int16   ksuscnt;
     /** current state of sustain pedal (0: off) */
-    short   sustaining;
+    int16   sustaining;
     int     dpmsb;
     int     dplsb;
     int     datenabl;
@@ -333,9 +333,9 @@ extern "C" {
     /* ptr to next overlapping MIDI voice */
     struct insds * nxtolap;
     /* Instrument number */
-    short   insno;
+    int16   insno;
     /* non-zero for sustaining MIDI note */
-    short   m_sust;
+    int16   m_sust;
     /* MIDI pitch, for simple access */
     unsigned char m_pitch;
     /* ...ditto velocity */
@@ -387,8 +387,8 @@ extern "C" {
 
   typedef struct oentry {
     char    *opname;
-    unsigned short  dsblksiz;
-    unsigned short  thread;
+    uint16  dsblksiz;
+    uint16  thread;
     char    *outypes;
     char    *intypes;
     int     (*iopadr)(CSOUND *, void *p);
@@ -432,7 +432,7 @@ extern "C" {
     /** Event type */
     char    opcod;
     /** Number of p-fields */
-    short   pcnt;
+    int16   pcnt;
     /** Event start time */
     MYFLT   p2orig;
     /** Length */
@@ -465,9 +465,9 @@ extern "C" {
     /** LOFACT * (table_sr / orch_sr), cpscvt = cvtbas / base_freq */
     MYFLT   cvtbas, cpscvt;
     /** sustain loop mode (0: none, 1: forward, 2: forward and backward) */
-    short   loopmode1;
+    int16   loopmode1;
     /** release loop mode (0: none, 1: forward, 2: forward and backward) */
-    short   loopmode2;
+    int16   loopmode2;
     /** sustain loop start and end in sample frames */
     long    begin1, end1;
     /** release loop start and end in sample frames */
@@ -507,10 +507,10 @@ extern "C" {
   } MEMFIL;
 
   typedef struct {
-    short   type;
-    short   chan;
-    short   dat1;
-    short   dat2;
+    int16   type;
+    int16   chan;
+    int16   dat1;
+    int16   dat2;
   } MEVENT;
 
   typedef struct SNDMEMFILE_ {
@@ -616,7 +616,7 @@ extern "C" {
     char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *endatp;
-    short   datreq, datcnt;
+    int16   datreq, datcnt;
   } MGLOBAL;
 
   typedef struct eventnode {
@@ -634,8 +634,8 @@ extern "C" {
   typedef struct opcodinfo {
     long    instno;
     char    *name, *intypes, *outtypes;
-    short   inchns, outchns, perf_incnt, perf_outcnt;
-    short   *in_ndx_list, *out_ndx_list;
+    int16   inchns, outchns, perf_incnt, perf_outcnt;
+    int16   *in_ndx_list, *out_ndx_list;
     INSTRTXT *ip;
     struct opcodinfo *prv;
   } OPCODINFO;
@@ -648,7 +648,7 @@ extern "C" {
 
   typedef struct token {
     char    *str;
-    short   prec;
+    int16   prec;
   } TOKEN;
 
   typedef struct names {
@@ -1070,8 +1070,8 @@ extern const uint32_t csPlayScoMask;
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */
-    short         nlabels;
-    short         ngotos;
+    int16         nlabels;
+    int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
     int           dither_output;
@@ -1101,7 +1101,7 @@ extern const uint32_t csPlayScoMask;
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
-    short         rngflg, multichan;
+    int16         rngflg, multichan;
     void          *evtFuncChain;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
     EVTNODE       *freeEvtNodes;
@@ -1219,7 +1219,7 @@ extern const uint32_t csPlayScoMask;
     char          *SF_id_comment;
     char          *SF_id_date;
     void          *utility_db;
-    short         *isintab;             /* ugens3.c */
+    int16         *isintab;             /* ugens3.c */
     void          *lprdaddr;            /* ugens5.c */
     int           currentLPCSlot;
     int           max_lpc_slot;
