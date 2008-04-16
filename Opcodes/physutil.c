@@ -57,7 +57,7 @@ MYFLT Noise_tick(CSOUND *csound, Noise *n)
 /*  changed very often.                    */
 /*******************************************/
 
-void make_DLineL(CSOUND *csound, DLineL *p, long max_length)
+void make_DLineL(CSOUND *csound, DLineL *p, int32 max_length)
 {
 /*     int i; */
 
@@ -77,7 +77,7 @@ void DLineL_setDelay(DLineL *p, MYFLT lag)
       outputPointer += (MYFLT)p->length;           /* modulo maximum length */
     while (outputPointer>=(MYFLT)p->length)
       outputPointer -= (MYFLT)p->length;           /* modulo maximum length */
-    p->outPoint = (long) outputPointer;            /* integer part */
+    p->outPoint = (int32) outputPointer;            /* integer part */
     p->alpha = outputPointer - (MYFLT)p->outPoint; /* fractional part */
     p->omAlpha = 1.0f - p->alpha;                  /* 1.0 - fractional part */
 }
