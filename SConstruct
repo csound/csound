@@ -1210,6 +1210,7 @@ else:
     for option in csoundWrapperEnvironment['CPPPATH']:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
+    csoundWrapperEnvironment.Append(SWIGFLAGS = ['-java'])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
     if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'

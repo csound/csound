@@ -99,8 +99,8 @@ elif sys.platform[:3] == 'win':
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
-    #customCPPPATH.append('D:/utah/opt/jdk1.5.0/include')
-    # customCPPPATH.append('D:/utah/opt/jdk1.5.0/include/win32')
+    customCPPPATH.append('''c:/Program Files/java/jdk1.6.0_06/include''')
+    customCPPPATH.append('''c:/Program Files/java/jdk1.6.0_06/include/win32''')
     ################################################################
     # If you want to build the PD external csoundapi~
     # you need PD. If it is not in a standard location,
