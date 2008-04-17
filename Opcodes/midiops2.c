@@ -50,16 +50,16 @@ static int imidic7(CSOUND *csound, MIDICTL2 *p)
 {
     MYFLT value;
     FUNC  *ftp;
-    long  ctlno;
+    int32  ctlno;
 
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT)(csound->curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
         if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable, use value as index   */
-        value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
+        value = *(ftp->ftable + (int32)(value*ftp->flen)); /* no interpolation */
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin; /* scales the output*/
     }
@@ -68,8 +68,8 @@ static int imidic7(CSOUND *csound, MIDICTL2 *p)
 
 static int midic7set(CSOUND *csound, MIDICTL2 *p)
 {
-    long  ctlno;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
+    int32  ctlno;
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else p->ctlno = ctlno;
@@ -90,7 +90,7 @@ static int midic7(CSOUND *csound, MIDICTL2 *p)
     value = (MYFLT) (lcurip->m_chnbp->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
       value = *(p->ftp->ftable +
-                (long)(value*p->ftp->flen));            /* no interpolation */
+                (int32)(value*p->ftp->flen));            /* no interpolation */
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -103,11 +103,11 @@ static int imidic14(CSOUND *csound, MIDICTL3 *p)
 {
     MYFLT value;
     FUNC  *ftp;
-    long  ctlno1;
-    long  ctlno2;
+    int32  ctlno1;
+    int32  ctlno2;
 
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 )
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 )
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT) ((csound->curip->m_chnbp->ctl_val[ctlno1] * 128 +
@@ -120,13 +120,13 @@ static int imidic14(CSOUND *csound, MIDICTL3 *p)
         MYFLT *base;
         MYFLT *top;
         MYFLT diff;
-        long length;
+        int32 length;
 
         if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
           return NOTOK; /* if valid ftable,use value as index   */
         phase = value * (length = ftp->flen);
-        diff = phase - (long) phase;
-        base = (base_address = ftp->ftable) + (long)(phase);
+        diff = phase - (int32) phase;
+        base = (base_address = ftp->ftable) + (int32)(phase);
         top  = base + 1 ;
         top = (top - base_address > length) ?  base_address : top;
         value = *base + (*top - *base) * diff;
@@ -138,10 +138,10 @@ static int imidic14(CSOUND *csound, MIDICTL3 *p)
 
 static int midic14set(CSOUND *csound, MIDICTL3 *p)
 {
-    long   ctlno1;
-    long   ctlno2;
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ) {
+    int32   ctlno1;
+    int32   ctlno2;
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     p->ctlno1 = ctlno1;
@@ -166,8 +166,8 @@ static int midic14(CSOUND *csound, MIDICTL3 *p)
                          * oneTOf14bit);
     if (p->flag)  {     /* if valid ftable,use value as index   */
       MYFLT phase = value * p->ftp->flen; /* gab-A1 */
-      MYFLT *base = p->ftp->ftable + (long)(phase);
-      value = *base + (*(base+1) - *base) * (phase - (long) phase);
+      MYFLT *base = p->ftp->ftable + (int32)(phase);
+      value = *base + (*(base+1) - *base) * (phase - (int32) phase);
 
       /* linear interpolation routine */
       /*
@@ -176,11 +176,11 @@ static int midic14(CSOUND *csound, MIDICTL3 *p)
         MYFLT *base;
         MYFLT *top;
         MYFLT diff;
-        long length;
+        int32 length;
 
         phase =  value * (length = p->ftp->flen);
-        diff = phase - (long) phase;
-        base = (base_address = p->ftp->ftable) + (long)(phase);
+        diff = phase - (int32) phase;
+        base = (base_address = p->ftp->ftable) + (int32)(phase);
         top  = base + 1 ;
         top = (top - base_address > length) ?  base_address : top;
         value = *base + (*top - *base) * diff;
@@ -196,13 +196,13 @@ static int midic14(CSOUND *csound, MIDICTL3 *p)
 static int imidic21(CSOUND *csound, MIDICTL4 *p)
 {
     MYFLT value;
-    long   ctlno1;
-    long   ctlno2;
-    long   ctlno3;
+    int32   ctlno1;
+    int32   ctlno2;
+    int32   ctlno3;
 
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
-        (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127)
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
+        (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT) ((csound->curip->m_chnbp->ctl_val[ctlno1] * 16384 +
@@ -218,8 +218,8 @@ static int imidic21(CSOUND *csound, MIDICTL4 *p)
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
                                            *p->ifn);
         phase = value * ftp->flen;
-        base = ftp->ftable + (long)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (long)phase);
+        base = ftp->ftable + (int32)(phase);
+        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -228,12 +228,12 @@ static int imidic21(CSOUND *csound, MIDICTL4 *p)
 
 static int midic21set(CSOUND *csound, MIDICTL4 *p)
 {
-    long   ctlno1;
-    long   ctlno2;
-    long   ctlno3;
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
-        (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127) {
+    int32   ctlno1;
+    int32   ctlno2;
+    int32   ctlno3;
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
+        (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     p->ctlno1 = ctlno1;
@@ -261,8 +261,8 @@ static int midic21(CSOUND *csound, MIDICTL4 *p)
     if (p->flag)  {     /* if valid ftable,use value as index   */
       /* linear interpolation routine */
       MYFLT phase = value * p->ftp->flen;
-      MYFLT *base = p->ftp->ftable + (long)(phase);
-      value = *base + (*(base+1) - *base) * (phase - (long) phase);
+      MYFLT *base = p->ftp->ftable + (int32)(phase);
+      value = *base + (*(base+1) - *base) * (phase - (int32) phase);
 
       /*
         MYFLT phase;
@@ -270,11 +270,11 @@ static int midic21(CSOUND *csound, MIDICTL4 *p)
         MYFLT *base;
         MYFLT *top;
         MYFLT diff;
-        long length;
+        int32 length;
 
         phase = value * (length = p->ftp->flen);
-        diff = phase - (long) phase;
-        base = (base_address = p->ftp->ftable) + (long)(phase);
+        diff = phase - (int32) phase;
+        base = (base_address = p->ftp->ftable) + (int32)(phase);
         top  = base + 1 ;
         top = (top - base_address > length) ?  base_address : top;
         value = *base + (*top - *base) * diff;
@@ -292,9 +292,9 @@ static int ictrl7(CSOUND *csound, CTRL7 *p)
 {
     MYFLT value;
     FUNC *ftp;
-    long  ctlno;
+    int32  ctlno;
 
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       value = (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[ctlno]
@@ -302,7 +302,7 @@ static int ictrl7(CSOUND *csound, CTRL7 *p)
       if (*p->ifn > 0) {
         if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
           return NOTOK;               /* if valid ftable,use value as index   */
-        value = *(ftp->ftable + (long)(value*ftp->flen)); /* no interpolation */
+        value = *(ftp->ftable + (int32)(value*ftp->flen)); /* no interpolation */
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -311,9 +311,9 @@ static int ictrl7(CSOUND *csound, CTRL7 *p)
 
 static int ctrl7set(CSOUND *csound, CTRL7 *p)
 {
-    long  ctlno;
+    int32  ctlno;
     int chan;
-    if ((ctlno = (long) *p->ictlno) < 0 || ctlno > 127) {
+    if ((ctlno = (int32) *p->ictlno) < 0 || ctlno > 127) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
@@ -337,7 +337,7 @@ static int ctrl7(CSOUND *csound, CTRL7 *p)
                            * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
       value =
-        *(p->ftp->ftable + (long)(value*p->ftp->flen)); /* no interpolation */
+        *(p->ftp->ftable + (int32)(value*p->ftp->flen)); /* no interpolation */
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -348,12 +348,12 @@ static int ctrl7(CSOUND *csound, CTRL7 *p)
 static int ictrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
-    long  ctlno1;
-    long  ctlno2;
+    int32  ctlno1;
+    int32  ctlno2;
     int chan;
 
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 )
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 )
       return csound->InitError(csound, Str("illegal controller number"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
@@ -370,8 +370,8 @@ static int ictrl14(CSOUND *csound, CTRL14 *p)
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
                                            *p->ifn);
         phase = value * ftp->flen;
-        base = ftp->ftable + (long)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (long)phase);
+        base = ftp->ftable + (int32)(phase);
+        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -380,11 +380,11 @@ static int ictrl14(CSOUND *csound, CTRL14 *p)
 
 static int ctrl14set(CSOUND *csound, CTRL14 *p)
 {
-    long   ctlno1;
-    long   ctlno2;
+    int32   ctlno1;
+    int32   ctlno2;
     int chan;
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ) {
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
@@ -413,8 +413,8 @@ static int ctrl14(CSOUND *csound, CTRL14 *p)
     if (p->flag)  {             /* if valid ftable,use value as index   */
                                 /* linear interpolation routine */
        MYFLT phase = value * p->ftp->flen;
-       MYFLT *base = p->ftp->ftable + (long)(phase);
-       value = *base + (*(base+1) - *base) * (phase - (long) phase);
+       MYFLT *base = p->ftp->ftable + (int32)(phase);
+       value = *base + (*(base+1) - *base) * (phase - (int32) phase);
 
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
@@ -427,14 +427,14 @@ static int ctrl14(CSOUND *csound, CTRL14 *p)
 static int ictrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT  value;
-    long   ctlno1;
-    long   ctlno2;
-    long   ctlno3;
+    int32   ctlno1;
+    int32   ctlno2;
+    int32   ctlno3;
     int chan;
 
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
-        (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127)
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
+        (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
@@ -452,8 +452,8 @@ static int ictrl21(CSOUND *csound, CTRL21 *p)
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
                                            *p->ifn);
         phase = value * ftp->flen;
-        base = ftp->ftable + (long)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (long)phase);
+        base = ftp->ftable + (int32)(phase);
+        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -462,13 +462,13 @@ static int ictrl21(CSOUND *csound, CTRL21 *p)
 
 static int ctrl21set(CSOUND *csound, CTRL21 *p)
 {
-    long   ctlno1;
-    long   ctlno2;
-    long   ctlno3;
+    int32   ctlno1;
+    int32   ctlno2;
+    int32   ctlno3;
     int chan;
-    if ((ctlno1 = (long)*p->ictlno1) < 0 || ctlno1 > 127 ||
-        (ctlno2 = (long)*p->ictlno2) < 0 || ctlno2 > 127 ||
-        (ctlno3 = (long)*p->ictlno3) < 0 || ctlno3 > 127) {
+    if ((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
+        (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
+        (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
@@ -498,8 +498,8 @@ static int ctrl21(CSOUND *csound, CTRL21 *p)
     if (p->flag)  {     /* if valid ftable,use value as index   */
         /* linear interpolation routine */
        MYFLT phase = value * p->ftp->flen;
-       MYFLT *base = p->ftp->ftable + (long)(phase);
-       value = *base + (*(base+1) - *base) * (phase - (long) phase);
+       MYFLT *base = p->ftp->ftable + (int32)(phase);
+       value = *base + (*(base+1) - *base) * (phase - (int32) phase);
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;

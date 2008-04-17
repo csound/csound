@@ -26,12 +26,12 @@
 
 typedef struct {
         MYFLT   *srcp;
-        long    cntr;
+        int32    cntr;
 } PULDAT;
 
 typedef struct {
         MYFLT   *kfrq;
-        long    phase, phsinc;
+        int32    phase, phsinc;
 } VOCDAT;
 
 #define PULMAX  8
@@ -87,7 +87,7 @@ static int hm234set(CSOUND *csound, HARM234 *p)
       int16 nbufsmps = nbufs * csound->ksmps;
       int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
-      long  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
+      int32  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
 
       csound->AuxAlloc(csound, totalsiz * sizeof(MYFLT), &p->auxch);
@@ -304,7 +304,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     }
     /* HARMONIZER */
     for (vdp=p->vocdat; vdp<p->vlim; vdp++)     /* get new frequencies  */
-      vdp->phsinc = (long)(*vdp->kfrq * p->sicvt);
+      vdp->phsinc = (int32)(*vdp->kfrq * p->sicvt);
     outp = p->ar;
     nsmps = csound->ksmps;
     vocamp = p->vocamp;
@@ -358,7 +358,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
       p->hmrngflg = 0;
     }
     if (inp1 >= p->midp) {                       /* if end of pq bufs */
-      long bsmps = p->nbufsmps;
+      int32 bsmps = p->nbufsmps;
       p->inp1 = p->bufp;                         /*   reset all ptrs  */
       p->inp2 = p->midp;
       if (p->curpuls != NULL)

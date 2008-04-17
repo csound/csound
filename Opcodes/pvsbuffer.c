@@ -25,7 +25,7 @@
 typedef struct {
   PVSDAT  header;
   float   *data;
-  unsigned long frames;
+  uint32  frames;
 } FSIG_HANDLE;
 
 typedef struct {
@@ -34,12 +34,12 @@ typedef struct {
   MYFLT  *ktime;
   PVSDAT *fin;
   MYFLT  *len;
-  unsigned long nframes;
-  unsigned long cframes;
+  uint32 nframes;
+  uint32 cframes;
   FSIG_HANDLE handle;
   AUXCH  buffer;
-  unsigned long lastframe;
-}PVSBUFFER;
+  uint32 lastframe;
+} PVSBUFFER;
 
 static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 {
@@ -63,7 +63,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle.header.frame.auxp = p->buffer.auxp;
     p->handle.header.frame.size = p->buffer.size;
     p->handle.data = (float *)  p->buffer.auxp;
-    *p->hptr = (MYFLT) ((unsigned long)&p->handle);
+    *p->hptr = (MYFLT) ((uint32)&p->handle);
     p->lastframe = 0;
     p->cframes = 0;
     *p->ktime = FL(0.0);
@@ -75,7 +75,7 @@ static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
      float *fin = p->fin->frame.auxp;
 
     if (p->lastframe < p->fin->framecount) {
-      long framesize = p->fin->N + 2, i;
+      int32 framesize = p->fin->N + 2, i;
       float *fout = (float *) p->buffer.auxp;
       fout += framesize*p->cframes;
       for(i=0;i < framesize; i+=2) {
@@ -106,7 +106,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 {
     int N;
     FSIG_HANDLE *handle;
-    handle = (FSIG_HANDLE *) ((unsigned long)*p->hptr);
+    handle = (FSIG_HANDLE *) ((uint32)*p->hptr);
     if (handle != NULL){
     p->fout->N = N = handle->header.N;
     p->fout->overlap = handle->header.overlap;
@@ -137,7 +137,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     unsigned int posi, frames;
     MYFLT pos, sr = csound->esr;
-    FSIG_HANDLE *handle = (FSIG_HANDLE *) ((unsigned long)*p->hptr);
+    FSIG_HANDLE *handle = (FSIG_HANDLE *) ((uint32)*p->hptr);
     MYFLT frac;
     float *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;

@@ -39,22 +39,22 @@ static int pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 static void FetchInOne(
     float   *inp,       /* pointer to input data */
     MYFLT   *buf,       /* where to put our nice mag/pha pairs */
-    long    fsize,      /* frame size we're working with */
+    int32    fsize,      /* frame size we're working with */
     MYFLT   pos,        /* fractional frame we want */
-    long    mybin)
+    int32    mybin)
 {
     float   *frame0;
     float   *frame1;
-    long    base;
+    int32    base;
     MYFLT   frac;
-    long    twmybin = mybin+mybin;  /* Always used thus */
+    int32    twmybin = mybin+mybin;  /* Always used thus */
 
     /***** WITHOUT INFO ON WHERE LAST FRAME IS, MAY 'INTERP' BEYOND IT ****/
-    base = (long)pos;               /* index of basis frame of interpolation */
+    base = (int32)pos;               /* index of basis frame of interpolation */
     frac = ((MYFLT)(pos - (MYFLT)base));
     /* & how close to get to next */
-    frame0 = inp + ((long) fsize + 2L) * base + twmybin;
-    frame1 = frame0 + ((long) fsize + 2L);      /* addresses of both frames */
+    frame0 = inp + ((int32) fsize + 2L) * base + twmybin;
+    frame1 = frame0 + ((int32) fsize + 2L);      /* addresses of both frames */
     if (frac != 0.0) {  /* must have 2 cases to avoid possible segmentation */
                         /* violations and failed computes, else may interp  */
                         /* beyond valid data */

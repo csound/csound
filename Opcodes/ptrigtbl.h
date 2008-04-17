@@ -28,13 +28,13 @@
 
 #define TRIG_VARS                   \
     MYFLT   coswrk[24], sinwrk[24]; \
-    long    t_lam = 0L;             \
+    int32   t_lam = 0L;             \
     coswrk[0] = FL(0.0);            \
     sinwrk[0] = FL(1.0);
 
 #define TRIG_INIT(k,c,s)            \
     {                               \
-        long i;                     \
+        int32 i;                    \
         for (i = 1; i <= k; i++) {  \
             coswrk[i] = costab[i];  \
             sinwrk[i] = sintab[i];  \
@@ -46,7 +46,7 @@
 
 #define TRIG_NEXT(k,c,s)                        \
     {                                           \
-        long i, j;                              \
+        int32 i, j;                             \
         (t_lam)++;                              \
         for (i = 0; !((1L << i) & t_lam); i++); \
         i = k - i;                              \

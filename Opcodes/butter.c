@@ -44,7 +44,7 @@ typedef struct  {
 #include <math.h>
 #define ROOT2 (1.4142135623730950488)
 
-static void butter_filter(long, MYFLT *, MYFLT *, double *);
+static void butter_filter(int32, MYFLT *, MYFLT *, double *);
 
 static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
@@ -73,7 +73,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      long      n = csound->ksmps;
+      int32      n = csound->ksmps;
       memcpy(out, in, n*sizeof(MYFLT));
 /*       do { */
 /*         *out++ = *in++; */
@@ -202,7 +202,7 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 
 /* Filter loop */
 
-static void butter_filter(long n, MYFLT *in, MYFLT *out, double *a)
+static void butter_filter(int32 n, MYFLT *in, MYFLT *out, double *a)
 {
     double t, y;
     int nn;

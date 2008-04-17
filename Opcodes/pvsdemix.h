@@ -62,7 +62,7 @@ typedef struct _pvsdemix {
         AUXCH   minl;
         AUXCH   minr;
         int     beta;
-        unsigned long   lastframe;
+        uint32  lastframe;
 }
 PVSDEMIX;
 

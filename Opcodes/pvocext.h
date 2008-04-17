@@ -27,7 +27,7 @@
 
 /* Predeclare Functions */
 
-void    SpectralExtract(float *, float *, long, long, int, MYFLT);
-MYFLT   PvocMaxAmp(float *, long, long);
-void    PvAmpGate(MYFLT *, long, FUNC *, MYFLT);
+void    SpectralExtract(float *, float *, int32, int32, int, MYFLT);
+MYFLT   PvocMaxAmp(float *, int32, int32);
+void    PvAmpGate(MYFLT *, int32, FUNC *, MYFLT);
 

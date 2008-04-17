@@ -29,7 +29,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ans;
         PVSDAT  *fin;
-        unsigned long   lastframe;
+        uint32  lastframe;
         MYFLT   old;
 } PVSCENT;
 
@@ -46,7 +46,7 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 
 static int pvscent(CSOUND *csound, PVSCENT *p)
 {
-    long i,N = p->fin->N;
+    int32 i,N = p->fin->N;
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
     MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
@@ -81,7 +81,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     MYFLT *a = p->ans;
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
-      long i,N = p->fin->N;
+      int32 i,N = p->fin->N;
 
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
@@ -99,7 +99,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     else {
       int n, nsmps = csound->ksmps;
       MYFLT old = p->old;
-      long i,N = p->fin->N;
+      int32 i,N = p->fin->N;
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
       MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
@@ -143,7 +143,7 @@ typedef struct _pvspitch
         AUXCH peakfreq;
         AUXCH inharmonic;
 
-        unsigned long lastframe;
+        uint32 lastframe;
 
 } PVSPITCH;
 

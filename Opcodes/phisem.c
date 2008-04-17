@@ -228,8 +228,8 @@ static int cabasa(CSOUND *csound, CABASA *p)
 
     if (*p->num_beads != p->last_num) {
       p->last_num = *p->num_beads;
-      if ((long)(*p->num_beads+FL(0.5)) != p->num_objects) {
-        p->num_objects = (long)(*p->num_beads+FL(0.5));
+      if ((int32)(*p->num_beads+FL(0.5)) != p->num_objects) {
+        p->num_objects = (int32)(*p->num_beads+FL(0.5));
         if (p->num_objects >= 1) {
           gain = p->gain = (MYFLT)log((double)p->num_objects) /
             FL(1.38629436111989061883) /* (MYFLT)log(4.0)*/ * FL(40.0) /
@@ -327,7 +327,7 @@ static int sekere(CSOUND *csound, SEKERE *p)
 
     if (*p->num_beads != p->last_num) {
       p->last_num = *p->num_beads;
-      if ((long)(*p->num_beads+FL(0.5)) != p->num_objects) {
+      if ((int32)(*p->num_beads+FL(0.5)) != p->num_objects) {
         p->num_objects = *p->num_beads;
         if (p->num_objects >= 1) {
           gain = p->gain = (MYFLT)log((double)p->num_objects) /
@@ -516,7 +516,7 @@ static int guiro(CSOUND *csound, GUIRO *p)
     MYFLT lastOutput;
 
     if (*p->num_teeth != FL(0.0) &&
-        (long)(*p->num_teeth+FL(0.5)) != p->num_objects) {
+        (int32)(*p->num_teeth+FL(0.5)) != p->num_objects) {
       p->num_objects = *p->num_teeth;
       if (p->num_objects < FL(1.0)) p->num_objects = FL(1.0);
       p->gains0 = p->gains1 = (MYFLT)log((double)p->num_objects) * GUIR_GAIN /

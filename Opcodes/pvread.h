@@ -26,11 +26,11 @@
 typedef struct {
     OPDS    h;
     MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin;
-    long    kcnt;
-    long    baseFr, maxFr, frSiz, prFlg;
+    int32   kcnt;
+    int32   baseFr, maxFr, frSiz, prFlg;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
     MYFLT   frPrtim, asr;
     float   *frPtr;
-    long    mybin;
+    int32   mybin;
 } PVREAD;
 

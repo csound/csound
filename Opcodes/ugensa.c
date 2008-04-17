@@ -37,15 +37,15 @@ static int fogset(CSOUND *csound, FOGS *p)
     if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
         (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVERLAP *ovp, *nxtovp;
-      long   olaps;
+      int32   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
-      p->durtogo = (long)(*p->itotdur * csound->esr);
+      p->durtogo = (int32)(*p->itotdur * csound->esr);
       if (!skip) { /* legato: skip all memory management */
         p->spdphs = 0L; /*JMC for FOG*/
         if (*p->iphs == FL(0.0))                  /* if fundphs zero,  */
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
-        else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
-        if ((olaps = (long)*p->iolaps) <= 0) {
+        else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
+        if ((olaps = (int32)*p->iolaps) <= 0) {
           return csound->InitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
@@ -82,7 +82,7 @@ static int fog(CSOUND *csound, FOGS *p)
     FUNC        *ftp1,  *ftp2;
     MYFLT       *ar, *amp, *fund, *ptch, *speed;
     MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
-    long   n,nsmps = csound->ksmps, fund_inc, form_inc;
+    int32   n,nsmps = csound->ksmps, fund_inc, form_inc;
     /* long speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;
@@ -92,8 +92,8 @@ static int fog(CSOUND *csound, FOGS *p)
     speed = p->xspd;
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
-    fund_inc = (long)(*fund * csound->sicvt);
-    form_inc = (long)(*ptch * fogcvt);  /*form_inc = *form * csound->sicvt;*/
+    fund_inc = (int32)(*fund * csound->sicvt);
+    form_inc = (int32)(*ptch * fogcvt);  /*form_inc = *form * csound->sicvt;*/
 /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
     for (n=0;n<nsmps;n++) {
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
@@ -143,12 +143,12 @@ static int fog(CSOUND *csound, FOGS *p)
       }
       p->fundphs += fund_inc;
 /*          p->spdphs += speed_inc; */ /*JMC for FOG*/
-      p->spdphs = (long)(speed[n] * FMAXLEN); /*for phs version of FOG*/
+      p->spdphs = (int32)(speed[n] * FMAXLEN); /*for phs version of FOG*/
       p->spdphs &= PHMASK; /*JMC for FOG*/
       if (p->xincod) {
         if (p->ampcod)    amp++;
-        if (p->fundcod)   fund_inc = (long)(*++fund * csound->sicvt);
-        if (p->formcod)   form_inc = (long)(*++ptch * fogcvt);
+        if (p->fundcod)   fund_inc = (int32)(*++fund * csound->sicvt);
+        if (p->formcod)   form_inc = (int32)(*++ptch * fogcvt);
 /*form_inc = *++form * csound->sicvt;*/
 /*      if (p->speedcod)  speed_inc = *++speed * fogcvt; */  /*JMC for FOG*/
       }
@@ -162,12 +162,12 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 {
     MYFLT       octamp = *amp, oct;
     MYFLT       form = *ptch / csound->sicvt, fogcvt = p->fogcvt;
-    long   rismps, newexp = 0;
-    if ((ovp->timrem = (long)(*p->kdur * csound->esr)) > p->durtogo &&
+    int32   rismps, newexp = 0;
+    if ((ovp->timrem = (int32)(*p->kdur * csound->esr)) > p->durtogo &&
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
-      long ioct = (long)oct, bitpat = ~(-1L << ioct);
+      int32 ioct = (int32)oct, bitpat = ~(-1L << ioct);
       if (bitpat & ++p->fofcount)
         return(0);
       if ((bitpat += 1) & p->fofcount)
@@ -176,9 +176,9 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     if (*fund == 0.0)                               /* formant phs */
       ovp->formphs = 0;
 /*  else
-     ovp->formphs = (long)((p->fundphs * form / *fund) + p->spdphs) & PHMASK; */
-    else ovp->formphs = (long)(p->fundphs * form / *fund) & PHMASK;
-    ovp->forminc = (long)(*ptch * fogcvt);/*JMC for FOG*/
+     ovp->formphs = (int32)((p->fundphs * form / *fund) + p->spdphs) & PHMASK; */
+    else ovp->formphs = (int32)(p->fundphs * form / *fund) & PHMASK;
+    ovp->forminc = (int32)(*ptch * fogcvt);/*JMC for FOG*/
     /*ovp->forminc = *form * csound->sicvt;*/
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
@@ -186,9 +186,9 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
       newexp = 1;
     }
     if (*p->kris >= csound->onedsr && form != 0.0) {  /* init fnb ris */
-      ovp->risphs = (unsigned long)(ovp->formphs / (fabs(form))
+      ovp->risphs = (uint32)(ovp->formphs / (fabs(form))
                                     / *p->kris); /* JPff fix */
-      ovp->risinc = (long)(csound->sicvt / *p->kris);
+      ovp->risinc = (int32)(csound->sicvt / *p->kris);
       rismps = MAXLEN / ovp->risinc;
     }
     else {
@@ -208,8 +208,8 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*      fnb dec  */
-      ovp->decinc = (long)(csound->sicvt / *p->kdec);
+    if ((ovp->dectim = (int32)(*p->kdec * csound->esr)) > 0) /*      fnb dec  */
+      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     return(1);
 }

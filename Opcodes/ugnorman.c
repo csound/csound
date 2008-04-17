@@ -565,7 +565,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     MYFLT   frIndx;
     MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps;
     FUNC    *ftp;
-    long    lobits, phase, inc;
+    int32    lobits, phase, inc;
     double  *oscphase;
     int     i, nsmps = csound->ksmps;
     int     numpartials = (int) *p->iptls;
@@ -697,13 +697,13 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
                 FUNC *ampfunc, double MaxAmpInData)
 {
     int     j;
-    long    funclen, mapPoint;
+    int32    funclen, mapPoint;
 
     funclen = ampfunc->flen;
 
     for (j = 0; j < npartials; ++j) {
       /* use normalised amp as index into table for amp scaling */
-      mapPoint = (long) ((buf[j].amp / MaxAmpInData) * funclen);
+      mapPoint = (int32) ((buf[j].amp / MaxAmpInData) * funclen);
       buf[j].amp *= (double) *(ampfunc->ftable + mapPoint);
     }
 }
@@ -724,8 +724,8 @@ static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
 {
     radat->size = (int) MYFLT2LRND(csound->esr / freq);
     radat->cnt = 0;
-    radat->a1 = (long) csound->Rand31(&(csound->randSeed1));
-    radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
+    radat->a1 = (int32) csound->Rand31(&(csound->randSeed1));
+    radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
 }
 
 /* ------------------------------------------------------------------ */
@@ -736,7 +736,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
     if (radat->cnt == radat->size) {  /* get a new random value */
       radat->a1 = radat->a2;
-      radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
+      radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
       radat->cnt = 0;
     }
 
@@ -754,7 +754,7 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
 
     if (radat->cnt == radat->size) {  /* get a new random value */
       radat->a1 = radat->a2;
-      radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
+      radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
       radat->cnt = 0;
       radat->size = (int) MYFLT2LRND(csound->esr / freq);
     }
@@ -1959,7 +1959,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     MYFLT   frIndx, *oldamps = p->oldamps, a, inca;
     MYFLT   *ar, amp, fract, v1, *ftab;
     FUNC    *ftp;
-    long    lobits, phase, inc;
+    int32    lobits, phase, inc;
     double  *oscphase;
     int     i, n, nsmps = csound->ksmps;
     int     numpartials = (int) *p->iptls;

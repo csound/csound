@@ -86,7 +86,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     png_infop info_ptr;
     png_infop end_ptr;
     int is_png;
-    unsigned long width, height, rowbytes;
+    uint32 width, height, rowbytes;
     int bit_depth;
     int color_type;
     unsigned char *image_data;

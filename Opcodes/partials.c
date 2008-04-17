@@ -47,7 +47,7 @@ typedef struct _parts {
     MYFLT  *kthresh, *pts, *gap, *mtrks;
     int     tracks, numbins, mtracks, prev, cur;
     int     accum;
-    unsigned long lastframe, timecount;
+    uint32  lastframe, timecount;
     AUXCH   mags, lmags, index, cflag, trkid, trndx;
     AUXCH   tstart, binex, magex, oldbins, diffs, adthresh;
     AUXCH   pmags, bins, lastpk;
@@ -88,12 +88,12 @@ static int partials_init(CSOUND * csound, _PARTS * p)
      if (p->index.auxp == NULL && p->index.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->index);
 
-     if (p->tstart.auxp == NULL && p->tstart.size < sizeof(unsigned long) * maxtracks * 2)
-      csound->AuxAlloc(csound, sizeof(unsigned long) * maxtracks * 2,
+     if (p->tstart.auxp == NULL && p->tstart.size < sizeof(uint32) * maxtracks * 2)
+      csound->AuxAlloc(csound, sizeof(uint32) * maxtracks * 2,
                        &p->tstart);
       if (p->lastpk.auxp == NULL &&
-       p->lastpk.size < sizeof(unsigned long) * maxtracks * 2)
-      csound->AuxAlloc(csound, sizeof(unsigned long) * maxtracks * 2,
+       p->lastpk.size < sizeof(uint32) * maxtracks * 2)
+      csound->AuxAlloc(csound, sizeof(uint32) * maxtracks * 2,
                        &p->lastpk);
 
       if (p->binex.auxp == NULL && p->binex.size < sizeof(MYFLT) * numbins)
@@ -186,7 +186,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     int    *trkid = (int *) p->trkid.auxp;
     int    *trndx = (int *) p->trndx.auxp;
     int    *index = (int *) p->index.auxp;
-    unsigned long *tstart = (unsigned long *) p->tstart.auxp;
+    uint32 *tstart = (uint32 *) p->tstart.auxp;
     MYFLT  *binex = (MYFLT *) p->binex.auxp;
     MYFLT  *magex = (MYFLT *) p->magex.auxp;
     MYFLT  *oldbins = (MYFLT *) p->oldbins.auxp;
@@ -194,9 +194,9 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     MYFLT  *adthresh = (MYFLT *) p->adthresh.auxp;
     MYFLT  *pmags = (MYFLT *) p->pmags.auxp;
     MYFLT  *bins = (MYFLT *) p->bins.auxp;
-    unsigned long *lastpk = (unsigned long *) p->lastpk.auxp;
-    unsigned long int timecount = p->timecount,
-        maxgap = (unsigned int) (*p->gap > 0 ? *p->gap : 0);
+    uint32 *lastpk = (uint32 *) p->lastpk.auxp;
+    unsigned int timecount = p->timecount,
+             maxgap = (unsigned int) (*p->gap > 0 ? *p->gap : 0);
     int     test1 = 1, test2 = 0;
 
     for (i = 0; i < numbins; i++)

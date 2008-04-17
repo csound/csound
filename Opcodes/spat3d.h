@@ -115,16 +115,16 @@ typedef struct {                /* opcode args */
         int     zout;                   /* output mode                    */
         MYFLT   mdist;                  /* unit circle distance           */
         MYFLT   *ftable;                /* ptr. to ftable                 */
-        long    rseed;                  /* random seed                    */
+        int32   rseed;                  /* random seed                    */
         int     mindep;                 /* min. recursion depth           */
         int     maxdep;                 /* max. recursion depth           */
         MYFLT   *outft;                 /* ptr to output ftable (spat3dt) */
-        long    outftlnth;              /* output ftable length (spat3dt) */
+        int32   outftlnth;              /* output ftable length (spat3dt) */
         int     irlen;                  /* IR length            (spat3dt) */
         int     bs;                     /* block size (ksmps or irlen)    */
         MYFLT   mdel;                   /* max. delay (in seconds)        */
-        long    mdel_s;                 /* max. delay (in samples)        */
-        long    del_p;                  /* read position in delay buffers */
+        int32   mdel_s;                 /* max. delay (in samples)        */
+        int32   del_p;                  /* read position in delay buffers */
         MYFLT   *Wb, *Xb, *Yb, *Zb;     /* delay buffers                  */
         int     *sample;                /* FIR filter data      (spat3d)  */
         MYFLT   *window;
