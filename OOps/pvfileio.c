@@ -74,12 +74,12 @@ const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
 typedef struct pvoc_file {
     WAVEFORMATEX fmtdata;
     PVOCDATA    pvdata;
-    long        datachunkoffset;
-    long        nFrames;        /* no of frames in file */
-    long        FramePos;       /* where we are in file */
+    int32        datachunkoffset;
+    int32        nFrames;        /* no of frames in file */
+    int32        FramePos;       /* where we are in file */
     FILE        *fp;
     void        *fd;
-    long        curpos;
+    int32        curpos;
     int         to_delete;
     int         readonly;
     char        *name;
@@ -165,11 +165,11 @@ static inline int pvfile_write_tag(PVOCFILE *p, const char *s)
     return 0;
 }
 
-static inline long pvfile_read_16(PVOCFILE *p, void *data, long cnt)
+static inline int32 pvfile_read_16(PVOCFILE *p, void *data, int32 cnt)
 {
-    long n = (long) fread(data, sizeof(uint16_t), (size_t) cnt, p->fp);
+    int32 n = (int32) fread(data, sizeof(uint16_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      long      i;
+      int32      i;
       uint16_t  tmp;
       for (i = 0L; i < n; i++) {
         tmp = ((uint16_t*) data)[i];
@@ -180,9 +180,9 @@ static inline long pvfile_read_16(PVOCFILE *p, void *data, long cnt)
     return n;
 }
 
-static inline int pvfile_write_16(PVOCFILE *p, void *data, long cnt)
+static inline int pvfile_write_16(PVOCFILE *p, void *data, int32 cnt)
 {
-    long  n;
+    int32  n;
 
     if (byte_order()) {
       uint16_t  tmp;
@@ -198,11 +198,11 @@ static inline int pvfile_write_16(PVOCFILE *p, void *data, long cnt)
     return (n != cnt);
 }
 
-static inline long pvfile_read_32(PVOCFILE *p, void *data, long cnt)
+static inline int32 pvfile_read_32(PVOCFILE *p, void *data, int32 cnt)
 {
-    long  n = (long) fread(data, sizeof(uint32_t), (size_t) cnt, p->fp);
+    int32  n = (int32) fread(data, sizeof(uint32_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      long      i;
+      int32      i;
       uint32_t  tmp;
       for (i = 0L; i < n; i++) {
         tmp = ((uint32_t*) data)[i];
@@ -216,9 +216,9 @@ static inline long pvfile_read_32(PVOCFILE *p, void *data, long cnt)
     return n;
 }
 
-static inline int pvfile_write_32(PVOCFILE *p, void *data, long cnt)
+static inline int pvfile_write_32(PVOCFILE *p, void *data, int32 cnt)
 {
-    long  n;
+    int32  n;
 
     if (byte_order()) {
       uint32_t  tmp;
@@ -284,12 +284,12 @@ static int write_fmt(PVOCFILE *p)
 
 static int pvoc_writeWindow(PVOCFILE *p, float *window, uint32_t length)
 {
-    return (pvfile_write_32(p, window, (long) length));
+    return (pvfile_write_32(p, window, (int32) length));
 }
 
 static int pvoc_readWindow(PVOCFILE *p, float *window, uint32_t length)
 {
-    return (pvfile_read_32(p, window, (long) length) != (long) length);
+    return (pvfile_read_32(p, window, (int32) length) != (int32) length);
 }
 
 const char *pvoc_errorstr(CSOUND *csound)
@@ -360,8 +360,8 @@ static int pvsys_createFileHandle(CSOUND *csound)
     return i;
 }
 
-static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
-                          unsigned long srate, pv_stype stype)
+static void prepare_pvfmt(WAVEFORMATEX *pfmt, uint32 chans,
+                          uint32 srate, pv_stype stype)
 {
     pfmt->wFormatTag       = WAVE_FORMAT_EXTENSIBLE;
     pfmt->nChannels        = (uint16_t) chans;
@@ -401,13 +401,13 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
 /* probably it should... */
 
 int  pvoc_createfile(CSOUND *csound, const char *filename,
-                     unsigned long fftlen, unsigned long overlap,
-                     unsigned long chans, unsigned long format,
-                     long srate, int stype, int wtype,
-                     float wparam, float *fWindow, unsigned long dwWinlen)
+                     uint32 fftlen, uint32 overlap,
+                     uint32 chans, uint32 format,
+                     int32 srate, int stype, int wtype,
+                     float wparam, float *fWindow, uint32 dwWinlen)
 {
     int       fd;
-    long      N, D;
+    int32      N, D;
     char      *pname;
     PVOCFILE  *p = NULL;
     float     winparam = 0.0f;
@@ -702,7 +702,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
             return -1;
           }
         }
-        p->datachunkoffset = (long) ftell(p->fp);
+        p->datachunkoffset = (int32) ftell(p->fp);
         p->curpos = p->datachunkoffset;
         /* not m/c frames, for now */
         p->nFrames = size / p->pvdata.dwFrameAlign;
@@ -711,7 +711,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
       else {
         /* skip any unknown chunks */
         riffsize -= 2 * sizeof(uint32_t);
-        if (fseek(p->fp, (long) size, SEEK_CUR) != 0) {
+        if (fseek(p->fp, (int32) size, SEEK_CUR) != 0) {
           csound->pvErrorCode = -28;
           return -1;
         }
@@ -802,7 +802,7 @@ static int pvoc_writeheader(CSOUND *csound, PVOCFILE *p)
       csound->pvErrorCode = -30;
       return -1;
     }
-    p->datachunkoffset = (long) ftell(p->fp);
+    p->datachunkoffset = (int32) ftell(p->fp);
     p->curpos = p->datachunkoffset;
 
     return 0;
@@ -817,7 +817,7 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
       csound->pvErrorCode = -38;
       return 0;
     }
-    if (fseek(p->fp, (long) (p->datachunkoffset - sizeof(uint32_t)), SEEK_SET)
+    if (fseek(p->fp, (int32) (p->datachunkoffset - sizeof(uint32_t)), SEEK_SET)
         != 0) {
       csound->pvErrorCode = -33;
       return 0;
@@ -827,7 +827,7 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
       csound->pvErrorCode = -33;
       return 0;
     }
-    if (fseek(p->fp, (long) sizeof(uint32_t), SEEK_SET) != 0) {
+    if (fseek(p->fp, (int32) sizeof(uint32_t), SEEK_SET) != 0) {
       csound->pvErrorCode = -33;
       return 0;
     }
@@ -891,10 +891,10 @@ int pvoc_closefile(CSOUND *csound, int ofd)
  *
  * return 0 for error, 1 for success. This could change....
  */
-int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, long numframes)
+int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, int32 numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
-    long      towrite;  /* count in 'words' */
+    int32      towrite;  /* count in 'words' */
 
     if (p == NULL) {
       csound->pvErrorCode = -38;
@@ -905,7 +905,7 @@ int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, long numframes)
       return 0;
     }
     /* NB doubles not supported yet */
-    towrite = (long) p->pvdata.nAnalysisBins * 2L * numframes;
+    towrite = (int32) p->pvdata.nAnalysisBins * 2L * numframes;
     if (pvfile_write_32(p, (void*) frame, towrite) != 0) {
       csound->pvErrorCode = -39;
       return 0;
@@ -920,10 +920,10 @@ int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, long numframes)
  * return -1 for error, 0 for EOF, else numframes read
  */
 int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
-                                    unsigned long nframes)
+                                    uint32 nframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    long      toread, got;
+    int32      toread, got;
 
     if (p == NULL) {
       csound->pvErrorCode = -38;
@@ -933,20 +933,20 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
       csound->pvErrorCode = -37;
       return -1;
     }
-    toread = (long) p->pvdata.nAnalysisBins * 2L * (long) nframes;
+    toread = (int32) p->pvdata.nAnalysisBins * 2L * (int32) nframes;
     got = pvfile_read_32(p, frames, toread);
     if (got != toread) {
       if (ferror(p->fp)) {
         csound->pvErrorCode = -40;
         return -1;
       }
-      p->curpos += (long) (got * sizeof(float));
-      got = got / (long) (p->pvdata.nAnalysisBins * 2);
+      p->curpos += (int32) (got * sizeof(float));
+      got = got / (int32) (p->pvdata.nAnalysisBins * 2);
       p->FramePos += got;
       return (int) got;
     }
     p->curpos += (toread * sizeof(float));
-    p->FramePos += (long) nframes;
+    p->FramePos += (int32) nframes;
 
     return (int) nframes;
 }
@@ -954,7 +954,7 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
 int pvoc_fseek(CSOUND *csound, int ifd, int offset)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    long      pos, skipframes, skipsize;
+    int32      pos, skipframes, skipsize;
 
     if (p == NULL) {
       csound->pvErrorCode = -38;
@@ -965,12 +965,12 @@ int pvoc_fseek(CSOUND *csound, int ifd, int offset)
       return -1;
     }
     if(offset == 1)
-    skipframes = (long) p->fmtdata.nChannels;
+    skipframes = (int32) p->fmtdata.nChannels;
     else skipframes = offset;
     skipsize = p->pvdata.dwFrameAlign * skipframes;
 
     pos = p->datachunkoffset + skipsize;
-    if (fseek(p->fp, (long) pos, SEEK_SET) != 0) {
+    if (fseek(p->fp, (int32) pos, SEEK_SET) != 0) {
       csound->pvErrorCode = -41;
       return -1;
     }

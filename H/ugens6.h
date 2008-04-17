@@ -59,7 +59,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *idlt, *istor;
         MYFLT   *curp;
-        long    npts;
+        int32    npts;
         AUXCH   auxch;
 } DELAY;
 
@@ -67,7 +67,7 @@ typedef struct DELAYR {
         OPDS    h;
         MYFLT   *ar, *indx, *idlt, *istor;
         MYFLT   *curp;
-        long    npts;
+        int32    npts;
         AUXCH   auxch;
         struct DELAYR  *next_delayr; /* fifo for delayr pointers by Jens Groh */
 } DELAYR;
@@ -112,7 +112,7 @@ typedef struct {
         MYFLT   *p1, *p2, *p3, *p4, *p5, *p6;
         MYFLT   *adr1, *adr2, *adr3, *adr4, *adr5, *adr6;
         AUXCH   auxch;
-        long    revlpsum;
+        int32   revlpsum;
         AUXCH   revlpsiz;
 } REVERB;
 

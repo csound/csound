@@ -770,7 +770,7 @@ int csoundMIDIFileClose(CSOUND *csound)
 }
 
 /* midirecv.c, resets MIDI controllers on a channel */
-extern  void    midi_ctl_reset(CSOUND *csound, short chan);
+extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
 
 /* called by csoundRewindScore() to reset performance to time zero */
 
@@ -786,7 +786,7 @@ void midifile_rewind_score(CSOUND *csound)
       csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
       /* reset controllers on all channels */
       for (i = 0; i < MAXCHAN; i++)
-        midi_ctl_reset(csound, (short) i);
+        midi_ctl_reset(csound, (int16) i);
     }
 }
 

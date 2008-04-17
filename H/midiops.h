@@ -69,14 +69,14 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *r, *ictlno, *ilo, *ihi;
-    long    ctlno;
+    int32   ctlno;
     MYFLT   scale, lo;
 } MIDICTL;
 
 typedef struct {
     OPDS    h;
     MYFLT   *r, *ichano, *ictlno, *ilo, *ihi;
-    long    chano, ctlno;
+    int32   chano, ctlno;
     MYFLT   scale, lo;
 } CHANCTL;
 

@@ -56,7 +56,7 @@ int midibset(CSOUND*, MIDIKMB*);
 int massign(CSOUND *csound, MASSIGN *p)
 {
     int   chnl = (int)(*p->chnl + FL(0.5));
-    long  instno = 0L;
+    int32  instno = 0L;
     int   resetCtls;
     int   retval = OK;
 
@@ -78,18 +78,18 @@ int massign(CSOUND *csound, MASSIGN *p)
 
 int ctrlinit(CSOUND *csound, CTLINIT *p)
 {
-    short chnl = (short)(*p->chnl - FL(0.5));
-    short nargs = p->INOCOUNT;
+    int16 chnl = (int16)(*p->chnl - FL(0.5));
+    int16 nargs = p->INOCOUNT;
     if ((nargs & 0x1) == 0) {
       return csound->InitError(csound, Str("uneven ctrl pairs"));
     }
     else {
       MCHNBLK *chn;
       MYFLT **argp = p->ctrls;
-      short ctlno, nctls = nargs >> 1;
+      int16 ctlno, nctls = nargs >> 1;
       chn = csound->m_chnbp[chnl];
       do {
-        ctlno = (short)**argp++;
+        ctlno = (int16)**argp++;
         if (ctlno < 0 || ctlno > 127) {
           return csound->InitError(csound, Str("illegal ctrl no"));
         }
@@ -202,11 +202,11 @@ int octmidib_i(CSOUND *csound, MIDIKMB *p)
 int cpsmidi(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    long  loct;
+    int32  loct;
 /*    loct = (long)(((lcurip->m_pitch +
  *       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES);
  */
-    loct = (long)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
+    loct = (int32)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
 }
@@ -214,10 +214,10 @@ int cpsmidi(CSOUND *csound, MIDIKMB *p)
 int icpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    long  loct;
+    int32  loct;
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
     p->prvbend = bend;
-    loct = (long)(((lcurip->m_pitch +
+    loct = (int32)(((lcurip->m_pitch +
                     bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
@@ -237,9 +237,9 @@ int kcpsmidib(CSOUND *csound, MIDIKMB *p)
     if (bend == p->prvbend || lcurip->relesing)
         *p->r = p->prvout;
     else {
-      long  loct;
+      int32  loct;
       p->prvbend = bend;
-      loct = (long)(((lcurip->m_pitch +
+      loct = (int32)(((lcurip->m_pitch +
                       bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
       *p->r = p->prvout = CPSOCTL(loct);
     }
@@ -249,14 +249,14 @@ int kcpsmidib(CSOUND *csound, MIDIKMB *p)
 int ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 {                                         /*   valid only at I-time          */
     MYFLT amp;
-    long  fno;
+    int32  fno;
     FUNC *ftp;
 
     amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
-    if ((fno = (long)*p->ifn) > 0) {              /* if valid ftable,       */
+    if ((fno = (int32)*p->ifn) > 0) {              /* if valid ftable,       */
       if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
         return NOTOK;                             /*     use amp as index   */
-      amp = *(ftp->ftable + (long)(amp * ftp->flen));
+      amp = *(ftp->ftable + (int32)(amp * ftp->flen));
     }
     *p->r = amp * *p->imax;                       /* now scale the output   */
     return OK;
@@ -299,8 +299,8 @@ int aftouch(CSOUND *csound, MIDIKMAP *p)
 
 int imidictl(CSOUND *csound, MIDICTL *p)
 {
-    long  ctlno;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    int32  ctlno;
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
                  * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
@@ -309,8 +309,8 @@ int imidictl(CSOUND *csound, MIDICTL *p)
 
 int mctlset(CSOUND *csound, MIDICTL *p)
 {
-    long  ctlno;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    int32  ctlno;
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
@@ -329,8 +329,8 @@ int midictl(CSOUND *csound, MIDICTL *p)
 
 int imidiaft(CSOUND *csound, MIDICTL *p)
 {
-    long  ctlno;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    int32  ctlno;
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
                  * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
@@ -339,8 +339,8 @@ int imidiaft(CSOUND *csound, MIDICTL *p)
 
 int maftset(CSOUND *csound, MIDICTL *p)
 {
-    long  ctlno;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    int32  ctlno;
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
@@ -414,10 +414,10 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
 
 int ichanctl(CSOUND *csound, CHANCTL *p)
 {
-    long  ctlno, chan = (long)(*p->ichano - FL(1.0));
+    int32  ctlno, chan = (int32)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL)
         return csound->InitError(csound, Str("illegal channel number"));
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127)
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)
         return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
                  * dv127 + *p->ilo;
@@ -426,12 +426,12 @@ int ichanctl(CSOUND *csound, CHANCTL *p)
 
 int chctlset(CSOUND *csound, CHANCTL *p)
 {
-    long  ctlno, chan = (long)(*p->ichano - FL(1.0));
+    int32  ctlno, chan = (int32)(*p->ichano - FL(1.0));
     if (chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL) {
       return csound->InitError(csound, Str("illegal channel number"));
     }
     p->chano = chan;
-    if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
+    if ((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else {

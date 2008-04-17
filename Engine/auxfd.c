@@ -29,11 +29,11 @@ static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
 /* allocate an auxds, or expand an old one */
 /*    call only from init (xxxset) modules */
 
-void csoundAuxAlloc(CSOUND *csound, long nbytes, AUXCH *auxchp)
+void csoundAuxAlloc(CSOUND *csound, int32 nbytes, AUXCH *auxchp)
 {
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
-      if (nbytes == (long)auxchp->size) {
+      if (nbytes == (int32)auxchp->size) {
         memset(auxchp->auxp, 0, (size_t) nbytes);
         return;
       }

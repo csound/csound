@@ -92,14 +92,14 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     if ((mfp = p->mfp) == NULL)
       mfp = csound->ldmemfile2(csound, filename, CSFTYPE_HRTF);
     p->mfp = mfp;
-    p->fpbegin = (short*) mfp->beginp;
+    p->fpbegin = (int16*) mfp->beginp;
     bytrev_test = 0x1234;
     if (*((unsigned char*) &bytrev_test) == (unsigned char) 0x34) {
       /* Byte reverse on data set if necessary */
-      short *x = p->fpbegin;
-      long len = (mfp->length)/sizeof(short);
+      int16 *x = p->fpbegin;
+      long len = (mfp->length)/sizeof(int16);
       while (len != 0) {
-        short v = *x;
+        int16 v = *x;
         v = ((v & 0xFF) << 8) + ((v >> 8) & 0xFF);  /* Swap bytes */
         *x = v;
         x++; len--;
@@ -172,10 +172,10 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     int        crossfadeflag; /* flag - true if crossfading old and new HRTFs */
 #endif
     int        flip; /* flag - true if we need to flip the channels */
-    short      *fpindex; /* pointer into HRTF file */
-    short      numskip; /* number of shorts to skip in HRTF file */
+    int16      *fpindex; /* pointer into HRTF file */
+    int16      numskip; /* number of shorts to skip in HRTF file */
                         /* short arrays into which HRTFs are stored locally */
-    short      sl[FILT_LEN], sr[FILT_LEN];
+    int16      sl[FILT_LEN], sr[FILT_LEN];
                         /* float versions of above to be sent to FFT routines */
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
 
@@ -189,7 +189,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     azim = (int) *kAz;
     oldel_index = p->oldel_index;
     oldaz_index = p->oldaz_index;
-    fpindex = (short *) p->fpbegin;
+    fpindex = (int16 *) p->fpbegin;
     flip = 0;
 #ifdef CLICKS
     crossfadeflag = 0;
@@ -225,10 +225,10 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
         /* calculate offset into HRTFcompact file */
         /* first get to the first value of the requested elevation */
     if (el_index == 0)
-      fpindex = (short *) p->fpbegin;
+      fpindex = (int16 *) p->fpbegin;
     else
       for (i=0; i<=el_index; i++) {
-        numskip = (short)(GET_NFAZ(i) * BUF_LEN);
+        numskip = (int16)(GET_NFAZ(i) * BUF_LEN);
         fpindex += numskip;
       }
         /* fpindex should now point to first azimuth at requested el_index */
@@ -240,7 +240,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     else {
       for (i=0, numskip=0; i<az_index; i++)
         numskip += BUF_LEN;
-      fpindex += (short) (numskip);
+      fpindex += (int16) (numskip);
     }
 
 #ifdef CLICKS
@@ -248,7 +248,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
       crossfadeflag = 1;
     }
 #endif
-        /* read in (short) data from stereo interleave HRTF file.
+        /* read in (int16) data from stereo interleave HRTF file.
            Split into left and right channel data. */
     for (i=0; i<FILT_LEN; i++) {
       sl[i] = *fpindex++;
@@ -258,7 +258,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
       MYFLT scaleFac;
       scaleFac = csound->GetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
       scaleFac /= FL(32768.0);
-      /* copy short buffers into float buffers */
+      /* copy int16 buffers into float buffers */
       for (i=0; i<FILT_LEN; i++) {
         xl[i] = (MYFLT) sl[i] * scaleFac;
         xr[i] = (MYFLT) sr[i] * scaleFac;

@@ -26,7 +26,7 @@
 #include <ctype.h>
 
 typedef struct namedInstr {
-    long        instno;
+    int32        instno;
     char        *name;
     INSTRTXT    *ip;
     struct namedInstr   *prv;
@@ -144,7 +144,7 @@ int check_instr_name(char *s)
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find(CSOUND *csound, char *s)
+int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
@@ -154,7 +154,7 @@ long named_instr_find(CSOUND *csound, char *s)
     inm = ((INSTRNAME**) csound->instrumentNames)[h];
     while (inm) {
       if (!sCmp(inm->name, s))
-        return (long) inm->instno;
+        return (int32) inm->instno;
       inm = inm->prv;
     }
     return 0L;  /* not found */
@@ -166,7 +166,7 @@ long named_instr_find(CSOUND *csound, char *s)
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, long insno)
+int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno)
 {
     INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
@@ -236,7 +236,7 @@ void named_instr_assign_numbers(CSOUND *csound)
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
-        inm2->instno = (long) num;
+        inm2->instno = (int32) num;
         csound->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("instr %s uses instrument number %d\n"),
@@ -257,9 +257,9 @@ void named_instr_assign_numbers(CSOUND *csound)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno(CSOUND *csound, void *p, int is_string)
+int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 {
-    long    insno;
+    int32    insno;
 
     if (is_string) {
       if ((insno = named_instr_find(csound, (char*) p)) <= 0) {
@@ -268,7 +268,7 @@ long strarg2insno(CSOUND *csound, void *p, int is_string)
       }
     }
     else {      /* numbered instrument */
-      insno = (long) *((MYFLT*) p);
+      insno = (int32) *((MYFLT*) p);
       if (insno < 1 || insno > csound->maxinsno || !csound->instrtxtp[insno]) {
         csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
         return -1;
@@ -281,9 +281,9 @@ long strarg2insno(CSOUND *csound, void *p, int is_string)
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p(CSOUND *csound, char *s)
+int32 strarg2insno_p(CSOUND *csound, char *s)
 {
-    long    insno;
+    int32    insno;
 
     if (!(insno = named_instr_find(csound, s))) {
       csound->PerfError(csound, "instr %s not found", s);
@@ -298,16 +298,16 @@ long strarg2insno_p(CSOUND *csound, char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
+int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 {
-    long    insno = 0;
+    int32    insno = 0;
 
     if (!force_opcode) {        /* try instruments first, if enabled */
       if (is_string) {
         insno = named_instr_find(csound, (char*) p);
       }
       else {      /* numbered instrument */
-        insno = (long) *((MYFLT*) p);
+        insno = (int32) *((MYFLT*) p);
         if (insno < 1 || insno > csound->maxinsno ||
             !csound->instrtxtp[insno]) {
           csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
@@ -318,7 +318,7 @@ long strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
     if (!insno && is_string) {              /* if no instrument was found, */
       OPCODINFO *inm = csound->opcodeInfo;  /* search for user opcode */
       while (inm && sCmp(inm->name, (char*) p)) inm = inm->prv;
-      if (inm) insno = (long) inm->instno;
+      if (inm) insno = (int32) inm->instno;
     }
     if (insno < 1) {
       csound->InitError(csound,

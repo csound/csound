@@ -76,7 +76,7 @@ typedef struct {
          *amp_av1, *amp_av2, *amp_av3,   /* same for ampl.*/
          m_ampsum;              /* maximum amplitude at output*/
   long   windsiz;               /* # of pts. in one per. of sample*/
-  short  hmax;                  /* max harmonics requested */
+  int16  hmax;                  /* max harmonics requested */
   int    num_pts,               /* breakpoints per harmonic */
          amp_min;               /* amplitude cutout threshold */
   int    skip,                  /* flag to stop analysis if zeros*/
@@ -578,25 +578,25 @@ static int filedump(HET *thishet, CSOUND *csound)
 {
     int     h, pnt, ofd, nbytes;
     double  scale,x,y;
-    short   **mags, **freqs, *magout, *frqout;
+    int16   **mags, **freqs, *magout, *frqout;
     double  ampsum, maxampsum = 0.0;
     long    lenfil = 0;
-    short   *TIME;
+    int16   *TIME;
     MYFLT   timesiz;
 
-    mags = (short **) csound->Malloc(csound, thishet->hmax * sizeof(short*));
-    freqs = (short **) csound->Malloc(csound, thishet->hmax * sizeof(short*));
+    mags = (int16 **) csound->Malloc(csound, thishet->hmax * sizeof(int16*));
+    freqs = (int16 **) csound->Malloc(csound, thishet->hmax * sizeof(int16*));
     for (h = 0; h < thishet->hmax; h++) {
-      mags[h] = (short *)csound->Malloc(csound,
-                                        thishet->num_pts * sizeof(short));
-      freqs[h] = (short *)csound->Malloc(csound,
-                                         thishet->num_pts * sizeof(short));
+      mags[h] = (int16 *)csound->Malloc(csound,
+                                        thishet->num_pts * sizeof(int16));
+      freqs[h] = (int16 *)csound->Malloc(csound,
+                                         thishet->num_pts * sizeof(int16));
     }
 
-    TIME = (short *)csound->Malloc(csound, thishet->num_pts * sizeof(short));
+    TIME = (int16 *)csound->Malloc(csound, thishet->num_pts * sizeof(int16));
     timesiz = FL(1000.0) * thishet->input_dur /thishet-> num_pts;
     for (pnt = 0; pnt < thishet->num_pts; pnt++)
-      TIME[pnt] = (short)(pnt * timesiz);
+      TIME[pnt] = (int16)(pnt * timesiz);
 
     /* fullpath else cur dir */
     if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
@@ -618,26 +618,26 @@ static int filedump(HET *thishet, CSOUND *csound)
     for (h = 0; h < thishet->hmax; h++) {
       for (pnt = 0; pnt < thishet->num_pts; pnt++) {
         x = thishet->MAGS[h][pnt] * scale;
-        mags[h][pnt] = (short)(x*u(x));
+        mags[h][pnt] = (int16)(x*u(x));
         y = thishet->FREQS[h][pnt];
-        freqs[h][pnt] = (short)(y*u(y));
+        freqs[h][pnt] = (int16)(y*u(y));
       }
     }
 
-    magout = (short *)csound->Malloc(csound,
-                                     (thishet->num_pts+1) * 2 * sizeof(short));
-    frqout = (short *)csound->Malloc(csound,
-                                     (thishet->num_pts+1) * 2 * sizeof(short));
+    magout = (int16 *)csound->Malloc(csound,
+                                     (thishet->num_pts+1) * 2 * sizeof(int16));
+    frqout = (int16 *)csound->Malloc(csound,
+                                     (thishet->num_pts+1) * 2 * sizeof(int16));
     for (h = 0; h < thishet->hmax; h++) {
-      short *mp = magout, *fp = frqout;
-      short *lastmag, *lastfrq, pkamp = 0;
+      int16 *mp = magout, *fp = frqout;
+      int16 *lastmag, *lastfrq, pkamp = 0;
       int mpoints, fpoints, contig = 0;
       *mp++ = -1;                      /* set brkpoint type codes  */
       *fp++ = -2;
       lastmag = mp;
       lastfrq = fp;
       for (pnt = 0; pnt < thishet->num_pts; pnt++) {
-        short tim, mag, frq;
+        int16 tim, mag, frq;
         tim = TIME[pnt];
         frq = freqs[h][pnt];
         if ((mag = mags[h][pnt]) > pkamp)
@@ -684,7 +684,7 @@ static int filedump(HET *thishet, CSOUND *csound)
       *mp++ = END;                 /* add the sequence delimiters   */
       *fp++ = END;
       mpoints = ((mp - magout) / 2) - 1;
-      nbytes = (mp - magout) * sizeof(short);
+      nbytes = (mp - magout) * sizeof(int16);
       write(ofd, (char *)magout, nbytes);
 #ifdef DEBUG
       {
@@ -696,7 +696,7 @@ static int filedump(HET *thishet, CSOUND *csound)
 #endif
       lenfil += nbytes;
       fpoints = ((fp - frqout) / 2) - 1;
-      nbytes = (fp - frqout) * sizeof(short);
+      nbytes = (fp - frqout) * sizeof(int16);
       write(ofd, (char *)frqout, nbytes);
 #ifdef DEBUG
       {

@@ -350,14 +350,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
     int     S_incnt, S_outcnt;
-    short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    short   *S_inlist, *S_outlist;
+    int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
+    int16   *S_inlist, *S_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = S_incnt = a_incnt = k_incnt =
         i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
-    opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
+    opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
       types++;                  /* no input args */
     while (*types) {
@@ -392,7 +392,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
     inm->inchns = i;                    /* total number of input chnls */
     inm->perf_incnt = a_incnt + k_incnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
     types = inm->outtypes; otypes = opc->outypes;
@@ -427,14 +427,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
-    opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
-                     & (~((unsigned short) 15)));   /* align (needed ?) */
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
+    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
+                     & (~((uint16) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
     i = i_incnt + S_incnt + inm->perf_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
-                                                   sizeof(short) * (i + 8));
+    i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
+                                                   sizeof(int16) * (i + 8));
     S_inlist = i_inlist + i_incnt + 1;
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
@@ -481,7 +481,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
         char *outtypes, char *intypes) {
 
     OENTRY    tmpEntry, *opc, *newopc;
-    long      newopnum;
+    int32      newopnum;
     OPCODINFO *inm;
 
 
@@ -525,7 +525,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     csound->AppendOpcodes(csound, &tmpEntry, 1);
 
     if (!newopnum) {
-        newopnum = (long) ((OENTRY*) csound->oplstend
+        newopnum = (int32) ((OENTRY*) csound->oplstend
                            - (OENTRY*) csound->opcodlst) - 1L;
     }
 

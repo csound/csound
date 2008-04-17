@@ -35,7 +35,7 @@ typedef struct {
     int     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;
-    short   ampcode, timewarpcode, resamplecode;
+    int16   ampcode, timewarpcode, resamplecode;
 } SNDWARP;
 
 typedef struct {
@@ -47,6 +47,6 @@ typedef struct {
     int     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;
-    short   ampcode, timewarpcode, resamplecode;
+    int16   ampcode, timewarpcode, resamplecode;
 } SNDWARPST;
 

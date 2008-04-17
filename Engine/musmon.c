@@ -53,13 +53,13 @@ extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 typedef struct evt_cb_func {
     void    (*func)(CSOUND *, void *);
     void    *userData;
-    struct evt_cb_func  *nxt;
+    struct evt_cb_func  *nxt; 
 } EVT_CB_FUNC;
 
 typedef struct {
-    long    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
-    short   srngflg;
-    short   sectno;
+    int32    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
+    int16   srngflg;
+    int16   sectno;
     int     lplayed;
     int     segamps, sormsg;
 #ifndef OLPC
@@ -365,7 +365,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
-    long    *rngp;
+    int32    *rngp;
     int     n;
 
     while (csound->evtFuncChain != NULL) {
@@ -475,7 +475,7 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.pcnt = 3;
     isNamedInstr = (int) csound->GetInputArgSMask(p);
     if (isNamedInstr) {
-      long  insno = csound->strarg2insno(csound, p->insno, isNamedInstr);
+      int32  insno = csound->strarg2insno(csound, p->insno, isNamedInstr);
       if (insno <= 0L)
         return NOTOK;
       evt.p[1] = (MYFLT) insno;
@@ -494,8 +494,8 @@ static void print_amp_values(CSOUND *csound, int score_evt)
 {
     CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
-    unsigned long *maxps, *smaxps;
-    long          *rngp, *srngp;
+    uint32 *maxps, *smaxps;
+    int32          *rngp, *srngp;
     int           n;
 
     if (ST(segamps) || (p->rngflg && ST(sormsg))) {
@@ -543,8 +543,8 @@ static void section_amps(CSOUND *csound, int enable_msgs)
 {
     CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
-    unsigned long *maxps, *smaxps;
-    long          *rngp, *srngp;
+    uint32 *maxps, *smaxps;
+    int32          *rngp, *srngp;
     int           n;
 
     if (enable_msgs) {
@@ -621,7 +621,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         }
         csound->Message(csound, Str("Setting instrument %s %s\n"),
                       evt->strarg, (evt->p[3] == 0 ? Str("off") : Str("on")));
-        csound->instrtxtp[insno]->muted = (short) evt->p[3];
+        csound->instrtxtp[insno]->muted = (int16) evt->p[3];
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
@@ -634,7 +634,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         }
         csound->Message(csound, Str("Setting instrument %d %s\n"),
                       insno, (evt->p[3] == 0 ? Str("off") : (Str("on"))));
-        csound->instrtxtp[insno]->muted = (short) evt->p[3];
+        csound->instrtxtp[insno]->muted = (int16) evt->p[3];
       }
       break;
     case 'i':
@@ -934,7 +934,7 @@ int sensevents(CSOUND *csound)
       /* check for pending real time events */
       while (csound->OrcTrigEvts != NULL &&
              csound->OrcTrigEvts->start_kcnt <=
-             (unsigned long) csound->global_kcounter) {
+             (uint32) csound->global_kcounter) {
         if ((retval = process_rt_event(csound, 4)) != 0)
           goto scode;
       }
@@ -1018,14 +1018,14 @@ int sensevents(CSOUND *csound)
     return 2;                   /* done with entire score */
 }
 
-static inline unsigned long time2kcnt(CSOUND *csound, double tval)
+static inline uint32 time2kcnt(CSOUND *csound, double tval)
 {
     if (tval > 0.0) {
       tval *= (double) csound->global_ekr;
 #ifdef HAVE_C99
-      return (unsigned long) llrint(tval);
+      return (uint32) llrint(tval);
 #else
-      return (unsigned long) (tval + 0.5);
+      return (uint32) (tval + 0.5);
 #endif
     }
     return 0UL;
@@ -1038,7 +1038,7 @@ static inline unsigned long time2kcnt(CSOUND *csound, double tval)
 /* Required parameters in 'evt':                                      */
 /*   char   *strarg   string argument of event (NULL if none)         */
 /*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
-/*   short  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
+/*   int16  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
 /*   MYFLT  p[]       array of p-fields, p[1]..p[pcnt] should be set  */
 /*  p2orig and p3orig are calculated from p[2] and p[3].              */
 /* The contents of 'evt', including the string argument, need not be  */
@@ -1052,7 +1052,7 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
     EVTNODE       *e, *prv;
     CSOUND        *st = csound;
     MYFLT         *p;
-    unsigned long start_kcnt;
+    uint32        start_kcnt;
     int           i, retval;
 
     retval = -1;

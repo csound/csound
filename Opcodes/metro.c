@@ -51,10 +51,10 @@ typedef struct  {
 static int metro_set(CSOUND *csound, METRO *p)
 {
     double      phs = *p->iphs;
-    long  longphs;
+    int32  longphs;
 
     if (phs >= 0.0) {
-      if ((longphs = (long)phs))
+      if ((longphs = (int32)phs))
         csound->Message(csound, Str("metro:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }

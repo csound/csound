@@ -74,7 +74,7 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
 
 MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
 {                                /* Tick on vibrato table */
-    long    temp;
+    int32    temp;
     MYFLT   temp_time, alpha;
     MYFLT   lastOutput;
 
@@ -93,7 +93,7 @@ MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
       while (temp_time < FL(0.0))  /*  Check for end of sound */
         temp_time += len;      /*  loop back to beginning */
     }
-    temp = (long) temp_time;   /*  Integer part of time address    */
+    temp = (int32) temp_time;  /*  Integer part of time address    */
                                /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = data[temp];   /* Do linear interpolation */

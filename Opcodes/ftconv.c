@@ -178,7 +178,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     /* calculate the amount of aux space to allocate (in bytes) */
     nBytes = buf_bytes_alloc(p->nChannels, p->partSize, p->nPartitions);
     if (nBytes != (int) p->auxData.size)
-      csound->AuxAlloc(csound, (long) nBytes, &(p->auxData));
+      csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */

@@ -69,7 +69,7 @@ static void fftCosInit(int M, MYFLT *Utbl)
     Utbl[fftN/4] = FL(0.0);
 }
 
-static void fftBRInit(int M, short *BRLow)
+static void fftBRInit(int M, int16 *BRLow)
 {
     /* Compute BRLow, the bit reversed table for ffts */
     /* of size pow(2,M/2 -1)                          */
@@ -98,7 +98,7 @@ static void fftBRInit(int M, short *BRLow)
 * parts of ffts1 *
 *****************/
 
-static void bitrevR2(MYFLT *ioptr, int M, short *BRLow)
+static void bitrevR2(MYFLT *ioptr, int M, int16 *BRLow)
 {
     /*** bit reverse and first radix 2 stage of forward or inverse fft ***/
     MYFLT f0r;
@@ -1088,7 +1088,7 @@ static void fftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride, int NDiffU,
     }
 }
 
-static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
+static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 {
     /* Compute in-place complex fft on the rows of the input array  */
     /* INPUTS                                                       */
@@ -1137,7 +1137,7 @@ static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
 * parts of iffts1 *
 ******************/
 
-static void scbitrevR2(MYFLT *ioptr, int M, short *BRLow, MYFLT scale)
+static void scbitrevR2(MYFLT *ioptr, int M, int16 *BRLow, MYFLT scale)
 {
     /*** scaled bit reverse and first radix 2 stage forward or inverse fft ***/
     MYFLT f0r;
@@ -2131,7 +2131,7 @@ static void ifftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     }
 }
 
-static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
+static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 {
     /* Compute in-place inverse complex fft on the rows of the input array  */
     /* INPUTS                                                               */
@@ -2586,7 +2586,7 @@ static void frstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     }
 }
 
-static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
+static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 {
     /* Compute in-place real fft on the rows of the input array           */
     /* The result is the complex spectra of the positive frequencies      */
@@ -3049,7 +3049,7 @@ static void ifrstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     }
 }
 
-static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
+static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 {
     /* Compute in-place real ifft on the rows of the input array    */
     /* data order as from rffts1                                    */
@@ -3115,21 +3115,21 @@ static void fftInit(CSOUND *csound, int M)
     /*   private cosine and bit reversed tables                         */
 
     MYFLT **UtblArray;
-    short **BRLowArray;
+    int16 **BRLowArray;
     int   i;
 
     if (!csound->FFT_max_size) {
       if (csound->FFT_table_1 == NULL)
         csound->FFT_table_1 = csound->Malloc(csound, sizeof(MYFLT*) * 32);
       if (csound->FFT_table_2 == NULL)
-        csound->FFT_table_2 = csound->Malloc(csound, sizeof(short*) * 32);
+        csound->FFT_table_2 = csound->Malloc(csound, sizeof(int16*) * 32);
       for (i = 0; i < 32; i++) {
         ((MYFLT**) csound->FFT_table_1)[i] = (MYFLT*) NULL;
-        ((short**) csound->FFT_table_2)[i] = (short*) NULL;
+        ((int16**) csound->FFT_table_2)[i] = (int16*) NULL;
       }
     }
     UtblArray = (MYFLT**) csound->FFT_table_1;
-    BRLowArray = (short**) csound->FFT_table_2;
+    BRLowArray = (int16**) csound->FFT_table_2;
 
     /*** I did NOT test cases with M>27 ***/
     /* init cos table */
@@ -3140,7 +3140,7 @@ static void fftInit(CSOUND *csound, int M)
       /* init bit reversed table for cmplx FFT */
       if (BRLowArray[M / 2] == NULL) {
         BRLowArray[M / 2] =
-          (short*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(short));
+          (int16*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(int16));
         fftBRInit(M, BRLowArray[M / 2]);
       }
     }
@@ -3148,8 +3148,8 @@ static void fftInit(CSOUND *csound, int M)
       /* init bit reversed table for real FFT */
       if (BRLowArray[(M - 1) / 2] == 0) {
         BRLowArray[(M - 1) / 2] =
-          (short*) csound->Malloc(csound,
-                                  POW2((M - 1) / 2 - 1) * sizeof(short));
+          (int16*) csound->Malloc(csound,
+                                  POW2((M - 1) / 2 - 1) * sizeof(int16));
         fftBRInit(M - 1, BRLowArray[(M - 1) / 2]);
       }
     }
@@ -3197,13 +3197,13 @@ static inline int ConvertFFTSize(CSOUND *csound, int N)
     return 0;
 }
 
-static inline void getTablePointers(CSOUND *p, MYFLT **ct, short **bt,
+static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
                                                 int cn, int bn)
 {
     if (!(p->FFT_max_size & (1 << cn)))
       fftInit(p, cn);
     *ct = ((MYFLT**) p->FFT_table_1)[cn];
-    *bt = ((short**) p->FFT_table_2)[bn];
+    *bt = ((int16**) p->FFT_table_2)[bn];
 }
 
 /**
@@ -3236,7 +3236,7 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
 void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
-    short *BRLow;
+    int16 *BRLow;
     int   M;
 
     M = ConvertFFTSize(csound, FFTsize);
@@ -3256,7 +3256,7 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
-    short *BRLow;
+    int16 *BRLow;
     int   M;
 
     M = ConvertFFTSize(csound, FFTsize);
@@ -3275,7 +3275,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
-    short *BRLow;
+    int16 *BRLow;
     int   M;
 
     M = ConvertFFTSize(csound, FFTsize);
@@ -3296,7 +3296,7 @@ void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
-    short *BRLow;
+    int16 *BRLow;
     int   M;
 
     M = ConvertFFTSize(csound, FFTsize);

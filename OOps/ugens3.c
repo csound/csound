@@ -33,7 +33,7 @@ int foscset(CSOUND *csound, FOSC *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
-        p->cphs = p->mphs = (long)(*p->iphs * FMAXLEN);
+        p->cphs = p->mphs = (int32)(*p->iphs * FMAXLEN);
       p->ampcod = (XINARG1) ? 1 : 0;
       p->carcod = (XINARG3) ? 1 : 0;
       p->modcod = (XINARG4) ? 1 : 0;
@@ -47,7 +47,7 @@ int foscil(CSOUND *csound, FOSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
-    long    mphs, cphs, minc, cinc, lobits;
+    int32    mphs, cphs, minc, cinc, lobits;
     int     n;
 
     ar = p->rslt;
@@ -75,12 +75,12 @@ int foscil(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (long)(mod * csound->sicvt);
+        minc = (int32)(mod * csound->sicvt);
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -92,13 +92,13 @@ int foscil(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (long)(mod * csound->sicvt);
+      minc = (int32)(mod * csound->sicvt);
       for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -115,7 +115,7 @@ int foscili(CSOUND *csound, FOSC *p)
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
-    long   mphs, cphs, minc, cinc, lobits;
+    int32   mphs, cphs, minc, cinc, lobits;
     int    n;
 
     ar = p->rslt;
@@ -141,7 +141,7 @@ int foscili(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (long)(mod * csound->sicvt);
+        minc = (int32)(mod * csound->sicvt);
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ftp->ftable + (mphs >>lobits);
@@ -149,7 +149,7 @@ int foscili(CSOUND *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
@@ -163,7 +163,7 @@ int foscili(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (long)(mod * csound->sicvt);
+      minc = (int32)(mod * csound->sicvt);
       for (n=0;n<csound->ksmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
@@ -172,7 +172,7 @@ int foscili(CSOUND *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (long)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * csound->sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ftp->ftable + (cphs >>lobits);
@@ -191,7 +191,7 @@ int losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
-      long  maxphs = ((long) ftp->flenfrms << LOBITS) + ((long) LOFACT - 1);
+      int32  maxphs = ((int32) ftp->flenfrms << LOBITS) + ((int32) LOFACT - 1);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
@@ -199,7 +199,7 @@ int losset(CSOUND *csound, LOSC *p)
         p->cpscvt = FL(261.62561); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
-      if ((p->mod1 = (short) *p->imod1) < 0) {
+      if ((p->mod1 = (int16) *p->imod1) < 0) {
         if ((p->mod1 = ftp->loopmode1) == 0) {
           csound->Warning(csound, Str("loscil: sustain defers to "
                                       "non-looping source"));
@@ -210,23 +210,23 @@ int losset(CSOUND *csound, LOSC *p)
       else if (p->mod1 < 0 || p->mod1 > 3)
         goto lerr2;
       else {
-        p->beg1 = (long) (*p->ibeg1 * (MYFLT) (LOFACT));
-        p->end1 = (long) (*p->iend1 * (MYFLT) (LOFACT));
+        p->beg1 = (int32) (*p->ibeg1 * (MYFLT) (LOFACT));
+        p->end1 = (int32) (*p->iend1 * (MYFLT) (LOFACT));
         if (!p->beg1 && !p->end1) {
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? maxphs : ((long) ftp->flenfrms << LOBITS));
+          p->end1 = (p->mod1 ? maxphs : ((int32) ftp->flenfrms << LOBITS));
         }
         else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1)
           goto lerr2;
       }
-      if ((p->mod2 = (short) *p->imod2) < 0) {
+      if ((p->mod2 = (int16) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;
         p->beg2 = ftp->begin2 << LOBITS;
         p->end2 = ftp->end2 << LOBITS;
       }
       else {
-        p->beg2 = (long) (*p->ibeg2 * (MYFLT) (LOFACT));
-        p->end2 = (long) (*p->iend2 * (MYFLT) (LOFACT));
+        p->beg2 = (int32) (*p->ibeg2 * (MYFLT) (LOFACT));
+        p->end2 = (int32) (*p->iend2 * (MYFLT) (LOFACT));
         if (p->mod2 < 0 || p->mod2 > 3 ||
             p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2) {
           goto lerr3;
@@ -275,7 +275,7 @@ int losset(CSOUND *csound, LOSC *p)
 }
 
 static inline void loscil_linear_interp_mono(MYFLT *ar,
-                                             MYFLT *ftbl, long phs, long flen)
+                                             MYFLT *ftbl, int32 phs, int32 flen)
 {
     MYFLT   fract, tmp;
     int     x;
@@ -288,7 +288,7 @@ static inline void loscil_linear_interp_mono(MYFLT *ar,
 }
 
 static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
-                                               MYFLT *ftbl, long phs, long flen)
+                                               MYFLT *ftbl, int32 phs, int32 flen)
 {
     MYFLT   fract, tmpL, tmpR;
     int     x;
@@ -303,7 +303,7 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
 }
 
 static inline void loscil_cubic_interp_mono(MYFLT *ar,
-                                            MYFLT *ftbl, long phs, long flen)
+                                            MYFLT *ftbl, int32 phs, int32 flen)
 {
     MYFLT   fract, tmp, a0, a1, a2, a3;
     int     x;
@@ -325,7 +325,7 @@ static inline void loscil_cubic_interp_mono(MYFLT *ar,
 
 static CS_NOINLINE void
     loscil_cubic_interp_stereo(MYFLT *arL, MYFLT *arR,
-                               MYFLT *ftbl, long phs, long flen)
+                               MYFLT *ftbl, int32 phs, int32 flen)
 {
     MYFLT   fract, tmpL, tmpR, a0, a1, a2, a3;
     int     x;
@@ -355,12 +355,12 @@ int loscil(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
-    long    phs, inc, beg, end;
+    int32    phs, inc, beg, end;
     int     nsmps = csound->ksmps, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (long)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     aamp = (p->XINCODE) ? 1 : 0;
@@ -556,12 +556,12 @@ int loscil3(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
-    long    phs, inc, beg, end;
+    int32    phs, inc, beg, end;
     int     nsmps = csound->ksmps, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (long)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     aamp = (p->XINCODE) ? 1 : 0;
@@ -758,18 +758,18 @@ int loscil3(CSOUND *csound, LOSC *p)
 
 int adset(CSOUND *csound, ADSYN *p)
 {
-    long    n;
+    int32    n;
     char    filnam[MAXNAME];
     MEMFIL  *mfp;
-    short   *adp, *endata, val;
+    int16   *adp, *endata, val;
     PTLPTR  *ptlap, *ptlfp, *ptlim;
     int     size;
 
     if (csound->isintab == NULL) {  /* if no sin table yet, make one */
-      short *ip;
-      csound->isintab = ip = (short*) mmalloc(csound, ISINSIZ * sizeof(short));
+      int16 *ip;
+      csound->isintab = ip = (int16*) mmalloc(csound, ISINSIZ * sizeof(int16));
       for (n = 0; n < ISINSIZ; n++)
-        *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
+        *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
     csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
@@ -781,10 +781,10 @@ int adset(CSOUND *csound, ADSYN *p)
       p->mfp = mfp;                         /*   & record         */
     }
 
-    adp = (short *) mfp->beginp;            /* align on file data */
-    endata = (short *) mfp->endp;
+    adp = (int16 *) mfp->beginp;            /* align on file data */
+    endata = (int16 *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
-    if (p->aux.auxp==NULL || p->aux.size < (long)sizeof(PTLPTR)*size)
+    if (p->aux.auxp==NULL || p->aux.size < (int32)sizeof(PTLPTR)*size)
       csound->AuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
@@ -830,12 +830,12 @@ int adsyn(CSOUND *csound, ADSYN *p)
 {
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
-    short   curtim, diff, ktogo;
-    long    phs, sinc, *sp, amp;
+    int16   curtim, diff, ktogo;
+    int32    phs, sinc, *sp, amp;
     int     n, nsmps;
     MYFLT   *ar;
     MYFLT   ampscale, frqscale;
-    long    timkincr, nxtim;
+    int32    timkincr, nxtim;
 
     if (csound->isintab == NULL) {      /* RWD fix */
       return csound->PerfError(csound, Str("adsyn: not initialised"));
@@ -844,14 +844,14 @@ int adsyn(CSOUND *csound, ADSYN *p)
     ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
-    timkincr = (long)(*p->ksmod*FL(1024000.0)*csound->onedkr);
-    sp = (long *) p->rslt;                      /* use out array for sums */
+    timkincr = (int32)(*p->ksmod*FL(1024000.0)*csound->onedkr);
+    sp = (int32 *) p->rslt;                      /* use out array for sums */
     nsmps = csound->ksmps;
-    memset(p->rslt,0,sizeof(long)*nsmps);
+    memset(p->rslt,0,sizeof(int32)*nsmps);
     /* do { */
     /*   *sp++ = 0L;                               /\* cleared first to zero *\/ */
     /* } while (--nsmps); */
-    curtim = (short)(p->mksecs >> 10);          /* cvt mksecs to msecs */
+    curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
       ap = curp->ap;
@@ -861,9 +861,9 @@ int adsyn(CSOUND *csound, ADSYN *p)
       while (curtim >= (fp+1)->tim)
         curp->fp = fp += 1;
       if ((amp = curp->amp)) {            /* for non-zero amp   */
-        sinc = (long)(curp->frq * frqscale);
+        sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
-        sp = (long *) p->rslt;
+        sp = (int32 *) p->rslt;
         nsmps = csound->ksmps;            /*   addin a sinusoid */
         do {
           *sp++ += csound->isintab[phs] * amp;
@@ -877,20 +877,20 @@ int adsyn(CSOUND *csound, ADSYN *p)
         curp = prvp;
       }
       else {                                 /* else interp towds nxt amp */
-        if ((diff = (short)((ap+1)->val - amp))) {
-          ktogo = (short)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
+        if ((diff = (int16)((ap+1)->val - amp))) {
+          ktogo = (int16)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
           curp->amp += diff / ktogo;
         }
         if ((nxtim = (fp+1)->tim) != 32767            /*      & nxt frq */
             && (diff = (fp+1)->val - curp->frq)) {
-          ktogo = (short)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
+          ktogo = (int16)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
           curp->frq += diff / ktogo;
         }
       }
     }
     p->mksecs += timkincr;                  /* advance the time */
     ar = p->rslt;
-    sp = (long *) ar;           /* Seems to make assumptions about long/MYFLT */
+    sp = (int32 *) ar;           /* Seems to make assumptions about int32/MYFLT */
     nsmps = csound->ksmps;
       /* a quick-hack fix: should change adsyn to use floats table and
          buffers and should replace hetro format anyway.... */

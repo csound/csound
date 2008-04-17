@@ -561,7 +561,7 @@ static const CSOUND cenviron_ = {
         (char*) NULL,   /*  SF_id_comment       */
         (char*) NULL,   /*  SF_id_date          */
         NULL,           /*  utility_db          */
-        (short*) NULL,  /*  isintab             */
+        (int16*) NULL,  /*  isintab             */
         NULL,           /*  lprdaddr            */
         0,              /*  currentLPCSlot      */
         0,              /*  max_lpc_slot        */
@@ -1753,7 +1753,7 @@ static const CSOUND cenviron_ = {
 
     evt.strarg = NULL;
     evt.opcod = type;
-    evt.pcnt = (short) numFields;
+    evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
     return insert_score_event(csound, &evt, csound->curTime);
@@ -2166,8 +2166,8 @@ static const CSOUND cenviron_ = {
     int     err;
 
     tmpEntry.opname     = (char*) opname;
-    tmpEntry.dsblksiz   = (unsigned short) dsblksiz;
-    tmpEntry.thread     = (unsigned short) thread;
+    tmpEntry.dsblksiz   = (uint16) dsblksiz;
+    tmpEntry.thread     = (uint16) thread;
     tmpEntry.outypes    = (char*) outypes;
     tmpEntry.intypes    = (char*) intypes;
     tmpEntry.iopadr     = (SUBR) iopadr;

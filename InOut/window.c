@@ -112,7 +112,7 @@ void dispinit(CSOUND *csound)
 void dispset(CSOUND *csound,            /* setup a new window       */
              WINDAT *wdptr,             /*   & init the data struct */
              MYFLT  *fdata,
-             long   npts,
+             int32  npts,
              char   *caption,
              int    waitflg,
              char   *label)
@@ -135,7 +135,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
       *t++ = *s++;                      /*  (copy the caption) */
     *t = '\0';
     wdptr->waitflg  = waitflg;
-    wdptr->polarity = (short)NOPOL;
+    wdptr->polarity = (int16)NOPOL;
     wdptr->max      = FL(0.0);
     wdptr->min      = FL(0.0);
     wdptr->absmax   = FL(0.0);
@@ -175,13 +175,13 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
       wdptr->oabsmax = absmax;           /* & absmax over life of win */
 
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
-    if (pol == (short)NOPOL)  {
-      if (max > FL(0.0) && min < FL(0.0))      pol = (short)BIPOL;
-      else if (max <= FL(0.0) && min <FL(0.0)) pol = (short)NEGPOL;
-      else                                     pol = (short)POSPOL;
+    if (pol == (int16)NOPOL)  {
+      if (max > FL(0.0) && min < FL(0.0))      pol = (int16)BIPOL;
+      else if (max <= FL(0.0) && min <FL(0.0)) pol = (int16)NEGPOL;
+      else                                     pol = (int16)POSPOL;
     }
-    else if (pol == (short)POSPOL && min < FL(0.0)) pol = (short)BIPOL;
-    else if (pol == (short)NEGPOL && max > FL(0.0)) pol = (short)BIPOL;
+    else if (pol == (int16)POSPOL && min < FL(0.0)) pol = (int16)BIPOL;
+    else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);

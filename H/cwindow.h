@@ -38,7 +38,7 @@
 struct windat_ {
     uintptr_t windid;           /* set by MakeGraph() */
     MYFLT   *fdata;             /* data passed to DrawGraph */
-    long    npts;               /* size of above array */
+    int32    npts;               /* size of above array */
     char    caption[CAPSIZE];   /* caption string for graph */
     short   waitflg;            /* set =1 to wait for ms after Draw */
     short   polarity;           /* controls positioning of X axis */
@@ -66,7 +66,7 @@ struct xyindat_ {       /* for 'joystick' input window */
 
 #ifdef __BUILDING_LIBCSOUND
 
-void dispset(CSOUND *, WINDAT *, MYFLT *, long, char *, int, char *);
+void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
 int dispexit(CSOUND *);
 void display(CSOUND *, WINDAT*);
 #if 0

@@ -114,7 +114,7 @@ static const MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0)
 };
 
-static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 /* open a Midi event stream for reading, alloc bufs */
 /*     callable once from main.c                    */
@@ -173,7 +173,7 @@ static void sustsoff(CSOUND *csound, MCHNBLK *chn)
 
 /* reset all controllers for this channel */
 
-void midi_ctl_reset(CSOUND *csound, short chan)
+void midi_ctl_reset(CSOUND *csound, int16 chan)
 {
     MCHNBLK *chn;
     int     i;
@@ -209,7 +209,7 @@ void midi_ctl_reset(CSOUND *csound, short chan)
 void m_chanmsg(CSOUND *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
-    short   n;
+    int16   n;
     MYFLT   *fp;
 
     switch (mep->type) {
@@ -217,7 +217,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       chn->pgmno = mep->dat1;
       if (chn->insno <= 0)              /* ignore if channel is muted */
         break;
-      n = (short) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
+      n = (int16) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
       if (n > 0 && n <= csound->maxinsno &&     /* if corresp instr exists  */
           csound->instrtxtp[n] != NULL) {       /*     assign as insno      */
         chn->insno = n;                         /* else ignore prog. change */
@@ -370,30 +370,30 @@ void m_chn_init_all(CSOUND *csound)
 {                               /* alloc a midi control blk for a midi chnl */
     MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
     int     defaultinsno, n;
-    short   chan;
+    int16   chan;
 
     defaultinsno = 0;
     while (++defaultinsno <= (int) csound->maxinsno &&
            csound->instrtxtp[defaultinsno] == NULL);
     if (defaultinsno > (int) csound->maxinsno)
       defaultinsno = 0;         /* no instruments */
-    for (chan = (short) 0; chan < (short) 16; chan++) {
+    for (chan = (int16) 0; chan < (int16) 16; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (n <= (int) csound->maxinsno && csound->instrtxtp[n] != NULL)
-        chn->insno = (short) n;
+        chn->insno = (int16) n;
       else if (defaultinsno > 0)
-        chn->insno = (short) defaultinsno;
+        chn->insno = (int16) defaultinsno;
       else
-        chn->insno = (short) -1;        /* else mute channel */
+        chn->insno = (int16) -1;        /* else mute channel */
       /* reset all controllers */
       chn->pgmno = -1;
       midi_ctl_reset(csound, chan);
       for (n = 0; n < 128; n++)
-        chn->pgm2ins[n] = (short) (n + 1);
+        chn->pgm2ins[n] = (int16) (n + 1);
       if (csound->oparms->Midiin || csound->oparms->FMidiin) {
         if (chn->insno > 0)
           csound->Message(csound, Str("midi channel %d using instr %d\n"),
@@ -424,20 +424,20 @@ int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls)
         csound->Message(csound, Str("Insno = %d\n"), insno);
         return csound->InitError(csound, Str("unknown instr"));
       }
-      chn->insno = (short) insno;
+      chn->insno = (int16) insno;
       csound->Message(csound, Str("chnl %d using instr %d\n"),
                               chan + 1, chn->insno);
       /* check for program change: will override massign if enabled */
       if (chn->pgmno >= 0) {
         mev.type = PROGRAM_TYPE;
-        mev.chan = (short) chan;
+        mev.chan = (int16) chan;
         mev.dat1 = chn->pgmno;
         mev.dat2 = 0;
         m_chanmsg(csound, &mev);
       }
     }
     if (reset_ctls)
-      midi_ctl_reset(csound, (short) chan);
+      midi_ctl_reset(csound, (int16) chan);
     return OK;
 }
 
@@ -476,7 +476,7 @@ int sensMidi(CSOUND *csound)
     MEVENT  *mep = p->Midevtblk;
     OPARMS  *O = csound->oparms;
     int     n;
-    short   c, type;
+    int16   c, type;
 
  nxtchr:
     if (p->bufp >= p->endatp) {
@@ -503,7 +503,7 @@ int sensMidi(CSOUND *csound)
     if ((c = *(p->bufp++)) & 0x80) {    /* STATUS byte:         */
       type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
-        short lo3 = (c & 0x07);
+        int16 lo3 = (c & 0x07);
         if (c & 0x08)                   /* sys_realtime:        */
           switch (lo3) {                /*   dispatch now       */
           case 0: /* m_clktim++; */     /* timing clock         */
@@ -544,7 +544,7 @@ int sensMidi(CSOUND *csound)
         goto nxtchr;
       }
       else {                            /* other status types:  */
-        short chan;
+        int16 chan;
         p->sexp = 0;                    /* also implies sys_exclus end */
         chan = c & 0xF;
         mep->type = type;               /* & begin new event    */

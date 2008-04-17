@@ -483,7 +483,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root) {
 }
 
 
-static TREE *create_synthetic_ident(CSOUND *csound, long count) {
+static TREE *create_synthetic_ident(CSOUND *csound, int32 count) {
         char *label = (char *)csound->Calloc(csound, 20);
 
         sprintf(label, "__synthetic_%ld", count);
@@ -496,7 +496,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, long count) {
         return make_leaf(csound, T_IDENT, token);
 }
 
-static TREE *create_synthetic_label(CSOUND *csound, long count) {
+static TREE *create_synthetic_label(CSOUND *csound, int32 count) {
         char *label = (char *)csound->Calloc(csound, 20);
 
         sprintf(label, "__synthetic_%ld:", count);
@@ -529,7 +529,7 @@ static TREE *create_synthetic_label(CSOUND *csound, long count) {
  * */
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
-        long labelCounter = 300L;
+    int32 labelCounter = 300L;
 
     TREE *anchor = NULL;
     TREE * expressionNodes = NULL;

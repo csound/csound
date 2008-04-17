@@ -36,15 +36,15 @@
 
 typedef struct cvstruct
 {
-    long        magic;                  /* magic number to identify */
-    long        headBsize;              /* byte offset from start to data */
-    long        dataBsize;              /* total number of bytes of data */
-    long        dataFormat;             /* (int) format specifier */
+    int32        magic;                  /* magic number to identify */
+    int32        headBsize;              /* byte offset from start to data */
+    int32        dataBsize;              /* total number of bytes of data */
+    int32        dataFormat;             /* (int) format specifier */
     MYFLT       samplingRate;           /* of original sample */
-    long        src_chnls;              /* no. of channels in source */
-    long        channel;                /* requested channel(s) */
-    long        Hlen;                   /* length of impulse reponse */
-    long        Format;                 /* (int) how words are org'd in frm */
+    int32        src_chnls;              /* no. of channels in source */
+    int32        channel;                /* requested channel(s) */
+    int32        Hlen;                   /* length of impulse reponse */
+    int32        Format;                 /* (int) how words are org'd in frm */
     char        info[CVDFLTBYTS];       /* extendable byte area */
 } CVSTRUCT;
 

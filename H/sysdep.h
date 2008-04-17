@@ -238,15 +238,15 @@ typedef unsigned long       uintptr_t;
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((long) lrintf((float) (x)))
-#    define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#    define MYFLT2LONG(x) ((int32) lrintf((float) (x)))
+#    define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
 #  else
-#    define MYFLT2LONG(x) ((long) lrint((double) (x)))
-#    define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
+#    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #  endif
 #elif defined(MSVC)
 #  ifndef USE_DOUBLE
-static inline long MYFLT2LRND(float fval)
+static inline int32 MYFLT2LRND(float fval)
 {
     int result;
     _asm {
@@ -257,7 +257,7 @@ static inline long MYFLT2LRND(float fval)
     return result;
 }
 #  else
-static inline long MYFLT2LRND(double fval)
+static inline int32 MYFLT2LRND(double fval)
 {
     int result;
     _asm {
@@ -271,23 +271,23 @@ static inline long MYFLT2LRND(double fval)
 #  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((long) (x))
+#    define MYFLT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#      define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
 #    else
-static inline long MYFLT2LRND(float fval)
+static inline int32 MYFLT2LRND(float fval)
 {
-    return ((long) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
+    return ((int32) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
 }
 #    endif
 #  else
-#    define MYFLT2LONG(x) ((long) (x))
+#    define MYFLT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#      define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #    else
-static inline long MYFLT2LRND(double fval)
+static inline int32 MYFLT2LRND(double fval)
 {
-    return ((long) (fval + (fval < 0.0 ? -0.5 : 0.5)));
+    return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 #    endif
 #  endif
