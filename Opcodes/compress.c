@@ -32,7 +32,7 @@ typedef struct {
         MYFLT   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
         double  cenv, c1, c2, d1, d2, ampmul;
         MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
-        long    newenv;
+        int32   newenv;
         AUXCH   auxch;
 } CMPRS;
 
@@ -47,7 +47,7 @@ typedef struct {        /* this now added from 07/01 */
 
 static int compset(CSOUND *csound, CMPRS *p)
 {
-    long    delsmps;
+    int32    delsmps;
 
     p->thresh = (MYFLT) MAXPOS;
     p->loknee = (MYFLT) MAXPOS;                 /* force reinits        */
@@ -75,7 +75,7 @@ static int compset(CSOUND *csound, CMPRS *p)
 static int compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
-    long        nsmps = csound->ksmps;
+    int32        nsmps = csound->ksmps;
     int         n;
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
@@ -209,7 +209,7 @@ static int distort(CSOUND *csound, DIST *p)
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
-    long    nsmps = csound->ksmps;
+    int32    nsmps = csound->ksmps;
     int     n;
 
     asig = p->asig;
@@ -237,7 +237,7 @@ static int distort(CSOUND *csound, DIST *p)
       else if (phs >= p->maxphs)        /* check sticky bits    */
         val = p->endval;
       else {
-        long  iphs = (long)phs;
+        int32  iphs = (int32)phs;
         MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
         MYFLT *fp = ftp->ftable + iphs;
         val = *fp++;

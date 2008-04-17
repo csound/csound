@@ -31,7 +31,7 @@ typedef struct {
     MYFLT   *r1, *r2, *xamp, *xtimewarp, *xresample, *isampfun, *ibegin,
             *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind, *ftpSamp;
-    long    maxFr, prFlg, flen, sampflen, nsections;
+    int32   maxFr, prFlg, flen, sampflen, nsections;
     int     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;
@@ -43,7 +43,7 @@ typedef struct {
     MYFLT   *r1, *r2, *r3, *r4, *xamp, *xtimewarp, *xresample, *isampfun,
             *ibegin, *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind,  *ftpSamp;
-    long    maxFr, prFlg, flen, sampflen, nsections;
+    int32   maxFr, prFlg, flen, sampflen, nsections;
     int     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;

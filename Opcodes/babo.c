@@ -140,10 +140,10 @@ static const int sound_speed = 330;
 #define square(x)   ((x)*(x))
 
 #ifdef never
-static inline long
+static inline int32
 bround(MYFLT x)
 {
-    return (long)(x >= 0 ? x + FL(0.5) : x - FL(0.5));
+    return (int32)(x >= 0 ? x + FL(0.5) : x - FL(0.5));
 }
 #endif
 

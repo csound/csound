@@ -127,8 +127,8 @@ typedef struct {
         AUXCH   auxch;
 } SPECFILT;
 
-extern void DOWNset(CSOUND *, DOWNDAT *, long);
-extern void SPECset(CSOUND *, SPECDAT *, long);
+extern void DOWNset(CSOUND *, DOWNDAT *, int32);
+extern void SPECset(CSOUND *, SPECDAT *, int32);
 
 #endif
 

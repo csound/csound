@@ -82,7 +82,7 @@ static void unquote(char *dst, char *src)
  */
 static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
 {
-    long len = p->len;
+    int32 len = p->len;
     FUNC *fi = csound->FTFind(csound, p->i_init);
     if (fi == NULL) {
       return csound->InitError(csound,
@@ -114,7 +114,7 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     FUNC *fi;
     MYFLT *f;
     MYFLT tab = *p->i_init;
-    long len  = p->len;
+    int32 len  = p->len;
 
     /* Get table */
     if (tab<FL(0.0)) tab = -tab;   /* JPff fix here */
@@ -271,8 +271,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 #else
       /* ***** EXPERIMENTAL ****************************************** */
       /* This version uses a binary bit matrix to save space and time */
-      csound->AuxAlloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
-      p->f = (unsigned long*)p->aux_f.auxp;
+      csound->AuxAlloc(csound, 1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
+      p->f = (uint32*)p->aux_f.auxp;
 #endif
       for (i = 0, ilen = 0 ; i != len ; i++, ilen += len) {
         for (j = 0 ; j != len ; j++) {
@@ -319,7 +319,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         }
         else {
          csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
-                                 i, (long) MATLENLF, MATRIXLF, pp);
+                                 i, (int32) MATLENLF, MATRIXLF, pp);
          return csound->InitError(csound, "Not a valid matrix");
        }
 #ifdef USING_CHAR
@@ -327,8 +327,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         p->f = (char*)p->aux_f.auxp;
 #else
         csound->AuxAlloc(csound,
-                         1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
-        p->f = (unsigned long*)p->aux_f.auxp;
+                         1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
+        p->f = (uint32*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {
           if (strncmp(pp, NMATRIXLF, NMATLENLF)==0) break;
@@ -456,8 +456,8 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     SCANSYN_GLOBALS *pp;
     int     n;
     int     len = p->len;
-    long    exti = p->exti;
-    long    idx = p->idx;
+    int32    exti = p->exti;
+    int32    idx = p->idx;
     MYFLT   rate = p->rate;
 
     pp = p->pp;
@@ -580,11 +580,11 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
                                   "values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
-      p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
+      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(int32), &p->aux_t);
+      p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
-        p->t[i] = (long)t->ftable[i];
+        p->t[i] = (int32)t->ftable[i];
       /* Do wraparounds */
       for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
         p->t[-i] = p->t[i];
@@ -604,7 +604,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
 static int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
     int i;
-    long tlen   = p->tlen;
+    int32 tlen   = p->tlen;
     MYFLT phs   = p->phs, inc = *p->k_freq * p->fix;
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
     MYFLT amp = *p->k_amp;

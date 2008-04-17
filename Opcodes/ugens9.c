@@ -35,7 +35,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     MYFLT *fltp;
     CVSTRUCT *cvh;
     int i, siz;
-    long     Hlenpadded = 1, obufsiz, Hlen;
+    int32     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
     if (csound->oparms->odebug)
@@ -101,10 +101,10 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 
     /* Determine size of circular output buffer */
     if (Hlen >= csound->ksmps)
-      obufsiz = (long) ceil((double) Hlen / (double) csound->ksmps)
+      obufsiz = (int32) ceil((double) Hlen / (double) csound->ksmps)
                 * csound->ksmps;
     else
-      obufsiz = (long) ceil((double) csound->ksmps / (double) Hlen) * Hlen;
+      obufsiz = (int32) ceil((double) csound->ksmps / (double) Hlen) * Hlen;
 
     siz = ((Hlenpadded + 2) + p->nchanls * ((Hlen - 1) + obufsiz)
               + (p->nchanls > 1 ? (Hlenpadded + 2) : 0));
@@ -136,11 +136,11 @@ static void writeFromCircBuf(
     MYFLT   **dst,              /* Circular source and linear destination */
     MYFLT   *sceStart,
     MYFLT   *sceEnd,            /* Address of start & end of source buffer */
-    long    numToDo)            /* How many points to write (<= circBufSize) */
+    int32    numToDo)            /* How many points to write (<= circBufSize) */
 {
     MYFLT   *srcindex = *sce;
     MYFLT   *dstindex = *dst;
-    long    breakPoint;     /* how many points to add before having to wrap */
+    int32    breakPoint;     /* how many points to add before having to wrap */
 
     breakPoint = sceEnd - srcindex + 1;
     if (numToDo >= breakPoint) { /*  we will do 2 in 1st loop, rest in 2nd. */
@@ -162,20 +162,20 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
 {
     int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
-    long   i,j;
+    int32   i,j;
     MYFLT  *ar[4];
     MYFLT  *ai = p->ain;
     MYFLT  *fftbufind;
-    long   outcnt = p->outcnt;
-    long   incount=p->incount;
-    long   Hlen = p->Hlen;
-    long   Hlenm1 = Hlen - 1;
-    long   obufsiz = p->obufsiz;
+    int32   outcnt = p->outcnt;
+    int32   incount=p->incount;
+    int32   Hlen = p->Hlen;
+    int32   Hlenm1 = Hlen - 1;
+    int32   obufsiz = p->obufsiz;
     MYFLT  *outhead = NULL;
     MYFLT  *outail = p->outail;
     MYFLT  *olap;
     MYFLT  *X;
-    long   Hlenpadded = p->Hlenpadded;
+    int32   Hlenpadded = p->Hlenpadded;
     MYFLT  scaleFac;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
@@ -349,7 +349,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     SNDFILE *infd;
     SOUNDIN IRfile;
     MYFLT   *inbuf, *fp1,*fp2;
-    long    i, j, read_in, part;
+    int32    i, j, read_in, part;
     MYFLT   *IRblock;
     MYFLT   ainput_dur, scaleFac;
     MYFLT   partitionSize;
@@ -485,8 +485,8 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
     MYFLT  *buf;
     MYFLT  *input = (MYFLT*) p->savedInput.auxp, *workWrite = p->workWrite;
     MYFLT  *a1 = p->ar1, *a2 = p->ar2, *a3 = p->ar3, *a4 = p->ar4;
-    long   i, j, count = p->inCount;
-    long   hlenpaddedplus2 = p->Hlenpadded+2;
+    int32  i, j, count = p->inCount;
+    int32  hlenpaddedplus2 = p->Hlenpadded+2;
 
     while (nsmpsi-- > 0) {
       /* Read input audio and place into buffer. */

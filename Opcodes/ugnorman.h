@@ -38,8 +38,8 @@ typedef struct atsdataloc {
 typedef struct _randiats { /* the data for the randi UG */
     int     size;   /* size of the frame in samples this should be sr/freq. */
     int     cnt;    /* sample position counter */
-    long    a1;     /* first amplitude value */
-    long    a2;     /* next  amplitude value */
+    int32   a1;     /* first amplitude value */
+    int32   a2;     /* next  amplitude value */
 } RANDIATS;
 
 typedef struct _atsnzaux {

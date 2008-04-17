@@ -24,7 +24,7 @@
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;
-    long    cnt;
+    int32   cnt;
 } TSEG;
 
 typedef struct {
@@ -32,7 +32,7 @@ typedef struct {
     MYFLT   *argums[VARGMAX];
     TSEG    *cursegp;
     FUNC    *outfunc;
-    long    nsegs;
+    int32   nsegs;
     AUXCH   auxch;
 } TABLESEG;
 
@@ -40,8 +40,8 @@ typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *isegtab;
     char    *strarg;
-    long    kcnt;
-    long    baseFr, maxFr, frSiz, prFlg, opBpos;
+    int32   kcnt;
+    int32   baseFr, maxFr, frSiz, prFlg, opBpos;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
     MYFLT   frPktim, frPrtim, asr, scale, lastPex;
     float   *frPtr;

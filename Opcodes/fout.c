@@ -951,7 +951,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
             sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
             break;
           case 'l':
-            sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
+            sprintf(outstring, strseg, (int32) MYFLT2LRND(*kvals[j]));
             break;
 
           default:

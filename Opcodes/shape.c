@@ -366,10 +366,10 @@ typedef struct {
 int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
     MYFLT  phs;
-    long   longphs;
+    int32   longphs;
 
     if ((phs = *p->initphase) >= FL(0.0)) {
-      if ((longphs = (long)phs)) {
+      if ((longphs = (int32)phs)) {
         csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;

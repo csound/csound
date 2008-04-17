@@ -219,7 +219,7 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
 
 static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
 {
-    long size;
+    int32 size;
     int ret;
 
     if ((ret = setup_globals(csound, p)) != OK)
@@ -318,7 +318,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
 }
 
 /* n is sample number for which the grain is to be scheduled */
-static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
+static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
 {
     /* make a new grain */
     MYFLT startfreqscale, endfreqscale;
@@ -523,7 +523,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, long n)
 /* this function schedules the grains that are bound to happen this k-period */
 static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 {
-    long n;
+    int32 n;
     NODE *node;
     MYFLT **waveformparams = &p->waveform1;
     MYFLT grainfreq = *p->grainfreq;

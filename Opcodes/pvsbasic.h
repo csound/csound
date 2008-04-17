@@ -137,15 +137,15 @@ typedef struct _pvsosc {
     MYFLT   *ka, *kf, *type;
     MYFLT   *framesize, *olap, *winsize, *wintype, *format;
     MYFLT incr;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSOSC;
 
 typedef struct _pvsbin {
     OPDS    h;
-    MYFLT *kamp, *kfreq;
+    MYFLT   *kamp, *kfreq;
     PVSDAT  *fin;
-    MYFLT *kbin;
-    unsigned long lastframe;
+    MYFLT   *kbin;
+    uint32  lastframe;
 } PVSBIN;
 
 typedef struct _pvsfreez {
@@ -154,7 +154,7 @@ typedef struct _pvsfreez {
     PVSDAT  *fin;
     MYFLT   *kfra, *kfrf;
     AUXCH   freez;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSFREEZE;
 
 typedef struct _pvsmooth {
@@ -163,7 +163,7 @@ typedef struct _pvsmooth {
     PVSDAT  *fin;
     MYFLT   *kfra, *kfrf;
     AUXCH   del;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSMOOTH;
 
 typedef struct _pvsmix {
@@ -171,7 +171,7 @@ typedef struct _pvsmix {
     PVSDAT  *fout;
     PVSDAT  *fa;
     PVSDAT  *fb;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSMIX;
 
 static int pvsmixset(CSOUND *, PVSMIX *p);
@@ -184,7 +184,7 @@ typedef struct _pvsfilter {
     PVSDAT  *fil;
     MYFLT   *kdepth;
     MYFLT   *gain;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSFILTER;
 
 static int pvsfilterset(CSOUND *, PVSFILTER *p);
@@ -197,7 +197,7 @@ typedef struct _pvscale {
     MYFLT   *kscal;
     MYFLT   *keepform;
     MYFLT   *gain;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSSCALE;
 
 static int pvsscaleset(CSOUND *, PVSSCALE *p);
@@ -211,7 +211,7 @@ typedef struct _pvshift {
     MYFLT   *lowest;
     MYFLT   *keepform;
     MYFLT   *gain;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSSHIFT;
 
 static int pvsshiftset(CSOUND *, PVSSHIFT *p);
@@ -225,8 +225,8 @@ typedef struct _pvsblur {
     MYFLT   *maxdel;
     AUXCH   delframes;
     MYFLT   frpsec;
-    long    count;
-    unsigned long lastframe;
+    int32   count;
+    uint32  lastframe;
 } PVSBLUR;
 
 static int pvsblurset(CSOUND *, PVSBLUR *p);
@@ -240,7 +240,7 @@ typedef struct _pvstencil {
     MYFLT   *klevel;
     MYFLT   *ifn;
     FUNC    *func;
-    unsigned long lastframe;
+    uint32  lastframe;
 } PVSTENCIL;
 
 static int pvstencilset(CSOUND *, PVSTENCIL *p);

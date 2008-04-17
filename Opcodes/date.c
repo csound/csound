@@ -45,11 +45,11 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 {
     time_t temp_time;
     char *time_string;
-    long tmp;
+    int32 tmp;
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-    tmp = (long) MYFLT2LRND(*(p->timstmp));
+    tmp = (int32) MYFLT2LRND(*(p->timstmp));
 #else
-    tmp = (long) (*(p->timstmp) + FL(0.5));
+    tmp = (int32) (*(p->timstmp) + FL(0.5));
 #endif
     if (tmp < 0) {
       temp_time = time(NULL);

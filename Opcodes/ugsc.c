@@ -308,7 +308,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
 static int phaser1set(CSOUND *csound, PHASER1 *p)
 {
     int   loop = (int) MYFLT2LONG(*p->iorder);
-    long  nBytes = (long) loop * (long) sizeof(MYFLT);
+    int32  nBytes = (int32) loop * (int32) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || p->auxx.size<nBytes ||
                                 p->auxy.auxp == NULL || p->auxy.size<nBytes) {
@@ -317,7 +317,7 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }
-    else if ((long) p->auxx.size < nBytes || (long) p->auxy.size < nBytes) {
+    else if ((int32) p->auxx.size < nBytes || (int32) p->auxy.size < nBytes) {
       /* Existing arrays too small so copy */
       void    *tmp1, *tmp2;
       size_t  oldSize1 = (size_t) p->auxx.size;
@@ -442,7 +442,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
         if (p->modetype == 1)
           freq = kbf + (kbf * ksep * j);
         else
-          freq = kbf * csound->intpow(ksep,(long)j);
+          freq = kbf * csound->intpow(ksep,(int32)j);
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order
          * allpass filter used here is similar to the

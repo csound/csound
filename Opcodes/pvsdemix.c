@@ -39,7 +39,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 {
-    long N = p->finleft->N;
+    int32 N = p->finleft->N;
     int olap = p->finleft->overlap;
     int M;
     p->beta = (int)(*p->slices);

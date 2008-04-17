@@ -39,17 +39,17 @@
 void SpectralExtract(
     float   *inp,       /* pointer to input data */
     float   *pvcopy,
-    long    fsize,      /* frame size we're working with */
-    long    MaxFrame,
+    int32    fsize,      /* frame size we're working with */
+    int32    MaxFrame,
     int     mode,
     MYFLT   freqlim
     )
 {
-    long    i, j, k;
+    int32    i, j, k;
     float   *frm0, *frm1;
-    long    ampindex, freqindex, ampfrmjump;
+    int32    ampindex, freqindex, ampfrmjump;
     MYFLT   freqTemp, freqframes[10], freqdiff=FL(0.0), ampscale;
-    long            framecurb;
+    int32            framecurb;
 
     frm0 = inp;
     frm1 = pvcopy;
@@ -96,13 +96,13 @@ void SpectralExtract(
 
 MYFLT PvocMaxAmp(
     float   *inp,       /* pointer to input data */
-    long    fsize,      /* frame size we're working with */
-    long    MaxFrame
+    int32    fsize,      /* frame size we're working with */
+    int32    MaxFrame
     )
 {
-    long    j, k;
+    int32    j, k;
     float   *frm0, *frmx;
-    long    ampindex;
+    int32    ampindex;
     MYFLT   MaxAmpInData = FL(0.0);
 
     frm0 = inp;
@@ -130,20 +130,20 @@ MYFLT PvocMaxAmp(
 
 void PvAmpGate(
     MYFLT   *buf,       /* where to get our mag/pha pairs */
-    long    fsize,      /* frame size we're working with */
+    int32    fsize,      /* frame size we're working with */
     FUNC    *ampfunc,
     MYFLT   MaxAmpInData
     )
 {
-    long    j;
-    long    ampindex, funclen, mapPoint;
+    int32    j;
+    int32    ampindex, funclen, mapPoint;
 
     funclen = ampfunc->flen;
 
     for (j=0; j<(fsize/2L + 1L); ++j) {
       ampindex = j + j;
       /* use normalised amp as index into table for amp scaling */
-      mapPoint = (long)((buf[ampindex] / MaxAmpInData) * funclen);
+      mapPoint = (int32)((buf[ampindex] / MaxAmpInData) * funclen);
       buf[ampindex] *= *(ampfunc->ftable + mapPoint);
     }
 }

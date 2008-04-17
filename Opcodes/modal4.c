@@ -156,7 +156,7 @@ static void Modal4_damp(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 static MYFLT Modal4_tick(Modal4 *m)
 {
     MYFLT temp,temp2;
-    long itemp;
+    int32 itemp;
     MYFLT temp_time, alpha;
     int length = (int)m->wave->flen;
 
@@ -180,7 +180,7 @@ static MYFLT Modal4_tick(Modal4 *m)
     }
 #endif
 
-    itemp = (long) temp_time;                /* Integer part of time address  */
+    itemp = (int32) temp_time;                /* Integer part of time address  */
     alpha = temp_time - (MYFLT)itemp;     /*  fractional part of time address */
     m->w_lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
     m->w_lastOutput = m->w_lastOutput +      /*  same as alpha*data[temp+1]   */
@@ -216,7 +216,7 @@ static MYFLT Modal4_tick(Modal4 *m)
       }
 #endif
 
-      itemp = (long) temp_time;    /*  Integer part of time address    */
+      itemp = (int32) temp_time;    /*  Integer part of time address    */
                                    /*  fractional part of time address */
       alpha = temp_time - (MYFLT)itemp;
       m->v_lastOutput = m->vibr->ftable[itemp]; /* Do linear interpolation */
@@ -308,8 +308,8 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int) ((long) (p->h.insdshead->offtim * csound->ekr)
-                      - (long) (csound->ekr * *p->dettack));
+    p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
+                      - (int32) (csound->ekr * *p->dettack));
     return OK;
 }
 

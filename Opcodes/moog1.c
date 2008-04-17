@@ -116,7 +116,7 @@ MYFLT FormSwep_tick(CSOUND *csound,
 
 static MYFLT Samp_tick(Wave *p)
 {
-    long    temp, temp1;
+    int32    temp, temp1;
     MYFLT   temp_time, alpha;
     MYFLT   lastOutput;
 
@@ -136,7 +136,7 @@ static MYFLT Samp_tick(Wave *p)
         temp_time += p->wave->flen;      /*  loop back to beginning */
     }
 
-    temp = (long) temp_time;    /*  Integer part of time address    */
+    temp = (int32) temp_time;    /*  Integer part of time address    */
     temp1 = temp + 1;
     if (temp1==p->wave->flen) temp1 = 0; /* Wrap!! */
     /*  fractional part of time address */
@@ -185,7 +185,7 @@ int Moog1(CSOUND *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
-    long        n, nsmps = csound->ksmps;
+    int32        n, nsmps = csound->ksmps;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
 
@@ -217,7 +217,7 @@ int Moog1(CSOUND *csound, MOOG1 *p)
     for (n = 0; n<nsmps; n++) {
       MYFLT     temp;
       MYFLT     output;
-      long      itemp;
+      int32      itemp;
       MYFLT     temp_time, alpha;
 
       if (vib != FL(0.0)) {
@@ -235,7 +235,7 @@ int Moog1(CSOUND *csound, MOOG1 *p)
       if (p->attk.time >= (MYFLT)p->attk.wave->flen)
         output = FL(0.0);                                    /* One shot */
       else {
-        itemp = (long) temp_time;    /*  Integer part of time address    */
+        itemp = (int32) temp_time;   /*  Integer part of time address    */
                                      /*  fractional part of time address */
         alpha = temp_time - (MYFLT)itemp;
 #ifdef DEBUG

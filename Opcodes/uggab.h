@@ -48,7 +48,7 @@ typedef struct  {
     OPDS        h;
     MYFLT       *out, *amp, *freq, *ift, *iphs;
     FUNC        *ftp;
-    long        tablen;
+    int32        tablen;
     double      tablenUPsr;
     double      phs;
 } POSC;
@@ -57,7 +57,7 @@ typedef struct  {
     OPDS        h;
     MYFLT       *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
     FUNC        *ftp;
-    long        tablen;
+    int32        tablen;
     MYFLT       fsr;
     double      phs, looplength;
 } LPOSC;
@@ -80,7 +80,7 @@ typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kincr ;
     double      index;
-    long        sample_index;
+    int32        sample_index;
     MYFLT       value;
 } FOLD;
 
@@ -119,7 +119,7 @@ typedef struct {
         MYFLT   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        long    tablen, phsAmpRate, phsFreqRate;
+        int32    tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBRATO;
@@ -129,7 +129,7 @@ typedef struct {
         MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        long    tablen, phsAmpRate, phsFreqRate;
+        int32    tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBR;
@@ -138,7 +138,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3;
         int     flag;
-        long    phs1,phs2,phs3;
+        int32    phs1,phs2,phs3;
         MYFLT   num1a,num2a, dfdmax1,num1b,num2b, dfdmax2,num1c,num2c, dfdmax3;
 } JITTER2;
 
@@ -146,7 +146,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
         MYFLT   xcps;
-        long    phs;
+        int32    phs;
         int     initflag;
         MYFLT   num1, num2, dfdmax;
 } JITTER;
@@ -191,7 +191,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps;
         int16   cpscod;
-        long    phs;
+        int32   phs;
         MYFLT   num1, num2, dfdmax;
 } RANDOMI;
 
@@ -199,7 +199,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps;
         int16   cpscod;
-        long    phs;
+        int32   phs;
         MYFLT   num1;
 } RANDOMH;
 

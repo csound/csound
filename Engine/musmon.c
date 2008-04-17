@@ -57,7 +57,7 @@ typedef struct evt_cb_func {
 } EVT_CB_FUNC;
 
 typedef struct {
-    int32    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
+    int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
     int16   srngflg;
     int16   sectno;
     int     lplayed;

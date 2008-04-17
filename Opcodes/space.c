@@ -73,7 +73,7 @@ static int space(CSOUND *csound, SPACE *p)
     MYFLT   fabxndx, fabyndx;
     int     n;
     FUNC    *ftp;
-    long    indx, length, halflen;
+    int32    indx, length, halflen;
     MYFLT   v1, v2, fract, ndx;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
@@ -83,8 +83,8 @@ static int space(CSOUND *csound, SPACE *p)
 
       ndx = *p->time * RESOLUTION; /* when data is res. frames/second */
       length = ftp->flen;
-      halflen = (long)(length * FL(0.5));
-      indx = (long) floor(ndx);
+      halflen = (int32)(length * FL(0.5));
+      indx = (int32) floor(ndx);
       fract = ndx - indx;
 
       if (ndx > (halflen-1)) {
@@ -202,7 +202,7 @@ static int spdist(CSOUND *csound, SPDIST *p)
     MYFLT *r;
     MYFLT distance, xndx, yndx;
     FUNC *ftp;
-    long        indx, length, halflen;
+    int32        indx, length, halflen;
     MYFLT       v1, v2, fract, ndx;
 
     r = p->r;
@@ -214,8 +214,8 @@ static int spdist(CSOUND *csound, SPDIST *p)
 
       ndx = *p->time * RESOLUTION; /* when data is 10 frames/second */
       length = ftp->flen;
-      halflen = (long)(length * FL(0.5));
-      indx = (long) floor(ndx);
+      halflen = (int32)(length * FL(0.5));
+      indx = (int32) floor(ndx);
       fract = ndx - indx;
 
       if (ndx > (halflen-1)) {

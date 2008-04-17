@@ -35,7 +35,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     int     nsegs;
     MYFLT   **argp, dur;
     FUNC    *nxtfunc, *curfunc;
-    long    flength;
+    int32    flength;
     int     i;
 
     {
@@ -76,7 +76,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
                 segp->d = dur * csound->ekr;
                 segp->function =  curfunc;
                 segp->nxtfunction = nxtfunc;
-                segp->cnt = (long) (segp->d + .5);
+                segp->cnt = (int32) (segp->d + .5);
         }
         else break;             /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -93,7 +93,7 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0);
     int         i;
-    long        flength, upcnt;
+    int32        flength, upcnt;
 
     /* RWD fix */
     if (p->auxch.auxp==NULL) {
@@ -102,7 +102,7 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (long)segp->d-segp->cnt;
+    upcnt = (int32)segp->d-segp->cnt;
     if (upcnt > 0)
       durovercnt = segp->d/upcnt;
     while (--segp->cnt < 0)
@@ -124,7 +124,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0);
     int         i;
-    long        flength, upcnt;
+    int32        flength, upcnt;
 
     /* RWD fix */
     if (p->auxch.auxp==NULL) {
@@ -133,7 +133,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (long)segp->d-segp->cnt;
+    upcnt = (int32)segp->d-segp->cnt;
     if (upcnt > 0) cntoverdur = upcnt/ segp->d;
     while(--segp->cnt < 0)
       p->cursegp = ++segp;
@@ -270,7 +270,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     int       specwp = (int) *p->ispecwp;   /* spectral warping flag */
     MYFLT     pex, scaleFac = p->scale;
     TABLESEG  *q = p->tableseg;
-    long      i, j;
+    int32      i, j;
 
     /* RWD fix */
     if (p->auxch.auxp == NULL) {

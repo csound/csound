@@ -40,7 +40,7 @@ static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
-    long        bufsize;
+    int32        bufsize;
     MYFLT       *d;
 
     if ((gftp = csound->FTFind(csound, p->igfn)) != NULL)
@@ -79,9 +79,9 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
     MYFLT       *xdns, *xamp, *xlfr, *temp, amp;
-    long        isc, isc2, inc, inc2, lb, lb2;
-    long        n, i, bufsize;
-    long        ekglen;
+    int32        isc, isc2, inc, inc2, lb, lb2;
+    int32        n, i, bufsize;
+    int32        ekglen;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
 
@@ -104,8 +104,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
-    ekglen  = (long)(csound->esr * kglen);   /* Useful constant */
-    inc2    = (long)(csound->sicvt / kglen); /* Constant for each cycle */
+    ekglen  = (int32)(csound->esr * kglen);   /* Useful constant */
+    inc2    = (int32)(csound->sicvt / kglen); /* Constant for each cycle */
     bufsize = csound->ksmps + ekglen;
     xdns    = p->xdns;
     xamp    = p->xamp;
@@ -117,9 +117,9 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(csound, *p->kabnd);
-        isc = (long) Unirand(csound, p->pr);
+        isc = (int32) Unirand(csound, p->pr);
         isc2 = 0;
-        inc = (long) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
+        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
 
         temp = buf + i;
         n = ekglen;
