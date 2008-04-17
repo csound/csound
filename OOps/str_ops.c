@@ -429,10 +429,10 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
 }
 
 int strtol_opcode(CSOUND *csound, STRSET_OP *p)
-{
+{ 
     char  *s = NULL;
     int   sgn = 0, radix = 10;
-    long  x = 0L;
+    int32  x = 0L;
 
     if (p->XSTRCODE)
       s = (char*) p->str;
@@ -466,19 +466,19 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
       return StrOp_ErrMsg(p, "invalid format");
     switch (radix) {
       case 8:
-        while (*s >= '0' && *s <= '7') x = (x * 8L) + (long) (*s++ - '0');
+        while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32) (*s++ - '0');
         break;
       case 10:
-        while (*s >= '0' && *s <= '9') x = (x * 10L) + (long) (*s++ - '0');
+        while (*s >= '0' && *s <= '9') x = (x * 10L) + (int32) (*s++ - '0');
         break;
       default:
         while (1) {
           if (*s >= '0' && *s <= '9')
-            x = (x * 16L) + (long) (*s++ - '0');
+            x = (x * 16L) + (int32) (*s++ - '0');
           else if (*s >= 'A' && *s <= 'F')
-            x = (x * 16L) + (long) (*s++ - 'A') + 10L;
+            x = (x * 16L) + (int32) (*s++ - 'A') + 10L;
           else if (*s >= 'a' && *s <= 'f')
-            x = (x * 16L) + (long) (*s++ - 'a') + 10L;
+            x = (x * 16L) + (int32) (*s++ - 'a') + 10L;
           else
             break;
         }

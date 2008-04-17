@@ -39,7 +39,7 @@ typedef struct {
     MYFLT   *out, *in, *fco, *res, *max, *iskip;
     double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
     MYFLT   maxint;
-    short   fcocod, rezcod;
+    int16   fcocod, rezcod;
 } MOOGVCF;
 
                                 /* Structure for rezzy filter */
@@ -47,7 +47,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *rez, *mode, *iskip;
     double  xnm1, xnm2, ynm1, ynm2;
-    short   fcocod, rezcod;
+    int16   fcocod, rezcod;
 } REZZY;
 
                                 /* Structure for distortion */

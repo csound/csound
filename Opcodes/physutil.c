@@ -206,12 +206,6 @@ void make_OnePole(OnePole* p)
     p->outputs = FL(0.0);
 }
 
-/* void OnePole_clear(OnePole* p) */
-/* { */
-/*     p->outputs = FL(0.0); */
-/*     p->lastOutput = FL(0.0); */
-/* } */
-
 void OnePole_setPole(OnePole* p, MYFLT aValue)
 {
     p->poleCoeff = aValue;

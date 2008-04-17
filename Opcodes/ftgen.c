@@ -116,7 +116,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
       fp[5] = *p->p5;                                   /* else no string */
     }
     n = csound->GetInputArgCnt(p);
-    ftevt->pcnt = (short) n;
+    ftevt->pcnt = (int16) n;
     n -= 5;
     if (n > 0) {
       MYFLT **argp = p->argums;
@@ -199,7 +199,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         memset(&header, 0, sizeof(FUNC));
         /* ***** Need to do byte order here ***** */
         fread(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
-        header.fno = (long) fno;
+        header.fno = (int32) fno;
         if (csound->FTAlloc(csound, fno, (int) header.flen) != 0)
           goto err;
         ftp = ft_func(csound, &fno_f);
@@ -219,7 +219,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         char  s[64], *s1;
         int   fno = (int) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
-        long  j;
+        int32  j;
 
         memset(&header, 0, sizeof(FUNC));
         /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
@@ -274,7 +274,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         fgets(s, 64, file);
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
-        header.fno = (long) fno;
+        header.fno = (int32) fno;
         if (csound->FTAlloc(csound, fno, (int) header.flen) != 0)
           goto err;
         ftp = ft_func(csound, &fno_f);
@@ -340,7 +340,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
 
         if ((ftp = ft_func(csound, *argp)) != NULL) {
           MYFLT *table = ftp->ftable;
-          long flen = ftp->flen;
+          int32 flen = ftp->flen;
           fwrite(ftp, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
           fwrite(table, sizeof(MYFLT), flen + 1, file);
         }
@@ -356,8 +356,8 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
         FUNC *ftp;
 
         if ((ftp = ft_func(csound, *argp)) != NULL) {
-          long flen = ftp->flen;
-          long j;
+          int32 flen = ftp->flen;
+          int32 j;
           MYFLT *table = ftp->ftable;
           /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
              will be modified, the following code has to be modified too */

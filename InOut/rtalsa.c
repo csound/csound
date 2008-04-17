@@ -161,7 +161,7 @@ static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
                                    int play)
 {
-    short   endian_test = 0x1234;
+    int16   endian_test = 0x1234;
 
     (*convFunc) = NULL;
     /* select conversion routine */

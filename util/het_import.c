@@ -44,7 +44,7 @@ void het_import_usage(CSOUND *csound)
     csound->Message(csound, Str("Usage: het_import csvtext_file het_file\n"));
 }
 
-short getnum(FILE* inf, char *term)
+int16 getnum(FILE* inf, char *term)
 {
     char buff[100];
     int  cc;
@@ -58,7 +58,7 @@ short getnum(FILE* inf, char *term)
     }
     buff[p]='\0';
     *term = cc;
-    return (short)atoi(buff);
+    return (int16)atoi(buff);
 }
 
 static int het_import(CSOUND *csound, int argc, char **argv)
@@ -83,13 +83,13 @@ static int het_import(CSOUND *csound, int argc, char **argv)
     }
 
     for (;;) {
-      short x;
+      int16 x;
       char term;
-      short end = END;
+      int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
-      fwrite(&x, 1, sizeof(short), outf);
-      if (term == '\n')  fwrite(&end, 1, sizeof(short), outf);
+      fwrite(&x, 1, sizeof(int16), outf);
+      if (term == '\n')  fwrite(&end, 1, sizeof(int16), outf);
     }
     fclose(outf);
     fclose(infd);

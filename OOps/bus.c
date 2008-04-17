@@ -313,11 +313,11 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 int pvsin_init(CSOUND *csound, FCHAN *p)
 {
     int N;
-    N = p->init.N = (long)(*p->N ? *p->N : 1024);
-    p->init.overlap = (long) (*p->overlap ? *p->overlap : p->init.N/4);
-    p->init.winsize = (long) (*p->winsize ? *p->winsize : p->init.N);
-    p->init.wintype = (long)(*p->wintype);
-    p->init.format = (long)(*p->format);
+    N = p->init.N = (int32)(*p->N ? *p->N : 1024);
+    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.N/4);
+    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.N);
+    p->init.wintype = (int32)(*p->wintype);
+    p->init.format = (int32)(*p->format);
     p->init.framecount = 0;
     memcpy(p->r, &p->init, sizeof(PVSDAT)-sizeof(AUXCH));
     if (p->r->frame.auxp == NULL ||
@@ -665,9 +665,9 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
     }
     switch (type) {
     case CSOUND_CONTROL_CHANNEL_INT:
-      dflt = (MYFLT) ((long) MYFLT2LRND(dflt));
-      min = (MYFLT) ((long) MYFLT2LRND(min));
-      max = (MYFLT) ((long) MYFLT2LRND(max));
+      dflt = (MYFLT) ((int32) MYFLT2LRND(dflt));
+      min = (MYFLT) ((int32) MYFLT2LRND(min));
+      max = (MYFLT) ((int32) MYFLT2LRND(max));
       break;
     case CSOUND_CONTROL_CHANNEL_LIN:
     case CSOUND_CONTROL_CHANNEL_EXP:

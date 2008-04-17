@@ -118,7 +118,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
@@ -132,7 +132,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     do {                                /* init each seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) < 0)
+      if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0)
         segp->cnt = 0;
       segp++;
     } while (--nsegs);
@@ -231,9 +231,9 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     MYFLT       dur;
     MYFLT       len = csound->curip->p3;
     MYFLT       release = *argp[3];
-    long        relestim;
+    int32        relestim;
 
-    if (len<=FL(0.0)) len = FL(100000.0); /* MIDI case set long */
+    if (len<=FL(0.0)) len = FL(100000.0); /* MIDI case set int32 */
     len -= release;         /* len is time remaining */
     if (len<FL(0.0)) {         /* Odd case of release time greater than dur */
       release = csound->curip->p3; len = FL(0.0);
@@ -241,12 +241,12 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csoundAuxAlloc(csound, (long) nsegs * sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32) nsegs * sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
     else if (**argp > FL(0.0))
-      memset(p->auxch.auxp, 0, (long)nsegs*sizeof(SEG));
+      memset(p->auxch.auxp, 0, (int32)nsegs*sizeof(SEG));
     if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
     p->curval = FL(0.0);
     p->curcnt = 0;
@@ -257,7 +257,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (dur > len) dur = len;
     len -= dur;
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Attack */
@@ -265,7 +265,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (dur > len) dur = len;
     len -= dur;
     segp->nxtpt = FL(1.0);
-    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Decay */
@@ -273,7 +273,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (dur > len) dur = len;
     len -= dur;
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Sustain */
@@ -281,15 +281,15 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     dur = len;
 /*  dur = csound->curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     segp++;
                                 /* Release */
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (long)(release * csound->ekr + FL(0.5))) == 0)
+    if ((segp->cnt = (int32)(release * csound->ekr + FL(0.5))) == 0)
       segp->cnt = 0;
     if (midip) {
-      p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));   /* Release time?? */
+      p->xtra = (int32)(*argp[5] * csound->ekr + FL(0.5));   /* Release time?? */
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)relestim;
@@ -314,7 +314,7 @@ int madsrset(CSOUND *csound, LINSEG *p)
 
 int lsgrset(CSOUND *csound, LINSEG *p)
 {
-    long relestim;
+    int32 relestim;
     lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = -1;
@@ -407,7 +407,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -427,7 +427,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
         d = dur * csound->ekr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-        segp->cnt = (long) (d + FL(0.5));
+        segp->cnt = (int32) (d + FL(0.5));
 /*       } */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
@@ -453,7 +453,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -473,7 +473,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
         d = dur * csound->esr;
         segp->val = val;
         segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-        segp->cnt = (long) (d + FL(0.5));
+        segp->cnt = (int32) (d + FL(0.5));
 /*       } */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
@@ -530,7 +530,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(XSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
       segp = (XSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;         /* set endcount for safety */
@@ -545,22 +545,22 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     sus = len;
     segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
-    segp[0].cnt = (long) (delay*csound->ekr + FL(0.5));
+    segp[0].cnt = (int32) (delay*csound->ekr + FL(0.5));
     dur = attack*csound->ekr;
     segp[1].val = FL(0.001);
     segp[1].mlt = (MYFLT) pow(1000.0, 1.0/(double)dur);
-    segp[1].cnt = (long) (dur + FL(0.5));
+    segp[1].cnt = (int32) (dur + FL(0.5));
     dur = decay*csound->ekr;
     segp[2].val = FL(1.0);
     segp[2].mlt = (MYFLT) pow((double)*argp[2], 1.0/(double)dur);
-    segp[2].cnt = (long) (dur + FL(0.5));
+    segp[2].cnt = (int32) (dur + FL(0.5));
     segp[3].val = *argp[2];
     segp[3].mlt = FL(1.0);
-    segp[3].cnt = (long) (sus*csound->ekr + FL(0.5));
+    segp[3].cnt = (int32) (sus*csound->ekr + FL(0.5));
     dur = release*csound->ekr;
     segp[4].val = *argp[2];
     segp[4].mlt = (MYFLT) pow(0.001/(double)*argp[2], 1.0/(double)dur);
-    segp[4].cnt = MAXPOS; /*(long) (dur + FL(0.5)); */
+    segp[4].cnt = MAXPOS; /*(int32) (dur + FL(0.5)); */
     return OK;
 }
 
@@ -617,7 +617,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     nsegs = p->INOCOUNT >> 1;               /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         (unsigned int)nsegs*sizeof(SEG) > (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
     }
     argp = p->argums;
@@ -630,7 +630,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     do {                            /* init & chk each real seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (long)(dur * csound->ekr + FL(0.5))) <= 0)
+      if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) <= 0)
         segp->cnt = 0;
       else if (segp->nxtpt * prvpt <= FL(0.0))
         goto experr;
@@ -665,7 +665,7 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     nsegs = 4;          /* DXDSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(SEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
       segp = (SEG *) p->auxch.auxp;
     }
     if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
@@ -676,15 +676,15 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     delay += FL(0.001);
     attack -= FL(0.001);
     segp[0].nxtpt = FL(0.001);
-    segp[0].cnt = (long) (delay*csound->ekr + FL(0.5));
+    segp[0].cnt = (int32) (delay*csound->ekr + FL(0.5));
     segp[1].nxtpt = FL(1.0);
-    segp[1].cnt = (long) (attack*csound->ekr + FL(0.5));
+    segp[1].cnt = (int32) (attack*csound->ekr + FL(0.5));
     segp[2].nxtpt = *argp[2];
-    segp[2].cnt = (long) (decay*csound->ekr + FL(0.5));
+    segp[2].cnt = (int32) (decay*csound->ekr + FL(0.5));
     segp[3].nxtpt = FL(0.001);
-    segp[3].cnt = (long) (rel*csound->ekr + FL(0.5));
+    segp[3].cnt = (int32) (rel*csound->ekr + FL(0.5));
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));     /* Release time?? */
+    p->xtra = (int32)(*argp[5] * csound->ekr + FL(0.5));     /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -780,7 +780,7 @@ int lnnset(CSOUND *csound, LINEN *p)
     MYFLT a,b,dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      p->cnt1 = (long)(*p->iris * csound->ekr + FL(0.5));
+      p->cnt1 = (int32)(*p->iris * csound->ekr + FL(0.5));
       if (p->cnt1 > 0L) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
         p->val = FL(0.0);
@@ -788,13 +788,13 @@ int lnnset(CSOUND *csound, LINEN *p)
       else p->inc1 = p->val = FL(1.0);
       a = dur * csound->ekr + FL(0.5);
       b = *p->idec * csound->ekr + FL(0.5);
-      if ((long) b > 0L) {
-        p->cnt2 = (long) (a - b);
+      if ((int32) b > 0L) {
+        p->cnt2 = (int32) (a - b);
         p->inc2 = FL(1.0) /  b;
       }
       else {
         p->inc2 = FL(1.0);
-        p->cnt2 = (long) a;
+        p->cnt2 = (int32) a;
       }
       p->lin1 = FL(0.0);
       p->lin2 = FL(1.0);
@@ -871,7 +871,7 @@ int linen(CSOUND *csound, LINEN *p)
 
 int lnrset(CSOUND *csound, LINENR *p)
 {
-    p->cnt1 = (long)(*p->iris * csound->ekr + FL(0.5));
+    p->cnt1 = (int32)(*p->iris * csound->ekr + FL(0.5));
     if (p->cnt1 > 0L) {
       p->inc1 = FL(1.0) / (MYFLT)p->cnt1;
       p->val = FL(0.0);
@@ -966,7 +966,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
-    long        cnt1;
+    int32        cnt1;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
@@ -996,7 +996,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
       else asym = FL(0.0);
       if ((irise = *p->irise) > FL(0.0)) {
         p->phs = 0;
-        p->ki = (long) (csound->kicvt / irise);
+        p->ki = (int32) (csound->kicvt / irise);
         p->val = *ftp->ftable;
       }
       else {
@@ -1007,7 +1007,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
       if (!(*(ftp->ftable + ftp->flen))) {
         return csound->InitError(csound, Str("rise func ends with zero"));
       }
-      cnt1 = (long) ((idur - irise - *p->idec) * csound->ekr + FL(0.5));
+      cnt1 = (int32) ((idur - irise - *p->idec) * csound->ekr + FL(0.5));
       if (cnt1 < 0L) {
         cnt1 = 0L;
         nk = csound->ekr;
@@ -1034,7 +1034,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
 int knvlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
-    long        phs;
+    int32        phs;
     MYFLT       fact, v1, fract, *ftab;
 
     ftp = p->ftp;
@@ -1077,7 +1077,7 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
 int envlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
-    long        phs;
+    int32        phs;
     int         n, nsmps=csound->ksmps;
     MYFLT       *xamp, *rslt, val, nxtval, li, v1, fract, *ftab;
 
@@ -1164,7 +1164,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
     else asym = FL(0.0);
     if ((irise = *p->irise) > FL(0.0)) {
       p->phs = 0L;
-      p->ki = (long) (csound->kicvt / irise);
+      p->ki = (int32) (csound->kicvt / irise);
       p->val = *ftp->ftable;
     }
     else {
@@ -1177,8 +1177,8 @@ int evrset(CSOUND *csound, ENVLPR *p)
     }
     p->mlt1 = (MYFLT)pow((double)iatss, (double)csound->onedkr);
     if (*p->idec > FL(0.0)) {
-      long rlscnt = (long)(*p->idec * csound->ekr + FL(0.5));
-      if ((p->rindep = (long)*p->irind))
+      int32 rlscnt = (int32)(*p->idec * csound->ekr + FL(0.5));
+      if ((p->rindep = (int32)*p->irind))
         p->rlscnt = rlscnt;
       else if (rlscnt > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)rlscnt;
@@ -1194,7 +1194,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
 int knvlpxr(CSOUND *csound, ENVLPR *p)
 {
     MYFLT  fact;
-    long   rlscnt;
+    int32   rlscnt;
 
     if (!p->rlsing) {                   /* if not in reles seg  */
       if (p->h.insdshead->relesing) {
@@ -1206,7 +1206,7 @@ int knvlpxr(CSOUND *csound, ENVLPR *p)
       }
       if (p->phs >= 0) {                /* do fn rise for seg 1 */
         FUNC *ftp = p->ftp;
-        long phs = p->phs;
+        int32 phs = p->phs;
         MYFLT fract = PFRAC(phs);
         MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
         MYFLT v1 = *ftab++;
@@ -1238,7 +1238,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
 #pragma options(!global_optimizer)
 #endif
     int    n, nsmps=csound->ksmps;
-    long   rlscnt;
+    int32   rlscnt;
     MYFLT  *xamp, *rslt, val, nxtval, li;
 
     xamp = p->xamp;
@@ -1254,7 +1254,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
       }
       if (p->phs >= 0) {                /* do fn rise for seg 1 */
         FUNC *ftp = p->ftp;
-        long phs = p->phs;
+        int32 phs = p->phs;
         MYFLT fract = PFRAC(phs);
         MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
         MYFLT v1 = *ftab++;

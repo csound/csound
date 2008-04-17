@@ -154,7 +154,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     /* Initialize random number generator */
     if (*p->iseed >=0) {
-      p->grnd = (short)(*p->iseed * FL(32768.0));       /* IV - Jul 11 2002 */
+      p->grnd = (int16)(*p->iseed * FL(32768.0));       /* IV - Jul 11 2002 */
     }
 
                                 /* Initialize variables....*/

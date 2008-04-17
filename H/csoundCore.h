@@ -205,9 +205,9 @@ extern "C" {
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
     int16   muted;
-    long    localen;
-    long    opdstot;                /* Total size of opds structs in instr */
-    long    *inslist;               /* Only used in parsing (?) */
+    int32    localen;
+    int32    opdstot;                /* Total size of opds structs in instr */
+    int32    *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */
@@ -239,7 +239,7 @@ extern "C" {
 
   typedef struct auxch {
     struct auxch *nxtchp;
-    long    size;
+    int32    size;
     void    *auxp, *endp;   /* was char* */
   } AUXCH;
 
@@ -260,7 +260,7 @@ extern "C" {
 
   typedef struct dklst {
     struct dklst *nxtlst;
-    long    pgmno;
+    int32    pgmno;
     /** cnt + keynos */
     MYFLT   keylst[1];
   } DKLST;
@@ -406,19 +406,19 @@ extern "C" {
 
   typedef struct {
     MYFLT   *begp, *curp, *endp, feedback[6];
-    long    scount;
+    int32    scount;
   } OCTDAT;
 
   typedef struct {
-    long    npts, nocts, nsamps;
+    int32    npts, nocts, nsamps;
     MYFLT   lofrq, hifrq, looct, srate;
     OCTDAT  octdata[MAXOCTS];
     AUXCH   auxch;
   } DOWNDAT;
 
   typedef struct {
-    long    ktimstamp, ktimprd;
-    long    npts, nfreqs, dbout;
+    int32    ktimstamp, ktimprd;
+    int32    npts, nfreqs, dbout;
     DOWNDAT *downsrcp;
     AUXCH   auxch;
   } SPECDAT;
@@ -453,13 +453,13 @@ extern "C" {
 
   typedef struct {
     /** table length, not including the guard point */
-    long    flen;
+    int32    flen;
     /** length mask ( = flen - 1) for power of two table size, 0 otherwise */
-    long    lenmask;
+    int32    lenmask;
     /** log2(MAXLEN / flen) for power of two table size, 0 otherwise */
-    long    lobits;
+    int32    lobits;
     /** 2^lobits - 1 */
-    long    lomask;
+    int32    lomask;
     /** 1 / 2^lobits */
     MYFLT   lodiv;
     /** LOFACT * (table_sr / orch_sr), cpscvt = cvtbas / base_freq */
@@ -469,15 +469,15 @@ extern "C" {
     /** release loop mode (0: none, 1: forward, 2: forward and backward) */
     int16   loopmode2;
     /** sustain loop start and end in sample frames */
-    long    begin1, end1;
+    int32    begin1, end1;
     /** release loop start and end in sample frames */
-    long    begin2, end2;
+    int32    begin2, end2;
     /** sound file length in sample frames (flenfrms = soundend - 1) */
-    long    soundend, flenfrms;
+    int32    soundend, flenfrms;
     /** number of channels */
-    long    nchanls;
+    int32    nchanls;
     /** table number */
-    long    fno;
+    int32    fno;
     /** GEN01 parameters */
     GEN01ARGS gen01args;
     /** table data (flen + 1 MYFLT values) */
@@ -486,7 +486,7 @@ extern "C" {
 
   typedef struct {
     CSOUND  *csound;
-    long    flen;
+    int32    flen;
     int     fno, guardreq;
     EVTBLK  e;
   } FGDATA;
@@ -502,7 +502,7 @@ extern "C" {
     char    filename[256];      /* Made larger RWD */
     char    *beginp;
     char    *endp;
-    long    length;
+    int32    length;
     struct MEMFIL *next;
   } MEMFIL;
 
@@ -556,7 +556,7 @@ extern "C" {
     char        *filename;
     struct pvx_memfile_ *nxt;
     float       *data;
-    unsigned long nframes;
+    uint32 nframes;
     int         format;
     int         fftsize;
     int         overlap;
@@ -589,7 +589,7 @@ extern "C" {
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
   typedef union {
-    unsigned long dwData;
+    uint32 dwData;
     unsigned char bData[4];
   } MIDIMESSAGE;
 
@@ -621,7 +621,7 @@ extern "C" {
 
   typedef struct eventnode {
     struct eventnode  *nxt;
-    unsigned long     start_kcnt;
+    uint32     start_kcnt;
     EVTBLK            evt;
   } EVTNODE;
 
@@ -632,7 +632,7 @@ extern "C" {
   } TEMPO;
 
   typedef struct opcodinfo {
-    long    instno;
+    int32    instno;
     char    *name, *intypes, *outtypes;
     int16   inchns, outchns, perf_incnt, perf_outcnt;
     int16   *in_ndx_list, *out_ndx_list;
@@ -1079,7 +1079,7 @@ extern const uint32_t csPlayScoMask;
     int           *opcode_list;
     OENTRY        *oplstend;
     int           maxopcno;
-    long          nrecs;
+    int32          nrecs;
     FILE*         Linepipe;
     int           Linefd;
     void          *csoundCallbacks_;
@@ -1088,7 +1088,7 @@ extern const uint32_t csPlayScoMask;
     MYFLT         maxamp[MAXCHNLS];
     MYFLT         smaxamp[MAXCHNLS];
     MYFLT         omaxamp[MAXCHNLS];
-    unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
+    uint32        maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
     FILE*         scorein;
     FILE*         scoreout;
     MYFLT         *pool;
@@ -1100,7 +1100,7 @@ extern const uint32_t csPlayScoMask;
     int           inerrcnt, synterrcnt, perferrcnt;
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
-    long          rngcnt[MAXCHNLS];
+    int32          rngcnt[MAXCHNLS];
     int16         rngflg, multichan;
     void          *evtFuncChain;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
@@ -1142,8 +1142,8 @@ extern const uint32_t csPlayScoMask;
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    long          polmax;
-    long          toklen;
+    int32          polmax;
+    int32          toklen;
     char          *tokenstring;
     POLISH        *polish;
     TOKEN         *token;
@@ -1181,8 +1181,8 @@ extern const uint32_t csPlayScoMask;
     int           delayr_stack_depth;   /* ugens6.c */
     void          *first_delayr;
     void          *last_delayr;
-    long          revlpsiz[6];
-    long          revlpsum;
+    int32          revlpsiz[6];
+    int32          revlpsum;
     double        rndfrac;              /* aops.c */
     MYFLT         *logbase2;
     NAMES         *omacros, *smacros;
@@ -1236,8 +1236,8 @@ extern const uint32_t csPlayScoMask;
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
-    long          instxtcount, optxtsize;
-    long          poolcount, gblfixed, gblacount, gblscount;
+    int32          instxtcount, optxtsize;
+    int32          poolcount, gblfixed, gblacount, gblscount;
     CsoundChannelIOCallback_t   channelIOCallback_;
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     const unsigned char *strhash_tabl_8;

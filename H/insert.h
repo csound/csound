@@ -42,7 +42,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *idel, *idur;
     LBLBLK  *lblblk;
-    long    cnt1, cnt2;
+    int32   cnt1, cnt2;
 } TIMOUT;
 
 typedef struct {

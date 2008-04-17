@@ -55,8 +55,8 @@ typedef struct MACRO {          /* To store active macros */
 } MACRO;
 
 typedef struct in_stack {
-    short   string;
-    short   args;
+    int16   string;
+    int16   args;
     char    *body;
     FILE    *file;
     void    *fd;
@@ -85,7 +85,7 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct {
     MACRO   *macros;
-    long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
+    int32    lenmax /* = LENMAX */;  /* Length of input line buffer  */
     char    *ortext;
     char    **linadr;               /* adr of each line in text     */
 #if 0   /* unused */
@@ -95,7 +95,7 @@ typedef struct {
     char    *collectbuf;            /* splitline collect buffer     */
     char    **group;                /* splitline local storage      */
     char    **grpsav;               /* copy of above                */
-    long    grpmax /* = GRPMAX */;  /* Size of group structure      */
+    int32    grpmax /* = GRPMAX */;  /* Size of group structure      */
     int     opgrpno;                /* grpno identified as opcode   */
     int     linopnum;               /* data for opcode in this line */
     char    *linopcod;
@@ -114,18 +114,18 @@ typedef struct {
     int     pop;                    /* Number of macros to pop      */
     int     ingappop /* = 1 */;
     int     linepos /* = -1 */;
-    long    *typemask_tabl;
-    long    *typemask_tabl_in, *typemask_tabl_out;
-    long    orchsiz;
+    int32    *typemask_tabl;
+    int32    *typemask_tabl_in, *typemask_tabl_out;
+    int32    orchsiz;
     IFLABEL *iflabels;
     int     repeatingElseifLine;
-    long    tempNum /* = 300L */;
+    int32    tempNum /* = 300L */;
     int     repeatingElseLine;
-    short   grpcnt, nxtest /* = 1 */;
-    short   xprtstno, polcnt;
-    short   instrblk, instrcnt;
-    short   opcodblk;               /* IV - Sep 8 2002 */
-    short   opcodflg;               /* 1: xin, 2: xout, 4: setksmps */
+    int16   grpcnt, nxtest /* = 1 */;
+    int16   xprtstno, polcnt;
+    int16   instrblk, instrcnt;
+    int16   opcodblk;               /* IV - Sep 8 2002 */
+    int16   opcodflg;               /* 1: xin, 2: xout, 4: setksmps */
     IFDEFSTACK  *ifdefStack;
     TEXT    optext;                 /* struct to be passed back to caller */
 } RDORCH_GLOBALS;
@@ -417,23 +417,23 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
     init_omacros(csound, csound->omacros);
     /* IV - Oct 31 2002: create tables for easier checking for common types */
     if (!ST(typemask_tabl)) {
-      const long *ptr = typetabl1;
-      ST(typemask_tabl) = (long*) mcalloc(csound, sizeof(long) * 256);
-      ST(typemask_tabl_in) = (long*) mcalloc(csound, sizeof(long) * 256);
-      ST(typemask_tabl_out) = (long*) mcalloc(csound, sizeof(long) * 256);
+      const int32 *ptr = typetabl1;
+      ST(typemask_tabl) = (int32*) mcalloc(csound, sizeof(int32) * 256);
+      ST(typemask_tabl_in) = (int32*) mcalloc(csound, sizeof(int32) * 256);
+      ST(typemask_tabl_out) = (int32*) mcalloc(csound, sizeof(int32) * 256);
       while (*ptr) {            /* basic types (both for input */
-        long pos = *ptr++;      /* and output) */
+        int32 pos = *ptr++;      /* and output) */
         ST(typemask_tabl)[pos] = ST(typemask_tabl_in)[pos] =
                                  ST(typemask_tabl_out)[pos] = *ptr++;
       }
       ptr = typetabl2;
       while (*ptr) {            /* input types */
-        long pos = *ptr++;
+        int32 pos = *ptr++;
         ST(typemask_tabl_in)[pos] = *ptr++;
       }
       ptr = typetabl3;
       while (*ptr) {            /* output types */
-        long pos = *ptr++;
+        int32 pos = *ptr++;
         ST(typemask_tabl_out)[pos] = *ptr++;
       }
     }
@@ -952,10 +952,10 @@ static void extend_collectbuf(CSOUND *csound, char **cp, int grpcnt)
 
 static void extend_group(CSOUND *csound)
 {
-    long  i, j;
+    int32  i, j;
 
     i = ST(grpmax);
-    j = i + (long) GRPMAX;
+    j = i + (int32) GRPMAX;
     ST(grpmax) = (j++);
     ST(group) = (char **) mrealloc(csound, ST(group), j * sizeof(char *));
     ST(grpsav) = (char **) mrealloc(csound, ST(grpsav), j * sizeof(char *));
@@ -1609,7 +1609,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         synterr(csound,
                 Str("multiple uses of setksmps in the same opcode definition"));
       else
-        ST(opcodflg) |= (short) 4;
+        ST(opcodflg) |= (int16) 4;
     }
     if (strncmp(ST(linopcod),"out",3) == 0 && /* but take case of MIDI ops */
         (ST(linopcod)[3] == '\0' || ST(linopcod)[3] == 's' ||
@@ -1718,7 +1718,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           /* but works) */
           char *c = csound->opcodeInfo->outtypes;
           int i = 0;
-          ST(opcodflg) |= (short) 2;
+          ST(opcodflg) |= (int16) 2;
           nreqd = csound->opcodeInfo->outchns;
           /* replace opcode if needed */
           if (nreqd > OPCODENUMOUTS_LOW) {
@@ -1802,7 +1802,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         tp->inlist->count = n;
       }
       while (n--) {                     /* inargs:   */
-        long    tfound_m, treqd_m = 0L;
+        int32    tfound_m, treqd_m = 0L;
         s = tp->inlist->arg[n];
         if (n >= nreqd) {               /* det type required */
           switch (types[nreqd-1]) {
@@ -1846,7 +1846,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             treqd_m |= ARGTYP_a | ARGTYP_k;
             if (tfound_m & treqd_m) {
               if (tfound == 'a' && tp->outlist != ST(nullist)) {
-                long outyp_m =                  /* ??? */
+                int32 outyp_m =                  /* ??? */
                   ST(typemask_tabl)[(unsigned char) argtyp(csound,
                                                        tp->outlist->arg[0])];
                 if (outyp_m & (ARGTYP_a | ARGTYP_w | ARGTYP_f)) break;
@@ -1879,7 +1879,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           /* but works) */
           char *c = csound->opcodeInfo->intypes;
           int i = 0;
-          ST(opcodflg) |= (short) 1;
+          ST(opcodflg) |= (int16) 1;
           nreqd = csound->opcodeInfo->inchns;
           /* replace opcode if needed */
           if (nreqd > OPCODENUMOUTS_LOW) {
@@ -1920,7 +1920,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           n = nreqd;
       }
       while (n--) {                                     /* outargs:  */
-        long    tfound_m;       /* IV - Oct 31 2002 */
+        int32    tfound_m;       /* IV - Oct 31 2002 */
         s = tp->outlist->arg[n];
         treqd = types[n];
         tfound = argtyp(csound, s);                     /*  found    */

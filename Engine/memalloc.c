@@ -49,7 +49,7 @@ typedef struct memAllocBlock_s {
 static void memdie(CSOUND *csound, size_t nbytes)
 {
     csound->ErrorMsg(csound, Str("memory allocate failure for %lu"),
-                             (unsigned long) nbytes);
+                             (uint32) nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
 

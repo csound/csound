@@ -456,7 +456,7 @@ int ikpoiss(CSOUND *csound, PRAND *p)
 int gen21_rand(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    long    i, n;
+    int32    i, n;
     MYFLT   *ft;
     MYFLT   scale;
     int     nargs = ff->e.pcnt - 4;

@@ -2152,7 +2152,7 @@ static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
 {
   FLSLIDER *p = ((FLSLIDER*) a);
   MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
+  int index = (int) ndx;
   MYFLT v1 = p->table[index];
   displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) *
                              (ndx - index)) * (*p->imax - p->min),
@@ -2184,7 +2184,7 @@ static void fl_callbackInterpTableSliderBank(Fl_Valuator* w, void *a)
   SLDBK_ELEMENT *p = ((SLDBK_ELEMENT*) a);
 
   MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
+  int index = (int) ndx;
   MYFLT v1 = p->table[index];
   *p->out = p->min + ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
     (p->max - p->min);
@@ -2213,7 +2213,7 @@ static void fl_callbackJoystick(Fl_Widget* w, void *a)
   default:
     if (iexpx > 0) { //interpolated
       MYFLT ndx = j->xvalue() * (p->tablenx-1);
-      int index = (long) ndx;
+      int index = (int) ndx;
       MYFLT v1 = p->tablex[index];
       val = *p->iminx + ( v1 + (p->tablex[index+1] - v1) *
                           (ndx - index)) * (*p->imaxx - *p->iminx);
@@ -2264,7 +2264,7 @@ static void fl_callbackInterpTableRoller(Fl_Valuator* w, void *a)
 {
   FLROLLER *p = ((FLROLLER*) a);
   MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
+  int index = (int) ndx;
   MYFLT v1 = p->table[index];
   displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
         (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
@@ -2294,7 +2294,7 @@ static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
 {
   FLKNOB *p = ((FLKNOB*) a);
   MYFLT ndx = w->value() * (p->tablen-1);
-  int index = (long) ndx;
+  int index = (int) ndx;
   MYFLT v1 = p->table[index];
   displ(*p->kout = p->min+ ( v1 + (p->table[index+1] - v1) * (ndx - index)) *
         (*p->imax - p->min), *p->idisp, p->h.insdshead->csound);
@@ -5205,7 +5205,7 @@ extern "C" {
     default: // TABLE
       if (p->expx > 0) { //interpolated
         MYFLT ndx = xx * (p->tablenx-1);
-        int index = (long) ndx;
+        int index = (int) ndx;
         MYFLT v1 = p->tablex[index];
         *p->koutx = outx_min + ( v1 + (p->tablex[index+1] - v1) *
                                  (ndx - index)) * p->rangex;
@@ -5224,7 +5224,7 @@ extern "C" {
     default: // TABLE
       if (p->expy > 0) { //interpolated
         MYFLT ndx = yy * (p->tableny-1);
-        int index = (long) ndx;
+        int index = (int) ndx;
         MYFLT v1 = p->tabley[index];
         *p->kouty = outy_min + ( v1 + ( p->tabley[index+1] - v1) *
                                  (ndx - index)) * p->rangey;

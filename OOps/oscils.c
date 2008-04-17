@@ -203,7 +203,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
     int     i, nn, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
-    long    ndx_i, flen;
+    int32    ndx_i, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
     MYFLT   onedwarp, win_fact;
     FUNC    *ftp;
@@ -251,7 +251,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
         if (p->ndx_scl) ndx *= flen_d;
       }
       /* integer and fractional part of table index */
-      ndx_i = (long)ndx;
+      ndx_i = (int32)ndx;
       ndx_f = (MYFLT) (ndx - (double)ndx_i);
       if (ndx_f < FL(0.0)) {
         ndx_f++; ndx_i--;
@@ -298,7 +298,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
         default:                    /* ---- sinc interpolation ---- */
           *ar = FL(0.0);        /* clear output */
           ndx = (double)ndx_f;
-          ndx_i += (long)(1 - wsized2);
+          ndx_i += (int32)(1 - wsized2);
           d = (double)(1 - wsized2) - ndx;
           if (warp) {           /* ---- warp enabled ---- */
             init_sine_gen(onedpi_d, pidwarp_d, pidwarp_d * d, &x, &c, &v);
@@ -345,11 +345,11 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
           else {                /* ---- warp disabled ---- */
             /* avoid division by zero */
             if (ndx < 0.00001) {
-              ndx_i += (long) (wsized2 - 1);    /* no need to check here */
+              ndx_i += (int32) (wsized2 - 1);    /* no need to check here */
               *ar = ftable[ndx_i];
             }
             else if (ndx > 0.99999) {
-              ndx_i += (long) wsized2;          /* does need range checking */
+              ndx_i += (int32) wsized2;          /* does need range checking */
               if (ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               *ar = ftable[ndx_i];
             }

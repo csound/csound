@@ -44,12 +44,12 @@ typedef struct STDOPCOD_GLOBALS_ {
     struct fileinTag  *file_opened;
     int         file_max;
     int         file_num;
-    long        fout_kreset;
+    int32        fout_kreset;
     MYFLT       *buf;
     int         buf_size;
     /* oscbnk.c */
-    unsigned long     oscbnk_seed;
-    long        rnd31i_seed;
+    uint32      oscbnk_seed;
+    int32       rnd31i_seed;
     int         denorm_seed;
     int         vco2_nr_table_arrays;
     VCO2_TABLE_ARRAY  **vco2_tables;
@@ -64,7 +64,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
     MYFLT       *tb[16];       /* gab: updated */
     int         tb_ixmode[16]; /* gab: added */
-    long        tb_size[16];   /* gab: added */
+    int32       tb_size[16];   /* gab: added */
 } STDOPCOD_GLOBALS;
 
 extern int ambicode_init_(CSOUND *);

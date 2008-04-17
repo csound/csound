@@ -348,12 +348,12 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 #ifdef FLOOR
 #undef FLOOR
 #endif
-#define FLOOR(x) ((long)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
+#define FLOOR(x) ((int32)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
 
 #ifdef CEIL
 #undef CEIL
 #endif
-#define CEIL(x) ((long)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
+#define CEIL(x) ((int32)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
@@ -664,7 +664,7 @@ int cpsmidinn(CSOUND *csound, EVAL *p)
     /* Convert Midi Note number to 8ve.decimal format */
     MYFLT oct = (*p->a / FL(12.0)) + FL(MIDINOTE0);
     /* Lookup in cpsoct table */
-    long loct = (long)(oct * OCTRES);
+    int32 loct = (int32)(oct * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
@@ -701,7 +701,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
     else {                      /* Values in a table */
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTFind(csound, &t);
-      long len;
+      int32 len;
       if (ftp == NULL)
         return csound->PerfError(csound, Str("No tuning table %d"),
                                          -((int)*p->et));
@@ -729,7 +729,7 @@ int cps2pch(CSOUND *csound, XENH *p)
     else {
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTFind(csound, &t);
-      long len;
+      int32 len;
       if (ftp == NULL)
         return csound->PerfError(csound, Str("No tuning table %d"),
                                          -((int)*p->et));
@@ -1604,7 +1604,7 @@ int koutval(CSOUND *csound, OUTVAL *p)
     if (csound->OutputValueCallback_) {
       if (p->XSTRCODE & 2) {
         /* a hack to support strings */
-        long  len = strlen(chan);
+        int32  len = strlen(chan);
         strcat(chan, (char*)p->value);
         csound->OutputValueCallback_(csound, chan, (MYFLT)len);
         chan[len] = '\0';   /* clear for next time */

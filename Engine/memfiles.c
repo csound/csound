@@ -29,7 +29,7 @@
 #include "namedins.h"
 
 static int Load_File_(CSOUND *csound, const char *filnam,
-                       char **allocp, long *len, int csFileType)
+                       char **allocp, int32 *len, int csFileType)
 {
     FILE *f;
 
@@ -40,7 +40,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
     fseek(f, 0L, SEEK_END);                     /* then get its length     */
-    *len = (long) ftell(f);
+    *len = (int32) ftell(f);
     fseek(f, 0L, SEEK_SET);
     if (*len < 1L)
       goto err_return;
@@ -73,7 +73,7 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
     char    *allocp;            /* if not fullpath, look in current directory,*/
-    long    len;                /*   then SADIR (if defined).                 */
+    int32    len;                /*   then SADIR (if defined).                 */
     char    *pathnam;           /* Used by adsyn, pvoc, and lpread            */
 
     mfp = csound->memfiles;
@@ -184,8 +184,8 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
     WAVEFORMATEX  fmt;
     PVOCEX_MEMFILE  *pp;
     int           i, j, rc = 0, pvx_id, hdr_size, name_size;
-    long          mem_wanted;
-    long          totalframes, framelen;
+    int32          mem_wanted;
+    int32          totalframes, framelen;
     float         *pFrame;
 
     if (fname == NULL || fname[0] == '\0') {
@@ -268,7 +268,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               fname, pp->srate, csound->esr);
     }
-    pp->nframes = (unsigned long) totalframes;
+    pp->nframes = (uint32) totalframes;
     pp->format  = PVS_AMP_FREQ;
     pp->fftsize = 2 * (pvdata.nAnalysisBins - 1);
     pp->overlap = pvdata.dwOverlap;
@@ -294,7 +294,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
     /* link into PVOC-EX memfile chain */
     csound->pvx_memfiles = pp;
     csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"),
-                            fname, (long) mem_wanted);
+                            fname, (int32) mem_wanted);
 
     memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
     return 0;
@@ -427,7 +427,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
                                 "sample frames) loaded into memory\n"),
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,
-                            (unsigned long) sfinfo->frames);
+                            (uint32) sfinfo->frames);
     /* link into database */
     ((SNDMEMFILE**) csound->sndmemfiles)[(int) h] = p;
     /* return with pointer to file structure */

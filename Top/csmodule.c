@@ -356,14 +356,14 @@ typedef struct {
     long    curVersion;
     long    oldVersion;
     long    stackSize;
-    short   libraryDir;
+    int16   libraryDir;
     char    fragType;
     char    fragLocation;
     long    fragOffset;
     long    fragLength;
     long    reservedA;
     long    reservedB;
-    short   descLength;
+    int16   descLength;
     Str63   fragName;
 } cfrg_desc;
 
@@ -423,7 +423,7 @@ static OSErr GetHostLocation( FSSpecPtr me )
 static OSErr FindCsoundExtensionsFolder(FSSpecPtr location)
 {
     OSErr   err;
-    short   systemVRefNum;
+    int16   systemVRefNum;
     long    extDirID;
     long    csoundDirID;
 
@@ -472,7 +472,7 @@ static OSErr GetFragmentName(CSOUND* csound, FSSpecPtr libr, char* name)
     OSErr       err;
     Handle      cfrgh;
     cfrg_rsrc*  cfrg;
-    short       refnum;
+    int16       refnum;
 
     const char kIsLib = 0;  /* fragType for import libraries */
 
@@ -516,7 +516,7 @@ static OSErr SearchFolderAndLoadPlugins(CSOUND *csound, FSSpecPtr theFolder, int
     CInfoPBRec catinfo;
     FSSpec     spec;
     long       folderID;
-    short      idx = 1;
+    int16      idx = 1;
 
     const char kFolderBit = (1<<4);
 
@@ -560,7 +560,7 @@ int csoundLoadModules(CSOUND *csound)
     Handle      cfrgh;
     AliasHandle alias;
     cfrg_rsrc*  cfrg;
-    short       alisID;
+    int16       alisID;
     Boolean     wasChanged;
     FSSpec      pluginDir, fromFile;
 

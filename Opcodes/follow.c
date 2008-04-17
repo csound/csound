@@ -33,10 +33,10 @@
 static int flwset(CSOUND *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
-    p->length = (long)(*p->len * csound->esr);
+    p->length = (int32)(*p->len * csound->esr);
     if (p->length<=0L) {           /* RWD's suggestion */
       csound->Warning(csound, Str("follow - zero length!"));
-      p->length = (long)csound->esr;
+      p->length = (int32)csound->esr;
     }
     p->count = p->length;
     return OK;
@@ -48,7 +48,7 @@ static int follow(CSOUND *csound, FOL *p)
     int         n, nsmps = csound->ksmps;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
-    long        count = p->count;
+    int32       count = p->count;
     for (n=0; n<nsmps; n++) {
       MYFLT sig = in[n];
       if (sig > max) max = sig;

@@ -925,7 +925,7 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
 }
 
 /* perform a sprintf-style format -- matt ingalls */
-static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
+static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
     int i = 0, j = 0;
@@ -948,7 +948,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
             sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
             break;
           case 'h':
-            sprintf(outstring, strseg, (short) MYFLT2LRND(*kvals[j]));
+            sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
             break;
           case 'l':
             sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
@@ -995,7 +995,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
           sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
           break;
         case 'h':
-          sprintf(outstring, strseg, (short) MYFLT2LRND(*kvals[j]));
+          sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
           break;
         case 'l':
           sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));

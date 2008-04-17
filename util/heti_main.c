@@ -33,12 +33,19 @@
 #include <stdlib.h>
 #define END  32767
 
+#include <stdint.h>
+
+typedef int_least32_t int32;
+typedef int_least16_t int16;
+typedef uint_least32_t uint32;
+typedef uint_least16_t uint16;
+
 void het_import_usage(void)
 {
     printf("Usage: het_import cstext_file het_file\n");
 }
 
-short getnum(FILE* inf, char *term)
+int16 getnum(FILE* inf, char *term)
 {
     char buff[100];
     int  cc;
@@ -52,7 +59,7 @@ short getnum(FILE* inf, char *term)
     }
     buff[p]='\0';
     *term = cc;
-    return (short)atoi(buff);
+    return (int16)atoi(buff);
 }
 
 int main(int argc, char **argv)
@@ -77,13 +84,13 @@ int main(int argc, char **argv)
     }
 
     for (;;) {
-      short x;
+      int16 x;
       char term;
-      short end = END;
+      int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
-      fwrite(&x, 1, sizeof(short), outf);
-      if (term == '\n')  fwrite(&end, 1, sizeof(short), outf);
+      fwrite(&x, 1, sizeof(int16), outf);
+      if (term == '\n')  fwrite(&end, 1, sizeof(int16), outf);
     }
     fclose(outf);
     fclose(infd);

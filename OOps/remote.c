@@ -366,7 +366,7 @@ int remoteport(CSOUND *csound, REMOTEPORT *p)
 int insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
 {   /*      INSTR 0 opcode  */
-    short nargs = p->INOCOUNT;
+    int16 nargs = p->INOCOUNT;
 
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
@@ -385,7 +385,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
       if ((rfd = CLopen(csound, (char *)p->str2)) <= 0) /* open port to remote */
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
-        short insno = (short)**argp++;     /* & for each insno */
+        int16 insno = (int16)**argp++;     /* & for each insno */
         if (insno <= 0) {
           return csound->InitError(csound, Str("illegal instr no"));
         }
@@ -409,7 +409,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
 int insglobal(CSOUND *csound, INSGLOBAL *p)
 /* declare certain instrs global remote Csounds */
 {   /*      INSTR 0 opcode  */
-    short nargs = p->INOCOUNT;
+    int16 nargs = p->INOCOUNT;
 
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
@@ -425,7 +425,7 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) { /* if client is this adrs */
       MYFLT   **argp = p->insno;
       for (nargs -= 1; nargs--; ) {
-        short insno = (short)**argp++;             /* for each insno */
+        int16 insno = (int16)**argp++;             /* for each insno */
         if (insno <= 0 || insno > 128) {
           return csound->InitError(csound, Str("illegal instr no"));
         }
@@ -441,7 +441,7 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
 int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
                                                 remote Csounds */
 {                                            /* INSTR 0 opcode  */
-    short nargs = p->INOCOUNT;
+    int16 nargs = p->INOCOUNT;
 
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
@@ -458,7 +458,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
       if ((rfd = CLopen(csound, (char *)p->str2)) <= 0) /* open port to remot */
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
-        short chnum = (short)**argp++;               /* & for each channel   */
+        int16 chnum = (int16)**argp++;               /* & for each channel   */
         if (chnum <= 0 || chnum > 16) {              /* THESE ARE MIDCHANS+1 */
           return csound->InitError(csound, Str("illegal channel no"));
         }
@@ -481,7 +481,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
 int midglobal(CSOUND *csound, MIDGLOBAL *p)
 /* declare certain chnls global remote Csounds */
 {                                         /*       INSTR 0 opcode  */
-    short nargs = p->INOCOUNT;
+    int16 nargs = p->INOCOUNT;
 
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
@@ -497,7 +497,7 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) { /* if client is this adrs */
       MYFLT   **argp = p->chnum;
       for (nargs -= 1; nargs--; ) {
-        short chnum = (short)**argp++;             /* for each channel */
+        int16 chnum = (int16)**argp++;             /* for each channel */
         if (chnum <= 0 || chnum > 16) {
           return csound->InitError(csound, Str("illegal channel no"));
         }

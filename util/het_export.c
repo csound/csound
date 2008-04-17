@@ -42,8 +42,8 @@ static int het_export(CSOUND *csound, int argc, char **argv)
 {
     MEMFIL *inf;
     FILE *outf;
-    short *adp;
-    short *endata;
+    int16 *adp;
+    int16 *endata;
     int cc = 0;
 
     if (argc!= 3) {
@@ -60,8 +60,8 @@ static int het_export(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       return 1;
     }
-    adp = (short *) inf->beginp;
-    endata = (short *) inf->endp;
+    adp = (int16 *) inf->beginp;
+    endata = (int16 *) inf->endp;
     cc = 0;
     
     

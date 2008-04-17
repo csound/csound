@@ -104,16 +104,16 @@ typedef struct {
 #endif
 
 typedef struct pvsdat {
-        long            N;
+        int32            N;
 #ifdef SDFT
         int             sliding; /* Flag to indicate sliding case */
-        long            NB;
+        int32            NB;
 #endif
-        long            overlap;
-        long            winsize;
+        int32            overlap;
+        int32            winsize;
         int             wintype;
-        long            format;         /* fixed for now to AMP:FREQ */
-        unsigned long   framecount;
+        int32            format;         /* fixed for now to AMP:FREQ */
+        uint32   framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
                                         /* But not in sliding case when MYFLT */
 } PVSDAT;
@@ -132,12 +132,12 @@ typedef struct {
         MYFLT   *format;                /* always PVS_AMP_FREQ at present */
         MYFLT   *init;                  /* not yet implemented */
         /* internal */
-        long    buflen;
+        int32    buflen;
         float   fund,arate;
         float   RoverTwoPi,TwoPioverR,Fexact;
         MYFLT   *nextIn;
-        long    nI,Ii,IOi;              /* need all these ?; double as N and NB */
-        long    inptr;
+        int32    nI,Ii,IOi;              /* need all these ?; double as N and NB */
+        int32    inptr;
 
         AUXCH   input;
         AUXCH   overlapbuf;
@@ -157,15 +157,15 @@ typedef struct {
         MYFLT   *init;                  /* not yet implemented */
         /* internal */
         /* check these against fsig vals */
-        long    overlap,winsize,fftsize,wintype,format;
+        int32    overlap,winsize,fftsize,wintype,format;
         /* can we allow variant window tpes?  */
-        long    buflen;
+        int32    buflen;
         MYFLT   fund,arate;
         MYFLT   RoverTwoPi,TwoPioverR,Fexact;
         MYFLT   *nextOut;
-        long    nO,Ii,IOi;      /* need all these ?*/
-        long    outptr;
-        long    bin_index;      /* for phase normalization across frames */
+        int32    nO,Ii,IOi;      /* need all these ?*/
+        int32    outptr;
+        int32    bin_index;      /* for phase normalization across frames */
         /* renderer gets all format info from fsig */
 
         AUXCH   output;
@@ -189,11 +189,11 @@ typedef struct {
         MYFLT   *ibinoffset;    /* default 1  */
         MYFLT   *init;          /* not yet implemented  */
         /* internal */
-        long    outptr;
-        unsigned long   lastframe;
+        int32    outptr;
+        uint32   lastframe;
         /* check these against fsig vals */
-        long    overlap,winsize,fftsize,wintype,format,noscs;
-        long    maxosc;
+        int32    overlap,winsize,fftsize,wintype,format,noscs;
+        int32    maxosc;
         float   one_over_overlap,pi_over_sr, one_over_sr;
         float   fmod;
         AUXCH   a;
@@ -214,8 +214,8 @@ typedef struct {
         MYFLT   *kamp1;
         MYFLT   *kamp2;
         /* internal */
-        long    overlap,winsize,fftsize,wintype,format;
-        unsigned long   lastframe;
+        int32    overlap,winsize,fftsize,wintype,format;
+        uint32   lastframe;
 } PVSCROSS;
 
 /* for pvsmaska */
@@ -226,8 +226,8 @@ typedef struct {
         MYFLT   *ifn;
         MYFLT   *kdepth;
         /* internal*/
-        long    overlap,winsize,fftsize,wintype,format;
-        unsigned long   lastframe;
+        int32    overlap,winsize,fftsize,wintype,format;
+        uint32   lastframe;
         int             nwarned,pwarned;    /* range errors for kdepth */
         FUNC    *maskfunc;
 } PVSMASKA;
@@ -241,8 +241,8 @@ typedef struct {
         MYFLT   *ifna;   /* amp, required */
         MYFLT   *ifnf;   /* freq: optional*/
         /* internal */
-        long    overlap,winsize,fftsize,wintype,format;
-        unsigned long   lastframe;
+        int32    overlap,winsize,fftsize,wintype,format;
+        uint32   lastframe;
         FUNC    *outfna, *outfnf;
 } PVSFTW;
 
@@ -253,8 +253,8 @@ typedef struct {
         MYFLT   *ifna;   /* amp, may be 0 */
         MYFLT   *ifnf;   /* freq: optional*/
         /* internal */
-        long    overlap,winsize,fftsize,wintype,format;
-        unsigned long   lastframe;
+        int32    overlap,winsize,fftsize,wintype,format;
+        uint32   lastframe;
         FUNC    *infna, *infnf;
         MYFLT   *ftablea,*ftablef;
 } PVSFTR;
@@ -268,9 +268,9 @@ typedef struct {
         MYFLT   *ifilno;
         MYFLT   *ichan;
         /* internal */
-        int             ptr;
-        long    overlap,winsize,fftsize,wintype,format;
-        unsigned long   chans, nframes,lastframe,chanoffset,blockalign;
+        int     ptr;
+        int32   overlap,winsize,fftsize,wintype,format;
+        uint32  chans, nframes,lastframe,chanoffset,blockalign;
         MYFLT   arate;
         float   *membase;        /* RWD MUST be 32bit: reads file */
 } PVSFREAD;

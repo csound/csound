@@ -60,7 +60,7 @@
 /* it should be noted, though, that the above incorrect result would not be */
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
-#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.99999999))
+#define FLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
 /* Do List:
  *
@@ -1019,7 +1019,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
          * length - which is always a power of 2.  The table must
          * actually be one more longer than this if it has a guard
          * point.  */
-    long        indx, length;
+    int32        indx, length;
     MYFLT       ndx;            /*  for calculating index of read.  */
     MYFLT       *ptab;          /* Where we will write */
 
@@ -1046,7 +1046,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
        *
        * Limit the final index to 0 and the last location in the table.
        */
-      indx = (long) FLOOR(ndx); /* Limit to (table length - 1) */
+      indx = (int32) FLOOR(ndx); /* Limit to (table length - 1) */
       if (indx > length - 1)
         indx = length - 1;      /* Limit the high values. */
       else if (indx < 0L) indx = 0L; /* limit negative values to zero. */
@@ -1055,7 +1055,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
      * In guard point mode only, add 0.5 to the index. */
     else {
       if (p->iwgm == 2) ndx += FL(0.5);
-      indx = (long) FLOOR(ndx);
+      indx = (int32) FLOOR(ndx);
 
       /* Both wrap and guard point mode.
        * The following code uses an AND with an integer like 0000 0111 to wrap
@@ -1090,9 +1090,9 @@ int tablew(CSOUND *csound, TABLEW *p)
     MYFLT       *pxndx; /* Array of input index values */
     MYFLT       *ptab;  /* Pointer to start of table we will write. */
     MYFLT       *pwrite;/* Pointer to location in table where we will write */
-    long        indx;   /* Used to read table. */
-    long        mask;   /* ANDed with indx to make it wrap within table.*/
-    long        length; /* Length of table - always a power of two,
+    int32        indx;   /* Used to read table. */
+    int32        mask;   /* ANDed with indx to make it wrap within table.*/
+    int32        length; /* Length of table - always a power of two,
                          * even if the table has a guard point. */
     /* For instance length = 8, mask = 0000 0111, normal locations in table
      * are 0 to 7.  Location 8 is the guard point.  table() does not read
@@ -1119,13 +1119,13 @@ int tablew(CSOUND *csound, TABLEW *p)
          add in the offset.  */
       ndx = (*pxndx++ * xbmul) + offset;
       if (liwgm == 0) {         /* Limit mode - when igmode = 0. */
-        indx = (long) FLOOR(ndx);
+        indx = (int32) FLOOR(ndx);
         if (indx > length - 1) indx = length - 1;
         else if (indx < 0L) indx = 0L;
       }
       else {
         if (liwgm == 2) ndx += FL(0.5);
-        indx = (long) FLOOR(ndx);
+        indx = (int32) FLOOR(ndx);
         /* Both wrap and guard point mode.
          *
          * AND with an integer like 0000 0111 to wrap the index within the
@@ -1205,7 +1205,7 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
      *
      * On the first run through, the previous value will be 0.  */
 
-    if (p->pfn != (long)*p->xfn) {
+    if (p->pfn != (int32)*p->xfn) {
       /* If it is different, check to see if the table exists.  If it
        * doesn't, an error message should be produced by csoundFTFindP()
        * which should also deactivate the instrument.  Return 0 to
@@ -1231,7 +1231,7 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
        * different table.
        *
        * p->pfn is an integer.  */
-      p->pfn = (long)*p->xfn;
+      p->pfn = (int32)*p->xfn;
 
       /* Set denormalisation factor to 1 or table length, depending on
        * the state of ixmode.  1L means a 32 bit 1.  */
@@ -1348,7 +1348,7 @@ int    tablegpw(CSOUND *csound, TABLEGPW *p)
 
     MYFLT       val0;    /* Value read from location 0 in table. */
 
-    long        length;         /* temporary storage for length -
+    int32        length;         /* temporary storage for length -
                                  * in floats, not in bytes.
                                  */
 
@@ -1362,7 +1362,7 @@ int    tablegpw(CSOUND *csound, TABLEGPW *p)
     /* Find length of table.
      */
     else {
-      length = (long) ftp->flen;
+      length = (int32) ftp->flen;
       ptab   = ftp->ftable;
       /* Now write from location 0 to
        * the guard point which is at
@@ -1390,7 +1390,7 @@ int itablegpw(CSOUND *csound, TABLEGPW *p)
     FUNC        *ftp;    /* Pointer to start of table.            */
     MYFLT  *ptab;        /* Value read from location 0 in table.  */
     MYFLT       val0;    /* Temp. storage for length in floats, not in bytes.*/
-    long        length;
+    int32        length;
 
     /* Check to see we can find the table and find its location in memory. */
     if ((ftp = csound->FTFind(csound, p->xfn)) == NULL) {
@@ -1398,7 +1398,7 @@ int itablegpw(CSOUND *csound, TABLEGPW *p)
     }
     /* Find length of table. */
     else {
-      length = (long) ftp->flen;
+      length = (int32) ftp->flen;
       ptab   = ftp->ftable;
       /* Now write from location 0 to
        * the guard point which is at
@@ -1619,18 +1619,18 @@ int itablemix(CSOUND *csound, TABLEMIX *p)
 static void domix(CSOUND *csound, TABLEMIX *p)
 {
     MYFLT       gains1, gains2; /* Gains for source tables 1 and 2. */
-    long length;                /* from len input parameter */
-    long loopcount;
+    int32 length;                /* from len input parameter */
+    int32 loopcount;
 
-    long offd, offs1, offs2;    /* Offsets for the three tables. */
+    int32 offd, offs1, offs2;    /* Offsets for the three tables. */
 
     /* Index to be added to offsets as we step through the tables.
      * If length was positive, this will increase by one each cycle.
      * If length was negative, it will step backards from 0.
      */
-    long indx = 0;
+    int32 indx = 0;
     MYFLT *based, *bases1, *bases2;    /* Base addresses of the three tables. */
-    long maskd, masks1, masks2;
+    int32 maskd, masks1, masks2;
     MYFLT *pdest, *ps1, *ps2;
 
     gains1 = *p->s1g;
@@ -1639,7 +1639,7 @@ static void domix(CSOUND *csound, TABLEMIX *p)
     /* Get the length and generate the loop count.
      * Return with no action if it is 0.    */
 
-    if ((length = (long)FLOOR(*p->len)) == 0L) return;
+    if ((length = (int32)FLOOR(*p->len)) == 0L) return;
 
     if (length < 0L) loopcount = 0L - length;
     else             loopcount = length;
@@ -1648,9 +1648,9 @@ static void domix(CSOUND *csound, TABLEMIX *p)
      * to the next most negative integer. This ensures that a sweeping
      * offset will wrap correctly into the table's address space.    */
 
-    offd  = (long)FLOOR(*p->doff);
-    offs1 = (long)FLOOR(*p->s1off);
-    offs2 = (long)FLOOR(*p->s2off);
+    offd  = (int32)FLOOR(*p->doff);
+    offs1 = (int32)FLOOR(*p->s1off);
+    offs2 = (int32)FLOOR(*p->s2off);
 
     /* Now get the base addresses and length masks of the three tables.  */
     based  = p->funcd->ftable;
@@ -1845,10 +1845,10 @@ int itablecopy(CSOUND *csound, TABLECOPY *p)
  */
 static int docopy(CSOUND *csound, TABLECOPY *p)
 {
-    long loopcount;     /* Loop counter. Set by the length of the dest table.*/
-    long indx = 0;              /* Index to be added to offsets */
+    int32 loopcount;     /* Loop counter. Set by the length of the dest table.*/
+    int32 indx = 0;              /* Index to be added to offsets */
     MYFLT *based, *bases;       /* Base addresses of the two tables.*/
-    long masks;                 /* Binary masks for the source table */
+    int32 masks;                 /* Binary masks for the source table */
     MYFLT *pdest, *ps;
 
     loopcount = p->funcd->flen;
@@ -1904,10 +1904,10 @@ int tableraset(CSOUND *csound, TABLERA *p)
 int tablera(CSOUND *csound, TABLERA *p)
 {
     MYFLT       *writeloc, *readloc;
-    long        kstart;
+    int32        kstart;
     /* Local variable to hold integer version of offset, and the length
      * mask for ANDing the total index - wrapping it into the table length. */
-    long        kioff, mask;
+    int32        kioff, mask;
     int         loopcount;
 
     /* Check the state of the table number variable.
@@ -1940,7 +1940,7 @@ int tablera(CSOUND *csound, TABLERA *p)
     }
     /* Check that kstart is within the range of the table. */
 
-    if (((kstart = (long)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
+    if (((kstart = (int32)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
       return csound->PerfError(csound, Str("kstart %.2f is outside "
                                            "table %.2f range 0 to %ld"),
                                        *p->kstart, *p->kfn, p->ftp->flen - 1);
@@ -1948,7 +1948,7 @@ int tablera(CSOUND *csound, TABLERA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer. Also read the mask from the FUNC data structure.
      */
-    kioff = (long)FLOOR(*p->koff);
+    kioff = (int32)FLOOR(*p->koff);
     mask = p->ftp->lenmask;
 
     /* We are almost ready to go, but first check to see whether
@@ -2020,10 +2020,10 @@ int tablewaset(CSOUND *csound, TABLEWA *p)
 int tablewa(CSOUND *csound, TABLEWA *p)
 {
     MYFLT *writeloc, *readloc;
-    long        kstart;
-    long        kioff;          /* integer version of offset */
-    long        mask;           /* length mask for ANDing the total index */
-    long        loopcount;
+    int32        kstart;
+    int32        kioff;          /* integer version of offset */
+    int32        mask;           /* length mask for ANDing the total index */
+    int32        loopcount;
 
     /* From here the main loop, (except where noted "!!") this code is
      * the same as tablera above.  It is not in a common subroutine
@@ -2061,7 +2061,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     }
 
     /* Check that kstart is within the range of the table. */
-    if (((kstart = (long)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
+    if (((kstart = (int32)*p->kstart) < 0L) || (kstart >= p->ftp->flen)) {
         return csound->PerfError(csound, Str("kstart %.2f is outside "
                                              "table %.2f range 0 to %ld"),
                                          *p->kstart, *p->kfn, p->ftp->flen - 1);
@@ -2069,7 +2069,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer.  Also read the mask from the FUNC data structure.
      */
-    kioff = (long)FLOOR(*p->koff);
+    kioff = (int32)FLOOR(*p->koff);
     mask = p->ftp->lenmask;
     /* !! end of code identical to tablera.  */
 
@@ -2149,7 +2149,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
  */
 int zakinit(CSOUND *csound, ZAKINIT *p)
 {
-    long    length;
+    int32    length;
 
     /* Check to see this is the first time zakinit() has been called.
      * Global variables will be zero if it has not been called.     */
@@ -2167,14 +2167,14 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated. */
 
-    csound->zklast = (long) *p->isizek;
+    csound->zklast = (int32) *p->isizek;
     length = (csound->zklast + 1L) * sizeof(MYFLT);
     csound->zkstart = (MYFLT*) mcalloc(csound, length);
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
-    csound->zalast = (long) *p->isizea;
+    csound->zalast = (int32) *p->isizea;
     length = (csound->zalast + 1L) * sizeof(MYFLT) * csound->ksmps;
     csound->zastart = (MYFLT*) mcalloc(csound, length);
     return OK;
@@ -2204,10 +2204,10 @@ int zkset(CSOUND *csound, ZKR *p)
 /* zkr reads from zk space at k rate. */
 int zkr(CSOUND *csound, ZKR *p)
 {
-    long    indx;
+    int32    indx;
 
     /* Check to see this index is within the limits of zk space. */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       *p->rslt = FL(0.0);
       csound->Warning(csound, Str("zkr index > isizek. Returning 0."));
@@ -2235,12 +2235,12 @@ int zkr(CSOUND *csound, ZKR *p)
 int zir(CSOUND *csound, ZKR *p)
 {
     /* See zkr() for more comments.  */
-    long    indx;
+    int32    indx;
 
     if (zkset(csound, p) != OK)
       return NOTOK;
     /* Check to see this index is within the limits of zk space. */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       csound->Warning(csound, Str("zir index > isizek. Returning 0."));
       *p->rslt = FL(0.0);
@@ -2263,10 +2263,10 @@ int zir(CSOUND *csound, ZKR *p)
 /* Now the i and k rate WRITE code.  zkw writes to zk space at k rate. */
 int zkw(CSOUND *csound, ZKW *p)
 {
-    long    indx;
+    int32    indx;
 
     /* Check to see this index is within the limits of zk space. */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       return csound->PerfError(csound, Str("zkw index > isizek. Not writing."));
     }
@@ -2290,11 +2290,11 @@ int zkw(CSOUND *csound, ZKW *p)
  * same code as zkw() except that errors go to csoundInitError().  */
 int ziw(CSOUND *csound, ZKW *p)
 {
-    long    indx;
+    int32    indx;
 
     if (zkset(csound, (ZKR*) p) != OK)
       return NOTOK;
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       return csound->InitError(csound, Str("ziw index > isizek. Not writing."));
     }
@@ -2317,10 +2317,10 @@ int ziw(CSOUND *csound, ZKW *p)
 /* zkwm writes to zk space at k rate. */
 int zkwm(CSOUND *csound, ZKWM *p)
 {
-    long    indx;
+    int32    indx;
 
     /* Check to see this index is within the limits of zk space.   */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       return csound->PerfError(csound,
                                Str("zkwm index > isizek. Not writing."));
@@ -2352,11 +2352,11 @@ int zkwm(CSOUND *csound, ZKWM *p)
  */
 int ziwm(CSOUND *csound, ZKWM *p)
 {
-    long    indx;
+    int32    indx;
 
     if (zkset(csound, (ZKR*) p) != OK)
       return NOTOK;
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zklast) {
       return csound->InitError(csound,
                                Str("ziwm index > isizek. Not writing."));
@@ -2381,7 +2381,7 @@ int ziwm(CSOUND *csound, ZKWM *p)
 int zkmod(CSOUND *csound, ZKMOD *p)
 {
     MYFLT *readloc;
-    long indx;
+    int32 indx;
     int mflag = 0;    /* set to true if should do the modulation with
                          multiplication rather than addition.    */
 
@@ -2393,7 +2393,7 @@ int zkmod(CSOUND *csound, ZKMOD *p)
      * the normal conversion rules to apply to negative numbers -
      * so -2.3 is converted to -2.                               */
 
-    if ((indx = (long)*p->zkmod) == 0) {
+    if ((indx = (int32)*p->zkmod) == 0) {
       *p->rslt = *p->sig;
       return OK;
     }
@@ -2426,7 +2426,7 @@ int zkmod(CSOUND *csound, ZKMOD *p)
 int zkcl(CSOUND *csound, ZKCL *p)
 {
     MYFLT       *writeloc;
-    long first = (long) *p->first, last = (long) *p->last, loopcount;
+    int32 first = (int32) *p->first, last = (int32) *p->last, loopcount;
 
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
@@ -2476,7 +2476,7 @@ int zaset(CSOUND *csound, ZAR *p)
 int zar(CSOUND *csound, ZAR *p)
 {
     MYFLT       *readloc, *writeloc;
-    long indx;
+    int32 indx;
     int nsmps = csound->ksmps;
 
     /*-----------------------------------*/
@@ -2484,7 +2484,7 @@ int zar(CSOUND *csound, ZAR *p)
     writeloc = p->rslt;
 
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
       return csound->PerfError(csound, Str("zar index > isizea. Returning 0."));
@@ -2510,7 +2510,7 @@ int zarg(CSOUND *csound, ZARG *p)
 {
     MYFLT       *readloc, *writeloc;
     MYFLT       kgain;          /* Gain control */
-    long        indx;
+    int32        indx;
     int n, nsmps = csound->ksmps;
 
     /*-----------------------------------*/
@@ -2519,7 +2519,7 @@ int zarg(CSOUND *csound, ZARG *p)
     kgain = *p->kgain;
 
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
       return csound->PerfError(csound,
@@ -2550,13 +2550,13 @@ int zarg(CSOUND *csound, ZARG *p)
 int zaw(CSOUND *csound, ZAW *p)
 {
     MYFLT       *readloc, *writeloc;
-    long indx;
+    int32 indx;
     int nsmps = csound->ksmps;
 
     /* Set up the pointer for the source of data to write.    */
     readloc = p->sig;
     /* Check to see this index is within the limits of za space.     */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
         return csound->PerfError(csound,
                                  Str("zaw index > isizea. Not writing."));
@@ -2580,7 +2580,7 @@ int zaw(CSOUND *csound, ZAW *p)
 int zawm(CSOUND *csound, ZAWM *p)
 {
     MYFLT       *readloc, *writeloc;
-    long indx;
+    int32 indx;
     int n, nsmps = csound->ksmps;
     /*-----------------------------------*/
 
@@ -2588,7 +2588,7 @@ int zawm(CSOUND *csound, ZAWM *p)
 
     readloc = p->sig;
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
       return csound->PerfError(csound, Str("zaw index > isizea. Not writing."));
     }
@@ -2622,7 +2622,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
 {
     MYFLT       *writeloc, *readloc;
     MYFLT       *readsig;       /* Array of input floats */
-    long indx;
+    int32 indx;
     int mflag = 0;             /* non zero if modulation with multiplication  */
     int n, nsmps = csound->ksmps;
 
@@ -2631,7 +2631,7 @@ int zamod(CSOUND *csound, ZAMOD *p)
     readsig = p->sig;
     writeloc = p->rslt;
     /* If zkmod = 0, then just copy input to output.    */
-    if ((indx = (long) *p->zamod) == 0) {
+    if ((indx = (int32) *p->zamod) == 0) {
       memcpy(writeloc, readsig, nsmps*sizeof(MYFLT));
 /*       do { */
 /*         *writeloc++ = *readsig++; */
@@ -2670,10 +2670,10 @@ int zamod(CSOUND *csound, ZAMOD *p)
 int zacl(CSOUND *csound, ZACL *p)
 {
     MYFLT       *writeloc;
-    long first, last, loopcount;
+    int32 first, last, loopcount;
 
-    first = (long) *p->first;
-    last  = (long) *p->last;
+    first = (int32) *p->first;
+    last  = (int32) *p->last;
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if ((first > csound->zalast) || (last > csound->zalast))
@@ -2790,7 +2790,7 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
      */
-    p->pspace = (long) *p->space;
+    p->pspace = (int32) *p->space;
     if (p->pspace < 0L)
       p->pspace = 0L;
     else if (p->pspace > 120L)
@@ -2815,7 +2815,7 @@ int printkset(CSOUND *csound, PRINTK *p)
 int printk(CSOUND *csound, PRINTK *p)
 {
     MYFLT       timel;          /* Time in seconds since initialised */
-    long        cycles;         /* What print cycle */
+    int32        cycles;         /* What print cycle */
 
     /*-----------------------------------*/
 
@@ -2826,7 +2826,7 @@ int printk(CSOUND *csound, PRINTK *p)
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
      */
-    cycles =    (long) (timel / p->ctime);
+    cycles =    (int32) (timel / p->ctime);
 
     /* Now test if the cycle number we arein is higher than the one in which
      * we last printed. If so, update cysofar and print.    */
@@ -3006,7 +3006,7 @@ int printksset(CSOUND *csound, PRINTKS *p)
 }
 
 /* perform a sprintf-style format  -- matt ingalls */
-void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
+void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
     int i = 0, j = 0;
@@ -3029,10 +3029,10 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
             sprintf(outstring, strseg, (int)(*kvals[j]+.5));
             break;
           case 'h':
-            sprintf(outstring, strseg, (short)(*kvals[j]+.5));
+            sprintf(outstring, strseg, (int16)(*kvals[j]+.5));
             break;
           case 'l':
-            sprintf(outstring, strseg, (long)(*kvals[j]+.5));
+            sprintf(outstring, strseg, (int32)(*kvals[j]+.5));
             break;
 
           default:
@@ -3075,10 +3075,10 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
           sprintf(outstring, strseg, (int)(*kvals[j]+FL(0.5)));
           break;
         case 'h':
-          sprintf(outstring, strseg, (short)(*kvals[j]+FL(0.5)));
+          sprintf(outstring, strseg, (int16)(*kvals[j]+FL(0.5)));
           break;
         case 'l':
-          sprintf(outstring, strseg, (long)(*kvals[j]+FL(0.5)));
+          sprintf(outstring, strseg, (int32)(*kvals[j]+FL(0.5)));
           break;
 
         default:
@@ -3100,7 +3100,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
 int printks(CSOUND *csound, PRINTKS *p)
 {
     MYFLT       timel;
-    long        cycles;
+    int32        cycles;
     char        string[8192]; /* matt ingals replacement */
 
     /*-----------------------------------*/
@@ -3109,7 +3109,7 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.     */
-    cycles = (long)(timel / p->ctime);
+    cycles = (int32)(timel / p->ctime);
 
     /* Now test if the cycle number we are in is higher than the one in which
      * we last printed.  If so, update cysofar and print.     */
@@ -3216,11 +3216,11 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 /* inz writes to za space at a rate as many channels as can. */
 int inz(CSOUND *csound, IOZ *p)
 {
-    long    indx, i;
+    int32    indx, i;
     int     nsmps;
 
     /* Check to see this index is within the limits of za space.     */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if ((indx + csound->nchnls) >= csound->zalast) {
       return csound->PerfError(csound, Str("inz index > isizea. Not writing."));
     }
@@ -3241,12 +3241,12 @@ int inz(CSOUND *csound, IOZ *p)
 /* outz reads from za space at a rate to output. */
 int outz(CSOUND *csound, IOZ *p)
 {
-    long    indx;
+    int32    indx;
     int     i;
     int     nsmps;
 
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if ((indx + csound->nchnls) >= csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }

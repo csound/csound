@@ -35,10 +35,10 @@
 
 int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
-    unsigned long n = (long)(*p->imaxd * ESR)+1;
+    uint32 n = (int32)(*p->imaxd * ESR)+1;
 
     if (!*p->istod) {
-      if (p->aux.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux.size)
+      if (p->aux.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {     /*    make sure buffer is empty       */
@@ -51,7 +51,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 
 int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
-    long  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out = p->sr;     /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -60,13 +60,13 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     if (buf==NULL) {        /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (unsigned long) (1+*p->imaxd * ESR);
+    maxd = (uint32) (1+*p->imaxd * ESR);
     indx = p->left;
 
     if (XINARG2) {          /*      if delay is a-rate      */
       for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
-        long   v1, v2;
+        int32   v1, v2;
 
         buf[indx] = in[nn];
         fv1 = indx - (del[nn]) * ESR;
@@ -89,8 +89,8 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         else
           fv2 = FL(0.0);
 
-        v1 = (long)fv1;
-        v2 = (long)fv2;
+        v1 = (int32)fv1;
+        v2 = (int32)fv2;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (++indx == maxd) indx = 0;             /* Advance current pointer */
@@ -101,7 +101,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
       MYFLT fdel=*del;
       for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
-        long   v1, v2;
+        int32   v1, v2;
 
         buf[indx] = in[nn];
         fv1 = indx - fdel * ESR;
@@ -119,8 +119,8 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         else
           fv2 = FL(0.0);
 
-        v1 = (long)fv1;
-        v2 = (long)fv2;
+        v1 = (int32)fv1;
+        v2 = (int32)fv2;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (++indx == maxd) indx = 0;   /*      Advance current pointer */
@@ -133,7 +133,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
-    long  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -142,7 +142,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     if (buf==NULL) {            /* RWD fix */
       return csound->PerfError(csound, Str("vdelay3: not initialised"));
     }
-    maxd = (unsigned long) (*p->imaxd * ESR);
+    maxd = (uint32) (*p->imaxd * ESR);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
     indx = p->left;
@@ -150,29 +150,29 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     if (XINARG2) {              /*      if delay is a-rate      */
       for (nn=0; nn<nsmps; nn++) {
         MYFLT  fv1;
-        long   v0, v1, v2, v3;
+        int32   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
         fv1 = del[nn] * (-ESR);
-        v1 = (long)fv1;
+        v1 = (int32)fv1;
         fv1 -= (MYFLT) v1;
-        v1 += (long)indx;
+        v1 += (int32)indx;
         /* Make sure Inside the buffer      */
         if ((v1 < 0L) || (fv1 < FL(0.0))) {
-          fv1++; v1--; while (v1 < 0L) v1 += (long)maxd;
+          fv1++; v1--; while (v1 < 0L) v1 += (int32)maxd;
         }
         else {
-          while (v1 >= (long)maxd) v1 -= (long)maxd;
+          while (v1 >= (int32)maxd) v1 -= (int32)maxd;
         }
         /* Find next sample for interpolation      */
-        v2 = (v1 == (long)(maxd - 1UL) ? 0L : v1 + 1L);
+        v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
 
         if (maxd<4) {
           out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
         }
         else {
           v0 = (v1==0 ? maxd-1 : v1-1);
-          v3 = (v2==(long)maxd-1 ? 0 : v2+1);
+          v3 = (v2==(int32)maxd-1 ? 0 : v2+1);
           {                     /* optimized by Istvan Varga (Oct 2001) */
             MYFLT w, x, y, z;
             z = fv1 * fv1; z--; z *= FL(0.1666666667);
@@ -188,24 +188,24 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     }
     else {                      /* and, if delay is k-rate */
       MYFLT  fv1, w, x, y, z;
-      long   v0, v1, v2, v3;
+      int32   v0, v1, v2, v3;
 
-      fv1 = *del * -ESR; v1 = (long)fv1; fv1 -= (MYFLT) v1;
-      v1 += (long)indx;
+      fv1 = *del * -ESR; v1 = (int32)fv1; fv1 -= (MYFLT) v1;
+      v1 += (int32)indx;
       /* Make sure Inside the buffer      */
       if ((v1 < 0L) || (fv1 < FL(0.0))) {
-        fv1++; v1--; while (v1 < 0L) v1 += (long)maxd;
+        fv1++; v1--; while (v1 < 0L) v1 += (int32)maxd;
       }
       else {
-        while (v1 >= (long)maxd) v1 -= (long)maxd;
+        while (v1 >= (int32)maxd) v1 -= (int32)maxd;
       }
 
       if (maxd<4) {
         while (nn--) {
           /* Find next sample for interpolation      */
-          v2 = (v1 == (long)(maxd - 1UL) ? 0L : v1 + 1L);
+          v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
           *out++ = buf[v1] + fv1 * (buf[v2] - buf[v1]);
-          if (++v1 >= (long)maxd) v1 -= (long)maxd;
+          if (++v1 >= (int32)maxd) v1 -= (int32)maxd;
           if (++indx >= maxd) indx -= maxd;
         }
       }
@@ -217,12 +217,12 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
         for (nn=0; nn<nsmps; nn++) {
           buf[indx] = in[nn];
           /* Find next sample for interpolation      */
-          v2 = (v1 == (long)(maxd - 1UL) ? 0L : v1 + 1L);
-          v0 = (v1 == 0L ? (long)(maxd - 1UL) : v1 - 1L);
-          v3 = (v2 == (long)(maxd - 1UL) ? 0L : v2 + 1L);
+          v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
+          v0 = (v1 == 0L ? (int32)(maxd - 1UL) : v1 - 1L);
+          v3 = (v2 == (int32)(maxd - 1UL) ? 0L : v2 + 1L);
           out[nn] = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
                      * fv1 + buf[v1];
-          if (++v1 >= (long)maxd) v1 -= (long)maxd;
+          if (++v1 >= (int32)maxd) v1 -= (int32)maxd;
           if (++indx >= maxd) indx -= maxd;     /* Advance current pointer */
         }
       }
@@ -241,7 +241,7 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
     if (n == 0) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
@@ -261,12 +261,12 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
     if (n == 0) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
         memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux2.size)
+      if (p->aux2.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       else
         memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
@@ -286,20 +286,20 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
     if (n == 0) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux1.size)
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
       else
         memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux2.size)
+      if (p->aux2.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux2.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
       else
         memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux3.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux3.size)
+      if (p->aux3.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux3.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux3);
       else
         memset(p->aux3.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux4.auxp == NULL || (long)(n * sizeof(MYFLT)) > p->aux4.size)
+      if (p->aux4.auxp == NULL || (int32)(n * sizeof(MYFLT)) > p->aux4.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux4);
       else
         memset(p->aux4.auxp, 0, n*sizeof(MYFLT));
@@ -314,19 +314,19 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 
 int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
-    long  nn, nsmps = csound->ksmps, maxd, indx;
+    int32  nn, nsmps = csound->ksmps, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
 
     if (buf1 == NULL) {                                         /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -342,7 +342,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 
       x1 = (double)indx - ((double)del[nn] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -362,7 +362,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
         out1[nn] = (MYFLT) (n1 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         out1[nn] = buf1[xpos];
       }
@@ -376,19 +376,19 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
-    long  nn, maxd, indx, nsmps = csound->ksmps;
+    int32  nn, maxd, indx, nsmps = csound->ksmps;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
 
     if (buf1 == NULL) {                                         /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -401,7 +401,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
       x1 = (double)indx + ((double)del[nn] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -421,7 +421,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         buf1[xpos] += in1[nn];
       }
@@ -436,7 +436,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
 int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
-    long  maxd, indx;
+    int32  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -446,13 +446,13 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
     int n, nsmps = csound->ksmps;
 
     if ((buf1 == NULL) || (buf2 == NULL)) {                     /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -468,7 +468,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 
       x1 = (double)indx - ((double)del[n] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -488,7 +488,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
         out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }
@@ -502,7 +502,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 
 int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 {
-    long  nn, maxd, indx;
+    int32  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -512,12 +512,12 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
 
     if ((buf1 == NULL) || (buf2 == NULL)) {                     /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
     indx = p->left;
@@ -531,7 +531,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 
       x1 = (double)indx + ((double)*del++ * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -551,7 +551,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         buf1[xpos] += *in1; buf2[xpos] += *in2;
       }
@@ -568,7 +568,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 
 int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 {
-    long  nn, maxd, indx;
+    int32  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -584,12 +584,12 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
     /* RWD fix */
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
     indx = p->left;
@@ -607,7 +607,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 
       x1 = (double)indx - ((double)*del++ * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -630,7 +630,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
         *out3 = (MYFLT) (n3 * x2); *out4 = (MYFLT) (n4 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         *out1 = buf1[xpos]; *out2 = buf2[xpos];
         *out3 = buf3[xpos]; *out4 = buf4[xpos];
@@ -646,7 +646,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 
 int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 {
-    long  nn, maxd, indx;
+    int32  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -662,12 +662,12 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
-    long   i, i2, xpos;
+    int32   i, i2, xpos;
     /* RWD fix */
     if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
-    maxd = (long)(*p->imaxd * csound->esr);
+    maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
     indx = p->left;
@@ -681,7 +681,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 
       x1 = (double)indx + ((double)*del++ * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (long)x1;
+      xpos = (int32)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -704,7 +704,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (long)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
         if (xpos >= maxd) xpos -= maxd;
         buf1[xpos] += *in1; buf2[xpos] += *in2;
         buf3[xpos] += *in3; buf4[xpos] += *in4;
@@ -724,7 +724,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 
 int multitap_set(CSOUND *csound, MDEL *p)
 {
-    long n;
+    int32 n;
     MYFLT max = FL(0.0);
 
     if (p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5))
@@ -734,7 +734,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
       if (max < *p->ndel[n]) max = *p->ndel[n];
     }
 
-    n = (long)(csound->esr * max * sizeof(MYFLT));
+    n = (int32)(csound->esr * max * sizeof(MYFLT));
     if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
         n > p->aux.size)
       csound->AuxAlloc(csound, n, &p->aux);
@@ -743,7 +743,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
     }
 
     p->left = 0;
-    p->max = (long)(csound->esr * max);
+    p->max = (int32)(csound->esr * max);
     return OK;
 }
 
@@ -763,9 +763,9 @@ int multitap_play(CSOUND *csound, MDEL *p)
 
       if (++indx == max) indx = 0;         /*      Advance input pointer   */
       for (n = 0; n < p->INOCOUNT - 1; n += 2) {
-        delay = indx - (long)(csound->esr * *p->ndel[n]);
+        delay = indx - (int32)(csound->esr * *p->ndel[n]);
         if (delay < 0)
-          delay += (long)max;
+          delay += (int32)max;
         v += buf[delay] * *p->ndel[n+1]; /*      Write output    */
       }
       out[i] = v;
@@ -884,7 +884,7 @@ static const MYFLT ca_gain[orgAlpas] = {
 
 int reverbx_set(CSOUND *csound, NREV2 *p)
 {
-    long  i, n;
+    int32  i, n;
     /* Temp holder of old or user constants. */
     const MYFLT *c_orgtime, *a_orgtime;
     int   c_time, a_time;
@@ -1035,7 +1035,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
 
 int reverbx(CSOUND *csound, NREV2 *p)
 {
-    long    i, n, nsmps = csound->ksmps;
+    int32   i, n, nsmps = csound->ksmps;
     MYFLT   *in, *out = p->out, *buf, *end;
     MYFLT   gain, z;
     MYFLT   hdif = *p->hdif;
