@@ -394,7 +394,7 @@ else:
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
     
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
-    commonEnvironment.Prepend(CCFLAGS = Split('-fomit-frame-pointer -ffast-math'))
+    commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
     if commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = commonEnvironment['gcc4opt']
@@ -417,7 +417,11 @@ if commonEnvironment['noDebug'] == '0':
          
 if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(CCFLAGS = ['-pg'])
+    commonEnvironment.Append(CXXFLAGS = ['-pg'])
     commonEnvironment.Append(LINKFLAGS = ['-pg'])
+    commonEnvironment.Append(SHLINKFLAGS = ['-pg'])
+elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
+    commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
 
 if compilerGNU():
     commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
