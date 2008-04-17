@@ -383,13 +383,13 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
 }
 
 #define Linear_interpolation \
-        SHORT *curr_samp = *base + (long) *phs;\
-        MYFLT fract = (MYFLT) *phs - (MYFLT)((long)*phs);\
+        SHORT *curr_samp = *base + (int32) *phs;\
+        MYFLT fract = (MYFLT) *phs - (MYFLT)((int32)*phs);\
         MYFLT out = (*curr_samp + (*(curr_samp+1) - *curr_samp)*fract);
 
 #define Cubic_interpolation \
         MYFLT phs1 = (MYFLT) *phs -FL(1.0);\
-        int   x0 = (long)phs1 ;\
+        int   x0 = (int32)phs1 ;\
         MYFLT fract = (MYFLT)(phs1 - x0);\
         SHORT *ftab = *base + x0;\
         MYFLT ym1= *ftab++;\
@@ -1202,11 +1202,11 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
  *  b:byte (no conversion), w:word, d:double word, digits(optional):repeat n times
  */
 #ifdef WORDS_BIGENDIAN
-static void ChangeByteOrder(char *fmt, char *p, long size)
+static void ChangeByteOrder(char *fmt, char *p, int32 size)
 {
     char c, c1, c2, c3, c4;
     char *fmt_org = fmt;
-    long i, times;
+    int32 i, times;
     while (size > 0) {
       fmt = fmt_org;
       while (*fmt) {
@@ -2050,7 +2050,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
         crossfade = p->cfade, len, spltNum = p->spltNum;
     MYFLT count = p->count,fadein, fadeout, pitch;
     int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
-    unsigned long tndx0, tndx1;
+    uint32 tndx0, tndx1;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
@@ -2226,7 +2226,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
       }
       else {  /* normal */
         out = 0;
-        tndx0 = (unsigned long) ndx[0];
+        tndx0 = (uint32) ndx[0];
         frac0 = ndx[0] - tndx0;
         if (ndx[0] < loop_end[k]-crossfade)
           out = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));

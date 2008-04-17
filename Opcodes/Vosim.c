@@ -28,10 +28,10 @@ typedef struct {
         MYFLT *ar, *amp, *kfund, *kform, *kdamp, *knofpulse, *kpulsemul,
               *iftab, *iskip;
         FUNC *ftable;
-        long  timrem;    /* samples left of event */
-        long  pulstogo;  /* count of pulses to produce in burst */
-        long  pulsephs;  /* index into table of this pulse (= MAXLEN / kform) */
-        long  pulseinc;  /* increment in table of pulse */
+        int32  timrem;    /* samples left of event */
+        int32  pulstogo;  /* count of pulses to produce in burst */
+        int32  pulsephs;  /* index into table of this pulse (= MAXLEN / kform) */
+        int32  pulseinc;  /* increment in table of pulse */
         MYFLT pulseamp;  /* amp of current pulse */
         MYFLT ampdecay;  /* subtract from amp on new pulse */
         MYFLT lenfact;   /* increase length of next pulse */
@@ -68,8 +68,8 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     if (*p->kfund == FL(0.0))         /* infinitely long event */
       p->timrem = INT_MAX;
     else
-      p->timrem = (long)(csound->esr / fabs(*p->kfund));
-    p->pulseinc = (long)(*p->kform * csound->sicvt);
+      p->timrem = (int32)(csound->esr / fabs(*p->kfund));
+    p->pulseinc = (int32)(*p->kform * csound->sicvt);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
     p->ampdecay = *p->kdamp;
     p->pulseamp = *p->amp + p->ampdecay;  /* increase initial amp, since it's reduced at pulse start */
@@ -86,7 +86,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  */
 void vosim_pulse(CSOUND* csound, VOSIM *p)
 {
-    long pulselen;
+    int32 pulselen;
     p->pulsephs &= PHMASK;
     p->pulseinc *= p->lenfact;
     /* If pulse can't fit in remaining event time, skip and generate silence */
@@ -101,10 +101,10 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
 
 int vosim(CSOUND* csound, VOSIM *p)
 {
-    long nsmps = csound->ksmps;
+    int32 nsmps = csound->ksmps;
     MYFLT *ar = p->ar;
     MYFLT *ftdata;
-    long  lobits;
+    int32  lobits;
 
     FUNC *ftp = p->ftable;
     if (ftp == NULL) {

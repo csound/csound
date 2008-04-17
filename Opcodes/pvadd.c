@@ -34,19 +34,19 @@
 static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
-void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
+void FetchInForAdd(float *inp, MYFLT *buf, int32 fsize,
                    MYFLT pos, int binoffset, int maxbin, int binincr)
 {
-    long    j;
+    int32    j;
     float   *frame0, *frame1;
-    long    base;
+    int32    base;
     MYFLT   frac;
 
-    base = (long)pos;
+    base = (int32)pos;
     frac = ((MYFLT)(pos - (MYFLT)base));
     /* & how close to get to next */
-    frame0 = inp + ((long)fsize+2L)*base;
-    frame1 = frame0 + ((long)fsize+2L);
+    frame0 = inp + ((int32)fsize+2L)*base;
+    frame1 = frame0 + ((int32)fsize+2L);
     if (frac != FL(0.0)) {
       for (j = binoffset; j < maxbin; j+=binincr) {
         buf[2L*j] = frame0[2L*j] + frac*(frame1[2L*j]-frame0[2L*j]);
@@ -69,7 +69,7 @@ int pvaddset(CSOUND *csound, PVADD *p)
     int      size;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
     MYFLT    *oscphase;
-    long     memsize;
+    int32     memsize;
 
    if (*p->ifn > FL(0.0))
      if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
@@ -85,11 +85,11 @@ int pvaddset(CSOUND *csound, PVADD *p)
     if (pvx_loadfile(csound, pvfilnam, p) != OK)
       return NOTOK;
 
-    memsize = (long) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
+    memsize = (int32) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
     if (*p->imode == 1 || *p->imode == 2) {
-      long  n = (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+      int32  n = (int32) ((p->frSiz + 2L) * (p->maxFr + 2L));
 #ifdef USE_DOUBLE
-      n = (n + 1L) * (long) sizeof(float) / (long) sizeof(double);
+      n = (n + 1L) * (int32) sizeof(float) / (int32) sizeof(double);
 #endif
       memsize += n;
     }
@@ -140,9 +140,9 @@ int pvadd(CSOUND *csound, PVADD *p)
     int     size = pvfrsiz(p);
     int     i, binincr = (int) *p->ibinincr, n, nsmps = csound->ksmps;
     MYFLT   amp, frq, v1, fract, *oscphase;
-    long    phase, incr;
+    int32    phase, incr;
     FUNC    *ftp;
-    long    lobits;
+    int32    lobits;
 
     if (p->auxch.auxp == NULL)
       return csound->PerfError(csound, Str("pvadd: not initialised"));
@@ -170,7 +170,7 @@ int pvadd(CSOUND *csound, PVADD *p)
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
-      phase = (long) *oscphase;
+      phase = (int32) *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
       if (p->buf[i * 2 + 1] == FL(0.0) || frq >= csound->esr * FL(0.5)) {
         incr = 0;               /* Hope then does not matter */
@@ -178,7 +178,7 @@ int pvadd(CSOUND *csound, PVADD *p)
       }
       else {
         MYFLT tmp = frq * csound->sicvt;
-        incr = (long) MYFLT2LONG(tmp);
+        incr = (int32) MYFLT2LONG(tmp);
         amp = p->buf[i * 2];
       }
       for (n=0;n<nsmps;n++) {
@@ -210,7 +210,7 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
     }
     if (pp.fftsize < 128) {
       return csound->InitError(csound, Str("PV frame %ld seems too small in %s"),
-                               (long) pp.fftsize, fname);
+                               (int32) pp.fftsize, fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (pp.chans > 1) {

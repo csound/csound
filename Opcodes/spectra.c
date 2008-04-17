@@ -31,18 +31,18 @@
 #define FZERO   (FL(0.0))
 #define LOGTWO  (0.69314718056)
 
-void DOWNset(CSOUND *p, DOWNDAT *downdp, long npts)
+void DOWNset(CSOUND *p, DOWNDAT *downdp, int32 npts)
 {
-    long nbytes = npts * sizeof(MYFLT);
+    int32 nbytes = npts * sizeof(MYFLT);
 
     if (downdp->auxch.auxp == NULL || downdp->auxch.size != nbytes)
       p->AuxAlloc(p, nbytes, &downdp->auxch);
     downdp->npts = npts;
 }
 
-void SPECset(CSOUND *p, SPECDAT *specdp, long npts)
+void SPECset(CSOUND *p, SPECDAT *specdp, int32 npts)
 {
-    long nbytes = npts * sizeof(MYFLT);
+    int32 nbytes = npts * sizeof(MYFLT);
 
     if (specdp->auxch.auxp == NULL || nbytes != specdp->auxch.size)
       p->AuxAlloc(p, nbytes, &specdp->auxch);
@@ -93,8 +93,8 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-      long        auxsiz, bufsiz = 0;
-      long        majr, minr, totsamps, totsize;
+      int32        auxsiz, bufsiz = 0;
+      int32        majr, minr, totsamps, totsize;
       double      hicps,locps,oct;  /*   must alloc anew */
 
       p->nfreqs = nfreqs;
@@ -166,7 +166,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
       if (*p->idsines != FL(0.0)) {      /* if reqd, dsply windowed sines now! */
-        csound->dispset(csound, &p->sinwindow, p->sinp, (long) sumk,
+        csound->dispset(csound, &p->sinwindow, p->sinp, (int32) sumk,
                                 Str("spectrum windowed sines:"), 0, "spectrum");
         csound->display(csound, &p->sinwindow);
       }
@@ -193,9 +193,9 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         csound->AuxAlloc(csound,
                          (long)totsize, &p->auxch2);/*  linear output window */
         csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
-                        (long)totsamps, Str("octdown buffers:"), 0, "spectrum");
+                        (int32)totsamps, Str("octdown buffers:"), 0, "spectrum");
       }
-      SPECset(csound, specp, (long)ncoefs);  /* prep the spec dspace */
+      SPECset(csound, specp, (int32)ncoefs);  /* prep the spec dspace */
       specp->downsrcp = dwnp;                /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */
@@ -536,7 +536,7 @@ int spdspset(CSOUND *csound, SPECDISP *p)
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
       csound->dispset(csound, &p->dwindow, (MYFLT*) specp->auxch.auxp,
-                      (long)specp->npts, strmsg, (int)*p->iwtflg,
+                      (int32)specp->npts, strmsg, (int)*p->iwtflg,
                       "specdisp");
     }
     p->countdown = p->timcount;         /* prime the countdown */
@@ -559,14 +559,14 @@ int specdisp(CSOUND *csound, SPECDISP *p)
 int sptrkset(CSOUND *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
-    long    npts, nptls, nn, lobin;
+    int32    npts, nptls, nn, lobin;
     int     *dstp, ptlmax, inc;
     MYFLT   nfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
     if ((npts = inspecp->npts) != p->winpts) {  /* if size has changed */
       SPECset(csound,
-              &p->wfund, (long)npts);           /*   realloc for wfund */
+              &p->wfund, (int32)npts);           /*   realloc for wfund */
       p->wfund.downsrcp = inspecp->downsrcp;
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
@@ -583,7 +583,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       spdspset(csound,fdp);                     /*  & call specdisp init */
     }
     else p->ftimcnt = 0;
-    if ((nptls = (long)*p->inptls) <= 0 || nptls > MAXPTL) {
+    if ((nptls = (int32)*p->inptls) <= 0 || nptls > MAXPTL) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
     p->nptls = nptls;        /* number, whether all or odd */
@@ -615,7 +615,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       }
       p->rolloff = 1;
     }
-    lobin = (long)(inspecp->downsrcp->looct * nfreqs);
+    lobin = (int32)(inspecp->downsrcp->looct * nfreqs);
     oct0p = p->fundp - lobin;                   /* virtual loc of oct 0 */
 
     flop = oct0p + (int)(*p->ilo * nfreqs);
@@ -691,7 +691,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       int   nn, *pdist, confirms;
       MYFLT kval, kvar, fmax, *fmaxp, absdiff, realbin;
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
-      long  lobin, hibin;
+      int32  lobin, hibin;
 
       if (inp==NULL) {             /* RWD fix */
         return csound->PerfError(csound, Str("specptrk: not initialised"));
@@ -699,8 +699,8 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       if ((kvar = *p->kvar) < FL(0.0))
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (long)((kval-kvar) * inspecp->nfreqs); /* set lims of frq interest */
-      hibin = (long)((kval+kvar) * inspecp->nfreqs);
+      lobin = (int32)((kval-kvar) * inspecp->nfreqs); /* set lims of frq interest */
+      hibin = (int32)((kval+kvar) * inspecp->nfreqs);
       if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
         flop = p->flop;
       if ((fhip = p->oct0p + hibin) > p->fhip)  /*       within hard limits */
@@ -838,7 +838,7 @@ int specsum(CSOUND *csound, SPECSUM *p)
     if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
-      long n,npts = specp->npts;                /*   sum all the values */
+      int32 n,npts = specp->npts;                /*   sum all the values */
       for (n=0;n<npts;n++) {
         sum += valp[n];
       }
@@ -873,7 +873,7 @@ int spadmset(CSOUND *csound, SPECADDM *p)
       return csound->InitError(csound, Str("inputs have different amptypes"));
     if (npts != p->waddm->npts) {                 /* if out does not match ins */
       SPECset(csound,
-              p->waddm, (long)npts);              /*       reinit the out spec */
+              p->waddm, (int32)npts);              /*       reinit the out spec */
       p->waddm->downsrcp = inspec1p->downsrcp;
     }
     p->waddm->ktimprd = inspec1p->ktimprd;        /* pass the other specinfo */
@@ -914,9 +914,9 @@ int spdifset(CSOUND *csound, SPECDIFF *p)
 
     if ((npts = inspecp->npts) != p->specsave.npts) { /* if inspec not matched  */
       SPECset(csound,
-              &p->specsave, (long)npts);              /*   reinit the save spec */
+              &p->specsave, (int32)npts);              /*   reinit the save spec */
       SPECset(csound,
-              p->wdiff, (long)npts);                  /*   & the out diff spec  */
+              p->wdiff, (int32)npts);                  /*   & the out diff spec  */
       p->wdiff->downsrcp = inspecp->downsrcp;
     }
     p->wdiff->ktimprd = inspecp->ktimprd;            /* pass the other specinfo */
@@ -972,13 +972,13 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wscaled;
     FUNC    *ftp;
-    long    npts;
+    int32    npts;
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if size has changed,   */
       SPECset(csound,
-              outspecp, (long)npts);                 /*    realloc             */
+              outspecp, (int32)npts);                 /*    realloc             */
       outspecp->downsrcp = inspecp->downsrcp;
-      csound->AuxAlloc(csound, (long)npts * 2 * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32)npts * 2 * sizeof(MYFLT), &p->auxch);
     }
     outspecp->ktimprd = inspecp->ktimprd;      /* pass the source spec info     */
     outspecp->nfreqs = inspecp->nfreqs;
@@ -994,10 +994,10 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
       return csound->InitError(csound, Str("missing fscale table"));
     }
     else {
-      long nn = npts;
-      long phs = 0;
-      long inc = (long)PHMASK / npts;
-      long lobits = ftp->lobits;
+      int32 nn = npts;
+      int32 phs = 0;
+      int32 inc = (int32)PHMASK / npts;
+      int32 lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fscale;
       for (nn=0;nn<npts;nn++) {
@@ -1008,10 +1008,10 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
     if ((p->thresh = (int)*p->ifthresh)
         && (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
       /* if fthresh given,       */
-      long nn = npts;
-      long phs = 0;
-      long inc = (long)PHMASK / npts;
-      long lobits = ftp->lobits;
+      int32 nn = npts;
+      int32 phs = 0;
+      int32 inc = (int32)PHMASK / npts;
+      int32 lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fthresh;
       for(nn=0;nn<npts;nn++) {
@@ -1039,7 +1039,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *outp = (MYFLT *) outspecp->auxch.auxp;
       MYFLT *sclp = p->fscale;
-      long n,npts = inspecp->npts;
+      int32 n,npts = inspecp->npts;
 
       if (p->thresh) {                              /* if thresh requested,  */
         MYFLT *threshp = p->fthresh;
@@ -1069,9 +1069,9 @@ int sphstset(CSOUND *csound, SPECHIST *p)
 
     if ((npts = inspecp->npts) != p->accumer.npts) { /* if inspec not matched   */
       SPECset(csound,
-              &p->accumer, (long)npts);              /*   reinit the accum spec */
+              &p->accumer, (int32)npts);              /*   reinit the accum spec */
       SPECset(csound,
-              p->wacout, (long)npts);                /*    & the output spec    */
+              p->wacout, (int32)npts);                /*    & the output spec    */
       p->wacout->downsrcp = inspecp->downsrcp;
     }
     p->wacout->ktimprd = inspecp->ktimprd;           /* pass the other specinfo */
@@ -1121,11 +1121,11 @@ int spfilset(CSOUND *csound, SPECFILT *p)
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wfil;
     FUNC    *ftp;
-    long    npts;
+    int32    npts;
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
       SPECset(csound,
-              outspecp, (long)npts);                 /*   reinit the out spec */
+              outspecp, (int32)npts);                 /*   reinit the out spec */
       csound->AuxAlloc(csound,
                        (long)npts*2* sizeof(MYFLT),
                        &p->auxch);                   /*   & local auxspace  */
@@ -1145,10 +1145,10 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       return csound->InitError(csound, Str("missing htim ftable"));
     }
     {
-      long nn;
-      long phs = 0;
-      long inc = (long)PHMASK / npts;
-      long lobits = ftp->lobits;
+      int32 nn;
+      int32 phs = 0;
+      int32 inc = (int32)PHMASK / npts;
+      int32 lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->coefs;
       for (nn=0;nn<npts;nn++) {
@@ -1157,7 +1157,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       }
     }
     {
-      long  nn;
+      int32  nn;
       MYFLT *flp = p->coefs;
       double halftim, reittim = inspecp->ktimprd * csound->onedkr;
       for (nn=0;nn<npts;nn++) {

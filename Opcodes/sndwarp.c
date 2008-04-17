@@ -93,7 +93,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
     int         n, nsmps = csound->ksmps;
     MYFLT       frm0,frm1;
-    long        base, longphase;
+    int32        base, longphase;
     MYFLT       frac, frIndx;
     MYFLT       *r1, *r2, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
@@ -155,15 +155,15 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
             csound->Warning(csound, Str("SNDWARP at last sample frame"));
           }
         }
-        longphase = (long)exp->ampphs;
+        longphase = (int32)exp->ampphs;
         if (longphase > p->flen-1) longphase = p->flen-1;
         v1 = *(ftpWind->ftable + longphase);
         v2 = *(ftpWind->ftable + longphase + 1);
-        fract = (MYFLT)(exp->ampphs - (long)exp->ampphs);
+        fract = (MYFLT)(exp->ampphs - (int32)exp->ampphs);
         windowamp = v1 + (v2 - v1)*fract;
         exp->ampphs += exp->ampincr;
 
-        base = (long)frIndx;    /* index of basis frame of interpolation */
+        base = (int32)frIndx;    /* index of basis frame of interpolation */
         frac = ((MYFLT)(frIndx - (MYFLT)base));
         frm0 = *(ftpSamp->ftable + base);
         frm1 = *(ftpSamp->ftable + (base+1));
@@ -223,7 +223,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
 
-    p->maxFr  = -1L + (long)(ftpSamp->flen*FL(0.5));
+    p->maxFr  = -1L + (int32)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
     p->begin = (int)(*p->ibegin * csound->esr);
 
@@ -261,7 +261,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
     int         n, nsmps = csound->ksmps;
     MYFLT       frm10,frm11, frm20, frm21;
-    long        base, longphase;
+    int32        base, longphase;
     MYFLT       frac, frIndx;
     MYFLT       *r1, *r2,*r3, *r4, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
@@ -326,15 +326,15 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
             csound->Warning(csound, Str("SNDWARP at last sample frame"));
           }
         }
-        longphase = (long)exp->ampphs;
+        longphase = (int32)exp->ampphs;
         if (longphase > p->flen-1) longphase = p->flen-1;
         v1 = *(ftpWind->ftable + longphase);
         v2 = *(ftpWind->ftable + longphase + 1);
-        fract = (MYFLT)(exp->ampphs - (long)exp->ampphs);
+        fract = (MYFLT)(exp->ampphs - (int32)exp->ampphs);
         windowamp = v1 + (v2 - v1)*fract;
         exp->ampphs += exp->ampincr;
 
-        base = (long)frIndx;    /* index of basis frame of interpolation */
+        base = (int32)frIndx;    /* index of basis frame of interpolation */
         frac = ((MYFLT)(frIndx - (MYFLT)base));
 
         frm10 = *(ftpSamp->ftable + (base * 2));

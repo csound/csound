@@ -86,7 +86,7 @@ int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
-    long i,j, spreaddirnum;
+    int32 i,j, spreaddirnum;
     int n = p->n;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
@@ -196,7 +196,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     LS_SET  *ls_set_ptr;
     int n = p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }
@@ -300,7 +300,7 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
-    long i,j, spreaddirnum;
+    int32 i,j, spreaddirnum;
     int n = p->n;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
@@ -495,7 +495,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     int n = p->n;
     p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
-    indx = (long) *p->ndx;
+    indx = (int32) *p->ndx;
     if (indx > csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }

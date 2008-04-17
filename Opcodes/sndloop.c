@@ -125,10 +125,10 @@ typedef struct _sndloop {
   MYFLT *sig, *pitch, *on;  /* in, pitch, sound on */
   MYFLT *dur, *cfd;         /* duration, crossfade  */
   AUXCH buffer;             /* loop memory */
-  long  wp;                 /* writer pointer */
+  int32  wp;                 /* writer pointer */
   double rp;                /* read pointer  */
-  long  cfds;               /* crossfade in samples */
-  long durs;                /* duration in samples */
+  int32  cfds;               /* crossfade in samples */
+  int32 durs;                /* duration in samples */
   int  rst;                 /* reset indicator */
   MYFLT inc;                /* fade in/out increment/decrement */
   MYFLT  a;                 /* fade amp */
@@ -140,8 +140,8 @@ typedef struct _flooper {
   MYFLT *amp, *pitch, *start, *dur, *cfd, *ifn;
   AUXCH buffer; /* loop memory */
   FUNC  *sfunc;  /* function table */
-  long strts;   /* start in samples */
-  long  durs;    /* duration in samples */
+  int32 strts;   /* start in samples */
+  int32  durs;    /* duration in samples */
   double  ndx;    /* table lookup ndx */
   int   loop_off;
 } flooper;
@@ -168,9 +168,9 @@ typedef struct _flooper3 {
     *crossfade, *ifn, *start, *imode, *ifn2, *iskip;
   FUNC  *sfunc;  /* function table */
   FUNC *efunc;
-  long count;
+  int32 count;
   int lstart, lend,cfade, mode;
-  long  ndx[2];    /* table lookup ndx */
+  int32  ndx[2];    /* table lookup ndx */
   int firsttime, init;
   int lobits,lomask;
   MYFLT lodiv;
@@ -183,7 +183,7 @@ typedef struct _pvsarp {
   MYFLT   *cf;
   MYFLT   *kdepth;
   MYFLT   *gain;
-  unsigned long   lastframe;
+  uint32   lastframe;
 }
   pvsarp;
 
@@ -194,14 +194,14 @@ typedef struct _pvsvoc {
   PVSDAT  *ffr;
   MYFLT   *kdepth;
   MYFLT   *gain;
-  unsigned long   lastframe;
+  uint32   lastframe;
 }
   pvsvoc;
 
 static int sndloop_init(CSOUND *csound, sndloop *p)
 {
-    p->durs = (long) (*(p->dur)*csound->esr); /* dur in samps */
-    p->cfds = (long) (*(p->cfd)*csound->esr); /* fade in samps */
+    p->durs = (int32) (*(p->dur)*csound->esr); /* dur in samps */
+    p->cfds = (int32) (*(p->cfd)*csound->esr); /* fade in samps */
     p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
     p->a    = FL(0.0);
     p->wp   = 0;   /* intialise write pointer */
@@ -215,7 +215,7 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
 static int sndloop_process(CSOUND *csound, sndloop *p)
 {
     int i, on = (int) *(p->on), recon, n = csound->ksmps;
-    long durs = p->durs, cfds = p->cfds, wp = p->wp;
+    int32 durs = p->durs, cfds = p->cfds, wp = p->wp;
     double rp = p->rp;
     MYFLT a = p->a, inc = p->inc;
     MYFLT *out = p->out, *sig = p->sig, *buffer = p->buffer.auxp;
@@ -272,10 +272,10 @@ static int sndloop_process(CSOUND *csound, sndloop *p)
 static int flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = (MYFLT) 0, inc;
-    long cfds = (long) (*(p->cfd)*csound->esr);     /* fade in samps  */
-    long starts = (long) (*(p->start)*csound->esr); /* start in samps */
-    long durs = (long)  (*(p->dur)*csound->esr);    /* dur in samps   */
-    long len, i;
+    int32 cfds = (int32) (*(p->cfd)*csound->esr);     /* fade in samps  */
+    int32 starts = (int32) (*(p->start)*csound->esr); /* start in samps */
+    int32 durs = (int32)  (*(p->dur)*csound->esr);    /* dur in samps   */
+    int32 len, i;
 
     if (cfds > durs) {
       return csound->InitError(csound,
@@ -329,7 +329,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
 static int flooper_process(CSOUND *csound, flooper *p)
 {
   int i, n = csound->ksmps;
-  long end = p->strts+p->durs, durs = p->durs;
+  int32 end = p->strts+p->durs, durs = p->durs;
   MYFLT *out = p->out, *buffer = p->buffer.auxp;
   MYFLT amp = *(p->amp), pitch = *(p->pitch);
   MYFLT *tab = p->sfunc->ftable;
@@ -404,7 +404,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         crossfade = p->cfade, len = p->sfunc->flen;
     MYFLT count = p->count,fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
-    unsigned long tndx0, tndx1;
+    uint32 tndx0, tndx1;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
@@ -563,7 +563,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       }
       else {  /* normal */
         out[i] = 0;
-        tndx0 = (unsigned long) ndx[0];
+        tndx0 = (uint32) ndx[0];
         frac0 = ndx[0] - tndx0;
         if (ndx[0] < loop_end-crossfade)
           out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
@@ -654,13 +654,13 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
   MYFLT *out = p->out, sr = csound->GetSr(csound);
   MYFLT amp = *(p->amp), pitch = *(p->pitch);
   MYFLT *tab = p->sfunc->ftable, cvt;
-  long *ndx = p->ndx, lomask = p->lomask, pos;
+  int32 *ndx = p->ndx, lomask = p->lomask, pos;
   MYFLT frac0, frac1, *etab, lodiv = p->lodiv;
   int loop_end = p->lend, loop_start = p->lstart, mode = p->mode,
     crossfade = p->cfade, len = p->sfunc->flen, count = p->count;
   MYFLT fadein, fadeout;
   int *firsttime = &p->firsttime, elen, init = p->init;
-  unsigned long tndx0, tndx1;
+  uint32 tndx0, tndx1;
 
   /* loop parameters & check */
   if (pitch < FL(0.0)) pitch = FL(0.0);
@@ -882,7 +882,7 @@ static int flooper3_process(CSOUND *csound, flooper3 *p)
 
 static int pvsarp_init(CSOUND *csound, pvsarp *p)
 {
-  long N = p->fin->N;
+  int32 N = p->fin->N;
 
   if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
     csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
@@ -905,7 +905,7 @@ static int pvsarp_init(CSOUND *csound, pvsarp *p)
 
 static int pvsarp_process(CSOUND *csound, pvsarp *p)
 {
-  long i,j,N = p->fout->N, bins = N/2 + 1;
+  int32 i,j,N = p->fout->N, bins = N/2 + 1;
   float g = (float) *p->gain;
   MYFLT kdepth = (MYFLT) *(p->kdepth), cf = (MYFLT) *(p->cf);
   float *fin = (float *) p->fin->frame.auxp;
@@ -930,7 +930,7 @@ static int pvsarp_process(CSOUND *csound, pvsarp *p)
 
 static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
 {
-  long N = p->fin->N;
+  int32 N = p->fin->N;
 
   if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
     csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
@@ -953,7 +953,7 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
 
 static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
-  long i,N = p->fout->N;
+  int32 i,N = p->fout->N;
   float g = (float) *p->gain;
   MYFLT kdepth = (MYFLT) *(p->kdepth);
   float *fin = (float *) p->fin->frame.auxp;
@@ -978,7 +978,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
 static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
 {
-  long i,N = p->fout->N;
+  int32 i,N = p->fout->N;
   float frint = (float) *p->gain;
   float amint = (float) *(p->kdepth);
   float *fi1 = (float *) p->fin->frame.auxp;

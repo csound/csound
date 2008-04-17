@@ -36,13 +36,13 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
     if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
         (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
       OVRLAP *ovp, *nxtovp;
-      long   olaps;
-      p->durtogo = (long)(*p->itotdur * csound->esr);
+      int32   olaps;
+      p->durtogo = (int32)(*p->itotdur * csound->esr);
       if (!skip) { /* legato: skip all memory management */
         if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
           p->fundphs = MAXLEN;                  /*   trigger new FOF */
-        else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
-        if ((olaps = (long)*p->iolaps) <= 0) {
+        else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
+        if ((olaps = (int32)*p->iolaps) <= 0) {
           return csound->InitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
@@ -89,7 +89,7 @@ static int fof(CSOUND *csound, FOFS *p)
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
     MYFLT   *ar, *amp, *fund, *form;
-    long   nsmps = csound->ksmps, fund_inc, form_inc;
+    int32   nsmps = csound->ksmps, fund_inc, form_inc;
     MYFLT  v1, fract ,*ftab;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
@@ -101,8 +101,8 @@ static int fof(CSOUND *csound, FOFS *p)
     form = p->xform;
     ftp1 = p->ftp1;
     ftp2 = p->ftp2;
-    fund_inc = (long)(*fund * csound->sicvt);
-    form_inc = (long)(*form * csound->sicvt);
+    fund_inc = (int32)(*fund * csound->sicvt);
+    form_inc = (int32)(*form * csound->sicvt);
     do {
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
@@ -138,7 +138,7 @@ static int fof(CSOUND *csound, FOFS *p)
              pitch of grain at each a-rate pass (ovp->formphs is the
              index into ifna; ovp->forminc is the stepping factor that
              decides pitch) */
-          ovp->formphs += (long)(ovp->forminc + ovp->glissbas * ovp->sampct++);
+          ovp->formphs += (int32)(ovp->forminc + ovp->glissbas * ovp->sampct++);
         }
         ovp->formphs &= PHMASK;
         if (ovp->risphs < MAXLEN) {             /*  formant ris envlp */
@@ -163,8 +163,8 @@ static int fof(CSOUND *csound, FOFS *p)
       p->fundphs += fund_inc;
       if (p->xincod) {
         if (p->ampcod)    amp++;
-        if (p->fundcod)   fund_inc = (long)(*++fund * csound->sicvt);
-        if (p->formcod)   form_inc = (long)(*++form * csound->sicvt);
+        if (p->fundcod)   fund_inc = (int32)(*++fund * csound->sicvt);
+        if (p->formcod)   form_inc = (int32)(*++form * csound->sicvt);
       }
       p->durtogo--;
       ar++;
@@ -176,13 +176,13 @@ static int newpulse(CSOUND *csound,
                     FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
 {
     MYFLT   octamp = *amp, oct;
-    long   rismps, newexp = 0;
+    int32   rismps, newexp = 0;
 
-    if ((ovp->timrem = (long)(*p->kdur * csound->esr)) > p->durtogo &&
+    if ((ovp->timrem = (int32)(*p->kdur * csound->esr)) > p->durtogo &&
         (*p->iskip==FL(0.0))) /* ringtime */
       return(0);
     if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
-      long ioct = (long)oct, bitpat = ~(-1L << ioct);
+      int32 ioct = (int32)oct, bitpat = ~(-1L << ioct);
       if (bitpat & ++p->fofcount)
         return(0);
       if ((bitpat += 1) & p->fofcount)
@@ -190,8 +190,8 @@ static int newpulse(CSOUND *csound,
     }
     if (*fund == FL(0.0))                               /* formant phs */
       ovp->formphs = 0;
-    else ovp->formphs = (long)(p->fundphs * *form / *fund) & PHMASK;
-    ovp->forminc = (long)(*form * csound->sicvt);
+    else ovp->formphs = (int32)(p->fundphs * *form / *fund) & PHMASK;
+    ovp->forminc = (int32)(*form * csound->sicvt);
     if (*p->kband != p->prvband) {                    /* bw: exp dec */
       p->prvband = *p->kband;
       p->expamp = (MYFLT)exp((double)(*p->kband * csound->mpidsr));
@@ -202,10 +202,10 @@ static int newpulse(CSOUND *csound,
        So insert another if-test with compensating code. */
     if (*p->kris >= csound->onedsr && *form != FL(0.0)) {   /* init fnb ris */
       if (*form < FL(0.0) && ovp->formphs != 0)
-        ovp->risphs = (long)((MAXLEN - ovp->formphs) / -*form / *p->kris);
+        ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
-        ovp->risphs = (long)(ovp->formphs / *form / *p->kris);
-      ovp->risinc = (long)(csound->sicvt / *p->kris);
+        ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
+      ovp->risinc = (int32)(csound->sicvt / *p->kris);
       rismps = MAXLEN / ovp->risinc;
     }
     else {
@@ -219,13 +219,13 @@ static int newpulse(CSOUND *csound,
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
     ovp->expamp = p->expamp;
-    if ((ovp->dectim = (long)(*p->kdec * csound->esr)) > 0) /*  fnb dec  */
-      ovp->decinc = (long)(csound->sicvt / *p->kdec);
+    if ((ovp->dectim = (int32)(*p->kdec * csound->esr)) > 0) /*  fnb dec  */
+      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
     ovp->decphs = PHMASK;
     if (!p->foftype) {
       /* Make fof take k-rate phase increment:
          Add current iphs to initial form phase */
-      ovp->formphs += (long)(*p->iphs * FMAXLEN);           /*  krate phs */
+      ovp->formphs += (int32)(*p->iphs * FMAXLEN);           /*  krate phs */
       ovp->formphs &= PHMASK;
       /* Set up grain gliss increment: ovp->glissbas will be added to
          ovp->forminc at each pass in fof2. Thus glissbas must be
@@ -251,10 +251,10 @@ static int harmset(CSOUND *csound, HARMON *p)
       return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
-      long nbufs = (long)(csound->ekr * FL(3.0) / minfrq) + 1;
-      long nbufsmps = nbufs * csound->ksmps;
-      long maxprd = (long)(csound->esr / minfrq);
-      long totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
+      int32 nbufs = (int32)(csound->ekr * FL(3.0) / minfrq) + 1;
+      int32 nbufsmps = nbufs * csound->ksmps;
+      int32 maxprd = (int32)(csound->esr / minfrq);
+      int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       csound->AuxAlloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
@@ -295,8 +295,8 @@ static int harmon(CSOUND *csound, HARMON *p)
     MYFLT c1, c2, qval, *inq1, *inq2;
     MYFLT sum, minval, *minqp = NULL, *minq1, *minq2, *endp;
     MYFLT *pulstrt, lin1, lin2, lin3;
-    long  cnt1, cnt2, cnt3;
-    long  nn, nsmps, phase1, phase2, phsinc1, phsinc2, period;
+    int32  cnt1, cnt2, cnt3;
+    int32  nn, nsmps, phase1, phase2, phsinc1, phsinc2, period;
 
     inp1 = p->inp1;
     inp2 = p->inp2;
@@ -316,9 +316,9 @@ static int harmon(CSOUND *csound, HARMON *p)
     if (*p->kvar != p->prvar) {
       MYFLT oneplusvar = FL(1.0) + *p->kvar;
       /* prd window is prd +/- var int */
-      p->mindist = (long)(p->estprd/oneplusvar);
+      p->mindist = (int32)(p->estprd/oneplusvar);
 /*       if (p->mindist==0) p->mindist=1; */
-      p->maxdist = (long)(p->estprd*oneplusvar);
+      p->maxdist = (int32)(p->estprd*oneplusvar);
       if (p->maxdist > p->lomaxdist)
         p->maxdist = p->lomaxdist;
       p->max2dist = p->maxdist * 2;
@@ -337,7 +337,7 @@ static int harmon(CSOUND *csound, HARMON *p)
       MYFLT *mid1, *mid2, *src4;
       MYFLT *autop, *maxp;
       MYFLT dsum, dinv, win, windec, maxval;
-      long  dist;
+      int32  dist;
       p->autokcnt = p->autoktim;
       mid2 = inp2 - p->max2dist;
       mid1 = mid2 - 1;
@@ -375,8 +375,8 @@ static int harmon(CSOUND *csound, HARMON *p)
         p->period = period;
         if (!p->cpsmode)
           p->lsicvt = FL(65536.0) / period;
-        p->pnt1 = (long)((MYFLT)period * FL(0.2));
-        p->pnt2 = (long)((MYFLT)period * FL(0.8));
+        p->pnt1 = (int32)((MYFLT)period * FL(0.2));
+        p->pnt2 = (int32)((MYFLT)period * FL(0.8));
         p->pnt3 = period;
         p->inc1 = FL(1.0) / p->pnt1;
         p->inc2 = FL(1.0) / (period - p->pnt2);
@@ -420,8 +420,8 @@ static int harmon(CSOUND *csound, HARMON *p)
     cnt3 = p->cnt3;
     phase1 = p->phase1;
     phase2 = p->phase2;
-    phsinc1 = (long)(*p->kfrq1 * p->lsicvt);
-    phsinc2 = (long)(*p->kfrq2 * p->lsicvt);
+    phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
+    phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
     outp = p->ar;
     nsmps = csound->ksmps;
     do {

@@ -53,10 +53,10 @@ typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *imode;
     MYFLT   *ifreqlim, *igatefun;
-    long    mems;
-    long    kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
+    int32   mems;
+    int32   kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
     /* RWD 8:2001 for pvocex: need these too */
-    long    frInc, chans;
+    int32   frInc, chans;
 
     MYFLT   frPktim, frPrtim, scale, asr, lastPex;
     MYFLT   PvMaxAmp;

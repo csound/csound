@@ -97,7 +97,7 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     if (*((unsigned char*) &bytrev_test) == (unsigned char) 0x34) {
       /* Byte reverse on data set if necessary */
       int16 *x = p->fpbegin;
-      long len = (mfp->length)/sizeof(int16);
+      int32 len = (mfp->length)/sizeof(int16);
       while (len != 0) {
         int16 v = *x;
         v = ((v & 0xFF) << 8) + ((v >> 8) & 0xFF);  /* Swap bytes */

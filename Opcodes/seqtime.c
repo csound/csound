@@ -26,33 +26,33 @@
 typedef struct {
     OPDS  h;
     MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
-    long  ndx;
+    int32  ndx;
     int   done, first_flag;
     double start, newtime;
-    long  pfn;
+    int32  pfn;
     MYFLT *table, curr_unit_time;
 } SEQTIM;
 
 typedef struct {
     OPDS  h;
     MYFLT *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
-    long ndx;
+    int32 ndx;
     int done, first_flag;
     double start, newtime;
-    long  pfn;
+    int32  pfn;
     MYFLT *table, curr_unit_time;
 } SEQTIM2;
 
 static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
 {
     FUNC *ftp;
-    long start, loop;
-    long *ndx = &p->ndx;
-    p->pfn = (long) *p->kfn;
+    int32 start, loop;
+    int32 *ndx = &p->ndx;
+    p->pfn = (int32) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return csound->InitError(csound, Str("seqtime: incorrect table number"));
     }
-    *ndx = (long) *p->initndx;
+    *ndx = (int32) *p->initndx;
     p->done = 0;
     p->table =  ftp->ftable;
     if (p->ndx  > 0)
@@ -60,8 +60,8 @@ static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     else
       p->newtime = 0;
     p->start = csound->kcounter * csound->onedkr;
-    start = (long) *p->kstart;
-    loop = (long) *p->kloop;
+    start = (int32) *p->kstart;
+    loop = (int32) *p->kloop;
     if (loop > 0) {
       *ndx %= loop;
       if (*ndx == 0) {
@@ -84,15 +84,15 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
     if (p->done)
       *p->ktrig=FL(0.0);
     else {
-      long start = (long) *p->kstart, loop = (long) *p->kloop;
-      long *ndx = &p->ndx;
-      if (p->pfn != (long)*p->kfn) {
+      int32 start = (int32) *p->kstart, loop = (int32) *p->kloop;
+      int32 *ndx = &p->ndx;
+      if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
         if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
           return csound->PerfError(csound,
                                    Str("seqtime: incorrect table number"));
         }
-        p->pfn = (long)*p->kfn;
+        p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
 
@@ -150,19 +150,19 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
 static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 {
     FUNC *ftp;
-    long start, loop;
-    long *ndx = &p->ndx;
-    p->pfn = (long) *p->kfn;
+    int32 start, loop;
+    int32 *ndx = &p->ndx;
+    p->pfn = (int32) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return csound->InitError(csound, Str("seqtim: incorrect table number"));
     }
-    *ndx = (long) *p->kinitndx;
+    *ndx = (int32) *p->kinitndx;
     p->done=0;
     p->table =  ftp->ftable;
     p->newtime = p->table[p->ndx];
     p->start = csound->kcounter * csound->onedkr;
-    start = (long) *p->kstart;
-    loop = (long) *p->kloop;
+    start = (int32) *p->kstart;
+    loop = (int32) *p->kloop;
     if (loop > 0 ) {
       (*ndx)++;
       *ndx %= loop;
@@ -184,21 +184,21 @@ static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 static int seqtim2(CSOUND *csound, SEQTIM2 *p)
 {
     if (*p->ktrigin) {
-      p->ndx = (long) *p->kinitndx;
+      p->ndx = (int32) *p->kinitndx;
     }
 
     if (p->done)
       goto end;
     else {
-      long start = (long) *p->kstart, loop = (long) *p->kloop;
-      long *ndx = &p->ndx;
+      int32 start = (int32) *p->kstart, loop = (int32) *p->kloop;
+      int32 *ndx = &p->ndx;
 
-      if (p->pfn != (long)*p->kfn) {
+      if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
         if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) {
           return csound->PerfError(csound, Str("seqtim: incorrect table number"));
         }
-        p->pfn = (long)*p->kfn;
+        p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
       if (p->curr_unit_time != *p->unit_time) {

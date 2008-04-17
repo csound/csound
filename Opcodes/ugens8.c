@@ -41,7 +41,7 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 int pvset(CSOUND *csound, PVOC *p)
 {
     int      i;
-    long     memsize;
+    int32     memsize;
     char     pvfilnam[MAXNAME];
     int      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */
     FUNC     *AmpGateFunc = NULL;
@@ -52,11 +52,11 @@ int pvset(CSOUND *csound, PVOC *p)
     if (pvx_loadfile(csound, pvfilnam, p) != OK)
       return NOTOK;
 
-    memsize = (long) (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN);
+    memsize = (int32) (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN);
     if (*p->imode == 1 || *p->imode == 2) {
-      long  n = (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+      int32  n = (int32) ((p->frSiz + 2L) * (p->maxFr + 2L));
 #ifdef USE_DOUBLE
-      n = (n + 1L) * (long) sizeof(float) / (long) sizeof(double);
+      n = (n + 1L) * (int32) sizeof(float) / (int32) sizeof(double);
 #endif
       memsize += n;
     }

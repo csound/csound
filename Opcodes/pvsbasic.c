@@ -36,13 +36,13 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int     i;
     float   *bframe;
-    long    N = (long) *p->framesize;
+    int32    N = (int32) *p->framesize;
 
     p->fout->N = N;
-    p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (long) *p->wintype;
-    p->fout->format = (long) *p->format;
+    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (int32) *p->wintype;
+    p->fout->format = (int32) *p->format;
     p->fout->framecount = 1;
 #ifdef SDFT
     p->fout->sliding = 0;
@@ -84,7 +84,7 @@ typedef struct {
   MYFLT  *file;
   int    pvfile;
   AUXCH  frame;
-  unsigned long lastframe;
+  uint32 lastframe;
 }PVSFWRITE;
 
 static int pvsfwrite_destroy(CSOUND *csound, void *p){
@@ -125,7 +125,7 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     float *fin = p->fin->frame.auxp;
 
     if (p->lastframe < p->fin->framecount) {
-      long framesize = p->fin->N + 2, i;
+      int32 framesize = p->fin->N + 2, i;
       MYFLT scale = csound->e0dbfs;
       for(i=0;i < framesize; i+=2) {
         fout[i] = fin[i]/scale;
@@ -147,11 +147,11 @@ typedef struct _pvsdiskin {
   MYFLT *ioff;
   MYFLT *ichn;
   double  pos;
-  unsigned long oldpos;
+  uint32 oldpos;
   int chans, chn;
   int pvfile;
   int scnt;
-  unsigned long  flen;
+  uint32  flen;
   AUXCH buffer;
 } pvsdiskin;
 
@@ -224,7 +224,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
     int overlap = p->fout->overlap, frames, i, posi;
     double pos = p->pos;
-    long N = p->fout->N;
+    int32 N = p->fout->N;
     MYFLT frac;
     float *fout = (float *)  p->fout->frame.auxp;
     float *buffer = (float *) p->buffer.auxp;
@@ -265,7 +265,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 
 static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 {
-    long    N = p->fin->N;
+    int32    N = p->fin->N;
 
     if (p->fin == p->fout)
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
@@ -333,7 +333,7 @@ static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 {
     int     i;
-    long    framesize;
+    int32    framesize;
     MYFLT   freeza, freezf;
     float   *fout, *fin, *freez;
 #ifdef SDFT
@@ -366,13 +366,13 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 static int pvsoscset(CSOUND *csound, PVSOSC *p)
 {
     int     i;
-    long    N = (long) *p->framesize;
+    int32    N = (int32) *p->framesize;
 
     p->fout->N = N;
-    p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (long) *p->wintype;
-    p->fout->format = (long) *p->format;
+    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (int32) *p->wintype;
+    p->fout->format = (int32) *p->format;
     p->fout->framecount = 0;
 #ifdef SDFT
     p->fout->sliding = 0;
@@ -417,7 +417,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
 static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
 {
     int     i, harm, type;
-    long    framesize;
+    int32    framesize;
     MYFLT   famp, ffun,w;
     float   *fout;
     double  cfbin,a;
@@ -512,7 +512,7 @@ static int pvsbinset(CSOUND *csound, PVSBIN *p)
 
 static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
-    long    framesize, pos;
+    int32    framesize, pos;
 #ifdef SDFT
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
@@ -544,7 +544,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 #ifdef SDFT
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
-    long    framesize, pos, k;
+    int32    framesize, pos, k;
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -577,7 +577,7 @@ static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 
 static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 {
-    long    N = p->fin->N;
+    int32    N = p->fin->N;
 
     if (p->fin == p->fout)
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
@@ -620,7 +620,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 {
     int     i;
-    long    framesize;
+    int32    framesize;
     double  ffa, ffr;
 
     ffa = (double) *p->kfra;
@@ -698,7 +698,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 
 static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
-    long    N = p->fa->N;
+    int32    N = p->fa->N;
 
     if (p->fa == p->fout || p->fb == p->fout)
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
@@ -734,7 +734,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
 static int pvsmix(CSOUND *csound, PVSMIX *p)
 {
     int     i;
-    long    framesize;
+    int32    framesize;
     int     test;
     float   *fout, *fa, *fb;
 
@@ -783,7 +783,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
 
 static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
-    long    N = p->fin->N;
+    int32    N = p->fin->N;
 
     if (p->fin == p->fout || p->fil == p->fout)
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
@@ -819,7 +819,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 
 static int pvsfilter(CSOUND *csound, PVSFILTER *p)
 {
-    long    i, N = p->fout->N;
+    int32    i, N = p->fout->N;
     float   g = (float) *p->gain;
     MYFLT   dirgain, kdepth = *p->kdepth;
     float   *fin = (float *) p->fin->frame.auxp;
@@ -874,7 +874,7 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
 
 static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
-    long    N = p->fin->N;
+    int32    N = p->fin->N;
 
     if (p->fin == p->fout)
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
@@ -1135,7 +1135,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 static int pvsblurset(CSOUND *csound, PVSBLUR *p)
 {
     float   *delay;
-    long    N = p->fin->N, i, j;
+    int32    N = p->fin->N, i, j;
     int     olap = p->fin->overlap;
     int     delayframes, framesize = N + 2;
     if (p->fin == p->fout)
@@ -1194,8 +1194,8 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
 
 static int pvsblur(CSOUND *csound, PVSBLUR *p)
 {
-    long    j, i, N = p->fout->N, first, framesize = N + 2;
-    long    countr = p->count;
+    int32    j, i, N = p->fout->N, first, framesize = N + 2;
+    int32    countr = p->count;
     double  amp = 0.0, freq = 0.0;
     int     delayframes = (int) (*p->kdel * p->frpsec);
     int     kdel = delayframes * framesize;
@@ -1283,8 +1283,8 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
 
 static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 {
-    long    N = p->fin->N, i;
-    long    chans = N / 2 + 1;
+    int32    N = p->fin->N, i;
+    int32    chans = N / 2 + 1;
     MYFLT   *ftable;
 
     p->fout->N = N;
@@ -1362,7 +1362,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
     else
 #endif
       {
-        long    framesize, i, j;
+        int32    framesize, i, j;
         int     test;
         float   *fout, *fin;
         float   g = (float) fabs(*p->kgain);

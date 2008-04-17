@@ -30,7 +30,7 @@ typedef struct {
     AUXCH       aux_x;
     MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
     MYFLT       *m, *f, *c, *d, *out;
-    long        idx, len, exti;
+    int32        idx, len, exti;
     int         id;
     void        *win;
     SCANSYN_GLOBALS *pp;
@@ -44,7 +44,7 @@ typedef struct {
     MYFLT       *interp;
     AUXCH       aux_t;
     MYFLT       fix, phs;
-    long        tlen, *t;
+    int32        tlen, *t;
     int         oscil_interp;
     PSCSNU      *p;
 } PSCSNS;
@@ -69,9 +69,9 @@ typedef struct {
 #ifdef USING_CHAR
     char        *f;
 #else
-    unsigned long *f;
+    uint32      *f;
 #endif
-    long        idx, len, exti;
+    int32        idx, len, exti;
     int         id;
     void        *win;
     SCANSYN_GLOBALS *pp;
@@ -86,7 +86,7 @@ typedef struct {
     MYFLT       *interp;
     AUXCH       aux_t;
     MYFLT       fix, phs;
-    long        tlen, *t;
+    int32       tlen, *t;
     int         oscil_interp;
     PSCSNUX     *p;
 } PSCSNSX;

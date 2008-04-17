@@ -160,7 +160,7 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
 {
     MYFLT lastOutput;
-    long  temp, temp1;
+    int32  temp, temp1;
     MYFLT alpha, temp_rate;
     MYFLT mytime = p->mytime;
 
@@ -175,7 +175,7 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
       mytime += p->wave->flen;                /*  loop back to beginning  */
     }
 
-    temp = (long) mytime;             /*  Integer part of time address    */
+    temp = (int32) mytime;             /*  Integer part of time address    */
     alpha = mytime - (MYFLT) temp;    /*  fractional part of time address */
 
     temp1 = temp + 1;
@@ -353,7 +353,7 @@ int voicformset(CSOUND *csound, VOICF *p)
 int voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
-    long nsmps = csound->ksmps;
+    int32 nsmps = csound->ksmps;
     MYFLT temp;
     MYFLT lastOutput;
 

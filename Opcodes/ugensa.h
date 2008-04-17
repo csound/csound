@@ -28,9 +28,9 @@
 typedef struct overlap {
   struct overlap *nxtact;
   struct overlap *nxtfree;
-  long           timrem, dectim, formphs, forminc;
-  unsigned long  risphs;
-  long           risinc, decphs, decinc;
+  int32          timrem, dectim, formphs, forminc;
+  uint32         risphs;
+  int32          risinc, decphs, decinc;
   MYFLT          curamp, expamp;
 } OVERLAP;
 
@@ -39,7 +39,7 @@ typedef struct {
   MYFLT *ar, *xamp, *xdens, *xtrans, *xspd, *koct, *kband, *kris, *kdur, *kdec;
   MYFLT *iolaps, *ifna, *ifnb, *itotdur, *iphs, *itmode, *iskip;
   OVERLAP       basovrlap;
-  long  durtogo, fundphs, fofcount, prvsmps, spdphs; /*last added JMC for FOG*/
+  int32 durtogo, fundphs, fofcount, prvsmps, spdphs; /*last added JMC for FOG*/
   MYFLT prvband, expamp, preamp, fogcvt; /*last added JMC for FOG*/
   int16 xincod, ampcod, fundcod;
   int16 formcod, fmtmod, speedcod; /*last added JMC for FOG*/
@@ -50,7 +50,7 @@ typedef struct {
 /*typedef struct {
         OPDS    h;
         MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
-        long    lphs;
+        int32   lphs;
         FUNC    *ftp;
 } JMC;
 */

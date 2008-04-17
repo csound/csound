@@ -93,7 +93,7 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
     }
     if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
       sf->loopStart = 0.0;
-      sf->loopEnd = (double) ((long) sf->nFrames);
+      sf->loopEnd = (double) ((int32) sf->nFrames);
     }
     else if (sf->loopStart > sf->loopEnd) {
       double  tmp = sf->loopStart;
@@ -122,7 +122,7 @@ typedef struct LOSCILX_OPCODE_ {
     int_least64_t   curLoopStart, curLoopEnd;
     MYFLT   prvKcps, frqScale, ampScale, warpFact, winFact;
     void    *dataPtr;
-    long    nFrames;
+    int32    nFrames;
     int     nChannels;
     int     winSize;
     int     enableWarp;         /* non-zero when downsampling */
@@ -141,7 +141,7 @@ static inline int_least64_t loscilx_convert_phase(double phs)
 #endif
 }
 
-static inline long loscilx_phase_int(int_least64_t phs)
+static inline int32 loscilx_phase_int(int_least64_t phs)
 {
     int32_t retval = (int32_t) ((uint32_t) ((uint_least64_t) phs >> 32));
 #ifndef __i386__
@@ -179,7 +179,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
                                          (char*) p->ifn);
       if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
         sf->loopStart = 0.0;
-        sf->loopEnd = (double) ((long) sf->nFrames);
+        sf->loopEnd = (double) ((int32) sf->nFrames);
       }
       else if (sf->loopStart > sf->loopEnd) {
         double  tmp = sf->loopStart;
@@ -206,7 +206,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       else
         frqScale = sf->sampleRate / ((double) csound->esr * sf->baseFreq);
       p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
-      p->nFrames = (long) sf->nFrames;
+      p->nFrames = (int32) sf->nFrames;
     }
     else {
       FUNC  *ftp;
@@ -345,7 +345,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     int     i, j;
     double  frac_d, pidwarp_d = 0.0, c = 0.0;
     MYFLT   frac, ampScale, winFact = p->winFact;
-    long    ndx;
+    int32    ndx;
     int     winSmps;
     float   winBuf[LOSCILX_MAX_INTERP_SIZE];
 
@@ -433,7 +433,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           MYFLT   a0, a1;
           int     wsized2 = winSmps >> 1;
 
-          ndx += (long) (1 - wsized2);
+          ndx += (int32) (1 - wsized2);
           d = (double) (1 - wsized2) - frac_d;
           j = 0;
           if (p->enableWarp) {              /* ...with window warp enabled */
@@ -478,7 +478,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           else {                            /* ...with window warp disabled */
             /* avoid division by zero */
             if (frac_d < 0.00001 || frac_d > 0.99999) {
-              ndx += (long) (wsized2 - (frac_d < 0.5 ? 1 : 0));
+              ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
               winSmps = 1;
               winBuf[0] = 1.0f;
             }
@@ -507,7 +507,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
         MYFLT   ar = FL(0.0);
         do {
           ndx++;
-          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+          if ((uint32) ndx >= (uint32) p->nFrames) {
             if (!p->loopingWholeFile)
               continue;
             if (ndx < 0L) {
@@ -538,7 +538,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
         MYFLT   ar1 = FL(0.0), ar2 = FL(0.0);
         do {
           ndx++;
-          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+          if ((uint32) ndx >= (uint32) p->nFrames) {
             if (!p->loopingWholeFile)
               continue;
             if (ndx < 0L) {
@@ -577,7 +577,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
         } while (++k < p->nChannels);
         do {
           ndx++;
-          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+          if ((uint32) ndx >= (uint32) p->nFrames) {
             if (!p->loopingWholeFile)
               continue;
             if (ndx < 0L) {
@@ -593,7 +593,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           }
 #ifdef USE_DOUBLE
           if (p->usingFtable) {
-            MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (long) p->nChannels]);
+            MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (int32) p->nChannels]);
 
             k = 0;
             do {
@@ -603,7 +603,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           else
 #endif
           {
-            float *fp = &(((float*) p->dataPtr)[ndx * (long) p->nChannels]);
+            float *fp = &(((float*) p->dataPtr)[ndx * (int32) p->nChannels]);
 
             k = 0;
             do {

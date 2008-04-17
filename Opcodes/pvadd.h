@@ -39,7 +39,7 @@ typedef struct {
     MYFLT   *oscphase, *buf, PvMaxAmp;
     MYFLT   frPrtim, asr;
     float   *frPtr, *pvcopy;
-    long    maxFr, frSiz, prFlg, mems;
+    int32   maxFr, frSiz, prFlg, mems;
     int     maxbin;
 } PVADD;
 

@@ -326,32 +326,32 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 #define DGRAIN_OUTTYPES "mmmm"
 
 typedef struct _filegrain {
-    OPDS h;
-    MYFLT *output[DGRAIN_MAXCHAN];
-    MYFLT *fname;
-    MYFLT *amp;
-    MYFLT *fr;
-    MYFLT *pitch;
-    MYFLT *grsize;
-    MYFLT *prate;
-    MYFLT *ifn2;
-    MYFLT *ols;
-    MYFLT *max;
-    MYFLT *ioff;
-    FUNC  *efunc;
+    OPDS    h;
+    MYFLT   *output[DGRAIN_MAXCHAN];
+    MYFLT   *fname;
+    MYFLT   *amp;
+    MYFLT   *fr;
+    MYFLT   *pitch;
+    MYFLT   *grsize;
+    MYFLT   *prate;
+    MYFLT   *ifn2;
+    MYFLT   *ols;
+    MYFLT   *max;
+    MYFLT   *ioff;
+    FUNC    *efunc;
     SNDFILE *sf;
-    AUXCH buffer;
-    int count, numstreams, firststream;
-    int dataframes, envtablesize, olaps;
-    AUXCH streamon;
-    AUXCH index;
-    AUXCH envindex;
-    float start,frac;
-    int read1,read2;
-    unsigned long pos;
-    float trigger;
-    int nChannels;
-     long flen;
+    AUXCH   buffer;
+    int     count, numstreams, firststream;
+    int     dataframes, envtablesize, olaps;
+    AUXCH   streamon;
+    AUXCH   index;
+    AUXCH   envindex;
+    float   start,frac;
+    int     read1,read2;
+    uint32  pos;
+    float   trigger;
+    int     nChannels;
+    int32   flen;
 } filegrain;
 
 #define MINFBUFSIZE  88200
@@ -442,18 +442,18 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     MYFLT   *ftable = p->efunc->ftable;
     int     *streamon = (int *) p->streamon.auxp;
     float   start = p->start, frac = p->frac, jump;
-    double   *index = (double *) p->index.auxp;
-    double   *envindex = (double *) p->envindex.auxp;
+    double  *index = (double *) p->index.auxp;
+    double  *envindex = (double *) p->envindex.auxp;
     int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
     int     datasize, hdatasize, envtablesize = p->envtablesize;
     int     dataframes = p->dataframes, hdataframes = p->dataframes/2;
     int     read1 = p->read1, read2 = p->read2;
-    int    items, chans = p->nChannels, tndx,endx,n;
-    unsigned long pos = p->pos;
-    long negpos, flen = p->flen;
-    float trigger = p->trigger, incr;
+    int     items, chans = p->nChannels, tndx,endx,n;
+    uint32  pos = p->pos;
+    int32   negpos, flen = p->flen;
+    float   trigger = p->trigger, incr;
 
     datasize = dataframes*chans;
     hdatasize = hdataframes*chans;

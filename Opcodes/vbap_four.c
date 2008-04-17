@@ -87,7 +87,7 @@ int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR *p)
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
-    long i,j, spreaddirnum;
+    int32 i,j, spreaddirnum;
     MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
@@ -288,7 +288,7 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
-    long i,j, spreaddirnum;
+    int32 i,j, spreaddirnum;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
     MYFLT tmp_gains[FOUR],sum=FL(0.0);

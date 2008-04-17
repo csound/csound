@@ -50,7 +50,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     OCTDAT  *octp;
     DOWNDAT *dwnp = &p->downsig;
     SPECDAT *specp = &p->wsig;
-    long    npts, nptls, nn, lobin;
+    int32    npts, nptls, nn, lobin;
     int     *dstp, ptlmax;
     MYFLT   fnfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
@@ -80,8 +80,8 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-      long        auxsiz, bufsiz;
-      long        majr, minr, totsamps;
+      int32        auxsiz, bufsiz;
+      int32        majr, minr, totsamps;
       double      hicps,locps,oct;      /*   must alloc anew */
 
       p->nfreqs = nfreqs;
@@ -142,7 +142,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      SPECset(csound, specp, (long)ncoefs); /* prep the spec dspace */
+      SPECset(csound, specp, (int32)ncoefs); /* prep the spec dspace */
       specp->downsrcp = dwnp;               /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
@@ -159,13 +159,13 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     p->scountdown = p->timcount;             /* prime the spect countdown */
                                              /* Start specptrk */
     if ((npts = specp->npts) != p->winpts) {        /* if size has changed */
-      SPECset(csound, &p->wfund, (long)npts);       /*   realloc for wfund */
+      SPECset(csound, &p->wfund, (int32)npts);       /*   realloc for wfund */
       p->wfund.downsrcp = specp->downsrcp;
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
     }
     if (*p->inptls<=FL(0.0)) nptls = 4;
-    else nptls = (long)*p->inptls;
+    else nptls = (int32)*p->inptls;
     if (nptls > MAXPTL) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
@@ -196,7 +196,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       }
       p->rolloff = 1;
     }
-    lobin = (long)(specp->downsrcp->looct * fnfreqs);
+    lobin = (int32)(specp->downsrcp->looct * fnfreqs);
     oct0p = p->fundp - lobin;           /* virtual loc of oct 0 */
 
     flop = oct0p + (int)(*p->ilo * fnfreqs);
@@ -334,14 +334,14 @@ int pitch(CSOUND *csound, PITCH *p)
       int   nn, *pdist, confirms;
       MYFLT kval, fmax, *fmaxp, absdiff, realbin;
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
-      long  lobin, hibin;
+      int32  lobin, hibin;
 
       if (inp==NULL) {             /* RWD fix */
         return csound->PerfError(csound, Str("pitch: not initialised"));
       }
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (long)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
-      hibin = (long)((kval + kvar) * specp->nfreqs);
+      lobin = (int32)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
+      hibin = (int32)((kval + kvar) * specp->nfreqs);
       if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
         flop = p->flop;
       if ((fhip = p->oct0p + hibin) > p->fhip)  /*       within hard limits */
@@ -555,7 +555,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
     int     count;
-    long    *lphs;
+    int32    *lphs;
 
     p->inerr = 0;
 
@@ -601,16 +601,16 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
     if (p->lphs.auxp==NULL || p->lphs.size < (long)sizeof(long)*count)
       csound->AuxAlloc(csound, sizeof(long)*count, &p->lphs);
 
-    lphs = (long*)p->lphs.auxp;
+    lphs = (int32*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
-        *lphs++ = ((long) ((MYFLT) ((double) rand_31(csound) / 2147483645.0)
+        *lphs++ = ((int32) ((MYFLT) ((double) rand_31(csound) / 2147483645.0)
                            * FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {
       do {
-        *lphs++ = ((long) (*p->iphs * FMAXLEN)) & PHMASK;
+        *lphs++ = ((int32) (*p->iphs * FMAXLEN)) & PHMASK;
       } while (--count);
     }
     return OK;
@@ -621,8 +621,8 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl;
     MYFLT   amp0, amp, cps0, cps;
-    long    phs, inc, lobits;
-    long    *lphs;
+    int32    phs, inc, lobits;
+    int32    *lphs;
     int     n, nsmps = csound->ksmps, count;
 
     if (p->inerr) {
@@ -635,7 +635,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     freqtbl = freqtp->ftable;
     amptp = p->amptp;
     amptbl = amptp->ftable;
-    lphs = (long*)p->lphs.auxp;
+    lphs = (int32*)p->lphs.auxp;
 
     cps0 = *p->kcps;
     amp0 = *p->kamp;
@@ -650,7 +650,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     do {
       amp = *amptbl++ * amp0;
       cps = *freqtbl++ * cps0;
-      inc = (long) (cps * csound->sicvt);
+      inc = (int32) (cps * csound->sicvt);
       phs = *lphs;
       for (n=0; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
@@ -678,7 +678,7 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
       p->octcnt = octcnt;
       if (*p->iphs >= 0) {
         for (i=0; i<octcnt; i++)
-          p->lphs[i] = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
+          p->lphs[i] = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
       }
     }
     if ((ftp = csound->FTFind(csound, p->imixtbl)) != NULL) {
@@ -691,8 +691,8 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 {
     FUNC        *ftp, *mixtp;
     MYFLT       fract, v1, amp0, amp, *ar, *ftab, *mtab;
-    long        phs, inc, lobits;
-    long        phases[10];
+    int32        phs, inc, lobits;
+    int32        phases[10];
     int         n, nsmps = csound->ksmps;
     MYFLT       tonal, bright, freq, ampscl;
     int         octcnt = p->octcnt;
@@ -746,7 +746,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (freq > hesr)
         amp = FL(0.0);
-      inc = (long)(freq * csound->sicvt);
+      inc = (int32)(freq * csound->sicvt);
       for (n=0;n<nsmps;n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
@@ -766,7 +766,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
-    long  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
+    int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
     MYFLT *medi;
 
     p->inerr = 0;
@@ -785,8 +785,8 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       upsamp = 0;
     }
 
-    minperi = (long)(srate / *p->imaxcps);
-    maxperi = (long)(srate / *p->imincps);
+    minperi = (int32)(srate / *p->imaxcps);
+    maxperi = (int32)(srate / *p->imincps);
     if (maxperi <= minperi) {
       p->inerr = 1;
       return csound->InitError(csound,
@@ -796,7 +796,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->iexcps < 1)
         interval = maxperi;
     else
-        interval = (long)(srate / *p->iexcps);
+        interval = (int32)(srate / *p->iexcps);
     if (interval < csound->ksmps) {
       if (downsamp)
         interval = csound->ksmps / downsamp;
@@ -829,7 +829,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
     if (p->medisize) {
       msize = p->medisize * 3 * sizeof(MYFLT);
-      if (p->median.auxp==NULL || p->median.size < (long)msize)
+      if (p->median.auxp==NULL || p->median.size < (int32)msize)
         csound->AuxAlloc(csound, msize, &p->median);
       medi = (MYFLT*)p->median.auxp;
       memset(medi, 0, msize);
@@ -868,10 +868,10 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
 #define SWAP(a,b) temp=(a);(a)=(b);(b)=temp
 
-MYFLT medianvalue(unsigned long n, MYFLT *vals)
+MYFLT medianvalue(uint32 n, MYFLT *vals)
 {   /* vals must point to 1 below relevant data! */
-    unsigned long i, ir, j, l, mid;
-    unsigned long k = (n + 1) / 2;
+    uint32 i, ir, j, l, mid;
+    uint32 k = (n + 1) / 2;
     MYFLT a, temp;
 
     l = 1;
@@ -917,28 +917,28 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT *buffer = (MYFLT*)p->buffer.auxp;
     MYFLT *rmsmedian = (MYFLT*)p->rmsmedian.auxp;
-    long  rmsmedisize = p->rmsmedisize;
-    long  rmsmediptr = p->rmsmediptr;
+    int32  rmsmedisize = p->rmsmedisize;
+    int32  rmsmediptr = p->rmsmediptr;
     MYFLT *median = (MYFLT*)p->median.auxp;
-    long  medisize = p->medisize;
-    long  mediptr = p->mediptr;
-    long  size = p->size;
-    long  index = p->index;
-    long  minperi = p->minperi;
-    long  maxperi = p->maxperi;
+    int32  medisize = p->medisize;
+    int32  mediptr = p->mediptr;
+    int32  size = p->size;
+    int32  index = p->index;
+    int32  minperi = p->minperi;
+    int32  maxperi = p->maxperi;
     MYFLT *asig = p->asig;
     MYFLT srate = p->srate;
-    long  peri = p->peri;
-    long  downsamp = p->downsamp;
-    long  upsamp = p->upsamp;
+    int32  peri = p->peri;
+    int32  downsamp = p->downsamp;
+    int32  upsamp = p->upsamp;
     MYFLT upsmp = (MYFLT)upsamp;
     MYFLT lastval = p->lastval;
     MYFLT newval, delta;
-    long  readp = p->readp;
-    long  interval = size - maxperi;
+    int32  readp = p->readp;
+    int32  interval = size - maxperi;
     int   nsmps = csound->ksmps;
     int   i;
-    long  i1, i2;
+    int32  i1, i2;
     MYFLT val, rms;
     double sum;
     MYFLT acc, accmin, diff;
@@ -989,7 +989,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
 
               median[medisize*2+mediptr] =
                 medianvalue(medisize, &median[medisize-1]);
-              peri = (long)median[medisize*2 +
+              peri = (int32)median[medisize*2 +
                                  ((mediptr+medisize/2+1) % medisize)];
 
               mediptr = (mediptr + 1) % medisize;
@@ -1039,7 +1039,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
 
             median[medisize*2+mediptr] =
               medianvalue(medisize, &median[medisize-1]);
-            peri = (long)median[medisize*2 +
+            peri = (int32)median[medisize*2 +
                                ((mediptr+medisize/2+1) % medisize)];
 
             mediptr = (mediptr + 1) % medisize;
@@ -1318,10 +1318,10 @@ int pinkish(CSOUND *csound, PINKISH *p)
 #define PINK_RANDOM_SHIFT      (7)
 
 /* Calculate pseudo-random 32 bit number based on linear congruential method. */
-static long GenerateRandomNumber(unsigned long randSeed)
+static int32 GenerateRandomNumber(uint32 randSeed)
 {
     randSeed = ((uint32_t) randSeed * 196314165U) + 907633515UL;
-    return (long) ((int32_t) ((uint32_t) randSeed));
+    return (int32) ((int32_t) ((uint32_t) randSeed));
 }
 
 /************************************************************/
@@ -1331,11 +1331,11 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
 {
     int i;
     MYFLT pmax;
-    long numRows;
+    int32 numRows;
 
     /* Set number of rows to use (default to 20) */
     if (*p->iparam1 >= 4 && *p->iparam1 <= GRD_MAX_RANDOM_ROWS)
-      p->grd_NumRows = (long)*p->iparam1;
+      p->grd_NumRows = (int32)*p->iparam1;
     else {
       p->grd_NumRows = 20;
       /* Warn if user tried but failed to give sensible number */
@@ -1349,10 +1349,10 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
     /* Seed random generator by user value or by time (default) */
     if (*p->iseed != FL(0.0)) {
       if (*p->iseed > -1.0 && *p->iseed < 1.0)
-        p->randSeed = (unsigned long) (*p->iseed * (MYFLT)0x80000000);
-      else p->randSeed = (unsigned long) *p->iseed;
+        p->randSeed = (uint32) (*p->iseed * (MYFLT)0x80000000);
+      else p->randSeed = (uint32) *p->iseed;
     }
-    else p->randSeed = (unsigned long) csound->GetRandomSeedFromTime();
+    else p->randSeed = (uint32) csound->GetRandomSeedFromTime();
 
     numRows = p->grd_NumRows;
     p->grd_Index = 0;
@@ -1366,7 +1366,7 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
 
 /* Warm up by filling all rows (re) (original zeroed all rows, and runningSum) */
     {
-      long randSeed, newRandom, runningSum = 0;
+      int32 randSeed, newRandom, runningSum = 0;
       randSeed = p->randSeed;
       for (i = 0; i < numRows; i++) {
         randSeed = GenerateRandomNumber(randSeed);
@@ -1384,8 +1384,8 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
 int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 {
     MYFLT *aout, *amp, scalar;
-    long *rows, rowIndex, indexMask, randSeed, newRandom;
-    long runningSum, sum, ampinc;
+    int32 *rows, rowIndex, indexMask, randSeed, newRandom;
+    int32 runningSum, sum, ampinc;
     int n, nsmps = csound->ksmps;
 
     aout        = p->aout;
@@ -1725,7 +1725,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
-      csound->AuxAlloc(csound, (long)nsegs*sizeof(NSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
@@ -1742,10 +1742,10 @@ int trnset(CSOUND *csound, TRANSEG *p)
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
       MYFLT d = dur * csound->esr;
-      if ((segp->cnt = (long)(d + FL(0.5))) < 0)
+      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
-        segp->cnt = (long)(dur * csound->ekr);
+        segp->cnt = (int32)(dur * csound->ekr);
         segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
@@ -1848,7 +1848,7 @@ putk:
     return OK;
 }
 
-extern long randint31(long);
+extern int32 randint31(int32);
 
 int varicolset(CSOUND *csound, VARI *p)
 {
@@ -1957,7 +1957,7 @@ int wavesetset(CSOUND *csound, BARRI *p)
     else
       p->length = 1 + (int)*p->len;
     if (p->length <= 1) p->length = (int)csound->esr;
-    csound->AuxAlloc(csound, (long)p->length*sizeof(MYFLT), &p->auxch);
+    csound->AuxAlloc(csound, (int32)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;
     p->current = 0;

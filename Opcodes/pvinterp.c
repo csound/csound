@@ -236,7 +236,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     int     circBufSize = PVFFTSIZE;
     MYFLT   pex, scaleFac = p->scale;
     PVBUFREAD *q = p->pvbufread;
-    long    i, j;
+    int32    i, j;
 
     if (p->auxch.auxp == NULL) {    /* RWD Fix */
       return csound->PerfError(csound, Str("pvinterp: not initialised"));
@@ -406,7 +406,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     int     specwp = (int) *p->ispecwp; /* spectral warping flag */
     MYFLT   pex, scaleFac = p->scale;
     PVBUFREAD *q = p->pvbufread;
-    long    i, j;
+    int32   i, j;
     MYFLT   ampscale1 = *p->kampscale1;
     MYFLT   ampscale2 = *p->kampscale2;
 

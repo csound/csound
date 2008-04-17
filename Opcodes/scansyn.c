@@ -481,10 +481,10 @@ static int scsns_init(CSOUND *csound, PSCSNS *p)
     /* Allocate memory and pad to accomodate interpolation */
                               /* Note that the 3 here is a hack -- jpff */
     csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
-    p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
+    p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
     /* Fill 'er up */
     for (i = 0 ; i != p->tlen ; i++)
-      p->t[i] = (long)t->ftable[i];
+      p->t[i] = (int32)t->ftable[i];
     /* Do wraparounds */
     for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
       p->t[-i] = p->t[i];
