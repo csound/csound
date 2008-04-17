@@ -1132,17 +1132,17 @@ int outs(CSOUND *csound, OUTS *p)
     sp = csound->spout;
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m]   = ap1[n];
-        sp[m+1] = ap2[n];
+      for (n=0, m=0; n<nsmps; n++) {
+        sp[m++] = ap1[n];
+        sp[m++] = ap2[n];
       }
       csound->spoutactive = 1;
     }
     else {
       int n, m;                   /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m]   += ap1[n];
-        sp[m+1] += ap2[n];
+      for (n=0, m=0; n<nsmps; n++) {
+        sp[m++] += ap1[n];
+        sp[m++] += ap2[n];
       }
     }
     return OK;

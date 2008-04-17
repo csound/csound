@@ -328,7 +328,7 @@ int itabl3(CSOUND *csound, TABLE *p)
 int ktable(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
-    long        indx, length;
+    int32        indx, length;
     MYFLT       ndx;
 
     ftp = p->ftp;
@@ -351,7 +351,7 @@ int ktable(CSOUND *csound, TABLE   *p)
      * This is a problem, causes problems with negative numbers.
      *
      */
-     indx = (long) FLOOR((double)ndx);
+     indx = (int32) FLOOR((double)ndx);
 
     /* Now for "limit mode" - the "non-wrap" function, depending on
      * iwrap.
@@ -405,7 +405,7 @@ int tablefn(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
-    long        indx, mask, length;
+    int32        indx, mask, length;
     int         n, nsmps=csound->ksmps;
     MYFLT       ndx, xbmul, offset;
 
@@ -428,7 +428,7 @@ int tablefn(CSOUND *csound, TABLE   *p)
        * the offset.  */
 
       ndx = (pxndx[n] * xbmul) + offset;
-      indx = (long) FLOOR((double)ndx);
+      indx = (int32) FLOOR((double)ndx);
 
       /* Limit = non-wrap.  Limits to 0 and (length - 1), or does the
        * wrap code.  See notes above in ktable().  */
@@ -464,7 +464,7 @@ int tablefn(CSOUND *csound, TABLE   *p)
 int ktabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
-    long        indx, length;
+    int32        indx, length;
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
@@ -479,7 +479,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (long) FLOOR((double)ndx);
+    indx = (int32) FLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -541,7 +541,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
 int ktabl3(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
-    long        indx, length;
+    int32        indx, length;
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
@@ -556,7 +556,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (long) FLOOR((double)ndx);
+    indx = (int32) FLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -636,7 +636,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
 int tabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
-    long        indx, mask, length;
+    int32        indx, mask, length;
     int         n, nsmps=csound->ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
@@ -660,7 +660,7 @@ int tabli(CSOUND *csound, TABLE   *p)
          * Then multiply the ndx by the denormalising factor and add in
          * the offset.  */
         ndx = (pxndx[n] * xbmul) + offset;
-        indx = (long) ndx;
+        indx = (int32) ndx;
         if (ndx <= FL(0.0)) {
           rslt[n] = tab[0];
           continue;
@@ -686,7 +686,7 @@ int tabli(CSOUND *csound, TABLE   *p)
          * Then multiply the ndx by the denormalising factor and add in
          * the offset.  */
         ndx = (pxndx[n] * xbmul) + offset;
-        indx = (long) FLOOR(ndx);
+        indx = (int32) FLOOR(ndx);
         /* We need to generate a fraction - How much above indx is ndx?
          * It will be between 0 and just below 1.0.  */
         fract = ndx - indx;
@@ -704,7 +704,7 @@ int tabli(CSOUND *csound, TABLE   *p)
 int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
-    long        indx, mask, length;
+    int32        indx, mask, length;
     int         n, nsmps=csound->ksmps;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
@@ -727,7 +727,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
        * the offset.  */
 
       ndx = (pxndx[n] * xbmul) + offset;
-      indx = (long) FLOOR((double)ndx);
+      indx = (int32) FLOOR((double)ndx);
 
       /* We need to generate a fraction - How much above indx is ndx?
        * It will be between 0 and just below 1.0.  */
@@ -802,7 +802,7 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
     /* Check to see if table number has changed from previous value.
      * On the first run through, the previous value will be 0.  */
 
-    if (p->pfn != (long)*p->xfn) {
+    if (p->pfn != (int32)*p->xfn) {
         /* If it is different, check to see if the table exists.
          *
          * If it doesn't, an error message should be produced by
@@ -825,7 +825,7 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
          * we can later decide whether subsequent calls to the k and a
          * rate functions occur with a table number value which points
          * to a different table. */
-      p->pfn = (long)*p->xfn;
+      p->pfn = (int32)*p->xfn;
 
         /* Set denormalisation factor to 1 or table length, depending
          * on the state of ixmode. */
@@ -895,15 +895,15 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     }
     p->ftp = ftp;
     p->phs = 0;
-    p->dcnt = (long)(*p->idel * csound->ekr);
-    p->kinc = (long) (csound->kicvt / *p->idur);
+    p->dcnt = (int32)(*p->idel * csound->ekr);
+    p->kinc = (int32) (csound->kicvt / *p->idur);
     return OK;
 }
 
 int kosc1(CSOUND *csound, OSCIL1 *p)
 {
     FUNC *ftp;
-    long  phs, dcnt;
+    int32  phs, dcnt;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -929,7 +929,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
 {
     FUNC        *ftp;
     MYFLT       fract, v1, *ftab;
-    long        phs, dcnt;
+    int32        phs, dcnt;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -965,7 +965,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
       p->inc = ftp->flen * *p->ifrq * csound->onedsr;
       p->index = FL(0.0);
       p->maxndx = ftp->flen - FL(1.0);
-      p->ntimes = (long)*p->itimes;
+      p->ntimes = (int32)*p->itimes;
       return OK;
     }
     else return NOTOK;
@@ -974,7 +974,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
 int osciln(CSOUND *csound, OSCILN *p)
 {
     MYFLT *rs = p->rslt;
-    long  n, nsmps=csound->ksmps;
+    int32  n, nsmps=csound->ksmps;
 
     if (p->ftp==NULL) {
       return csound->PerfError(csound, Str("osciln: not initialised"));
@@ -986,7 +986,7 @@ int osciln(CSOUND *csound, OSCILN *p)
       MYFLT inc = p->inc;
       MYFLT maxndx = p->maxndx;
       for (n=0; n<nsmps; n++) {
-        rs[n] = ftbl[(long)ndx] * amp;
+        rs[n] = ftbl[(int32)ndx] * amp;
         if ((ndx += inc) > maxndx) {
           if (--p->ntimes)
             ndx -= maxndx;
@@ -1015,7 +1015,7 @@ int oscset(CSOUND *csound, OSC *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
-        p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
+        p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
       return OK;
     }
     return NOTOK;
@@ -1024,14 +1024,14 @@ int oscset(CSOUND *csound, OSC *p)
 int koscil(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
-    long    phs, inc;
+    int32    phs, inc;
 
     ftp = p->ftp;
     if (ftp==NULL) {
       return csound->PerfError(csound, Str("oscil(krate): not initialised"));
     }
     phs = p->lphs;
-    inc = (long) (*p->xcps * csound->kicvt);
+    inc = (int32) (*p->xcps * csound->kicvt);
     *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
     phs += inc;
     phs &= PHMASK;
@@ -1043,7 +1043,7 @@ int osckk(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   amp, *ar, *ftbl;
-    long    phs, inc, lobits;
+    int32   phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1069,7 +1069,7 @@ int oscka(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, *ftbl;
-    long    phs, lobits;
+    int32    phs, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1083,7 +1083,7 @@ int oscka(CSOUND *csound, OSC *p)
     phs = p->lphs;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
+      int32 inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       ar[n] = ftbl[phs >> lobits] * amp;
       phs += inc;
       phs &= PHMASK;
@@ -1096,7 +1096,7 @@ int oscak(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *ftbl;
-    long    phs, inc, lobits;
+    int32    phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1122,7 +1122,7 @@ int oscaa(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *cpsp, *ftbl;
-    long    phs, lobits;
+    int32    phs, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1136,7 +1136,7 @@ int oscaa(CSOUND *csound, OSC *p)
     cpsp = p->xcps;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
+      int32 inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       ar[n] = ftbl[phs >> lobits] * ampp[n];
       phs += inc;
       phs &= PHMASK;
@@ -1148,7 +1148,7 @@ int oscaa(CSOUND *csound, OSC *p)
 int koscli(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
-    long    phs, inc;
+    int32    phs, inc;
     MYFLT  *ftab, fract, v1;
 
     phs = p->lphs;
@@ -1160,7 +1160,7 @@ int koscli(CSOUND *csound, OSC   *p)
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = ftab[0];
     *p->sr = (v1 + (ftab[1] - v1) * fract) * *p->xamp;
-    inc = (long)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * csound->kicvt);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1171,7 +1171,7 @@ int osckki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ftab;
-    long    phs, inc, lobits;
+    int32    phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1199,7 +1199,7 @@ int osckai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, v1, *ftab;
-    long    phs, lobits;
+    int32    phs, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1212,7 +1212,7 @@ int osckai(CSOUND *csound, OSC   *p)
     phs = p->lphs;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc;
+      int32 inc;
       inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = PFRAC(phs);
       ftab = ftp->ftable + (phs >> lobits);
@@ -1229,7 +1229,7 @@ int oscaki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *ftab;
-    long    phs, inc, lobits;
+    int32    phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1258,7 +1258,7 @@ int oscaai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab;
-    long    phs, lobits;
+    int32    phs, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1272,7 +1272,7 @@ int oscaai(CSOUND *csound, OSC   *p)
     cpsp = p->xcps;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc;
+      int32 inc;
       inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> lobits);
@@ -1288,7 +1288,7 @@ int oscaai(CSOUND *csound, OSC   *p)
 int koscl3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
-    long    phs, inc;
+    int32    phs, inc;
     MYFLT  *ftab, fract;
     int     x0;
     MYFLT   y0, y1, ym1, y2, amp = *p->xamp;
@@ -1318,7 +1318,7 @@ int koscl3(CSOUND *csound, OSC   *p)
                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
                       frsq*(FL(0.5)* y1 - y0));
     }
-    inc = (long)(*p->xcps * csound->kicvt);
+    inc = (int32)(*p->xcps * csound->kicvt);
     phs += inc;
     phs &= PHMASK;
     p->lphs = phs;
@@ -1329,7 +1329,7 @@ int osckk3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, amp, *ar, *ftab;
-    long    phs, inc, lobits;
+    int32    phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -1381,7 +1381,7 @@ int oscka3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, *ftab;
-    long    phs, lobits;
+    int32    phs, lobits;
     int     n, nsmps=csound->ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -1397,7 +1397,7 @@ int oscka3(CSOUND *csound, OSC   *p)
     phs = p->lphs;
     ar = p->sr;
     for(n=0;n<nsmps;n++) {
-      long inc;
+      int32 inc;
       inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = PFRAC(phs);
       x0 = (phs >> lobits);
@@ -1429,7 +1429,7 @@ int oscak3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *ftab;
-    long    phs, inc, lobits;
+    int32    phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -1475,7 +1475,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *cpsp, *ftab;
-    long    phs, lobits;
+    int32   phs, lobits;
     int     n, nsmps=csound->ksmps;
     int     x0;
     MYFLT   y0, y1, ym1, y2;
@@ -1491,7 +1491,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     cpsp = p->xcps;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
+      int32 inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
