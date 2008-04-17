@@ -44,7 +44,7 @@
 
 static int infoTick(MANDOL *p)
 {
-    long temp;
+    int32 temp;
     MYFLT temp_time, alpha;
     int allDone = 0;
 
@@ -59,7 +59,7 @@ static int infoTick(MANDOL *p)
 
     temp_time = p->s_time;
 
-    temp = (long) temp_time;       /*  Integer part of time address */
+    temp = (int32) temp_time;       /*  Integer part of time address */
     alpha = temp_time - (MYFLT) temp; /*  fractional part of time address */
     p->s_lastOutput =              /* Do linear interpolation       */
       FL(0.05)*((MYFLT*)(p->soundfile->ftable))[temp];
@@ -81,14 +81,14 @@ int mandolinset(CSOUND *csound, MANDOL *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (long) (csound->esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
+        p->length = (int32) (csound->esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
       }
       else if (*p->frequency!=FL(0.0)) {
-        p->length = (long) (csound->esr / *p->frequency + FL(1.0));
+        p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       }
       else {
         csound->Message(csound, Str("No base frequency for mandolin"));
-        p->length = (long) (csound->esr / FL(50.0) + FL(1.0));
+        p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);
 /*     p->baseLoopGain = 0.995; */
@@ -112,7 +112,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
                            /* Set Pick Position                    */
       DLineL_setDelay(&p->combDelay, FL(0.5) * *p->pluckPos * p->lastLength);
                            /*   which puts zeroes at pos*length    */
-      p->dampTime = (long) p->lastLength; /* See tick method below */
+      p->dampTime = (int32) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
         int relestim = (int)(csound->ekr * FL(0.1));

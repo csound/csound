@@ -29,7 +29,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *adel, *imaxd, *istod;
         AUXCH   aux;
-        long    left;
+        int32   left;
 } VDEL;
 
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
         MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2, aux3, aux4;
         int     interp_size;
-        long    left;
+        int32   left;
 } VDELXQ;
 
 typedef struct {
@@ -46,7 +46,7 @@ typedef struct {
         MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2;
         int     interp_size;
-        long    left;
+        int32   left;
 } VDELXS;
 
 typedef struct {
@@ -54,14 +54,14 @@ typedef struct {
         MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1;
         int     interp_size;
-        long    left;
+        int32   left;
 } VDELX;
 
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *ndel[VARGMAX];
         AUXCH   aux;
-        long    left, max;
+        int32   left, max;
 } MDEL;
 
 #if 0

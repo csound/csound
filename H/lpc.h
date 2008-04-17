@@ -31,7 +31,7 @@
 #define NDATA       4   /* number of data values stored with frame */
 
 typedef struct {
-        long    headersize, lpmagic, npoles, nvals;
+        int32   headersize, lpmagic, npoles, nvals;
         MYFLT   framrate, srate, duration;
         char    text[4];
 } LPHEADER;

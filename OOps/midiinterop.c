@@ -53,12 +53,12 @@ int midinoteonkey(CSOUND *csound, MIDINOTEON *p)
 int midinoteoncps(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
-    long longOctave;
+    int32 longOctave;
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
     octave = (MYFLT)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
-    longOctave = (long)(octave * OCTRES);
+    longOctave = (int32)(octave * OCTRES);
     *p->xkey = (MYFLT)CPSOCTL(longOctave);
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;

@@ -39,14 +39,14 @@ typedef struct {
 
 typedef struct {
         MYFLT   *ar, *asig, *koct, *icpsmode, *ilowest, *ipolarity;
-        short   nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead;
+        int16   nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead;
         MYFLT   prvoct, minoct, sicvt;
         MYFLT   *bufp, *midp, *inp1, *inp2;
         MYFLT   *pulsbuf[4], *sigmoid, *curpuls;
         MYFLT   vocamp, vocinc, ampinc;
         PULDAT  puldat[PULMAX], *endp, *limp;
         VOCDAT  vocdat[VOCMAX], *vlim;
-        short   pbufcnt, maxprd, pulslen, switching;
+        int16   pbufcnt, maxprd, pulslen, switching;
         AUXCH   auxch;
         int     hmrngflg;
 } HARM234;
@@ -83,10 +83,10 @@ static int hm234set(CSOUND *csound, HARM234 *p)
     p->hmrngflg = 0;
     if (p->auxch.auxp == NULL || minoct < p->minoct) {
       MYFLT minfrq = (MYFLT)pow(2.0, minoct) * ONEPT;
-      short nbufs = (short)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
-      short nbufsmps = nbufs * csound->ksmps;
-      short maxprd = (short)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
-      short cnt;
+      int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
+      int16 nbufsmps = nbufs * csound->ksmps;
+      int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
+      int16 cnt;
       long  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
 
@@ -108,7 +108,7 @@ static int hm234set(CSOUND *csound, HARM234 *p)
     }
     p->sicvt = FL(65536.0) * csound->onedsr;
     p->cpsmode = ((*p->icpsmode != FL(0.0)));
-    p->polarity = (short)*p->ipolarity;
+    p->polarity = (int16)*p->ipolarity;
     p->poslead = 0;
     p->inp1 = p->bufp;
     p->inp2 = p->midp;
@@ -131,12 +131,12 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     MYFLT       koct, vocamp, diramp;
     PULDAT      *endp;
     VOCDAT      *vdp;
-    short       nsmps, oflow = 0;
+    int16       nsmps, oflow = 0;
 
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */
         MYFLT cps = (MYFLT) pow(2.0, koct) * ONEPT;     /*   recalc pulse period */
-        p->period = (short) (csound->esr / cps);
+        p->period = (int16) (csound->esr / cps);
         if (!p->cpsmode)
           p->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
       }
@@ -149,7 +149,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
 
     if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
-      short     period, triprd, xdist;
+      int16     period, triprd, xdist;
 
       period = p->period;                       /* set srch range of 2 periods */
       triprd = period * 3;
@@ -195,7 +195,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
       else {
         MYFLT pospk, negpk, *posp, *negp;               /* NOT SURE:    */
         MYFLT *poscross, *negcross;
-        short posdist, negdist;
+        int16 posdist, negdist;
         pospk = negpk = 0.;
         posp = negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing max & min vals */
@@ -240,14 +240,14 @@ static int harmon234(CSOUND *csound, HARM234 *p)
       }
 
       if (x != p->curpuls) {                    /* if pulse positn is new       */
-        short nn, pulslen, sigdist, ndirect;
+        int16 nn, pulslen, sigdist, ndirect;
         MYFLT *bufp, signdx, siginc;
         MYFLT *z, zval;
 
         p->curpuls = x;                         /*      record this new positn  */
         z = x + period;                         /*  and from estimated end      */
         if ((zval = *z) != FL(0.0)) {
-          short n, nlim = inp2 - z;
+          int16 n, nlim = inp2 - z;
           for (n = 1; n < nlim; n++) {
             if (zval * *(z+n) <= FL(0.0)) {     /*        find nearest zcrossing */
               z += n;

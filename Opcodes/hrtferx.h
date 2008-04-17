@@ -29,7 +29,7 @@ typedef struct {
   OPDS  h;
   MYFLT         *aLeft, *aRight, *aIn, *kAz, *kElev, *ifilno;   /* outputs and inputs */
   MEMFIL        *mfp;      /* file pointer */
-  short         *fpbegin;
+  int16         *fpbegin;
   int           oldel_index, oldaz_index;
   long          incount, outfront, outend, outcount;
   AUXCH         auxch;      /* will point to allocated memory */

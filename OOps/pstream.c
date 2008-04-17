@@ -57,7 +57,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 int fassign(CSOUND *csound, FASSIGN *p)
 {
     int i;
-    long framesize;
+    int32 framesize;
     float *fout,*fsrc;
     if (!fsigs_equal(p->fout,p->fsrc))
       csound->Die(csound, Str("fsig = : formats are different.\n"));
@@ -85,9 +85,9 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     /* get params from input fsig */
     /* we trust they are legit! */
     int i;
-    long N = p->fsig->N;
-    long noscs,n_oscs;
-    long startbin,binoffset;
+    int32 N = p->fsig->N;
+    int32 noscs,n_oscs;
+    int32 startbin,binoffset;
     MYFLT *p_x;
 
 #ifdef SDFT
@@ -101,7 +101,7 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     p->wintype = p->fsig->wintype;
     p->fftsize = N;
     noscs   = N/2 + 1;                     /* max possible */
-    n_oscs = (long) *p->n_oscs;    /* user param*/
+    n_oscs = (int32) *p->n_oscs;    /* user param*/
     if (n_oscs <=0)
       csound->Die(csound, Str("pvadsyn: bad value for inoscs\n"));
     /* remove this when I know how to do it... */
@@ -113,8 +113,8 @@ int pvadsynset(CSOUND *csound, PVADS *p)
                as have to set/reset each osc when started and stopped */
 
     /* check bin params */
-    startbin = (long) *p->ibin;            /* default 0 */
-    binoffset = (long) *p->ibinoffset; /* default 1 */
+    startbin = (int32) *p->ibin;            /* default 0 */
+    binoffset = (int32) *p->ibinoffset; /* default 1 */
     if (startbin        < 0 || startbin > noscs)
       csound->Die(csound, Str("pvsadsyn: ibin parameter out of range.\n"));
     if (startbin + n_oscs > noscs)
@@ -160,7 +160,7 @@ static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
 static void adsyn_frame(CSOUND *csound, PVADS *p)
 {
     int i,j;
-    long startbin,lastbin,binoffset;
+    int32 startbin,lastbin,binoffset;
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
 
     float *frame;        /* RWD MUST be 32bit */
@@ -178,8 +178,8 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     amps      = (MYFLT *) p->amps.auxp;
     freqs     = (MYFLT *) p->freqs.auxp;
     lastamps  = (MYFLT *) p->lastamps.auxp;
-    startbin  = (long)    *p->ibin;
-    binoffset = (long)    *p->ibinoffset;
+    startbin  = (int32)    *p->ibin;
+    binoffset = (int32)    *p->ibinoffset;
     lastbin   = p->maxosc;
 
     /*update amps, freqs*/
@@ -241,7 +241,7 @@ int pvadsyn(CSOUND *csound, PVADS *p)
 
 int pvscrosset(CSOUND *csound, PVSCROSS *p)
 {
-    long N = p->fsrc->N;
+    int32 N = p->fsrc->N;
     /* source fsig */
     p->overlap = p->fsrc->overlap;
     p->winsize = p->fsrc->winsize;
@@ -277,7 +277,7 @@ int pvscrosset(CSOUND *csound, PVSCROSS *p)
 
 int pvscross(CSOUND *csound, PVSCROSS *p)
 {
-    long i,N = p->fftsize;
+    int32 i,N = p->fftsize;
     MYFLT amp1 = (MYFLT) fabs(*p->kamp1);
     MYFLT amp2 = (MYFLT) fabs(*p->kamp2);
     float *fsrc = (float *) p->fsrc->frame.auxp;    /* RWD all must be 32bit */
@@ -330,7 +330,7 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
 int pvsfreadset(CSOUND *csound, PVSFREAD *p)
 {
     PVOCEX_MEMFILE  pp;
-    unsigned long   N;
+    uint32   N;
     char            pvfilnam[MAXNAME];
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
@@ -365,7 +365,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     if ((*p->ichan) >= p->chans)
       csound->Die(csound, Str("pvsfread: ichan value exceeds "
                               "file channel count.\n"));
-    if ((long) (*p->ichan) < 0)
+    if ((int32) (*p->ichan) < 0)
       csound->Die(csound, Str("pvsfread: ichan cannot be negative.\n"));
 
     N = p->fftsize;
@@ -373,9 +373,9 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     /* init sig with first frame from file,
        regardless (always zero amps, but with bin freqs) */
-    p->chanoffset = (long) MYFLT2LRND(*p->ichan) * (N + 2);
+    p->chanoffset = (int32) MYFLT2LRND(*p->ichan) * (N + 2);
     memcpy((float *) p->fout->frame.auxp,               /* RWD MUST be 32bit */
-           (float *) pp.data + (long) p->chanoffset,    /* RWD MUST be 32bit */
+           (float *) pp.data + (int32) p->chanoffset,    /* RWD MUST be 32bit */
            (size_t) ((int) (N + 2) * (int) sizeof(float)));
     p->membase += p->blockalign;  /* move to 2nd frame in file, as startpoint */
     p->nframes--;
@@ -394,7 +394,7 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
     int i,j;
     MYFLT pos = *p->kpos;
     MYFLT framepos,frac;
-    long frame1pos,frame2pos,framesize,n_mcframes;
+    int32 frame1pos,frame2pos,framesize,n_mcframes;
 
     float *pmem,*pframe1,*pframe2;               /* RWD all MUST be 32bit */
     float *fout = (float *) p->fout->frame.auxp;
@@ -410,7 +410,7 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
       if (pos < 0.0f)
         pos = 0.0f;     /* or report as error... */
       framepos = pos * p->arate;
-      frame1pos = (long) framepos;
+      frame1pos = (int32) framepos;
 
       if (frame1pos>= n_mcframes -1) {
         /* just return final frame */
@@ -449,8 +449,8 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
     int i;
     MYFLT *ftable;
-    long N = p->fsrc->N;
-    long nbins = N/2 + 1;
+    int32 N = p->fsrc->N;
+    int32 nbins = N/2 + 1;
     /* source fsig */
     p->overlap = p->fsrc->overlap;
     p->winsize = p->fsrc->winsize;
@@ -501,7 +501,7 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 int pvsmaska(CSOUND *csound, PVSMASKA *p)
 {
     int i;
-    long flen, nbins;
+    int32 flen, nbins;
     MYFLT *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
     float margin,depth = (float)*p->kdepth;
@@ -582,7 +582,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
     int i;
     MYFLT *ftablea,*ftablef;
     float *fsrc;                                        /* RWD MUST be 32bit */
-    long flena,flenf,nbins, N = p->fsrc->N;
+    int32 flena,flenf,nbins, N = p->fsrc->N;
     /* source fsig */
     p->overlap = p->fsrc->overlap;
     p->winsize = p->fsrc->winsize;
@@ -620,7 +620,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
       ftablea[i] = fsrc[i*2];
 
     /* freq table? */
-    if ((long) *p->ifnf >= 1.0f) {
+    if ((int32) *p->ifnf >= 1.0f) {
       p->outfnf = csound->FTFind(csound, p->ifnf);
       if (p->outfnf==NULL)
         return NOTOK;
@@ -640,7 +640,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
 int pvsftw(CSOUND *csound, PVSFTW *p)
 {
     int i;
-    long nbins;
+    int32 nbins;
     MYFLT *ftablea, *ftablef = NULL;
     float *fsrc;                /* RWD MUST be 32bit */
 
@@ -683,7 +683,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
 {
     int i;
     float *fdest;                         /* RWD MUST be 32bit */
-    long flena,flenf,nbins, N = p->fdest->N;
+    int32 flena,flenf,nbins, N = p->fdest->N;
     /* source fsig */
     p->overlap = p->fdest->overlap;
     p->winsize = p->fdest->winsize;
@@ -707,7 +707,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
     /* if ifna=0; no amps to read; one assumes the user ias changing freqs only,
        otherwise, there is no change!
     */
-    if ((long) *p->ifna != 0) {
+    if ((int32) *p->ifna != 0) {
       p->infna = csound->FTFind(csound, p->ifna);
       if (p->infna==NULL)
         return NOTOK;
@@ -728,7 +728,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
         fdest[i*2] = (float) p->ftablea[i];
 
     /* freq table? */
-    if ((long) *p->ifnf >= 1) {
+    if ((int32) *p->ifnf >= 1) {
       p->infnf = csound->FTFind(csound, p->ifnf);
       if (p->infnf==NULL)
         return NOTOK;
@@ -746,8 +746,8 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
 
 int pvsftr(CSOUND *csound, PVSFTR *p)
 {
-    int i;
-    long nbins;
+    int   i;
+    int32 nbins;
     float *fdest;                       /*RWD MUST be 32bit */
 
     fdest = (float *) p->fdest->frame.auxp;

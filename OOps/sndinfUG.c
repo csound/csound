@@ -80,12 +80,12 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
           int   n = (int)fread(&cvdata, sizeof(CVSTRUCT), 1, f);
           fclose(f);
           if (n == 1) {
-            if (cvdata.magic == (long)CVMAGIC &&
-                cvdata.dataFormat == (long)CVMYFLT &&
-                cvdata.Format == (long)CVRECT) {
+            if (cvdata.magic == (int32)CVMAGIC &&
+                cvdata.dataFormat == (int32)CVMYFLT &&
+                cvdata.Format == (int32)CVRECT) {
               hdr->frames = (sf_count_t)cvdata.Hlen;
               hdr->samplerate = (int)(cvdata.samplingRate + FL(0.5));
-              hdr->channels = (cvdata.channel == (long)ALLCHNLS ?
+              hdr->channels = (cvdata.channel == (int32)ALLCHNLS ?
                                (int)cvdata.src_chnls : 1);
               csFileType = CSFTYPE_CVANAL;
             }
@@ -101,7 +101,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
         fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
         if (fd >= 0) {
           hdr->frames =
-              (sf_count_t) (((long)csound->PVOC_FrameCount(csound, fd)
+              (sf_count_t) (((int32)csound->PVOC_FrameCount(csound, fd)
                              / (int)fmt.nChannels) * (int)pvdata.dwOverlap);
           hdr->samplerate = (int)fmt.nSamplesPerSec;
           hdr->channels = (int)fmt.nChannels;
@@ -140,7 +140,7 @@ int filelen(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     if (getsndinfo(csound, p, &hdr))
-      *(p->r1) = (MYFLT)((long)hdr.frames) / (MYFLT)hdr.samplerate;
+      *(p->r1) = (MYFLT)((int32)hdr.frames) / (MYFLT)hdr.samplerate;
     else
       *(p->r1) = FL(0.0);
 

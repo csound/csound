@@ -41,8 +41,8 @@ typedef struct {
   OVERLAP       basovrlap;
   long  durtogo, fundphs, fofcount, prvsmps, spdphs; /*last added JMC for FOG*/
   MYFLT prvband, expamp, preamp, fogcvt; /*last added JMC for FOG*/
-  short xincod, ampcod, fundcod;
-  short formcod, fmtmod, speedcod; /*last added JMC for FOG*/
+  int16 xincod, ampcod, fundcod;
+  int16 formcod, fmtmod, speedcod; /*last added JMC for FOG*/
   AUXCH auxch;
   FUNC  *ftp1, *ftp2;
 } FOGS;

@@ -165,13 +165,13 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
-    long halfwinsize,buflen;
+    int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
 
     /* opcode params */
-    long N =(long) *(p->fftsize);
-    long overlap = (long) *(p->overlap);
-    long M = (long) *(p->winsize);
+    int32 N =(int32) *(p->fftsize);
+    int32 overlap = (int32) *(p->overlap);
+    int32 M = (int32) *(p->winsize);
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
@@ -268,9 +268,9 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     int got, tocp,i,j,k;
     int N = p->fsig->N;
     int N2 = N/2;
-    long buflen = p->buflen;
-    long analWinLen = p->fsig->winsize/2;
-    long synWinLen = analWinLen;
+    int32 buflen = p->buflen;
+    int32 analWinLen = p->fsig->winsize/2;
+    int32 synWinLen = analWinLen;
     float *ofp;                 /* RWD MUST be 32bit */
     MYFLT *fp,*oi,*i0,*i1;
     MYFLT *anal = (MYFLT *) (p->analbuf.auxp);
@@ -680,15 +680,15 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
     MYFLT sum;
-    long halfwinsize,buflen;
+    int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
     double IO;
 
     /* get params from input fsig */
     /* we TRUST they are legal */
-    long N = p->fsig->N;
-    long overlap = p->fsig->overlap;
-    long M = p->fsig->winsize;
+    int32 N = p->fsig->N;
+    int32 overlap = p->fsig->overlap;
+    int32 M = p->fsig->winsize;
     int wintype = p->fsig->wintype;
 
     p->fftsize = N;
@@ -825,12 +825,12 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     float *anal;                                        /* RWD MUST be 32bit */
     MYFLT *syn,*bsyn,*i0,*i1,*output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
-    long N = p->fsig->N;
+    int32 N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
     MYFLT mag,phase,angledif, the_phase;
-    long synWinLen = p->fsig->winsize / 2;
-    long overlap = p->fsig->overlap;
-    /*long format = p->fsig->format; */
+    int32 synWinLen = p->fsig->winsize / 2;
+    int32 overlap = p->fsig->overlap;
+    /*int32 format = p->fsig->format; */
 
     /* fsigs MUST be corect format, as we offer no mechanism for
        assignment to a different one*/

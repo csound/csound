@@ -203,24 +203,24 @@ int samphold(CSOUND *csound, SAMPHOLD *p)
 
 int delset(CSOUND *csound, DELAY *p)
 {
-    long        npts;
+    int32        npts;
     char        *auxp;
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
     /* Round not truncate */
-    if ((npts = (long) (FL(0.5) + *p->idlt * csound->esr)) <= 0) {
+    if ((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
-      csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      long *lp = (long *)auxp;
-      memset(lp, '\0', npts*sizeof(long));
+      int32 *lp = (int32 *)auxp;
+      memset(lp, '\0', npts*sizeof(int32));
 /*       do { */
 /*         *lp++ = 0;                            /\*   clr old to zero *\/ */
 /*       } while (--npts); */
@@ -231,7 +231,7 @@ int delset(CSOUND *csound, DELAY *p)
 
 int delrset(CSOUND *csound, DELAYR *p)
 {
-    long        npts;
+    int32        npts;
     MYFLT       *auxp;
 
     if (p->XOUTCODE != 1)
@@ -253,12 +253,12 @@ int delrset(CSOUND *csound, DELAYR *p)
     if (*p->istor != FL(0.0) && p->auxch.auxp != NULL)
       return OK;
     /* ksmps is min dely */
-    if ((npts = (long) (FL(0.5) + *p->idlt * csound->esr)) < csound->ksmps) {
+    if ((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) < csound->ksmps) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
-      csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
@@ -397,7 +397,7 @@ int deltap(CSOUND *csound, DELTAP *p)
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     ar = p->ar;
-    tap = q->curp - (long) (FL(0.5) + *p->xdlt * csound->esr);
+    tap = q->curp - (int32) (FL(0.5) + *p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
@@ -414,7 +414,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     int         n, nsmps = csound->ksmps;
-    long        idelsmps;
+    int32        idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
@@ -425,7 +425,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
       delsmps = *p->xdlt * csound->esr;
-      idelsmps = (long)delsmps;
+      idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
@@ -442,7 +442,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=0; n<nsmps; n++) {
         delsmps = timp[n] * csound->esr;
-        idelsmps = (long)delsmps;
+        idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
         if (tap < begp) tap += q->npts;
@@ -463,7 +463,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
     int n, nsmps = csound->ksmps;
-    long idelsmps;
+    int32 idelsmps;
     MYFLT delsmps;
 
     if (q->auxch.auxp==NULL) {
@@ -474,7 +474,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
       delsmps = *p->xdlt;
-      idelsmps = (long)delsmps;
+      idelsmps = (int32)delsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=0; n<nsmps; n++) {
@@ -490,7 +490,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=0; n<nsmps; n++) {
         delsmps = timp[n];
-        idelsmps = (long)delsmps;
+        idelsmps = (int32)delsmps;
         if ((tap = curq++ - idelsmps) < begp)
           tap += q->npts;
         else if (tap >= endp)
@@ -507,7 +507,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     int n, nsmps = csound->ksmps;
-    long        idelsmps;
+    int32        idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
@@ -518,7 +518,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
       delsmps = *p->xdlt * csound->esr;
-      idelsmps = (long)delsmps;
+      idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
@@ -548,7 +548,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
       for (n=0; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
         delsmps = *timp++ * csound->esr;
-        idelsmps = (long)delsmps;
+        idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
         if ((tap = curq++ - idelsmps) < begp)
           tap += q->npts;
@@ -595,14 +595,14 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *out1, *del, *buf1, *bufp, *bufend;
     int     nn = csound->ksmps;
-    long    indx, maxd, xpos;
+    int32    indx, maxd, xpos;
 
     if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     out1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (long) (q->curp - buf1);
+    indx = (int32) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
@@ -618,7 +618,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
         x1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (long)x1; x1 -= (double)xpos;
+        xpos = (int32)x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
@@ -639,7 +639,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
           *out1 = (MYFLT)(n1 * sin(PI * x1) / PI);
         }
         else {                                          /* integer sample */
-          xpos = (long) ((double)xpos + x1 + 0.5);     /* position */
+          xpos = (int32) ((double)xpos + x1 + 0.5);     /* position */
           if (xpos >= maxd) xpos -= maxd;
           *out1 = buf1[xpos];
         }
@@ -651,7 +651,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
       do {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (long) am1; am1 -= (double)xpos;
+        xpos = (int32) am1; am1 -= (double)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
@@ -676,14 +676,14 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *in1, *del, *buf1, *bufp, *bufend;
     int     nn = csound->ksmps;
-    long    indx, maxd, xpos;
+    int32    indx, maxd, xpos;
 
     if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     in1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (long) (q->curp - buf1);
+    indx = (int32) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
@@ -699,7 +699,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 
         x1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (long) x1; x1 -= (double)xpos;
+        xpos = (int32) x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
@@ -719,7 +719,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
           } while (--i);
         }
         else {                                          /* integer sample */
-          xpos = (long) ((double)xpos + x1 + 0.5);     /* position */
+          xpos = (int32) ((double)xpos + x1 + 0.5);     /* position */
           if (xpos >= maxd) xpos -= maxd;
           buf1[xpos] += *in1;
         }
@@ -731,7 +731,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
       do {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (long) am1; am1 -= (double)xpos;
+        xpos = (int32) am1; am1 -= (double)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
@@ -777,25 +777,25 @@ int delay1(CSOUND *csound, DELAY1 *p)
 
 int cmbset(CSOUND *csound, COMB *p)
 {
-    long        lpsiz, nbytes;
+    int32        lpsiz, nbytes;
 
     if (*p->insmps != 0) {
-      if ((lpsiz = (long)(FL(0.5)+*p->ilpt)) <= 0) {
+      if ((lpsiz = (int32)(FL(0.5)+*p->ilpt)) <= 0) {
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if ((lpsiz = (long)(FL(0.5) + *p->ilpt * csound->esr)) <= 0) {
+    else if ((lpsiz = (int32)(FL(0.5) + *p->ilpt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nbytes, &p->auxch);
+      csound->AuxAlloc(csound, (int32)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
     }
     else if (!(*p->istor)) {
-      /* Does this assume sizeof(MYFLT)==sizeof(long)?? */
+      /* Does this assume sizeof(MYFLT)==sizeof(int32)?? */
       p->pntr = (MYFLT *) p->auxch.auxp;
       memset(p->auxch.auxp, '\0', nbytes);
       p->prvt = FL(0.0);
@@ -881,12 +881,12 @@ static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
 void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
     const MYFLT *lptimp = revlptimes;
-    long        *lpsizp = csound->revlpsiz;
+    int32        *lpsizp = csound->revlpsiz;
     int n = 6;
 
     csound->revlpsum = 0;
     for (n=0; n<6; n++) {
-      lpsizp[n] = (long) ((double)lptimp[n] * (double)csound->esr + 0.5);
+      lpsizp[n] = (int32) ((double)lptimp[n] * (double)csound->esr + 0.5);
       csound->revlpsum += lpsizp[n];
     }
 }
@@ -894,7 +894,7 @@ void reverbinit(CSOUND *csound)         /* called once by oload */
 int rvbset(CSOUND *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
-      long      *sizp = csound->revlpsiz;               /*    allocate it   */
+      int32      *sizp = csound->revlpsiz;               /*    allocate it   */
       csound->AuxAlloc(csound, csound->revlpsum * sizeof(MYFLT), &p->auxch);
       p->adr1 = p->p1 = (MYFLT *) p->auxch.auxp;
       p->adr2 = p->p2 = p->adr1 + *sizp++;
@@ -995,7 +995,7 @@ int panset(CSOUND *csound, PAN *p)
 int pan(CSOUND *csound, PAN *p)
 {
     MYFLT   flend2, xndx_f, yndx_f, xt, yt, ch1, ch2, ch3, ch4;
-    long    xndx, yndx, flen;
+    int32   xndx, yndx, flen;
     int     n, nsmps = csound->ksmps;
     FUNC    *ftp;
 

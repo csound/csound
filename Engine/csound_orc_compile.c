@@ -51,7 +51,7 @@ typedef struct {
     int       gblfixed, gblkcount, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
     char      **strpool;
-    long      poolcount, strpool_cnt, argoffsize;
+    int32      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
     int       *constTbl;
 } OTRAN_GLOBALS;
@@ -110,7 +110,7 @@ static void resetouts(CSOUND *csound)
 }
 
 TEXT *create_text(CSOUND *csound) {
-    TEXT        *tp = (TEXT *)mcalloc(csound, (long)sizeof(TEXT));
+    TEXT        *tp = (TEXT *)mcalloc(csound, (int32)sizeof(TEXT));
     return tp;
 }
 
@@ -328,7 +328,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip) {
 
     int n;
 
-    optxt = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
+    optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
 
     switch(root->type) {
@@ -630,7 +630,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
      * root->left->next is NULL or not to indicate list)
      */
     if(root->left->type == T_INTGR) { /* numbered instrument */
-        long instrNum = (long)root->left->value->value; /* Not used! */
+        int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
         c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
         sprintf(c, "%ld", instrNum);
@@ -641,7 +641,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root) {
 
         csound->Free(csound, c);
     } else if(root->left->type == T_IDENT) { /* named instrument */
-        long  insno_priority = -1L;
+        int32  insno_priority = -1L;
         c = root->left->value->lexeme;
 
         csound->Message(csound, "create_instrument: instr name %s\n", c);
@@ -682,7 +682,7 @@ void close_instrument(CSOUND *csound, INSTRTXT * ip) {
     OPTXT * bp, *current;
     int n;
 
-    bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
+    bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
     bp->t.opnum = ENDIN;                          /*  send an endin to */
     bp->t.opcod = strsav_string(csound, "endin"); /*  term instr 0 blk */
@@ -770,12 +770,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
-    short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
+    int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = a_incnt = k_incnt = i_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
-    opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
+    opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
       types++;                  /* no input args */
     while (*types) {
@@ -807,7 +807,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
     inm->inchns = i;                    /* total number of input chnls */
     inm->perf_incnt = a_incnt + k_incnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
     types = inm->outtypes; otypes = opc->outypes;
@@ -839,13 +839,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
-    opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
-                     & (~((unsigned short) 15)));   /* align (needed ?) */
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
+    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
+                     & (~((uint16) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
     i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
-                                                   sizeof(short) * (i + 6));
+    i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
+                                                   sizeof(int16) * (i + 6));
     a_inlist = i_inlist + i_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
     i = 0; types = inm->intypes;
@@ -895,7 +895,7 @@ static int pnum(char *s)        /* check a char string for pnum format  */
  * is greater than number of pointers currently allocated and if so expand
  * pool of instruments
  */
-void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, long instrNum) {
+void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
     int i;
 
      if (instrNum > csound->maxinsno) {
@@ -952,7 +952,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     INSTRTXT    *prvinstxt = &(csound->instxtanchor);
     OPTXT       *bp;
     char        *opname;
-    long        count, sumcount, instxtcount, optxtcount;
+    int32        count, sumcount, instxtcount, optxtcount;
 
     strsav_create(csound);
 
@@ -1009,7 +1009,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
                 /* Temporarily using the following code */
                     if(current->left->type == T_INTGR) { /* numbered instrument */
-                        long instrNum = (long)current->left->value->value;
+                        int32 instrNum = (int32)current->left->value->value;
 
                         insert_instrtxt(csound, instrtxt, instrNum);
                     }
@@ -1132,7 +1132,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                               "compilation invalid\n"), csound->synterrcnt);
     }
     if (O->odebug) {
-      long  n;
+      int32  n;
       MYFLT *p;
       csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
                               ST(poolcount), ST(strpool_cnt));

@@ -273,10 +273,10 @@ int lfoset(CSOUND *csound, LFO *p)
 
 int lfok(CSOUND *csound, LFO *p)
 {
-    long        phs;
+    int32        phs;
     MYFLT       fract;
     MYFLT       res;
-    long        iphs;
+    int32        iphs;
 
     phs = p->phs;
     switch (p->lasttype) {
@@ -314,7 +314,7 @@ int lfok(CSOUND *csound, LFO *p)
       res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
       break;
     }
-    phs += (long)(*p->xcps * MAXPHASE * csound->onedkr);
+    phs += (int32)(*p->xcps * MAXPHASE * csound->onedkr);
     phs &= MAXMASK;
     p->phs = phs;
     *p->res = *p->kamp * res;
@@ -324,14 +324,14 @@ int lfok(CSOUND *csound, LFO *p)
 int lfoa(CSOUND *csound, LFO *p)
 {
     int         n;
-    long        phs;
+    int32        phs;
     MYFLT       fract;
     MYFLT       res;
-    long        iphs, inc;
+    int32        iphs, inc;
     MYFLT       *ar, amp;
 
     phs = p->phs;
-    inc = (long)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
+    inc = (int32)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
     amp = *p->kamp;
     ar = p->res;
     for (n=0; n<csound->ksmps; n++) {
@@ -446,7 +446,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      long timrem = (long) (*p->mintime * csound->global_ekr + FL(0.5));
+      int32 timrem = (int32) (*p->mintime * csound->global_ekr + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
@@ -507,7 +507,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     }
     /* Reset min pause counter */
     if (*p->mintime > FZERO)
-      p->timrem = (long) (*p->mintime * csound->global_ekr + FL(0.5));
+      p->timrem = (int32) (*p->mintime * csound->global_ekr + FL(0.5));
     else
       p->timrem = 0;
     return (insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK);
@@ -523,8 +523,8 @@ int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
     }
     p->done  = 0;
     p->table = ftp->ftable;
-    p->pfn   = (long)*p->kfn;
-    p->ndx   = (long)*p->initndx;
+    p->pfn   = (int32)*p->kfn;
+    p->ndx   = (int32)*p->initndx;
     p->nargs = p->INOCOUNT-5;
     return OK;
 }
@@ -534,17 +534,17 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
     if (p->done) return OK;
     else {
       int j, nargs = p->nargs;
-      long start = (long) *p->kstart, loop = (long) *p->kloop;
-      long *ndx = &p->ndx;
+      int32 start = (int32) *p->kstart, loop = (int32) *p->kloop;
+      int32 *ndx = &p->ndx;
       MYFLT *out = *p->outargs;
 
-      if (p->pfn != (long)*p->kfn) {
+      if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
         if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
           return csound->PerfError(csound,
                                    Str("trigseq: incorrect table number"));
         }
-        p->pfn = (long)*p->kfn;
+        p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
       if (*p->ktrig) {

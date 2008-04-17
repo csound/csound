@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilno, *inpoles, *ifrmrate;
-        long    headlongs, npoles, nvals, lastfram16, lastmsg;
+        int32    headlongs, npoles, nvals, lastfram16, lastmsg;
         MYFLT   kcoefs[MAXPOLES*2], framrat16;
         int     storePoles ;
         MEMFIL  *mfp;
@@ -110,9 +110,9 @@ typedef struct {
         MYFLT   *islot2 ; /* Assume sizeof(pointer)== sizeof(MYFLT) */
         MYFLT   *kmix  ;
         MYFLT   *fpad[5]; /* Pad for kcoef correctly put (Mighty dangerous) */
-        long    lpad,npoles ;
+        int32    lpad,npoles ;
         LPREAD  *lp1,*lp2 ;
-        long    lastmsg;
+        int32    lastmsg;
         MYFLT   kcoefs[MAXPOLES*2], framrat16;
         int             storePoles ;
 } LPINTERPOL ;

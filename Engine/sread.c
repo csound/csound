@@ -43,9 +43,9 @@ typedef struct MACRO {          /* To store active macros */
 } MACRO;
 
 typedef struct in_stack_s {     /* Stack of active inputs */
-    short string;               /* Flag to say if string or file */
-    short is_marked_repeat;     /* 1 if this input created by 'n' statement */
-    short args;                 /* Argument count for macro */
+    int16 string;               /* Flag to say if string or file */
+    int16 is_marked_repeat;     /* 1 if this input created by 'n' statement */
+    int16 args;                 /* Argument count for macro */
     char  *body;                /* String */
     FILE  *file;                /* File case only */
     void  *fd;
@@ -57,7 +57,7 @@ typedef struct in_stack_s {     /* Stack of active inputs */
 
 typedef struct marked_sections {
   char  *name;
-  long  posit;
+  int32  posit;
   int   line;
   char  *file;
 } MARKED_SECTIONS;
@@ -84,14 +84,14 @@ typedef struct {
     MARKED_SECTIONS names[30], *current_name;
     char    repeat_name_n[RPTDEPTH][NAMELEN];
     int     repeat_cnt_n[RPTDEPTH];
-    long    repeat_point_n[RPTDEPTH];
+    int32    repeat_point_n[RPTDEPTH];
     int     repeat_inc_n /* = 1 */;
     MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
     /* Variable for repeat sections */
     char    repeat_name[NAMELEN];
     int     repeat_cnt;
-    long    repeat_point;
+    int32    repeat_point;
     int     repeat_inc /* = 1 */;
     MACRO   *repeat_mm;
 } SREAD_GLOBALS;
@@ -144,7 +144,7 @@ static intptr_t expand_nxp(CSOUND *csound)
     oldp = ST(curmem);
     ST(curmem) = (char*) csound->ReAlloc(csound, ST(curmem),
                                                  nbytes + (size_t) MARGIN);
-    ST(memend) = (char*) ST(curmem) + (long) nbytes;
+    ST(memend) = (char*) ST(curmem) + (int32) nbytes;
     /* did the pointer change ? */
     if (ST(curmem) == oldp)
       return (intptr_t) 0;      /* no, nothing to do */
@@ -1333,20 +1333,20 @@ static void ifa(CSOUND *csound)
 static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
 {                                       /*  prvibp = prv note, same insno   */
     SRTBLK *p = ST(bp);
-    short n;
+    int16 n;
 
     if (ST(bp)->p1val == SSTRCOD && *ST(sp) == '"') {   /* IV - Oct 31 2002 */
       char name[MAXNAME], *c, *s = ST(sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
       /* find corresponding insno */
-      if (!(n = (short) named_instr_find(csound, name))) {
+      if (!(n = (int16) named_instr_find(csound, name))) {
         csound->Message(csound, Str("WARNING: instr %s not found, "
                                     "assuming insno = -1\n"), name);
         n = -1;
       }
     }
-    else n = (short) ST(bp)->p1val;         /* set current insno */
+    else n = (int16) ST(bp)->p1val;         /* set current insno */
     ST(bp)->insno = n;
 
     while ((p = p->prvblk) != NULL)

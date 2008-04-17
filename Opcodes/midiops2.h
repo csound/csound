@@ -30,7 +30,7 @@
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32   ctlno;
 } MIDICTL2;
@@ -38,7 +38,7 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno1, *ictlno2, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2;
 } MIDICTL3;
@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2, ctlno3;
 } MIDICTL4;
@@ -57,7 +57,7 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ichan, *ictlno, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32   ctlno;
 } CTRL7;
@@ -65,7 +65,7 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ichan, *ictlno1, *ictlno2, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2;
 } CTRL14;
@@ -73,7 +73,7 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ichan, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
-    short flag;
+    int16 flag;
     FUNC *ftp;
     int32  ctlno1, ctlno2, ctlno3;
 } CTRL21;

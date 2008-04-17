@@ -38,7 +38,7 @@ typedef struct {
         AUXCH   aux;  /* delay instance variables */
         uint32  maxd;
         int32   left;
-        short   xdelcod;
+        int16   xdelcod;
 } WGUIDE1;
 
 typedef struct {
@@ -53,6 +53,6 @@ typedef struct {
         int32   left2;
         uint32  maxd;
         MYFLT   old_out;
-        short   xdel1cod, xdel2cod;
+        int16   xdel1cod, xdel2cod;
 } WGUIDE2;
 

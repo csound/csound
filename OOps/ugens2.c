@@ -36,14 +36,14 @@
 /* it should be noted, though, that the above incorrect result would not be */
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
-#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.99999999))
+#define FLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
 int phsset(CSOUND *csound, PHSOR *p)
 {
     MYFLT       phs;
-    long  longphs;
+    int32  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
-      if ((longphs = (long)phs)) {
+      if ((longphs = (int32)phs)) {
         csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;

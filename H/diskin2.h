@@ -47,12 +47,12 @@ typedef struct {
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
     int     wrapMode;
-    long    fileLength;         /* in sample frames */
-    long    bufStartPos;
+    int32    fileLength;         /* in sample frames */
+    int32    bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
     int64_t pos_frac_inc;
-    long    prvBufStartPos;
-    long    winSize;
+    int32    prvBufStartPos;
+    int32    winSize;
     MYFLT   *buf;
     MYFLT   *prvBuf;
     MYFLT   prv_kTranspose;

@@ -47,7 +47,7 @@ typedef struct {
     int       gblfixed, gblkcount, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
     char      **strpool;
-    long      poolcount, strpool_cnt, argoffsize;
+    int32      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
     int       *constTbl;
 } OTRAN_GLOBALS;
@@ -108,14 +108,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
     int     S_incnt, S_outcnt;
-    short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    short   *S_inlist, *S_outlist;
+    int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
+    int16   *S_inlist, *S_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = S_incnt = a_incnt = k_incnt =
         i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
-    opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
+    opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
       types++;                  /* no input args */
     while (*types) {
@@ -150,7 +150,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
     inm->inchns = i;                    /* total number of input chnls */
     inm->perf_incnt = a_incnt + k_incnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
     types = inm->outtypes; otypes = opc->outypes;
@@ -185,14 +185,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt;
-    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
-    opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
-                     & (~((unsigned short) 15)));   /* align (needed ?) */
+    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
+    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
+                     & (~((uint16) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
     i = i_incnt + S_incnt + inm->perf_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt;
-    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
-                                                   sizeof(short) * (i + 8));
+    i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
+                                                   sizeof(int16) * (i + 8));
     S_inlist = i_inlist + i_incnt + 1;
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
@@ -251,8 +251,8 @@ void otran(CSOUND *csound)
     OPTXT       *bp, *prvbp = NULL;
     ARGLST      *alp;
     char        *s;
-    long        pmax = -1, nn;
-    long        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
+    int32        pmax = -1, nn;
+    int32        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
 
     if (csound->otranGlobals == NULL) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
@@ -323,13 +323,13 @@ void otran(CSOUND *csound)
                       csound->instrtxtp[i] = NULL;
                   }
                   if (csound->instrtxtp[n] != NULL) {
-                    synterr(csound, Str("instr %ld redefined"), (long) n);
+                    synterr(csound, Str("instr %ld redefined"), (int32) n);
                     err++; continue;
                   }
                   csound->instrtxtp[n] = ip;
                 }
                 else {                  /* named instrument */
-                  long  insno_priority = -1L;
+                  int32  insno_priority = -1L;
                   if (*c == '+') {
                     insno_priority--; c++;
                   }
@@ -352,7 +352,7 @@ void otran(CSOUND *csound)
             }
             else {                  /* opcode definition with string name */
               OENTRY    tmpEntry, *opc, *newopc;
-              long      newopnum;
+              int32      newopnum;
               OPCODINFO *inm;
               char      *name = alp->arg[0];
 
@@ -400,7 +400,7 @@ void otran(CSOUND *csound)
               tmpEntry.opname = name;
               csound->AppendOpcodes(csound, &tmpEntry, 1);
               if (!newopnum)
-                newopnum = (long) ((OENTRY*) csound->oplstend
+                newopnum = (int32) ((OENTRY*) csound->oplstend
                                    - (OENTRY*) csound->opcodlst) - 1L;
               newopc = &(csound->opcodlst[newopnum]);
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
@@ -426,7 +426,7 @@ void otran(CSOUND *csound)
             break;
         case ENDIN:
         case ENDOP:             /* IV - Sep 8 2002 */
-            bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
             bp->nxtop = NULL;   /* terminate the optxt chain */
@@ -458,7 +458,7 @@ void otran(CSOUND *csound)
             n = -1;                     /* No longer in an instrument */
             break;
         default:
-            bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
+            bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= csound->opcodlst[opnum].thread;
@@ -582,7 +582,7 @@ void otran(CSOUND *csound)
       return;
     }
     if (O->odebug) {
-      long  n;
+      int32  n;
       MYFLT *p;
       csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
                               ST(poolcount), ST(strpool_cnt));
@@ -1180,8 +1180,8 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 
 void oload(CSOUND *p)
 {
-    long    n, combinedsize, insno, *lp;
-    long    gblabeg, gblsbeg, gblsbas, gblscbeg, lclabeg, lclsbeg, lclsbas;
+    int32    n, combinedsize, insno, *lp;
+    int32    gblabeg, gblsbeg, gblsbas, gblscbeg, lclabeg, lclsbeg, lclsbas;
     MYFLT   *combinedspc, *gblspace, *fp1;
     INSTRTXT *ip;
     OPTXT   *optxt;
@@ -1256,7 +1256,7 @@ void oload(CSOUND *p)
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
     /* string constants: unquote, convert escape sequences, and copy to pool */
-    convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (long) gblscbeg);
+    convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (int32) gblscbeg);
 
     gblabeg = p->poolcount + p->gblfixed + 1;
     gblsbeg = gblabeg + p->gblacount;
@@ -1264,20 +1264,20 @@ void oload(CSOUND *p)
     ip = &(p->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */
-      lclabeg = (long) (ip->pmax + ip->lclfixed + 1);
-      lclsbeg = (long) (lclabeg + ip->lclacnt);
-      lclsbas = (long) (lclabeg + (ip->lclacnt * (long) p->ksmps));
+      lclabeg = (int32) (ip->pmax + ip->lclfixed + 1);
+      lclsbeg = (int32) (lclabeg + ip->lclacnt);
+      lclsbas = (int32) (lclabeg + (ip->lclacnt * (int32) p->ksmps));
       if (O->odebug) p->Message(p, "lclabeg %ld, lclsbeg %ld\n",
                                    lclabeg, lclsbeg);
-      ip->localen = ((long) ip->lclfixed
-                     + (long) ip->lclacnt * (long) p->ksmps
-                     + (long) ip->lclscnt * (long) p->strVarSamples)
-                    * (long) sizeof(MYFLT);
+      ip->localen = ((int32) ip->lclfixed
+                     + (int32) ip->lclacnt * (int32) p->ksmps
+                     + (int32) ip->lclscnt * (int32) p->strVarSamples)
+                    * (int32) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
       for (insno = 0, n = 0; insno <= p->maxinsno; insno++)
         if (p->instrtxtp[insno] == ip)  n++;            /* count insnos  */
-      lp = ip->inslist = (long *) mmalloc(p, (long)(n+1) * sizeof(long));
+      lp = ip->inslist = (int32 *) mmalloc(p, (int32)(n+1) * sizeof(int32));
       for (insno=0; insno <= p->maxinsno; insno++)
         if (p->instrtxtp[insno] == ip)  *lp++ = insno;  /* creat inslist */
       *lp = -1;                                         /*   & terminate */
@@ -1285,8 +1285,8 @@ void oload(CSOUND *p)
       while ((optxt = optxt->nxtop) !=  NULL) {
         TEXT    *ttp = &optxt->t;
         ARGOFFS *aoffp;
-        long    indx;
-        long    posndx;
+        int32    indx;
+        int32    posndx;
         int     *ndxp;
         int     opnum = ttp->opnum;
         if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
@@ -1343,7 +1343,7 @@ void oload(CSOUND *p)
           indx = *ndxp;
           if (indx > 0) {               /* positive index: global   */
             if (indx >= STR_OFS)        /* string constant          */
-              indx = (long) strConstIndexList[indx - (long) (STR_OFS + 1)];
+              indx = (int32) strConstIndexList[indx - (int32) (STR_OFS + 1)];
             else if (indx > gblsbeg)    /* global string variable   */
               indx = gblsbas + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */

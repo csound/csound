@@ -70,11 +70,11 @@ typedef struct {
                                  *             same data.  */
 
         /* Internal variable for previous state of xfn.  */
-        long    pfn;            /* Internal variable for what to multiply
+        int32    pfn;            /* Internal variable for what to multiply
                                  * the ndx and ixoff by. Set to 1 or table
                                  * length by tblwset() depending on ixmode.
                                  */
-        long    xbmul;          /* Internal variable for iwrap and igmode. */
+        int32    xbmul;          /* Internal variable for iwrap and igmode. */
         int     iwgm;           /* Internal variable for offset. */
         MYFLT   offset;         /* Pointer to data structure used to access
                                  * function table. tblwset() writes this, based
@@ -137,7 +137,7 @@ typedef struct {
         MYFLT   *koff;          /* Offset to add to table index */
 
         /* Internal variable for previous state of xfn. */
-        long    pfn;            /* Pointer to function table data structure */
+        int32    pfn;            /* Pointer to function table data structure */
         FUNC    *ftp;
 } TABLERA;
 
@@ -155,7 +155,7 @@ typedef struct {
         MYFLT   *asig;          /* a rate input signal. */
         MYFLT   *koff;          /* Offset to add to table index. */
 
-        long    pfn;            /* Pointer to function table. */
+        int32    pfn;            /* Pointer to function table. */
         FUNC    *ftp;
 } TABLEWA;
 
@@ -265,7 +265,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *rslt;
-        long    instartk;
+        int32    instartk;
 } RDTIME;
 
 /*****************************************************************************/
@@ -277,8 +277,8 @@ typedef struct {
         MYFLT   *val;           /* Value to print */
         MYFLT   *space;         /* Spaces to insert before printing */
         MYFLT   initime, ctime; /* Time when initialised; initialised */
-        long    pspace;         /* How many spaces to print */
-        long    cysofar;        /* Number of print cycles so far */
+        int32    pspace;         /* How many spaces to print */
+        int32    cysofar;        /* Number of print cycles so far */
 } PRINTK;
 
 /* PRINTKS data structure for printks() and printksset()  */
@@ -288,7 +288,7 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX];/* values to print */
         MYFLT   initime, ctime; /* Time when initialised; Cycle time */
-        long    cysofar;        /* Number of print cycles so far from 0 */
+        int32    cysofar;        /* Number of print cycles so far from 0 */
         char    txtstring[8192]; /* Place to store the string printed */
 } PRINTKS;
 
@@ -375,5 +375,5 @@ int zkr(CSOUND*,ZKR *p);
 int zkset(CSOUND*,ZKR *p);
 int zkw(CSOUND*,ZKW *p);
 int zkwm(CSOUND*,ZKWM *p);
-void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals);
+void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals);
 

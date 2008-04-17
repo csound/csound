@@ -48,7 +48,7 @@ typedef struct {
         AUXCH   auxd;
         MYFLT   *sine;
         int     lasttype;
-        long    phs;
+        int32    phs;
 } LFO;
 
 /*****************************************************************/
@@ -61,7 +61,7 @@ typedef struct {
         MYFLT  *trigger, *mintime, *maxinst;
         MYFLT  *args[PMAX+1];
         MYFLT  prvmintim;
-        long   timrem, prvktim, kadjust;
+        int32   timrem, prvktim, kadjust;
 } TRIGINSTR;
 
 /*****************************************************************/
@@ -72,19 +72,19 @@ typedef struct {
 typedef struct {
   OPDS  h;
   MYFLT *ktrig, *kstart, *kloop, *initndx, *kfn, *outargs[VARGMAX];
-  long  ndx;
+  int32  ndx;
   int   nargs, done;
-  long  pfn;
+  int32  pfn;
   MYFLT *table;
 } TRIGSEQ;
 
 typedef struct {
   OPDS  h;
   MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
-  long  ndx;
+  int32 ndx;
   int   done;
   double start, newtime;
-  long  pfn;
+  int32 pfn;
   MYFLT *table;
 } SEQTIM;
 

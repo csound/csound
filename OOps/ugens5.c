@@ -97,7 +97,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*sizeof(double)), &p->aux);
+      csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (!(*p->istor)) {
       memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
@@ -254,7 +254,7 @@ int rsnsetx(CSOUND *csound, RESONX *p)
       p->loop = 4; /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*2*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(double)), &p->aux);
+      csound->AuxAlloc(csound, (int32)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
@@ -388,8 +388,8 @@ int lprdset(CSOUND *csound, LPREAD *p)
 {
     LPHEADER *lph;
     MEMFIL   *mfp;
-    long     magic;
-    long     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(long) !! */
+    int32     magic;
+    int32     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(int32) !! */
     char     lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
@@ -425,7 +425,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
-      p->headlongs = lph->headersize/sizeof(long);
+      p->headlongs = lph->headersize/sizeof(int32);
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
         csound->Warning(csound, Str("lpheader overriding inputs"));
@@ -445,7 +445,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
     }
     else {                                    /* No Header on file:*/
       p->headlongs = 0;
-      p->npoles = (long)*p->inpoles;          /*  data from inargs */
+      p->npoles = (int32)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
       if (!p->npoles || !p->framrat16) {
@@ -458,7 +458,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
-    totvals = (mfp->length/sizeof(long)) - p->headlongs;   /* see NB above!! */
+    totvals = (mfp->length/sizeof(int32)) - p->headlongs;   /* see NB above!! */
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (csound->oparms->odebug)
@@ -641,7 +641,7 @@ static inline void
 int lpread(CSOUND *csound, LPREAD *p)
 {
     MYFLT   *bp, *np, *cp;
-    long    nn, framphase;
+    int32    nn, framphase;
     MYFLT   fract;
     int     i, status;
     MYFLT   poleMagn1[MAXPOLES], polePhas1[MAXPOLES];
@@ -652,7 +652,7 @@ int lpread(CSOUND *csound, LPREAD *p)
       return csound->PerfError(csound, Str("lpread: not initialised"));
     }
     /* Locate frame position range */
-    if ((framphase = (long)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd*/
+    if ((framphase = (int32)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd*/
       return csound->PerfError(csound, Str("lpread timpnt < 0"));
     }
     if (framphase > p->lastfram16) {                /* not past last one */

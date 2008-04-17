@@ -40,7 +40,7 @@ int check_instr_name(char *);
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find(CSOUND *, char *);
+int32 named_instr_find(CSOUND *, char *);
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
@@ -48,7 +48,7 @@ long named_instr_find(CSOUND *, char *);
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc(CSOUND *, char *, INSTRTXT *, long);
+int named_instr_alloc(CSOUND *, char *, INSTRTXT *, int32);
 
 /* assign instrument numbers to all named instruments */
 /* called by otran */
@@ -59,13 +59,13 @@ void named_instr_assign_numbers(CSOUND *);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno(CSOUND *, void *, int);
+int32 strarg2insno(CSOUND *, void *, int);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p(CSOUND *, char *);
+int32 strarg2insno_p(CSOUND *, char *);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -73,7 +73,7 @@ long strarg2insno_p(CSOUND *, char *);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno(CSOUND *, void *, int, int);
+int32 strarg2opcno(CSOUND *, void *, int, int);
 
 /* create file name from opcode argument (string or MYFLT)      */
 /*   CSOUND *csound:                                            */

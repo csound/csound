@@ -37,19 +37,19 @@
 
 static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 {
-    long  nsmps, bufsmps;
+    int32  nsmps, bufsmps;
     int   i;
 
     /* calculate new buffer frame start position */
-    p->bufStartPos = p->bufStartPos + (long) bufReadPos;
-    p->bufStartPos &= (~((long) (p->bufSize - 1)));
-    bufsmps = (long) ((p->bufSize + 1) * p->nChannels);
+    p->bufStartPos = p->bufStartPos + (int32) bufReadPos;
+    p->bufStartPos &= (~((int32) (p->bufSize - 1)));
+    bufsmps = (int32) ((p->bufSize + 1) * p->nChannels);
     i = 0;
     if (p->bufStartPos >= 0L) {
       /* number of sample frames to read */
       nsmps = p->fileLength - p->bufStartPos;
       if (nsmps > 0L) {         /* if there is anything to read: */
-        nsmps *= (long) p->nChannels;
+        nsmps *= (int32) p->nChannels;
         if (nsmps > bufsmps)
           nsmps = bufsmps;
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
@@ -67,7 +67,7 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-static inline void diskin_get_sample(SOUNDINEW *p, long fPos, int n, MYFLT scl)
+static inline void diskin_get_sample(SOUNDINEW *p, int32 fPos, int n, MYFLT scl)
 {
     int  bufPos, i;
 
@@ -199,7 +199,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
       csound->Message(csound, Str("        %d Hz, %d channel(s), "
                                   "%ld sample frames\n"),
                               (int) sfinfo.samplerate, (int) sfinfo.channels,
-                              (long) sfinfo.frames);
+                              (int32) sfinfo.frames);
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels &&
@@ -212,7 +212,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;
     /* set file parameters from header info */
-    p->fileLength = (long) sfinfo.frames;
+    p->fileLength = (int32) sfinfo.frames;
     if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate &&
         (csound->oparms_.msglevel & WARNMSG) != 0) {
       csound->Message(csound, Str("diskin: warning: file sample rate (%d) "
@@ -250,7 +250,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
     csound->Message(csound, Str("bufsize %d\n"), p->bufSize);
-    p->bufStartPos = -((long)(p->bufSize << 1));
+    p->bufStartPos = -((int32)(p->bufSize << 1));
 
     if(p->auxch.auxp == NULL ||
        p->auxch.size < 2*p->bufSize*sizeof(MYFLT)*p->nChannels)
@@ -263,10 +263,10 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     return OK;
 }
 
-static inline void diskin_file_pos_inc(SOUNDINEW *p, long *ndx)
+static inline void diskin_file_pos_inc(SOUNDINEW *p, int32 *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
-    *ndx = (long) (p->pos_frac >> POS_FRAC_SHIFT);
+    *ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     if (p->wrapMode) {
       if (*ndx >= p->fileLength) {
         *ndx -= p->fileLength;
@@ -284,7 +284,7 @@ static inline void diskin_file_pos_inc(SOUNDINEW *p, long *ndx)
 int soundinew(CSOUND *csound, SOUNDINEW *p)
 {
     MYFLT   a0, a1;
-    long    ndx;
+    int32    ndx;
     int     nn, chn;
 
     if (p->initDone <= 0) {
@@ -313,7 +313,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
       for (nn = 0; nn < csound->ksmps; nn++)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
-    ndx = (long) (p->pos_frac >> POS_FRAC_SHIFT);
+    ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
     /* ---- linear interpolation ---- */
     for (nn = 0; nn < csound->ksmps; nn++) {
       a1 = (MYFLT) ((int) (p->pos_frac & (int64_t) POS_FRAC_MASK))

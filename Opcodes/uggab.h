@@ -190,7 +190,7 @@ typedef struct  {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps;
-        short   cpscod;
+        int16   cpscod;
         long    phs;
         MYFLT   num1, num2, dfdmax;
 } RANDOMI;
@@ -198,7 +198,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps;
-        short   cpscod;
+        int16   cpscod;
         long    phs;
         MYFLT   num1;
 } RANDOMH;

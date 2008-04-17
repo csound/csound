@@ -186,7 +186,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
 
 PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
 {
-    long  size = (long) strlen(message);
+    int32  size = (int32) strlen(message);
 
     if (!csound->lineventGlobals) {
       if (linevent_alloc(csound) != 0)

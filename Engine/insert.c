@@ -121,7 +121,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
-    ip->insno = (short) insno;
+    ip->insno = (int16) insno;
 
     /* Add an active instrument */
     tp->active++;
@@ -148,7 +148,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (tp->psetdata) {
         MYFLT *pfld = &ip->p3;              /* if pset data present */
         MYFLT *pdat = tp->psetdata + 2;
-        long nn = tp->pmax - 2;             /*   put cur vals in pflds */
+        int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
         do {
           *pfld++ = *pdat++;
         } while (--nn);
@@ -259,7 +259,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
-    ip->insno = (short) insno;
+    ip->insno = (int16) insno;
 
     if (O->odebug)
       csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
@@ -303,7 +303,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
       MYFLT *pdat = tp->psetdata + 2;
-      long nn = tp->pmax - 2;             /*   put cur vals in pflds */
+      int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
       memcpy(pfld, pdat, nn*sizeof(MYFLT));
 /*       do { */
 /*         *pfld++ = *pdat++; */
@@ -330,7 +330,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       MYFLT value = (MYFLT) ip->m_pitch;
       value = value / FL(12.0) + FL(3.0);
       value = value * OCTRES;
-      value = (MYFLT) CPSOCTL((long) value);
+      value = (MYFLT) CPSOCTL((int32) value);
       pfields[index] = value;
       if (O->msglevel & WARNMSG) {
         csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
@@ -747,7 +747,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
         instance(csound, instno);
       p->ip = csound->instrtxtp[instno]->act_instance;
       csound->instrtxtp[instno]->act_instance = p->ip->nxtact;
-      p->ip->insno = (short) instno;
+      p->ip->insno = (int16) instno;
       p->ip->actflg++;                  /*    and mark the instr active */
       csound->instrtxtp[instno]->active++;
       p->ip->p1 = (MYFLT) instno;
@@ -785,7 +785,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* allocate memory for a temporary store of spout buffers */
     if (!init_op && !(csound->reinitflag | csound->tieflag))
       csoundAuxAlloc(csound,
-                     (long) csound->nspout * sizeof(MYFLT), &p->saved_spout);
+                     (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
     /* do init pass for this instr */
     csound->curip = p->ip;
@@ -821,7 +821,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     OPCODINFO *inm;
     OPCOD_IOBUFS  *buf;
     int     g_ksmps;
-    long    g_kcounter;
+    int32    g_kcounter;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
@@ -965,7 +965,7 @@ int xinset(CSOUND *csound, XIN *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    short       *ndx_list;
+    int16       *ndx_list;
     MYFLT       **tmp, **bufs;
 
     (void) csound;
@@ -1012,7 +1012,7 @@ int xoutset(CSOUND *csound, XOUT *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    short       *ndx_list;
+    int16       *ndx_list;
     MYFLT       **tmp, **bufs;
 
     (void) csound;
@@ -1171,7 +1171,7 @@ INSDS *insert_event(CSOUND *csound,
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
-    ip->insno = (short) insno;
+    ip->insno = (int16) insno;
 
     /* Add an active instrument */
     tp->active++;
@@ -1339,7 +1339,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     OPDS    *saved_pds = csound->pds;
     int     saved_sa = csound->spoutactive;
     MYFLT   *pbuf, *saved_spout = csound->spout;
-    long    frame, chan;
+    int32    frame, chan;
 
     if (p->ip == NULL) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, Str("subinstr: not initialised"));
@@ -1389,7 +1389,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
-    long    g_kcounter;
+    int32    g_kcounter;
 
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
@@ -1571,7 +1571,7 @@ static void instance(CSOUND *csound, int insno)
     largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
     pextent = sizeof(INSDS) + tp->pextrab;      /* alloc new space,  */
-    ip = (INSDS*) mcalloc(csound, (long) pextent + tp->localen + tp->opdstot);
+    ip = (INSDS*) mcalloc(csound, (int32) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
     /* IV - Oct 26 2002: replaced with faster version (no search) */

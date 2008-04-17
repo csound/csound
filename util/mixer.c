@@ -64,7 +64,7 @@ typedef struct inputs {
     scalepoint *fulltable;      /* Scaling table */
     scalepoint *table;          /* current position in table */
     SNDFILE    *fd;             /* File descriptor handle */
-    short       channels[5];    /* destinations of channels */
+    int16       channels[5];    /* destinations of channels */
     int         non_clear;      /* Boolean to say if fiddled mixing */
     SOUNDIN *   p;              /* Csound structure */
 } inputs;

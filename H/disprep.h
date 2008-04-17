@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *signal, *iprd, *inprds, *iwtflg;
-        long    npts, nprds, bufpts, totpts, pntcnt;
+        int32    npts, nprds, bufpts, totpts, pntcnt;
         WINDAT  dwindow;
         MYFLT   *nxtp, *begp, *endp;
         AUXCH   auxch;
@@ -43,9 +43,9 @@ typedef struct {
         PVSDAT  *fin;
         MYFLT   *points, *flag;
         int     size;
-        WINDAT dwindow;
+        WINDAT  dwindow;
         AUXCH   fdata;
-        unsigned long lastframe;        
+        uint32  lastframe;        
 } FSIGDISP;
 
 #define WINDMAX 4096
@@ -55,7 +55,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg;
         MYFLT   sampbuf[WINDMAX], *bufp, *endp, overN;
-        long    windsize, overlap, ncoefs;
+        int32   windsize, overlap, ncoefs;
         int     hanning, dbout;
         WINDAT  dwindow;
         AUXCH   auxch;

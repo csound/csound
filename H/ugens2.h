@@ -33,10 +33,10 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
         MYFLT   offset;
-        long    pfn; /* Previous function table number - used to
+        int32   pfn; /* Previous function table number - used to
                         detect a change in table number when this is
                         supplied by a k rate input parameter. */
-        long    xbmul;
+        int32   xbmul;
         int     wrap;
         FUNC    *ftp;
 } TABLE;
@@ -44,8 +44,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *rslt, *idel, *kamp, *idur, *ifn;
-        long    kinc, phs;
-        long    dcnt;
+        int32   kinc, phs;
+        int32   dcnt;
         FUNC    *ftp;
 } OSCIL1;
 
@@ -53,13 +53,13 @@ typedef struct  {
         OPDS    h;
         MYFLT   *rslt, *kamp, *ifrq, *ifn, *itimes;
         MYFLT   index, inc, maxndx;
-        long    ntimes;
+        int32   ntimes;
         FUNC    *ftp;
 } OSCILN;
 
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
-        long    lphs;
+        int32   lphs;
         FUNC    *ftp;
 } OSC;

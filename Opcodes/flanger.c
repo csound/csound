@@ -29,7 +29,7 @@
 static int flanger_set (CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
-    p->maxdelay = (unsigned long)(*p->maxd  * csound->esr);
+    p->maxdelay = (uint32)(*p->maxd  * csound->esr);
     csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
     p->left = 0;
     p->yt1 = FL(0.0);
@@ -40,7 +40,7 @@ static int flanger_set (CSOUND *csound, FLANGER *p)
 static int flanger(CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay -----------------------*/
-    unsigned long  indx = p->left;
+    uint32 indx = p->left;
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
     MYFLT maxdelay = p->fmaxd, maxdelayM1 = maxdelay-1;
@@ -48,8 +48,8 @@ static int flanger(CSOUND *csound, FLANGER *p)
     MYFLT *freq_del = p->xdel;
     MYFLT feedback =  *p->kfeedback;
     MYFLT fv1;
-    long  v2;
-    long  v1;
+    int32  v2;
+    int32  v1;
     MYFLT yt1= p->yt1;
 
     int n,nsmps = csound->ksmps;
@@ -61,7 +61,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
       while (fv1 < 0)
         fv1 += maxdelay;
       while (fv1 >= maxdelay) fv1 -= maxdelay; /* Is this necessary? JPff */
-      v1 = (long)fv1;
+      v1 = (int32)fv1;
       v2 = (fv1 < maxdelayM1)? v1+1 : 0; /*Find next sample for interpolation*/
       out[n] = yt1 = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
       if (++indx == maxdelay)
@@ -77,7 +77,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
 static int wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    p->maxd = (unsigned long) (MAXDELAY * csound->esr);
+    p->maxd = (uint32) (MAXDELAY * csound->esr);
     csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
     p->left = 0;
         /*---------------- filter -----------------------*/
@@ -91,7 +91,7 @@ static int wguide1set (CSOUND *csound, WGUIDE1 *p)
 static int wguide1(CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
-    unsigned long  indx;
+    uint32  indx;
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
@@ -99,7 +99,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     MYFLT feedback =  *p->kfeedback;
     MYFLT  fv1, fv2, out_delay,bufv1 ;
     unsigned int maxdM1 = p->maxd-1;
-    long   v1;
+    int32   v1;
     /*---------------- filter -----------------------*/
     MYFLT c1, c2, yt1 = p->yt1;
     int n, nsmps = csound->ksmps;
@@ -129,8 +129,8 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         }
         fv2 = (fv1 < maxdM1) ?
                   fv1 + 1 : 0;  /* Find next smpl for interpolation */
-        bufv1 = buf[v1=(long)fv1];
-        out_delay = bufv1 + (fv1 - v1) * ( buf[(long)fv2] - bufv1);
+        bufv1 = buf[v1=(int32)fv1];
+        out_delay = bufv1 + (fv1 - v1) * ( buf[(int32)fv2] - bufv1);
         if (++indx == p->maxd) indx = 0; /* Advance current pointer */
         /*---------------- filter -----------------------*/
         out[n] = yt1 = c1 * out_delay + c2 * yt1;
@@ -149,8 +149,8 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         }
         fv2 = (fv1 < maxdM1) ?
               fv1 + 1 : 0;  /* Find next smpl for interpolation */
-        bufv1 = buf[v1=(long)fv1];
-        out_delay = bufv1 + (fv1 - v1) * ( buf[(long)fv2] - bufv1);
+        bufv1 = buf[v1=(int32)fv1];
+        out_delay = bufv1 + (fv1 - v1) * ( buf[(int32)fv2] - bufv1);
         if (++indx == p->maxd) indx = 0;     /* Advance current pointer */
         /*---------------- filter -----------------------*/
         out[n] = yt1 = c1 * out_delay + c2 * yt1;
@@ -164,7 +164,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
 static int wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
-    p->maxd = (unsigned long) (MAXDELAY * csound->esr);
+    p->maxd = (uint32) (MAXDELAY * csound->esr);
     csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
     p->left1 = 0;
         /*---------------- delay2 -----------------------*/
@@ -199,21 +199,21 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     unsigned int maxdM1 = p->maxd-1;
 
     /*---------------- delay1 -----------------------*/
-    unsigned long  indx1;
+    uint32  indx1;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->esr; */
     MYFLT feedback1 =  *p->kfeedback1;
     MYFLT  fv1_1, fv2_1, out_delay1 ;
-    long   v1_1;
+    int32   v1_1;
         /*---------------- filter1 -----------------------*/
     MYFLT c1_1, c2_1, yt1_1;
         /*---------------- delay2 -----------------------*/
-    unsigned long  indx2;
+    uint32  indx2;
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->esr;*/
     MYFLT feedback2 =  *p->kfeedback2;
     MYFLT  fv1_2, fv2_2, out_delay2 ;
-    long   v1_2;
+    int32   v1_2;
         /*---------------- filter2 -----------------------*/
     MYFLT c1_2, c2_2, yt1_2;
         /*-----------------------------------------------*/
@@ -259,10 +259,10 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
           fv1_1+1:0; /*Find next sample for interpolation */
         fv2_2 = (fv1_2<maxdM1)?
           fv1_2+1:0; /*Find next sample for interpolation */
-        v1_1 = (long)fv1_1;
-        v1_2 = (long)fv1_2;
-        out_delay1 = buf1[v1_1] + (fv1_1-v1_1)*(buf1[(long)fv2_1]-buf1[v1_1]);
-        out_delay2 = buf2[v1_2] + (fv1_2-v1_2)*(buf2[(long)fv2_2]-buf2[v1_2]);
+        v1_1 = (int32)fv1_1;
+        v1_2 = (int32)fv1_2;
+        out_delay1 = buf1[v1_1] + (fv1_1-v1_1)*(buf1[(int32)fv2_1]-buf1[v1_1]);
+        out_delay2 = buf2[v1_2] + (fv1_2-v1_2)*(buf2[(int32)fv2_2]-buf2[v1_2]);
         if (++indx1 == p->maxd) indx1 = 0;        /* Advance current pointer */
         if (++indx2 == p->maxd) indx2 = 0;        /* Advance current pointer */
         out1 = yt1_1 = c1_1 * out_delay1 + c2_1 * yt1_1;
@@ -288,10 +288,10 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
           fv1_1+1:0; /*Find next sample for interpolation */
         fv2_2 = (fv1_2<maxdM1)?
           fv1_2+1:0; /*Find next sample for interpolation */
-        v1_1 = (long)fv1_1;
-        v1_2 = (long)fv1_2;
-        out_delay1 = buf1[v1_1] + (fv1_1 - v1_1)*(buf1[(long)fv2_1]-buf1[v1_1]);
-        out_delay2 = buf2[v1_2] + (fv1_2 - v1_2)*(buf2[(long)fv2_2]-buf2[v1_2]);
+        v1_1 = (int32)fv1_1;
+        v1_2 = (int32)fv1_2;
+        out_delay1 = buf1[v1_1] + (fv1_1 - v1_1)*(buf1[(int32)fv2_1]-buf1[v1_1]);
+        out_delay2 = buf2[v1_2] + (fv1_2 - v1_2)*(buf2[(int32)fv2_2]-buf2[v1_2]);
         if (++indx1 == p->maxd) indx1 = 0;        /* Advance current pointer */
         if (++indx2 == p->maxd) indx2 = 0;        /* Advance current pointer */
         out1 = yt1_1 = c1_1 * out_delay1 + c2_1 * yt1_1;
