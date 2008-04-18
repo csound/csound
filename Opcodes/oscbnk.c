@@ -552,7 +552,7 @@ static int grain2set(CSOUND *csound, GRAIN2 *p)
 
     /* check opcode params */
 
-    i = (int) MYFLT2INT32(*(p->imode));  /* mode */
+    i = (int) MYFLT2LONG(*(p->imode));  /* mode */
     if (i & 1) return OK;               /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x0E;
