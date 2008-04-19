@@ -34,14 +34,14 @@ typedef struct {
     MYFLT         *inbuf;
     MYFLT         *outbuf;              /* contin sndio buffers         */
     MYFLT         *outbufp;             /* MYFLT pntr                   */
-    unsigned int  inbufrem;
-    unsigned int  outbufrem;            /* in monosamps                 */
+    uint32        inbufrem;
+    uint32        outbufrem;            /* in monosamps                 */
                                         /* (see openin, iotranset)      */
     unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
     int           isfopen;              /* (real set in sfopenin)       */
     int           osfopen;              /* (real set in sfopenout)      */
     int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
-    unsigned long nframes /* = 1UL */;
+    uint32        nframes               /* = 1UL */;
     FILE          *pin, *pout;
 } LIBSND_GLOBALS;
 
@@ -64,7 +64,7 @@ static void alloc_globals(CSOUND *csound)
 {
     if (csound->libsndGlobals == NULL) {
       csound->libsndGlobals = csound->Calloc(csound, sizeof(LIBSND_GLOBALS));
-      ST(nframes) = 1UL;
+      ST(nframes) = (uint32)1;
     }
 }
 
@@ -82,11 +82,12 @@ static void spoutsf(CSOUND *csound)
     int     n, chn = 0, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp;
+    uint32  nframes = ST(nframes);
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
     if ((n = spoutrem) > (int) ST(outbufrem))
-      n = ST(outbufrem);
+      n = (int)ST(outbufrem);
     spoutrem -= n;
     ST(outbufrem) -= n;
     do {
@@ -97,7 +98,7 @@ static void spoutsf(CSOUND *csound)
         absamp = -absamp;
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
         csound->maxamp[chn] = absamp;
-        csound->maxpos[chn] = ST(nframes);
+        csound->maxpos[chn] = nframes;
       }
       if (absamp > csound->e0dbfs) {        /* out of range?     */
         csound->rngcnt[chn]++;              /*  report it        */
@@ -105,10 +106,10 @@ static void spoutsf(CSOUND *csound)
       }
       if (csound->multichan) {
         if (++chn >= csound->nchnls)
-          chn = 0, ST(nframes)++;
+          chn = 0, nframes++;
       }
       else
-        ST(nframes)++;
+        nframes++;
     } while (--n);
 
     if (!ST(outbufrem)) {
@@ -120,6 +121,7 @@ static void spoutsf(CSOUND *csound)
       ST(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
+    ST(nframes) = nframes;
 }
 
 /* special version of spoutsf for "raw" floating point files */
@@ -129,11 +131,12 @@ static void spoutsf_noscale(CSOUND *csound)
     int     n, chn = 0, spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp;
+    uint32  nframes = ST(nframes);
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
     if ((n = spoutrem) > (int) ST(outbufrem))
-      n = ST(outbufrem);
+      n = (int)ST(outbufrem);
     spoutrem -= n;
     ST(outbufrem) -= n;
     do {
@@ -144,10 +147,10 @@ static void spoutsf_noscale(CSOUND *csound)
         absamp = -absamp;
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
         csound->maxamp[chn] = absamp;
-        csound->maxpos[chn] = ST(nframes);
+        csound->maxpos[chn] = nframes;
       }
       if (++chn >= csound->nchnls)
-        chn = 0, ST(nframes)++;
+        chn = 0, nframes++;
     } while (--n);
 
     if (!ST(outbufrem)) {
@@ -159,6 +162,7 @@ static void spoutsf_noscale(CSOUND *csound)
       ST(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
+    ST(nframes) = nframes;
 }
 
 /* diskfile write option for audtran's */
@@ -213,8 +217,9 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
     i = (int) sf_read_MYFLT(ST(infile), inbuf, n);
     if (i < 0)
       i = 0;
-    while (i < n)
-      inbuf[i++] = FL(0.0);
+    memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
+    /* while (i < n) */
+    /*   inbuf[i++] = FL(0.0); */
     return inbufsize;
 }
 
@@ -268,7 +273,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     int     isfd = 0;   /* stdin */
 
     alloc_globals(csound);
-    ST(inbufrem) = (unsigned int) 0;    /* start with empty buffer */
+    ST(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;
     if (sfname == NULL || sfname[0] == '\0')
       csound->Die(csound, Str("error: no input file name"));
@@ -605,8 +610,7 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
 
     nsmps = csound->nspin;
     bufpos = (int) O->inbufsamps - (int) ST(inbufrem);
-    i = 0;
-    do {
+    for (i = 0; i<nsmps; i++) {
       if ((int) ST(inbufrem) < 1) {
         ST(inbufrem) = 0U;
         do {
@@ -618,7 +622,7 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
       }
       csound->spin[i] = ST(inbuf)[bufpos++] * scaleFac;
       ST(inbufrem)--;
-    } while (++i < nsmps);
+    }
 }
 
 static void sndfilein(CSOUND *csound)

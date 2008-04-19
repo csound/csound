@@ -237,7 +237,7 @@ int reson(CSOUND *csound, RESON *p)
     ar = p->ar;
     yt1 = p->yt1; yt2 = p->yt2;
     for (n=0; n<nsmps; n++) {
-      double yt0 = c1 * (double)(asig[n]) + c2 * yt1 - c3 * yt2;
+      double yt0 = c1 * ((double)asig[n]) + c2 * yt1 - c3 * yt2;
       ar[n] = (MYFLT)yt0;
       yt2 = yt1;
       yt1 = yt0;
@@ -273,8 +273,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
     int flag = 0, nsmps = csound->ksmps, j;
     MYFLT       *ar, *asig;
-    double       c3p1, c3t4, omc3, c2sqr;
-    double       *yt1, *yt2, c1,c2,c3;
+    double      c3p1, c3t4, omc3, c2sqr;
+    double      *yt1, *yt2, c1,c2,c3;
 
     if (*p->kcf != (MYFLT)p->prvcf) {
       p->prvcf = (double)*p->kcf;
@@ -311,7 +311,7 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
       int n;
       for (n=0; n<nsmps; n++) {
         double x =
-          c1 * (double)asig[n] + c2 * yt1[j] - c3 * yt2[j];
+          c1 * ((double)asig[n]) + c2 * yt1[j] - c3 * yt2[j];
         yt2[j] = yt1[j];
         ar[n] = (MYFLT)x;
         yt1[j] = x;
@@ -696,12 +696,9 @@ int lpread(CSOUND *csound, LPREAD *p)
       }
     }
     else {
-      nn = p->npoles;
-      do {
-        *cp = *bp + (*np - *bp) * fract;
-        cp++; bp++; np++;
+      for (nn = 0; nn< p->npoles; nn++) {
+        cp[nn] = bp[nn] + (np[nn] - bp[nn]) * fract;
       }
-      while (--nn);
     }
 /*  if (csound->oparms->odebug) {
       csound->Message(csound, "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",

@@ -168,8 +168,8 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
     dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
     if (dev_info) {
       csound->Message(csound, Str("PortAudio: selected %s device '%s'\n"),
-		      (play ? Str("output") : Str("input")),
-		      dev_info->name);
+                      (play ? Str("output") : Str("input")),
+                      dev_info->name);
     } else {
       csound->Message(csound, Str("PortAudio: failed to obtain device info.'\n"));
     }
@@ -331,10 +331,11 @@ static CS_NOINLINE void paClearOutputBuffer(PA_BLOCKING_STREAM *pabs,
                                             float *buf)
 {
     int   nsmps = pabs->outBufSamples;
-    int   i = 0;
-    do {
-      buf[i] = 0.0f;
-    } while (++i < nsmps);
+    memset(buf,0, nsmps*sizeof(float));
+    /* int   i = 0; */
+    /* do { */
+    /*   buf[i] = 0.0f; */
+    /* } while (++i < nsmps); */
 }
 
 static int paBlockingReadWriteStreamCallback(const void *input,
