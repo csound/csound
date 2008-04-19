@@ -1171,7 +1171,7 @@ int osckki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ftab;
-    int32    phs, inc, lobits;
+    int32   phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1258,7 +1258,7 @@ int oscaai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab;
-    int32    phs, lobits;
+    int32   phs, lobits;
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
@@ -1276,8 +1276,8 @@ int oscaai(CSOUND *csound, OSC   *p)
       inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> lobits);
-      v1 = *ftab++;
-      ar[n] = (v1 + (*ftab - v1) * fract) * ampp[n];
+      v1 = ftab[0];
+      ar[n] = (v1 + (ftab[1] - v1) * fract) * ampp[n];
       phs += inc;
       phs &= PHMASK;
     }

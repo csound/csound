@@ -646,7 +646,7 @@ static const CSOUND cenviron_ = {
     CSOUND              *csound;
     struct csInstance_s *nxt;
   } csInstance_t;
-  
+
   /* initialisation state: */
   /* 0: not done yet, 1: complete, 2: in progress, -1: failed */
   static  volatile  int init_done = 0;
@@ -1192,21 +1192,21 @@ static const CSOUND cenviron_ = {
     int numThreads = csound->oparms->numThreads;
 
     if(index < 0) {
-       return -1;
+      return ULONG_MAX;
     }
 
     barrier1 = csound->multiThreadedBarrier1;
     barrier2 = csound->multiThreadedBarrier2;
 
-    while(1) {
+    while (1) {
         int numActive;
-        
+
         csound->WaitBarrier(barrier1);
 
         csound_global_mutex_lock();
         if(csound->multiThreadedComplete == 1) {
             csound_global_mutex_unlock();
-            return 0;
+            return 0UL;
         }
         csound_global_mutex_unlock();
 
@@ -1235,7 +1235,7 @@ static const CSOUND cenviron_ = {
     int     i;
     void *barrier1, *barrier2;
     INSDS   *ip;
-    
+
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->curTime += csound->curTime_inc;
@@ -1266,9 +1266,9 @@ static const CSOUND cenviron_ = {
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
-      csound->multiThreadedStart = ip;
 
       if (csound->multiThreadedThreadInfo != NULL) {
+        csound->multiThreadedStart = ip;
         while (csound->multiThreadedStart != NULL) {
           INSDS *current = csound->multiThreadedStart;
           while(current != NULL &&
@@ -1278,16 +1278,16 @@ static const CSOUND cenviron_ = {
 
           csound->multiThreadedEnd = current;
 
-                /* process this partition */
-                csound->WaitBarrier(barrier1);
+          /* process this partition */
+          csound->WaitBarrier(barrier1);
 
-                /* wait until partition is complete */
-                csound->WaitBarrier(barrier2);
+          /* wait until partition is complete */
+          csound->WaitBarrier(barrier2);
 
-                csound->multiThreadedStart = current;
-            }
-
+          csound->multiThreadedStart = current;
         }
+
+      }
       else {
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
@@ -1295,17 +1295,15 @@ static const CSOUND cenviron_ = {
           while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
           }
-/*           if (nxt != ip->nxtact
-                  printf("Deletion case?? %p %p\n", nxt, ip->nxtact); */
-          /* ip = ip->nxtact; */
           ip = nxt; /* but this does not allow for all deletions */
         }
       }
     }
 
     if (!csound->spoutactive)           /*   results now in spout? */
-      for (i = 0; i < csound->nspout; i++)
-        csound->spout[i] = FL(0.0);
+      memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+      /* for (i = 0; i < csound->nspout; i++) */
+      /*   csound->spout[i] = FL(0.0); */
     csound->spoutran(csound);           /*      send to audio_out  */
     return 0;
   }
@@ -1860,8 +1858,9 @@ static const CSOUND cenviron_ = {
     double  *p = (double*) csound->rtRecord_userdata;
     int     i;
 
-    for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++)
-      ((MYFLT*) inBuf)[i] = FL(0.0);
+    /* for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++) */
+    /*   ((MYFLT*) inBuf)[i] = FL(0.0); */
+    memset(inBuf, 0, nbytes);
 
     p[0] += ((double) nbytes * p[1]);
     dummy_rtaudio_timer(csound, p);
@@ -2444,19 +2443,19 @@ static const CSOUND cenviron_ = {
     p->FileOpenCallback_ = fileOpenCallback;
   }
 
-  /* csoundNotifyFileOpened() should be called by plugins via 
-     csound->NotifyFileOpened() to let Csound know that they opened a file 
-     without using one of the standard mechanisms (csound->FileOpen2() or 
+  /* csoundNotifyFileOpened() should be called by plugins via
+     csound->NotifyFileOpened() to let Csound know that they opened a file
+     without using one of the standard mechanisms (csound->FileOpen2() or
      ldmemfile2()).  The notification is passed on to the host if it has set
      the FileOpen callback. */
-  void csoundNotifyFileOpened(CSOUND* csound, const char* pathname, 
+  void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
                 int csFileType, int writing, int temporary)
   {
     if (csound->FileOpenCallback_ != NULL)
       csound->FileOpenCallback_(csound, pathname, csFileType, writing,
                                   temporary);
     return;
-  
+
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */
@@ -2924,7 +2923,7 @@ static const CSOUND cenviron_ = {
   {
     return (int) ((OPDS*) p)->insdshead->p1;
   }
-  
+
   typedef struct csMsgStruct_ {
     struct csMsgStruct_  *nxt;
     int         attr;
@@ -3143,7 +3142,7 @@ static const CSOUND cenviron_ = {
 void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
 {
         while(size--) *(dest++) = *(src++);
-}  
+}
 
 #ifdef __cplusplus
 }

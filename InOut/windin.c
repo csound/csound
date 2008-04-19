@@ -35,10 +35,10 @@ static int deinit_func(CSOUND *csound, void *p)
 int xyinset(CSOUND *csound, XYIN *p)
 {
     MYFLT   x, y;
-    MYFLT   iymax = *p->iymax;
-    MYFLT   iymin = *p->iymin;
-    MYFLT   ixmax = *p->ixmax;
-    MYFLT   ixmin = *p->ixmin;
+    MYFLT   iymax  = *p->iymax;
+    MYFLT   iymin  = *p->iymin;
+    MYFLT   ixmax  = *p->ixmax;
+    MYFLT   ixmin  = *p->ixmin;
     MYFLT   iyinit = *p->iyinit;
     MYFLT   ixinit = *p->ixinit;
 

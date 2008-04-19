@@ -33,7 +33,7 @@ void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
 void    mfree(CSOUND *, void *);
-void    csoundAuxAlloc(CSOUND *, int32, AUXCH *), auxchfree(CSOUND *, INSDS *);
+void    csoundAuxAlloc(CSOUND *, long, AUXCH *), auxchfree(CSOUND *, INSDS *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);

@@ -127,10 +127,10 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32        phs, inc, lobits, lenmask, k, km1, kpn, kpnm1, nn;
-    int32        n;
+    int32       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1, nn;
+    int32       n;
     MYFLT       r, absr, num, denom, scal, last = p->last;
-    int32        lphs = p->lphs;
+    int32       lphs = p->lphs;
 
     ftp = p->ftp;
     if (ftp==NULL) {
@@ -150,7 +150,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     kpn = k + n;
     kpnm1 = kpn - 1;
     if ((r = *p->kr) != p->prvr || n != p->prvn) {
-      p->twor = r * FL(2.0);
+      p->twor = r + r;
       p->rsqp1 = r * r + FL(1.0);
       p->rtn = intpow(r, n);
       p->rtnp1 = p->rtn * r;
@@ -167,10 +167,10 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     for (n=0; n<nn; n++) {
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
-      num = *(ftbl + (phs * k & lenmask))
-        - r * *(ftbl + (phs * km1 & lenmask))
-        - p->rtn * *(ftbl + (phs * kpn & lenmask))
-        + p->rtnp1 * *(ftbl + (phs * kpnm1 & lenmask));
+      num = ftbl[(phs * k & lenmask)]
+        - r * ftbl[(phs * km1 & lenmask)]
+        - p->rtn * ftbl[(phs * kpn & lenmask)]
+        + p->rtnp1 * ftbl[(phs * kpnm1 & lenmask)];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
         ar[n] = last = num / denom * scal;
       }
