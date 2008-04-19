@@ -174,7 +174,6 @@ int klnseg(CSOUND *csound, LINSEG *p)
         p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
       p->curval += p->curinc;           /* advance the cur val  */
     }
-/*     counter++; */
     return OK;
 }
 
@@ -241,12 +240,12 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csoundAuxAlloc(csound, (int32) nsegs * sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (long) nsegs * sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
     else if (**argp > FL(0.0))
-      memset(p->auxch.auxp, 0, (int32)nsegs*sizeof(SEG));
+      memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
     if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
     p->curval = FL(0.0);
     p->curcnt = 0;
@@ -516,8 +515,8 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
     int nsegs;
-    MYFLT       **argp = p->argums;
-    MYFLT       len = csound->curip->p3;
+    MYFLT   **argp = p->argums;
+    MYFLT   len = csound->curip->p3;
     MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
     MYFLT   sus, dur;
     MYFLT   release = *argp[3];
@@ -584,7 +583,7 @@ int kxpseg(CSOUND *csound, EXXPSEG *p)
 int expseg(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
-    int n;
+    int         n, nsmps=csound->ksmps;
     MYFLT       li, val, *rs;
     MYFLT       nxtval;
 
@@ -598,7 +597,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     nxtval = val * segp->mlt;
     li = (nxtval - val) * csound->onedksmps;
     rs = p->rslt;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       rs[n] = val;
       val += li;
     }
