@@ -129,6 +129,12 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
+	# If you want to use ATLAS BLAS and LAPACK,
+	# you need ATLAS built with LAPACK. 
+	# add it here (you do NOT need to build it first):
+	customCPPPATH.append(r'U:\ATLAS\WinNT_P4SSE2\include')
+	customLIBPATH.append(r'U:\ATLAS\WinNT_P4SSE2\lib')
+	################################################################
 	# If you want to build the Loris opcodes,
 	# then copy Loris to csound5\Opcodes\Loris. Loris also
 	# requires FFTW, if it is not in a standard location,
