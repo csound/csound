@@ -42,6 +42,7 @@ extern "C" {
 #include <signal.h>
 #include <time.h>
 #include <ctype.h>
+#include <limits.h>
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
@@ -1232,7 +1233,6 @@ static const CSOUND cenviron_ = {
 
   static inline int kperf(CSOUND *csound)
   {
-    int     i;
     void *barrier1, *barrier2;
     INSDS   *ip;
 
@@ -1856,7 +1856,6 @@ static const CSOUND cenviron_ = {
   static int rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes)
   {
     double  *p = (double*) csound->rtRecord_userdata;
-    int     i;
 
     /* for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++) */
     /*   ((MYFLT*) inBuf)[i] = FL(0.0); */
