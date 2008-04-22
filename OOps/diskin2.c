@@ -105,8 +105,8 @@ static inline void diskin2_get_sample(DISKIN2 *p, int32 fPos, int n, MYFLT scl)
     else {
       bufPos *= p->nChannels;
       i = 0;
-      p->aOut[i++][n] += scl * p->buf[bufPos++];
-      p->aOut[i++][n] += scl * p->buf[bufPos++];
+      /* p->aOut[i++][n] += scl * p->buf[bufPos++]; */
+      /* p->aOut[i++][n] += scl * p->buf[bufPos++]; */
       do {
         p->aOut[i++][n] += scl * p->buf[bufPos++];
       } while (i < p->nChannels);

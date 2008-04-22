@@ -57,10 +57,11 @@ int downsamp(CSOUND *csound, DOWNSAMP *p)
 int upsamp(CSOUND *csound, UPSAMP *p)
 {
     MYFLT kval = *p->ksig;
-    int   n;
+    MYFLT *ar = p->ar;
+    int   n, nsmps = csound->ksmps;
 
-    for (n = 0; n < csound->ksmps; n++)
-      p->ar[n] = kval;
+    for (n = 0; n < nsmps; n++)
+      ar[n] = kval;
     return OK;
 }
 
@@ -163,7 +164,7 @@ int samphset(CSOUND *csound, SAMPHOLD *p)
 
 int ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
-    if (*p->xgate > 0.0)
+    if (*p->xgate > FL(0.0))
       p->state = *p->xsig;
     *p->xr = p->state;
     return OK;
@@ -219,11 +220,7 @@ int delset(CSOUND *csound, DELAY *p)
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      int32 *lp = (int32 *)auxp;
-      memset(lp, '\0', npts*sizeof(int32));
-/*       do { */
-/*         *lp++ = 0;                            /\*   clr old to zero *\/ */
-/*       } while (--npts); */
+      memset(auxp, 0, npts*sizeof(int32));
     }
     p->curp = (MYFLT *) auxp;
     return OK;
@@ -263,11 +260,7 @@ int delrset(CSOUND *csound, DELAYR *p)
       p->npts = npts;
     }
     else if (*p->istor == FL(0.0)) {            /* else if requested */
-      memset(auxp, '\0', npts*sizeof(MYFLT));
-/*       MYFLT *lp = auxp; */
-/*       do { */
-/*         *lp++ = FL(0.0);                        /\*   clr old to zero *\/ */
-/*       } while (--npts); */
+      memset(auxp, 0, npts*sizeof(MYFLT));
     }
     p->curp = auxp;
     return OK;
@@ -507,7 +500,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     int n, nsmps = csound->ksmps;
-    int32        idelsmps;
+    int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
@@ -881,7 +874,7 @@ static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
 void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
     const MYFLT *lptimp = revlptimes;
-    int32        *lpsizp = csound->revlpsiz;
+    int32       *lpsizp = csound->revlpsiz;
     int n = 6;
 
     csound->revlpsum = 0;
@@ -923,6 +916,7 @@ int rvbset(CSOUND *csound, REVERB *p)
 int reverb(CSOUND *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
+    MYFLT       c1,c2,c3,c4,c5,c6;
     int n, nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
@@ -931,13 +925,22 @@ int reverb(CSOUND *csound, REVERB *p)
     if (p->prvt != *p->krvt) {
       const MYFLT *lptimp = revlptimes;
       MYFLT       logdrvt = log001 / *p->krvt;
-      p->c1 = (MYFLT)exp(logdrvt * *lptimp++);
-      p->c2 = (MYFLT)exp(logdrvt * *lptimp++);
-      p->c3 = (MYFLT)exp(logdrvt * *lptimp++);
-      p->c4 = (MYFLT)exp(logdrvt * *lptimp++);
-      p->c5 = (MYFLT)exp(logdrvt * *lptimp++);
-      p->c6 = (MYFLT)exp(logdrvt * *lptimp++);
+      c1=p->c1 = (MYFLT)exp(logdrvt * *lptimp++);
+      c2=p->c2 = (MYFLT)exp(logdrvt * *lptimp++);
+      c3=p->c3 = (MYFLT)exp(logdrvt * *lptimp++);
+      c4=p->c4 = (MYFLT)exp(logdrvt * *lptimp++);
+      c5=p->c5 = (MYFLT)exp(logdrvt * *lptimp++);
+      c6=p->c6 = (MYFLT)exp(logdrvt * *lptimp++);
     }
+    else {
+      c1=p->c1;
+      c2=p->c2;
+      c3=p->c3;
+      c4=p->c4;
+      c5=p->c5;
+      c6=p->c6;
+   }
+
     p1 = p->p1;
     p2 = p->p2;
     p3 = p->p3;
@@ -952,23 +955,23 @@ int reverb(CSOUND *csound, REVERB *p)
       MYFLT     cmbsum, y1, y2, z;
       MYFLT     sig = asig[n];
       cmbsum = *p1 + *p2 + *p3 + *p4;
-      *p1 = p->c1 * *p1 + sig;
-      *p2 = p->c2 * *p2 + sig;
-      *p3 = p->c3 * *p3 + sig;
-      *p4 = p->c4 * *p4 + sig;
+      *p1 = c1 * *p1 + sig;
+      *p2 = c2 * *p2 + sig;
+      *p3 = c3 * *p3 + sig;
+      *p4 = c4 * *p4 + sig;
       p1++; p2++; p3++; p4++;
       y1 = *p5;
       *p5++ = z = p->c5 * y1 + cmbsum;
-      y1 -= p->c5 * z;
+      y1 -= c5 * z;
       y2 = *p6;
-      *p6++ = z = p->c6 * y2 + y1;
-      ar[n] = y2 - p->c6 * z;
-      if (p1 >= p->adr2)        p1 = p->adr1;
-      if (p2 >= p->adr3)        p2 = p->adr2;
-      if (p3 >= p->adr4)        p3 = p->adr3;
-      if (p4 >= p->adr5)        p4 = p->adr4;
-      if (p5 >= p->adr6)        p5 = p->adr5;
-      if (p6 >= endp)   p6 = p->adr6;
+      *p6++ = z = c6 * y2 + y1;
+      ar[n] = y2 - c6 * z;
+      if (p1 >= p->adr2) p1 = p->adr1;
+      if (p2 >= p->adr3) p2 = p->adr2;
+      if (p3 >= p->adr4) p3 = p->adr3;
+      if (p4 >= p->adr5) p4 = p->adr4;
+      if (p5 >= p->adr6) p5 = p->adr5;
+      if (p6 >= endp)    p6 = p->adr6;
     }
     p->p1 = p1;
     p->p2 = p2;
