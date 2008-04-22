@@ -1,5 +1,6 @@
 /*
   Copyright (C) 2005 Victor Lazzarini
+  MIDI functionality (c) 2008 Peter Brinkmann
 
   This file is part of Csound.
 
