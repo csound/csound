@@ -65,8 +65,8 @@ int csoundAddUtility(CSOUND *csound, const char *name,
 PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
                             int argc, char **argv)
 {
-    csUtility_t *p;
-    char        **lst;
+    csUtility_t   *p;
+    char          **lst;
     volatile void *saved_exitjmp;
     volatile int  n;
 

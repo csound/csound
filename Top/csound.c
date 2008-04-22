@@ -1168,9 +1168,11 @@ static const CSOUND cenviron_ = {
 
     int partition = numActive / numThreads;
 
-    /*    csound->Message(csound, "%d %d Start Before: %p\n", threadNum, numActive, *start); */
+    /*    csound->Message(csound, "%d %d Start Before: %p\n",
+          threadNum, numActive, *start); */
     advanceINSDSPointer(&start, (threadNum * partition));
-    /*    csound->Message(csound, "%d %d Start After: %p\n", threadNum, numActive, *start); */
+    /*    csound->Message(csound, "%d %d Start After: %p\n",
+          threadNum, numActive, *start); */
 
     if(*start == NULL || threadNum == (numThreads - 1)) {
         *end = NULL;
@@ -1233,7 +1235,9 @@ static const CSOUND cenviron_ = {
 
   static inline int kperf(CSOUND *csound)
   {
+#ifndef OLPC
     void *barrier1, *barrier2;
+#endif
     INSDS   *ip;
 
     /* update orchestra time */
@@ -1259,14 +1263,15 @@ static const CSOUND cenviron_ = {
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
-
+#ifndef OLPC
     barrier1 = csound->multiThreadedBarrier1;
     barrier2 = csound->multiThreadedBarrier2;
-
+#endif
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
 
+#ifndef OLPC
       if (csound->multiThreadedThreadInfo != NULL) {
         csound->multiThreadedStart = ip;
         while (csound->multiThreadedStart != NULL) {
@@ -1289,6 +1294,7 @@ static const CSOUND cenviron_ = {
 
       }
       else {
+#endif
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           csound->pds = (OPDS*) ip;
@@ -1297,7 +1303,9 @@ static const CSOUND cenviron_ = {
           }
           ip = nxt; /* but this does not allow for all deletions */
         }
+#ifndef OLPC
       }
+#endif
     }
 
     if (!csound->spoutactive)           /*   results now in spout? */

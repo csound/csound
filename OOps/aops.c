@@ -1191,9 +1191,9 @@ int outs1(CSOUND *csound, OUTM *p)
     sp = csound->spout;
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m]   = ap1[n];
-        sp[m+1] = FL(0.0);
+      for (n=0, m=0; n<nsmps; n++) {
+        sp[m++] = ap1[n];
+        sp[m++] = FL(0.0);
       }
       csound->spoutactive = 1;
     }
@@ -1215,9 +1215,9 @@ int outs2(CSOUND *csound, OUTM *p)
     sp = csound->spout;
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m]   = FL(0.0);
-        sp[m+1] = ap2[n];
+      for (n=0, m=0; n<nsmps; n++) {
+        sp[m++] = FL(0.0);
+        sp[m++] = ap2[n];
       }
       csound->spoutactive = 1;
     }
@@ -1246,9 +1246,9 @@ int outs12(CSOUND *csound, OUTM *p)
     }
     else {
       int n, m;
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m]   += ap[n];
-        sp[m+1] += ap[n];
+      for (n=0, m=0; n<nsmps; n++) {
+        sp[m++] += ap[n];
+        sp[m++] += ap[n];
       }
     }
     return OK;
