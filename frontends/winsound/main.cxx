@@ -112,22 +112,22 @@ void cs_compile_run(void)
       prof.set("f",size_f->value());
       prof.set("3",size_24->value());
       prof.set("K",mK->value());
-      argv[0] = "csound5";
+      argv[0] = (char*)"csound5";
       argv[nxt++] = (char *)orchname->value();
       if (strstr(argv[nxt-1], ".csd")==NULL)
         argv[nxt++] = (char *)scorename->value();
       if (strlen(output->value())!=0) {
-        argv[nxt++] = "-o";
+        argv[nxt++] = (char*)"-o";
         argv[nxt++] = (char *)output->value();
       }
-      if (wav->value()) argv[nxt++] = "-W";
-      else if (aiff->value()) argv[nxt++] = "-A";
-      else if (ircam->value()) argv[nxt++] = "-J";
-      else if (raw->value()) argv[nxt++] = "-h";
-      prof.get("I",itmp, 0); if (itmp) argv[nxt++] = "-I";
-      prof.get("n",itmp, 0); if (itmp) argv[nxt++] = "-n";
+      if (wav->value()) argv[nxt++] = (char*)"-W";
+      else if (aiff->value()) argv[nxt++] = (char*)"-A";
+      else if (ircam->value()) argv[nxt++] = (char*)"-J";
+      else if (raw->value()) argv[nxt++] = (char*)"-h";
+      prof.get("I",itmp, 0); if (itmp) argv[nxt++] = (char*)"-I";
+      prof.get("n",itmp, 0); if (itmp) argv[nxt++] = (char*)"-n";
       prof.get("F", stmp, ""); if (strlen(stmp)!=0) {
-        argv[nxt++] = "-F";
+        argv[nxt++] = (char*)"-F";
         argv[nxt++] = (char *)mi->value();
       }
       free(stmp);
@@ -139,11 +139,11 @@ void cs_compile_run(void)
         sprintf(b2, "-B%d", itmp);
         argv[nxt++] = b2;
       }
-      if (size_8->value()) argv[nxt++] = "-c";
-      else if (size_16->value()) argv[nxt++] = "-s";
-      else if (size_32->value()) argv[nxt++] = "-l";
-      else if (size_f->value()) argv[nxt++] = "-f";
-      else if (size_24->value()) argv[nxt++] = "-3";
+      if (size_8->value()) argv[nxt++] = (char*)"-c";
+      else if (size_16->value()) argv[nxt++] = (char*)"-s";
+      else if (size_32->value()) argv[nxt++] = (char*)"-l";
+      else if (size_f->value()) argv[nxt++] = (char*)"-f";
+      else if (size_24->value()) argv[nxt++] = (char*)"-3";
       prof.get("r", itmp, -1);if (itmp>=0) {
         sprintf(b3, "-r%d", itmp);
         argv[nxt++] = b3;
@@ -152,8 +152,8 @@ void cs_compile_run(void)
         sprintf(b4, "-k%d",itmp);
         argv[nxt++] = b4;
       }
-      if (mK->value()==0) argv[nxt++] = "-K";
-      prof.get("v",itmp,0); if (itmp) argv[nxt++] = "-v";
+      if (mK->value()==0) argv[nxt++] = (char*)"-K";
+      prof.get("v",itmp,0); if (itmp) argv[nxt++] = (char*)"-v";
       prof.get("m",itmp,7);
       sprintf(b5, "-m%d", itmp);
       argv[nxt++] = b5;
@@ -162,20 +162,20 @@ void cs_compile_run(void)
         argv[nxt++] = b6;
       }
       prof.get("t0",itmp, 0); if (itmp)
-        argv[nxt++] = "-t0";
+        argv[nxt++] = (char*)"-t0";
 
       prof.get("M", stmp, ""); if (strlen(stmp)>0) {
-        argv[nxt++] = "-M";
+        argv[nxt++] = (char*)"-M";
         argv[nxt++] = stmp;
       }
       free(stmp);
-      prof.get("R",itmp,0); if (itmp) argv[nxt++] = "-R";
+      prof.get("R",itmp,0); if (itmp) argv[nxt++] = (char*)"-R";
       prof.get("H",itmp,0); if (itmp>0) {
         sprintf(b7, "-H%d", itmp);
         argv[nxt++] = b7;
       }
-      prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
-      prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
+      prof.get("N", itmp, 0); if (itmp) argv[nxt++] = (char*)"-N";
+      prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = (char*)"-Z";
    /* argv[nxt++] = "-d"; */    // for the moment
       // If orch name starts with / do a chdir
       if (getcwd(olddir, 255)) {      // remember current directory
@@ -258,7 +258,7 @@ void cs_util_sndinfo(void)
     siw->hide();
     if (do_util>0) {
       textw->show();
-      argv[0] = "sndinfo";
+      argv[0] = (char*)"sndinfo";
       argv[1] = (char *)sndinfo_file->value();
       csoundPreCompile(csound);
       csoundRunUtility(csound, "sndinfo", 2, argv);
@@ -270,9 +270,9 @@ void cs_util_sndinfo(void)
 void cs_util_opc(int full)
 {
     char *argv[2];
-    argv[0] = "csound";
-    if (full) argv[1] = "-z1";
-    else argv[1] = "-z0";
+    argv[0] = (char*)"csound";
+    if (full) argv[1] = (char*)"-z1";
+    else argv[1] = (char*)"-z0";
     textw->show();
     csoundCompile(csound, 2, argv);
     csoundCleanup(csound);
@@ -312,7 +312,7 @@ void cs_util_het(void)
                  het_c4->value()?4:0);
       textw->show();
       hw->hide();
-      argv[0] = "hetro";
+      argv[0] = (char*)"hetro";
       if (het_s->value()!=0) {
         sprintf(b, "-s%d", (int)(het_s->value()));
         argv[nxt++] = b;
@@ -358,10 +358,10 @@ void cs_util_het(void)
         argv[nxt++] = b;
         b += strlen(b)+1;
       }
-      if (het_c1->value()) argv[nxt++] = "-c1";
-      else if (het_c2->value()) argv[nxt++] = "-c2";
-      else if (het_c3->value()) argv[nxt++] = "-c3";
-      else if (het_c4->value()) argv[nxt++] = "-c4";
+      if (het_c1->value()) argv[nxt++] = (char*)"-c1";
+      else if (het_c2->value()) argv[nxt++] = (char*)"-c2";
+      else if (het_c3->value()) argv[nxt++] = (char*)"-c3";
+      else if (het_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)het_analin->value();
       argv[nxt++] = (char *)het_analout->value();
       csoundPreCompile(csound);
@@ -398,7 +398,7 @@ void cs_util_lpc(void)
                  lpc_c4->value()?4:0);
       textw->show();
       hw->hide();
-      argv[0] = "lpanal";
+      argv[0] = (char*)"lpanal";
       if (lpc_s->value()!=0) {
         sprintf(b, "-s%d", (int)(lpc_s->value()));
         argv[nxt++] = b;
@@ -434,10 +434,10 @@ void cs_util_lpc(void)
         argv[nxt++] = b;
         b += strlen(b)+1;
       }
-      if (lpc_c1->value()) argv[nxt++] = "-c1";
-      else if (lpc_c2->value()) argv[nxt++] = "-c2";
-      else if (lpc_c3->value()) argv[nxt++] = "-c3";
-      else if (lpc_c4->value()) argv[nxt++] = "-c4";
+      if (lpc_c1->value()) argv[nxt++] = (char*)"-c1";
+      else if (lpc_c2->value()) argv[nxt++] = (char*)"-c2";
+      else if (lpc_c3->value()) argv[nxt++] = (char*)"-c3";
+      else if (lpc_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)lpc_analin->value();
       argv[nxt++] = (char *)lpc_analout->value();
       csoundPreCompile(csound);
@@ -475,7 +475,7 @@ void cs_util_pvc(void)
                  pvc_c4->value()?4:0);
       textw->show();
       hw->hide();
-      argv[0] = "pvanal";
+      argv[0] = (char*)"pvanal";
       if (pvc_s->value()!=0) {
         sprintf(b, "-s%d", (int)(pvc_s->value()));
         argv[nxt++] = b;
@@ -505,12 +505,12 @@ void cs_util_pvc(void)
         argv[nxt++] = "-K";
       }
       if (pvc_H->value()!=0) {
-        argv[nxt++] = "H";
+        argv[nxt++] = (char*)"H";
       }
-      if (pvc_c1->value()) argv[nxt++] = "-c1";
-      else if (pvc_c2->value()) argv[nxt++] = "-c2";
-      else if (pvc_c3->value()) argv[nxt++] = "-c3";
-      else if (pvc_c4->value()) argv[nxt++] = "-c4";
+      if (pvc_c1->value()) argv[nxt++] = (char*)"-c1";
+      else if (pvc_c2->value()) argv[nxt++] = (char*)"-c2";
+      else if (pvc_c3->value()) argv[nxt++] = (char*)"-c3";
+      else if (pvc_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)pvc_analin->value();
       argv[nxt++] = (char *)pvc_analout->value();
       csoundPreCompile(csound);
@@ -543,7 +543,7 @@ void cs_util_cvl(void)
                  cvl_c4->value()?4:0);
       textw->show();
       hw->hide();
-      argv[0] = "cvanal";
+      argv[0] = (char*)"cvanal";
       if (cvl_s->value()!=0) {
         sprintf(b, "-s%d", (int)(cvl_s->value()));
         argv[nxt++] = b;
@@ -559,10 +559,10 @@ void cs_util_cvl(void)
         argv[nxt++] = b;
         b += strlen(b)+1;
       }
-      if (cvl_c1->value()) argv[nxt++] = "-c1";
-      else if (cvl_c2->value()) argv[nxt++] = "-c2";
-      else if (cvl_c3->value()) argv[nxt++] = "-c3";
-      else if (cvl_c4->value()) argv[nxt++] = "-c4";
+      if (cvl_c1->value()) argv[nxt++] = (char*)"-c1";
+      else if (cvl_c2->value()) argv[nxt++] = (char*)"-c2";
+      else if (cvl_c3->value()) argv[nxt++] = (char*)"-c3";
+      else if (cvl_c4->value()) argv[nxt++] = (char*)"-c4";
       argv[nxt++] = (char *)cvl_analin->value();
       argv[nxt++] = (char *)cvl_analout->value();
       csoundPreCompile(csound);
@@ -592,7 +592,7 @@ void cs_util_pinfo(void)
       prof_k.set("i", plk_i->value());
       textw->show();
       hw->hide();
-      argv[0] = "pvlook";
+      argv[0] = (char*)"pvlook";
       if (plk_bb->value()!=0) {
         sprintf(b, "-bb%d", (int)(plk_bb->value()));
         argv[nxt++] = b;
@@ -613,7 +613,7 @@ void cs_util_pinfo(void)
         argv[nxt++] = b;
         b += strlen(b)+1;
       }
-      if (plk_i->value()) argv[nxt++] = "-i";
+      if (plk_i->value()) argv[nxt++] = (char*)"-i";
       argv[nxt++] = (char *)plk_analin->value();
       csoundPreCompile(csound);
       csoundRunUtility(csound, "pvlook", nxt, argv);
@@ -651,7 +651,7 @@ void cs_util_dnoise(void)
       prof_n.set("noise",dns_noise->value());
       textw->show();
       hw->hide();
-      argv[0] = "dnoise";
+      argv[0] = (char*)"dnoise";
       if (dns_t->value()!=30) {
         sprintf(b, "-t%d", (int)(dns_t->value()));
         argv[nxt++] = b;
@@ -708,10 +708,10 @@ void cs_util_dnoise(void)
         b += strlen(b)+1;
       }
       if (dns_V->value()) {
-        argv[nxt++] = "-V";
+        argv[nxt++] = (char*)"-V";
       }
-      argv[nxt++] = "-o"; argv[nxt++] = (char *)dns_analout->value();
-      argv[nxt++] = "-i"; argv[nxt++] = (char *)dns_noise->value();
+      argv[nxt++] = (char*)"-o"; argv[nxt++] = (char *)dns_analout->value();
+      argv[nxt++] = (char*)"-i"; argv[nxt++] = (char *)dns_noise->value();
       argv[nxt++] = (char *)dns_analin->value();
       csoundPreCompile(csound);
       csoundRunUtility(csound, "dnoise", nxt, argv);

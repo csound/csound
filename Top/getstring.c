@@ -153,7 +153,7 @@ static const char *language_names[] = {"", /* Default */
 
 PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 {
-    char *name;
+    const char *name;
     if (lang_code == CSLANGUAGE_DEFAULT)
       fprintf(stderr, "Localisation of messages is disabled, using "
                       "default language.\n");

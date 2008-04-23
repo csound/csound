@@ -505,7 +505,7 @@ void CsoundPerformanceSettingsPanel::querySoundDevices()
       c.Reset();
       strcpy(csoundMessagesIn, csoundMessages);
       strcpy(csoundMessages, "\0");
-      system("rm ________temp.csd");
+      (void)system("rm ________temp.csd");
 
       /* Set output device names */
       char *tmp;
@@ -702,7 +702,7 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
         }
       }
       fclose(f);
-      system("amidi -l > _csound5guitmpfile.txt");
+      (void)system("amidi -l > _csound5guitmpfile.txt");
       f = fopen("_csound5guitmpfile.txt", "r");
       line = (char *) calloc (128, sizeof(char));
       if (f)  {
@@ -759,7 +759,7 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
         }
       }
       fclose(f);
-      system("rm _csound5guitmpfile.txt");
+      (void)system("rm _csound5guitmpfile.txt");
     }
     else
 #endif //LINUX
@@ -816,7 +816,7 @@ void CsoundPerformanceSettingsPanel::queryMidiDevices()
       c.Reset();
       strcpy(csoundMessagesIn, csoundMessages);
       strcpy(csoundMessages, "\0");
-      system("rm ________temp.csd");
+      (void)system("rm ________temp.csd");
 
       /* Set output device names */
       char *tmp;

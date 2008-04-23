@@ -87,7 +87,7 @@ int widget_reset(CSOUND *csound, void *pp)
   IGN(pp);
   if (csound->widgetGlobals != NULL) {
     //csound->Free(csound, csound->widgetGlobals);
-    delete csound->widgetGlobals;
+    delete (WIDGET_GLOBALS*)csound->widgetGlobals;
     csound->widgetGlobals = NULL;
   }
   return OK;

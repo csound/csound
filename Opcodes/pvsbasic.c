@@ -49,6 +49,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     if (p->fout->overlap < csound->ksmps || p->fout->overlap <=10) {
       int n;
       int NB = 1+N/2;
+      MYFLT *bframe;
       p->fout->NB = NB;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size * csound->ksmps < sizeof(float) * (N + 2))
@@ -58,7 +59,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
       bframe = (MYFLT *) p->fout->frame.auxp;
       for (n=0; n<csound->ksmps; n++)
         for (i = 0; i < N + 2; i += 2) {
-          bframe[i+n*NB] = 0.0f;
+          bframe[i+n*NB] = FL(0.0);
           bframe[i+n*NB + 1] = (i >>1) * N * csound->onedsr;
         }
     }
