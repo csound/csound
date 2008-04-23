@@ -63,7 +63,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle.header.frame.auxp = p->buffer.auxp;
     p->handle.header.frame.size = p->buffer.size;
     p->handle.data = (float *)  p->buffer.auxp;
-    *p->hptr = (MYFLT) ((uint32)&p->handle);
+    *p->hptr = (MYFLT) ((long)&p->handle);
     p->lastframe = 0;
     p->cframes = 0;
     *p->ktime = FL(0.0);
@@ -106,7 +106,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 {
     int N;
     FSIG_HANDLE *handle;
-    handle = (FSIG_HANDLE *) ((uint32)*p->hptr);
+    handle = (FSIG_HANDLE *) ((long)*p->hptr);
     if (handle != NULL){
     p->fout->N = N = handle->header.N;
     p->fout->overlap = handle->header.overlap;
@@ -137,7 +137,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     unsigned int posi, frames;
     MYFLT pos, sr = csound->esr;
-    FSIG_HANDLE *handle = (FSIG_HANDLE *) ((uint32)*p->hptr);
+    FSIG_HANDLE *handle = (FSIG_HANDLE *) ((long)*p->hptr);
     MYFLT frac;
     float *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;

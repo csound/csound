@@ -52,7 +52,7 @@
 
 /* basic types */
 
-static const long typetabl1[/*25*/] = {
+static const int32 typetabl1[/*25*/] = {
     'a',    ARGTYP_a,       'k',    ARGTYP_k,       'i',    ARGTYP_i,
     'p',    ARGTYP_p,       'c',    ARGTYP_c,       'r',    ARGTYP_r,
     'S',    ARGTYP_S,       'w',    ARGTYP_w,       'f',    ARGTYP_f,
@@ -65,7 +65,7 @@ static const long typetabl1[/*25*/] = {
 
 /* input types */
 
-static const long typetabl2[/*41*/] = {
+static const int32 typetabl2[/*41*/] = {
     'z',    ARGTYP_ipcrk,               'y',    ARGTYP_a,
     'T',    (ARGTYP_S | ARGTYP_ipcr),   'U',    (ARGTYP_S | ARGTYP_ipcrk),
     'M',    ARGTYP_aipcrk,              'N',    (ARGTYP_S | ARGTYP_aipcrk),
@@ -79,7 +79,7 @@ static const long typetabl2[/*41*/] = {
 
 /* output types */
 
-static const long typetabl3[/*15*/] = {
+static const int32 typetabl3[/*15*/] = {
     's',    (ARGTYP_a | ARGTYP_k),      'i',    (ARGTYP_i | ARGTYP_p),
     'B',    (ARGTYP_B | ARGTYP_b),      'm',    ARGTYP_a,
     'z',    ARGTYP_k,   'X',    (ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
