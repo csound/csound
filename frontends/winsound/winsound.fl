@@ -527,25 +527,25 @@ Function {make_environ()} {open
       label OPCODEDIR
       xywh {95 15 185 25}
       code0 {char *t; prof.get("envop",t, getopcodedir());}
-      code1 {op->value(t);}
+      code1 {o->value(t);}
     }
     Fl_File_Input ss {
       label SSDIR
       xywh {95 60 185 25}
       code0 {char *t; prof.get("envss",t, getenv("SSDIR"));}
-      code1 {ss->value(t);}
+      code1 {o->value(t);}
     }
     Fl_File_Input sf {
       label SFDIR
       xywh {95 105 185 25}
       code0 {char *t; prof.get("envsf",t, getenv("SFDIR"));}
-      code1 {sf->value(t);}
+      code1 {o->value(t);}
     }
     Fl_File_Input sa {
       label SADIR
       xywh {95 145 185 25}
       code0 {char *t; prof.get("envop",t, getenv("SADIR"));}
-      code1 {sa->value(t);}
+      code1 {o->value(t);}
     }
     Fl_Button {} {
       label OK
@@ -593,7 +593,7 @@ Function {make_info()} {open
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
-      code0 {sndinfo_file->value(output->value());}
+      code0 {o->value(output->value());}
     }
     Fl_Return_Button {} {
       label OK

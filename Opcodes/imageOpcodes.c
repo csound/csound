@@ -86,7 +86,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     png_infop info_ptr;
     png_infop end_ptr;
     int is_png;
-    uint32 width, height, rowbytes;
+    png_uint_32 width, height, rowbytes;
     int bit_depth;
     int color_type;
     unsigned char *image_data;
@@ -140,9 +140,11 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     png_set_sig_bytes(png_ptr, hs);
 
     png_read_info(png_ptr, info_ptr);
-    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
-                 &color_type, NULL, NULL, NULL);
-
+    {
+      
+      png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
+                   &color_type, NULL, NULL, NULL);
+    }
     if (color_type & PNG_COLOR_MASK_ALPHA)
       png_set_strip_alpha(png_ptr);
     if (bit_depth == 16)
