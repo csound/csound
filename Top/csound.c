@@ -949,7 +949,7 @@ static const CSOUND cenviron_ = {
 #ifdef OLPC
     strcpy(s, "alsa");
 #else
-    strcpy(s, "PortAudio");
+    strcpy(s, "portmidi");
 #endif
     csoundCreateConfigurationVariable(
         p, "rtmidi", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
