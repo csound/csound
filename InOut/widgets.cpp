@@ -69,10 +69,12 @@ void widget_init(CSOUND *csound)
 
     ST(FLcolor)           = -1;
     ST(FLcolor2)          = -1;
-    //      ST(FLtext_size)       = 0;
+    // below was commented out, why? VL 24-04-08     
+    ST(FLtext_size)       = 0;
     ST(FLtext_color)      = -1;
     ST(FLtext_font)       = -1;
-    //      ST(FLtext_align)      = 0;
+    //  below was commented out, why? VL 24-04-08   
+    ST(FLtext_align)      = 0;
 
     ST(FL_ix)             = 10;
     ST(FL_iy)             = 10;
@@ -86,7 +88,7 @@ int widget_reset(CSOUND *csound, void *pp)
 {
   IGN(pp);
   if (csound->widgetGlobals != NULL) {
-    //csound->Free(csound, csound->widgetGlobals);
+    //csound->Free(csound, csound->widgetGlobals;
     delete (WIDGET_GLOBALS*)csound->widgetGlobals;
     csound->widgetGlobals = NULL;
   }
@@ -2329,7 +2331,7 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
     ST(FLtext_align)= -1;
     ST(FLcolor) = -1;
   }
-  if (ST(FLtext_size)) // if > 0 assign it, else skip, leaving default
+  if (ST(FLtext_size) > 0) // if > 0 assign it, else skip, leaving default
     o->labelsize(ST(FLtext_size));
   switch ((int) ST(FLtext_color)) {
   case -2: // random color
