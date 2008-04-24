@@ -1,3 +1,7 @@
+2008-04-24  jpff  <jpff@codemist.co.uk>
+
+	* Top/argdecode.c (argdecode): OLPC now have dummy R,N and H options
+
 2008-04-15  jpff  <jpff@codemist.co.uk>
 
 	* OOps/diskin.c (sndo1set): Deprecate soundout in favour of fout
