@@ -309,9 +309,6 @@ commandOptions.Add('buildDSSI',
 commandOptions.Add('buildUtilities',
     "Build stand-alone executables for utilities that can also be used with -U",
     '1')
-commandOptions.Add('buildTclcsound',
-    "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
-    '0')
 commandOptions.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
     '0')
@@ -1771,64 +1768,6 @@ else:
             LIBS = Split('csound32 csnd CsoundVST'))
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
-
-# Build csoundapi~ (pd class)
-
-# Build tclcsound
-
-if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
-    print "CONFIGURATION DECISION: Building Tclcsound frontend"
-    csTclEnvironment = commonEnvironment.Clone()
-    if util.platform == 'darwin':
-        csTclEnvironment.Append(CCFLAGS = Split('''
-            -I/Library/Frameworks/Tcl.Framework/Headers
-            -I/Library/Frameworks/Tk.Framework/Headers
-            -I/System/Library/Frameworks/Tcl.Framework/Headers
-            -I/System/Library/Frameworks/Tk.Framework/Headers
-        '''))
-        csTclEnvironment.Append(LINKFLAGS = Split(
-            '-framework tk -framework tcl'))
-    elif util.platform == 'linux':
-        csTclEnvironment.Append(CPPPATH = tclIncludePath)
-        csTclEnvironment.Append(LIBS = ['tcl8.4', 'tk8.4', 'dl', 'pthread'])
-    elif util.platform == 'win32':
-        csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
-        csTclEnvironment.Append(SHLINKFLAGS = ['-module'])
-    csTclCmdObj     = csTclEnvironment.SharedObject(
-        'frontends/tclcsound/commands.c')
-    csTcl           = csTclEnvironment.Program(
-        'cstclsh', ['frontends/tclcsound/main_tclsh.c', csTclCmdObj])
-    csTk            = csTclEnvironment.Program(
-        'cswish', ['frontends/tclcsound/main_wish.c', csTclCmdObj])
-    Tclcsoundlib    = csTclEnvironment.SharedLibrary(
-        'tclcsound', ['frontends/tclcsound/tclcsound.c', csTclCmdObj],
-        SHLIBPREFIX = '')
-    if util.platform == 'darwin':
-        tmp = "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r"
-        csTclEnvironment.Command('cswish_resources', 'cswish', tmp)
-        if commonEnvironment['dynamicCsoundLibrary'] == '1':
-            tmp  = 'mkdir /Library/Frameworks/CsoundLib.framework/Resources/TclTk'
-            tmp += '; cp -R tclcsound.dylib /Library/Frameworks/CsoundLib.framework/Resources/TclTk/'
-            csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
-                                    tmp)
-    Depends(csTcl, csoundLibrary)
-    Depends(csTk, csoundLibrary)
-    Depends(Tclcsoundlib, csoundLibrary)
-    executables.append(csTcl)
-    executables.append(csTk)
-    libs.append(Tclcsoundlib)
-    try     : os.mkdir('tclcsound', 0755)
-    except  : pass
-#    if util.platform == 'darwin':
-#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.dylib','cp tclcsound.dylib tclcsound; tclsh pkgbuild.tcl')
-#    elif util.platform == 'linux':
-#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.so','cp tclcsound.so tclcsound; tclsh pkgbuild.tcl')
-#    elif  util.platform == 'win32':
-#      csTclEnvironment.Command('tclcsound/tclcsound.dll', 'tclcsound.dll','cp tclcsound.dll tclcsound')
-#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound/tclcsound.dll','tclsh84 pkgbuild.tcl')
-
-else:
-    print "CONFIGURATION DECISION: Not building Tclcsound"
 
 
 if (commonEnvironment['generateTags']=='0') or (util.platform != 'darwin' and util.platform != 'linux'):

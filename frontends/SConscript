@@ -23,6 +23,9 @@ commandOptions.Add('buildCSEditor',
 commandOptions.Add('buildPDClass',
     "build csoundapi~ PD class (needs m_pd.h in the standard places)",
     '0')
+commandOptions.Add('buildTclcsound',
+    "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
+    '0')
 
 commandOptions.Update(commonEnvironment)
 
@@ -254,3 +257,83 @@ if commonEnvironment['buildPDClass'] != '0':
         pdClass = pdClassEnvironment.SharedLibrary(
             'csoundapi_tilde/csoundapi~',
             'csoundapi_tilde/csoundapi_tilde.c')
+
+# Tclcsound
+if commonEnvironment['buildTclcsound'] == '1':
+    util.confDecision("Building Tclcsound frontend")
+    # The header we don't care version
+    if util.platform == "linux":
+        tclIncludePath = Split('''
+            /usr/include/tcl
+            /usr/include/tcl8.5
+            /usr/include/tcl8.4
+            /usr/include/tk
+            /usr/include/tk8.5
+            /usr/include/tk8.4
+        ''')
+    elif util.platform == "darwin":
+        tclIncludePath = Split('''
+            /Library/Frameworks/Tcl.Framework/Headers
+            /Library/Frameworks/Tk.Framework/Headers
+            /System/Library/Frameworks/Tcl.Framework/Headers
+            /System/Library/Frameworks/Tk.Framework/Headers
+        ''')
+    tclhfound = configure.CheckHeader('tcl.h', language ='C')
+    for path in tclIncludePath:
+        tclhfound = tclhfound or configure.CheckHeader('%s/tcl.h' % path,
+            language ='C')
+
+    if not tclhfound:
+        util.fatal("You specified buildTclcsound but tcl.h was not found!")
+
+    csTclEnvironment = commonEnvironment.Clone()
+    csTclEnvironment.Append(CPPPATH = tclIncludePath)
+
+    # Look for tcl and tk libs, try 8.5 first and then 8.4
+    tcllibfound = False
+    tklibfound = False
+    if util.platform == "linux" or util.platform == "win32":
+        for version in ['8.5', '85', '8.4', '84']:
+            tcllibfound = tcllibfound or configure.CheckLib("tcl%s" % version,
+                    autoadd=0)
+            tklibfound = tklibfound or configure.CheckLib("tk%s" % version,
+                    autoadd=0)
+            if tcllibfound and tklibfound:
+                csTclEnvironment.Append(LIBS =
+                        ['tcl%s' % version, 'tk%s' % version])
+                break
+    elif util.platform == "darwin":
+        csTclEnvironment.Append(LINKFLAGS = Split(
+            '-framework tk -framework tcl'))
+
+    if util.platform == 'win32':
+        csTclEnvironment.Append(SHLINKFLAGS = ['-module'])
+
+    csTclCmdObj     = csTclEnvironment.SharedObject('tclcsound/commands.c')
+    csTcl           = csTclEnvironment.Program(
+        'tclcsound/cstclsh', ['tclcsound/main_tclsh.c', csTclCmdObj])
+    csTk            = csTclEnvironment.Program(
+        'tclcsound/cswish', ['tclcsound/main_wish.c', csTclCmdObj])
+    Tclcsoundlib    = csTclEnvironment.SharedLibrary(
+        'tclcsound/tclcsound', ['tclcsound/tclcsound.c', csTclCmdObj],
+        SHLIBPREFIX = '')
+    if util.platform == 'darwin':
+        tmp = "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r"
+        csTclEnvironment.Command('cswish_resources', 'cswish', tmp)
+        if commonEnvironment['dynamicCsoundLibrary'] == '1':
+            tmp  = 'mkdir /Library/Frameworks/CsoundLib.framework/Resources/TclTk'
+            tmp += '; cp -R tclcsound.dylib /Library/Frameworks/CsoundLib.framework/Resources/TclTk/'
+            csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
+                                    tmp)
+#    try     : os.mkdir('tclcsound', 0755)
+#    except  : pass
+#    if util.platform == 'darwin':
+#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.dylib','cp tclcsound.dylib tclcsound; tclsh pkgbuild.tcl')
+#    elif util.platform == 'linux':
+#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.so','cp tclcsound.so tclcsound; tclsh pkgbuild.tcl')
+#    elif  util.platform == 'win32':
+#      csTclEnvironment.Command('tclcsound/tclcsound.dll', 'tclcsound.dll','cp tclcsound.dll tclcsound')
+#      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound/tclcsound.dll','tclsh84 pkgbuild.tcl')
+
+else:
+    util.confDecision("Not building Tclcsound")
