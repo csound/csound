@@ -227,9 +227,14 @@ commandOptions.Add('buildvst4cs',
 commandOptions.Add('buildSDFT',
     'Set to 0 to avoid building SDFT code',
     '1')
-commandOptions.Add('useGettext',
+if getPlatform() == 'win32':
+  commandOptions.Add('useGettext',
     'Set to 1 to use the GBU internationalisation/localisation scheme)',
     '0')
+else:
+  commandOptions.Add('useGettext',
+    'Set to 0 to use the Varga internationalisation/localisation scheme)',
+    '1)
 commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
