@@ -356,6 +356,7 @@ if commonEnvironment['buildOLPC'] == '1':
     portaudioFound = False
     oscFound = True
     ##commonEnvironment['gcc4opt'] = '1'
+    commonEnvironment['gcc3opt'] = 'k6'
     commonEnvironment['useLrint'] = '1'
     commonEnvironment['Word64'] = '0'
     commonEnvironment['Lib64'] = '0'
