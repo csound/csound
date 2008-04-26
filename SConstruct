@@ -233,8 +233,7 @@ if getPlatform() == 'win32':
     '0')
 else:
   commandOptions.Add('useGettext',
-    'Set to 0 to use the Varga internationalisation/localisation scheme)',
-    '1)
+    'Set to 0 to use the Varga internationalisation/localisation scheme)', '1')
 commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
