@@ -62,7 +62,7 @@ cp -aiR %{csdir}/custom.py %{csdir}/AUTHORS %{csdir}/COPYING %{csdir}/ChangeLog 
 cp -aiR %{csdir}/SConstruct %{csdir}/Top/  %{csdir}/frontends/ %{csdir}/interfaces/ %{csdir}/po/ %{csdir}/readme-csound5.txt %{csdir}/util .
 tar cf "$RPM_SOURCE_DIR"/csound%{version}.tar ../csound5
 gzip -f "$RPM_SOURCE_DIR"/csound%{version}.tar 
-scons buildRelease=1 buildOLPC=1 gcc3opt=i386 useJack=0
+scons buildRelease=1 buildOLPC=1 gcc3opt=k6 useJack=0
 
 
 %install

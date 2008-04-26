@@ -41,6 +41,7 @@ void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
     int     Ksmps = csound->ksmps;
     unsigned long PortCount;
     LADSPA_Descriptor *Descriptor;
+    uint32 i;
 
     if (DSSIPlugin_->Type == LADSPA)
       Descriptor = (LADSPA_Descriptor *) DSSIPlugin_->Descriptor;
@@ -48,7 +49,6 @@ void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
       Descriptor =
           (LADSPA_Descriptor *) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     PortCount = Descriptor->PortCount;
-    unsigned long i;
 
     csound->Message(csound, "============Plugin %i"
                             "========================================\n",
@@ -62,7 +62,7 @@ void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
     csound->Message(csound, "Copyright: %s\n", Descriptor->Copyright);
     csound->Message(csound, "Number of Ports: %lu\n", PortCount);
     for (i = 0; i < PortCount; i++) {
-      csound->Message(csound, "  Port #%lu: %s %s: %s - Range: ", i,
+      csound->Message(csound, "  Port #%u: %s %s: %s - Range: ", i,
                       (LADSPA_IS_PORT_CONTROL(Descriptor->PortDescriptors[i]) ?
                        "Control" : "Audio"),
                       (LADSPA_IS_PORT_INPUT(Descriptor->PortDescriptors[i]) ?
