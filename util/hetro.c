@@ -75,14 +75,14 @@ typedef struct {
          *ph_av1, *ph_av2, *ph_av3,      /*tempor. buffers*/
          *amp_av1, *amp_av2, *amp_av3,   /* same for ampl.*/
          m_ampsum;              /* maximum amplitude at output*/
-  long   windsiz;               /* # of pts. in one per. of sample*/
+  int32  windsiz;               /* # of pts. in one per. of sample*/
   int16  hmax;                  /* max harmonics requested */
   int    num_pts,               /* breakpoints per harmonic */
          amp_min;               /* amplitude cutout threshold */
   int    skip,                  /* flag to stop analysis if zeros*/
          bufsiz;                /* circular buffer size */
-  long   smpsin;                /* num sampsin */
-  long   midbuf,                /* set to bufsiz / 2   */
+  int32  smpsin;                /* num sampsin */
+  int32  midbuf,                /* set to bufsiz / 2   */
          bufmask;               /* set to bufsiz - 1   */
   char   *infilnam,             /* input file name */
          *outfilnam;            /* output file name */
@@ -94,15 +94,15 @@ typedef struct {
 #if INCSDIF
 static int writesdif(CSOUND*, HET*);
 #endif
-static  double  GETVAL(HET *, double *, long);
+static  double  GETVAL(HET *, double *, int32);
 static  double  sq(double);
-static  void    PUTVAL(HET *,double *, long, double);
+static  void    PUTVAL(HET *,double *, int32, double);
 static  int     hetdyn(CSOUND *csound, HET *, int);
 static  void    lpinit(HET*);
-static  void    lowpass(HET *,double *, double *, long);
-static  void    average(HET *,long, double *, double *, long);
-static  void    output(HET *,long, int, int);
-static  void    output_ph(HET *, long);
+static  void    lowpass(HET *,double *, double *, int32);
+static  void    average(HET *,int32, double *, double *, int32);
+static  void    output(HET *,int32, int, int);
+static  void    output_ph(HET *, int32);
 static  int     filedump(HET *, CSOUND *);
 static  int     quit(CSOUND *, char *);
 
@@ -135,7 +135,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
 {
     SNDFILE *infd;
     int     i, hno, channel = 1, retval = 0;
-    long    nsamps, smpspc, bufspc, mgfrspc;
+    int32   nsamps, smpspc, bufspc, mgfrspc;
     char    *dsp, *dspace, *mspace;
     double  *begbufs, *endbufs;
     HET     het;
@@ -262,7 +262,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     }
     thishet->sr = (MYFLT) p->sr;                /* sr now from open  */
     /* samps in fund prd */
-    thishet->windsiz = (long)(thishet->sr / thishet->fund_est + FL(0.5));
+    thishet->windsiz = (int32)(thishet->sr / thishet->fund_est + FL(0.5));
 #if INCSDIF
     /* RWD no limit for SDIF files! */
     if (is_sdiffile(thishet->outfilnam)) {
@@ -354,23 +354,23 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     return retval;
 }
 
-static double GETVAL(HET* thishet, double *inb, long smpl)
+static double GETVAL(HET* thishet, double *inb, int32 smpl)
 {                               /* get value at position smpl in array inb */
     if (smpl<0) return 0.0;
     return   inb[(smpl + thishet->midbuf) & thishet->bufmask];
 }
 
-static void PUTVAL(HET* thishet, double *outb, long smpl, double value)
+static void PUTVAL(HET* thishet, double *outb, int32 smpl, double value)
 {                               /* put value in array outb at postn smpl */
     outb[(smpl + thishet->midbuf) & thishet->bufmask] = value;
 }
 
 static int hetdyn(CSOUND *csound, HET* thishet, int hno) /* HETERODYNE FILTER */
 {
-    long    smplno;
+    int32   smplno;
     double  temp_a, temp_b, tpidelest;
     double  *cos_p, *sin_p, *cos_wp, *sin_wp;
-    long    n;
+    int32   n;
     int     outpnt, lastout = -1;
     MYFLT   *ptr;
 
@@ -463,7 +463,7 @@ static void lpinit(HET *thishet) /* lowpass coefficient ititializer */
     thishet->y3 = (-(MYFLT)exp(-2.0*omega_c*thishet->delta_t));
 }
 
-static void lowpass(HET *thishet, double *out, double *in, long smpl)
+static void lowpass(HET *thishet, double *out, double *in, int32 smpl)
   /* call with x1,x2,yA,y2,y3 initialised  */
   /* calls LPF function */
 {
@@ -475,7 +475,7 @@ static void lowpass(HET *thishet, double *out, double *in, long smpl)
             thishet->y3 * GETVAL(thishet,out,smpl-3)));
 }
 
-static void average(HET *thishet, long window,double *in,double *out, long smpl)
+static void average(HET *thishet, int32 window,double *in,double *out, int32 smpl)
   /* AVERAGES OVER 'WINDOW' SAMPLES */
   /* this is actually a comb filter with 'Z' */
   /* transform of (1/w *[1 - Z**-w]/[1 - Z**-1]) */
@@ -495,7 +495,7 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
 }
 
                                  /* update phase counter */
-static void output_ph(HET *thishet,long smpl)
+static void output_ph(HET *thishet,int32 smpl)
                                 /* calculates magnitude and phase components */
                                 /* for each samples quadrature components, & */
                                 /* and unwraps the phase.  A phase difference*/
@@ -537,7 +537,7 @@ static void output_ph(HET *thishet,long smpl)
     }
 }
 
-static void output(HET *thishet, long smpl, int hno, int pnt)
+static void output(HET *thishet, int32 smpl, int hno, int pnt)
                         /* output one freq_mag pair */
                         /* when called, gets frequency change */
                         /* and adds it to current freq. stores*/
@@ -580,7 +580,7 @@ static int filedump(HET *thishet, CSOUND *csound)
     double  scale,x,y;
     int16   **mags, **freqs, *magout, *frqout;
     double  ampsum, maxampsum = 0.0;
-    long    lenfil = 0;
+    int32   lenfil = 0;
     int16   *TIME;
     MYFLT   timesiz;
 
