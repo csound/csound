@@ -24,23 +24,23 @@
 #include "csdl.h"
 
 typedef struct {
-    OPDS  h;
-    MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
+    OPDS   h;
+    MYFLT  *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
     int32  ndx;
-    int   done, first_flag;
+    int    done, first_flag;
     double start, newtime;
     int32  pfn;
-    MYFLT *table, curr_unit_time;
+    MYFLT  *table, curr_unit_time;
 } SEQTIM;
 
 typedef struct {
-    OPDS  h;
-    MYFLT *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
-    int32 ndx;
-    int done, first_flag;
+    OPDS   h;
+    MYFLT  *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
+    int32  ndx;
+    int    done, first_flag;
     double start, newtime;
     int32  pfn;
-    MYFLT *table, curr_unit_time;
+    MYFLT  *table, curr_unit_time;
 } SEQTIM2;
 
 static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
@@ -50,7 +50,8 @@ static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     int32 *ndx = &p->ndx;
     p->pfn = (int32) *p->kfn;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
-      return csound->InitError(csound, Str("seqtime: incorrect table number"));
+      return csound->InitError(csound,
+                               Str("seqtime: incorrect table number"));
     }
     *ndx = (int32) *p->initndx;
     p->done = 0;
