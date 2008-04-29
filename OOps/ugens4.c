@@ -45,14 +45,12 @@ int buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32        phs, inc, lobits, dwnphs, tnp1, lenmask, nn;
+    int32       phs, inc, lobits, dwnphs, tnp1, lenmask, nn;
     MYFLT       sicvt2, over2n, scal, num, denom;
     int n;
 
     ftp = p->ftp;
-    if (ftp==NULL) {        /* RWD fix */
-      return csound->PerfError(csound, Str("buzz: not initialised"));
-    }
+    if (ftp==NULL) goto err1;        /* RWD fix */
     ftbl = ftp->ftable;
     sicvt2 = csound->sicvt * FL(0.5);           /* for theta/2  */
     lobits = ftp->lobits;
@@ -63,30 +61,32 @@ int buzz(CSOUND *csound, BUZZ *p)
     if (n == 0) {              /* fix n = knh */
       n = 1;
     }
-    tnp1 = (n <<1) + 1;                 /* calc 2n + 1 */
+    tnp1 = (n<<1) + 1;                 /* calc 2n + 1 */
     over2n = FL(0.5) / (MYFLT)n;
     scal = *ampp * over2n;
     inc = (int32)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
     nn = csound->ksmps;
-    for (n=0; n<nn; n++) {
+    for (n=0;;) {
       dwnphs = phs >> lobits;
       denom = *(ftbl+dwnphs);
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
         num = *(ftbl +(dwnphs * tnp1 & lenmask));
         ar[n] = (num / denom - FL(1.0)) * scal;
       }
-      else ar[n] = *ampp;
-      phs += inc;
-      phs &= PHMASK;
+      else ar[n] = ampp[n];
+      phs = (phs+inc) & PHMASK;
+      if (++n>=nn) break;
       if (p->ampcod)
-        scal = ampp[n+1] * over2n;
+        scal = ampp[n] * over2n;
       if (p->cpscod)
-        inc = (int32)(cpsp[n+1]* sicvt2);
+        inc = (int32)(cpsp[n]* sicvt2);
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("buzz: not initialised"));
 }
 
 int gbzset(CSOUND *csound, GBUZZ *p)
@@ -133,9 +133,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     int32       lphs = p->lphs;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("gbuzz: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
@@ -164,7 +162,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     inc = (int32)(*cpsp * csound->sicvt);
     ar = p->ar;
     nn = csound->ksmps;
-    for (n=0; n<nn; n++) {
+    for (n=0;;) {
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
       num = ftbl[(phs * k & lenmask)]
@@ -175,20 +173,23 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
         ar[n] = last = num / denom * scal;
       }
       else if (last<0)
-        ar[n] = last = - *ampp;
+        ar[n] = last = - ampp[n];
       else
-        ar[n] = last = *ampp;
+        ar[n] = last = ampp[n];
+      lphs = (lphs+inc) & PHMASK;
+      if (++n>=nn) break;
       if (p->ampcod)
-        scal =  p->rsumr * ampp[n+1];
-      lphs += inc;
-      lphs &= PHMASK;
+        scal =  p->rsumr * ampp[n];
       if (p->cpscod)
-        inc = (int32)(cpsp[n+1] * csound->sicvt);
+        inc = (int32)(cpsp[n] * csound->sicvt);
     }
     p->last = last;
     p->lphs = lphs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("gbuzz: not initialised"));
 }
+
 
 #define PLUKMIN 64
 
@@ -217,17 +218,16 @@ int plukset(CSOUND *csound, PLUCK *p)
     ap = (MYFLT *)auxp;                         /* as MYFLT array   */
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
-        *ap++ = (MYFLT) rand16(csound) * DV32768;
+        ap[n] = (MYFLT) rand16(csound) * DV32768;
     else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);
       for (n=npts; n--; phs += phsinc) {
         iphs = (int32)phs;
-        *ap++ = *(fp + iphs);
+        ap[n] = *(fp + iphs);
       }
     }
-    *ap = *(MYFLT *)auxp;                       /* last = copy of 1st */
     p->npts = npts;
     /* tuned pitch convt */
     p->sicps = (npts * FL(256.0) + FL(128.0)) * csound->onedsr;
