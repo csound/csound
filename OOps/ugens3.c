@@ -48,13 +48,12 @@ int foscil(CSOUND *csound, FOSC *p)
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
     int32    mphs, cphs, minc, cinc, lobits;
-    int     n;
+    int     n, nn=csound->ksmps;
+    MYFLT   sicvt = csound->sicvt;
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp == NULL) {
-      return csound->PerfError(csound, Str("foscil: not initialised"));
-    }
+    if (ftp == NULL) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     mphs = p->mphs;
@@ -68,19 +67,19 @@ int foscil(CSOUND *csound, FOSC *p)
     xmod = *modp;
 
     if (p->XINCODE) {
-      for (n=0;n<csound->ksmps;n++) {
+      for (n=0;n<nn;n++) {
         if (p->ampcod) amp = ampp[n];
         if (p->carcod) xcar = carp[n];
         if (p->modcod) xmod = modp[n];
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (int32)(mod * csound->sicvt);
+        minc = (int32)(mod * sicvt);
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -92,13 +91,13 @@ int foscil(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (int32)(mod * csound->sicvt);
-      for (n=0;n<csound->ksmps;n++) {
+      minc = (int32)(mod * sicvt);
+      for (n=0;n<nn;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -108,6 +107,8 @@ int foscil(CSOUND *csound, FOSC *p)
     p->cphs = cphs;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("foscil: not initialised"));
 }
 
 int foscili(CSOUND *csound, FOSC *p)
@@ -115,14 +116,15 @@ int foscili(CSOUND *csound, FOSC *p)
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
-    int32   mphs, cphs, minc, cinc, lobits;
-    int    n;
+    int32  mphs, cphs, minc, cinc, lobits;
+    int    n, nn=csound->ksmps;
+    MYFLT  sicvt = csound->sicvt;
+    MYFLT  *ft;
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp == NULL) {        /* RWD fix */
-      return csound->PerfError(csound, Str("foscili: not initialised"));
-    }
+    if (ftp == NULL) goto err1;        /* RWD fix */
+    ft = ftp->ftable;
     lobits = ftp->lobits;
     mphs = p->mphs;
     cphs = p->cphs;
@@ -134,25 +136,25 @@ int foscili(CSOUND *csound, FOSC *p)
     xcar = *carp;
     xmod = *modp;
     if (p->XINCODE) {
-      for (n=0;n<csound->ksmps;n++) {
+      for (n=0;n<nn;n++) {
         if (p->ampcod)  amp = ampp[n];
         if (p->carcod)  xcar = carp[n];
         if (p->modcod)  xmod = modp[n];
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (int32)(mod * csound->sicvt);
+        minc = (int32)(mod * sicvt);
         mphs &= PHMASK;
         fract = PFRAC(mphs);
-        ftab = ftp->ftable + (mphs >>lobits);
+        ftab = ft + (mphs >>lobits);
         v1 = *ftab++;
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
-        ftab = ftp->ftable + (cphs >>lobits);
+        ftab = ft + (cphs >>lobits);
         v1 = *ftab++;
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
@@ -163,19 +165,19 @@ int foscili(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (int32)(mod * csound->sicvt);
-      for (n=0;n<csound->ksmps;n++) {
+      minc = (int32)(mod * sicvt);
+      for (n=0;n<nn;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
-        ftab = ftp->ftable + (mphs >>lobits);
+        ftab = ft + (mphs >>lobits);
         v1 = *ftab++;
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * csound->sicvt);
+        cinc = (int32)(cfreq * sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
-        ftab = ftp->ftable + (cphs >>lobits);
+        ftab = ft + (cphs >>lobits);
         v1 = *ftab++;
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
@@ -185,7 +187,10 @@ int foscili(CSOUND *csound, FOSC *p)
     p->cphs = cphs;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("foscili: not initialised"));
 }
+
 
 int losset(CSOUND *csound, LOSC *p)
 {
