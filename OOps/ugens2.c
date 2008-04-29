@@ -1061,8 +1061,9 @@ int osckk(CSOUND *csound, OSC *p)
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
       ar[n] = ftbl[phs >> lobits] * amp;
-      phs += inc;
-      phs &= PHMASK;
+      /* phs += inc; */
+      /* phs &= PHMASK; */
+      phs = (phs+inc)&PHMASK;
     }
     p->lphs = phs;
     return OK;

@@ -1,3 +1,8 @@
+2008-04-28  jpff  <jpff@codemist.co.uk>
+
+	* OOps/ugens4.c (buzz): Restructured for speed
+	(gbuzz): Ditto
+
 2008-04-24  jpff  <jpff@codemist.co.uk>
 
 	* Top/argdecode.c (argdecode): OLPC now have dummy R,N and H options

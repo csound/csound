@@ -1555,23 +1555,23 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 static void instance(CSOUND *csound, int insno)
 {
     INSTRTXT  *tp;
-    INSDS   *ip;
-    OPTXT   *optxt;
-    OPDS    *opds, *prvids, *prvpds;
+    INSDS     *ip;
+    OPTXT     *optxt;
+    OPDS      *opds, *prvids, *prvpds;
     const OENTRY  *ep;
-    LBLBLK  **lopdsp;
-    LARGNO  *largp;
-    int     n, cnt, pextent, opnum;
-    char    *nxtopds, *opdslim;
-    MYFLT   **argpp, *lclbas, *gbloffbas, *lcloffbas;
-    int     *ndxp;
-    int     odebug = csound->oparms->odebug;
+    LBLBLK    **lopdsp;
+    LARGNO    *largp;
+    int       n, cnt, pextent, opnum;
+    char      *nxtopds, *opdslim;
+    MYFLT     **argpp, *lclbas, *gbloffbas, *lcloffbas;
+    int       *ndxp;
+    int       odebug = csound->oparms->odebug;
 
     lopdsp = csound->lopds;
     largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
     pextent = sizeof(INSDS) + tp->pextrab;      /* alloc new space,  */
-    ip = (INSDS*) mcalloc(csound, (int32) pextent + tp->localen + tp->opdstot);
+    ip = (INSDS*) mcalloc(csound, (size_t) pextent + tp->localen + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
     /* IV - Oct 26 2002: replaced with faster version (no search) */
@@ -1587,9 +1587,8 @@ static void instance(CSOUND *csound, int insno)
     ip->insno = insno;
     /* IV - Nov 10 2002 */
     if (insno > csound->maxinsno) {
-      int pcnt;
-      pcnt = (int) tp->opcode_info->perf_incnt;
-      pcnt += (int) tp->opcode_info->perf_outcnt;
+      size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
+      pcnt += (size_t) tp->opcode_info->perf_outcnt;
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
       ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
     }
@@ -1707,12 +1706,12 @@ static void instance(CSOUND *csound, int insno)
         csound->Message(csound, "\n");
       }
     }
-    if (nxtopds != opdslim) {
+    /* if (nxtopds != opdslim) { */
       /*      csound->Message(csound, Str("nxtopds = %p opdslim = %p\n"),
               nxtopds, opdslim); */
-      if (nxtopds > opdslim)
-        csoundDie(csound, Str("inconsistent opds total"));
-    }
+    if (nxtopds > opdslim)
+      csoundDie(csound, Str("inconsistent opds total"));
+    /* } */
     while (largp > (LARGNO*) csound->larg) {    /* now label refs */
       largp--;
       *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
