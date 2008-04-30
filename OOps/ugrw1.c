@@ -3147,8 +3147,8 @@ int printsset(CSOUND *csound, PRINTS *p)
  * is higher. */
 int peakk(CSOUND *csound, PEAK *p)
 {
-    if (*p->kpeakout < (MYFLT) fabs(*p->xsigin)) {
-      *p->kpeakout = (MYFLT) fabs(*p->xsigin);
+    if (*p->kpeakout < FABS(*p->xsigin)) {
+      *p->kpeakout = FABS(*p->xsigin);
     }
     return OK;
 }
@@ -3167,8 +3167,8 @@ int peaka(CSOUND *csound, PEAK *p)
     peak = p->kpeakout;
 
     do {
-      if (*peak < (MYFLT) fabs(*asigin))
-        *peak = (MYFLT) fabs(*asigin);
+      if (*peak < FABS(*asigin))
+        *peak = FABS(*asigin);
       asigin++;
     } while (--loop);
 
@@ -3229,11 +3229,12 @@ int inz(CSOUND *csound, IOZ *p)
     }
     else {
       MYFLT *writeloc;
+      int n = csound->ksmps;
       /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * csound->ksmps);
       for (i = 0; i < csound->nchnls; i++)
-        for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
-          *writeloc++ = csound->spin[i * csound->ksmps + nsmps];
+        for (nsmps = 0; nsmps < n; nsmps++)
+          *writeloc++ = csound->spin[i * n + nsmps];
     }
     return OK;
 }
@@ -3255,18 +3256,19 @@ int outz(CSOUND *csound, IOZ *p)
     }
     else {
       MYFLT *readloc;
+      int n = csound->ksmps;
       /* Now read from the array in za space and write to the output. */
       readloc = csound->zastart + (indx * csound->ksmps);
       if (!csound->spoutactive) {
         for (i = 0; i < csound->nchnls; i++)
-          for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
-            csound->spout[i * csound->ksmps + nsmps] = *readloc++;
+          for (nsmps = 0; nsmps < n; nsmps++)
+            csound->spout[i * n + nsmps] = *readloc++;
         csound->spoutactive = 1;
       }
       else {
         for (i = 0; i < csound->nchnls; i++)
-          for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
-            csound->spout[i * csound->ksmps + nsmps] += *readloc++;
+          for (nsmps = 0; nsmps < n; nsmps++)
+            csound->spout[i * n + nsmps] += *readloc++;
       }
     }
     return OK;

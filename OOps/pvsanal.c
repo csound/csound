@@ -343,7 +343,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
            i++,i0+=2,i1+=2, oi++) {
         real = *i0;
         imag = *i1;
-        *i0 =(MYFLT) hypot((double)real, *(double)imag);
+        *i0 = HYPOT(real, imag);
         /* phase unwrapping */
         /*if (*i0 == 0.)*/
         if (*i0 < FL(1.0E-10))
@@ -352,12 +352,12 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
 
         else {
 
-          rratio = atan2((double)imag,(double)real);
+          phase = ATAN2(imag,real);
 
           /*angleDif  = (phase = (float)rratio) - *oi;
            *oi = phase;
+           phase = (MYFLT)rratio;
            */
-          phase = (MYFLT)rratio;
         }
 
         *i1 = phase;
@@ -368,7 +368,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     for (i=0,i0=anal,i1=anal+1,oi=oldInPhase; i <= N2; i++,i0+=2,i1+=2, oi++) {
       real = *i0;
       imag = *i1;
-      *i0 = (MYFLT)hypot((double)real, (double)imag);
+      *i0 = HYPOT(real, imag);
       /* phase unwrapping */
       /*if (*i0 == 0.)*/
       if (*i0 < FL(1.0E-10))
@@ -961,7 +961,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
         p->Ii = 0;
         for (i=p->nO+synWinLen; i<p->buflen; i++)
           if (i > 0)
-            *(output+i) = FL(0.0);
+            output[i] = FL(0.0);
       }
     p->IOi =  p->Ii;
 }

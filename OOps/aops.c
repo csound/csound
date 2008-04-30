@@ -44,9 +44,9 @@ void aops_init_tables(void)
     int   i;
 
     for (i = 0; i < OCTRES; i++)
-      cpsocfrc[i] = (MYFLT) (pow(2.0, (double)i / (double)OCTRES) * ONEPT);
+      cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
     for (i = 0; i < 4096; i++)
-      powerof2[i] = (MYFLT) (pow(2.0, (double)i * (1.0/4096.0) - 15.0));
+      powerof2[i] = POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/4096.0) - FL(15.0));
 }
 
 static inline MYFLT pow2(MYFLT a)
@@ -84,9 +84,9 @@ int init(CSOUND *csound, ASSIGN *p)
 int ainit(CSOUND *csound, ASSIGN *p)
 {
     MYFLT aa = *p->a;
-    int   n;
+    int   n, nsmps = csound->ksmps;
 
-    for (n = 0; n < csound->ksmps; n++)
+    for (n = 0; n < nsmps; n++)
       p->r[n] = aa;
     return OK;
 }
@@ -363,8 +363,8 @@ int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 
 int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps = csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)MYFLT2LRND(p->a[n]);
     return OK;
 }
@@ -377,8 +377,8 @@ int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 
 int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps = csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(FLOOR(p->a[n]));
     return OK;
 }
@@ -391,8 +391,8 @@ int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 
 int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps = csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = (MYFLT)(CEIL(p->a[n]));
     return OK;
 }
@@ -416,25 +416,25 @@ int birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 }
 
 #define LIB1(OPNAME,LIBNAME)  int OPNAME(CSOUND *csound, EVAL *p)        \
-                     { *p->r = (MYFLT)LIBNAME((double)*p->a); return OK; }
-LIB1(abs1,fabs)
-LIB1(exp01,exp)
-LIB1(log01,log)
-LIB1(sqrt1,sqrt)
-LIB1(sin1,sin)
-LIB1(cos1,cos)
-LIB1(tan1,tan)
-LIB1(asin1,asin)
-LIB1(acos1,acos)
-LIB1(atan1,atan)
-LIB1(sinh1,sinh)
-LIB1(cosh1,cosh)
-LIB1(tanh1,tanh)
-LIB1(log101,log10)
+                     { *p->r = LIBNAME(*p->a); return OK; }
+LIB1(abs1,FABS)
+LIB1(exp01,EXP)
+LIB1(log01,LOG)
+LIB1(sqrt1,SQRT)
+LIB1(sin1,SIN)
+LIB1(cos1,COS)
+LIB1(tan1,TAN)
+LIB1(asin1,ASIN)
+LIB1(acos1,ACOS)
+LIB1(atan1,ATAN)
+LIB1(sinh1,SINH)
+LIB1(cosh1,COSH)
+LIB1(tanh1,TANH)
+LIB1(log101,LOG10)
 
 int atan21(CSOUND *csound, AOP *p)
 {
-    *p->r = (MYFLT)atan2((double)*p->a, (double)*p->b);
+    *p->r = ATAN2(*p->a, *p->b);
     return OK;
 }
 
@@ -445,23 +445,23 @@ int atan21(CSOUND *csound, AOP *p)
                                 r = p->r;                              \
                                 a = p->a;                              \
                                 for (n=0;n<nsmps;n++)                  \
-                                  r[n] = (MYFLT)LIBNAME((double)a[n]); \
+                                  r[n] = LIBNAME(a[n]);                \
                                 return OK;                             \
                               }
-LIBA(absa,fabs)
-LIBA(expa,exp)
-LIBA(loga,log)
-LIBA(sqrta,sqrt)
-LIBA(sina,sin)
-LIBA(cosa,cos)
-LIBA(tana,tan)
-LIBA(asina,asin)
-LIBA(acosa,acos)
-LIBA(atana,atan)
-LIBA(sinha,sinh)
-LIBA(cosha,cosh)
-LIBA(tanha,tanh)
-LIBA(log10a,log10)
+LIBA(absa,FABS)
+LIBA(expa,EXP)
+LIBA(loga,LOG)
+LIBA(sqrta,SQRT)
+LIBA(sina,SIN)
+LIBA(cosa,COS)
+LIBA(tana,TAN)
+LIBA(asina,ASIN)
+LIBA(acosa,ACOS)
+LIBA(atana,ATAN)
+LIBA(sinha,SINH)
+LIBA(cosha,COSH)
+LIBA(tanha,TANH)
+LIBA(log10a,LOG10)
 
 int atan2aa(CSOUND *csound, AOP *p)
 {
@@ -479,13 +479,13 @@ int atan2aa(CSOUND *csound, AOP *p)
 
 int dbamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log(fabs((double)*p->a)) / LOG10D20);
+    *p->r = LOG(FABS(*p->a)) / LOG10D20;
     return OK;
 }
 
 int ampdb(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)exp((double)*p->a * LOG10D20);
+    *p->r = EXP(*p->a * LOG10D20);
     return OK;
 }
 
@@ -496,19 +496,19 @@ int aampdb(CSOUND *csound, EVAL *p)
     int     nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++)
-      r[n] = (MYFLT)exp((double)a[n] * LOG10D20);
+      r[n] = EXP(a[n] * LOG10D20);
     return OK;
 }
 
 int dbfsamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log(fabs((double)*p->a) / csound->e0dbfs) / LOG10D20);
+    *p->r = LOG(FABS(*p->a) / csound->e0dbfs) / LOG10D20;
     return OK;
 }
 
 int ampdbfs(CSOUND *csound, EVAL *p)
 {
-    *p->r =  csound->e0dbfs * (MYFLT)exp((double)*p->a * LOG10D20);
+    *p->r =  csound->e0dbfs * EXP(*p->a * LOG10D20);
     return OK;
 }
 
@@ -521,7 +521,7 @@ int aampdbfs(CSOUND *csound, EVAL *p)
     r = p->r;
     a = p->a;
     for (n = 0; n < nsmps; n++)
-      r[n] = csound->e0dbfs * (MYFLT)exp((double)a[n] * LOG10D20);
+      r[n] = csound->e0dbfs * EXP(a[n] * LOG10D20);
     return OK;
 }
 
@@ -839,8 +839,8 @@ int powoftwo(CSOUND *csound, EVAL *p)
 
 int powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
-    int n;
-    for (n = 0; n < csound->ksmps; n++)
+    int n, nsmps = csound->ksmps;
+    for (n = 0; n < nsmps; n++)
       p->r[n] = pow2(p->a[n]);
     return OK;
 }
@@ -1090,12 +1090,13 @@ int inall_opcode(CSOUND *csound, INALL *p)
 {
     int   n = (int)p->OUTOCOUNT;
     int   m;
-    int   i, j = 0, k = 0;
+    int   i, j = 0, k = 0, nsmps = csound->ksmps;
+    MYFLT *spin = csound->spin;
 
     m = (n < csound->nchnls ? n : csound->nchnls);
-    for (j=0; j<csound->ksmps; j++) {
+    for (j=0; j<nsmps; j++) {
       for (i=0; i<m; i++) {
-        p->ar[i][j] = csound->spin[k + i];
+        p->ar[i][j] = spin[k + i];
       }
       for ( ; i < n; i++)
         p->ar[i][j] = FL(0.0);
