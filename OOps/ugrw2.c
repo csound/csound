@@ -200,7 +200,7 @@ int kport(CSOUND *csound, KPORT *p)
      *
      */
     if (p->prvhtim != *p->khtim) {
-      p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->khtim);
+      p->c2 = POWER(FL(0.5), csound->onedkr / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }
@@ -238,9 +238,8 @@ int ktone(CSOUND *csound, KTONE *p)
        * so tpidsr * ksmps = 2 * pi / k rate.
        * We need this since we are filtering at k rate, not a rate. */
 
-      b = FL(2.0)
-          - (MYFLT)cos((double)(*p->khp * csound->tpidsr * csound->ksmps));
-      p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
+      b = FL(2.0) - COS(*p->khp * csound->tpidsr * csound->ksmps);
+      p->c2 = b - SQRT(b * b - FL(1.0));
       p->c1 = FL(1.0) - p->c2;
     }
     /* Filter calculation on each a rate sample:
@@ -259,8 +258,8 @@ int katone(CSOUND *csound, KTONE *p)
       MYFLT b;
       p->prvhp = *p->khp;
       b = FL(2.0)
-          - (MYFLT)cos((double)(*p->khp * csound->tpidsr * csound->ksmps));
-      p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.));
+          - COS(*p->khp * csound->tpidsr * csound->ksmps);
+      p->c2 = b - SQRT(b * b - FL(1.0));
       p->c1 = FL(1.0) - p->c2;
     }
     /* Output = c2 * (prev state + input)
@@ -305,7 +304,7 @@ int kreson(CSOUND *csound, KRESON *p)
      * cosf = cos (2pi * freq / krate)                   */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
+      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
       flag = 1;
     }
 
@@ -313,7 +312,7 @@ int kreson(CSOUND *csound, KRESON *p)
      * c3 = exp (-2pi * bwidth / krate)                  */
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
       flag = 1;
     }
     /* Final calculations for the factors
@@ -339,13 +338,13 @@ int kreson(CSOUND *csound, KRESON *p)
         /* iscl = 1. Make gain at centre = 1.
          * c1= (1 - c3) * sqrt( 1 - (c2 * c2 / (c3 * 4) )
          */
-        p->c1 = omc3 * (MYFLT)sqrt((double)1. - c2sqr / c3t4);
+        p->c1 = omc3 * SQRT(FL(1.0) - c2sqr / c3t4);
       else if (p->scale == 2)
         /* iscl = 2 Higher gain, so "RMS gain" = 1.
          * c1= sqrt((c3 + 1)*(c3 + 1) - cs*c2) * (1 - c3) / (c3 + 1)
          * (I am not following the maths!)       */
 
-        p->c1 = (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr) * omc3/c3p1));
+        p->c1 = SQRT((c3p1*c3p1-c2sqr) * omc3/c3p1);
       /* iscl = 0. No scaling of the signal. Input gain c1 = 1.      */
       else p->c1 = FL(1.0);
     }
@@ -375,12 +374,12 @@ int kareson(CSOUND *csound, KRESON *p)
     /*      or 1/.5  (sine) */
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
+      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
       flag = 1;
     }
     if (flag) {
@@ -390,9 +389,9 @@ int kareson(CSOUND *csound, KRESON *p)
       p->c2 = c3t4 * p->cosf / c3p1;
       c2sqr = p->c2 * p->c2;
       if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-        p->c1 = FL(1.0) - omc3 * (MYFLT)sqrt((double)1. - c2sqr / c3t4);
+        p->c1 = FL(1.0) - omc3 * SQRT(FL(1.0) - c2sqr / c3t4);
       else if (p->scale == 2)                 /* i.e. D - A(reson) */
-        p->c1 = D - (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr)*omc3/c3p1));
+        p->c1 = D - SQRT((c3p1*c3p1-c2sqr)*omc3/c3p1);
       else p->c1 = FL(0.0);                        /* cannot tell        */
     }
 

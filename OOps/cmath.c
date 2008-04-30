@@ -35,7 +35,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
     if (in == FL(0.0) && powerOf == FL(0.0))
       return csound->PerfError(csound, Str("NaN in pow\n"));
     else
-      *p->sr = (MYFLT)pow((double)in, (double)powerOf) / *p->norm;
+      *p->sr = POWER(in, powerOf) / *p->norm;
     return OK;
 }
 
@@ -58,7 +58,7 @@ int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
     }
     else {
       for (n = 0; n < nsmps; n++)
-        out[n] = (MYFLT)pow(in[n], powerOf) / *p->norm;
+        out[n] = POWER(in[n], powerOf) / *p->norm;
     }
     return OK;
 }
@@ -248,7 +248,7 @@ static MYFLT poissrand(CSOUND *csound, MYFLT l)
     if (l < FL(0.0)) return FL(0.0);
 
     r1 = unirand(csound);
-    r2 = (MYFLT)exp(-l);
+    r2 = EXP(-l);
     r3 = FL(0.0);
 
     while (r1 >= r2) {

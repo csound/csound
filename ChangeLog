@@ -1,3 +1,8 @@
+2008-04-30  jpff  <jpff@codemist.co.uk>
+
+	* H/sysdep.h: Inroduce macros for MYFLT versions of functions
+	* OOps/aops.c: Use macro for exp/expf etc all over
+
 2008-04-28  jpff  <jpff@codemist.co.uk>
 
 	* OOps/ugens4.c (buzz): Restructured for speed

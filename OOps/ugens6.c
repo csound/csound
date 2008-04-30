@@ -204,7 +204,7 @@ int samphold(CSOUND *csound, SAMPHOLD *p)
 
 int delset(CSOUND *csound, DELAY *p)
 {
-    int32        npts;
+    int32      npts;
     char        *auxp;
 
     if (*p->istor && p->auxch.auxp != NULL)
@@ -228,7 +228,7 @@ int delset(CSOUND *csound, DELAY *p)
 
 int delrset(CSOUND *csound, DELAYR *p)
 {
-    int32        npts;
+    int32       npts;
     MYFLT       *auxp;
 
     if (p->XOUTCODE != 1)
@@ -407,7 +407,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
     int         n, nsmps = csound->ksmps;
-    int32        idelsmps;
+    int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) {
@@ -454,10 +454,10 @@ int deltapi(CSOUND *csound, DELTAP *p)
 int deltapn(CSOUND *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
-    MYFLT *ar, *tap, *begp, *endp;
-    int n, nsmps = csound->ksmps;
-    int32 idelsmps;
-    MYFLT delsmps;
+    MYFLT  *ar, *tap, *begp, *endp;
+    int    n, nsmps = csound->ksmps;
+    int32  idelsmps;
+    MYFLT  delsmps;
 
     if (q->auxch.auxp==NULL) {
       return csound->PerfError(csound, Str("deltapn: not initialised"));
@@ -588,7 +588,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *out1, *del, *buf1, *bufp, *bufend;
     int     nn = csound->ksmps;
-    int32    indx, maxd, xpos;
+    int32   indx, maxd, xpos;
 
     if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
@@ -669,7 +669,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     DELAYR  *q = p->delayr;
     MYFLT   *in1, *del, *buf1, *bufp, *bufend;
     int     nn = csound->ksmps;
-    int32    indx, maxd, xpos;
+    int32   indx, maxd, xpos;
 
     if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
@@ -770,7 +770,7 @@ int delay1(CSOUND *csound, DELAY1 *p)
 
 int cmbset(CSOUND *csound, COMB *p)
 {
-    int32        lpsiz, nbytes;
+    int32       lpsiz, nbytes;
 
     if (*p->insmps != 0) {
       if ((lpsiz = (int32)(FL(0.5)+*p->ilpt)) <= 0) {
@@ -851,7 +851,7 @@ int alpass(CSOUND *csound, COMB *p)
     }
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
-      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / p->prvt));
+      coef = p->coef = EXP(log001 * *p->ilpt / p->prvt);
     }
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
@@ -877,10 +877,12 @@ void reverbinit(CSOUND *csound)         /* called once by oload */
     int32       *lpsizp = csound->revlpsiz;
     int n = 6;
 
-    csound->revlpsum = 0;
-    for (n=0; n<6; n++) {
-      lpsizp[n] = (int32) ((double)lptimp[n] * (double)csound->esr + 0.5);
-      csound->revlpsum += lpsizp[n];
+    if (csound->revlpsum==0) {
+      csound->revlpsum = 0;
+      for (n=0; n<6; n++) {
+        lpsizp[n] = (int32) (lptimp[n] * csound->esr + 0.5);
+        csound->revlpsum += lpsizp[n];
+      }
     }
 }
 
@@ -925,12 +927,12 @@ int reverb(CSOUND *csound, REVERB *p)
     if (p->prvt != *p->krvt) {
       const MYFLT *lptimp = revlptimes;
       MYFLT       logdrvt = log001 / *p->krvt;
-      c1=p->c1 = (MYFLT)exp(logdrvt * *lptimp++);
-      c2=p->c2 = (MYFLT)exp(logdrvt * *lptimp++);
-      c3=p->c3 = (MYFLT)exp(logdrvt * *lptimp++);
-      c4=p->c4 = (MYFLT)exp(logdrvt * *lptimp++);
-      c5=p->c5 = (MYFLT)exp(logdrvt * *lptimp++);
-      c6=p->c6 = (MYFLT)exp(logdrvt * *lptimp++);
+      c1=p->c1 = EXP(logdrvt * *lptimp++);
+      c2=p->c2 = EXP(logdrvt * *lptimp++);
+      c3=p->c3 = EXP(logdrvt * *lptimp++);
+      c4=p->c4 = EXP(logdrvt * *lptimp++);
+      c5=p->c5 = EXP(logdrvt * *lptimp++);
+      c6=p->c6 = EXP(logdrvt * *lptimp++);
     }
     else {
       c1=p->c1;
@@ -961,7 +963,7 @@ int reverb(CSOUND *csound, REVERB *p)
       *p4 = c4 * *p4 + sig;
       p1++; p2++; p3++; p4++;
       y1 = *p5;
-      *p5++ = z = p->c5 * y1 + cmbsum;
+      *p5++ = z = c5 * y1 + cmbsum;
       y1 -= c5 * z;
       y2 = *p6;
       *p6++ = z = c6 * y2 + y1;
