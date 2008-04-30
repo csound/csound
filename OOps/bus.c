@@ -70,17 +70,17 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     if (setjmp(csound->exitjmp) != 0) {
       memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
       return CSOUND_MEMORY;
-        }
+    }
     newp = (PVSDATEXT *)mrealloc(csound, *p,  sizeof(PVSDATEXT) * newSize);
     for(i=*oldSize; i < chans; i++){
-    pp = &newp[i];
-    pp->frame = (float *)mmalloc(csound, (fin->N+2)*sizeof(float));
-    pp->N = fin->N;
-    pp->overlap = fin->overlap;
-    pp->winsize = fin->winsize;
-    pp->wintype = fin->wintype;
-    pp->format =  fin->format;
-    pp->framecount = fin->framecount;
+      pp = &newp[i];
+      pp->frame = (float *)mmalloc(csound, (fin->N+2)*sizeof(float));
+      pp->N = fin->N;
+      pp->overlap = fin->overlap;
+      pp->winsize = fin->winsize;
+      pp->wintype = fin->wintype;
+      pp->format =  fin->format;
+      pp->framecount = fin->framecount;
     }
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     (*p) = newp;
@@ -666,8 +666,8 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
     switch (type) {
     case CSOUND_CONTROL_CHANNEL_INT:
       dflt = (MYFLT) ((int32) MYFLT2LRND(dflt));
-      min = (MYFLT) ((int32) MYFLT2LRND(min));
-      max = (MYFLT) ((int32) MYFLT2LRND(max));
+      min  = (MYFLT) ((int32) MYFLT2LRND(min));
+      max  = (MYFLT) ((int32) MYFLT2LRND(max));
       break;
     case CSOUND_CONTROL_CHANNEL_LIN:
     case CSOUND_CONTROL_CHANNEL_EXP:
@@ -685,8 +685,8 @@ PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
     }
     pp->info->type = type;
     pp->info->dflt = dflt;
-    pp->info->min = min;
-    pp->info->max = max;
+    pp->info->min  = min;
+    pp->info->max  = max;
     return CSOUND_SUCCESS;
 }
 
@@ -902,13 +902,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
-/*     int   i = 0; */
-
     memcpy(p->fp, 0, csound->ksmps*sizeof(MYFLT));
-/*     do { */
-/*       p->fp[i] = FL(0.0); */
-/*     } while (++i < csound->ksmps); */
-
     return OK;
 }
 

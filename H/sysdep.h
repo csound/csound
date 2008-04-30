@@ -56,6 +56,50 @@ typedef int_least16_t int16;
 typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
 
+#if (USE_DOUBLE==1)
+  #define ACOS acos
+  #define ASIN asin
+  #define ATAN atan
+  #define ATAN2 atan2
+  #define COS cos
+  #define SIN sin
+  #define TAN tan
+  #define COSH cosh
+  #define SINH sinh
+  #define TANH tanh
+  #define ACOSH acosh
+  #define ASINH asinh
+  #define ATANH atanh
+  #define EXP exp
+  #define LOG log
+  #define LOG10 log10
+  #define POWER pow
+  #define SQRT sqrt
+  #define HYPOT hypot
+  #define FABS fabs
+#else
+  #define ACOS acosf
+  #define ASIN asinf
+  #define ATAN atanf
+  #define ATAN2 atan2f
+  #define COS cosf
+  #define SIN sinf
+  #define TAN tanf
+  #define COSH coshf
+  #define SINH sinhf
+  #define TANH tanhf
+  #define ACOSH acoshf
+  #define ASINH asinhf
+  #define ATANH atanhf
+  #define EXP expf
+  #define LOG logf
+  #define LOG10 log10f
+  #define POWER powf
+  #define SQRT sqrtf
+  #define HYPOT hypotf
+  #define FABS fabsf
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

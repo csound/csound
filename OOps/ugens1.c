@@ -70,7 +70,7 @@ int expset(CSOUND *csound, EXPON *p)
       a = *p->ia;
       b = *p->ib;
       if ((a * b) > FL(0.0)) {
-        p->mlt = (MYFLT) pow((double)(b / a),(csound->onedkr/(double)dur));
+        p->mlt = POWER(b/a, csound->onedkr/dur);
         p->val = a;
       }
       else if (a == FL(0.0))
@@ -471,7 +471,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
           goto experr;
         d = dur * csound->esr;
         segp->val = val;
-        segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+        segp->mlt = POWER((nxtval / val), FL(1.0)/d);
         segp->cnt = (int32) (d + FL(0.5));
 /*       } */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
@@ -492,12 +492,12 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
-    int         n;
+    int         n, nsmps = csound->ksmps;
     MYFLT       val, *rs;
     segp = p->cursegp;
     val = segp->val;
     rs = p->rslt;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       while (--segp->cnt < 0)   {
         p->cursegp = ++segp;
         val = segp->val;
@@ -547,18 +547,18 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     segp[0].cnt = (int32) (delay*csound->ekr + FL(0.5));
     dur = attack*csound->ekr;
     segp[1].val = FL(0.001);
-    segp[1].mlt = (MYFLT) pow(1000.0, 1.0/(double)dur);
+    segp[1].mlt = POWER(FL(1000.0), FL(1.0)/dur);
     segp[1].cnt = (int32) (dur + FL(0.5));
     dur = decay*csound->ekr;
     segp[2].val = FL(1.0);
-    segp[2].mlt = (MYFLT) pow((double)*argp[2], 1.0/(double)dur);
+    segp[2].mlt = POWER(*argp[2], FL(1.0)/dur);
     segp[2].cnt = (int32) (dur + FL(0.5));
     segp[3].val = *argp[2];
     segp[3].mlt = FL(1.0);
     segp[3].cnt = (int32) (sus*csound->ekr + FL(0.5));
     dur = release*csound->ekr;
     segp[4].val = *argp[2];
-    segp[4].mlt = (MYFLT) pow(0.001/(double)*argp[2], 1.0/(double)dur);
+    segp[4].mlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
     segp[4].cnt = MAXPOS; /*(int32) (dur + FL(0.5)); */
     return OK;
 }
@@ -755,9 +755,8 @@ int expsegr(CSOUND *csound, EXPSEG *p)
           goto putk;
         }
         else {
-          p->curmlt = (MYFLT)pow((double)(segp->nxtpt/val),
-                                  1.0/(double)segp->cnt);
-          p->curamlt = (MYFLT)pow(p->curmlt, (double)csound->onedksmps);
+          p->curmlt = POWER((segp->nxtpt/val), FL(1.0)/segp->cnt);
+          p->curamlt = POWER(p->curmlt, csound->onedksmps);
         }
       }
       p->curval = val * p->curmlt;        /* advance the cur val  */
@@ -787,7 +786,7 @@ int lnnset(CSOUND *csound, LINEN *p)
       else p->inc1 = p->val = FL(1.0);
       a = dur * csound->ekr + FL(0.5);
       b = *p->idec * csound->ekr + FL(0.5);
-      if ((int32) b > 0L) {
+      if ((int32) b > 0) {
         p->cnt2 = (int32) (a - b);
         p->inc2 = FL(1.0) /  b;
       }
@@ -805,7 +804,7 @@ int klinen(CSOUND *csound, LINEN *p)
 {
     MYFLT fact = FL(1.0);
 
-    if (p->cnt1 > 0L) {
+    if (p->cnt1 > 0) {
       fact = p->lin1;
       p->lin1 += p->inc1;
       p->cnt1--;
@@ -828,13 +827,13 @@ int linen(CSOUND *csound, LINEN *p)
     val = p->val;
     rs = p->rslt;
     sg = p->sig;
-    if (p->cnt1 > 0L) {
+    if (p->cnt1 > 0) {
       flag = 1;
       p->lin1 += p->inc1;
       p->cnt1--;
       nxtval = p->lin1;
     }
-    if (p->cnt2 <= 0L) {
+    if (p->cnt2 <= 0) {
       flag = 1;
       p->lin2 -= p->inc2;
       nxtval *= p->lin2;
@@ -883,8 +882,7 @@ int lnrset(CSOUND *csound, LINENR *p)
       if (*p->iatdec <= FL(0.0)) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
-      else p->mlt2 = (MYFLT)pow((double)*p->iatdec,
-                                ((double)csound->onedkr / *p->idec));
+      else p->mlt2 = POWER(*p->iatdec, csound->onedkr / *p->idec);
     }
     else p->mlt2 = FL(1.0);
     p->lin1 = FL(0.0);
@@ -971,14 +969,14 @@ int evxset(CSOUND *csound, ENVLPX *p)
       return NOTOK;
     p->ftp = ftp;
     if ((idur = *p->idur) > FL(0.0)) {
-      if ((iatss = (MYFLT)fabs(*p->iatss)) == FL(0.0)) {
+      if ((iatss = FABS(*p->iatss)) == FL(0.0)) {
         return csound->InitError(csound, "iatss = 0");
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-        if (fabs(ixmod) > 0.95) {
+        if (FABS(ixmod) > FL(0.95)) {
           return csound->InitError(csound, Str("ixmod out of range."));
         }
-        ixmod = -(MYFLT)sin(sin(ixmod));
+        ixmod = -SIN(SIN(ixmod));
         prod = ixmod * iatss;
         diff = ixmod - iatss;
         denom = diff + prod + FL(1.0);
@@ -986,7 +984,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
           asym = FHUND;
         else {
           asym = 2 * prod / denom;
-          if (fabs(asym) > FHUND)
+          if (FABS(asym) > FHUND)
             asym = FHUND;
         }
         iatss = (iatss - asym) / (FL(1.0) - asym);
@@ -1008,7 +1006,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
       }
       cnt1 = (int32) ((idur - irise - *p->idec) * csound->ekr + FL(0.5));
       if (cnt1 < 0L) {
-        cnt1 = 0L;
+        cnt1 = 0;
         nk = csound->ekr;
       }
       else {
@@ -1016,13 +1014,12 @@ int evxset(CSOUND *csound, ENVLPX *p)
           nk = csound->ekr;
         else nk = (MYFLT) cnt1;
       }
-      p->mlt1 = (MYFLT) pow((double)iatss, (1.0/nk));
+      p->mlt1 = POWER(iatss, (FL(1.0)/nk));
       if (*p->idec > FL(0.0)) {
         if (*p->iatdec <= FL(0.0)) {
           return csound->InitError(csound, Str("non-positive iatdec"));
         }
-        p->mlt2 = (MYFLT) pow((double)*p->iatdec,
-                              ((double)csound->onedkr / *p->idec));
+        p->mlt2 = POWER(*p->iatdec, (csound->onedkr / *p->idec));
       }
       p->cnt1 = cnt1;
       p->asym = asym;
@@ -1143,10 +1140,10 @@ int evrset(CSOUND *csound, ENVLPR *p)
       return csound->InitError(csound, "iatss = 0");
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-      if (fabs(ixmod) > 0.95) {
+      if (FABS(ixmod) > FL(0.95)) {
         return csound->InitError(csound, Str("ixmod out of range."));
       }
-      ixmod = -(MYFLT)sin(sin((double)ixmod));
+      ixmod = -SIN(SIN(ixmod));
       prod = ixmod * iatss;
       diff = ixmod - iatss;
       denom = diff + prod + FL(1.0);
@@ -1154,7 +1151,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
         asym = FHUND;
       else {
         asym = 2 * prod / denom;
-        if (fabs(asym) > FHUND)
+        if (FABS(asym) > FHUND)
           asym = FHUND;
       }
       iatss = (iatss - asym) / (FL(1.0) - asym);
@@ -1162,19 +1159,19 @@ int evrset(CSOUND *csound, ENVLPR *p)
     }
     else asym = FL(0.0);
     if ((irise = *p->irise) > FL(0.0)) {
-      p->phs = 0L;
+      p->phs = 0;
       p->ki = (int32) (csound->kicvt / irise);
       p->val = *ftp->ftable;
     }
     else {
-      p->phs = -1L;
+      p->phs = -1;
       p->val = *(ftp->ftable + ftp->flen)-asym;
       irise = FL(0.0);          /* in case irise < 0 */
     }
     if (!(*(ftp->ftable + ftp->flen))) {
       return csound->InitError(csound, Str("rise func ends with zero"));
     }
-    p->mlt1 = (MYFLT)pow((double)iatss, (double)csound->onedkr);
+    p->mlt1 = POWER(iatss, csound->onedkr);
     if (*p->idec > FL(0.0)) {
       int32 rlscnt = (int32)(*p->idec * csound->ekr + FL(0.5));
       if ((p->rindep = (int32)*p->irind))
@@ -1200,7 +1197,7 @@ int knvlpxr(CSOUND *csound, ENVLPR *p)
         p->rlsing = 1;                  /*   if new flag, set mlt2 */
         rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
         if (rlscnt)
-          p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
+          p->mlt2 = POWER(p->atdec, FL(1.0)/rlscnt);
         else p->mlt2 = FL(1.0);
       }
       if (p->phs >= 0) {                /* do fn rise for seg 1 */
@@ -1248,7 +1245,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
         p->rlsing = 1;                  /*   if new flag, set mlt2 */
         rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
         if (rlscnt)
-          p->mlt2 = (MYFLT)pow((double)p->atdec, 1.0/(double)rlscnt);
+          p->mlt2 = POWER(p->atdec, FL(1.0)/rlscnt);
         else p->mlt2 = FL(1.0);
       }
       if (p->phs >= 0) {                /* do fn rise for seg 1 */
