@@ -1471,8 +1471,9 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
 '''))
 makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if (not buildOLPC) and jackFound:
- makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
-
+    makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+if (not buildOLPC) and boostFound:
+    makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
 #############################################################################
 #
 # Plugins with External Dependencies
