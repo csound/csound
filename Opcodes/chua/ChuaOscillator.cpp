@@ -118,8 +118,9 @@
 using namespace boost::numeric;
 #include <cmath>
 
-struct ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
+class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
 {
+public:
   // OUTPUTS
   MYFLT *I3;
   MYFLT *V2;
@@ -196,10 +197,14 @@ public:
     ksmps = csound->GetKsmps(csound);
     return OK;
   }
-  MYFLT gnor(double x)
+  static int init_(CSOUND *csound, void *opcode_)
   {
-    // No need to compute zero coefficients.
-    return a * std::pow(x, 3.0) /* + b * std::pow(x, 2.0) */ + c * x /* + d */;
+    ChuasOscillatorCubic *opcode = reinterpret_cast<ChuasOscillatorCubic *>(opcode_);
+    return opcode->init(csound);
+  }
+  int noteoff(CSOUND *csound)
+  {
+    return OK;
   }
   int kontrol(CSOUND *csound)
   {
@@ -224,35 +229,22 @@ public:
     // Standard 4th-order Runge-Kutta integration.
     for (size_t i = 0; i < ksmps; i++) {
       // Stage 1.
-      //     k1(1) = (G*(M(2) - M(1)) - gnor(M(1),sys_variables))/C1;
       k1(1) = (G * (M(2) - M(1)) - gnor(M(1))) / C1;
-      //     k1(2) = (G*(M(1) - M(2)) + M(3))/C2;
       k1(2) = (G * (M(1) - M(2)) + M(3)) / C2;
-      //     k1(3) = (-(M(2) + R0*M(3)))/L;
       k1(3) = (-(M(2) + R0 * M(3))) / L;
       // Stage 2.
-      //     k2(1) = (G*(M(2) + h2*k1(2) - (M(1) + h2*k1(1))) - gnor(M(1) + h2*k1(1),sys_variables))/C1;
       k2(1) = (G * (M(2) + h2 * k1(2) - (M(1) + h2 * k1(1))) - gnor(M(1) + h2 * k1(1))) / C1;
-      //     k2(2) = (G*(M(1) + h2*k1(1) - (M(2) + h2*k1(2))) + M(3) + h2*k1(3))/C2;
       k2(2) = (G * (M(1) + h2 * k1(1) - (M(2) + h2 * k1(2))) + M(3) + h2 * k1(3)) / C2;
-      //     k2(3) = (-(M(2) + h2*k1(2) + R0*(M(3) + h2*k1(3))))/L;
       k2(3) = (-(M(2) + h2 * k1(2) + R0 * (M(3) + h2 * k1(3)))) / L;
       // Stage 3.
-      //     k3(1) = (G*(M(2) + h2*k2(2) - (M(1) + h2*k2(1))) - gnor(M(1) + h2*k2(1),sys_variables))/C1;
       k3(1) = (G * (M(2) + h2 * k2(2) - (M(1) + h2 * k2(1))) - gnor(M(1) + h2 * k2(1))) / C1;
-      //     k3(2) = (G*(M(1) + h2*k2(1) - (M(2) + h2*k2(2))) + M(3) + h2*k2(3))/C2;
       k3(2) = (G * (M(1) + h2 * k2(1) - (M(2) + h2 * k2(2))) + M(3) + h2 * k2(3)) / C2;
-      //     k3(3) = (-(M(2) + h2*k2(2) + R0*(M(3) + h2*k2(3))))/L;
       k3(3) = (-(M(2) + h2 * k2(2) + R0 * (M(3) + h2 * k2(3)))) / L;
       // Stage 4.
-      //     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1),sys_variables))/C1;
       k4(1) = (G * (M(2) + h * k3(2) - (M(1) + h * k3(1))) - gnor(M(1) + h*k3(1))) / C1;
-      //     k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
       k4(2) = (G * (M(1) + h * k3(1) - (M(2) + h * k3(2))) + M(3) + h * k3(3)) / C2;
-      //     k4(3) = (-(M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;    
       k4(3) = (-(M(2) + h * k3(2) + R0 * (M(3) + h * k3(3)))) / L;    
-      //     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); %Finishes integration and assigns values to M(1),
-      //                                           %M(2) and M(3)      
+      // Finishes integration and assigns values to M.    
       M = M + (k1 + 2 * k2 + 2 * k3 + k4) * (h6);     
       //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
       //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
@@ -262,6 +254,11 @@ public:
       I3[i] = M(3);
     }
     return OK;
+  }
+  MYFLT gnor(double x)
+  {
+    // No need to compute zero coefficients.
+    return a * std::pow(x, 3.0) /* + b * std::pow(x, 2.0) */ + c * x /* + d */;
   }
  };
 
@@ -342,8 +339,9 @@ public:
 //     i=i+1;
 // end
 
-struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
+class ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
 {
+public:
   // OUTPUTS
   MYFLT *I3;
   MYFLT *V2;
@@ -357,8 +355,8 @@ struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
   MYFLT *G_;
   MYFLT *Ga_;
   MYFLT *Gb_;
-  MYFLT *C1_;
   MYFLT *E_;
+  MYFLT *C1_;
   // Initial values...
   MYFLT *I3_;
   MYFLT *V2_;
@@ -391,38 +389,6 @@ struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
   MYFLT omch2;
   MYFLT temp;
   size_t ksmps;
-  void stepSizes()
-  {
-    step_size = *step_size_;
-    // h = step_size*G/C2;
-    h = step_size * *G_ / *C2_;
-    // h2 = (h)*(.5);
-    h2 = h / 2.0;
-    // h6 = (h)/(6);
-    h6 = h / 6.0;
-    // anor = Ga/G;
-    anor = *Ga_ / *G_;
-    // bnor = Gb/G;
-    bnor = *Gb_ / *G_;
-    // bnorplus1 = bnor + 1;
-    bnorplus1 = bnor + 1.0;
-    // alpha = C2/C1;
-    alpha = *C2_ / *C1_;
-    // beta = C2/(L*G*G);
-    beta = *C2_ / (*L_ * *G_ * *G_);
-    // gammaloc = (R0*C2)/(L*G);
-    gammaloc = (*R0_ * *C2_) / (*L_ * *G_);
-    // bh = beta*h;
-    bh = beta * h;
-    // bh2 = beta*h2;
-    bh2 = beta * h2;
-    // ch = gammaloc*h;
-    ch = gammaloc * h;
-    // ch2 = gammaloc*h2;
-    ch2 = gammaloc * h2;
-    // omch2 = 1 - ch2;
-    omch2 = 1.0 - ch2;
-  }
   int init(CSOUND *csound)
   {
     stepSizes();
@@ -439,16 +405,24 @@ struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
     k4.resize(4);
     // M = [0 0 0]';
     M.resize(4);
-    M(1) = *V1_ * *E_;
+    // M(1) = TimeSeries(3)/E;
+    M(1) = *V1_ / *E_;
+    // M(2) = TimeSeries(2)/E;
     M(2) = *V2_ / *E_;
+    // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = csound->GetKsmps(csound);
+    std::printf("init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
+    return OK;
+  }
+  int noteoff(CSOUND *csound)
+  {
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
     // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
-    //       probaby by design. This is very handy and should prevent mistakes.
+    // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     MYFLT &L = *L_;
@@ -457,8 +431,8 @@ struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
     MYFLT &G = *G_;
     MYFLT &Ga = *Ga_;
     MYFLT &Gb = *Gb_;
-    MYFLT &C1 = *C1_;
     MYFLT &E = *E_;
+    MYFLT &C1 = *C1_;
     // Recompute Runge-Kutta step sizes if necessary.
     if (step_size != *step_size_) {
       stepSizes();
@@ -485,11 +459,60 @@ struct ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
       k4(2) = k1(2) + h*(k3(1) - k3(2) + k3(3));
       k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
       M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
+      // TimeSeries(3,i+1) = E*M(1);
       V1[i] = E * M(1);
+      // TimeSeries(2,i+1) = E*M(2); 
       V2[i] = E * M(2); 
+      // TimeSeries(1,i+1) = (E*G)*M(3);
       I3[i] = (E * G) * M(3);
+      //std::printf("%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
     }
     return OK;
+  }
+  void stepSizes()
+  {
+    MYFLT &L = *L_;
+    MYFLT &R0 = *R0_;
+    MYFLT &C2 = *C2_;
+    MYFLT &G = *G_;
+    MYFLT &Ga = *Ga_;
+    MYFLT &Gb = *Gb_;
+    MYFLT &E = *E_;
+    MYFLT &C1 = *C1_;
+    step_size = *step_size_;
+    // h = step_size*G/C2;
+    h = step_size * G / C2;
+    // h2 = (h)*(.5);
+    h2 = h / 2.0;
+    // h6 = (h)/(6);
+    h6 = h / 6.0;
+    // anor = Ga/G;
+    anor = Ga / G;
+    // bnor = Gb/G;
+    bnor = Gb / G;
+    // bnorplus1 = bnor + 1;
+    bnorplus1 = bnor + 1.0;
+    // alpha = C2/C1;
+    alpha = C2 / C1;
+    // beta = C2/(L*G*G);
+    beta = C2 / (L * G * G);
+    // gammaloc = (R0*C2)/(L*G);
+    gammaloc = (R0 * C2) / (L * G);
+    // bh = beta*h;
+    bh = beta * h;
+    // bh2 = beta*h2;
+    bh2 = beta * h2;
+    // ch = gammaloc*h;
+    ch = gammaloc * h;
+    // ch2 = gammaloc*h2;
+    ch2 = gammaloc * h2;
+    // omch2 = 1 - ch2;
+    omch2 = 1.0 - ch2;
+  }
+  static int init_(CSOUND *csound, void *opcode_)
+  {
+    ChuasOscillatorPiecewise *opcode = reinterpret_cast<ChuasOscillatorPiecewise *>(opcode_);
+    return opcode->init(csound);
   }
 };
 
@@ -501,7 +524,6 @@ extern "C"
         "chuac",
         sizeof(ChuasOscillatorCubic),
         5,
-	//                                                                           %x0 = I3, y0 = V2, z0 = V1 from datafiles
 	// kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
 	// 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
         "aaa",
@@ -514,9 +536,8 @@ extern "C"
         "chuap",
         sizeof(ChuasOscillatorPiecewise),
         5,
-	//                                                                           %x0 = I3, y0 = V2, z0 = V1 from datafiles
-	// kL,       kR0,  kC2,     kG,       kGa, kGb,       kC1,       kE,         iI3, iV2,   iV1,  kstep_size
-	// 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.5e-008,  1.76e-005,  0,   -0.1,  0.1,  5e-6
+	// kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,       iI3, iV2,   iV1,  kstep_size
+	// 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,  1.5e-008,  0,   -0.1,  0.1,  5e-6
         "aaa",
         "kkkkkkkkiiik",
         (SUBR) ChuasOscillatorPiecewise::init_,
