@@ -1,7 +1,7 @@
 Summary: Csound - sound synthesis language and library, OLPC subset
 Name:   olpcsound        
 Version: 5.08.91
-Release: 0
+Release: 0%{?dist}
 URL: http://csound.sourceforge.net/
 License: LGPLv2+
 Group: Applications/Multimedia
@@ -9,7 +9,6 @@ Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: swig python scons alsa-lib-devel liblo-devel libsndfile-devel 
 BuildRequires: libpng-devel libjpeg-devel libvorbis-devel libogg-devel gettext python-devel
-Requires:
 %define python_site_dir %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 
 %description
@@ -27,7 +26,7 @@ Headers and libraries for Csound-based application development
 %setup -q
 
 %build
-/usr/bin/scons buildOLPC=1
+/usr/bin/scons buildOLPC=1 customCCFLAGS="%{optflags}" customCXXFLAGS="%{optflags}"
 
 %install
 %{__rm} -rf %{buildroot}
@@ -60,6 +59,13 @@ Headers and libraries for Csound-based application development
 
 
 %changelog
+
+* Fri May 02 2008 Victor Lazzarini <vlazzarini@nuim.ie>
+ - fixed method of obtaining python site directory
+ - fixed license code
+ - fixed ownership of directories
+ - added %dist tag to version
+ - added fedora flags
 
 * Wed Apr 02 2008  Victor Lazzarini <vlazzarini@nuim.ie>
  - initial version of this spec

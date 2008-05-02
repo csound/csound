@@ -1115,7 +1115,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             break;
           case 'H':
             if (isdigit(*s)) {
-              int x
+              int x;
               sscanf(s, "%d%n", &x, &n);
               s += n;
             }
