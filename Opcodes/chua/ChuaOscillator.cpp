@@ -126,6 +126,8 @@ public:
   MYFLT *V2;
   MYFLT *V1;
   // INPUTS
+  // sys_variables = [system_vars(5:12),system_vars(23:26)]; % L,R0,C2,G,Ga,Gb,E,C1,a,b,c,d
+  // integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size
   // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
   // Circuit elements.
   MYFLT *L_;
@@ -190,11 +192,13 @@ public:
     // M(3) = TimeSeries(1); %I3
     M(3) = *I3_;
     // sys_variables(9:12) = [1.76e-005,0,-0.00121,0];
-    a = 1.76e-005;
+    a = 1.76e-5;
     b = 0.0;
     c = -0.00121;
     d = 0.0;
     ksmps = csound->GetKsmps(csound);
+    //std::printf("init: L: %f  R0: %f  C2: %f  G: %f  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
+    //std::printf("init: a: %f  b: %f  c: %f  d: %f\n", a, b, c, d);
     return OK;
   }
   static int init_(CSOUND *csound, void *opcode_)
@@ -209,7 +213,7 @@ public:
   int kontrol(CSOUND *csound)
   {
     // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
-    //       probaby by design. This is very handy and should prevent mistakes.
+    // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     MYFLT &L = *L_;
@@ -228,37 +232,38 @@ public:
     }
     // Standard 4th-order Runge-Kutta integration.
     for (size_t i = 0; i < ksmps; i++) {
-      // Stage 1.
-      k1(1) = (G * (M(2) - M(1)) - gnor(M(1))) / C1;
-      k1(2) = (G * (M(1) - M(2)) + M(3)) / C2;
-      k1(3) = (-(M(2) + R0 * M(3))) / L;
-      // Stage 2.
-      k2(1) = (G * (M(2) + h2 * k1(2) - (M(1) + h2 * k1(1))) - gnor(M(1) + h2 * k1(1))) / C1;
-      k2(2) = (G * (M(1) + h2 * k1(1) - (M(2) + h2 * k1(2))) + M(3) + h2 * k1(3)) / C2;
-      k2(3) = (-(M(2) + h2 * k1(2) + R0 * (M(3) + h2 * k1(3)))) / L;
-      // Stage 3.
-      k3(1) = (G * (M(2) + h2 * k2(2) - (M(1) + h2 * k2(1))) - gnor(M(1) + h2 * k2(1))) / C1;
-      k3(2) = (G * (M(1) + h2 * k2(1) - (M(2) + h2 * k2(2))) + M(3) + h2 * k2(3)) / C2;
-      k3(3) = (-(M(2) + h2 * k2(2) + R0 * (M(3) + h2 * k2(3)))) / L;
-      // Stage 4.
-      k4(1) = (G * (M(2) + h * k3(2) - (M(1) + h * k3(1))) - gnor(M(1) + h*k3(1))) / C1;
-      k4(2) = (G * (M(1) + h * k3(1) - (M(2) + h * k3(2))) + M(3) + h * k3(3)) / C2;
-      k4(3) = (-(M(2) + h * k3(2) + R0 * (M(3) + h * k3(3)))) / L;    
-      // Finishes integration and assigns values to M.    
-      M = M + (k1 + 2 * k2 + 2 * k3 + k4) * (h6);     
       //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
       //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
       //     TimeSeries(1,i+1) = M(3); %TimeSeries 1 is I3    
       V1[i] = M(1);
       V2[i] = M(2);
       I3[i] = M(3);
+      // std::printf("%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
+      // Runge Kutta
+      // Round One
+      k1(1) = (G*(M(2) - M(1)) - gnor(M(1)))/C1;
+      k1(2) = (G*(M(1) - M(2)) + M(3))/C2;
+      k1(3) = (-1.0*(M(2) + R0*M(3)))/L;
+      // Round Two
+      k2(1) = (G*(M(2) + h2*k1(2) - (M(1) + h2*k1(1))) - gnor(M(1) + h2*k1(1)))/C1;
+      k2(2) = (G*(M(1) + h2*k1(1) - (M(2) + h2*k1(2))) + M(3) + h2*k1(3))/C2;
+      k2(3) = (- (M(2) + h2*k1(2) + R0*(M(3) + h2*k1(3))))/L;
+      // Round Three
+      k3(1) = (G*(M(2) + h2*k2(2) - (M(1) + h2*k2(1))) - gnor(M(1) + h2*k2(1)))/C1;
+      k3(2) = (G*(M(1) + h2*k2(1) - (M(2) + h2*k2(2))) + M(3) + h2*k2(3))/C2;
+      k3(3) = (- (M(2) + h2*k2(2) + R0*(M(3) + h2*k2(3))))/L;
+      // Round Four
+      k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1)))/C1;
+      k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
+      k4(3) = (- (M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;    
+      // Finishes integration and assigns values to M
+      M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); 
     }
     return OK;
   }
-  MYFLT gnor(double x)
+  MYFLT gnor(MYFLT x)
   {
-    // No need to compute zero coefficients.
-    return a * std::pow(x, 3.0) /* + b * std::pow(x, 2.0) */ + c * x /* + d */;
+    return (a * std::pow(x, 3.0)) + (b * std::pow(x, 2.0)) + (c * x) + d;
   }
  };
 
@@ -347,6 +352,8 @@ public:
   MYFLT *V2;
   MYFLT *V1;
   // INPUTS
+  // sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1
+  // integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size
   // function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
   // Circuit elements.
   MYFLT *L_;
@@ -393,8 +400,8 @@ public:
   {
     stepSizes();
     // NOTE: The original MATLAB code uses 1-based indexing.
-    //       Although the MATLAB vectors are columns, 
-    //       these are rows; it doesn't matter here.
+    // Although the MATLAB vectors are columns, 
+    // these are rows; it doesn't matter here.
     // k1 = [0 0 0]';
     k1.resize(4);
     // k2 = [0 0 0]';
@@ -412,7 +419,7 @@ public:
     // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = csound->GetKsmps(csound);
-    std::printf("init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
+    //  std::printf("init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
     return OK;
   }
   int noteoff(CSOUND *csound)
@@ -520,18 +527,18 @@ extern "C"
 {
   OENTRY oentries[] =
     {
-      {
-        (char*)"chuac",
-        sizeof(ChuasOscillatorCubic),
-        5,
-	// kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
-	// 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
-        (char*)"aaa",
-        (char*)"kkkkkiiik",
-        (SUBR) ChuasOscillatorCubic::init_,
-        0,
-        (SUBR) ChuasOscillatorCubic::kontrol_,
-      },
+//       {
+//         (char*)"chuac",
+//         sizeof(ChuasOscillatorCubic),
+//         5,
+// 	// kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
+// 	// 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
+//         (char*)"aaa",
+//         (char*)"kkkkkiiik",
+//         (SUBR) ChuasOscillatorCubic::init_,
+//         0,
+//         (SUBR) ChuasOscillatorCubic::kontrol_,
+//       },
       {
         (char*)"chuap",
         sizeof(ChuasOscillatorPiecewise),
