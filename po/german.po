@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 15:58+0100\n"
+"PO-Revision-Date: 2008-05-05 16:49+0100\n"
 "Last-Translator: JPff\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -341,7 +341,7 @@ msgstr ""
 
 #: Engine/fgens.c:1054
 msgid "unknown distribution"
-msgstr ""
+msgstr "unbekannte Verteilung"
 
 #: Engine/fgens.c:1074
 msgid "error opening ASCII file"
@@ -967,7 +967,7 @@ msgstr ""
 
 #: Engine/musmon.c:317 Top/main.c:387
 msgid "\t... done\n"
-msgstr ""
+msgstr "\t... getan\n"
 
 #: Engine/musmon.c:321
 msgid "playing from cscore.srt\n"
@@ -2061,7 +2061,7 @@ msgstr ""
 
 #: InOut/libsnd_u.c:349 InOut/libsnd_u.c:377
 msgid "unknown"
-msgstr ""
+msgstr "unbekannte"
 
 #: InOut/libsnd_u.c:368
 msgid "unsigned bytes"
@@ -2097,7 +2097,7 @@ msgstr ""
 
 #: InOut/midifile.c:83
 msgid " *** unexpected end of MIDI file\n"
-msgstr ""
+msgstr " *** unerwartetes Ende der MIDI Akte\n"
 
 #: InOut/midifile.c:88
 msgid " *** unexpected end of MIDI track\n"
@@ -3501,7 +3501,7 @@ msgstr ""
 
 #: OOps/goto_ops.c:92
 msgid "negative time period"
-msgstr ""
+msgstr "negativer Zeitabschnitt"
 
 #: OOps/goto_ops.c:181
 msgid "turnoff2: invalid instrument number"
@@ -3538,7 +3538,7 @@ msgstr ""
 #: Opcodes/midiops2.c:298 Opcodes/midiops2.c:317 Opcodes/midiops2.c:357
 #: Opcodes/midiops2.c:388 Opcodes/midiops2.c:438 Opcodes/midiops2.c:472
 msgid "illegal controller number"
-msgstr ""
+msgstr "ungültige Steuerpultzahl"
 
 #: OOps/midiops.c:401
 msgid "pgmassign: invalid program number"
@@ -3618,7 +3618,7 @@ msgstr ""
 
 #: OOps/pstream.c:356
 msgid "pvsfread: file is empty!\n"
-msgstr ""
+msgstr "pvsfread: Akte ist leer!\n"
 
 #: OOps/pstream.c:359
 msgid "pvsfread: file has only one frame (= impulse response).\n"
@@ -3666,11 +3666,11 @@ msgstr ""
 
 #: OOps/pstream.c:599
 msgid "pvsftw: bad value for ifna.\n"
-msgstr ""
+msgstr "pvsftw: schlechter Wert für ifna.\n"
 
 #: OOps/pstream.c:601
 msgid "pvsftw: bad value for ifnf.\n"
-msgstr ""
+msgstr "pvsftw: schlechter Wert für ifnf.\n"
 
 #: OOps/pstream.c:615
 msgid "pvsftw: amps ftable too small.\n"
@@ -3744,11 +3744,11 @@ msgstr ""
 
 #: OOps/pvoc.c:304
 msgid "Error reading PVOC file"
-msgstr ""
+msgstr "Akte des Störung Messwert PVOC"
 
 #: OOps/pvoc.c:305
 msgid "Error writing PVOC file"
-msgstr ""
+msgstr "Störung Schreiben PVOC Akte"
 
 #: OOps/pvoc.c:315
 #, c-format
@@ -3864,7 +3864,7 @@ msgstr ""
 
 #: OOps/remote.c:237
 msgid "---> Could not connect \n"
-msgstr ""
+msgstr "---> Konnte nicht anschließen\n"
 
 #: OOps/remote.c:241
 msgid "---> Failed all attempts to connect. \n"
@@ -4318,7 +4318,7 @@ msgstr ""
 #: OOps/ugens5.c:443
 #, c-format
 msgid "file %s bytes are in wrong order"
-msgstr ""
+msgstr "Akte %s Bytes sind im falschen Auftrag"
 
 #: OOps/ugens5.c:453
 msgid "insufficient args and no file header"
@@ -4963,11 +4963,11 @@ msgstr ""
 
 #: Opcodes/fm4op.c:150
 msgid "No table for VibWaveato"
-msgstr ""
+msgstr "Keine Tabelle für VibWaveato"
 
 #: Opcodes/fm4op.c:174
 msgid "No table for FM4Op"
-msgstr ""
+msgstr "Keine Tabelle für FM4Op"
 
 #: Opcodes/fm4op.c:180 Opcodes/fm4op.c:186 Opcodes/fm4op.c:192
 msgid "No table for  FM4Op"
@@ -5554,7 +5554,7 @@ msgstr ""
 
 #: Opcodes/grain4.c:76
 msgid "granule_set: iratio must be greater then 0"
-msgstr ""
+msgstr "granule_set: iratio müssen grösseres dann 0 sein"
 
 #: Opcodes/grain4.c:80
 msgid "granule_set: imode must be -1, 0 or +1"
@@ -5574,19 +5574,19 @@ msgstr ""
 
 #: Opcodes/grain4.c:101
 msgid "granule_set: ipitch1 must be greater then zero"
-msgstr ""
+msgstr "granule_set: ipitch1 müssen grösseres dann null sein"
 
 #: Opcodes/grain4.c:106
 msgid "granule_set: ipitch2 must be greater then zero"
-msgstr ""
+msgstr "granule_set: ipitch2 müssen grösseres dann null sein"
 
 #: Opcodes/grain4.c:111
 msgid "granule_set: ipitch3 must be greater then zero"
-msgstr ""
+msgstr "granule_set: ipitch3 müssen grösseres dann null sein"
 
 #: Opcodes/grain4.c:116
 msgid "granule_set: ipitch4 must be greater then zero"
-msgstr ""
+msgstr "granule_set: ipitch4 müssen grösseres dann null sein"
 
 #: Opcodes/grain4.c:121
 msgid "granule_set: must be positive and less than function table length"
@@ -5594,11 +5594,11 @@ msgstr ""
 
 #: Opcodes/grain4.c:125
 msgid "granule_set: igskip_os must be greater then 0"
-msgstr ""
+msgstr "granule_set: igskip_os müssen grösseres dann 0 sein"
 
 #: Opcodes/grain4.c:134
 msgid "granule_set: kgap must be greater then 0"
-msgstr ""
+msgstr "granule_set: kgap müssen grösseres dann 0 sein"
 
 #: Opcodes/grain4.c:138
 #, c-format
@@ -5607,7 +5607,7 @@ msgstr ""
 
 #: Opcodes/grain4.c:142
 msgid "granule_set: kgsize must be greater then 0"
-msgstr ""
+msgstr "granule_set: kgsize müssen grösseres dann 0 sein"
 
 #: Opcodes/grain4.c:146
 #, c-format
@@ -5818,7 +5818,7 @@ msgstr ""
 
 #: Opcodes/mandolin.c:80
 msgid "No table for Mandolin"
-msgstr ""
+msgstr "Keine Tabelle für Mandolin"
 
 #: Opcodes/mandolin.c:90
 msgid "No base frequency for mandolin"
@@ -6048,7 +6048,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:121
 msgid "No table for Clarinet"
-msgstr ""
+msgstr "Keine Tabelle für Clarinet"
 
 #: Opcodes/physmod.c:129
 msgid "No base frequency for clarinet -- assuming 50Hz\n"
@@ -6056,7 +6056,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:279
 msgid "No table for Flute"
-msgstr ""
+msgstr "Keine Tabelle für Flute"
 
 #: Opcodes/physmod.c:287
 msgid "No base frequency for flute -- assumed to be 50Hz\n"
@@ -6072,7 +6072,7 @@ msgstr "DlineA nicht initialisiert"
 
 #: Opcodes/physmod.c:752
 msgid "No table for Brass"
-msgstr ""
+msgstr "Keine Tabelle für Brass"
 
 #: Opcodes/physmod.c:761
 msgid "No base frequency for brass -- assumed to be 50Hz\n"
@@ -6409,7 +6409,7 @@ msgstr ""
 
 #: Opcodes/pvsbasic.c:136
 msgid "pvsfwrite: could not write data\n"
-msgstr ""
+msgstr "pvsfwrite: konnte nicht Daten schreiben\n"
 
 #: Opcodes/pvsbasic.c:176
 #, c-format
@@ -6729,11 +6729,11 @@ msgstr ""
 
 #: Opcodes/singwave.c:81
 msgid "No table for Modulatr"
-msgstr ""
+msgstr "Keine Tabelle für Modulatr"
 
 #: Opcodes/singwave.c:123
 msgid "No table for Singwave"
-msgstr ""
+msgstr "Keine Tabelle für Singwave"
 
 #: Opcodes/singwave.c:194
 #, c-format
@@ -6995,7 +6995,7 @@ msgstr ""
 
 #: Opcodes/stackops.c:207 Top/argdecode.c:1209 util/scale.c:251
 msgid "too many arguments"
-msgstr ""
+msgstr "zu viele Argumente"
 
 #: Opcodes/stackops.c:286
 msgid "the stack is already allocated"
@@ -7120,7 +7120,7 @@ msgstr "vibrato(krate): nicht initialisiert"
 
 #: Opcodes/ugmoss.c:49
 msgid "No table for dconv"
-msgstr ""
+msgstr "Keine Tabelle für dconv"
 
 #: Opcodes/ugmoss.c:379 Opcodes/vbap_eight.c:211 Opcodes/vbap_eight.c:493
 #: Opcodes/vbap_four.c:208 Opcodes/vbap_four.c:492 Opcodes/vbap_sixteen.c:208

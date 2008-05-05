@@ -97,7 +97,7 @@ static int callox(CSOUND *csound)
     if (csound->remoteGlobals == NULL) {
       csound->remoteGlobals = csound->Calloc(csound, sizeof(REMOTE_GLOBALS));
       if (csound->remoteGlobals == NULL) {
-        csound->Message(csound, Str("insufficient memory to initialize remote"
+        csound->Message(csound, Str("insufficient memory to initialise remote"
                         " globals."));
         goto error;
       }
@@ -106,14 +106,14 @@ static int callox(CSOUND *csound)
 
     ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
     if (ST(socksout) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize outgoing "
+      csound->Message(csound, Str("insufficient memory to initialise outgoing "
                       "socket table."));
       goto error;
     }
 
     ST(socksin) = (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (ST(socksin) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize incoming "
+      csound->Message(csound, Str("insufficient memory to initialise incoming "
                       "socket table."));
       goto error;
     }
@@ -121,7 +121,7 @@ static int callox(CSOUND *csound)
     ST(insrfd_list) =
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (ST(insrfd_list) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize "
+      csound->Message(csound, Str("insufficient memory to initialise "
                       "insrfd_list."));
       goto error;
     }
@@ -129,28 +129,28 @@ static int callox(CSOUND *csound)
     ST(chnrfd_list) =
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (ST(chnrfd_list) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize "
+      csound->Message(csound, Str("insufficient memory to initialise "
                       "chnrfd_list."));
       goto error;
     }
 
     ST(insrfd) = (int*) csound->Calloc(csound,(size_t)129 * sizeof(int));
     if (ST(insrfd) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize "
+      csound->Message(csound, Str("insufficient memory to initialise "
                       "insrfd table."));
       goto error;
     }
 
     ST(chnrfd) = (int*) csound->Calloc(csound,(size_t)17 * sizeof(int));
     if (ST(chnrfd) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize "
+      csound->Message(csound, Str("insufficient memory to initialise "
                       "chnrfd table."));
       goto error;
     }
 
     ST(ipadrs) = (char*) csound->Calloc(csound,(size_t)15 * sizeof(char));
     if (ST(ipadrs) == NULL) {
-      csound->Message(csound, Str("insufficient memory to initialize "
+      csound->Message(csound, Str("insufficient memory to initialise "
                       "local ip address."));
       goto error;
     }
@@ -350,7 +350,7 @@ int remoteport(CSOUND *csound, REMOTEPORT *p)
     if (csound->remoteGlobals==NULL) {
       if (callox(csound) < 0) {
         return
-          csound->InitError(csound, Str("failed to initialize remote globals."));
+          csound->InitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (ST(socksin) == NULL) {
@@ -371,7 +371,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
         return
-          csound->InitError(csound, Str("failed to initialize remote globals."));
+          csound->InitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (nargs < 3) {
@@ -414,7 +414,7 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
         return
-          csound->InitError(csound, Str("failed to initialize remote globals."));
+          csound->InitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (nargs < 2) {
@@ -446,7 +446,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
         return
-          csound->InitError(csound, Str("failed to initialize remote globals."));
+          csound->InitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (nargs < 3) {
@@ -486,7 +486,7 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (callox(csound) < 0) {
         return
-          csound->InitError(csound, Str("failed to initialize remote globals."));
+          csound->InitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (nargs < 2) {

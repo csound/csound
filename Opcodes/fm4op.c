@@ -177,19 +177,19 @@ static int FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
       p->waves[1] = ftp;
     else {
       return csound->PerfError(csound,
-                               Str("No table for  FM4Op")); /* Expect sine wave */
+                               Str("No table for FM4Op")); /* Expect sine wave */
     }
     if ((ftp = csound->FTFind(csound, p->ifn2)) != NULL)
       p->waves[2] = ftp;
     else {
       return csound->PerfError(csound,
-                               Str("No table for  FM4Op")); /* Expect sine wave */
+                               Str("No table for FM4Op")); /* Expect sine wave */
     }
     if ((ftp = csound->FTFind(csound, p->ifn3)) != NULL)
       p->waves[3] = ftp;
     else {
       return csound->PerfError(csound,
-                               Str("No table for  FM4Op")); /* Expect sine wave */
+                               Str("No table for FM4Op")); /* Expect sine wave */
     }
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
