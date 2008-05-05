@@ -262,8 +262,8 @@ public:
     return OK;
   }
   MYFLT gnor(MYFLT x)
-  {
-    return (a * std::pow(x, 3.0)) + (b * std::pow(x, 2.0)) + (c * x) + d;
+  {   // Odd to use std::pow here for integer powers when there is intpow function
+      return (a * std::pow(x, FL(3.0))) + (b * std::pow(x, FL(2.0))) + (c * x) + d;
   }
  };
 
