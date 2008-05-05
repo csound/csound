@@ -22,7 +22,7 @@
 //  License along with The vst4cs library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
-#ifdef _WIN32 
+#ifdef _WIN32
   #pragma warning(disable:4786) //gab
 #endif
 
@@ -104,26 +104,26 @@ bool CFxBank::SetSize(int nPrograms, int nParams)
     unsigned char *nBank = new unsigned char[nTotLen];
     if (!nBank)
       return false;
-    
+
     Unload();
     bBank = nBank;
     nBankLen = nTotLen;
     bChunk = false;
-    
+
     memset(nBank, 0, nTotLen);              /* initialize new bank               */
-    
+
     fxSet   *pSet = (fxSet *) bBank;
     pSet->chunkMagic = cMagic;
     pSet->byteSize = 0;
     pSet->fxMagic = bankMagic;
     pSet->version = MyVersion;
     pSet->numPrograms = nPrograms;
-    
+
     unsigned char *bProg = (unsigned char *) pSet->programs;
-    
+
     for (int i = 0; i < nPrograms; i++) {
       fxProgram *pProg = (fxProgram *) (bProg + i * nProgLen);
-      
+
       pProg->chunkMagic = cMagic;
       pProg->byteSize = 0;
       pProg->fxMagic = fMagic;
@@ -155,7 +155,7 @@ bool CFxBank::SetSize(int nChunkSize)
     pSet->version = MyVersion;
     pSet->numPrograms = 1;
     pSet->chunkSize = nChunkSize;
-    
+
     return true;
 }
 
@@ -200,7 +200,7 @@ bool CFxBank::LoadBank(char *pszFile)
       size_t tLen = (size_t)ftell(fp);
       //printf("File Size = %f\n", (float) tLen);
       rewind(fp);
-      
+
       nBank = new unsigned char[tLen];      /* allocate storage                  */
       //if (!nBank)
       //  throw (int)1;

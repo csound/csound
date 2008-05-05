@@ -79,7 +79,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
         jack_transport_stop(client);
         break;
       default:
-        csound->Message(csound, Str("jack_transport: invalid parameter.\n"));
+        csound->Message(csound, Str("jacktransport: invalid parameter.\n"));
         break;
       }
     }

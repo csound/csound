@@ -28,7 +28,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
-#ifdef _WIN32 
+#ifdef _WIN32
   #pragma warning(disable:4786) //gab
 #endif
 
@@ -381,7 +381,7 @@ void VSTPlugin::SendMidi()
       vstEventsBuffer.resize(sizeof(VstEvents) +
                              (sizeof(VstEvent *) * vstMidiEvents.size()));
       VstEvents *vstEvents = (VstEvents *) &vstEventsBuffer.front();
-      
+
       vstEvents->numEvents = vstMidiEvents.size();
       vstEvents->reserved = 0;
       for (size_t i = 0, n = vstEvents->numEvents; i < n; i++) {
@@ -420,7 +420,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 {
     Debug("VSTPlugin::Instance.\n");
 #ifdef __MACH__
-    CFStringRef vstBundlePath = 
+    CFStringRef vstBundlePath =
       CFStringCreateWithCString(kCFAllocatorDefault,
                                 libraryName_, kCFStringEncodingMacRoman );
     CFURLRef vstBundleURL =
@@ -429,10 +429,10 @@ int VSTPlugin::Instantiate(const char *libraryName_)
                                     kCFURLPOSIXPathStyle,
                                     true);
     CFBundleRef vstBundle = CFBundleCreate(kCFAllocatorDefault, vstBundleURL);
-    
+
     CFRelease(vstBundlePath);
     CFRelease(vstBundleURL);
-    
+
     if (vstBundle == NULL)
 #else
       if (csound->OpenLibrary(&libraryHandle, libraryName_) != 0)
@@ -442,7 +442,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
           return VSTINSTANCE_ERR_NO_VALID_FILE;
         }
     Debug("Loaded plugin library '%s'.\n", libraryName_);
-    
+
 #ifdef __MACH__
     short bundleRes = CFBundleOpenBundleResourceMap(vstBundle);
       /* For VST SDK 2.4 and later. */
@@ -905,7 +905,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
         return -1;
     case audioMasterIdle:
       if (plugin) {
-	plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+        plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
       }
       return 0;
     case audioMasterPinConnected:
