@@ -416,7 +416,7 @@ int express(CSOUND *csound, char *s)
         else if ((c == 'B' || c == 'b') &&
                  (d == 'B' || d == 'b'))
           outype = 'B';
-        else XERROR(Str("incorrect logical argumemts"))
+        else XERROR(Str("incorrect logical arguments"))
       }
       else if (prec == CONDVAL && argcnt >= 3) { /* cond vals:     */
         strncpy(op, ": ", 12);                   /*   init op as ': ' */
