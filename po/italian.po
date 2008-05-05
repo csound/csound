@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 16:50+0100\n"
-"PO-Revision-Date: 2008-05-05 17:00+0100\n"
+"PO-Revision-Date: 2008-05-05 19:23+0100\n"
 "Last-Translator:\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -499,7 +499,7 @@ msgstr ""
 
 #: Engine/fgens.c:2322
 msgid "wrong number of ftable arguments"
-msgstr ""
+msgstr "numero errato di discussioni ftable"
 
 #: Engine/fgens.c:2332 OOps/pstream.c:338
 msgid "Failed to load PVOC-EX file"
@@ -512,7 +512,7 @@ msgstr ""
 
 #: Engine/fgens.c:2361
 msgid "ftable size too small"
-msgstr ""
+msgstr "formato ftable troppo piccolo"
 
 #: Engine/fgens.c:2389
 msgid "gen51: invalid number of p-fields (too few grades)"
@@ -528,7 +528,7 @@ msgstr ""
 
 #: Engine/fgens.c:2586
 msgid "GEN53: invalid table length"
-msgstr ""
+msgstr "GEN53: lunghezza non valida della tabella"
 
 #: Engine/fgens.c:2590
 msgid "GEN53: invalid source table number"
@@ -573,7 +573,7 @@ msgstr ""
 #: Engine/insert.c:85
 #, c-format
 msgid "Instrument %d muted\n"
-msgstr ""
+msgstr "Strumento %d muted\n"
 
 #: Engine/insert.c:89 Engine/insert.c:1152
 #, c-format
@@ -592,7 +592,7 @@ msgstr ""
 #: Engine/insert.c:118 Engine/insert.c:256 Engine/insert.c:1168
 #, c-format
 msgid "new alloc for instr %d:\n"
-msgstr ""
+msgstr "nuova ripartizione per lo strumento %d:\n"
 
 #: Engine/insert.c:157
 #, c-format
@@ -622,43 +622,43 @@ msgstr ""
 msgid ""
 "\n"
 "INIT ERROR: "
-msgstr ""
+msgstr "\nERRORE DI INIZIO: "
 
 #: Engine/insert.c:663
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
-msgstr ""
+msgstr "ERRORE di INIZIO in strumento %d (opcode %s): "
 
 #: Engine/insert.c:666
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
-msgstr ""
+msgstr "ERRORE di INIZIO in strumento %d (subinstr %d): "
 
 #: Engine/insert.c:670
 #, c-format
 msgid "INIT ERROR in instr %d: "
-msgstr ""
+msgstr "ERRORE di INIZIO in strumento %d: "
 
 #: Engine/insert.c:688
 msgid ""
 "\n"
 "PERF ERROR: "
-msgstr ""
+msgstr "\nERRORE DI PRESTAZIONI: "
 
 #: Engine/insert.c:701
 #, c-format
 msgid "PERF ERROR in instr %d (opcode %s): "
-msgstr ""
+msgstr "ERRORE DI PRESTAZIONI in strumento %d (opcode %s): "
 
 #: Engine/insert.c:704
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
-msgstr ""
+msgstr "ERRORE DI PRESTAZIONI in strumento %d (subinstr %d): "
 
 #: Engine/insert.c:708
 #, c-format
 msgid "PERF ERROR in instr %d: "
-msgstr ""
+msgstr "ERRORE DI PRESTAZIONI in strumento %d: "
 
 #: Engine/insert.c:713
 msgid "   note aborted\n"
@@ -1009,7 +1009,7 @@ msgstr ""
 
 #: Engine/musmon.c:513 Engine/musmon.c:559
 msgid "\t number of samples out of range:"
-msgstr ""
+msgstr "\t numero di campioni fuori portata:"
 
 #: Engine/musmon.c:552
 #, c-format
@@ -1742,7 +1742,7 @@ msgstr ""
 #: Engine/sread.c:1344
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
-msgstr ""
+msgstr "AVVERTIMENTO: strumento %s non trovato, insno = -1 assuming\n"
 
 #: Engine/sread.c:1364
 msgid "sread: illegal use of carry,   0 substituted\n"
@@ -1754,7 +1754,7 @@ msgstr ""
 
 #: Engine/sread.c:1541
 msgid "Not #define"
-msgstr ""
+msgstr "Non #define"
 
 #: Engine/sread.c:1599
 #, c-format
@@ -1763,7 +1763,7 @@ msgstr ""
 
 #: Engine/sread.c:1609
 msgid "Not #include"
-msgstr ""
+msgstr "Non #include"
 
 #: Engine/sread.c:1636
 #, c-format
@@ -1772,7 +1772,7 @@ msgstr ""
 
 #: Engine/sread.c:1646
 msgid "Not #undef"
-msgstr ""
+msgstr "Non #undef"
 
 #: Engine/sread.c:1663
 msgid "unknown # option"
@@ -1905,7 +1905,7 @@ msgstr ""
 
 #: InOut/libsnd.c:421
 msgid "Failed to initialise real time audio output"
-msgstr ""
+msgstr "Non è riuscito a inizializzare l'uscita audio in tempo reale"
 
 #: InOut/libsnd.c:447 InOut/libsnd.c:451
 #, c-format
@@ -1952,7 +1952,7 @@ msgstr ""
 
 #: InOut/libsnd_u.c:59 Opcodes/ugens9.c:374
 msgid "undetermined file length, will attempt requested duration"
-msgstr ""
+msgstr "la lunghezza indeterminata della lima, tenterà la durata chiesta"
 
 #: InOut/libsnd_u.c:72
 msgid "full requested duration not available"
@@ -2093,7 +2093,7 @@ msgstr ""
 
 #: InOut/midifile.c:83
 msgid " *** unexpected end of MIDI file\n"
-msgstr ""
+msgstr " *** estremità inattesa della lima del MIDI\n"
 
 #: InOut/midifile.c:88
 msgid " *** unexpected end of MIDI track\n"
