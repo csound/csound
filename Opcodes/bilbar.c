@@ -105,7 +105,7 @@ static int bar_run(CSOUND *csound, BAR *p)
 
     if ((bcL|bcR)&(~3) && (bcL|bcR)!=0)
       return csound->PerfError(csound,
-                               Str("Ends but be clamped(1), "
+                               Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
 
     for (n = 0; n < csound->ksmps; n++) {

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-05 13:20+0100\n"
+"POT-Creation-Date: 2008-05-05 16:50+0100\n"
 "PO-Revision-Date: 2008-05-05 15:05+0100\n"
 "Last-Translator: Chuckk Hubbard <badmuthahubbard@gmail.com>\n"
 "Language-Team: Romanian\n"
@@ -198,7 +198,7 @@ msgid "audio relational"
 msgstr ""
 
 #: Engine/express.c:419
-msgid "incorrect logical argumemts"
+msgid "incorrect logical arguments"
 msgstr ""
 
 #: Engine/express.c:433
@@ -3819,35 +3819,35 @@ msgid ""
 msgstr ""
 
 #: OOps/remote.c:100
-msgid "insufficient memory to initialize remote globals."
+msgid "insufficient memory to initialise remote globals."
 msgstr ""
 
 #: OOps/remote.c:109
-msgid "insufficient memory to initialize outgoing socket table."
+msgid "insufficient memory to initialise outgoing socket table."
 msgstr ""
 
 #: OOps/remote.c:116
-msgid "insufficient memory to initialize incoming socket table."
+msgid "insufficient memory to initialise incoming socket table."
 msgstr ""
 
 #: OOps/remote.c:124
-msgid "insufficient memory to initialize insrfd_list."
+msgid "insufficient memory to initialise insrfd_list."
 msgstr ""
 
 #: OOps/remote.c:132
-msgid "insufficient memory to initialize chnrfd_list."
+msgid "insufficient memory to initialise chnrfd_list."
 msgstr ""
 
 #: OOps/remote.c:139
-msgid "insufficient memory to initialize insrfd table."
+msgid "insufficient memory to initialise insrfd table."
 msgstr ""
 
 #: OOps/remote.c:146
-msgid "insufficient memory to initialize chnrfd table."
+msgid "insufficient memory to initialise chnrfd table."
 msgstr ""
 
 #: OOps/remote.c:153
-msgid "insufficient memory to initialize local ip address."
+msgid "insufficient memory to initialise local ip address."
 msgstr ""
 
 #: OOps/remote.c:161
@@ -3905,7 +3905,7 @@ msgstr ""
 
 #: OOps/remote.c:353 OOps/remote.c:374 OOps/remote.c:417 OOps/remote.c:449
 #: OOps/remote.c:489
-msgid "failed to initialize remote globals."
+msgid "failed to initialise remote globals."
 msgstr ""
 
 #: OOps/remote.c:378 OOps/remote.c:421
@@ -4735,28 +4735,25 @@ msgstr ""
 msgid "lorisread cannot load %s"
 msgstr ""
 
-#: Opcodes/OSC.c:116 Opcodes/OSC_iv.c:115
+#: Opcodes/OSC.c:116
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:119 Opcodes/OSC_iv.c:118
+#: Opcodes/OSC.c:119
 msgid "No a-rate arguments allowed"
 msgstr ""
 
 #: Opcodes/OSC.c:155 Opcodes/OSC.c:160 Opcodes/OSC.c:165 Opcodes/OSC.c:175
 #: Opcodes/OSC.c:182 Opcodes/OSC.c:187 Opcodes/OSC.c:198 Opcodes/OSC.c:206
-#: Opcodes/OSC_iv.c:154 Opcodes/OSC_iv.c:159 Opcodes/OSC_iv.c:164
-#: Opcodes/OSC_iv.c:174 Opcodes/OSC_iv.c:181 Opcodes/OSC_iv.c:186
-#: Opcodes/OSC_iv.c:197 Opcodes/OSC_iv.c:205
 msgid "String not expected"
 msgstr ""
 
-#: Opcodes/OSC.c:194 Opcodes/OSC_iv.c:193
+#: Opcodes/OSC.c:194
 msgid "Not a string when needed"
 msgstr ""
 
 #: Opcodes/OSC.c:211
-msgid "Time stanmp is two values"
+msgid "Time stamp is two values"
 msgstr ""
 
 #: Opcodes/OSC.c:217
@@ -4764,11 +4761,11 @@ msgstr ""
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:395 Opcodes/OSC_iv.c:394
+#: Opcodes/OSC.c:395
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:413 Opcodes/OSC_iv.c:411
+#: Opcodes/OSC.c:413
 msgid "OSCrecv is already running"
 msgstr ""
 
@@ -4778,10 +4775,6 @@ msgstr ""
 
 #: Opcodes/OSC.c:617
 msgid "invalid handle"
-msgstr ""
-
-#: Opcodes/OSC_iv.c:210
-msgid "Time stamp is two values"
 msgstr ""
 
 #: Opcodes/Vosim.c:49
@@ -4826,7 +4819,7 @@ msgid "No data to continue"
 msgstr ""
 
 #: Opcodes/bilbar.c:108
-msgid "Ends but be clamped(1), pivoting(2) or free(3)"
+msgid "Ends must be clamped(1), pivoting(2) or free(3)"
 msgstr ""
 
 #: Opcodes/biquad.c:433 Opcodes/biquad.c:442
@@ -4961,12 +4954,9 @@ msgstr ""
 msgid "No table for VibWaveato"
 msgstr ""
 
-#: Opcodes/fm4op.c:174
+#: Opcodes/fm4op.c:174 Opcodes/fm4op.c:180 Opcodes/fm4op.c:186
+#: Opcodes/fm4op.c:192
 msgid "No table for FM4Op"
-msgstr ""
-
-#: Opcodes/fm4op.c:180 Opcodes/fm4op.c:186 Opcodes/fm4op.c:192
-msgid "No table for  FM4Op"
 msgstr ""
 
 #: Opcodes/follow.c:38
@@ -7766,8 +7756,9 @@ msgid "not loading '%s' (uses incompatible floating point type)"
 msgstr ""
 
 #: Top/csmodule.c:196
+#, c-format
 msgid ""
-"not loading '%s' (incompatible with this version of Csound %(%d.%d/%d.%d)"
+"not loading '%s' (incompatible with this version of Csound (%d.%d/%d.%d)"
 msgstr ""
 
 #: Top/csmodule.c:237
@@ -8118,11 +8109,6 @@ msgstr ""
 #: Top/main.c:305
 #, c-format
 msgid "scorename: %s\n"
-msgstr ""
-
-#: Top/main.c:307
-#, c-format
-msgid "xfilename: %s\n"
 msgstr ""
 
 #: Top/main.c:331

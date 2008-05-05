@@ -208,7 +208,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             msk <<= 1; i++;
             if (type[i]!='t')
               return csound->PerfError(csound,
-                                       Str("Time stanmp is two values"));
+                                       Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
             break;

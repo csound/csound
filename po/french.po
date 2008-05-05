@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 15:04+0100\n"
+"PO-Revision-Date: 2008-05-05 16:30+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4843,7 +4843,7 @@ msgstr "multitap : non initialisé"
 
 #: OOps/vdelay.c:894
 msgid "High frequency diffusion not in (0, 1)\n"
-msgstr "La diffusion de haute fréquence n'est pas dans (0, 1)\n"
+msgstr "La diffusion de haute fréquence n'est pas dans ]0, 1[\n"
 
 #: OOps/vdelay.c:910
 #, c-format
