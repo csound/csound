@@ -94,6 +94,10 @@ public:
     *iamplitude = std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
     return OK;
   }
+  int noteoff(CSOUND *)
+  {
+    return OK;
+  }
 };
 
 extern "C" {

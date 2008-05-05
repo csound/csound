@@ -165,6 +165,9 @@ public:
 public:
   int init(CSOUND *csound)
   {
+    if (!csound->reinitflag && !csound->tieflag) {
+      csound->RegisterDeinitCallback(csound, this, &noteoff_);
+    }
     // h = step_size; %*(G/C2);
     h = *step_size_;
     // h2 = (h)*(.5);
@@ -197,18 +200,23 @@ public:
     c = -0.00121;
     d = 0.0;
     ksmps = csound->GetKsmps(csound);
-    //std::printf("init: L: %f  R0: %f  C2: %f  G: %f  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
-    //std::printf("init: a: %f  b: %f  c: %f  d: %f\n", a, b, c, d);
+    warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n", *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
+    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n", a, b, c, d);
     return OK;
-  }
-  static int init_(CSOUND *csound, void *opcode_)
-  {
-    ChuasOscillatorCubic *opcode = reinterpret_cast<ChuasOscillatorCubic *>(opcode_);
-    return opcode->init(csound);
   }
   int noteoff(CSOUND *csound)
   {
+    warn(csound, "ChuasOscillatorCubic::noteoff\n");
+    k1.resize(0);
+    k2.resize(0);
+    k3.resize(0);
+    k4.resize(0);
+    M.resize(0);
     return OK;
+  }
+  static int noteoff_(CSOUND *csound, void *opcode)
+  {
+    return ((ChuasOscillatorCubic *)opcode)->noteoff(csound);
   }
   int kontrol(CSOUND *csound)
   {
@@ -398,6 +406,9 @@ public:
   size_t ksmps;
   int init(CSOUND *csound)
   {
+    if (!csound->reinitflag && !csound->tieflag) {
+      csound->RegisterDeinitCallback(csound, this, &noteoff_);
+    }
     stepSizes();
     // NOTE: The original MATLAB code uses 1-based indexing.
     // Although the MATLAB vectors are columns, 
@@ -419,14 +430,24 @@ public:
     // M(3) = TimeSeries(1)/(E*G);
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = csound->GetKsmps(csound);
-    //  std::printf("init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
+    warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: %f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2): %f  M(3): %f step: %f\n", *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, M(1), M(2), M(3), step_size);
     return OK;
   }
   int noteoff(CSOUND *csound)
   {
+    warn(csound, "ChuasOscillatorPiecewise::noteoff\n");
+    k1.resize(0);
+    k2.resize(0);
+    k3.resize(0);
+    k4.resize(0);
+    M.resize(0);
     return OK;
   }
-  int kontrol(CSOUND *csound)
+  static int noteoff_(CSOUND *csound, void *opcode)
+  {
+    return ((ChuasOscillatorCubic *)opcode)->noteoff(csound);
+  }
+ int kontrol(CSOUND *csound)
   {
     // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
@@ -472,7 +493,7 @@ public:
       V2[i] = E * M(2); 
       // TimeSeries(1,i+1) = (E*G)*M(3);
       I3[i] = (E * G) * M(3);
-      //std::printf("%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
+      // warn(csound, "%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
     }
     return OK;
   }
@@ -515,11 +536,6 @@ public:
     ch2 = gammaloc * h2;
     // omch2 = 1 - ch2;
     omch2 = 1.0 - ch2;
-  }
-  static int init_(CSOUND *csound, void *opcode_)
-  {
-    ChuasOscillatorPiecewise *opcode = reinterpret_cast<ChuasOscillatorPiecewise *>(opcode_);
-    return opcode->init(csound);
   }
 };
 
