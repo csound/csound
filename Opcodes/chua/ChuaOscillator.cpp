@@ -445,7 +445,7 @@ public:
   }
   static int noteoff_(CSOUND *csound, void *opcode)
   {
-    return ((ChuasOscillatorCubic *)opcode)->noteoff(csound);
+    return ((ChuasOscillatorPiecewise *)opcode)->noteoff(csound);
   }
  int kontrol(CSOUND *csound)
   {
