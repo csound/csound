@@ -144,7 +144,7 @@ typedef struct {
     MYFLT       *aout;
     MYFLT       *xin, *imethod, *iparam1, *iseed, *iskip;
     int32       ampinc;         /* Scale output to range */
-    uint32	randSeed;     /* Used by local random generator */
+    uint32      randSeed;     /* Used by local random generator */
                                 /* for Paul Kellet's filter bank */
     double      b0, b1, b2, b3, b4, b5, b6;
                                 /* for Gardner method */

@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 14:44+0100\n"
+"PO-Revision-Date: 2008-05-05 15:04+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -5993,7 +5993,7 @@ msgid "jacktransport: stopped.\n"
 msgstr "jacktransport arrêté.\n"
 
 #: Opcodes/jackTransport.c:82
-msgid "jack_transport: invalid parameter.\n"
+msgid "jacktransport: invalid parameter.\n"
 msgstr "jacktransport: paramètre non valide.\n"
 
 #: Opcodes/locsig.c:42
@@ -9858,8 +9858,8 @@ msgstr "scot : %d erreurs.\n"
 #~ msgid "sound output format cannot be both -%c and -%c"
 #~ msgstr "le format son de sortie ne peut pas être à la fois -%c et -%c"
 
-#~ msgid "jack_transport rewinded.\n"
-#~ msgstr "jack_transport rembobiné.\n"
+#~ msgid "jacktransport rewinded.\n"
+#~ msgstr "jacktransport rembobiné.\n"
 
 #, fuzzy
 #~ msgid ""

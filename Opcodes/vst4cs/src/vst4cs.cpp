@@ -23,7 +23,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
 
-#ifdef _WIN32 
+#ifdef _WIN32
 #pragma warning(disable:4786) //gab
 #endif
 
@@ -112,31 +112,31 @@ extern "C" {
     // plugin->Debug("vstaudio: plugin %x.\n", plugin);
     if (!p->h.insdshead->nxtact) {
       for (j = 0; j < p->pluginInChannels && j < p->opcodeInChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  plugin->inputs_[j][i] =
-	    (float) (p->ains[j][i] * csound->dbfs_to_float);
+        for (i = 0; i < p->framesPerBlock; i++)
+          plugin->inputs_[j][i] =
+            (float) (p->ains[j][i] * csound->dbfs_to_float);
       for ( ; j < p->pluginInChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  plugin->inputs_[j][i] = 0.0f;
+        for (i = 0; i < p->framesPerBlock; i++)
+          plugin->inputs_[j][i] = 0.0f;
       for (j = 0; j < p->pluginOutChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  plugin->outputs_[j][i] = 0.0f;
+        for (i = 0; i < p->framesPerBlock; i++)
+          plugin->outputs_[j][i] = 0.0f;
       plugin->process(&plugin->inputs.front(), &plugin->outputs.front(),
-		      p->framesPerBlock);
+                      p->framesPerBlock);
       for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
+        for (i = 0; i < p->framesPerBlock; i++)
+          p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
       for ( ; j < p->opcodeOutChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  p->aouts[j][i] = FL(0.0);
+        for (i = 0; i < p->framesPerBlock; i++)
+          p->aouts[j][i] = FL(0.0);
     }
     else {
       for (j = 0; j < p->opcodeInChannels && j < p->opcodeOutChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  p->aouts[j][i] = p->ains[j][i];
+        for (i = 0; i < p->framesPerBlock; i++)
+          p->aouts[j][i] = p->ains[j][i];
       for ( ; j < p->opcodeOutChannels; j++)
-	for (i = 0; i < p->framesPerBlock; i++)
-	  p->aouts[j][i] = FL(0.0);
+        for (i = 0; i < p->framesPerBlock; i++)
+          p->aouts[j][i] = FL(0.0);
     }
     return OK;
   }
@@ -149,22 +149,22 @@ extern "C" {
     // plugin->Debug("vstaudio: plugin %x.\n", plugin);
     for (j = 0; j < p->pluginInChannels && j < p->opcodeInChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
-	plugin->inputs_[j][i] =
-	  (float) (p->ains[j][i] * csound->dbfs_to_float);
+        plugin->inputs_[j][i] =
+          (float) (p->ains[j][i] * csound->dbfs_to_float);
     for ( ; j < p->pluginInChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
-	plugin->inputs_[j][i] = 0.0f;
+        plugin->inputs_[j][i] = 0.0f;
     for (j = 0; j < p->pluginOutChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
-	plugin->outputs_[j][i] = 0.0f;
+        plugin->outputs_[j][i] = 0.0f;
     plugin->process(&plugin->inputs.front(), &plugin->outputs.front(),
-		    p->framesPerBlock);
+                    p->framesPerBlock);
     for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
-	p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
+        p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->e0dbfs;
     for ( ; j < p->opcodeOutChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
-	p->aouts[j][i] = FL(0.0);
+        p->aouts[j][i] = FL(0.0);
 
     return OK;
   }
@@ -254,8 +254,8 @@ extern "C" {
     if (st != 192 && st != 208) {
       d2 = (int) *(p->kdata2);
       if (st == 224) {
-	d2 += ((d1 >> 7) & 127);
-	d1 &= 127;
+        d2 += ((d1 >> 7) & 127);
+        d1 &= 127;
       }
       d2 = (d2 >= 0 ? (d2 < 128 ? d2 : 127) : 0);
     }
@@ -270,10 +270,10 @@ extern "C" {
     p->prvMidiData = midiData;
     plugin = ST(vstPlugins)[p->vstHandle];
     plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i--- mididata = %i\n",
-		  (int) *(p->kstatus),
-		  (int) *(p->kdata1),
-		  (int) *(p->kdata2),
-		  midiData);
+                  (int) *(p->kstatus),
+                  (int) *(p->kdata1),
+                  (int) *(p->kdata2),
+                  midiData);
     plugin->AddMIDI(midiData, 0, 0);
 
     return OK;
@@ -331,46 +331,46 @@ extern "C" {
     CFxBank fxBank((char *) p->ibank);          /* load the bank    */
 
     plugin->Dispatch(effBeginLoadBank,
-		     0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0);
+                     0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0);
     if (plugin->Dispatch(effBeginLoadBank,
-			 0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0)) {
+                         0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0)) {
       csound->InitError(csound, "Error: BeginLoadBank.");
       return NOTOK;
     }
     // csound->Message(csound, "EffBeginLoadBank\n");
     if (fxBank.IsLoaded()) {
       if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
-	csound->InitError(csound, "Loaded bank ID doesn't match plug-in ID.");
-	return NOTOK;
+        csound->InitError(csound, "Loaded bank ID doesn't match plug-in ID.");
+        return NOTOK;
       }
       if (fxBank.IsChunk()) {
-	if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
-	  csound->InitError(csound, "Loaded bank contains a chunk format "
-			    "that the effect cannot handle.");
-	  return NOTOK;
-	}
-	plugin->Dispatch(effSetChunk, 0, fxBank.GetChunkSize(),
-			 fxBank.GetChunk(), 0); // isPreset = 0
-	plugin->Log("Chunks loaded OK.\n");
+        if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
+          csound->InitError(csound, "Loaded bank contains a chunk format "
+                            "that the effect cannot handle.");
+          return NOTOK;
+        }
+        plugin->Dispatch(effSetChunk, 0, fxBank.GetChunkSize(),
+                         fxBank.GetChunk(), 0); // isPreset = 0
+        plugin->Log("Chunks loaded OK.\n");
       }
       else {
-	//     int     cProg = plugin->EffGetProgram();
-	int     cProg = plugin->Dispatch(effGetProgram, 0, 0, dummyPointer, 0);
-	//     csound->Message(csound, "Current Program= %i\n", cProg);
-	int     i, j;
-	int     nParms = fxBank.GetNumParams();
+        //     int     cProg = plugin->EffGetProgram();
+        int     cProg = plugin->Dispatch(effGetProgram, 0, 0, dummyPointer, 0);
+        //     csound->Message(csound, "Current Program= %i\n", cProg);
+        int     i, j;
+        int     nParms = fxBank.GetNumParams();
 
-	//     csound->Message(csound, "nParms= %i\n", nParms);
-	for (i = 0; i < fxBank.GetNumPrograms(); i++) {
-	  plugin->Dispatch(effSetProgram, 0, i, dummyPointer, 0);
-	  plugin->Dispatch(effSetProgramName, 0, 0, fxBank.GetProgramName(i),
-			   0);
-	  for (j = 0; j < nParms; j++)
-	    plugin->SetParameter(j, fxBank.GetProgParm(i, j));
-	}
-	//     pEffect->EffSetProgram(cProg);
-	plugin->Dispatch(effSetProgram, 0, cProg, dummyPointer, 0);
-	//     csound->Message(csound, "Programs OK\n");
+        //     csound->Message(csound, "nParms= %i\n", nParms);
+        for (i = 0; i < fxBank.GetNumPrograms(); i++) {
+          plugin->Dispatch(effSetProgram, 0, i, dummyPointer, 0);
+          plugin->Dispatch(effSetProgramName, 0, 0, fxBank.GetProgramName(i),
+                           0);
+          for (j = 0; j < nParms; j++)
+            plugin->SetParameter(j, fxBank.GetProgParm(i, j));
+        }
+        //     pEffect->EffSetProgram(cProg);
+        plugin->Dispatch(effSetProgram, 0, cProg, dummyPointer, 0);
+        //     csound->Message(csound, "Programs OK\n");
       }
       //   pEffect->SetChunkFile(dlg.GetPathName());
       //   ShowDetails();
@@ -424,9 +424,9 @@ extern "C" {
     VSTBANKLOAD *p = (VSTBANKLOAD *)data;
     VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
     char bankname[512]; //gab
-    //	if (*p->ibank == SSTRCOD) {
+    //  if (*p->ibank == SSTRCOD) {
     strcpy(bankname, (char *) p->ibank);          /*   use that         */
-    //	}
+    //  }
 
     //------------
     //CSmpEffect *pEffect = (CSmpEffect *)GetApp()->vstHost.GetAt(nEffect);
@@ -437,47 +437,47 @@ extern "C" {
 
     if (plugin->aeffect->flags & effFlagsProgramChunks)
       {
-	void * pChunk;
-	int lSize = plugin->EffGetChunk(&pChunk);
-	if (lSize)
-	  b.SetSize(lSize);
-	if (b.IsLoaded())
-	  b.SetChunk(pChunk);
+        void * pChunk;
+        int lSize = plugin->EffGetChunk(&pChunk);
+        if (lSize)
+          b.SetSize(lSize);
+        if (b.IsLoaded())
+          b.SetChunk(pChunk);
       }
     else
       {
-	b.SetSize(plugin->aeffect->numPrograms,
-		  plugin->aeffect->numParams);
-	if (b.IsLoaded())
-	  {
-	    int i, j;
-	    int cProg = plugin->EffGetProgram();
-	    int nParms = b.GetNumParams();
-	    for (i = 0; i < b.GetNumPrograms(); i++)
-	      {
-		plugin->EffSetProgram(i);
-		char szName[128];
-		plugin->EffGetProgramName(szName);
-		b.SetProgramName(i, szName);
-		for (j = 0; j < nParms; j++)
-		  b.SetProgParm(i, j, plugin->aeffect->getParameter(plugin->aeffect,j));
-	      }
-	    plugin->EffSetProgram(cProg);
-	  }
+        b.SetSize(plugin->aeffect->numPrograms,
+                  plugin->aeffect->numParams);
+        if (b.IsLoaded())
+          {
+            int i, j;
+            int cProg = plugin->EffGetProgram();
+            int nParms = b.GetNumParams();
+            for (i = 0; i < b.GetNumPrograms(); i++)
+              {
+                plugin->EffSetProgram(i);
+                char szName[128];
+                plugin->EffGetProgramName(szName);
+                b.SetProgramName(i, szName);
+                for (j = 0; j < nParms; j++)
+                  b.SetProgParm(i, j, plugin->aeffect->getParameter(plugin->aeffect,j));
+              }
+            plugin->EffSetProgram(cProg);
+          }
       }
     if (!b.IsLoaded())
       {
-	plugin->Log("Error: Memory Allocation Error.\n");
-	return NOTOK;
+        plugin->Log("Error: Memory Allocation Error.\n");
+        return NOTOK;
       }
     b.SetFxID(plugin->aeffect->uniqueID);
     b.SetFxVersion(plugin->aeffect->version);
     if (b.SaveBank(bankname))
       {
-	plugin->Log("%s Bank saved OK.\n",bankname);
-	//pEffect->SetChunkFile(bankname);
-	//	ShowDetails();
-	//		OnSetProgram();
+        plugin->Log("%s Bank saved OK.\n",bankname);
+        //pEffect->SetChunkFile(bankname);
+        //      ShowDetails();
+        //              OnSetProgram();
       }
     else {
       plugin->Log("Error: Error saving file\n");
@@ -492,12 +492,12 @@ extern "C" {
   {
     for (int i = 0; in[i] != '\0'; i++) {
       if (in[i] == '/')
-	in[i] = '\\';
+        in[i] = '\\';
     }
   }
 #endif
 
-  typedef struct VSTNOTEOUT_ { 
+  typedef struct VSTNOTEOUT_ {
     OPDS h;
     MYFLT *iVSThandle;
     MYFLT *iChannel;
@@ -533,7 +533,7 @@ extern "C" {
       // In case of real-time performance with indefinite p3...
     } else if (*p->iDuration == FL(0.0)) {
       if (csound->GetDebug(csound)) {
-	csound->Message(csound, "vstnote_init 0x%x: not scheduling 0 duration note.\n");
+        csound->Message(csound, "vstnote_init 0x%x: not scheduling 0 duration note.\n");
       }
       return OK;
     } else {
@@ -568,23 +568,23 @@ extern "C" {
     VSTNOTEOUT *p = (VSTNOTEOUT *)data;
     if (p->on) {
       if (csound->curTime >= p->offTime) { // || p->h.insdshead->relesing) {
-	// The note may be scheduled to turn off
-	// some frames after the actual start of this kperiod.
-	double deltaTime = p->offTime - csound->curTime;
-	int deltaFrames = 0;
-	if (deltaTime > 0) {
-	  deltaFrames = int(deltaTime / csound->GetSr(csound));
-	}
-	p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
-	p->on = false;
-	if (csound->GetDebug(csound)) {
-	  csound->Message(csound, "vstnote_perf 0x%x: csound time:  %f\n", p, csound->curTime);
-	  csound->Message(csound, "                   off time:     %f\n", p->offTime);
-	  csound->Message(csound, "                   delta time:   %f\n", deltaTime);
-	  csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
-	  csound->Message(csound, "                   channel:      %d\n", p->channel);
-	  csound->Message(csound, "                   key:          %d\n", p->key);
-	}
+        // The note may be scheduled to turn off
+        // some frames after the actual start of this kperiod.
+        double deltaTime = p->offTime - csound->curTime;
+        int deltaFrames = 0;
+        if (deltaTime > 0) {
+          deltaFrames = int(deltaTime / csound->GetSr(csound));
+        }
+        p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
+        p->on = false;
+        if (csound->GetDebug(csound)) {
+          csound->Message(csound, "vstnote_perf 0x%x: csound time:  %f\n", p, csound->curTime);
+          csound->Message(csound, "                   off time:     %f\n", p->offTime);
+          csound->Message(csound, "                   delta time:   %f\n", deltaTime);
+          csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
+          csound->Message(csound, "                   channel:      %d\n", p->channel);
+          csound->Message(csound, "                   key:          %d\n", p->key);
+        }
       }
     }
     return OK;
@@ -619,11 +619,11 @@ extern "C" {
     int     err = 0;
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-				  ep->opname, ep->dsblksiz, ep->thread,
-				  ep->outypes, ep->intypes,
-				  (int (*)(CSOUND *, void *)) ep->iopadr,
-				  (int (*)(CSOUND *, void *)) ep->kopadr,
-				  (int (*)(CSOUND *, void *)) ep->aopadr);
+                                  ep->opname, ep->dsblksiz, ep->thread,
+                                  ep->outypes, ep->intypes,
+                                  (int (*)(CSOUND *, void *)) ep->iopadr,
+                                  (int (*)(CSOUND *, void *)) ep->kopadr,
+                                  (int (*)(CSOUND *, void *)) ep->aopadr);
       ep++;
     }
     return err;
@@ -633,9 +633,9 @@ extern "C" {
   {
     if (csound->widgetGlobals) {
       for (size_t i = 0, n = ST(vstPlugins).size(); i < n; ++i) {
-	if (ST(vstPlugins)[i]) {
-	  delete ST(vstPlugins)[i];
-	}
+        if (ST(vstPlugins)[i]) {
+          delete ST(vstPlugins)[i];
+        }
       }
       ST(vstPlugins).clear();
     }

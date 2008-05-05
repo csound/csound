@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: es_CO\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 14:43+0100\n"
+"PO-Revision-Date: 2008-05-05 15:03+0100\n"
 "Last-Translator: Andres Cabrera <mantaraya36@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -5836,7 +5836,7 @@ msgid "jacktransport: stopped.\n"
 msgstr ""
 
 #: Opcodes/jackTransport.c:82
-msgid "jack_transport: invalid parameter.\n"
+msgid "jacktransport: invalid parameter.\n"
 msgstr ""
 
 #: Opcodes/locsig.c:42
