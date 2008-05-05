@@ -42,13 +42,9 @@ public:
   {
     return NOTOK;
   }
-  static int init_(CSOUND *csound, void *opcode_)
+  static int init_(CSOUND *csound, void *opcode)
   {
-    T *opcode = reinterpret_cast<T *>(opcode_);
-    if (!csound->reinitflag && !csound->tieflag)
-      csound->RegisterDeinitCallback(csound,
-                                     &opcode->h, OpcodeBase<T>::noteoff_);
-    return opcode->init(csound);
+    return reinterpret_cast<T *>(opcode)->init(csound);
   }
   int kontrol(CSOUND *csound)
   {
@@ -65,14 +61,6 @@ public:
   static int audio_(CSOUND *csound, void *opcode)
   {
     return reinterpret_cast<T *>(opcode)->audio(csound);
-  }
-  int noteoff(CSOUND *csound)
-  {
-    return OK;
-  }
-  static int noteoff_(CSOUND *csound, void *opcode)
-  {
-    return reinterpret_cast< OpcodeBase<T> *>(opcode)->noteoff(csound);
   }
   void log(CSOUND *csound, const char *format,...)
   {
