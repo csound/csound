@@ -97,6 +97,10 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
     buss = static_cast<size_t>(*ibuss);
     return OK;
   }
+  int noteoff(CSOUND *)
+  {
+    return OK;
+  }
   int kontrol(CSOUND *csound)
   {
     *kgain = matrix[csound][send][buss];
@@ -134,6 +138,10 @@ struct MixerSend : public OpcodeBase<MixerSend>
     //warn(csound, "MixerSend::init: instance %d send %d buss "
     //"%d channel %d frames %d busspointer 0x%x\n", 
     //csound, send, buss, channel, frames, busspointer);
+    return OK;
+  }
+  int noteoff(CSOUND *)
+  {
     return OK;
   }
   int audio(CSOUND *csound)
@@ -179,6 +187,10 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     //warn(csound, "MixerReceive::init instance %d buss %d channel "
     //"%d frames %d busspointer 0x%x\n", instance, buss, channel, 
     //frames, busspointer);
+    return OK;
+  }
+  int noteoff(CSOUND *)
+  {
     return OK;
   }
   int audio(CSOUND *csound)
