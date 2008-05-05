@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 16:49+0100\n"
+"PO-Revision-Date: 2008-05-05 18:37+0100\n"
 "Last-Translator: JPff\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -166,7 +166,7 @@ msgstr ""
 
 #: Engine/express.c:107
 msgid "divide by unary minus"
-msgstr ""
+msgstr "teilen Sie sich durch Einstoff minus"
 
 #: Engine/express.c:115
 msgid "unary mult or divide"
@@ -256,7 +256,7 @@ msgstr ""
 
 #: Engine/fgens.c:208 Engine/fgens.c:215
 msgid "illegal table length"
-msgstr ""
+msgstr "ungültige Tabelle Länge"
 
 #: Engine/fgens.c:274 Engine/fgens.c:1939
 #, c-format
@@ -337,7 +337,7 @@ msgstr ""
 
 #: Engine/fgens.c:1053
 msgid "Wrong number of input arguments"
-msgstr ""
+msgstr "Falsche Zahl der Eingang Argumente"
 
 #: Engine/fgens.c:1054
 msgid "unknown distribution"
@@ -345,7 +345,7 @@ msgstr "unbekannte Verteilung"
 
 #: Engine/fgens.c:1074
 msgid "error opening ASCII file"
-msgstr ""
+msgstr "Störung Öffnung ASCII Akte"
 
 #: Engine/fgens.c:1103
 #, c-format
@@ -370,7 +370,7 @@ msgstr ""
 
 #: Engine/fgens.c:1270
 msgid "x coordinates must all be in increasing order:"
-msgstr ""
+msgstr "alle Koordinaten x müssen in zunehmendem Auftrag sein"
 
 #: Engine/fgens.c:1272
 msgid "x coordinate greater than function size:"
@@ -386,7 +386,7 @@ msgstr ""
 
 #: Engine/fgens.c:1354
 msgid "Time values must be in increasing order"
-msgstr ""
+msgstr "Zeitwerte müssen in zunehmendem Auftrag sein"
 
 #: Engine/fgens.c:1375
 msgid "GEN30: source ftable not found"
@@ -407,7 +407,7 @@ msgstr ""
 
 #: Engine/fgens.c:1803
 msgid "unknown source table number"
-msgstr ""
+msgstr "unbekannte Quelltabelle Zahl"
 
 #: Engine/fgens.c:1875
 #, c-format
@@ -422,7 +422,7 @@ msgstr ""
 #: Engine/fgens.c:1934
 #, c-format
 msgid "replacing previous ftable %d"
-msgstr ""
+msgstr "Ersetzen vorhergehendes ftable %d"
 
 #: Engine/fgens.c:1970 Engine/fgens.c:2057 Engine/fgens.c:2081
 #: Opcodes/gab/gab.c:547 Opcodes/gab/gab.c:601 Opcodes/midiops2.c:218
@@ -460,15 +460,15 @@ msgstr ""
 #: Engine/fgens.c:2177
 #, c-format
 msgid "channel %d illegal"
-msgstr ""
+msgstr "Führung %d ungültig"
 
 #: Engine/fgens.c:2183
 msgid "deferred alloc\n"
-msgstr ""
+msgstr "aufgeschobene Verteilung\n"
 
 #: Engine/fgens.c:2189
 msgid "deferred size, but filesize unknown"
-msgstr ""
+msgstr "aufgeschobene Größe, aber Akte Größe Unbekanntes"
 
 #: Engine/fgens.c:2192
 #, c-format
@@ -486,7 +486,7 @@ msgstr ""
 
 #: Engine/fgens.c:2277
 msgid "GEN1 read error"
-msgstr ""
+msgstr "GEN1 Lesefehler"
 
 #: Engine/fgens.c:2281
 msgid "GEN1: aiff file truncated by ftable size"
@@ -499,7 +499,7 @@ msgstr ""
 
 #: Engine/fgens.c:2322
 msgid "wrong number of ftable arguments"
-msgstr ""
+msgstr "falsche Zahl von ftable Argumenten"
 
 #: Engine/fgens.c:2332 OOps/pstream.c:338
 msgid "Failed to load PVOC-EX file"
@@ -9005,7 +9005,7 @@ msgstr ""
 
 #: util/lpanal.c:679
 msgid "write error"
-msgstr ""
+msgstr "Schreibfehler"
 
 #: util/lpanal.c:697
 #, c-format
@@ -9326,7 +9326,7 @@ msgstr ""
 
 #: util1/scot/scot.c:268
 msgid "Unrecognised keyword"
-msgstr ""
+msgstr "Unerkanntes Schlüsselwort"
 
 #: util1/scot/scot.c:317
 msgid "Wrong number of beats in bar"
@@ -9387,11 +9387,11 @@ msgstr ""
 
 #: util1/scot/scot.c:968
 msgid "Syntax error: no ="
-msgstr ""
+msgstr "Syntaxstörung: keine ="
 
 #: util1/scot/scot.c:970
 msgid "Syntax error: no number"
-msgstr ""
+msgstr "Syntaxstörung: keine Zahl"
 
 #: util1/scot/scot.c:982
 msgid "No instruments declared"

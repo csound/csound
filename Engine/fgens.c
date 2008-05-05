@@ -447,7 +447,7 @@ static int gen05(FGDATA *ff, FUNC *ftp)
       if (!(seglen = (int)*valp++)) continue;
       if (seglen < 0) goto gn5er1;
       if ((mult = *valp/amp1) <= 0) goto gn5er2;
-      mult = (MYFLT)pow( (double)mult, 1.0/(double)seglen );
+      mult = POWER(mult, FL(1.0)/seglen);
       while (seglen--) {
         *fp++ = amp1;
         amp1 *= mult;
@@ -626,18 +626,19 @@ static int gen09(FGDATA *ff, FUNC *ftp)
 
 static int gen10(FGDATA *ff, FUNC *ftp)
 {
-    int32    phs, hcnt;
+    int32   phs, hcnt;
     MYFLT   amp, *fp, *finp;
-    double  tpdlen = TWOPI / (double) ff->flen;
+    int32   flen = ff->flen;
+    double  tpdlen = TWOPI / (double) flen;
 
     hcnt = ff->e.pcnt - 4;                              /* hcnt is nargs    */
-    finp = &ftp->ftable[ff->flen];
+    finp = &ftp->ftable[flen];
     do {
       if ((amp = ff->e.p[hcnt + 4]) != FL(0.0))         /* for non-0 amps,  */
       for (phs = 0, fp = ftp->ftable; fp <= finp; fp++) {
         *fp += (MYFLT) sin(phs * tpdlen) * amp;         /* accum sin pts    */
         phs += hcnt;                                    /* phsinc is hno    */
-        phs %= ff->flen;
+        phs %= flen;
       }
     } while (--hcnt);
 
@@ -800,8 +801,8 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     for (n = nh, cosp = fp, sinp = hsin; n > 0; n--) {
       h = *fp++;                                /* rpl h,angle pairs */
       angle = (MYFLT) (*fp++ * tpd360);
-      *cosp++ = h * (MYFLT)cos((double)angle);  /* with h cos angle */
-      *sinp++ = h * (MYFLT)sin((double)angle);  /* and save the sine */
+      *cosp++ = h * COS(angle);  /* with h cos angle */
+      *sinp++ = h * SIN(angle);  /* and save the sine */
     }
     nargs -= nh;
     if (gen13(ff, ftp) != OK)                   /* call gen13   */
@@ -842,12 +843,12 @@ static int gen16(FGDATA *ff, FUNC *ftp)
         }
       }
       else {
-        MYFLT c1 = (nxtval - val)/(FL(1.0) - (MYFLT)exp((double)alpha));
+        MYFLT c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
         MYFLT x;
         alpha /= dur;
         x = alpha;
         while (cnt-->0) {
-          *fp++ = val + c1 * (FL(1.0) - (MYFLT)exp((double)(x)));
+          *fp++ = val + c1 * (FL(1.0) - EXP(x));
           x += alpha;
         }
         val = *(fp-1);
@@ -1206,7 +1207,7 @@ static int gen25(FGDATA *ff, FUNC *ftp)
       seglen = (int)(x2-x1);
       if (y1 <= 0 || y2 <= 0) goto gn25err3;
       mult = y2/y1;
-      mult = (MYFLT)pow((double)mult, 1.0/(double)seglen);
+      mult = POWER(mult, FL(1.0)/seglen);
       while (seglen--) {
         *fp++ = y1;
         y1 *= mult;
@@ -1426,6 +1427,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     x[l1] = x[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, x, l1);
     /* write dest. table */
+    /* memcpy(f1, x, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = x[i];
     f1[l1] = f1[0];     /* write guard point */
@@ -1487,6 +1489,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, y, l1);
+    /* memcpy(f1, y, l11*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
@@ -1529,8 +1532,9 @@ static int gen32(FGDATA *ff, FUNC *ftp)
 
     f1 = &(ftp->ftable[0]);
     l1 = (int) ftp->flen;
-    for (i = 0; i <= l1; i++)
-      f1[i] = FL(0.0);
+    memset(f1, 0, l1*sizeof(MYFLT));
+    /* for (i = 0; i <= l1; i++) */
+    /*   f1[i] = FL(0.0); */
     x = y = NULL;
 
     ft = 0x7FFFFFFF;            /* last table number */
@@ -1675,14 +1679,16 @@ static int gen33(FGDATA *ff, FUNC *ftp)
         phs = PI_F - phs; pnum = -pnum;         /* negative frequency */
       }
       /* mix to FFT data */
-      x[pnum << 1] += amp * (MYFLT) sin((double) phs);
-      x[(pnum << 1) + 1] -= amp * (MYFLT) cos((double) phs);
+      x[pnum << 1] += amp * SIN(phs);
+      x[(pnum << 1) + 1] -= amp * COS(phs);
     }
 
     csound->InverseRealFFT(csound, x, flen);    /* iFFT */
 
-    for (i = 0; i < flen; i++)  /* copy to output table */
-      ft[i] = x[i];
+    
+    memcpy(ft, x, flen*sizeof(MYFLT));
+    /* for (i = 0; i < flen; i++)  /\* copy to output table *\/ */
+    /*   ft[i] = x[i]; */
     ft[flen] = x[0];            /* write guard point */
 
     /* free tmp memory */
@@ -1764,7 +1770,8 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     do {
       k = (j > bs ? bs : j);    /* block size */
       /* clear buffer */
-      for (i = 0L; i < k; i++) tmp[i] = 0.0;
+      memset(tmp, 0, k*sizeof(double));
+      /* for (i = 0L; i < k; i++) tmp[i] = 0.0; */
       /* fast sine oscillator */
       i = -1L;
       while (++i < nh) {
@@ -2313,8 +2320,8 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     char            filename[MAXNAME];
     PVOCEX_MEMFILE  pp;
     PVSTABLEDAT     p;
-    uint32   framesize, blockalign, bins;
-    uint32   frames, i, j;
+    uint32          framesize, blockalign, bins;
+    uint32          frames, i, j;
     float           *framep, *startp;
     double          accum = 0.0;
 
@@ -2401,7 +2408,7 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
         grade  = notenum % numgrades;
         factor = (MYFLT) ((int) (notenum / numgrades));
       }
-      factor = (MYFLT) pow((double) interval, (double) factor);
+      factor = POWER(interval, factor);
       fp[j] = pp[grade] * factor * basefreq;
     }
     return OK;
@@ -2425,8 +2432,9 @@ static int gen52(FGDATA *ff, FUNC *ftp)
     }
     len = ((int) ftp->flen / nchn) * nchn;
     dst = &(ftp->ftable[0]);
-    for (i = len; i <= (int) ftp->flen; i++)
-      dst[i] = FL(0.0);
+    memset(dst, 0, ftp->flen*sizeof(MYFLT));
+    /* for (i = len; i <= (int) ftp->flen; i++) */
+    /*   dst[i] = FL(0.0); */
     for (n = 0; n < nchn; n++) {
       f = csoundFTFind(csound, &(ff->e.p[(n * 3) + 6]));
       if (f == NULL)
@@ -2492,9 +2500,9 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     /* ---- linear phase impulse response ---- */
     i = j = 0;
     do {
-      obuf[i++] = (MYFLT) (fabs((double) ibuf[j])) * scaleFac; j++;
+      obuf[i++] = (FABS(ibuf[j])) * scaleFac; j++;
       obuf[i++] = FL(0.0);
-      obuf[i++] = -((MYFLT) (fabs((double) ibuf[j])) * scaleFac); j++;
+      obuf[i++] = -(FABS(ibuf[j]) * scaleFac); j++;
       obuf[i++] = FL(0.0);
     } while (i < npts);
     obuf[1] = ibuf[j] * scaleFac;
@@ -2527,7 +2535,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     obuf[i] = (MYFLT) tmp;
     /* calculate logarithm of magnitude response, */
     for (i = 0; i <= npts; i++) {
-      buf1[i] = (MYFLT) log((double) obuf[i]);
+      buf1[i] = LOG(obuf[i]);
     }
     for (j = i - 2; i < npts2; i++, j--)    /* need full spectrum,     */
       buf1[i] = buf1[j];                    /* not just the lower half */
@@ -2611,8 +2619,8 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       csound->RealFFT(csound, dstftp, dstflen);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
-        tmpft[j] = (MYFLT) sqrt((double) ((dstftp[i] * dstftp[i])
-                                          + (dstftp[i + 1] * dstftp[i + 1])));
+        tmpft[j] = SQRT(((dstftp[i] * dstftp[i])
+                         + (dstftp[i + 1] * dstftp[i + 1])));
       tmpft[j] = dstftp[1];
       gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,
                                         dstflen, winflen, mode);
