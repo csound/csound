@@ -18,7 +18,7 @@ sr                      =                       44100
 ksmps                   =                       30
 nchnls                  =                       2
 ; Adjust 0dbfs to allow for MIDI velocity as decibels.
-0dbfs                   =                       1000000
+0dbfs                   =                       32000
 
 ; Note that -1 dB for float is 29205.
 
@@ -26,9 +26,9 @@ nchnls                  =                       2
 ; Channel to instrument assignments.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign                 1,1
+                        massign                 1,24
                         massign                 2,13
-                        massign                 3,6
+                        massign                 3,24
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Tables
@@ -1150,12 +1150,76 @@ asig1                   =                       asignal * ileftgain * kdamping
 asig2                   =                       asignal * irightgain * kdamping
 						outs					asig1, asig2
                         endin
+
+                        instr 24                ; STK BandedWG
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+iinstrument             =                       p1
+istarttime              =                       p2
+iattack                 =                       0.005
+isustain                =                       p3
+irelease                =                       0.06
+p3                      =                       isustain + iattack + irelease
+kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+ioctave                 =                       p4
+ifrequency              =                       cpsoct(ioctave)
+; Normalize so iamplitude for p5 of 80 == ampdb(80).
+iamplitude              =                       ampdb(p5) / 3
+iphase                  =                       p6
+; Constant-power pan.
+ipi                     =                       4.0 * taninv(1.0)
+ixpan                   =                       p7
+iradians                =                       ixpan * ipi / 2.0
+itheta                  =                       iradians / 2.0
+; Translate angle in [-1, 1] to left and right gain factors.
+irightgain              =                       sqrt(2.0) / 2.0 * (cos(itheta) + sin(itheta))
+ileftgain               =                       sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta))
+iypan                   =                       p8
+izpan                   =                       p9
+imason                  =                       p10
+ihomogeneity            =                       p11
+asignal                 STKBandedWG             ifrequency, iamplitude
+asig1                   =                       asignal * ileftgain * kdamping
+asig2                   =                       asignal * irightgain * kdamping
+						outs					asig1, asig2
+                        endin
+                        
+                        instr 25                ; STK BeeThree
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+iinstrument             =                       p1
+istarttime              =                       p2
+iattack                 =                       0.005
+isustain                =                       p3
+irelease                =                       0.06
+p3                      =                       isustain + iattack + irelease
+kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+ioctave                 =                       p4
+ifrequency              =                       cpsoct(ioctave)
+; Normalize so iamplitude for p5 of 80 == ampdb(80).
+iamplitude              =                       ampdb(p5) / 3
+iphase                  =                       p6
+; Constant-power pan.
+ipi                     =                       4.0 * taninv(1.0)
+ixpan                   =                       p7
+iradians                =                       ixpan * ipi / 2.0
+itheta                  =                       iradians / 2.0
+; Translate angle in [-1, 1] to left and right gain factors.
+irightgain              =                       sqrt(2.0) / 2.0 * (cos(itheta) + sin(itheta))
+ileftgain               =                       sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta))
+iypan                   =                       p8
+izpan                   =                       p9
+imason                  =                       p10
+ihomogeneity            =                       p11
+print p1, p2, p3, p4, p5, p6
+asignal                 STKBeeThree             ifrequency, iamplitude
+asig1                   =                       asignal * ileftgain * kdamping
+asig2                   =                       asignal * irightgain * kdamping
+						outs					asig1, asig2
+                        endin
 </CsInstruments>
 <CsScore>
 f 0 3600
-
-
-
 
 </CsScore>
 </CsoundSynthesizer>
