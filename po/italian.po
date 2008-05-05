@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-05 13:20+0100\n"
-"PO-Revision-Date: 2008-05-05 15:05+0100\n"
+"POT-Creation-Date: 2008-05-05 16:50+0100\n"
+"PO-Revision-Date: 2008-05-05 17:00+0100\n"
 "Last-Translator:\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -198,7 +198,7 @@ msgid "audio relational"
 msgstr ""
 
 #: Engine/express.c:419
-msgid "incorrect logical argumemts"
+msgid "incorrect logical arguments"
 msgstr ""
 
 #: Engine/express.c:433
@@ -354,7 +354,7 @@ msgstr ""
 
 #: Engine/fgens.c:1164
 msgid "table size must be the same of source table"
-msgstr ""
+msgstr "il formato della tabella deve essere la stessa della tabella di fonte"
 
 #: Engine/fgens.c:1223
 msgid "x coordindates must all be in increasing order:"
@@ -370,7 +370,7 @@ msgstr ""
 
 #: Engine/fgens.c:1270
 msgid "x coordinates must all be in increasing order:"
-msgstr ""
+msgstr "coordinata x devono tutti essere nell'ordine aumentante"
 
 #: Engine/fgens.c:1272
 msgid "x coordinate greater than function size:"
@@ -680,7 +680,7 @@ msgstr ""
 #: Engine/insert.c:958 OOps/bus.c:762 Opcodes/stackops.c:293
 #, c-format
 msgid "%s: not initialised"
-msgstr ""
+msgstr "%s: non inizializzato"
 
 #: Engine/insert.c:1073
 #, c-format
@@ -709,7 +709,7 @@ msgstr ""
 
 #: Engine/insert.c:1345
 msgid "subinstr: not initialised"
-msgstr ""
+msgstr "subinstr: non inizializzato"
 
 #: Engine/insert.c:1602
 #, c-format
@@ -3281,7 +3281,7 @@ msgstr ""
 
 #: OOps/diskin.c:292
 msgid "diskin: not initialised"
-msgstr ""
+msgstr "diskin: non inizializzato"
 
 #: OOps/diskin.c:374
 #, c-format
@@ -3305,11 +3305,11 @@ msgstr ""
 
 #: OOps/diskin.c:439
 msgid "soundout: not initialised"
-msgstr ""
+msgstr "soundout: non inizializzato"
 
 #: OOps/diskin.c:456
 msgid "soundouts: not initialised"
-msgstr ""
+msgstr "soundouts: non inizializzato"
 
 #: OOps/diskin2.c:199
 msgid "diskin2: invalid number of channels"
@@ -3346,7 +3346,7 @@ msgstr ""
 
 #: OOps/diskin2.c:334
 msgid "diskin2: not initialised"
-msgstr ""
+msgstr "diskin2: non inizializzato"
 
 #: OOps/diskin2.c:563
 msgid "soundin: invalid number of channels"
@@ -3378,7 +3378,7 @@ msgstr ""
 
 #: OOps/diskin2.c:654
 msgid "soundin: not initialised"
-msgstr ""
+msgstr "soundin: non inizializzato"
 
 #: OOps/disprep.c:61
 #, c-format
@@ -3396,7 +3396,7 @@ msgstr ""
 
 #: OOps/disprep.c:129
 msgid "display: not initialised"
-msgstr ""
+msgstr "display: non inizializzato"
 
 #: OOps/disprep.c:235
 msgid "too many points requested"
@@ -3429,7 +3429,7 @@ msgstr ""
 
 #: OOps/disprep.c:349 OOps/disprep.c:386
 msgid "dispfft: not initialised"
-msgstr ""
+msgstr "dispfft: non inizializzato"
 
 #: OOps/disprep.c:432 Opcodes/spectra.c:519
 msgid "illegal iperiod"
@@ -3474,7 +3474,7 @@ msgstr ""
 
 #: OOps/disprep.c:557
 msgid "tempest: not initialised"
-msgstr ""
+msgstr "tempest: non inizializzato"
 
 #: OOps/dumpf.c:45 OOps/dumpf.c:70 OOps/dumpf.c:95 OOps/dumpf.c:120
 #: OOps/dumpf.c:261 OOps/dumpf.c:288 OOps/dumpf.c:315 OOps/dumpf.c:342
@@ -3566,7 +3566,7 @@ msgstr ""
 
 #: OOps/oscils.c:214
 msgid "tablexkt: not initialised"
-msgstr ""
+msgstr "tablexkt: non inizializzato"
 
 #: OOps/pstream.c:63
 msgid "fsig = : formats are different.\n"
@@ -3594,7 +3594,7 @@ msgstr ""
 
 #: OOps/pstream.c:233
 msgid "pvsynth: Not initialised.\n"
-msgstr ""
+msgstr "pvsynth: non inizializzato.\n"
 
 #: OOps/pstream.c:254
 msgid "pvscross: source and dest signals must have same format\n"
@@ -3602,7 +3602,7 @@ msgstr ""
 
 #: OOps/pstream.c:288
 msgid "pvscross: not initialised\n"
-msgstr ""
+msgstr "pvscross: non inizializzato\n"
 
 #: OOps/pstream.c:292
 msgid "pvscross: mismatch in fsrc format\n"
@@ -3634,7 +3634,7 @@ msgstr ""
 
 #: OOps/pstream.c:403
 msgid "pvsfread: not initialised.\n"
-msgstr ""
+msgstr "pvsfread: non inizializzato.\n"
 
 #: OOps/pstream.c:461
 msgid "pvsmaska: signal format must be amp-phase or amp-freq."
@@ -3646,7 +3646,7 @@ msgstr ""
 
 #: OOps/pstream.c:515
 msgid "pvsmaska: not initialised\n"
-msgstr ""
+msgstr "pvsmaska: non inizializzato\n"
 
 #: OOps/pstream.c:520
 msgid "pvsmaska: negative value for kdepth; clipped to zero.\n"
@@ -3678,7 +3678,7 @@ msgstr ""
 
 #: OOps/pstream.c:651
 msgid "pvsftw: not initialised\n"
-msgstr ""
+msgstr "pvsftw: non inizializzato\n"
 
 #: OOps/pstream.c:653
 msgid "pvsftw: no amps ftable!\n"
@@ -3710,7 +3710,7 @@ msgstr ""
 
 #: OOps/pstream.c:755
 msgid "pvsftr: not initialised\n"
-msgstr ""
+msgstr "pvsftr: non inizializzato\n"
 
 #: OOps/pvoc.c:75
 #, c-format
@@ -3782,7 +3782,7 @@ msgstr ""
 
 #: OOps/pvsanal.c:455 OOps/pvsanal.c:664
 msgid "pvsanal: Not Initialised.\n"
-msgstr ""
+msgstr "pvsanal: Non Inizializzato.\n"
 
 #: OOps/pvsanal.c:519
 msgid "Unknown window type; replaced by rectangular\n"
@@ -3790,7 +3790,7 @@ msgstr ""
 
 #: OOps/pvsanal.c:1015
 msgid "pvsynth: Not Initialised.\n"
-msgstr ""
+msgstr "pvsynth: Non Inizializzato.\n"
 
 #: OOps/pvxanal.c:86
 msgid "pvxanal: outfile name must use extension .pvx\n"
@@ -3819,35 +3819,35 @@ msgid ""
 msgstr ""
 
 #: OOps/remote.c:100
-msgid "insufficient memory to initialize remote globals."
+msgid "insufficient memory to initialise remote globals."
 msgstr ""
 
 #: OOps/remote.c:109
-msgid "insufficient memory to initialize outgoing socket table."
+msgid "insufficient memory to initialise outgoing socket table."
 msgstr ""
 
 #: OOps/remote.c:116
-msgid "insufficient memory to initialize incoming socket table."
+msgid "insufficient memory to initialise incoming socket table."
 msgstr ""
 
 #: OOps/remote.c:124
-msgid "insufficient memory to initialize insrfd_list."
+msgid "insufficient memory to initialise insrfd_list."
 msgstr ""
 
 #: OOps/remote.c:132
-msgid "insufficient memory to initialize chnrfd_list."
+msgid "insufficient memory to initialise chnrfd_list."
 msgstr ""
 
 #: OOps/remote.c:139
-msgid "insufficient memory to initialize insrfd table."
+msgid "insufficient memory to initialise insrfd table."
 msgstr ""
 
 #: OOps/remote.c:146
-msgid "insufficient memory to initialize chnrfd table."
+msgid "insufficient memory to initialise chnrfd table."
 msgstr ""
 
 #: OOps/remote.c:153
-msgid "insufficient memory to initialize local ip address."
+msgid "insufficient memory to initialise local ip address."
 msgstr ""
 
 #: OOps/remote.c:161
@@ -3905,7 +3905,7 @@ msgstr ""
 
 #: OOps/remote.c:353 OOps/remote.c:374 OOps/remote.c:417 OOps/remote.c:449
 #: OOps/remote.c:489
-msgid "failed to initialize remote globals."
+msgid "failed to initialise remote globals."
 msgstr ""
 
 #: OOps/remote.c:378 OOps/remote.c:421
@@ -4054,11 +4054,11 @@ msgstr ""
 msgid ""
 "\n"
 "Error: linseg not initialised (krate)\n"
-msgstr ""
+msgstr "\nError: linseg non inizializzato (krate)\n"
 
 #: OOps/ugens1.c:186
 msgid "linseg: not initialised (arate)\n"
-msgstr ""
+msgstr "linseg: non inizializzato (arate)\n"
 
 #: OOps/ugens1.c:439 OOps/ugens1.c:441 OOps/ugens1.c:485 OOps/ugens1.c:487
 #: OOps/ugens1.c:647 OOps/ugens1.c:649
@@ -4073,11 +4073,11 @@ msgstr ""
 
 #: OOps/ugens1.c:574
 msgid "expseg (krate): not initialised"
-msgstr ""
+msgstr "expseg (krate): non inizializzato"
 
 #: OOps/ugens1.c:592
 msgid "expseg (arate): not initialised"
-msgstr ""
+msgstr "expseg (arate): non inizializzato"
 
 #: OOps/ugens1.c:883 OOps/ugens1.c:1020 OOps/ugens1.c:1182
 msgid "non-positive iatdec"
@@ -4093,7 +4093,7 @@ msgstr ""
 
 #: OOps/ugens1.c:1038 OOps/ugens1.c:1086
 msgid "envlpx(krate): not initialised"
-msgstr ""
+msgstr "envlpx(krate): non inizializzato"
 
 #: OOps/ugens1.c:1051 OOps/ugens1.c:1097
 msgid "envlpx rise func ends with zero"
@@ -4115,27 +4115,27 @@ msgstr ""
 
 #: OOps/ugens2.c:336
 msgid "table(krate): not initialised"
-msgstr ""
+msgstr "table(krate): non inizializzato"
 
 #: OOps/ugens2.c:415
 msgid "table: not initialised"
-msgstr ""
+msgstr "table: non inizializzato"
 
 #: OOps/ugens2.c:473
 msgid "tablei(krate): not initialised"
-msgstr ""
+msgstr "tablei(krate): non inizializzato"
 
 #: OOps/ugens2.c:550
 msgid "table3(krate): not initialised"
-msgstr ""
+msgstr "table3(krate): non inizializzato"
 
 #: OOps/ugens2.c:647
 msgid "tablei: not initialised"
-msgstr ""
+msgstr "tablei: non inizializzato"
 
 #: OOps/ugens2.c:716
 msgid "table3: not initialised"
-msgstr ""
+msgstr "table3: non inizializzato"
 
 #: OOps/ugens2.c:801
 #, c-format
@@ -4148,49 +4148,49 @@ msgstr ""
 
 #: OOps/ugens2.c:912
 msgid "oscil1(krate): not initialised"
-msgstr ""
+msgstr "oscil1(krate): non inizializzato"
 
 #: OOps/ugens2.c:938
 msgid "oscil1i(krate): not initialised"
-msgstr ""
+msgstr "oscil1i(krate): non inizializzato"
 
 #: OOps/ugens2.c:982
 msgid "osciln: not initialised"
-msgstr ""
+msgstr "osciln: non inizializzato"
 
 #: OOps/ugens2.c:1034
 msgid "oscil(krate): not initialised"
-msgstr ""
+msgstr "oscil(krate): non inizializzato"
 
 #: OOps/ugens2.c:1054 OOps/ugens2.c:1082 OOps/ugens2.c:1109 OOps/ugens2.c:1135
 #: Opcodes/pitch.c:1574 Opcodes/pitch.c:1601 Opcodes/pitch.c:1628
 #: Opcodes/pitch.c:1657
 msgid "oscil: not initialised"
-msgstr ""
+msgstr "oscil: non inizializzato"
 
 #: OOps/ugens2.c:1161
 msgid "oscili(krate): not initialised"
-msgstr ""
+msgstr "oscili(krate): non inizializzato"
 
 #: OOps/ugens2.c:1182 OOps/ugens2.c:1211 OOps/ugens2.c:1242 OOps/ugens2.c:1271
 msgid "oscili: not initialised"
-msgstr ""
+msgstr "oscili: non inizializzato"
 
 #: OOps/ugens2.c:1303
 msgid "oscil3(krate): not initialised"
-msgstr ""
+msgstr "oscil3(krate): non inizializzato"
 
 #: OOps/ugens2.c:1343 OOps/ugens2.c:1395 OOps/ugens2.c:1442 OOps/ugens2.c:1488
 msgid "oscil3: not initialised"
-msgstr ""
+msgstr "oscil3: non inizializzato"
 
 #: OOps/ugens3.c:111
 msgid "foscil: not initialised"
-msgstr ""
+msgstr "foscil: non inizializzato"
 
 #: OOps/ugens3.c:191
 msgid "foscili: not initialised"
-msgstr ""
+msgstr "foscili: non inizializzato"
 
 #: OOps/ugens3.c:205
 msgid "no legal base frequency"
@@ -4237,15 +4237,15 @@ msgstr ""
 
 #: OOps/ugens3.c:846
 msgid "adsyn: not initialised"
-msgstr ""
+msgstr "adsyn: non inizializzato"
 
 #: OOps/ugens4.c:89
 msgid "buzz: not initialised"
-msgstr ""
+msgstr "buzz: non inizializzato"
 
 #: OOps/ugens4.c:190
 msgid "gbuzz: not initialised"
-msgstr ""
+msgstr "gbuzz: non inizializzato"
 
 #: OOps/ugens4.c:244
 msgid "illegal stretch factor(param1) value"
@@ -4269,7 +4269,7 @@ msgstr ""
 
 #: OOps/ugens4.c:286
 msgid "pluck: not initialised"
-msgstr ""
+msgstr "pluck: non inizializzato"
 
 #: OOps/ugens4.c:294
 msgid "pluck: kcps more than sample rate"
@@ -4341,7 +4341,7 @@ msgstr ""
 
 #: OOps/ugens5.c:652
 msgid "lpread: not initialised"
-msgstr ""
+msgstr "lpread: non inizializzato"
 
 #: OOps/ugens5.c:656
 msgid "lpread timpnt < 0"
@@ -4386,7 +4386,7 @@ msgstr ""
 
 #: OOps/ugens5.c:1098
 msgid "lpinterpol: not initialised"
-msgstr ""
+msgstr "lpinterpol: non inizializzato"
 
 #: OOps/ugens6.c:214 OOps/ugens6.c:254 Opcodes/biquad.c:794
 #: Opcodes/biquad.c:805 Opcodes/biquad.c:812 Opcodes/biquad.c:821
@@ -4412,31 +4412,31 @@ msgstr ""
 
 #: OOps/ugens6.c:326 Opcodes/biquad.c:858
 msgid "delay: not initialised"
-msgstr ""
+msgstr "delay: non inizializzato"
 
 #: OOps/ugens6.c:349
 msgid "delayr: not initialised"
-msgstr ""
+msgstr "delayr: non inizializzato"
 
 #: OOps/ugens6.c:369
 msgid "delayw: not initialised"
-msgstr ""
+msgstr "delayw: non inizializzato"
 
 #: OOps/ugens6.c:390 OOps/ugens6.c:594 OOps/ugens6.c:675
 msgid "deltap: not initialised"
-msgstr ""
+msgstr "deltap: non inizializzato"
 
 #: OOps/ugens6.c:414
 msgid "deltapi: not initialised"
-msgstr ""
+msgstr "deltapi: non inizializzato"
 
 #: OOps/ugens6.c:463
 msgid "deltapn: not initialised"
-msgstr ""
+msgstr "deltapn: non inizializzato"
 
 #: OOps/ugens6.c:507
 msgid "deltap3: not initialised"
-msgstr ""
+msgstr "deltap3: non inizializzato"
 
 #: OOps/ugens6.c:777 OOps/ugens6.c:781 Opcodes/ugmoss.c:368
 #: Opcodes/ugmoss.c:372
@@ -4445,11 +4445,11 @@ msgstr ""
 
 #: OOps/ugens6.c:807
 msgid "comb: not initialised"
-msgstr ""
+msgstr "comb: non inizializzato"
 
 #: OOps/ugens6.c:850
 msgid "alpass: not initialised"
-msgstr ""
+msgstr "alpass: non inizializzato"
 
 #: OOps/ugens6.c:901
 msgid "revlpsiz inconsistent\n"
@@ -4461,7 +4461,7 @@ msgstr ""
 
 #: OOps/ugens6.c:1009
 msgid "pan: not initialised"
-msgstr ""
+msgstr "pan: non inizializzato"
 
 #: OOps/ugrw1.c:923 OOps/ugrw1.c:1247
 #, c-format
@@ -4686,11 +4686,11 @@ msgstr ""
 #: OOps/vdelay.c:61 OOps/vdelay.c:327 OOps/vdelay.c:389 OOps/vdelay.c:453
 #: OOps/vdelay.c:518 OOps/vdelay.c:590 OOps/vdelay.c:668
 msgid "vdelay: not initialised"
-msgstr ""
+msgstr "vdelay: non inizializzato"
 
 #: OOps/vdelay.c:143
 msgid "vdelay3: not initialised"
-msgstr ""
+msgstr "vdelay3: non inizializzato"
 
 #: OOps/vdelay.c:731
 msgid "Wrong input count in multitap\n"
@@ -4698,7 +4698,7 @@ msgstr ""
 
 #: OOps/vdelay.c:758
 msgid "multitap: not initialised"
-msgstr ""
+msgstr "multitap: non inizializzato"
 
 #: OOps/vdelay.c:894
 msgid "High frequency diffusion not in (0, 1)\n"
@@ -4716,7 +4716,7 @@ msgstr ""
 
 #: OOps/vdelay.c:1047
 msgid "reverbx: not initialised"
-msgstr ""
+msgstr "reverbx: non inizializzato"
 
 #: OOps/vdelay.c:1055
 msgid "High frequency diffusion>1\n"
@@ -4735,28 +4735,25 @@ msgstr ""
 msgid "lorisread cannot load %s"
 msgstr ""
 
-#: Opcodes/OSC.c:116 Opcodes/OSC_iv.c:115
+#: Opcodes/OSC.c:116
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:119 Opcodes/OSC_iv.c:118
+#: Opcodes/OSC.c:119
 msgid "No a-rate arguments allowed"
 msgstr ""
 
 #: Opcodes/OSC.c:155 Opcodes/OSC.c:160 Opcodes/OSC.c:165 Opcodes/OSC.c:175
 #: Opcodes/OSC.c:182 Opcodes/OSC.c:187 Opcodes/OSC.c:198 Opcodes/OSC.c:206
-#: Opcodes/OSC_iv.c:154 Opcodes/OSC_iv.c:159 Opcodes/OSC_iv.c:164
-#: Opcodes/OSC_iv.c:174 Opcodes/OSC_iv.c:181 Opcodes/OSC_iv.c:186
-#: Opcodes/OSC_iv.c:197 Opcodes/OSC_iv.c:205
 msgid "String not expected"
 msgstr ""
 
-#: Opcodes/OSC.c:194 Opcodes/OSC_iv.c:193
+#: Opcodes/OSC.c:194
 msgid "Not a string when needed"
 msgstr ""
 
 #: Opcodes/OSC.c:211
-msgid "Time stanmp is two values"
+msgid "Time stamp is two values"
 msgstr ""
 
 #: Opcodes/OSC.c:217
@@ -4764,11 +4761,11 @@ msgstr ""
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:395 Opcodes/OSC_iv.c:394
+#: Opcodes/OSC.c:395
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:413 Opcodes/OSC_iv.c:411
+#: Opcodes/OSC.c:413
 msgid "OSCrecv is already running"
 msgstr ""
 
@@ -4780,17 +4777,13 @@ msgstr ""
 msgid "invalid handle"
 msgstr ""
 
-#: Opcodes/OSC_iv.c:210
-msgid "Time stamp is two values"
-msgstr ""
-
 #: Opcodes/Vosim.c:49
 msgid "vosim: pulse table not found"
 msgstr ""
 
 #: Opcodes/Vosim.c:111
 msgid "vosim: not initialised"
-msgstr ""
+msgstr "vosim: non inizializzato"
 
 #: Opcodes/ambicode.c:86
 msgid "Wrong number of output arguments! 4, 9 or 16 needed!"
@@ -4826,12 +4819,12 @@ msgid "No data to continue"
 msgstr ""
 
 #: Opcodes/bilbar.c:108
-msgid "Ends but be clamped(1), pivoting(2) or free(3)"
+msgid "Ends must be clamped(1), pivoting(2) or free(3)"
 msgstr ""
 
 #: Opcodes/biquad.c:433 Opcodes/biquad.c:442
 msgid "vco: not initialised"
-msgstr ""
+msgstr "vco: non inizializzato"
 
 #: Opcodes/biquad.c:455
 #, c-format
@@ -4918,7 +4911,7 @@ msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:828
 msgid "DSSI4CS: Not initialised or wrong argument types."
-msgstr ""
+msgstr "DSSI4CS: non inizializzato or wrong argument types."
 
 #: Opcodes/dssi4cs/src/load.c:120
 #, c-format
@@ -4961,12 +4954,9 @@ msgstr ""
 msgid "No table for VibWaveato"
 msgstr ""
 
-#: Opcodes/fm4op.c:174
+#: Opcodes/fm4op.c:174 Opcodes/fm4op.c:180 Opcodes/fm4op.c:186
+#: Opcodes/fm4op.c:192
 msgid "No table for FM4Op"
-msgstr ""
-
-#: Opcodes/fm4op.c:180 Opcodes/fm4op.c:186 Opcodes/fm4op.c:192
-msgid "No table for  FM4Op"
 msgstr ""
 
 #: Opcodes/follow.c:38
@@ -5017,7 +5007,7 @@ msgstr ""
 
 #: Opcodes/freeverb.c:179
 msgid "freeverb: not initialised"
-msgstr ""
+msgstr "freeverb: non inizializzato"
 
 #: Opcodes/ftconv.c:155
 msgid "ftconv: invalid number of channels"
@@ -5039,7 +5029,7 @@ msgstr ""
 
 #: Opcodes/ftconv.c:245
 msgid "ftconv: not initialised"
-msgstr ""
+msgstr "ftconv: non inizializzato"
 
 #: Opcodes/ftgen.c:63 Opcodes/ftgen.c:158
 #, c-format
@@ -5534,7 +5524,7 @@ msgstr ""
 
 #: Opcodes/grain.c:90
 msgid "grain: not initialised"
-msgstr ""
+msgstr "grain: non inizializzato"
 
 #: Opcodes/grain4.c:57
 msgid "granule_set: Unable to find function table"
@@ -5630,7 +5620,7 @@ msgstr ""
 
 #: Opcodes/grain4.c:278
 msgid "grain4: not initialised"
-msgstr ""
+msgstr "grain4: non inizializzato"
 
 #: Opcodes/harmon.c:221
 msgid "harm signal has positive lead\n"
@@ -5659,7 +5649,7 @@ msgstr ""
 
 #: Opcodes/hrtferX.c:183
 msgid "hrtfer: not initialised"
-msgstr ""
+msgstr "hrtfer: non inizializzato"
 
 #: Opcodes/hrtfopcodes.c:214 Opcodes/hrtfopcodes.c:1186
 #: Opcodes/hrtfopcodes.c:1744
@@ -5806,7 +5796,7 @@ msgstr ""
 
 #: Opcodes/loscilx.c:353
 msgid "loscilx: not initialised"
-msgstr ""
+msgstr "loscilx: non inizializzato"
 
 #: Opcodes/lowpassr.c:77 Opcodes/lowpassr.c:125
 msgid "illegal order num. (min 1, max 10)"
@@ -5873,7 +5863,7 @@ msgstr ""
 
 #: Opcodes/nlfilt.c:74
 msgid "nlfilt: not initialised"
-msgstr ""
+msgstr "nlfilt: non inizializzato"
 
 #: Opcodes/ogg.c:53
 msgid "oggread: invalid number of channels"
@@ -5922,15 +5912,15 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:416
 msgid "oscbnk: not initialised"
-msgstr ""
+msgstr "oscbnk: non inizializzato"
 
 #: Opcodes/oscbnk.c:673
 msgid "grain2: not initialised"
-msgstr ""
+msgstr "grain2: non inizializzato"
 
 #: Opcodes/oscbnk.c:826
 msgid "grain3: not initialised"
-msgstr ""
+msgstr "grain3: non inizializzato"
 
 #: Opcodes/oscbnk.c:889
 msgid "grain3: invalid grain duration"
@@ -5946,7 +5936,7 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:1044 Opcodes/oscbnk.c:1071
 msgid "rnd31: not initialised"
-msgstr ""
+msgstr "rnd31: non inizializzato"
 
 #: Opcodes/oscbnk.c:1613
 #, c-format
@@ -5984,7 +5974,7 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:1870
 msgid "vco2ft: not initialised"
-msgstr ""
+msgstr "vco2ft: non inizializzato"
 
 #: Opcodes/oscbnk.c:1889
 msgid "vco2: too many input arguments"
@@ -6004,7 +5994,7 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:1958
 msgid "vco2: not initialised"
-msgstr ""
+msgstr "vco2: non inizializzato"
 
 #: Opcodes/oscbnk.c:2115
 msgid "delayk: invalid delay time (must be >= 0)"
@@ -6012,7 +6002,7 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:2132
 msgid "delayk: not initialised"
-msgstr ""
+msgstr "delayk: non inizializzato"
 
 #: Opcodes/oscbnk.c:2155
 msgid "vdel_k: invalid max delay time (must be >= 0)"
@@ -6020,7 +6010,7 @@ msgstr ""
 
 #: Opcodes/oscbnk.c:2173
 msgid "vdel_k: not initialised"
-msgstr ""
+msgstr "vdel_k: non inizializzato"
 
 #: Opcodes/oscbnk.c:2177
 msgid "vdel_k: invalid delay time (must be >= 0)"
@@ -6064,7 +6054,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:673
 msgid "DlineA not initialised"
-msgstr ""
+msgstr "DlineA non inizializzato"
 
 #: Opcodes/physmod.c:752
 msgid "No table for Brass"
@@ -6114,7 +6104,7 @@ msgstr ""
 
 #: Opcodes/pitch.c:340
 msgid "pitch: not initialised"
-msgstr ""
+msgstr "pitch: non inizializzato"
 
 #: Opcodes/pitch.c:454
 msgid "Must have even number of arguments in mac\n"
@@ -6146,11 +6136,11 @@ msgstr ""
 
 #: Opcodes/pitch.c:629
 msgid "adsynt: not initialised"
-msgstr ""
+msgstr "adsynt: non inizializzato"
 
 #: Opcodes/pitch.c:706
 msgid "hsboscil: not initialised"
-msgstr ""
+msgstr "hsboscil: non inizializzato"
 
 #: Opcodes/pitch.c:793
 msgid "pitchamdf: maxcps must be > mincps !"
@@ -6158,11 +6148,11 @@ msgstr ""
 
 #: Opcodes/pitch.c:947
 msgid "pitchamdf: not initialised"
-msgstr ""
+msgstr "pitchamdf: non inizializzato"
 
 #: Opcodes/pitch.c:1120 Opcodes/pitch.c:1147
 msgid "phasorbnk: not initialised"
-msgstr ""
+msgstr "phasorbnk: non inizializzato"
 
 #: Opcodes/pitch.c:1209
 msgid "pinkish: Invalid method code"
@@ -6183,11 +6173,11 @@ msgstr ""
 msgid ""
 "\n"
 "Error: transeg not initialised (krate)"
-msgstr ""
+msgstr "\nError: transeg non inizializzato (krate)"
 
 #: Opcodes/pitch.c:1806
 msgid "transeg: not initialised (arate)\n"
-msgstr ""
+msgstr "transeg: non inizializzato (arate)\n"
 
 #: Opcodes/pitch0.c:37
 #, c-format
@@ -6260,7 +6250,7 @@ msgstr ""
 
 #: Opcodes/pvadd.c:148
 msgid "pvadd: not initialised"
-msgstr ""
+msgstr "pvadd: non inizializzato"
 
 #: Opcodes/pvadd.c:151
 msgid "PVADD timpnt < 0"
@@ -6319,7 +6309,7 @@ msgstr ""
 
 #: Opcodes/pvinterp.c:117
 msgid "pvbufread: not initialised"
-msgstr ""
+msgstr "pvbufread: non inizializzato"
 
 #: Opcodes/pvinterp.c:120 Opcodes/pvinterp.c:256 Opcodes/pvinterp.c:428
 #: Opcodes/pvread.c:91 Opcodes/ugens8.c:152 Opcodes/vpvoc.c:292
@@ -6347,7 +6337,7 @@ msgstr ""
 
 #: Opcodes/pvinterp.c:242
 msgid "pvinterp: not initialised"
-msgstr ""
+msgstr "pvinterp: non inizializzato"
 
 #: Opcodes/pvinterp.c:249 Opcodes/pvinterp.c:421 Opcodes/ugens8.c:145
 #: Opcodes/vpvoc.c:285
@@ -6375,7 +6365,7 @@ msgstr ""
 
 #: Opcodes/pvinterp.c:414
 msgid "pvcross: not initialised"
-msgstr ""
+msgstr "pvcross: non inizializzato"
 
 #: Opcodes/pvinterp.c:456 Opcodes/vpvoc.c:320
 msgid "PVOC debug: one frame gets through\n"
@@ -6392,7 +6382,7 @@ msgstr ""
 
 #: Opcodes/pvsband.c:90 Opcodes/pvsband.c:195
 msgid "pvsband: not initialised"
-msgstr ""
+msgstr "pvsband: non inizializzato"
 
 #: Opcodes/pvsbasic.c:103 Opcodes/pvsbasic.c:171
 msgid "SDFT Not implemented in this case yet"
@@ -6434,7 +6424,7 @@ msgstr ""
 
 #: Opcodes/pvsbasic.c:831
 msgid "pvsfilter: not initialised"
-msgstr ""
+msgstr "pvsfilter: non inizializzato"
 
 #: Opcodes/pvsbasic.c:834
 msgid "pvsfilter: formats are different."
@@ -6442,15 +6432,15 @@ msgstr ""
 
 #: Opcodes/pvsbasic.c:920
 msgid "pvscale: not initialised"
-msgstr ""
+msgstr "pvscale: non inizializzato"
 
 #: Opcodes/pvsbasic.c:1047
 msgid "pvshift: not initialised"
-msgstr ""
+msgstr "pvshift: non inizializzato"
 
 #: Opcodes/pvsbasic.c:1209
 msgid "pvsblur: not initialised"
-msgstr ""
+msgstr "pvsblur: non inizializzato"
 
 #: Opcodes/pvsbasic.c:1318
 msgid "pvstencil: signal format must be amp-phase or amp-freq."
@@ -6462,7 +6452,7 @@ msgstr ""
 
 #: Opcodes/pvsbasic.c:1379
 msgid "pvstencil: not initialised"
-msgstr ""
+msgstr "pvstencil: non inizializzato"
 
 #: Opcodes/pvsbuffer.c:49 Opcodes/pvscent.c:168
 msgid "SDFT case not implemented yet"
@@ -6492,7 +6482,7 @@ msgstr ""
 
 #: Opcodes/reverbsc.c:210
 msgid "reverbsc: not initialised"
-msgstr ""
+msgstr "reverbsc: non inizializzato"
 
 #: Opcodes/scansyn.c:49
 msgid "scanu: Could not find ifnnit ftable"
@@ -6556,7 +6546,7 @@ msgstr ""
 
 #: Opcodes/scansyn.c:371
 msgid "scanu: not initialised"
-msgstr ""
+msgstr "scanu: non inizializzato"
 
 #: Opcodes/scansyn.c:470 Opcodes/scansynx.c:570
 msgid "scans: Could not find the ifntraj table"
@@ -6621,7 +6611,7 @@ msgstr ""
 
 #: Opcodes/scansynx.c:465
 msgid "xscanu: not initialised"
-msgstr ""
+msgstr "xscanu: non inizializzato"
 
 #: Opcodes/scansynx.c:579
 msgid "scsn: Trajectory table includes values out of range"
@@ -6768,7 +6758,7 @@ msgstr ""
 
 #: Opcodes/sndloop.c:915
 msgid "pvsarp: not initialised\n"
-msgstr ""
+msgstr "pvsarp: non inizializzato\n"
 
 #: Opcodes/sndloop.c:947
 msgid "signal format must be amp-phase or amp-freq.\n"
@@ -6776,15 +6766,15 @@ msgstr ""
 
 #: Opcodes/sndloop.c:964
 msgid "pvsvoc: not initialised\n"
-msgstr ""
+msgstr "pvsvoc: non inizializzato\n"
 
 #: Opcodes/sndloop.c:989
 msgid "pvsmorph: not initialised\n"
-msgstr ""
+msgstr "pvsmorph: non inizializzato\n"
 
 #: Opcodes/sndwarp.c:108
 msgid "sndwarp: not initialised"
-msgstr ""
+msgstr "sndwarp: non inizializzato"
 
 #: Opcodes/sndwarp.c:155 Opcodes/sndwarp.c:326
 msgid "SNDWARP at last sample frame"
@@ -6796,23 +6786,23 @@ msgstr ""
 
 #: Opcodes/sndwarp.c:275
 msgid "sndwarpst: not initialised"
-msgstr ""
+msgstr "sndwarpst: non inizializzato"
 
 #: Opcodes/space.c:81
 msgid "space: not initialised"
-msgstr ""
+msgstr "space: non inizializzato"
 
 #: Opcodes/space.c:212
 msgid "spdist: not initialised"
-msgstr ""
+msgstr "spdist: non inizializzato"
 
 #: Opcodes/spat3d.c:603
 msgid "spat3d: not initialised"
-msgstr ""
+msgstr "spat3d: non inizializzato"
 
 #: Opcodes/spat3d.c:758
 msgid "spat3di: not initialised"
-msgstr ""
+msgstr "spat3di: non inizializzato"
 
 #: Opcodes/spectra.c:83
 msgid "illegal Q value"
@@ -6854,7 +6844,7 @@ msgstr ""
 
 #: Opcodes/spectra.c:516 Opcodes/spectra.c:550
 msgid "specdisp: not initialised"
-msgstr ""
+msgstr "specdisp: non inizializzato"
 
 #: Opcodes/spectra.c:526
 #, c-format
@@ -6890,11 +6880,11 @@ msgstr ""
 
 #: Opcodes/spectra.c:697
 msgid "specptrk: not initialised"
-msgstr ""
+msgstr "specptrk: non inizializzato"
 
 #: Opcodes/spectra.c:836
 msgid "specsum: not initialised"
-msgstr ""
+msgstr "specsum: non inizializzato"
 
 #: Opcodes/spectra.c:863
 msgid "inputs have different sizes"
@@ -6914,19 +6904,19 @@ msgstr ""
 
 #: Opcodes/spectra.c:891
 msgid "specaddm: not initialised"
-msgstr ""
+msgstr "specaddm: non inizializzato"
 
 #: Opcodes/spectra.c:929
 msgid "specdiff: local buffers not initialised"
-msgstr ""
+msgstr "specdiff: local buffers non inizializzato"
 
 #: Opcodes/spectra.c:946
 msgid "specdiff: not initialised"
-msgstr ""
+msgstr "specdiff: non inizializzato"
 
 #: Opcodes/spectra.c:989
 msgid "specscal: local buffer not initialised"
-msgstr ""
+msgstr "specscal: local buffer non inizializzato"
 
 #: Opcodes/spectra.c:994
 msgid "missing fscale table"
@@ -6934,7 +6924,7 @@ msgstr ""
 
 #: Opcodes/spectra.c:1035
 msgid "specscal: not initialised"
-msgstr ""
+msgstr "specscal: non inizializzato"
 
 #: Opcodes/spectra.c:1084
 msgid "spechist: local buffers not intiialised"
@@ -6942,11 +6932,11 @@ msgstr ""
 
 #: Opcodes/spectra.c:1100
 msgid "spechist: not initialised"
-msgstr ""
+msgstr "spechist: non inizializzato"
 
 #: Opcodes/spectra.c:1137
 msgid "specfilt: local buffers not initialised"
-msgstr ""
+msgstr "specfilt: local buffers non inizializzato"
 
 #: Opcodes/spectra.c:1145
 msgid "missing htim ftable"
@@ -6963,11 +6953,11 @@ msgstr ""
 
 #: Opcodes/spectra.c:1194
 msgid "specfilt: not initialised"
-msgstr ""
+msgstr "specfilt: non inizializzato"
 
 #: Opcodes/stackops.c:80
 msgid "fsig = : source signal is not initialised"
-msgstr ""
+msgstr "fsig = : source signal is non inizializzato"
 
 #: Opcodes/stackops.c:126
 msgid "stack overflow"
@@ -7038,7 +7028,7 @@ msgstr ""
 
 #: Opcodes/ugens7.c:96
 msgid "fof: not initialised"
-msgstr ""
+msgstr "fof: non inizializzato"
 
 #: Opcodes/ugens7.c:110 Opcodes/ugensa.c:102
 msgid "FOF needs more overlaps"
@@ -7058,7 +7048,7 @@ msgstr ""
 
 #: Opcodes/ugens8.c:138
 msgid "pvoc: not initialised"
-msgstr ""
+msgstr "pvoc: non inizializzato"
 
 #: Opcodes/ugens8.c:212
 #, c-format
@@ -7090,7 +7080,7 @@ msgstr ""
 
 #: Opcodes/ugens9.c:188
 msgid "convolve: not initialised"
-msgstr ""
+msgstr "convolve: non inizializzato"
 
 #: Opcodes/ugens9.c:383
 #, c-format
@@ -7112,7 +7102,7 @@ msgstr ""
 
 #: Opcodes/uggab.c:923 Opcodes/uggab.c:997
 msgid "vibrato(krate): not initialised"
-msgstr ""
+msgstr "vibrato(krate): non inizializzato"
 
 #: Opcodes/ugmoss.c:49
 msgid "No table for dconv"
@@ -7126,11 +7116,11 @@ msgstr ""
 
 #: Opcodes/ugmoss.c:406
 msgid "vcomb: not initialised"
-msgstr ""
+msgstr "vcomb: non inizializzato"
 
 #: Opcodes/ugmoss.c:458
 msgid "valpass: not initialised"
-msgstr ""
+msgstr "valpass: non inizializzato"
 
 #: Opcodes/ugmoss.c:514
 msgid "iresfn for ftmorf does not exist"
@@ -7182,7 +7172,7 @@ msgstr ""
 
 #: Opcodes/ugnorman.c:306
 msgid "ATSREAD: not initialised"
-msgstr ""
+msgstr "ATSREAD: non inizializzato"
 
 #: Opcodes/ugnorman.c:312
 msgid "ATSREAD: only positive time pointer values allowed, setting to zero\n"
@@ -7203,7 +7193,7 @@ msgstr ""
 
 #: Opcodes/ugnorman.c:426
 msgid "ATSREADNZ: not initialised"
-msgstr ""
+msgstr "ATSREADNZ: non inizializzato"
 
 #: Opcodes/ugnorman.c:433
 msgid "ATSREADNZ: only positive time pointer values allowed, setting to zero\n"
@@ -7232,7 +7222,7 @@ msgstr ""
 
 #: Opcodes/ugnorman.c:578
 msgid "ATSADD: not initialised"
-msgstr ""
+msgstr "ATSADD: non inizializzato"
 
 #: Opcodes/ugnorman.c:586
 msgid ""
@@ -7299,7 +7289,7 @@ msgstr ""
 
 #: Opcodes/ugnorman.c:1624
 msgid "ATSBUFREAD: not initialised"
-msgstr ""
+msgstr "ATSBUFREAD: non inizializzato"
 
 #: Opcodes/ugnorman.c:1634
 msgid ""
@@ -7468,11 +7458,11 @@ msgstr ""
 
 #: Opcodes/vpvoc.c:100
 msgid "tableseg: not initialised"
-msgstr ""
+msgstr "tableseg: non inizializzato"
 
 #: Opcodes/vpvoc.c:131
 msgid "tablexseg: not initialised"
-msgstr ""
+msgstr "tablexseg: non inizializzato"
 
 #: Opcodes/vpvoc.c:173
 #, c-format
@@ -7490,7 +7480,7 @@ msgstr ""
 
 #: Opcodes/vpvoc.c:277
 msgid "vpvoc: not initialised"
-msgstr ""
+msgstr "vpvoc: non inizializzato"
 
 #: Opcodes/wave-terrain.c:42
 msgid "wterrain: ftable not found"
@@ -7766,8 +7756,9 @@ msgid "not loading '%s' (uses incompatible floating point type)"
 msgstr ""
 
 #: Top/csmodule.c:196
+#, c-format
 msgid ""
-"not loading '%s' (incompatible with this version of Csound %(%d.%d/%d.%d)"
+"not loading '%s' (incompatible with this version of Csound (%d.%d/%d.%d)"
 msgstr ""
 
 #: Top/csmodule.c:237
@@ -8118,11 +8109,6 @@ msgstr ""
 #: Top/main.c:305
 #, c-format
 msgid "scorename: %s\n"
-msgstr ""
-
-#: Top/main.c:307
-#, c-format
-msgid "xfilename: %s\n"
 msgstr ""
 
 #: Top/main.c:331

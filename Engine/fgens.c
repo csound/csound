@@ -1220,10 +1220,10 @@ static int gen25(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn25err:
-    return fterror(ff, Str("x coordindates must all be in increasing order:"));
+    return fterror(ff, Str("x coordinates must all be in increasing order:"));
 
  gn25err2:
-    return fterror(ff, Str("x coordindate greater than function size:"));
+    return fterror(ff, Str("x coordinate greater than function size:"));
 
  gn25err3:
     return fterror(ff,
