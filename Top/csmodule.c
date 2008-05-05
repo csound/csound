@@ -194,7 +194,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       if (majorVersion != (int) CS_APIVERSION ||
           minorVersion > (int) CS_APISUBVER) {
         csound->Warning(csound, Str("not loading '%s' (incompatible "
-                                    "with this version of Csound %(%d.%d/%d.%d)"),
+                                    "with this version of Csound (%d.%d/%d.%d)"),
                         fname, majorVersion,minorVersion,
                         CS_APIVERSION,CS_APISUBVER);
         return -1;
