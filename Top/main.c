@@ -304,7 +304,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
     if (csound->xfilename != NULL)
-      csound->Message(csound, Str("xfilename: %s\n"), csound->xfilename);
+      csound->Message(csound, "xfilename: %s\n", csound->xfilename);
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     csoundLoadExternals(csound);    /* load plugin opcodes */
