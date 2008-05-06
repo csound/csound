@@ -1,6 +1,13 @@
+2008-05-06  jpff  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (skiporccomment): New function to handle /* .. */
+	(rdorchfile): Call it
+
+	* Engine/sread.c (sget1): Do not expand macros in /* .. */ context
+
 2008-04-30  jpff  <jpff@codemist.co.uk>
 
-	* H/sysdep.h: Inroduce macros for MYFLT versions of functions
+	* H/sysdep.h: Introduce macros for MYFLT versions of functions
 	* OOps/aops.c: Use macro for exp/expf etc all over
 
 2008-04-28  jpff  <jpff@codemist.co.uk>

@@ -1251,7 +1251,7 @@ static void ifa(CSOUND *csound)
           }
           else /* need the fabs() in case of neg p3 */
             ST(prvp2) = ST(bp)->p2val =
-                        prvbp->p2val + (MYFLT) fabs(prvbp->p3val);
+                        prvbp->p2val + FABS(prvbp->p3val);
         }
         else carryerror(csound);
       }
@@ -1402,7 +1402,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
         setprv(csound);
         break;
       case 2: if (*(p-2) == '+')              /* (interpr . of +) */
-        ST(prvp2) = ST(bp)->p2val = prvbp->p2val + (MYFLT)fabs(prvbp->p3val);
+        ST(prvp2) = ST(bp)->p2val = prvbp->p2val + FABS(prvbp->p3val);
       else ST(prvp2) = ST(bp)->p2val = prvbp->p2val;
       ST(bp)->newp2 = ST(bp)->p2val;
       break;
@@ -1520,8 +1520,8 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       }
       else {                    /* It is a comment */
       top:
-        while ((c = getscochar(csound, 1)) != '*');
-        if ((c = getscochar(csound, 1)) != '/') {
+        while ((c = getscochar(csound, 0)) != '*');
+        if ((c = getscochar(csound, 0)) != '/') {
           if (c != EOF) goto top;
           return EOF;
         }

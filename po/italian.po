@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-05-05 16:50+0100\n"
-"PO-Revision-Date: 2008-05-05 19:23+0100\n"
+"PO-Revision-Date: 2008-05-05 19:30+0100\n"
 "Last-Translator:\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -2097,7 +2097,7 @@ msgstr " *** estremità inattesa della lima del MIDI\n"
 
 #: InOut/midifile.c:88
 msgid " *** unexpected end of MIDI track\n"
-msgstr ""
+msgstr " *** estremità inattesa della pista del MIDI\n"
 
 #: InOut/midifile.c:103
 msgid " *** invalid dynamic length data in MIDI file\n"

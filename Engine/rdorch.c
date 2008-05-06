@@ -168,6 +168,51 @@ static inline void ungetorchar(CSOUND *csound, int c)
       csoundDie(csound, "ungetorchar(): buffer overflow");
 }
 
+static int skiporccomment(CSOUND *csound)
+{
+    int c;
+    int mode = 0;               /* Mode = 1 after / character */
+    int srccnt = 0;
+ top:
+    if (ST(str)->unget_cnt) {
+      c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+    }
+    else if (ST(str)->string) {
+      c = *ST(str)->body++;
+      if (c == '\0') {
+        ST(pop) += ST(str)->args;
+        ST(str)--; ST(input_cnt)--;
+        ST(linepos) = -1;
+        return;
+      }
+    }
+    else {
+      c = getc(ST(str)->file);
+      if (c == EOF) {
+        if (ST(str) == &ST(inputs)[0]) {
+          ST(linepos) = -1;
+          return;
+        }
+        if (ST(str)->fd != NULL) {
+          csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+        }
+        ST(str)--; ST(input_cnt)--;
+        ST(str)->line++; ST(linepos) = -1;
+        return;
+      }
+    }
+    if (c == '*' && mode == 0) mode = 1;
+    else if (c == '/' && mode == 1) {
+      return srccnt;
+    }
+    else mode = 0;
+    if (c == '\n') {
+      ST(str)->line++; ST(linepos) = -1;
+      srccnt++;
+    }
+    goto top;
+}
+
 static void skiporchar(CSOUND *csound)
 {
     int c;
@@ -530,6 +575,18 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         }
         else {
           *cp++ = c;
+        }
+      }
+      else if (c == '/') {
+        c = getorchar(csound);
+        if (c=='*') {
+          srccnt += skiporccomment(csound);
+          cp--;                 /* ?? ?? ?? */
+          goto top;
+        }
+        else {
+          ungetorchar(csound, c);
+          c = '/';
         }
       }
       else if (c == '\n') {                          /* at each new line */
