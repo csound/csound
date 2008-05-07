@@ -409,7 +409,6 @@ public:
     if (!csound->reinitflag && !csound->tieflag) {
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
-    stepSizes();
     // NOTE: The original MATLAB code uses 1-based indexing.
     // Although the MATLAB vectors are columns, 
     // these are rows; it doesn't matter here.
@@ -461,11 +460,37 @@ public:
     MYFLT &Gb = *Gb_;
     MYFLT &E = *E_;
     MYFLT &C1 = *C1_;
-    // Recompute Runge-Kutta step sizes if necessary.
-    if (step_size != *step_size_) {
-      stepSizes();
-    }
-    // Standard 4th-order Runge-Kutta integration.
+    // Recompute Runge-Kutta stuff every kperiod in case kontrol variables have changed.
+    step_size = *step_size_;
+    // h = step_size*G/C2;
+    h = step_size * G / C2;
+    // h2 = (h)*(.5);
+    h2 = h / 2.0;
+    // h6 = (h)/(6);
+    h6 = h / 6.0;
+    // anor = Ga/G;
+    anor = Ga / G;
+    // bnor = Gb/G;
+    bnor = Gb / G;
+    // bnorplus1 = bnor + 1;
+    bnorplus1 = bnor + 1.0;
+    // alpha = C2/C1;
+    alpha = C2 / C1;
+    // beta = C2/(L*G*G);
+    beta = C2 / (L * G * G);
+    // gammaloc = (R0*C2)/(L*G);
+    gammaloc = (R0 * C2) / (L * G);
+    // bh = beta*h;
+    bh = beta * h;
+    // bh2 = beta*h2;
+    bh2 = beta * h2;
+    // ch = gammaloc*h;
+    ch = gammaloc * h;
+    // ch2 = gammaloc*h2;
+    ch2 = gammaloc * h2;
+    // omch2 = 1 - ch2;
+    omch2 = 1.0 - ch2;
+     // Standard 4th-order Runge-Kutta integration.
     for (size_t i = 0; i < ksmps; i++) {
       // Stage 1.
       k1(1) = alpha*(M(2) - bnorplus1*M(1) - (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
@@ -496,46 +521,6 @@ public:
       // warn(csound, "%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
     }
     return OK;
-  }
-  void stepSizes()
-  {
-    MYFLT &L = *L_;
-    MYFLT &R0 = *R0_;
-    MYFLT &C2 = *C2_;
-    MYFLT &G = *G_;
-    MYFLT &Ga = *Ga_;
-    MYFLT &Gb = *Gb_;
-    MYFLT &E = *E_;
-    MYFLT &C1 = *C1_;
-    step_size = *step_size_;
-    // h = step_size*G/C2;
-    h = step_size * G / C2;
-    // h2 = (h)*(.5);
-    h2 = h / 2.0;
-    // h6 = (h)/(6);
-    h6 = h / 6.0;
-    // anor = Ga/G;
-    anor = Ga / G;
-    // bnor = Gb/G;
-    bnor = Gb / G;
-    // bnorplus1 = bnor + 1;
-    bnorplus1 = bnor + 1.0;
-    // alpha = C2/C1;
-    alpha = C2 / C1;
-    // beta = C2/(L*G*G);
-    beta = C2 / (L * G * G);
-    // gammaloc = (R0*C2)/(L*G);
-    gammaloc = (R0 * C2) / (L * G);
-    // bh = beta*h;
-    bh = beta * h;
-    // bh2 = beta*h2;
-    bh2 = beta * h2;
-    // ch = gammaloc*h;
-    ch = gammaloc * h;
-    // ch2 = gammaloc*h2;
-    ch2 = gammaloc * h2;
-    // omch2 = 1 - ch2;
-    omch2 = 1.0 - ch2;
   }
 };
 
