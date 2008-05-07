@@ -133,8 +133,9 @@ def installFile_(src, dst, perm, stripMode):
     fileList += [fileName]
     fullName = concatPath([instDir, fileName])
     err = runCmd(['install', '-p', '-m', perm, src, fullName])
-    if err == 0 and stripMode != '':
-        err = runCmd(['strip', stripMode, fullName])
+    #no stripping allowed
+    #if err == 0 and stripMode != '':
+    #    err = runCmd(['strip', stripMode, fullName])
     if err == 0:
         addMD5(fullName, fileName)
         print '  %s' % fileName
