@@ -1746,8 +1746,10 @@ else:
     frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
     frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
     frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/vstplugmain.cpp
-    frontends/CsoundVST/CsoundVST.cpp       frontends/CsoundVST/CsoundVstFltk.cpp
-    frontends/CsoundVST/CsoundVSTMain.cpp   frontends/CsoundVST/CsoundVstUi.cpp
+    frontends/CsoundVST/CsoundVST.cpp       
+    frontends/CsoundVST/CsoundVstFltk.cpp
+    frontends/CsoundVST/CsoundVSTMain.cpp   
+    frontends/CsoundVST/CsoundVstUi.cpp
     ''')
     if util.platform == 'win32':
         if util.compilerGNU():

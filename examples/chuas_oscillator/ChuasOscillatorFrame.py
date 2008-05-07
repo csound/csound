@@ -542,9 +542,7 @@ class MainFrame(wx.Frame):
         self.setValue(event)
 
     def OnOutputGainTextText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "gkOutputGain:", value
-        self.csound.SetChannel('gkOutputGain', value)
+        self.setValue(event)
 
     def OnGkstep_sizeText(self, event):
         self.setValue(event)
@@ -560,21 +558,17 @@ class MainFrame(wx.Frame):
         print "Audio output:", value
 
     def OnReverberationWetDryMixTextText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkReverbDryWetMix', value)
+        self.setValue(event)
 
     def OnFilterResonanceTextText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkFilterResonance', value)
+        self.setValue(event)
         
 
 orchestra = '''
 sr      = 44100
 ksmps   = 100
 nchnls  = 2
-0dbfs   = 1000
+0dbfs   = 10000
 
 ; Set up global control channels for use by Csound API.
 gkstep_size         init            1.0
@@ -612,19 +606,33 @@ gkReverbWetDryMix   chnexport       "gkReverbWetDryMix", 3
 gkOutputGain        init            1.0
 gkOutputGain        chnexport       "gkOutputGain", 3
 
-gibuzztable         ftgen           1, 0, 16384, 10, 1
+gisinetable         ftgen           1, 0, 65536, 10, 1
 
                     instr  1
                     ; sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15
                     ; integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size or p17:p19, p4:p5
-iattack             =               0.02
+                    printk          1.0, gkstep_size
+                    printk          1.0, gkL
+                    printk          1.0, gkR0
+                    printk          1.0, gkC2
+                    printk          1.0, gkG
+                    printk          1.0, gkGa
+                    printk          1.0, gkGb
+                    printk          1.0, gkE
+                    printk          1.0, gkC1
+                    printk          1.0, gkFilterFrequency
+                    printk          1.0, gkFilterResonance
+                    printk          1.0, gkReverbDelay
+                    printk          1.0, gkReverbWetDryMix
+                    printk          1.0, gkOutputGain
+                    ; Ramp up slowly to give the user a chance to turn down bad ones.
+iattack             =               5.0
 isustain            =               p3
 irelease            =               0.02
 p3                  =               iattack + isustain + irelease
 iscale              =               1.0
 adamping            linsegr         0.0, iattack, iscale, isustain, iscale, irelease, 0.0
-aguide              buzz            100.0, 880, sr/880, gibuzztable
-                    ; printk          1.0, gkL
+aguide              poscil          1.0, 1000.0, gisinetable
                     ; Chua's oscillator with piecewise nonlinearity, circuit elements controlled by GUI.
 aI3, aV2, aV1       chuap           gkL, gkR0, gkC2, gkG, gkGa, gkGb, gkE, gkC1, giI3, giV2, giV1, gkstep_size	
                     ; Try to normalize volume.

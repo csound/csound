@@ -23,6 +23,12 @@
 #include "CsoundVstFltk.hpp"
 #include <Python.h>
 
+// Stub to avoid bringing in Python.
+
+void CppSound::setPythonMessageCallback()
+{
+}
+
 static char *dupstr(const char *string)
 {
   if (string == 0) {

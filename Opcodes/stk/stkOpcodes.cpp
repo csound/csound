@@ -142,12 +142,6 @@ public:
     oldkvalue3 = -1.0;
     return OK;
   }
-  int noteoff(CSOUND *csound)
-  {
-    released = true;
-    instrument->noteoff(0.5);
-    return OK;
-  }
   int kontrol(CSOUND *csound)
   {
     if(!released)
@@ -224,12 +218,11 @@ public:
   STKInstrumentAdapter1() : instrument(0) {}
   int init(CSOUND *csound)
   {
-    if(!instrument)
-      {
-        Stk::setSampleRate(csound->esr);
-        instrument = new T((StkFloat) 10.0);
-        getStkInstances()[csound].push_back(instrument);
-      }
+    if(!instrument) {
+      Stk::setSampleRate(csound->esr);
+      instrument = new T((StkFloat) 10.0);
+      getStkInstances()[csound].push_back(instrument);
+    }
     ksmps = csound->ksmps;
     instrument->noteOn(*ifrequency, *igain);
     released = false;
@@ -241,12 +234,6 @@ public:
     oldkvalue2 = -1.0;
     oldkcontroller3 = -1.0;
     oldkvalue3 = -1.0;
-    return OK;
-  }
-  int noteoff(CSOUND *csound)
-  {
-    released = true;
-    instrument->noteoff(0.5);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -624,5 +611,6 @@ extern "C"
     }
     return 0;
   }
+
 }
 
