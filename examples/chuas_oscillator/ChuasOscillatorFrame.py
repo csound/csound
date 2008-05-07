@@ -500,85 +500,64 @@ class MainFrame(wx.Frame):
         self.giI3.SetValue(str(float(self.preset[13])))
         self.giV2.SetValue(str(float(self.preset[14])))
         self.giV1.SetValue(str(float(self.preset[15])))
+    
+    def setValue(self, event):
+        objekt = event.GetEventObject()
+        channel = str(objekt.GetName())
+        value = float(objekt.GetValue())
+        print '%12s: %f' % (channel, value)
+        self.csound.SetChannel(channel, value)
 
     def OnGkLText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkL', value)
-
+        self.setValue(event)
+ 
     def OnGiI3Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('giI3', value)
+        self.setValue(event)
 
     def OnGkR0Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkR0', value)
+        self.setValue(event)
 
     def OnGkC1Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkC1', value)
+        self.setValue(event)
 
     def OnGkC2Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkC2', value)
+        self.setValue(event)
 
     def OnGkGText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkG', value)
+        self.setValue(event)
 
     def OnGkGaText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkGa', value)
+        self.setValue(event)
 
     def OnGkGbText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkGb', value)
+        self.setValue(event)
 
     def OnGkEText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkE', value)
+        self.setValue(event)
 
     def OnGiV1Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('giV1', value)
+        self.setValue(event)
 
     def OnGiV2Text(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('giV2', value)
+        self.setValue(event)
 
     def OnOutputGainTextText(self, event):
         value = float(event.GetEventObject().GetValue())
-        print "Value:", value
+        print "gkOutputGain:", value
         self.csound.SetChannel('gkOutputGain', value)
 
     def OnGkstep_sizeText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkstep_size', value)
+        self.setValue(event)
 
     def OnFilterFrequencyTextText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkFilterFrequency', value)
+        self.setValue(event)
 
     def OnReverberationDecayTextText(self, event):
-        value = float(event.GetEventObject().GetValue())
-        print "Value:", value
-        self.csound.SetChannel('gkReverbDecay', value)
+        self.setValue(event)
 
     def OnAudioOutputTextText(self, event):
         value = event.GetEventObject().GetValue()
-        print "Value:", value
+        print "Audio output:", value
 
     def OnReverberationWetDryMixTextText(self, event):
         value = float(event.GetEventObject().GetValue())
@@ -595,7 +574,7 @@ orchestra = '''
 sr      = 44100
 ksmps   = 100
 nchnls  = 2
-0dbfs   = 10000
+0dbfs   = 1000
 
 ; Set up global control channels for use by Csound API.
 gkstep_size         init            1.0
@@ -644,25 +623,27 @@ irelease            =               0.02
 p3                  =               iattack + isustain + irelease
 iscale              =               1.0
 adamping            linsegr         0.0, iattack, iscale, isustain, iscale, irelease, 0.0
-aguide              buzz            16384.0, 440, sr/440, gibuzztable
-                    ; Chua's oscillator with piecewise nonlinearity controlled by GUI.
+aguide              buzz            100.0, 880, sr/880, gibuzztable
+                    ; printk          1.0, gkL
+                    ; Chua's oscillator with piecewise nonlinearity, circuit elements controlled by GUI.
 aI3, aV2, aV1       chuap           gkL, gkR0, gkC2, gkG, gkGa, gkGb, gkE, gkC1, giI3, giV2, giV1, gkstep_size	
+                    ; Try to normalize volume.
+abalanced           balance         aV2, aguide
                     ; Resonant filter.
-afiltered           moogladder      aV2, gkFilterFrequency, gkFilterResonance, 1.00
+afiltered           moogladder      abalanced, gkFilterFrequency, gkFilterResonance, 1.00
                     ; Reverberation
-arleft, arright     reverbsc        aV2, aV2, gkReverbDelay, 14000 
+arleft, arright     reverbsc        afiltered, afiltered, gkReverbDelay, 16000 
 arwetleft           =               gkReverbWetDryMix * arleft
 arwetright          =               gkReverbWetDryMix * arright
 ardry               =               (1.0 - gkReverbWetDryMix) * afiltered
-                    ; Compensate for ringing.
-asig                balance         ardry, aguide * gkOutputGain
                     ; Anti-clicking.
 adamping            linsegr         0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-                    outs            adamping * (arwetleft + ardry), adamping * (arwetright + ardry)
+                    outs            adamping * (arwetleft + ardry) * gkOutputGain, adamping * (arwetright + ardry) * gkOutputGain
                     endin
 '''
 
 score = '''
+; An endless note.
 f 0 6000
 i 1 1 -1
 '''
