@@ -51,6 +51,7 @@ extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
 typedef struct evt_cb_func {
+
     void    (*func)(CSOUND *, void *);
     void    *userData;
     struct evt_cb_func  *nxt; 

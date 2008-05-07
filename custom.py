@@ -14,6 +14,7 @@ customLIBS = []
 customLIBPATH = []
 customSHLINKFLAGS = []
 customSWIGFLAGS = []
+customLINKFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
