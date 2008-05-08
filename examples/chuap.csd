@@ -11,7 +11,6 @@ nchnls          =           2
 gibuzztable     ftgen       1, 0, 16384, 10, 1
 
                 instr 1
-                ; Adapted from ABC++ MATLAB example data.
                 ; sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15
                 ; integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size or p17:p19, p4:p5
 istep_size 	    =           p5
@@ -39,6 +38,7 @@ asignal         balance     aV2, aguide
                 endin
 </CsInstruments>
 <CsScore>
+;        Adapted from ABC++ MATLAB example data.
 i 1 0 20 1500 .1   -1 -1 -0.00707925 0.00001647 100  1 -.99955324 -1.00028375 1 -.00222159 204.8 -2.36201596260071 3.08917625807226e-03 3.87075614929199 7 .4 .004 1 86 30; torus attractor ( gallery of attractors ) 
 i 1 + 20 1500 .425  0 -1  1.3506168  0              -4.50746268737 -1 2.4924 .93 1 1 0 -22.28662665 .009506608 -22.2861576 32 10 2 20 86 30 ; heteroclinic orbit
 i 1 + 20 1024 .05  -1 -1  0.00667    0.000651    10 -1 .856 1.1 1 .06 51.2 -20.200590133667 .172539323568344 -4.07686233520508 2.5 10 .2 1 66 81 ; periodic attractor (torus breakdown route)
