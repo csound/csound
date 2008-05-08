@@ -138,6 +138,9 @@ commandOptions.Add('buildPythonOpcodes',
 commandOptions.Add('prefix',
     'Base directory for installs. Defaults to /usr/local.',
     '/usr/local')
+commandOptions.Add('instdir',
+    'For the install target: puts instdir before the prefix',
+    '')
 commandOptions.Add('buildRelease',
     'Set to 1 to build for release (implies noDebug).',
     '0')
@@ -2496,7 +2499,8 @@ if commonEnvironment['useGettext'] == '1':
 
 # INSTALL OPTIONS
 
-PREFIX = commonEnvironment['prefix']
+INSTDIR = commonEnvironment['instdir']
+PREFIX = INSTDIR + commonEnvironment['prefix']
 
 BIN_DIR = PREFIX + "/bin"
 INCLUDE_DIR = PREFIX + "/include/csound"
