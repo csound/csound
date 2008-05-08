@@ -1,3 +1,23 @@
+2008-05-08  jpff  <jpff@codemist.co.uk>
+
+	* util/envext.c:
+	* util/het_export.c:
+	* util/het_import.c:
+	* util/heti_main.c:
+	* util/lpc_export.c:
+	* util/lpc_import.c:
+	* util/lpci_main.c:
+	* util/lpcx_main.c:
+	* util/mixer.c:
+	* util/pv_export.c:
+	* util/pv_import.c:
+	* util/scale.c:
+	* util/srconv.c:
+	* util/xtrct.c:
+	* util1/sortex/smain.c:
+	* util1/sortex/xmain.c:	Corrected licence to LGPL
+
+
 2008-05-06  jpff  <jpff@codemist.co.uk>
 
 	* Engine/rdorch.c (skiporccomment): New function to handle /* .. */
