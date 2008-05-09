@@ -1186,6 +1186,7 @@ else:
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Clone()
+        util.fixCFlagsForSwig(csndPythonEnvironment)
         csndPythonEnvironment.Append(LIBS = csoundInterfaces)
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
             'interfaces/python_interface.i',
