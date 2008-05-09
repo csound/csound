@@ -1171,6 +1171,7 @@ def fixCFlagsForSwig(env):
     if compilerGNU():
         # work around non-ANSI type punning in SWIG generated wrapper files
         env['CCFLAGS'].append('-fno-strict-aliasing')
+        env['CXXFLAGS'].append('-fno-strict-aliasing')
 
 def makePythonModule(env, targetName, srcs):
     if getPlatform() == 'darwin':
@@ -1326,6 +1327,7 @@ else:
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
+        fixCFlagsForSwig(csndPythonEnvironment)
         if getPlatform() == 'darwin':
             if commonEnvironment['dynamicCsoundLibrary'] == '1':
                 csndPythonEnvironment.Append(LIBS = ['_csnd'])                 
