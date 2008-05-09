@@ -15,13 +15,13 @@
  * --------------  -----  --------------------------------------------------------
  * real scalar     r      Native i-rate or k-rate variable
  * complex scalar  c      Pair of native i-rate or k-rate variables, e.g. "kr, ki"
- * real vector     rv     Reference stored in native i-rate or k-rate variable
+ * real vector     rv     Pointer to array used as native i-rate or k-rate variable
  *                 a      Native a-rate variable
  *                 t      Native function table number
- * complex vector  cv     Reference stored in native i-rate or k-rate 
+ * complex vector  cv     Pointer to array used as native i-rate or k-rate variable
  *                 f      Native fsig variable
- * real matrix     rm     Reference stored in native i-rate or k-rate variable
- * complex matrix  cm     Reference stored in native i-rate or k-rate variable
+ * real matrix     rm     Pointer to array used as native i-rate or k-rate variable
+ * complex matrix  cm     Pointer to array used as native i-rate or k-rate variable
  *
  * All arrays are 0-based.
  *
@@ -32,7 +32,7 @@
  * and sparse routines are not implemented.
  *
  * All operands must be pre-allocated; no operation allocates any arrays.
- * However, some operations may resize or reshape arrays to hold results.
+ * However, some operations may reshape arrays to hold results.
  *
  * Data is stored in i-rate and k-rate "array" objects, 
  * which can be of type code vr, vc, mr, or mc, and 
@@ -49,7 +49,7 @@
  * 3. For creators only: type code of the created array.
  * 4. Operation: the common mathematical term or abbreviation, e.g.
  *    "plus", "minus", "prod", "div", "dot", "abs", "conj", "norm1", "det", "hermite", and so on.
- * 5. Where not array types: type code of parameter(s).
+ * 5. Where the array type(s) are not implicit: type code of parameter(s).
  *
  * Array Creators
  * --------------
@@ -93,7 +93,7 @@
  * ir                      la_i_norm2        iarray
  * ir                      la_i_norm_inf     iarray
  * ir                      la_i_trace        iarray
- * ir                      la_i_determinant  imatrix
+ * ir                      la_i_lu_det       imatrix
  * iarray                  la_i_scale_r      iarray, ir
  * iarray                  la_i_scale_c      iarray, ireal, iimaginary
  *
@@ -109,7 +109,7 @@
  * --------------
  * 
  * iarray                 la_i_dot           iarray_a, iarray_b
- * iarray                 la_i_invert        iarray
+ * iarray                 la_i_lu_invert     imatrix
  *
  * Array Decompositions
  * --------------------
@@ -119,6 +119,8 @@
  * iarray                 la_i_lu_factor     imatrix, ivector_pivot
  * iarray                 la_i_lu_solve      imatrix, ivector, ivector_pivot
  * imatrix_q, imatrix_r   la_i_qr_factor     imatrix
+ * ivector_eigenvalues    la_i_qr_eigen      imatrix, ia_tolerance
+ * ivec_eval, imat_evec   la_i_qr_sym_eigen  imatrix, ia_tolerance
  * 
  */
 
@@ -135,57 +137,13 @@ extern "C"
 #include <gmm/gmm.h>
 #include <vector>
 
-class LA_I_RV_CREATE : public NoteoffOpcodeBase
+struct Array
 {
-public:
-  // Return value.
-  MYFLT *value;
-  // Parameters.
-  MYFLT *columns;
-  MYFLT *;
-  // State.
-  std::vector<MYFLT> vector;
-  int init(CSOUND *)
-  {
-    vector.resize(size_t(*size));
-    value = &vector.front();
-  }
-  int noteoff(CSOUND *csound)
-  {
-    vector.resize(0);
-  }
+  char code[4];
+  size_t rows;
+  size_t columns;
+  MYFLT *storage;
 };
-
-class LA_I_CV_CREATE : public NoteoffOpcodeBase
-{
-public:
-  // Return value.
-  MYFLT *value;
-  // Parameters.
-  MYFLT *size;
-  MYFLT *diagonal;
-  // State.
-  std::vector< std::complex<MYFLT> > vector;
-  int init(CSOUND *)
-  {
-    vector.resize(size_t(*size));
-    value = &vector.front();
-  }
-  int noteoff(CSOUND *csound)
-  {
-    vector.resize(0);
-  }
-};
-
-/*
-
-
-
-
-
-
-
-*/
 
 extern "C" 
 {
