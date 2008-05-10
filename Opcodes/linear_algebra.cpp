@@ -10,6 +10,7 @@
  * in the Csound orchestra language.
  *
  * Linear Algebra Data Types
+ * -------------------------
  *
  * Mathematical    Code   Corresponding Csound Type or Types
  * --------------  -----  --------------------------------------------------------
@@ -62,6 +63,9 @@
  * iarray                  la_i_copy_a       asig
  * iarray                  la_i_copy_f       fsig
  * iarray                  la_i_copy_t       itable
+ * iarray                  la_i_a_copy       ivr
+ * iarray                  la_i_f_copy       ivc
+ * iarray                  la_i_t_copy       ivr
  *
  * Array Introspection
  * -------------------
@@ -139,11 +143,17 @@ extern "C"
 
 struct Array
 {
-  char code[4];
-  size_t rows;
-  size_t columns;
-  MYFLT *storage;
+  OPDS h;
+  MYFLT *array;
+  MYFLT *rows;
+  MYFLT *columns;
+  MYFLT *code;
 };
+
+int noteoff(CSOUND *csound, Array *array)
+{
+  
+}
 
 extern "C" 
 {
