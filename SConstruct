@@ -634,6 +634,7 @@ if fltkFound:
 else:
     fltk117Found = 0
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
+gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 if not buildOLPC:
@@ -1395,7 +1396,7 @@ else:
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c      
     '''))
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
@@ -1479,6 +1480,8 @@ if (not buildOLPC) and jackFound:
     makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
+if (not buildOLPC) and gmmFound:
+    makePlugin(pluginEnvironment, 'linear_algebra', 'Opcodes/linear_algebra.cpp')
 #############################################################################
 #
 # Plugins with External Dependencies
