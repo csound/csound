@@ -92,5 +92,74 @@ public:
   OPDS h;
 };
 
+template<typename T>
+class OpcodeNoteoffBase
+{
+public:
+  int init(CSOUND *csound)
+  {
+    return NOTOK;
+  }
+  static int init_(CSOUND *csound, void *opcode)
+  {
+    if (!csound->reinitflag && !csound->tieflag) {
+      csound->RegisterDeinitCallback(csound, opcode, &OpcodeNoteoffBase<T>::noteoff_);
+    }
+    return reinterpret_cast<T *>(opcode)->init(csound);
+  }
+  int kontrol(CSOUND *csound)
+  {
+    return NOTOK;
+  }
+  static int kontrol_(CSOUND *csound, void *opcode)
+  {
+    return reinterpret_cast<T *>(opcode)->kontrol(csound);
+  }
+  int audio(CSOUND *csound)
+  {
+    return NOTOK;
+  }
+  static int audio_(CSOUND *csound, void *opcode)
+  {
+    return reinterpret_cast<T *>(opcode)->audio(csound);
+  }
+  void log(CSOUND *csound, const char *format,...)
+  {
+    va_list args;
+    va_start(args, format);
+    if(csound) {
+      csound->MessageV(csound, 0, format, args);
+    }
+    else {
+      vfprintf(stdout, format, args);
+    }
+    va_end(args);
+  }
+  void warn(CSOUND *csound, const char *format,...)
+  {
+    va_list args;
+    va_start(args, format);
+    if(csound) {
+      if(csound->GetMessageLevel(csound) & WARNMSG ||
+         csound->GetDebug(csound)) {
+        csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
+      }
+    }
+    else {
+      vfprintf(stdout, format, args);
+    }
+    va_end(args);
+  }
+  int noteoff(CSOUND *csound)
+  {
+    return OK;
+  }
+  static int noteoff_(CSOUND *csound, void *opcode)
+  {
+    return reinterpret_cast<T *>(opcode)->noteoff(csound);    
+  }
+  OPDS h;
+};
+
 #endif
 
