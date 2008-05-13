@@ -32,11 +32,11 @@
  * All arrays are general and dense; banded, Hermitian, symmetric 
  * and sparse routines are not implemented.
  *
- * Arrays are stored in i-rate bjects 
- * which can be of type code vr, vc, mr, or mc. 
- * In orchestra code, the array is passed as a
+ * An array can be of type code vr, vc, mr, or mc
+ * and is stored in an i-rate object. 
+ * In orchestra code, an array is passed as a
  * MYFLT i-rate variable that contains the address
- * of the array, that is, of the allocator opcode instance.
+ * of the array object, which is actually the llocator opcode instance.
  * Although array objects are i-rate, of course
  * their values and even shapes may change at i-rate or k-rate.
  *
@@ -96,10 +96,10 @@
  * ivr                        la_k_assign_t       itablenumber
  * ivc                        la_k_assign_f       fsig
  * 
- * asig                       la_k_a_assign_vr    ivr
- * itablenum                  la_i_t_assign_vr    ivr
- * itablenum                  la_k_t_assign_vr    ivr
- * fsig                       la_k_f_assign_vc    ivc
+ * asig                       la_k_a_assign       ivr
+ * itablenum                  la_i_t_assign       ivr
+ * itablenum                  la_k_t_assign       ivr
+ * fsig                       la_k_f_assign       ivc
  *
  * Array Element Access
  * --------------------
@@ -125,10 +125,6 @@
  * Single Array Operations
  * -----------------------
  *
- * ivr                        la_i_transpose_vr   ivr
- * ivr                        la_k_transpose_vr   ivr
- * ivc                        la_i_transpose_vc   ivc
- * ivc                        la_k_transpose_vc   ivc
  * imr                        la_i_transpose_mr   imr
  * imr                        la_k_transpose_mr   imr
  * imc                        la_i_transpose_mc   imc
@@ -307,13 +303,13 @@ template<typename A, typename F> void toa(F *f, A *&a)
 class la_i_vr_create_t : public OpcodeNoteoffBase<la_i_vr_create_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *i_in_rows;
+  MYFLT *i_vr;
+  MYFLT *i_rows;
   std::vector<MYFLT> vr;
   int init(CSOUND *)
   {
-    vr.resize(size_t(*i_in_rows));
-    tof(this, i_out_vr);
+    vr.resize(size_t(*i_rows));
+    tof(this, i_vr);
     return OK;
   }
   int noteoff(CSOUND *)
@@ -326,13 +322,13 @@ public:
 class la_i_vc_create_t : public OpcodeNoteoffBase<la_i_vc_create_t>
 {
 public:
-  MYFLT *i_out_vc;
-  MYFLT *i_in_rows;
+  MYFLT *i_vc;
+  MYFLT *i_rows;
   std::vector< std::complex<MYFLT> > vc;
   int init(CSOUND *)
   {
-    vc.resize(size_t(*i_in_rows));
-    tof(this, i_out_vc);
+    vc.resize(size_t(*i_rows));
+    tof(this, i_vc);
     return OK;
   }
   int noteoff(CSOUND *)
@@ -345,20 +341,20 @@ public:
 class la_i_mr_create_t : public OpcodeNoteoffBase<la_i_mr_create_t>
 {
 public:
-  MYFLT *i_out_mr;
-  MYFLT *i_in_rows;
-  MYFLT *i_in_columns;
-  MYFLT *o_in_diagonal;
+  MYFLT *i_mr;
+  MYFLT *i_rows;
+  MYFLT *i_columns;
+  MYFLT *o_diagonal;
   gmm::dense_matrix<MYFLT> mr;
   int init(CSOUND *)
   {
-    gmm::resize(mr, size_t(*i_in_rows), size_t(*i_in_columns));
-    if (*o_in_diagonal) {
-      for (size_t i = 0, n = size_t(*i_in_rows); i < n; ++i) {
-	mr(i, i) = *o_in_diagonal;
+    gmm::resize(mr, size_t(*i_rows), size_t(*i_columns));
+    if (*o_diagonal) {
+      for (size_t i = 0, n = size_t(*i_rows); i < n; ++i) {
+	mr(i, i) = *o_diagonal;
       }
     }
-    tof(this, i_out_mr);
+    tof(this, i_mr);
     return OK;
   }
   int noteoff(CSOUND *)
@@ -371,21 +367,21 @@ public:
 class la_i_mc_create_t : public OpcodeNoteoffBase<la_i_mc_create_t>
 {
 public:
-  MYFLT *i_out_mc;
-  MYFLT *i_in_rows;
-  MYFLT *i_in_columns;
-  MYFLT *o_in_diagonal_r;
-  MYFLT *o_in_diagonal_i;
+  MYFLT *i_mc;
+  MYFLT *i_rows;
+  MYFLT *i_columns;
+  MYFLT *o_diagonal_r;
+  MYFLT *o_diagonal_i;
   gmm::dense_matrix< std::complex<MYFLT> > mc;
   int init(CSOUND *)
   {
-    gmm::resize(mc, size_t(*i_in_rows), size_t(*i_in_columns));
-    if (*o_in_diagonal_r || *o_in_diagonal_i) {
-      for (size_t i = 0, n = size_t(*i_in_rows); i < n; ++i) {
-	mc(i, i) = std::complex<MYFLT>(*o_in_diagonal_r, *o_in_diagonal_i);
+    gmm::resize(mc, size_t(*i_rows), size_t(*i_columns));
+    if (*o_diagonal_r || *o_diagonal_i) {
+      for (size_t i = 0, n = size_t(*i_rows); i < n; ++i) {
+	mc(i, i) = std::complex<MYFLT>(*o_diagonal_r, *o_diagonal_i);
       }
     }
-    tof(this, i_out_mc);
+    tof(this, i_mc);
     return OK;
   }
   int noteoff(CSOUND *)
@@ -398,13 +394,13 @@ public:
 class la_i_size_vr_t : public OpcodeBase<la_i_size_vr_t>
 {
 public:
-  MYFLT *i_out_size;
-  MYFLT *i_in_vr;
+  MYFLT *i_size;
+  MYFLT *i_vr;
   int init(CSOUND *)
   {
     la_i_vr_create_t *array = 0;
-    toa(i_in_vr, array);
-    *i_out_size = (MYFLT) gmm::vect_size(array->vr);
+    toa(i_vr, array);
+    *i_size = (MYFLT) gmm::vect_size(array->vr);
     return OK;
   }
 };
@@ -412,13 +408,13 @@ public:
 class la_i_size_vc_t : public OpcodeBase<la_i_size_vc_t>
 {
 public:
-  MYFLT *i_out_size;
-  MYFLT *i_in_vc;
+  MYFLT *i_size;
+  MYFLT *i_vc;
   int init(CSOUND *)
   {
     la_i_vc_create_t *array = 0;
-    toa(i_in_vc, array);
-    *i_out_size = (MYFLT) gmm::vect_size(array->vc);
+    toa(i_vc, array);
+    *i_size = (MYFLT) gmm::vect_size(array->vc);
     return OK;
   }
 };
@@ -426,15 +422,15 @@ public:
 class la_i_size_mr_t : public OpcodeBase<la_i_size_mr_t>
 {
 public:
-  MYFLT *i_out_rows;
-  MYFLT *i_out_columns;
-  MYFLT *i_in_mr;
+  MYFLT *i_rows;
+  MYFLT *i_columns;
+  MYFLT *i_mr;
   int init(CSOUND *)
   {
     la_i_mr_create_t *array = 0;
-    toa(i_in_mr, array);
-    *i_out_rows = (MYFLT) gmm::mat_nrows(array->mr);
-    *i_out_columns  = (MYFLT) gmm::mat_ncols(array->mr);
+    toa(i_mr, array);
+    *i_rows = (MYFLT) gmm::mat_nrows(array->mr);
+    *i_columns  = (MYFLT) gmm::mat_ncols(array->mr);
     return OK;
   }
 };
@@ -442,15 +438,15 @@ public:
 class la_i_size_mc_t : public OpcodeBase<la_i_size_mc_t>
 {
 public:
-  MYFLT *i_out_rows;
-  MYFLT *i_out_columns;
-  MYFLT *i_in_mc;
+  MYFLT *i_rows;
+  MYFLT *i_columns;
+  MYFLT *i_mc;
   int init(CSOUND *)
   {
     la_i_mc_create_t *array = 0;
-    toa(i_in_mc, array);
-    *i_out_rows = (MYFLT) gmm::mat_nrows(array->mc);
-    *i_out_columns  = (MYFLT) gmm::mat_ncols(array->mc);
+    toa(i_mc, array);
+    *i_rows = (MYFLT) gmm::mat_nrows(array->mc);
+    *i_columns  = (MYFLT) gmm::mat_ncols(array->mc);
     return OK;
   }
 };
@@ -458,11 +454,11 @@ public:
 class la_i_print_vr_t : public OpcodeBase<la_i_print_vr_t>
 {
 public:
-  MYFLT *i_in_vr;
+  MYFLT *i_vr;
   int init(CSOUND *csound)
   {
     la_i_vr_create_t *array = 0;
-    toa(i_in_vr, array);
+    toa(i_vr, array);
     std::ostringstream stream;
     stream << array->vr << std::endl;
     csound->Message(csound, stream.str().c_str());
@@ -473,11 +469,11 @@ public:
 class la_i_print_vc_t : public OpcodeBase<la_i_print_vc_t>
 {
 public:
-  MYFLT *i_in_vc;
+  MYFLT *i_vc;
   int init(CSOUND *csound)
   {
     la_i_vc_create_t *array = 0;
-    toa(i_in_vc, array);
+    toa(i_vc, array);
     std::ostringstream stream;
     stream << array->vc << std::endl;
     csound->Message(csound, stream.str().c_str());
@@ -488,11 +484,11 @@ public:
 class la_i_print_mr_t : public OpcodeBase<la_i_print_mr_t>
 {
 public:
-  MYFLT *i_in_mr;
+  MYFLT *i_mr;
   int init(CSOUND *csound)
   {
     la_i_mr_create_t *array = 0;
-    toa(i_in_mr, array);
+    toa(i_mr, array);
     std::ostringstream stream;
     stream << array->mr << std::endl;
     csound->Message(csound, stream.str().c_str());
@@ -503,11 +499,11 @@ public:
 class la_i_print_mc_t : public OpcodeBase<la_i_print_mc_t>
 {
 public:
-  MYFLT *i_in_mc;
+  MYFLT *i_mc;
   int init(CSOUND *csound)
   {
     la_i_mc_create_t *array = 0;
-    toa(i_in_mc, array);
+    toa(i_mc, array);
     std::ostringstream stream;
     stream << array->mc << std::endl;
     csound->Message(csound, stream.str().c_str());
@@ -518,14 +514,14 @@ public:
 class la_i_assign_vr_t : public OpcodeBase<la_i_assign_vr_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *i_in_vr;
+  MYFLT *i_vr_lhs;
+  MYFLT *i_vr_rhs;
   la_i_vr_create_t *lhs;
   la_i_vr_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_vr, lhs);
-    toa(i_in_vr, rhs);
+    toa(i_vr_lhs, lhs);
+    toa(i_vr_rhs, rhs);
     gmm::copy(rhs->vr, lhs->vr);
     return OK;
   }
@@ -534,14 +530,14 @@ public:
 class la_k_assign_vr_t : public OpcodeBase<la_k_assign_vr_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *i_in_vr;
+  MYFLT *i_vr_lhs;
+  MYFLT *i_vr_rhs;
   la_i_vr_create_t *lhs;
   la_i_vr_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_vr, lhs);
-    toa(i_in_vr, rhs);
+    toa(i_vr_lhs, lhs);
+    toa(i_vr_rhs, rhs);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -554,14 +550,14 @@ public:
 class la_i_assign_vc_t : public OpcodeBase<la_i_assign_vc_t>
 {
 public:
-  MYFLT *i_out_vc;
-  MYFLT *i_in_vc;
+  MYFLT *i_vc_lhs;
+  MYFLT *i_vc_rhs;
   la_i_vc_create_t *lhs;
   la_i_vc_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_vc, lhs);
-    toa(i_in_vc, rhs);
+    toa(i_vc_lhs, lhs);
+    toa(i_vc_rhs, rhs);
     gmm::copy(rhs->vc, lhs->vc);
     return OK;
   }
@@ -570,14 +566,14 @@ public:
 class la_k_assign_vc_t : public OpcodeBase<la_k_assign_vc_t>
 {
 public:
-  MYFLT *i_out_vc;
-  MYFLT *i_in_vc;
+  MYFLT *i_vc_lhs;
+  MYFLT *i_vc_rhs;
   la_i_vc_create_t *lhs;
   la_i_vc_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_vc, lhs);
-    toa(i_in_vc, rhs);
+    toa(i_vc_lhs, lhs);
+    toa(i_vc_rhs, rhs);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -590,14 +586,14 @@ public:
 class la_i_assign_mr_t : public OpcodeBase<la_i_assign_mr_t>
 {
 public:
-  MYFLT *i_out_mr;
-  MYFLT *i_in_mr;
+  MYFLT *i_mr_lhs;
+  MYFLT *i_mr_rhs;
   la_i_mr_create_t *lhs;   
   la_i_mr_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_mr, lhs);
-    toa(i_in_mr, rhs);
+    toa(i_mr_lhs, lhs);
+    toa(i_mr_rhs, rhs);
     gmm::copy(rhs->mr, lhs->mr);
     return OK;
   }
@@ -606,14 +602,14 @@ public:
 class la_k_assign_mr_t : public OpcodeBase<la_k_assign_mr_t>
 {
 public:
-  MYFLT *i_out_mr;
-  MYFLT *i_in_mr;
+  MYFLT *i_mr_lhs;
+  MYFLT *i_mr_rhs;
   la_i_mr_create_t *lhs;   
   la_i_mr_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_mr, lhs);
-    toa(i_in_mr, rhs);
+    toa(i_mr_lhs, lhs);
+    toa(i_mr_rhs, rhs);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -626,14 +622,14 @@ public:
 class la_i_assign_mc_t : public OpcodeBase<la_i_assign_mc_t>
 {
 public:
-  MYFLT *i_out_mc;
-  MYFLT *i_in_mc;
+  MYFLT *i_mc_lhs;
+  MYFLT *i_mc_rhs;
   la_i_mc_create_t *lhs;   
   la_i_mc_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_mc, lhs);
-    toa(i_in_mc, rhs);
+    toa(i_mc_lhs, lhs);
+    toa(i_mc_rhs, rhs);
     gmm::copy(rhs->mc, lhs->mc);
     return OK;
   }
@@ -642,14 +638,14 @@ public:
 class la_k_assign_mc_t : public OpcodeBase<la_k_assign_mc_t>
 {
 public:
-  MYFLT *i_out_mc;
-  MYFLT *i_in_mc;
+  MYFLT *i_mc_lhs;
+  MYFLT *i_mc_rhs;
   la_i_mc_create_t *lhs;   
   la_i_mc_create_t *rhs;
   int init(CSOUND *csound)
   {
-    toa(i_out_mc, lhs);
-    toa(i_in_mc, rhs);
+    toa(i_mc_lhs, lhs);
+    toa(i_mc_rhs, rhs);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -659,22 +655,16 @@ public:
   }
 };
 
-/* ivr                        la_k_assign_a       asig
- * ivr                        la_i_assign_t       itablenumber
- * ivr                        la_k_assign_t       itablenumber
- * ivc                        la_k_assign_f       fsig
- */
-
 class la_k_assign_a_t : public OpcodeBase<la_k_assign_a_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *a_in_a;
+  MYFLT *i_vr;
+  MYFLT *a_a;
   la_i_vr_create_t *lhs;   
   size_t ksmps;
   int init(CSOUND *csound)
   {
-    toa(i_out_vr, lhs);
+    toa(i_vr, lhs);
     ksmps = csound->GetKsmps(csound);
     gmm::resize(lhs->vr, ksmps);
     return OK;
@@ -682,7 +672,7 @@ public:
   int kontrol(CSOUND *csound)
   {
     for (size_t i = 0; i < ksmps; ++i) {
-      lhs->vr[i] = a_in_a[i];
+      lhs->vr[i] = a_a[i];
     }
     return OK;
   }
@@ -691,15 +681,15 @@ public:
 class la_i_assign_t_t : public OpcodeBase<la_i_assign_t_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *i_in_tablenumber;
+  MYFLT *i_vr;
+  MYFLT *i_tablenumber;
   la_i_vr_create_t *lhs;   
   int tablenumber;
   int n;
   int init(CSOUND *csound)
   {
-    toa(i_out_vr, lhs);
-    tablenumber = int(std::floor(*i_in_tablenumber));
+    toa(i_vr, lhs);
+    tablenumber = int(std::floor(*i_tablenumber));
     n = csound->TableLength(csound, tablenumber);
     gmm::resize(lhs->vr, n);
     for (int i = 0; i < n; ++i) {
@@ -712,15 +702,15 @@ public:
 class la_k_assign_t_t : public OpcodeBase<la_k_assign_t_t>
 {
 public:
-  MYFLT *i_out_vr;
-  MYFLT *i_in_tablenumber;
+  MYFLT *i_vr;
+  MYFLT *i_tablenumber;
   la_i_vr_create_t *lhs;   
   int tablenumber;
   int n;
   int init(CSOUND *csound)
   {
-    toa(i_out_vr, lhs);
-    tablenumber = int(std::floor(*i_in_tablenumber));
+    toa(i_vr, lhs);
+    tablenumber = int(std::floor(*i_tablenumber));
     n = csound->TableLength(csound, tablenumber);
     gmm::resize(lhs->vr, n);
     return OK;
@@ -737,18 +727,18 @@ public:
 class la_k_assign_f_t : public OpcodeBase<la_k_assign_f_t>
 {
 public:
-  MYFLT *i_out_vc;
-  PVSDAT *i_in_fsig;
+  MYFLT *i_vc;
+  PVSDAT *f_fsig;
   la_i_vc_create_t *lhs;   
   int n;
   std::complex<MYFLT> *f;
   int init(CSOUND *csound)
   {
-    toa(i_out_vc, lhs);
-    n = i_in_fsig->N;
+    toa(i_vc, lhs);
+    n = f_fsig->N;
     // std::complex<MYFLT> has the same layout as CMPLX.
-    f = (std::complex<MYFLT> *)i_in_fsig->frame.auxp;
-    gmm::resize(lhs->vr, n);
+    f = (std::complex<MYFLT> *)f_fsig->frame.auxp;
+    gmm::resize(lhs->vc, n);
     return OK;
   }
   int kontrol(CSOUND *csound)
@@ -756,6 +746,410 @@ public:
     for (int i = 0; i < n; ++i) {
       lhs->vc[i] = f[i];
     }
+    return OK;
+  }
+};
+
+class la_k_a_assign_t : public OpcodeBase<la_k_a_assign_t>
+{
+public:
+  MYFLT *a_a;
+  MYFLT *i_vr;
+  la_i_vr_create_t *rhs;   
+  size_t ksmps;
+  int init(CSOUND *csound)
+  {
+    toa(i_vr, rhs);
+    ksmps = csound->GetKsmps(csound);
+    gmm::resize(rhs->vr, ksmps);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    for (size_t i = 0; i < ksmps; ++i) {
+      a_a[i] = rhs->vr[i];
+    }
+    return OK;
+  }
+};
+
+class la_i_t_assign_t : public OpcodeBase<la_i_t_assign_t>
+{
+public:
+  MYFLT *i_tablenumber;
+  MYFLT *i_vr;
+  la_i_vr_create_t *rhs;   
+  int tablenumber;
+  int n;
+  int init(CSOUND *csound)
+  {
+    toa(i_vr, rhs);
+    tablenumber = int(std::floor(*i_tablenumber));
+    n = csound->TableLength(csound, tablenumber);
+    gmm::resize(rhs->vr, n);
+    for (int i = 0; i < n; ++i) {
+      csound->TableSet(csound, tablenumber, i, rhs->vr[i]);
+    }
+    return OK;
+  }
+};
+
+class la_k_t_assign_t : public OpcodeBase<la_k_t_assign_t>
+{
+public:
+  MYFLT *i_tablenumber;
+  MYFLT *i_vr;
+  la_i_vr_create_t *rhs;   
+  int tablenumber;
+  int n;
+  int init(CSOUND *csound)
+  {
+    toa(i_vr, rhs);
+    tablenumber = int(std::floor(*i_tablenumber));
+    n = csound->TableLength(csound, tablenumber);
+    gmm::resize(rhs->vr, n);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    for (int i = 0; i < n; ++i) {
+      csound->TableSet(csound, tablenumber, i, rhs->vr[i]);
+    }
+    return OK;
+  }
+};
+
+class la_k_f_assign_t : public OpcodeBase<la_k_f_assign_t>
+{
+public:
+  PVSDAT *f_fsig;
+  MYFLT *i_vc;
+  la_i_vc_create_t *rhs;   
+  int n;
+  std::complex<MYFLT> *f;
+  int init(CSOUND *csound)
+  {
+    toa(i_vc, rhs);
+    n = f_fsig->N;
+    // std::complex<MYFLT> has the same layout as CMPLX.
+    f = (std::complex<MYFLT> *)f_fsig->frame.auxp;
+    gmm::resize(rhs->vc, n);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    for (int i = 0; i < n; ++i) {
+      f[i] = rhs->vc[i];
+    }
+    return OK;
+  }
+};
+
+class la_i_vr_set_t : public OpcodeBase<la_i_vr_set_t>
+{
+public:
+  MYFLT *i_vr;
+  MYFLT *i_row;
+  MYFLT *i_value;
+  la_i_vr_create_t *vr;     
+  int init(CSOUND *)
+  {
+    toa(i_vr, vr);
+    vr->vr[size_t(*i_row)] = *i_value;
+    return OK;
+  }
+};
+
+class la_k_vr_set_t : public OpcodeBase<la_k_vr_set_t>
+{
+public:
+  MYFLT *i_vr;
+  MYFLT *k_row;
+  MYFLT *k_value;
+  la_i_vr_create_t *vr;     
+  int init(CSOUND *)
+  {
+    toa(i_vr, vr);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    vr->vr[size_t(*k_row)] = *k_value;
+    return OK;
+  }
+};
+
+class la_i_vc_set_t : public OpcodeBase<la_i_vc_set_t>
+{
+public:
+  MYFLT *i_vc;
+  MYFLT *i_row;
+  MYFLT *i_value_r;
+  MYFLT *i_value_i;
+  la_i_vc_create_t *vc;     
+  int init(CSOUND *)
+  {
+    toa(i_vc, vc);
+    vc->vc[size_t(*i_row)] = std::complex<MYFLT>(*i_value_r, *i_value_i);
+    return OK;
+  }
+};
+
+class la_k_vc_set_t : public OpcodeBase<la_k_vc_set_t>
+{
+public:
+  MYFLT *i_vc;
+  MYFLT *k_row;
+  MYFLT *k_value_r;
+  MYFLT *k_value_i;
+  la_i_vc_create_t *vc;     
+  int init(CSOUND *)
+  {
+    toa(i_vc, vc);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    vc->vc[size_t(*k_row)] = std::complex<MYFLT>(*k_value_r, *k_value_i);
+    return OK;
+  }
+};
+
+class la_i_mr_set_t : public OpcodeBase<la_i_mr_set_t>
+{
+public:
+  MYFLT *i_mr;
+  MYFLT *i_row;
+  MYFLT *i_column;
+  MYFLT *i_value;
+  la_i_mr_create_t *mr;     
+  int init(CSOUND *)
+  {
+    toa(i_mr, mr);
+    mr->mr(size_t(*i_row), size_t(*i_column)) = *i_value;
+    return OK;
+  }
+};
+
+class la_k_mr_set_t : public OpcodeBase<la_k_mr_set_t>
+{
+public:
+  MYFLT *i_mr;
+  MYFLT *k_row;
+  MYFLT *k_column;
+  MYFLT *k_value;
+  la_i_mr_create_t *mr;     
+  int init(CSOUND *)
+  {
+    toa(i_mr, mr);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    mr->mr(size_t(*k_row), size_t(*k_column)) = *k_value;
+    return OK;
+  }
+};
+
+class la_i_mc_set_t : public OpcodeBase<la_i_mc_set_t>
+{
+public:
+  MYFLT *i_mc;
+  MYFLT *i_row;
+  MYFLT *i_column;
+  MYFLT *i_value_r;
+  MYFLT *i_value_i;
+  la_i_mc_create_t *mc;     
+  int init(CSOUND *)
+  {
+    toa(i_mc, mc);
+    mc->mc(size_t(*i_row), size_t(*i_column)) = std::complex<MYFLT>(*i_value_r, *i_value_i);
+    return OK;
+  }
+};
+
+class la_k_mc_set_t : public OpcodeBase<la_k_mc_set_t>
+{
+public:
+  MYFLT *i_mc;
+  MYFLT *k_row;
+  MYFLT *k_column;
+  MYFLT *k_value_r;
+  MYFLT *k_value_i;
+  la_i_mc_create_t *mc;     
+  int init(CSOUND *)
+  {
+    toa(i_mc, mc);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    mc->mc(size_t(*k_row), size_t(*k_column)) = std::complex<MYFLT>(*k_value_r, *k_value_i);
+    return OK;
+  }
+};
+
+class la_i_get_vr_t : public OpcodeBase<la_i_get_vr_t>
+{
+public:
+  MYFLT *i_value;
+  MYFLT *i_vr;
+  MYFLT *i_row;
+  la_i_vr_create_t *vr;
+  int init(CSOUND *)
+  {
+    toa(i_vr, vr);
+    *i_value = vr->vr[size_t(*i_row)];
+    return OK;
+  }
+};
+
+class la_k_get_vr_t : public OpcodeBase<la_k_get_vr_t>
+{
+public:
+  MYFLT *k_value;
+  MYFLT *i_vr;
+  MYFLT *k_row;
+  la_i_vr_create_t *vr;
+  int init(CSOUND *)
+  {
+    toa(i_vr, vr);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    *k_value = vr->vr[size_t(*k_row)];
+    return OK;
+  }
+};
+
+class la_i_get_vc_t : public OpcodeBase<la_i_get_vc_t>
+{
+public:
+  MYFLT *i_value_r;
+  MYFLT *i_value_i;
+  MYFLT *i_vc;
+  MYFLT *i_row;
+  la_i_vc_create_t *vc;
+  int init(CSOUND *)
+  {
+    toa(i_vc, vc);
+    *i_value_r = vc->vc[size_t(*i_row)].real();
+    *i_value_i = vc->vc[size_t(*i_row)].imag();
+    return OK;
+  }
+};
+
+class la_k_get_vc_t : public OpcodeBase<la_k_get_vc_t>
+{
+public:
+  MYFLT *k_value_r;
+  MYFLT *k_value_i;
+  MYFLT *i_vc;
+  MYFLT *k_row;
+  la_i_vc_create_t *vc;
+  int init(CSOUND *)
+  {
+    toa(i_vc, vc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    *k_value_r = vc->vc[size_t(*k_row)].real();
+    *k_value_i = vc->vc[size_t(*k_row)].imag();
+    return OK;
+  }
+};
+
+
+class la_i_get_mr_t : public OpcodeBase<la_i_get_mr_t>
+{
+public:
+  MYFLT *i_value;
+  MYFLT *i_mr;
+  MYFLT *i_row;
+  MYFLT *i_column;
+  la_i_mr_create_t *mr;
+  int init(CSOUND *)
+  {
+    toa(i_mr, mr);
+    *i_value = mr->mr(size_t(*i_row), size_t(*i_column));
+    return OK;
+  }
+};
+
+class la_k_get_mr_t : public OpcodeBase<la_k_get_mr_t>
+{
+public:
+  MYFLT *k_value;
+  MYFLT *i_mr;
+  MYFLT *k_row;
+  MYFLT *k_column;
+  la_i_mr_create_t *mr;
+  int init(CSOUND *)
+  {
+    toa(i_mr, mr);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    *k_value = mr->mr(size_t(*k_row), size_t(*k_column));
+    return OK;
+  }
+};
+
+class la_i_get_mc_t : public OpcodeBase<la_i_get_mc_t>
+{
+public:
+  MYFLT *i_value_r;
+  MYFLT *i_value_i;
+  MYFLT *i_mc;
+  MYFLT *i_row;
+  MYFLT *i_column;
+  la_i_mc_create_t *mc;
+  int init(CSOUND *)
+  {
+    toa(i_mc, mc);
+    *i_value_r = mc->mc(size_t(*i_row), size_t(*i_column)).real();
+    *i_value_i = mc->mc(size_t(*i_row), size_t(*i_column)).imag();
+    return OK;
+  }
+};
+
+class la_k_get_mc_t : public OpcodeBase<la_k_get_mc_t>
+{
+public:
+  MYFLT *k_value_r;
+  MYFLT *k_value_i;
+  MYFLT *i_mc;
+  MYFLT *k_row;
+  MYFLT *k_column;
+  la_i_mc_create_t *mc;
+  int init(CSOUND *)
+  {
+    toa(i_mc, mc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    *k_value_r = mc->mc(size_t(*k_row), size_t(*k_column)).real();
+    *k_value_i = mc->mc(size_t(*k_row), size_t(*k_column)).imag();
+     return OK;
+  }
+};
+
+class la_i_transpose_mr_t : public OpcodeBase<la_i_transpose_mr_t>
+{
+public:
+  MYFLT *ivr_lhs;
+  MYFLT *ivr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(ivr_lhs, lhs);
+    toa(ivr_rhs, rhs);
+    gmm::copy(gmm::transposed(rhs->mr), lhs->mr);
     return OK;
   }
 };
@@ -986,6 +1380,196 @@ extern "C"
 				   "f", 
 				   (int (*)(CSOUND*,void*)) &la_k_assign_f_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_assign_f_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_a_assign",
+				   sizeof(la_k_a_assign_t),
+				   2, 
+				   "a", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_a_assign_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_a_assign_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0); 
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_t_assign",
+				   sizeof(la_i_t_assign_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_t_assign_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_t_assign",
+				   sizeof(la_k_t_assign_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_t_assign_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_t_assign_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_f_assign",
+				   sizeof(la_k_f_assign_t),
+				   2, 
+				   "f", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_vr_set",
+				   sizeof(la_i_vr_set_t),
+				   1, 
+				   "i", 
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_vr_set_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_vr_set",
+				   sizeof(la_k_vr_set_t),
+				   2, 
+				   "i", 
+				   "kk", 
+				   (int (*)(CSOUND*,void*)) &la_k_vr_set_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_vr_set_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_vc_set",
+				   sizeof(la_i_vc_set_t),
+				   1, 
+				   "i", 
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_vc_set_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_vc_set",
+				   sizeof(la_k_vc_set_t),
+				   2, 
+				   "i", 
+				   "kk",
+				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_mr_set",
+				   sizeof(la_i_mr_set_t),
+				   1, 
+				   "i", 
+				   "iii", 
+				   (int (*)(CSOUND*,void*)) &la_i_mr_set_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+   status |= csound->AppendOpcode(csound, 
+				   "la_k_mr_set",
+				   sizeof(la_k_mr_set_t),
+				   2, 
+				   "i", 
+				   "kkk", 
+				   (int (*)(CSOUND*,void*)) &la_k_mr_set_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_mr_set_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_mc_set",
+				   sizeof(la_i_mc_set_t),
+				   1, 
+				   "i", 
+				   "iiii", 
+				   (int (*)(CSOUND*,void*)) &la_i_mc_set_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_mc_set",
+				   sizeof(la_k_mc_set_t),
+				   2, 
+				   "i", 
+				   "kkkk", 
+				   (int (*)(CSOUND*,void*)) &la_k_mc_set_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_mc_set_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_get_vr",
+				   sizeof(la_i_get_vr_t),
+				   1, 
+				   "i", 
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_get_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_get_vr",
+				   sizeof(la_k_get_vr_t),
+				   2, 
+				   "k", 
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_get_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_get_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_get_vc",
+				   sizeof(la_i_get_vc_t),
+				   1, 
+				   "ii",
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_get_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_get_vc",
+				   sizeof(la_k_get_vc_t),
+				   2, 
+				   "kk", 
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_get_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_get_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_get_mr",
+				   sizeof(la_i_get_mr_t),
+				   1, 
+				   "i", 
+				   "iii", 
+				   (int (*)(CSOUND*,void*)) &la_i_get_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_get_mr",
+				   sizeof(la_k_get_mr_t),
+				   2, 
+				   "k", 
+				   "ikk", 
+				   (int (*)(CSOUND*,void*)) &la_k_get_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_get_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_get_mc",
+				   sizeof(la_i_get_mc_t),
+				   1, 
+				   "ii",
+				   "iii", 
+				   (int (*)(CSOUND*,void*)) &la_i_get_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_get_mc",
+				   sizeof(la_k_get_mc_t),
+				   2, 
+				   "kk", 
+				   "ikk", 
+				   (int (*)(CSOUND*,void*)) &la_k_get_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_get_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_transpose_mr",
+				   sizeof(la_i_transpose_mr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_transpose_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
 				   (int (*)(CSOUND*,void*)) 0);
     return status;
   }
