@@ -1141,15 +1141,215 @@ public:
 class la_i_transpose_mr_t : public OpcodeBase<la_i_transpose_mr_t>
 {
 public:
-  MYFLT *ivr_lhs;
-  MYFLT *ivr_rhs;
+  MYFLT *imr_lhs;
+  MYFLT *imr_rhs;
   la_i_mr_create_t *lhs;
   la_i_mr_create_t *rhs;
   int init(CSOUND *)
   {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    gmm::copy(gmm::transposed(rhs->mr), lhs->mr);
+    return OK;
+  }
+};
+
+class la_k_transpose_mr_t : public OpcodeBase<la_k_transpose_mr_t>
+{
+public:
+  MYFLT *imr_lhs;
+  MYFLT *imr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::transposed(rhs->mr), lhs->mr);
+    return OK;
+  }
+};
+
+class la_i_transpose_mc_t : public OpcodeBase<la_i_transpose_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    gmm::copy(gmm::transposed(rhs->mc), lhs->mc);
+    return OK;
+  }
+};
+
+class la_k_transpose_mc_t : public OpcodeBase<la_k_transpose_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::transposed(rhs->mc), lhs->mc);
+    return OK;
+  }
+};
+
+class la_i_conjugate_vr_t : public OpcodeBase<la_i_conjugate_vr_t>
+{
+public:
+  MYFLT *ivr_lhs;
+  MYFLT *ivr_rhs;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
     toa(ivr_lhs, lhs);
     toa(ivr_rhs, rhs);
-    gmm::copy(gmm::transposed(rhs->mr), lhs->mr);
+    gmm::copy(gmm::conjugated(rhs->vr), lhs->vr);
+    return OK;
+  }
+};
+
+class la_k_conjugate_vr_t : public OpcodeBase<la_k_conjugate_vr_t>
+{
+public:
+  MYFLT *ivr_lhs;
+  MYFLT *ivr_rhs;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(ivr_lhs, lhs);
+    toa(ivr_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::conjugated(rhs->vr), lhs->vr);
+    return OK;
+  }
+};
+
+class la_i_conjugate_vc_t : public OpcodeBase<la_i_conjugate_vc_t>
+{
+public:
+  MYFLT *ivc_lhs;
+  MYFLT *ivc_rhs;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(ivc_lhs, lhs);
+    toa(ivc_rhs, rhs);
+    gmm::copy(gmm::conjugated(rhs->vc), lhs->vc);
+    return OK;
+  }
+};
+
+class la_k_conjugate_vc_t : public OpcodeBase<la_k_conjugate_vc_t>
+{
+public:
+  MYFLT *ivc_lhs;
+  MYFLT *ivc_rhs;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(ivc_lhs, lhs);
+    toa(ivc_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::conjugated(rhs->vc), lhs->vc);
+    return OK;
+  }
+};
+
+class la_i_conjugate_mr_t : public OpcodeBase<la_i_conjugate_mr_t>
+{
+public:
+  MYFLT *imr_lhs;
+  MYFLT *imr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    gmm::copy(gmm::conjugated(rhs->mr), lhs->mr);
+    return OK;
+  }
+};
+
+class la_k_conjugate_mr_t : public OpcodeBase<la_k_conjugate_mr_t>
+{
+public:
+  MYFLT *imr_lhs;
+  MYFLT *imr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::conjugated(rhs->mr), lhs->mr);
+    return OK;
+  }
+};
+
+class la_i_conjugate_mc_t : public OpcodeBase<la_i_conjugate_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    gmm::copy(gmm::conjugated(rhs->mc), lhs->mc);
+    return OK;
+  }
+};
+
+class la_k_conjugate_mc_t : public OpcodeBase<la_k_conjugate_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(gmm::conjugated(rhs->mc), lhs->mc);
     return OK;
   }
 };
@@ -1440,7 +1640,7 @@ extern "C"
 				   sizeof(la_i_vc_set_t),
 				   1, 
 				   "i", 
-				   "ii", 
+				   "iii", 
 				   (int (*)(CSOUND*,void*)) &la_i_vc_set_t::init_,
 				   (int (*)(CSOUND*,void*)) 0, 
 				   (int (*)(CSOUND*,void*)) 0);
@@ -1449,7 +1649,7 @@ extern "C"
 				   sizeof(la_k_vc_set_t),
 				   2, 
 				   "i", 
-				   "kk",
+				   "kkk",
 				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
@@ -1570,6 +1770,105 @@ extern "C"
 				   "i", 
 				   (int (*)(CSOUND*,void*)) &la_i_transpose_mr_t::init_,
 				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_transpose_mr",
+				   sizeof(la_k_transpose_mr_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_transpose_mc",
+				   sizeof(la_i_transpose_mc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_transpose_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_transpose_mc",
+				   sizeof(la_k_transpose_mc_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_conjugate_vr",
+				   sizeof(la_i_conjugate_vr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_conjugate_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_conjugate_vr",
+				   sizeof(la_k_conjugate_vr_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_conjugate_vc",
+				   sizeof(la_i_conjugate_vc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_conjugate_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_conjugate_vc",
+				   sizeof(la_k_conjugate_vc_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_conjugate_mr",
+				   sizeof(la_i_conjugate_mr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_conjugate_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_conjugate_mr",
+				   sizeof(la_k_conjugate_mr_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_conjugate_mc",
+				   sizeof(la_i_conjugate_mc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_conjugate_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_conjugate_mc",
+				   sizeof(la_k_conjugate_mc_t),
+				   2, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
     return status;
   }
