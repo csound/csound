@@ -40,6 +40,27 @@ imr	la_i_mr_set		2, 1, 5
 imt     la_i_transpose_mr	imr
 	la_i_print_mr           imt
 
+ivc     la_i_vc_create          5
+	la_i_print_vc           ivc
+
+ivc     la_i_vc_set             1, -1, 1
+	la_i_print_vc           ivc
+
+ivc1    la_i_vc_create          5
+
+ivc1    la_i_conjugate_vc       ivc
+	la_i_print_vc           ivc1
+
+imc1    la_i_mc_create          5, 10
+	la_i_print_mc           imc1
+	
+imc1	la_i_mc_set		2, 4, -10, 10
+	la_i_print_mc		imc1 
+
+imc2    la_i_mc_create         	10,  5
+imc2	la_i_conjugate_mc      	imc1        
+	la_i_print_mc          	imc2
+
 endin
 
 </CsInstruments>
