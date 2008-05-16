@@ -73,6 +73,30 @@ inmr    la_i_norm_euclid_mr     imt
 inmc    la_i_norm_euclid_mc     imc2
 	print			inmc
 
+inmr    la_i_norm_max_mr     	imt
+	print			inmr
+
+inmc    la_i_norm_max_mc     	imc2
+	print			inmc
+
+idist    la_i_distance_vc     	ivc, ivc1
+	print			idist
+
+inmc    la_i_norm_inf_mc     	imc2
+	print			inmc
+
+idist    la_i_norm_inf_vc       ivc1
+	print			idist
+
+itr,iti    la_i_trace_mc     	imc2
+	print			itr,iti
+
+idet    la_i_lu_det_mr     	imt
+	print			idet
+
+idr,idi    la_i_lu_det_mc     	imc2
+	print			idr,idi
+
 endin
 
 </CsInstruments>
