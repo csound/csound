@@ -110,8 +110,8 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'U:\jdk1.5.0\include')
-	customCPPPATH.append(r'U:\jdk1.5.0\include\win32')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_06\include')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_06\include\win32')
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
