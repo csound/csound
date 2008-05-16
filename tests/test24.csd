@@ -51,6 +51,9 @@ ivc1    la_i_vc_create          5
 ivc1    la_i_conjugate_vc       ivc
 	la_i_print_vc           ivc1
 
+in1     la_i_norm1_vr           ivc1
+	print 			in1
+
 imc1    la_i_mc_create          5, 10
 	la_i_print_mc           imc1
 	
@@ -60,6 +63,15 @@ imc1	la_i_mc_set		2, 4, -10, 10
 imc2    la_i_mc_create         	10,  5
 imc2	la_i_conjugate_mc      	imc1        
 	la_i_print_mc          	imc2
+
+in2     la_i_norm1_mc           imc2
+	print			in2
+
+inmr    la_i_norm_euclid_mr     imt
+	print			inmr
+
+inmc    la_i_norm_euclid_mc     imc2
+	print			inmc
 
 endin
 

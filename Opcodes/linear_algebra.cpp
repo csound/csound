@@ -36,8 +36,9 @@
  * and is stored in an i-rate object. 
  * In orchestra code, an array is passed as a
  * MYFLT i-rate variable that contains the address
- * of the array object, which is actually the llocator opcode instance.
- * Although array objects are i-rate, of course
+ * of the array object, which is actually stored 
+ * in the allocator opcode instance.
+ * Although array variables are i-rate, of course
  * their values and even shapes may change at i-rate or k-rate.
  *
  * All operands must be pre-allocated; except for the creation
@@ -55,7 +56,8 @@
  * 2. "i" or "k" for performance rate.
  * 3. Type code(s) (see above table) for output value(s),
  *    but only if the type is not implicit from the input values.
- * 4. Operation name: common mathematical name (preferred) or abbreviation.
+ * 4. Operation name: common mathematical name 
+ *    (preferred) or abbreviation.
  * 5. Type code(s) for input values, if not implicit.
  *
  * Array Creation
@@ -73,6 +75,8 @@
  * irows                      la_i_size_vc        ivc
  * irows, icolumns            la_i_size_mr        imr
  * irows, icolumns            la_i_size_mc        imc
+ *
+ * kiscurrent                 la_k_current_f      fsig
  *
  *                            la_i_print_vr       ivr
  *                            la_i_print_vc       ivc
@@ -100,6 +104,7 @@
  * itablenum                  la_i_t_assign       ivr
  * itablenum                  la_k_t_assign       ivr
  * fsig                       la_k_f_assign       ivc
+ *
  *
  * Array Element Access
  * --------------------
@@ -143,19 +148,44 @@
  * -----------------
  *
  * ir                         la_i_norm1_vr       ivr
+ * kr                         la_k_norm1_vr       ivc
+ * ir                         la_i_norm1_vc       ivc
  * kr                         la_k_norm1_vc       ivc
  * ir                         la_i_norm1_mr       imr
+ * kr                         la_k_norm1_mr       imr
+ * ir                         la_i_norm1_mc       imc
  * kr                         la_k_norm1_mc       imc
  *
- * ir                         la_i_norm2_vr       ivr
- * kr                         la_k_norm2_vc       ivc
+ * ir                         la_i_norm_euclid_vr ivr
+ * kr                         la_k_norm_euclid_vr ivr
+ * ir                         la_i_norm_euclid_vc ivc
+ * kr                         la_k_norm_euclid_vc ivc
+ * ir                         la_i_norm_euclid_mr mvr
+ * kr                         la_k_norm_euclid_mr mvr
+ * ir                         la_i_norm_euclid_mc mvc
+ * kr                         la_k_norm_euclid_mc mvc
  *
+ * ir                         la_i_distance_vr    ivr
+ * kr                         la_k_distance_vr    ivr
+ * ir                         la_i_distance_vc    ivc
+ * kr                         la_k_distance_vc    ivc
+ * ir                         la_i_distance_mr    mvr
+ * kr                         la_k_distance_mr    mvr
+ * ir                         la_i_distance_mc    mvc
+ * kr                         la_k_distance_mc    mvc
+ *
+ * ir                         la_i_norm_max       imr
+ * kr                         la_k_norm_max       imc
  * ir                         la_i_norm_max       imr
  * kr                         la_k_norm_max       imc
  *
  * ir                         la_i_norm_inf_vr    ivr
+ * kr                         la_k_norm_inf_vr    ivr
+ * ir                         la_i_norm_inf_vc    ivc
  * kr                         la_k_norm_inf_vc    ivc
  * ir                         la_i_norm_inf_mr    imr
+ * kr                         la_k_norm_inf_mr    imr
+ * ir                         la_i_norm_inf_mc    imc
  * kr                         la_k_norm_inf_mc    imc
  *
  * ir                         la_i_trace_mr       imr
@@ -169,9 +199,13 @@
  * kr                         la_k_lu_det         imc
  *
  * ivr                        la_i_scale_vr       ivr, ir
- * ivr                        la_k_scale_vr       ivr, ir
+ * ivr                        la_k_scale_vr       ivr, kr
+ * ivr                        la_i_scale_vr       ivr, ir
+ * ivr                        la_k_scale_vr       ivr, kr
  * imr                        la_i_scale_mr       imr, ir
- * imr                        la_k_scale_mr       imr, ir
+ * imr                        la_k_scale_mr       imr, kr
+ * imr                        la_i_scale_mr       imr, ir
+ * imr                        la_k_scale_mr       imr, kr
  *
  * Elementwise Array-Array Operations
  * ----------------------------------
@@ -447,6 +481,41 @@ public:
     toa(i_mc, array);
     *i_rows = (MYFLT) gmm::mat_nrows(array->mc);
     *i_columns  = (MYFLT) gmm::mat_ncols(array->mc);
+    return OK;
+  }
+};
+
+/**
+ * Return 1 if the input f-sig is current
+ * (i.e., if its value might change in the next kperiod);
+ * return 0 if the input f-sig is not current.
+ * 
+ * Example:
+ *
+ * kcurrent la_k_current_f fsig
+ * if (kcurrent == 1.0) then
+ * ; arithmetic on fsig here...
+ * endif
+ */
+class la_k_current_f_t : public OpcodeBase<la_k_current_f_t>
+{
+public:
+  MYFLT *k_current;
+  PVSDAT *f_sig;
+  size_t last_frame;
+  int init(CSOUND *)
+  {
+    last_frame = f_sig->framecount;
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    if (last_frame < f_sig->framecount) {
+      last_frame = f_sig->framecount;
+      *k_current = 1.0;
+    } else {
+      *k_current = 0.0;
+    }
     return OK;
   }
 };
@@ -1354,6 +1423,270 @@ public:
   }
 };
 
+class la_i_norm1_vr_t : public OpcodeBase<la_i_norm1_vr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm1(rhs->vr);
+    return OK;
+  }
+};
+
+class la_k_norm1_vr_t : public OpcodeBase<la_k_norm1_vr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm1(rhs->vr);
+    return OK;
+  }
+};
+
+class la_i_norm1_vc_t : public OpcodeBase<la_i_norm1_vc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm1(rhs->vc);
+    return OK;
+  }
+};
+
+class la_k_norm1_vc_t : public OpcodeBase<la_k_norm1_vc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm1(rhs->vc);
+    return OK;
+  }
+};
+
+class la_i_norm1_mr_t : public OpcodeBase<la_i_norm1_mr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_norm1(rhs->mr);
+    return OK;
+  }
+};
+
+class la_k_norm1_mr_t : public OpcodeBase<la_k_norm1_mr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_norm1(rhs->mr);
+    return OK;
+  }
+};
+
+class la_i_norm1_mc_t : public OpcodeBase<la_i_norm1_mc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_norm1(rhs->mc);
+    return OK;
+  }
+};
+
+class la_k_norm1_mc_t : public OpcodeBase<la_k_norm1_mc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_norm1(rhs->mc);
+    return OK;
+  }
+};
+
+class la_i_norm_euclid_vr_t : public OpcodeBase<la_i_norm_euclid_vr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm2(rhs->vr);
+    return OK;
+  }
+};
+
+class la_k_norm_euclid_vr_t : public OpcodeBase<la_k_norm_euclid_vr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm2(rhs->vr);
+    return OK;
+  }
+};
+
+class la_i_norm_euclid_vc_t : public OpcodeBase<la_i_norm_euclid_vc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm2(rhs->vc);
+    return OK;
+  }
+};
+
+class la_k_norm_euclid_vc_t : public OpcodeBase<la_k_norm_euclid_vc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_vc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::vect_norm2(rhs->vc);
+    return OK;
+  }
+};
+
+class la_i_norm_euclid_mr_t : public OpcodeBase<la_i_norm_euclid_mr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_euclidean_norm(rhs->mr);
+    return OK;
+  }
+};
+
+class la_k_norm_euclid_mr_t : public OpcodeBase<la_k_norm_euclid_mr_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_euclidean_norm(rhs->mr);
+    return OK;
+  }
+};
+
+class la_i_norm_euclid_mc_t : public OpcodeBase<la_i_norm_euclid_mc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_euclidean_norm(rhs->mc);
+    return OK;
+  }
+};
+
+class la_k_norm_euclid_mc_t : public OpcodeBase<la_k_norm_euclid_mc_t>
+{
+public:
+  MYFLT *lhs;
+  MYFLT *rhs_;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    toa(rhs_, rhs);
+    *lhs = gmm::mat_euclidean_norm(rhs->mc);
+    return OK;
+  }
+};
+
 extern "C" 
 {
 
@@ -1436,6 +1769,15 @@ extern "C"
 				   "i", 
 				   (int (*)(CSOUND*,void*)) &la_i_size_mc_t::init_, 
 				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_current_f", 
+				   sizeof(la_k_current_f_t), 
+				   2, 
+				   "k", 
+				   "f", 
+				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::init_, 
+				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::kontrol_, 
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_i_print_vr",
@@ -1870,7 +2212,151 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
-    return status;
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm1_vr",
+				   sizeof(la_i_norm1_vr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm1_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm1_vr",
+				   sizeof(la_k_norm1_vr_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm1_vc",
+				   sizeof(la_i_norm1_vc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm1_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm1_vc",
+				   sizeof(la_k_norm1_vc_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm1_mr",
+				   sizeof(la_i_norm1_mr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm1_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm1_mr",
+				   sizeof(la_k_norm1_mr_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm1_mc",
+				   sizeof(la_i_norm1_mc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm1_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm1_mc",
+				   sizeof(la_k_norm1_mc_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm_euclid_vr",
+				   sizeof(la_i_norm_euclid_vr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm_euclid_vr",
+				   sizeof(la_k_norm_euclid_vr_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm_euclid_vc",
+				   sizeof(la_i_norm_euclid_vc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm_euclid_vc",
+				   sizeof(la_k_norm_euclid_vc_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm_euclid_mr",
+				   sizeof(la_i_norm_euclid_mr_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm_euclid_mr",
+				   sizeof(la_k_norm_euclid_mr_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_norm_euclid_mc",
+				   sizeof(la_i_norm_euclid_mc_t),
+				   1, 
+				   "i", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_norm_euclid_mc",
+				   sizeof(la_k_norm_euclid_mc_t),
+				   2, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+   return status;
   }
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
