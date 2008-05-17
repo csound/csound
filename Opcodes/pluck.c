@@ -141,7 +141,7 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 
     /* Constrain attenuation specification to dB per second */
     MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*csound->esr/f0  */
-    MYFLT H1_w0 = POWER(FL(10.0),-A_w0*Fl(0.05)*NRecip);
+    MYFLT H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
     MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
       /* The tuning filter is allpass, so no dependency for H1 */
