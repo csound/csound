@@ -309,19 +309,21 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
+#define Str_noop(String) String
+
 static const char *pvanal_usage_txt[] = {
-    "Usage: pvanal [options...] inputSoundfile outputFFTfile.pvx",
-    "Options:",
-    "    -c <channel>",
-    "    -b <beginTime>",
-    "    -d <duration>",
-    "    -n <frameSize>",
-    "    -w <windowOverlap> | -h <hopSize>",
-    "    -g | -G <latch>",
-    "    -v | -V <txtFile>",
-    "    -H: use Hamming window instead of the default (von Hann)",
-    "    -K: use Kaiser window",
-    "    -B <beta>: parameter for Kaiser window",
+  Str_noop("Usage: pvanal [options...] inputSoundfile outputFFTfile.pvx"),
+  Str_noop("Options:"),
+  Str_noop("    -c <channel>"),
+  Str_noop("    -b <beginTime>"),
+  Str_noop("    -d <duration>"),
+  Str_noop("    -n <frameSize>"),
+  Str_noop("    -w <windowOverlap> | -h <hopSize>"),
+  Str_noop("    -g | -G <latch>"),
+  Str_noop("    -v | -V <txtFile>"),
+  Str_noop("    -H: use Hamming window instead of the default (von Hann)"),
+  Str_noop("    -K: use Kaiser window"),
+  Str_noop("    -B <beta>: parameter for Kaiser window"),
     NULL
 };
 
@@ -329,7 +331,7 @@ static int quit(CSOUND *csound, char *msg)
 {
     int i;
 
-    csound->Message(csound, "pvanal error: %s\n", msg);
+    csound->Message(csound, Str("pvanal error: %s\n"), msg);
     for (i = 0; pvanal_usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(pvanal_usage_txt[i]));
     return -1;

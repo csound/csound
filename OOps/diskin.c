@@ -37,7 +37,7 @@
 
 static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 {
-    int32  nsmps, bufsmps;
+    int32 nsmps, bufsmps;
     int   i;
 
     /* calculate new buffer frame start position */
@@ -48,7 +48,7 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
     if (p->bufStartPos >= 0L) {
       /* number of sample frames to read */
       nsmps = p->fileLength - p->bufStartPos;
-      if (nsmps > 0L) {         /* if there is anything to read: */
+      if (nsmps > 0) {         /* if there is anything to read: */
         nsmps *= (int32) p->nChannels;
         if (nsmps > bufsmps)
           nsmps = bufsmps;
@@ -59,8 +59,9 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
       }
     }
     /* fill rest of buffer with zero samples */
-    while (i < bufsmps)
-      p->buf[i++] = 0.0f;
+    memcpy(p->buf, 0, sizeof(float)*(bufsmps-i));
+    /* while (i < bufsmps) */
+    /*   p->buf[i++] = 0.0f; */
 }
 
 /* Mix one sample frame from input file at location 'pos' to outputs    */
@@ -284,7 +285,7 @@ static inline void diskin_file_pos_inc(SOUNDINEW *p, int32 *ndx)
 int soundinew(CSOUND *csound, SOUNDINEW *p)
 {
     MYFLT   a0, a1;
-    int32    ndx;
+    int32   ndx;
     int     nn, chn;
 
     if (p->initDone <= 0) {

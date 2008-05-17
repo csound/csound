@@ -913,9 +913,9 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
     }
     phs = p->phs;
     *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
-    if ((dcnt = p->dcnt) > 0L)
+    if ((dcnt = p->dcnt) > 0)
       dcnt--;
-    else if (dcnt == 0L) {
+    else if (dcnt == 0) {
       phs += p->kinc;
       if (phs >= MAXLEN) {
         phs = MAXLEN;
@@ -942,11 +942,11 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = *ftab++;
     *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
-    if ((dcnt = p->dcnt) > 0L) {
+    if ((dcnt = p->dcnt) > 0) {
       dcnt--;
       p->dcnt = dcnt;
     }
-    else if (dcnt == 0L) {
+    else if (dcnt == 0) {
       phs += p->kinc;
       if (phs >= MAXLEN) {
         phs = MAXLEN;

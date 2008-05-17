@@ -43,19 +43,17 @@
 /* Static function prototypes */
 
 static SNDFILE * SCsndgetset(CSOUND *, SOUNDIN **, char *);
-static void FindEnvelope(CSOUND *, SNDFILE *, SOUNDIN *, double);
-
-static char *outname = NULL;
+static void FindEnvelope(CSOUND *, SNDFILE *, SOUNDIN *, double, char *);
 
 static void envext_usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,"Usage:\tenvext [-flags] soundfile\n");
-    csound->Message(csound, "Legal flags are:\n");
-    csound->Message(csound,"-o fnam\tsound output filename\n");
-    csound->Message(csound, "-w time\tSize of window\n");
-    csound->Message(csound,"flag defaults: envext -onewenv -w0.25\n");
+    csound->Message(csound,Str("Usage:\tenvext [-flags] soundfile\n"));
+    csound->Message(csound,Str("Legal flags are:\n"));
+    csound->Message(csound,Str("-o fnam\tsound output filename\n"));
+    csound->Message(csound,Str( "-w time\tSize of window\n"));
+    csound->Message(csound,Str("flag defaults: envext -onewenv -w0.25\n"));
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("envext: error: "), mesg, args);
     va_end(args);
@@ -70,42 +68,43 @@ static int envext(CSOUND *csound, int argc, char **argv)
     OPARMS      OO;
     double      window = 0.25;
     SOUNDIN     *p;  /* space allocated by SAsndgetset() */
+    char        *outname = NULL;
 
     memset(&OO, 0, sizeof(OO));
 
     /* Check arguments */
     if (!(--argc))
-      envext_usage(csound, "Insufficient arguments");
+      envext_usage(csound, Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                        /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND("no outfilename")
-              outname = s;
+            FIND(Str("no outfilename"))
+            outname = s;
             while (*++s);
             break;
           case 'w':
-            FIND("No window size");
+            FIND(Str("No window size"));
             window = atof(s);
             while (*++s);
             break;
           default:
-            envext_usage(csound, "unknown flag -%c", c);
+            envext_usage(csound, Str("unknown flag -%c"), c);
           }
       else if (inputfile == NULL) {
         inputfile = --s;
       }
-      else envext_usage(csound, "too many arguments");
+      else envext_usage(csound, Str("too many arguments"));
     } while (--argc);
 
     /* Read sound file */
     if ((infd = SCsndgetset(csound, &p, inputfile))==NULL) {
-      csound->Message(csound,"%s: error while opening %s", argv[0], inputfile);
+      csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
       return 1;
     }
-    FindEnvelope(csound, infd, p, window);
+    FindEnvelope(csound, infd, p, window, outname);
     return 0;
 }
 
@@ -125,13 +124,14 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound,"enveloping %ld sample frames (%3.1f secs)\n",
+    csound->Message(csound,Str("enveloping %ld sample frames (%3.1f secs)\n"),
            (long) p->getframes, dur);
     return(infd);
 }
 
 static void
-FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p, double window)
+FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
+             double window, char *outname)
 {
     int         chans;
     double      tpersample;
