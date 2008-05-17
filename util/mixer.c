@@ -87,35 +87,37 @@ static  MYFLT   gain(MIXER_GLOBALS *, int, int);
 static  SNDFILE *MXsndgetset(CSOUND*,inputs *);
 static  void    MixSound(MIXER_GLOBALS *, int, SNDFILE *);
 
+#define Str_noop(x) x
+
 static const char *usage_txt[] = {
-    "Usage:\tmixer [-flags] soundfile [-flags] soundfile ...",
-    "Legal flags are:",
-    "-o fnam\tsound output filename",
-    "-A\tcreate an AIFF format output soundfile",
-    "-W\tcreate a WAV format output soundfile",
-    "-h\tno header on output soundfile",
-    "-8\t8-bit unsigned_char sound samples",
-    "-c\t8-bit signed_char sound samples",
-    "-8\t8-bit unsigned_char sound samples",
-    "-a\talaw sound samples",
-    "-u\tulaw sound samples",
-    "-s\tshort_int sound samples",
-    "-l\tlong_int sound samples",
-    "-f\tfloat sound samples",
+  Str_noop("Usage:\tmixer [-flags] soundfile [-flags] soundfile ..."),
+  Str_noop("Legal flags are:"),
+  Str_noop("-o fnam\tsound output filename"),
+  Str_noop("-A\tcreate an AIFF format output soundfile"),
+  Str_noop("-W\tcreate a WAV format output soundfile"),
+  Str_noop("-h\tno header on output soundfile"),
+  Str_noop("-8\t8-bit unsigned_char sound samples"),
+  Str_noop("-c\t8-bit signed_char sound samples"),
+  Str_noop("-8\t8-bit unsigned_char sound samples"),
+  Str_noop("-a\talaw sound samples"),
+  Str_noop("-u\tulaw sound samples"),
+  Str_noop("-s\tshort_int sound samples"),
+  Str_noop("-l\tlong_int sound samples"),
+  Str_noop("-f\tfloat sound samples"),
 #ifndef OLPC
-    "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
-    "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+  Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
+  Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
 #endif
-    "-N\tnotify (ring the bell) when score or miditrack is done",
-    "-F fpnum\tamount to scale amplitude for next input",
-    "-F fname\tfile of a scale table for next input",
-    "-S integer\tsample number at which to insert file",
-    "-T fpnum\ttime at which to insert file",
-    "-1 -2 -3 -4\tinclude named channel",
-    "-^ n m\tinclude channel n and output as channel m",
-    "-v\tverbose mode for debugging",
-    "-- fname\tLog output to file",
-    "flag defaults: mixer -s -otest -F 1.0 -S 0",
+  Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
+  Str_noop("-F fpnum\tamount to scale amplitude for next input"),
+  Str_noop("-F fname\tfile of a scale table for next input"),
+  Str_noop("-S integer\tsample number at which to insert file"),
+  Str_noop("-T fpnum\ttime at which to insert file"),
+  Str_noop("-1 -2 -3 -4\tinclude named channel"),
+  Str_noop("-^ n m\tinclude channel n and output as channel m"),
+  Str_noop("-v\tverbose mode for debugging"),
+  Str_noop("-- fname\tLog output to file"),
+  Str_noop("flag defaults: mixer -s -otest -F 1.0 -S 0"),
     NULL
 };
 

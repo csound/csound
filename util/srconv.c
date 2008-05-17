@@ -298,12 +298,12 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             O->ringbell = 1;        /* notify on completion */
             break;
           case 'Q':
-            FIND("No Q argument")
+            FIND(Str("No Q argument"))
             sscanf(s,"%d", &Q);
             while (*++s);
             break;
           case 'P':
-            FIND("No P argument")
+            FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
             sscanf(s,"%lf", &P);
 #else
@@ -312,7 +312,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             while (*++s);
             break;
           case 'r':
-            FIND("No r argument")
+            FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
             sscanf(s,"%lf", &Rout);
 #else
@@ -321,13 +321,13 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             while (*++s);
             break;
           case 'i':
-            FIND("No break file")
+            FIND(Str("No break file"))
             tvflg = 1;
             bfile = s;
             while ((*s++)); s--;
             break;
           default:
-            csound->Message(csound, "Looking at %c\n", c);
+            csound->Message(csound, Str("Looking at %c\n"), c);
             usage(csound);    /* this exits with error */
             return -1;
           }
@@ -335,16 +335,16 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       }
       else if (infile == NULL) {
         infile = --s;
-        csound->Message(csound, "Infile set to %s\n", infile);
+        csound->Message(csound, Str("Infile set to %s\n"), infile);
       }
       else {
-        csound->Message(csound, "End with %s\n", s);
+        csound->Message(csound, Str("End with %s\n"), s);
         usage(csound);
         return -1;
       }
     }
     if (infile == NULL) {
-      csound->Message(csound, "No input given\n");
+      csound->Message(csound, Str("No input given\n"));
       usage(csound);
       return -1;
     }
@@ -730,32 +730,32 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     return -1;
 }
 
+#define Str_noop(String) String
+
 static const char *usage_txt[] = {
-    "usage: srconv [flags] infile\n\nflags:",
-    "-P num\tpitch transposition ratio (srate/r) [don't specify both P and r]",
-    "-Q num\tquality factor (1 to 8: default = 2)",
-    "-i filnam\tbreak file",
-    "-r num\toutput sample rate (must be specified)",
-    "-o fnam\tsound output filename\n",
-    "-A\tcreate an AIFF format output soundfile",
-    "-J\tcreate an IRCAM format output soundfile",
-    "-W\tcreate a WAV format output soundfile",
-    "-h\tno header on output soundfile",
-    "-c\t8-bit signed_char sound samples",
-    "-a\talaw sound samples",
-    "-8\t8-bit unsigned_char sound samples",
-    "-u\tulaw sound samples",
-    "-s\tshort_int sound samples",
-    "-l\tlong_int sound samples",
-    "-f\tfloat sound samples",
-    "-r N\torchestra srate override",
-    "-K\tDo not generate PEAK chunks",
-#ifndef OLPC
-    "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
-    "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
-#endif
-    "-N\tnotify (ring the bell) when score or miditrack is done",
-    "-- fnam\tlog output to file",
+  Str_noop("usage: srconv [flags] infile\n\nflags:"),
+  Str_noop("-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"),
+  Str_noop("-Q num\tquality factor (1 to 8: default = 2)"),
+  Str_noop("-i filnam\tbreak file"),
+  Str_noop("-r num\toutput sample rate (must be specified)"),
+  Str_noop("-o fnam\tsound output filename\n"),
+  Str_noop("-A\tcreate an AIFF format output soundfile"),
+  Str_noop("-J\tcreate an IRCAM format output soundfile"),
+  Str_noop("-W\tcreate a WAV format output soundfile"),
+  Str_noop("-h\tno header on output soundfile"),
+  Str_noop("-c\t8-bit signed_char sound samples"),
+  Str_noop("-a\talaw sound samples"),
+  Str_noop("-8\t8-bit unsigned_char sound samples"),
+  Str_noop("-u\tulaw sound samples"),
+  Str_noop("-s\tshort_int sound samples"),
+  Str_noop("-l\tlong_int sound samples"),
+  Str_noop("-f\tfloat sound samples"),
+  Str_noop("-r N\torchestra srate override"),
+  Str_noop("-K\tDo not generate PEAK chunks"),
+  Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
+  Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
+  Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
+  Str_noop("-- fnam\tlog output to file"),
     NULL
 };
 

@@ -39,31 +39,32 @@
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             csound->Die(csound, MSG);
 
+#define Str_noop(x) x
 static const char *usage_txt[] = {
-    "Usage:\tscale [-flags] soundfile",
-    "Legal flags are:",
-    "-o fnam\tsound output filename",
-    "-A\tcreate an AIFF format output soundfile",
-    "-W\tcreate a WAV format output soundfile",
-    "-h\tno header on output soundfile",
-    "-c\t8-bit signed_char sound samples",
-    "-a\talaw sound samples",
-    "-u\tulaw sound samples",
-    "-s\tshort_int sound samples",
-    "-l\tlong_int sound samples",
-    "-f\tfloat sound samples",
-    "-F fpnum\tamount to scale amplitude",
-    "-F file \tfile of scaling information (alternative)",
-    "-M fpnum\tScale file to given maximum",
-    "-P fpnum\tscale file to given percentage of full",
+  Str_noop("Usage:\tscale [-flags] soundfile"),
+  Str_noop("Legal flags are:"),
+  Str_noop("-o fnam\tsound output filename"),
+  Str_noop("-A\tcreate an AIFF format output soundfile"),
+  Str_noop("-W\tcreate a WAV format output soundfile"),
+  Str_noop("-h\tno header on output soundfile"),
+  Str_noop("-c\t8-bit signed_char sound samples"),
+  Str_noop("-a\talaw sound samples"),
+  Str_noop("-u\tulaw sound samples"),
+  Str_noop("-s\tshort_int sound samples"),
+  Str_noop("-l\tlong_int sound samples"),
+  Str_noop("-f\tfloat sound samples"),
+  Str_noop("-F fpnum\tamount to scale amplitude"),
+  Str_noop("-F file \tfile of scaling information (alternative)"),
+  Str_noop("-M fpnum\tScale file to given maximum"),
+  Str_noop("-P fpnum\tscale file to given percentage of full"),
 #ifndef OLPC
-    "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
-    "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+  Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
+  Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
 #endif
-    "-N\tnotify (ring the bell) when score or miditrack is done",
-    "-- fnam\tlog output to file",
-    "flag defaults: scale -s -otest -F 0.0",
-    "If scale is 0.0 then reports maximum possible scaling",
+  Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
+  Str_noop("-- fnam\tlog output to file"),
+  Str_noop("flag defaults: scale -s -otest -F 0.0"),
+  Str_noop("If scale is 0.0 then reports maximum possible scaling"),
     NULL
 };
 

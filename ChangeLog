@@ -1,3 +1,7 @@
+2008-05-17  jpff  <jpff@codemist.co.uk>
+
+	* util/lpanal.c: Removed static variables to a structure
+
 2008-05-08  jpff  <jpff@codemist.co.uk>
 
 	* util/envext.c:

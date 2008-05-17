@@ -67,22 +67,23 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
 
 }
 
-int fdsplay(CSOUND *csound, FSIGDISP *p){
+int fdsplay(CSOUND *csound, FSIGDISP *p)
+{
     float *fin   = p->fin->frame.auxp;
     MYFLT *pdata = p->fdata.auxp;
     int i,k, end = p->size;
 
-   if (p->lastframe < p->fin->framecount) {
-    for (i=0, k=0; k < end; i+=2,k++) pdata[k] = fin[i];
-     display(csound, &p->dwindow);
+    if (p->lastframe < p->fin->framecount) {
+      for (i=0, k=0; k < end; i+=2,k++) pdata[k] = fin[i];
+      display(csound, &p->dwindow);
       p->lastframe = p->fin->framecount;
-   }
-   return OK;
+    }
+    return OK;
  }
 
 int dspset(CSOUND *csound, DSPLAY *p)
 {
-    int32   npts, nprds, bufpts, totpts;
+    int32  npts, nprds, bufpts, totpts;
     char   *auxp;
     char   strmsg[256];
 
@@ -94,7 +95,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
 
     }
     if ((nprds = (int32)*p->inprds) <= 1) {
-      nprds = 0;
+      nprds  = 0;
       bufpts = npts;
       totpts = npts;
     }
@@ -206,7 +207,7 @@ static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int hannq)
     if (wBuf!= NULL) {        /* NB: size/2 + 1 long - just indep terms */
       size /= 2;              /* to fix scaling */
       for (i=0; i<=size;++i)
-        wBuf[i] = max * (a-b*(MYFLT)cos(PI*(MYFLT)i/(MYFLT)size ) );
+        wBuf[i] = max * (a-b*COS(PI_F*(MYFLT)i/(MYFLT)size ) );
     }
     return;
 }
@@ -214,7 +215,7 @@ static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int hannq)
 static void ApplyHalfWin(MYFLT *buf, MYFLT *win, int32 len)
 {   /* Window only store 1st half, is symmetric */
     int32    j;
-    int32    lenOn2 = (len/2L);
+    int32    lenOn2 = (len/2);
 
     for (j=lenOn2+1; j--; )
       *buf++ *= *win++;
@@ -223,10 +224,10 @@ static void ApplyHalfWin(MYFLT *buf, MYFLT *win, int32 len)
 }
 
 int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
-                                       /* Transform of collected samples and  */
-                                       /* displays coefficients (mag or db)   */
+                                      /* Transform of collected samples and  */
+                                      /* displays coefficients (mag or db)   */
 {
-    int32  window_size, step_size;
+    int32 window_size, step_size;
     int   hanning;
     char  strmsg[256];
 
@@ -295,21 +296,21 @@ static void PackReals(MYFLT *buffer, int32 size)
 /* Convert Real & Imaginary spectra into Amplitude & Phase */
 static void Rect2Polar(MYFLT *buffer, int32 size)
 {
-    int32    i;
+    int32   i;
     MYFLT   *real,*imag;
-    double  re,im;
+    MYFLT   re,im;
     MYFLT   mag;
 
     real = buffer;
     imag = buffer+1;
     for (i = 0; i < size; i++) {
-      re = (double)real[i+i];
-      im = (double)imag[i+i];
-      real[2L*i] = mag = (MYFLT)hypot(re,im);
+      re = real[i+i];
+      im = imag[i+i];
+      real[2L*i] = mag = HYPOT(re,im);
       if (mag == FL(0.0))
         imag[i+i] = FL(0.0);
       else
-        imag[i+i] = (MYFLT)atan2(im,re);
+        imag[i+i] = ATAN2(im,re);
     }
 }
 
@@ -317,18 +318,18 @@ static void Rect2Polar(MYFLT *buffer, int32 size)
 static void Lin2DB(MYFLT *buffer, int32 size)
 {
     while (size--) {
-      *buffer = /* FL(20.0)*log10 */ FL(8.68589)*(MYFLT)log(*buffer);
+      *buffer = /* FL(20.0)*log10 */ FL(8.68589)*LOG(*buffer);
       buffer++;
     }
 }
 
 static void d_fft(      /* perform an FFT as reqd below */
   CSOUND *csound,
-  MYFLT *sce,   /* input array - pure packed real */
-  MYFLT *dst,   /* output array - packed magnitude, only half-length */
+  MYFLT  *sce,   /* input array - pure packed real */
+  MYFLT  *dst,   /* output array - packed magnitude, only half-length */
   int32  size,   /* number of points in input */
-  MYFLT *hWin,  /* hanning window lookup table */
-  int   dbq)    /* flag: 1-> convert output into db */
+  MYFLT  *hWin,  /* hanning window lookup table */
+  int    dbq)    /* flag: 1-> convert output into db */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
@@ -508,18 +509,18 @@ int tempeset(CSOUND *csound, TEMPEST *p)
           sumsqr += *tblp * *tblp;
         } while (--terms);
         crossprods = sumraw * sumraw - sumsqr;
-        RMS = (MYFLT) sqrt(crossprods / p->ncross);
+        RMS = SQRT(crossprods / p->ncross);
     /*  coef = exp(log001 * lambda / npts);
         *xscale++ = coef / RMS / (NTERMS - 1);  */
         *xscale++ = FL(0.05)/ RMS / lambda;
       }
     }
     /* calc input lo-pass filter coefs */
-    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 * csound->onedkr));
-    p->coef1 = b - (MYFLT)sqrt(b * b - 1.0);
+    b = FL(2.0) - COS((*p->ihp * 6.28318 * csound->onedkr));
+    p->coef1 = b - SQRT(b * b - FL(1.0));
     p->coef0 = FL(1.0) - p->coef1;
     p->yt1 = FL(0.0);
-    p->fwdcoef = (MYFLT)pow(0.5, p->timcount*csound->onedkr/(*p->ihtim));
+    p->fwdcoef = POWER(FL(0.5), p->timcount*csound->onedkr/(*p->ihtim));
     p->fwdmask = FL(0.0);
 #ifdef DEBUG
     csound->Message(csound,
@@ -566,10 +567,10 @@ int tempest(CSOUND *csound, TEMPEST *p)
       *xcur++ = FL(0.0);                    /*    & clear the loc it occupied */
       if (xcur >= p->xend) xcur = p->xbeg;  /* xcur now points to cur xarray  */
       p->xcur = xcur;
-      #ifdef DEBUG
+#ifdef DEBUG
       csound->Message(csound, "**kin -> %f (%f,%f)\n",
                       *p->kin - p->yt1, *p->kin, p->yt1);
-      #endif
+#endif
       if ((kin = *p->kin - p->yt1) < FL(0.0))
         kin = FL(0.0);
       { /* ignore input below lopass */
@@ -637,7 +638,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
           } while (--terms);
           crossprods = sumraw * sumraw - sumsqr;
           if(crossprods >= 0)
-            RMScross = (MYFLT)sqrt(crossprods / p->ncross);
+            RMScross = SQRT(crossprods / p->ncross);
           else
             RMScross = FL(0.0);
           if (RMScross < FL(1.4) * RMStot)    /* if RMScross significant:   */

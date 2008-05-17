@@ -230,7 +230,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     MYFLT       dur;
     MYFLT       len = csound->curip->p3;
     MYFLT       release = *argp[3];
-    int32        relestim;
+    int32       relestim;
 
     if (len<=FL(0.0)) len = FL(100000.0); /* MIDI case set int32 */
     len -= release;         /* len is time remaining */
@@ -391,7 +391,7 @@ int linsegr(CSOUND *csound, LINSEG *p)
     }
     else {
     putk:
-      for (n=0;n<nsmps; n++) rs[n] = val;
+      for (n=0; n<nsmps; n++) rs[n] = val;
     }
     return OK;
 }
@@ -399,9 +399,9 @@ int linsegr(CSOUND *csound, LINSEG *p)
 int xsgset(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
-    int nsegs;
+    int         nsegs;
     MYFLT       d, **argp, val, dur, nxtval;
-    int    n=0;
+    int         n=0;
 
     nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
@@ -495,8 +495,8 @@ int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
     int         n, nsmps = csound->ksmps;
     MYFLT       val, *rs;
     segp = p->cursegp;
-    val = segp->val;
-    rs = p->rslt;
+    val  = segp->val;
+    rs   = p->rslt;
     for (n=0; n<nsmps; n++) {
       while (--segp->cnt < 0)   {
         p->cursegp = ++segp;
@@ -513,8 +513,8 @@ int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
 
 int xdsrset(CSOUND *csound, EXXPSEG *p)
 {
-    XSEG        *segp;
-    int nsegs;
+    XSEG    *segp;
+    int     nsegs;
     MYFLT   **argp = p->argums;
     MYFLT   len = csound->curip->p3;
     MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
@@ -522,8 +522,8 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     MYFLT   release = *argp[3];
 
     if (len<FL(0.0)) len = FL(100000.0); /* MIDI case set long */
-    len -= release;         /* len is time remaining */
-    if (len<FL(0.0)) {         /* Odd case of release time greater than dur */
+    len -= release;                      /* len is time remaining */
+    if (len<FL(0.0)) { /* Odd case of release time greater than dur */
       release = csound->curip->p3; len = FL(0.0);
     }
     nsegs = 5;          /* DXDSR */
@@ -622,11 +622,11 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     argp = p->argums;
     prvpt = **argp++;
     if (**argp < FL(0.0))  return OK; /* if idur1 < 0, skip init      */
-    p->curval = prvpt;
-    p->curcnt = 0;                  /* else setup null seg0         */
+    p->curval  = prvpt;
+    p->curcnt  = 0;                   /* else setup null seg0         */
     p->cursegp = segp - 1;
     p->segsrem = nsegs + 1;
-    do {                            /* init & chk each real seg ..  */
+    do {                              /* init & chk each real seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
       if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) <= 0)
@@ -739,7 +739,7 @@ int expsegr(CSOUND *csound, EXPSEG *p)
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
         goto newm;                      /*   and set new curmlt */
       }
-      if (--p->curcnt <= 0) {            /* if done cur seg      */
+      if (--p->curcnt <= 0) {           /* if done cur seg      */
       chk2:
         if (p->segsrem == 2) goto putk; /*   seg Y rpts lastval */
         if (!(--p->segsrem)) goto putk; /*   seg Z now done all */
@@ -766,7 +766,8 @@ int expsegr(CSOUND *csound, EXPSEG *p)
         rs[n] = val;
         val *= amlt;
       }
-    } else {
+    }
+    else {
     putk:
       for (n=0; n<nsmps; n++) rs[n] = val;
     }
@@ -779,7 +780,7 @@ int lnnset(CSOUND *csound, LINEN *p)
 
     if ((dur = *p->idur) > FL(0.0)) {
       p->cnt1 = (int32)(*p->iris * csound->ekr + FL(0.5));
-      if (p->cnt1 > 0L) {
+      if (p->cnt1 > (int32)0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
         p->val = FL(0.0);
       }
@@ -844,20 +845,22 @@ int linen(CSOUND *csound, LINEN *p)
       li = (nxtval - val) * csound->onedksmps;
       if (p->XINCODE) {
         for (n=0; n<nsmps; n++) {
-          rs[n] = *sg++ * val;
+          rs[n] = sg[n] * val;
           val += li;
         }
       }
       else {
+        MYFLT s = *sg;
         for (n=0; n<nsmps; n++) {
-          rs[n] = *sg * val;
+          rs[n] = s * val;
           val += li;
         }
       }
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<nsmps; n++) rs[n] = sg[n];
+        /* for (n=0; n<nsmps; n++) rs[n] = sg[n]; */
+        memcpy(rs, sg, nsmps*sizeof(MYFLT));
       }
       else {
         MYFLT ss = *sg;
@@ -945,15 +948,14 @@ int linenr(CSOUND *csound, LINENR *p)
     }
     else {
       if (p->XINCODE) {
-        for (n=0; n<nsmps; n++) {
-          rs[n] = sg[n];
-        }
+        memcpy(rs, sg, nsmps*sizeof(MYFLT));
+        /* for (n=0; n<nsmps; n++) { */
+        /*   rs[n] = sg[n]; */
+        /* } */
       }
       else {
         MYFLT ss = *sg;
-        for (n=0; n<nsmps; n++) {
-          rs[n] = ss;
-        }
+        for (n=0; n<nsmps; n++) rs[n] = ss;
       }
     }
     return OK;
@@ -963,7 +965,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
     MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
-    int32        cnt1;
+    int32       cnt1;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
@@ -983,7 +985,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
         if (denom == FL(0.0))
           asym = FHUND;
         else {
-          asym = 2 * prod / denom;
+          asym = FL(2.0) * prod / denom;
           if (FABS(asym) > FHUND)
             asym = FHUND;
         }
@@ -1030,7 +1032,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
 int knvlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
-    int32        phs;
+    int32       phs;
     MYFLT       fact, v1, fract, *ftab;
 
     ftp = p->ftp;
@@ -1073,13 +1075,13 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
 int envlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
-    int32        phs;
+    int32       phs;
     int         n, nsmps=csound->ksmps;
     MYFLT       *xamp, *rslt, val, nxtval, li, v1, fract, *ftab;
 
     xamp = p->xamp;
     rslt = p->rslt;
-    val = p->val;
+    val  = p->val;
     if ((phs = p->phs) >= 0L) {
       ftp = p->ftp;
       if (ftp==NULL) { /* RWD fix */
@@ -1131,7 +1133,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
 int evrset(CSOUND *csound, ENVLPR *p)
 {
     FUNC        *ftp;
-    MYFLT  ixmod, iatss, prod, diff, asym, denom, irise;
+    MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
@@ -1144,13 +1146,13 @@ int evrset(CSOUND *csound, ENVLPR *p)
         return csound->InitError(csound, Str("ixmod out of range."));
       }
       ixmod = -SIN(SIN(ixmod));
-      prod = ixmod * iatss;
-      diff = ixmod - iatss;
+      prod  = ixmod * iatss;
+      diff  = ixmod - iatss;
       denom = diff + prod + FL(1.0);
       if (denom == FL(0.0))
         asym = FHUND;
       else {
-        asym = 2 * prod / denom;
+        asym = FL(2.0) * prod / denom;
         if (FABS(asym) > FHUND)
           asym = FHUND;
       }
@@ -1190,7 +1192,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
 int knvlpxr(CSOUND *csound, ENVLPR *p)
 {
     MYFLT  fact;
-    int32   rlscnt;
+    int32  rlscnt;
 
     if (!p->rlsing) {                   /* if not in reles seg  */
       if (p->h.insdshead->relesing) {
@@ -1230,16 +1232,13 @@ int knvlpxr(CSOUND *csound, ENVLPR *p)
 
 int envlpxr(CSOUND *csound, ENVLPR *p)
 {
-#if defined(SYMANTEC) && !defined(THINK_C)
-#pragma options(!global_optimizer)
-#endif
     int    n, nsmps=csound->ksmps;
-    int32   rlscnt;
+    int32  rlscnt;
     MYFLT  *xamp, *rslt, val, nxtval, li;
 
     xamp = p->xamp;
     rslt = p->rslt;
-    val = p->val;
+    val  = p->val;
     if (!p->rlsing) {                   /* if not in reles seg  */
       if (p->h.insdshead->relesing) {
         p->rlsing = 1;                  /*   if new flag, set mlt2 */
@@ -1249,11 +1248,11 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
         else p->mlt2 = FL(1.0);
       }
       if (p->phs >= 0) {                /* do fn rise for seg 1 */
-        FUNC *ftp = p->ftp;
-        int32 phs = p->phs;
+        FUNC *ftp   = p->ftp;
+        int32 phs   = p->phs;
         MYFLT fract = PFRAC(phs);
         MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
-        MYFLT v1 = *ftab++;
+        MYFLT v1    = *ftab++;
         ftp = p->ftp;
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> ftp->lobits);

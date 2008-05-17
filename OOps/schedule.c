@@ -259,7 +259,7 @@ int lfoset(CSOUND *csound, LFO *p)
         p->sine = (MYFLT*)p->auxd.auxp;
       }
       for (i=0; i<4096; i++)
-        p->sine[i] = (MYFLT)sin(TWOPI*(double)i/4096.0);
+        p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0));
 /*        csound->Message(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
     }
     else if (type>5 || type<0) {
