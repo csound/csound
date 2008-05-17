@@ -109,6 +109,17 @@
  * itablenum                  la_k_t_assign       ivr
  * fsig                       la_k_f_assign       ivc
  *
+ * Fill Arrays with Random Elements
+ * --------------------------------
+ *
+ * ivr                        la_i_random_vr     [ifill_fraction]
+ * ivr                        la_k_random_vr     [kfill_fraction]
+ * ivc                        la_i_random_vc     [ifill_fraction]
+ * ivc                        la_k_random_vc     [kfill_fraction]
+ * imr                        la_i_random_mr     [ifill_fraction]
+ * imr                        la_k_random_mr     [kfill_fraction]
+ * imc                        la_i_random_mc     [ifill_fraction]
+ * imc                        la_k_random_mc     [kfill_fraction]
  *
  * Array Element Access
  * --------------------
@@ -247,8 +258,8 @@
  * imc                        la_i_invert_mc      imc
  * imc                        la_k_invert_mc      imc
  *
- * Matrix Decompositions
- * ---------------------
+ * Matrix Decompositions and Solvers
+ * ---------------------------------
  *
  * imr                        la_i_upper_solve_mr   imr [, j_1_diagonal]
  * imr                        la_k_upper_solve_mr   imr [, j_1_diagonal]
@@ -301,7 +312,11 @@ extern "C"
 #include <vector>
 #include <gmm/gmm.h>
 
-
+/**
+ * Template union for safely and efficiently
+ * typecasting the value of a MYFLT variable
+ * to the address of an array, and vice versa.
+ */
 template<typename A, typename F>
 struct ArrayCaster
 {
@@ -311,6 +326,10 @@ struct ArrayCaster
   };
 };
 
+/**
+ * Safely and efficiently typecast the address 
+ * of an array to the value of a MYFLT variable.
+ */
 template<typename A, typename F> void tof(A *a, F *f)
 {
   ArrayCaster<A, F> arrayCaster;
@@ -318,6 +337,10 @@ template<typename A, typename F> void tof(A *a, F *f)
   *f = arrayCaster.f;
 };
 
+/**
+ * Safely and efficiently typecast the value of a
+ * a MYFLT variable to the address of an array.
+ */
 template<typename A, typename F> void toa(F *f, A *&a)
 {
   ArrayCaster<A, F> arrayCaster;
@@ -901,6 +924,134 @@ public:
     for (int i = 0; i < n; ++i) {
       f[i] = rhs->vc[i];
     }
+    return OK;
+  }
+};
+
+class la_i_random_vr_t : public OpcodeBase<la_i_random_vr_t>
+{
+public:
+  MYFLT *i_vr_lhs;
+  MYFLT *i_fraction;
+  la_i_vr_create_t *lhs;
+  int init(CSOUND *csound)
+  {
+    toa(i_vr_lhs, lhs);
+    gmm::fill_random(lhs->vr, *i_fraction);
+    return OK;
+  }
+};
+
+class la_k_random_vr_t : public OpcodeBase<la_k_random_vr_t>
+{
+public:
+  MYFLT *i_vr_lhs;
+  MYFLT *i_fraction;
+  la_i_vr_create_t *lhs;
+  int init(CSOUND *csound)
+  {
+    toa(i_vr_lhs, lhs);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    gmm::fill_random(lhs->vr, *i_fraction);
+    return OK;
+  }
+};
+
+class la_i_random_vc_t : public OpcodeBase<la_i_random_vc_t>
+{
+public:
+  MYFLT *i_vc_lhs;
+  MYFLT *i_fraction;
+  la_i_vc_create_t *lhs;
+  int init(CSOUND *csound)
+  {
+    toa(i_vc_lhs, lhs);
+    gmm::fill_random(lhs->vc, *i_fraction);
+    return OK;
+  }
+};
+
+class la_k_random_vc_t : public OpcodeBase<la_k_random_vc_t>
+{
+public:
+  MYFLT *i_vc_lhs;
+  MYFLT *i_fraction;
+  la_i_vc_create_t *lhs;
+  int init(CSOUND *csound)
+  {
+    toa(i_vc_lhs, lhs);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    gmm::fill_random(lhs->vc, *i_fraction);
+    return OK;
+  }
+};
+
+class la_i_random_mr_t : public OpcodeBase<la_i_random_mr_t>
+{
+public:
+  MYFLT *i_mr_lhs;
+  MYFLT *i_fraction;
+  la_i_mr_create_t *lhs;   
+  int init(CSOUND *csound)
+  {
+    toa(i_mr_lhs, lhs);
+    gmm::fill_random(lhs->mr, *i_fraction);
+    return OK;
+  }
+};
+
+class la_k_random_mr_t : public OpcodeBase<la_k_random_mr_t>
+{
+public:
+  MYFLT *i_mr_lhs;
+  MYFLT *i_fraction;
+  la_i_mr_create_t *lhs;   
+  int init(CSOUND *csound)
+  {
+    toa(i_mr_lhs, lhs);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    gmm::fill_random(lhs->mr, *i_fraction);
+    return OK;
+  }
+};
+
+class la_i_random_mc_t : public OpcodeBase<la_i_random_mc_t>
+{
+public:
+  MYFLT *i_mc_lhs;
+  MYFLT *i_fraction;
+  la_i_mc_create_t *lhs;   
+  int init(CSOUND *csound)
+  {
+    toa(i_mc_lhs, lhs);
+    gmm::fill_random(lhs->mc, *i_fraction);
+    return OK;
+  }
+};
+
+class la_k_random_mc_t : public OpcodeBase<la_k_random_mc_t>
+{
+public:
+  MYFLT *i_mc_lhs;
+  MYFLT *i_fraction;
+  la_i_mc_create_t *lhs;   
+  int init(CSOUND *csound)
+  {
+    toa(i_mc_lhs, lhs);
+    return OK;
+  }
+  int kontrol(CSOUND *csound)
+  {
+    gmm::fill_random(lhs->mc, *i_fraction);
     return OK;
   }
 };
@@ -2100,6 +2251,983 @@ public:
   }
 };
 
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a += b.
+ */
+class la_i_add_vr_t : public OpcodeBase<la_i_add_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] + rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a += b.
+ */
+class la_k_add_vr_t : public OpcodeBase<la_k_add_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] + rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a += b.
+ */
+class la_i_add_vc_t : public OpcodeBase<la_i_add_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] + rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a += b.
+ */
+class la_k_add_vc_t : public OpcodeBase<la_k_add_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] + rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A += B.
+ */
+class la_i_add_mr_t : public OpcodeBase<la_i_add_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mr);
+    size_t columnN = gmm::mat_ncols(rhs_a->mr);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A += B.
+ */
+class la_k_add_mr_t : public OpcodeBase<la_k_add_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mr);
+    columnN = gmm::mat_ncols(rhs_a->mr);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A += B.
+ */
+class la_i_add_mc_t : public OpcodeBase<la_i_add_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mc);
+    size_t columnN = gmm::mat_ncols(rhs_a->mc);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise addition. 
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A += B.
+ */
+class la_k_add_mc_t : public OpcodeBase<la_k_add_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mc);
+    columnN = gmm::mat_ncols(rhs_a->mc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a -= b.
+ */
+class la_i_subtract_vr_t : public OpcodeBase<la_i_subtract_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] - rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a -= b.
+ */
+class la_k_subtract_vr_t : public OpcodeBase<la_k_subtract_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] - rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a -= b.
+ */
+class la_i_subtract_vc_t : public OpcodeBase<la_i_subtract_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] - rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a -= b.
+ */
+class la_k_subtract_vc_t : public OpcodeBase<la_k_subtract_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] - rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A -= B.
+ */
+class la_i_subtract_mr_t : public OpcodeBase<la_i_subtract_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mr);
+    size_t columnN = gmm::mat_ncols(rhs_a->mr);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A -= B.
+ */
+class la_k_subtract_mr_t : public OpcodeBase<la_k_subtract_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mr);
+    columnN = gmm::mat_ncols(rhs_a->mr);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A -= B.
+ */
+class la_i_subtract_mc_t : public OpcodeBase<la_i_subtract_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mc);
+    size_t columnN = gmm::mat_ncols(rhs_a->mc);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise subtraction.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A -= B.
+ */
+class la_k_subtract_mc_t : public OpcodeBase<la_k_subtract_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mc);
+    columnN = gmm::mat_ncols(rhs_a->mc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_i_multiply_vr_t : public OpcodeBase<la_i_multiply_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] * rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_k_multiply_vr_t : public OpcodeBase<la_k_multiply_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] * rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_i_multiply_vc_t : public OpcodeBase<la_i_multiply_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] * rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_k_multiply_vc_t : public OpcodeBase<la_k_multiply_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] * rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A *= B.
+ */
+class la_i_multiply_mr_t : public OpcodeBase<la_i_multiply_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mr);
+    size_t columnN = gmm::mat_ncols(rhs_a->mr);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A *= B.
+ */
+class la_k_multiply_mr_t : public OpcodeBase<la_k_multiply_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mr);
+    columnN = gmm::mat_ncols(rhs_a->mr);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A *= B.
+ */
+class la_i_multiply_mc_t : public OpcodeBase<la_i_multiply_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mc);
+    size_t columnN = gmm::mat_ncols(rhs_a->mc);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A *= B.
+ */
+class la_k_multiply_mc_t : public OpcodeBase<la_k_multiply_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mc);
+    columnN = gmm::mat_ncols(rhs_a->mc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a /= b.
+ */
+class la_i_divide_vr_t : public OpcodeBase<la_i_divide_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] / rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a /= b.
+ */
+class la_k_divide_vr_t : public OpcodeBase<la_k_divide_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
+      lhs->vr[i] = rhs_a->vr[i] / rhs_b->vr[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a /= b.
+ */
+class la_i_divide_vc_t : public OpcodeBase<la_i_divide_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] / rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a /= b.
+ */
+class la_k_divide_vc_t : public OpcodeBase<la_k_divide_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
+      lhs->vc[i] = rhs_a->vc[i] / rhs_b->vc[i];
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A /= B.
+ */
+class la_i_divide_mr_t : public OpcodeBase<la_i_divide_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mr);
+    size_t columnN = gmm::mat_ncols(rhs_a->mr);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A /= B.
+ */
+class la_k_divide_mr_t : public OpcodeBase<la_k_divide_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mr);
+    columnN = gmm::mat_ncols(rhs_a->mr);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A /= B.
+ */
+class la_i_divide_mc_t : public OpcodeBase<la_i_divide_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    size_t rowN = gmm::mat_nrows(rhs_a->mc);
+    size_t columnN = gmm::mat_ncols(rhs_a->mc);
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+/**
+ * Elementwise division.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform A /= B.
+ */
+class la_k_divide_mc_t : public OpcodeBase<la_k_divide_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  size_t rowN;
+  size_t columnN;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    rowN = gmm::mat_nrows(rhs_a->mc);
+    columnN = gmm::mat_ncols(rhs_a->mc);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    for (size_t rowI = 0; rowI < rowN; ++rowI) {
+      for (size_t columnI = 0; columnI < columnN; ++columnI) {
+	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+      }
+    }
+    return OK;
+  }
+};
+
+
 extern "C" 
 {
 
@@ -2368,9 +3496,81 @@ extern "C"
 				   sizeof(la_k_f_assign_t),
 				   2, 
 				   "f", 
-				   "i", 
+				   "p", 
 				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_random_vr",
+				   sizeof(la_i_random_vr_t),
+				   1, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_i_random_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_random_vr",
+				   sizeof(la_k_random_vr_t),
+				   2, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_k_random_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_random_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_random_vc",
+				   sizeof(la_i_random_vc_t),
+				   1, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_i_random_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_random_vc",
+				   sizeof(la_k_random_vc_t),
+				   2, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_k_random_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_random_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_random_mr",
+				   sizeof(la_i_random_mr_t),
+				   1, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_i_random_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_random_mr",
+				   sizeof(la_k_random_mr_t),
+				   2, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_k_random_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_random_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_random_mc",
+				   sizeof(la_i_random_mc_t),
+				   1, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_i_random_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_random_mc",
+				   sizeof(la_k_random_mc_t),
+				   2, 
+				   "i", 
+				   "p", 
+				   (int (*)(CSOUND*,void*)) &la_k_random_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_random_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_i_vr_set",
@@ -2984,6 +4184,296 @@ extern "C"
 				   "i", 
 				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_add_vr",
+				   sizeof(la_i_add_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_add_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_add_vr",
+				   sizeof(la_k_add_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_add_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_add_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_add_vc",
+				   sizeof(la_i_add_vc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_add_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_add_vc",
+				   sizeof(la_k_add_vc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_add_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_add_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_add_mr",
+				   sizeof(la_i_add_mr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_add_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_add_mr",
+				   sizeof(la_k_add_mr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_add_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_add_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_add_mc",
+				   sizeof(la_i_add_mc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_add_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_add_mc",
+				   sizeof(la_k_add_mc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_add_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_add_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_subtract_vr",
+				   sizeof(la_i_subtract_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_subtract_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_subtract_vr",
+				   sizeof(la_k_subtract_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_subtract_vc",
+				   sizeof(la_i_subtract_vc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_subtract_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_subtract_vc",
+				   sizeof(la_k_subtract_vc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_subtract_mr",
+				   sizeof(la_i_subtract_mr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_subtract_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_subtract_mr",
+				   sizeof(la_k_subtract_mr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_subtract_mc",
+				   sizeof(la_i_subtract_mc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_subtract_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_subtract_mc",
+				   sizeof(la_k_subtract_mc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_multiply_vr",
+				   sizeof(la_i_multiply_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_multiply_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_multiply_vr",
+				   sizeof(la_k_multiply_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_multiply_vc",
+				   sizeof(la_i_multiply_vc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_multiply_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_multiply_vc",
+				   sizeof(la_k_multiply_vc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_multiply_mr",
+				   sizeof(la_i_multiply_mr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_multiply_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_multiply_mr",
+				   sizeof(la_k_multiply_mr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_multiply_mc",
+				   sizeof(la_i_multiply_mc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_multiply_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_multiply_mc",
+				   sizeof(la_k_multiply_mc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+
+
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_divide_vr",
+				   sizeof(la_i_divide_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_divide_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_divide_vr",
+				   sizeof(la_k_divide_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_divide_vc",
+				   sizeof(la_i_divide_vc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_divide_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_divide_vc",
+				   sizeof(la_k_divide_vc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_divide_mr",
+				   sizeof(la_i_divide_mr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_divide_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_divide_mr",
+				   sizeof(la_k_divide_mr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_divide_mc",
+				   sizeof(la_i_divide_mc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_divide_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_divide_mc",
+				   sizeof(la_k_divide_mc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
     return status;
   }
