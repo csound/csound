@@ -115,114 +115,114 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND("no outfilename")
+            FIND(Str("no outfilename"))
             O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
-              csound->Die(csound, "-o cannot be stdin");
+              csound->Die(csound, Str("-o cannot be stdin"));
 #ifdef macintosh
             if (strcmp(O->outfilename, "stdout") == 0) {
-              csound->Die(csound, "stdout audio not supported");
+              csound->Die(csound, Str("stdout audio not supported"));
             }
 #endif
             break;
           case 'S':
-            FIND("no start sample");
+            FIND(Str("no start sample"));
             xtrc.sample = atoi(s);
             while (*++s);
             if (xtrc.stime >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-S overriding -T");
+                csound->Message(csound,Str("-S overriding -T"));
               xtrc.stime = -1.0;
             }
             break;
           case 'T':
-            FIND("no start time");
+            FIND(Str("no start time"));
             xtrc.stime = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.sample >= 0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-T overriding -S");
+                csound->Message(csound,Str("-T overriding -S"));
               xtrc.sample = -1;
             }
             break;
           case 'Z':     /* Last sample */
-            FIND("no end sample");
+            FIND(Str("no end sample"));
             xtrc.stop = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Z overriding -E");
+                csound->Message(csound,Str("-Z overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Z overriding -D");
+                csound->Message(csound,Str("-Z overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Z overriding -Q");
+                csound->Message(csound,Str("-Z overriding -Q"));
               xtrc.numsamps = -1;
             }
             break;
           case 'E':     /* Last time */
-            FIND("no end time");
+            FIND(Str("no end time"));
             xtrc.endtime = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.dur >= 0.0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-E overriding -D");
+                csound->Message(csound,Str("-E overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-E overriding -Q");
+                csound->Message(csound,Str("-E overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-E overriding -Z");
+                csound->Message(csound,Str("-E overriding -Z"));
               xtrc.stop = -1;
             }
             break;
           case 'D':
-            FIND("no duration");
+            FIND(Str("no duration"));
             xtrc.dur = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-D overriding -E");
+                csound->Message(csound,Str("-D overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.numsamps >=0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-D overriding -Q");
+                csound->Message(csound,Str("-D overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-D overriding -Z");
+                csound->Message(csound,Str("-D overriding -Z"));
               xtrc.stop = -1;
             }
             break;
           case 'Q':
-            FIND("no sample count");
+            FIND(Str("no sample count"));
             xtrc.numsamps = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Q overriding -E");
+                csound->Message(csound,Str("-Q overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Q overriding -D");
+                csound->Message(csound,Str("-Q overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.stop >= 0) {
               if (Omsg & WARNMSG)
-                csound->Message(csound,"-Q overriding -Z");
+                csound->Message(csound,Str("-Q overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -241,19 +241,19 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             debug = 1;
             break;
           default:
-            usage(csound, "unknown flag -%c", c);
+            usage(csound, Str("unknown flag -%c"), c);
           }
       else {
-        if (inputfile != NULL) usage(csound,"Too many inputs");
+        if (inputfile != NULL) usage(csound,Str("Too many inputs"));
         inputfile = --s;
       }
     } while (--argc);
 
     /* Read sound file */
-    if (inputfile == NULL) usage(csound,"No input");
+    if (inputfile == NULL) usage(csound,Str("No input"));
 
     if (!(infd = EXsndgetset(csound, &xtrc, inputfile))) {
-      csound->Message(csound,"%s: error while opening %s", argv[0], inputfile);
+      csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
       return 1;
     }
 
@@ -270,7 +270,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     else if (xtrc.numsamps < 0) xtrc.numsamps =xtrc. p->getframes - xtrc.sample;
 
     if (xtrc.sample<0) xtrc.sample = 0;
-    csound->Message(csound,"Extracting from sample %ld for %ld samples (%.5f secs)\n",
+    csound->Message(csound,Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
                     xtrc.sample, xtrc.numsamps, (MYFLT)xtrc.numsamps/xtrc.p->sr);
 
     xtrc.outputs = xtrc.p->nchanls;
@@ -329,7 +329,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
         return(0);
     x->p->getframes = x->p->framesrem;
     dur = (MYFLT) x->p->getframes / x->p->sr;
-    csound->Message(csound,"extracting from %ld sample frames (%3.1f secs)\n",
+    csound->Message(csound,Str("extracting from %ld sample frames (%3.1f secs)\n"),
            (long) x->p->getframes, dur);
     return(infd);
 }

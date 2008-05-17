@@ -140,13 +140,13 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    double NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*csound->esr/f0  */
-    MYFLT H1_w0 = (MYFLT) pow(10.0,-(double)A_w0*0.05*NRecip);
-    MYFLT H1_PI = (MYFLT) pow(10.0,-(double)A_PI*0.05*NRecip);
+    MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*csound->esr/f0  */
+    MYFLT H1_w0 = POWER(FL(10.0),-A_w0*Fl(0.05)*NRecip);
+    MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
       /* The tuning filter is allpass, so no dependency for H1 */
       /* therefore solve for the coefficients of the bridge filter directly */
-      MYFLT cosw0 = (MYFLT)cos((double)p->wg.w0);
+      MYFLT cosw0 = COS(p->wg.w0);
       MYFLT a1=(H1_w0+cosw0*H1_PI)/(1+cosw0);
       MYFLT a0 = (a1 - H1_PI)*FL(0.5);
       /* apply constraints on coefficients (see Sullivan)*/
@@ -171,7 +171,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     shape = (MYFLT *) csound->Malloc(csound, len*sizeof(MYFLT));
     if (!shape)
       error(csound,
-            Str("Couldn't allocate for initial shape"),"<pluckShape>");
+            Str("Could not allocate for initial shape"),"<pluckShape>");
 
     scale = FL(0.5) * scale;      /* Scale was squared!! */
     for (i=0;i<p->pickSamp;i++)

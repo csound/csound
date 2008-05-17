@@ -73,8 +73,9 @@ int fassign(CSOUND *csound, FASSIGN *p)
 
     framesize = p->fsrc->N + 2;
     if (p->fout->framecount == p->fsrc->framecount) /* avoid duplicate copying*/
-      for (i=0;i < framesize;i++)
-        fout[i] = fsrc[i];
+      memcpy(fout, fsrc, framesize*sizeof(float));
+      /* for (i=0;i < framesize;i++) */
+      /*   fout[i] = fsrc[i]; */
     return OK;
 }
 
@@ -142,7 +143,7 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
     for (i=0;i < noscs;i++)
-      *p_x++ = FL(1.0);
+      p_x[i] = FL(1.0);
 
     return OK;
 }
@@ -178,19 +179,19 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     amps      = (MYFLT *) p->amps.auxp;
     freqs     = (MYFLT *) p->freqs.auxp;
     lastamps  = (MYFLT *) p->lastamps.auxp;
-    startbin  = (int32)    *p->ibin;
-    binoffset = (int32)    *p->ibinoffset;
+    startbin  = (int32)   *p->ibin;
+    binoffset = (int32)   *p->ibinoffset;
     lastbin   = p->maxosc;
 
     /*update amps, freqs*/
     for (i=startbin;i < lastbin;i+= binoffset) {
       amps[i] = frame[i*2];
       /* lazy: force all freqs positive! */
-      freqs[i] = ffac * (MYFLT) (fabs)(frame[(i*2)+1]);
+      freqs[i] = ffac * FABS(frame[(i*2)+1]);
       /* kill stuff over Nyquist. Need to worry about vlf values? */
       if (freqs[i] > nyquist)
         amps[i] = FL(0.0);
-      a[i] = (MYFLT)(2.0 * sin(freqs[i] * (double)csound->pidsr));
+      a[i] = FL(2.0) * SIN(freqs[i] * csound->pidsr);
     }
 
     /* we need to interp amplitude, but seems we can avoid doing freqs too,
@@ -278,8 +279,8 @@ int pvscrosset(CSOUND *csound, PVSCROSS *p)
 int pvscross(CSOUND *csound, PVSCROSS *p)
 {
     int32 i,N = p->fftsize;
-    MYFLT amp1 = (MYFLT) fabs(*p->kamp1);
-    MYFLT amp2 = (MYFLT) fabs(*p->kamp2);
+    MYFLT amp1 = FABS(*p->kamp1);
+    MYFLT amp2 = FABS(*p->kamp2);
     float *fsrc = (float *) p->fsrc->frame.auxp;    /* RWD all must be 32bit */
     float *fdest = (float *) p->fdest->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;

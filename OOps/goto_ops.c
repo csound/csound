@@ -105,6 +105,7 @@ int timout(CSOUND *csound, TIMOUT *p)
 int rireturn(CSOUND *csound, LINK *p)
 {
     IGN(p);
+    IGN(csound);
     return OK;
 }
 

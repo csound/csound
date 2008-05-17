@@ -65,7 +65,7 @@ static void fftCosInit(int M, MYFLT *Utbl)
 
     Utbl[0] = FL(1.0);
     for (i1 = 1; i1 < fftN/4; i1++)
-      Utbl[i1] = (MYFLT)cos((2.0 * MYPI * (double)i1) / (double)fftN);
+      Utbl[i1] = COS((FL(2.0) * FL(MYPI) * (MYFLT)i1) / (MYFLT)fftN);
     Utbl[fftN/4] = FL(0.0);
 }
 
@@ -327,7 +327,7 @@ static void fft8pt(MYFLT *ioptr)
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     /* bit reversed load */
     f0r = ioptr[0];
@@ -558,11 +558,11 @@ static void bfR4(MYFLT *ioptr, int M, int NDiffU)
     MYFLT *pstrt;
     MYFLT *p0r, *p1r, *p2r, *p3r;
 
-    MYFLT w1r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+    MYFLT w1r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pinc = NDiffU * 2;            /* 2 floats per complex */
     pnext = pinc * 4;
@@ -1362,11 +1362,11 @@ static void ifft4pt(MYFLT *ioptr, MYFLT scale)
 static void ifft8pt(MYFLT *ioptr, MYFLT scale)
 {
     /***   RADIX 8 ifft     ***/
-    MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+    MYFLT w0r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     /* bit reversed load */
     f0r = ioptr[0];
@@ -1598,11 +1598,11 @@ static void ibfR4(MYFLT *ioptr, int M, int NDiffU)
     MYFLT *pstrt;
     MYFLT *p0r, *p1r, *p2r, *p3r;
 
-    MYFLT w1r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+    MYFLT w1r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pinc = NDiffU * 2;            /* 2 floats per complex */
     pnext = pinc * 4;
@@ -1815,7 +1815,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pinc = NDiffU * 2;            /* 2 floats per complex */
     pnext = pinc * 8;
@@ -2144,7 +2144,7 @@ static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 
     int StageCnt;
     int NDiffU;
-    const MYFLT scale = 1.0 / POW2(M);
+    const MYFLT scale = FL(1.0) / POW2(M);
 
     switch (M) {
     case 0:
@@ -2240,8 +2240,8 @@ static void rfft4pt(MYFLT *ioptr)
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT t0r, t0i, t1r, t1i;
     MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
-    const MYFLT Two = 2.0;
-    const MYFLT scale = 0.5;
+    const MYFLT Two = FL(2.0);
+    const MYFLT scale = FL(0.5);
 
     /* bit reversed load */
     f0r = ioptr[0];
@@ -2316,8 +2316,8 @@ static void rfft8pt(MYFLT *ioptr)
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
-    const MYFLT scale = 0.5;
+    const MYFLT Two = FL(2.0);
+    const MYFLT scale = FL(0.5);
 
     /* bit reversed load */
     f0r = ioptr[0];
@@ -2477,7 +2477,7 @@ static void frstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     MYFLT w0r, w0i;
     MYFLT f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pos = POW2(M - 1);
     posi = pos + 1;

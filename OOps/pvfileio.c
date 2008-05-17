@@ -169,9 +169,9 @@ static inline int32 pvfile_read_16(PVOCFILE *p, void *data, int32 cnt)
 {
     int32 n = (int32) fread(data, sizeof(uint16_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      int32      i;
+      int32     i;
       uint16_t  tmp;
-      for (i = 0L; i < n; i++) {
+      for (i = 0; i < n; i++) {
         tmp = ((uint16_t*) data)[i];
         tmp = ((tmp & (uint16_t) 0xFF) << 8) | ((tmp & (uint16_t) 0xFF00) >> 8);
         ((uint16_t*) data)[i] = tmp;
@@ -186,7 +186,7 @@ static inline int pvfile_write_16(PVOCFILE *p, void *data, int32 cnt)
 
     if (byte_order()) {
       uint16_t  tmp;
-      for (n = 0L; n < cnt; n++) {
+      for (n = 0; n < cnt; n++) {
         tmp = ((uint16_t*) data)[n];
         tmp = ((tmp & (uint16_t) 0xFF) << 8) | ((tmp & (uint16_t) 0xFF00) >> 8);
         if (fwrite(&tmp, sizeof(uint16_t), 1, p->fp) != (size_t) 1)
@@ -202,9 +202,9 @@ static inline int32 pvfile_read_32(PVOCFILE *p, void *data, int32 cnt)
 {
     int32  n = (int32) fread(data, sizeof(uint32_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      int32      i;
+      int32     i;
       uint32_t  tmp;
-      for (i = 0L; i < n; i++) {
+      for (i = 0; i < n; i++) {
         tmp = ((uint32_t*) data)[i];
         tmp =   ((tmp & (uint32_t) 0x000000FFU) << 24)
               | ((tmp & (uint32_t) 0x0000FF00U) << 8)
@@ -222,7 +222,7 @@ static inline int pvfile_write_32(PVOCFILE *p, void *data, int32 cnt)
 
     if (byte_order()) {
       uint32_t  tmp;
-      for (n = 0L; n < cnt; n++) {
+      for (n = 0; n < cnt; n++) {
         tmp = ((uint32_t*) data)[n];
         tmp =   ((tmp & (uint32_t) 0x000000FFU) << 24)
               | ((tmp & (uint32_t) 0x0000FF00U) << 8)

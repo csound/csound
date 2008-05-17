@@ -111,7 +111,6 @@ int mrtmsg(CSOUND *csound, MRT *p)
       send_midi_message(csound, 0xFF, 0, 0); /* system_reset */
       break;
     case -2:
-
       send_midi_message(csound, 0xFE, 0, 0); /* active_sensing */
       break;
     default:

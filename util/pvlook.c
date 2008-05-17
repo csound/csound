@@ -72,18 +72,19 @@ static CS_NOINLINE void pvlook_printvalue(PVLOOK *p, float x)
     }
 }
 
+#define Str_noop(x) x
 static const char *pvlook_usage_txt[] = {
-    "pvlook is a program which reads a Csound pvanal's pvoc.n ",
-    "file and outputs frequency and magnitude trajectories for each ",
-    "of the analysis bins.",
+  Str_noop("pvlook is a program which reads a Csound pvanal's pvoc.n "),
+  Str_noop("file and outputs frequency and magnitude trajectories for each "),
+  Str_noop("of the analysis bins."),
     "",
-    "usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i]  file > output",
+  Str_noop("usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i]  file > output"),
     "",
-    " -bb X  begin at analysis bin X. Numbered from 1 [defaults to 1]",
-    " -eb X  end at analysis bin X [defaults to highest]",
-    " -bf X  begin at analysis frame X. Numbered from 1 [defaults to 1]",
-    " -ef X  end at analysis frame X [defaults to last]",
-    " -i     prints values as integers [defaults to floating point]",
+  Str_noop(" -bb X  begin at analysis bin X. Numbered from 1 [defaults to 1]"),
+  Str_noop(" -eb X  end at analysis bin X [defaults to highest]"),
+  Str_noop(" -bf X  begin at analysis frame X. Numbered from 1 [defaults to 1]"),
+  Str_noop(" -ef X  end at analysis frame X [defaults to last]"),
+  Str_noop(" -i     prints values as integers [defaults to floating point]"),
     "",
     NULL
 };
@@ -119,7 +120,7 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
     }
 
     if ((fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt)) < 0) {
-      csound->ErrorMsg(csound, "pvlook: Unable to open '%s'\n Does it exist?",
+      csound->ErrorMsg(csound, Str("pvlook: Unable to open '%s'\n Does it exist?"),
                                argv[argc - 1]);
       return -1;
     }
