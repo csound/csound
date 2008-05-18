@@ -256,7 +256,7 @@ libList = findFiles('.', 'libcsound\\.a')
 libList += findFiles('.', 'libcsound64\\.a')
 libList += findFiles('.', 'libcsound\\.so\\..+')
 libList += findFiles('.', 'libcsound64\\.so\\..+')
-libList += findFiles('.', 'lib_csnd\\.so')
+libList += findFiles('.', 'libcsnd\\.so')
 libList += findFiles('.', 'lib_jcsound\\.so')
 libList += findFiles('.', 'lib_CsoundVST\\.so')
 for i in libList:
