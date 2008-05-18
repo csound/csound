@@ -51,6 +51,9 @@
  * left-hand side of an opcode! However, some operations 
  * may reshape arrays to hold results.
  *
+ * Arrays are automatically deallocated when their instrument
+ * is deallocated.
+ *
  * Not only for more efficient performance, 
  * but also to make it easier to remember opcode names,
  * the performance rate, output value types, operation names,
@@ -253,10 +256,10 @@
  * Matrix Inversion
  * ----------------
  * 
- * imr                        la_i_invert_mr      imr
- * imr                        la_k_invert_mr      imr
- * imc                        la_i_invert_mc      imc
- * imc                        la_k_invert_mc      imc
+ * imr, icondition            la_i_invert_mr      imr
+ * imr, kcondition            la_k_invert_mr      imr
+ * imc, icondition            la_i_invert_mc      imc
+ * imc, kcondition            la_k_invert_mc      imc
  *
  * Matrix Decompositions and Solvers
  * ---------------------------------
@@ -3498,6 +3501,92 @@ public:
   }
 };
 
+class la_i_invert_mr_t : public OpcodeBase<la_i_invert_mr_t>
+{
+public:
+  MYFLT *imr_lhs;
+  MYFLT *icondition;
+  MYFLT *imr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    gmm::copy(rhs->mr, lhs->mr);
+    *icondition = gmm::lu_inverse(lhs->mr);
+    return OK;
+  }
+};
+
+class la_k_invert_mr_t : public OpcodeBase<la_k_invert_mr_t>
+{
+public:
+  MYFLT *imr_lhs;
+  MYFLT *kcondition;
+  MYFLT *imr_rhs;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imr_lhs, lhs);
+    toa(imr_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(rhs->mr, lhs->mr);
+    *kcondition = gmm::lu_inverse(lhs->mr);
+    return OK;
+  }
+};
+
+class la_i_invert_mc_t : public OpcodeBase<la_i_invert_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *icondition_r;
+  MYFLT *icondition_i;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    gmm::copy(rhs->mc, lhs->mc);
+    std::complex<MYFLT> condition = gmm::lu_inverse(lhs->mc);
+    *icondition_r = condition.real();
+    *icondition_i = condition.imag();
+    return OK;
+  }
+};
+
+class la_k_invert_mc_t : public OpcodeBase<la_k_invert_mc_t>
+{
+public:
+  MYFLT *imc_lhs;
+  MYFLT *kcondition_r;
+  MYFLT *kcondition_i;
+  MYFLT *imc_rhs;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs;
+  int init(CSOUND *)
+  {
+    toa(imc_lhs, lhs);
+    toa(imc_rhs, rhs);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::copy(rhs->mc, lhs->mc);
+    std::complex<MYFLT> condition = gmm::lu_inverse(lhs->mc);
+    *kcondition_r = condition.real();
+    *kcondition_i = condition.imag();
+    return OK;
+  }
+};
+
 extern "C" 
 {
 
@@ -4852,6 +4941,42 @@ extern "C"
 				   "ii",
 				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_invert_mr",
+				   sizeof(la_i_invert_mr_t),
+				   1, 
+				   "ii", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_invert_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_invert_mr",
+				   sizeof(la_k_invert_mr_t),
+				   2, 
+				   "ik", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_invert_mc",
+				   sizeof(la_i_invert_mc_t),
+				   1, 
+				   "iii",
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_i_invert_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_invert_mc",
+				   sizeof(la_k_invert_mc_t),
+				   2, 
+				   "ikk",
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
    return status;
   }
