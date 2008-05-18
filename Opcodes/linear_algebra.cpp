@@ -11,7 +11,7 @@
  *
  * NOTE: SDFT must be #defined in order to build and use these opcodes.
  *       For application with f-sig variables, arithmetic must be
- *       performed only when the f-sig is "current" as f-rate
+ *       performed only when the f-sig is "current," because f-rate
  *       is some fraction of k-rate; currency can be determined with the
  *       la_k_current_f opcode.
  *
@@ -235,20 +235,20 @@
  * Inner Products
  * --------------
  * 
- * ir                         la_i_dot_vr_vr      ivr_a, ivr_b
- * kr                         la_k_dot_vr_vr      ivr_a, ivr_b
- * ir, ii                     la_i_dot_vc_vc      ivc_a, ivc_b
- * kr, ki                     la_k_dot_vc_vc      ivc_a, ivc_b
+ * ir                         la_i_dot_vr         ivr_a, ivr_b
+ * kr                         la_k_dot_vr         ivr_a, ivr_b
+ * ir, ii                     la_i_dot_vc         ivc_a, ivc_b
+ * kr, ki                     la_k_dot_vc         ivc_a, ivc_b
+ *
+ * imr                        la_i_dot_mr         imr_a, imr_b
+ * imr                        la_k_dot_mr         imr_a, imr_b
+ * imc                        la_i_dot_mc         imc_a, imc_b
+ * imc                        la_k_dot_mc         imc_a, imc_b
  *
  * ivr                        la_i_dot_mr_vr      imr_a, ivr_b
  * ivr                        la_k_dot_mr_vr      imr_a, ivr_b
  * ivc                        la_i_dot_mc_vc      imc_a, ivc_b
  * ivc                        la_k_dot_mc_vc      imc_a, ivc_b
- *
- * imr                        la_i_dot_mr_mr      imr_a, imr_b
- * imr                        la_k_dot_mr_mr      imr_a, imr_b
- * imc                        la_i_dot_mc_mc      imc_a, imc_b
- * imc                        la_k_dot_mc_mc      imc_a, imc_b
  *
  * Matrix Inversion
  * ----------------
@@ -3227,6 +3227,276 @@ public:
   }
 };
 
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_i_dot_vr_t : public OpcodeBase<la_i_dot_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    *lhs_ = gmm::vect_sp(rhs_a->vr, rhs_b->vr);
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_k_dot_vr_t : public OpcodeBase<la_k_dot_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    *lhs_ = gmm::vect_sp(rhs_a->vr, rhs_b->vr);
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_i_dot_vc_t : public OpcodeBase<la_i_dot_vc_t>
+{
+public:
+  MYFLT *lhs_r;
+  MYFLT *lhs_i;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    std::complex<MYFLT> lhs = gmm::vect_sp(rhs_a->vc, rhs_b->vc);
+    *lhs_r = lhs.real();
+    *lhs_i = lhs.imag();
+    return OK;
+  }
+};
+
+/**
+ * Elementwise multiplication.
+ * The array on the left-hand side can also appear 
+ * on the right-hand side in order to perform a *= b.
+ */
+class la_k_dot_vc_t : public OpcodeBase<la_k_dot_vc_t>
+{
+public:
+  MYFLT *lhs_r;
+  MYFLT *lhs_i;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    std::complex<MYFLT> lhs = gmm::vect_sp(rhs_a->vc, rhs_b->vc);
+    *lhs_r = lhs.real();
+    *lhs_i = lhs.imag();
+    return OK;
+  }
+};
+
+class la_i_dot_mr_t : public OpcodeBase<la_i_dot_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    gmm::mult(rhs_a->mr, rhs_b->mr, lhs->mr);
+    return OK;
+  }
+};
+
+class la_k_dot_mr_t : public OpcodeBase<la_k_dot_mr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_mr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    gmm::mult(rhs_a->mr, rhs_b->mr, lhs->mr);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    gmm::mult(rhs_a->mr, rhs_b->mr, lhs->mr);
+    return OK;
+  }
+};
+
+class la_i_dot_mc_t : public OpcodeBase<la_i_dot_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    gmm::mult(rhs_a->mc, rhs_b->mc, lhs->mc);
+    return OK;
+  }
+};
+
+class la_k_dot_mc_t : public OpcodeBase<la_k_dot_mc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_mc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_mc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    gmm::mult(rhs_a->mc, rhs_b->mc, lhs->mc);
+    return OK;
+  }
+};
+
+class la_i_dot_mr_vr_t : public OpcodeBase<la_i_dot_mr_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    gmm::mult(rhs_a->mr, rhs_b->vr, lhs->vr);
+    return OK;
+  }
+};
+
+class la_k_dot_mr_vr_t : public OpcodeBase<la_k_dot_mr_vr_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vr_create_t *lhs;
+  la_i_mr_create_t *rhs_a;
+  la_i_vr_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    gmm::mult(rhs_a->mr, rhs_b->vr, lhs->vr);
+    return OK;
+  }
+};
+
+class la_i_dot_mc_vc_t : public OpcodeBase<la_i_dot_mc_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    gmm::mult(rhs_a->mc, rhs_b->vc, lhs->vc);
+    return OK;
+  }
+};
+
+class la_k_dot_mc_vc_t : public OpcodeBase<la_k_dot_mc_vc_t>
+{
+public:
+  MYFLT *lhs_;
+  MYFLT *rhs_a_;
+  MYFLT *rhs_b_;
+  la_i_vc_create_t *lhs;
+  la_i_mc_create_t *rhs_a;
+  la_i_vc_create_t *rhs_b;
+  int init(CSOUND *)
+  {
+    toa(lhs_, lhs);
+    toa(rhs_a_, rhs_a);
+    toa(rhs_b_, rhs_b);
+    return OK;
+  }
+  int kontrol(CSOUND *) 
+  {
+    gmm::mult(rhs_a->mc, rhs_b->vc, lhs->vc);
+    return OK;
+  }
+};
 
 extern "C" 
 {
@@ -4475,7 +4745,115 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
-    return status;
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_vr",
+				   sizeof(la_i_dot_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_vr",
+				   sizeof(la_k_dot_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_vc",
+				   sizeof(la_i_dot_vc_t),
+				   1, 
+				   "ii", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_vc",
+				   sizeof(la_k_dot_vc_t),
+				   2, 
+				   "ii", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+     status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_mr",
+				   sizeof(la_i_dot_mr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_mr",
+				   sizeof(la_k_dot_mr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_mc",
+				   sizeof(la_i_dot_mc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_mc",
+				   sizeof(la_k_dot_mc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+     status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_mr_vr",
+				   sizeof(la_i_dot_mr_vr_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_mr_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_mr_vr",
+				   sizeof(la_k_dot_mr_vr_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_dot_mc_vc",
+				   sizeof(la_i_dot_mc_vc_t),
+				   1, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_i_dot_mc_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_dot_mc_vc",
+				   sizeof(la_k_dot_mc_vc_t),
+				   2, 
+				   "i", 
+				   "ii",
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+   return status;
   }
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
