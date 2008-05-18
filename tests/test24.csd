@@ -154,6 +154,30 @@ imrc				la_i_dot_mr		imra, imrb
 				la_i_print_mr		imrb
       				la_i_print_mr 	    	imrc
 
+				prints			"\nTEST: la_i_invert_mr\n"
+iinvA				la_i_mr_create		10, 10
+iinvB				la_i_mr_create		10, 10
+iinvB				la_i_random_mr		1.0
+iinvC				la_i_mr_create		10, 10
+iinvA, icondition		la_i_invert_mr		iinvB
+       				print icondition
+				la_i_print_mr		iinvA
+				la_i_print_mr		iinvB
+iinvC				la_i_dot_mr		iinvA, iinvB
+      				la_i_print_mr 	    	iinvC
+
+				prints			"\nTEST: la_i_invert_mc\n"
+iinvA				la_i_mc_create		5, 5
+iinvB				la_i_mc_create		5, 5
+iinvB				la_i_random_mc		1.0
+iinvC				la_i_mc_create		5, 5
+iinvA, icond_r, icond_i		la_i_invert_mc		iinvB
+       				print icond_r, icond_i
+				la_i_print_mc		iinvA
+				la_i_print_mc		iinvB
+iinvC				la_i_dot_mc		iinvA, iinvB
+      				la_i_print_mc 	    	iinvC
+
 
 
 endin
