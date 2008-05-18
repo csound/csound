@@ -178,7 +178,15 @@ iinvA, icond_r, icond_i		la_i_invert_mc		iinvB
 iinvC				la_i_dot_mc		iinvA, iinvB
       				la_i_print_mc 	    	iinvC
 
-
+				prints			"\nTEST: la_i_sym_eigen_mc\n"
+ieigval				la_i_vc_create		5
+ieigvect			la_i_mc_create		5,5
+iA				la_i_mc_create		5,5
+iA				la_i_random_mc		1
+ieigval, ieigvect		la_i_qr_sym_eigen_mc	iA, 0.00001
+	 			la_i_print_mc		iA
+	 			la_i_print_vc		ieigval
+				la_i_print_mc		ieigvect
 
 endin
 

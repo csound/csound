@@ -108,6 +108,8 @@
  * imc                         la_i_assign_mc        imc
  * imc                         la_k_assign_mc        imr
  *
+ * NOTE: Assignments to vectors may resize them.
+ *
  * ivr                         la_k_assign_a         asig
  * ivr                         la_i_assign_t         itablenumber
  * ivr                         la_k_assign_t         itablenumber
@@ -299,6 +301,8 @@
  * ivr_eig_vals                la_k_qr_eigen_mr      imr, k_tolerance
  * ivr_eig_vals                la_i_qr_eigen_mc      imc, i_tolerance
  * ivr_eig_vals                la_k_qr_eigen_mc      imc, k_tolerance
+ *
+ * NOTE: Matrix must be Hermitian in order to compute eigenvectors.
  *
  * ivr_eig_vals, imr_eig_vecs  la_i_qr_sym_eigen_mr  imr, i_tolerance
  * ivr_eig_vals, imr_eig_vecs  la_k_qr_sym_eigen_mr  imr, k_tolerance
@@ -3764,7 +3768,6 @@ public:
     toa(rhs_, rhs);
     pivot_size = gmm::mat_nrows(rhs->mr);
     pivot__.resize(pivot_size);
-    gmm::resize(pivot->vr, pivot_size);
     gmm::copy(rhs->mr, lhs->mr);
     *isize = gmm::lu_factor(lhs->mr, pivot__);
     for (size_t i = 0; i < pivot_size; ++i) {
@@ -3797,7 +3800,6 @@ public:
   {
     pivot_size = gmm::mat_nrows(rhs->mr);
     pivot__.resize(pivot_size);
-    gmm::resize(pivot->vr, pivot_size);
     gmm::copy(rhs->mr, lhs->mr);
     *ksize = gmm::lu_factor(lhs->mr, pivot__);
     for (size_t i = 0; i < pivot_size; ++i) {
@@ -3826,7 +3828,6 @@ public:
     toa(rhs_, rhs);
     pivot_size = gmm::mat_nrows(rhs->mc);
     pivot__.resize(pivot_size);
-    gmm::resize(pivot->vr, pivot_size);
     gmm::copy(rhs->mc, lhs->mc);
     *isize = gmm::lu_factor(lhs->mc, pivot__);
     for (size_t i = 0; i < pivot_size; ++i) {
@@ -3859,7 +3860,6 @@ public:
   {
     pivot_size = gmm::mat_nrows(rhs->mc);
     pivot__.resize(pivot_size);
-    gmm::resize(pivot->vr, pivot_size);
     gmm::copy(rhs->mc, lhs->mc);
     *ksize = gmm::lu_factor(lhs->mc, pivot__);
     for (size_t i = 0; i < pivot_size; ++i) {
@@ -4033,6 +4033,170 @@ public:
   int kontrol(CSOUND *)
   {
     gmm::qr_factor(rhs_A->mc, lhs_Q->mc, lhs_R->mc);
+    return OK;
+  }
+};
+
+class la_i_qr_eigen_mr_t : public OpcodeBase<la_i_qr_eigen_mr_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *rhs_A_;
+  MYFLT *itolerance;
+  la_i_vr_create_t *lhs_eigenvalues;
+  la_i_mr_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(rhs_A_, rhs_A);
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, double(*itolerance));
+    return OK;
+  }
+};
+
+class la_k_qr_eigen_mr_t : public OpcodeBase<la_k_qr_eigen_mr_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *rhs_A_;
+  MYFLT *ktolerance;
+  la_i_vr_create_t *lhs_eigenvalues;
+  la_i_mr_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(rhs_A_, rhs_A);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, double(*ktolerance));
+    return OK;
+  }
+};
+
+class la_i_qr_eigen_mc_t : public OpcodeBase<la_i_qr_eigen_mc_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *rhs_A_;
+  MYFLT *itolerance;
+  la_i_vc_create_t *lhs_eigenvalues;
+  la_i_mc_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(rhs_A_, rhs_A);
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, double(*itolerance));
+    return OK;
+  }
+};
+
+class la_k_qr_eigen_mc_t : public OpcodeBase<la_k_qr_eigen_mc_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *rhs_A_;
+  MYFLT *ktolerance;
+  la_i_vc_create_t *lhs_eigenvalues;
+  la_i_mc_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(rhs_A_, rhs_A);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, double(*ktolerance));
+    return OK;
+  }
+};
+
+class la_i_qr_sym_eigen_mr_t : public OpcodeBase<la_i_qr_sym_eigen_mr_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *lhs_eigenvectors_;
+  MYFLT *rhs_A_;
+  MYFLT *itolerance;
+  la_i_vr_create_t *lhs_eigenvalues;
+  la_i_mr_create_t *lhs_eigenvectors;
+  la_i_mr_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(lhs_eigenvectors_, lhs_eigenvectors);
+    toa(rhs_A_, rhs_A);
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, lhs_eigenvectors->mr, double(*itolerance));
+    return OK;
+  }
+};
+
+class la_k_qr_sym_eigen_mr_t : public OpcodeBase<la_k_qr_sym_eigen_mr_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *lhs_eigenvectors_;
+  MYFLT *rhs_A_;
+  MYFLT *ktolerance;
+  la_i_vr_create_t *lhs_eigenvalues;
+  la_i_mr_create_t *lhs_eigenvectors;
+  la_i_mr_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(lhs_eigenvectors_, lhs_eigenvectors);
+    toa(rhs_A_, rhs_A);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, lhs_eigenvectors->mr, double(*ktolerance));
+    return OK;
+  }
+};
+
+class la_i_qr_sym_eigen_mc_t : public OpcodeBase<la_i_qr_sym_eigen_mc_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *lhs_eigenvectors_;
+  MYFLT *rhs_A_;
+  MYFLT *itolerance;
+  la_i_vc_create_t *lhs_eigenvalues;
+  la_i_mc_create_t *lhs_eigenvectors;
+  la_i_mc_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(lhs_eigenvectors_, lhs_eigenvectors);
+    toa(rhs_A_, rhs_A);
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, lhs_eigenvectors->mc, double(*itolerance));
+    return OK;
+  }
+};
+
+class la_k_qr_sym_eigen_mc_t : public OpcodeBase<la_k_qr_sym_eigen_mc_t>
+{
+public:
+  MYFLT *lhs_eigenvalues_;
+  MYFLT *lhs_eigenvectors_;
+  MYFLT *rhs_A_;
+  MYFLT *ktolerance;
+  la_i_vc_create_t *lhs_eigenvalues;
+  la_i_mc_create_t *lhs_eigenvectors;
+  la_i_mc_create_t *rhs_A;
+  int init(CSOUND *)
+  {
+    toa(lhs_eigenvalues_, lhs_eigenvalues);
+    toa(lhs_eigenvectors_, lhs_eigenvectors);
+    toa(rhs_A_, rhs_A);
+    return OK;
+  }
+  int kontrol(CSOUND *)
+  {
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, lhs_eigenvectors->mc, double(*ktolerance));
     return OK;
   }
 };
@@ -5574,7 +5738,7 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_i_qr_factor_mr",
-				   sizeof(la_i_lu_solve_mr_t),
+				   sizeof(la_i_qr_factor_mr_t),
 				   1, 
 				   "ii",
 				   "i", 
@@ -5583,7 +5747,7 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_k_qr_factor_mr",
-				   sizeof(la_k_lu_solve_mr_t),
+				   sizeof(la_k_qr_factor_mr_t),
 				   2, 
 				   "ii",
 				   "i", 
@@ -5592,7 +5756,7 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_i_qr_factor_mc",
-				   sizeof(la_i_lu_solve_mc_t),
+				   sizeof(la_i_qr_factor_mc_t),
 				   1, 
 				   "ii",
 				   "i", 
@@ -5601,12 +5765,84 @@ extern "C"
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_k_qr_factor_mc",
-				   sizeof(la_k_lu_solve_mc_t),
+				   sizeof(la_k_qr_factor_mc_t),
 				   2, 
 				   "ii",
 				   "i", 
 				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::init_,
 				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_qr_eigen_mr",
+				   sizeof(la_i_qr_eigen_mr_t),
+				   1, 
+				   "i",
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_qr_eigen_mr",
+				   sizeof(la_k_qr_eigen_mr_t),
+				   2, 
+				   "i",
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_qr_eigen_mc",
+				   sizeof(la_i_qr_eigen_mc_t),
+				   1, 
+				   "i",
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_qr_eigen_mc",
+				   sizeof(la_k_qr_eigen_mc_t),
+				   2, 
+				   "i",
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_qr_sym_eigen_mr",
+				   sizeof(la_i_qr_sym_eigen_mr_t),
+				   1, 
+				   "ii",
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_qr_sym_eigen_mr",
+				   sizeof(la_k_qr_sym_eigen_mr_t),
+				   2, 
+				   "ii",
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::kontrol_,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_i_qr_sym_eigen_mc",
+				   sizeof(la_i_qr_sym_eigen_mc_t),
+				   1, 
+				   "ii",
+				   "ii", 
+				   (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) 0,
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_qr_sym_eigen_mc",
+				   sizeof(la_k_qr_sym_eigen_mc_t),
+				   2, 
+				   "ii",
+				   "ik", 
+				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::init_,
+				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::kontrol_,
 				   (int (*)(CSOUND*,void*)) 0);
     return status;
   }

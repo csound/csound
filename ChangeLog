@@ -4,7 +4,7 @@
 	Csound opcode implementation of Chua's Oscillator,
 	a nonlinear dynamical system capable of many kinds of periodic and chaotic
 	behavior, including multiple simultaneous attractors. See the
-	reference manual entry for chuap for documentation and 
+	reference manual entry for "chuap" for documentation. See 
 	examples/chuap.csd and examples/chuas_oscillator/ChuasOscillatorApp.py for
 	sample Csound usage.
 
