@@ -1,3 +1,22 @@
+2008-05-18  Michael Gogins  <gogins@pipeline.com>
+
+	* Opcodes/chua/ChuaOscillator.cpp
+	Csound opcode implementation of Chua's Oscillator,
+	a nonlinear dynamical system capable of many kinds of periodic and chaotic
+	behavior, including multiple simultaneous attractors. See the
+	reference manual entry for chuap for documentation and 
+	examples/chuap.csd and examples/chuas_oscillator/ChuasOscillatorApp.py for
+	sample Csound usage.
+
+	* Opcodes/linear_algebra.cpp
+	Csound i-rate and k-rate opcodes for much standard linear algebra over
+	real and complex vectors and matrices: elementwise arithmetic, norms,
+	transpose and conjugate, inner products, matrix inverse, LU decomposition,
+	QR decomposition, and QR-based eigenvalue decomposition. Includes
+	copying vectors to and from a-rate signals, function tables, and f-signals.
+	See the source code for preliminary documentation and tests/test24.csd for
+	sample Csound usage.
+
 2008-05-17  jpff  <jpff@codemist.co.uk>
 
 	* util/lpanal.c: Removed static variables to a structure
