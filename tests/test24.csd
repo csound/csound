@@ -4,22 +4,32 @@ sr=48000
 ksmps=1
 nchnls=2
 
-	instr 1
+				instr 1
 
-imc   	la_i_mc_create		10, 10, p4, p5
-      	la_i_print_mc 	    	imc
+				prints			"\nTEST: la_i_vr_create\n"
+ivr				la_i_vr_create		10
+				print			ivr
+      				la_i_print_vr 	    	ivr
 
-ir, ic 	la_i_size_mc		imc
-    	print			ir, ic
+				prints			"\nTEST: la_i_mc_create\n"
+imc				la_i_mc_create		10, 10, p4, p5
+				print			imc
+      				la_i_print_mc 	    	imc
 
-ivr     la_i_vr_create		10
-	la_i_print_vr		ivr
+				prints			"\nTEST: la_i_size_mc\n"
+imc_rows, imc_cols		la_i_size_mc		imc
+				print			imc_rows, imc_cols
 
-ivr	la_i_vr_set		0, 10
-ivr	la_i_vr_set		9, 1
-	la_i_print_vr		ivr
+				prints			"\nTEST: la_i_random_mc\n"
+imc				la_i_random_mc		0.5
+      				la_i_print_mc 	    	imc
 
-imc	la_i_mc_set		3, 0, -3,  3
+
+ivr		la_i_vr_set		0, 10
+ivr		la_i_vr_set		9, 1
+		la_i_print_vr		ivr
+
+imc		la_i_mc_set		3, 0, -3,  3
 imc	la_i_mc_set        	0, 6,  6, -6
 	la_i_print_mc	   	imc
 
@@ -88,20 +98,69 @@ inmc    la_i_norm_inf_mc     	imc2
 idist    la_i_norm_inf_vc       ivc1
 	print			idist
 
-itr,iti    la_i_trace_mc     	imc2
+itr,iti    la_i_trace_mc     	imc
 	print			itr,iti
 
 idet    la_i_lu_det_mr     	imt
 	print			idet
 
-idr,idi    la_i_lu_det_mc     	imc2
-	print			idr,idi
+idr,idi    			la_i_lu_det_mc     	imc
+				print			idr,idi
+
+
+ivc2				la_i_vc_create		5
+
+				prints			"\nTEST: la_i_add_vc\n"
+ivc2				la_i_add_vc		ivc, ivc
+      				la_i_print_vc 	    	ivc2
+
+imc3				la_i_mc_create		7, 5
+imc3				la_i_random_mc		1.0
+imc4				la_i_mc_create		7, 5
+
+				prints			"\nTEST: la_i_add_mc\n"
+imc4				la_i_add_mc		imc3, imc3
+				la_i_print_mc		imc3
+      				la_i_print_mc 	    	imc4
+
+imc5				la_i_mc_create		7, 5
+
+				prints			"\nTEST: la_i_subtract_mc\n"
+imc5				la_i_subtract_mc	imc3, imc3
+				la_i_print_mc		imc3
+      				la_i_print_mc 	    	imc5
+
+imra				la_i_mr_create		2, 3
+imrb				la_i_mr_create		2, 3
+imrc				la_i_mr_create		2, 3
+
+imra				la_i_mr_set		0, 0, 2
+imrb				la_i_mr_set		0, 0, 3
+
+				prints			"\nTEST: la_i_multiply_mr\n"
+imrc				la_i_multiply_mr	imra, imrb
+				la_i_print_mr		imra
+				la_i_print_mr		imrb
+      				la_i_print_mr 	    	imrc
+
+imra				la_i_mr_create		10, 10, 1
+imrb               		la_i_mr_create		10, 10
+imrb				la_i_random_mr		0.25
+imrc				la_i_mr_create		10, 10
+
+				prints			"\nTEST: la_i_dot_mr\n"
+imrc				la_i_dot_mr		imra, imrb
+				la_i_print_mr		imra
+				la_i_print_mr		imrb
+      				la_i_print_mr 	    	imrc
+
+
 
 endin
 
 </CsInstruments>
 <CsScore>
-i 1 1 1  0  0
+;i 1 1 1  0  0
 i 1 2 1 -1  1
 e
 </CsScore>
