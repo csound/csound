@@ -19,7 +19,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
 
 exeFiles = ['csound']
 
-docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
+docFiles = ['COPYING', 'ChangeLog', 'AUTHORS']
 
 locales = ['/en_GB/LC_MESSAGES/', '/en_US/LC_MESSAGES/', '/es_CO/LC_MESSAGES/',
                '/de/LC_MESSAGES/' , '/fr/LC_MESSAGES/']
