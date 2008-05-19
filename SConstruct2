@@ -1003,7 +1003,6 @@ if initialEnvironment['dynamicCsoundLibrary'] == '1':
             csoundLibraryName, libCsoundSources)
 else:
     print 'CONFIGURATION DECISION: Building static Csound library'
-    csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     if util.platform == 'linux':
         libCsoundLibs.append('dl')
     if util.platform != 'win32':
