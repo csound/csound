@@ -54,18 +54,18 @@ static  void    **global_cfg_db = NULL;
 /* list of error messages */
 
 static const char *errmsg_list[] = {
-    "(no error)",
-    "invalid variable name",
-    "invalid variable type",
-    "invalid flags specified",
-    "NULL pointer argument",
-    "the specified value is too high",
-    "the specified value is too low",
-    "the specified value is not an integer power of two",
-    "invalid boolean value; must be 0 or 1",
-    "memory allocation failed",
-    "string exceeds maximum allowed length",
-    "(unknown error)"
+    Str_noop("(no error)"),
+    Str_noop("invalid variable name"),
+    Str_noop("invalid variable type"),
+    Str_noop("invalid flags specified"),
+    Str_noop("NULL pointer argument"),
+    Str_noop("the specified value is too high"),
+    Str_noop("the specified value is too low"),
+    Str_noop("the specified value is not an integer power of two"),
+    Str_noop("invalid boolean value; must be 0 or 1"),
+    Str_noop("memory allocation failed"),
+    Str_noop("string exceeds maximum allowed length"),
+    Str_noop("(unknown error)")
 };
 
 /* check if the specified name, and type and flags values are valid */

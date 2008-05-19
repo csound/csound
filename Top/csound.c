@@ -1975,7 +1975,7 @@ static const CSOUND cenviron_ = {
     return nbytes;
   }
 
-  static const char *midi_err_msg = "Unknown MIDI error";
+  static const char *midi_err_msg = Str_noop("Unknown MIDI error");
 
   /**
    * Returns pointer to a string constant storing an error massage
@@ -2079,7 +2079,7 @@ static const CSOUND cenviron_ = {
   {
     (void) x; (void) y;
     memset(xyindat, 0, sizeof(XYINDAT));
-    csoundWarning(csound, "xyin not supported. use invalue opcode instead.");
+    csoundWarning(csound, Str("xyin not supported. use invalue opcode instead."));
   }
 
   static void defaultCsoundReadKillXYin(CSOUND *csound, XYINDAT *xyindat)
@@ -2503,8 +2503,8 @@ static const CSOUND cenviron_ = {
     /* if frequency is not known yet */
     f = fopen("/proc/cpuinfo", "r");
     if (f == NULL) {
-      fprintf(stderr, "Cannot open /proc/cpuinfo. "
-                      "Support for RDTSC is not available.\n");
+      fprintf(stderr, Str("Cannot open /proc/cpuinfo. "
+                          "Support for RDTSC is not available.\n"));
       return -1;
     }
     /* find CPU frequency */
@@ -2533,8 +2533,8 @@ static const CSOUND cenviron_ = {
     }
     fclose(f);
     if (timeResolutionSeconds <= 0.0) {
-      fprintf(stderr, "No valid CPU frequency entry "
-                      "was found in /proc/cpuinfo.\n");
+      fprintf(stderr, Str("No valid CPU frequency entry "
+                          "was found in /proc/cpuinfo.\n"));
       return -1;
     }
     /* MHz -> seconds */

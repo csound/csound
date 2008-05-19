@@ -309,8 +309,6 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
-#define Str_noop(String) String
-
 static const char *pvanal_usage_txt[] = {
   Str_noop("Usage: pvanal [options...] inputSoundfile outputFFTfile.pvx"),
   Str_noop("Options:"),

@@ -327,16 +327,16 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
       if ((err = setjmp(csound->exitjmp)) != 0) {
         memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-        print_module_error(csound, "Error in pre-initialisation function "
-                                   "of module '%s'", fname, NULL, 0);
+        print_module_error(csound, Str("Error in pre-initialisation function "
+                                       "of module '%s'"), fname, NULL, 0);
         return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
                 CSOUND_MEMORY : CSOUND_INITIALIZATION);
       }
       err = m.PreInitFunc(csound);
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       if (err != 0) {
-        print_module_error(csound, "Error in pre-initialisation function "
-                                   "of module '%s'", fname, &m, err);
+        print_module_error(csound, Str("Error in pre-initialisation function "
+                                       "of module '%s'"), fname, &m, err);
         return CSOUND_INITIALIZATION;
       }
     }
@@ -388,7 +388,8 @@ static void CopyPascalString(StringPtr to, StringPtr from)
 
 /*  Copies a pascal string to a C string in space you provide.
     Returns false if it runs out of space. */
-static Boolean CopyPascalToCString(char* target, const StringPtr source, size_t availspace)
+static Boolean CopyPascalToCString(char* target, const StringPtr source,
+                                   size_t availspace)
 {
     Boolean enough_space = ((size_t)source[0] < availspace);
     size_t  bytes2copy = (enough_space ? (size_t)source[0] : (availspace-1));

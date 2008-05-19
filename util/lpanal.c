@@ -43,12 +43,12 @@ typedef struct {
   int     poleCount, WINDIN, debug, verbose, doPitch;
   double  *x;
   double  (*a)[MAXPOLES];
-#ifdef TRACE
-  FILE *trace;
-#endif
   WINDAT   pwindow;
 } LPC;
 
+#ifdef TRACE
+static  FILE *trace;
+#endif
 #define FREQS  50
 #define NN     5
 #define NP     6  /* NN+1 */
@@ -167,12 +167,7 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
             k = 2.0*xr;
             m = xr*xr+yr*yr;
             for (j=0; j<=p; j++) {
-#ifdef THINK_C
-              w = k*u; w -= m*v;
-              w += a[j];
-#else
               w = a[j]+k*u-m*v; /* Fails on Mac compiler */
-#endif
               v = u;
               u = w;
             }
@@ -209,12 +204,7 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
         m = xc*xc /*pow(xc,2.0)*/;
 
         for (j=0; j<=p; j++) {
-#ifdef THINK_C
-          w = k*u; w -= m*v;
-          w += a[j];
-#else
           w = a[j]+k*u-m*v;     /* Fails on the Mac */
-#endif
           v = u;
           u = w;
         }
@@ -375,8 +365,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #endif
     LPANAL_GLOBALS *lpg;
 
-    lpc.debug=0;
-    lpc.verbose=0;
+    lpc.debug   = 0;
+    lpc.verbose = 0;
     lpc.doPitch = 1;
 
  /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0);   Needed ?    */
@@ -391,14 +381,14 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
    /* Define default values */
     lpc.poleCount = DEFpoleCount;         /* DEFAULTS... */
-    slice = DEFSLICE;
-    channel = 1;
-    beg_time = FL(0.0);
-    input_dur = FL(0.0);    /* default duration is to length of ip */
-    *tp = '\0';
-    pchlow = PITCHMIN;
-    pchhigh = PITCHMAX;
-    dPI = atan2(0,-1);
+    slice         = DEFSLICE;
+    channel       = 1;
+    beg_time      = FL(0.0);
+    input_dur     = FL(0.0);    /* default duration is to length of ip */
+    *tp           = '\0';
+    pchlow        = PITCHMIN;
+    pchhigh       = PITCHMAX;
+    dPI           = atan2(0,-1);
 
     /* Default is to store filter coefficients */
     storePoles = FALSE;
@@ -459,13 +449,13 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         break;
 #ifndef OLPC
         case 'g':
-          csound->Warning(csound,
+                        csound->Warning(csound,
                           Str("graphical display is currently unsupported"));
-          break;
+                        break;
 #endif
         case 'a':
-          storePoles = TRUE;
-          break;
+                        storePoles = TRUE;
+                        break;
         default:
           {
             char errmsg[256];
@@ -625,7 +615,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #endif
 
       /* Prepare buffer for output */
-
+      
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
         filterCoef[lpc.poleCount] = 1.0;
@@ -635,15 +625,17 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
           filterCoef[i] = filterCoef[j];
           filterCoef[j] = z1;
         }
-
+        
         /* Get the Filter Poles */
 
         polyzero(100,lpc.poleCount,filterCoef,polePart1,polePart2,
                  &poleFound,2000,&indic,workArray1);
 
-        if (poleFound!=lpc.poleCount) {
+        if (poleFound<lpc.poleCount) {
           csound->Message(csound,
                           Str("Found only %d poles...sorry\n"), poleFound);
+          csound->Message(csound,
+                          "wanted %d poles\n", lpc.poleCount);
           return -1;
         }
         InvertPoles(lpc.poleCount,polePart1,polePart2);
@@ -903,8 +895,6 @@ static void gauss(CSOUND *csound, LPC* thislp,
     }
 }
 
-#define Str_noop(x) x
-
 static const char *usage_txt[] = {
   Str_noop("USAGE:\tlpanal [flags] infilename outfilename"),
   Str_noop("\twhere flag options are:"),
@@ -920,7 +910,7 @@ static const char *usage_txt[] = {
   Str_noop("\t\t\t(-P0 inhibits pitch tracking)"),
   Str_noop("-Q<maxcps>\tupper limit for pitch search (default 200 Hz)"),
   Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug (default 0)"),
-#ifndef OLC
+#ifndef OLPC
   Str_noop("-g\tgraphical display of results"),
 #endif
   Str_noop("-a\t\talternate (pole) file storage"),
