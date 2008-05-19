@@ -402,7 +402,8 @@ else:
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
     
 if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
-    commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
+    if not buildOLPC:
+     commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
     if commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = commonEnvironment['gcc4opt']
@@ -1415,7 +1416,8 @@ makePlugin(pluginEnvironment, 'physmod', Split('''
 '''))
 makePlugin(pluginEnvironment, 'pitch',
            ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
-makePlugin(pluginEnvironment, 'scansyn',
+if not buildOLPC:
+ makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
 sfontEnvironment = pluginEnvironment.Copy()
 if compilerGNU():
@@ -1922,8 +1924,9 @@ else :
     util/pv_import.c
     util/std_util.c
   ''')
+if not buildOLPC:
+ stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
 
-stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
 makePlugin(pluginEnvironment, 'stdutil', stdutilSources)
 
 if not buildOLPC:

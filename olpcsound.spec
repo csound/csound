@@ -1,9 +1,9 @@
 Summary: Csound - sound synthesis language and library, OLPC subset
 Name:   olpcsound        
 Version: 5.08.91
-Release: 0%{?dist}
+Release: 1%{?dist}
 URL: http://csound.sourceforge.net/
-License: LGPLv2+
+License: LGPLv2+ and GPLv2+
 Group: Applications/Multimedia
 Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -12,12 +12,12 @@ BuildRequires: libpng-devel libjpeg-devel libvorbis-devel libogg-devel gettext p
 %define python_site_dir %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 
 %description
-olpcsound is a subset of the Csound sound and music synthesis system, tailored specifically for  XO platform. It provides facilities for composition and performance over a wide range of platforms. It is not restricted to any style of music, having been used for many years in at least classical, pop, techno, ambient... 
+olpcsound is a subset of the Csound sound and music synthesis system, tailored specifically for  XO platform. 
 
 %package devel
 Summary: Csound development files and libraries
 Group: Development/Libraries
-Requires: %{name}=%{version}-%{release}
+Requires: %{name} = %{version}-%{release}
 
 %description devel
 Headers and libraries for Csound-based application development
@@ -26,7 +26,7 @@ Headers and libraries for Csound-based application development
 %setup -q
 
 %build
-/usr/bin/scons buildOLPC=1 customCCFLAGS="%{optflags}" customCXXFLAGS="%{optflags}"
+%{_bindir}/scons buildOLPC=1 customCCFLAGS="%{optflags}" customCXXFLAGS="%{optflags}"
 
 %install
 %{__rm} -rf %{buildroot}
@@ -37,12 +37,13 @@ Headers and libraries for Csound-based application development
 %{__rm} -rf %{buildroot}
 
 %post -p /sbin/ldconfig
-
+ 
 %postun -p /sbin/ldconfig
 
-%files -f %{_builddir}/%{name}-%{version}/csound5.lang
+%files -f csound5.lang
 %defattr(-,root,root,-)
 %{_bindir}/*
+%dir %{_libdir}/csound
 %dir %{_libdir}/csound/plugins
 %{_libdir}/csound/plugins/*
 %{_libdir}/libcsound.so.5.1
@@ -59,12 +60,23 @@ Headers and libraries for Csound-based application development
 
 
 %changelog
+* Mon May 19 2008 Victor.Lazzarini <vlazzarini@nuim.ie>
+  5.08.91-1
+ - fixed licensing issues and removed non-free sources/binaries
+ - fixed requires for -devel
+ - removed -ffast-math option from SConstruct 
+ - added _bindir macro
+ - added ownership of /usr/lib/csound
+ - removed redundant build working directory for csound5.lang
+ - removed stripping commands from install-olpc.py script
+ - added AUTHORS to docs, removed INSTALL and readme-csound5.txt
+ - shortened the description and added EVR to this changelog
 
 * Fri May 02 2008 Victor Lazzarini <vlazzarini@nuim.ie>
  - fixed method of obtaining python site directory
  - fixed license code
  - fixed ownership of directories
- - added %dist tag to version
+ - added dist tag to version
  - added fedora flags
 
 * Wed Apr 02 2008  Victor Lazzarini <vlazzarini@nuim.ie>
