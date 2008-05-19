@@ -68,6 +68,8 @@ typedef struct {
     MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
     MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
     MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
+    MYFLT   *dsputil_env;
+    AUXCH   memenv;
     PVOC_GLOBALS  *pp;
 } PVOC;
 

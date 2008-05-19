@@ -56,5 +56,6 @@ typedef struct {
     TABLESEG *tableseg;
     AUXCH   auxtab;         /* For table is all else fails */
     PVOC_GLOBALS  *pp;
+    AUXCH memenv;
 } VPVOC;
 

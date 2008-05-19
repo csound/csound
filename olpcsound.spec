@@ -3,7 +3,7 @@ Name:   olpcsound
 Version: 5.08.92
 Release: 0%{?dist}
 URL: http://csound.sourceforge.net/
-License: LGPLv2+ and GPLv2+
+License: LGPLv2+
 Group: Applications/Multimedia
 Source: http://downloads.sourceforge.net/csound/olpcsound-%version.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -12,7 +12,8 @@ BuildRequires: libpng-devel libjpeg-devel libvorbis-devel libogg-devel gettext p
 %define python_site_dir %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 
 %description
-olpcsound is a subset of the Csound sound and music synthesis system, tailored specifically for  XO platform. 
+olpcsound is a subset of the Csound sound and music 
+synthesis system, tailored specifically for  XO platform. 
 
 %package devel
 Summary: Csound development files and libraries
@@ -54,6 +55,7 @@ Headers and libraries for Csound-based application development
 
 %files devel
 %defattr(-,root,root,0755)
+%dir %{_includedir}/csound
 %{_includedir}/csound/*
 %{_libdir}/libcsound.so
 %{_libdir}/libcsnd.so

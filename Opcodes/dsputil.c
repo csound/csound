@@ -349,24 +349,27 @@ void PreWarpSpec(
     PVOC_GLOBALS  *p,
     MYFLT   *spec,      /* spectrum as magnitude,phase */
     int32    size,       /* full frame size, tho' we only use n/2+1 */
-    MYFLT   warpFactor) /* How much pitches are being multd by */
+    MYFLT   warpFactor, /* How much pitches are being multd by */
+     MYFLT *dsputil_env)
 {
     MYFLT   eps,slope;
     MYFLT   mag, lastmag, nextmag, pkOld;
     int32    pkcnt, i, j;
-
-    if (p->dsputil_env == (MYFLT*) NULL)
-      p->dsputil_env =
-          (MYFLT*) p->csound->Malloc(p->csound, size * sizeof(MYFLT));
-    /*!! Better hope <size> in first call is as big as it gets !! */
-    eps = -FL(64.0) / size;              /* for spectral envelope estimation */
+    
+    
+    //if (dsputil_env == (MYFLT*) NULL){
+    //p->csound->Message(p->csound, "called warp\n");
+    //  dsputil_env = (MYFLT*) p->csound->Malloc(p->csound, size * sizeof(MYFLT));
+    // }
+ 
+    eps = -FL(64.0) / size;              // for spectral envelope estimation
     lastmag = *spec;
     mag = spec[2*1];
     pkOld = lastmag;
-    p->dsputil_env[0] = pkOld;
+    dsputil_env[0] = pkOld;
     pkcnt = 1;
-
-    for (i = 1; i < someof(size); i++) {  /* step thru spectrum */
+    
+    for (i = 1; i < someof(size); i++) {  // step thru spectrum 
       if (i < someof(size)-1)
         nextmag = spec[2*(i+1)];
       else nextmag = FL(0.0);
@@ -376,39 +379,42 @@ void PreWarpSpec(
       else
         slope = -FL(10.0);
 
-      /* look for peaks */
+      // look for peaks 
       if ((mag>=lastmag)&&(mag>nextmag)&&(slope>eps)) {
-        p->dsputil_env[i] = mag;
+        dsputil_env[i] = mag;
         pkcnt--;
         for (j = 1; j <= pkcnt; j++) {
-          p->dsputil_env[i - pkcnt + j - 1] = pkOld
-                                                   * (FL(1.0) + slope * j);
+	dsputil_env[i - pkcnt + j - 1] = 
+	        pkOld*(FL(1.0) + slope * j);
         }
         pkOld = mag;
         pkcnt = 1;
       }
       else
-        pkcnt++;                    /* not a peak */
+        pkcnt++;                    // not a peak 
 
       lastmag = mag;
       mag = nextmag;
     }
 
-    if (pkcnt > 1) {                /* get final peak */
+if (pkcnt > 1) {                // get final peak 
+  int posi;
       mag = spec[2*(size/2)];
       slope = ((MYFLT) (mag - pkOld) / pkcnt);
-      p->dsputil_env[size / 2] = mag;
+      dsputil_env[size / 2] = mag;
       pkcnt--;
       for (j = 1; j <= pkcnt; j++) {
-        p->dsputil_env[size / 2 - pkcnt + j - 1] = pkOld + slope * j;
+	posi = size / 2 - pkcnt + j - 1;
+	if(posi > 0 && posi < size)
+          dsputil_env[posi] = pkOld + slope * j;
       }
     }
 
-    for (i = 0; i < someof(size); i++) {  /* warp spectral env.*/
+for (i = 0; i < someof(size); i++) {  // warp spectral env.
       j = (int32)((MYFLT) i * warpFactor);
       mag = spec[2*i];
-      if ((j < someof(size)) && (p->dsputil_env[i] != FL(0.0)))
-        spec[2 * i] *= p->dsputil_env[j] / p->dsputil_env[i];
+      if ((j < someof(size)) && (dsputil_env[i] != FL(0.0)))
+        spec[2 * i] *= dsputil_env[j] / dsputil_env[i];
       else
         spec[2*i] = FL(0.0);
     }

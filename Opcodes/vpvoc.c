@@ -252,7 +252,8 @@ int vpvset(CSOUND *csound, VPVOC *p)
     for (i = 0; i < pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
-
+    if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
+        csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
     return OK;
 }
 
@@ -319,7 +320,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
       if (specwp < 0)
         csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
-        PreWarpSpec(p->pp, buf, asize, pex);
+        PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
       Polar2Real_PVOC(csound, buf, size);
 
