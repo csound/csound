@@ -269,7 +269,7 @@ for i in libList:
             err = installLink(i, concatPath([libDir, 'libcsound.so']))
         elif i[:15] == 'libcsound64.so.':
             err = installLink(i, concatPath([libDir, 'libcsound64.so']))
-        elif i == 'lib_csnd.so':
+        elif i == 'libcsnd.so':
             err = installLink(concatPath([libDir, i]),
                               concatPath([pythonDir2, '_csnd.so']))
         elif i == 'lib_CsoundVST.so':
