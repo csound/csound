@@ -49,13 +49,12 @@ static OENTRY localops[] = {
 PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
 {
     PVOC_GLOBALS  *p;
-
+    csound->Message(csound, "calling alloc globals");
     if (csound->CreateGlobalVariable(csound, "pvocGlobals",
                                      sizeof(PVOC_GLOBALS)) != 0)
       csound->Die(csound, Str("Error allocating PVOC globals"));
     p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
     p->csound = csound;
-    p->dsputil_env = (MYFLT*) NULL;
     p->dsputil_sncTab = (MYFLT*) NULL;
     p->pvbufreadaddr = (PVBUFREAD*) NULL;
     p->tbladr = (TABLESEG*) NULL;

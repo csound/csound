@@ -36,7 +36,6 @@ typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
 
 struct PVOC_GLOBALS_ {
     CSOUND    *csound;
-    MYFLT     *dsputil_env;
     MYFLT     *dsputil_sncTab;
     PVBUFREAD *pvbufreadaddr;
     TABLESEG  *tbladr;
