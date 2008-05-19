@@ -87,49 +87,49 @@ typedef struct pvoc_file {
 } PVOCFILE;
 
 static const char *pvErrorStrings[] = {
-    "\npvsys: (no error)",                                          /*   0 */
-    "\npvsys: unknown error",                                       /*  -1 */
-    "\npvsys: already initialised",                                 /*  -2 */
-    "\npvsys: bad arguments",                                       /*  -3 */
-    "\npvsys: bad format parameter",                                /*  -4 */
-    "\npvsys: bad window type",                                     /*  -5 */
-    "\npvsys: too many files open",                                 /*  -6 */
-    "\npvsys: unable to create file",                               /*  -7 */
-    "\npvsys: Internal error: NULL data arrays",                    /*  -8 */
-    "\npvsys: unable to open file",                                 /*  -9 */
-    "\npvsys: error reading Source format data",                    /* -10 */
-    "\npvsys: not a WAVE_EX file",                                  /* -11 */
-    "\npvsys: bad size for fmt chunk",                              /* -12 */
-    "\npvsys: error reading Extended format data",                  /* -13 */
-    "\npvsys: not a PVOC-EX file",                                  /* -14 */
-    "\npvsys: error reading Extended pvoc format data",             /* -15 */
-    "\npvsys: unknown pvocex Version",                              /* -16 */
-    "\npvsys: error reading header",                                /* -17 */
-    "\npvsys: not a RIFF file",                                     /* -18 */
-    "\npvsys: file too small",                                      /* -19 */
-    "\npvsys: not a WAVE file",                                     /* -20 */
-    "\npvsys: error reading format chunk",                          /* -21 */
-    "\npvsys: PVXW chunk found before fmt chunk.",                  /* -22 */
-    "\npvsys: PVXW chunk found but custom window not specified",    /* -23 */
-    "\npvsys: error reading window data.",                          /* -24 */
-    "\npvsys: bad RIFF file",                                       /* -25 */
-    "\npvsys: bad format, data chunk before fmt chunk",             /* -26 */
-    "\npvsys: custom window chunk PVXW not found",                  /* -27 */
-    "\npvsys: error skipping unknown WAVE chunk",                   /* -28 */
-    "\npvsys: bad format in RIFF file",                             /* -29 */
-    "\npvsys: error writing header",                                /* -30 */
-    "\npvsys: error writing fmt chunk",                             /* -31 */
-    "\npvsys: error writing window data.",                          /* -32 */
-    "\npvsys: error updating data chunk",                           /* -33 */
-    "\npvsys: error updating riff chunk",                           /* -34 */
-    "\npvsys: error seeking to end of file",                        /* -35 */
-    "\npvsys: file does not exist",                                 /* -36 */
-    "\npvsys: file not open",                                       /* -37 */
-    "\npvsys: bad file descriptor",                                 /* -38 */
-    "\npvsys: error writing data",                                  /* -39 */
-    "\npvsys: error reading data",                                  /* -40 */
-    "\npvsys: error rewinding file",                                /* -41 */
-    "\npvsys: unable to close file on termination",                 /* -42 */
+    Str_noop("\npvsys: (no error)"),                                /*   0 */
+    Str_noop("\npvsys: unknown error"),                             /*  -1 */
+    Str_noop("\npvsys: already initialised"),                       /*  -2 */
+    Str_noop("\npvsys: bad arguments"),                             /*  -3 */
+    Str_noop("\npvsys: bad format parameter"),                      /*  -4 */
+    Str_noop("\npvsys: bad window type"),                           /*  -5 */
+    Str_noop("\npvsys: too many files open"),                       /*  -6 */
+    Str_noop("\npvsys: unable to create file"),                     /*  -7 */
+    Str_noop("\npvsys: Internal error: NULL data arrays"),          /*  -8 */
+    Str_noop("\npvsys: unable to open file"),                       /*  -9 */
+    Str_noop("\npvsys: error reading Source format data"),          /* -10 */
+    Str_noop("\npvsys: not a WAVE_EX file"),                        /* -11 */
+    Str_noop("\npvsys: bad size for fmt chunk"),                    /* -12 */
+    Str_noop("\npvsys: error reading Extended format data"),        /* -13 */
+    Str_noop("\npvsys: not a PVOC-EX file"),                        /* -14 */
+    Str_noop("\npvsys: error reading Extended pvoc format data"),   /* -15 */
+    Str_noop("\npvsys: unknown pvocex Version"),                    /* -16 */
+    Str_noop("\npvsys: error reading header"),                      /* -17 */
+    Str_noop("\npvsys: not a RIFF file"),                           /* -18 */
+    Str_noop("\npvsys: file too small"),                            /* -19 */
+    Str_noop("\npvsys: not a WAVE file"),                           /* -20 */
+    Str_noop("\npvsys: error reading format chunk"),                /* -21 */
+    Str_noop("\npvsys: PVXW chunk found before fmt chunk."),        /* -22 */
+    Str_noop("\npvsys: PVXW chunk found but custom window not specified"),/* -23 */
+    Str_noop("\npvsys: error reading window data."),                /* -24 */
+    Str_noop("\npvsys: bad RIFF file"),                             /* -25 */
+    Str_noop("\npvsys: bad format, data chunk before fmt chunk"),   /* -26 */
+    Str_noop("\npvsys: custom window chunk PVXW not found"),        /* -27 */
+    Str_noop("\npvsys: error skipping unknown WAVE chunk"),         /* -28 */
+    Str_noop("\npvsys: bad format in RIFF file"),                   /* -29 */
+    Str_noop("\npvsys: error writing header"),                      /* -30 */
+    Str_noop("\npvsys: error writing fmt chunk"),                   /* -31 */
+    Str_noop("\npvsys: error writing window data."),                /* -32 */
+    Str_noop("\npvsys: error updating data chunk"),                 /* -33 */
+    Str_noop("\npvsys: error updating riff chunk"),                 /* -34 */
+    Str_noop("\npvsys: error seeking to end of file"),              /* -35 */
+    Str_noop("\npvsys: file does not exist"),                       /* -36 */
+    Str_noop("\npvsys: file not open"),                             /* -37 */
+    Str_noop("\npvsys: bad file descriptor"),                       /* -38 */
+    Str_noop("\npvsys: error writing data"),                        /* -39 */
+    Str_noop("\npvsys: error reading data"),                        /* -40 */
+    Str_noop("\npvsys: error rewinding file"),                      /* -41 */
+    Str_noop("\npvsys: unable to close file on termination"),       /* -42 */
     NULL                                                            /* -43 */
 };
 

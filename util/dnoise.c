@@ -1147,8 +1147,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
-#define Str_noop(x) x
-
 static const char *usage_txt[] = {
   Str_noop("usage: dnoise [flags] input_file"),
     "",

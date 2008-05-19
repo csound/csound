@@ -39,7 +39,6 @@
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             csound->Die(csound, MSG);
 
-#define Str_noop(x) x
 static const char *usage_txt[] = {
   Str_noop("Usage:\tscale [-flags] soundfile"),
   Str_noop("Legal flags are:"),

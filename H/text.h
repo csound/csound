@@ -152,6 +152,7 @@ void init_getstring(void);
 void init_getstring(void);
 
 #endif
+#define Str_noop(x) x
 
 #endif  /* CSOUND_TEXT_H */
 

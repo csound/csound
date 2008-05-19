@@ -730,11 +730,10 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     return -1;
 }
 
-#define Str_noop(String) String
-
 static const char *usage_txt[] = {
   Str_noop("usage: srconv [flags] infile\n\nflags:"),
-  Str_noop("-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"),
+  Str_noop("-P num\tpitch transposition ratio (srate/r) [do not specify "
+           "both P and r]"),
   Str_noop("-Q num\tquality factor (1 to 8: default = 2)"),
   Str_noop("-i filnam\tbreak file"),
   Str_noop("-r num\toutput sample rate (must be specified)"),
@@ -752,8 +751,10 @@ static const char *usage_txt[] = {
   Str_noop("-f\tfloat sound samples"),
   Str_noop("-r N\torchestra srate override"),
   Str_noop("-K\tDo not generate PEAK chunks"),
+#ifndef OLPC
   Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
   Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
+#endif
   Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
   Str_noop("-- fnam\tlog output to file"),
     NULL

@@ -87,8 +87,6 @@ static  MYFLT   gain(MIXER_GLOBALS *, int, int);
 static  SNDFILE *MXsndgetset(CSOUND*,inputs *);
 static  void    MixSound(MIXER_GLOBALS *, int, SNDFILE *);
 
-#define Str_noop(x) x
-
 static const char *usage_txt[] = {
   Str_noop("Usage:\tmixer [-flags] soundfile [-flags] soundfile ..."),
   Str_noop("Legal flags are:"),
