@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
+#include "text.h"
 #include <ctype.h>
 #if (defined(mac_classic) && defined(__MWERKS__)) || defined(SYMANTEC)
 #include <console.h>
@@ -351,9 +352,9 @@ static void sensLine(CSOUND *csound, void *userData)
 /* send a lineevent from the orchestra -matt 2001/12/07 */
 
 static const char *errmsg_1 =
-    "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\"";
+  Str_noop("event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\"");
 static const char *errmsg_2 =
-    "event: string name is allowed only for \"i\" and \"q\" events";
+  Str_noop("event: string name is allowed only for \"i\" and \"q\" events");
 
 int eventOpcode(CSOUND *csound, LINEVENT *p)
 {

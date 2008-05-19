@@ -502,7 +502,7 @@ void cs_util_pvc(void)
         b += strlen(b)+1;
       }
       if (pvc_K->value()!=0) {
-        argv[nxt++] = "-K";
+        argv[nxt++] = (char*)"-K";
       }
       if (pvc_H->value()!=0) {
         argv[nxt++] = (char*)"H";
