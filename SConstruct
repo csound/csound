@@ -1906,9 +1906,7 @@ else:
 if buildOLPC:
   stdutilSources = Split('''
                         util/cvanal.c       util/dnoise.c
-    util/envext.c
-                        util/hetro.c        util/lpanal.c
-                                            util/mixer.c
+    util/envext.c        util/lpanal.c util/mixer.c
     util/pvanal.c       util/pvlook.c       util/scale.c
     util/sndinfo.c      util/srconv.c
     util/std_util.c
