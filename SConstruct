@@ -430,6 +430,7 @@ if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(LINKFLAGS = ['-pg'])
     commonEnvironment.Append(SHLINKFLAGS = ['-pg'])
 elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
+   if not buildOLPC:
     commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
 
 if compilerGNU():

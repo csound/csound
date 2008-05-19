@@ -118,6 +118,9 @@ int pvset(CSOUND *csound, PVOC *p)
       p->outBuf[i] = FL(0.0);
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
+    if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
+        csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
+
     return OK;
 }
 
@@ -168,9 +171,10 @@ int pvoc(CSOUND *csound, PVOC *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    if (specwp > 0)
+    if (specwp > 0){
       /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
-      PreWarpSpec(p->pp, buf, asize, pex);
+        PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
+     }
 
     Polar2Real_PVOC(csound, buf, size);
 
