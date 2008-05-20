@@ -1,7 +1,7 @@
 Summary: Csound - sound synthesis language and library, OLPC subset
 Name:   olpcsound        
 Version: 5.08.92
-Release: 0%{?dist}
+Release: 1%{?dist}
 URL: http://csound.sourceforge.net/
 License: LGPLv2+
 Group: Applications/Multimedia
@@ -62,6 +62,12 @@ Headers and libraries for Csound-based application development
 
 
 %changelog
+* Tues May 20 2008 Victor.Lazzarini <vlazzarini@nuim.ie>
+  5.08.92-1
+  - fixed license
+  - removed -fomit-frame-pointer from SConstruct
+  - fixed description
+
 * Mon May 19 2008 Victor.Lazzarini <vlazzarini@nuim.ie>
   5.08.92-0
  - fixed licensing issues and removed non-free sources/binaries
