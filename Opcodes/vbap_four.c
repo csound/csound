@@ -182,7 +182,7 @@ int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR *p)
       sum=sum+(p->updated_gains[i]*p->updated_gains[i]);
     }
 
-    sum=(MYFLT)sqrt((double)sum);
+    sum=SQRT(sum);
     for (i=0;i<FOUR;i++) {
       p->updated_gains[i] /= sum;
     }
@@ -465,7 +465,7 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
       sum=sum+(p->updated_gains[i]*p->updated_gains[i]);
     }
 
-    sum=(MYFLT)sqrt((double)sum);
+    sum=SQRT(sum);
     for (i=0;i<FOUR;i++) {
       p->updated_gains[i] /= sum;
     }

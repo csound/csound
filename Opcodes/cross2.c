@@ -50,7 +50,7 @@ static void getmag(MYFLT *x, int32 size)
     do {
       MYFLT ii = *i;
       MYFLT jj = *j;
-      ii = (MYFLT)sqrt((double)(ii * ii + jj * jj));
+      ii = HYPOT(ii,jj);
       if (ii > max)
         max = ii;
       *i = ii;
@@ -86,7 +86,7 @@ static void lineaprox(MYFLT *x, int32 size, int32 m)
     for (i = 0 ; i < size ; i += m) {
       a = FL(0.0);
       for (c = 0 ; c < m ; c++) {
-        if (a < (MYFLT)fabs((double)(x[i + c])))
+        if (a < FABS(x[i + c]))
           a = x[i + c];
       }
       x[i] = a;

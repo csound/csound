@@ -100,7 +100,7 @@ static void ambicode_set_coefficients(AMBIC *p)
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
     /* 0th order */
-    p->w = FL(1.0) / sqrt(FL(2.0));
+    p->w = 0.707106781186547524400844362104849 /* (1.0 / sqrt(2.0)) */ ;
 
     /* 1st order */
     {

@@ -54,7 +54,7 @@ static int bar_init(CSOUND *csound, BAR *p)
       /* %%%%%%%%%%%%%%%%%% derived parameters */
       double  dt = (double)csound->onedsr;
       double  sig = (2.0*(double)csound->esr)*(pow(10.0,3.0*dt/T30)-1.0);
-      double  dxmin = sqrt(dt*(b+sqrt(b*b+4*K*K)));
+      double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int     N = (int) (1.0/dxmin);
       double  dx = 1.0/N;
 
@@ -284,7 +284,7 @@ int init_pp(CSOUND *csound, CSPP *p)
 
       for (n=0; n<NS; n++) {
         double y = c[n]*c[n]*dt*dt+2.0*b*dt;
-        double x = sqrt(y+sqrt(y*y+16.0*K*K*dt*dt))/sqrt(2);
+        double x = sqrt(y+hypot(y,4.0*K*dt))/sqrt(2);
         if (x>dxmin) dxmin = x;
       }
       N = p->N = (int)(1.0/dxmin);
