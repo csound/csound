@@ -182,7 +182,7 @@ int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
       sum = sum+(p->updated_gains[i]*p->updated_gains[i]);
     }
 
-    sum = (MYFLT)sqrt((double)sum);
+    sum = SQRT(sum);
     for (i=0;i<n;i++) {
       p->updated_gains[i] /= sum;
     }
@@ -480,7 +480,7 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       sum += (p->updated_gains[i]*p->updated_gains[i]);
   }
 
-  sum = (MYFLT)sqrt((double)sum);
+  sum = SQRT(sum);
   for (i=0;i<n;i++) {
     p->updated_gains[i] /= sum;
   }

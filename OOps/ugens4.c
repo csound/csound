@@ -108,19 +108,24 @@ int gbzset(CSOUND *csound, GBUZZ *p)
     return NOTOK;
 }
 
-MYFLT intpow(MYFLT x, int32 n)   /* Binary power function */
+inline MYFLT intpowp(MYFLT x, int32 n)   /* Binary power function for postive n */
 {
     MYFLT ans = FL(1.0);
-    if (n<0) {
-      n = -n;
-      x = FL(1.0)/x;
-    }
     while (n!=0) {
       if (n&1) ans = ans * x;
       n >>= 1;
       x = x*x;
     }
     return ans;
+}
+
+MYFLT intpow(MYFLT x, int32 n)   /* Binary power function */
+{
+    if (n<0) {
+      n = -n;
+      x = FL(1.0)/x;
+    }
+    return intpowp(x, n);
 }
 
 int gbuzz(CSOUND *csound, GBUZZ *p)
@@ -150,7 +155,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     if ((r = *p->kr) != p->prvr || n != p->prvn) {
       p->twor = r + r;
       p->rsqp1 = r * r + FL(1.0);
-      p->rtn = intpow(r, n);
+      p->rtn = intpowp(r, n);
       p->rtnp1 = p->rtn * r;
       if ((absr = (MYFLT)fabs(r)) > FL(0.999) && absr < FL(1.001))
         p->rsumr = FL(1.0) / n;

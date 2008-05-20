@@ -104,7 +104,7 @@ static int dam(CSOUND *csound, DAM *p)
 
         /* Estimates the current power level */
 
-      *powerPos = (MYFLT)(fabs(ain[i]))/(MYFLT)(POWER_BUFSIZE*SQRT2);
+      *powerPos = FABS(ain[i])/(MYFLT)(POWER_BUFSIZE*SQRT2);
       power    += (*powerPos++);
       if ((powerPos-powerBuffer)==POWER_BUFSIZE) {
         powerPos = p->powerBuffer;
@@ -118,8 +118,8 @@ static int dam(CSOUND *csound, DAM *p)
         tg = ((power-threshold)*comp1+threshold)/power;
       }
       else {
-        tg = threshold*(MYFLT)(pow((double)(power/threshold),
-                                   1.0/(double)comp2))/power;
+        tg = threshold*(POWER((power/threshold),
+                                     FL(1.0)/comp2))/power;
       }
 
       /* move gain toward target */
