@@ -707,20 +707,20 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
             phaser = currentphaser[i+1];
 
             /* polar to rectangular*/
-            hrtflfloat[i] = (MYFLT) (magl*cos(phasel));
-            hrtflfloat[i+1] = (MYFLT) (magl*sin(phasel));
+            hrtflfloat[i] = magl*COS(phasel);
+            hrtflfloat[i+1] = magl*SIN(phasel);
 
-            hrtfrfloat[i] = (MYFLT) (magr*cos(phaser));
-            hrtfrfloat[i+1] = (MYFLT) (magr*sin(phaser));
+            hrtfrfloat[i] = magr*COS(phaser);
+            hrtfrfloat[i+1] = magr*SIN(phaser);
           }
 
           if(minphase) {
             /*store log magnitudes, 0 phases for ifft, do not allow log(0.0)*/
-            logmagl[i]= (MYFLT)log(magl==0.0?0.00000001:magl);
-            logmagr[i]= (MYFLT)log(magr==0.0?0.00000001:magr);
+            logmagl[i]= LOG(magl==FL(0.0)?FL(0.00000001):magl);
+            logmagr[i]= LOG(magr==FL(0.0)?FL(0.00000001):magr);
 
-            logmagl[i+1] = 0.0f;
-            logmagr[i+1] = 0.0f;
+            logmagl[i+1] = FL(0.0);
+            logmagr[i+1] = FL(0.0);
           }
         }
 
@@ -734,8 +734,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
           for(i=0;i<complexIMPLENGTH;i+=2)            {
             xhatwinl[i] = (logmagl[i]) * win[i/2];
             xhatwinr[i] = (logmagr[i]) * win[i/2];
-            xhatwinl[i+1] = 0.0f;
-            xhatwinr[i+1] = 0.0f;
+            xhatwinl[i+1] = FL(0.0);
+            xhatwinr[i+1] = FL(0.0);
           }
 
           /*fft*/
@@ -744,12 +744,10 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
           /*exponential of complex result*/
           for(i=0;i<256;i+=2) {
-            expxhatwinl[i] = (MYFLT)exp(xhatwinl[i])*(MYFLT)cos(xhatwinl[i+1]);
-            expxhatwinl[i+1] =
-              (MYFLT)exp(xhatwinl[i])*(MYFLT)sin(xhatwinl[i+1]);
-            expxhatwinr[i] = (MYFLT)exp(xhatwinr[i])*(MYFLT)cos(xhatwinr[i+1]);
-            expxhatwinr[i+1] =
-              (MYFLT)exp(xhatwinr[i])*(MYFLT)sin(xhatwinr[i+1]);
+            expxhatwinl[i] = EXP(xhatwinl[i])*COS(xhatwinl[i+1]);
+            expxhatwinl[i+1] = EXP(xhatwinl[i])*SIN(xhatwinl[i+1]);
+            expxhatwinr[i] = EXP(xhatwinr[i])*COS(xhatwinr[i+1]);
+            expxhatwinr[i+1] = EXP(xhatwinr[i])*SIN(xhatwinr[i+1]);
           }
 
           /*ifft for output buffers*/
@@ -760,8 +758,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
           for(i= 0; i < complexIMPLENGTH; i+=2) {
             hrtflpad[i] = (expxhatwinl[i]);
             hrtfrpad[i] = (expxhatwinr[i]);
-            hrtflpad[i+1] = 0.0f;
-            hrtfrpad[i+1] = 0.0f;
+            hrtflpad[i+1] = FL(0.0);
+            hrtfrpad[i+1] = FL(0.0);
           }
         }
 
@@ -781,8 +779,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
         /*zero pad impulse*/
         for(i=complexIMPLENGTH;i<complexfftbuff;i++)
           {
-            hrtflpad[i]=0.0f;
-            hrtfrpad[i]=0.0f;
+            hrtflpad[i]=FL(0.0);
+            hrtfrpad[i]=FL(0.0);
           }
 
         /*back to freq domain*/
@@ -1177,8 +1175,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /*woodworth: change for different sr*/
 
-    if(sr!=44100&&sr!=48000&&sr!=96000)
-      sr=44100;
+    if(sr!=FL(44100.0)&&sr!=FL(48000.0)&&sr!=FL(96000.0))
+      sr=FL(44100.0);
     p->sr = sr;
 
     if (csound->esr != sr)
@@ -1190,7 +1188,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     strcpy(filel, (char*) p->ifilel);             /*copy in string name...*/
     strcpy(filer, (char*) p->ifiler);
 
-    if(sr == 44100) {
+    if(sr == FL(44100.0)) {
       IMPLENGTH = 128;
       complexIMPLENGTH = 256;
       overlapsize = (IMPLENGTH-1);
@@ -1209,7 +1207,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
     }
 
-    else if(sr == 48000) {
+    else if(sr == FL(48000.0)) {
       IMPLENGTH = 128;
       complexIMPLENGTH = 256;
       overlapsize = (IMPLENGTH-1);
@@ -1230,7 +1228,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
     }
 
-    else if(sr == 96000) {
+    else if(sr == FL(96000.0)) {
       IMPLENGTH = 256;
       complexIMPLENGTH = 512;
       overlapsize = (IMPLENGTH-1);
@@ -1250,11 +1248,14 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
       }
     }
+#if 0
+    /* This cannot happen as sr fixed earlier -- JPff */
     else {
       return
         csound->InitError(csound,
                           Str("\n\n\n Sampling rate not supported, exiting\n\n"));
     }
+#endif
 
     p->IMPLENGTH = IMPLENGTH;
     p->complexIMPLENGTH = complexIMPLENGTH;
@@ -1319,7 +1320,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     if(elev < -40) elev = -40;            /*within legal MIT range*/
     if(elev > 90) elev = 90;
-    elevindex = (int)floor((float)((float)(elev-minelev)/elevincrement)+0.5f);
+    elevindex = (int)floorf(((float)(elev-minelev)/elevincrement)+0.5f);
 
     while(angle<0)angle+=360;
     while(angle>360)angle-=360;                                   /*mod 360*/
@@ -1330,7 +1331,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /*read using an index system based on number of points measured
       per elevation at mit*/
-    angleindex = (int)floor(angle/(360/(MYFLT)elevationarray[elevindex])+0.5);
+    angleindex = (int)FLOOR(angle/(FL(360.0)/(MYFLT)elevationarray[elevindex])+FL(0.5));
     /*angle/increment+0.5*/
     if(angleindex>=((int)(elevationarray[elevindex]/2)+1))
       /*last point in current elevation*/
@@ -1347,13 +1348,13 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     elevindexhighper = FL(1.0) - elevindexlowper;
 
     /* 4 closest angle indices, 2 low and 2 high*/
-    angleindex1 = (int)(angle/(360/(float)elevationarray[elevindexlow]));
+    angleindex1 = (int)(angle/(360.0f/(float)elevationarray[elevindexlow]));
 
     angleindex2 = angleindex1 + 1;
     if(angleindex2>=((int)(elevationarray[elevindexlow]/2)+1))
       angleindex2=(int)(elevationarray[elevindexlow]/2);
 
-    angleindex3 = (int)(angle/(360/(float)elevationarray[elevindexhigh]));
+    angleindex3 = (int)(angle/(360.0f/(float)elevationarray[elevindexhigh]));
 
     angleindex4 = angleindex3 + 1;
     if(angleindex4>=((int)(elevationarray[elevindexhigh]/2)+1))
@@ -1361,7 +1362,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /* angle percentages for interp*/
     angleindex1per = FL(1.0) -
-      (MYFLT)((angle/(360.0/(MYFLT)elevationarray[elevindexlow])-angleindex1));
+      (MYFLT)((angle/(FL(360.0)/(MYFLT)elevationarray[elevindexlow])-angleindex1));
     angleindex2per = FL(1.0)-angleindex1per;
     angleindex3per = FL(1.0) -
       (MYFLT)((angle/(360.0/(MYFLT)elevationarray[elevindexhigh])-angleindex3));
@@ -1443,14 +1444,14 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
         highr2[i]=fpindexr[skip+i];}}
 
     /*woodworth stuff*/
-    radianangle = angle * (float)PI/180.f;  /* degrees to radians */
-    radianelev = elev * (float)PI/180.f;
+    radianangle = angle * (float)PI/180.0f;  /* degrees to radians */
+    radianelev = elev * (float)PI/180.0f;
 
     if(radianangle > (PI/2.0))             /*get in correct range for formula*/
       radianangle = (float)PI - radianangle;
 
     /*woodworth formula for itd*/
-    itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+    itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
 
     /* magnitude interpolation*/
     for(i=0; i < complexIMPLENGTH; i+=2) {
@@ -1471,42 +1472,42 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       /*NONLIN ITD...*/
       if(p->sr == 96000) {
         if ((i/2)>0 && (i/2)<6){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd96k[(i/2)-1];}
         if ((i/2)>251 && (i/2)<256){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd96k[255-(i/2)];}
       }
       if(p->sr == 48000) {
         if ((i/2)>0 && (i/2)<6){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd48k[(i/2)-1];}
         if((i/2)>123 && (i/2)<128){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd48k[127-(i/2)];}
       }
       if(p->sr == 44100) {
         if((i/2)>0 && (i/2)<6){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd[(i/2)-1];}
         if((i/2)>123 && (i/2)<128){
-          itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+          itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
           itd = itd * nonlinitd[127-(i/2)];}
       }
 
       if(switchchannels){
-        phasel = (float)TWOPI*freq*(itd/2);
-        phaser = (float)TWOPI*freq*-(itd/2);}
+        phasel = TWOPI_F*freq*(itd/2);
+        phaser = TWOPI_F*freq*-(itd/2);}
       else{
-        phasel = (float)TWOPI*freq*-(itd/2);
-        phaser = (float)TWOPI*freq*(itd/2);}
+        phasel = TWOPI_F*freq*-(itd/2);
+        phaser = TWOPI_F*freq*(itd/2);}
 
       /* polar to rectangular*/
-      hrtflfloat[i] = (MYFLT) (magl*cos(phasel));
-      hrtflfloat[i+1] = (MYFLT) (magl*sin(phasel));
+      hrtflfloat[i] = magl*COS(phasel);
+      hrtflfloat[i+1] = magl*SIN(phasel);
 
-      hrtfrfloat[i] = (MYFLT) (magr*cos(phaser));
-      hrtfrfloat[i+1] = (MYFLT) (magr*sin(phaser));
+      hrtfrfloat[i] = magr*COS(phaser);
+      hrtfrfloat[i+1] = magr*SIN(phaser);
     }
 
     /*ifft*/
@@ -2115,7 +2116,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
           radianangle = (float)PI - radianangle;
 
         /*woodworth formula for itd     */
-        itd = (radianangle + (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+        itd = (radianangle + sinf(radianangle))*r*cosf(radianelev)/c;
 
         /* magnitude interpolation*/
         for(i=0; i < complexIMPLENGTH; i+=2) {
@@ -2137,48 +2138,48 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
           if(p->sr == 96000) {
             if((i/2)>0 && (i/2)<6){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd96k[(i/2)-1];}
             if((i/2)>251 && (i/2)<256){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd96k[255-(i/2)];}
           }
           if(p->sr == 48000) {
             if((i/2)>0 && (i/2)<6){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd48k[(i/2)-1];
             }
             if((i/2)>123 && (i/2)<128){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd48k[127-(i/2)];}
           }
           if(p->sr == 44100) {
             if((i/2)>0 && (i/2)<6){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd[(i/2)-1];}
             if((i/2)>123 && (i/2)<128){
               itd = (radianangle +
-                     (float)sin(radianangle))*r*(float)cos(radianelev)/c;
+                     sinf(radianangle))*r*cosf(radianelev)/c;
               itd = itd * nonlinitd[127-(i/2)];}
           }
 
           if(switchchannels){
-            phasel = (float)TWOPI*freq*(itd/2);
-            phaser = (float)TWOPI*freq*-(itd/2);}
+            phasel = TWOPI_F*freq*(itd/2);
+            phaser = TWOPI_F*freq*-(itd/2);}
           else{
-            phasel = (float)TWOPI*freq*-(itd/2);
-            phaser = (float)TWOPI*freq*(itd/2);}
+            phasel = TWOPI_F*freq*-(itd/2);
+            phaser = TWOPI_F*freq*(itd/2);}
 
           /* polar to rectangular*/
-          hrtflfloat[i] = (MYFLT) (magl*(float)cos(phasel));
-          hrtflfloat[i+1] = (MYFLT) (magl*(float)sin(phasel));
+          hrtflfloat[i] = magl*COS(phasel);
+          hrtflfloat[i+1] = magl*SIN(phasel);
 
-          hrtfrfloat[i] = (MYFLT) (magr*(float)cos(phaser));
-          hrtfrfloat[i+1] = (MYFLT) (magr*(float)sin(phaser));
+          hrtfrfloat[i] = magr*COS(phaser);
+          hrtfrfloat[i+1] = magr*SIN(phaser);
         }
 
         /* t used to read inbuf...*/
@@ -2188,7 +2189,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
         for(i=0;i<IMPLENGTH;i++)
           {
             complexinsig[2*i]=inbuf[(t*IMPLENGTH)+i];
-            complexinsig[(2*i)+1]=0.0;
+            complexinsig[(2*i)+1]=FL(0.0);
           }
 
         /* zero the current input sigframe time pointer*/

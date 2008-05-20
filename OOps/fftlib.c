@@ -37,7 +37,7 @@
 /* some useful conversions between a number and its power of 2 */
 
 #define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
-#define POW2(m) ((unsigned int) 1 << (m)) /* integer power of 2 for m<32 */
+#define POW2(m) ((uint32) 1 << (m))       /* integer power of 2 for m<32 */
 
 /* fft's with M bigger than this bust primary cache */
 #define MCACHE  (11 - (sizeof(MYFLT) / 8))
@@ -65,7 +65,7 @@ static void fftCosInit(int M, MYFLT *Utbl)
 
     Utbl[0] = FL(1.0);
     for (i1 = 1; i1 < fftN/4; i1++)
-      Utbl[i1] = COS((FL(2.0) * FL(MYPI) * (MYFLT)i1) / (MYFLT)fftN);
+      Utbl[i1] = COS((FL(2.0) * PI_F * (MYFLT)i1) / (MYFLT)fftN);
     Utbl[fftN/4] = FL(0.0);
 }
 
@@ -323,7 +323,7 @@ static void fft4pt(MYFLT *ioptr)
 static void fft8pt(MYFLT *ioptr)
 {
     /***   RADIX 8 fft      ***/
-    MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+    MYFLT w0r = (MYFLT)(1.0 / MYROOT2);    /* cos(pi/4)   */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;

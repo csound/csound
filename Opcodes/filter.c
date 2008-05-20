@@ -492,7 +492,7 @@ static void complex2polar(fcomplex a[], fpolar b[], int N)
     int i;
 
     for (i=0; i<N; i++) {
-      b[i].mag = sqrt(SQR(a[i].r)+SQR(a[i].i));
+      b[i].mag = hypot(a[i].r,a[i].i);
       b[i].ph = atan2(a[i].i,a[i].r);
     }
 }
@@ -663,9 +663,9 @@ static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
       abm = Cabs(gm);
       if (abp < abm) gp = gm;
       dx = ((FPMAX(abp,abm) > 0.0 ? Cdiv(Complex((double) m,0.0),gp)
-           : RCmul((double)exp(log(1.0+abx)),
-                   Complex((double)cos((double)iter),
-                           (double)sin((double)iter)))));
+           : RCmul(exp(log(1.0+abx)),
+                   Complex(cos((double)iter),
+                           sin((double)iter)))));
       x1 = Csub(*x,dx);
       if (x->r == x1.r && x->i == x1.i) return;
       if (iter % MT) *x = x1;

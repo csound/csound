@@ -240,7 +240,7 @@ static int spdist(CSOUND *csound, SPDIST *p)
       yndx = *p->ky;
     }
 
-    distance = (MYFLT)sqrt((xndx*xndx) + (yndx*yndx));
+    distance = HYPOT(xndx,yndx);
     if (distance < FL(1.0)) distance = FL(1.0);
     *r=distance;
     return OK;

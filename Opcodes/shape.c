@@ -70,9 +70,9 @@ static int PowerShape(CSOUND* csound, POWER_SHAPE* data)
         if (cur < FL(0.0))                /* treat negatives with care */
           /* make output negative to avoid DC offsets and preserve continuity */
           /* with even powers */
-          *out++ = - (MYFLT)pow(-cur,amt) * maxampl;
+          *out++ = - POWER(-cur,amt) * maxampl;
         else
-          *out++ = (MYFLT)pow(cur,amt) * maxampl;
+          *out++ = POWER(cur,amt) * maxampl;
       } while (--nsmps);
     }
     return OK;
@@ -88,7 +88,7 @@ typedef struct {
 static int Polynomial(CSOUND* csound, POLYNOMIAL* data)
 {
     int   i;
-    int   nsmps = csound->ksmps;
+    int   n, nsmps = csound->ksmps;
     int   ncoeff =    /* index of the last coefficient */
                    csound->GetInputArgCnt(data) - 2;
     MYFLT *out = data->aout;
@@ -96,15 +96,15 @@ static int Polynomial(CSOUND* csound, POLYNOMIAL* data)
     MYFLT **coeff = data->kcoefficients;
     MYFLT sum, x;
 
-    do {
-      x = *in++;
+    for (n=0; n<nsmps; n++) {
+      x = in[n];
       sum = *coeff[ncoeff];
       for (i = ncoeff-1; i >= 0; --i) {
         sum *= x;
         sum += *coeff[i];
       }
-      *out++ = sum;
-    } while (--nsmps);
+      out[n] = sum;
+    }
 
     return OK;
 }
@@ -135,7 +135,7 @@ static int ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* data)
 static int ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* data)
 {
     int     i, j;
-    int     nsmps = csound->ksmps;
+    int     n, nsmps = csound->ksmps;
     int     ncoeff =            /* index of the last coefficient */
                      csound->GetInputArgCnt(data) - 2;
     MYFLT   *out = data->aout;
@@ -179,15 +179,15 @@ static int ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* data)
     }
 
     /* Use our final coeff. to evaluate the poly. for each input sample */
-    do {
-      x = *in++;
+    for (n=0; n<nsmps; n++) {
+      x = in[n];
       sum = coeff[ncoeff];
       for (i = ncoeff-1; i >= 0 ; --i) {
         sum *= x;
         sum += coeff[i];
       }
-      *out++ = sum;
-    } while    (--nsmps);
+      out[n] = sum;
+    }
 
     return OK;
 }
@@ -203,7 +203,7 @@ typedef struct {
 static int PDClip(CSOUND* csound, PD_CLIP* data)
 {
     MYFLT     cur, low, high, maxampl, width, unwidth, center, outscalar;
-    int       bipolarMode, nsmps = csound->ksmps;
+    int       bipolarMode, n, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
@@ -232,19 +232,19 @@ static int PDClip(CSOUND* csound, PD_CLIP* data)
 
     if (bipolarMode) {
       outscalar = (unwidth == FL(0.0)) ? FL(0.0) : (FL(1.0) / unwidth);
-      do {
-        cur = *in++;
-        *out++ = (cur <= low ? -maxampl :
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
+        out[n] = (cur <= low ? -maxampl :
                   (cur >= high ? maxampl : (outscalar * (cur-center))));
-      } while (--nsmps);
+      }
     }
     else {
       outscalar = (unwidth == FL(0.0)) ? FL(0.0) : (FL(0.5) / unwidth);
-      do {
-        cur = *in++;
-        *out++ = (cur <= low ? FL(0.0) :
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
+        out[n] = (cur <= low ? FL(0.0) :
                   (cur >= high ? maxampl : (outscalar * (cur-low))));
-      } while (--nsmps);
+      }
     }
 
     return OK;
@@ -259,7 +259,7 @@ typedef struct {
 static int PDHalfX(CSOUND* csound, PD_HALF* data)
 {
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
-    int       nsmps = csound->ksmps;
+    int       n, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
@@ -277,11 +277,11 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
       if (midpoint != maxampl)  rightslope = maxampl / (maxampl - midpoint);
       else                      rightslope = FL(0.0);
 
-      do {
-        cur = *in++;
-        if (cur < midpoint) *out++ = leftslope * (cur - midpoint);
-        else                *out++ = rightslope * (cur - midpoint);
-      } while (--nsmps);
+      for (n-0; n<nsmps; n++) {
+        cur = in[n];
+        if (cur < midpoint) out[n] = leftslope * (cur - midpoint);
+        else                out[n] = rightslope * (cur - midpoint);
+      }
     }
     else {  /* unipolar mode */
       MYFLT  halfmaxampl = FL(0.5) * maxampl;
@@ -296,11 +296,11 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
       if (midpoint != maxampl) rightslope = halfmaxampl / (maxampl - midpoint);
       else                     rightslope = FL(0.0);
 
-      do {
-        cur = *in++;
-        if (cur < midpoint) *out++ = leftslope * cur;
-        else                *out++ = rightslope*(cur - midpoint) + halfmaxampl;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
+        if (cur < midpoint) out[n] = leftslope * cur;
+        else                out[n] = rightslope*(cur - midpoint) + halfmaxampl;
+      }
     }
 
     return OK;
@@ -310,7 +310,7 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
 static int PDHalfY(CSOUND* csound, PD_HALF* data)
 {
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
-    int       nsmps = csound->ksmps;
+    int       n, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
@@ -326,11 +326,11 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
       leftslope  = (midpoint + maxampl) / maxampl;
       rightslope = (maxampl - midpoint) / maxampl;
 
-      do {
-        cur = *in++;
-        if (cur < FL(0.0)) *out++ = leftslope*cur + midpoint;
-        else               *out++ = rightslope*cur + midpoint;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
+        if (cur < FL(0.0)) out[n] = leftslope*cur + midpoint;
+        else               out[n] = rightslope*cur + midpoint;
+      }
     }
     else {  /* unipolar mode */
       MYFLT  halfmaxampl = FL(0.5) * maxampl;
@@ -343,12 +343,12 @@ static int PDHalfY(CSOUND* csound, PD_HALF* data)
       leftslope  = midpoint / halfmaxampl;
       rightslope = (maxampl - midpoint) / halfmaxampl;
 
-      do {
-        cur = *in++;
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
         if (cur < halfmaxampl)
-              *out++ = leftslope * cur;
-        else  *out++ = rightslope*(cur - halfmaxampl) + midpoint;
-      } while (--nsmps);
+              out[n] = leftslope * cur;
+        else  out[n] = rightslope*(cur - halfmaxampl) + midpoint;
+      }
     }
     return OK;
 }
@@ -462,16 +462,16 @@ static int PhasineInit(CSOUND* csound, PHASINE* data)
 static int Phasine(CSOUND* csound, PHASINE* data)
 {
     MYFLT     last, cur, phase, adjust, maxampl;
-    int       nsmps = csound->ksmps;
+    int       n, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
     adjust = *(data->kphaseadjust);
     last = data->lastin;
     maxampl = data->maxamplitude;
-    do {
-      cur = *in++;
-      phase = (MYFLT)(asin(cur/maxampl) / PI); /* current "phase" value */
+    for (n-0; n<nsmps; n++) {
+      cur = in[n];
+      phase = ASIN(cur/maxampl) / PI_F; /* current "phase" value */
       if (last < cur) {
         if (phase < 0)  phase = (FL(-1.0) - phase);
         else            phase = (FL(1.0) - phase);
@@ -480,8 +480,8 @@ static int Phasine(CSOUND* csound, PHASINE* data)
 
       phase += adjust;                        /* new phase value */
       /* wrap phase if using a lookup table */
-      *out++ = (MYFLT)sin(phase*(MYFLT)PI) * maxampl;
-    } while (--nsmps);
+      out[n] = SIN(phase*PI_F) * maxampl;
+    }
 
     data->lastin = last;
     return OK;

@@ -50,20 +50,20 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     int n, nsmps=csound->ksmps;
     switch (type) {
     case 0: {
-      double kangl = PI*0.5 * *p->pan;
+      MYFLT kangl = PI_F*FL(0.5) * *p->pan;
       for (n=0; n<nsmps; n++) {
-        if (XINARG2) kangl = PI*0.5 * p->pan[n];
-        ar[n] = ain[n] * (MYFLT)sin(kangl);
-        al[n] = ain[n] * (MYFLT)cos(kangl);
+        if (XINARG2) kangl = PI_F*FL(0.5) * p->pan[n];
+        ar[n] = ain[n] * SIN(kangl);
+        al[n] = ain[n] * COS(kangl);
       }
       break;
     }
     case 1: {
-      double kangl = *p->pan;
+      MYFLT kangl = *p->pan;
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
-        ar[n] = ain[n] * (MYFLT)sqrt(kangl);
-        al[n] = ain[n] * (MYFLT)sqrt(1-kangl);
+        ar[n] = ain[n] * SQRT(kangl);
+        al[n] = ain[n] * SQRT(1-kangl);
       }
       break;
     }

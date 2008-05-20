@@ -189,28 +189,27 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
     MYFLT tmp, tmp2, tmp3, tmp4;
     MYFLT atorad = (TWOPI_F / FL(360.0));
 
-    tmp3 = (MYFLT) sqrt(1.0- (double)cvec.z*cvec.z);
+    tmp3 = SQRT(FL(1.0) - cvec.z*cvec.z);
     if (fabs(tmp3) > 0.001) {
       tmp4 = (cvec.x / tmp3);
       if (tmp4 > FL(1.0)) tmp4 = FL(1.0);
       if (tmp4 < -FL(1.0)) tmp4 = -FL(1.0);
-      tmp = (MYFLT) acos((double) tmp4 );
+      tmp = ACOS(tmp4 );
     }
     else {
       tmp = FL(10000.0);
     }
-    if (fabs(cvec.y) <= 0.001)
+    if (FABS(cvec.y) <= FL(0.001))
       tmp2 = FL(1.0);
     else
-      tmp2 = (MYFLT)(cvec.y / fabs(cvec.y));
+      tmp2 = cvec.y / FABS(cvec.y);
     tmp *= tmp2;
-    if (fabs(tmp) <= PI) {
+    if (FABS(tmp) <= PI_F) {
       avec->azi =  tmp;
       avec->azi /= atorad;
     }
-    avec->ele = (MYFLT) asin((double) cvec.z);
-    avec->length = (MYFLT)sqrt((double)(cvec.x * cvec.x + cvec.y *
-                                        cvec.y + cvec.z * cvec.z));
+    avec->ele = ASIN(cvec.z);
+    avec->length = SQRT(cvec.x * cvec.x + cvec.y * cvec.y + cvec.z * cvec.z);
     avec->ele /= atorad;
 }
 
@@ -218,11 +217,9 @@ void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
      /* conversion, double*/
 {
     MYFLT ang2rad = TWOPI_F / FL(360.0);
-    to->x= (MYFLT) (cos((double)(from->azi * ang2rad)) *
-                    cos((double) (from->ele * ang2rad)));
-    to->y= (MYFLT) (sin((double)(from->azi * ang2rad)) *
-                    cos((double) (from->ele * ang2rad)));
-    to->z= (MYFLT) (sin((double) (from->ele * ang2rad)));
+    to->x= COS(from->azi * ang2rad) * COS(from->ele * ang2rad);
+    to->y= SIN(from->azi * ang2rad) * COS(from->ele * ang2rad);
+    to->z= SIN(from->ele * ang2rad);
 }
 
 MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
@@ -234,10 +231,10 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
     MYFLT volper, lgth;
     CART_VEC xprod;
     cross_prod(lss[i].coords, lss[j].coords, &xprod);
-    volper = (MYFLT)fabs(vec_prod(xprod, lss[k].coords));
-    lgth = (MYFLT)(fabs(vec_angle(lss[i].coords,lss[j].coords))
-            + fabs(vec_angle(lss[i].coords,lss[k].coords))
-            + fabs(vec_angle(lss[j].coords,lss[k].coords)));
+    volper = FABS(vec_prod(xprod, lss[k].coords));
+    lgth =    FABS(vec_angle(lss[i].coords,lss[j].coords))
+            + FABS(vec_angle(lss[i].coords,lss[k].coords))
+            + FABS(vec_angle(lss[j].coords,lss[k].coords));
     if (lgth>0.00001)
       return volper / lgth;
     else
@@ -302,7 +299,7 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
     for (i=0;i<ls_amount;i++) {
       for (j=(i+1);j<ls_amount; j++) {
         if (connections[i+CHANNELS*j] == 1) {
-          distance = (MYFLT)fabs(vec_angle(lss[i].coords,lss[j].coords));
+          distance = FABS(vec_angle(lss[i].coords,lss[j].coords));
           k=0;
 
           while (distance_table[k] < distance)
@@ -413,7 +410,7 @@ static int any_ls_inside_triplet(int a, int b, int c, ls lss[CHANNELS],
           tmp = lss[i].coords.x * invmx[0 + j*3];
           tmp += lss[i].coords.y * invmx[1 + j*3];
           tmp += lss[i].coords.z * invmx[2 + j*3];
-          if (tmp < -0.001)
+          if (tmp < -FL(0.001))
             this_inside = 0;
         }
         if (this_inside == 1)
@@ -454,10 +451,10 @@ MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
 {
     MYFLT tmp1,tmp2;
     tmp1 = vec_prod(vec,vb2);
-    if (fabs((double)tmp1) <= 0.001)
+    if (FABS(tmp1) <= FL(0.001))
       tmp2 = FL(1.0);
     else
-      tmp2 = tmp1 / (MYFLT)fabs((double)tmp1);
+      tmp2 = tmp1 / FABS(tmp1);
     return (vec_angle(vb1,vec) * tmp2);
 }
 
@@ -469,7 +466,7 @@ MYFLT vec_angle(CART_VEC v1, CART_VEC v2)
       inner= FL(1.0);
     if (inner < -FL(1.0))
       inner = -FL(1.0);
-    return (MYFLT) acos((double) inner);
+    return ACOS(inner);
 }
 
 void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3)
@@ -481,7 +478,7 @@ void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3)
 
 MYFLT vec_length(CART_VEC v1)
 {
-    return ((MYFLT)sqrt((double)(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z)));
+    return SQRT(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
 }
 
 MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
@@ -543,16 +540,16 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
     dist_lnv3 = (vec_angle(neg_v3,lss[l].coords));
 
     /* if one of loudspeakers is close to crossing point, don't do anything*/
-    if (fabs(dist_iv3) <= 0.01 || fabs(dist_jv3) <= 0.01 ||
-        fabs(dist_kv3) <= 0.01 || fabs(dist_lv3) <= 0.01 ||
-        fabs(dist_inv3) <= 0.01 || fabs(dist_jnv3) <= 0.01 ||
-        fabs(dist_knv3) <= 0.01 || fabs(dist_lnv3) <= 0.01 )
+    if (FABS(dist_iv3) <= FL(0.01) || FABS(dist_jv3) <= FL(0.01) ||
+        FABS(dist_kv3) <= FL(0.01) || FABS(dist_lv3) <= FL(0.01) ||
+        FABS(dist_inv3) <= FL(0.01) || FABS(dist_jnv3) <= FL(0.01) ||
+        FABS(dist_knv3) <= FL(0.01) || FABS(dist_lnv3) <= FL(0.01) )
       return(0);
 
-    if (((fabs(dist_ij - (dist_iv3 + dist_jv3)) <= 0.01 ) &&
-         (fabs(dist_kl - (dist_kv3 + dist_lv3))  <= 0.01)) ||
-        ((fabs(dist_ij - (dist_inv3 + dist_jnv3)) <= 0.01)  &&
-         (fabs(dist_kl - (dist_knv3 + dist_lnv3)) <= 0.01 ))) {
+    if (((FABS(dist_ij - (dist_iv3 + dist_jv3)) <= FL(0.01) ) &&
+         (FABS(dist_kl - (dist_kv3 + dist_lv3))  <= FL(0.01))) ||
+        ((FABS(dist_ij - (dist_inv3 + dist_jnv3)) <= FL(0.01))  &&
+         (FABS(dist_kl - (dist_knv3 + dist_lnv3)) <= FL(0.01) ))) {
       return (1);
     }
     else {
@@ -780,10 +777,10 @@ static void choose_ls_tuplets(CSOUND *csound,
       csound->Message(csound, "\n");
 
    /* csound->Message(csound, "\nMatrix "); */
-      for (j=0; j < 4; j++) {
+      /* for (j=0; j < 4; j++) { */
      /* csound->Message(csound, "%f ", ls_table[k]); */
-        k++;
-      }
+      /*   k++; */
+      /* } */
    /* csound->Message(csound, "\n\n"); */
     }
 }
@@ -797,11 +794,11 @@ static void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
     /* Transforming angles between -180 and 180 */
     for (i=0; i<ls_amount; i++) {
       angle_to_cart_II(&lss[i].angles, &lss[i].coords);
-      lss[i].angles.azi = (MYFLT) acos((double) lss[i].coords.x);
-      if (fabs((double)lss[i].coords.y) <= 0.001)
+      lss[i].angles.azi = ACOS(lss[i].coords.x);
+      if (FABS(lss[i].coords.y) <= FL(0.001))
         tmp = FL(1.0);
       else
-        tmp = lss[i].coords.y / (MYFLT)fabs((double)lss[i].coords.y);
+        tmp = lss[i].coords.y / FABS(lss[i].coords.y);
       lss[i].angles.azi *= tmp;
       /*printf("tulos %f",    lss[i].angles.azi);*/
     }
@@ -827,12 +824,12 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
 {
     MYFLT x1,x2,x3,x4; /* x1 x3 */
     MYFLT det;
-    x1 = (MYFLT) cos((double) azi1 );
-    x2 = (MYFLT) sin((double) azi1 );
-    x3 = (MYFLT) cos((double) azi2 );
-    x4 = (MYFLT) sin((double) azi2 );
+    x1 = COS(azi1 );
+    x2 = SIN(azi1 );
+    x3 = COS(azi2 );
+    x4 = SIN(azi2 );
     det = (x1 * x4) - ( x3 * x2 );
-    if (fabs((double)det) <= 0.001) {
+    if (FABS(det) <= FL(0.001)) {
       /*printf("unusable pair, det %f\n",det);*/
       inv_mat[0] = FL(0.0);
       inv_mat[1] = FL(0.0);
@@ -841,10 +838,10 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
       return 0;
     }
     else {
-      inv_mat[0] =  (MYFLT) (x4 / det);
-      inv_mat[1] =  (MYFLT) (-x3 / det);
-      inv_mat[2] =  (MYFLT) (-x2 / det);
-      inv_mat[3] =  (MYFLT)  (x1 / det);
+      inv_mat[0] =  (x4 / det);
+      inv_mat[1] =  (-x3 / det);
+      inv_mat[2] =  (-x2 / det);
+      inv_mat[3] =  (x1 / det);
       return 1;
     }
 }
@@ -856,29 +853,29 @@ void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
     MYFLT a,b;
     MYFLT power;
     ANG_VEC tmp;
-    gamma = (MYFLT) acos((double)(vscartdir.x * spread_base.x +
-                                  vscartdir.y * spread_base.y +
-                                  vscartdir.z * spread_base.z))/PI_F*FL(180.0);
-    if (fabs(gamma) < 1) {
+    gamma = ACOS(vscartdir.x * spread_base.x +
+                 vscartdir.y * spread_base.y +
+                 vscartdir.z * spread_base.z)/PI_F*FL(180.0);
+    if (FABS(gamma) < FL(1.0)) {
       tmp.azi=azi+FL(90.0);
       tmp.ele=FL(0.0); tmp.length=FL(1.0);
       angle_to_cart(tmp, &spread_base);
-      gamma = (MYFLT) acos((double)(vscartdir.x * spread_base.x +
-                                    vscartdir.y * spread_base.y +
-                                    vscartdir.z * spread_base.z))/PI_F*FL(180.0);
+      gamma = ACOS(vscartdir.x * spread_base.x +
+                   vscartdir.y * spread_base.y +
+                   vscartdir.z * spread_base.z)/PI_F*FL(180.0);
     }
-    beta = 180 - gamma;
-    b=(MYFLT)sin((double)spread * PI / 180.0) /
-      (MYFLT)sin((double)beta * PI / 180.0);
-    a=(MYFLT)sin((180.0- (double)spread - (double)beta) * PI / FL(180.0)) /
-      (MYFLT)sin ((double)beta * PI / 180.0);
+    beta = FL(180.0) - gamma;
+    b=SIN(spread * PI_F / FL(180.0)) /
+      SIN(beta * PI_F / FL(180.0));
+    a=SIN((FL(180.0)- spread - beta) * PI_F / FL(180.0)) /
+      SIN (beta * PI_F / FL(180.0));
     spreaddir->x = a * vscartdir.x + b * spread_base.x;
     spreaddir->y = a * vscartdir.y + b * spread_base.y;
     spreaddir->z = a * vscartdir.z + b * spread_base.z;
 
-    power=(MYFLT)sqrt((double)(spreaddir->x*spreaddir->x +
-                               spreaddir->y*spreaddir->y +
-                               spreaddir->z*spreaddir->z));
+    power=SQRT(spreaddir->x*spreaddir->x +
+               spreaddir->y*spreaddir->y +
+               spreaddir->z*spreaddir->z);
     spreaddir->x /= power;
     spreaddir->y /= power;
     spreaddir->z /= power;
@@ -890,13 +887,13 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
     MYFLT d;
     MYFLT power;
 
-    d = (MYFLT)cos((double)spread/180.0*PI);
+    d = COS(spread/FL(180.0)*PI_F);
     spread_base->x = spreaddir.x - d * vscartdir.x;
     spread_base->y = spreaddir.y - d * vscartdir.y;
     spread_base->z = spreaddir.z - d * vscartdir.z;
-    power=(MYFLT)sqrt((double)(spread_base->x*spread_base->x +
-                               spread_base->y*spread_base->y +
-                               spread_base->z*spread_base->z));
+    power=SQRT(spread_base->x*spread_base->x +
+               spread_base->y*spread_base->y +
+               spread_base->z*spread_base->z);
     spread_base->x /= power;
     spread_base->y /= power;
     spread_base->z /= power;
