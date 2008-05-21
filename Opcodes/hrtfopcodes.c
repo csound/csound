@@ -1331,7 +1331,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /*read using an index system based on number of points measured
       per elevation at mit*/
-    angleindex = (int)FLOOR(angle/(FL(360.0)/(MYFLT)elevationarray[elevindex])+FL(0.5));
+    angleindex = (int)floorf(angle/(FL(360.0)/(MYFLT)elevationarray[elevindex])+FL(0.5));
     /*angle/increment+0.5*/
     if(angleindex>=((int)(elevationarray[elevindex]/2)+1))
       /*last point in current elevation*/
