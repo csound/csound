@@ -2,6 +2,7 @@
 
 import wx
 import csnd
+import string
 import threading
 import traceback
 import time
@@ -18,15 +19,16 @@ def create(parent):
  wxID_MAINFRAMEGKG, wxID_MAINFRAMEGKGA, wxID_MAINFRAMEGKGB, wxID_MAINFRAMEGKL, 
  wxID_MAINFRAMEGKOUTPUTGAIN, wxID_MAINFRAMEGKR0, wxID_MAINFRAMEGKREVERBDECAY, 
  wxID_MAINFRAMEGKREVERBDRYWETMIX, wxID_MAINFRAMEGKSTEP_SIZE, 
- wxID_MAINFRAMEPANEL1, wxID_MAINFRAMEPANEL10, wxID_MAINFRAMEPANEL11, 
- wxID_MAINFRAMEPANEL12, wxID_MAINFRAMEPANEL13, wxID_MAINFRAMEPANEL14, 
- wxID_MAINFRAMEPANEL15, wxID_MAINFRAMEPANEL16, wxID_MAINFRAMEPANEL17, 
- wxID_MAINFRAMEPANEL18, wxID_MAINFRAMEPANEL19, wxID_MAINFRAMEPANEL2, 
- wxID_MAINFRAMEPANEL20, wxID_MAINFRAMEPANEL21, wxID_MAINFRAMEPANEL22, 
- wxID_MAINFRAMEPANEL3, wxID_MAINFRAMEPANEL4, wxID_MAINFRAMEPANEL5, 
- wxID_MAINFRAMEPANEL6, wxID_MAINFRAMEPANEL7, wxID_MAINFRAMEPANEL8, 
- wxID_MAINFRAMEPANEL9, wxID_MAINFRAMEPLAYBUTTON, wxID_MAINFRAMEPRESETCOMBOBOX, 
- wxID_MAINFRAMEPROCESSINGLABEL, wxID_MAINFRAMEPROCESSINGPANEL, 
+ wxID_MAINFRAMELOADPRESETBUTTON, wxID_MAINFRAMEPANEL1, wxID_MAINFRAMEPANEL10, 
+ wxID_MAINFRAMEPANEL11, wxID_MAINFRAMEPANEL12, wxID_MAINFRAMEPANEL13, 
+ wxID_MAINFRAMEPANEL14, wxID_MAINFRAMEPANEL15, wxID_MAINFRAMEPANEL16, 
+ wxID_MAINFRAMEPANEL17, wxID_MAINFRAMEPANEL18, wxID_MAINFRAMEPANEL19, 
+ wxID_MAINFRAMEPANEL2, wxID_MAINFRAMEPANEL20, wxID_MAINFRAMEPANEL21, 
+ wxID_MAINFRAMEPANEL22, wxID_MAINFRAMEPANEL3, wxID_MAINFRAMEPANEL4, 
+ wxID_MAINFRAMEPANEL5, wxID_MAINFRAMEPANEL6, wxID_MAINFRAMEPANEL7, 
+ wxID_MAINFRAMEPANEL8, wxID_MAINFRAMEPANEL9, wxID_MAINFRAMEPLAYBUTTON, 
+ wxID_MAINFRAMEPRESETCOMBOBOX, wxID_MAINFRAMEPROCESSINGLABEL, 
+ wxID_MAINFRAMEPROCESSINGPANEL, wxID_MAINFRAMESAVEPRESETBUTTON, 
  wxID_MAINFRAMESTATICBITMAP1, wxID_MAINFRAMESTATICTEXT1, 
  wxID_MAINFRAMESTATICTEXT10, wxID_MAINFRAMESTATICTEXT11, 
  wxID_MAINFRAMESTATICTEXT12, wxID_MAINFRAMESTATICTEXT13, 
@@ -34,19 +36,20 @@ def create(parent):
  wxID_MAINFRAMESTATICTEXT16, wxID_MAINFRAMESTATICTEXT17, 
  wxID_MAINFRAMESTATICTEXT18, wxID_MAINFRAMESTATICTEXT19, 
  wxID_MAINFRAMESTATICTEXT2, wxID_MAINFRAMESTATICTEXT20, 
- wxID_MAINFRAMESTATICTEXT21, wxID_MAINFRAMESTATICTEXT3, 
- wxID_MAINFRAMESTATICTEXT4, wxID_MAINFRAMESTATICTEXT5, 
- wxID_MAINFRAMESTATICTEXT6, wxID_MAINFRAMESTATICTEXT7, 
- wxID_MAINFRAMESTATICTEXT8, wxID_MAINFRAMESTATICTEXT9, 
- wxID_MAINFRAMESTOPBUTTON, 
-] = [wx.NewId() for _init_ctrls in range(70)]
+ wxID_MAINFRAMESTATICTEXT21, wxID_MAINFRAMESTATICTEXT22, 
+ wxID_MAINFRAMESTATICTEXT3, wxID_MAINFRAMESTATICTEXT4, 
+ wxID_MAINFRAMESTATICTEXT5, wxID_MAINFRAMESTATICTEXT6, 
+ wxID_MAINFRAMESTATICTEXT7, wxID_MAINFRAMESTATICTEXT8, 
+ wxID_MAINFRAMESTATICTEXT9, wxID_MAINFRAMESTOPBUTTON, 
+] = [wx.NewId() for _init_ctrls in range(73)]
 
 class MainFrame(wx.Frame):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Frame.__init__(self, id=wxID_MAINFRAME, name='MainFrame',
-              parent=prnt, pos=wx.Point(761, 19), size=wx.Size(650, 751),
-              style=wx.DEFAULT_FRAME_STYLE, title=u"Chua's Oscillator")
+              parent=prnt, pos=wx.Point(687, 23), size=wx.Size(650, 751),
+              style=wx.DEFAULT_FRAME_STYLE,
+              title=u" Chua's Oscillator Explorer")
         self.SetClientSize(wx.Size(642, 724))
         self.SetBackgroundColour(wx.Colour(128, 128, 128))
 
@@ -54,7 +57,7 @@ class MainFrame(wx.Frame):
               parent=self, pos=wx.Point(0, 0), size=wx.Size(642, 724),
               style=wx.TAB_TRAVERSAL)
 
-        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap(u'D:/utah/home/mkg/projects/csound-mingw-release/examples/chuas_oscillator/Chua.PNG',
+        self.staticBitmap1 = wx.StaticBitmap(bitmap=wx.Bitmap(u'Chua.PNG',
               wx.BITMAP_TYPE_PNG), id=wxID_MAINFRAMESTATICBITMAP1,
               name='staticBitmap1', parent=self.panel1, pos=wx.Point(144, 8),
               size=wx.Size(336, 147), style=0)
@@ -373,8 +376,9 @@ class MainFrame(wx.Frame):
         self.panel21.SetHelpText(u'')
 
         self.staticText19 = wx.StaticText(id=wxID_MAINFRAMESTATICTEXT19,
-              label=u'Preset', name='staticText19', parent=self.panel21,
-              pos=wx.Point(8, 8), size=wx.Size(31, 13), style=0)
+              label=u'Builtin presets', name='staticText19',
+              parent=self.panel21, pos=wx.Point(8, 8), size=wx.Size(67, 13),
+              style=0)
 
         self.staticText20 = wx.StaticText(id=wxID_MAINFRAMESTATICTEXT20,
               label=u'Preset Circuits', name='staticText20',
@@ -386,7 +390,7 @@ class MainFrame(wx.Frame):
 
         self.presetComboBox = wx.ComboBox(choices=[],
               id=wxID_MAINFRAMEPRESETCOMBOBOX, name=u'presetComboBox',
-              parent=self.panel21, pos=wx.Point(72, 8), size=wx.Size(552, 21),
+              parent=self.panel21, pos=wx.Point(88, 8), size=wx.Size(304, 21),
               style=0, value=u'')
         self.presetComboBox.SetLabel(u'')
         self.presetComboBox.Bind(wx.EVT_COMBOBOX, self.OnPresetComboBoxCombobox,
@@ -427,6 +431,22 @@ class MainFrame(wx.Frame):
               parent=self.panel3, pos=wx.Point(152, 8), size=wx.Size(148, 21),
               style=0, value=u'')
         self.gkL.Bind(wx.EVT_TEXT, self.OnGkLText, id=wxID_MAINFRAMEGKL)
+
+        self.loadPresetButton = wx.Button(id=wxID_MAINFRAMELOADPRESETBUTTON,
+              label=u'Load', name=u'loadPresetButton', parent=self.panel21,
+              pos=wx.Point(472, 8), size=wx.Size(75, 23), style=0)
+        self.loadPresetButton.Bind(wx.EVT_BUTTON, self.OnLoadPresetButtonButton,
+              id=wxID_MAINFRAMELOADPRESETBUTTON)
+
+        self.savePresetButton = wx.Button(id=wxID_MAINFRAMESAVEPRESETBUTTON,
+              label=u'Save', name=u'savePresetButton', parent=self.panel21,
+              pos=wx.Point(544, 8), size=wx.Size(75, 23), style=0)
+        self.savePresetButton.Bind(wx.EVT_BUTTON, self.OnSavePresetButtonButton,
+              id=wxID_MAINFRAMESAVEPRESETBUTTON)
+
+        self.staticText22 = wx.StaticText(id=wxID_MAINFRAMESTATICTEXT22,
+              label=u'Files', name='staticText22', parent=self.panel21,
+              pos=wx.Point(424, 8), size=wx.Size(32, 16), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)
@@ -562,7 +582,76 @@ class MainFrame(wx.Frame):
 
     def OnFilterResonanceTextText(self, event):
         self.setValue(event)
-        
+
+    def OnLoadPresetButtonButton(self, event):
+        fileDialog = wx.FileDialog(self, "Load preset from:", ".", "preset.chua",  "Chua preset files (*.chua)|*.chua|All files (*.*)|*.*")
+        result = fileDialog.ShowModal()
+        if result == wx.ID_CANCEL:
+            return
+        filename = fileDialog.GetFilename()
+        print filename
+        file = open(filename, 'r')
+        fields = {}
+        lines = file.readlines()
+        for line in lines:
+            parts = string.split(line)
+            name = parts[0]
+            value = parts[2]
+            fields[name] = value
+        print fields
+        self.gkstep_size.SetValue(fields['kstep_size'])
+        self.gkL.SetValue(fields['kL'])
+        self.gkR0.SetValue(fields['kR0'])
+        self.gkC2.SetValue(fields['kC2'])
+        self.gkG.SetValue(fields['kG'])
+        self.gkGa.SetValue(fields['kGa'])
+        self.gkGb.SetValue(fields['kGb'])
+        self.gkE.SetValue(fields['kE'])
+        self.gkC1.SetValue(fields['kC1'])
+        self.giI3.SetValue(fields['iI3'])
+        self.giV2.SetValue(fields['iV2'])
+        self.giV1.SetValue(fields['iV1'])
+        self.gkOutputGain.SetValue(fields['kOutputGain'])
+        self.gkFilterFrequency.SetValue(fields['kFilterFrequency'])
+        self.gkReverbDecay.SetValue(fields['kReverbDecay'])
+        self.gkReverbDryWetMix.SetValue(fields['kReverbDryWetMix'])
+        self.gkFilterResonance.SetValue(fields['kFilterResonance'])
+       
+
+    def OnSavePresetButtonButton(self, event):
+        fileDialog = wx.FileDialog(self, "Save preset as:", ".", "preset.chua",  "Chua preset files (*.chua)|*.chua|All files (*.*)|*.*")
+        result = fileDialog.ShowModal()
+        if result == wx.ID_CANCEL:
+            return
+        filename = fileDialog.GetFilename()
+        print filename
+        # sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15
+        # integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size or p17:p19, p4:p5
+        preset = []
+        preset.append('%s = %s' % ('kstep_size', self.gkstep_size.GetValue()))
+        preset.append('%s = %s' % ('kL', self.gkL.GetValue()))
+        preset.append('%s = %s' % ('kR0', self.gkR0.GetValue()))
+        preset.append('%s = %s' % ('kC2', self.gkC2.GetValue()))
+        preset.append('%s = %s' % ('kG', self.gkG.GetValue()))
+        preset.append('%s = %s' % ('kGa', self.gkGa.GetValue()))
+        preset.append('%s = %s' % ('kGb', self.gkGb.GetValue()))
+        preset.append('%s = %s' % ('kE', self.gkE.GetValue()))
+        preset.append('%s = %s' % ('kC1', self.gkC1.GetValue()))
+        preset.append('%s = %s' % ('iI3', self.giI3.GetValue()))
+        preset.append('%s = %s' % ('iV2', self.giV2.GetValue()))
+        preset.append('%s = %s' % ('iV1', self.giV1.GetValue()))
+        preset.append('%s = %s' % ('kOutputGain', self.gkOutputGain.GetValue()))
+        preset.append('%s = %s' % ('kFilterFrequency', self.gkFilterFrequency.GetValue()))
+        preset.append('%s = %s' % ('kReverbDecay', self.gkReverbDecay.GetValue()))
+        preset.append('%s = %s' % ('kReverbDryWetMix', self.gkReverbDryWetMix.GetValue()))
+        preset.append('%s = %s' % ('kFilterResonance', self.gkFilterResonance.GetValue()))
+        preset.append('%s = %s' % ('ifilename', filename))
+        print preset
+        file = open(filename, 'w')
+        for field in preset:
+            file.write(field)
+            file.write('\n')
+        file.close()
 
 orchestra = '''
 sr      = 44100
