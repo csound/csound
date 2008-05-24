@@ -79,7 +79,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
     {
       if(number)
         {
-  AudioEffectX::isSynth(true);
+	  AudioEffectX::isSynth(true);
         }
       else
         {
@@ -95,6 +95,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       sprintf(buffer, "Program%d", (int)(i + 1));
       bank[i].name = buffer;
     }
+  setCommand("csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco");
 }
 
 CsoundVST::CsoundVST() :
@@ -233,7 +234,7 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   *fltkFlags = 256 + 16 + 8 + 4 + 2;
   if(getIsVst())
     {
-      Message("Classic VST performance.\n");
+      Message("Compiling for VST performance.\n");
       SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
       SetExternalMidiReadCallback(&CsoundVST::midiRead);
       if(compile())
@@ -460,7 +461,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
     {
       for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
 	{
-	  for (channelI = 0; channelI < channelN; channelI++) 
+	  for (channelI = 0; channelI < kNumOutputs; channelI++) 
 	    {
 	      hostOutput[channelI][hostFrameI] += hostInput[channelI][hostFrameI];
 	    }
@@ -472,39 +473,39 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
 {
   if(getIsGo())
     {
-      synchronizeScore();
-      MYFLT *csoundInput = GetSpin();
-      MYFLT *csoundOutput = GetSpout();
-      size_t csoundLastFrame = GetKsmps() - 1;
-      size_t channelN = GetNchnls();
-      size_t channelI;
-      for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-        {
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
-              csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
-            }
-          if(csoundFrameI == 0)
-            {
-              performKsmps(true);
-            }
-          for(channelI = 0; channelI < channelN; channelI++)
-            {
-              hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
-              csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
-            }
-          csoundFrameI++;
-          if(csoundFrameI > csoundLastFrame)
-            {
-              csoundFrameI = 0;
-            }
-        }
-    }
+    synchronizeScore();
+    MYFLT *csoundInput = GetSpin();
+    MYFLT *csoundOutput = GetSpout();
+    size_t csoundLastFrame = GetKsmps() - 1;
+    size_t channelN = GetNchnls();
+    size_t channelI;
+    for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+      {
+	for(channelI = 0; channelI < channelN; channelI++)
+	  {
+	    csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
+	  }
+	if(csoundFrameI == 0)
+	  {
+	    performKsmps(true);
+	  }
+	for(channelI = 0; channelI < channelN; channelI++)
+	  {
+	    hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
+	    csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
+	  }
+	csoundFrameI++;
+	if(csoundFrameI > csoundLastFrame)
+	  {
+	    csoundFrameI = 0;
+	  }
+      }
+  }
   else 
     {
       for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
 	{
-	  for (channelI = 0; channelI < channelN; channelI++) 
+	  for (channelI = 0; channelI < kNumOutputs; channelI++) 
 	    {
 	      hostOutput[channelI][hostFrameI] = hostInput[channelI][hostFrameI];
 	    }
