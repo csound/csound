@@ -1192,7 +1192,7 @@ CSOUND_FILETYPES;
   PUBLIC int csoundDestroyBarrier(void *barrier);
 
   /**
-   * Wait on the thread barrier
+   * Wait on the thread barrier.
    */
   PUBLIC int csoundWaitBarrier(void *barrier);
 
