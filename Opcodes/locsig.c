@@ -72,7 +72,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
 
     if (*p->distance != p->prev_distance) {
       p->distr=(FL(1.0) / *p->distance);
-      p->distrsq = FL(1.0)/(MYFLT)sqrt(*p->distance);
+      p->distrsq = FL(1.0)/SQRT(*p->distance);
       p->prev_distance = *p->distance;
     }
 
@@ -80,17 +80,17 @@ static int locsig(CSOUND *csound, LOCSIG *p)
 
       degree = *p->degree/FL(360.00);
 
-      p->ch1 = (MYFLT)cos(TWOPI * (double)degree);
+      p->ch1 = COS(TWOPI_F * degree);
       if (p->ch1 < FL(0.0)) p->ch1 = FL(0.0);
 
-      p->ch2 = (MYFLT)sin(TWOPI * (double)degree);
+      p->ch2 = SIN(TWOPI_F * degree);
       if (p->ch2 < FL(0.0)) p->ch2 = FL(0.0);
 
       if (p->OUTOCOUNT == 4) {
-        p->ch3 = (MYFLT)cos(TWOPI * ((double)degree + 0.5));
+        p->ch3 = COS(TWOPI_F * (degree + FL(0.5)));
         if (p->ch3 < FL(0.0)) p->ch3 = FL(0.0);
 
-        p->ch4 = (MYFLT)sin(TWOPI * ((double)degree + 0.5));
+        p->ch4 = SIN(TWOPI_F * (degree + FL(0.5)));
         if (p->ch4 < FL(0.0)) p->ch4 = FL(0.0);
       }
 
@@ -115,7 +115,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
       direct = asig[n] * p->distr;
       torev = asig[n] * p->distrsq * *p->reverbamount;
       globalrev = torev * p->distr;
-      localrev = torev * (1 - p->distr);
+      localrev = torev * (FL(1.0) - p->distr);
 
       r1[n] = direct * p->ch1;
       r2[n] = direct * p->ch2;

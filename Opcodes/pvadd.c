@@ -43,7 +43,7 @@ void FetchInForAdd(float *inp, MYFLT *buf, int32 fsize,
     MYFLT   frac;
 
     base = (int32)pos;
-    frac = ((MYFLT)(pos - (MYFLT)base));
+    frac = pos - (MYFLT)base;
     /* & how close to get to next */
     frame0 = inp + ((int32)fsize+2L)*base;
     frame1 = frame0 + ((int32)fsize+2L);
@@ -87,7 +87,7 @@ int pvaddset(CSOUND *csound, PVADD *p)
 
     memsize = (int32) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
     if (*p->imode == 1 || *p->imode == 2) {
-      int32  n = (int32) ((p->frSiz + 2L) * (p->maxFr + 2L));
+      int32  n= (int32) ((p->frSiz + 2L) * (p->maxFr + 2L));
 #ifdef USE_DOUBLE
       n = (n + 1L) * (int32) sizeof(float) / (int32) sizeof(double);
 #endif
@@ -123,8 +123,6 @@ int pvaddset(CSOUND *csound, PVADD *p)
     oscphase = p->oscphase;
 
     memset(p->oscphase, 0, MAXBINS*sizeof(MYFLT));
-/*     for (i=0; i < MAXBINS; i++) */
-/*       *oscphase++ = FL(0.0); */
 
     ibins = (*p->ibins <= FL(0.0) ? (size / 2) : (int) *p->ibins);
     p->maxbin = ibins + (int) *p->ibinoffset;
@@ -165,8 +163,6 @@ int pvadd(CSOUND *csound, PVADD *p)
 
     ar = p->rslt;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     for (i = 0; i < nsmps; i++) */
-/*       *ar++ = FL(0.0); */
     oscphase = p->oscphase;
     for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;

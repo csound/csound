@@ -337,7 +337,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       MYFLT arg =  PI_F/(len-1);
       pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
-        pp->ewin[i] = (MYFLT)sqrt(sin((double)arg*i));
+        pp->ewin[i] = SQRT(SIN(arg*i));
       pp->ewin[i] = FL(0.0); /* You get NaN otherwise */
     }
 

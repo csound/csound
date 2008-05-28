@@ -46,13 +46,15 @@ typedef struct {
 /* Which implementation is faster ?? */
 static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *data)
 {
+    MYFLT   cur;
     int     n, nsmps = csound->ksmps;
     MYFLT   *out = data->accum;
     MYFLT   *in = data->ain;
 
     for (n=0; n<nsmps; n++) {
-      if (in[n] > out[n])
-        out[n] = in[n];
+      cur = in[n];
+      if (cur > out[n])
+        out[n] = cur;
     }
 
     return OK;
@@ -83,7 +85,7 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
     MYFLT   inabs;
 
     for (n=0; n<nsmps; n++) {
-      inabs = (MYFLT) fabs(in[n]);
+      inabs = FABS(in[n]);
       if (inabs > out[n])
         out[n] = inabs;
     }
@@ -99,7 +101,7 @@ static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
     MYFLT   inabs;
 
     for (n=0; n<nsmps; n++) {
-      inabs = (MYFLT) fabs(in[n]);
+      inabs = FABS(in[n]);
       if (inabs < out[n])
         out[n] = inabs;
     }
@@ -166,9 +168,9 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *data)
     MYFLT   max, temp;
 
     for (n=0; n<nsmps; n++) {
-      max = (MYFLT) fabs(in1[n]);
+      max = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {
-        temp = (MYFLT) fabs(in2[i][n]);
+        temp = FABS(in2[i][n]);
         if (temp > max)
           max = temp;
       }
@@ -189,9 +191,9 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *data)
     MYFLT   min, temp;
 
     for (n=0; n<nsmps; n++) {
-      min = (MYFLT) fabs(in1[n]);
+      min = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {
-        temp = (MYFLT) fabs(in2[i][n]);
+        temp = FABS(in2[i][n]);
         if (temp < min)
           min = temp;
       }
@@ -252,9 +254,9 @@ static int MaxAbs_krate(CSOUND *csound, MINMAX *data)
     MYFLT   **in2 = data->xin2toN;
     MYFLT   max, temp;
 
-    max = (MYFLT) fabs(*in1);
+    max = FABS(*in1);
     for (i = 0; i < nargs; ++i) {
-      temp = (MYFLT) fabs(in2[i][0]);
+      temp = FABS(in2[i][0]);
       if (temp > max)
         max = temp;
     }
@@ -272,9 +274,9 @@ static int MinAbs_krate(CSOUND *csound, MINMAX *data)
     MYFLT   **in2 = data->xin2toN;
     MYFLT   min, temp;
 
-    min = (MYFLT) fabs(*in1);
+    min = FABS(*in1);
     for (i = 0; i < nargs; ++i) {
-      temp = (MYFLT) fabs(in2[i][0]);
+      temp = FABS(in2[i][0]);
       if (temp < min)
         min = temp;
     }

@@ -427,7 +427,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
       MYFLT arg =  PI_F/(MYFLT)(len-1);
       pp->ewinx = (MYFLT*) csound->Malloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
-        pp->ewinx[i] = (MYFLT)sqrt(sin((double)arg*i));
+        pp->ewinx[i] = SQRT(SIN(arg*i));
       pp->ewinx[i] = FL(0.0); /* You get NaN otherwise */
     }
 

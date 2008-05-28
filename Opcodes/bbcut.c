@@ -26,7 +26,7 @@
 
 /* my auxilliary functions */
 
-static int roundoffint(MYFLT x)
+static inline int roundoffint(MYFLT x)
 {
     if (x > 0)
       return((int)(x + 0.500001)); /* in case of a close rounding
@@ -65,7 +65,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 /*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
 /*       } */
 /*     } */
-    int M;                      /* A temporary */
+    size_t M;                      /* A temporary */
 
     /* have no knowledge of source length */
     p->numbarsnow  = 0;
@@ -78,7 +78,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
-    M = ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = ((size_t)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
@@ -111,11 +111,12 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
     int i;
+    int n, nsmps = csound->ksmps;
     int oddmax,unitproj;
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
-    for (i=0;i<csound->ksmps;i++) {
+    for (i=0;i<nsmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) { /* a new phrase of cuts */
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
@@ -144,7 +145,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
           /* finding set of valid odd numbers for syncopated cuts */
           /* integer division */
           oddmax = p->Subdiv/2;
-          if ((oddmax % 2)==0)
+          if ((oddmax&1)==0)
             oddmax =(oddmax-2)/2;
           else
             oddmax = (oddmax-1)/2;
@@ -217,8 +218,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
         if (p->repeatsampdone<p->envsize) {
           /* used sinusoid- prefer exponential */
 /* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
-          envmult = ((MYFLT)exp(((double)p->repeatsampdone)/
-                                ((double)p->envsize))-FL(1.0))/
+          envmult = (EXP((p->repeatsampdone)/(p->envsize))-FL(1.0))/
             FL(1.7182818284590);
         }
 
@@ -227,8 +227,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
           /* envmult = sin(PI*0.5*
              (((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
              (MYFLT)p->envsize)); */
-          envmult = ((MYFLT)exp(((double)(p->repeatlengthsamp-p->repeatsampdone))/
-                                ((double)p->envsize))-FL(1.0))/
+          envmult = (EXP(((p->repeatlengthsamp-p->repeatsampdone))/
+                                (p->envsize))-FL(1.0))/
             FL(1.7182818284590);
         }
 
@@ -293,7 +293,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 /*       } */
 /*                 } */
 
-    int M;                      /* temporary */
+    size_t M;                      /* temporary */
 
     /* have no knowledge of source length */
 
@@ -307,7 +307,7 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* allocate space- need no more than a half bar at current tempo
        and barlength */
-    M = 2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = 2*((size_t)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
@@ -340,11 +340,12 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 {
     int i;
+    int nsmps = csound->ksmps;
     int oddmax,unitproj;
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
-    for (i=0;i<csound->ksmps;i++) {
+    for (i=0;i<nsmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) {/* a new phrase of cuts */
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
@@ -373,7 +374,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
           /* finding set of valid odd numbers for syncopated cuts */
           /* integer division */
           oddmax = p->Subdiv/2;
-          if ((oddmax % 2)==0)
+          if ((oddmax & 1)==0)
             oddmax = (oddmax-2)/2;
           else
             oddmax = (oddmax-1)/2;
@@ -453,8 +454,8 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
           /* used sinusoid- prefer exponential */
           /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/
              (MYFLT)p->envsize)); */
-          envmult = ((MYFLT)exp(((double)p->repeatsampdone)/
-                                ((double)p->envsize))-
+          envmult = (EXP((p->repeatsampdone)/
+                                (p->envsize))-
                      FL(1.0))/FL(1.7182818284590);
         }
 
@@ -462,9 +463,9 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
    /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
       (MYFLT)p->envsize)); */
-          envmult = ((MYFLT)exp(((double)(p->repeatlengthsamp-
+          envmult = (EXP(((p->repeatlengthsamp-
                                           p->repeatsampdone))/
-                                ((double)p->envsize))-FL(1.0))/
+                                (p->envsize))-FL(1.0))/
             FL(1.7182818284590);
         }
 

@@ -51,7 +51,7 @@
 /*        more for information.               */
 /**********************************************/
 
-static MYFLT ReedTabl_LookUp(ReedTabl *r, MYFLT deltaP)
+static inline MYFLT ReedTabl_LookUp(ReedTabl *r, MYFLT deltaP)
     /*   Perform "Table Lookup" by direct clipped  */
     /*   linear function calculation               */
 {   /*   deltaP is differential reed pressure      */
@@ -104,12 +104,12 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
       z->sgain = z->gain / (FL(1.0) - z->zeroCoeff);
 }
 
-void OneZero_print(CSOUND *csound, OneZero *p)
-{
-    csound->Message(csound,
-                    "OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n",
-                    p->gain, p->inputs, p->zeroCoeff, p->sgain);
-}
+/* void OneZero_print(CSOUND *csound, OneZero *p) */
+/* { */
+/*     csound->Message(csound, */
+/*                     "OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n", */
+/*                     p->gain, p->inputs, p->zeroCoeff, p->sgain); */
+/* } */
 
 /* *********************************************************************** */
 int clarinset(CSOUND *csound, CLARIN *p)
@@ -146,8 +146,10 @@ int clarinset(CSOUND *csound, CLARIN *p)
       }
       p->kloop = (int) ((int32) (p->h.insdshead->offtim * csound->ekr)
                         - (int32) (csound->ekr * *p->attack));
+#ifdef BETA
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
+#endif
       p->envelope.rate = FL(0.0);
       p->v_time = 0;
     }
@@ -179,9 +181,11 @@ int clarin(CSOUND *csound, CLARIN *p)
       p->envelope.state = 1;  /* Start change */
       p->envelope.rate = p->envelope.value / (*p->dettack * csound->esr);
       p->envelope.target =  FL(0.0);
+#ifdef BETA
       csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
                               (MYFLT) csound->kcounter * csound->onedkr,
                               p->envelope.value, p->envelope.rate);
+#endif
     }
 
     for (n=0;n<nsmps;n++) {
@@ -260,7 +264,7 @@ int clarin(CSOUND *csound, CLARIN *p)
 /* nomial calculation.                        */
 /**********************************************/
 
-static MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
+static inline MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
 {                                  /* By Polynomial Calculation */
                                    /* (x^3 - x) approximates sigmoid of jet */
     MYFLT j = sample * (sample*sample - FL(1.0));
@@ -377,7 +381,7 @@ int flute(CSOUND *csound, FLUTE *p)
     }
     noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
     for (n=0;n<nsmps;n++) {
-      int32      temp;
+      int32     temp;
       MYFLT     temf;
       MYFLT     temp_time, alpha;
       MYFLT     pressDiff;
@@ -459,7 +463,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
     MYFLT input;
     input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
     input *= b->slope;                         /*  scale it                */
-    lastOutput = (MYFLT)fabs(input) + FL(0.75); /*  below min delta, frict = 1 */
+    lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
     lastOutput = csound->intpow(lastOutput,-4L);
 /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
     if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */

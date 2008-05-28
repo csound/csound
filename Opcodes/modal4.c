@@ -81,15 +81,6 @@ static int make_Modal4(CSOUND *csound,
     return OK;
 }
 
-/* void Modal4_clear(Modal4 *m) */
-/* {     */
-/*     OnePole_clear(&m->onepole); */
-/*     BiQuad_clear(&m->filters[0]); */
-/*     BiQuad_clear(&m->filters[1]); */
-/*     BiQuad_clear(&m->filters[2]); */
-/*     BiQuad_clear(&m->filters[3]); */
-/* } */
-
 void Modal4_setFreq(CSOUND *csound, Modal4 *m, MYFLT frequency)
 {
     m->baseFreq = frequency;
@@ -275,12 +266,12 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     p->m4.masterGain = (FL(0.1) + (FL(1.8) * p->stickHardness));
                                 /* Set Strike position */
     temp2 = p->strikePosition * PI_F;
-    temp = (MYFLT)sin((double)temp2);
+    temp = SIN(temp2);
     BiQuad_setGain(p->m4.filters[0], FL(0.12)*temp); /* 1st mode function of pos.*/
-    temp = (MYFLT)sin(0.05 + (3.9 * (double)temp2));
+    temp = SIN(FL(0.05) + (FL(3.9) * temp2));
     BiQuad_setGain(p->m4.filters[1],
                    -FL(0.03)*temp); /* 2nd mode function of pos.*/
-    temp = (MYFLT)sin(-0.05 + (11.0 * (double)temp2));
+    temp = SIN(-FL(0.05) + (FL(11.0) * temp2));
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
     {
@@ -388,10 +379,10 @@ int vibraphnset(CSOUND *csound, VIBRAPHN *p)
     p->m4.masterGain = FL(0.2) + (*p->hardness * FL(1.6));
                                 /* Set Strike position */
     temp = (p->strikePosition = *p->spos) * PI_F;
-    BiQuad_setGain(p->m4.filters[0], FL(0.025) * (MYFLT)sin((double)temp));
+    BiQuad_setGain(p->m4.filters[0], FL(0.025) * SIN(temp));
     BiQuad_setGain(p->m4.filters[1], FL(0.015) *
-                   (MYFLT)sin(0.1 + (2.01 *(double) temp)));
-    BiQuad_setGain(p->m4.filters[2], FL(0.015) * (MYFLT)sin(3.95 * (double)temp));
+                   SIN(FL(0.1) + (FL(2.01) * temp)));
+    BiQuad_setGain(p->m4.filters[2], FL(0.015) * SIN(FL(3.95) * temp));
                                 /* Strike */
     Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
     Modal4_setFreq(csound, m, *p->frequency);
@@ -469,9 +460,9 @@ int agogobelset(CSOUND *csound, VIBRAPHN *p)
     p->m4.masterGain = FL(1.0);
                                 /* Set Strike position */
     temp = (p->strikePosition = *p->spos) * PI_F;
-    BiQuad_setGain(p->m4.filters[0], FL(0.08) * (MYFLT)sin(0.7 * temp));
-    BiQuad_setGain(p->m4.filters[1], FL(0.07) * (MYFLT)sin(0.1 + (5.0 * temp)));
-    BiQuad_setGain(p->m4.filters[2], FL(0.04) * (MYFLT)sin(0.2 + (7.0 * temp)));
+    BiQuad_setGain(p->m4.filters[0], FL(0.08) * SIN(FL(0.7) * temp));
+    BiQuad_setGain(p->m4.filters[1], FL(0.07) * SIN(FL(0.1) + (FL(5.0) * temp)));
+    BiQuad_setGain(p->m4.filters[2], FL(0.04) * SIN(FL(0.2) + (FL(7.0) * temp)));
                                 /* Strike */
     Modal4_strike(csound, m, *p->amplitude*AMP_RSCALE);
     Modal4_setFreq(csound, m, *p->frequency);

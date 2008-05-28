@@ -74,14 +74,14 @@ static int envset(CSOUND *csound, ENV *p)
                                 /* Note - 6.90775527898 -- log(0.001) */
     p->lastatt = *p->attack;
     if (p->lastatt<=FL(0.0))
-      p->ga = (MYFLT) exp(- 69.0775527898*(double)csound->onedsr);
+      p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
     else
-      p->ga = (MYFLT) exp(- 6.90775527898/(double)(csound->esr* p->lastatt));
+      p->ga = EXP(- FL(6.90775527898)/(csound->esr* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
-      p->gr = (MYFLT) exp(- 69.0775527898*(double)csound->onedsr);
+      p->gr = (MYFLT) exp(- FL(69.0775527898)*csound->onedsr);
     else
-      p->gr = (MYFLT) exp(- 6.90775527898/(double)(csound->esr* p->lastrel));
+      p->gr = (MYFLT) exp(- FL(6.90775527898)/(csound->esr* p->lastrel));
     p->envelope = FL(0.0);
     return OK;
 }
@@ -95,17 +95,17 @@ static int envext(CSOUND *csound, ENV *p)
     if (p->lastrel!=*p->attack) {
       p->lastatt = *p->attack;
       if (p->lastatt<=FL(0.0))
-        ga = p->ga = (MYFLT) exp(-10000.0*(double)csound->onedsr);
+        ga = p->ga = EXP(-FL(10000.0)*csound->onedsr);
       else
-        ga = p->ga = (MYFLT) exp(-1.0/(double)(csound->esr* p->lastatt));
+        ga = p->ga = EXP(-FL(1.0)/(csound->esr* p->lastatt));
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
       p->lastrel = *p->release;
       if (p->lastrel<=FL(0.0))
-        gr = p->gr = (MYFLT) exp(-100.0*(double)csound->onedsr);
+        gr = p->gr = EXP(-FL(100.0)*csound->onedsr);
       else
-        gr = p->gr = (float) exp(-1.0/(double)(csound->esr* p->lastrel));
+        gr = p->gr = EXP(-FL(1.0)/(csound->esr* p->lastrel));
     }
     else gr = p->gr;
     for (n=0;n<nsmps;n++) {

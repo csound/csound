@@ -35,6 +35,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
       return 1;
     return 0;
 }
+
 #define FLOATMAX_ 3.402823466e+38f
 
 static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
