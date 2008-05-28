@@ -357,7 +357,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
             }
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
-            attenuation = (MYFLT) pow(2.0, (-1.0/60.0) * attenuation )
+            attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
               * GLOBAL_ATTENUATION;
             pan = (double)(split->pan + layer->pan) / 1000.0 + 0.5;
             if (pan > 1.0) pan = 1.0;
@@ -823,7 +823,7 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
             p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
           }
           attenuation = (MYFLT) (split->initialAttenuation);
-          attenuation = (MYFLT) pow(2.0, (-1.0/60.0) * attenuation) *
+          attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation) *
             GLOBAL_ATTENUATION;
           pan = (MYFLT)  split->pan / FL(1000.0) + FL(0.5);
           if (pan > FL(1.0)) pan =FL(1.0);

@@ -42,7 +42,7 @@
 #include "csdl.h"
 #include "mandolin.h"
 
-static int infoTick(MANDOL *p)
+static inline int infoTick(MANDOL *p)
 {
     int32 temp;
     MYFLT temp_time, alpha;

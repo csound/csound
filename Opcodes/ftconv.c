@@ -64,6 +64,7 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     irPtr = IR_Data;
     outBufPtr = outBuf;
     /* clear output buffer to zero */
+    /* memset(outBuf, 0, sizeof(MYFLT)*(partSize - 2)); */
     do {
       *(outBufPtr++) = FL(0.0);
       *(outBufPtr++) = FL(0.0);
@@ -110,7 +111,7 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static int buf_bytes_alloc(int nChannels, int partSize, int nPartitions)
+static inline int buf_bytes_alloc(int nChannels, int partSize, int nPartitions)
 {
     int nSmps;
 
@@ -240,13 +241,14 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
 {
     MYFLT         *x, *rBuf;
     int           i, n, nn, nSamples, rBufPos;
+    int           m = csound->ksmps;
 
     if (p->initDone <= 0) {
       return csound->PerfError(csound, Str("ftconv: not initialised"));
     }
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
-    for (nn = 0; nn < csound->ksmps; nn++) {
+    for (nn = 0; nn < m; nn++) {
       /* store input signal in buffer */
       rBuf[p->cnt] = p->aIn[nn];
       /* copy output signals from buffer */

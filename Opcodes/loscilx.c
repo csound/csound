@@ -122,7 +122,7 @@ typedef struct LOSCILX_OPCODE_ {
     int_least64_t   curLoopStart, curLoopEnd;
     MYFLT   prvKcps, frqScale, ampScale, warpFact, winFact;
     void    *dataPtr;
-    int32    nFrames;
+    int32   nFrames;
     int     nChannels;
     int     winSize;
     int     enableWarp;         /* non-zero when downsampling */
@@ -284,8 +284,8 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       if (p->winSize > 4) {
         /* constant for window calculation */
         p->winFact =
-            (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
-                     / ((double) ((p->winSize * p->winSize) >> 2)));
+          (FL(1.0) - POWER(p->winSize * FL(0.85172), -FL(0.89624)))
+          / ((p->winSize * p->winSize) >> 2);
       }
     }
     p->enableWarp = 0;
@@ -345,7 +345,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     int     i, j;
     double  frac_d, pidwarp_d = 0.0, c = 0.0;
     MYFLT   frac, ampScale, winFact = p->winFact;
-    int32    ndx;
+    int32   ndx;
     int     winSmps;
     float   winBuf[LOSCILX_MAX_INTERP_SIZE];
 

@@ -77,9 +77,9 @@ void DLineL_setDelay(DLineL *p, MYFLT lag)
       outputPointer += (MYFLT)p->length;           /* modulo maximum length */
     while (outputPointer>=(MYFLT)p->length)
       outputPointer -= (MYFLT)p->length;           /* modulo maximum length */
-    p->outPoint = (int32) outputPointer;            /* integer part */
+    p->outPoint = (int32) outputPointer;           /* integer part */
     p->alpha = outputPointer - (MYFLT)p->outPoint; /* fractional part */
-    p->omAlpha = 1.0f - p->alpha;                  /* 1.0 - fractional part */
+    p->omAlpha = FL(1.0) - p->alpha;               /* 1.0 - fractional part */
 }
 
 MYFLT DLineL_tick(DLineL *p, MYFLT sample) /* Take one, yield one */
@@ -115,7 +115,7 @@ void make_Envelope(Envelope *e)
 {
     e->target = FL(0.0);
     e->value = FL(0.0);
-    e->rate = 0.001f;
+    e->rate = FL(0.001);
     e->state = 1;
 }
 
@@ -230,12 +230,14 @@ MYFLT OnePole_tick(OnePole* p, MYFLT sample)  /*   Perform Filter Operation */
     return p->outputs;
 }
 
+#ifdef BETA
 void OnePole_print(CSOUND *csound, OnePole *p)
 {
     csound->Message(csound,
                     "OnePole: gain=%f outputs=%f poleCoeff=%f sgain=%f\n",
                     p->gain, p->outputs, p->poleCoeff, p->sgain);
 }
+#endif
 
 /*******************************************/
 /*  DC Blocking Filter                     */

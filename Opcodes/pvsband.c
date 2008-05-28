@@ -84,7 +84,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
     MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - (MYFLT)exp(fade);
+    MYFLT   opef = FL(1.0) - EXP(fade);
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvsband: not initialised"));
@@ -125,7 +125,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           else if (afrq > lowcut && afrq < lowbnd) { /* ramp up */
             if (fade != FL(0.0)) {
               fout[i].re = fin[i].re *
-                (FL(1.0) - (MYFLT)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
+                (FL(1.0) - EXP(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             }
             else
               fout[i].re = fin[i].re * (afrq - lowcut)/(lowbnd - lowcut);
@@ -134,7 +134,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           else {                /* ramp down */
             if (fade != FL(0.0)) {
               fout[i].re = fin[i].re *
-                (FL(1.0) - (MYFLT)exp(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
+                (FL(1.0) - EXP(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
             }
             else
               fout[i].re = fin[i].re * (higcut - afrq)/(higcut - higbnd);
@@ -160,7 +160,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           else if (afrq > lowcut && afrq < lowbnd) {
             if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (1.0f - (float)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
+                (1.0f - expf(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             else
               fout[i] = fin[i] * (frq - lowcut)/(lowbnd - lowcut);
             fout[i+1] = frq;
@@ -168,7 +168,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
           else {
             if (fade != FL(0.0)) 
               fout[i] = fin[i] *
-                (1.0f - (float)exp(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
+                (1.0f - expf(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
             else
               fout[i] = fin[i] * (higcut - frq)/(higcut - higbnd);
             fout[i+1] = frq;
@@ -189,7 +189,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
     MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - (MYFLT)exp(fade);
+    MYFLT   opef = FL(1.0) - EXP(fade);
 
     if (fout == NULL)
       return csound->PerfError(csound, Str("pvsband: not initialised"));
@@ -230,7 +230,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
           else if (afrq > lowcut && afrq < lowbnd) {
             if (fade)
               fout[i].re = fin[i].re *
-                (FL(1.0) - (MYFLT)exp(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
+                (FL(1.0) - EXP(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
             else
               fout[i].re = fin[i].re * (lowbnd - afrq)/(lowbnd - lowcut);
             fout[i].im = frq;
@@ -238,7 +238,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
           else {
             if (fade)
               fout[i].re = fin[i].re *
-                (FL(1.0) - (MYFLT)exp(fade*(afrq-higbnd)/(higcut-higbnd)))/opef;
+                (FL(1.0) - EXP(fade*(afrq-higbnd)/(higcut-higbnd)))/opef;
             else
               fout[i].re = fin[i].re * (afrq - higbnd)/(higcut - higbnd);
             fout[i].im = frq;
@@ -263,7 +263,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
           else if (afrq > lowcut && afrq < lowbnd) {
             if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (1.0f - (float)exp(fade*(lowbnd - afrq)/(lowbnd - lowcut)))/opef;
+                (1.0f - expf(fade*(lowbnd - afrq)/(lowbnd - lowcut)))/opef;
             else
               fout[i] = fin[i] * (lowbnd - afrq)/(lowbnd - lowcut);
             fout[i+1] = frq;
@@ -271,7 +271,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
           else {
             if (fade != FL(0.0))
               fout[i] = fin[i] *
-                (1.0f - (float)exp(fade*(afrq - higbnd)/(higcut - higbnd)))/opef;
+                (1.0f - expf(fade*(afrq - higbnd)/(higcut - higbnd)))/opef;
             else
               fout[i] = fin[i] * (afrq - higbnd)/(higcut - higbnd);
             fout[i+1] = frq;

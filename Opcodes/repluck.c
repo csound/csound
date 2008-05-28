@@ -271,7 +271,7 @@ static int streson(CSOUND *csound, STRES *p)
       MYFLT tmpo;
       rp = (vdt + wp);
       if(rp >= size) rp -= size;
-      tmpo = p->Cdelay[rp];     
+      tmpo = p->Cdelay[rp];
       w = in[n] + tmpo;
       s = (LPdelay + w)*0.5;
       LPdelay = w;

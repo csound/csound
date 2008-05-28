@@ -56,6 +56,7 @@ void make_TwoZero(TwoZero *p)
 
 void TwoZero_setZeroCoeffs(TwoZero* p, MYFLT *coeffs)
 {
+    /* memcpy(p->zeroCoeffs, coeffs, 2*sizeof(MYFLT)); */
     p->zeroCoeffs[0] = coeffs[0];
     p->zeroCoeffs[1] = coeffs[1];
 }
@@ -713,7 +714,7 @@ MYFLT FM4Alg6_tick(CSOUND *csound, FM4OPV *q)
     return temp * FL(0.33);
 }
 
-MYFLT phonGains[32][2] =
+static MYFLT phonGains[32][2] =
         {{FL(1.0), FL(0.0)},    /* eee */
          {FL(1.0), FL(0.0)},    /* ihh */
          {FL(1.0), FL(0.0)},    /* ehh */
@@ -755,7 +756,7 @@ MYFLT phonGains[32][2] =
          {FL(1.0), FL(1.0)}     /* zhh */
 };
 
-MYFLT phonParams[32][4][3] =
+static MYFLT phonParams[32][4][3] =
     {{  { FL(273.0), FL(0.996),   FL(0.0)},   /* eee (beet) */
         {FL(2086.0), FL(0.945), -FL(16.0)},
         {FL(2754.0), FL(0.979), -FL(12.0)},

@@ -42,7 +42,6 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
        a delay-line of length = max_length+1. */
     p->length = length = length+1;
     csound->AuxAlloc(csound, length * sizeof(MYFLT), &p->inputs);
-/*     for (i=0; i<length; i++) ((MYFLT*)p->inputs.auxp)[i] = FL(0.0); */
     p->inPoint = 0;
     p->outPoint = length >> 1;
     p->lastOutput = FL(0.0);
@@ -64,13 +63,12 @@ static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 {
     MYFLT *xx = (MYFLT*)p->inputs.auxp;
-    xx[p->inPoint++] = sample; /* Input next sample */
-    if (p->inPoint == p->length)               /* Check for end condition */
+    xx[p->inPoint++] = sample;   /* Input next sample */
+    if (p->inPoint == p->length) /* Check for end condition */
       p->inPoint -= p->length;
     p->lastOutput = xx[p->outPoint++]; /* Read nxt value */
-    if (p->outPoint>=p->length)                /* Check for end condition */
+    if (p->outPoint>=p->length)        /* Check for end condition */
       p->outPoint -= p->length;
-/*     return p->lastOutput; */
 }
 
 int bowedbarset(CSOUND *csound, BOWEDBAR *p)
@@ -104,7 +102,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
     }
 
     p->nr_modes = NR_MODES;
-    for (i = 0; i<p->nr_modes; i++) {
+    for (i = 0; i<NR_MODES; i++) {
       make_DLineN(csound, &p->delay[i], p->length);
       DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
       BiQuad_clear(&p->bandpass[i]);
@@ -145,7 +143,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
 
       p->length = (int)(csound->esr/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
-      for (i = 0; i<p->nr_modes; i++) {
+      for (i = 0; i<NR_MODES; i++) {
         if((int)(p->length/p->modes[i]) > 4)
           DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
         else    {
@@ -164,11 +162,11 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     }
                                 /* Bow position as well */
     if (*p->position != p->lastpos) {
-      double temp2 = (double)*p->position * PI_F;
-      p->gains[0] = (MYFLT)fabs(sin(temp2 *0.5)) /*  * pow(0.9,0))*/;
-      p->gains[1] = (MYFLT)fabs(sin(temp2) * 0.9);
-      p->gains[2] = (MYFLT)fabs(sin(temp2 * 1.5) * 0.9*0.9);
-      p->gains[3] = (MYFLT)fabs(sin(temp2 * 2) * 0.9 * 0.9 * 0.9);
+      MYFLT temp2 = *p->position * PI_F;
+      p->gains[0] = FABS(SIN(temp2 * FL(0.5))) /*  * pow(0.9,0))*/;
+      p->gains[1] = FABS(SIN(temp2) * FL(0.9));
+      p->gains[2] = FABS(SIN(temp2 * FL(1.5)) * FL(0.9)*FL(0.9));
+      p->gains[3] = FABS(SIN(temp2 * FL(2.0)) * FL(0.9)*FL(0.9)*FL(0.9));
       p->lastpos = *p->position;
     }
     if (*p->bowposition != p->lastBowPos) { /* Not sure what this control is? */

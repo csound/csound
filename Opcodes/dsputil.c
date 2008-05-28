@@ -46,13 +46,13 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
     int   i;
 
     for (i = 0; i < FFTsize; i += 4) {
-      re = buf[i] * (MYFLT) cos(buf[i + 1]);
-      im = buf[i] * (MYFLT) sin(buf[i + 1]);
+      re = buf[i] * COS(buf[i + 1]);
+      im = buf[i] * SIN(buf[i + 1]);
       buf[i    ] = re;
       buf[i + 1] = im;
       /* Offset the phase to align centres of stretched windows, not starts */
-      re = -(buf[i + 2] * (MYFLT) cos(buf[i + 3]));
-      im = -(buf[i + 2] * (MYFLT) sin(buf[i + 3]));
+      re = -(buf[i + 2] * COS(buf[i + 3]));
+      im = -(buf[i + 2] * SIN(buf[i + 3]));
       buf[i + 2] = re;
       buf[i + 3] = im;
     }
@@ -329,7 +329,7 @@ void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
       theta += dtheta;
       phi   += dphi;
       p->dsputil_sncTab[i] =
-          (MYFLT) sin(theta) / theta * (FL(0.54) + FL(0.46) * (MYFLT) cos(phi));
+          SIN(theta) / theta * (FL(0.54) + FL(0.46) * COS(phi));
       /* hamming window on top of sinc */
     }
 }
