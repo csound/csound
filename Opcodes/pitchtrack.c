@@ -52,7 +52,7 @@
 #define THRSH FL(10.)
 
 
-static MYFLT partialonset[] =
+static const MYFLT partialonset[] =
 {
   FL(0.0),
   FL(48.0),
@@ -229,8 +229,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
     }
 
     if (totalpower > FL(1.0e-9)) {
-      totaldb = (MYFLT)(DBSCAL * log(totalpower/n));
-      totalloudness = (MYFLT)sqrt(sqrt(totalpower));
+      totaldb = FL(DBSCAL) * LOG(totalpower/n);
+      totalloudness = SQRT(SQRT(totalpower));
       if (totaldb < 0) totaldb = 0;
     }
     else totaldb = totalloudness = FL(0.0);
@@ -280,7 +280,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 
         peaklist[npeak].pwidth = stdev;
         peaklist[npeak].ppow = height;
-        peaklist[npeak].ploudness = (MYFLT)sqrt(sqrt((double)height));
+        peaklist[npeak].ploudness = SQRT(SQRT(height));
         peaklist[npeak].pfreq = totalfreq;
         npeak++;
 
@@ -289,7 +289,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       if (npeak > numpks) npeak = numpks;
       for (i = 0; i < maxbin; i++) histogram[i] = 0;
       for (i = 0; i < npeak; i++) {
-        MYFLT pit = (MYFLT)(BPEROOVERLOG2 * log(peaklist[i].pfreq) - 96.0);
+        MYFLT pit = (MYFLT)(BPEROOVERLOG2 * LOG(peaklist[i].pfreq) - 96.0);
         MYFLT binbandwidth = FACTORTOBINS * peaklist[i].pwidth/peaklist[i].pfreq;
         MYFLT putbandwidth = (binbandwidth < FL(2.0) ? FL(2.0) : binbandwidth);
         MYFLT weightbandwidth = (binbandwidth < FL(1.0) ? FL(1.0) : binbandwidth);
@@ -320,8 +320,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       histpeak.hvalue = best;
       histpeak.hindex = indx;
 
-      putfreq = exp((1.0 / BPEROOVERLOG2) *
-                    (histpeak.hindex + 96.0));
+      putfreq = EXP((FL(1.0) / BPEROOVERLOG2) *
+                    (histpeak.hindex + FL(96.0)));
       for (j = 0; j < npeak; j++) {
         MYFLT fpnum = peaklist[j].pfreq/putfreq;
         int pnum = (int)(fpnum + FL(0.5));
@@ -334,7 +334,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
           npartials++;
           if (pnum < 8) nbelow8++;
           cumpow += peaklist[j].ppow;
-          cumstrength += sqrt(sqrt(peaklist[j].ppow));
+          cumstrength += SQRT(SQRT(peaklist[j].ppow));
           stdev = (peaklist[j].pwidth > MINBW ?
                    peaklist[j].pwidth : MINBW);
           weight = FL(1.0) / ((stdev*fipnum) * (stdev*fipnum));
@@ -352,7 +352,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
           histpeak.hvalue = 0;
         else {
           p->cps = histpeak.hpitch = hzperbin * freqnum/freqden;
-          histpeak.hloud = (DBSCAL) * log(pitchpow/n);
+          histpeak.hloud = FL(DBSCAL) * LOG(pitchpow/n);
         }
       }
 
@@ -422,11 +422,11 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->cnt = 0;
     p->histcnt = 0;
     p->sr = csound->GetSr(csound);
-    for (i = 0; i < NPREV; i++) p->dbs[i] = FL(-144);
+    for (i = 0; i < NPREV; i++) p->dbs[i] = FL(-144.0);
     p->amplo = MINAMPS;
     p->amphi = MAXAMPS;
     p->npartial = 7;
-    p->dbfs = 32768.0/csound->e0dbfs;
+    p->dbfs = FL(32768.0)/csound->e0dbfs;
     p->prevf = p->cps = 100.0;
     return (OK);
 }

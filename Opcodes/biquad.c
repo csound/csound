@@ -343,8 +343,8 @@ static int distort(CSOUND *csound, DISTORT *p)
       sig    = in[n];
       /* Generate tanh distortion and output the result */
       out[n] =                          /* IV - Dec 28 2002: optimised */
-        (MYFLT) ((exp((double) (sig * shape1)) - exp((double) (sig * shape2)))
-                 / cosh((double) (sig * pregain)))
+        ((EXP(sig * shape1) - EXP(sig * shape2))
+                 / COSH(sig * pregain))
         * postgain;
     }
     return OK;
@@ -368,7 +368,7 @@ static int vcoset(CSOUND *csound, VCO *p)
     /* csound->AuxAlloc(csound, sizeof(MYFLT)*16385L, &p->auxd); Do this later
        p->sine = (MYFLT*)p->auxd.auxp;
        for (i=0; i<16384; i++)
-         p->sine[i] = (MYFLT)sin(TWOPI*(double)i/4096.0); */
+         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/4096.0); */
 
     if ((ftp = csound->FTFind(csound, p->sine)) != NULL) {
       p->ftp = ftp;
@@ -392,11 +392,7 @@ static int vcoset(CSOUND *csound, VCO *p)
                                                      buffer */
       csound->AuxAlloc(csound, ndel * sizeof(MYFLT), &p->aux);
     else if (*p->iskip==FL(0.0)) {
-/*       memset(p->aux.auxp, 0, ndel*sizeof(MYFLT)); */
-      buf = (MYFLT *)p->aux.auxp;   /*    make sure buffer is empty       */
-      do {
-        *buf++ = FL(0.0);
-      } while (--ndel);
+      memset(p->aux.auxp, 0, ndel*sizeof(MYFLT));
     }
     p->left = 0;
     if (*p->leak <= FL(0.0) || *p->leak >= FL(1.0)) {
@@ -426,10 +422,12 @@ static int vco(CSOUND *csound, VCO *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT fv1, out1;
     int32  v1, v2;
+    int wave = (int)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
 
     leaky = p->leaky;
 
-    if (buf==NULL) {            /* RWD fix */
+    ftp = p->ftp;
+    if (buf==NULL || ftp==NULL) {            /* RWD fix */
       return csound->PerfError(csound, Str("vco: not initialised"));
     }
     maxd = (uint32) (*p->maxd * csound->esr);
@@ -437,10 +435,6 @@ static int vco(CSOUND *csound, VCO *p)
     indx = p->left;
     /* End of VDelay insert */
 
-    ftp = p->ftp;
-    if (ftp==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("vco: not initialised"));
-    }
     ftbl = ftp->ftable;
     sicvt2 = csound->sicvt * FL(0.5);  /* for theta/2 */
     lobits = ftp->lobits;
@@ -448,7 +442,7 @@ static int vco(CSOUND *csound, VCO *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     fqc = *cpsp;
-    rtfqc = (MYFLT)sqrt(fqc);
+    rtfqc = SQRT(fqc);
     knh = (int)(csound->esr*p->nyq/fqc);
     if ((n = (int)knh) <= 0) {
                                 /* Line apparently missing here */
@@ -467,7 +461,7 @@ static int vco(CSOUND *csound, VCO *p)
 /*-----------------------------------------------------*/
 /* PWM Wave                                            */
 /*-----------------------------------------------------*/
-    if (*p->wave==FL(2.0)) {
+    if (wave==2) {
       MYFLT pw = *p->pw;
       for (n=0; n<nsmps; n++) {
         dwnphs = phs >> lobits;
@@ -516,7 +510,7 @@ static int vco(CSOUND *csound, VCO *p)
     /*-----------------------------------------------------*/
     /* Triangle Wave                                       */
     /*-----------------------------------------------------*/
-    else if (*p->wave==FL(3.0)) {
+    else if (wave==3) {
       MYFLT pw = *p->pw;
       for (n=0; n<nsmps; n++) {
         dwnphs = phs >> lobits;
@@ -530,7 +524,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs += inc;
         phs &= PHMASK;
         if (p->ampcod) {
-          scal = over2n;        /* Why is this needed?? */
+          /*          scal = over2n;        /* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {
@@ -583,7 +577,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs &= PHMASK;
         if (p->ampcod) {
           /* scal = *(++ampp) * over2n; */
-          scal = over2n;        /* Why is this needed?? */
+          /*          scal = over2n;        /* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {
@@ -647,7 +641,7 @@ static int planet(CSOUND *csound, PLANET *p)
 
       /* Calculate Acceleration */
       sqradius1 = xxpyy + dz1 * dz1 + FL(1.0);
-      radius1 = (MYFLT) sqrt(sqradius1);
+      radius1 = SQRT(sqradius1);
       msqror1 = mass1/sqradius1/radius1;
 
       p->ax = msqror1 * -p->x;
@@ -658,7 +652,7 @@ static int planet(CSOUND *csound, PLANET *p)
 
       /* Calculate Acceleration */
       sqradius2 = xxpyy + dz2 * dz2 + FL(1.0);
-      radius2 = (MYFLT) sqrt(sqradius2);
+      radius2 = SQRT(sqradius2);
       msqror2 = mass2/sqradius2/radius2;
 
       p->ax += msqror2 * -p->x;
@@ -796,7 +790,7 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     npts = npts1 + npts2 + npts3;
     /* new space if reqd */
     if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
 
@@ -831,11 +825,6 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     /* else if requested */
     else if (!(*p->istor)) {
       memset(auxp, 0, npts*sizeof(int32));
-/*       long *lp = (long *)auxp; */
-/*       /\*   clr old to zero *\/ */
-/*       do { */
-/*         *lp++ = 0L; */
-/*       } while (--npts); */
     }
     p->del1p = p->beg1p;
     p->del2p = p->beg2p;
@@ -1122,9 +1111,10 @@ static int bqrez(CSOUND *csound, REZZY *p)
     int32 n, nsmps = csound->ksmps;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
-    double sin2=0.0, cos2=0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
+    double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
     double theta;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+    int mode = (int)MYFLT2LONG(*p->mode);
 
     in     = p->in;
     out    = p->out;
@@ -1141,18 +1131,18 @@ static int bqrez(CSOUND *csound, REZZY *p)
       gamma = (beta + 1.0) * cos2;
     }
 
-    if (*p->mode < FL(3.0)) {
-      if (*p->mode == FL(0.0)) {    /* Low Pass */
+    if (mode < 3) {
+      if (mode == 0) {    /* Low Pass */
         chi   = -1.0;
         mu    = 2.0;
         sigma = 1.0;
       }
-      else if (*p->mode == FL(1.0)) { /* High Pass */
+      else if (mode == 1) { /* High Pass */
         chi   = 1.0;
         mu    = -2.0;
         sigma = 1.0;
       }
-      else {                         /* Band Pass */
+      else {                /* Band Pass */
         chi   = 1.0;
         mu    = 0.0;
         sigma = -1.0;
@@ -1186,7 +1176,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
 
       }
     }
-    else if (*p->mode == FL(3.0)) {   /* Band Stop */
+    else if (mode == 3) {   /* Band Stop */
       alpha  = (beta + 1.0) * 0.5;
       for (n=0; n<nsmps; n++) {                            /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
@@ -1215,7 +1205,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
         out[n] = (MYFLT) yn;  /* Generate the output sample */
       }
     }
-    else if (*p->mode == FL(4.0)) {   /* All Pass */
+    else if (mode == 4) {   /* All Pass */
       for (n=0; n<nsmps; n++) {                        /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {

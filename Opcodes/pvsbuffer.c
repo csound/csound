@@ -58,7 +58,8 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
-    memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
+    else
+      memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
 
     p->handle.header.frame.auxp = p->buffer.auxp;
     p->handle.header.frame.size = p->buffer.size;
@@ -107,20 +108,21 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     int N;
     FSIG_HANDLE *handle;
     handle = (FSIG_HANDLE *) ((long)*p->hptr);
-    if (handle != NULL){
-    p->fout->N = N = handle->header.N;
-    p->fout->overlap = handle->header.overlap;
-    p->fout->winsize = handle->header.winsize;
-    p->fout->wintype = handle->header.wintype;
-    p->fout->format  = handle->header.format;
-    p->fout->framecount = 1;
-    } else {
-    p->fout->N = N = 1024;
-    p->fout->overlap = 256;
-    p->fout->winsize = 1024;
-    p->fout->wintype = 1;
-    p->fout->format  = PVS_AMP_FREQ;
-    p->fout->framecount = 1;
+    if (handle != NULL) {
+      p->fout->N = N = handle->header.N;
+      p->fout->overlap = handle->header.overlap;
+      p->fout->winsize = handle->header.winsize;
+      p->fout->wintype = handle->header.wintype;
+      p->fout->format  = handle->header.format;
+      p->fout->framecount = 1;
+    }
+    else {
+      p->fout->N = N = 1024;
+      p->fout->overlap = 256;
+      p->fout->winsize = 1024;
+      p->fout->wintype = 1;
+      p->fout->format  = PVS_AMP_FREQ;
+      p->fout->framecount = 1;
     }
 
     if (p->fout->frame.auxp == NULL ||
@@ -174,8 +176,8 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       }
       else
        for(i=0; i < N+2; i+=2){
-        fout[i] = 0.f;
-        fout[i+1] = 0.f;
+        fout[i] = 0.0f;
+        fout[i+1] = 0.0f;
       }
       p->scnt -= overlap;
       p->fout->framecount++;

@@ -50,7 +50,7 @@ typedef struct  {
 
 static int metro_set(CSOUND *csound, METRO *p)
 {
-    double      phs = *p->iphs;
+    double phs = *p->iphs;
     int32  longphs;
 
     if (phs >= 0.0) {

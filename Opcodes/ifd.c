@@ -53,9 +53,9 @@ typedef struct _ifd {
     int     fftsize, hopsize, wintype, frames, cnt;
     double  fund, factor;
     MYFLT   norm, g;
-} _IFD;
+} IFD;
 
-static int ifd_init(CSOUND * csound, _IFD * p)
+static int ifd_init(CSOUND * csound, IFD * p)
 {
 
     int     hsize, fftsize, hopsize, frames;
@@ -83,9 +83,13 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     if (p->sigframe.auxp == NULL ||
         frames * fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
       csound->AuxAlloc(csound, frames * fftsize * sizeof(MYFLT), &p->sigframe);
+    else
+      memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize * frames);
     if (p->diffsig.auxp == NULL ||
         fftsize * sizeof(MYFLT) > (unsigned int) p->diffsig.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
+    else
+      memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
     if (p->diffwin.auxp == NULL ||
         fftsize * sizeof(MYFLT) > (unsigned int) p->diffwin.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
@@ -98,10 +102,13 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     if (p->fout1->frame.auxp == NULL ||
         (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
+    else
+      memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
     if (p->fout2->frame.auxp == NULL ||
         (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout2->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
-
+    else
+      memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
     p->fout1->N = fftsize;
     p->fout1->overlap = hopsize;
     p->fout1->winsize = fftsize;
@@ -119,11 +126,6 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     counter = (int *) p->counter.auxp;
     for (i = 0; i < frames; i++)
       counter[i] = i * hopsize;
-
-    memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize * frames);
-    memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
-    memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-    memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2)) ;
 
     winf = (MYFLT *) p->win.auxp;
     dwinf = (MYFLT *) p->diffwin.auxp;
@@ -146,7 +148,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
 
     p->norm = 0;
     for (i = 0; i < fftsize; i++) {
-      dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : 0.0f);
+      dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : FL(0.0));
       p->norm += winf[i];
     }
 
@@ -156,7 +158,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     return OK;
 }
 
-static void IFAnalysis(CSOUND * csound, _IFD * p, MYFLT * signal)
+static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 {
 
     double  powerspec, da, db, a, b, ph, d, factor = p->factor, fund = p->fund;
@@ -220,7 +222,7 @@ static void IFAnalysis(CSOUND * csound, _IFD * p, MYFLT * signal)
     p->fout2->framecount++;
 }
 
-static int ifd_process(CSOUND * csound, _IFD * p)
+static int ifd_process(CSOUND * csound, IFD * p)
 {
     int     i, n;
     MYFLT  *sigin = p->in;
@@ -251,7 +253,7 @@ static int ifd_process(CSOUND * csound, _IFD * p)
 
 static OENTRY localops[] =
   {
-    { "pvsifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0, (SUBR) ifd_process}
+    { "pvsifd", sizeof(IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0, (SUBR) ifd_process}
   };
 
 int ifd_init_(CSOUND *csound)

@@ -44,7 +44,7 @@ static const MYFLT bicoefs[] = {
 
 int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 {
-    MYFLT   b;                          /* For RMS */
+    double  b;                          /* For RMS */
     int     n, nocts, nfreqs, ncoefs;
     MYFLT   Q, *fltp;
     OCTDAT  *octp;
@@ -57,7 +57,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 
                                 /* RMS of input signal */
     b = 2.0 - cos(10.0*(double)csound->tpidsr);
-    p->c2 = b - sqrt((double)(b * b - 1.0));
+    p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor) p->prvq = 0.0;
                                 /* End of rms */
@@ -80,8 +80,8 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-      int32        auxsiz, bufsiz;
-      int32        majr, minr, totsamps;
+      int32       auxsiz, bufsiz;
+      int32       majr, minr, totsamps;
       double      hicps,locps,oct;      /*   must alloc anew */
 
       p->nfreqs = nfreqs;
@@ -242,8 +242,8 @@ int pitch(CSOUND *csound, PITCH *p)
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
-    double  c;
-    MYFLT kvar;
+    MYFLT  c;
+    MYFLT  kvar;
                                 /* RMS */
     q = p->prvq;
     asig = p->asig;
@@ -276,7 +276,7 @@ int pitch(CSOUND *csound, PITCH *p)
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
     } while (--nsmps);
     p->prvq = q;
-    kvar = (MYFLT) sqrt((double)q);       /* End of spectrum part */
+    kvar = SQRT((MYFLT)q);       /* End of spectrum part */
 
     specp = &p->wsig;
     if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
@@ -318,9 +318,8 @@ int pitch(CSOUND *csound, PITCH *p)
           a += *bufp * *cosp++;
           b += *bufp * *sinp++;
         }
-        c = a*a + b*b;                        /* get magnitude    */
-        c = sqrt(c);
-        *dftp++ = (MYFLT)c;                   /* store in out spectrum   */
+        c = HYPOT(a, b);                      /* get magnitude    */
+        *dftp++ = c;                          /* store in out spectrum   */
       }
     }
     specp->ktimstamp = csound->kcounter;      /* time-stamp the output   */
@@ -691,8 +690,8 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 {
     FUNC        *ftp, *mixtp;
     MYFLT       fract, v1, amp0, amp, *ar, *ftab, *mtab;
-    int32        phs, inc, lobits;
-    int32        phases[10];
+    int32       phs, inc, lobits;
+    int32       phases[10];
     int         n, nsmps = csound->ksmps;
     MYFLT       tonal, bright, freq, ampscl;
     int         octcnt = p->octcnt;
@@ -707,15 +706,15 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     }
 
     tonal = *p->ktona;
-    tonal -= (MYFLT)floor(tonal);
+    tonal -= FLOOR(tonal);
     bright = *p->kbrite - tonal;
     octstart = bright - (MYFLT)octcnt * FL(0.5);
-    octbase = (MYFLT)floor(floor(octstart) + 1.5);
+    octbase = FLOOR(FLOOR(octstart) + FL(1.5));
     octoffs = octbase - octstart;
 
     mtab = mixtp->ftable;
     mtablen = mixtp->flen;
-    freq = *p->ibasef * (MYFLT)pow(2.0, tonal) * (MYFLT)pow(2.0, octbase);
+    freq = *p->ibasef * POWER(FL(2.0), tonal + octbase);
 
     ampscl = mtab[(int)((1.0 / (MYFLT)octcnt) * mtablen)];
     amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)];
@@ -737,9 +736,6 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     lobits = ftp->lobits;
     ar = p->sr;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     do { */
-/*       *ar++ = FL(0.0); */
-/*     } while (--nsmps); */
 
     for (i=0; i<octcnt; i++) {
       phs = phases[i];
@@ -831,11 +827,10 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       msize = p->medisize * 3 * sizeof(MYFLT);
       if (p->median.auxp==NULL || p->median.size < (int32)msize)
         csound->AuxAlloc(csound, msize, &p->median);
-      medi = (MYFLT*)p->median.auxp;
-      memset(medi, 0, msize);
-/*       do */
-/*         *medi++ = FL(0.0); */
-/*       while (--msize); */
+      else {
+        medi = (MYFLT*)p->median.auxp;
+        memset(medi, 0, msize);
+      }
     }
 
     if (*p->imedi < 1)
@@ -848,21 +843,18 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       msize = p->medisize * 3;
       if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
         csound->AuxAlloc(csound, sizeof(MYFLT)*(msize), &p->median);
-      medi = (MYFLT*)p->median.auxp;
-      do {
-        *medi++ = (MYFLT)p->peri;
-      } while (--msize);
+      else {
+        medi = (MYFLT*)p->median.auxp;
+        memset(medi, 0, sizeof(MYFLT)*(msize));
+      }
     }
 
     if (p->buffer.auxp==NULL ||
         p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*(bufsize), &p->buffer);
-      /* This code is not necessary as AuxAlloc clears the buffer */
-/*       buf = (MYFLT*)p->buffer.auxp; */
-/*       do { */
-/*         *buf++ = FL(0.0); */
-/*       } while (--bufsize); */
     }
+    else
+      memset(p->buffer.auxp, 0, p->buffer.size);
     return OK;
 }
 
@@ -1476,7 +1468,7 @@ int clip_set(CSOUND *csound, CLIP *p)
       p->k1 = PI_F/(FL(2.0) * p->lim);
       break;
     case 2:
-      p->k1 = FL(1.0)/(MYFLT)tanh(1.0);
+      p->k1 = FL(1.0)/TANH(FL(1.0));
       break;
     default:
       p->meth = 0;
@@ -1518,7 +1510,7 @@ int clip(CSOUND *csound, CLIP *p)
         else if (x<= -limit)
           x = -limit;
         else
-            x = limit*(MYFLT)sin((double)(k1*x));
+            x = limit*SIN(k1*x);
         aout[n] = x;
       }
       return OK;
@@ -1530,7 +1522,7 @@ int clip(CSOUND *csound, CLIP *p)
         else if (x<= -limit)
           x = -limit;
         else
-          x = limit*k1*(MYFLT)tanh((double)(x*rlim));
+          x = limit*k1*TANH(x*rlim);
         aout[n] = x;
       }
       return OK;
@@ -1752,7 +1744,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
         segp->c1 = (nxtval-val)/d;
       }
       else {
-        segp->c1 = (nxtval - val)/(FL(1.0) - (MYFLT)exp((double)alpha));
+        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
       }
       segp->alpha = alpha/d;
       val = nxtval;
@@ -1791,7 +1783,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
         p->curval += p->curinc*csound->ksmps;   /* advance the cur val  */
       else
         p->curval = p->cursegp->val + p->curinc *
-          (FL(1.0) - (MYFLT)exp((double)(p->curx)));
+          (FL(1.0) - EXP(p->curx));
       p->curx += (MYFLT)csound->ksmps*p->alpha;
     }
     return OK;
@@ -1835,7 +1827,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
           *rs++ = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc *
-            (FL(1.0) - (MYFLT)exp((double)(p->curx)));
+            (FL(1.0) - EXP(p->curx));
         } while (--nsmps);
       }
       p->curval = val;
@@ -1854,7 +1846,7 @@ int varicolset(CSOUND *csound, VARI *p)
 {
     p->last = FL(0.0);
     p->lastbeta = *p->beta;
-    p->sq1mb2 = (MYFLT)sqrt(FL(1.0)-p->lastbeta * p->lastbeta);
+    p->sq1mb2 = SQRT(FL(1.0)-p->lastbeta * p->lastbeta);
     p->ampmod = FL(0.785)/(FL(1.0)+p->lastbeta);
     p->ampinc = XINARG1 ? 1 : 0;
     return OK;
@@ -1873,7 +1865,7 @@ int varicol(CSOUND *csound, VARI *p)
 
     if (beta != p->lastbeta) {
        beta = p->lastbeta = *p->beta;
-       sq1mb2 = p->sq1mb2 = (MYFLT)sqrt(FL(1.0)-p->lastbeta * p->lastbeta);
+       sq1mb2 = p->sq1mb2 =  SQRT(FL(1.0)-p->lastbeta * p->lastbeta);
        ampmod = p->ampmod = FL(0.785)/(FL(1.0)+p->lastbeta);
     }
 
@@ -1924,18 +1916,18 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     MYFLT *ar = p->ar;
     double dist = (double)*p->dist;
     MYFLT lastin = p->lastin;
-    double value = 1.0+(dist*(1.5+2.0*(MYFLT)kres*(1.0-(MYFLT)kfcn)));
+    double value = 1.0+(dist*(1.5+2.0*(double)kres*(1.0-(double)kfcn)));
 
     for (n=0;n<nsmps;n++) {
       MYFLT ax1   = lastin;
       MYFLT ay11  = ay1;
       MYFLT ay31  = ay2;
-      lastin  =  ain[n] - (MYFLT)tanh((double)(kres*aout));
+      lastin  =  ain[n] - TANH(kres*aout);
       ay1      = kp1h * (lastin + ax1) - kp*ay1;
       ay2      = kp1h * (ay1 + ay11) - kp*ay2;
       aout     = kp1h * (ay2 + ay31) - kp*aout;
 
-      ar[n] = (MYFLT) tanh(aout*value);
+      ar[n] = TANH(aout*value);
     }
     p->ay1 = ay1;
     p->ay2 = ay2;

@@ -58,7 +58,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     else
       p->pr = FL(0.0);
 
-    bufsize = sizeof(MYFLT) * (2L * (long) (csound->esr * *p->imkglen)
+    bufsize = sizeof(MYFLT) * (2L * (size_t) (csound->esr * *p->imkglen)
                                + (3L * csound->ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
@@ -79,9 +79,10 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
     MYFLT       *xdns, *xamp, *xlfr, *temp, amp;
-    int32        isc, isc2, inc, inc2, lb, lb2;
-    int32        n, i, bufsize;
-    int32        ekglen;
+    int32       isc, isc2, inc, inc2, lb, lb2;
+    int32       n, i, bufsize;
+    int32       ekglen;
+    int         nsmps = csound->ksmps;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
 
@@ -113,7 +114,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
     memset(buf, '\0', bufsize*sizeof(MYFLT));
 
-    for (i = 0 ; i < csound->ksmps ; i++) {
+    for (i = 0 ; i < nsmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(csound, *p->kabnd);

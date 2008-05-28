@@ -438,12 +438,12 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       int m, nsmps = csound->ksmps;
       int NB = p->fout->NB;
       harm = (int)(csound->esr/(2*ffun));
-      if (type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
-      else if (type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
-      else if (type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+      if (type==1) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(2.4));
+      else if (type==2) famp *= FL(1.456)/POWER((MYFLT)harm, FL(0.25));
+      else if (type==3) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(160.0));
       else {
         harm = 1;
-        famp *= (MYFLT)1.456;
+        famp *= FL(1.456);
       }
 
       for (n=0; n<nsmps; n++) {
@@ -471,14 +471,15 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
     if (p->lastframe > p->fout->framecount) {
       w = csound->esr/p->fout->N;
       harm = (int)(csound->esr/(2*ffun));
-      if (type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
-      else if (type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
-      else if (type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+      if (type==1) famp *= FL(1.456)/pow(harm, FL(1.0)/FL(2.4));
+      else if (type==2) famp *= FL(1.456)/POWER(harm, FL(0.25));
+      else if (type==3) famp *= FL(1.456)/POWER(harm, FL(1.0)/FL(160.0));
       else {
         harm = 1;
-        famp *= (MYFLT)1.456;
+        famp *= FL(1.456);
       }
-      for (i = 0; i < framesize; i ++) fout[i] = 0.f;
+      memset(fout, 0, sizeof(float)*framesize);
+      /* for (i = 0; i < framesize; i ++) fout[i] = 0.f; */
 
      for(n=1; n <= harm; n++){
         if(type == 3) amp = famp/(harm);
@@ -517,12 +518,12 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 #ifdef SDFT
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
-          framesize = p->fin->NB;
-          pos=*p->kbin;
-          if(pos >= 0 && pos < framesize){
-            *p->kamp = (MYFLT)fin[pos].re;
-            *p->kfreq = (MYFLT)fin[pos].im;
-          }
+      framesize = p->fin->NB;
+      pos=*p->kbin;
+      if(pos >= 0 && pos < framesize){
+        *p->kamp = (MYFLT)fin[pos].re;
+        *p->kfreq = (MYFLT)fin[pos].im;
+      }
     }
     else 
 #endif
@@ -910,7 +911,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 {
     int     i, chan, N = p->fout->N;
     float   max = 0.0f;
-    MYFLT   pscal = (MYFLT) fabs(*p->kscal);
+    MYFLT   pscal = FABS(*p->kscal);
     int     keepform = (int) *p->keepform;
     float   g = (float) *p->gain;
     float   *fin = (float *) p->fin->frame.auxp;
@@ -932,7 +933,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
         fout[0] = fin[0];
         fout[NB-1] = fin[NB-1];
         if (XINARG2) {
-          pscal = (MYFLT) fabs((double)p->kscal[n]);
+          pscal = FABS(p->kscal[n]);
         }
         if (keepform) 
           for (i = 1; i < NB-1; i++) {
@@ -1339,8 +1340,8 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
     MYFLT   *ftable;
 #ifdef SDFT
     if (p->fin->sliding) {
-      MYFLT g = (MYFLT)fabs(*p->kgain);
-      MYFLT masklevel = (MYFLT) fabs(*p->klevel);
+      MYFLT g = FABS(*p->kgain);
+      MYFLT masklevel = FABS(*p->klevel);
       int NB = p->fin->NB, n, i;
       p->fout->NB = NB;
       p->fout->N = p->fin->N;
@@ -1366,8 +1367,8 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
         int32    framesize, i, j;
         int     test;
         float   *fout, *fin;
-        float   g = (float) fabs(*p->kgain);
-        float   masklevel = (float) fabs(*p->klevel);
+        float   g = fabsf((float)*p->kgain);
+        float   masklevel = fabsf((float)*p->klevel);
 
         fout = (float *) p->fout->frame.auxp;
         fin = (float *) p->fin->frame.auxp;

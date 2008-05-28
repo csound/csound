@@ -1,3 +1,7 @@
+2008-05-28  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/vbap.c: Change argument types to akOO from akoo etc
+
 2008-05-18  Michael Gogins  <gogins@pipeline.com>
 
 	* Opcodes/chua/ChuaOscillator.cpp

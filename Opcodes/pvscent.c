@@ -219,7 +219,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 
       Amp += Frame[0];
       Amp += Frame[2*numBins];
-      Amp *= 0.5;
+      Amp *= FL(0.5);
 
       if (numPeaks==0) {
         /* If no peaks found return 0. */
@@ -237,8 +237,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 
           for (j=1; j<numPeaks; j++) {
             Frac = Remainder(PeakFreq[j], f0Cand);
-            Frac = (Frac > 0.5 ? 1 - Frac : Frac);
-
+            if (Frac > FL(0.5)) Frac = FL(1.0) - Frac;
             Frac /= PeakFreq[j];
 
             inharmonic[i]+=Frac;

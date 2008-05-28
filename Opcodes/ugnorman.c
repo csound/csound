@@ -2027,9 +2027,9 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       a =  oldamps[i];
       for (n=0; n<nsmps; n++) {    
         ftab = ftp->ftable + (phase >> lobits);
-        v1 = *ftab++;
+        v1 = ftab[0];
         fract = (MYFLT) PFRAC(phase);
-        ar[n] += (v1 + fract * (*ftab - v1)) * a;
+        ar[n] += (v1 + fract * (ftab[1] - v1)) * a;
         phase += inc;
         phase &= PHMASK;
         a += inca;

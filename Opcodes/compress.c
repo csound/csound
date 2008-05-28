@@ -218,7 +218,7 @@ static int distort(CSOUND *csound, DIST *p)
       q = p->c1 * asig[n] * asig[n] + p->c2 * q;
     }
     p->prvq = q;
-    rms = (MYFLT) sqrt((double) q);    /* get running rms      */
+    rms = SQRT(q);    /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     if ((dist = *p->kdist) < FL(0.001))

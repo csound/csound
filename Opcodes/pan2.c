@@ -63,7 +63,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
         ar[n] = ain[n] * SQRT(kangl);
-        al[n] = ain[n] * SQRT(1-kangl);
+        al[n] = ain[n] * SQRT(FL(1.0)-kangl);
       }
       break;
     }
@@ -72,7 +72,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
         ar[n] = ain[n] * kangl;
-        al[n] = ain[n] * (1-kangl);
+        al[n] = ain[n] * (FL(1.0)-kangl);
       }
       break;
     }

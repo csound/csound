@@ -75,9 +75,6 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
     if (*p->kfc <= FL(0.0))     {
       int32      n = csound->ksmps;
       memcpy(out, in, n*sizeof(MYFLT));
-/*       do { */
-/*         *out++ = *in++; */
-/*       } while (--n); */
       return OK;
     }
 
@@ -107,12 +104,6 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 
     if (*p->kfc <= FL(0.0))     {
       memset(out, 0, csound->ksmps*sizeof(MYFLT));
-/*       long      n = csound->ksmps; */
-
-/*       do { */
-/*         *out++ = FL(0.0); */
-/*         } while (--n); */
-
       return OK;
     }
 
@@ -141,10 +132,6 @@ static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     out = p->sr;
     if (*p->kbw <= FL(0.0))     {
       memset(out, 0, csound->ksmps*sizeof(MYFLT));
-/*       long      n = csound->ksmps; */
-/*       do { */
-/*         *out++ = FL(0.0); */
-/*       } while (--n); */
       return OK;
     }
     if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
@@ -173,11 +160,6 @@ static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 
     if (*p->kbw <= FL(0.0))     {
       memcpy(out, in, csound->ksmps*sizeof(MYFLT));
-/*       long      n = csound->ksmps; */
-
-/*       do { */
-/*         *out++ = *in++; */
-/*       } while (--n); */
       return OK;
     }
 

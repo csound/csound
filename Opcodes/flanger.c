@@ -72,7 +72,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
     return OK;
 }
 
-#define MAXDELAY        .2 /* 5 Hz */
+#define MAXDELAY        0.2 /* 5 Hz */
 
 static int wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
@@ -111,7 +111,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
       double b;
       p->prvhp = *p->filt_khp;
       b = 2.0 - cos((double)(*p->filt_khp * csound->tpidsr));
-      p->c2 = (MYFLT)(b - sqrt((double)(b * b - 1.0)));
+      p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
     c1= p->c1;

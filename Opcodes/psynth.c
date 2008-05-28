@@ -111,24 +111,28 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
+    else
+      memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
     if (p->freqs.auxp == NULL ||
         (unsigned) p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
+    else
+      memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
     if (p->phases.auxp == NULL ||
         (unsigned) p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
+    else
+      memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins );
     if (p->sum.auxp == NULL ||
         (unsigned) p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
+    else
+      memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
     if (p->trackID.auxp == NULL ||
         (unsigned) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
-
-    memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
-     memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
- memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins  );
- memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
- memset(p->trackID.auxp, 0, sizeof(int) * numbins );
+    else
+      memset(p->trackID.auxp, 0, sizeof(int) * numbins );
 
     return OK;
 }
@@ -185,7 +189,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
                 freqnext = freq = freqs[j];
                 phase = phases[j];
                 amp = amps[j];
-                ampnext = 0.0f;
+                ampnext = FL(0.0);
               }
             }
             else {
@@ -193,7 +197,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               contin = 1;
               freq = freqnext;
               phase = -freq * factor;
-              amp = 0.0f;
+              amp = FL(0.0);
 
             }
             /* interpolation & track synthesis loop */
@@ -260,27 +264,31 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
 
-      if (p->amps.auxp == NULL ||
-    (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
+    if (p->amps.auxp == NULL ||
+        (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-      if (p->freqs.auxp == NULL ||
-      (unsigned) p->freqs.size < sizeof(MYFLT) * numbins)
+    else
+      memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
+    if (p->freqs.auxp == NULL ||
+        (unsigned) p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-      if (p->phases.auxp == NULL ||
-       (unsigned) p->phases.size < sizeof(MYFLT) * numbins)
+    else
+      memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
+    if (p->phases.auxp == NULL ||
+        (unsigned) p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-      if (p->sum.auxp == NULL ||
-       (unsigned) p->sum.size < sizeof(MYFLT) * p->hopsize)
+    else
+      memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins  );
+    if (p->sum.auxp == NULL ||
+        (unsigned) p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-      if (p->trackID.auxp == NULL ||
-       (unsigned) p->trackID.size < sizeof(int) * numbins)
+    else
+      memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
+    if (p->trackID.auxp == NULL ||
+        (unsigned) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
-
-    memset(p->amps.auxp, 0, sizeof(MYFLT) * numbins );
-     memset(p->freqs.auxp, 0, sizeof(MYFLT) * numbins );
- memset(p->phases.auxp, 0, sizeof(MYFLT) * numbins  );
- memset(p->sum.auxp, 0, sizeof(MYFLT) * p->hopsize );
- memset(p->trackID.auxp, 0, sizeof(int) * numbins );
+    else
+      memset(p->trackID.auxp, 0, sizeof(int) * numbins );
 
     return OK;
 }
@@ -341,7 +349,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phase = phases[j];
                 phasenext = phase + freq * factor;
                 amp = amps[j];
-                ampnext = 0.0f;
+                ampnext = FL(0.0);
               }
             }
             else {
@@ -349,7 +357,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               contin = 1;
               freq = freqnext;
               phase = phasenext - freq * factor;
-              amp = 0.0f;
+              amp = FL(0.0);
             }
             /* phasediff */
             phasediff = phasenext - phase;
@@ -465,7 +473,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
                 phase = phases[j];
                 phasenext = phase + freq * factor;
                 amp = amps[j];
-                ampnext = 0.0f;
+                ampnext = FL(0.0);
               }
             }
             else {
@@ -473,7 +481,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               contin = 1;
               freq = freqnext;
               phase = phasenext - freq * factor;
-              amp = 0.0f;
+              amp = FL(0.0);
             }
             /* phasediff */
             phasediff = phasenext - phase;

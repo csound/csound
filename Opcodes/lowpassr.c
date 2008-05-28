@@ -91,7 +91,7 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     int n,nsmps = csound->ksmps, j;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      b = FL(10.0) / (*p->kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
+      b = FL(10.0) / (*p->kres * SQRT(kfco)) - FL(1.0);
       p->k = k = FL(1000.0) / kfco;
       p->coef1 = coef1 = (b+FL(2.0) * k);
       p->coef2 = coef2 = FL(1.0)/(FL(1.0) + b + k);
@@ -105,12 +105,10 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       ar = p->ar;
 
       for (n=0;n<nsmps;n++) {
-        ar[n] = yn = (coef1 * *ynm1 - k * *ynm2 + asig[n]) * coef2;
-        *ynm2 = *ynm1;
-        *ynm1 = yn;
+        ar[n] = yn = (coef1 * ynm1[j] - k * ynm2[j] + asig[n]) * coef2;
+        ynm2[j] = ynm1[j];
+        ynm1[j] = yn;
       }
-      ynm1++;
-      ynm2++;
       asig= p->ar;
     }
     return OK;
@@ -144,6 +142,8 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     asig = p->asig;
 
     for (j=0; j< p->loop; j++) {
+      MYFLT lynm1 = ynm1[j];
+      MYFLT lynm2 = ynm2[j];
                 /*
                 linfco=log((double) kfco)*ONEtoLOG2     ;
                 linfco = linfco + (sep / p->loop)*j;
@@ -158,12 +158,12 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 
       ar = p->ar;
       for (n=0;n<nsmps; n++) { /* This can be speeded up avoiding indirection */
-        ar[n] = yn = (coef1 * *ynm1 - k * *ynm2 + asig[n]) * coef2;
-        *ynm2 = *ynm1;
-        *ynm1 =  yn;
+        ar[n] = yn = (coef1 * lynm1 - k * lynm2 + asig[n]) * coef2;
+        lynm2 = lynm1;
+        lynm1 =  yn;
       }
-      ynm1++;
-      ynm2++;
+      ynm1[j] = lynm1;
+      ynm2[j] = lynm2;
       asig= p->ar;
     }
     return OK;
