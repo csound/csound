@@ -40,7 +40,9 @@ customSWIGFLAGS = []
 if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Csound,
-	# libsndfile is REQUIRED.
+	# the pthreads library is REQUIRED.
+	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
+	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
  	################################################################
 	# If you want to build Csound,
 	# libsndfile is REQUIRED.
