@@ -100,7 +100,7 @@ docDir      = concatPath([prefix, '/share/doc/csound'])
 # locale
 localeDir   = concatPath([prefix, '/share/locale'])
 # python module
-pythonDir   = '/usr/lib/python%s/site-packages' % (pyVersion)
+pythonDir   = concatPath([prefix, '/lib/python%s/site-packages' % (pyVersion)])
 
 def runCmd(args):
     return os.spawnvp(os.P_WAIT, args[0], args)
