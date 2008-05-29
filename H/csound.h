@@ -1077,6 +1077,10 @@ CSOUND_FILETYPES;
   /**
    * Returns the ID of the currently executing thread,
    * or NULL for failure.
+   *
+   * NOTE: The return value can be used as a pointer
+   * to a thread object, but it should be compared 
+   * as a pointer. The pointed to values should be compared.
    */
   PUBLIC void *csoundGetCurrentThreadId(void);
 
