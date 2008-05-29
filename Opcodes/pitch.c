@@ -34,6 +34,14 @@
 #define PLAYING   2
 #define LOGTWO    (0.69314718055994530942)
 
+static int32 FLOOR(MYFLT x) {
+  if (x >= 0.0) {
+    return (int32) x;
+  } else {
+    return (int32) x - 0.99999999;
+  } 
+}
+
 static const MYFLT bicoefs[] = {
     -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
      FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
