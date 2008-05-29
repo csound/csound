@@ -1,10 +1,11 @@
-2008-05-18  Michael Gogins  <gogins@pipeline.com>
+2008-05-28  Michael Gogins  <gogins@pipeline.com>
 
 	* Top/threads.c
 	For the Csound threading API, on the Windows platform, I removed
 	the native Windows threading implementation and replaced it with the
 	POSIX threads implementation already used for Linux and OS X. This
-	is to facilitate development of multi-threading in Csound.
+	is to facilitate development of multi-threading in Csound, and to
+	simplify the maintenance of Csound.
 	
 2008-05-28  jpff  <jpff@codemist.co.uk>
 
