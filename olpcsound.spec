@@ -62,9 +62,11 @@ Headers and libraries for Csound-based application development
 
 
 %changelog
+* Thur May 29 2008  Victor.Lazzarini <vlazzarini@nuim.ie> - 5.08.92-2
+  - fixed version format in changelog
+  - fixed permissions of Opcodes/hrtfopcodes.c and Util/mixer.c in srcs
 
-* Mon May 19 2008 Victor.Lazzarini <vlazzarini@nuim.ie>
-  5.08.92-1
+* Mon May 19 2008 Victor.Lazzarini <vlazzarini@nuim.ie> - 5.08.92-1
   - fixed license
   - removed -fomit-frame-pointer from SConstruct
   - fixed description
