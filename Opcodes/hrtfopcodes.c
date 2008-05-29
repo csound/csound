@@ -22,7 +22,6 @@
 */
 #include "csdl.h"
 #include <math.h>
-
 /*definitions*/
 #define minelev -40             /*from mit*/
 #define elevincrement 10        /*from mit*/
