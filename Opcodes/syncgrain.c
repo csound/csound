@@ -84,7 +84,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
+      return csound->PerfError(csound,
+                               Str("grain size smaller than 1 sample\n"));
     }
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -96,7 +97,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         numstreams--; /* decrease the no of streams */
         firststream=(firststream+1)%olaps; /* first stream is the next */
       }
-              
+
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod - frac;
@@ -233,7 +234,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
+      return csound->PerfError(csound,
+                               Str("grain size smaller than 1 sample\n"));
     }
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
@@ -464,7 +466,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      return csound->PerfError(csound, Str("grain size smaller than 1 sample\n"));
+      return csound->PerfError(csound,
+                               Str("grain size smaller than 1 sample\n"));
     }
     else if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
@@ -561,7 +564,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
               items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
               if (items < hdatasize){
                 sf_seek(p->sf,items-hdatasize,SEEK_END);
-                items = sf_read_MYFLT(p->sf,datap+hdatasize+items,hdatasize-items);
+                items = sf_read_MYFLT(p->sf,datap+hdatasize+items,
+                                      hdatasize-items);
               }
 
               for(n=0; n < chans; n++)

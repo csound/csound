@@ -60,7 +60,7 @@ static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
       p->newtime = p->table[p->ndx-1];
     else
       p->newtime = 0;
-    p->start = csound->kcounter * csound->onedkr;
+    p->start = (double)csound->kcounter * csound->onedkr;
     start = (int32) *p->kstart;
     loop = (int32) *p->kloop;
     if (loop > 0) {
@@ -98,7 +98,7 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
       }
 
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - csound->kcounter * csound->onedkr;
+        double constant = p->start - (double)csound->kcounter * csound->onedkr;
         double difference_new = p->newtime * p->curr_unit_time + constant;
         double difference_old = p->newtime * *p->unit_time     + constant;
         double difference = difference_new - difference_old;
@@ -107,9 +107,9 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
       }
       if (csound->kcounter * csound->onedkr
           > p->newtime * *p->unit_time + p->start) {
-        float curr_val = p->table[p->ndx];
+        MYFLT curr_val = p->table[p->ndx];
         p->first_flag = 0;
-        p->newtime += curr_val;
+        p->newtime += (double)curr_val;
         if (loop > 0) {
           (*ndx)++;
           *ndx %= loop;
@@ -197,7 +197,8 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
         if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) {
-          return csound->PerfError(csound, Str("seqtim: incorrect table number"));
+          return csound->PerfError(csound,
+                                   Str("seqtim: incorrect table number"));
         }
         p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;

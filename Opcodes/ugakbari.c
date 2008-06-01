@@ -24,9 +24,9 @@
 #include "csdl.h"
 #include <math.h>
 
-#define LOGCURVE(x,y) (MYFLT)((log((double)x * ((double)y-1.0)+1.0))/(log((double)y)))
-#define EXPCURVE(x,y) (MYFLT)((exp((double)x * log((double)y))-1.0)/((double)y-1.0))
-#define GAINSLIDER(x) (MYFLT)(0.000145 * exp((double)x * 0.06907))
+#define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
+#define EXPCURVE(x,y) ((EXP(x * LOG(y))-FL(1.0))/(y-FL(1.0)))
+#define GAINSLIDER(x) (FL(0.000145) * EXP(x * FL(0.06907)))
 
 typedef struct _scale {
   OPDS  h;
@@ -54,7 +54,7 @@ typedef struct _gainslider {
 
 /*  scale opcode  */
 
-int scale_process(CSOUND *csound, scale *p)
+static int scale_process(CSOUND *csound, scale *p)
 {
     if (*p->kmin != *p->kmax) {
       *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
@@ -65,10 +65,10 @@ int scale_process(CSOUND *csound, scale *p)
 
 /*  expcurve opcode  */
 
-int expcurve_perf(CSOUND *csound, expcurve *p)
+static int expcurve_perf(CSOUND *csound, expcurve *p)
 {
-    double ki = (double)*p->kin;
-    double ks = (double)*p->ksteepness;
+    MYFLT ki = *p->kin;
+    MYFLT ks = *p->ksteepness;
     *p->kout = EXPCURVE(ki, ks);
 
     return OK;
@@ -76,10 +76,10 @@ int expcurve_perf(CSOUND *csound, expcurve *p)
 
 /*  logcurve opcode  */
 
-int logcurve_perf(CSOUND *csound, logcurve *p)
+static int logcurve_perf(CSOUND *csound, logcurve *p)
 {
-    double ki = (double)*p->kin;
-    double ks = (double)*p->ksteepness;
+    MYFLT ki = *p->kin;
+    MYFLT ks = *p->ksteepness;
     *p->kout = LOGCURVE(ki, ks);
 
     return OK;
@@ -87,7 +87,7 @@ int logcurve_perf(CSOUND *csound, logcurve *p)
 
 /*  gainslider opcode  */
 
-int gainslider_perf(CSOUND *csound, gainslider *p)
+static int gainslider_perf(CSOUND *csound, gainslider *p)
 {
     if (*p->kindex <= FL(0.0)) {
       *p->koutsig = FL(0.0);
@@ -103,9 +103,12 @@ int gainslider_perf(CSOUND *csound, gainslider *p)
 
 static OENTRY localops[] = {
   { "scale", sizeof(scale), 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
-  { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL, (SUBR)expcurve_perf, NULL },
-  { "logcurve", sizeof(logcurve), 2, "k", "kk", NULL, (SUBR)logcurve_perf, NULL },
-  { "gainslider", sizeof(gainslider), 2, "k", "k", NULL, (SUBR)gainslider_perf, NULL }
+  { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL,
+    (SUBR)expcurve_perf, NULL },
+  { "logcurve", sizeof(logcurve), 2, "k", "kk", NULL,
+    (SUBR)logcurve_perf, NULL },
+  { "gainslider", sizeof(gainslider), 2, "k", "k", NULL,
+    (SUBR)gainslider_perf, NULL }
 };
 
 LINKAGE

@@ -22,7 +22,7 @@
 */
 
 typedef struct {
-        int    cnt, wsize, flag, section;
+  int    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;
 } WARPSECTION;
 
