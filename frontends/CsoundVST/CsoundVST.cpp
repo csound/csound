@@ -358,6 +358,12 @@ void CsoundVST::suspend()
 void CsoundVST::resume()
 {
   Message("RECEIVED CsoundVST::resume()...\n");
+  CsoundVstFltk *ed = (CsoundVstFltk *)getEditor();
+  if (ed) {
+    if (ed->isOpen()) {
+      ed->updateModel();
+    }
+  }
   performance();
 }
 
