@@ -382,9 +382,10 @@ static int vcombset(CSOUND *csound, VCOMB *p)
     else if (!(*p->istor)) {
       int32 *fp = (int32 *) p->auxch.auxp;
       p->pntr = (MYFLT *) fp;
-      do
-        *fp++ = 0;
-      while (--lpsiz);
+      memset(p->pntr, 0, nbytes);
+      /* do   /\* Seems to assume sizeof(int32)=sizeof(MYFLT) *\/ */
+      /*   *fp++ = 0; */
+      /* while (--lpsiz); */
     }
     p->rvt = FL(0.0);
     p->lpt = FL(0.0);
@@ -397,8 +398,8 @@ static int vcombset(CSOUND *csound, VCOMB *p)
 
 static int vcomb(CSOUND *csound, VCOMB *p)
 {
-    int n, nsmps = csound->ksmps;
-    uint32 xlpt, maxlpt = (uint32)p->maxlpt;
+    int         n, nsmps = csound->ksmps;
+    uint32      xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
 
@@ -418,7 +419,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
           p->rvt = *p->krvt, p->lpt = *lpt;
-          g = p->g = (MYFLT)pow(0.001, (p->lpt / p->rvt));
+          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
         }
         lpt++;
         ar[n] = *rp++;
@@ -434,7 +435,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
         p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = (MYFLT)pow(0.001, (p->lpt / p->rvt));
+        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
       }
       for (n=0; n<nsmps; n++) {
         ar[n] = *rp++;
@@ -449,7 +450,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
 
 static int valpass(CSOUND *csound, VCOMB *p)
 {
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     uint32 xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
@@ -464,21 +465,20 @@ static int valpass(CSOUND *csound, VCOMB *p)
     wp = p->pntr;
     if (p->lpta) {                                      /* if xlpt is a-rate */
       lpt = p->xlpt;
-      do {
-        xlpt = (uint32)((*p->insmps != 0) ? *lpt : *lpt * csound->esr);
+      for (n=0; n<nsmps; n++) {
+        xlpt = (uint32)((*p->insmps != 0) ? lpt[n] : lpt[n] * csound->esr);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
-        if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
-          p->rvt = *p->krvt, p->lpt = *lpt;
-          g = p->g = (MYFLT)pow(0.001, (p->lpt / p->rvt));
+        if ((p->rvt != *p->krvt) || (p->lpt != lpt[n])) {
+          p->rvt = *p->krvt, p->lpt = lpt[n];
+          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
         }
-        lpt++;
         y = *rp++;
-        *wp++ = z = y * g + *asig++;
-        *ar++ = y - g * z;
+        *wp++ = z = y * g + asig[n];
+        ar[n] = y - g * z;
         if (wp >= endp) wp = startp;
         if (rp >= endp) rp = startp;
-      } while (--nsmps);
+      }
     }
     else {                                              /* if xlpt is k-rate */
       xlpt = (uint32) ((*p->insmps != 0) ? *p->xlpt
@@ -487,15 +487,15 @@ static int valpass(CSOUND *csound, VCOMB *p)
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
         p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = (MYFLT)pow(0.001, (p->lpt / p->rvt));
+        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
       }
-      do {
+      for (n=0; n<nsmps; n++) {
         y = *rp++;
-        *wp++ = z = y * g + *asig++;
-        *ar++ = y - g * z;
+        *wp++ = z = y * g + asig[n];
+        ar[n] = y - g * z;
         if (wp >= endp) wp = startp;
         if (rp >= endp) rp = startp;
-      } while (--nsmps);
+      }
     }
     p->pntr = wp;
     return OK;

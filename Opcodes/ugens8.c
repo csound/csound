@@ -87,9 +87,10 @@ int pvset(CSOUND *csound, PVOC *p)
     p->opBpos = 0;
     p->lastPex = FL(1.0);     /* needs to know last pitchexp to update phase */
     /* Set up time window */
-    for (i=0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
-      p->lastPhase[i] = FL(0.0);
-    }
+    memset(p->lastPhase, 0, sizeof(MYFLT)*pvdasiz(p));
+    /* for (i=0; i < pvdasiz(p); ++i) {  /\* or maybe pvdasiz(p) *\/ */
+    /*   p->lastPhase[i] = FL(0.0); */
+    /* } */
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
@@ -112,10 +113,11 @@ int pvset(CSOUND *csound, PVOC *p)
     }
 
     for (i=0; i < OPWLEN / 2 + 1; ++i)  /* time window is OPWLEN long */
-      p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+      p->window[i] = (FL(0.5) - FL(0.5) * COS(TWOPI_F*(MYFLT)i/(MYFLT)OPWLEN));
     /* NB: HANNING */
-    for (i=0; i< pvfrsiz(p); ++i)
-      p->outBuf[i] = FL(0.0);
+    memset(p->outBuf, 0, sizeof(MYFLT)*pvfrsiz(p));
+    /* for (i=0; i< pvfrsiz(p); ++i) */
+    /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))

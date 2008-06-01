@@ -9,6 +9,8 @@
 	
 2008-05-28  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/ugens7.c (harmon): Make onstant totally 64bit safe
+
 	* Opcodes/vbap.c: Change argument types to akOO from akoo etc
 
 2008-05-18  Michael Gogins  <gogins@pipeline.com>

@@ -44,7 +44,7 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq);
 static MYFLT SingWave_tick(CSOUND *csound, SingWave *p);
 static void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain);
 
-static void make_SubNoise(SubNoise *p, int subSample)
+static inline void make_SubNoise(SubNoise *p, int subSample)
 {
     p->lastOutput = FL(0.0);
     p->howOften = subSample-1;
@@ -53,12 +53,16 @@ static void make_SubNoise(SubNoise *p, int subSample)
 
 static MYFLT SubNoise_tick(CSOUND *csound, SubNoise *p)
 {
+    MYFLT last;
     if (p->counter==0) {
-      p->lastOutput = Noise_tick(csound, &p->lastOutput);
+      last = p->lastOutput = Noise_tick(csound, &p->lastOutput);
       p->counter = p->howOften;
     }
-    else (p->counter)--;
-    return p->lastOutput;
+    else {
+      (p->counter)--;
+      last = p->lastOutput;
+    }
+    return last;
 }
 
 /*******************************************/
