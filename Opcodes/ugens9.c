@@ -44,13 +44,16 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
-      if ((mfp = csound->ldmemfile2(csound, cvfilnam, CSFTYPE_CVANAL)) == NULL) {
-        return csound->InitError(csound, Str("CONVOLVE cannot load %s"), cvfilnam);
+      if ((mfp = csound->ldmemfile2(csound, cvfilnam, CSFTYPE_CVANAL))
+          == NULL) {
+        return csound->InitError(csound,
+                                 Str("CONVOLVE cannot load %s"), cvfilnam);
       }
     }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
-      return csound->InitError(csound, Str("%s not a CONVOLVE file (magic %ld)"),
+      return csound->InitError(csound,
+                               Str("%s not a CONVOLVE file (magic %ld)"),
                                cvfilnam, cvh->magic);
     }
 
@@ -60,8 +63,9 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
       if (p->OUTOCOUNT == nchanls)
         p->nchanls = nchanls;
       else {
-        return csound->InitError(csound, Str("CONVOLVE: output channels not equal "
-                                             "to number of channels in source"));
+        return csound->InitError(csound,
+                                 Str("CONVOLVE: output channels not equal "
+                                     "to number of channels in source"));
       }
     }
     else {
@@ -95,16 +99,17 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     }
     if (cvh->dataFormat != CVMYFLT) {
       return csound->InitError(csound,
-                               Str("unsupported CONVOLVE data format %ld in %s"),
+                               Str("unsupported CONVOLVE data "
+                                   "format %ld in %s"),
                                cvh->dataFormat, cvfilnam);
     }
 
     /* Determine size of circular output buffer */
     if (Hlen >= csound->ksmps)
-      obufsiz = (int32) ceil((double) Hlen / (double) csound->ksmps)
+      obufsiz = (int32) CEIL((MYFLT) Hlen / csound->ksmps)
                 * csound->ksmps;
     else
-      obufsiz = (int32) ceil((double) csound->ksmps / (double) Hlen) * Hlen;
+      obufsiz = (int32) CEIL(csound->ksmps / (MYFLT) Hlen) * Hlen;
 
     siz = ((Hlenpadded + 2) + p->nchanls * ((Hlen - 1) + obufsiz)
               + (p->nchanls > 1 ? (Hlenpadded + 2) : 0));
@@ -117,9 +122,11 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
       p->outbuf = fltp;   fltp += p->nchanls*obufsiz;
       p->X  = fltp;
     }
-    fltp = (MYFLT *) p->auxch.auxp;
-    for(i=0; i < siz; i++) fltp[i] = FL(0.0);
-
+    else {
+      fltp = (MYFLT *) p->auxch.auxp;
+      memset(fltp, 0, sizeof(MYFLT)*siz);
+    /* for(i=0; i < siz; i++) fltp[i] = FL(0.0); */
+    }
     p->obufsiz = obufsiz;
     p->outcnt = obufsiz;
     p->incount = 0;
@@ -162,20 +169,20 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
 {
     int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
-    int32   i,j;
+    int32  i,j;
     MYFLT  *ar[4];
     MYFLT  *ai = p->ain;
     MYFLT  *fftbufind;
-    int32   outcnt = p->outcnt;
-    int32   incount=p->incount;
-    int32   Hlen = p->Hlen;
-    int32   Hlenm1 = Hlen - 1;
-    int32   obufsiz = p->obufsiz;
+    int32  outcnt = p->outcnt;
+    int32  incount=p->incount;
+    int32  Hlen = p->Hlen;
+    int32  Hlenm1 = Hlen - 1;
+    int32  obufsiz = p->obufsiz;
     MYFLT  *outhead = NULL;
     MYFLT  *outail = p->outail;
     MYFLT  *olap;
     MYFLT  *X;
-    int32   Hlenpadded = p->Hlenpadded;
+    int32  Hlenpadded = p->Hlenpadded;
     MYFLT  scaleFac;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, (int) Hlenpadded);
@@ -407,7 +414,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     p->Hlenpadded = 2*p->Hlen;
 
     /* determine the number of partitions */
-    p->numPartitions = ceil((MYFLT)(IRfile.getframes) / (MYFLT)p->Hlen);
+    p->numPartitions = CEIL((MYFLT)(IRfile.getframes) / (MYFLT)p->Hlen);
 
     /* set up FFT tables */
     inbuf = (MYFLT *) csound->Malloc(csound,

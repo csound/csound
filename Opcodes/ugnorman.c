@@ -472,8 +472,8 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     /* set up gate function table */
     if (*p->igatefun > FL(0.0)) {
       if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL) {
-        return csound->InitError(csound, Str("ATSADD: Gate Function table number "
-                                             "not valid"));
+        return csound->InitError(csound, Str("ATSADD: Gate Function table "
+                                             "number not valid"));
       }
       else
         p->AmpGateFunc = AmpGateFunc;
@@ -488,7 +488,8 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
     /* calculate how much memory we have to allocate for this */
     memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double) + (int) (*p->iptls) * sizeof(MYFLT);
+              + (int) (*p->iptls) * sizeof(double)
+              + (int) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
     if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
@@ -565,7 +566,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     MYFLT   frIndx;
     MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps;
     FUNC    *ftp;
-    int32    lobits, phase, inc;
+    int32   lobits, phase, inc;
     double  *oscphase;
     int     i, nsmps = csound->ksmps;
     int     numpartials = (int) *p->iptls;
@@ -1015,11 +1016,11 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
       /* do we even have to synthesize it? */
       if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
         amp = csound->e0dbfs*
-          (MYFLT) sqrt((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
+          SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
         nsmps = csound->ksmps;
         for (n=0; n<nsmps; n++) {
-          ar[n] += (cos(p->oscphase[i])
+          ar[n] += (COS(p->oscphase[i])
                    * amp * randiats(csound, &(p->randinoise[i])));
           p->oscphase[i] += p->phaseinc[i];
         }

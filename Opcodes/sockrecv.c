@@ -187,8 +187,9 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
       p->buf = buf;
     }
     else {
-      for (i = 0; i < ksmps; i++)
-        asig[i] = FL(0.0);
+      memset(asig, 0, sizeof(MYFLT)*ksmps);
+      /* for (i = 0; i < ksmps; i++) */
+      /*   asig[i] = FL(0.0); */
     }
     return OK;
 }
@@ -278,10 +279,12 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
       p->buf = buf;
     }
     else {
-      for (i = 0; i < ksmps; i++) {
-        asigl[i] = FL(0.0);
-        asigr[i] = FL(0.0);
-      }
+      memset(asigl, 0, sizeof(MYFLT)*ksmps);
+      memset(asigr, 0, sizeof(MYFLT)*ksmps);
+      /* for (i = 0; i < ksmps; i++) { */
+      /*   asigl[i] = FL(0.0); */
+      /*   asigr[i] = FL(0.0); */
+    /* } */
     }
     return OK;
 }
