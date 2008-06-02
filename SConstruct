@@ -1269,7 +1269,7 @@ else:
         Depends(csoundJavaWrapper, csoundLibrary)
         libs.append(csoundJavaWrapper)
         jcsnd = csoundJavaWrapperEnvironment.Java(
-            target = './interfaces', source = './interfaces',
+            target = './interfaces/csnd', source = './interfaces',
             JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         try:
             os.mkdir('interfaces/csnd', 0755)
