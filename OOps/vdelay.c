@@ -58,7 +58,9 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
     if (buf==NULL) {        /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
+      return
+        csound->PerfError(csound,
+                          Str("vdelay: not initialised"));
     }
     maxd = (uint32) (1+*p->imaxd * ESR);
     indx = p->left;

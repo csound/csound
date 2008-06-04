@@ -345,15 +345,15 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
     return OK;
 }
 
-#ifdef FLOOR
-#undef FLOOR
+#ifdef MYFLOOR
+#undef MYFLOOR
 #endif
-#define FLOOR(x) ((int32)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
+#define MYFLOOR(x) ((int32)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
 
-#ifdef CEIL
-#undef CEIL
+#ifdef MYCEIL
+#undef MYCEIL
 #endif
-#define CEIL(x) ((int32)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
+#define MYCEIL(x) ((int32)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
@@ -371,7 +371,7 @@ int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 
 int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 {
-    *p->r = (MYFLT)(FLOOR(*p->a));
+    *p->r = (MYFLT)(MYFLOOR(*p->a));
     return OK;
 }
 
@@ -379,13 +379,13 @@ int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
     int n, nsmps = csound->ksmps;
     for (n = 0; n < nsmps; n++)
-      p->r[n] = (MYFLT)(FLOOR(p->a[n]));
+      p->r[n] = (MYFLT)(MYFLOOR(p->a[n]));
     return OK;
 }
 
 int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 {
-    *p->r = (MYFLT)(CEIL(*p->a));
+    *p->r = (MYFLT)(MYCEIL(*p->a));
     return OK;
 }
 
@@ -393,7 +393,7 @@ int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
     int n, nsmps = csound->ksmps;
     for (n = 0; n < nsmps; n++)
-      p->r[n] = (MYFLT)(CEIL(p->a[n]));
+      p->r[n] = (MYFLT)(MYCEIL(p->a[n]));
     return OK;
 }
 
