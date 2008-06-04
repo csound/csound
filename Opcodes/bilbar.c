@@ -70,7 +70,7 @@ static int bar_init(CSOUND *csound, BAR *p)
 
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
-      csound->AuxAlloc(csound, 3L*(long)((N+5)*sizeof(double)), &(p->w_aux));
+      csound->AuxAlloc(csound, (size_t)3*((N+5)*sizeof(double)), &(p->w_aux));
       p->w = (double *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);

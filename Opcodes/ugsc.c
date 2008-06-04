@@ -393,8 +393,8 @@ static int phaser2set(CSOUND *csound, PHASER2 *p)
     }
 
     loop = p->loop = (int) MYFLT2LONG(*p->order);
-    csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux1);
-    csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->aux2);
+    csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
+    csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
     p->nm1 = (MYFLT *) p->aux1.auxp;
     p->nm2 = (MYFLT *) p->aux2.auxp;
     for (j=0; j< loop; j++)

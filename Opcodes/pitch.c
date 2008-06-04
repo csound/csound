@@ -113,7 +113,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       windsiz = *(p->winlen);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
-      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1); /* & alloc auxspace  */
+      csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch1); /* & alloc auxspace  */
 
       fltp = (MYFLT *) p->auxch1.auxp;
       p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
@@ -605,8 +605,8 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
                     "adsynt: partial count is greater than amptable size!"));
     }
 
-    if (p->lphs.auxp==NULL || p->lphs.size < (long)sizeof(long)*count)
-      csound->AuxAlloc(csound, sizeof(long)*count, &p->lphs);
+    if (p->lphs.auxp==NULL || p->lphs.size < (size_t)sizeof(int32)*count)
+      csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
 
     lphs = (int32*)p->lphs.auxp;
     if (*p->iphs > 1) {
@@ -849,8 +849,8 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
     if (p->medisize) {
       msize = p->medisize * 3;
-      if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
-        csound->AuxAlloc(csound, sizeof(MYFLT)*(msize), &p->median);
+      if (p->median.auxp==NULL || p->median.size < (size_t)sizeof(MYFLT)*msize)
+        csound->AuxAlloc(csound, (size_t)sizeof(MYFLT)*(msize), &p->median);
       else {
         medi = (MYFLT*)p->median.auxp;
         memset(medi, 0, sizeof(MYFLT)*(msize));
@@ -1095,8 +1095,8 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
     if (count < 2)
       count = 2;
 
-    if (p->curphs.auxp==NULL || p->curphs.size < (long)sizeof(double)*count)
-      csound->AuxAlloc(csound, sizeof(double)*count, &p->curphs);
+    if (p->curphs.auxp==NULL || p->curphs.size < (size_t)sizeof(double)*count)
+      csound->AuxAlloc(csound, (size_t)sizeof(double)*count, &p->curphs);
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {

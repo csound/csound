@@ -87,7 +87,7 @@
     while (j++ < n) {                                             \
       value = (MYFLT) (chanblock[*slnum++] * oneTOf7bit);         \
       if (*(++ftp))   /* if valid ftable,use value as index   */  \
-        value = *((*ftp)->ftable + (long)(value * (*ftp)->flen)); \
+        value = *((*ftp)->ftable + (int32)(value * (*ftp)->flen)); \
                                 /* no interpolation */            \
       **result++ = value * (*max++ - *min) + *min;   /* scales the output */ \
       min++;;                                                     \
@@ -199,7 +199,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
     while (j++ < n) {                                             \
       value = chanblock[*slnum++] * oneTOf7bit;                   \
       if (*(++ftp))    /* if valid ftable,use value as index   */ \
-        value = *( (*ftp)->ftable + (long)(value * (*ftp)->flen));\
+        value = *( (*ftp)->ftable + (int32)(value * (*ftp)->flen));\
       value = value * (*max++ - *min) + *min; /* scales the output */ \
       min++;                                                      \
       **result++ =                                                \
@@ -276,7 +276,7 @@ static int slider64f(CSOUND *csound, SLIDER64f *p)
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
           ftp = csound->FTFind(csound, sld->ifn);                 \
-          value = *( ftp->ftable + (long)(value * ftp->flen));    \
+          value = *( ftp->ftable + (int32)(value * ftp->flen));    \
                                 /* no interpolation */            \
         }                                                         \
         **result++ = value * (*sld->imax - *sld->imin) + *sld->imin; \
@@ -375,8 +375,8 @@ static int islider64(CSOUND *csound, ISLIDER64 *p)
                        + chanblock[*slnum_lsb++]) * oneTOf14bit);      \
       if (*(++ftp)) {      /* if valid ftable,use value as index   */  \
         MYFLT phase = value * (*ftp)->flen;                            \
-        MYFLT *base = (*ftp)->ftable + (long)(phase);                  \
-        value = *base + (*(base+1) - *base) * (phase - (long) phase);  \
+        MYFLT *base = (*ftp)->ftable + (int32)(phase);                  \
+        value = *base + (*(base+1) - *base) * (phase - (int32) phase);  \
       }                                                                \
       **result++ = value * (*max++ - *min) + *min; /* scales the output */ \
       min++;                                                           \
@@ -442,8 +442,8 @@ static int slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
           FUNC *ftp= csound->FTFind(csound, sld->ifn);                 \
           MYFLT phase = value * ftp->flen;                             \
-          MYFLT *base = ftp->ftable + (long)(phase);                   \
-          value = *base + (*(base + 1) - *base) * (phase - (long) phase); \
+          MYFLT *base = ftp->ftable + (int32)(phase);                  \
+          value = *base + (*(base + 1) - *base) * (phase - (int32) phase); \
         }                                                              \
                                 /* scales the output */                \
         **result++ = value * (*sld->imax - *sld->imin) + *sld->imin;   \

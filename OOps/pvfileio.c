@@ -74,12 +74,12 @@ const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
 typedef struct pvoc_file {
     WAVEFORMATEX fmtdata;
     PVOCDATA    pvdata;
-    int32        datachunkoffset;
-    int32        nFrames;        /* no of frames in file */
-    int32        FramePos;       /* where we are in file */
+    int32       datachunkoffset;
+    int32       nFrames;        /* no of frames in file */
+    int32       FramePos;       /* where we are in file */
     FILE        *fp;
     void        *fd;
-    int32        curpos;
+    int32       curpos;
     int         to_delete;
     int         readonly;
     char        *name;
@@ -407,7 +407,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
                      float wparam, float *fWindow, uint32 dwWinlen)
 {
     int       fd;
-    int32      N, D;
+    int32     N, D;
     char      *pname;
     PVOCFILE  *p = NULL;
     float     winparam = 0.0f;
@@ -894,7 +894,7 @@ int pvoc_closefile(CSOUND *csound, int ofd)
 int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, int32 numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
-    int32      towrite;  /* count in 'words' */
+    int32     towrite;  /* count in 'words' */
 
     if (p == NULL) {
       csound->pvErrorCode = -38;
@@ -923,7 +923,7 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
                                     uint32 nframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    int32      toread, got;
+    int32     toread, got;
 
     if (p == NULL) {
       csound->pvErrorCode = -38;
@@ -954,7 +954,7 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
 int pvoc_fseek(CSOUND *csound, int ifd, int offset)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    int32      pos, skipframes, skipsize;
+    int32     pos, skipframes, skipsize;
 
     if (p == NULL) {
       csound->pvErrorCode = -38;

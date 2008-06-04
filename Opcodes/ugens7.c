@@ -254,7 +254,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       int32 nbufsmps = nbufs * csound->ksmps;
       int32 maxprd = (int32)(csound->esr / minfrq);
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
-      csound->AuxAlloc(csound, (long)totalsiz * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
       p->bufq = p->midp + nbufsmps;
