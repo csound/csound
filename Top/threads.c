@@ -157,7 +157,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
   pthread_t pthread = pthread_self();
-  return &pthread;
+  return &pthread;              /* This violates C local(auto) variables */
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
