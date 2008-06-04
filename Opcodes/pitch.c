@@ -34,7 +34,7 @@
 #define PLAYING   2
 #define LOGTWO    (0.69314718055994530942)
 
-static int32 FLOOR(MYFLT x) {
+static int32 MYFLOOR(MYFLT x) {
   if (x >= 0.0) {
     return (int32) x;
   } else {
@@ -714,10 +714,10 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     }
 
     tonal = *p->ktona;
-    tonal -= FLOOR(tonal);
+    tonal -= MYFLOOR(tonal);
     bright = *p->kbrite - tonal;
     octstart = bright - (MYFLT)octcnt * FL(0.5);
-    octbase = FLOOR(FLOOR(octstart) + FL(1.5));
+    octbase = MYFLOOR(MYFLOOR(octstart) + FL(1.5));
     octoffs = octbase - octstart;
 
     mtab = mixtp->ftable;
