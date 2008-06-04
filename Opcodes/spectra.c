@@ -140,7 +140,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                       Q, windsiz);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
-      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1); /* & alloc auxspace */
+      csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch1); /* & alloc auxspace */
 
       fltp = (MYFLT *) p->auxch1.auxp;
       p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
@@ -191,7 +191,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
         csound->AuxAlloc(csound,
-                         (long)totsize, &p->auxch2);/*  linear output window */
+                         (size_t)totsize, &p->auxch2);/*  linear output window */
         csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
                         (int32)totsamps, Str("octdown buffers:"), 0, "spectrum");
       }
@@ -408,7 +408,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*                                        "%d samps per octdown\n"), */
 /*                                    Q, windsiz, nsamps); */
 /*       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);    /\* calc local space reqd *\/ */
-/*       csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /\* & alloc auxspace  *\/ */
+/*       csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch); /\* & alloc auxspace  *\/ */
 /*       fltp = (MYFLT *) p->auxch.auxp; */
 /*       p->linbufp = fltp;          fltp += nsamps; /\* linbuf must handle nsamps *\/ */
 /*       p->sinp = sinp = fltp;      fltp += sumk; */
@@ -432,7 +432,7 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*       } */
 /*       if (*p->idsines != FL(0.0)) { */
 /*         /\* if reqd, display windowed sines immediately *\/ */
-/*         csound->dispset(csound, &p->dwindow, p->sinp, (long) sumk, */
+/*         csound->dispset(csound, &p->dwindow, p->sinp, (int32) sumk, */
 /*                                 Str("octdft windowed sines:"), 0, "octdft"); */
 /*         csound->display(csound, &p->dwindow); */
 /*       } */
@@ -1127,7 +1127,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       SPECset(csound,
               outspecp, (int32)npts);                 /*   reinit the out spec */
       csound->AuxAlloc(csound,
-                       (long)npts*2* sizeof(MYFLT),
+                       (size_t)npts*2* sizeof(MYFLT),
                        &p->auxch);                   /*   & local auxspace  */
       p->coefs = (MYFLT *) p->auxch.auxp;            /*   reassign filt tbls  */
       p->states = p->coefs + npts;

@@ -373,7 +373,7 @@ static int vcombset(CSOUND *csound, VCOMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
-      csound->AuxAlloc(csound, (long)nbytes, &p->auxch);
+      csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (p->pntr==NULL) {
         return csound->InitError(csound, Str("could not allocate memory"));

@@ -47,7 +47,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL ||
         p->auxch.size<(nsegs+1)*sizeof(TSEG)) {
-      csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      csound->AuxAlloc(csound, (size_t)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG *) p->auxch.auxp;
       (segp+nsegs)->cnt = MAXPOS;
     }

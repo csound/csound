@@ -493,7 +493,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
     if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
-    csound->AuxAlloc(csound, (long) memsize, &p->auxch);
+    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
@@ -1110,7 +1110,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    csound->AuxAlloc(csound, (long) memsize, &p->auxch);
+    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
@@ -1479,7 +1479,7 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     /* (one sorted one unsorted) */
     memsize = 2 * ((int) *(p->iptls) + 2);
 
-    csound->AuxAlloc(csound, memsize * (long) sizeof(ATS_DATA_LOC), &p->auxch);
+    csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
 
     fltp = (ATS_DATA_LOC *) p->auxch.auxp;
     p->table = fltp;
@@ -1786,7 +1786,7 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
     if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
-    csound->AuxAlloc(csound, (long) memsize, &p->auxch);
+    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
