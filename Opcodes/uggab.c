@@ -550,7 +550,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
       p->loop = 4;  /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (int32) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (long) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       return csound->InitError(csound, Str("illegal reson iscl value: %f"),
@@ -563,7 +563,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
       /*   p->yt1[j] = p->yt2[j] = FL(0.0); */
     }
     if (p->buffer.auxp == NULL || p->buffer.size<csound->ksmps*sizeof(MYFLT))
-      csound->AuxAlloc(csound, (long)(csound->ksmps*sizeof(MYFLT)), &p->buffer);
+      csound->AuxAlloc(csound, (size_t)(csound->ksmps*sizeof(MYFLT)), &p->buffer);
     return OK;
 }
 

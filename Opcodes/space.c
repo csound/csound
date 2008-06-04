@@ -47,7 +47,7 @@ static int spaceset(CSOUND *csound, SPACE *p)
     if (p->auxch.auxp == NULL ||
         p->auxch.size<sizeof(MYFLT)*(csound->ksmps * 4)) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
+      csound->AuxAlloc(csound, (size_t) (csound->ksmps * 4)
                                * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += csound->ksmps;

@@ -161,7 +161,8 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
 
 static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 {
-    int i, nBytes;
+    int i;
+    int32 nBytes;
 
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
@@ -180,8 +181,8 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     nBytes = 0;
     for (i = 0; i < 8; i++)
       nBytes += delay_line_bytes_alloc(p, i);
-    if (nBytes != (int) p->auxData.size)
-      csound->AuxAlloc(csound, (long) nBytes, &(p->auxData));
+    if (nBytes != (int32) p->auxData.size)
+      csound->AuxAlloc(csound, (size_t) nBytes, &(p->auxData));
     else if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* set up delay lines */

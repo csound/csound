@@ -239,7 +239,7 @@ extern "C" {
 
   typedef struct auxch {
     struct auxch *nxtchp;
-    int32    size;
+    size_t  size;
     void    *auxp, *endp;   /* was char* */
   } AUXCH;
 
@@ -795,18 +795,18 @@ extern const uint32_t csPlayScoMask;
     void (*SetRtrecordCallback)(CSOUND *,
                 int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
-    void (*AuxAlloc)(CSOUND *, long nbytes, AUXCH *auxchp);
+    void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
     void (*Free)(CSOUND *, void *ptr);
     /* Internal functions that are needed */
-    void (*dispset)(CSOUND *, WINDAT *, MYFLT *, long, char *, int, char *);
+    void (*dispset)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
     void (*display)(CSOUND *, WINDAT *);
     int (*dispexit)(CSOUND *);
-    MYFLT (*intpow)(MYFLT, long);
+    MYFLT (*intpow)(MYFLT, int32);
     MEMFIL *(*ldmemfile)(CSOUND *, const char *);  /* use ldmemfile2 instead */
-    long (*strarg2insno)(CSOUND *, void *p, int is_string);
+    int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*insert_score_event)(CSOUND *, EVTBLK *, double);
@@ -900,13 +900,13 @@ extern const uint32_t csPlayScoMask;
     int (*FileClose)(CSOUND *, void *);
     /* PVOC-EX system */
     int (*PVOC_CreateFile)(CSOUND *, const char *,
-                           unsigned long, unsigned long, unsigned long,
-                           unsigned long, long, int, int,
-                           float, float *, unsigned long);
+                           uint32, uint32, uint32,
+                           uint32, int32, int, int,
+                           float, float *, uint32);
     int (*PVOC_OpenFile)(CSOUND *, const char *, void *, void *);
     int (*PVOC_CloseFile)(CSOUND *, int);
-    int (*PVOC_PutFrames)(CSOUND *, int, const float *, long);
-    int (*PVOC_GetFrames)(CSOUND *, int, float *, unsigned long);
+    int (*PVOC_PutFrames)(CSOUND *, int, const float *, int32);
+    int (*PVOC_GetFrames)(CSOUND *, int, float *, uint32);
     int (*PVOC_FrameCount)(CSOUND *, int);
     int (*PVOC_fseek)(CSOUND *, int, int);
     const char *(*PVOC_ErrorString)(CSOUND *);
