@@ -23,7 +23,7 @@
 
 #include "csdl.h"
 
-#define FLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
 typedef struct {
         OPDS    h;
@@ -37,14 +37,14 @@ typedef struct {
 
 static int vaget(CSOUND *csound, VA_GET *p)
 {
-    int32 ndx = (int32) FLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     *p->kout = *(p->avar + ndx);
     return OK;
 }
 
 static int vaset(CSOUND *csound, VA_SET *p)
 {
-    int32 ndx = (int32) FLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     *(p->avar + ndx) = *p->kval;
     return OK;
 }

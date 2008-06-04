@@ -26,8 +26,7 @@
 #include <math.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
-/*
-#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
+/* #define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
 */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */
@@ -36,7 +35,9 @@
 /* it should be noted, though, that the above incorrect result would not be */
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
-#define FLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+
+
 
 int phsset(CSOUND *csound, PHSOR *p)
 {
@@ -351,7 +352,7 @@ int ktable(CSOUND *csound, TABLE   *p)
      * This is a problem, causes problems with negative numbers.
      *
      */
-     indx = (int32) FLOOR((double)ndx);
+     indx = (int32) MYFLOOR((double)ndx);
 
     /* Now for "limit mode" - the "non-wrap" function, depending on
      * iwrap.
@@ -429,7 +430,7 @@ int tablefn(CSOUND *csound, TABLE *p)
        * the offset.  */
 
       ndx = (pxndx[n] * xbmul) + offset;
-      indx = (int32) FLOOR((double)ndx);
+      indx = (int32) MYFLOOR((double)ndx);
 
       /* Limit = non-wrap.  Limits to 0 and (length - 1), or does the
        * wrap code.  See notes above in ktable().  */
@@ -480,7 +481,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (int32) FLOOR((double)ndx);
+    indx = (int32) MYFLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -557,7 +558,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
      * tblchk().  */
 
     ndx    = (ndx * p->xbmul) + p->offset;
-    indx = (int32) FLOOR((double)ndx);
+    indx = (int32) MYFLOOR((double)ndx);
 
     /* We need to generate a fraction - How much above indx is ndx?
      * It will be between 0 and just below 1.0.  */
@@ -687,7 +688,7 @@ int tabli(CSOUND *csound, TABLE   *p)
          * Then multiply the ndx by the denormalising factor and add in
          * the offset.  */
         ndx = (pxndx[n] * xbmul) + offset;
-        indx = (int32) FLOOR(ndx);
+        indx = (int32) MYFLOOR(ndx);
         /* We need to generate a fraction - How much above indx is ndx?
          * It will be between 0 and just below 1.0.  */
         fract = ndx - indx;
@@ -729,7 +730,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
        * the offset.  */
 
       ndx = (pxndx[n] * xbmul) + offset;
-      indx = (int32) FLOOR((double)ndx);
+      indx = (int32) MYFLOOR((double)ndx);
 
       /* We need to generate a fraction - How much above indx is ndx?
        * It will be between 0 and just below 1.0.  */

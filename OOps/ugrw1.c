@@ -50,17 +50,16 @@
 #include <ctype.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
-/*
-#define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
-*/
+/* #define MYFLOOR(x) 
+  (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999)) */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */
 /* because doubles do not have sufficient resolution for numbers like */
-/* -1000.999999999999999 (FLOOR(-1000) might possibly be -1001 which is wrong)*/
+/* -1000.999999999999999 (MYFLOOR(-1000) might possibly be -1001 which is wrong)*/
 /* it should be noted, though, that the above incorrect result would not be */
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
-#define FLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
 /* Do List:
  *
@@ -1046,7 +1045,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
        *
        * Limit the final index to 0 and the last location in the table.
        */
-      indx = (int32) FLOOR(ndx); /* Limit to (table length - 1) */
+      indx = (int32) MYFLOOR(ndx); /* Limit to (table length - 1) */
       if (indx > length - 1)
         indx = length - 1;      /* Limit the high values. */
       else if (indx < 0L) indx = 0L; /* limit negative values to zero. */
@@ -1055,7 +1054,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
      * In guard point mode only, add 0.5 to the index. */
     else {
       if (p->iwgm == 2) ndx += FL(0.5);
-      indx = (int32) FLOOR(ndx);
+      indx = (int32) MYFLOOR(ndx);
 
       /* Both wrap and guard point mode.
        * The following code uses an AND with an integer like 0000 0111 to wrap
@@ -1119,13 +1118,13 @@ int tablew(CSOUND *csound, TABLEW *p)
          add in the offset.  */
       ndx = (*pxndx++ * xbmul) + offset;
       if (liwgm == 0) {         /* Limit mode - when igmode = 0. */
-        indx = (int32) FLOOR(ndx);
+        indx = (int32) MYFLOOR(ndx);
         if (indx > length - 1) indx = length - 1;
         else if (indx < 0L) indx = 0L;
       }
       else {
         if (liwgm == 2) ndx += FL(0.5);
-        indx = (int32) FLOOR(ndx);
+        indx = (int32) MYFLOOR(ndx);
         /* Both wrap and guard point mode.
          *
          * AND with an integer like 0000 0111 to wrap the index within the
@@ -1639,7 +1638,7 @@ static void domix(CSOUND *csound, TABLEMIX *p)
     /* Get the length and generate the loop count.
      * Return with no action if it is 0.    */
 
-    if ((length = (int32)FLOOR(*p->len)) == 0L) return;
+    if ((length = (int32)MYFLOOR(*p->len)) == 0L) return;
 
     if (length < 0L) loopcount = 0L - length;
     else             loopcount = length;
@@ -1648,9 +1647,9 @@ static void domix(CSOUND *csound, TABLEMIX *p)
      * to the next most negative integer. This ensures that a sweeping
      * offset will wrap correctly into the table's address space.    */
 
-    offd  = (int32)FLOOR(*p->doff);
-    offs1 = (int32)FLOOR(*p->s1off);
-    offs2 = (int32)FLOOR(*p->s2off);
+    offd  = (int32)MYFLOOR(*p->doff);
+    offs1 = (int32)MYFLOOR(*p->s1off);
+    offs2 = (int32)MYFLOOR(*p->s2off);
 
     /* Now get the base addresses and length masks of the three tables.  */
     based  = p->funcd->ftable;
@@ -1948,7 +1947,7 @@ int tablera(CSOUND *csound, TABLERA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer. Also read the mask from the FUNC data structure.
      */
-    kioff = (int32)FLOOR(*p->koff);
+    kioff = (int32)MYFLOOR(*p->koff);
     mask = p->ftp->lenmask;
 
     /* We are almost ready to go, but first check to see whether
@@ -2069,7 +2068,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
     /* Set up the offset integer rounding float input argument to the next
      * more negative integer.  Also read the mask from the FUNC data structure.
      */
-    kioff = (int32)FLOOR(*p->koff);
+    kioff = (int32)MYFLOOR(*p->koff);
     mask = p->ftp->lenmask;
     /* !! end of code identical to tablera.  */
 
