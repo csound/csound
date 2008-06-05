@@ -156,14 +156,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-#if 0
-    pthread_t pthread = pthread_self();
-    return &pthread;
-#else
-    pthread_t *ppthread = (pthread_t *)malloc(sizeof(pthread_t));
-    *ppthread = pthread_self(); /* This version wastes space but works */
-    return ppthread;
-#endif
+  pthread_t *ppthread = (pthread_t *)malloc(sizeof(pthread_t));
+  *ppthread = pthread_self(); /* This version wastes space but works */
+  return ppthread;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
