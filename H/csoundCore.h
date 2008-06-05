@@ -240,7 +240,7 @@ extern "C" {
   typedef struct auxch {
     struct auxch *nxtchp;
     size_t  size;
-    void    *auxp, *endp;   /* was char* */
+    void    *auxp, *endp;
   } AUXCH;
 
   typedef struct monblk {
