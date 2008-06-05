@@ -51,7 +51,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
     /* now alloc the space and update the internal data */
     auxchp->size = nbytes;
     auxchp->auxp = mcalloc(csound, nbytes);
-    auxchp->endp = (char*)auxchp->auxp + nbytes;
+    auxchp->endp = (void*)auxchp->auxp + nbytes;
     if (csound->oparms->odebug)
       auxchprint(csound, csound->curip);
 }

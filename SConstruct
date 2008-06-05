@@ -756,7 +756,7 @@ if getPlatform() == 'darwin':
         tmp = OSXFrameworkBaseDir + '/Versions/%s'
         OSXFrameworkCurrentVersion = tmp % csoundLibraryVersion
 
-csoundLibraryEnvironment = commonEnvironment.Copy()
+csoundLibraryEnvironment = commonEnvironment.Clone()
 
 if commonEnvironment['buildNewParser'] != '0':
     if getPlatform() == "win32":
@@ -792,7 +792,7 @@ if commonEnvironment['buildRelease'] != '0':
             tmp += '64'
         s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
         csoundLibraryEnvironment.Append(CPPFLAGS = [s])
-csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
+csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Clone()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'win32':
     # These are the Windows system call libraries.
@@ -849,10 +849,10 @@ pthread
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
 elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
-csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
+csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 
 if buildOSXFramework:
-    csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
+    csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
     # create directory structure for the framework
     tmp = [OSXFrameworkBaseDir]
     tmp += ['%s/Versions' % OSXFrameworkBaseDir]
@@ -1131,7 +1131,7 @@ elif getPlatform() == 'win32' or (getPlatform() == 'darwin' and commonEnvironmen
  libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
 
-pluginEnvironment = commonEnvironment.Copy()
+pluginEnvironment = commonEnvironment.Clone()
 pluginEnvironment.Append(LIBS = Split('sndfile'))
 
 if getPlatform() == 'darwin':
@@ -1147,7 +1147,7 @@ if getPlatform() == 'darwin':
 #   Build csound command line front end
 #############################################################################
 
-csoundProgramEnvironment = commonEnvironment.Copy()
+csoundProgramEnvironment = commonEnvironment.Clone()
 csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
 csoundProgramEnvironment.Append(LIBS = libCsoundLibs)
 
@@ -1215,7 +1215,7 @@ else:
     if compilerGNU():
         csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
-    csoundWrapperEnvironment = csoundInterfacesEnvironment.Copy()
+    csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
     fixCFlagsForSwig(csoundWrapperEnvironment)
     csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
     for option in csoundWrapperEnvironment['CCFLAGS']:
@@ -1233,7 +1233,7 @@ else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     else:
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Copy()
+        csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Clone()
         if getPlatform() == 'darwin':
             csoundWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
@@ -1330,7 +1330,7 @@ else:
             csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
-        csndPythonEnvironment = csoundInterfacesEnvironment.Copy()
+        csndPythonEnvironment = csoundInterfacesEnvironment.Clone()
         fixCFlagsForSwig(csndPythonEnvironment)
         if getPlatform() == 'darwin':
             if commonEnvironment['dynamicCsoundLibrary'] == '1':
@@ -1421,7 +1421,7 @@ makePlugin(pluginEnvironment, 'pitch',
 if not buildOLPC:
  makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
-sfontEnvironment = pluginEnvironment.Copy()
+sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 if sys.byteorder == 'big':
@@ -1462,7 +1462,7 @@ makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
 if buildOLPC :
-   oggEnvironment = pluginEnvironment.Copy()
+   oggEnvironment = pluginEnvironment.Clone()
    makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
    oggEnvironment.Append(LIBS=['vorbisfile'])
 makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
@@ -1493,9 +1493,9 @@ if (not buildOLPC) and gmmFound:
 
 # FLTK widgets
 
-vstEnvironment = commonEnvironment.Copy()
+vstEnvironment = commonEnvironment.Clone()
 vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
-guiProgramEnvironment = commonEnvironment.Copy()
+guiProgramEnvironment = commonEnvironment.Clone()
 
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
@@ -1538,7 +1538,7 @@ else:
 if buildOLPC or (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
-    widgetsEnvironment = pluginEnvironment.Copy()
+    widgetsEnvironment = pluginEnvironment.Clone()
     if (commonEnvironment['buildvst4cs'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
@@ -1585,7 +1585,7 @@ else:
 
 if commonEnvironment['useCoreAudio'] == '1' and getPlatform() == 'darwin':
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
-    coreaudioEnvironment = pluginEnvironment.Copy()
+    coreaudioEnvironment = pluginEnvironment.Clone()
     coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
     makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
 else:
@@ -1595,18 +1595,18 @@ if not (commonEnvironment['useALSA'] == '1' and alsaFound):
     print "CONFIGURATION DECISION: Not building ALSA plugin."
 else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
-    alsaEnvironment = pluginEnvironment.Copy()
+    alsaEnvironment = pluginEnvironment.Clone()
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
 
 if pulseaudioFound and getPlatform() == 'linux':
    print "CONFIGURATION DECISION: Building PulseAudio plugin"
-   pulseaudioEnv = pluginEnvironment.Copy()
+   pulseaudioEnv = pluginEnvironment.Clone()
    pulseaudioEnv.Append(LIBS = ['pulse-simple'])
    makePlugin(pulseaudioEnv, 'rtpulse', ['InOut/rtpulse.c'])
 
 if getPlatform() == 'win32':
-    winmmEnvironment = pluginEnvironment.Copy()
+    winmmEnvironment = pluginEnvironment.Clone()
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
     makePlugin(winmmEnvironment, 'rtwinmm', ['InOut/rtwinmm.c'])
 
@@ -1614,7 +1614,7 @@ if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
     print "CONFIGURATION DECISION: Not building PortAudio module."
 else:
     print "CONFIGURATION DECISION: Building PortAudio module."
-    portaudioEnvironment = pluginEnvironment.Copy()
+    portaudioEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'win32':
        portaudioEnvironment.Append(LIBS = ['portaudio'])
     else:
@@ -1633,7 +1633,7 @@ if not (commonEnvironment['useJack'] == '1' and jackFound):
     print "CONFIGURATION DECISION: Not building JACK plugin."
 else:
     print "CONFIGURATION DECISION: Building JACK plugin."
-    jackEnvironment = pluginEnvironment.Copy()
+    jackEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':
         jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     elif getPlatform() == 'win32':
@@ -1644,7 +1644,7 @@ else:
 
 if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
-    portMidiEnvironment = pluginEnvironment.Copy()
+    portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
     if getPlatform() != 'darwin':
         portMidiEnvironment.Append(LIBS = ['porttime'])
@@ -1663,7 +1663,7 @@ if not (commonEnvironment['useOSC'] == '1' and oscFound):
     print "CONFIGURATION DECISION: Not building OSC plugin."
 else:
     print "CONFIGURATION DECISION: Building OSC plugin."
-    oscEnvironment = pluginEnvironment.Copy()
+    oscEnvironment = pluginEnvironment.Clone()
     oscEnvironment.Append(LIBS = ['lo', 'pthread'])
     if getPlatform() == 'win32':
         oscEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -1677,7 +1677,7 @@ if commonEnvironment['useUDP'] == '0':
     print "CONFIGURATION DECISION: Not building UDP plugins."
 else:
     print "CONFIGURATION DECISION: Building UDP plugins."
-    udpEnvironment = pluginEnvironment.Copy()
+    udpEnvironment = pluginEnvironment.Clone()
     udpEnvironment.Append(LIBS = ['pthread'])
     makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
     makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
@@ -1687,7 +1687,7 @@ else:
 # OGG opcodes
 if buildOLPC:
     print "CONFIGURATION DECISION: Building OGG plugins."
-    oggEnvironment = pluginEnvironment.Copy()
+    oggEnvironment = pluginEnvironment.Clone()
     oggEnvironment.Append(LINKFLAGS = ['-lvorbisfile', '-lvorbis', '-logg'])
     makePlugin(oggEnvironment, 'oggplay', ['Opcodes/oggplay.c'])
 # end ogg opcodes
@@ -1699,7 +1699,7 @@ if not buildOLPC:
     print "CONFIGURATION DECISION: Not building fluid opcodes."
   else:
 	print "CONFIGURATION DECISION: Building fluid opcodes."
-	fluidEnvironment = pluginEnvironment.Copy()
+	fluidEnvironment = pluginEnvironment.Clone()
 	if getPlatform() == 'win32':
 	   	if compilerGNU():
 		   fluidEnvironment.Append(LIBS = ['fluidsynth'])
@@ -1720,7 +1720,7 @@ if (commonEnvironment['buildvst4cs'] != '1'):
 else:
     print "CONFIGURATION DECISION: Building vst4cs opcodes."
     if (getPlatform() == 'win32'or getPlatform() == 'linux') and fltkFound:
-        vst4Environment = vstEnvironment.Copy()
+        vst4Environment = vstEnvironment.Clone()
         vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         if compilerGNU():
@@ -1736,7 +1736,7 @@ else:
             Opcodes/vst4cs/src/vsthost.cpp
         '''))
     elif getPlatform() == 'darwin' and fltkFound:
-        vst4Environment = vstEnvironment.Copy()
+        vst4Environment = vstEnvironment.Clone()
         vst4Environment.Append(LIBS = ['fltk'])
         vst4Environment.Append(LIBS = ['stdc++'])
         vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework',
@@ -1752,7 +1752,7 @@ else:
 
 if (commonEnvironment['buildDSSI'] == '1' and (getPlatform() == 'linux' or getPlatform() == 'darwin') and configure.CheckHeader("ladspa.h", language = "C")) and configure.CheckHeader("dssi.h", language = "C"):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
-    dssiEnvironment = pluginEnvironment.Copy()
+    dssiEnvironment = pluginEnvironment.Clone()
     dssiEnvironment.Append(LIBS = ['dl'])
     makePlugin(dssiEnvironment, 'dssi4cs',
                ['Opcodes/dssi4cs/src/load.c', 'Opcodes/dssi4cs/src/dssi4cs.c'])
@@ -1770,7 +1770,7 @@ else:
     # It is assumed that you have copied all contents of the Loris
     # distribution into the csound5/Opcodes/Loris directory, e.g.
     # csound5/Opcodes/Loris/src/*, etc.
-    lorisEnvironment = pluginEnvironment.Copy()
+    lorisEnvironment = pluginEnvironment.Clone()
     lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
     if commonEnvironment['buildRelease'] == '0':
         lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
@@ -1798,7 +1798,7 @@ else:
     lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
                               ['Opcodes/Loris/lorisgens5.C'])
     Depends(lorisOpcodes, lorisLibrary)
-    lorisPythonEnvironment = lorisEnvironment.Copy()
+    lorisPythonEnvironment = lorisEnvironment.Clone()
     fixCFlagsForSwig(lorisPythonEnvironment)
     lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
     lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
@@ -1839,7 +1839,7 @@ else:
         Opcodes/stk/src/TcpServer.cpp   Opcodes/stk/src/Thread.cpp
         Opcodes/stk/src/UdpSocket.cpp
     ''')
-    stkEnvironment = pluginEnvironment.Copy()
+    stkEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'win32':
         stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
     elif getPlatform() == 'linux':
@@ -1881,7 +1881,7 @@ if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Python opcodes."
 else:
     print "CONFIGURATION DECISION: Building Python opcodes."
-    pyEnvironment = pluginEnvironment.Copy()
+    pyEnvironment = pluginEnvironment.Clone()
     if getPlatform() != 'darwin':
        pyEnvironment.Append(CPPPATH = pythonIncludePath)
        pyEnvironment.Append(LIBPATH = pythonLibraryPath)
@@ -2013,7 +2013,7 @@ if not (commonEnvironment['buildCsound5GUI'] != '0' and fltk117Found):
     print 'CONFIGURATION DECISION: Not building FLTK CSOUND5GUI frontend.'
 else:
     print 'CONFIGURATION DECISION: Building FLTK GUI CSOUND5GUI frontend.'
-    csound5GUIEnvironment = csoundProgramEnvironment.Copy()
+    csound5GUIEnvironment = csoundProgramEnvironment.Clone()
     csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
     if jackFound:
         csound5GUIEnvironment.Append(LIBS = ['jack'])
@@ -2087,7 +2087,7 @@ else:
 if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
     print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
 else:
-    csEditorEnvironment = commonEnvironment.Copy()
+    csEditorEnvironment = commonEnvironment.Clone()
     if getPlatform() == 'linux':
         csEditorEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csEditorEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -2120,7 +2120,7 @@ if not ((commonEnvironment['buildCsoundAC'] == '1') and fltkFound and boostFound
     print 'CONFIGURATION DECISION: Not building CsoundAC extension module for Csound with algorithmic composition.'
 else:
     print 'CONFIGURATION DECISION: Building CsoundAC extension module for Csound with algorithmic composition.'
-    acEnvironment = vstEnvironment.Copy()
+    acEnvironment = vstEnvironment.Clone()
     headers += glob.glob('frontends/CsoundAC/*.hpp')
     acEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces'])
     acEnvironment.Append(CPPPATH = pythonIncludePath)
@@ -2192,7 +2192,7 @@ else:
     frontends/CsoundAC/VoiceleadingNode.cpp
     ''')
     swigflags = acEnvironment['SWIGFLAGS']
-    acWrapperEnvironment = acEnvironment.Copy()
+    acWrapperEnvironment = acEnvironment.Clone()
     fixCFlagsForSwig(acWrapperEnvironment)
     if commonEnvironment['dynamicCsoundLibrary'] == '1':
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
@@ -2205,12 +2205,12 @@ else:
         'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, '-python'])
     acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
     if getPlatform() == 'darwin':
-        acPythonEnvironment = acEnvironment.Copy()
+        acPythonEnvironment = acEnvironment.Clone()
         acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
         csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
                                                 csoundAcPythonWrapper)
     else:
-        acPythonEnvironment = acEnvironment.Copy()
+        acPythonEnvironment = acEnvironment.Clone()
         acPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         acPythonEnvironment.Prepend(LIBPATH = pythonLibraryPath)
         acPythonEnvironment.Prepend(LIBS = pythonLibs)
@@ -2309,7 +2309,7 @@ else:
 
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
-    pdClassEnvironment = commonEnvironment.Copy()
+    pdClassEnvironment = commonEnvironment.Clone()
     pdClassEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     pdClassEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'darwin':
@@ -2339,7 +2339,7 @@ if commonEnvironment['buildPDClass'] == '1' and pdhfound:
 
 if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     print "CONFIGURATION DECISION: Building Tclcsound frontend"
-    csTclEnvironment = commonEnvironment.Copy()
+    csTclEnvironment = commonEnvironment.Clone()
     csTclEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csTclEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'darwin':
@@ -2354,7 +2354,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         '''))
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(CPPPATH = tclIncludePath)
-        csTclEnvironment.Append(LIBS = ['tcl8.4', 'tk8.4', 'dl', 'pthread'])
+        csTclEnvironment.Append(LIBS = ['tcl8.5', 'tk8.5', 'dl', 'pthread'])
     elif getPlatform() == 'win32':
         csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -2401,7 +2401,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     print "CONFIGURATION DECISION: Building Winsound frontend"
     # should these be installed ?
     # headers += glob.glob('frontends/winsound/*.h')
-    csWinEnvironment = commonEnvironment.Copy()
+    csWinEnvironment = commonEnvironment.Clone()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
     # not used
@@ -2449,7 +2449,7 @@ else:
 
 if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     print "CONFIGURATION DECISION: building OSX GUI frontend"
-    csOSXGUIEnvironment = commonEnvironment.Copy()
+    csOSXGUIEnvironment = commonEnvironment.Clone()
     OSXGUI = csOSXGUIEnvironment.Command(
         '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
         'frontends/OSX/main.c',
@@ -2460,7 +2460,7 @@ else:
 
 # build csLADSPA
 print "CONFIGURATION DEFAULT:  Building csLadspa."
-csLadspaEnv = commonEnvironment.Copy()
+csLadspaEnv = commonEnvironment.Clone()
 csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
 if getPlatform() == "darwin":
@@ -2495,7 +2495,7 @@ def gettextTarget(env, baseName, target):
     return ttFile
 
 if commonEnvironment['useGettext'] == '1':
-    csound5GettextEnvironment = csoundProgramEnvironment.Copy()
+    csound5GettextEnvironment = csoundProgramEnvironment.Clone()
     gettextTarget(csound5GettextEnvironment, 'french', 'fr')
     gettextTarget(csound5GettextEnvironment, 'american', 'en_US')
     gettextTarget(csound5GettextEnvironment, 'csound', 'en_GB')
