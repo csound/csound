@@ -1079,8 +1079,9 @@ CSOUND_FILETYPES;
    * or NULL for failure.
    *
    * NOTE: The return value can be used as a pointer
-   * to a thread object, but it should be compared 
-   * as a pointer. The pointed to values should be compared.
+   * to a thread object, but it should not be compared 
+   * as a pointer. The pointed to values should be compared,
+   * and the user must free the pointer after use.
    */
   PUBLIC void *csoundGetCurrentThreadId(void);
 
