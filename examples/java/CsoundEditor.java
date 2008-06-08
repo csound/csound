@@ -50,7 +50,7 @@ public class CsoundEditor extends JFrame {
     static FileFilter csoundFileFilter;
     private JTextArea scoreTextArea = null;
     static {
-        System.loadLibrary("_csnd");
+        System.loadLibrary("_jcsound");
         fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(true);
         csoundFileFilter = new CsoundFileFilter();
