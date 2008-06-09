@@ -136,7 +136,7 @@ static void next_random_lineseg(SC_REVERB *p, delayLine *lp, int n)
 static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
 {
     double  readPos;
-    int     i;
+    /* int     i; */
 
     /* calculate length of delay line */
     lp->bufferSize = delay_line_max_samples(p, n);
@@ -155,14 +155,15 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
     next_random_lineseg(p, lp, n);
     /* clear delay line to zero */
     lp->filterState = 0.0;
-    for (i = 0; i < lp->bufferSize; i++)
-      lp->buf[i] = FL(0.0);
+    memset(lp->buf, 0, sizeof(MYFLT)*lp->bufferSize);
+    /* for (i = 0; i < lp->bufferSize; i++) */
+    /*   lp->buf[i] = FL(0.0); */
 }
 
 static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 {
     int i;
-    int32 nBytes;
+    int nBytes;
 
     /* check for valid parameters */
     if (*(p->iSampleRate) <= FL(0.0))
@@ -181,15 +182,14 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     nBytes = 0;
     for (i = 0; i < 8; i++)
       nBytes += delay_line_bytes_alloc(p, i);
-    if (nBytes != (int32) p->auxData.size)
+    if (nBytes != p->auxData.size)
       csound->AuxAlloc(csound, (size_t) nBytes, &(p->auxData));
     else if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* set up delay lines */
     nBytes = 0;
     for (i = 0; i < 8; i++) {
-      p->delayLines[i] = (delayLine*) ((unsigned char*) (p->auxData.auxp)
-                                       + (int) nBytes);
+      p->delayLines[i] = (delayLine*)(p->auxData.auxp) + nBytes;
       init_delay_line(p, p->delayLines[i], i);
       nBytes += delay_line_bytes_alloc(p, i);
     }
@@ -205,7 +205,9 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     double    ainL, ainR, aoutL, aoutR;
     double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
     delayLine *lp;
-    int       i, n, readPos;
+    int       i, n, nsmps = csound->ksmps, readPos;
+    int       bufferSize; /* Local copy */
+    double    dampFact = p->dampFact;
 
     if (p->initDone <= 0) {
       return csound->PerfError(csound, Str("reverbsc: not initialised"));
@@ -213,11 +215,11 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
-      p->dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
-      p->dampFact = p->dampFact - sqrt(p->dampFact * p->dampFact - 1.0);
+      dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
+      dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
     /* update delay lines */
-    for (i = 0; i < csound->ksmps; i++) {
+    for (i = 0; i < nsmps; i++) {
       /* calculate "resultant junction pressure" and mix to input signals */
       ainL = aoutL = aoutR = 0.0;
       for (n = 0; n < 8; n++)
@@ -228,18 +230,19 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       /* loop through all delay lines */
       for (n = 0; n < 8; n++) {
         lp = p->delayLines[n];
+        bufferSize = lp->bufferSize;
         /* send input signal and feedback to delay line */
         lp->buf[lp->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
                                          - lp->filterState);
-        if (++lp->writePos >= lp->bufferSize)
-          lp->writePos -= lp->bufferSize;
+        if (++lp->writePos >= bufferSize)
+          lp->writePos -= bufferSize;
         /* read from delay line with cubic interpolation */
         if (lp->readPosFrac >= DELAYPOS_SCALE) {
           lp->readPos += (lp->readPosFrac >> DELAYPOS_SHIFT);
           lp->readPosFrac &= DELAYPOS_MASK;
         }
-        if (lp->readPos >= lp->bufferSize)
-          lp->readPos -= lp->bufferSize;
+        if (lp->readPos >= bufferSize)
+          lp->readPos -= bufferSize;
         readPos = lp->readPos;
         frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
         /* calculate interpolation coefficients */
@@ -247,21 +250,21 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
         a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
         /* read four samples for interpolation */
-        if (readPos > 0 && readPos < (lp->bufferSize - 2)) {
+        if (readPos > 0 && readPos < (bufferSize - 2)) {
           vm1 = (double) (lp->buf[readPos - 1]);
-          v0 = (double) (lp->buf[readPos]);
-          v1 = (double) (lp->buf[readPos + 1]);
-          v2 = (double) (lp->buf[readPos + 2]);
+          v0  = (double) (lp->buf[readPos]);
+          v1  = (double) (lp->buf[readPos + 1]);
+          v2  = (double) (lp->buf[readPos + 2]);
         }
         else {
           /* at buffer wrap-around, need to check index */
-          if (--readPos < 0) readPos += lp->bufferSize;
+          if (--readPos < 0) readPos += bufferSize;
           vm1 = (double) lp->buf[readPos];
-          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          if (++readPos >= bufferSize) readPos -= bufferSize;
           v0 = (double) lp->buf[readPos];
-          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          if (++readPos >= bufferSize) readPos -= bufferSize;
           v1 = (double) lp->buf[readPos];
-          if (++readPos >= lp->bufferSize) readPos -= lp->bufferSize;
+          if (++readPos >= bufferSize) readPos -= bufferSize;
           v2 = (double) lp->buf[readPos];
         }
         v0 = (am1 * vm1 + a0 * v0 + a1 * v1 + a2 * v2) * frac + v0;
@@ -269,7 +272,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         lp->readPosFrac += lp->readPosFrac_inc;
         /* apply feedback gain and lowpass filter */
         v0 *= (double) *(p->kFeedBack);
-        v0 = (lp->filterState - v0) * p->dampFact + v0;
+        v0 = (lp->filterState - v0) * dampFact + v0;
         lp->filterState = v0;
         /* mix to output */
         if (n & 1)
