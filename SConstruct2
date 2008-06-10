@@ -1,4 +1,4 @@
-#J vim: filetype=python expandtab sw=4 tabstop=4
+# vim: filetype=python expandtab sw=4 tabstop=4
 # Copied from SConstruct revision 1.646
 print '''
 C S O U N D 5
@@ -41,6 +41,9 @@ class Utility:
         elif sys.platform[:3] == 'win'      : self.platform = 'win32'
         elif sys.platform[:6] == 'darwin'   : self.platform = 'darwin'
         else                                : self.platform = 'unsupported'
+        # library version is CS_VERSION.CS_APIVERSION
+        self.csoundLibraryVersion = '5.1'
+        self.csoundLibraryName = 'csound'
 
     def compilerIntel(self):
         if self.platform == 'win32' and initialEnvironment['withICL'] == '1':
@@ -312,12 +315,6 @@ commandOptions.Add('buildDSSI',
 commandOptions.Add('buildUtilities',
     "Build stand-alone executables for utilities that can also be used with -U",
     '1')
-commandOptions.Add('buildInterfaces',
-    "Build interface library for Python, JAVA, Lua, C++, and other languages.",
-    '0')
-commandOptions.Add('buildJavaWrapper',
-    'Set to 1 to build Java wrapper for the interface library.',
-    '0')
 commandOptions.Add('withICL',
     'On Windows, set to 1 to build with the Intel C++ Compiler (also requires Microsoft Visual C++), or set to 0 to build with MinGW',
     '0')
@@ -334,7 +331,7 @@ commandOptions.Add('buildSDFT',
     'Set to 0 to avoid building SDFT code',
     '1')
 commandOptions.Add('useGettext',
-    'Set to 1 to use the GBU internationalisation/localisation scheme)',
+    'Set to 1 to use the GNU internationalisation/localisation scheme',
     '0')
 ##### JPff for OLPC #####
 commandOptions.Add('buildOLPC',
@@ -417,6 +414,9 @@ if buildOLPC:
     oscFound        = True
 util.fixEnvForOLPC( initialEnvironment )
 
+if initialEnvironment['useDouble'] != '0'   : util.csoundLibraryName += '64'
+elif util.platform == 'win32'               : util.csoundLibraryName += '32'
+
 # Define options for different platforms.
 if util.platform != 'win32':
     print "Build platform is '" + util.platform + "'."
@@ -436,7 +436,7 @@ if util.compilerGNU():
     initialEnvironment.Append(CXXFLAGS = '-Wno-write-strings')
 
 initialEnvironment.Prepend(CPPPATH = ['#/.', '#/H'])
-initialEnvironment.Prepend(CPPPATH = ['.', './H']) # The swig builder sucks
+#initialEnvironment.Prepend(CPPPATH = ['.', './H']) # The swig builder sucks
 
 if initialEnvironment['useLrint'] != '0':
     initialEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
@@ -567,9 +567,6 @@ if util.platform == 'linux':
     path1 = '/usr/include/python%s' % initialEnvironment['pythonVersion']
     path2 = '/usr/local/include/python%s' % initialEnvironment['pythonVersion']
     pythonIncludePath   = [path1, path2]
-    path1               = '/usr/include/tcl8.4'
-    path2               = '/usr/include/tk8.4'
-    tclIncludePath      = [path1, path2]
     pythonLinkFlags     = []
     if initialEnvironment['Lib64'] == '1':
         tmp = '/usr/lib64/python%s/config' % initialEnvironment['pythonVersion']
@@ -685,16 +682,7 @@ if not buildOLPC:
         "jack", "jack/jack.h", language = "C")
 stkFound        = configure.CheckHeader(
     "Opcodes/stk/include/Stk.h", language = "C++")
-tclhfound       = configure.CheckHeader(
-    "tcl.h", language = "C")
-if not tclhfound:
-    for i in tclIncludePath:
-        tclhfound = tclhfound or configure.CheckHeader(
-        '%s/tcl.h' % i, language = "C")
 midiPluginSdkFound  = configure.CheckHeader("funknown.h", language = "C++")
-luaFound            = configure.CheckHeader("lua5.1/lua.h", language = "C")
-
-if not buildOLPC    : luaFound = False
 
 swigFound = 'swig' in initialEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
@@ -771,11 +759,6 @@ else:
 
 # Package contents.
 
-# library version is CS_VERSION.CS_APIVERSION
-csoundLibraryVersion = '5.1'
-csoundLibraryName = 'csound'
-if initialEnvironment['useDouble'] != '0'   : csoundLibraryName += '64'
-elif util.platform == 'win32'               : csoundLibraryName += '32'
 # flags for linking with the Csound library
 libCsoundLinkFlags = []
 libCsoundLibs = ['sndfile']
@@ -865,7 +848,6 @@ if util.platform == 'win32':
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
 elif util.platform == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
-csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 
 if buildOSXFramework:
     csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
@@ -949,8 +931,8 @@ if initialEnvironment['dynamicCsoundLibrary'] == '1':
     if util.platform == 'linux':
         # The linker will pull in dependencies
         libCsoundLibs   = []
-        libName         = 'lib' + csoundLibraryName + '.so'
-        libName2        = libName + '.' + csoundLibraryVersion
+        libName         = 'lib' + util.csoundLibraryName + '.so'
+        libName2        = libName + '.' + util.csoundLibraryVersion
         try     : os.symlink(libName2, libName)
         except  : pass
         Clean(libName2, libName) # Delete the symlink on clean
@@ -965,7 +947,7 @@ if initialEnvironment['dynamicCsoundLibrary'] == '1':
             CCFLAGS = cflags)
     elif util.platform == 'darwin':
         libName = CsoundLib_OSX
-        libVersion = csoundLibraryVersion
+        libVersion = util.csoundLibraryVersion
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
             -Xlinker -compatibility_version -Xlinker %s
         ''' % libVersion))
@@ -990,8 +972,8 @@ if initialEnvironment['dynamicCsoundLibrary'] == '1':
         libCsoundLibs = []
     elif util.platform == 'win32':
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
-            csoundLibraryName, libCsoundSources,
-            SHLIBSUFFIX = '.dll.%s' % csoundLibraryVersion)
+            util.csoundLibraryName, libCsoundSources,
+            SHLIBSUFFIX = '.dll.%s' % util.csoundLibraryVersion)
         if util.compilerGNU():
             libCsoundLinkFlags.append('--subsystem:windows')
             libCsoundLibs += [ 'stdc++', 'supc++']
@@ -1000,7 +982,7 @@ if initialEnvironment['dynamicCsoundLibrary'] == '1':
         libCsoundLibs += csoundWindowsLibraries
     else: # Is this useful?
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
-            csoundLibraryName, libCsoundSources)
+            util.csoundLibraryName, libCsoundSources)
 else:
     print 'CONFIGURATION DECISION: Building static Csound library'
     if util.platform == 'linux':
@@ -1013,10 +995,10 @@ else:
         libCsoundLinkFlags += Split(
             '-framework Carbon -framework CoreAudio -framework CoreMidi')
     csoundLibrary = csoundLibraryEnvironment.Library(
-        csoundLibraryName, libCsoundSources)
+        util.csoundLibraryName, libCsoundSources)
 
 if not util.platform == 'win32' : libCsoundLibs.append(csoundLibrary)
-else                            : libCsoundLibs.append(csoundLibraryName)
+else                            : libCsoundLibs.append(util.csoundLibraryName)
 libs.append(csoundLibrary)
 # Make everything link (correctly) against libcsound, even if not needed.
 # FIXME: when linking statically this may lead to larger than normal binaries.
@@ -1032,171 +1014,8 @@ commonEnvironment.Append( LINKFLAGS = libCsoundLinkFlags )
 #
 #############################################################################
 
-if util.platform == 'win32':
-    PYDLL = r'%s\%s' % (os.environ['SystemRoot'], pythonLibs[0])
-if util.platform == 'win32' and pythonLibs[0] < 'python24' and util.compilerGNU():
-    tmp = 'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a'
-    pythonImportLibrary = csoundInterfacesEnvironment.Command(
-        '/usr/local/lib/lib%s.a' % (pythonLibs[0]), PYDLL,
-        ['pexports %s > %s.def' % (PYDLL, pythonLibs[0]),
-         tmp % (pythonLibs[0], PYDLL, pythonLibs[0])])
 
-if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
-    print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
-else:
-    print 'CONFIGURATION DECISION: Building Csound interfaces library.'
-    print "Python Version: " + commonEnvironment['pythonVersion']
-    csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
-    csoundInterfacesSources = []
-    for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
-        csoundInterfacesSources.append(csoundInterfacesEnvironment.SharedObject(
-            'interfaces/%s.cpp' % i))
-    if util.platform == 'win32' and util.compilerGNU():
-        csoundInterfacesEnvironment.Append(
-            SHLINKFLAGS = '-Wl,--add-stdcall-alias')
-	if commonEnvironment['useDouble'] != '0' :
-	    csoundInterfacesEnvironment.Prepend(LIBS = Split('csound64'))
-	else:
-	    csoundInterfacesEnvironment.Prepend(LIBS = Split('csound32'))
-    elif util.platform == 'linux':
-        csoundInterfacesEnvironment.Prepend(LIBS = ['util'])
-    if util.compilerGNU():
-        csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
-    csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
-    csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
-    util.fixCFlagsForSwig(csoundWrapperEnvironment)
-    csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
-    for option in csoundWrapperEnvironment['CCFLAGS']:
-        if string.find(option, '-D') == 0:
-            csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
-    for option in csoundWrapperEnvironment['CPPFLAGS']:
-        if string.find(option, '-D') == 0:
-            csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
-    for option in csoundWrapperEnvironment['CPPPATH']:
-        csoundWrapperEnvironment.Append(SWIGFLAGS = ['-I' + option])
-    swigflags = csoundWrapperEnvironment['SWIGFLAGS']
-    if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
-        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-    else:
-        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Clone()
-        if util.platform == 'darwin':
-            csoundWrapperEnvironment.Append(CPPPATH =
-                ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        if util.platform == 'linux':
-            # ugly hack to work around bug that requires running scons twice
-            tmp = [csoundWrapperEnvironment['SWIG']]
-            for i in swigflags:
-                tmp += [i]
-            tmp += ['-java', '-package', 'csnd']
-            tmp += ['-o', 'interfaces/java_interface_wrap.cc']
-            tmp += ['interfaces/java_interface.i']
-            if os.spawnvp(os.P_WAIT, tmp[0], tmp) != 0:
-                Exit(-1)
-            csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
-                'interfaces/java_interface_wrap.cc')]
-        else:
-            csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
-                'interfaces/java_interface.i',
-                SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
-        csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
-        csoundJavaWrapperSources += csoundInterfacesSources
 
-        if util.platform == 'darwin':
-            csoundJavaWrapperEnvironment.Prepend(LINKFLAGS  = ['-bundle'])
-            csoundJavaWrapperEnvironment.Append(
-                LINKFLAGS   = ['-framework', 'JavaVM', '-Wl'])
-            csoundJavaWrapper = csoundJavaWrapperEnvironment.Program(
-                'lib_jcsound.jnilib', csoundJavaWrapperSources)
-        else:
-            csoundJavaWrapper = csoundJavaWrapperEnvironment.SharedLibrary(
-                '_jcsound', csoundJavaWrapperSources)
-        Depends(csoundJavaWrapper, csoundLibrary)
-        libs.append(csoundJavaWrapper)
-        jcsnd = csoundJavaWrapperEnvironment.Java(
-            target      = './interfaces', source = './interfaces',
-            JAVACFLAGS  = ['-source', '1.4', '-target', '1.4'])
-        try     : os.mkdir('interfaces/csnd', 0755)
-        except  : pass
-        jcsndJar = csoundJavaWrapperEnvironment.Jar(
-            'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
-        Depends(jcsndJar, jcsnd)
-        libs.append(jcsndJar)
-    csoundInterfacesSources.insert(0,
-        csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
-    if not luaFound:
-        print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
-    else:
-        print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-        csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
-        csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
-            'interfaces/lua_interface.i',
-            SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
-        if util.platform != 'darwin':
-            csoundInterfacesSources.insert(0, csoundLuaInterface)
-            if util.platform == 'win32':
-                csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
-            else:
-                csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
-    if util.platform == 'linux':
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
-        # os.symlink('lib_csnd.so', '_csnd.so')
-        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-    if util.platform == 'darwin':
-        if commonEnvironment['dynamicCsoundLibrary'] == '1':
-            ilibName = "lib_csnd.dylib"
-            ilibVersion = csoundLibraryVersion
-            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
-                '''-Xlinker -compatibility_version
-                -Xlinker %s''' % ilibVersion))
-            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
-                '''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
-            tmp = '''-install_name
-                /Library/Frameworks/CsoundLib.framework/Versions/%s/%s'''
-            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
-                 tmp % ('5.1', ilibName)))
-            csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-                '_csnd', csoundInterfacesSources)
-        else:
-            csoundInterfaces = csoundInterfacesEnvironment.Library(
-                '_csnd', csoundInterfacesSources)
-    elif util.platform == 'linux':
-        name    = 'libcsnd.so'
-        soname  = name + '.' + csoundLibraryVersion
-        try     : os.symlink(soname, name)
-        except  : pass
-        Clean(soname, name) #Delete symlink on clean
-        linkflags = csoundInterfacesEnvironment['SHLINKFLAGS']
-        soflag = [ '-Wl,-soname=%s' % soname ]
-        extraflag = ['-L.']
-        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-            soname, csoundInterfacesSources, 
-            SHLINKFLAGS = linkflags+soflag+extraflag,
-            SHLIBPREFIX = '', SHLIBSUFFIX = '')
-    else:
-        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-            'csnd', csoundInterfacesSources)
-    Depends(csoundInterfaces, csoundLibrary)
-    libs.append(csoundInterfaces)
-    if pythonFound:
-        csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        if util.platform != 'darwin':
-            csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-            csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
-        csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
-        csndPythonEnvironment = csoundInterfacesEnvironment.Clone()
-        util.fixCFlagsForSwig(csndPythonEnvironment)
-        csndPythonEnvironment.Append(LIBS = csoundInterfaces)
-        csoundPythonInterface = csndPythonEnvironment.SharedObject(
-            'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
-        csndPythonEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
-        if util.platform == 'win32' and pythonLibs[0] < 'python24' and util.compilerGNU():
-            Depends(csoundPythonInterface, pythonImportLibrary)
-        csndModule = util.makePythonModule(
-            csndPythonEnvironment, 'csnd', [csoundPythonInterface])
-        pythonModules.append('csnd.py')
-        Depends(csoundPythonInterface, csoundInterfaces)
 
 if commonEnvironment['generatePdf'] == '0':
     print 'CONFIGURATION DECISION: Not generating Csound API PDF documentation.'
@@ -1850,6 +1669,7 @@ Export( "configure" )
 SConscript('frontends/SConscript')
 SConscript('Opcodes/SConscript')
 SConscript('InOut/SConscript')
+SConscript('interfaces/SConscript')
 
 
 if util.platform == 'darwin' and commonEnvironment['useFLTK'] == '1':
