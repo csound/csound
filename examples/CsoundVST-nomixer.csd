@@ -27,7 +27,7 @@
 
 sr                      =                       44100
 ; Adjust ksmps for best balance between performance and stability.
-ksmps                                   =                       30
+ksmps                   =                       30
 nchnls                  =                       2
 0dbfs                   =                       32767
 
@@ -71,7 +71,7 @@ gitonewheel6            ftgen                   0, 0, 8193,     8       -.8, 336
                         mididefault             60, p3
                         midinoteonoct           p4, p5
 ; Pitch.
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Amplitude.
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 16.0
@@ -123,9 +123,9 @@ ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
 kvib        oscili       1/120, ipch/50, gisine       ;vibrato
-ag          pluck       2000, cpsoct(ioct+kvib), 1000, 1, 1
-agleft      pluck       2000, cpsoct(ioct+ishift), 1000, 1, 1
-agright     pluck       2000, cpsoct(ioct-ishift), 1000, 1, 1
+ag          pluck       2000, cpsmidinn(ioct+kvib), 1000, 1, 1
+agleft      pluck       2000, cpsmidinn(ioct+ishift), 1000, 1, 1
+agright     pluck       2000, cpsmidinn(ioct-ishift), 1000, 1, 1
 kf1         expon       .1, p3, 1.0             ;exponential from 0.1 to 1.0
 kf2         expon       1.0, p3, .1             ;exponential from 1.0 to 0.1
 adump       delayr      2.0                     ;set delay line of 2.0 sec
@@ -150,7 +150,7 @@ irelease                =                       0.05
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iduration               =                       p3 + iattack + irelease
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 2000.
 ijunk6                  =                       p6
@@ -180,9 +180,9 @@ iattack                 =                       0.05
 isustain                =                       p3
 irelease                =                       0.05
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ag          pluck       1000, cpsoct(ioct + kvib), 1000,gisine, 1
-agleft      pluck       1000, cpsoct(ioct+ishift), 1000,gisine, 1
-agright     pluck       1000, cpsoct(ioct-ishift), 1000,gisine, 1
+ag          pluck       1000, cpsmidinn(ioct + kvib), 1000,gisine, 1
+agleft      pluck       1000, cpsmidinn(ioct+ishift), 1000,gisine, 1
+agright     pluck       1000, cpsmidinn(ioct-ishift), 1000,gisine, 1
 adump       delayr      0.4                     ;set delay line of 0.3 sec
 ad1         deltap      0.1                     ;delay 100 msec.
 ad2         deltap      0.2                     ;delay 200 msec.
@@ -203,7 +203,7 @@ irelease                =                       0.05
 p3                      =                       isustain + iattack + irelease
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iduration               =                       p3 + iattack + irelease
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 600.
 ijunk6                  =                       p6
@@ -238,8 +238,8 @@ a3          tablei      a1ndx,giln, 1             ;lookup tbl in f3, normal inde
 ao1         oscili       a1, ipch, gicosine             ;cosine
 a4          =           exp(-0.5*a3+ao1)
 ao2         oscili       a2*ipch, ipch, gicosine        ;cosine
-aoutl       oscili       1000*kadsr*a4, ao2+cpsoct(ioct+ishift), gisine ;fnl outleft
-aoutr       oscili       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), gisine ;fnl outright
+aoutl       oscili       1000*kadsr*a4, ao2+cpsmidinn(ioct+ishift), gisine ;fnl outleft
+aoutr       oscili       1000*kadsr*a4, ao2+cpsmidinn(ioct-ishift), gisine ;fnl outright
             outs        aoutl, aoutr
             endin
 
@@ -256,7 +256,7 @@ irelease                =                       0.05
 p3                      =                       isustain + iattack + irelease
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iduration               =                       p3 + iattack + irelease
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 2400.
 ijunk6                  =                       p6
@@ -282,7 +282,7 @@ asig2                   =                       asig2 * kdamping * ileftgain
                         mididefault             60, p3
                         midinoteonoct           p4, p5
 ; Pitch.
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Amplitude.
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 16.0
@@ -338,7 +338,7 @@ irelease                =                       .05
                         ; xtratim                       iattack + irelease
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 5
 ijunk6                  =                       p6
@@ -380,7 +380,7 @@ irelease                =                       0.05
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 iduration               =                       p3 + iattack + irelease
-ifrequency              =                       cpsoct(p4 + 1)
+ifrequency              =                       cpsmidinn(p4 + 1)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 2.0
 ijunk6                  =                       p6
@@ -428,7 +428,7 @@ ifn2                    =                       giexponentialrise
 ifn3                    =                       githirteen
 ifn4                    =                       gisine
 ivibefn                 =                       gicosine
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 32.0
 ijunk6                  =                       p6
@@ -470,7 +470,7 @@ irelease                =                       .06
 p3                      =                       isustain + iattack + irelease
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ioctave                 =                       p4
-ifrequency              =                       cpsoct(ioctave)
+ifrequency              =                       cpsmidinn(ioctave)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 875.0
 iphase                  =                       p6
@@ -555,7 +555,7 @@ ijunk11                 =                       p11
 ; shift it.
 ishift                  =                       4.0 / 12000
 ; convert parameter 5 to cps.
-ipch                    =                       cpsoct(p4)
+ipch                    =                       cpsmidinn(p4)
 ; convert parameter 5 to oct.
 ioct                    =                       p4
 ; KONTROL
@@ -576,9 +576,9 @@ a4                      =                       exp(-0.5 * a3 + ao1)
 ; Cosine
 ao2                     oscili                  a2 * ipch, ipch, gicosine
 ; Final output left
-aoutl                   oscili                  iamplitude * kadsr * a4, ao2 + cpsoct(ioct + ishift), gisine
+aoutl                   oscili                  iamplitude * kadsr * a4, ao2 + cpsmidinn(ioct + ishift), gisine
 ; Final output right
-aoutr                   oscili                  iamplitude * kadsr * a4, ao2 + cpsoct(ioct - ishift), gisine
+aoutr                   oscili                  iamplitude * kadsr * a4, ao2 + cpsmidinn(ioct - ishift), gisine
 asig1                   =                       ileftpan * aoutl * kdamping
 asig2                   =                       irightpan * aoutr * kdamping
 						outs					asig1, asig2
@@ -602,7 +602,7 @@ asig2                   =                       irightpan * aoutr * kdamping
     ij9=p9
     ij10=p10
     ij11=p11
-  ihz  = cpsoct(p4)
+  ihz  = cpsmidinn(p4)
   idb  = p5
   ipos = p7
   iamp = ampdb(idb) * 1.5
@@ -661,8 +661,8 @@ ip5                     =                       gibergeman
 ip3                     =                       p3
 ip6                     =                       p3 * .25
 ip7                     =                       p3 * .75
-ip8                     =                       cpsoct(p4 - .01)
-ip9                     =                       cpsoct(p4 + .01)
+ip8                     =                       cpsmidinn(p4 - .01)
+ip9                     =                       cpsmidinn(p4 + .01)
 ip10                    =                       p10
 isc                     =                       idb * .333
 k1                      line                    40, p3, 800
@@ -706,7 +706,7 @@ irelease                =                       .075
                         ; xtratim                       iattack + irelease
 p3                      =                       isustain + iattack + irelease
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 1.25
 ijunk6                  =                       p6
@@ -753,7 +753,7 @@ ifn2                    =                       gicosine
 ifn3                    =                       gisine
 ifn4                    =                       gicookblank
 ivibefn                 =                       gisine
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 1.25
 ijunk6                  =                       p6
@@ -795,7 +795,7 @@ ifn2                    =                       gicook3
 ifn3                    =                       gisine
 ifn4                    =                       gisine
 ivibefn                 =                       gicosine
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 2.0
 ; Constant-power pan.
@@ -831,7 +831,7 @@ irelease                =                       0.05
                         ; xtratim                       iattack + irelease
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ifrequencyb             =                       ifrequency * 1.003
 icarrierb               =                       icarrier * 1.004
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
@@ -874,7 +874,7 @@ irelease                =                       0.05
                         ; xtratim                       iattack + irelease
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ifrequencyb             =                       ifrequency * 1.003
 icarrierb               =                       icarrier * 1.004
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
@@ -915,7 +915,7 @@ irelease                =                       .05
                         ; xtratim                       iattack + irelease
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
-ifrequency              =                       cpsoct(p4)
+ifrequency              =                       cpsmidinn(p4)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 5
 ijunk6                  =                       p6
@@ -950,8 +950,8 @@ asig2                   =                       aout* irightgain * kenv * kdampi
                         mididefault             60, p3
                         midinoteonoct           p4, p5
 ; Do some phasing.
-icpsp1                  =                       cpsoct(p4 - .0002)
-icpsp2                  =                       cpsoct(p4 + .0002)
+icpsp1                  =                       cpsmidinn(p4 - .0002)
+icpsp2                  =                       cpsmidinn(p4 + .0002)
 ; Normalize to 80 dB = ampdb(80).
 ip6                     =                       ampdb(p5)
 ijunk6                  =                       p6
@@ -1029,11 +1029,11 @@ irelease                =                       0.15
 p3                      =                       isustain + iattack + irelease
 kdamping                linseg                  0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ioctave                 =                       p4
-ihertz                  =                       cpsoct(ioctave)
+ihertz                  =                       cpsmidinn(ioctave)
 ; Detuning of strings by 4 cents each way.
 idetune                 =                       4.0 / 1200.0
-ihertzleft              =                       cpsoct(ioctave + idetune)
-ihertzright             =                       cpsoct(ioctave - idetune)
+ihertzleft              =                       cpsmidinn(ioctave + idetune)
+ihertzright             =                       cpsmidinn(ioctave - idetune)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5)
 ijunk6                  =                       p6
@@ -1056,7 +1056,7 @@ kvibrato                oscili                  1.0 / 120.0, 7.0, 1
 ; AUDIO
 kexponential            expseg                  1.0, p3 + iattack, 0.0001, irelease, .0001
 kenvelope               =                       (kexponential - 0.0001) * kdamping
-ag                      pluck                   iamplitude, cpsoct(ioctave + kvibrato), 200, igenleft, 1
+ag                      pluck                   iamplitude, cpsmidinn(ioctave + kvibrato), 200, igenleft, 1
 agleft                  pluck                   iamplitude, ihertzleft, 200, igenleft, 1
 agright                 pluck                   iamplitude, ihertzright, 200, igenright, 1
 imsleft                 =                       0.2 * 1000
@@ -1078,7 +1078,7 @@ asig2                   =                       irightpan * asignal * kdamping
                         mididefault             60, p3
                         midinoteonoct           p4, p5
 ; Pitch.
-i1                      =                       cpsoct(p4)
+i1                      =                       cpsmidinn(p4)
 ; Amplitude.
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) * 1.0 / 5000.0
@@ -1144,7 +1144,7 @@ irelease                =                       .06
 p3                      =                       isustain + iattack + irelease
 kdamping                linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ioctave                 =                       p4
-ifrequency              =                       cpsoct(ioctave)
+ifrequency              =                       cpsmidinn(ioctave)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
 iamplitude              =                       ampdb(p5) / 3
 iphase                  =                       p6
@@ -1164,9 +1164,9 @@ idur                    =                       15
 iamp                    =                       iamplitude
 ifenv                   =                       giffitch2                       ; BELL SETTINGS:
 ifdyn                   =                       giffitch3                       ; AMP AND INDEX ENV ARE EXPONENTIAL
-ifq1                    =                       cpsoct(p4 - 1) * 5              ; DECREASING, N1:N2 IS 5:7, imax=10
+ifq1                    =                       cpsmidinn(p4 - 1) * 5              ; DECREASING, N1:N2 IS 5:7, imax=10
 if1                     =                       giffitch1                               ; DURATION = 15 sec
-ifq2                    =                       cpsoct(p4 - 1) * 7
+ifq2                    =                       cpsmidinn(p4 - 1) * 7
 if2                     =                       giffitch1
 imax                    =                       10
 aenv                    oscili                  iamp, 1 / idur, ifenv           ; ENVELOPE
