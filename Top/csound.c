@@ -1209,6 +1209,7 @@ static const CSOUND cenviron_ = {
         csound_global_mutex_lock();
         if(csound->multiThreadedComplete == 1) {
             csound_global_mutex_unlock();
+	    free(threadId);
             return 0UL;
         }
         csound_global_mutex_unlock();
@@ -1310,8 +1311,6 @@ static const CSOUND cenviron_ = {
 
     if (!csound->spoutactive)           /*   results now in spout? */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-      /* for (i = 0; i < csound->nspout; i++) */
-      /*   csound->spout[i] = FL(0.0); */
     csound->spoutran(csound);           /*      send to audio_out  */
     return 0;
   }
