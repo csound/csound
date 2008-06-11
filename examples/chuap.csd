@@ -2,7 +2,7 @@
 <CsOptions>
 csound -RWfo chuas_oscillator.wav
 </CsOptions>
-<CsInstruments
+<CsInstruments>
 sr              =           44100
 ksmps           =           100
 nchnls          =           2
