@@ -86,18 +86,17 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 int oscils(CSOUND *csound, OSCILS *p)
 {
-    int     nn;
+    int     n, nsmps=csound->ksmps;
     MYFLT   *ar, x, c, v;
     double  xd, cd, vd;
 
     /* copy object data to local variables */
     ar = p->ar;
 
-    nn = csound->ksmps;
     if (p->use_double) {            /* use doubles */
       xd = p->xd; cd = p->cd; vd = p->vd;
-      while (nn--) {
-        *(ar++) = (MYFLT) xd;
+      for (n=0; n<nsmps; n++) {
+        ar[n] = (MYFLT) xd;
         vd += cd * xd;
         xd += vd;
       }
@@ -105,8 +104,8 @@ int oscils(CSOUND *csound, OSCILS *p)
     }
     else {                          /* use floats */
       x = p->x; c = p->c; v = p->v;
-      while (nn--) {
-        *(ar++) = x;
+      for (n=0; n<nsmps; n++) {
+        ar[n] = x;
         v += c * x;
         x += v;
       }
@@ -134,7 +133,7 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
-    int     nn, loop_mode, dir;
+    int     n, nsmps=csound->ksmps, loop_mode, dir;
     MYFLT   *ar, *xtrns;
     double  trns, phs, lps, lpe, lpt;
 
@@ -145,10 +144,9 @@ int lphasor(CSOUND *csound, LPHASOR *p)
     loop_mode = p->loop_mode;
     trns = (double)*xtrns;
 
-    nn = csound->ksmps;
-    while (nn--) {
+    for (n=0; n<nsmps; n++) {
       if (XINARG1) trns = (double)*(xtrns++);
-      *(ar++) = (MYFLT) phs;
+      ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
         dir = (trns < 0.0 ? !(p->dir) : p->dir);
@@ -186,8 +184,8 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
       if (p->wsize > 1024) p->wsize = 1024;         /* integer multiply of 4 */
     }
     /* constant for window calculation */
-    p->win_fact = (MYFLT) ((1.0 - pow((double)p->wsize * 0.85172, -0.89624))
-                           / (double)((p->wsize * p->wsize) >> 2));
+    p->win_fact = (FL(1.0) - POWER(p->wsize * FL(0.85172), -FL(0.89624))
+                   / (MYFLT)((p->wsize * p->wsize) >> 2));
 
     p->ndx_scl = (*(p->ixmode) == FL(0.0) ? 0 : 1);         /* index mode */
     p->wrap_ndx = (*(p->iwrap) == FL(0.0) ? 0 : 1);         /* wrap index */
@@ -201,7 +199,7 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 
 int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
-    int     i, nn, wsize, wsized2, wrap_ndx, warp;
+    int     i, n, nsmps=csound->ksmps, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
     int32    ndx_i, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
@@ -241,8 +239,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     onedpi_d = 1.0 / PI;
 
-    nn = csound->ksmps;
-    while (nn--) {
+    for (n=0; n<nsmps; n++) {
       ndx = (double)*xndx;
       if (XINARG1) xndx++;
       /* calculate table index */
@@ -271,9 +268,9 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
       }
       switch (wsize) {
         case 2:                     /* ---- linear interpolation ---- */
-          *ar = ftable[ndx_i];
+          ar[n] = ftable[ndx_i];
           if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
-          *ar += (ftable[ndx_i] - *ar) * ndx_f;
+          ar[n] += (ftable[ndx_i] - ar[n]) * ndx_f;
           break;
         case 4:                     /* ---- cubic interpolation ---- */
           /* sample  0 */
@@ -293,10 +290,10 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
           a3 = ndx_f * ndx_f; a3--; a3 *= FL(0.1666666667);
           a2 = ndx_f; a2++; a0 = (a2 *= FL(0.5)); a0--;
           a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= ndx_f;
-          *ar = (a0 * v0 + a1 * v1 + a2 * v2 + a3 * v3) * ndx_f + v1;
+          ar[n] = (a0 * v0 + a1 * v1 + a2 * v2 + a3 * v3) * ndx_f + v1;
           break;
         default:                    /* ---- sinc interpolation ---- */
-          *ar = FL(0.0);        /* clear output */
+          ar[n] = FL(0.0);        /* clear output */
           ndx = (double)ndx_f;
           ndx_i += (int32)(1 - wsized2);
           d = (double)(1 - wsized2) - ndx;
@@ -307,28 +304,28 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
             do {
               a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
               a1 = a1 * a1 / (MYFLT) d;
-              *ar += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
+              ar[n] += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
                                           : ndx_i)] * (MYFLT) x * a1;
               ndx_i++;
               d++; v += c * x; x += v;
             } while (--i);
             /* sample 0 */
             /* avoid division by zero */
-            if (ndx < 0.00003) *ar += onedwarp * ftable[ndx_i];
+            if (ndx < 0.00003) ar[n] += onedwarp * ftable[ndx_i];
             else {
               a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
               a1 = a1 * a1 / (MYFLT) d;
-              *ar += (MYFLT) x * a1 * ftable[ndx_i];
+              ar[n] += (MYFLT) x * a1 * ftable[ndx_i];
             }
             d++; v += c * x; x += v;
             if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
             /* sample 1 */
             /* avoid division by zero */
-            if (ndx > 0.99997) *ar += onedwarp * ftable[ndx_i];
+            if (ndx > 0.99997) ar[n] += onedwarp * ftable[ndx_i];
             else {
               a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
               a1 = a1 * a1 / (MYFLT) d;
-              *ar += (MYFLT) x * a1 * ftable[ndx_i];
+              ar[n] += (MYFLT) x * a1 * ftable[ndx_i];
             }
             d++; v += c * x; x += v;
             if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
@@ -337,7 +334,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
             do {
               a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
               a1 = a1 * a1 / (MYFLT) d;
-              *ar += (MYFLT) x * a1 * ftable[ndx_i];
+              ar[n] += (MYFLT) x * a1 * ftable[ndx_i];
               d++; v += c * x; x += v;
               if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
             } while (--i);
@@ -346,23 +343,23 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
             /* avoid division by zero */
             if (ndx < 0.00001) {
               ndx_i += (int32) (wsized2 - 1);    /* no need to check here */
-              *ar = ftable[ndx_i];
+              ar[n] = ftable[ndx_i];
             }
             else if (ndx > 0.99999) {
               ndx_i += (int32) wsized2;          /* does need range checking */
               if (ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
-              *ar = ftable[ndx_i];
+              ar[n] = ftable[ndx_i];
             }
             else {
               /* samples -(window size / 2 - 1) to 0 */
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                *ar += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
+                a[n]r += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
                                             : ndx_i)] * a1 * a1 / (MYFLT) d;
                 d++; ndx_i++;
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                *ar -= ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
+                ar[n] -= ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
                                             : ndx_i)] * a1 * a1 / (MYFLT) d;
                 d++; ndx_i++;
               } while (--i);
@@ -370,15 +367,15 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                *ar += a1 * a1 * ftable[ndx_i] / (MYFLT) d;
+                ar[n] += a1 * a1 * ftable[ndx_i] / (MYFLT) d;
                 d++;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                *ar -= a1 * a1 * ftable[ndx_i] / (MYFLT) d;
+                ar[n] -= a1 * a1 * ftable[ndx_i] / (MYFLT) d;
                 d++;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               } while (--i);
-              *ar *= (MYFLT) (sin(PI * ndx) / PI);
+              ar[n] *= SIN(PI_F * ndx) / PI_F);
             }
           }
           break;
