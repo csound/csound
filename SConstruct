@@ -2354,7 +2354,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         '''))
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(CPPPATH = tclIncludePath)
-        csTclEnvironment.Append(LIBS = ['tcl8.5', 'tk8.5', 'dl', 'pthread'])
+        csTclEnvironment.Append(LIBS = ['tcl8.4', 'tk8.4', 'dl', 'pthread'])
     elif getPlatform() == 'win32':
         csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
