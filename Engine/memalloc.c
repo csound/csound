@@ -131,12 +131,15 @@ void mfree(CSOUND *csound, void *p)
     pp->magic = 0;
 #endif
     /* unlink from chain */
-    if (pp->nxt != NULL)
-      pp->nxt->prv = pp->prv;
-    if (pp->prv != NULL)
-      pp->prv->nxt = pp->nxt;
-    else
-      MEMALLOC_DB = (void*) pp->nxt;
+    {
+      memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
+      if (nxt != NULL)
+        nxt->prv = prv;
+      if (prv != NULL)
+        prv->nxt = nxt;
+      else
+        MEMALLOC_DB = (void*)nxt;
+    }
     /* free memory */
     free((void*) pp);
 }
@@ -182,12 +185,15 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp->magic = MEMALLOC_MAGIC;
     pp->ptr = DATA_PTR(pp);
 #endif
-    if (pp->nxt != NULL)
-      pp->nxt->prv = pp;
-    if (pp->prv != NULL)
-      pp->prv->nxt = pp;
-    else
-      MEMALLOC_DB = (void*) pp;
+    {
+      memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
+      if (nxt != NULL)
+        nxt->prv = pp;
+      if (prv != NULL)
+        prv->nxt = pp;
+      else
+        MEMALLOC_DB = (void*) pp;
+    }
     /* return with data pointer */
     return DATA_PTR(pp);
 }

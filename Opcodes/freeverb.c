@@ -137,7 +137,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
     /* set up comb and allpass filters */
     nbytes = 0;
     for (i = 0; i < (NR_COMB << 1); i++) {
-      combp = (freeVerbComb*) ((unsigned char*) p->auxData.auxp + (int) nbytes);
+      combp = (freeVerbComb*)(p->auxData.auxp) + (int) nbytes;
       p->Comb[i >> 1][i & 1] = combp;
       k = calc_nsamples(p, comb_delays[i >> 1][i & 1]);
       combp->nSamples = k;
@@ -158,10 +158,10 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
         allpassp->buf[j] = FL(0.0);
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);
     }
-    p->tmpBuf = (MYFLT*) ((unsigned char*) p->auxData.auxp + (int) nbytes);
-    p->prvDampFactor = FL(-1.0);
+    p->tmpBuf = (MYFLT*) (p->auxData.auxp) + (int) nbytes;
+    p->prvDampFactor = -FL(1.0);
     if (*(p->iSampleRate) >= MIN_SRATE)
-      p->srFact = pow((DEFAULT_SRATE / (double) *(p->iSampleRate)), 0.8);
+      p->srFact = POWER((DEFAULT_SRATE / *(p->iSampleRate)), FL(0.8));
     else
       p->srFact = 1.0;
     return OK;
@@ -173,6 +173,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
     int             i, n;
+    int             nsmps = csound->ksmps;
 
     /* check if opcode was correctly initialised */
     if (p->auxData.size <= 0L || p->auxData.auxp == NULL) {
@@ -192,11 +193,12 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       damp1 = p->dampValue;
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
-    for (n = 0; n < csound->ksmps; n++)
-      p->tmpBuf[n] = FL(0.0);
+    memset(p->tmpBuf,0, sizeof(MYFLT)*nsmps);
+    /* for (n = 0; n < nsmps; n++) */
+    /*   p->tmpBuf[n] = FL(0.0); */
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][0];
-      for (n = 0; n < csound->ksmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
@@ -209,7 +211,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     /* allpass filters (left channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][0];
-      for (n = 0; n < csound->ksmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
@@ -219,14 +221,15 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       }
     }
     /* write left channel output */
-    for (n = 0; n < csound->ksmps; n++)
+    for (n = 0; n < nsmps; n++)
       p->aOutL[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
     /* comb filters (right channel) */
-    for (n = 0; n < csound->ksmps; n++)
-      p->tmpBuf[n] = FL(0.0);
+    memset(p->tmpBuf, 0, sizeof(MYFLT)*nsmps);
+    /* for (n = 0; n < nsmps; n++) */
+    /*   p->tmpBuf[n] = FL(0.0); */
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][1];
-      for (n = 0; n < csound->ksmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
@@ -239,7 +242,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     /* allpass filters (right channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][1];
-      for (n = 0; n < csound->ksmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
@@ -249,7 +252,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       }
     }
     /* write right channel output */
-    for (n = 0; n < csound->ksmps; n++)
+    for (n = 0; n < nsmps; n++)
       p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
 
     return OK;
