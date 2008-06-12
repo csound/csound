@@ -355,7 +355,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                a[n]r += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
+                ar[n] += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
                                             : ndx_i)] * a1 * a1 / (MYFLT) d;
                 d++; ndx_i++;
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
@@ -375,7 +375,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
                 d++;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               } while (--i);
-              ar[n] *= SIN(PI_F * ndx) / PI_F);
+              ar[n] *= SIN(PI_F * ndx) / PI_F;
             }
           }
           break;
