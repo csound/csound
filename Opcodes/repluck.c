@@ -260,7 +260,7 @@ static int streson(CSOUND *csound, STRES *p)
     int         vdt;
 
     freq = *p->afr;
-    if (freq < 20) freq = FL(20.0);   /* lowest freq is 20 Hz */
+    if (freq < FL(20.0)) freq = FL(20.0);   /* lowest freq is 20 Hz */
     tdelay = csound->esr/freq;
     delay = (int) (tdelay - 0.5); /* comb delay */
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */

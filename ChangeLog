@@ -1,3 +1,8 @@
+2008-06-12  jpff  <jpff@codemist.co.uk>
+
+	* Engine/memalloc.c (mfree):
+	(mrealloc):  Improvements to coding
+
 2008-05-28  Michael Gogins  <gogins@pipeline.com>
 
 	* Top/threads.c
