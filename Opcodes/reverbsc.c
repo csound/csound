@@ -189,7 +189,8 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     /* set up delay lines */
     nBytes = 0;
     for (i = 0; i < 8; i++) {
-      p->delayLines[i] = (delayLine*)(p->auxData.auxp) + nBytes;
+      p->delayLines[i] = (delayLine*) ((unsigned char*) (p->auxData.auxp)
+                                       + (int) nBytes);
       init_delay_line(p, p->delayLines[i], i);
       nBytes += delay_line_bytes_alloc(p, i);
     }
