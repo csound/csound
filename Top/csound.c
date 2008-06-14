@@ -56,586 +56,586 @@ extern "C" {
 #include "pvfileio.h"
 #include "fftlib.h"
 
-extern void MakeAscii(CSOUND *, WINDAT *, const char *);
-extern void DrawAscii(CSOUND *, WINDAT *);
-extern void KillAscii(CSOUND *, WINDAT *);
+  extern void MakeAscii(CSOUND *, WINDAT *, const char *);
+  extern void DrawAscii(CSOUND *, WINDAT *);
+  extern void KillAscii(CSOUND *, WINDAT *);
 
-static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
-static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
-static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
-static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
-static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
-static void rtclose_dummy(CSOUND *);
-static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
-static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
-static int  defaultCsoundExitGraph(CSOUND *);
-static int  defaultCsoundYield(CSOUND *);
-static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
+  static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
+  static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
+  static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
+  static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
+  static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
+  static void rtclose_dummy(CSOUND *);
+  static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
+  static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+  static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
+  static int  defaultCsoundExitGraph(CSOUND *);
+  static int  defaultCsoundYield(CSOUND *);
+  static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 
-extern void close_all_files(CSOUND *);
+  extern void close_all_files(CSOUND *);
 
-static const CSOUND cenviron_ = {
+  static const CSOUND cenviron_ = {
     /* ----------------- interface functions (322 total) ----------------- */
-        csoundGetVersion,
-        csoundGetAPIVersion,
-        csoundGetHostData,
-        csoundSetHostData,
-        csoundCreate,
-        csoundCompile,
-        csoundPerform,
-        csoundPerformKsmps,
-        csoundPerformBuffer,
-        csoundCleanup,
-        csoundReset,
-        csoundDestroy,
-        csoundGetSr,
-        csoundGetKr,
-        csoundGetKsmps,
-        csoundGetNchnls,
-        csoundGetSampleFormat,
-        csoundGetSampleSize,
-        csoundGetInputBufferSize,
-        csoundGetOutputBufferSize,
-        csoundGetInputBuffer,
-        csoundGetOutputBuffer,
-        csoundGetSpin,
-        csoundGetSpout,
-        csoundGetScoreTime,
-        csoundSetMakeXYinCallback,
-        csoundSetReadXYinCallback,
-        csoundSetKillXYinCallback,
-        csoundIsScorePending,
-        csoundSetScorePending,
-        csoundGetScoreOffsetSeconds,
-        csoundSetScoreOffsetSeconds,
-        csoundRewindScore,
-        csoundMessage,
-        csoundMessageS,
-        csoundMessageV,
-        csoundDeleteUtilityList,
-        csoundDeleteChannelList,
-        csoundSetMessageCallback,
-        csoundDeleteCfgVarList,
-        csoundGetMessageLevel,
-        csoundSetMessageLevel,
-        csoundInputMessage,
-        csoundKeyPress,
-        csoundSetInputValueCallback,
-        csoundSetOutputValueCallback,
-        csoundScoreEvent,
-        csoundSetExternalMidiInOpenCallback,
-        csoundSetExternalMidiReadCallback,
-        csoundSetExternalMidiInCloseCallback,
-        csoundSetExternalMidiOutOpenCallback,
-        csoundSetExternalMidiWriteCallback,
-        csoundSetExternalMidiOutCloseCallback,
-        csoundSetExternalMidiErrorStringCallback,
-        csoundSetIsGraphable,
-        csoundSetMakeGraphCallback,
-        csoundSetDrawGraphCallback,
-        csoundSetKillGraphCallback,
-        csoundSetExitGraphCallback,
-        csoundNewOpcodeList,
-        csoundDisposeOpcodeList,
-        csoundAppendOpcode,
-        csoundAppendOpcodes,
-        csoundOpenLibrary,
-        csoundCloseLibrary,
-        csoundGetLibrarySymbol,
-        csoundYield,
-        csoundSetYieldCallback,
-        csoundGetEnv,
-        csoundFindInputFile,
-        csoundFindOutputFile,
-        csoundSetPlayopenCallback,
-        csoundSetRtplayCallback,
-        csoundSetRecopenCallback,
-        csoundSetRtrecordCallback,
-        csoundSetRtcloseCallback,
-        csoundAuxAlloc,
-        mmalloc,
-        mcalloc,
-        mrealloc,
-        mfree,
-        dispset,
-        display,
-        dispexit,
-        intpow,
-        ldmemfile,
-        strarg2insno,
-        strarg2name,
-        hfgens,
-        insert_score_event,
-        csoundFTAlloc,
-        csoundFTDelete,
-        csoundFTFind,
-        csoundFTFindP,
-        csoundFTnp2Find,
-        csoundGetTable,
-        csoundLoadSoundFile,
-        getstrformat,
-        sfsampsize,
-        type2string,
-        SAsndgetset,
-        sndgetset,
-        getsndin,
-        rewriteheader,
-        csoundRand31,
-        fdrecord,
-        fdclose,
-        csoundSetDebug,
-        csoundGetDebug,
-        csoundTableLength,
-        csoundTableGet,
-        csoundTableSet,
-        csoundCreateThread,
-        csoundJoinThread,
-        csoundCreateThreadLock,
-        csoundDestroyThreadLock,
-        csoundWaitThreadLock,
-        csoundNotifyThreadLock,
-        csoundWaitThreadLockNoTimeout,
-        csoundSleep,
-        csoundInitTimerStruct,
-        csoundGetRealTime,
-        csoundGetCPUTime,
-        csoundGetRandomSeedFromTime,
-        csoundSeedRandMT,
-        csoundRandMT,
-        csoundPerformKsmpsAbsolute,
-        csoundLocalizeString,
-        csoundCreateGlobalVariable,
-        csoundQueryGlobalVariable,
-        csoundQueryGlobalVariableNoCheck,
-        csoundDestroyGlobalVariable,
-        csoundCreateConfigurationVariable,
-        csoundSetConfigurationVariable,
-        csoundParseConfigurationVariable,
-        csoundQueryConfigurationVariable,
-        csoundListConfigurationVariables,
-        csoundDeleteConfigurationVariable,
-        csoundCfgErrorCodeToString,
-        csoundGetSizeOfMYFLT,
-        csoundGetRtRecordUserData,
-        csoundGetRtPlayUserData,
-        csoundGetInverseComplexFFTScale,
-        csoundGetInverseRealFFTScale,
-        csoundComplexFFT,
-        csoundInverseComplexFFT,
-        csoundRealFFT,
-        csoundInverseRealFFT,
-        csoundRealFFTMult,
-        csoundRealFFTnp2,
-        csoundInverseRealFFTnp2,
-        csoundAddUtility,
-        csoundRunUtility,
-        csoundListUtilities,
-        csoundSetUtilityDescription,
-        csoundGetUtilityDescription,
-        csoundRegisterSenseEventCallback,
-        csoundRegisterDeinitCallback,
-        csoundRegisterResetCallback,
-        csoundCreateFileHandle,
-        csoundFileOpen,
-        csoundGetFileName,
-        csoundFileClose,
-        pvoc_createfile,
-        (int (*)(CSOUND *, const char *, void *, void *)) pvoc_openfile,
-        pvoc_closefile,
-        pvoc_putframes,
-        pvoc_getframes,
-        pvoc_framecount,
-        pvoc_fseek,
-        pvoc_errorstr,
-        PVOCEX_LoadFile,
-        csoundGetOpcodeName,
-        csoundGetInputArgCnt,
-        csoundGetInputArgAMask,
-        csoundGetInputArgSMask,
-        csoundGetInputArgName,
-        csoundGetOutputArgCnt,
-        csoundGetOutputArgAMask,
-        csoundGetOutputArgSMask,
-        csoundGetOutputArgName,
-        csoundSetReleaseLength,
-        csoundSetReleaseLengthSeconds,
-        csoundGetMidiChannelNumber,
-        csoundGetMidiChannel,
-        csoundGetMidiNoteNumber,
-        csoundGetMidiVelocity,
-        csoundGetReleaseFlag,
-        csoundGetOffTime,
-        csoundGetPFields,
-        csoundGetInstrumentNumber,
-        csoundDie,
-        csoundInitError,
-        csoundPerfError,
-        csoundWarning,
-        csoundDebugMsg,
-        csoundLongJmp,
-        csoundErrorMsg,
-        csoundErrMsgV,
-        csoundGetChannelPtr,
-        csoundListChannels,
-        csoundSetControlChannelParams,
-        csoundGetControlChannelParams,
-        csoundChanIKSet,
-        csoundChanOKGet,
-        csoundChanIASet,
-        csoundChanOAGet,
-        dispinit,
-        csoundCreateMutex,
-        csoundLockMutexNoWait,
-        csoundLockMutex,
-        csoundUnlockMutex,
-        csoundDestroyMutex,
-        csoundRunCommand,
-        csoundGetCurrentThreadId,
-        csoundSetChannelIOCallback,
-        csoundSetCallback,
-        csoundRemoveCallback,
-        csoundPvsinSet,
-        csoundPvsoutGet,
-        SetInternalYieldCallback,
-        csoundCreateBarrier,
-        csoundDestroyBarrier,
-        csoundWaitBarrier,
-        csoundFileOpenWithType,
-        type2csfiletype,
-        ldmemfile2,
-        csoundNotifyFileOpened,
-        sftype2csfiletype,
-     /* NULL, */
-        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
-        NULL,  /*  flgraphsGlobals */
-        NULL, NULL,             /* Delayed messages */
+    csoundGetVersion,
+    csoundGetAPIVersion,
+    csoundGetHostData,
+    csoundSetHostData,
+    csoundCreate,
+    csoundCompile,
+    csoundPerform,
+    csoundPerformKsmps,
+    csoundPerformBuffer,
+    csoundCleanup,
+    csoundReset,
+    csoundDestroy,
+    csoundGetSr,
+    csoundGetKr,
+    csoundGetKsmps,
+    csoundGetNchnls,
+    csoundGetSampleFormat,
+    csoundGetSampleSize,
+    csoundGetInputBufferSize,
+    csoundGetOutputBufferSize,
+    csoundGetInputBuffer,
+    csoundGetOutputBuffer,
+    csoundGetSpin,
+    csoundGetSpout,
+    csoundGetScoreTime,
+    csoundSetMakeXYinCallback,
+    csoundSetReadXYinCallback,
+    csoundSetKillXYinCallback,
+    csoundIsScorePending,
+    csoundSetScorePending,
+    csoundGetScoreOffsetSeconds,
+    csoundSetScoreOffsetSeconds,
+    csoundRewindScore,
+    csoundMessage,
+    csoundMessageS,
+    csoundMessageV,
+    csoundDeleteUtilityList,
+    csoundDeleteChannelList,
+    csoundSetMessageCallback,
+    csoundDeleteCfgVarList,
+    csoundGetMessageLevel,
+    csoundSetMessageLevel,
+    csoundInputMessage,
+    csoundKeyPress,
+    csoundSetInputValueCallback,
+    csoundSetOutputValueCallback,
+    csoundScoreEvent,
+    csoundSetExternalMidiInOpenCallback,
+    csoundSetExternalMidiReadCallback,
+    csoundSetExternalMidiInCloseCallback,
+    csoundSetExternalMidiOutOpenCallback,
+    csoundSetExternalMidiWriteCallback,
+    csoundSetExternalMidiOutCloseCallback,
+    csoundSetExternalMidiErrorStringCallback,
+    csoundSetIsGraphable,
+    csoundSetMakeGraphCallback,
+    csoundSetDrawGraphCallback,
+    csoundSetKillGraphCallback,
+    csoundSetExitGraphCallback,
+    csoundNewOpcodeList,
+    csoundDisposeOpcodeList,
+    csoundAppendOpcode,
+    csoundAppendOpcodes,
+    csoundOpenLibrary,
+    csoundCloseLibrary,
+    csoundGetLibrarySymbol,
+    csoundYield,
+    csoundSetYieldCallback,
+    csoundGetEnv,
+    csoundFindInputFile,
+    csoundFindOutputFile,
+    csoundSetPlayopenCallback,
+    csoundSetRtplayCallback,
+    csoundSetRecopenCallback,
+    csoundSetRtrecordCallback,
+    csoundSetRtcloseCallback,
+    csoundAuxAlloc,
+    mmalloc,
+    mcalloc,
+    mrealloc,
+    mfree,
+    dispset,
+    display,
+    dispexit,
+    intpow,
+    ldmemfile,
+    strarg2insno,
+    strarg2name,
+    hfgens,
+    insert_score_event,
+    csoundFTAlloc,
+    csoundFTDelete,
+    csoundFTFind,
+    csoundFTFindP,
+    csoundFTnp2Find,
+    csoundGetTable,
+    csoundLoadSoundFile,
+    getstrformat,
+    sfsampsize,
+    type2string,
+    SAsndgetset,
+    sndgetset,
+    getsndin,
+    rewriteheader,
+    csoundRand31,
+    fdrecord,
+    fdclose,
+    csoundSetDebug,
+    csoundGetDebug,
+    csoundTableLength,
+    csoundTableGet,
+    csoundTableSet,
+    csoundCreateThread,
+    csoundJoinThread,
+    csoundCreateThreadLock,
+    csoundDestroyThreadLock,
+    csoundWaitThreadLock,
+    csoundNotifyThreadLock,
+    csoundWaitThreadLockNoTimeout,
+    csoundSleep,
+    csoundInitTimerStruct,
+    csoundGetRealTime,
+    csoundGetCPUTime,
+    csoundGetRandomSeedFromTime,
+    csoundSeedRandMT,
+    csoundRandMT,
+    csoundPerformKsmpsAbsolute,
+    csoundLocalizeString,
+    csoundCreateGlobalVariable,
+    csoundQueryGlobalVariable,
+    csoundQueryGlobalVariableNoCheck,
+    csoundDestroyGlobalVariable,
+    csoundCreateConfigurationVariable,
+    csoundSetConfigurationVariable,
+    csoundParseConfigurationVariable,
+    csoundQueryConfigurationVariable,
+    csoundListConfigurationVariables,
+    csoundDeleteConfigurationVariable,
+    csoundCfgErrorCodeToString,
+    csoundGetSizeOfMYFLT,
+    csoundGetRtRecordUserData,
+    csoundGetRtPlayUserData,
+    csoundGetInverseComplexFFTScale,
+    csoundGetInverseRealFFTScale,
+    csoundComplexFFT,
+    csoundInverseComplexFFT,
+    csoundRealFFT,
+    csoundInverseRealFFT,
+    csoundRealFFTMult,
+    csoundRealFFTnp2,
+    csoundInverseRealFFTnp2,
+    csoundAddUtility,
+    csoundRunUtility,
+    csoundListUtilities,
+    csoundSetUtilityDescription,
+    csoundGetUtilityDescription,
+    csoundRegisterSenseEventCallback,
+    csoundRegisterDeinitCallback,
+    csoundRegisterResetCallback,
+    csoundCreateFileHandle,
+    csoundFileOpen,
+    csoundGetFileName,
+    csoundFileClose,
+    pvoc_createfile,
+    (int (*)(CSOUND *, const char *, void *, void *)) pvoc_openfile,
+    pvoc_closefile,
+    pvoc_putframes,
+    pvoc_getframes,
+    pvoc_framecount,
+    pvoc_fseek,
+    pvoc_errorstr,
+    PVOCEX_LoadFile,
+    csoundGetOpcodeName,
+    csoundGetInputArgCnt,
+    csoundGetInputArgAMask,
+    csoundGetInputArgSMask,
+    csoundGetInputArgName,
+    csoundGetOutputArgCnt,
+    csoundGetOutputArgAMask,
+    csoundGetOutputArgSMask,
+    csoundGetOutputArgName,
+    csoundSetReleaseLength,
+    csoundSetReleaseLengthSeconds,
+    csoundGetMidiChannelNumber,
+    csoundGetMidiChannel,
+    csoundGetMidiNoteNumber,
+    csoundGetMidiVelocity,
+    csoundGetReleaseFlag,
+    csoundGetOffTime,
+    csoundGetPFields,
+    csoundGetInstrumentNumber,
+    csoundDie,
+    csoundInitError,
+    csoundPerfError,
+    csoundWarning,
+    csoundDebugMsg,
+    csoundLongJmp,
+    csoundErrorMsg,
+    csoundErrMsgV,
+    csoundGetChannelPtr,
+    csoundListChannels,
+    csoundSetControlChannelParams,
+    csoundGetControlChannelParams,
+    csoundChanIKSet,
+    csoundChanOKGet,
+    csoundChanIASet,
+    csoundChanOAGet,
+    dispinit,
+    csoundCreateMutex,
+    csoundLockMutexNoWait,
+    csoundLockMutex,
+    csoundUnlockMutex,
+    csoundDestroyMutex,
+    csoundRunCommand,
+    csoundGetCurrentThreadId,
+    csoundSetChannelIOCallback,
+    csoundSetCallback,
+    csoundRemoveCallback,
+    csoundPvsinSet,
+    csoundPvsoutGet,
+    SetInternalYieldCallback,
+    csoundCreateBarrier,
+    csoundDestroyBarrier,
+    csoundWaitBarrier,
+    csoundFileOpenWithType,
+    type2csfiletype,
+    ldmemfile2,
+    csoundNotifyFileOpened,
+    sftype2csfiletype,
+    /* NULL, */
+    { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    NULL,  /*  flgraphsGlobals */
+    NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
-        (OPDS*) NULL,   /*  ids                 */
-        (OPDS*) NULL,   /*  pds                 */
-        DFLT_KSMPS,     /*  ksmps               */
-        DFLT_KSMPS,     /*  global_ksmps        */
-        DFLT_NCHNLS,    /*  nchnls              */
-        0,              /*  spoutactive         */
-        0L,             /*  kcounter            */
-        0L,             /*  global_kcounter     */
-        0,              /*  reinitflag          */
-        0,              /*  tieflag             */
-        DFLT_SR,        /*  esr                 */
-        FL(0.0),        /*  onedsr              */
-        FL(0.0),        /*  sicvt               */
-        FL(-1.0),       /*  tpidsr              */
-        FL(-1.0),       /*  pidsr               */
-        FL(-1.0),       /*  mpidsr              */
-        FL(-1.0),       /*  mtpdsr              */
-        FL(0.0),        /*  onedksmps           */
-        DFLT_KR,        /*  ekr                 */
-        DFLT_KR,        /*  global_ekr          */
-        FL(0.0),        /*  onedkr              */
-        FL(0.0),        /*  kicvt               */
-        DFLT_DBFS,      /*  e0dbfs              */
-        FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-        0.0,            /*  timeOffs            */
-        0.0,            /*  beatOffs            */
-        0.0,            /*  curTime             */
-        0.0,            /*  curTime_inc         */
-        0.0,            /*  curBeat             */
-        0.0,            /*  curBeat_inc         */
-        0.0,            /*  beatTime            */
-        0,              /*  dummy_01            */
-        0,              /*  dummy_02            */
-        NULL,           /*  widgetGlobals       */
-        NULL,           /*  stdOp_Env           */
-        NULL,           /*  zkstart             */
-        NULL,           /*  zastart             */
-        0L,             /*  zklast              */
-        0L,             /*  zalast              */
-        NULL,           /*  spin                */
-        NULL,           /*  spout               */
-        0,              /*  nspin               */
-        0,              /*  nspout              */
-        (OPARMS*) NULL, /*  oparms              */
-        (EVTBLK*) NULL, /*  currevent           */
-        (INSDS*) NULL,  /*  curip               */
-        NULL,           /*  hostdata            */
-        NULL,           /*  rtRecord_userdata   */
-        NULL,           /*  rtPlay_userdata     */
-        NULL, NULL,     /*  orchname, scorename */
-        2345678,        /*  holdrand            */
-        256,            /*  strVarMaxLen        */
-        MAXINSNO,       /*  maxinsno            */
-        0,              /*  strsmax             */
-        (char**) NULL,  /*  strsets             */
-        NULL,           /*  instrtxtp           */
-        { NULL },       /*  m_chnbp             */
-        NULL,           /*  csRtClock           */
-        NULL,           /*  csRandState         */
-        0,              /*  randSeed1           */
-        0,              /*  randSeed2           */
+    (OPDS*) NULL,   /*  ids                 */
+    (OPDS*) NULL,   /*  pds                 */
+    DFLT_KSMPS,     /*  ksmps               */
+    DFLT_KSMPS,     /*  global_ksmps        */
+    DFLT_NCHNLS,    /*  nchnls              */
+    0,              /*  spoutactive         */
+    0L,             /*  kcounter            */
+    0L,             /*  global_kcounter     */
+    0,              /*  reinitflag          */
+    0,              /*  tieflag             */
+    DFLT_SR,        /*  esr                 */
+    FL(0.0),        /*  onedsr              */
+    FL(0.0),        /*  sicvt               */
+    FL(-1.0),       /*  tpidsr              */
+    FL(-1.0),       /*  pidsr               */
+    FL(-1.0),       /*  mpidsr              */
+    FL(-1.0),       /*  mtpdsr              */
+    FL(0.0),        /*  onedksmps           */
+    DFLT_KR,        /*  ekr                 */
+    DFLT_KR,        /*  global_ekr          */
+    FL(0.0),        /*  onedkr              */
+    FL(0.0),        /*  kicvt               */
+    DFLT_DBFS,      /*  e0dbfs              */
+    FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
+    0.0,            /*  timeOffs            */
+    0.0,            /*  beatOffs            */
+    0.0,            /*  curTime             */
+    0.0,            /*  curTime_inc         */
+    0.0,            /*  curBeat             */
+    0.0,            /*  curBeat_inc         */
+    0.0,            /*  beatTime            */
+    0,              /*  dummy_01            */
+    0,              /*  dummy_02            */
+    NULL,           /*  widgetGlobals       */
+    NULL,           /*  stdOp_Env           */
+    NULL,           /*  zkstart             */
+    NULL,           /*  zastart             */
+    0L,             /*  zklast              */
+    0L,             /*  zalast              */
+    NULL,           /*  spin                */
+    NULL,           /*  spout               */
+    0,              /*  nspin               */
+    0,              /*  nspout              */
+    (OPARMS*) NULL, /*  oparms              */
+    (EVTBLK*) NULL, /*  currevent           */
+    (INSDS*) NULL,  /*  curip               */
+    NULL,           /*  hostdata            */
+    NULL,           /*  rtRecord_userdata   */
+    NULL,           /*  rtPlay_userdata     */
+    NULL, NULL,     /*  orchname, scorename */
+    2345678,        /*  holdrand            */
+    256,            /*  strVarMaxLen        */
+    MAXINSNO,       /*  maxinsno            */
+    0,              /*  strsmax             */
+    (char**) NULL,  /*  strsets             */
+    NULL,           /*  instrtxtp           */
+    { NULL },       /*  m_chnbp             */
+    NULL,           /*  csRtClock           */
+    NULL,           /*  csRandState         */
+    0,              /*  randSeed1           */
+    0,              /*  randSeed2           */
     /* ------- private data (not to be used by hosts or externals) ------- */
-        /* callback function pointers */
-        (SUBR) NULL,    /*  first_callback_     */
-        (void (*)(CSOUND *, const char *, MYFLT *)) NULL,
-        (void (*)(CSOUND *, const char *, MYFLT)) NULL,
-        csoundDefaultMessageCallback,
-        (int (*)(CSOUND *)) NULL,
-        MakeAscii,
-        DrawAscii,
-        KillAscii,
-        defaultCsoundExitGraph,
-        defaultCsoundYield,
-        defaultCsoundMakeXYin,
-        defaultCsoundReadKillXYin,
-        defaultCsoundReadKillXYin,
+    /* callback function pointers */
+    (SUBR) NULL,    /*  first_callback_     */
+    (void (*)(CSOUND *, const char *, MYFLT *)) NULL,
+    (void (*)(CSOUND *, const char *, MYFLT)) NULL,
+    csoundDefaultMessageCallback,
+    (int (*)(CSOUND *)) NULL,
+    MakeAscii,
+    DrawAscii,
+    KillAscii,
+    defaultCsoundExitGraph,
+    defaultCsoundYield,
+    defaultCsoundMakeXYin,
+    defaultCsoundReadKillXYin,
+    defaultCsoundReadKillXYin,
 #ifdef OLPC
-        NULL,
+    NULL,
 #else
-        cscore_,        /*  cscoreCallback_     */
+    cscore_,        /*  cscoreCallback_     */
 #endif
-        (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
-        (SUBR) NULL,    /*  last_callback_      */
-        /* these are not saved on RESET */
-        playopen_dummy,
-        rtplay_dummy,
-        recopen_dummy,
-        rtrecord_dummy,
-        rtclose_dummy,
-        /* end of callbacks */
-        0, 0,           /*  nchanik, nchania    */
-        0, 0,           /*  nchanok, nchanoa    */
-        NULL, NULL,     /*  chanik, chania      */
-        NULL, NULL,     /*  chanok, chanoa      */
-        FL(0.0),        /*  cpu_power_busy      */
-        (char*) NULL,   /*  xfilename           */
-        NLABELS,        /*  nlabels             */
-        NGOTOS,         /*  ngotos              */
-        1,              /*  peakchunks          */
-        0,              /*  keep_tmp            */
-        0,              /*  dither_output       */
-        (OENTRY*) NULL, /*  opcodlst            */
-        (int*) NULL,    /*  opcode_list         */
-        (OENTRY*) NULL, /*  opcodlstend         */
-        -1,             /*  maxopcno            */
-        0,              /*  nrecs               */
-        NULL,           /*  Linepipe            */
-        0,              /*  Linefd              */
-        NULL,           /*  csoundCallbacks_    */
-        NULL,           /*  scfp                */
-        NULL,           /*  oscfp               */
-        { FL(0.0) },    /*  maxamp              */
-        { FL(0.0) },    /*  smaxamp             */
-        { FL(0.0) },    /*  omaxamp             */
-        {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
-        NULL, NULL,     /*  scorein, scoreout   */
-        NULL,           /*  pool                */
-        NULL,           /*  argoffspace         */
-        NULL,           /*  frstoff             */
+    (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
+    (SUBR) NULL,    /*  last_callback_      */
+    /* these are not saved on RESET */
+    playopen_dummy,
+    rtplay_dummy,
+    recopen_dummy,
+    rtrecord_dummy,
+    rtclose_dummy,
+    /* end of callbacks */
+    0, 0,           /*  nchanik, nchania    */
+    0, 0,           /*  nchanok, nchanoa    */
+    NULL, NULL,     /*  chanik, chania      */
+    NULL, NULL,     /*  chanok, chanoa      */
+    FL(0.0),        /*  cpu_power_busy      */
+    (char*) NULL,   /*  xfilename           */
+    NLABELS,        /*  nlabels             */
+    NGOTOS,         /*  ngotos              */
+    1,              /*  peakchunks          */
+    0,              /*  keep_tmp            */
+    0,              /*  dither_output       */
+    (OENTRY*) NULL, /*  opcodlst            */
+    (int*) NULL,    /*  opcode_list         */
+    (OENTRY*) NULL, /*  opcodlstend         */
+    -1,             /*  maxopcno            */
+    0,              /*  nrecs               */
+    NULL,           /*  Linepipe            */
+    0,              /*  Linefd              */
+    NULL,           /*  csoundCallbacks_    */
+    NULL,           /*  scfp                */
+    NULL,           /*  oscfp               */
+    { FL(0.0) },    /*  maxamp              */
+    { FL(0.0) },    /*  smaxamp             */
+    { FL(0.0) },    /*  omaxamp             */
+    {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
+    NULL, NULL,     /*  scorein, scoreout   */
+    NULL,           /*  pool                */
+    NULL,           /*  argoffspace         */
+    NULL,           /*  frstoff             */
 #if defined(__WATCOMC__) || defined(MSVC) ||defined(__POWERPC__) || defined(mac_classic) || \
-    (defined(_WIN32) && defined(__GNUC__))
-        {0},
+  (defined(_WIN32) && defined(__GNUC__))
+    {0},
 #else
-        {{{0}}},        /*  exitjmp of type jmp_buf */
+    {{{0}}},        /*  exitjmp of type jmp_buf */
 #endif
-        NULL,           /*  frstbp              */
-        0,              /*  sectcnt             */
-        0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-        {NULL},         /*  instxtanchor        */
-        {NULL},         /*  actanchor           */
-        {0L },          /*  rngcnt              */
-        0, 0,           /*  rngflg, multichan   */
-        NULL,           /*  evtFuncChain        */
-        NULL,           /*  OrcTrigEvts         */
-        NULL,           /*  freeEvtNodes        */
-        1,              /*  csoundIsScorePending_ */
-        0,              /*  advanceCnt          */
-        0,              /*  initonly            */
-        0,              /*  evt_poll_cnt        */
-        0,              /*  evt_poll_maxcnt     */
-        0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-        FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
-        FL(-1.0),       /*  tran_ksmps          */
-        DFLT_DBFS,      /*  tran_0dbfs          */
-        DFLT_NCHNLS,    /*  tran_nchnls         */
-        NULL,           /*  opcodeInfo          */
-        NULL,           /*  instrumentNames     */
-        NULL,           /*  strsav_str          */
-        NULL,           /*  strsav_space        */
-        NULL,           /*  flist               */
-        0,              /*  maxfnum             */
-        NULL,           /*  gensub              */
-        GENMAX+1,       /*  genmax              */
-        100,            /*  ftldno              */
-        NULL,           /*  namedGlobals        */
-        0,              /*  namedGlobalsCurrLimit */
-        0,              /*  namedGlobalsMaxLimit */
-        NULL,           /*  cfgVariableDB       */
-        0.0, 0.0, 0.0,  /*  prvbt, curbt, nxtbt */
-        0.0, 0.0,       /*  curp2, nxtim        */
-        0,              /*  cyclesRemaining     */
-        { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) } },   /*  evt     */
-        NULL,           /*  memalloc_db         */
-        (MGLOBAL*) NULL, /* midiGlobals         */
-        NULL,           /*  envVarDB            */
-        (MEMFIL*) NULL, /*  memfiles            */
-        NULL,           /*  pvx_memfiles        */
-        0,              /*  FFT_max_size        */
-        NULL,           /*  FFT_table_1         */
-        NULL,           /*  FFT_table_2         */
-        NULL, NULL, NULL, /* tseg, tpsave, tplim */
-        /* express.c */
-        0L,             /*  polmax              */
-        0L,             /*  toklen              */
-        NULL,           /*  tokenstring         */
-        NULL,           /*  polish              */
-        NULL,           /*  token               */
-        NULL,           /*  tokend              */
-        NULL,           /*  tokens              */
-        NULL,           /*  tokenlist           */
-        TOKMAX,         /*  toklength           */
-        0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
-        (char*) NULL,   /*  stringend           */
-        NULL, NULL,     /*  revp, pushp         */
-        NULL, NULL,     /*  argp, endlist       */
-        (char*) NULL,   /*  assign_outarg       */
-        0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
-        0,              /*  strVarSamples       */
-        (MYFLT*) NULL,  /*  gbloffbas           */
-        NULL,           /*  otranGlobals        */
-        NULL,           /*  rdorchGlobals       */
-        NULL,           /*  sreadGlobals        */
-        NULL,           /*  extractGlobals      */
-        NULL,           /*  oneFileGlobals      */
-        NULL,           /*  lineventGlobals     */
-        NULL,           /*  musmonGlobals       */
-        NULL,           /*  libsndGlobals       */
-        (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
-        (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
-        (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
-        (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
-        0,              /*  warped              */
-        0,              /*  sstrlen             */
-        (char*) NULL,   /*  sstrbuf             */
-        1,              /*  enableMsgAttr       */
-        0,              /*  sampsNeeded         */
-        FL(0.0),        /*  csoundScoreOffsetSeconds_   */
-        -1,             /*  inChar_             */
-        0,              /*  isGraphable_        */
-        0,              /*  delayr_stack_depth  */
-        NULL,           /*  first_delayr        */
-        NULL,           /*  last_delayr         */
-        { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
-        0L,             /*  revlpsum            */
-        0.5,            /*  rndfrac             */
-        NULL,           /*  logbase2            */
-        NULL, NULL,     /*  omacros, smacros    */
-        NULL,           /*  namedgen            */
-        NULL,           /*  open_files          */
-        NULL,           /*  searchPathCache     */
-        NULL,           /*  sndmemfiles         */
-        NULL,           /*  reset_list          */
-        NULL,           /*  pvFileTable         */
-        0,              /*  pvNumFiles          */
-        0,              /*  pvErrorCode         */
-        NULL,           /*  pluginOpcodeFiles   */
-        NULL,           /*  pluginOpcodeDB      */
-        0,              /*  enableHostImplementedAudioIO  */
-        0,              /*  hostRequestedBufferSize       */
-        0,              /*  engineState         */
-        0,              /*  stdin_assign_flg    */
-        0,              /*  stdout_assign_flg   */
-        0,              /*  orcname_mode        */
-        NULL,           /*  csmodule_db         */
-        (char*) NULL,   /*  dl_opcodes_oplibs   */
-        (char*) NULL,   /*  SF_csd_licence      */
-        (char*) NULL,   /*  SF_id_title         */
-        (char*) NULL,   /*  SF_id_copyright     */
-        (char*) NULL,   /*  SF_id_software      */
-        (char*) NULL,   /*  SF_id_artist        */
-        (char*) NULL,   /*  SF_id_comment       */
-        (char*) NULL,   /*  SF_id_date          */
-        NULL,           /*  utility_db          */
-        (int16*) NULL,  /*  isintab             */
-        NULL,           /*  lprdaddr            */
-        0,              /*  currentLPCSlot      */
-        0,              /*  max_lpc_slot        */
-        NULL,           /*  chn_db              */
-        1,              /*  opcodedirWasOK      */
-        0,              /*  disable_csd_options */
-        { 0, { 0U } },  /*  randState_          */
-        0,              /*  performState        */
-        1000,           /*  ugens4_rand_16      */
-        1000,           /*  ugens4_rand_15      */
-        NULL,           /*  schedule_kicked     */
-        (LBLBLK**) NULL, /* lopds               */
-        NULL,           /*  larg                */
-        (MYFLT*) NULL,  /*  disprep_fftcoefs    */
-        NULL,           /*  winEPS_globals      */
-        {               /*  oparms_             */
-          0,            /*    odebug            */
-          0, 1, 1, 0,   /*    sfread, ...       */
-          0, 0, 0, 0,   /*    inbufsamps, ...   */
-          0,            /*    sfsampsize        */
+    NULL,           /*  frstbp              */
+    0,              /*  sectcnt             */
+    0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
+    {NULL},         /*  instxtanchor        */
+    {NULL},         /*  actanchor           */
+    {0L },          /*  rngcnt              */
+    0, 0,           /*  rngflg, multichan   */
+    NULL,           /*  evtFuncChain        */
+    NULL,           /*  OrcTrigEvts         */
+    NULL,           /*  freeEvtNodes        */
+    1,              /*  csoundIsScorePending_ */
+    0,              /*  advanceCnt          */
+    0,              /*  initonly            */
+    0,              /*  evt_poll_cnt        */
+    0,              /*  evt_poll_maxcnt     */
+    0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
+    FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
+    FL(-1.0),       /*  tran_ksmps          */
+    DFLT_DBFS,      /*  tran_0dbfs          */
+    DFLT_NCHNLS,    /*  tran_nchnls         */
+    NULL,           /*  opcodeInfo          */
+    NULL,           /*  instrumentNames     */
+    NULL,           /*  strsav_str          */
+    NULL,           /*  strsav_space        */
+    NULL,           /*  flist               */
+    0,              /*  maxfnum             */
+    NULL,           /*  gensub              */
+    GENMAX+1,       /*  genmax              */
+    100,            /*  ftldno              */
+    NULL,           /*  namedGlobals        */
+    0,              /*  namedGlobalsCurrLimit */
+    0,              /*  namedGlobalsMaxLimit */
+    NULL,           /*  cfgVariableDB       */
+    0.0, 0.0, 0.0,  /*  prvbt, curbt, nxtbt */
+    0.0, 0.0,       /*  curp2, nxtim        */
+    0,              /*  cyclesRemaining     */
+    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) } },   /*  evt     */
+    NULL,           /*  memalloc_db         */
+    (MGLOBAL*) NULL, /* midiGlobals         */
+    NULL,           /*  envVarDB            */
+    (MEMFIL*) NULL, /*  memfiles            */
+    NULL,           /*  pvx_memfiles        */
+    0,              /*  FFT_max_size        */
+    NULL,           /*  FFT_table_1         */
+    NULL,           /*  FFT_table_2         */
+    NULL, NULL, NULL, /* tseg, tpsave, tplim */
+    /* express.c */
+    0L,             /*  polmax              */
+    0L,             /*  toklen              */
+    NULL,           /*  tokenstring         */
+    NULL,           /*  polish              */
+    NULL,           /*  token               */
+    NULL,           /*  tokend              */
+    NULL,           /*  tokens              */
+    NULL,           /*  tokenlist           */
+    TOKMAX,         /*  toklength           */
+    0, 0, 0, 0, 0,  /*  acount, kcount, icount, Bcount, bcount */
+    (char*) NULL,   /*  stringend           */
+    NULL, NULL,     /*  revp, pushp         */
+    NULL, NULL,     /*  argp, endlist       */
+    (char*) NULL,   /*  assign_outarg       */
+    0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
+    0,              /*  strVarSamples       */
+    (MYFLT*) NULL,  /*  gbloffbas           */
+    NULL,           /*  otranGlobals        */
+    NULL,           /*  rdorchGlobals       */
+    NULL,           /*  sreadGlobals        */
+    NULL,           /*  extractGlobals      */
+    NULL,           /*  oneFileGlobals      */
+    NULL,           /*  lineventGlobals     */
+    NULL,           /*  musmonGlobals       */
+    NULL,           /*  libsndGlobals       */
+    (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
+    (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
+    (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
+    (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
+    0,              /*  warped              */
+    0,              /*  sstrlen             */
+    (char*) NULL,   /*  sstrbuf             */
+    1,              /*  enableMsgAttr       */
+    0,              /*  sampsNeeded         */
+    FL(0.0),        /*  csoundScoreOffsetSeconds_   */
+    -1,             /*  inChar_             */
+    0,              /*  isGraphable_        */
+    0,              /*  delayr_stack_depth  */
+    NULL,           /*  first_delayr        */
+    NULL,           /*  last_delayr         */
+    { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
+    0L,             /*  revlpsum            */
+    0.5,            /*  rndfrac             */
+    NULL,           /*  logbase2            */
+    NULL, NULL,     /*  omacros, smacros    */
+    NULL,           /*  namedgen            */
+    NULL,           /*  open_files          */
+    NULL,           /*  searchPathCache     */
+    NULL,           /*  sndmemfiles         */
+    NULL,           /*  reset_list          */
+    NULL,           /*  pvFileTable         */
+    0,              /*  pvNumFiles          */
+    0,              /*  pvErrorCode         */
+    NULL,           /*  pluginOpcodeFiles   */
+    NULL,           /*  pluginOpcodeDB      */
+    0,              /*  enableHostImplementedAudioIO  */
+    0,              /*  hostRequestedBufferSize       */
+    0,              /*  engineState         */
+    0,              /*  stdin_assign_flg    */
+    0,              /*  stdout_assign_flg   */
+    0,              /*  orcname_mode        */
+    NULL,           /*  csmodule_db         */
+    (char*) NULL,   /*  dl_opcodes_oplibs   */
+    (char*) NULL,   /*  SF_csd_licence      */
+    (char*) NULL,   /*  SF_id_title         */
+    (char*) NULL,   /*  SF_id_copyright     */
+    (char*) NULL,   /*  SF_id_software      */
+    (char*) NULL,   /*  SF_id_artist        */
+    (char*) NULL,   /*  SF_id_comment       */
+    (char*) NULL,   /*  SF_id_date          */
+    NULL,           /*  utility_db          */
+    (int16*) NULL,  /*  isintab             */
+    NULL,           /*  lprdaddr            */
+    0,              /*  currentLPCSlot      */
+    0,              /*  max_lpc_slot        */
+    NULL,           /*  chn_db              */
+    1,              /*  opcodedirWasOK      */
+    0,              /*  disable_csd_options */
+    { 0, { 0U } },  /*  randState_          */
+    0,              /*  performState        */
+    1000,           /*  ugens4_rand_16      */
+    1000,           /*  ugens4_rand_15      */
+    NULL,           /*  schedule_kicked     */
+    (LBLBLK**) NULL, /* lopds               */
+    NULL,           /*  larg                */
+    (MYFLT*) NULL,  /*  disprep_fftcoefs    */
+    NULL,           /*  winEPS_globals      */
+    {               /*  oparms_             */
+      0,            /*    odebug            */
+      0, 1, 1, 0,   /*    sfread, ...       */
+      0, 0, 0, 0,   /*    inbufsamps, ...   */
+      0,            /*    sfsampsize        */
 #ifdef OLPC
-          0,            /*    displays          */
+      0,            /*    displays          */
 #else
-          1,            /*    displays          */
+      1,            /*    displays          */
 #endif
-             0, 0, 135, /*    disp.. graphsoff ... */
-          0, 0, 0,      /*    Beatmode, ...     */
-          0, 0,         /*    usingcscore, ...  */
-          0, 0, 0, 0,   /*    RTevents, ...     */
-          0, 0,         /*    ringbell, ...     */
-          0, 0, 0,      /*    rewrt_hdr, ...    */
-          0,            /*    expr_opt          */
-          0.0f, 0.0f,   /*    sr_override ...  */
-          (char*) NULL, (char*) NULL, (char*) NULL,
-          (char*) NULL, (char*) NULL, (char*) NULL,
-          (char*) NULL, (char*) NULL,
-          0,            /*    midiKey           */
-          0,            /*    midiKeyCps        */
-          0,            /*    midiKeyOct        */
-          0,            /*    midiKeyPch        */
-          0,            /*    midiVelocity      */
-          0,            /*    midiVelocityAmp   */
-          0,            /*    noDefaultPaths    */
-          1,            /*    numThreads        */
-          0,            /*    syntaxCheckOnly   */
-          1,            /*    useCsdLineCounts  */
+      0, 0, 135, /*    disp.. graphsoff ... */
+      0, 0, 0,      /*    Beatmode, ...     */
+      0, 0,         /*    usingcscore, ...  */
+      0, 0, 0, 0,   /*    RTevents, ...     */
+      0, 0,         /*    ringbell, ...     */
+      0, 0, 0,      /*    rewrt_hdr, ...    */
+      0,            /*    expr_opt          */
+      0.0f, 0.0f,   /*    sr_override ...  */
+      (char*) NULL, (char*) NULL, (char*) NULL,
+      (char*) NULL, (char*) NULL, (char*) NULL,
+      (char*) NULL, (char*) NULL,
+      0,            /*    midiKey           */
+      0,            /*    midiKeyCps        */
+      0,            /*    midiKeyOct        */
+      0,            /*    midiKeyPch        */
+      0,            /*    midiVelocity      */
+      0,            /*    midiVelocityAmp   */
+      0,            /*    noDefaultPaths    */
+      1,            /*    numThreads        */
+      0,            /*    syntaxCheckOnly   */
+      1,            /*    useCsdLineCounts  */
 #ifdef ENABLE_NEW_PARSER
-          0,            /*    newParser   */
+      0,            /*    newParser   */
 #endif
-        },
-        0L, 0L,         /*  instxtcount, optxtsize  */
-        0L, 0L,         /*  poolcount, gblfixed     */
-        0L, 0L,         /*  gblacount, gblscount    */
-        (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
-        csoundDoCallback_,  /*  doCsoundCallback    */
-        &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
-        csound_str_hash_32, /*  strHash32           */
-        {0, 0, {NULL}}, /* REMOT_BUF */
-        NULL,           /* remoteGlobals        */
-        0, 0,           /* nchanof, nchanif     */
-        NULL, NULL,     /* chanif, chanof       */
-        defaultCsoundYield, /* csoundInternalYieldCallback_*/
-        NULL,           /* multiThreadedBarrier1 */
-        NULL,           /* multiThreadedBarrier2 */
-        0,              /* multiThreadedComplete */
-        NULL,           /* multiThreadedThreadInfo */
-        NULL,           /* multiThreadedStart */
-        NULL,           /* multiThreadedEnd */
-        0,              /* tempStatus */
-        0,              /* orcLineOffset */
-        0,              /* scoLineOffset */
-        NULL            /* csdname */
-};
+    },
+    0L, 0L,         /*  instxtcount, optxtsize  */
+    0L, 0L,         /*  poolcount, gblfixed     */
+    0L, 0L,         /*  gblacount, gblscount    */
+    (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
+    csoundDoCallback_,  /*  doCsoundCallback    */
+    &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
+    csound_str_hash_32, /*  strHash32           */
+    {0, 0, {NULL}}, /* REMOT_BUF */
+    NULL,           /* remoteGlobals        */
+    0, 0,           /* nchanof, nchanif     */
+    NULL, NULL,     /* chanif, chanof       */
+    defaultCsoundYield, /* csoundInternalYieldCallback_*/
+    NULL,           /* multiThreadedBarrier1 */
+    NULL,           /* multiThreadedBarrier2 */
+    0,              /* multiThreadedComplete */
+    NULL,           /* multiThreadedThreadInfo */
+    NULL,           /* multiThreadedStart */
+    NULL,           /* multiThreadedEnd */
+    0,              /* tempStatus */
+    0,              /* orcLineOffset */
+    0,              /* scoLineOffset */
+    NULL            /* csdname */
+  };
 
   /* from threads.c */
   void csoundLock(void);
@@ -825,14 +825,14 @@ static const CSOUND cenviron_ = {
       csoundLock();
       n = init_done;
       switch (n) {
-        case 2:
-          csoundUnLock();
-          csoundSleep(1);
-        case 0:
-          break;
-        default:
-          csoundUnLock();
-          return n;
+      case 2:
+	csoundUnLock();
+	csoundSleep(1);
+      case 0:
+	break;
+      default:
+	csoundUnLock();
+	return n;
       }
     } while (n);
     init_done = 2;
@@ -926,8 +926,8 @@ static const CSOUND cenviron_ = {
     strcpy(s, "PortAudio");
 #endif
     csoundCreateConfigurationVariable(
-        p, "rtaudio", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
-        "Real time audio module name", NULL);
+				      p, "rtaudio", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
+				      "Real time audio module name", NULL);
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
@@ -952,81 +952,81 @@ static const CSOUND cenviron_ = {
     strcpy(s, "portmidi");
 #endif
     csoundCreateConfigurationVariable(
-        p, "rtmidi", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
-        "Real time MIDI module name", NULL);
+				      p, "rtmidi", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
+				      "Real time MIDI module name", NULL);
     max_len = 256;  /* should be the same as in csoundCore.h */
     csoundCreateConfigurationVariable(
-        p, "mute_tracks", &(p->midiGlobals->muteTrackList[0]),
-        CSOUNDCFG_STRING, 0, NULL, &max_len,
-        "Ignore events (other than tempo changes) in tracks defined by pattern",
-        NULL);
+				      p, "mute_tracks", &(p->midiGlobals->muteTrackList[0]),
+				      CSOUNDCFG_STRING, 0, NULL, &max_len,
+				      "Ignore events (other than tempo changes) in tracks defined by pattern",
+				      NULL);
     csoundCreateConfigurationVariable(
-        p, "raw_controller_mode", &(p->midiGlobals->rawControllerMode),
-        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-        "Do not handle special MIDI controllers (sustain pedal etc.)", NULL);
+				      p, "raw_controller_mode", &(p->midiGlobals->rawControllerMode),
+				      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+				      "Do not handle special MIDI controllers (sustain pedal etc.)", NULL);
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
     p->SF_id_title = (char*) mcalloc(p, (size_t) i * (size_t) 6);
     csoundCreateConfigurationVariable(
-        p, "id_title", p->SF_id_title, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Title tag in output soundfile (no spaces)", NULL);
+				      p, "id_title", p->SF_id_title, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Title tag in output soundfile (no spaces)", NULL);
     p->SF_id_copyright = (char*) p->SF_id_title + (int) i;
     csoundCreateConfigurationVariable(
-        p, "id_copyright", p->SF_id_copyright, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Copyright tag in output soundfile (no spaces)", NULL);
+				      p, "id_copyright", p->SF_id_copyright, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Copyright tag in output soundfile (no spaces)", NULL);
     p->SF_id_software = (char*) p->SF_id_copyright + (int) i;
     csoundCreateConfigurationVariable(
-        p, "id_software", p->SF_id_software, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Software tag in output soundfile (no spaces)", NULL);
+				      p, "id_software", p->SF_id_software, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Software tag in output soundfile (no spaces)", NULL);
     p->SF_id_artist = (char*) p->SF_id_software + (int) i;
     csoundCreateConfigurationVariable(
-        p, "id_artist", p->SF_id_artist, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Artist tag in output soundfile (no spaces)", NULL);
+				      p, "id_artist", p->SF_id_artist, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Artist tag in output soundfile (no spaces)", NULL);
     p->SF_id_comment = (char*) p->SF_id_artist + (int) i;
     csoundCreateConfigurationVariable(
-        p, "id_comment", p->SF_id_comment, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Comment tag in output soundfile (no spaces)", NULL);
+				      p, "id_comment", p->SF_id_comment, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Comment tag in output soundfile (no spaces)", NULL);
     p->SF_id_date = (char*) p->SF_id_comment + (int) i;
     csoundCreateConfigurationVariable(
-        p, "id_date", p->SF_id_date, CSOUNDCFG_STRING, 0,
-        NULL, &max_len, "Date tag in output soundfile (no spaces)", NULL);
+				      p, "id_date", p->SF_id_date, CSOUNDCFG_STRING, 0,
+				      NULL, &max_len, "Date tag in output soundfile (no spaces)", NULL);
     {
       int   minVal = 10;
       int   maxVal = 10000;
       MYFLT minValF = FL(0.0);
       /* max. length of string variables */
       csoundCreateConfigurationVariable(
-          p, "max_str_len", &(p->strVarMaxLen),
-          CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-          "Maximum length of string variables + 1", NULL);
+					p, "max_str_len", &(p->strVarMaxLen),
+					CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
+					"Maximum length of string variables + 1", NULL);
       csoundCreateConfigurationVariable(
-          p, "msg_color", &(p->enableMsgAttr),
-          CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-          "Enable message attributes (colors etc.)", NULL);
+					p, "msg_color", &(p->enableMsgAttr),
+					CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+					"Enable message attributes (colors etc.)", NULL);
       csoundCreateConfigurationVariable(
-          p, "skip_seconds", &(p->csoundScoreOffsetSeconds_),
-          CSOUNDCFG_MYFLT, 0, &minValF, NULL,
-          "Start score playback at the specified time, skipping earlier events",
-          NULL);
+					p, "skip_seconds", &(p->csoundScoreOffsetSeconds_),
+					CSOUNDCFG_MYFLT, 0, &minValF, NULL,
+					"Start score playback at the specified time, skipping earlier events",
+					NULL);
     }
     csoundCreateConfigurationVariable(
-        p, "ignore_csopts", &(p->disable_csd_options),
-        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-        "Ignore <CsOptions> in CSD files (default: no)", NULL);
+				      p, "ignore_csopts", &(p->disable_csd_options),
+				      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+				      "Ignore <CsOptions> in CSD files (default: no)", NULL);
     p->opcode_list = (int*) mcalloc(p, sizeof(int) * 256);
     p->engineState |= CS_STATE_PRE;
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
       int err = csoundLoadModules(p);
-/* #ifdef BETA */
+      /* #ifdef BETA */
       if (p->delayederrormessages && p->printerrormessagesflag==NULL) {
         p->Warning(p, p->delayederrormessages);
         free(p->delayederrormessages);
         p->delayederrormessages = NULL;
       }
-/* #endif */
+      /* #endif */
       return err;
     }
   }
@@ -1114,57 +1114,54 @@ static const CSOUND cenviron_ = {
    * returns non-zero if this kperiod was skipped
    */
 
-  static int getThreadIndex(CSOUND *csound, void * threadId) {
+  static int getThreadIndex(CSOUND *csound, void *threadId) {
     int index = 0;
     THREADINFO *current = csound->multiThreadedThreadInfo;
 
     if(current == NULL) {
-        return -1;
+      return -1;
     }
 
     while(current != NULL) {
         if(threadId == current->threadId) {
-            return index;
-        }
-        index++;
-        current = current->next;
+	return index;
+      }
+      index++;
+      current = current->next;
     }
     return -1;
   }
-
+  
   static int getNumActive(INSDS *start, INSDS *end) {
     INSDS *current = start;
     int counter = 1;
 
     while(((current = current->nxtact) != NULL) && current != end) {
-        counter++;
+      counter++;
     }
-
     return counter;
   }
 
   inline void advanceINSDSPointer(INSDS ***start, int num) {
-     int i;
+    int i;
+    INSDS *s = **start;
 
-     INSDS *s = **start;
+    if(s == NULL) {
+      return;
+    }
+    for (i = 0; i < num; i++) {
+      s = s->nxtact;
 
-     if(s == NULL) {
-        return;
-     }
-
-     for(i = 0; i < num; i++) {
-        s = s->nxtact;
-
-        if(s == NULL) {
-            **start = NULL;
-            return;
-        }
-     }
-     **start = s;
+      if(s == NULL) {
+	**start = NULL;
+	return;
+      }
+    }
+    **start = s;
   }
 
   inline void partitionWork(CSOUND *csound, INSDS **start, INSDS **end, int threadNum,
-    int numThreads, int numActive) {
+			    int numThreads, int numActive) {
 
     int partition = numActive / numThreads;
 
@@ -1175,12 +1172,10 @@ static const CSOUND cenviron_ = {
           threadNum, numActive, *start); */
 
     if(*start == NULL || threadNum == (numThreads - 1)) {
-        *end = NULL;
-        return;
+      *end = NULL;
+      return;
     }
-
     *end = *start;
-
     advanceINSDSPointer(&end, partition);
 
   }
@@ -1193,44 +1188,35 @@ static const CSOUND cenviron_ = {
     void *threadId = csound->GetCurrentThreadID();
     int index = getThreadIndex(csound, threadId);
     int numThreads = csound->oparms->numThreads;
-
     if(index < 0) {
       return ULONG_MAX;
     }
-
     barrier1 = csound->multiThreadedBarrier1;
     barrier2 = csound->multiThreadedBarrier2;
-
     while (1) {
-        int numActive;
+      int numActive;
+      csound->WaitBarrier(barrier1);
+      csound_global_mutex_lock();
+      if (csound->multiThreadedComplete == 1) {
+	csound_global_mutex_unlock();
+	free(threadId);
+	return 0UL;
+      }
+      csound_global_mutex_unlock();
+      start = csound->multiThreadedStart;
+      end = csound->multiThreadedEnd;
+      numActive = getNumActive(start, end);
+      partitionWork(csound, &start, &end, index, numThreads, numActive);
 
-        csound->WaitBarrier(barrier1);
-
-        csound_global_mutex_lock();
-        if(csound->multiThreadedComplete == 1) {
-            csound_global_mutex_unlock();
-	    free(threadId);
-            return 0UL;
-        }
-        csound_global_mutex_unlock();
-
-        start = csound->multiThreadedStart;
-        end = csound->multiThreadedEnd;
-
-        numActive = getNumActive(start, end);
-
-        partitionWork(csound, &start, &end, index, numThreads, numActive);
-
-        while(start != NULL && start != end) {
-            opstart = (OPDS*) start;
-            while ((opstart = opstart->nxtp) != NULL) {
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
-            }
-            start = start->nxtact;          /* ip = nxt; but that does not allow for
-                                         deletions */
-        }
-
-        csound->WaitBarrier(barrier2);
+      while(start != NULL && start != end) {
+	opstart = (OPDS *)start;
+	while ((opstart = opstart->nxtp) != NULL) {
+	  (*opstart->opadr)(csound, opstart); /* run each opcode */
+	}
+	start = start->nxtact;          /* ip = nxt; but that does not allow for
+					   deletions */
+      }
+      csound->WaitBarrier(barrier2);
     }
   }
 
@@ -1239,8 +1225,7 @@ static const CSOUND cenviron_ = {
 #ifndef OLPC
     void *barrier1, *barrier2;
 #endif
-    INSDS   *ip;
-
+    INSDS *ip;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->curTime += csound->curTime_inc;
@@ -1269,9 +1254,7 @@ static const CSOUND cenviron_ = {
     barrier2 = csound->multiThreadedBarrier2;
 #endif
     ip = csound->actanchor.nxtact;
-
     if (ip != NULL) {
-
 #ifndef OLPC
       if (csound->multiThreadedThreadInfo != NULL) {
         csound->multiThreadedStart = ip;
@@ -1281,15 +1264,11 @@ static const CSOUND cenviron_ = {
                 (current->insno == csound->multiThreadedStart->insno)) {
             current = current->nxtact;
           }
-
           csound->multiThreadedEnd = current;
-
           /* process this partition */
           csound->WaitBarrier(barrier1);
-
           /* wait until partition is complete */
           csound->WaitBarrier(barrier2);
-
           csound->multiThreadedStart = current;
         }
 
@@ -1301,14 +1280,13 @@ static const CSOUND cenviron_ = {
           csound->pds = (OPDS*) ip;
           while ((csound->pds = csound->pds->nxtp) != NULL) {
             (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-          }
+	  }
           ip = nxt; /* but this does not allow for all deletions */
         }
 #ifndef OLPC
       }
 #endif
     }
-
     if (!csound->spoutactive)           /*   results now in spout? */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     csound->spoutran(csound);           /*      send to audio_out  */
@@ -1382,7 +1360,6 @@ static const CSOUND cenviron_ = {
   {
     int done;
     int returnValue;
-
     csound->performState = 0;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
@@ -1569,12 +1546,12 @@ static const CSOUND cenviron_ = {
 #else
   PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE *insco, FILE *outsco)
   {
-      return -2;
+    return -2;
   }
   PUBLIC void csoundSetCscoreCallback(CSOUND *p,
                                       void (*cscoreCallback)(CSOUND *))
   {
-      return;
+    return;
   }
 #endif
 
@@ -1583,13 +1560,13 @@ static const CSOUND cenviron_ = {
   {
 #if defined(WIN32) || defined(MAC)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
-      case CSOUNDMSG_ERROR:
-      case CSOUNDMSG_WARNING:
-      case CSOUNDMSG_REALTIME:
-        vfprintf(stderr, format, args);
-        break;
-      default:
-        vfprintf(stdout, format, args);
+    case CSOUNDMSG_ERROR:
+    case CSOUNDMSG_WARNING:
+    case CSOUNDMSG_REALTIME:
+      vfprintf(stderr, format, args);
+      break;
+    default:
+      vfprintf(stdout, format, args);
     }
 #else
     if (!attr || !csound->enableMsgAttr) {
@@ -1614,10 +1591,10 @@ static const CSOUND cenviron_ = {
   }
 
   PUBLIC void csoundSetMessageCallback(CSOUND *csound,
-                            void (*csoundMessageCallback)(CSOUND *csound,
-                                                          int attr,
-                                                          const char *format,
-                                                          va_list args))
+				       void (*csoundMessageCallback)(CSOUND *csound,
+								     int attr,
+								     const char *format,
+								     va_list args))
   {
     csound->csoundMessageCallback_ = csoundMessageCallback;
   }
@@ -1735,17 +1712,17 @@ static const CSOUND cenviron_ = {
    */
 
   PUBLIC void csoundSetInputValueCallback(CSOUND *csound,
-                  void (*inputValueCalback)(CSOUND *csound,
-                                            const char *channelName,
-                                            MYFLT *value))
+					  void (*inputValueCalback)(CSOUND *csound,
+								    const char *channelName,
+								    MYFLT *value))
   {
     csound->InputValueCallback_ = inputValueCalback;
   }
 
   PUBLIC void csoundSetOutputValueCallback(CSOUND *csound,
-                  void (*outputValueCalback)(CSOUND *csound,
-                                             const char *channelName,
-                                             MYFLT value))
+					   void (*outputValueCalback)(CSOUND *csound,
+								      const char *channelName,
+								      MYFLT value))
   {
     csound->OutputValueCallback_ = outputValueCalback;
   }
@@ -1777,7 +1754,7 @@ static const CSOUND cenviron_ = {
     p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
     if (p == NULL) {
       if (csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
-                                               sizeof(double) * 4) != 0)
+				       sizeof(double) * 4) != 0)
         csound->Die(csound, Str("rtdummy: failed to allocate globals"));
       csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
       p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
@@ -1881,31 +1858,31 @@ static const CSOUND cenviron_ = {
   }
 
   PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
-                  int (*playopen__)(CSOUND *, const csRtAudioParams *parm))
+					int (*playopen__)(CSOUND *, const csRtAudioParams *parm))
   {
     csound->playopen_callback = playopen__;
   }
 
   PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
-                  void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes))
+				      void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes))
   {
     csound->rtplay_callback = rtplay__;
   }
 
   PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
-                  int (*recopen__)(CSOUND *, const csRtAudioParams *parm))
+				       int (*recopen__)(CSOUND *, const csRtAudioParams *parm))
   {
     csound->recopen_callback = recopen__;
   }
 
   PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
-                  int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes))
+					int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes))
   {
     csound->rtrecord_callback = rtrecord__;
   }
 
   PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
-                  void (*rtclose__)(CSOUND *))
+				       void (*rtclose__)(CSOUND *))
   {
     csound->rtclose_callback = rtclose__;
   }
@@ -1990,43 +1967,43 @@ static const CSOUND cenviron_ = {
   /* Set real time MIDI function pointers. */
 
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void **, const char *))
+						  int (*func)(CSOUND *, void **, const char *))
   {
     csound->midiGlobals->MidiInOpenCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void *, unsigned char *, int))
+						int (*func)(CSOUND *, void *, unsigned char *, int))
   {
     csound->midiGlobals->MidiReadCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void *))
+						   int (*func)(CSOUND *, void *))
   {
     csound->midiGlobals->MidiInCloseCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void **, const char *))
+						   int (*func)(CSOUND *, void **, const char *))
   {
     csound->midiGlobals->MidiOutOpenCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void *, const unsigned char *, int))
+						 int (*func)(CSOUND *, void *, const unsigned char *, int))
   {
     csound->midiGlobals->MidiWriteCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
-                  int (*func)(CSOUND *, void *))
+						    int (*func)(CSOUND *, void *))
   {
     csound->midiGlobals->MidiOutCloseCallback = func;
   }
 
   PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
-                  const char *(*func)(int))
+						       const char *(*func)(int))
   {
     csound->midiGlobals->MidiErrorStringCallback = func;
   }
@@ -2043,20 +2020,20 @@ static const CSOUND cenviron_ = {
   }
 
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *csound,
-                  void (*makeGraphCallback)(CSOUND *csound,
-                                            WINDAT *windat, const char *name))
+					 void (*makeGraphCallback)(CSOUND *csound,
+								   WINDAT *windat, const char *name))
   {
     csound->csoundMakeGraphCallback_ = makeGraphCallback;
   }
 
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *csound,
-                  void (*drawGraphCallback)(CSOUND *csound, WINDAT *windat))
+					 void (*drawGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundDrawGraphCallback_ = drawGraphCallback;
   }
 
   PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
-                  void (*killGraphCallback)(CSOUND *csound, WINDAT *windat))
+					 void (*killGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundKillGraphCallback_ = killGraphCallback;
   }
@@ -2087,20 +2064,20 @@ static const CSOUND cenviron_ = {
   }
 
   PUBLIC void csoundSetMakeXYinCallback(CSOUND *csound,
-                  void (*makeXYinCallback)(CSOUND *, XYINDAT *xyindat,
-                                           MYFLT x, MYFLT y))
+					void (*makeXYinCallback)(CSOUND *, XYINDAT *xyindat,
+								 MYFLT x, MYFLT y))
   {
     csound->csoundMakeXYinCallback_ = makeXYinCallback;
   }
 
   PUBLIC void csoundSetReadXYinCallback(CSOUND *csound,
-                  void (*readXYinCallback)(CSOUND *, XYINDAT *xyindat))
+					void (*readXYinCallback)(CSOUND *, XYINDAT *xyindat))
   {
     csound->csoundReadXYinCallback_ = readXYinCallback;
   }
 
   PUBLIC void csoundSetKillXYinCallback(CSOUND *csound,
-                  void (*killXYinCallback)(CSOUND *, XYINDAT *xyindat))
+					void (*killXYinCallback)(CSOUND *, XYINDAT *xyindat))
   {
     csound->csoundKillXYinCallback_ = killXYinCallback;
   }
@@ -2204,7 +2181,7 @@ static const CSOUND cenviron_ = {
     while (n && ep->opname != NULL) {
       if ((err = opcode_list_new_oentry(csound, ep)) != 0) {
         csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
-                               ep->opname);
+		       ep->opname);
         retval = err;
       }
       n--, ep++;
@@ -2229,7 +2206,7 @@ static const CSOUND cenviron_ = {
   }
 
   void SetInternalYieldCallback(CSOUND *csound,
-                                     int (*yieldCallback)(CSOUND *))
+				int (*yieldCallback)(CSOUND *))
   {
     csound->csoundInternalYieldCallback_ = yieldCallback;
   }
@@ -2444,7 +2421,7 @@ static const CSOUND cenviron_ = {
   }
 
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-                void (*fileOpenCallback)(CSOUND*, const char*, int, int, int))
+					void (*fileOpenCallback)(CSOUND*, const char*, int, int, int))
   {
     p->FileOpenCallback_ = fileOpenCallback;
   }
@@ -2455,16 +2432,16 @@ static const CSOUND cenviron_ = {
      ldmemfile2()).  The notification is passed on to the host if it has set
      the FileOpen callback. */
   void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
-                int csFileType, int writing, int temporary)
+			      int csFileType, int writing, int temporary)
   {
     if (csound->FileOpenCallback_ != NULL)
       csound->FileOpenCallback_(csound, pathname, csFileType, writing,
-                                  temporary);
+				temporary);
     return;
 
   }
 
-/* -------- IV - Jan 27 2005: timer functions -------- */
+  /* -------- IV - Jan 27 2005: timer functions -------- */
 
 #ifdef HAVE_GETTIMEOFDAY
 #undef HAVE_GETTIMEOFDAY
@@ -2474,13 +2451,13 @@ static const CSOUND cenviron_ = {
 #include <sys/time.h>
 #endif
 
-/* enable use of high resolution timer (Linux/i586/GCC only) */
-/* could in fact work under any x86/GCC system, but do not   */
-/* know how to query the actual CPU frequency ...            */
+  /* enable use of high resolution timer (Linux/i586/GCC only) */
+  /* could in fact work under any x86/GCC system, but do not   */
+  /* know how to query the actual CPU frequency ...            */
 
 #define HAVE_RDTSC  1
 
-/* ------------------------------------ */
+  /* ------------------------------------ */
 
 #if defined(HAVE_RDTSC)
 #if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
@@ -2551,7 +2528,7 @@ static const CSOUND cenviron_ = {
 #endif
 #ifdef BETA
     fprintf(stderr, "time resolution is %.3f ns\n",
-                    1.0e9 * timeResolutionSeconds);
+	    1.0e9 * timeResolutionSeconds);
 #endif
     return 0;
   }
@@ -2996,7 +2973,7 @@ static const CSOUND cenviron_ = {
 #ifdef MSVC
   const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 #else
-  const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+    const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
 #endif
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
@@ -3123,13 +3100,13 @@ static const CSOUND cenviron_ = {
     int         len = 0;
 
     switch (attr & CSOUNDMSG_TYPE_MASK) {
-      case CSOUNDMSG_ERROR:
-      case CSOUNDMSG_REALTIME:
-      case CSOUNDMSG_WARNING:
-        len = vfprintf(stderr, fmt, args);
-        break;
-      default:
-        len = vfprintf(stdout, fmt, args);
+    case CSOUNDMSG_ERROR:
+    case CSOUNDMSG_REALTIME:
+    case CSOUNDMSG_WARNING:
+      len = vfprintf(stderr, fmt, args);
+      break;
+    default:
+      len = vfprintf(stdout, fmt, args);
     }
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
     p->nxt = (csMsgStruct*) 0;
@@ -3145,10 +3122,10 @@ static const CSOUND cenviron_ = {
     csoundUnlockMutex(pp->mutex_);
   }
 
-void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
-{
-        while(size--) *(dest++) = *(src++);
-}
+  void PUBLIC sigcpy(MYFLT *dest, MYFLT *src, int size)
+  {
+    while(size--) *(dest++) = *(src++);
+  }
 
 #ifdef __cplusplus
 }
