@@ -1,7 +1,7 @@
 /*
     dcblockr.c:
 
-    Copyright (C) 1998 John ffitch, 2008 V Lazzarini 
+    Copyright (C) 1998 John ffitch, 2008 V Lazzarini
 
     This file is part of Csound.
 
@@ -91,30 +91,30 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
 
   if(p->delay1.auxp == NULL ||
      p->delay1.size < (order-1)*2*sizeof(double))
-      csound->AuxAlloc(csound, (order-1)*2*sizeof(double), 
-            &p->delay1);
+      csound->AuxAlloc(csound, (order-1)*2*sizeof(double),
+                       &p->delay1);
      if(p->iirdelay1.auxp == NULL ||
       p->iirdelay1.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,  
-		       (order)*sizeof(double), &p->iirdelay1);
+      csound->AuxAlloc(csound,
+                       (order)*sizeof(double), &p->iirdelay1);
 
      if(p->iirdelay2.auxp == NULL ||
        p->iirdelay2.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,  
-		       (order)*sizeof(double), &p->iirdelay2);
+      csound->AuxAlloc(csound,
+                       (order)*sizeof(double), &p->iirdelay2);
 
 
      if(p->iirdelay3.auxp == NULL ||
       p->iirdelay3.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,  
-		       (order)*sizeof(double), &p->iirdelay3);
+      csound->AuxAlloc(csound,
+                       (order)*sizeof(double), &p->iirdelay3);
 
      if(p->iirdelay4.auxp == NULL ||
        p->iirdelay4.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,  
-		       (order)*sizeof(double), &p->iirdelay4);
+      csound->AuxAlloc(csound,
+                       (order)*sizeof(double), &p->iirdelay4);
 
-   p->scaler = 1./order;
+   p->scaler = 1.0/order;
   if(!*p->iskip){
     p->ydels[0] = 0.0;   p->ydels[1] = 0.0;
     p->ydels[2] = 0.0;   p->ydels[3] = 0.0;
@@ -135,38 +135,38 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
   double *del1 = (double *)p->delay1.auxp;
   double *iirdel[4],x1,x2,y,del;
   double  *ydels = p->ydels;
-  double scale = p->scaler; 
+  double scale = p->scaler;
   int *dp1 = &(p->dp1);
   int *dp2 = &(p->dp2);
-  int i,j,del1size, iirdelsize;
+  int i,j,del1size, iirdelsize, nsmps = csound->ksmps;
 
-  iirdel[0] = (double *) p->iirdelay1.auxp; 
-  iirdel[1] = (double *) p->iirdelay2.auxp; 
-  iirdel[2] = (double *) p->iirdelay3.auxp; 
+  iirdel[0] = (double *) p->iirdelay1.auxp;
+  iirdel[1] = (double *) p->iirdelay2.auxp;
+  iirdel[2] = (double *) p->iirdelay3.auxp;
   iirdel[3] = (double *) p->iirdelay4.auxp;
- 
+
   del1size = p->delay1.size/sizeof(double);
   iirdelsize = p->iirdelay1.size/sizeof(double);
 
-  for(i=0; i < csound->ksmps; i++){
- 
-   /* long delay */
-   del = del1[*dp1];
-   del1[*dp1] = x1 = in[i];
+  for (i=0; i < nsmps; i++) {
 
-   /* IIR cascade */
-   for(j=0; j < 4; j++){
-     x2 = iirdel[j][*dp2];
-     iirdel[j][*dp2] = x1;
-     y = x1 - x2 + ydels[j];
-     ydels[j] = y;
-     x1 = y*scale;
-   }
-   out[i] = del - x1; 
+    /* long delay */
+    del = del1[*dp1];
+    del1[*dp1] = x1 = in[i];
 
-   *dp1 = (*dp1 == del1size-1 ? 0 : *dp1 + 1);
-   *dp2 = (*dp2 == iirdelsize-1 ? 0 : *dp2 + 1);
-}
+    /* IIR cascade */
+    for (j=0; j < 4; j++) {
+      x2 = iirdel[j][*dp2];
+      iirdel[j][*dp2] = x1;
+      y = x1 - x2 + ydels[j];
+      ydels[j] = y;
+      x1 = y*scale;
+    }
+    out[i] = del - x1;
+
+    *dp1 = (*dp1 == del1size-1 ? 0 : *dp1 + 1);
+    *dp2 = (*dp2 == iirdelsize-1 ? 0 : *dp2 + 1);
+  }
   return OK;
 
 }
