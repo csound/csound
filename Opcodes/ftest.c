@@ -8,7 +8,7 @@ static int tanhtable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
-    double  step = (double) (end - start) / (double) ftp->flen;
+    MYFLT   step = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int     i;
   
@@ -26,7 +26,7 @@ static int exptable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
-    double  step = (double) (end - start) / (double) ftp->flen;
+    MYFLT   step = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int     i;
 
