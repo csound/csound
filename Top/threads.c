@@ -136,12 +136,15 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #define BARRIER_SERIAL_THREAD (-1)
 
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+
 typedef struct barrier {
-  pthread_mutex_t mut;
-  pthread_cond_t cond;
-  unsigned int count, max, iteration;
+    pthread_mutex_t mut;
+    pthread_cond_t cond;
+    unsigned int count, max, iteration;
 } barrier_t;
 
+#endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -151,7 +154,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                         (void *(*)(void *)) threadRoutine, userdata)) {
       return (void*) pthread;
     }
-    return NULL;
+  return NULL;
 }
 
 PUBLIC void *csoundGetCurrentThreadId(void)
@@ -169,9 +172,9 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
     if (pthreadReturnValue) {
-      return (uintptr_t) ((intptr_t) pthreadReturnValue);
+        return (uintptr_t) ((intptr_t) pthreadReturnValue);
     } else {
-      return (uintptr_t) threadRoutineReturnValue;
+        return (uintptr_t) threadRoutineReturnValue;
     }
 }
 
@@ -334,46 +337,50 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
 #endif  /* !LINUX */
 
 
-/* iteration needed to distinguish between separate sets of max threads */
-/* where a thread enters the barrier before others have had a chance to leave */
-/* this limits us to 2^32 barrier synchronisations, but only if one thread */
-/* gets stuck and doesn't leave for 2^32 other synchronisations */
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-    barrier_t *b;
-
-    if (max == 0) return (void*)EINVAL;
-
-    b = (barrier_t *)malloc(sizeof(barrier_t));
-
-    pthread_mutex_init(&b->mut, NULL);
-    pthread_cond_init(&b->cond, NULL);
-    b->count = 0;
-    b->iteration = 0;
-    b->max = max;
-
-    return b;
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+  /* iteration needed to distinguish between separate sets of max threads */
+  /* where a thread enters the barrier before others have had a chance to leave */
+  /* this limits us to 2^32 barrier synchronisations, but only if one thread */
+  /* gets stuck and doesn't leave for 2^32 other synchronisations */
+  barrier_t *b;
+  if (max == 0) return (void*)EINVAL;
+  b = (barrier_t *)malloc(sizeof(barrier_t));
+  pthread_mutex_init(&b->mut, NULL);
+  pthread_cond_init(&b->cond, NULL);
+  b->count = 0;
+  b->iteration = 0;
+  b->max = max;
+  return b;
+#else
+  pthread_barrier_t *barrier =  (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
+  int status = pthread_barrier_init(barrier, 0, max);
+  if (!status) {
+    return 0;
+  }
+  return barrier;
+#endif
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-    barrier_t *b = (barrier_t *)barrier;
-    if (b->count > 0) return EBUSY;
-
-    pthread_cond_destroy(&b->cond);
-    pthread_mutex_destroy(&b->mut);
-
-    free(barrier);
-
-    return 0;
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+  barrier_t *b = (barrier_t *)barrier;
+  if (b->count > 0) return EBUSY;
+  pthread_cond_destroy(&b->cond);
+  pthread_mutex_destroy(&b->mut);
+#endif
+  free(barrier);
+  return 0;
 }
 
 /* when barrier is passed, all threads except one return 0 */
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
     int ret, it;
     barrier_t *b = (barrier_t *)barrier;
-
     pthread_mutex_lock(&b->mut);
     b->count++;
     it = b->iteration;
@@ -382,14 +389,15 @@ PUBLIC int csoundWaitBarrier(void *barrier)
       b->iteration++;
       pthread_cond_broadcast(&b->cond);
       ret = BARRIER_SERIAL_THREAD;
-    }
-    else {
+    } else {
       while (it == b->iteration) pthread_cond_wait(&b->cond, &b->mut);
       ret = 0;
     }
     pthread_mutex_unlock(&b->mut);
-
     return ret;
+#else
+    return pthread_barrier_wait((pthread_barrier_t *)barrier);
+#endif
 }
 
 /**
