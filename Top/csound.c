@@ -40,6 +40,7 @@ extern "C" {
 #include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
+#include <pthread.h>
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
@@ -1133,7 +1134,7 @@ extern "C" {
     }
 
     while(current != NULL) {
-        if(threadId == current->threadId) {
+      if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId)) {
         return index;
       }
       index++;
@@ -1145,7 +1146,6 @@ extern "C" {
   static int getNumActive(INSDS *start, INSDS *end) {
     INSDS *current = start;
     int counter = 1;
-
     while(((current = current->nxtact) != NULL) && current != end) {
       counter++;
     }
@@ -1174,20 +1174,15 @@ extern "C" {
                             int threadNum, int numThreads, int numActive) {
 
       int partition = numActive / numThreads;
-
-      /*    csound->Message(csound, "%d %d Start Before: %p\n",
-            threadNum, numActive, *start); */
+      csound->DebugMsg(csound, "Thread before: %3d  Of: %3d  Start:  0x%x  End: 0x%x  Partition: %3d\n", threadNum, numActive, *start, *end, partition); 
       advanceINSDSPointer(&start, (threadNum * partition));
-      /*    csound->Message(csound, "%d %d Start After: %p\n",
-            threadNum, numActive, *start); */
-
       if(*start == NULL || threadNum == (numThreads - 1)) {
         *end = NULL;
         return;
       }
       *end = *start;
       advanceINSDSPointer(&end, partition);
-
+      csound->DebugMsg(csound, "Thread after:  %3d  Of: %3d  Start:  0x%x  End: 0x%x  Partition: %3d\n", threadNum, numActive, *start, *end, partition); 
   }
 
   unsigned long kperfThread(void * cs)
@@ -1199,6 +1194,7 @@ extern "C" {
       void *threadId = csound->GetCurrentThreadID();
       int index = getThreadIndex(csound, threadId);
       int numThreads = csound->oparms->numThreads;
+      csound->Message(csound, "Multithread performance: thread %d of %d starting.\n", index, numThreads);
       if(index < 0) {
         return ULONG_MAX;
       }
@@ -1211,22 +1207,25 @@ extern "C" {
         if (csound->multiThreadedComplete == 1) {
           csound_global_mutex_unlock();
           free(threadId);
+	  csound->Message(csound, "Multithread performance: thread %d of %d exiting.\n", index, numThreads);
           return 0UL;
         }
         csound_global_mutex_unlock();
         start = csound->multiThreadedStart;
-        end = csound->multiThreadedEnd;
-        numActive = getNumActive(start, end);
-        partitionWork(csound, &start, &end, index, numThreads, numActive);
-
-        while(start != NULL && start != end) {
-          opstart = (OPDS *)start;
-          while ((opstart = opstart->nxtp) != NULL) {
-            (*opstart->opadr)(csound, opstart); /* run each opcode */
-          }
-          start = start->nxtact;          /* ip = nxt; but that does not allow for
-                                             deletions */
-        }
+	if (start) {
+	  end = csound->multiThreadedEnd;
+	  numActive = getNumActive(start, end);
+	  partitionWork(csound, &start, &end, index, numThreads, numActive);
+	  csound->DebugMsg(csound, "Thread after:  %3d  Of: %3d  Start:  0x%x  End: 0x%x\n", index, numThreads, start, end); 
+	  while(start != NULL && start != end) {
+	    opstart = (OPDS *)start;
+	    while ((opstart = opstart->nxtp) != NULL) {
+	      (*opstart->opadr)(csound, opstart); /* run each opcode */
+	    }
+	    start = start->nxtact;          /* ip = nxt; but that does not allow for
+					       deletions */
+	  }
+	}
         csound->WaitBarrier(barrier2);
       }
   }
@@ -1267,12 +1266,14 @@ extern "C" {
       ip = csound->actanchor.nxtact;
       if (ip != NULL) {
 #ifndef OLPC
+	/* There are 2 partitions of work: 1st by inso, 2nd by inso count / thread count. */
         if (csound->multiThreadedThreadInfo != NULL) {
           csound->multiThreadedStart = ip;
           while (csound->multiThreadedStart != NULL) {
             INSDS *current = csound->multiThreadedStart;
-            while(current != NULL &&
-                  (current->insno == csound->multiThreadedStart->insno)) {
+	    /* Must store start and end of instr chain because it might get inserts during kperf. */
+            while (current != NULL &&
+		   (current->insno == csound->multiThreadedStart->insno)) {
               current = current->nxtact;
             }
             csound->multiThreadedEnd = current;
