@@ -371,6 +371,7 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
   pthread_cond_destroy(&b->cond);
   pthread_mutex_destroy(&b->mut);
 #endif
+  pthread_barrier_destroy(barrier);
   free(barrier);
   return 0;
 }
