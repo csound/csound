@@ -894,6 +894,41 @@ bool CsoundFile::getInstrument(std::string name_, std::string &definition_) cons
   return false;
 }
 
+double CsoundFile::getInstrumentNumber(std::string name_) const
+{
+  trim(name_);
+  int beginDefinition = 0;
+  int endDefinition = 0;
+  for(;;)
+    {
+      beginDefinition = findToken(orchestra, "instr", beginDefinition);
+      if(beginDefinition == -1)
+        {
+          return false;
+        }
+      endDefinition = findToken(orchestra, "endin", beginDefinition);
+      if(endDefinition == -1)
+        {
+          return false;
+        }
+      endDefinition += 6;
+      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string pre;
+      std::string id;
+      std::string name;
+      std::string post;
+      if(parseInstrument(definition, pre, id, name, post))
+        {
+          if(name_.compare(name) == 0 || id.compare(name) == 0)
+            {
+              return atof(id.c_str());
+            }
+        }
+      beginDefinition++;
+    }
+  return -1.0;
+}
+
 bool CsoundFile::exportForPerformance() const
 {
   std::string orcFilename = getOrcFilename();
