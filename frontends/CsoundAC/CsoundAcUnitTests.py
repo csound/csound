@@ -34,10 +34,10 @@ for chord in rotations:
 print
 pitches = [65., 69., 72., 76.]
 print '%s = Voicelead_pcs(%s)' % (CsoundAC.Voicelead_pcs(pitches), pitches)
-print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundAC.Voicelead_mFromPitchClassSet(pitches), pitches)
-print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundAC.Voicelead_mFromPitchClassSet(a), a)
+print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundAC.Voicelead_pitchClassSetToM(pitches), pitches)
+print '%8.3f = Voiclead_mFromPitchClassSet(%s)' % (CsoundAC.Voicelead_pitchClassSetToM(a), a)
 print
-print '%s = Voicelead_pitchClassSetFromM(%8.3f)' % (CsoundAC.Voicelead_pitchClassSetFromM(2193), 2193)
+print '%s = Voicelead_pitchClassSetFromM(%8.3f)' % (CsoundAC.Voicelead_mToPitchClassSet(2193), 2193)
 print
 voicings = CsoundAC.Voicelead_voicings(a, lowest, range, 12)
 print 'Voicelead_voicings(%s, %s, %s, %d):' % (a, lowest, range, 12)
@@ -96,10 +96,10 @@ for i in xrange(2000):
 	key = random.randint(lowest, highest)
 	velocity = 80.0
 	score.append(time, duration, 144.0, 1.0, key, velocity)
-C = CsoundAC.Voicelead_mToC(CsoundAC.Voicelead_mFromPitchClassSet([0.,4.,7.,11.,14.]), 12)
+C = CsoundAC.Voicelead_mToC(CsoundAC.Voicelead_pitchClassSetToM([0.,4.,7.,11.,14.]), 12)
 for i in xrange(0, len(score), 20):
 	M = CsoundAC.Voicelead_cToM(C)
-	pcs = CsoundAC.Voicelead_pitchClassSetFromM(M)
+	pcs = CsoundAC.Voicelead_mToPitchClassSet(M)
 	print 'M: %8.3f  C: %8.3f  %s' % (M, C, pcs)
 	score.setPitchClassSet(i, i + 20, pcs)
 	result = CsoundAC.Voicelead_uniquePcs(score.getPitches(i, i + 20))
