@@ -125,12 +125,12 @@ namespace csound
      */
     virtual std::string getCsoundScoreHeader() const;
     /**
-     * Re-assign instrument numbers for export to Csound score
+     * Re-assign instrument number for export to Csound score
      * (convenience wrapper for Score::arrange()).
      */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
     /**
-     * Re-assign instrument numbers and adjust gains 
+     * Re-assign instrument number and adjust gain
      * for export to Csound score
      * (convenience wrapper for Score::arrange()).
      */
@@ -138,8 +138,8 @@ namespace csound
 			 int newInstrumentNumber, 
 			 double gain);
     /**
-     * Re-assign instrument numbers, adjust gains, 
-     * and change pans for export to Csound score
+     * Re-assign instrument number, adjust gain, 
+     * and change pan for export to Csound score
      * (convenience wrapper for Score::arrange()).
      */
     virtual void arrange(int oldInstrumentNumber, 
@@ -147,6 +147,24 @@ namespace csound
 			 double gain, 
 			 double pan);
     /**
+     * Re-assign instrument by name for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber, 
+			 std::string csoundInstrumentName);
+    /**
+     * Re-assign instrument by name and adjust gains for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber,
+			 std::string csoundInstrumentName, 
+			 double gain);
+    /**
+     * Re-assign instrument by name, adjust gain, and change pan for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber, 
+			 std::string csoundInstrumentName, 
+			 double gain, 
+			 double pan);
+   /**
      * Remove instrument number, gain, and pan assignments
      * (convenience wrapper for Score::removeArrangement()).
      */

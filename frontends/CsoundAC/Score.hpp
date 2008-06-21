@@ -108,15 +108,15 @@ namespace csound
      */
     virtual std::string getCsoundScore(double tonesPerOctave = 12.0, bool conformPitches = false);
     /**
-     * Re-assign instrument numbers for export to Csound score.
+     * Re-assign instrument number for export to Csound score.
      */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
     /**
-     * Re-assign instrument numbers and adjust gains for export to Csound score.
+     * Re-assign instrument number and adjust gain for export to Csound score.
      */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain);
     /**
-     * Re-assign instrument numbers, adjust gains, and change pans for export to Csound score.
+     * Re-assign instrument number, adjust gain, and change pan for export to Csound score.
      */
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan);
     /**
