@@ -767,6 +767,29 @@ std::string CsoundFile::getInstrument(int number) const
   return definition;
 }
 
+std::string CsoundFile::getInstrumentBody(std::string name) const
+{
+  std::string definition;
+  getInstrument(name, definition);
+  std::string pre;
+  std::string id;
+  std::string name_;
+  std::string post;
+  parseInstrument(definition, pre, id, name_, post);
+  return definition;
+}
+
+std::string CsoundFile::getInstrumentBody(int number) const
+{
+  std::string definition;
+  getInstrument(number, definition);
+  std::string pre;
+  std::string id;
+  std::string name;
+  std::string post;
+  parseInstrument(definition, pre, id, name, post);
+  return post;
+}
 
 std::map<int, std::string> CsoundFile::getInstrumentNames() const
 {
