@@ -753,6 +753,21 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
   return false;
 }
 
+std::string CsoundFile::getInstrument(std::string name) const
+{
+  std::string definition;
+  getInstrument(name, definition);
+  return definition;
+}
+
+std::string CsoundFile::getInstrument(int number) const
+{
+  std::string definition;
+  getInstrument(number, definition);
+  return definition;
+}
+
+
 std::map<int, std::string> CsoundFile::getInstrumentNames() const
 {
   std::map<int, std::string> instrumentNames;
