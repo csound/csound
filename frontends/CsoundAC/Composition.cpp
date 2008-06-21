@@ -163,6 +163,24 @@ namespace csound
     score.arrange(oldInstrumentNumber, newInstrumentNumber, gain, pan);
   }
   
+  void Composition::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName)
+  {
+    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
+    arrange(silenceInstrumentNumber, csoundInstrumentNumber);
+  }
+
+  void Composition::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain)
+  {
+    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName);
+    arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain);
+   }
+
+  void Composition::arrange(int silenceInstrumentNumber, std::string csoundInstrumentName, double gain, double pan)
+  {
+    int csoundInstrumentNumber = cppSound->getInstrumentNumber(csoundInstrumentName); 
+    arrange(silenceInstrumentNumber, csoundInstrumentNumber, gain, pan);
+  }
+
   void Composition::removeArrangement()
   {
     score.removeArrangement();
