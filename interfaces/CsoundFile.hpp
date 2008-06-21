@@ -151,6 +151,8 @@ public:
   virtual bool getInstrument(int number, std::string &definition) const;
   //virtual bool getInstrumentNumber(int index, std::string &definition) const;
   virtual bool getInstrument(std::string name, std::string &definition) const;
+  virtual std::string getInstrument(std::string name) const;
+  virtual std::string getInstrument(int number) const;
   virtual std::map<int, std::string> getInstrumentNames() const;
   virtual std::string getScore() const;
   virtual void setScore(std::string score);
