@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -M0 -m7 -f --midi-key=4 --midi-velocity=5 -odac temp.orc temp.sco
+csound -M0 -m7 -f --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

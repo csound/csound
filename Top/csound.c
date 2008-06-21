@@ -1174,7 +1174,15 @@ extern "C" {
                             int threadNum, int numThreads, int numActive) {
 
       int partition = numActive / numThreads;
-      csound->DebugMsg(csound, "Thread before: %3d  Of: %3d  Start:  0x%x  End: 0x%x  Partition: %3d\n", threadNum, numActive, *start, *end, partition); 
+      csound->DebugMsg(csound, 
+		       "Partition before: insno: %3d  thread: %3d  of: %3d  start: 0x%p  end: 0x%p  active: %3d  partition: %3d\n", 
+		       (*start)->insno,
+		       threadNum, 
+		       numThreads, 
+		       *start, 
+		       *end, 
+		       numActive, 
+		       partition); 
       advanceINSDSPointer(&start, (threadNum * partition));
       if(*start == NULL || threadNum == (numThreads - 1)) {
         *end = NULL;
@@ -1182,7 +1190,15 @@ extern "C" {
       }
       *end = *start;
       advanceINSDSPointer(&end, partition);
-      csound->DebugMsg(csound, "Thread after:  %3d  Of: %3d  Start:  0x%x  End: 0x%x  Partition: %3d\n", threadNum, numActive, *start, *end, partition); 
+      csound->DebugMsg(csound, 
+		       "Partition after:  insno: %3d  thread: %3d  of: %3d  start: 0x%p  end: 0x%p  active: %3d  partition: %3d\n", 
+		       (*start)->insno,
+		       threadNum, 
+		       numThreads, 
+		       *start, 
+		       *end, 
+		       numActive, 
+		       partition); 
   }
 
   unsigned long kperfThread(void * cs)
@@ -1194,7 +1210,12 @@ extern "C" {
       void *threadId = csound->GetCurrentThreadID();
       int index = getThreadIndex(csound, threadId);
       int numThreads = csound->oparms->numThreads;
-      csound->Message(csound, "Multithread performance: thread %d of %d starting.\n", index, numThreads);
+      start = csound->multiThreadedStart;
+      csound->Message(csound, 
+		      "Multithread performance: insno: %3d  thread %d of %d starting.\n", 
+		      start ? start->insno : -1, 
+		      index, 
+		      numThreads);
       if(index < 0) {
         return ULONG_MAX;
       }
@@ -1207,16 +1228,27 @@ extern "C" {
         if (csound->multiThreadedComplete == 1) {
           csound_global_mutex_unlock();
           free(threadId);
-	  csound->Message(csound, "Multithread performance: thread %d of %d exiting.\n", index, numThreads);
+	  csound->Message(csound, 
+			  "Multithread performance: insno: %3d  thread %d of %d exiting.\n", 
+			  start->insno, 
+			  index, 
+			  numThreads);
           return 0UL;
         }
         csound_global_mutex_unlock();
         start = csound->multiThreadedStart;
-	if (start) {
+ 	if (start) {
 	  end = csound->multiThreadedEnd;
 	  numActive = getNumActive(start, end);
 	  partitionWork(csound, &start, &end, index, numThreads, numActive);
-	  csound->DebugMsg(csound, "Thread after:  %3d  Of: %3d  Start:  0x%x  End: 0x%x\n", index, numThreads, start, end); 
+	  csound->DebugMsg(csound, 
+			   "kperfThread:      insno: %3d  thread: %3d  of: %3d  start: 0x%p  end: 0x%p  active: %3d\n", 
+			   start->insno, 
+			   index, 
+			   numThreads, 
+			   start, 
+			   end, 
+			   numActive); 
 	  while(start != NULL && start != end) {
 	    opstart = (OPDS *)start;
 	    while ((opstart = opstart->nxtp) != NULL) {
@@ -1277,7 +1309,12 @@ extern "C" {
               current = current->nxtact;
             }
             csound->multiThreadedEnd = current;
-            /* process this partition */
+	    csound->DebugMsg(csound, 
+			     "kperf:            insno: %3d                        start: 0x%p  end: 0x%p\n", 
+			     csound->multiThreadedStart ? csound->multiThreadedStart->insno : -1, 
+			     csound->multiThreadedStart, 
+			     csound->multiThreadedEnd);
+	    /* process this partition */
             csound->WaitBarrier(barrier1);
             /* wait until partition is complete */
             csound->WaitBarrier(barrier2);
