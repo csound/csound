@@ -1067,7 +1067,7 @@ void CsoundGUIMain::openScoEditor(string file)
 //       // updateGUIValues();
 //       // Fl::wait(0.0);
       scoEditorWindow = new CsoundEditorWindow(660,400, "Editor", file.c_str());
-      if (orcEditorWindow) {
+      if (scoEditorWindow) {
         utilityState |= CSOUND5GUI_SCOEDITORWIN_OPEN;
         scoEditorWindow->resize(currentGlobalSettings.scoEditorPosX,
                                 currentGlobalSettings.scoEditorPosY,
