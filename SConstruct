@@ -244,6 +244,9 @@ commandOptions.Add('buildImageOpcodes',
 commandOptions.Add('buildOLPC',
     'Set to 1 to build OLPC version',
     '0')
+commandOptions.Add('tclversion',
+    'Set to 8.4 or 8.5',
+    '8.4')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -520,8 +523,8 @@ if getPlatform() == 'linux':
     path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
     path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
-    path1 = '/usr/include/tcl8.4'
-    path2 = '/usr/include/tk8.4'
+    path1 = '/usr/include/tcl%s' % commonEnvironment['tclversion']
+    path2 = '/usr/include/tk%s' % commonEnvironment['tclversion']
     tclIncludePath = [path1, path2]
     pythonLinkFlags = []
     if commonEnvironment['Lib64'] == '1':
@@ -2360,9 +2363,13 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         '''))
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(CPPPATH = tclIncludePath)
-        csTclEnvironment.Append(LIBS = ['tcl8.4', 'tk8.4', 'dl', 'pthread'])
+        lib1 = 'tcl%s' % commonEnvironment['tclversion']
+        lib2 = 'tk%s' % commonEnvironment['tclversion']
+        csTclEnvironment.Append(LIBS = [lib1, lib2, 'dl', 'pthread'])
     elif getPlatform() == 'win32':
-        csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
+        lib1 = 'tcl%s' % commonEnvironment['tclversion']
+        lib2 = 'tk%s' % commonEnvironment['tclversion']
+        csTclEnvironment.Append(LIBS = [lib1, lib2])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
         csTclEnvironment.Append(SHLINKFLAGS = ['-module'])
     csTclCmdObj = csTclEnvironment.SharedObject(
