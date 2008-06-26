@@ -483,7 +483,7 @@ int mac(CSOUND *csound, SUM *p)
     for (k=0; k<nsmps; k++) {
       MYFLT ans = FL(0.0);
       for (j=0; j<count; j +=2)
-        ans += *args[j]* args[j+1][k];
+        ans += *args[j] * args[j+1][k];
       ar[k] = ans;
     }
     return OK;
