@@ -10,7 +10,7 @@
 
 2008-05-28  Michael Gogins  <gogins@pipeline.com>
 
-	* Top/threads.c
+	* Top/threads.c:
 	For the Csound threading API, on the Windows platform, I removed
 	the native Windows threading implementation and replaced it with the
 	POSIX threads implementation already used for Linux and OS X. This
@@ -25,15 +25,15 @@
 
 2008-05-18  Michael Gogins  <gogins@pipeline.com>
 
-	* Opcodes/chua/ChuaOscillator.cpp
+	* Opcodes/chua/ChuaOscillator.cpp:
 	Csound opcode implementation of Chua's Oscillator,
 	a nonlinear dynamical system capable of many kinds of periodic and chaotic
 	behavior, including multiple simultaneous attractors. See the
-	reference manual entry for "chuap" for documentation. See 
+	reference manual entry for "chuap" for documentation. See
 	examples/chuap.csd and examples/chuas_oscillator/ChuasOscillatorApp.py for
 	sample Csound usage.
 
-	* Opcodes/linear_algebra.cpp
+	* Opcodes/linear_algebra.cpp:
 	Csound i-rate and k-rate opcodes for much standard linear algebra over
 	real and complex vectors and matrices: elementwise arithmetic, norms,
 	transpose and conjugate, inner products, matrix inverse, LU decomposition,
@@ -119,57 +119,57 @@
 
 2008-03-02  Michael Gogins  <gogins@pipeline.com>
 
-	* SConstruct, csoundd.nsi
+	* SConstruct, csoundd.nsi:
 	Many changes to enable building and installing Csound built
 	with MSVC 2008 or MinGW 4.2.1
 
-	* CsoundAC
+	* CsoundAC:
 	Build as static library to try to work around problem with
 	MSVC corrupting data in C++ classes exported but based
 	on non-exported STL classes.
 
-	* API Reference
+	* API Reference:
 	Updated to reflect recent changes.
-	
+
 2008-02-23  Michael Gogins  <gogins@pipeline.com>
 
-	* InOut/widgets.cpp
+	* InOut/widgets.cpp:
 	Fixed a major bug in which the Csound memory manager (C style) was
-	allocating and deallocating a C++ structure (WIDGETS_GLOBALS). 
-	If new is not called for WIDGETS_GLOBALS, the constructors of its 
-	std::vector collections are not called. Then in the widget 
-	csoundDestroyModule function, invalid vectors are iterated, 
+	allocating and deallocating a C++ structure (WIDGETS_GLOBALS).
+	If new is not called for WIDGETS_GLOBALS, the constructors of its
+	std::vector collections are not called. Then in the widget
+	csoundDestroyModule function, invalid vectors are iterated,
 	causing an access violation. Fixed by using standard C++
 	new and delete for the structure to ensure proper creation of its
 	vector members. This is OK because by calling csoundModuleInit
-	and csoundModuleDestroy, Csound is permitting the module to 
+	and csoundModuleDestroy, Csound is permitting the module to
 	manage its own memory.
 
-	The code accessed FLTK flags as a value when the flags had not been 
-	initialized as a global variable. This caused an access violation 
-	in csoundModuleDestroy. The code has been changed to get the flags 
+	The code accessed FLTK flags as a value when the flags had not been
+	initialized as a global variable. This caused an access violation
+	in csoundModuleDestroy. The code has been changed to get the flags
 	as a pointer, and only dereference the pointer if it is not null.
 
-	* Opcodes/vst4cs/src/vst4cs.cpp
+	* Opcodes/vst4cs/src/vst4cs.cpp:
 	Cleaned up csoundModuleDestroy code for Windows MSVC build,
 	which was causing an access violation.
-	
+
 2008-02-22  Michael Gogins  <gogins@pipeline.com>
 
-	* SConstruct 
-	Many changes to enable all features of Csound to build with 
+	* SConstruct:
+	Many changes to enable all features of Csound to build with
 	Microsoft Visual C++ 2008 (MSVC). Also changes to enable
 	build with MinGW 3.4.5/MSys 1.0.11/SCons 0.97.
 
-	* custom-mingw.py and custom-msvc.py
-	Rationalized locations of third-party libraries in 
+	* custom-mingw.py, custom-msvc.py:
+	Rationalized locations of third-party libraries in
 	network mounted "U:/" drive root directory.
 
-	* Frontends/CsoundAC/Counterpoint.cpp 
+	* Frontends/CsoundAC/Counterpoint.cpp:
 	Many changes to enable MSVC compilation.
 
-	* CsoundVST
-	Renamed CsoundVST.exe to CsoundVstShell.exe to 
+	* CsoundVST:
+	Renamed CsoundVST.exe to CsoundVstShell.exe to
 	enable MSVC build.
 	Exported new RunCsoundVST function to enable CsoundVstShell to run
 	with MSVC build.
