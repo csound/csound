@@ -28,9 +28,22 @@
 #include "csGblMtx.h"
 
 #if defined(WIN32)
-
 #include <windows.h>
 #include <process.h>
+
+void __stdcall GetSystemTimeAsFileTime(FILETIME*);
+
+void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
+   {
+          union {
+             long long ns100; /*time since 1 Jan 1601 in 100ns units */
+                 FILETIME ft;
+          } now;
+
+      GetSystemTimeAsFileTime( &(now.ft) );
+      p->tv_usec=(long)((now.ns100 / 10LL) % 1000000LL );
+      p->tv_sec= (long)((now.ns100-(116444736000000000LL))/10000000LL);
+}
 
 /**
  * Runs an external command with the arguments specified in 'argv'.
@@ -207,7 +220,13 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
       struct timeval  tv;
       struct timespec ts;
       register size_t n, s;
+
+#ifndef HAVE_GETTIMEOFDAY
+      gettimeofday_(&tv, NULL);
+#else
       gettimeofday(&tv, NULL);
+#endif
+    
       s = milliseconds / (size_t) 1000;
       n = milliseconds - (s * (size_t) 1000);
       s += (size_t) tv.tv_sec;
@@ -216,6 +235,7 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
       ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
       return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
     }
+
 }
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
@@ -269,7 +289,6 @@ PUBLIC int csoundWaitThreadLock(void *threadLock, size_t milliseconds)
 {
     CsoundThreadLock_t  *p;
     int                 retval = 0;
-
     p = (CsoundThreadLock_t*) threadLock;
     pthread_mutex_lock(&(p->m));
     if (!p->s) {
@@ -277,7 +296,11 @@ PUBLIC int csoundWaitThreadLock(void *threadLock, size_t milliseconds)
         struct timeval  tv;
         struct timespec ts;
         register size_t n, s;
-        gettimeofday(&tv, NULL);
+#ifndef HAVE_GETTIMEOFDAY
+      gettimeofday_(&tv, NULL);
+#else
+      gettimeofday(&tv, NULL);
+#endif
         s = milliseconds / (size_t) 1000;
         n = milliseconds - (s * (size_t) 1000);
         s += (size_t) tv.tv_sec;
