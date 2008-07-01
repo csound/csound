@@ -61,14 +61,14 @@ namespace csound
   {
     for(int i = 0; i < Event::ELEMENT_COUNT; i++)
       {
-	if(a[Event::SORT_ORDER[i]] < b[Event::SORT_ORDER[i]])
-	  {
-	    return true;
-	  }
-	else if(a[Event::SORT_ORDER[i]] > b[Event::SORT_ORDER[i]])
-	  {
-	    return false;
-	  }
+        if(a[Event::SORT_ORDER[i]] < b[Event::SORT_ORDER[i]])
+          {
+            return true;
+          }
+        else if(a[Event::SORT_ORDER[i]] > b[Event::SORT_ORDER[i]])
+          {
+            return false;
+          }
       }
     return false;
   }
@@ -93,8 +93,8 @@ namespace csound
     double f;
     while(!stream.eof())
       {
-	stream >> f;
-	buffer.push_back(f);
+        stream >> f;
+        buffer.push_back(f);
       }
     resize(buffer.size());
     std::copy(buffer.begin(), buffer.end(), begin());
@@ -151,19 +151,19 @@ namespace csound
   {
     if(!isNoteOn())
       {
-	return false;
+        return false;
       }
     if(!event.isNoteOff())
       {
-	return false;
+        return false;
       }
     if(Conversions::round((*this)[INSTRUMENT]) != Conversions::round(event[INSTRUMENT]))
       {
-	return false;
+        return false;
       }
     if(Conversions::round((*this)[KEY]) != Conversions::round(event[KEY]))
       {
-	return false;
+        return false;
       }
     return true;
   }
@@ -172,7 +172,7 @@ namespace csound
   {
     if(Conversions::round((*this)[INSTRUMENT]) != Conversions::round(event[INSTRUMENT]))
       {
-	return false;
+        return false;
       }
     return true;
   }
@@ -243,11 +243,11 @@ namespace csound
   {
     if((*this)[DURATION] < 0)
       {
-	return (*this)[TIME] + INDEFINITE;
+        return (*this)[TIME] + INDEFINITE;
       }
     else
       {
-	return (*this)[TIME] + (*this)[DURATION];
+        return (*this)[TIME] + (*this)[DURATION];
       }
   }
 
@@ -290,8 +290,8 @@ namespace csound
   {
     for(size_t i = 0, n = size(); i < n; ++i)
       {
-	stream << (*this)[i];
-	stream << " ";
+        stream << (*this)[i];
+        stream << " ";
       }
     stream << std::endl;
   }
@@ -329,12 +329,12 @@ namespace csound
   {
     if(tonesPerOctave == 0.0)
       {
-	return getKey();
+        return getKey();
       }
     else
       {
-	double tones = Conversions::round(Conversions::midiToOctave(getKey()) * tonesPerOctave);
-	return Conversions::octaveToMidi(tones / tonesPerOctave, false);
+        double tones = Conversions::round(Conversions::midiToOctave(getKey()) * tonesPerOctave);
+        return Conversions::octaveToMidi(tones / tonesPerOctave, false);
       }
   }
 
@@ -342,17 +342,17 @@ namespace csound
   {
     char buffer[0x100];
     sprintf(buffer, "i %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n",
-	    getInstrument(),
-	    getTime(),
-	    getDuration(),
-	    getKey(tonesPerOctave),
-	    getVelocity(),
-	    getPhase(),
-	    getPan(),
-	    getDepth(),
-	    getHeight(),
-	    getPitches(),
-	    (*this)[HOMOGENEITY]);
+            getInstrument(),
+            getTime(),
+            getDuration(),
+            getKey(tonesPerOctave),
+            getVelocity(),
+            getPhase(),
+            getPan(),
+            getDepth(),
+            getHeight(),
+            getPitches(),
+            (*this)[HOMOGENEITY]);
     return buffer;
   }
 
@@ -362,21 +362,21 @@ namespace csound
     double octave = Conversions::midiToOctave(getKey());
     if(tempering != 0.0)
       {
-	octave = Conversions::temper(octave, tempering);
+        octave = Conversions::temper(octave, tempering);
       }
     sprintf(buffer, "i %d.%d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n",
-	    (int) Conversions::round(getInstrument()),
-	    tag,
-	    getTime(),
-	    std::fabs(getDuration()) * -1.0,
-	    Conversions::octaveToMidi(octave, false),
-	    getVelocity(),
-	    getPhase(),
-	    getPan(),
-	    getDepth(),
-	    getHeight(),
-	    getPitches(),
-	    (*this)[HOMOGENEITY]);
+            (int) Conversions::round(getInstrument()),
+            tag,
+            getTime(),
+            std::fabs(getDuration()) * -1.0,
+            Conversions::octaveToMidi(octave, false),
+            getVelocity(),
+            getPhase(),
+            getPan(),
+            getDepth(),
+            getHeight(),
+            getPitches(),
+            (*this)[HOMOGENEITY]);
     return buffer;
   }
 
@@ -386,21 +386,21 @@ namespace csound
     double octave = Conversions::midiToOctave(getKey());
     if(tempering != 0.0)
       {
-	octave = Conversions::temper(octave, tempering);
+        octave = Conversions::temper(octave, tempering);
       }
     sprintf(buffer, "i -%d.%d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n",
-	    (int) Conversions::round(getInstrument()),
-	    tag,
-	    getTime(),
-	    getDuration(),
-	    Conversions::octaveToMidi(octave, false),
-	    getVelocity(),
-	    getPhase(),
-	    getPan(),
-	    getDepth(),
-	    getHeight(),
-	    getPitches(),
-	    (*this)[HOMOGENEITY]);
+            (int) Conversions::round(getInstrument()),
+            tag,
+            getTime(),
+            getDuration(),
+            Conversions::octaveToMidi(octave, false),
+            getVelocity(),
+            getPhase(),
+            getPan(),
+            getDepth(),
+            getHeight(),
+            getPitches(),
+            (*this)[HOMOGENEITY]);
     return buffer;
   }
 
@@ -408,14 +408,14 @@ namespace csound
   {
     char buffer[0x100];
     sprintf(buffer, "t%8.3f d%8.3f s%3.0f i%6.2f k%6.2f v%6.2f x%5.2f pcs%8.2f",
-	    getTime(),
-	    getDuration(),
-	    getStatus(),
-	    getInstrument(),
-	    getKey(),
-	    getVelocity(),
-	    getPan(),
-	    getPitches());
+            getTime(),
+            getDuration(),
+            getStatus(),
+            getInstrument(),
+            getKey(),
+            getVelocity(),
+            getPan(),
+            getPitches());
     return buffer;
   }
 
@@ -530,11 +530,11 @@ namespace csound
   {
     if(properties.find(name) != properties.end())
       {
-	return properties[name];
+        return properties[name];
       }
     else
       {
-	return "";
+        return "";
       }
   }
 

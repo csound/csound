@@ -172,8 +172,8 @@ namespace csound
                                   double centerAmplitude,
                                   double centerPhaseOffsetRadians,
                                   double pan,
-				  bool synchronousPhase,
-				  bool buffer)
+                                  bool synchronousPhase,
+                                  bool buffer)
   {
     if (synchronousPhase) {
       double wavelengthSeconds = 1.0 / centerFrequencyHz;
@@ -209,14 +209,14 @@ namespace csound
       double sample = f0.real();
       //std::cout << sample << std::endl;
       if (channelCount == 2) {
-	grainOutput(frameI, 0) += (leftGain * sample);
-	grainOutput(frameI, 1) += (rightGain * sample);
+        grainOutput(frameI, 0) += (leftGain * sample);
+        grainOutput(frameI, 1) += (rightGain * sample);
       } else if (channelCount == 1) {
-	grainOutput(frameI, 0) += sample;
+        grainOutput(frameI, 0) += sample;
       } else {
-	for(size_t channelI = 0; channelI < channelCount; channelI++) {
-	  grainOutput(frameI, channelI) += sample;
-	}
+        for(size_t channelI = 0; channelI < channelCount; channelI++) {
+          grainOutput(frameI, channelI) += sample;
+        }
       }
       h1 = h0 * exp_2_c2;
       h0 = h1;
@@ -231,13 +231,13 @@ namespace csound
   }
 
   void Soundfile::cosineGrain(double centerTimeSeconds, 
-			      double durationSeconds, 
-			      double frequencyHz, 
-			      double amplitude, 
-			      double phaseOffsetRadians, 
-			      double pan,
-			      bool synchronousPhase,
-			      bool buffer)
+                              double durationSeconds, 
+                              double frequencyHz, 
+                              double amplitude, 
+                              double phaseOffsetRadians, 
+                              double pan,
+                              bool synchronousPhase,
+                              bool buffer)
   {
     if (synchronousPhase) {
       double wavelengthSeconds = 1.0 / frequencyHz;
@@ -285,10 +285,10 @@ namespace csound
             grainOutput(frameI, channelI) += signal;
           }
         }
-	temporary = sinusoid1;
+        temporary = sinusoid1;
         sinusoid1 = sinusoidCoefficient * sinusoid1 - sinusoid2;
         sinusoid2 = temporary;
-	temporary = envelope1;
+        temporary = envelope1;
         envelope1 = envelopeCoefficient * envelope1 - envelope2;
         envelope2 = temporary;
       }

@@ -57,9 +57,9 @@ namespace csound
     void generate();
     // Node overrides.
     virtual void produceOrTransform(Score &score,
-				    size_t beginAt,
-				    size_t endAt,
-				    const ublas::matrix<double> &coordinates);
+                                    size_t beginAt,
+                                    size_t endAt,
+                                    const ublas::matrix<double> &coordinates);
   };
 }
 #endif

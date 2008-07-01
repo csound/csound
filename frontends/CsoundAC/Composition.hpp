@@ -38,7 +38,7 @@ namespace csound
 {
   /**
    * Base class for user-derived musical compositions.
-   * Contains a Score object for collecting generated Events 
+   * Contains a Score object for collecting generated Events
    * such as notes and control messages,
    * and an Orchestra object for rendering the generated scores.
    */
@@ -63,12 +63,12 @@ namespace csound
      */
     virtual void generate();
     /**
-     * Translate the generated score to a Csound score 
+     * Translate the generated score to a Csound score
      * and export it for performance.
      * The time given by extendSeconds is used for a concluding e statement.
      */
-    virtual void createCsoundScore(std::string addToScore = "", 
-				   double extendSeconds = 5.0);
+    virtual void createCsoundScore(std::string addToScore = "",
+                                   double extendSeconds = 5.0);
     /**
      * Convenience function that erases the existing score,
      * appends optional text to it,
@@ -80,7 +80,7 @@ namespace csound
      */
     virtual void perform();
     /**
-     * Clear all contents of this. Probably should be overridden 
+     * Clear all contents of this. Probably should be overridden
      * in derived classes.
      */
     virtual void clear();
@@ -134,36 +134,36 @@ namespace csound
      * for export to Csound score
      * (convenience wrapper for Score::arrange()).
      */
-    virtual void arrange(int oldInstrumentNumber, 
-			 int newInstrumentNumber, 
-			 double gain);
+    virtual void arrange(int oldInstrumentNumber,
+                         int newInstrumentNumber,
+                         double gain);
     /**
-     * Re-assign instrument number, adjust gain, 
+     * Re-assign instrument number, adjust gain,
      * and change pan for export to Csound score
      * (convenience wrapper for Score::arrange()).
      */
-    virtual void arrange(int oldInstrumentNumber, 
-			 int newInstrumentNumber, 
-			 double gain, 
-			 double pan);
+    virtual void arrange(int oldInstrumentNumber,
+                         int newInstrumentNumber,
+                         double gain,
+                         double pan);
     /**
      * Re-assign instrument by name for export to Csound score.
      */
-    virtual void arrange(int silenceInstrumentNumber, 
-			 std::string csoundInstrumentName);
+    virtual void arrange(int silenceInstrumentNumber,
+                         std::string csoundInstrumentName);
     /**
      * Re-assign instrument by name and adjust gains for export to Csound score.
      */
     virtual void arrange(int silenceInstrumentNumber,
-			 std::string csoundInstrumentName, 
-			 double gain);
+                         std::string csoundInstrumentName,
+                         double gain);
     /**
      * Re-assign instrument by name, adjust gain, and change pan for export to Csound score.
      */
-    virtual void arrange(int silenceInstrumentNumber, 
-			 std::string csoundInstrumentName, 
-			 double gain, 
-			 double pan);
+    virtual void arrange(int silenceInstrumentNumber,
+                         std::string csoundInstrumentName,
+                         double gain,
+                         double pan);
    /**
      * Remove instrument number, gain, and pan assignments
      * (convenience wrapper for Score::removeArrangement()).

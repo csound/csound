@@ -234,7 +234,7 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 #else
       gettimeofday(&tv, NULL);
 #endif
-    
+
       s = milliseconds / (size_t) 1000;
       n = milliseconds - (s * (size_t) 1000);
       s += (size_t) tv.tv_sec;
@@ -385,7 +385,8 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
   b->max = max;
   return b;
 #else
-  pthread_barrier_t *barrier =  (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
+  pthread_barrier_t *barrier =
+    (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
   int status = pthread_barrier_init(barrier, 0, max);
   if (status) {
     return 0;
