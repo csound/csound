@@ -1,3 +1,9 @@
+2008-06-30  Steven Yi   <stevenyi@gmail.com>
+
+    * Engine/musmon.c: reverted sensevents to set EVTBLK to outside of while 
+    loop; caused bug where using event opcode with "e" would cause a segfault
+    and hang csound
+
 2008-06-26  jpff  <jpff@cs.bath.ac.uk>
 
 	* SConstruct: Allow selecable version if TCL and TK (needed for
