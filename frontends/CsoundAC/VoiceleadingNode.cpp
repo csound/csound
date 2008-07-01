@@ -32,9 +32,9 @@ namespace csound
 {
   extern void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
 
-  extern void printChord(std::string label, const std::vector<double> &chord); 
+  extern void printChord(std::string label, const std::vector<double> &chord);
 
-  VoiceleadingOperation::VoiceleadingOperation() : 
+  VoiceleadingOperation::VoiceleadingOperation() :
     beginTime(0.0),
     rescaledBeginTime(0.0),
     endTime(0.0),
@@ -56,12 +56,12 @@ namespace csound
     avoidParallels(false)
   {
   }
-  
+
   VoiceleadingOperation::~VoiceleadingOperation()
   {
   }
-  
-  VoiceleadingNode::VoiceleadingNode() : 
+
+  VoiceleadingNode::VoiceleadingNode() :
     base(36.0),
     range(60.0),
     rescaleTimes(true),
@@ -138,37 +138,37 @@ namespace csound
     if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
       if (!std::isnan(operation.V)) {
 #endif
-	score.setPTV(operation.begin, 
-		     operation.end, 
-		     operation.P, 
-		     operation.T, 
-		     operation.V, 
-		     base, 
-		     range);
+        score.setPTV(operation.begin,
+                     operation.end,
+                     operation.P,
+                     operation.T,
+                     operation.V,
+                     base,
+                     range);
       } else if (operation.L) {
-	score.setPT(operation.begin, 
-		    operation.end, 
-		    operation.P, 
-		    operation.T, 
-		    base, 
-		    range, 
-		    divisionsPerOctave);
-	score.voicelead(priorOperation.begin, 
-			priorOperation.end, 
-			operation.begin, 
-			operation.end, 
-			base,
-			range,
-			avoidParallels, 
-			divisionsPerOctave);
+        score.setPT(operation.begin,
+                    operation.end,
+                    operation.P,
+                    operation.T,
+                    base,
+                    range,
+                    divisionsPerOctave);
+        score.voicelead(priorOperation.begin,
+                        priorOperation.end,
+                        operation.begin,
+                        operation.end,
+                        base,
+                        range,
+                        avoidParallels,
+                        divisionsPerOctave);
       } else {
-	score.setPT(operation.begin, 
-		    operation.end, 
-		    operation.P, 
-		    operation.T, 
-		    base,
-		    range, 
-		    divisionsPerOctave);
+        score.setPT(operation.begin,
+                    operation.end,
+                    operation.P,
+                    operation.T,
+                    base,
+                    range,
+                    divisionsPerOctave);
       }
 #ifdef MSVC
     } else if (!(operation.C == DBL_MAX)) {
@@ -177,66 +177,66 @@ namespace csound
     } else if (!std::isnan(operation.C)) {
       if (!std::isnan(operation.V)) {
 #endif
-	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
-	printChord("CV", pcs);
-	std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
-	double prime = pt[0];
-	double transposition = pt[1];
-	System::inform("prime: %f transposition %f: divisionsPerOctave %d\n", prime, transposition, divisionsPerOctave);
-	score.setPTV(operation.begin, 
-		     operation.end, 
-		     prime, 
-		     transposition, 
-		     operation.V, 
-		     base, 
-		     range);
+        std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+        printChord("CV", pcs);
+        std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
+        double prime = pt[0];
+        double transposition = pt[1];
+        System::inform("prime: %f transposition %f: divisionsPerOctave %d\n", prime, transposition, divisionsPerOctave);
+        score.setPTV(operation.begin,
+                     operation.end,
+                     prime,
+                     transposition,
+                     operation.V,
+                     base,
+                     range);
       } else if (operation.L) {
-	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
-	printChord("CL", pcs);
-	score.voicelead(priorOperation.begin, 
-			priorOperation.end, 
-			operation.begin, 
-			operation.end, 
-			pcs,
-			base,
-			range,
-			avoidParallels, 
-			divisionsPerOctave);
+        std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+        printChord("CL", pcs);
+        score.voicelead(priorOperation.begin,
+                        priorOperation.end,
+                        operation.begin,
+                        operation.end,
+                        pcs,
+                        base,
+                        range,
+                        avoidParallels,
+                        divisionsPerOctave);
       } else {
-	std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
-	score.setPitchClassSet(operation.begin, 
-			       operation.end, 
-			       pcs,
-			       divisionsPerOctave);
+        std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+        score.setPitchClassSet(operation.begin,
+                               operation.end,
+                               pcs,
+                               divisionsPerOctave);
       }
     } else {
 #ifdef MSVC
-	if (!(operation.V == DBL_MAX)) {
+        if (!(operation.V == DBL_MAX)) {
 #else
       if (!std::isnan(operation.V)) {
 #endif
-	std::vector<double> ptv = score.getPTV(operation.begin,
-					       operation.end,
-					       base,
-					       range,
-					       divisionsPerOctave);
-	score.setPTV(operation.begin,
-		     operation.end,
-		     ptv[0],
-		     ptv[1],
-		     operation.V,
-		     base,
-		     range,
-		     divisionsPerOctave);
+        std::vector<double> ptv = score.getPTV(operation.begin,
+                                               operation.end,
+                                               base,
+                                               range,
+                                               divisionsPerOctave);
+        score.setPTV(operation.begin,
+                     operation.end,
+                     ptv[0],
+                     ptv[1],
+                     operation.V,
+                     base,
+                     range,
+                     divisionsPerOctave);
       } else if (operation.L) {
-	score.voicelead(priorOperation.begin, 
-			priorOperation.end, 
-			operation.begin, 
-			operation.end, 
-			base,
-			range,
-			avoidParallels, 
-			divisionsPerOctave);
+        score.voicelead(priorOperation.begin,
+                        priorOperation.end,
+                        operation.begin,
+                        operation.end,
+                        base,
+                        range,
+                        avoidParallels,
+                        divisionsPerOctave);
       }
     }
     System::message("ENDED VoiceleadingNode::apply.\n");
@@ -336,49 +336,49 @@ namespace csound
     std::vector<VoiceleadingOperation *> ops;
     for (std::map<double, VoiceleadingOperation>::iterator it = operations.begin(); it != operations.end(); ++it) {
       if (it->second.beginTime > operationMaxTime) {
-	operationMaxTime = it->second.beginTime;
+        operationMaxTime = it->second.beginTime;
       }
       ops.push_back(&it->second);
     }
     if (rescaleTimes_) {
       if (operationMaxTime > 0.0) {
-	timeScale = duration / operationMaxTime;
+        timeScale = duration / operationMaxTime;
       }
     }
-    System::inform("BEGAN VoiceleadingNode::produceOrTransform  operationMaxTime: %f  origin: %f  duration: %f  scoreMaxTime: %f  timeScale: %f...\n", 
-		   operationMaxTime, 
-		   origin, 
-		   duration, 
-		   scoreMaxTime,
-		   timeScale);
+    System::inform("BEGAN VoiceleadingNode::produceOrTransform  operationMaxTime: %f  origin: %f  duration: %f  scoreMaxTime: %f  timeScale: %f...\n",
+                   operationMaxTime,
+                   origin,
+                   duration,
+                   scoreMaxTime,
+                   timeScale);
     VoiceleadingOperation *priorOperation = 0;
     VoiceleadingOperation *currentOperation = 0;
     VoiceleadingOperation *nextOperation = 0;
-    for (int priorIndex = -1, currentIndex = 0, nextIndex = 1, firstIndex = 0, endIndex = ops.size(), backIndex = ops.size() - 1; 
-	 currentIndex < endIndex; 
-	 priorIndex++, currentIndex++, nextIndex++) {
+    for (int priorIndex = -1, currentIndex = 0, nextIndex = 1, firstIndex = 0, endIndex = ops.size(), backIndex = ops.size() - 1;
+         currentIndex < endIndex;
+         priorIndex++, currentIndex++, nextIndex++) {
       if (currentIndex <= firstIndex) {
-	priorOperation = ops[currentIndex];
-	currentOperation = ops[currentIndex];
+        priorOperation = ops[currentIndex];
+        currentOperation = ops[currentIndex];
       } else {
-	priorOperation = ops[priorIndex];
-	currentOperation = ops[currentIndex];
+        priorOperation = ops[priorIndex];
+        currentOperation = ops[currentIndex];
       }
       currentOperation->rescaledBeginTime = ((currentOperation->beginTime - origin) * timeScale) + origin;
       currentOperation->begin = score.indexAtTime(currentOperation->rescaledBeginTime);
       if (currentIndex >= backIndex) {
-	currentOperation->endTime = std::max(currentOperation->rescaledBeginTime, scoreMaxTime);
-	currentOperation->rescaledEndTime = currentOperation->endTime;
-	currentOperation->end = score.size();
+        currentOperation->endTime = std::max(currentOperation->rescaledBeginTime, scoreMaxTime);
+        currentOperation->rescaledEndTime = currentOperation->endTime;
+        currentOperation->end = score.size();
       } else {
-	nextOperation = ops[nextIndex];
-	currentOperation->endTime = nextOperation->beginTime;
-	currentOperation->rescaledEndTime = currentOperation->endTime * timeScale;
-	currentOperation->end = score.indexAfterTime(currentOperation->rescaledEndTime);
+        nextOperation = ops[nextIndex];
+        currentOperation->endTime = nextOperation->beginTime;
+        currentOperation->rescaledEndTime = currentOperation->endTime * timeScale;
+        currentOperation->end = score.indexAfterTime(currentOperation->rescaledEndTime);
       }
       apply(score, *priorOperation, *currentOperation);
     }
     System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
   }
-  
+
 }

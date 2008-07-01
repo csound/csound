@@ -44,7 +44,7 @@ namespace csound
     stream << label.c_str() << "[";
     for (size_t i = 0, n = chord.size(); i < n; i++) {
       if (i > 0) {
-	stream << ", ";
+        stream << ", ";
       }
       stream << chord[i];
     }
@@ -176,12 +176,12 @@ namespace csound
   }
 
   void Score::setScale(std::vector<Event> &score, 
-		       int dimension, bool rescaleMinimum, 
-		       bool rescaleRange, 
-		       size_t beginAt, 
-		       size_t endAt, 
-		       double targetMinimum, 
-		       double targetRange)
+                       int dimension, bool rescaleMinimum, 
+                       bool rescaleRange, 
+                       size_t beginAt, 
+                       size_t endAt, 
+                       double targetMinimum, 
+                       double targetRange)
   {
     if(!(rescaleMinimum || rescaleRange))
       {
@@ -522,7 +522,7 @@ namespace csound
       if (pitches.find(pitch) == pitches.end()) {
         pitches.insert(pitch);
         chord.push_back(pitch);
-	//System::inform("  i: %d  pitch: %f\n", i, pitch);
+        //System::inform("  i: %d  pitch: %f\n", i, pitch);
       }
     }
     std::sort(chord.begin(), chord.end());
@@ -564,10 +564,10 @@ namespace csound
   }
 
   std::vector<double> Score::getPTV(size_t begin_, 
-				    size_t end_, 
-				    double lowest, 
-				    double range, 
-				    size_t divisionsPerOctave_) const
+                                    size_t end_, 
+                                    double lowest, 
+                                    double range, 
+                                    size_t divisionsPerOctave_) const
   {
     if (begin_ < 0) {
       begin_ = 0;
@@ -585,13 +585,13 @@ namespace csound
   }
 
   void Score::setPTV(size_t begin_, 
-		     size_t end_, 
-		     double P, 
-		     double T, 
-		     double V, 
-		     double lowest, 
-		     double range, 
-		     size_t divisionsPerOctave_)
+                     size_t end_, 
+                     double P, 
+                     double T, 
+                     double V, 
+                     double lowest, 
+                     double range, 
+                     size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
       begin_ = 0;
@@ -611,10 +611,10 @@ namespace csound
   }
 
   std::vector<double> Score::getPT(size_t begin_, 
-				   size_t end_, 
-				   double lowest, 
-				   double range, 
-				   size_t divisionsPerOctave_) const
+                                   size_t end_, 
+                                   double lowest, 
+                                   double range, 
+                                   size_t divisionsPerOctave_) const
   {
     if (begin_ < 0) {
       begin_ = 0;
@@ -633,12 +633,12 @@ namespace csound
   }
 
   void Score::setPT(size_t begin_, 
-		    size_t end_, 
-		    double P, 
-		    double T, 
-		    double lowest, 
-		    double range, 
-		    size_t divisionsPerOctave_)
+                    size_t end_, 
+                    double P, 
+                    double T, 
+                    double lowest, 
+                    double range, 
+                    size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
       begin_ = 0;
@@ -661,8 +661,8 @@ namespace csound
   }
 
   std::vector<double> Score::getVoicing(size_t begin_, 
-					size_t end_, 
-					size_t divisionsPerOctave_) const
+                                        size_t end_, 
+                                        size_t divisionsPerOctave_) const
   {
     System::inform("BEGAN Score::getVoicing(%d, %d, %d)...\n", begin_, end_, divisionsPerOctave_);
     std::vector<double> pitches = getPitches(begin_, end_, divisionsPerOctave_);
@@ -672,8 +672,8 @@ namespace csound
       double pitch = pitches[i];
       double pc = Voicelead::pc(pitch, divisionsPerOctave_);
       if (pcs.find(pc) == pcs.end()) {
-	pcs.insert(pc);
-	voicing.push_back(pitch);
+        pcs.insert(pc);
+        voicing.push_back(pitch);
       }
     }
     std::sort(voicing.begin(), voicing.end());
@@ -685,10 +685,10 @@ namespace csound
   }
 
   void Score::setVoicing(size_t begin_, 
-			 size_t end_, 
-			 const std::vector<double> &voicing, 
-			 double range, 
-			 size_t divisionsPerOctave_)
+                         size_t end_, 
+                         const std::vector<double> &voicing, 
+                         double range, 
+                         size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
       begin_ = 0;
@@ -712,20 +712,20 @@ namespace csound
       double pc = Voicelead::pc(pitch);
       double voicedPitch = pitchesForPitchClassSets[pc];
       if (pitch < voicedPitch) {
-	pitch += double(divisionsPerOctave_);
+        pitch += double(divisionsPerOctave_);
       }
       event.setKey(pitch);
     }
    }
 
   void Score::voicelead(size_t beginSource,
-			size_t endSource,
-			size_t beginTarget,
-			size_t endTarget,
-			double lowest,
-			double range,
-			bool avoidParallelFifths,
-			size_t divisionsPerOctave_)
+                        size_t endSource,
+                        size_t beginTarget,
+                        size_t endTarget,
+                        double lowest,
+                        double range,
+                        bool avoidParallelFifths,
+                        size_t divisionsPerOctave_)
   {
     if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) {
       std::stringstream stream;
@@ -782,8 +782,8 @@ namespace csound
       size_t n = tones.size() - k;
       for (size_t i = 0, j = 0; i < n; i++, j++) {
         if (j >= k) {
-	  j = 0;
-	}
+          j = 0;
+        }
         source.push_back(source[j]);
       }
     }
@@ -794,8 +794,8 @@ namespace csound
       size_t n = source.size() - k;
       for (size_t i = 0, j = 0; i < n; i++, j++) {
         if (j >= k) {
-	  j = 0;
-	}
+          j = 0;
+        }
         tones.push_back(tones[j]);
       }
     }
@@ -814,14 +814,14 @@ namespace csound
   }
 
   void Score::voicelead(size_t beginSource,
-			size_t endSource,
-			size_t beginTarget,
-			size_t endTarget,
-			const std::vector<double> &target,
-			double lowest,
-			double range,
-			bool avoidParallelFifths,
-			size_t divisionsPerOctave_)
+                        size_t endSource,
+                        size_t beginTarget,
+                        size_t endTarget,
+                        const std::vector<double> &target,
+                        double lowest,
+                        double range,
+                        bool avoidParallelFifths,
+                        size_t divisionsPerOctave_)
   {
     if ( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL ) {
       std::stringstream stream;
@@ -881,8 +881,8 @@ namespace csound
       size_t n = tones.size() - k;
       for (size_t i = 0, j = 0; i < n; i++, j++) {
         if (j >= k) {
-	  j = 0;
-	}
+          j = 0;
+        }
         source.push_back(source[j]);
       }
       printChord("  doubled source:      ", source);
@@ -893,8 +893,8 @@ namespace csound
       size_t n = source.size() - k;
       for (size_t i = 0, j = 0; i < n; i++, j++) {
         if (j >= k) {
-	  j = 0;
-	}
+          j = 0;
+        }
         tones.push_back(tones[j]);
       }
       std::sort(tones.begin(), tones.end());
