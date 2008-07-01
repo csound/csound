@@ -122,18 +122,18 @@ namespace csound
             namesForPitchClassSets[it->second] = it->first;
           }
         listPitchClassSets();
-	// Intervals.
-	fill(" minor second",     "C  C#                             ");
-	fill(" major second",     "C     D                           ");
-	fill(" minor third",      "C        Eb                       ");
-	fill(" major third",      "C           E                     ");
-	fill(" perfect fourth",   "C              F                  ");
-	fill(" tritone",          "C                 F#              ");
-	fill(" perfect fifth",    "C                    G            ");
-	fill(" augmented fifth",  "C                       G#        ");
-	fill(" sixth",            "C                          A      ");
-	fill(" minor seventh  ",  "C                             Bb  ");
-	fill(" major seventh",    "C                                B");
+        // Intervals.
+        fill(" minor second",     "C  C#                             ");
+        fill(" major second",     "C     D                           ");
+        fill(" minor third",      "C        Eb                       ");
+        fill(" major third",      "C           E                     ");
+        fill(" perfect fourth",   "C              F                  ");
+        fill(" tritone",          "C                 F#              ");
+        fill(" perfect fifth",    "C                    G            ");
+        fill(" augmented fifth",  "C                       G#        ");
+        fill(" sixth",            "C                          A      ");
+        fill(" minor seventh  ",  "C                             Bb  ");
+        fill(" major seventh",    "C                                B");
         // Scales.
         fill(" major",            "C     D     E  F     G     A     B");
         fill(" minor",            "C     D  Eb    F     G  Ab    Bb  ");
@@ -602,7 +602,7 @@ namespace csound
     double factor = 1.0;
     if (odbfs) {
       factor = -1.0;
-    } 
+    }
     return std::exp( factor * std::log( 10.0 ) * gain / 20.0 ) * inputDb;
   }
 }
