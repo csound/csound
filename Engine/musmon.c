@@ -51,7 +51,6 @@ extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
 typedef struct evt_cb_func {
-
     void    (*func)(CSOUND *, void *);
     void    *userData;
     struct evt_cb_func  *nxt; 
@@ -834,7 +833,7 @@ int sensevents(CSOUND *csound)
         if (csound->frstoff->offtim <= tval) timexpire(csound, tval);
       }
     }
-
+    e = &(csound->evt);
     if (--(csound->cyclesRemaining) <= 0) { /* if done performing score segment: */
       if (!csound->cyclesRemaining) {
         csound->prvbt = csound->curbt;      /* update beats and times */
@@ -848,7 +847,6 @@ int sensevents(CSOUND *csound)
 
  retest:
     while (csound->cyclesRemaining <= 0) {   /* read each score event:     */
-    e = &(csound->evt);        /* Does this need to be done outside loop?? */
       if (e->opcod != '\0') {
         /* if there is a pending score event, handle it now */
         switch (e->opcod) {
