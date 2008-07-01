@@ -24,6 +24,12 @@
 #define _XOPEN_SOURCE 600
 #endif
 
+#ifndef HAVE_GETTIMEOFDAY
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+#define HAVE_GETTIMEOFDAY 1
+#endif
+#endif
+
 #include "csoundCore.h"
 #include "csGblMtx.h"
 
@@ -138,6 +144,8 @@ PUBLIC void csoundSleep(size_t milliseconds)
 }
 
 #endif
+
+
 
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
 
