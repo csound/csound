@@ -345,15 +345,9 @@ commandOptions.Add('useBufferOverflowLibrary',
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
 
-initialEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
-commandOptions.Update(initialEnvironment)
-
-optionsFilename = 'custom.py'
-
 if util.compilerIntel():
     print 'Importing complete environment for the Intel C++ Compiler (ICL)...'
     initialEnvironment = Environment(ENV = os.environ)
-    commandOptions.Update(initialEnvironment)
     Tool('icl')(initialEnvironment)
     optionsFilename = 'custom-msvc.py'
 elif util.compilerMicrosoft():
@@ -363,16 +357,19 @@ elif util.compilerMicrosoft():
     # enviroment with a more complete one.
     print 'Importing complete environment for Microsoft Visual C++ (MSVC)...'
     initialEnvironment = Environment(ENV = os.environ)
-    commandOptions.Update(initialEnvironment)
     optionsFilename = 'custom-msvc.py'
 elif util.platform == 'win32':
     # Similarly, on Windows, to exclude MSVC tools,
     # we have to force MinGW tools and then re-create
     # the environment from scratch.
     initialEnvironment = Environment(ENV = os.environ, tools = ['mingw', 'swig', 'javac', 'jar'])
-    commandOptions.Update(initialEnvironment)
     #Tool('mingw')(initialEnvironment)
     optionsFilename = 'custom-mingw.py'
+else:
+    initialEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
+    optionsFilename = 'custom.py'
+
+commandOptions.Update(initialEnvironment)
 
 Help(commandOptions.GenerateHelpText(initialEnvironment))
 
