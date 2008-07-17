@@ -1430,6 +1430,8 @@ makePlugin(pluginEnvironment, 'pitch',
 if not buildOLPC:
  makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
+ makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
