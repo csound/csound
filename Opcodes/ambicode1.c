@@ -77,7 +77,7 @@ ibformenc(CSOUND * csound, AMBIC * p) {
     return OK;
   default:
     return csound->InitError
-      (csound, "The numbers of input and output arguments are not valid.");
+      (csound, Str("The numbers of input and output arguments are not valid."));
   }
 }
 
@@ -160,11 +160,11 @@ ibformdec(CSOUND * csound, AMBID * p) {
   /* All we do in here is police our parameters. */
   if (p->INOCOUNT != 1 + 4 && p->INOCOUNT != 1 + 9 && p->INOCOUNT != 1 + 16) {
     return csound->InitError(csound,
-                             "The number of input arguments is not valid.");
+                             Str("The number of input arguments is not valid."));
   }
   else if (*(p->isetup) < 1 || *(p->isetup) > 5) {
     return csound->InitError(csound,
-                             "The isetup value should be between 1 and 5.");
+                             Str("The isetup value should be between 1 and 5."));
   }
   else {
     /* Then we check the output arguments. */
@@ -190,8 +190,8 @@ ibformdec(CSOUND * csound, AMBID * p) {
     }
     else {
       return csound->InitError(csound,
-                               "The output channel count does not"
-                               " match the isetup value.");
+                                Str("The output channel count does not"
+                                    " match the isetup value."));
     }
   }
   return OK;                    /* Never used */
