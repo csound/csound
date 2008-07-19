@@ -998,11 +998,11 @@ static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
 
   if (p->lastframe < p->fin->framecount) {
 
-   amint = amint >= 0 ? (amint <= 1 ? amint : FL(1.0)): FL(0.0);
-   frint = frint >= 0 ? (frint <= 1 ? frint : FL(1.0)): FL(0.0);
+   amint = amint > 0 ? (amint <= 1 ? amint : FL(1.0)): FL(0.0);
+   frint = frint > 0 ? (frint <= 1 ? frint : FL(1.0)): FL(0.0);
     for(i=0;i < N+2;i+=2) {
       fout[i] = fi1[i]*(1.0-amint) + fi2[i]*(amint);
-      fout[i+1] = fi2[i+1]*(1.0-frint) + fi2[i+1]*(frint);
+      fout[i+1] = fi1[i+1]*(1.0-frint) + fi2[i+1]*(frint);
     }
     p->fout->framecount = p->lastframe = p->fin->framecount;
   }
