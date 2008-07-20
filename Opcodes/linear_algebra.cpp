@@ -13,10 +13,17 @@
  * from http://home.gna.org/getfem/gmm_intro.
  *
  * NOTE: SDFT must be #defined in order to build and use these opcodes.
- *       For application with f-sig variables, arithmetic must be
+ *
+ *       For applications with f-sig variables, array arithmetic must be
  *       performed only when the f-sig is "current," because f-rate
  *       is some fraction of k-rate; currency can be determined with the
  *       la_k_current_f opcode.
+ *
+ *       For applications using assignments between real vectors and
+ *       a-rate variables, array arithmetic must be performed only when the
+ *       vectors are "current", because the size of the vector may be
+ *       some integral multiple of ksmps; currency can be determined 
+ *       by means of the la_k_current_vr opcode.
  *
  * Linear Algebra Data Types
  * -------------------------
@@ -90,6 +97,7 @@
  * irows, icolumns             la_i_size_mc          imc
  *
  * kfiscurrent                 la_k_current_f        fsig
+ * kvriscurrent                la_k_current_vr       ivr
  *
  *                             la_i_print_vr         ivr
  *                             la_i_print_vc         ivc
@@ -108,7 +116,10 @@
  * imc                         la_i_assign_mc        imc
  * imc                         la_k_assign_mc        imr
  *
- * NOTE: Assignments to vectors may resize them.
+ * NOTE: Assignments from tables or fsigs will resize vectors.
+ *       Assignments to or from asigs are incremental -- ksmps
+ *       frames are copied each kperiod and the array index 
+ *       wraps around as required.
  *
  * ivr                         la_k_assign_a         asig
  * ivr                         la_i_assign_t         itablenumber
@@ -547,6 +558,55 @@ public:
   }
 };
 
+/**
+ * Return 1 if the real vector is current (i.e., its 
+ * current index equals 0); return 0 if the input 
+ * real vector is not current. A real vector is current 
+ * in the very first kperiod of performance,
+ * and at each subsequent kperiod where ksmps has
+ * accumulated past the end of the vector and 
+ * has wrapped back to index 0. For this to be 
+ * possible, the size of the vector must be an integral
+ * multiple of ksmps.
+ * 
+ * Example:
+ *
+ * ; FIRST, assignments from a-rate variables to vectors.
+ * kcurrent la_k_current_vr ivr
+ * if (kcurrent == 1.0) then
+ * ; SECOND, arithmetic with current vectors.
+ * endif
+ * ; THIRD, assignments from vectors to a-rate variables.
+ */
+class la_k_current_vr_t : public OpcodeBase<la_k_current_vr_t>
+{
+public:
+  MYFLT *k_current;
+  MYFLT *rhs_ivr;
+  la_i_vr_create_t *rhs;
+  size_t ksmps;
+  size_t vector_size;
+  int init(CSOUND *csound)
+  {
+    rhs = 0;
+    toa(rhs_ivr, rhs);
+    ksmps = csound->GetKsmps(csound);
+    vector_size = gmm::vect_size(rhs->vr);
+    return OK;
+  }
+  int kontrol(CSOUND *csound) 
+  {
+    size_t frame_count = csound->kcounter * ksmps;
+    size_t index = frame_count % vector_size;
+    if (index == 0) {
+      *k_current = 1.0;
+    } else {
+      *k_current = 0.0;
+    }
+    return OK;
+  }
+};
+
 class la_i_print_vr_t : public OpcodeBase<la_i_print_vr_t>
 {
 public:
@@ -758,17 +818,20 @@ public:
   MYFLT *a_a;
   la_i_vr_create_t *lhs;   
   size_t ksmps;
+  size_t vector_size;
   int init(CSOUND *csound)
   {
     toa(i_vr, lhs);
     ksmps = csound->GetKsmps(csound);
-    gmm::resize(lhs->vr, ksmps);
+    vector_size = gmm::vect_size(lhs->vr);
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    for (size_t i = 0; i < ksmps; ++i) {
-      lhs->vr[i] = a_a[i];
+    size_t frame_count = csound->kcounter * ksmps;
+    size_t array_i = frame_count % vector_size;
+    for (size_t i = 0; i < ksmps; ++i, ++array_i) {
+      lhs->vr[array_i] = a_a[i];
     }
     return OK;
   }
@@ -857,13 +920,15 @@ public:
   {
     toa(i_vr, rhs);
     ksmps = csound->GetKsmps(csound);
-    gmm::resize(rhs->vr, ksmps);
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    for (size_t i = 0; i < ksmps; ++i) {
-      a_a[i] = rhs->vr[i];
+    size_t frameCount = csound->kcounter * csound->ksmps;
+    size_t vectorSize = gmm::vect_size(rhs->vr);
+    size_t array_i = frameCount % vectorSize;
+    for (size_t i = 0; i < ksmps; ++i, ++array_i) {
+      a_a[i] = rhs->vr[array_i];
     }
     return OK;
   }
@@ -4292,6 +4357,15 @@ extern "C"
 				   "f", 
 				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::init_, 
 				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::kontrol_, 
+				   (int (*)(CSOUND*,void*)) 0);
+    status |= csound->AppendOpcode(csound, 
+				   "la_k_current_vr", 
+				   sizeof(la_k_current_vr_t), 
+				   3, 
+				   "k", 
+				   "i", 
+				   (int (*)(CSOUND*,void*)) &la_k_current_vr_t::init_, 
+				   (int (*)(CSOUND*,void*)) &la_k_current_vr_t::kontrol_, 
 				   (int (*)(CSOUND*,void*)) 0);
     status |= csound->AppendOpcode(csound, 
 				   "la_i_print_vr",
