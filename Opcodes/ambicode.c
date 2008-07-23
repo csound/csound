@@ -1,4 +1,4 @@
-/*
+
     ambicode.c:
 
     Copyright (C) 2005 Samuel Groner,
@@ -45,6 +45,8 @@ typedef struct {
 
 static int iambicode(CSOUND *csound, AMBIC *p)
 {
+    csound->Warning(csound,
+                    Str("bformenc is deprecated; use bformenc1 instead\n"));
     /* check correct number of input and output arguments */
     switch (p->OUTOCOUNT) {
       case 4:
@@ -281,6 +283,8 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
 static int iambideco(CSOUND *csound, AMBID *p)
 {
     int setup = (int)*p->isetup;
+    csound->Warning(csound,
+                    Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */
     if ((p->INOCOUNT != 5) && (p->INOCOUNT != 10) && (p->INOCOUNT != 17)) {

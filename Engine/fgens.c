@@ -1090,7 +1090,8 @@ static int gen23(FGDATA *ff, FUNC *ftp)
           char pp;
           *p = '\0';
           for (p = buf; (pp = *p) != '\0'; p++) {
-            if (!isdigit(pp) && pp != '-' && pp != '.' && pp != '\0')
+            if (!isdigit(pp) && pp != '-' && pp != '.' &&
+                pp != '+' && pp != '\0' && pp != 'e' && pp != 'E')
               goto nxt;
           }
           ff->flen++;
@@ -1122,7 +1123,8 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         char pp;                /* To save value */
         *p = '\0';
         for (p = buf; (pp = *p) != '\0'; p++) {
-          if (!isdigit(pp) && pp != '-' && pp != '.' && pp != '\0')
+            if (!isdigit(pp) && pp != '-' && pp != '.' &&
+                pp != '+' && pp != '\0' && pp != 'e' && pp != 'E')
             goto next;
         }
         *fp++ = (MYFLT) atof (buf);
