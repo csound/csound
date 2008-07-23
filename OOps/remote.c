@@ -54,7 +54,7 @@ static int getIpAddress(char *ipaddr, char *ifname)
     int ret = 1;
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
-    /* gethostbyname is the real answer; code below id unsafe */
+    /* gethostbyname is the real answer; code below is unsafe */
     char hostname[1024];
     struct hostent *he;
     struct sockaddr_in sin;
