@@ -1,4 +1,4 @@
-
+/*
     ambicode.c:
 
     Copyright (C) 2005 Samuel Groner,
