@@ -201,7 +201,7 @@ static int skiporccomment(CSOUND *csound)
         return;
       }
     }
-    if (c == '*' && mode == 0) mode = 1;
+    if (c == '*') mode = 1;     /* look for end of comment */
     else if (c == '/' && mode == 1) {
       return srccnt;
     }
