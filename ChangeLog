@@ -1,3 +1,12 @@
+2008-07-26  jpff  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (skiporccomment): Correct stupid error in
+	multiple * characters
+
+2008-07-23  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen23): Allow scientific notation (as was in csound4!)
+
 2008-07-05  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/ambicode1.c: Added new file with Furse/Wiggins decoders
