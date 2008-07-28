@@ -404,6 +404,7 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
   pthread_mutex_destroy(&b->mut);
 #endif
   pthread_barrier_destroy(barrier);
+#endif
   free(barrier);
   return 0;
 }
