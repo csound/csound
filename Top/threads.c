@@ -402,7 +402,7 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
   if (b->count > 0) return EBUSY;
   pthread_cond_destroy(&b->cond);
   pthread_mutex_destroy(&b->mut);
-#endif
+#else
   pthread_barrier_destroy(barrier);
 #endif
   free(barrier);
