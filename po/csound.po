@@ -1,32 +1,14 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-
-# Csound Audio Synthesis System
-# Copyright (C) 2007 John ffitch and Csound community
+# Csound
+# Copyright (C) 2008 John ffitch and Csound developers
 # This file is distributed under the same license as the Csound package.
-# John ffitch <jpff@sourceforge.net>, 2007.
+# John ffitch <jpff@codemist.co.uk>, 2008.
 #
-#: Top/argdecode.c:153 Top/argdecode.c:159 Top/argdecode.c:164
-#: Top/argdecode.c:169 Top/argdecode.c:174 Top/argdecode.c:179
-#: Top/argdecode.c:192 Top/argdecode.c:231
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-26 19:39+0100\n"
+"POT-Creation-Date: 2008-07-30 08:53+0100\n"
 "PO-Revision-Date: 2008-05-05 16:27+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (UK)\n"
@@ -1941,7 +1923,7 @@ msgstr ""
 msgid "error: no input file name"
 msgstr ""
 
-#: InOut/libsnd.c:304 InOut/rtpa.c:422
+#: InOut/libsnd.c:304 InOut/rtpa.c:421
 msgid "Failed to initialise real time audio input"
 msgstr ""
 
@@ -2691,46 +2673,46 @@ msgstr ""
 msgid "PortAudio: failed to obtain device info.\n"
 msgstr ""
 
-#: InOut/rtpa.c:188 InOut/rtpa.c:586 InOut/rtwinmm.c:228
+#: InOut/rtpa.c:187 InOut/rtpa.c:585 InOut/rtwinmm.c:228
 msgid "Must specify a device number, not a name"
 msgstr ""
 
-#: InOut/rtpa.c:223
+#: InOut/rtpa.c:222
 msgid "No sound device is available"
 msgstr ""
 
-#: InOut/rtpa.c:236 InOut/rtpa.c:249 util/scale.c:289 util/xtrct.c:300
+#: InOut/rtpa.c:235 InOut/rtpa.c:248 util/scale.c:289 util/xtrct.c:300
 msgid "Memory allocation failure"
 msgstr ""
 
-#: InOut/rtpa.c:255
+#: InOut/rtpa.c:254
 msgid "Inconsistent full-duplex buffer sizes"
 msgstr ""
 
-#: InOut/rtpa.c:259
+#: InOut/rtpa.c:258
 msgid "Inconsistent full-duplex sample rates"
 msgstr ""
 
-#: InOut/rtpa.c:266
+#: InOut/rtpa.c:265
 msgid ""
 "WARNING: buffer size should be an integer multiple of ksmps in full-duplex "
 "mode\n"
 msgstr ""
 
-#: InOut/rtpa.c:590
+#: InOut/rtpa.c:589
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr ""
 
-#: InOut/rtpa.c:700
+#: InOut/rtpa.c:699
 msgid "Buffer overrun in real-time audio input"
 msgstr ""
 
-#: InOut/rtpa.c:723
+#: InOut/rtpa.c:722
 msgid "Buffer underrun in real-time audio output"
 msgstr ""
 
-#: InOut/rtpa.c:763 InOut/rtpa_new.c:351
+#: InOut/rtpa.c:762 InOut/rtpa_new.c:351
 msgid "PortAudio real-time audio module for Csound\n"
 msgstr ""
 
@@ -9237,7 +9219,7 @@ msgstr ""
 msgid "\t(%ld sample frames)\n"
 msgstr ""
 
-#: Top/threads.c:528
+#: Top/threads.c:529
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
 msgstr ""
