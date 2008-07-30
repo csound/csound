@@ -73,7 +73,7 @@ static CS_NOINLINE void pvlook_printvalue(PVLOOK *p, float x)
 }
 
 static const char *pvlook_usage_txt[] = {
-  Str_noop("pvlook is a program which reads a Csound pvanal's pvoc.n "),
+  Str_noop("pvlook is a program which reads a Csound pvanal's pvoc"),
   Str_noop("file and outputs frequency and magnitude trajectories for each "),
   Str_noop("of the analysis bins."),
     "",

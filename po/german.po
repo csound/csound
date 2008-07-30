@@ -1,3 +1,18 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 # Csound Audio Synthesis System
 # Copyright (C) 2007 John ffitch and Csound community
 # This file is distributed under the same license as the Csound package.
@@ -2676,7 +2691,7 @@ msgid "PortAudio: selected %s device '%s'\n"
 msgstr ""
 
 #: InOut/rtpa.c:174
-msgid "PortAudio: failed to obtain device info.'\n"
+msgid "PortAudio: failed to obtain device info.\n"
 msgstr ""
 
 #: InOut/rtpa.c:188 InOut/rtpa.c:586 InOut/rtwinmm.c:228
@@ -10407,7 +10422,7 @@ msgid "pvanal error: %s\n"
 msgstr "pvanal Störung: %s\n"
 
 #: util/pvlook.c:76
-msgid "pvlook is a program which reads a Csound pvanal's pvoc.n "
+msgid "pvlook is a program which reads a Csound pvanal's pvoc"
 msgstr ""
 
 #: util/pvlook.c:77
