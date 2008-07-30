@@ -166,13 +166,12 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
       devNum = i;
     }
     dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
-    if (dev_info) {
+    if (dev_info)
       csound->Message(csound, Str("PortAudio: selected %s device '%s'\n"),
                       (play ? Str("output") : Str("input")),
                       dev_info->name);
-    } else {
-      csound->Message(csound, Str("PortAudio: failed to obtain device info.'\n"));
-    }
+    else
+      csound->Message(csound, Str("PortAudio: failed to obtain device info.\n"));
     return devNum;
 }
 
