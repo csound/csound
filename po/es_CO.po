@@ -1,27 +1,10 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-
 # translation into Columbian Spanish
 # Csound Audio Synthesis System
 # Copyright (C) 2008 csound
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Andres Cabrera <mantaraya36@gmail.com>, 2008.
-#: Top/argdecode.c:153 Top/argdecode.c:159 Top/argdecode.c:164
-#: Top/argdecode.c:169 Top/argdecode.c:174 Top/argdecode.c:179
-#: Top/argdecode.c:192 Top/argdecode.c:231
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: es_CO\n"
