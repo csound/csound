@@ -1,7 +1,7 @@
 /*
     scoreline.c:
 
-    (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004,2008
 
     This file is part of Csound.
 
@@ -27,6 +27,12 @@ typedef struct _inmess {
   MYFLT *SMess, *ktrig;
 } inmess;
 
+
+typedef struct _scorepos {
+  OPDS h;
+  MYFLT *spos;
+} scorepos;
+
 int messi(CSOUND *csound, inmess *p)
 {
     csound->InputMessage(csound, (char *)p->SMess);
@@ -38,9 +44,24 @@ int messk(CSOUND *csound, inmess *p){
     return OK;
 }
 
+int setscorepos(CSOUND *csound, scorepos *p){
+  csound->SetScoreOffsetSeconds(csound, *p->spos);
+  return OK;
+}
+
+int rewindscore(CSOUND *csound, scorepos *p){
+  csound->RewindScore(csound);
+  return OK;
+}
+
+
 static OENTRY localops[] = {
   {"scoreline_i", sizeof(inmess), 1, "", "S", (SUBR)messi, NULL, NULL},
-  {"scoreline", sizeof(inmess), 2, "", "Sk", NULL, (SUBR)messk, NULL}
+  {"scoreline", sizeof(inmess), 2, "", "Sk", NULL, (SUBR)messk, NULL},
+  {"setscorepos", sizeof(inmess), 1, "", "i", (SUBR)setscorepos, NULL, NULL},
+  {"rewindscore", sizeof(inmess), 1, "", "", (SUBR)rewindscore, NULL, NULL}
 };
+
+
 
 LINKAGE
