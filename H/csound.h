@@ -344,16 +344,16 @@ CSOUND_FILETYPES;
   /* PVSDATEX is a variation on PVSDAT used in
      the pvs bus interface */
   typedef struct pvsdat_ext {
-        int32            N;
+        int            N;
 #ifdef SDFT
         int             sliding; /* Flag to indicate sliding case */
-        int32           NB;
+        int           NB;
 #endif
-        int32           overlap;
-        int32           winsize;
+        int           overlap;
+        int           winsize;
         int             wintype;
-        int32           format;
-        uint32          framecount;
+        int           format;
+        unsigned int          framecount;
         float*          frame;
  } PVSDATEXT;
 

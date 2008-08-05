@@ -11,7 +11,6 @@ static int tanhtable(FGDATA *ff, FUNC *ftp)
     MYFLT   step = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int     i;
-  
     for (i = 0, x = start; i <= (int) ftp->flen; i++, x += step)
       fp[i] = TANH(x);
 
