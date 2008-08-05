@@ -1425,9 +1425,8 @@ extern "C" {
     snapvec_init.resize(1,snap_init);
     if (group+1 > (int) ST(snapshots).size())
       ST(snapshots).resize(group+1, snapvec_init);
-    //   *p->inum_snap = ST(snapshots).size();
+    // *p->inum_snap = ST(snapshots).size();
     *p->inum_val = numfields; // number of snapshots
-
     if (*p->ifn >= 1) { // if the table number is valid
       FUNC    *ftp;   // store the snapshot into the table
       if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
@@ -1441,6 +1440,7 @@ extern "C" {
     else { // else store it into snapshot bank
       if ((int) ST(snapshots)[group].size() < index+1)
         ST(snapshots)[group].resize(index+1);
+        csound->Message(csound, "setsnap saving\n");
       ST(snapshots)[group][index]=snap;
       *p->inum_snap = ST(snapshots)[group].size();
     }

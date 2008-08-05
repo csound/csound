@@ -1913,6 +1913,7 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
       ftp->ftable[ff->flen] = ftp->ftable[0];
     if (ff->e.p[4] > FL(0.0)) {             /* if genum positve, rescale */
       for (fp=ftp->ftable, maxval = FL(0.0); fp<=finp; ) {
+		  
         if ((abs = *fp++) < FL(0.0))
           abs = -abs;
         if (abs > maxval)

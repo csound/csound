@@ -106,7 +106,8 @@ elif sys.platform[:3] == 'win':
     # If you want to build the PD external csoundapi~
     # you need PD. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
-    #customCPPPATH.append('D:/utah/opt/pd-0.38-4-devel-2/src')
+    customCPPPATH.append('c:/msys/1.0/local/java/include')
+    customCPPPATH.append('c:/msys/1.0/local/java/include/win32')
     #customLIBPATH.append('D:/utah/opt/pd-0.38-4-devel-2/bin')
     ################################################################
     # If you want to build the Loris opcodes,
