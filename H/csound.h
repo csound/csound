@@ -341,19 +341,19 @@ CSOUND_FILETYPES;
     int         type;
   } CsoundChannelListEntry;
 
-  /* PVSDATEX is a variation on PVSDAT used in
+  /* PVSDATEXT is a variation on PVSDAT used in
      the pvs bus interface */
   typedef struct pvsdat_ext {
-        int            N;
+        int32            N;
 #ifdef SDFT
         int             sliding; /* Flag to indicate sliding case */
-        int           NB;
+        int32           NB;
 #endif
-        int           overlap;
-        int           winsize;
+        int32           overlap;
+        int32           winsize;
         int             wintype;
-        int           format;
-        unsigned int          framecount;
+        int32           format;
+        uint32          framecount;
         float*          frame;
  } PVSDATEXT;
 
