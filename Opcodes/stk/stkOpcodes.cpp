@@ -604,7 +604,7 @@ extern "C"
   {
     if (getStkInstances().find(csound) != getStkInstances().end()) {
       for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
-	delete getStkInstances()[csound][i];
+        delete getStkInstances()[csound][i];
       }
       getStkInstances()[csound].clear();
       getStkInstances().erase(csound);
