@@ -373,27 +373,27 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
             p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
             p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
             p->mode[spltNum]= split->sampleModes;
-			p->attack[spltNum] = split->attack*csound->ekr;
+            p->attack[spltNum] = split->attack*csound->ekr;
             p->decay[spltNum] = split->decay*csound->ekr;
             p->sustain[spltNum] = split->sustain;
             p->release[spltNum] = split->release*csound->ekr;
 
-			if(*p->ienv > 1) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-	    p->decr[spltNum] = pow((split->sustain+0.0001), 1.0/(csound->ekr*split->decay+0.0001));
-            if(split->attack != 0.0) p->env[spltNum] = 0.0;
-			else p->env[spltNum] = 1.0;
-			}
-			else if (*p->ienv > 0) {
-            p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
-	    p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
-            if(split->attack != 0.0) p->env[spltNum] = 0.0;
-			else p->env[spltNum] = 1.0;
-			}
-			else {
-            p->env[spltNum] = 1.0;
-			}
-			p->ti[spltNum] = 0; 
+            if(*p->ienv > 1) {
+              p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+              p->decr[spltNum] = pow((split->sustain+0.0001), 1.0/(csound->ekr*split->decay+0.0001));
+              if(split->attack != 0.0) p->env[spltNum] = 0.0;
+              else p->env[spltNum] = 1.0;
+            }
+            else if (*p->ienv > 0) {
+              p->attr[spltNum] = 1.0/(csound->ekr*split->attack);
+              p->decr[spltNum] = (split->sustain-1.0)/(csound->ekr*split->decay);
+              if(split->attack != 0.0) p->env[spltNum] = 0.0;
+              else p->env[spltNum] = 1.0;
+            }
+            else {
+              p->env[spltNum] = 1.0;
+            }
+            p->ti[spltNum] = 0; 
             spltNum++;
           }
         }
