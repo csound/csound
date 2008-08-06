@@ -3,10 +3,10 @@
  * Michael Gogins
  *
  * These opcodes implement many linear algebra operations,
- * from scalar, vector, and matrix arithmetic up to 
+ * from scalar, vector, and matrix arithmetic up to
  * and including QR based eigenvalue decompositions.
- * The opcodes are designed for digital signal processing, 
- * and of course other mathematical operations, 
+ * The opcodes are designed for digital signal processing,
+ * and of course other mathematical operations,
  * in the Csound orchestra language.
  *
  * The numerical implementation uses the gmm++ library
@@ -22,7 +22,7 @@
  *       For applications using assignments between real vectors and
  *       a-rate variables, array arithmetic must be performed only when the
  *       vectors are "current", because the size of the vector may be
- *       some integral multiple of ksmps; currency can be determined 
+ *       some integral multiple of ksmps; currency can be determined
  *       by means of the la_k_current_vr opcode.
  *
  * Linear Algebra Data Types
@@ -43,37 +43,37 @@
  * All arrays are 0-based; the first index iterates rows to give columns,
  * the second index iterates columns to give elements.
  *
- * All arrays are general and dense; banded, Hermitian, symmetric 
+ * All arrays are general and dense; banded, Hermitian, symmetric
  * and sparse routines are not implemented.
  *
  * An array can be of type code vr, vc, mr, or mc
- * and is stored in an i-rate object. 
+ * and is stored in an i-rate object.
  * In orchestra code, an array is passed as a
  * MYFLT i-rate variable that contains the address
- * of the array object, which is actually stored 
+ * of the array object, which is actually stored
  * in the allocator opcode instance.
  * Although array variables are i-rate, of course
  * their values and even shapes may change at i-rate or k-rate.
  *
  * All operands must be pre-allocated; except for the creation
  * opcodes, no opcode ever allocates any arrays.
- * This is true even if the array appears on the 
- * left-hand side of an opcode! However, some operations 
+ * This is true even if the array appears on the
+ * left-hand side of an opcode! However, some operations
  * may reshape arrays to hold results.
  *
  * Arrays are automatically deallocated when their instrument
  * is deallocated.
  *
- * Not only for more efficient performance, 
+ * Not only for more efficient performance,
  * but also to make it easier to remember opcode names,
  * the performance rate, output value types, operation names,
- * and input value types are deterministically 
+ * and input value types are deterministically
  * encoded into the opcode name:
  * 1. "la" for "linear algebra opcode family".
  * 2. "i" or "k" for performance rate.
  * 3. Type code(s) (see above table) for output value(s),
  *    but only if the type is not implicit from the input values.
- * 4. Operation name: common mathematical name 
+ * 4. Operation name: common mathematical name
  *    (preferred) or abbreviation.
  * 5. Type code(s) for input values, if not implicit.
  *
@@ -118,14 +118,14 @@
  *
  * NOTE: Assignments from tables or fsigs will resize vectors.
  *       Assignments to or from asigs are incremental -- ksmps
- *       frames are copied each kperiod and the array index 
+ *       frames are copied each kperiod and the array index
  *       wraps around as required.
  *
  * ivr                         la_k_assign_a         asig
  * ivr                         la_i_assign_t         itablenumber
  * ivr                         la_k_assign_t         itablenumber
  * ivc                         la_k_assign_f         fsig
- * 
+ *
  * asig                        la_k_a_assign         ivr
  * itablenum                   la_i_t_assign         ivr
  * itablenum                   la_k_t_assign         ivr
@@ -154,9 +154,9 @@
  * kmr                         la_k mr_set           krow, kcolumn, ivalue
  * imc                         la_i_mc_set           irow, icolumn, ivalue_r, ivalue_i
  * kmc                         la_k_mc_set           krow, kcolumn, kvalue_r, kvalue_i
- * 
- * ivalue                      la_i_get_vr           ivr, irow      
- * kvalue                      la_k_get_vr           ivr, krow,     
+ *
+ * ivalue                      la_i_get_vr           ivr, irow
+ * kvalue                      la_k_get_vr           ivr, krow,
  * ivalue_r, ivalue_i          la_i_get_vc           ivc, irow
  * kvalue_r, kvalue_i          la_k_get_vc           ivc, krow
  * ivalue                      la_i_get_mr           imr, irow, icolumn
@@ -256,7 +256,7 @@
  *
  * Inner Products
  * --------------
- * 
+ *
  * ir                          la_i_dot_vr           ivr_a, ivr_b
  * kr                          la_k_dot_vr           ivr_a, ivr_b
  * ir, ii                      la_i_dot_vc           ivc_a, ivc_b
@@ -274,7 +274,7 @@
  *
  * Matrix Inversion
  * ----------------
- * 
+ *
  * imr, icondition             la_i_invert_mr        imr
  * imr, kcondition             la_k_invert_mr        imr
  * imc, icondition             la_i_invert_mc        imc
@@ -319,13 +319,13 @@
  * ivr_eig_vals, imr_eig_vecs  la_k_qr_sym_eigen_mr  imr, k_tolerance
  * ivc_eig_vals, imc_eig_vecs  la_i_qr_sym_eigen_mc  imc, i_tolerance
  * ivc_eig_vals, imc_eig_vecs  la_k_qr_sym_eigen_mc  imc, k_tolerance
- * 
+ *
  */
 
-extern "C" 
+extern "C"
 {
   // a-rate, k-rate, FUNC, SPECDAT
-#include <csdl.h> 
+#include <csdl.h>
   // PVSDAT
 #include <pstream.h>
 }
@@ -351,7 +351,7 @@ struct ArrayCaster
 };
 
 /**
- * Safely and efficiently typecast the address 
+ * Safely and efficiently typecast the address
  * of an array to the value of a MYFLT variable.
  */
 template<typename A, typename F> void tof(A *a, F *f)
@@ -423,7 +423,7 @@ public:
     gmm::resize(mr, size_t(*i_rows), size_t(*i_columns));
     if (*o_diagonal) {
       for (size_t i = 0, n = size_t(*i_rows); i < n; ++i) {
-	mr(i, i) = *o_diagonal;
+        mr(i, i) = *o_diagonal;
       }
     }
     tof(this, i_mr);
@@ -450,7 +450,7 @@ public:
     gmm::resize(mc, size_t(*i_rows), size_t(*i_columns));
     if (*o_diagonal_r || *o_diagonal_i) {
       for (size_t i = 0, n = size_t(*i_rows); i < n; ++i) {
-	mc(i, i) = std::complex<MYFLT>(*o_diagonal_r, *o_diagonal_i);
+        mc(i, i) = std::complex<MYFLT>(*o_diagonal_r, *o_diagonal_i);
       }
     }
     tof(this, i_mc);
@@ -527,7 +527,7 @@ public:
  * Return 1 if the input f-sig is current
  * (i.e., if its value might change in the next kperiod);
  * return 0 if the input f-sig is not current.
- * 
+ *
  * Example:
  *
  * kcurrent la_k_current_f fsig
@@ -546,7 +546,7 @@ public:
     last_frame = f_sig->framecount;
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     if (last_frame < f_sig->framecount) {
       last_frame = f_sig->framecount;
@@ -559,16 +559,16 @@ public:
 };
 
 /**
- * Return 1 if the real vector is current (i.e., its 
- * current index equals 0); return 0 if the input 
- * real vector is not current. A real vector is current 
+ * Return 1 if the real vector is current (i.e., its
+ * current index equals 0); return 0 if the input
+ * real vector is not current. A real vector is current
  * in the very first kperiod of performance,
  * and at each subsequent kperiod where ksmps has
- * accumulated past the end of the vector and 
- * has wrapped back to index 0. For this to be 
+ * accumulated past the end of the vector and
+ * has wrapped back to index 0. For this to be
  * possible, the size of the vector must be an integral
  * multiple of ksmps.
- * 
+ *
  * Example:
  *
  * ; FIRST, assignments from a-rate variables to vectors.
@@ -594,7 +594,7 @@ public:
     vector_size = gmm::vect_size(rhs->vr);
     return OK;
   }
-  int kontrol(CSOUND *csound) 
+  int kontrol(CSOUND *csound)
   {
     size_t frame_count = csound->kcounter * ksmps;
     size_t index = frame_count % vector_size;
@@ -744,7 +744,7 @@ class la_i_assign_mr_t : public OpcodeBase<la_i_assign_mr_t>
 public:
   MYFLT *i_mr_lhs;
   MYFLT *i_mr_rhs;
-  la_i_mr_create_t *lhs;   
+  la_i_mr_create_t *lhs;
   la_i_mr_create_t *rhs;
   int init(CSOUND *csound)
   {
@@ -760,7 +760,7 @@ class la_k_assign_mr_t : public OpcodeBase<la_k_assign_mr_t>
 public:
   MYFLT *i_mr_lhs;
   MYFLT *i_mr_rhs;
-  la_i_mr_create_t *lhs;   
+  la_i_mr_create_t *lhs;
   la_i_mr_create_t *rhs;
   int init(CSOUND *csound)
   {
@@ -780,7 +780,7 @@ class la_i_assign_mc_t : public OpcodeBase<la_i_assign_mc_t>
 public:
   MYFLT *i_mc_lhs;
   MYFLT *i_mc_rhs;
-  la_i_mc_create_t *lhs;   
+  la_i_mc_create_t *lhs;
   la_i_mc_create_t *rhs;
   int init(CSOUND *csound)
   {
@@ -796,7 +796,7 @@ class la_k_assign_mc_t : public OpcodeBase<la_k_assign_mc_t>
 public:
   MYFLT *i_mc_lhs;
   MYFLT *i_mc_rhs;
-  la_i_mc_create_t *lhs;   
+  la_i_mc_create_t *lhs;
   la_i_mc_create_t *rhs;
   int init(CSOUND *csound)
   {
@@ -816,7 +816,7 @@ class la_k_assign_a_t : public OpcodeBase<la_k_assign_a_t>
 public:
   MYFLT *i_vr;
   MYFLT *a_a;
-  la_i_vr_create_t *lhs;   
+  la_i_vr_create_t *lhs;
   size_t ksmps;
   size_t vector_size;
   int init(CSOUND *csound)
@@ -842,7 +842,7 @@ class la_i_assign_t_t : public OpcodeBase<la_i_assign_t_t>
 public:
   MYFLT *i_vr;
   MYFLT *i_tablenumber;
-  la_i_vr_create_t *lhs;   
+  la_i_vr_create_t *lhs;
   int tablenumber;
   int n;
   int init(CSOUND *csound)
@@ -863,7 +863,7 @@ class la_k_assign_t_t : public OpcodeBase<la_k_assign_t_t>
 public:
   MYFLT *i_vr;
   MYFLT *i_tablenumber;
-  la_i_vr_create_t *lhs;   
+  la_i_vr_create_t *lhs;
   int tablenumber;
   int n;
   int init(CSOUND *csound)
@@ -888,7 +888,7 @@ class la_k_assign_f_t : public OpcodeBase<la_k_assign_f_t>
 public:
   MYFLT *i_vc;
   PVSDAT *f_fsig;
-  la_i_vc_create_t *lhs;   
+  la_i_vc_create_t *lhs;
   int n;
   std::complex<MYFLT> *f;
   int init(CSOUND *csound)
@@ -914,7 +914,7 @@ class la_k_a_assign_t : public OpcodeBase<la_k_a_assign_t>
 public:
   MYFLT *a_a;
   MYFLT *i_vr;
-  la_i_vr_create_t *rhs;   
+  la_i_vr_create_t *rhs;
   size_t ksmps;
   int init(CSOUND *csound)
   {
@@ -939,7 +939,7 @@ class la_i_t_assign_t : public OpcodeBase<la_i_t_assign_t>
 public:
   MYFLT *i_tablenumber;
   MYFLT *i_vr;
-  la_i_vr_create_t *rhs;   
+  la_i_vr_create_t *rhs;
   int tablenumber;
   int n;
   int init(CSOUND *csound)
@@ -960,7 +960,7 @@ class la_k_t_assign_t : public OpcodeBase<la_k_t_assign_t>
 public:
   MYFLT *i_tablenumber;
   MYFLT *i_vr;
-  la_i_vr_create_t *rhs;   
+  la_i_vr_create_t *rhs;
   int tablenumber;
   int n;
   int init(CSOUND *csound)
@@ -985,7 +985,7 @@ class la_k_f_assign_t : public OpcodeBase<la_k_f_assign_t>
 public:
   PVSDAT *f_fsig;
   MYFLT *i_vc;
-  la_i_vc_create_t *rhs;   
+  la_i_vc_create_t *rhs;
   int n;
   std::complex<MYFLT> *f;
   int init(CSOUND *csound)
@@ -1075,7 +1075,7 @@ class la_i_random_mr_t : public OpcodeBase<la_i_random_mr_t>
 public:
   MYFLT *i_mr_lhs;
   MYFLT *i_fraction;
-  la_i_mr_create_t *lhs;   
+  la_i_mr_create_t *lhs;
   int init(CSOUND *csound)
   {
     toa(i_mr_lhs, lhs);
@@ -1089,7 +1089,7 @@ class la_k_random_mr_t : public OpcodeBase<la_k_random_mr_t>
 public:
   MYFLT *i_mr_lhs;
   MYFLT *i_fraction;
-  la_i_mr_create_t *lhs;   
+  la_i_mr_create_t *lhs;
   int init(CSOUND *csound)
   {
     toa(i_mr_lhs, lhs);
@@ -1107,7 +1107,7 @@ class la_i_random_mc_t : public OpcodeBase<la_i_random_mc_t>
 public:
   MYFLT *i_mc_lhs;
   MYFLT *i_fraction;
-  la_i_mc_create_t *lhs;   
+  la_i_mc_create_t *lhs;
   int init(CSOUND *csound)
   {
     toa(i_mc_lhs, lhs);
@@ -1121,7 +1121,7 @@ class la_k_random_mc_t : public OpcodeBase<la_k_random_mc_t>
 public:
   MYFLT *i_mc_lhs;
   MYFLT *i_fraction;
-  la_i_mc_create_t *lhs;   
+  la_i_mc_create_t *lhs;
   int init(CSOUND *csound)
   {
     toa(i_mc_lhs, lhs);
@@ -1140,7 +1140,7 @@ public:
   MYFLT *i_vr;
   MYFLT *i_row;
   MYFLT *i_value;
-  la_i_vr_create_t *vr;     
+  la_i_vr_create_t *vr;
   int init(CSOUND *)
   {
     toa(i_vr, vr);
@@ -1155,7 +1155,7 @@ public:
   MYFLT *i_vr;
   MYFLT *k_row;
   MYFLT *k_value;
-  la_i_vr_create_t *vr;     
+  la_i_vr_create_t *vr;
   int init(CSOUND *)
   {
     toa(i_vr, vr);
@@ -1175,7 +1175,7 @@ public:
   MYFLT *i_row;
   MYFLT *i_value_r;
   MYFLT *i_value_i;
-  la_i_vc_create_t *vc;     
+  la_i_vc_create_t *vc;
   int init(CSOUND *)
   {
     toa(i_vc, vc);
@@ -1191,7 +1191,7 @@ public:
   MYFLT *k_row;
   MYFLT *k_value_r;
   MYFLT *k_value_i;
-  la_i_vc_create_t *vc;     
+  la_i_vc_create_t *vc;
   int init(CSOUND *)
   {
     toa(i_vc, vc);
@@ -1211,7 +1211,7 @@ public:
   MYFLT *i_row;
   MYFLT *i_column;
   MYFLT *i_value;
-  la_i_mr_create_t *mr;     
+  la_i_mr_create_t *mr;
   int init(CSOUND *)
   {
     toa(i_mr, mr);
@@ -1227,7 +1227,7 @@ public:
   MYFLT *k_row;
   MYFLT *k_column;
   MYFLT *k_value;
-  la_i_mr_create_t *mr;     
+  la_i_mr_create_t *mr;
   int init(CSOUND *)
   {
     toa(i_mr, mr);
@@ -1248,7 +1248,7 @@ public:
   MYFLT *i_column;
   MYFLT *i_value_r;
   MYFLT *i_value_i;
-  la_i_mc_create_t *mc;     
+  la_i_mc_create_t *mc;
   int init(CSOUND *)
   {
     toa(i_mc, mc);
@@ -1265,7 +1265,7 @@ public:
   MYFLT *k_column;
   MYFLT *k_value_r;
   MYFLT *k_value_i;
-  la_i_mc_create_t *mc;     
+  la_i_mc_create_t *mc;
   int init(CSOUND *)
   {
     toa(i_mc, mc);
@@ -1343,7 +1343,7 @@ public:
     toa(i_vc, vc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     const std::complex<MYFLT> &lhs = vc->vc[size_t(*k_row)];
     *k_value_r = lhs.real();
@@ -1422,7 +1422,7 @@ public:
     toa(i_mc, mc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     const std::complex<MYFLT> &lhs = mc->mc(size_t(*k_row), size_t(*k_column));
     *k_value_r = lhs.real();
@@ -1942,7 +1942,7 @@ public:
     toa(rhs_2_, rhs_2);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     *lhs = gmm::vect_dist2(rhs_1->vr, rhs_2->vr);
     return OK;
@@ -2330,8 +2330,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a += b.
  */
 class la_i_add_vr_t : public OpcodeBase<la_i_add_vr_t>
@@ -2356,8 +2356,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a += b.
  */
 class la_k_add_vr_t : public OpcodeBase<la_k_add_vr_t>
@@ -2376,7 +2376,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
       lhs->vr[i] = rhs_a->vr[i] + rhs_b->vr[i];
@@ -2386,8 +2386,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a += b.
  */
 class la_i_add_vc_t : public OpcodeBase<la_i_add_vc_t>
@@ -2412,8 +2412,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a += b.
  */
 class la_k_add_vc_t : public OpcodeBase<la_k_add_vc_t>
@@ -2432,7 +2432,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
       lhs->vc[i] = rhs_a->vc[i] + rhs_b->vc[i];
@@ -2442,8 +2442,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A += B.
  */
 class la_i_add_mr_t : public OpcodeBase<la_i_add_mr_t>
@@ -2464,7 +2464,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mr);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2472,8 +2472,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A += B.
  */
 class la_k_add_mr_t : public OpcodeBase<la_k_add_mr_t>
@@ -2496,11 +2496,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mr);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) + rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2508,8 +2508,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A += B.
  */
 class la_i_add_mc_t : public OpcodeBase<la_i_add_mc_t>
@@ -2530,7 +2530,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mc);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -2538,8 +2538,8 @@ public:
 };
 
 /**
- * Elementwise addition. 
- * The array on the left-hand side can also appear 
+ * Elementwise addition.
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A += B.
  */
 class la_k_add_mc_t : public OpcodeBase<la_k_add_vc_t>
@@ -2562,11 +2562,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) + rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -2575,7 +2575,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a -= b.
  */
 class la_i_subtract_vr_t : public OpcodeBase<la_i_subtract_vr_t>
@@ -2601,7 +2601,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a -= b.
  */
 class la_k_subtract_vr_t : public OpcodeBase<la_k_subtract_vr_t>
@@ -2620,7 +2620,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
       lhs->vr[i] = rhs_a->vr[i] - rhs_b->vr[i];
@@ -2631,7 +2631,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a -= b.
  */
 class la_i_subtract_vc_t : public OpcodeBase<la_i_subtract_vc_t>
@@ -2657,7 +2657,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a -= b.
  */
 class la_k_subtract_vc_t : public OpcodeBase<la_k_subtract_vc_t>
@@ -2676,7 +2676,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
       lhs->vc[i] = rhs_a->vc[i] - rhs_b->vc[i];
@@ -2687,7 +2687,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A -= B.
  */
 class la_i_subtract_mr_t : public OpcodeBase<la_i_subtract_mr_t>
@@ -2708,7 +2708,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mr);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2717,7 +2717,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A -= B.
  */
 class la_k_subtract_mr_t : public OpcodeBase<la_k_subtract_mr_t>
@@ -2740,11 +2740,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mr);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) - rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2753,7 +2753,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A -= B.
  */
 class la_i_subtract_mc_t : public OpcodeBase<la_i_subtract_mc_t>
@@ -2774,7 +2774,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mc);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -2783,7 +2783,7 @@ public:
 
 /**
  * Elementwise subtraction.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A -= B.
  */
 class la_k_subtract_mc_t : public OpcodeBase<la_k_subtract_vc_t>
@@ -2806,11 +2806,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) - rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -2819,7 +2819,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_i_multiply_vr_t : public OpcodeBase<la_i_multiply_vr_t>
@@ -2845,7 +2845,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_k_multiply_vr_t : public OpcodeBase<la_k_multiply_vr_t>
@@ -2864,7 +2864,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
       lhs->vr[i] = rhs_a->vr[i] * rhs_b->vr[i];
@@ -2875,7 +2875,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_i_multiply_vc_t : public OpcodeBase<la_i_multiply_vc_t>
@@ -2901,7 +2901,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_k_multiply_vc_t : public OpcodeBase<la_k_multiply_vc_t>
@@ -2920,7 +2920,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
       lhs->vc[i] = rhs_a->vc[i] * rhs_b->vc[i];
@@ -2931,7 +2931,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A *= B.
  */
 class la_i_multiply_mr_t : public OpcodeBase<la_i_multiply_mr_t>
@@ -2952,7 +2952,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mr);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2961,7 +2961,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A *= B.
  */
 class la_k_multiply_mr_t : public OpcodeBase<la_k_multiply_mr_t>
@@ -2984,11 +2984,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mr);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) * rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -2997,7 +2997,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A *= B.
  */
 class la_i_multiply_mc_t : public OpcodeBase<la_i_multiply_mc_t>
@@ -3018,7 +3018,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mc);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -3027,7 +3027,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A *= B.
  */
 class la_k_multiply_mc_t : public OpcodeBase<la_k_multiply_vc_t>
@@ -3050,11 +3050,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) * rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -3063,7 +3063,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a /= b.
  */
 class la_i_divide_vr_t : public OpcodeBase<la_i_divide_vr_t>
@@ -3089,7 +3089,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a /= b.
  */
 class la_k_divide_vr_t : public OpcodeBase<la_k_divide_vr_t>
@@ -3108,7 +3108,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vr.size(); i < n; ++i) {
       lhs->vr[i] = rhs_a->vr[i] / rhs_b->vr[i];
@@ -3119,7 +3119,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a /= b.
  */
 class la_i_divide_vc_t : public OpcodeBase<la_i_divide_vc_t>
@@ -3145,7 +3145,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a /= b.
  */
 class la_k_divide_vc_t : public OpcodeBase<la_k_divide_vc_t>
@@ -3164,7 +3164,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t i = 0, n = rhs_a->vc.size(); i < n; ++i) {
       lhs->vc[i] = rhs_a->vc[i] / rhs_b->vc[i];
@@ -3175,7 +3175,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A /= B.
  */
 class la_i_divide_mr_t : public OpcodeBase<la_i_divide_mr_t>
@@ -3196,7 +3196,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mr);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -3205,7 +3205,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A /= B.
  */
 class la_k_divide_mr_t : public OpcodeBase<la_k_divide_mr_t>
@@ -3228,11 +3228,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mr);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -3241,7 +3241,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A /= B.
  */
 class la_i_divide_mc_t : public OpcodeBase<la_i_divide_mc_t>
@@ -3262,7 +3262,7 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mc);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -3271,7 +3271,7 @@ public:
 
 /**
  * Elementwise division.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform A /= B.
  */
 class la_k_divide_mc_t : public OpcodeBase<la_k_divide_vc_t>
@@ -3294,11 +3294,11 @@ public:
     columnN = gmm::mat_ncols(rhs_a->mc);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-	lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -3307,7 +3307,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_i_dot_vr_t : public OpcodeBase<la_i_dot_vr_t>
@@ -3329,7 +3329,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_k_dot_vr_t : public OpcodeBase<la_k_dot_vr_t>
@@ -3346,7 +3346,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     *lhs_ = gmm::vect_sp(rhs_a->vr, rhs_b->vr);
     return OK;
@@ -3355,7 +3355,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_i_dot_vc_t : public OpcodeBase<la_i_dot_vc_t>
@@ -3380,7 +3380,7 @@ public:
 
 /**
  * Elementwise multiplication.
- * The array on the left-hand side can also appear 
+ * The array on the left-hand side can also appear
  * on the right-hand side in order to perform a *= b.
  */
 class la_k_dot_vc_t : public OpcodeBase<la_k_dot_vc_t>
@@ -3398,7 +3398,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     std::complex<MYFLT> lhs = gmm::vect_sp(rhs_a->vc, rhs_b->vc);
     *lhs_r = lhs.real();
@@ -3443,7 +3443,7 @@ public:
     gmm::mult(rhs_a->mr, rhs_b->mr, lhs->mr);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::mult(rhs_a->mr, rhs_b->mr, lhs->mr);
     return OK;
@@ -3485,7 +3485,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::mult(rhs_a->mc, rhs_b->mc, lhs->mc);
     return OK;
@@ -3527,7 +3527,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::mult(rhs_a->mr, rhs_b->vr, lhs->vr);
     return OK;
@@ -3569,7 +3569,7 @@ public:
     toa(rhs_b_, rhs_b);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::mult(rhs_a->mc, rhs_b->vc, lhs->vc);
     return OK;
@@ -3693,7 +3693,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::upper_tri_solve(rhs->mr, lhs->vr, bool(*is_unit));
     return OK;
@@ -3731,7 +3731,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::upper_tri_solve(rhs->mc, lhs->vc, bool(*is_unit));
     return OK;
@@ -3769,7 +3769,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::lower_tri_solve(rhs->mr, lhs->vr, bool(*is_unit));
     return OK;
@@ -3807,7 +3807,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     gmm::lower_tri_solve(rhs->mc, lhs->vc, bool(*is_unit));
     return OK;
@@ -3861,7 +3861,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     pivot_size = gmm::mat_nrows(rhs->mr);
     pivot__.resize(pivot_size);
@@ -3921,7 +3921,7 @@ public:
     toa(rhs_, rhs);
     return OK;
   }
-  int kontrol(CSOUND *) 
+  int kontrol(CSOUND *)
   {
     pivot_size = gmm::mat_nrows(rhs->mc);
     pivot__.resize(pivot_size);
@@ -4266,7 +4266,7 @@ public:
   }
 };
 
-extern "C" 
+extern "C"
 {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -4277,1647 +4277,1829 @@ extern "C"
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
     int status = 0;
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_vr_create", 
-				   sizeof(la_i_vr_create_t), 
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_vr_create_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_vc_create", 
-				   sizeof(la_i_vr_create_t), 
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_vc_create_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_mr_create", 
-				   sizeof(la_i_mr_create_t), 
-				   1, 
-				   "i", 
-				   "iio", 
-				   (int (*)(CSOUND*,void*)) &la_i_mr_create_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_mc_create", 
-				   sizeof(la_i_mc_create_t), 
-				   1, 
-				   "i", 
-				   "iioo", 
-				   (int (*)(CSOUND*,void*)) &la_i_mc_create_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_size_vr", 
-				   sizeof(la_i_size_vr_t), 
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_size_vr_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_size_vc", 
-				   sizeof(la_i_size_vc_t), 
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_size_vc_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_size_mr", 
-				   sizeof(la_i_size_mr_t), 
-				   1, 
-				   "ii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_size_mr_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_size_mc", 
-				   sizeof(la_i_size_mc_t), 
-				   1, 
-				   "ii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_size_mc_t::init_, 
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_current_f", 
-				   sizeof(la_k_current_f_t), 
-				   3, 
-				   "k", 
-				   "f", 
-				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::init_, 
-				   (int (*)(CSOUND*,void*)) &la_k_current_f_t::kontrol_, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_current_vr", 
-				   sizeof(la_k_current_vr_t), 
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_current_vr_t::init_, 
-				   (int (*)(CSOUND*,void*)) &la_k_current_vr_t::kontrol_, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_print_vr",
-				   sizeof(la_i_print_vr_t),
-				   1, 
-				   "", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_print_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_print_vc",
-				   sizeof(la_i_print_vc_t),
-				   1, 
-				   "", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_print_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_print_mr",
-				   sizeof(la_i_print_mr_t),
-				   1, 
-				   "", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_print_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_print_mc",
-				   sizeof(la_i_print_mc_t),
-				   1, 
-				   "", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_print_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_assign_vr",
-				   sizeof(la_i_assign_vr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_assign_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_vr",
-				   sizeof(la_k_assign_vr_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_assign_vc",
-				   sizeof(la_i_assign_vc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_assign_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_vc",
-				   sizeof(la_k_assign_vc_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_assign_mr",
-				   sizeof(la_i_assign_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_assign_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_mr",
-				   sizeof(la_k_assign_mr_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_assign_mc",
-				   sizeof(la_i_assign_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_assign_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_mc",
-				   sizeof(la_k_assign_mc_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_a",
-				   sizeof(la_k_assign_a_t),
-				   3, 
-				   "i", 
-				   "a", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_a_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_a_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_assign_t",
-				   sizeof(la_i_assign_t_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_assign_t_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_i_assign_t_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_t",
-				   sizeof(la_k_assign_t_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_t_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_t_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_assign_f",
-				   sizeof(la_k_assign_f_t),
-				   3, 
-				   "i", 
-				   "f", 
-				   (int (*)(CSOUND*,void*)) &la_k_assign_f_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_assign_f_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_a_assign",
-				   sizeof(la_k_a_assign_t),
-				   3, 
-				   "a", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_a_assign_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_a_assign_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0); 
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_t_assign",
-				   sizeof(la_i_t_assign_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_t_assign_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_t_assign",
-				   sizeof(la_k_t_assign_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_t_assign_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_t_assign_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_f_assign",
-				   sizeof(la_k_f_assign_t),
-				   3, 
-				   "f", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_f_assign_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_random_vr",
-				   sizeof(la_i_random_vr_t),
-				   1, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_i_random_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_random_vr",
-				   sizeof(la_k_random_vr_t),
-				   3, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_k_random_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_random_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_random_vc",
-				   sizeof(la_i_random_vc_t),
-				   1, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_i_random_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_random_vc",
-				   sizeof(la_k_random_vc_t),
-				   3, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_k_random_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_random_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_random_mr",
-				   sizeof(la_i_random_mr_t),
-				   1, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_i_random_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_random_mr",
-				   sizeof(la_k_random_mr_t),
-				   3, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_k_random_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_random_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_random_mc",
-				   sizeof(la_i_random_mc_t),
-				   1, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_i_random_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_random_mc",
-				   sizeof(la_k_random_mc_t),
-				   3, 
-				   "i", 
-				   "p", 
-				   (int (*)(CSOUND*,void*)) &la_k_random_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_random_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_vr_set",
-				   sizeof(la_i_vr_set_t),
-				   1, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_vr_set_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_vr_set",
-				   sizeof(la_k_vr_set_t),
-				   3, 
-				   "i", 
-				   "kk", 
-				   (int (*)(CSOUND*,void*)) &la_k_vr_set_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_vr_set_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_vc_set",
-				   sizeof(la_i_vc_set_t),
-				   1, 
-				   "i", 
-				   "iii", 
-				   (int (*)(CSOUND*,void*)) &la_i_vc_set_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_vc_set",
-				   sizeof(la_k_vc_set_t),
-				   3, 
-				   "i", 
-				   "kkk",
-				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_vc_set_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_mr_set",
-				   sizeof(la_i_mr_set_t),
-				   1, 
-				   "i", 
-				   "iii", 
-				   (int (*)(CSOUND*,void*)) &la_i_mr_set_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-   status |= csound->AppendOpcode(csound, 
-				   "la_k_mr_set",
-				   sizeof(la_k_mr_set_t),
-				   3, 
-				   "i", 
-				   "kkk", 
-				   (int (*)(CSOUND*,void*)) &la_k_mr_set_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_mr_set_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_mc_set",
-				   sizeof(la_i_mc_set_t),
-				   1, 
-				   "i", 
-				   "iiii", 
-				   (int (*)(CSOUND*,void*)) &la_i_mc_set_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_mc_set",
-				   sizeof(la_k_mc_set_t),
-				   3, 
-				   "i", 
-				   "kkkk", 
-				   (int (*)(CSOUND*,void*)) &la_k_mc_set_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_mc_set_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_vr_create",
+                           sizeof(la_i_vr_create_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_vr_create_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_vc_create",
+                           sizeof(la_i_vr_create_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_vc_create_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_mr_create",
+                           sizeof(la_i_mr_create_t),
+                           1,
+                           "i",
+                           "iio",
+                           (int (*)(CSOUND*,void*)) &la_i_mr_create_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_mc_create",
+                           sizeof(la_i_mc_create_t),
+                           1,
+                           "i",
+                           "iioo",
+                           (int (*)(CSOUND*,void*)) &la_i_mc_create_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_size_vr",
+                           sizeof(la_i_size_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_size_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_size_vc",
+                           sizeof(la_i_size_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_size_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_size_mr",
+                           sizeof(la_i_size_mr_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_size_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_size_mc",
+                           sizeof(la_i_size_mc_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_size_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_current_f",
+                           sizeof(la_k_current_f_t),
+                           3,
+                           "k",
+                           "f",
+                           (int (*)(CSOUND*,void*)) &la_k_current_f_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_current_f_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_current_vr",
+                           sizeof(la_k_current_vr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_current_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_current_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_print_vr",
+                           sizeof(la_i_print_vr_t),
+                           1,
+                           "",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_print_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_print_vc",
+                           sizeof(la_i_print_vc_t),
+                           1,
+                           "",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_print_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_print_mr",
+                           sizeof(la_i_print_mr_t),
+                           1,
+                           "",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_print_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_print_mc",
+                           sizeof(la_i_print_mc_t),
+                           1,
+                           "",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_print_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_assign_vr",
+                           sizeof(la_i_assign_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_assign_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_vr",
+                           sizeof(la_k_assign_vr_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_assign_vc",
+                           sizeof(la_i_assign_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_assign_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_vc",
+                           sizeof(la_k_assign_vc_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_assign_mr",
+                           sizeof(la_i_assign_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_assign_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_mr",
+                           sizeof(la_k_assign_mr_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_assign_mc",
+                           sizeof(la_i_assign_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_assign_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_mc",
+                           sizeof(la_k_assign_mc_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_a",
+                           sizeof(la_k_assign_a_t),
+                           3,
+                           "i",
+                           "a",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_a_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_a_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_assign_t",
+                           sizeof(la_i_assign_t_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_assign_t_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_i_assign_t_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_t",
+                           sizeof(la_k_assign_t_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_t_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_t_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_assign_f",
+                           sizeof(la_k_assign_f_t),
+                           3,
+                           "i",
+                           "f",
+                           (int (*)(CSOUND*,void*)) &la_k_assign_f_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_assign_f_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_a_assign",
+                           sizeof(la_k_a_assign_t),
+                           3,
+                           "a",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_a_assign_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_a_assign_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_t_assign",
+                           sizeof(la_i_t_assign_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_t_assign_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_t_assign",
+                           sizeof(la_k_t_assign_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_t_assign_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_t_assign_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_f_assign",
+                           sizeof(la_k_f_assign_t),
+                           3,
+                           "f",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_k_f_assign_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_f_assign_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_random_vr",
+                           sizeof(la_i_random_vr_t),
+                           1,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_i_random_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_random_vr",
+                           sizeof(la_k_random_vr_t),
+                           3,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_k_random_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_random_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_random_vc",
+                           sizeof(la_i_random_vc_t),
+                           1,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_i_random_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_random_vc",
+                           sizeof(la_k_random_vc_t),
+                           3,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_k_random_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_random_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_random_mr",
+                           sizeof(la_i_random_mr_t),
+                           1,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_i_random_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_random_mr",
+                           sizeof(la_k_random_mr_t),
+                           3,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_k_random_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_random_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_random_mc",
+                           sizeof(la_i_random_mc_t),
+                           1,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_i_random_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_random_mc",
+                           sizeof(la_k_random_mc_t),
+                           3,
+                           "i",
+                           "p",
+                           (int (*)(CSOUND*,void*)) &la_k_random_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_random_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_vr_set",
+                           sizeof(la_i_vr_set_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_vr_set_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_vr_set",
+                           sizeof(la_k_vr_set_t),
+                           3,
+                           "i",
+                           "kk",
+                           (int (*)(CSOUND*,void*)) &la_k_vr_set_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_vr_set_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_vc_set",
+                           sizeof(la_i_vc_set_t),
+                           1,
+                           "i",
+                           "iii",
+                           (int (*)(CSOUND*,void*)) &la_i_vc_set_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_vc_set",
+                           sizeof(la_k_vc_set_t),
+                           3,
+                           "i",
+                           "kkk",
+                           (int (*)(CSOUND*,void*)) &la_k_vc_set_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_vc_set_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_mr_set",
+                           sizeof(la_i_mr_set_t),
+                           1,
+                           "i",
+                           "iii",
+                           (int (*)(CSOUND*,void*)) &la_i_mr_set_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+   status |=
+     csound->AppendOpcode(csound,
+                          "la_k_mr_set",
+                          sizeof(la_k_mr_set_t),
+                          3,
+                          "i",
+                          "kkk",
+                          (int (*)(CSOUND*,void*)) &la_k_mr_set_t::init_,
+                          (int (*)(CSOUND*,void*)) &la_k_mr_set_t::kontrol_,
+                          (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_mc_set",
+                           sizeof(la_i_mc_set_t),
+                           1,
+                           "i",
+                           "iiii",
+                           (int (*)(CSOUND*,void*)) &la_i_mc_set_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_mc_set",
+                           sizeof(la_k_mc_set_t),
+                           3,
+                           "i",
+                           "kkkk",
+                           (int (*)(CSOUND*,void*)) &la_k_mc_set_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_mc_set_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
 
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_get_vr",
-				   sizeof(la_i_get_vr_t),
-				   1, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_get_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_get_vr",
-				   sizeof(la_k_get_vr_t),
-				   3, 
-				   "k", 
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_get_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_get_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_get_vc",
-				   sizeof(la_i_get_vc_t),
-				   1, 
-				   "ii",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_get_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_get_vc",
-				   sizeof(la_k_get_vc_t),
-				   3, 
-				   "kk", 
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_get_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_get_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_get_mr",
-				   sizeof(la_i_get_mr_t),
-				   1, 
-				   "i", 
-				   "iii", 
-				   (int (*)(CSOUND*,void*)) &la_i_get_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_get_mr",
-				   sizeof(la_k_get_mr_t),
-				   3, 
-				   "k", 
-				   "ikk", 
-				   (int (*)(CSOUND*,void*)) &la_k_get_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_get_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_get_mc",
-				   sizeof(la_i_get_mc_t),
-				   1, 
-				   "ii",
-				   "iii", 
-				   (int (*)(CSOUND*,void*)) &la_i_get_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0, 
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_get_mc",
-				   sizeof(la_k_get_mc_t),
-				   3, 
-				   "kk", 
-				   "ikk", 
-				   (int (*)(CSOUND*,void*)) &la_k_get_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_get_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_transpose_mr",
-				   sizeof(la_i_transpose_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_transpose_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_transpose_mr",
-				   sizeof(la_k_transpose_mr_t),
-				   3, 
-				   "i", 
-				   "k", 
-				   (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_transpose_mc",
-				   sizeof(la_i_transpose_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_transpose_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_transpose_mc",
-				   sizeof(la_k_transpose_mc_t),
-				   2, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_conjugate_vr",
-				   sizeof(la_i_conjugate_vr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_conjugate_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_conjugate_vr",
-				   sizeof(la_k_conjugate_vr_t),
-				   3, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_conjugate_vc",
-				   sizeof(la_i_conjugate_vc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_conjugate_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_conjugate_vc",
-				   sizeof(la_k_conjugate_vc_t),
-				   3, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_conjugate_mr",
-				   sizeof(la_i_conjugate_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_conjugate_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_conjugate_mr",
-				   sizeof(la_k_conjugate_mr_t),
-				   3, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_conjugate_mc",
-				   sizeof(la_i_conjugate_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_conjugate_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_conjugate_mc",
-				   sizeof(la_k_conjugate_mc_t),
-				   3, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm1_vr",
-				   sizeof(la_i_norm1_vr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm1_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm1_vr",
-				   sizeof(la_k_norm1_vr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm1_vc",
-				   sizeof(la_i_norm1_vc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm1_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm1_vc",
-				   sizeof(la_k_norm1_vc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm1_mr",
-				   sizeof(la_i_norm1_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm1_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm1_mr",
-				   sizeof(la_k_norm1_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm1_mc",
-				   sizeof(la_i_norm1_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm1_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm1_mc",
-				   sizeof(la_k_norm1_mc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_euclid_vr",
-				   sizeof(la_i_norm_euclid_vr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_euclid_vr",
-				   sizeof(la_k_norm_euclid_vr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_euclid_vc",
-				   sizeof(la_i_norm_euclid_vc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_euclid_vc",
-				   sizeof(la_k_norm_euclid_vc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_euclid_mr",
-				   sizeof(la_i_norm_euclid_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_euclid_mr",
-				   sizeof(la_k_norm_euclid_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_euclid_mc",
-				   sizeof(la_i_norm_euclid_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_euclid_mc",
-				   sizeof(la_k_norm_euclid_mc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_distance_vr",
-				   sizeof(la_i_distance_vr_t),
-				   1, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_distance_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_distance_vr",
-				   sizeof(la_k_distance_vr_t),
-				   3, 
-				   "k", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_k_distance_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_distance_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_distance_vc",
-				   sizeof(la_i_distance_vc_t),
-				   1, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_distance_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_distance_vc",
-				   sizeof(la_k_distance_vc_t),
-				   3, 
-				   "k", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_k_distance_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_distance_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_max_mr",
-				   sizeof(la_i_norm_max_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_max_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_max_mr",
-				   sizeof(la_k_norm_max_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_max_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_max_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_max_mc",
-				   sizeof(la_i_norm_max_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_max_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_max_mc",
-				   sizeof(la_k_norm_max_mc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_max_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_max_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_inf_vr",
-				   sizeof(la_i_norm_inf_vr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_inf_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_inf_vr",
-				   sizeof(la_k_norm_inf_vr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_inf_vc",
-				   sizeof(la_i_norm_inf_vc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_inf_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_inf_vc",
-				   sizeof(la_k_norm_inf_vc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_inf_mr",
-				   sizeof(la_i_norm_inf_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_inf_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_inf_mr",
-				   sizeof(la_k_norm_inf_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_norm_inf_mc",
-				   sizeof(la_i_norm_inf_mc_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_norm_inf_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_norm_inf_mc",
-				   sizeof(la_k_norm_inf_mc_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_norm_inf_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_trace_mr",
-				   sizeof(la_i_trace_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_trace_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_trace_mr",
-				   sizeof(la_k_trace_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_trace_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_trace_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_trace_mc",
-				   sizeof(la_i_trace_mc_t),
-				   1, 
-				   "ii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_trace_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_trace_mc",
-				   sizeof(la_k_trace_mc_t),
-				   3, 
-				   "kk", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_trace_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_trace_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-   status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_det_mr",
-				   sizeof(la_i_lu_det_mr_t),
-				   1, 
-				   "i", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_det_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_det_mr",
-				   sizeof(la_k_lu_det_mr_t),
-				   3, 
-				   "k", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_det_mc",
-				   sizeof(la_i_lu_det_mc_t),
-				   1, 
-				   "ii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_det_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_det_mc",
-				   sizeof(la_k_lu_det_mc_t),
-				   3, 
-				   "kk", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_add_vr",
-				   sizeof(la_i_add_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_add_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_add_vr",
-				   sizeof(la_k_add_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_add_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_add_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_add_vc",
-				   sizeof(la_i_add_vc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_add_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_add_vc",
-				   sizeof(la_k_add_vc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_add_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_add_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_add_mr",
-				   sizeof(la_i_add_mr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_add_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_add_mr",
-				   sizeof(la_k_add_mr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_add_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_add_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_add_mc",
-				   sizeof(la_i_add_mc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_add_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_add_mc",
-				   sizeof(la_k_add_mc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_add_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_add_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_subtract_vr",
-				   sizeof(la_i_subtract_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_subtract_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_subtract_vr",
-				   sizeof(la_k_subtract_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_subtract_vc",
-				   sizeof(la_i_subtract_vc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_subtract_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_subtract_vc",
-				   sizeof(la_k_subtract_vc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_subtract_mr",
-				   sizeof(la_i_subtract_mr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_subtract_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_subtract_mr",
-				   sizeof(la_k_subtract_mr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_subtract_mc",
-				   sizeof(la_i_subtract_mc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_subtract_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_subtract_mc",
-				   sizeof(la_k_subtract_mc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_multiply_vr",
-				   sizeof(la_i_multiply_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_multiply_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_multiply_vr",
-				   sizeof(la_k_multiply_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_multiply_vc",
-				   sizeof(la_i_multiply_vc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_multiply_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_multiply_vc",
-				   sizeof(la_k_multiply_vc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_multiply_mr",
-				   sizeof(la_i_multiply_mr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_multiply_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_multiply_mr",
-				   sizeof(la_k_multiply_mr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_multiply_mc",
-				   sizeof(la_i_multiply_mc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_multiply_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_multiply_mc",
-				   sizeof(la_k_multiply_mc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_get_vr",
+                           sizeof(la_i_get_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_get_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_get_vr",
+                           sizeof(la_k_get_vr_t),
+                           3,
+                           "k",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_get_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_get_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_get_vc",
+                           sizeof(la_i_get_vc_t),
+                           1,
+                           "ii",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_get_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_get_vc",
+                           sizeof(la_k_get_vc_t),
+                           3,
+                           "kk",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_get_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_get_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_get_mr",
+                           sizeof(la_i_get_mr_t),
+                           1,
+                           "i",
+                           "iii",
+                           (int (*)(CSOUND*,void*)) &la_i_get_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_get_mr",
+                           sizeof(la_k_get_mr_t),
+                           3,
+                           "k",
+                           "ikk",
+                           (int (*)(CSOUND*,void*)) &la_k_get_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_get_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_get_mc",
+                           sizeof(la_i_get_mc_t),
+                           1,
+                           "ii",
+                           "iii",
+                           (int (*)(CSOUND*,void*)) &la_i_get_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_get_mc",
+                           sizeof(la_k_get_mc_t),
+                           3,
+                           "kk",
+                           "ikk",
+                           (int (*)(CSOUND*,void*)) &la_k_get_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_get_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_transpose_mr",
+                           sizeof(la_i_transpose_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_transpose_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_transpose_mr",
+                           sizeof(la_k_transpose_mr_t),
+                           3,
+                           "i",
+                           "k",
+                           (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_transpose_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_transpose_mc",
+                           sizeof(la_i_transpose_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_transpose_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_transpose_mc",
+                           sizeof(la_k_transpose_mc_t),
+                           2,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_transpose_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_conjugate_vr",
+                           sizeof(la_i_conjugate_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_conjugate_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_conjugate_vr",
+                           sizeof(la_k_conjugate_vr_t),
+                           3,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_conjugate_vc",
+                           sizeof(la_i_conjugate_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_conjugate_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_conjugate_vc",
+                           sizeof(la_k_conjugate_vc_t),
+                           3,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_conjugate_mr",
+                           sizeof(la_i_conjugate_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_conjugate_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_conjugate_mr",
+                           sizeof(la_k_conjugate_mr_t),
+                           3,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_conjugate_mc",
+                           sizeof(la_i_conjugate_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_conjugate_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_conjugate_mc",
+                           sizeof(la_k_conjugate_mc_t),
+                           3,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_conjugate_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm1_vr",
+                           sizeof(la_i_norm1_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm1_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm1_vr",
+                           sizeof(la_k_norm1_vr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm1_vc",
+                           sizeof(la_i_norm1_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm1_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm1_vc",
+                           sizeof(la_k_norm1_vc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm1_mr",
+                           sizeof(la_i_norm1_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm1_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm1_mr",
+                           sizeof(la_k_norm1_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm1_mc",
+                           sizeof(la_i_norm1_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm1_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm1_mc",
+                           sizeof(la_k_norm1_mc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm1_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_euclid_vr",
+                           sizeof(la_i_norm_euclid_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_euclid_vr",
+                           sizeof(la_k_norm_euclid_vr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_euclid_vc",
+                           sizeof(la_i_norm_euclid_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_euclid_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_euclid_vc",
+                           sizeof(la_k_norm_euclid_vc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_euclid_mr",
+                           sizeof(la_i_norm_euclid_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_euclid_mr",
+                           sizeof(la_k_norm_euclid_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_euclid_mc",
+                           sizeof(la_i_norm_euclid_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_euclid_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_euclid_mc",
+                           sizeof(la_k_norm_euclid_mc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_distance_vr",
+                           sizeof(la_i_distance_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_distance_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_distance_vr",
+                           sizeof(la_k_distance_vr_t),
+                           3,
+                           "k",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_distance_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_distance_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_distance_vc",
+                           sizeof(la_i_distance_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_distance_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_distance_vc",
+                           sizeof(la_k_distance_vc_t),
+                           3,
+                           "k",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_distance_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_distance_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_max_mr",
+                           sizeof(la_i_norm_max_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_max_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_max_mr",
+                           sizeof(la_k_norm_max_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_max_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_max_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_max_mc",
+                           sizeof(la_i_norm_max_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_max_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_max_mc",
+                           sizeof(la_k_norm_max_mc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_max_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_max_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_inf_vr",
+                           sizeof(la_i_norm_inf_vr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_inf_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_inf_vr",
+                           sizeof(la_k_norm_inf_vr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_inf_vc",
+                           sizeof(la_i_norm_inf_vc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_inf_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_inf_vc",
+                           sizeof(la_k_norm_inf_vc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_inf_mr",
+                           sizeof(la_i_norm_inf_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_inf_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_inf_mr",
+                           sizeof(la_k_norm_inf_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_norm_inf_mc",
+                           sizeof(la_i_norm_inf_mc_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_norm_inf_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_norm_inf_mc",
+                           sizeof(la_k_norm_inf_mc_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_norm_inf_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_trace_mr",
+                           sizeof(la_i_trace_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_trace_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_trace_mr",
+                           sizeof(la_k_trace_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_trace_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_trace_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_trace_mc",
+                           sizeof(la_i_trace_mc_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_trace_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_trace_mc",
+                           sizeof(la_k_trace_mc_t),
+                           3,
+                           "kk",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_trace_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_trace_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_det_mr",
+                           sizeof(la_i_lu_det_mr_t),
+                           1,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_det_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_det_mr",
+                           sizeof(la_k_lu_det_mr_t),
+                           3,
+                           "k",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_det_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_det_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_det_mc",
+                           sizeof(la_i_lu_det_mc_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_det_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_det_mc",
+                           sizeof(la_k_lu_det_mc_t),
+                           3,
+                           "kk",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_det_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_add_vr",
+                           sizeof(la_i_add_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_add_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_add_vr",
+                           sizeof(la_k_add_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_add_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_add_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_add_vc",
+                           sizeof(la_i_add_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_add_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_add_vc",
+                           sizeof(la_k_add_vc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_add_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_add_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_add_mr",
+                           sizeof(la_i_add_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_add_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_add_mr",
+                           sizeof(la_k_add_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_add_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_add_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_add_mc",
+                           sizeof(la_i_add_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_add_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_add_mc",
+                           sizeof(la_k_add_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_add_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_add_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_subtract_vr",
+                           sizeof(la_i_subtract_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_subtract_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_subtract_vr",
+                           sizeof(la_k_subtract_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_subtract_vc",
+                           sizeof(la_i_subtract_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_subtract_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_subtract_vc",
+                           sizeof(la_k_subtract_vc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_subtract_mr",
+                           sizeof(la_i_subtract_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_subtract_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_subtract_mr",
+                           sizeof(la_k_subtract_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_subtract_mc",
+                           sizeof(la_i_subtract_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_subtract_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_subtract_mc",
+                           sizeof(la_k_subtract_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_subtract_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_multiply_vr",
+                           sizeof(la_i_multiply_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_multiply_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_multiply_vr",
+                           sizeof(la_k_multiply_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_multiply_vc",
+                           sizeof(la_i_multiply_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_multiply_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_multiply_vc",
+                           sizeof(la_k_multiply_vc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_multiply_mr",
+                           sizeof(la_i_multiply_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_multiply_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_multiply_mr",
+                           sizeof(la_k_multiply_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_multiply_mc",
+                           sizeof(la_i_multiply_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_multiply_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_multiply_mc",
+                           sizeof(la_k_multiply_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_multiply_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
 
 
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_divide_vr",
-				   sizeof(la_i_divide_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_divide_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_divide_vr",
-				   sizeof(la_k_divide_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_divide_vc",
-				   sizeof(la_i_divide_vc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_divide_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_divide_vc",
-				   sizeof(la_k_divide_vc_t),
-				   3, 
-				   "i", 
-				   "kk",
-				   (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_divide_mr",
-				   sizeof(la_i_divide_mr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_divide_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_divide_mr",
-				   sizeof(la_k_divide_mr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_divide_mc",
-				   sizeof(la_i_divide_mc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_divide_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_divide_mc",
-				   sizeof(la_k_divide_mc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_vr",
-				   sizeof(la_i_dot_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_vr",
-				   sizeof(la_k_dot_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_vc",
-				   sizeof(la_i_dot_vc_t),
-				   1, 
-				   "ii", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_vc",
-				   sizeof(la_k_dot_vc_t),
-				   3, 
-				   "ii", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-     status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_mr",
-				   sizeof(la_i_dot_mr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_mr",
-				   sizeof(la_k_dot_mr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_mc",
-				   sizeof(la_i_dot_mc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_mc",
-				   sizeof(la_k_dot_mc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-     status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_mr_vr",
-				   sizeof(la_i_dot_mr_vr_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_mr_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_mr_vr",
-				   sizeof(la_k_dot_mr_vr_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_dot_mc_vc",
-				   sizeof(la_i_dot_mc_vc_t),
-				   1, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_i_dot_mc_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_dot_mc_vc",
-				   sizeof(la_k_dot_mc_vc_t),
-				   3, 
-				   "i", 
-				   "ii",
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_invert_mr",
-				   sizeof(la_i_invert_mr_t),
-				   1, 
-				   "ii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_invert_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_invert_mr",
-				   sizeof(la_k_invert_mr_t),
-				   3, 
-				   "ik", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_invert_mc",
-				   sizeof(la_i_invert_mc_t),
-				   1, 
-				   "iii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_invert_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_invert_mc",
-				   sizeof(la_k_invert_mc_t),
-				   3, 
-				   "ikk",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_upper_solve_mr",
-				   sizeof(la_i_upper_solve_mr_t),
-				   1, 
-				   "i", 
-				   "io", 
-				   (int (*)(CSOUND*,void*)) &la_i_upper_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_upper_solve_mr",
-				   sizeof(la_k_upper_solve_mr_t),
-				   3, 
-				   "i", 
-				   "iO", 
-				   (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_upper_solve_mc",
-				   sizeof(la_i_upper_solve_mc_t),
-				   1, 
-				   "i",
-				   "io", 
-				   (int (*)(CSOUND*,void*)) &la_i_upper_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_upper_solve_mc",
-				   sizeof(la_k_upper_solve_mc_t),
-				   3, 
-				   "i",
-				   "iO", 
-				   (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lower_solve_mr",
-				   sizeof(la_i_lower_solve_mr_t),
-				   1, 
-				   "i", 
-				   "io", 
-				   (int (*)(CSOUND*,void*)) &la_i_lower_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lower_solve_mr",
-				   sizeof(la_k_lower_solve_mr_t),
-				   3, 
-				   "i", 
-				   "iO", 
-				   (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lower_solve_mc",
-				   sizeof(la_i_lower_solve_mc_t),
-				   1, 
-				   "i",
-				   "io", 
-				   (int (*)(CSOUND*,void*)) &la_i_lower_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lower_solve_mc",
-				   sizeof(la_k_lower_solve_mc_t),
-				   3, 
-				   "i",
-				   "iO", 
-				   (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_factor_mr",
-				   sizeof(la_i_lu_factor_mr_t),
-				   1, 
-				   "iii", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_factor_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_factor_mr",
-				   sizeof(la_k_lu_factor_mr_t),
-				   3, 
-				   "iik", 
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_factor_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_factor_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_factor_mc",
-				   sizeof(la_i_lu_factor_mc_t),
-				   1, 
-				   "iii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_factor_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_factor_mc",
-				   sizeof(la_k_lu_factor_mc_t),
-				   3, 
-				   "i",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_factor_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_factor_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_solve_mr",
-				   sizeof(la_i_lu_solve_mr_t),
-				   1, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_solve_mr",
-				   sizeof(la_k_lu_solve_mr_t),
-				   3, 
-				   "i", 
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_solve_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_solve_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_lu_solve_mc",
-				   sizeof(la_i_lu_solve_mc_t),
-				   1, 
-				   "i",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_lu_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_lu_solve_mc",
-				   sizeof(la_k_lu_solve_mc_t),
-				   3, 
-				   "i",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_k_lu_solve_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_lu_solve_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_factor_mr",
-				   sizeof(la_i_qr_factor_mr_t),
-				   1, 
-				   "ii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_factor_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_factor_mr",
-				   sizeof(la_k_qr_factor_mr_t),
-				   3, 
-				   "ii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_factor_mc",
-				   sizeof(la_i_qr_factor_mc_t),
-				   1, 
-				   "ii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_factor_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_factor_mc",
-				   sizeof(la_k_qr_factor_mc_t),
-				   3, 
-				   "ii",
-				   "i", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_eigen_mr",
-				   sizeof(la_i_qr_eigen_mr_t),
-				   1, 
-				   "i",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_eigen_mr",
-				   sizeof(la_k_qr_eigen_mr_t),
-				   3, 
-				   "i",
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_eigen_mc",
-				   sizeof(la_i_qr_eigen_mc_t),
-				   1, 
-				   "i",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_eigen_mc",
-				   sizeof(la_k_qr_eigen_mc_t),
-				   3, 
-				   "i",
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_sym_eigen_mr",
-				   sizeof(la_i_qr_sym_eigen_mr_t),
-				   1, 
-				   "ii",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_sym_eigen_mr",
-				   sizeof(la_k_qr_sym_eigen_mr_t),
-				   3, 
-				   "ii",
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_i_qr_sym_eigen_mc",
-				   sizeof(la_i_qr_sym_eigen_mc_t),
-				   1, 
-				   "ii",
-				   "ii", 
-				   (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) 0,
-				   (int (*)(CSOUND*,void*)) 0);
-    status |= csound->AppendOpcode(csound, 
-				   "la_k_qr_sym_eigen_mc",
-				   sizeof(la_k_qr_sym_eigen_mc_t),
-				   3, 
-				   "ii",
-				   "ik", 
-				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::init_,
-				   (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::kontrol_,
-				   (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_divide_vr",
+                           sizeof(la_i_divide_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_divide_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_divide_vr",
+                           sizeof(la_k_divide_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_divide_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_divide_vc",
+                           sizeof(la_i_divide_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_divide_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_divide_vc",
+                           sizeof(la_k_divide_vc_t),
+                           3,
+                           "i",
+                           "kk",
+                           (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_divide_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_divide_mr",
+                           sizeof(la_i_divide_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_divide_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_divide_mr",
+                           sizeof(la_k_divide_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_divide_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_divide_mc",
+                           sizeof(la_i_divide_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_divide_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_divide_mc",
+                           sizeof(la_k_divide_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_divide_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_vr",
+                           sizeof(la_i_dot_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_vr",
+                           sizeof(la_k_dot_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_vc",
+                           sizeof(la_i_dot_vc_t),
+                           1,
+                           "ii",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_vc",
+                           sizeof(la_k_dot_vc_t),
+                           3,
+                           "ii",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_mr",
+                           sizeof(la_i_dot_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_mr",
+                           sizeof(la_k_dot_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_mc",
+                           sizeof(la_i_dot_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_mc",
+                           sizeof(la_k_dot_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_mr_vr",
+                           sizeof(la_i_dot_mr_vr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_mr_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_mr_vr",
+                           sizeof(la_k_dot_mr_vr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mr_vr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_dot_mc_vc",
+                           sizeof(la_i_dot_mc_vc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_dot_mc_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_dot_mc_vc",
+                           sizeof(la_k_dot_mc_vc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_dot_mc_vc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_invert_mr",
+                           sizeof(la_i_invert_mr_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_invert_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_invert_mr",
+                           sizeof(la_k_invert_mr_t),
+                           3,
+                           "ik",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_invert_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_invert_mc",
+                           sizeof(la_i_invert_mc_t),
+                           1,
+                           "iii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_invert_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_invert_mc",
+                           sizeof(la_k_invert_mc_t),
+                           3,
+                           "ikk",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_invert_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_upper_solve_mr",
+                           sizeof(la_i_upper_solve_mr_t),
+                           1,
+                           "i",
+                           "io",
+                           (int (*)(CSOUND*,void*)) &la_i_upper_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_upper_solve_mr",
+                           sizeof(la_k_upper_solve_mr_t),
+                           3,
+                           "i",
+                           "iO",
+                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_upper_solve_mc",
+                           sizeof(la_i_upper_solve_mc_t),
+                           1,
+                           "i",
+                           "io",
+                           (int (*)(CSOUND*,void*)) &la_i_upper_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_upper_solve_mc",
+                           sizeof(la_k_upper_solve_mc_t),
+                           3,
+                           "i",
+                           "iO",
+                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_upper_solve_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lower_solve_mr",
+                           sizeof(la_i_lower_solve_mr_t),
+                           1,
+                           "i",
+                           "io",
+                           (int (*)(CSOUND*,void*)) &la_i_lower_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lower_solve_mr",
+                           sizeof(la_k_lower_solve_mr_t),
+                           3,
+                           "i",
+                           "iO",
+                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lower_solve_mc",
+                           sizeof(la_i_lower_solve_mc_t),
+                           1,
+                           "i",
+                           "io",
+                           (int (*)(CSOUND*,void*)) &la_i_lower_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lower_solve_mc",
+                           sizeof(la_k_lower_solve_mc_t),
+                           3,
+                           "i",
+                           "iO",
+                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lower_solve_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_factor_mr",
+                           sizeof(la_i_lu_factor_mr_t),
+                           1,
+                           "iii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_factor_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_factor_mr",
+                           sizeof(la_k_lu_factor_mr_t),
+                           3,
+                           "iik",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_factor_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_factor_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_factor_mc",
+                           sizeof(la_i_lu_factor_mc_t),
+                           1,
+                           "iii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_factor_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_factor_mc",
+                           sizeof(la_k_lu_factor_mc_t),
+                           3,
+                           "i",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_factor_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_factor_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_solve_mr",
+                           sizeof(la_i_lu_solve_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_solve_mr",
+                           sizeof(la_k_lu_solve_mr_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_solve_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_solve_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_lu_solve_mc",
+                           sizeof(la_i_lu_solve_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_lu_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_lu_solve_mc",
+                           sizeof(la_k_lu_solve_mc_t),
+                           3,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_k_lu_solve_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_lu_solve_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_factor_mr",
+                           sizeof(la_i_qr_factor_mr_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_factor_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_factor_mr",
+                           sizeof(la_k_qr_factor_mr_t),
+                           3,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_factor_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_factor_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_factor_mc",
+                           sizeof(la_i_qr_factor_mc_t),
+                           1,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_factor_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_factor_mc",
+                           sizeof(la_k_qr_factor_mc_t),
+                           3,
+                           "ii",
+                           "i",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_factor_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_eigen_mr",
+                           sizeof(la_i_qr_eigen_mr_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_eigen_mr",
+                           sizeof(la_k_qr_eigen_mr_t),
+                           3,
+                           "i",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_eigen_mc",
+                           sizeof(la_i_qr_eigen_mc_t),
+                           1,
+                           "i",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_eigen_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_eigen_mc",
+                           sizeof(la_k_qr_eigen_mc_t),
+                           3,
+                           "i",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_eigen_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_sym_eigen_mr",
+                           sizeof(la_i_qr_sym_eigen_mr_t),
+                           1,
+                           "ii",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_sym_eigen_mr",
+                           sizeof(la_k_qr_sym_eigen_mr_t),
+                           3,
+                           "ii",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mr_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_i_qr_sym_eigen_mc",
+                           sizeof(la_i_qr_sym_eigen_mc_t),
+                           1,
+                           "ii",
+                           "ii",
+                           (int (*)(CSOUND*,void*)) &la_i_qr_sym_eigen_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) 0,
+                           (int (*)(CSOUND*,void*)) 0);
+    status |=
+      csound->AppendOpcode(csound,
+                           "la_k_qr_sym_eigen_mc",
+                           sizeof(la_k_qr_sym_eigen_mc_t),
+                           3,
+                           "ii",
+                           "ik",
+                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::init_,
+                           (int (*)(CSOUND*,void*)) &la_k_qr_sym_eigen_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*)) 0);
     return status;
   }
 
