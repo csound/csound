@@ -117,7 +117,7 @@ giFluidMarimba		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__li
                         fluidProgramSelect	    giFluidsynth, 2, giFluidMarimba, 0, 0
 
 giFluidOrgan		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
-                        fluidProgramSelect	    giFluidsynth, 3, giFluidOrgan, 0, 36
+                        fluidProgramSelect	    giFluidsynth, 3, giFluidOrgan, 0, 40
                         
 #end
 
@@ -570,9 +570,9 @@ isustain		        =			            p3
 irelease		        =			            0.05
 aenvelope               transeg                 1.0, p3, -3.0, 0.1
 aexcite                 poscil                  1.0, 1, gisine
-asignal1		        wgpluck2 		        0.1, 1.0, ifrequency,         .15, 0.2
-asignal2		        wgpluck2 		        0.1, 1.0, ifrequency * 1.003, 0.14, 0.1
-asignal3		        wgpluck2 		        0.1, 1.0, ifrequency * 0.997, 0.16, 0.1
+asignal1		        wgpluck2 		        0.1, 1.0, ifrequency,         0.25, 0.22
+asignal2		        wgpluck2 		        0.1, 1.0, ifrequency * 1.003, 0.20, 0.223
+asignal3		        wgpluck2 		        0.1, 1.0, ifrequency * 0.997, 0.23, 0.224
 apluckout               =                       (asignal1 + asignal2 + asignal3) * aenvelope
 aleft, aright		    Pan			            apluckout * iamplitude
 p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
@@ -879,8 +879,9 @@ p3, aleft, aright	    Declick			        0.006, p3, .05, aleft, aright
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 3800
-asignal 		        STKBeeThree 		    ifrequency, 1.0
-aleft, aright		    Pan			            asignal * iamplitude
+asignal 		        STKBeeThree 		    ifrequency, 1.0, 1, 1.5, 2, 4.8, 4, 2.1
+aphased                 phaser1                 asignal, 4, .3, .7
+aleft, aright		    Pan			            (asignal + aphased) * iamplitude
 p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1.0
                         SendOut			        p1, aleft, aright
@@ -1683,7 +1684,7 @@ kenv2                   linseg                  0, .01, 1, p3 - .02, 1, .01, 0
 kenvibr                 linseg                  0, .5, 0, .5, 1, p3 - 1, 1  ; Vibrato envelope
                         ; The values must be approximately -1 to 1 or the cubic will blow up.
 aflow1                  rand                    kenv1
-kvibr                   oscili                  0.1 * kenvibr, 5, gisine ; 3
+kvibr                   oscili                  0.02 * kenvibr, 5.3, gisine ; 3
                         ; ibreath can be used to adjust the noise level.
 asum1                   =                       ibreath * aflow1 + kenv1 + kvibr
 asum2                   =                       asum1 + aflute1 * ifeedbk1
@@ -1868,6 +1869,32 @@ p3, aleft, aright	    Declick			        iattack, isustain, idecay, aleft, aright
                         SendOut			        p1, aleft, aright
 			            endin
                         
+                        instr 68                ; FM with reverberated modulator, Michael Gogins
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+iattack			        =			            0.002
+isustain		        =			            p3
+irelease		        =			            0.05
+icarrier                =                       1.0
+imodulator              =                       1.3
+imodulatorHz            =                       ifrequency * imodulator
+index                   =                       2.0
+imodulatorAmplitude     =                       imodulatorHz * index
+kenvelope               transeg                 0.0, iattack, -9.0, 1.0, isustain, -9.0, 0.5, irelease, -4.0, 0.0
+kfmenvelope             transeg                 0.0, iattack, -9.0, 2.0, isustain, -9.0, 0.5, irelease, -4.0, 0.0
+                        ; Use poscil to get arate FM.
+amodulator              poscil                  imodulatorAmplitude * kfmenvelope, imodulatorHz, gisine  
+amodl, amodr            reverbsc                amodulator, amodulator, 0.7, sr * 0.75
+asignal                 poscil                  1.0, ifrequency + amodl, gisine  
+asignal                 =                       asignal * kenvelope
+aleft, aright		    Pan			            asignal * iamplitude
+p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
+                        AssignSend		        p1, 0.0, 0.0, 0.2, 1
+                        SendOut			        p1, aleft, aright
+                        endin
+
+
 #ifdef ENABLE_SOUNDFONTS
 
                         instr 190               ; Fluidsynth output
