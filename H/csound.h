@@ -1206,6 +1206,90 @@ CSOUND_FILETYPES;
    * yielding the CPU to other threads.
    */
   PUBLIC void csoundSleep(size_t milliseconds);
+  
+  /**
+   * If the spinlock is not locked, lock it and return;
+   * if is is locked, wait until it is unlocked, then lock it and return.
+   * Uses atomic compare and swap operations that are safe across processors 
+   * and safe for out of order operations,
+   * and which are more efficient than operating system locks.
+   * Use spinlocks to protect access to shared data, especially in functions
+   * that do little more than read or write such data, for example:
+   *
+   * void write(size_t frames, int* signal) 
+   * {
+   *   static int lock = 0;
+   *   csoundSpinLock(&lock);
+   *   for (size_t frame = 0; i < frames; frame++) {
+   *     global_buffer[frame] += signal[frame];
+   *   }
+   *   csoundSpinUnlock(&lock);
+   * }
+   */
+  
+#if defined(MSVC)
+
+#include <intrin.h>
+
+#pragma(intrinsic, _InterlockedExchange)
+  
+  /* PUBLIC void csoundSpinLock(int32_t *spinlock)      */
+#define csoundSpinLock(spinlock)			\
+  {							\
+    while (_InterlockedExchange(spinlock, 1) == 1) {	\
+    }							\
+  }
+  
+  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+#define csoundSpinUnLock(spinlock)		\
+  {						\
+    _InterlockedExchange(spinlock, 0);		\
+  }						
+  
+#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
+
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+
+#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
+  
+  /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
+#define csoundSpinLock(spinlock)			\
+  {								\
+    while (__sync_lock_test_and_set(spinlock, 1) == 1) {	\
+    }								\
+  }
+  
+  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+#define csoundSpinUnLock(spinlock)		\
+  {						\
+    __sync_lock_release(spinlock);		\
+  }
+  
+#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
+
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+
+#else
+  
+  /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
+#define csoundSpinLock(spinlock)		\
+  {						\
+    notImplementedWarning_("csoundSpinLock");	\
+  }
+  
+  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+#define csoundSpinUnLock(spinlock)		\
+  {						\
+    notImplementedWarning_("csoundSpinUnLock");	\
+  }
+  
+#define CSOUND_SPIN_LOCK 
+
+#define CSOUND_SPIN_UNLOCK 
+
+#endif
+
+
 
   /**
    * Initialise a timer structure.
