@@ -776,14 +776,16 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
     int     i;                  /* for the for loop */
     int     firstband = p->firstband;
 
-    printf("FetchADDNZbands: position %f\n", position);
+#ifdef BETA
+    printf("FetchADDNZbands: position %f\n", (double)position);
+#endif
     frame = (int) position;
     frm0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == p->maxFr) {
-      for (i = 0; i < 25; i++) { 
+      for (i = 0; i < 25; i++) {
         buf[i] = (p->swapped == 1 ? bswap(&frm0[firstband + i])
                                     : frm0[firstband + i]); /* output value */
       }
@@ -1942,15 +1944,15 @@ static void ScalePartials(
         tempamp = tbuf[j - 1].amp + frac * (tbuf[j].amp - tbuf[j - 1].amp);
       }
       else if (j == tbufnp) {
-        /* this means the last value in the table */ 
+        /* this means the last value in the table */
         /* is equal to a value in the current buffer */
       if (cbuf[i + 1].freq == tbuf[tbufnp - 1].freq)
       tempamp = tbuf[tbufnp - 1].amp;
       }
       /* do the actual scaling */
-   
+
       if(i<tbufnp && cbuf[i].amp > kthresh) cbuf[i].amp = cbuf[i].amp * cbufamp + tempamp*tbufamp;
-      else  cbuf[i].amp *= cbufamp; 
+      else  cbuf[i].amp *= cbufamp;
     }
 }
 
@@ -2026,7 +2028,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
       a =  oldamps[i];
-      for (n=0; n<nsmps; n++) {    
+      for (n=0; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = ftab[0];
         fract = (MYFLT) PFRAC(phase);
