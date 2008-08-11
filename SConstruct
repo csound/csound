@@ -2523,6 +2523,7 @@ if commonEnvironment['useGettext'] == '1':
     gettextTarget(csound5GettextEnvironment, 'german', 'de')
     gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
+    gettextTarget(csound5GettextEnvironment, 'russian', 'ru')
 
 # INSTALL OPTIONS
 
