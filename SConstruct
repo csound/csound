@@ -635,7 +635,7 @@ if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_PTHREAD_BARRIER_INIT')
-syncLockTestAndSetFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', '__sync_lock_test_and_set(0, 0);')
+syncLockTestAndSetFound = configure.CheckLibWithHeader('m', 'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);')
 if syncLockTestAndSetFound:
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_SYNC_LOCK_TEST_AND_SET')
     print  'found sync lock'
