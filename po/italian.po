@@ -989,7 +989,7 @@ msgstr ""
 msgid "audio buffered in %d sample-frame blocks\n"
 msgstr ""
 
-#: Engine/musmon.c:281 Top/main.c:373
+#: Engine/musmon.c:281 Top/main.c:374
 #, c-format
 msgid "cannot reopen %s"
 msgstr ""
@@ -1014,7 +1014,7 @@ msgstr ""
 msgid "sorting cscore.out ..\n"
 msgstr ""
 
-#: Engine/musmon.c:317 Top/main.c:387
+#: Engine/musmon.c:317 Top/main.c:388
 msgid "\t... done\n"
 msgstr ""
 
@@ -1926,7 +1926,7 @@ msgstr ""
 msgid "error: no input file name"
 msgstr ""
 
-#: InOut/libsnd.c:304 InOut/rtpa.c:422
+#: InOut/libsnd.c:304 InOut/rtpa.c:421
 msgid "Failed to initialise real time audio input"
 msgstr ""
 
@@ -2676,46 +2676,46 @@ msgstr ""
 msgid "PortAudio: failed to obtain device info.\n"
 msgstr ""
 
-#: InOut/rtpa.c:188 InOut/rtpa.c:586 InOut/rtwinmm.c:228
+#: InOut/rtpa.c:187 InOut/rtpa.c:585 InOut/rtwinmm.c:228
 msgid "Must specify a device number, not a name"
 msgstr ""
 
-#: InOut/rtpa.c:223
+#: InOut/rtpa.c:222
 msgid "No sound device is available"
 msgstr ""
 
-#: InOut/rtpa.c:236 InOut/rtpa.c:249 util/scale.c:289 util/xtrct.c:300
+#: InOut/rtpa.c:235 InOut/rtpa.c:248 util/scale.c:289 util/xtrct.c:300
 msgid "Memory allocation failure"
 msgstr ""
 
-#: InOut/rtpa.c:255
+#: InOut/rtpa.c:254
 msgid "Inconsistent full-duplex buffer sizes"
 msgstr ""
 
-#: InOut/rtpa.c:259
+#: InOut/rtpa.c:258
 msgid "Inconsistent full-duplex sample rates"
 msgstr ""
 
-#: InOut/rtpa.c:266
+#: InOut/rtpa.c:265
 msgid ""
 "WARNING: buffer size should be an integer multiple of ksmps in full-duplex "
 "mode\n"
 msgstr ""
 
-#: InOut/rtpa.c:590
+#: InOut/rtpa.c:589
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr ""
 
-#: InOut/rtpa.c:700
+#: InOut/rtpa.c:699
 msgid "Buffer overrun in real-time audio input"
 msgstr ""
 
-#: InOut/rtpa.c:723
+#: InOut/rtpa.c:722
 msgid "Buffer underrun in real-time audio output"
 msgstr ""
 
-#: InOut/rtpa.c:763 InOut/rtpa_new.c:351
+#: InOut/rtpa.c:762 InOut/rtpa_new.c:351
 msgid "PortAudio real-time audio module for Csound\n"
 msgstr ""
 
@@ -2892,7 +2892,7 @@ msgstr ""
 msgid "No name for FLbutbank"
 msgstr ""
 
-#: InOut/widgets.cpp:1439
+#: InOut/widgets.cpp:1438
 msgid "FLsetsnap: invalid table"
 msgstr ""
 
@@ -3216,7 +3216,7 @@ msgstr ""
 msgid "cpstun: invalid table"
 msgstr ""
 
-#: OOps/aops.c:1551
+#: OOps/aops.c:1573
 msgid "k-rate invalue ChannelName cannot start with $"
 msgstr ""
 
@@ -6954,40 +6954,44 @@ msgstr ""
 msgid "seqtim: incorrect table number"
 msgstr ""
 
-#: Opcodes/sfont.c:136
+#: Opcodes/sfont.c:135
 #, c-format
 msgid "sfload: cannot open SoundFont file \"%s\" (error %s)"
 msgstr ""
 
-#: Opcodes/sfont.c:140
+#: Opcodes/sfont.c:139
 msgid "Sfload: cannot use globals"
 msgstr ""
 
-#: Opcodes/sfont.c:215
+#: Opcodes/sfont.c:170
+msgid "sfload: could not open globals\n"
+msgstr ""
+
+#: Opcodes/sfont.c:214
 #, c-format
 msgid ""
 "\n"
 "Preset list of \"%s\"\n"
 msgstr ""
 
-#: Opcodes/sfont.c:218
+#: Opcodes/sfont.c:217
 #, c-format
 msgid "%3d) %-20s\tprog:%-3d bank:%d\n"
 msgstr ""
 
-#: Opcodes/sfont.c:240
+#: Opcodes/sfont.c:239
 #, c-format
 msgid ""
 "\n"
 "Assigning all Presets of \"%s\" starting from %d (preset handle number)\n"
 msgstr ""
 
-#: Opcodes/sfont.c:245
+#: Opcodes/sfont.c:244
 #, c-format
 msgid "%3d<--%-20s\t(prog:%-3d bank:%d)\n"
 msgstr ""
 
-#: Opcodes/sfont.c:252
+#: Opcodes/sfont.c:251
 #, c-format
 msgid ""
 "\n"
@@ -6995,38 +6999,38 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/sfont.c:265
+#: Opcodes/sfont.c:264
 #, c-format
 msgid ""
 "\n"
 "Instrument list of \"%s\"\n"
 msgstr ""
 
-#: Opcodes/sfont.c:282
+#: Opcodes/sfont.c:281
 #, c-format
 msgid "sfpreset: preset handle too big (%d), max: %d"
 msgstr ""
 
-#: Opcodes/sfont.c:298
+#: Opcodes/sfont.c:297
 #, c-format
 msgid ""
 "sfpreset: cannot find any preset having prog number %d and bank number %d in "
 "SoundFont file \"%s\""
 msgstr ""
 
-#: Opcodes/sfont.c:320 Opcodes/sfont.c:1971
+#: Opcodes/sfont.c:319 Opcodes/sfont.c:2202
 msgid "sfplay: invalid or out-of-range preset number"
 msgstr ""
 
-#: Opcodes/sfont.c:586
+#: Opcodes/sfont.c:646
 msgid "sfplaym: invalid or out-of-range preset number"
 msgstr ""
 
-#: Opcodes/sfont.c:793 Opcodes/sfont.c:1006
+#: Opcodes/sfont.c:901 Opcodes/sfont.c:1163
 msgid "sfinstr: instrument out of range"
 msgstr ""
 
-#: Opcodes/sfont.c:1405 Opcodes/sfont.c:1617
+#: Opcodes/sfont.c:1611 Opcodes/sfont.c:1848
 #, c-format
 msgid ""
 "SoundFont file \"%s\" contains ROM samples !\n"
@@ -7034,11 +7038,11 @@ msgid ""
 "Session aborted !"
 msgstr ""
 
-#: Opcodes/sfont.c:1769 Opcodes/sfont.c:1775
+#: Opcodes/sfont.c:2000 Opcodes/sfont.c:2006
 msgid "Sfont: cannot use globals/"
 msgstr ""
 
-#: Opcodes/sfont.c:1778
+#: Opcodes/sfont.c:2009
 msgid "Sfont format not compatible"
 msgstr ""
 
@@ -8797,87 +8801,87 @@ msgstr ""
 msgid "WARNING: cannot open csoundrc file %s\n"
 msgstr ""
 
-#: Top/main.c:183
+#: Top/main.c:184
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:208
+#: Top/main.c:209
 msgid "Reading CSD failed ... stopping"
 msgstr ""
 
-#: Top/main.c:222
+#: Top/main.c:223
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:226
+#: Top/main.c:227
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:243 util/dnoise.c:268
+#: Top/main.c:244 util/dnoise.c:268
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
 
-#: Top/main.c:262
+#: Top/main.c:263
 msgid "srate and krate overrides must occur jointly"
 msgstr ""
 
-#: Top/main.c:274
+#: Top/main.c:275
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:303
+#: Top/main.c:304
 #, c-format
 msgid "orchname:  %s\n"
 msgstr ""
 
-#: Top/main.c:305
+#: Top/main.c:306
 #, c-format
 msgid "scorename: %s\n"
 msgstr ""
 
-#: Top/main.c:331
+#: Top/main.c:332
 msgid "end of orchestra compile"
 msgstr ""
 
-#: Top/main.c:338
+#: Top/main.c:339
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:351
+#: Top/main.c:352
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr ""
 
-#: Top/main.c:356 Top/main.c:377
+#: Top/main.c:357 Top/main.c:378
 #, c-format
 msgid "cannot open %s for writing"
 msgstr ""
 
-#: Top/main.c:359
+#: Top/main.c:360
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:366
+#: Top/main.c:367
 #, c-format
 msgid "cannot extract %s, name conflict"
 msgstr ""
 
-#: Top/main.c:369
+#: Top/main.c:370
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:379
+#: Top/main.c:380
 msgid "  ... extracting ...\n"
 msgstr ""
 
-#: Top/main.c:392
+#: Top/main.c:393
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:394
+#: Top/main.c:395
 msgid "Syntax check completed.\n"
 msgstr ""
 
@@ -9226,7 +9230,7 @@ msgstr ""
 msgid "\t(%ld sample frames)\n"
 msgstr ""
 
-#: Top/threads.c:528
+#: Top/threads.c:529
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
 msgstr ""
