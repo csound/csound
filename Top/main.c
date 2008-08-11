@@ -143,7 +143,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
           csoundMessage(csound, Str("WARNING: cannot open csoundrc file %s\n"),
                                 csrcname);
         else
-          csound->Message(csound, "Reading options from $CSOUNDRC: %s \n", 
+          csound->Message(csound, "Reading options from $CSOUNDRC: %s \n",
                            csrcname);
       }
       if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
@@ -151,13 +151,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
                                CSFTYPE_OPTIONS, 0);
-        if(fd != NULL) 
-	  csound->Message(csound, "Reading options from $HOME/.csoundrc\n");
+        if(fd != NULL)
+          csound->Message(csound, "Reading options from $HOME/.csoundrc\n");
         mfree(csound, s);
       }
       /* read global .csoundrc file (if exists) */
       if (fd != NULL) {
-        
+
         readOptions(csound, csrc, 0);
         csound->FileClose(csound, fd);
       }
@@ -166,7 +166,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL) {
         readOptions(csound, csrc, 0);
-        csound->Message(csound, "Reading options from local directory .csoundrc \n");
+        csound->Message(csound,
+                        "Reading options from local directory .csoundrc \n");
         csound->FileClose(csound, fd);
       }
     }

@@ -91,8 +91,8 @@ int ainit(CSOUND *csound, ASSIGN *p)
   return OK;
 }
 
-#define RELATN(OPNAME,OP)				\
-  int OPNAME(CSOUND *csound, RELAT *p)			\
+#define RELATN(OPNAME,OP)                               \
+  int OPNAME(CSOUND *csound, RELAT *p)                  \
   { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
 
 RELATN(gt,>)
@@ -102,14 +102,14 @@ RELATN(le,<=)
 RELATN(eq,==)
 RELATN(ne,!=)
 
-#define LOGCLX(OPNAME,OP)					\
-  int OPNAME(CSOUND *csound, LOGCL *p)				\
+#define LOGCLX(OPNAME,OP)                                       \
+  int OPNAME(CSOUND *csound, LOGCL *p)                          \
   { *p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
-#define KK(OPNAME,OP)							\
+#define KK(OPNAME,OP)                                                   \
   int OPNAME(CSOUND *csound, AOP *p) { *p->r = *p->a OP *p->b; return OK; }
 
 KK(addkk,+)
@@ -136,16 +136,16 @@ int modkk(CSOUND *csound, AOP *p)
 }
 
 #define KA(OPNAME,OP)                           \
-  int OPNAME(CSOUND *csound, AOP *p) {		\
-    int     n;					\
-    MYFLT   *r, a, *b;				\
-    int nsmps = csound->ksmps;			\
-    r = p->r;					\
-    a = *p->a;					\
-    b = p->b;					\
-    for (n=0; n<nsmps; n++)			\
-      r[n] = a OP b[n];				\
-    return OK;					\
+  int OPNAME(CSOUND *csound, AOP *p) {          \
+    int     n;                                  \
+    MYFLT   *r, a, *b;                          \
+    int nsmps = csound->ksmps;                  \
+    r = p->r;                                   \
+    a = *p->a;                                  \
+    b = p->b;                                   \
+    for (n=0; n<nsmps; n++)                     \
+      r[n] = a OP b[n];                         \
+    return OK;                                  \
   }
 
 KA(addka,+)
@@ -168,16 +168,16 @@ int modka(CSOUND *csound, AOP *p)
 }
 
 #define AK(OPNAME,OP)                           \
-  int OPNAME(CSOUND *csound, AOP *p) {		\
-    int     n;					\
-    MYFLT   *r, *a, b;				\
-    int nsmps = csound->ksmps;			\
-    r = p->r;					\
-    a = p->a;					\
-    b = *p->b;					\
-    for (n=0; n<nsmps; n++)			\
-      r[n] = a[n] OP b;				\
-    return OK;					\
+  int OPNAME(CSOUND *csound, AOP *p) {          \
+    int     n;                                  \
+    MYFLT   *r, *a, b;                          \
+    int nsmps = csound->ksmps;                  \
+    r = p->r;                                   \
+    a = p->a;                                   \
+    b = *p->b;                                  \
+    for (n=0; n<nsmps; n++)                     \
+      r[n] = a[n] OP b;                         \
+    return OK;                                  \
   }
 
 AK(addak,+)
@@ -200,16 +200,16 @@ int modak(CSOUND *csound, AOP *p)
 }
 
 #define AA(OPNAME,OP)                           \
-  int OPNAME(CSOUND *csound, AOP *p) {		\
-    int     n;					\
-    MYFLT   *r, *a, *b;				\
-    int nsmps = csound->ksmps;			\
-    r = p->r;					\
-    a = p->a;					\
-    b = p->b;					\
-    for (n=0; n<nsmps; n++)			\
-      r[n] = a[n] OP b[n];			\
-    return OK;					\
+  int OPNAME(CSOUND *csound, AOP *p) {          \
+    int     n;                                  \
+    MYFLT   *r, *a, *b;                         \
+    int nsmps = csound->ksmps;                  \
+    r = p->r;                                   \
+    a = p->a;                                   \
+    b = p->b;                                   \
+    for (n=0; n<nsmps; n++)                     \
+      r[n] = a[n] OP b[n];                      \
+    return OK;                                  \
   }
 
 AA(addaa,+)
@@ -415,7 +415,7 @@ int birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
   return OK;
 }
 
-#define LIB1(OPNAME,LIBNAME)  int OPNAME(CSOUND *csound, EVAL *p)	\
+#define LIB1(OPNAME,LIBNAME)  int OPNAME(CSOUND *csound, EVAL *p)       \
   { *p->r = LIBNAME(*p->a); return OK; }
 LIB1(abs1,FABS)
 LIB1(exp01,EXP)
@@ -438,15 +438,15 @@ int atan21(CSOUND *csound, AOP *p)
   return OK;
 }
 
-#define LIBA(OPNAME,LIBNAME) int OPNAME(CSOUND *csound, EVAL *p) {	\
-    int     n;								\
-    MYFLT   *r, *a;							\
-    int nsmps = csound->ksmps;						\
-    r = p->r;								\
-    a = p->a;								\
-    for (n=0;n<nsmps;n++)						\
-      r[n] = LIBNAME(a[n]);						\
-    return OK;								\
+#define LIBA(OPNAME,LIBNAME) int OPNAME(CSOUND *csound, EVAL *p) {      \
+    int     n;                                                          \
+    MYFLT   *r, *a;                                                     \
+    int nsmps = csound->ksmps;                                          \
+    r = p->r;                                                           \
+    a = p->a;                                                           \
+    for (n=0;n<nsmps;n++)                                               \
+      r[n] = LIBNAME(a[n]);                                             \
+    return OK;                                                          \
   }
 LIBA(absa,FABS)
 LIBA(expa,EXP)
@@ -704,7 +704,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
     int32 len;
     if (ftp == NULL)
       return csound->PerfError(csound, Str("No tuning table %d"),
-			       -((int)*p->et));
+                               -((int)*p->et));
     len = ftp->flen;
     while (fract>len) {
       fract -= len; loct++;
@@ -732,14 +732,14 @@ int cps2pch(CSOUND *csound, XENH *p)
     int32 len;
     if (ftp == NULL)
       return csound->PerfError(csound, Str("No tuning table %d"),
-			       -((int)*p->et));
+                               -((int)*p->et));
     len = ftp->flen;
     while (fract>len) {
       fract -= len; loct++;
     }
     fract += 0.005;
     *p->r = (MYFLT)(1.02197503906 * *(ftp->ftable +(int)(100.0*fract)) *
-		    pow(2.0, loct));
+                    pow(2.0, loct));
   }
 
   /*  double ref = 261.62561 / pow(2.0, 8.0); */
@@ -822,7 +822,7 @@ int logbasetwo_set(CSOUND *csound, EVAL *p)
     double  x = (1.0 / INTERVAL);
     int     i;
     csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
-					       * sizeof(MYFLT));
+                                               * sizeof(MYFLT));
     for (i = 0; i <= STEPS; i++) {
       csound->logbase2[i] = (MYFLT)(ONEdLOG2 * log(x));
       x += ((INTERVAL - 1.0 / INTERVAL) / (double)STEPS);
@@ -915,7 +915,7 @@ int dba(CSOUND *csound, EVAL *p)          /* JPff */
 int logbasetwo(CSOUND *csound, EVAL *p)
 {
   int n = (int)((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
-		*  STEPS + FL(0.5));
+                *  STEPS + FL(0.5));
   if (n<0 || n>STEPS)
     *p->r = (MYFLT)(log((double)*p->a)*ONEdLOG2);
   else
@@ -933,7 +933,7 @@ int logbasetwoa(CSOUND *csound, EVAL *p)
   for (n=0; n<nsmps; n++) {
     MYFLT aa = a[n];
     int n = (int)((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
-		  *  STEPS + FL(0.5));
+                  *  STEPS + FL(0.5));
     if (n<0 || n>STEPS) r[n] = (MYFLT)(log((double)aa)*ONEdLOG2);
     else                r[n] = csound->logbase2[n];
   }
@@ -1471,10 +1471,10 @@ static int outn(CSOUND *csound, int n, OUTX *p)
   if (!csound->spoutactive) {
     for (j=0; j<nsmps; j++) {
       for (i=0; i<n; i++) {
-	csound->spout[k + i] = p->asig[i][j];
+        csound->spout[k + i] = p->asig[i][j];
       }
       for ( ; i < csound->nchnls; i++) {
-	csound->spout[k + i] = FL(0.0);
+        csound->spout[k + i] = FL(0.0);
       }
       k += csound->nchnls;
     }
@@ -1483,7 +1483,7 @@ static int outn(CSOUND *csound, int n, OUTX *p)
   else {
     for (j=0; j<nsmps; j++) {
       for (i=0; i<n; i++) {
-	csound->spout[k + i] += p->asig[i][j];
+        csound->spout[k + i] += p->asig[i][j];
       }
       k += csound->nchnls;
     }
@@ -1527,18 +1527,18 @@ int outch(CSOUND *csound, OUTCH *p)
     if (!csound->spoutactive) {
       sp = csound->spout;
       for (n=0; n<nsmps; n++) {
-	for (i = 1; i <= nchnls; i++) {
-	  *sp = ((i == ch) ? apn[n] : FL(0.0));
-	  sp++;
-	}
+        for (i = 1; i <= nchnls; i++) {
+          *sp = ((i == ch) ? apn[n] : FL(0.0));
+          sp++;
+        }
       }
       csound->spoutactive = 1;
     }
     else {
       sp = csound->spout + (ch - 1);
       for (n=0; n<nsmps; n++) {
-	*sp += apn[n];
-	sp += nchnls;
+        *sp += apn[n];
+        sp += nchnls;
       }
     }
   }
@@ -1554,7 +1554,7 @@ int kinval(CSOUND *csound, INVAL *p)
 {
   if (csound->InputValueCallback_)
     csound->InputValueCallback_(csound,
-				(char*) p->channelName.auxp, p->value);
+                                (char*) p->channelName.auxp, p->value);
   else
     *(p->value) = FL(0.0);
 
@@ -1571,7 +1571,7 @@ int invalset(CSOUND *csound, INVAL *p)
        "$string" is a macro -- but just in case: */
     if (*s == '$')
       return csound->PerfError(csound, Str("k-rate invalue ChannelName "
-					   "cannot start with $"));
+                                           "cannot start with $"));
     /* allocate the space used to pass a string during the k-pass */
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
     sprintf((char*) p->channelName.auxp, "%s", s);
@@ -1597,7 +1597,7 @@ int kinval_S(CSOUND *csound, INVAL *p)
 
   if (csound->InputValueCallback_)
     csound->InputValueCallback_(csound,
-				(char*) p->channelName.auxp, p->value);
+                                (char*) p->channelName.auxp, p->value);
 
   return OK;
 }
@@ -1647,7 +1647,7 @@ int outvalset(CSOUND *csound, OUTVAL *p)
       /* allocate the space used to pass a string during the k-pass */
       /* FIXME: string constants may use more space than strVarMaxLen */
       csound->AuxAlloc(csound, strlen(s) + csound->strVarMaxLen + 2,
-		       &p->channelName);
+                       &p->channelName);
       sprintf((char*) p->channelName.auxp, "$%s$", s);
     }
     else {
@@ -1659,7 +1659,7 @@ int outvalset(CSOUND *csound, OUTVAL *p)
     /* convert numerical channel to string name */
     csound->AuxAlloc(csound, 64, &p->channelName);
     sprintf((char*)p->channelName.auxp, (p->XSTRCODE & 2 ? "$%d" : "%d"),
-	    (int)MYFLT2LRND(*p->valID));
+            (int)MYFLT2LRND(*p->valID));
   }
 
   /* send output now for use during i-pass */
