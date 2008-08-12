@@ -1783,8 +1783,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double) + (int) (*p->iptls) * sizeof(MYFLT) ;
+    memsize =   (int) (*p->iptls) *
+                      (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
     if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
@@ -1915,14 +1915,14 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 }
 
 static void ScalePartials(
-                          CSOUND *csound,
+                CSOUND *csound,
                 ATS_DATA_LOC *cbuf, /* the current buffer */
-                int cbufnp,     /* the current buffer's number of partials */
-                MYFLT cbufamp,  /* the amplitude for the current buffer */
+                int cbufnp,         /* the current buffer's number of partials */
+                MYFLT cbufamp,      /* the amplitude for the current buffer */
                 ATS_DATA_LOC *tbuf, /* the table buffer */
-                int tbufnp,     /* the table buffer's n partials */
-                MYFLT tbufamp,  /* the amp of the table buffer */
-                          MYFLT kthresh )
+                int tbufnp,         /* the table buffer's n partials */
+                MYFLT tbufamp,      /* the amp of the table buffer */
+                MYFLT kthresh )
 {
     MYFLT   tempamp;            /* hold the cbufn amp for a bit */
     MYFLT   frac;               /* for interpilation */
@@ -1951,7 +1951,8 @@ static void ScalePartials(
       }
       /* do the actual scaling */
 
-      if(i<tbufnp && cbuf[i].amp > kthresh) cbuf[i].amp = cbuf[i].amp * cbufamp + tempamp*tbufamp;
+      if(i<tbufnp && cbuf[i].amp > kthresh)
+        cbuf[i].amp = cbuf[i].amp * cbufamp + tempamp*tbufamp;
       else  cbuf[i].amp *= cbufamp;
     }
 }

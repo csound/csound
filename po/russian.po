@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2008-05-05 16:27+0100\n"
+"PO-Revision-Date: 2008-08-11 16:49+0100\n"
 "Last-Translator: ???\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -63,11 +63,11 @@ msgstr ""
 
 #: Engine/cfgvar.c:62
 msgid "the specified value is too high"
-msgstr ""
+msgstr "определенное значение слишком высоко"
 
 #: Engine/cfgvar.c:63
 msgid "the specified value is too low"
-msgstr ""
+msgstr "пределенное значение слишком низко"
 
 #: Engine/cfgvar.c:64
 msgid "the specified value is not an integer power of two"
@@ -8643,7 +8643,7 @@ msgstr ""
 
 #: Top/csound.c:1696
 msgid "WARNING: "
-msgstr ""
+msgstr "ПРЕДУПРЕЖДЕНИЕ:"
 
 #: Top/csound.c:1815
 msgid "rtdummy: failed to allocate globals"
