@@ -251,11 +251,12 @@ static int poscaa(CSOUND *csound, POSC *p)
     MYFLT       *amp = p->amp; /*gab c3*/
 
     for (n=0; n<nsmps; n++) {
+      MYFLT ff = freq[n];
       curr_samp = ft + (int32)phs;
       fract     = (MYFLT)(phs - (int32)phs);
       out[n]    = amp[n] *
         (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);/* gab c3 */
-      phs      += freq[n] * p->tablenUPsr;/* gab c3 */
+      phs      += ff * p->tablenUPsr;/* gab c3 */
       while (phs >= p->tablen)
         phs -= p->tablen;
       while (phs < 0 )
@@ -275,10 +276,11 @@ static int poscka(CSOUND *csound, POSC *p)
     MYFLT       *freq = p->freq;
 
     for (n=0; n<nsmps; n++) {
+      MYFLT ff = freq[n];
       curr_samp = ft + (int32)phs;
       fract     = (MYFLT)(phs - (int32)phs);
       out[n]    = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      phs      += freq[n] * p->tablenUPsr;/* gab c3 */
+      phs      += ff * p->tablenUPsr;/* gab c3 */
       while (phs >= p->tablen)
         phs -= p->tablen;
       while (phs < 0 )

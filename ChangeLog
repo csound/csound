@@ -1,3 +1,8 @@
+2008-08-12  jpff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/uggab.c (poscaa, poscka): Ensure frequency is not
+	overwritten if varaiable share
+
 2008-07-26  jpff  <jpff@codemist.co.uk>
 
 	* Engine/rdorch.c (skiporccomment): Correct stupid error in
