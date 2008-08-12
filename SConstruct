@@ -667,8 +667,8 @@ if not tclhfound:
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
 zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
-luaFound = configure.CheckHeader("lua5.1/lua.h", language = "C")
-if not buildOLPC:
+luaFound = configure.CheckHeader("lua.h", language = "C")
+if buildOLPC:
    luaFound = False
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
@@ -1240,7 +1240,6 @@ else:
     for option in csoundWrapperEnvironment['CPPPATH']:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
-    csoundWrapperEnvironment.Append(SWIGFLAGS = ['-java'])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
     if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
@@ -1265,11 +1264,11 @@ else:
         else:
             csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
                 'interfaces/java_interface.i',
-               	SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
+        SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
         csoundJavaWrapperSources += csoundInterfacesSources
-	if getPlatform() == 'win32':
-	    csoundJavaWrapperEnvironment.Prepend(LIBS = 'csnd')
+        if getPlatform() == 'win32':
+            csoundJavaWrapperEnvironment.Prepend(LIBS = 'csnd')
         if getPlatform() == 'darwin':
             csoundJavaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             csoundJavaWrapperEnvironment.Append(LINKFLAGS =
@@ -1298,16 +1297,17 @@ else:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-        csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
+        if getPlatform() != 'win32':
+           csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
         csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/lua_interface.i',
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
         if getPlatform() != 'darwin':
            csoundInterfacesSources.insert(0, csoundLuaInterface)
-           if getPlatform() == 'win32':
-              csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
-           else:
-              csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
+        if getPlatform() == 'win32':
+            csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
+        else:
+            csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
     if getPlatform() == 'linux':
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
         # os.symlink('lib_csnd.so', '_csnd.so')
