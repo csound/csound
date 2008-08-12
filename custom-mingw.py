@@ -95,7 +95,8 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
 	customCPPPATH.append(r'U:\LuaJIT-1.1.4')
-	customLIBPATH.append(r'U:\LuaJIT-1.1.4')
+	customCPPPATH.append(r'U:\LuaJIT-1.1.4\src')
+	customLIBPATH.append(r'U:\LuaJIT-1.1.4\src')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
