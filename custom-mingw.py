@@ -94,7 +94,7 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\VSTModuleArchitectureSDK\pluginterfaces\base')    
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
-	customCPPPATH.append(r'U:\LuaJIT-1.1.4')
+	# customCPPPATH.append(r'U:\LuaJIT-1.1.4')
 	customCPPPATH.append(r'U:\LuaJIT-1.1.4\src')
 	customLIBPATH.append(r'U:\LuaJIT-1.1.4\src')
 	################################################################
