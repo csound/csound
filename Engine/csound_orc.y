@@ -155,7 +155,7 @@ orcfile           : rootstatement
                         }
                   ;
 
-rootstatement	  : rootstatement topstatement
+rootstatement     : rootstatement topstatement
                         {
                         $$ = appendToTree(csound, $1, $2);
                         }
@@ -174,57 +174,57 @@ rootstatement	  : rootstatement topstatement
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 /* FIXME: Does not allow named instruments i.e. "instr trumpet" */
-instrdecl : T_INSTR 
+instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
-            T_INTGR S_NL 
+            T_INTGR S_NL
                 { namedInstrFlag = 0; }
             statementlist T_ENDIN S_NL
                 {
                     TREE *leaf = make_leaf(csound, T_INTGR, (ORCTOKEN *)$3);
                     $$ = make_node(csound, T_INSTR, leaf, $6);
                 }
-                
-          | T_INSTR 
+
+          | T_INSTR
                 { namedInstrFlag = 1; }
-            T_IDENT S_NL 
+            T_IDENT S_NL
                 { namedInstrFlag = 0; }
             statementlist T_ENDIN S_NL
                 {
                     TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
                     $$ = make_node(csound, T_INSTR, ident, $6);
                 }
-                
+
           | T_INSTR S_NL error
-                { 
-                    namedInstrFlag = 0; 
-                    csound->Message(csound, "No number following instr\n"); 
+                {
+                    namedInstrFlag = 0;
+                    csound->Message(csound, Str("No number following instr\n"));
                 }
           ;
 
-udodecl	  : T_UDOSTART
-						{ udoflag = -2; }
-     		  T_IDENT
-     		  			{ udoflag = -1; }
-     		  S_COM
-						{ udoflag = 0;}
+udodecl   : T_UDOSTART
+                                                { udoflag = -2; }
+                  T_IDENT
+                                                { udoflag = -1; }
+                  S_COM
+                                                { udoflag = 0;}
               T_UDO_ANS
                         { udoflag = 1; }
               S_COM T_UDO_ARGS S_NL
               {
-              	udoflag = 2;
-              	add_udo_definition(csound,
-              		((ORCTOKEN *)$3)->lexeme,
-              		((ORCTOKEN *)$7)->lexeme,
-              		((ORCTOKEN *)$10)->lexeme);
+                udoflag = 2;
+                add_udo_definition(csound,
+                        ((ORCTOKEN *)$3)->lexeme,
+                        ((ORCTOKEN *)$7)->lexeme,
+                        ((ORCTOKEN *)$10)->lexeme);
               }
               statementlist T_UDOEND S_NL
               {
                 udoflag = -1;
 
 
-				csound->Message(csound, "UDO COMPLETE\n");
-				TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
-				TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
+                csound->Message(csound, "UDO COMPLETE\n");
+                TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
+                TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
                 TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$7);
                 TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$10);
 
@@ -236,7 +236,7 @@ udodecl	  : T_UDOSTART
 
                 $$ = udoTop;
 
-				print_tree(csound, (TREE *)$$);
+                print_tree(csound, (TREE *)$$);
 
               }
 
@@ -387,7 +387,7 @@ then      : T_THEN
           ;
 
 
-goto	  : T_GOTO
+goto  : T_GOTO
             { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
           | T_KGOTO
             { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)yylval); }
@@ -402,7 +402,7 @@ exprlist  : exprlist S_COM expr
                     $$ = appendToTree(csound, $1, $3);
                 }
           | exprlist S_COM error
-          | expr { $$ = $1;	}
+          | expr { $$ = $1;     }
           | /* null */          { $$ = NULL; }
           ;
 
@@ -467,10 +467,10 @@ ifac      : ident               { $$ = $1; }
           | function S_LB error
           ;
 
-function  : T_FUNCTION	{ $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
+function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
           ;
 
-/* exprstrlist	  : exprstrlist S_COM expr
+/* exprstrlist    : exprstrlist S_COM expr
                                         { $$ = make_node(csound, S_COM, $1, $3); }
           | exprstrlist S_COM T_STRCONST
                  { $$ = make_node(csound, S_COM, $1,
@@ -480,13 +480,13 @@ function  : T_FUNCTION	{ $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
           ;
  */
 
-rident	  : T_SRATE 	{ $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)yylval); }
+rident    : T_SRATE     { $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_KRATE, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_KSMPS, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NCHNLS, (ORCTOKEN *)yylval); }
           ;
 
-ident	  : T_IDENT_I	{ $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)yylval); }
+ident     : T_IDENT_I   { $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)yylval); }
           | T_IDENT_K   { $$ = make_leaf(csound, T_IDENT_K, (ORCTOKEN *)yylval); }
           | T_IDENT_F   { $$ = make_leaf(csound, T_IDENT_F, (ORCTOKEN *)yylval); }
           | T_IDENT_W   { $$ = make_leaf(csound, T_IDENT_W, (ORCTOKEN *)yylval); }
@@ -496,7 +496,7 @@ ident	  : T_IDENT_I	{ $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)yylval); }
           | gident      { $$ = $1; }
           ;
 
-gident	  : T_IDENT_GI  { $$ = make_leaf(csound, T_IDENT_GI, (ORCTOKEN *)yylval); }
+gident    : T_IDENT_GI  { $$ = make_leaf(csound, T_IDENT_GI, (ORCTOKEN *)yylval); }
           | T_IDENT_GK  { $$ = make_leaf(csound, T_IDENT_GK, (ORCTOKEN *)yylval); }
           | T_IDENT_GF  { $$ = make_leaf(csound, T_IDENT_GF, (ORCTOKEN *)yylval); }
           | T_IDENT_GW  { $$ = make_leaf(csound, T_IDENT_GW, (ORCTOKEN *)yylval); }
@@ -504,9 +504,9 @@ gident	  : T_IDENT_GI  { $$ = make_leaf(csound, T_IDENT_GI, (ORCTOKEN *)yylval);
           | T_IDENT_GA  { $$ = make_leaf(csound, T_IDENT_GA, (ORCTOKEN *)yylval); }
           ;
 
-constant  : T_INTGR 	{ $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
-          | T_NUMBER	{ $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
-          | T_STRCONST	{ $$ = make_leaf(csound, T_STRCONST, (ORCTOKEN *)yylval); }
+constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
+          | T_NUMBER    { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_STRCONST  { $$ = make_leaf(csound, T_STRCONST, (ORCTOKEN *)yylval); }
           | T_SRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
@@ -520,7 +520,7 @@ opcode0   : T_OPCODE0
             }
           ;
 
-opcode    : T_OPCODE	{ $$ = make_leaf(csound, T_OPCODE, (ORCTOKEN *)yylval); }
+opcode    : T_OPCODE    { $$ = make_leaf(csound, T_OPCODE, (ORCTOKEN *)yylval); }
           ;
 
 %%

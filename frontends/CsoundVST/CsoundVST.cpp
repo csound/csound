@@ -66,10 +66,10 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       Fl::lock();
       fltkWaitThreadId == csoundGetCurrentThreadId();
     }
-  setNumInputs(kNumInputs);            
-  setNumOutputs(kNumOutputs);           
-  setUniqueID('cVsT');  
-  canProcessReplacing();        
+  setNumInputs(kNumInputs);
+  setNumOutputs(kNumOutputs);
+  setUniqueID('cVsT');
+  canProcessReplacing();
   setIsSynth(true);
   open();
   csoundVstFltk = new CsoundVstFltk(this);
@@ -79,7 +79,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
     {
       if(number)
         {
-	  AudioEffectX::isSynth(true);
+          AudioEffectX::isSynth(true);
         }
       else
         {
@@ -238,11 +238,11 @@ uintptr_t CsoundVST::performanceThreadRoutine()
       SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
       SetExternalMidiReadCallback(&CsoundVST::midiRead);
       if(compile())
-	{
-	  Message("Csound compilation failed.\n");
-	  reset();
-	  stop();
-	}
+        {
+          Message("Csound compilation failed.\n");
+          reset();
+          stop();
+        }
     }
   else
     {
@@ -296,9 +296,9 @@ int CsoundVST::performance()
       SetYieldCallback(threadYieldCallback);
       void *result_ = csoundCreateThread(performanceThreadRoutine_, this);
       if(result_) {
-	result = true;
+        result = true;
       } else {
-	result = false;
+        result = false;
       }
       Message("Created Csound performance thread.\n");
     }
@@ -463,15 +463,15 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
             }
         }
     }
-  else 
+  else
     {
-      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
-	{
-	  for (channelI = 0; channelI < kNumOutputs; channelI++) 
-	    {
-	      hostOutput[channelI][hostFrameI] += hostInput[channelI][hostFrameI];
-	    }
-	}
+      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+        {
+          for (channelI = 0; channelI < kNumOutputs; channelI++)
+            {
+              hostOutput[channelI][hostFrameI] += hostInput[channelI][hostFrameI];
+            }
+        }
     }
 }
 
@@ -487,35 +487,35 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
     size_t channelI;
     for(VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
       {
-	for(channelI = 0; channelI < channelN; channelI++)
-	  {
-	    csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
-	  }
-	if(csoundFrameI == 0)
-	  {
-	    performKsmps(true);
-	  }
-	for(channelI = 0; channelI < channelN; channelI++)
-	  {
-	    hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
-	    csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
-	  }
-	csoundFrameI++;
-	if(csoundFrameI > csoundLastFrame)
-	  {
-	    csoundFrameI = 0;
-	  }
+        for(channelI = 0; channelI < channelN; channelI++)
+          {
+            csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
+          }
+        if(csoundFrameI == 0)
+          {
+            performKsmps(true);
+          }
+        for(channelI = 0; channelI < channelN; channelI++)
+          {
+            hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
+            csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
+          }
+        csoundFrameI++;
+        if(csoundFrameI > csoundLastFrame)
+          {
+            csoundFrameI = 0;
+          }
       }
   }
-  else 
+  else
     {
-      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) 
-	{
-	  for (channelI = 0; channelI < kNumOutputs; channelI++) 
-	    {
-	      hostOutput[channelI][hostFrameI] = hostInput[channelI][hostFrameI];
-	    }
-	}
+      for (VstInt32 hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
+        {
+          for (channelI = 0; channelI < kNumOutputs; channelI++)
+            {
+              hostOutput[channelI][hostFrameI] = hostInput[channelI][hostFrameI];
+            }
+        }
     }
 }
 
@@ -806,7 +806,7 @@ extern "C"
     if (filename) {
       csoundVST->openFile(filename);
     }
-    csoundVST->fltkrun(); 
+    csoundVST->fltkrun();
   }
 }
 

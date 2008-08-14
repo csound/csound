@@ -24,10 +24,10 @@
 #include "csound.h"                                   /*   CSCOREMAIN.C   */
 #include <stdarg.h>
 
-#if defined(macintosh) && defined(__MWERKS__)	/* CodeWarrior Mac compiler */
-  #include	"console.h"
-  #include	"unix.h"
-  #include	"SIOUX.h"
+#if defined(macintosh) && defined(__MWERKS__)   /* CodeWarrior Mac compiler */
+  #include      "console.h"
+  #include      "unix.h"
+  #include      "SIOUX.h"
 #endif
 
 extern void cscore(CSOUND*);
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     /* set output file type to BBEdit text */
     _fcreator = 'R*ch';
     _ftype = 'TEXT';
-    
+
     /* command-line dialog */
     argc = ccommand(&argv);
     SIOUXSettings.asktosaveonclose = 0;
