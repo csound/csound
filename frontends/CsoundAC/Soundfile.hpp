@@ -184,51 +184,51 @@ namespace csound
      */
     virtual void blank(double duration);
     /**
-     * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo, 
+     * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo,
      * the grain will be panned. If the synchronousPhase argument is true
-     * (the default value), then all grains of the same frequency 
+     * (the default value), then all grains of the same frequency
      * will have synchronous phases, which can be useful in avoiding certain artifacts.
      *
-     * If the buffer argument is true (the default is false), 
+     * If the buffer argument is true (the default is false),
      * the grain is mixed into a buffer; this can be used
      * to speed up writing grains that are arrangement in columns.
      * To actually write the grain, call writeGrain().
-     * 
+     *
      * The algorithm uses an efficient difference equation.
      */
-    virtual void jonesParksGrain(double centerTimeSeconds, 
-				 double durationSeconds, 
-				 double beginningFrequencyHz,
-                                 double centerFrequencyHz, 
-				 double centerAmplitude, 
-				 double centerPhaseOffsetRadians, 
-				 double pan,
-				 bool synchronousPhase = true,
-				 bool buffer = false);
+    virtual void jonesParksGrain(double centerTimeSeconds,
+                                 double durationSeconds,
+                                 double beginningFrequencyHz,
+                                 double centerFrequencyHz,
+                                 double centerAmplitude,
+                                 double centerPhaseOffsetRadians,
+                                 double pan,
+                                 bool synchronousPhase = true,
+                                 bool buffer = false);
     /**
-     * Mix a cosine grain into the soundfile. If the soundfile is stereo, 
+     * Mix a cosine grain into the soundfile. If the soundfile is stereo,
      * the grain will be panned. If the synchronousPhase argument is true
-     * (the default value), then all grains of the same frequency 
+     * (the default value), then all grains of the same frequency
      * will have synchronous phases, which can be useful in avoiding certain artifacts.
      * For example, if cosine grains of the same frequency have synchronous phases,
      * they can be overlapped by 1/2 their duration without artifacts
      * to produce a continuous cosine tone.
      *
-     * If the buffer argument is true (the default is false), 
-     * the grain is mixed into a buffer; this can be used 
+     * If the buffer argument is true (the default is false),
+     * the grain is mixed into a buffer; this can be used
      * to speed up writing grains that are arrangement in columns.
      * To actually write the grain, call writeGrain().
       *
-     * The algorithm uses an efficient difference equation. 
+     * The algorithm uses an efficient difference equation.
      */
-    virtual void cosineGrain(double centerTimeSeconds, 
-			     double durationSeconds, 
-			     double frequencyHz, 
-			     double amplitude,
-                             double phaseOffsetRadians, 
-			     double pan,
-			     bool synchronousPhase = true,
-			     bool buffer = false);
+    virtual void cosineGrain(double centerTimeSeconds,
+                             double durationSeconds,
+                             double frequencyHz,
+                             double amplitude,
+                             double phaseOffsetRadians,
+                             double pan,
+                             bool synchronousPhase = true,
+                             bool buffer = false);
     /**
      * Mix a grain that has already been computed into the soundfile.
      */
