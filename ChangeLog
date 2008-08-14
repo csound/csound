@@ -1,3 +1,8 @@
+2008-08-14  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.l: Added #include and macros (currently
+	without arguments)
+
 2008-08-12  jpff  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/uggab.c (poscaa, poscka): Ensure frequency is not

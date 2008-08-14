@@ -50,7 +50,7 @@ typedef struct MACRO {          /* To store active macros */
     int           acnt;         /* Count of arguments */
     char          *body;        /* The text of the macro */
     struct MACRO  *next;        /* Chain of active macros */
-    int           margs;        /* ammount of space for args */
+    int           margs;        /* amount of space for args */
     char          *arg[MARGS];  /* With these arguments */
 } MACRO;
 
