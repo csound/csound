@@ -42,24 +42,43 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 void comment(void);
 void do_comment(void);
 void do_include(CSOUND *, int);
+void do_macro(CSOUND *, char *);
+void do_umacro(CSOUND *, char *);
 extern int udoflag;
 extern int namedInstrFlag;
 int yyline = 0;
-#define MAX_INCLUDE_DEPTH 10
+#define MAX_INCLUDE_DEPTH 100
 YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 int include_stack_ptr = 0;
+#define MARGS   (3)
+
+typedef struct MACRO {          /* To store active macros */
+    char          *name;        /* Use is by name */
+    int           acnt;         /* Count of arguments */
+    char          *body;        /* The text of the macro */
+    struct MACRO  *next;        /* Chain of active macros */
+    int           margs;        /* amount of space for args */
+    char          *arg[MARGS];  /* With these arguments */
+} MACRO;
+MACRO* macros = NULL;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
 LABEL           [[a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
+MACRO           [a-zA-Z0-9_]+\(
+MACRONAME       "$"[a-zA-Z0-9_]+
 INTGR           [0-9]+
 NUMBER          [0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
 INCLUDE		"#include"
+DEFINE          "#define"
+UNDEF           "#undef"
 %x incl
+%x macro
+%x umacro
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -134,7 +153,26 @@ INCLUDE		"#include"
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
                   csound->Message(csound,"%d\n", (*lvalp)->type);
                   return (*lvalp)->type; }
-
+{MACRONAME}     {
+                  MACRO     *mm = macros, *mm_save = NULL;
+                  while (mm != NULL) {  /* Find the definition */
+                    if (!(strcmp(yytext+1, mm->name)))
+                      break;
+                    mm = mm->next;
+                  }
+                  if (mm == NULL) {
+                    csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                    csound->LongJmp(csound, 1);
+                  }
+                  /* Need to read from macro definition */
+                  /* ??fiddle with buffers I guess */
+                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                    csound->Message(csound, Str("Includes nested too deeply"));
+                    exit(1);
+                  }
+                  include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  yy_switch_to_buffer(yy_scan_string(mm->body));
+                }
 {INTGR}         {
                     if(udoflag == 0) {
                         *lvalp = lookup_token(csound, yytext);
@@ -163,6 +201,24 @@ INCLUDE		"#include"
                     yy_delete_buffer( YY_CURRENT_BUFFER );
                     yy_switch_to_buffer(include_stack[include_stack_ptr] );
                   }
+                }
+{DEFINE}       BEGIN(macro);
+<macro>[ \t]*    /* eat the whitespace */
+<macro>{MACRO}  {
+                  printf("Define macro with args %s\n", yytext);
+                  BEGIN(INITIAL);
+                }
+<macro>{IDENTN} {
+                  printf("Define macro %s\n", yytext);
+                  do_macro(csound, yytext);
+                  BEGIN(INITIAL);
+                }
+{UNDEF}        BEGIN(umacro);
+<umacro>[ \t]*    /* eat the whitespace */
+<umacro>{IDENT}  {
+                  printf("Undefine macro %s\n", yytext);
+                  do_umacro(csound, yytext);
+                  BEGIN(INITIAL);
                 }
 
 .               { csound->Message(csound,
@@ -212,6 +268,67 @@ void do_include(CSOUND *csound, int term)
       exit(1);
     }
     yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
+}
+
+void do_macro(CSOUND *csound, char *name0)
+{
+    MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+    int   arg = 0, i, c;
+    int   size = 100;
+    mm->margs = MARGS;    /* Initial size */
+    printf("Macro definition for %s\n", name0);
+    mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
+    strcpy(mm->name, name0);
+    mm->acnt = 0;
+    i = 0;
+    while ((c=input()) != '#'); /* Skip to next # */
+    mm->body = (char*) mmalloc(csound, 100);
+    while ((c = input()) != '#') {
+      mm->body[i++] = c;
+      if (i >= size)
+        mm->body = mrealloc(csound, mm->body, size += 100);
+      if (c == '\\') {                    /* allow escaped # */
+        mm->body[i++] = c = input();
+        if (i >= size)
+          mm->body = mrealloc(csound, mm->body, size += 100);
+      }
+      if (c == '\n')
+        yyline++;
+    }
+    mm->body[i] = '\0';
+    mm->next = macros;
+    macros = mm;
+}
+
+void do_umacro(CSOUND *csound, char *name0)
+{
+    int i,c;
+    if (csound->oparms->msglevel)
+      csound->Message(csound,Str("macro %s undefined\n"), name0);
+    if (strcmp(name0, macros->name)==0) {
+      MACRO *mm=macros->next;
+      mfree(csound, macros->name); mfree(csound, macros->body);
+      for (i=0; i<macros->acnt; i++)
+        mfree(csound, macros->arg[i]);
+      mfree(csound, macros); macros = mm;
+    }
+    else {
+      MACRO *mm = macros;
+      MACRO *nn = mm->next;
+      while (strcmp(name0, nn->name) != 0) {
+        mm = nn; nn = nn->next;
+        if (nn == NULL) {
+          csound->Message(csound, Str("Undefining undefined macro"));
+          csound->LongJmp(csound, 1);
+        }
+      }
+      mfree(csound, nn->name); mfree(csound, nn->body);
+      for (i=0; i<nn->acnt; i++)
+        mfree(csound, nn->arg[i]);
+      mm->next = nn->next; mfree(csound, nn);
+    }
+    while ((c=input()) != '\n' && c != EOF);       /* ignore rest of line */
+    yyline++;
 }
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
