@@ -184,10 +184,10 @@ namespace csound
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual std::vector<double> getPT(size_t begin,
-				      size_t end,
-				      double lowest,
-				      double range,
-				      size_t divisionsPerOctave = 12) const;
+                                      size_t end,
+                                      double lowest,
+                                      double range,
+                                      size_t divisionsPerOctave = 12) const;
     /**
      * For the specified segment of the score,
      * adjust the pitches to match the specified indexes for the prime chord
@@ -196,12 +196,12 @@ namespace csound
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void setPT(size_t begin,
-		       size_t end,
-		       double prime,
-		       double transposition,
-		       double lowest,
-		       double range,
-		       size_t divisionsPerOctave = 12);
+                       size_t end,
+                       double prime,
+                       double transposition,
+                       double lowest,
+                       double range,
+                       size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between
      * the specified segments of the score
@@ -216,13 +216,13 @@ namespace csound
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void voicelead(size_t beginSource,
-			   size_t endSource,
-			   size_t beginTarget,
-			   size_t endTarget,
-			   double lowest,
-			   double range,
-			   bool avoidParallelFifths,
-			   size_t divisionsPerOctave = 12);
+                           size_t endSource,
+                           size_t beginTarget,
+                           size_t endTarget,
+                           double lowest,
+                           double range,
+                           bool avoidParallelFifths,
+                           size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between
      * the specified segments of the score
@@ -238,14 +238,14 @@ namespace csound
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void voicelead(size_t beginSource,
-			   size_t endSource,
-			   size_t beginTarget,
-			   size_t endTarget,
-			   const std::vector<double> &targetPitches,
-			   double lowest,
-			   double range,
-			   bool avoidParallelFifths,
-			   size_t divisionsPerOctave = 12);
+                           size_t endSource,
+                           size_t beginTarget,
+                           size_t endTarget,
+                           const std::vector<double> &targetPitches,
+                           double lowest,
+                           double range,
+                           bool avoidParallelFifths,
+                           size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time,
      * that is, return "begin" for the time;

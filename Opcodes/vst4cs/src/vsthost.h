@@ -80,7 +80,7 @@ class VSTPlugin {
     static std::map<long, std::string> masterOpcodes;
     static std::map<long, std::string> dispatchOpcodes;
     static size_t opcodeRefCount;
-	int targetFLpanel; //GAB
+    int targetFLpanel; //GAB
 
     VSTPlugin(CSOUND *csound);
     virtual ~VSTPlugin();
@@ -135,11 +135,11 @@ class VSTPlugin {
                        long opcode, long index, long value, void *ptr,
                        float opt);
     static void initializeOpcodes();
-	
-	long EffGetChunk(void **ptr, bool isPreset = false) // GAB
-	{ 
-		return Dispatch(effGetChunk, isPreset, 0, ptr); 
-	}
+
+    long EffGetChunk(void **ptr, bool isPreset = false) // GAB
+    {
+        return Dispatch(effGetChunk, isPreset, 0, ptr);
+    }
     long EffGetProgram() { return Dispatch(effGetProgram); }
     void EffSetProgram(long lValue) { Dispatch(effSetProgram, 0, lValue); }
     void EffGetProgramName(char *ptr) { Dispatch(effGetProgramName, 0, 0, ptr); }

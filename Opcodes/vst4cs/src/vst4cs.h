@@ -126,9 +126,9 @@ typedef struct VSTEDIT_ {
 } VSTEDIT;
 
 typedef struct VSTTEMPO_ { //gab
-	OPDS h;
-	// Inputs.
-	MYFLT *tempo,*iVSThandle;
+        OPDS h;
+        // Inputs.
+        MYFLT *tempo,*iVSThandle;
 } VSTTEMPO;
 
 #endif

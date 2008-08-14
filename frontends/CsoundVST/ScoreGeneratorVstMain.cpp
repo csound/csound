@@ -74,14 +74,14 @@ HINSTANCE ghInst = 0;
 
 char gPath[MAX_PATH] = {0};
 
-bool InitModule ()   
-{ 
-    return true; 
+bool InitModule ()
+{
+    return true;
 }
 
-bool DeinitModule () 
-{ 
-    return true; 
+bool DeinitModule ()
+{
+    return true;
 }
 
 BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID lpvReserved)
@@ -105,9 +105,9 @@ BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID lpvReserved)
 /**
 * Uses ScoreGeneratorVst to implement IMidiEffect.
 */
-class ScoreGenPlugin : 
-    public CMidiEffect, 
-    public ScoreGeneratorVst, 
+class ScoreGenPlugin :
+    public CMidiEffect,
+    public ScoreGeneratorVst,
     public IEditorFactory,
     public IPlugView
 {
@@ -117,16 +117,16 @@ protected:
     CMidiEventQueue outputQueue;
     unsigned long __funknownRefCount;
 public:
-    ScoreGenPlugin(char *storageUID) : 
-        CMidiEffect(storageUID), 
+    ScoreGenPlugin(char *storageUID) :
+        CMidiEffect(storageUID),
         transportInfo(0),
         masterTrackInfo(0),
         __funknownRefCount(0)
     {
         log("BEGAN ScoreGenPlugin::ScoreGenPlugin()...\n");
-        flags = kMEIsEditable;	
-        presetsAreChunks (true);	
-        //setResourceID (gEditorResourceID); 
+        flags = kMEIsEditable;
+        presetsAreChunks (true);
+        //setResourceID (gEditorResourceID);
         log("ENDED ScoreGenPlugin::ScoreGenPlugin().\n");
     }
     static FUnknown* createInstance (void* context)
@@ -151,27 +151,27 @@ public:
     // FUnknown
     tresult PLUGIN_API queryInterface (const char* iid, void** obj)
     {
-        QUERY_INTERFACE (iid, obj, ::FUnknown::iid,			IMidiEffect)
-        QUERY_INTERFACE (iid, obj, IPluginBase::iid,			IPluginBase)
-        QUERY_INTERFACE (iid, obj, IMidiEffect::iid,			IMidiEffect)
-        QUERY_INTERFACE (iid, obj, IPlugController::iid,		IPlugController)
+        QUERY_INTERFACE (iid, obj, ::FUnknown::iid,                     IMidiEffect)
+        QUERY_INTERFACE (iid, obj, IPluginBase::iid,                    IPluginBase)
+        QUERY_INTERFACE (iid, obj, IMidiEffect::iid,                    IMidiEffect)
+        QUERY_INTERFACE (iid, obj, IPlugController::iid,                IPlugController)
         QUERY_INTERFACE (iid, obj, IGenericPlugController::iid,IGenericPlugController)
-        QUERY_INTERFACE (iid, obj, IEditorFactory::iid,		IEditorFactory)
+        QUERY_INTERFACE (iid, obj, IEditorFactory::iid,         IEditorFactory)
         QUERY_INTERFACE (iid, obj, IPersistentChunk::iid,      IPersistentChunk)
         *obj = 0;
         return kNoInterface;
     }
-    virtual unsigned long PLUGIN_API addRef ()  
-    {                                              
-	    return ++__funknownRefCount;               
-    }                                              
-    virtual unsigned long PLUGIN_API release () 
-    {                                              
-	    if(--__funknownRefCount == 0) {                                          
-		    delete this;                           
-		    return 0;                              
-	    }                                          
-	    return __funknownRefCount;                 
+    virtual unsigned long PLUGIN_API addRef ()
+    {
+            return ++__funknownRefCount;
+    }
+    virtual unsigned long PLUGIN_API release ()
+    {
+            if(--__funknownRefCount == 0) {
+                    delete this;
+                    return 0;
+            }
+            return __funknownRefCount;
     }
     // IMidiEffect
     tresult initialize (FUnknown* context)
@@ -238,11 +238,11 @@ public:
                 accessor->setStart(event, start);
                 accessor->setImmediateEvent(event, false);
                 if (debug) {
-                    logv("  Event %5d: start=%12.4f (%8d ppq), length=%12.4f (%8d ppq), status=%3d, channel=%3d, data1=%3d, data2=%3d\n", 
+                    logv("  Event %5d: start=%12.4f (%8d ppq), length=%12.4f (%8d ppq), status=%3d, channel=%3d, data1=%3d, data2=%3d\n",
                         i,
-                        ppqToSeconds(accessor->getStart(event)), 
+                        ppqToSeconds(accessor->getStart(event)),
                         accessor->getStart(event),
-                        ppqToSeconds(accessor->getLength(event)), 
+                        ppqToSeconds(accessor->getLength(event)),
                         accessor->getLength(event),
                         accessor->getStatus(event),
                         accessor->getChannel(event),
@@ -288,7 +288,7 @@ public:
     //{
     //    return false;
     //}
-    tresult PLUGIN_API getEditorSize (const char* name, ViewRect* rect)    
+    tresult PLUGIN_API getEditorSize (const char* name, ViewRect* rect)
     {
         rect->top = 0;
         rect->left = 0;
@@ -329,7 +329,7 @@ public:
     tresult PLUGIN_API onSize (ViewRect* newSize)
     {
         return kNotImplemented;
-    }    
+    }
     // IPersistentChunk
     tresult PLUGIN_API setChunk (char* chunk, long size)
     {
@@ -358,7 +358,7 @@ public:
 
 static PFactoryInfo factoryInfo = {"Csound", "http://csounds.com", "gogins@pipeline.com", 1};
 
-static PClassInfo classInfo = { INLINE_UID (0xe69c1d10, 0x771340b7, 0xafc3c900, 0x7b43406a), PClassInfo::kManyInstances,	kMidiModuleClass, "ScoreGen"};
+static PClassInfo classInfo = { INLINE_UID (0xe69c1d10, 0x771340b7, 0xafc3c900, 0x7b43406a), PClassInfo::kManyInstances,        kMidiModuleClass, "ScoreGen"};
 
 PLUGIN_API IPluginFactory* GetPluginFactory ()
 {
