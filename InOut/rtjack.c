@@ -957,7 +957,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
         "JACK output port name prefix (default: output)", NULL);
     /* sleep time */
     i = 250; j = 25000;         /* min/max value */
-    csound->CreateConfigurationVariable(
+        csound->CreateConfigurationVariable(
         csound, "jack_sleep_time", (void*) &(p->sleepTime),
         CSOUNDCFG_INTEGER, 0, &i, &j,
         "Deprecated", NULL);

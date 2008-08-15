@@ -621,7 +621,7 @@ extern "C" {
     csoundDoCallback_,  /*  doCsoundCallback    */
     &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
     csound_str_hash_32, /*  strHash32           */
-    {0, 0, {NULL}}, /* REMOT_BUF */
+    {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
     NULL, NULL,     /* chanif, chanof       */
@@ -929,6 +929,7 @@ extern "C" {
     csoundCreateConfigurationVariable(p, "rtaudio", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       "Real time audio module name", NULL);
+
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
