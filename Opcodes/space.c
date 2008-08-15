@@ -39,7 +39,7 @@ static int spaceset(CSOUND *csound, SPACE *p)
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+      if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
         return NOTOK;
       p->ftp = ftp;
     }
