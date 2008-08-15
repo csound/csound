@@ -342,8 +342,8 @@ if commonEnvironment['buildOLPC'] == '1':
     commonEnvironment['useGettext'] = '1'
     commonEnvironment['useDouble'] = '0'
     commonEnvironment['usePortAudio'] = '0'
-    commonEnvironment['useJack'] = '0'
-    jackFound = False
+    commonEnvironment['useJack'] = '1'
+    #jackFound = False
     commonEnvironment['buildCsoundAC'] = '0'
     commonEnvironment['buildCsound5GUI'] = '0'
     commonEnvironment['useDouble'] = '0'
@@ -652,12 +652,12 @@ boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
-if not buildOLPC:
-    jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
-if not buildOLPC:
- pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
-else:
- pulseaudioFound = 0
+#if not buildOLPC:
+jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
+#if not buildOLPC:
+pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
+#else:
+#pulseaudioFound = 0
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
@@ -1495,7 +1495,7 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/newgabopc.c
 '''))
 makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
-if (not buildOLPC) and jackFound:
+if jackFound:
     makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')

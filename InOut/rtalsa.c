@@ -46,6 +46,12 @@
 #include <termios.h>
 #include <errno.h>
 #include <alsa/asoundlib.h>
+#include <sched.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
+
 
 #include "soundio.h"
 
@@ -88,6 +94,40 @@ typedef struct midiDevFile_ {
 static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
 };
+
+
+
+int set_scheduler_priority(CSOUND *csound, int priority)
+{
+    struct sched_param p;
+ 
+    memset(&p, 0, sizeof(struct sched_param));
+    if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
+      csound->Message(csound, "--scheduler: invalid priority value; the allowed range is:");
+      csound->Message(csound,"  -20 to -1: set nice level");
+      csound->Message(csound,"          0: normal scheduling, but lock memory");
+      csound->Message(csound,"    1 to %d: SCHED_RR with the specified priority "
+                    "(DANGEROUS)", sched_get_priority_max(SCHED_RR));
+            return -1;
+       }
+    /* set scheduling policy and priority */
+    if (priority > 0) {
+      p.sched_priority = priority;
+      if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
+        csound->Message(csound,"csound: cannot set scheduling policy to SCHED_RR");
+      }
+      else   csound->Message(csound,"csound: setting scheduling policy to SCHED_RR\n");
+    }
+    else {
+      /* nice requested */
+      if (setpriority(PRIO_PROCESS, 0, priority) != 0) {
+        csound->Message(csound,"csound: cannot set nice level to %d",
+                       priority);
+      }
+    }
+    return 0;
+}
+
 
 /* sample conversion routines for playback */
 
@@ -462,6 +502,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       n, m, err;
+   
 
     dev = (DEVPARAMS*) csound->rtRecord_userdata;
     if (dev->handle == NULL) {
@@ -508,7 +549,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int     n, err;
-
+    
     dev = (DEVPARAMS*) csound->rtPlay_userdata;
     if (dev->handle == NULL)
       return;
@@ -893,14 +934,29 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
     return retval;
 }
 
+
+
+
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
+
+    int minsched, maxsched, *priority;
+    csound->CreateGlobalVariable(csound, "::priority", sizeof(int));
+    priority = (int *) (csound->QueryGlobalVariable(csound, "::priority"));
+    if (priority == NULL)
+      csound->Message(csound, "warning... could not create global var\n");
+    minsched = -20;
+    maxsched = (int) sched_get_priority_max(SCHED_RR); 
+    csound->CreateConfigurationVariable(csound, "rtscheduler", priority, CSOUNDCFG_INTEGER, 0, &minsched, &maxsched,                      
+                   "RT scheduler priority, alsa module", NULL);
+
     /* nothing to do, report success */
     if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "ALSA real-time audio and MIDI module "
                       "for Csound by Istvan Varga\n");
+
     return 0;
 }
 
@@ -910,6 +966,14 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     char    *s;
     int     i;
     char    buf[9];
+
+    csCfgVariable_t *cfg;
+    int priority;
+    cfg = csound->QueryConfigurationVariable(csound, "rtscheduler");
+    priority = *(cfg->i.p);  
+
+    if(priority != 0) set_scheduler_priority(csound, priority);
+  
 
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
