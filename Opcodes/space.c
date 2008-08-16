@@ -69,7 +69,7 @@ static int space(CSOUND *csound, SPACE *p)
     MYFLT   torev, localrev, globalrev;
     MYFLT   xndx, yndx;
     MYFLT   half_pi = FL(0.5)*PI_F;
-    MYFLT   sqrt2 = (MYFLT)sqrt(2.0);
+    MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
     int     n;
     FUNC    *ftp;
@@ -109,9 +109,9 @@ static int space(CSOUND *csound, SPACE *p)
       yndx = *p->ky;
     }
 
-    distance = (MYFLT)sqrt((xndx*xndx) + (yndx*yndx));
-    fabxndx = (MYFLT)fabs(xndx);
-    fabyndx = (MYFLT)fabs(yndx);
+    distance = HYPOT(xndx, yndx);
+    fabxndx = FABS(xndx);
+    fabyndx = FABS(yndx);
     if ((fabxndx > FL(1.0)) || (fabyndx > FL(1.0))) {
       if (fabxndx > fabyndx) {
         xndx = xndx/fabxndx;
@@ -128,15 +128,15 @@ static int space(CSOUND *csound, SPACE *p)
     if (distance < FL(1.0)) distance = FL(1.0);
 
     distr=(FL(1.0) / distance);
-    distrsq = FL(1.0)/(MYFLT)sqrt(distance);
+    distrsq = FL(1.0)/SQRT(distance);
 
     xndx = (xndx+1)*FL(0.5);
     yndx = (yndx+1)*FL(0.5);
 
-    ch2 = (MYFLT)(sin(half_pi * xndx) * sin(half_pi * yndx) * sqrt2);
-    ch4 = (MYFLT)(sin(half_pi * xndx) * sin(half_pi * (1-yndx)) * sqrt2);
-    ch1 = (MYFLT)(sin(half_pi * (1 - xndx)) * sin(half_pi * yndx) * sqrt2);
-    ch3 = (MYFLT)(sin(half_pi * (1 - xndx)) * sin(half_pi * (1 - yndx)) * sqrt2);
+    ch2 = SIN(half_pi * xndx) * SIN(half_pi * yndx) * sqrt2;
+    ch4 = SIN(half_pi * xndx) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
+    ch1 = SIN(half_pi * (FL(1.0) - xndx)) * SIN(half_pi * yndx) * sqrt2;
+    ch3 = SIN(half_pi * (FL(1.0) - xndx)) * SIN(half_pi * (FL(1.0) - yndx)) * sqrt2;
 
     r1 = p->r1;
     r2 = p->r2;
@@ -151,7 +151,7 @@ static int space(CSOUND *csound, SPACE *p)
       direct = sigp[n] * distr;
       torev = sigp[n] * distrsq * *p->reverbamount;
       globalrev = torev * distr;
-      localrev = torev * (1 - distr);
+      localrev = torev * (FL(1.0) - distr);
       r1[n] = direct * ch1;
       r2[n] = direct * ch2;
       r3[n] = direct * ch3;
@@ -190,7 +190,7 @@ static int spdistset(CSOUND *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+     if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
        return NOTOK;
      p->ftp = ftp;
    }
