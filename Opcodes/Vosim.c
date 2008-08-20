@@ -64,7 +64,8 @@ int vosimset(CSOUND* csound, VOSIM *p)
  */
 void vosim_event(CSOUND* csound, VOSIM *p)
 {
-    p->pulstogo = *p->knofpulse + 1;  /* count of pulses, (+1 since decr at start of pulse) */
+    /* count of pulses, (+1 since decr at start of pulse) */
+    p->pulstogo = *p->knofpulse + 1;
     if (*p->kfund == FL(0.0))         /* infinitely long event */
       p->timrem = INT_MAX;
     else
@@ -72,9 +73,12 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     p->pulseinc = (int32)(*p->kform * csound->sicvt);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
     p->ampdecay = *p->kdamp;
-    p->pulseamp = *p->amp + p->ampdecay;  /* increase initial amp, since it's reduced at pulse start */
-    p->lenfact  = *p->kpulsemul;      /* if negative, table is read alternately back-/forward */
-    if (p->lenfact != FL(0.0))        /* reduce table rate, since it's increased at pulse start */
+    /* increase initial amp, since it's reduced at pulse start */
+    p->pulseamp = *p->amp + p->ampdecay;
+    /* if negative, table is read alternately back-/forward */
+    p->lenfact  = *p->kpulsemul;
+    /* reduce table rate, since it's increased at pulse start */
+    if (p->lenfact != FL(0.0))
       p->pulseinc /= p->lenfact;
 }
 

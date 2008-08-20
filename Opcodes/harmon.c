@@ -82,7 +82,7 @@ static int hm234set(CSOUND *csound, HARM234 *p)
     MYFLT minoct = *p->ilowest;
     p->hmrngflg = 0;
     if (p->auxch.auxp == NULL || minoct < p->minoct) {
-      MYFLT minfrq = (MYFLT)pow(2.0, minoct) * ONEPT;
+      MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
       int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * csound->ksmps;
       int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
@@ -100,7 +100,7 @@ static int hm234set(CSOUND *csound, HARM234 *p)
       p->pulsbuf[3] = pulsbuf;  pulsbuf += maxprd;      /* cnt must = PBUFS     */
       p->sigmoid = sigp = pulsbuf;
       for (cnt = 0; cnt < SLEN+1; cnt++)                /* make sigmoid inplace */
-        *sigp++ = (MYFLT)((1.0 - cos(PI * cnt / SLEN)) * 0.5);
+        *sigp++ = (FL(1.0) - COS(PI_F * cnt / SLEN)) * FL(0.5);
       p->maxprd = maxprd;
       p->nbufsmps = nbufsmps;
       p->n2bufsmps = nbufsmps * 2;
@@ -135,7 +135,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
 
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */
-        MYFLT cps = (MYFLT) pow(2.0, koct) * ONEPT;     /*   recalc pulse period */
+        MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
         p->period = (int16) (csound->esr / cps);
         if (!p->cpsmode)
           p->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
@@ -177,12 +177,12 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         if (posp == NULL)
           goto nonprd;
         for (x = posp;
-             x >= buf0 && *x > FL(0.0); x--); /* & its preceding z-crossing */
+             x >= buf0 && *x > FL(0.0); x--);   /* & its preceding z-crossing */
         xdist = posp - x;
       } else if (p->polarity < 0) {
-        MYFLT negpk = 0.;                               /* NEGATIVE polarity:   */
+        MYFLT negpk = FL(0.0);                  /* NEGATIVE polarity:   */
         MYFLT *negp = NULL;
-        for ( ; x < plim; x++) {                        /* find ensuing min val */
+        for ( ; x < plim; x++) {                /* find ensuing min val */
           MYFLT val = *x;
           if (val < negpk) { negpk = val; negp = x; }
         }
@@ -196,21 +196,22 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         MYFLT pospk, negpk, *posp, *negp;               /* NOT SURE:    */
         MYFLT *poscross, *negcross;
         int16 posdist, negdist;
-        pospk = negpk = 0.;
+        pospk = negpk = FL(0.0);
         posp = negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing max & min vals */
           MYFLT val = *x;
-          if (val > 0.) {
+          if (val > FL(0.0)) {
             if (val > pospk) { pospk = val; posp = x; }
           } else
             if (val < negpk) { negpk = val; negp = x; }
         }
         if (posp == NULL || negp == NULL)
           goto nonprd;
-        for (x = posp; x >= buf0 && *x > FL(0.0); x--); /* & their preceding z-crossings */
+        for (x = posp; x >= buf0 &&
+               *x > FL(0.0); x--); /* & their preceding z-crossings */
         posdist = posp - x;
         poscross = x;
-        for (x = negp; x >= buf0 && *x < 0.; x--);
+        for (x = negp; x >= buf0 && *x < FL(0.0); x--);
         negdist = negp - x;
         negcross = x;
 
