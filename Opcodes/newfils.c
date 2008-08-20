@@ -152,7 +152,7 @@ static int fofilter_init(CSOUND *csound,fofilter *p)
     int i;
     if (*p->istor==FL(0.0)) {
       for (i=0;i<4; i++)
-        p->delay[i] = 0;
+        p->delay[i] = 0.0;
     }
     return OK;
 }

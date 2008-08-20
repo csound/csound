@@ -478,13 +478,13 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
       d = SPAT3D_XYZ2DIST(x, Y, Z);             /* distance  */
       d1 = (double) SPAT3D_DIST2DEL(d);         /* delay     */
       a = SPAT3D_DIST2AMP(d);                   /* amp.      */
-      z = (MYFLT) sqrt(1.0 + (double) (x / (d + FL(0.0001))));
+      z = SQRT(FL(1.0) + (x / (d + FL(0.0001))));
       z *= a; y = a - z;                        /* Rh, Rl    */
       x += p->mdist;                            /* left channel */
       d = SPAT3D_XYZ2DIST(x, Y, Z);             /* distance  */
       d0 = (double) SPAT3D_DIST2DEL(d);         /* delay     */
       a = SPAT3D_DIST2AMP(d);                   /* amp.      */
-      x = (MYFLT) sqrt(1.0 - (double) (x / (d + FL(0.0001))));
+      x = SQRT(FL(1.0) - (x / (d + FL(0.0001))));
       x *= a; w = a - x;                                /* Lh, Ll   */
       d1 *= (double) p->oversamp * (double) csound->esr;/* convert  */
     }                                                   /* delay to */
