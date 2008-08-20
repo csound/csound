@@ -69,12 +69,12 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
     for (i=0; i<nsmps; i++) {
 
       /* COMPUTE LOCATION OF SCANNING POINT */
-      xc = kcx + krx * (MYFLT)sin(theta);
-      yc = kcy + kry * (MYFLT)cos(theta);
+      xc = kcx + krx * SIN(theta);
+      yc = kcy + kry * COS(theta);
 
       /* MAP SCANNING POINT TO BE IN UNIT SQUARE */
-      xc = xc-(MYFLT)floor(xc);
-      yc = yc-(MYFLT)floor(yc);
+      xc = xc-FLOOR(xc);
+      yc = yc-FLOOR(yc);
 
       /* SCALE TO TABLE-SIZE SQUARE */
       xloc = (int)(xc * sizx);

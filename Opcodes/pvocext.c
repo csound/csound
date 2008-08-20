@@ -53,8 +53,9 @@ void SpectralExtract(
 
     frm0 = inp;
     frm1 = pvcopy;
-    for (i=0; i<(fsize+2L)*MaxFrame; i++)
-      *frm1++ = *frm0++;
+    memcpy(pvcopy, inp, (fsize+2L)*MaxFrame*sizeof(float));
+    /* for (i=0; i<(fsize+2L)*MaxFrame; i++) */
+    /*   *frm1++ = *frm0++; */
     frm1 = pvcopy;
     ampfrmjump = (fsize+2L) / 2L;
     for (j=0; j<(fsize/2L + 1L); j++) {

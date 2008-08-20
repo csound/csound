@@ -217,8 +217,9 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
       p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
     /* NB: HANNING */
-    for (i = 0; i< pvfrsiz(p); ++i)
-      p->outBuf[i] = FL(0.0);
+    memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
+    /* for (i = 0; i< pvfrsiz(p); ++i) */
+    /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     return OK;
@@ -385,8 +386,9 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
       p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
     /* NB: HANNING */
-    for (i = 0; i < pvfrsiz(p); ++i)
-      p->outBuf[i] = FL(0.0);
+    memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
+    /* for (i = 0; i < pvfrsiz(p); ++i) */
+    /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
     if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
@@ -471,8 +473,9 @@ int pvcross(CSOUND *csound, PVCROSS *p)
         ApplyHalfWin(buf2, p->window, buf2Size);
     }
     else {
-      for (n = 0; n < buf2Size; ++n)
-        buf2[n] = FL(0.0);
+      memset(buf2, 0, buf2Size*sizeof(MYFLT));
+      /* for (n = 0; n < buf2Size; ++n) */
+      /*   buf2[n] = FL(0.0); */
     }
 
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
