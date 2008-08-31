@@ -1,3 +1,7 @@
+2008-08-31  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h: 5.08.99
+
 2008-08-14  jpff  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc.l: Added #include and macros (currently
