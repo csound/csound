@@ -2803,6 +2803,7 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set cysofar to - 1 so that on the first call to printk - when
      * cycle = 0, then there will be a print cycle.     */
     p->cysofar = -1;
+    p->initialised = -1;
     return OK;
 }
 /*************************************/
@@ -2819,7 +2820,7 @@ int printk(CSOUND *csound, PRINTK *p)
     /*-----------------------------------*/
 
     /* Initialise variables.    */
-
+    if (p->initialised != -1) csound->PerfError(csound, "Not initialised");
     timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to

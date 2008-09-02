@@ -69,6 +69,7 @@ IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRO           [a-zA-Z0-9_]+\(
 MACRONAME       "$"[a-zA-Z0-9_]+
+MACRONAMED      "$"[a-zA-Z0-9_]+\.
 INTGR           [0-9]+
 NUMBER          [0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
 STCOM           "/"\*
@@ -155,6 +156,27 @@ UNDEF           "#undef"
                   return (*lvalp)->type; }
 {MACRONAME}     {
                   MACRO     *mm = macros, *mm_save = NULL;
+                  while (mm != NULL) {  /* Find the definition */
+                    if (!(strcmp(yytext+1, mm->name)))
+                      break;
+                    mm = mm->next;
+                  }
+                  if (mm == NULL) {
+                    csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                    csound->LongJmp(csound, 1);
+                  }
+                  /* Need to read from macro definition */
+                  /* ??fiddle with buffers I guess */
+                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                    csound->Message(csound, Str("Includes nested too deeply"));
+                    exit(1);
+                  }
+                  include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  yy_switch_to_buffer(yy_scan_string(mm->body));
+                }
+{MACRONAMED}    {
+                  MACRO     *mm = macros, *mm_save = NULL;
+                  yytext[csound_orcleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
                       break;
