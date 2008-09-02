@@ -2820,7 +2820,8 @@ int printk(CSOUND *csound, PRINTK *p)
     /*-----------------------------------*/
 
     /* Initialise variables.    */
-    if (p->initialised != -1) csound->PerfError(csound, "Not initialised");
+    if (p->initialised != -1)
+      csound->PerfError(csound, "printk not initialised");
     timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
