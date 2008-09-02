@@ -1,3 +1,7 @@
+2008-09-02  jpff  <jpff@codemist.co.uk>
+
+	* OOps/ugrw1.c (printkset, printk): Check that opcode is initialised
+
 2008-08-31  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h: 5.08.99
