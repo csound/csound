@@ -289,7 +289,8 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX];/* values to print */
         MYFLT   initime, ctime; /* Time when initialised; Cycle time */
-        int32    cysofar;        /* Number of print cycles so far from 0 */
+        int32   cysofar;        /* Number of print cycles so far from 0 */
+        int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
 } PRINTKS;
 

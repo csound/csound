@@ -2821,7 +2821,7 @@ int printk(CSOUND *csound, PRINTK *p)
 
     /* Initialise variables.    */
     if (p->initialised != -1)
-      csound->PerfError(csound, "printk not initialised");
+      csound->PerfError(csound, Str("printk not initialised"));
     timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
@@ -2868,6 +2868,7 @@ int printksset(CSOUND *csound, PRINTKS *p)
     char        *sdest;
     char        temp, tempn;
 
+    p->initialised = -1;
     if (*p->ptime < csound->onedkr)
       p->ctime = csound->onedkr;
     else
@@ -3105,7 +3106,8 @@ int printks(CSOUND *csound, PRINTKS *p)
     char        string[8192]; /* matt ingals replacement */
 
     /*-----------------------------------*/
-
+    if (p->initialised != -1) csound->PerfError(csound,
+                                               Str("printks not initialised"));
     timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
