@@ -32,7 +32,8 @@
  * Also, specify buildStkOpcodes=1 for SCons.
  *
  * To use these opcodes, define a RAWWAVE_PATH environment variable that points
- * to your rawwaves directory, which contains raw soundfiles with function table data.
+ * to your rawwaves directory, which contains raw soundfiles with function table
+ * data.
  *
  * All these opcodes are named "STK" + the STK classname,
  * e.g. "STKBowed" for the Bowed instrument.
@@ -42,8 +43,8 @@
  * aout STKName ifrequency igain {kcontroller0, kvalue1,...,kcontroller3, kvalue3}
  *
  * They take a frequency in Hertz and a gain parameter in the range [0, 1],
- * plus up to four optional krate controller-value pairs, and return an arate signal
- * that should be more or less in the range [-1, +1].
+ * plus up to four optional krate controller-value pairs, and return an arate
+ * signal that should be more or less in the range [-1, +1].
  * See the STK class documentation to determine the controller numbers
  * used by each instrument.
  */
@@ -87,8 +88,8 @@
 
 static std::map<CSOUND *, std::vector<Instrmnt *> > &getStkInstances()
 {
-  static std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
-  return stkInstances;
+    static std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
+    return stkInstances;
 }
 
 template<typename T>
@@ -123,66 +124,67 @@ public:
   STKInstrumentAdapter() : instrument(0) {}
   int init(CSOUND *csound)
   {
-    if(!instrument)
-      {
-        Stk::setSampleRate(csound->esr);
-        instrument = new T();
-        getStkInstances()[csound].push_back(instrument);
-      }
-    ksmps = csound->ksmps;
-    instrument->noteOn(*ifrequency, *igain);
-    released = false;
-    oldkcontroller0 = -1.0;
-    oldkvalue0 = -1.0;
-    oldkcontroller1 = -1.0;
-    oldkvalue1 = -1.0;
-    oldkcontroller2 = -1.0;
-    oldkvalue2 = -1.0;
-    oldkcontroller3 = -1.0;
-    oldkvalue3 = -1.0;
-    return OK;
+      if(!instrument)
+        {
+          Stk::setSampleRate(csound->esr);
+          instrument = new T();
+          getStkInstances()[csound].push_back(instrument);
+        }
+      ksmps = csound->ksmps;
+      instrument->noteOn(*ifrequency, *igain);
+      released = false;
+      oldkcontroller0 = -1.0;
+      oldkvalue0 = -1.0;
+      oldkcontroller1 = -1.0;
+      oldkvalue1 = -1.0;
+      oldkcontroller2 = -1.0;
+      oldkvalue2 = -1.0;
+      oldkcontroller3 = -1.0;
+      oldkvalue3 = -1.0;
+      return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    if(!released)
-      {
-        if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
-            oldkcontroller0 = *kcontroller0;
-            oldkvalue0 = *kvalue0;
-          }
-        if(*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
-            oldkcontroller1 = *kcontroller1;
-            oldkvalue1 = *kvalue1;
-          }
-        if(*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
-            oldkcontroller2 = *kcontroller2;
-            oldkvalue2 = *kvalue2;
-          }
-        if(*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
-            oldkcontroller3 = *kcontroller3;
-            oldkvalue3 = *kvalue3;
-          }
-        for(size_t i = 0; i < ksmps; i++)
-          {
-            aoutput[i] = instrument->tick();
-          }
-      }
-    else
-      {
-        for(size_t i = 0; i < ksmps; i++)
-          {
-            aoutput[i] = 0;
-          }
-      }
-    return OK;
+      if(!released)
+        {
+          if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
+              oldkcontroller0 = *kcontroller0;
+              oldkvalue0 = *kvalue0;
+            }
+          if(*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
+              oldkcontroller1 = *kcontroller1;
+              oldkvalue1 = *kvalue1;
+            }
+          if(*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
+              oldkcontroller2 = *kcontroller2;
+              oldkvalue2 = *kvalue2;
+            }
+          if(*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
+              oldkcontroller3 = *kcontroller3;
+              oldkvalue3 = *kvalue3;
+            }
+          for(size_t i = 0; i < ksmps; i++)
+            {
+              aoutput[i] = instrument->tick();
+            }
+        }
+      else
+        {
+          // memset(aoutput, 0, ksmps*sizeof(MYFLT));
+          for(size_t i = 0; i < ksmps; i++)
+            {
+              aoutput[i] = 0;
+            }
+        }
+      return OK;
   }
 };
 
@@ -218,65 +220,66 @@ public:
   STKInstrumentAdapter1() : instrument(0) {}
   int init(CSOUND *csound)
   {
-    if(!instrument) {
-      Stk::setSampleRate(csound->esr);
-      instrument = new T((StkFloat) 10.0);
-      getStkInstances()[csound].push_back(instrument);
-    }
-    ksmps = csound->ksmps;
-    instrument->noteOn(*ifrequency, *igain);
-    released = false;
-    oldkcontroller0 = -1.0;
-    oldkvalue0 = -1.0;
-    oldkcontroller1 = -1.0;
-    oldkvalue1 = -1.0;
-    oldkcontroller2 = -1.0;
-    oldkvalue2 = -1.0;
-    oldkcontroller3 = -1.0;
-    oldkvalue3 = -1.0;
-    return OK;
+      if(!instrument) {
+        Stk::setSampleRate(csound->esr);
+        instrument = new T((StkFloat) 10.0);
+        getStkInstances()[csound].push_back(instrument);
+      }
+      ksmps = csound->ksmps;
+      instrument->noteOn(*ifrequency, *igain);
+      released = false;
+      oldkcontroller0 = -1.0;
+      oldkvalue0 = -1.0;
+      oldkcontroller1 = -1.0;
+      oldkvalue1 = -1.0;
+      oldkcontroller2 = -1.0;
+      oldkvalue2 = -1.0;
+      oldkcontroller3 = -1.0;
+      oldkvalue3 = -1.0;
+      return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    if(!released)
-      {
-        if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
-            oldkcontroller0 = *kcontroller0;
-            oldkvalue0 = *kvalue0;
-          }
-        if(*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
-            oldkcontroller1 = *kcontroller1;
-            oldkvalue1 = *kvalue1;
-          }
-        if(*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
-            oldkcontroller2 = *kcontroller2;
-            oldkvalue2 = *kvalue2;
-          }
-        if(*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3)
-          {
-            instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
-            oldkcontroller3 = *kcontroller3;
-            oldkvalue3 = *kvalue3;
-          }
-        for(size_t i = 0; i < ksmps; i++)
-          {
-            aoutput[i] = instrument->tick();
-          }
-      }
-    else
-      {
-        for(size_t i = 0; i < ksmps; i++)
-          {
-            aoutput[i] = 0;
-          }
-      }
-    return OK;
+      if(!released)
+        {
+          if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
+              oldkcontroller0 = *kcontroller0;
+              oldkvalue0 = *kvalue0;
+            }
+          if(*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
+              oldkcontroller1 = *kcontroller1;
+              oldkvalue1 = *kvalue1;
+            }
+          if(*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
+              oldkcontroller2 = *kcontroller2;
+              oldkvalue2 = *kvalue2;
+            }
+          if(*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
+              oldkcontroller3 = *kcontroller3;
+              oldkvalue3 = *kvalue3;
+            }
+          for(size_t i = 0; i < ksmps; i++)
+            {
+              aoutput[i] = instrument->tick();
+            }
+        }
+      else
+        {
+          // memset(aoutput, 0, ksmps*sizef(MYFLT));
+          for(size_t i = 0; i < ksmps; i++)
+            {
+              aoutput[i] = 0;
+            }
+        }
+      return OK;
   }
 };
 

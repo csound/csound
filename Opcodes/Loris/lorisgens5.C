@@ -90,29 +90,29 @@ typedef std::vector< Oscillator > OSCILS;
 //
 static void import_partials( const std::string & sdiffilname, PARTIALS & part )
 {
-  try
-    {
-      //        clear the dstination:
-      part.clear();
+    try
+      {
+        //        clear the dstination:
+        part.clear();
 
-      //        import:
-      SdifFile f( sdiffilname );
+        //        import:
+        SdifFile f( sdiffilname );
 
-      //        copy the Partials into the vector:
-      part.reserve( f.partials().size() );
-      part.insert( part.begin(), f.partials().begin(), f.partials().end() );
+        //        copy the Partials into the vector:
+        part.reserve( f.partials().size() );
+        part.insert( part.begin(), f.partials().begin(), f.partials().end() );
 
-      //        just for grins, sort the vector:
-      // std::sort( part.begin(), part.end(), PartialUtils::compare_label<>() );
-    }
-  catch(Exception ex)
-    {
-      std::cerr << "\nERROR importing SDIF file: " << ex.what() << std::endl;
-    }
-  catch(std::exception ex)
-    {
-      std::cerr << "\nERROR importing SDIF file: " << ex.what() << std::endl;
-    }
+        //        just for grins, sort the vector:
+        // std::sort( part.begin(), part.end(), PartialUtils::compare_label<>() );
+      }
+    catch(Exception ex)
+      {
+        std::cerr << "\nERROR importing SDIF file: " << ex.what() << std::endl;
+      }
+    catch(std::exception ex)
+      {
+        std::cerr << "\nERROR importing SDIF file: " << ex.what() << std::endl;
+      }
 
 }
 
@@ -123,68 +123,76 @@ static void import_partials( const std::string & sdiffilname, PARTIALS & part )
 //
 static void apply_fadetime( PARTIALS & part, double fadetime )
 {
-  //    nothing to do if fadetime is zero:
-  if (fadetime <= 0.)
-    return;
+    //    nothing to do if fadetime is zero:
+    if (fadetime <= 0.)
+      return;
 
-  //    iterator over all Partials, adding Breakpoints at both ends:
-  PARTIALS::iterator iter;
-  for ( iter = part.begin(); iter != part.end(); ++iter )
-    {
-      Partial & partial = *iter;
+    //    iterator over all Partials, adding Breakpoints at both ends:
+    PARTIALS::iterator iter;
+    for ( iter = part.begin(); iter != part.end(); ++iter )
+      {
+        Partial & partial = *iter;
 
-      double btime = partial.startTime();       // get start time of partial
-      double etime = partial.endTime(); // get end time of partial
+        double btime = partial.startTime();       // get start time of partial
+        double etime = partial.endTime(); // get end time of partial
 
-      //        if a fadetime has been specified, introduce zero-amplitude
-      //        Breakpoints to fade in and out over fadetime seconds:
-      if( fadetime != 0 )
-        {
-          if ( partial.amplitudeAt(btime) > 0. )
-            {
-              //        only fade in if starting amplitude is non-zero:
-              if( btime > 0. )
-                {
-                  //    if the Partial begins after time 0, insert a Breakpoint
-                  //    of zero amplitude at a time fadetime before the beginning,
-                  //    of the Partial, or at zero, whichever is later:
-                  double t = std::max(btime - fadetime, 0.);
-                  partial.insert( t, Breakpoint( partial.frequencyAt(t), partial.amplitudeAt(t),
-                                                 partial.bandwidthAt(t), partial.phaseAt(t)));
-                }
-              else
-                {
-                  //    if the Partial begins at time zero, insert the zero-amplitude
-                  //    Breakpoint at time zero, and make sure that the next Breakpoint
-                  //    in the Partial is no more than fadetime away from the beginning
-                  //    of the Partial:
+        //        if a fadetime has been specified, introduce zero-amplitude
+        //        Breakpoints to fade in and out over fadetime seconds:
+        if( fadetime != 0 )
+          {
+            if ( partial.amplitudeAt(btime) > 0. )
+              {
+                //        only fade in if starting amplitude is non-zero:
+                if( btime > 0. )
+                  {
+                    //    if the Partial begins after time 0, insert a Breakpoint
+                    //    of zero amplitude at a time fadetime before the beginning,
+                    //    of the Partial, or at zero, whichever is later:
+                    double t = std::max(btime - fadetime, 0.);
+                    partial.insert( t, Breakpoint( partial.frequencyAt(t),
+                                                   partial.amplitudeAt(t),
+                                                   partial.bandwidthAt(t),
+                                                   partial.phaseAt(t)));
+                  }
+                else
+                  {
+                    // if the Partial begins at time zero, insert the zero-amplitude
+                    // Breakpoint at time zero, and make sure that the next Breakpoint
+                    // in the Partial is no more than fadetime away from the beginning
+                    // of the Partial:
 
-                  //    find the first Breakpoint later than time 0:
-                  Partial::iterator pit = partial.begin();
-                  while (pit.time() < 0.)
-                    ++pit;
-                  if ( pit.time() > fadetime )
-                    {
-                      //        if first Breakpoint afer 0 is later than fadetime,
-                      //        insert a Breakpoint at fadetime:
-                      double t = fadetime;
-                      partial.insert( t, Breakpoint( partial.frequencyAt(t), partial.amplitudeAt(t),
-                                                     partial.bandwidthAt(t), partial.phaseAt(t)));
-                    }
+                    // find the first Breakpoint later than time 0:
+                    Partial::iterator pit = partial.begin();
+                    while (pit.time() < 0.)
+                      ++pit;
+                    if ( pit.time() > fadetime )
+                      {
+                        //        if first Breakpoint afer 0 is later than fadetime,
+                        //        insert a Breakpoint at fadetime:
+                        double t = fadetime;
+                        partial.insert( t, Breakpoint( partial.frequencyAt(t),
+                                                       partial.amplitudeAt(t),
+                                                       partial.bandwidthAt(t),
+                                                       partial.phaseAt(t)));
+                      }
 
-                  //    insert the zero-amplitude Breakpoint at 0:
-                  partial.insert( 0, Breakpoint( partial.frequencyAt(0), 0,
-                                                 partial.bandwidthAt(0), partial.phaseAt(0)));
+                    //    insert the zero-amplitude Breakpoint at 0:
+                    partial.insert( 0, Breakpoint( partial.frequencyAt(0),
+                                                   0,
+                                                   partial.bandwidthAt(0),
+                                                   partial.phaseAt(0)));
 
-                }
-            }
+                  }
+              }
 
-          //    add fadeout Breakpoint at end:
-          double t = etime + fadetime;
-          partial.insert( t, Breakpoint( partial.frequencyAt(t), 0,
-                                         partial.bandwidthAt(t), partial.phaseAt(t)));
-        }
-    }
+            //    add fadeout Breakpoint at end:
+            double t = etime + fadetime;
+            partial.insert( t, Breakpoint( partial.frequencyAt(t),
+                                           0,
+                                           partial.bandwidthAt(t),
+                                           partial.phaseAt(t)));
+          }
+      }
 
 }
 
@@ -195,7 +203,7 @@ static void apply_fadetime( PARTIALS & part, double fadetime )
 //
 static inline double radianFreq( CSOUND *csound, double hz )
 {
-  return hz * (double) csound->tpidsr;
+    return hz * (double) csound->tpidsr;
 }
 
 // ---------------------------------------------------------------------------
@@ -207,55 +215,55 @@ static void accum_samples( CSOUND * csound,
                            Oscillator & oscil, Breakpoint & bp,
                            double * bufbegin )
 {
-  if( bp.amplitude() > 0 || oscil.amplitude() > 0 )
-    {
-      double radfreq = radianFreq( csound, bp.frequency() );
-      double amp = bp.amplitude();
-      double bw = bp.bandwidth();
+    if( bp.amplitude() > 0 || oscil.amplitude() > 0 )
+      {
+        double radfreq = radianFreq( csound, bp.frequency() );
+        double amp = bp.amplitude();
+        double bw = bp.bandwidth();
 
-      //        initialize the oscillator if it is changing from zero
-      //        to non-zero amplitude in this  control block:
-      if ( oscil.amplitude() == 0. )
-        {
-          //    don't initialize with bogus values, Oscillator
-          //    only guards against out-of-range target values
-          //    in generateSamples(), parameter mutators are
-          //    dangerous:
+        //        initialize the oscillator if it is changing from zero
+        //        to non-zero amplitude in this  control block:
+        if ( oscil.amplitude() == 0. )
+          {
+            //    don't initialize with bogus values, Oscillator
+            //    only guards against out-of-range target values
+            //    in generateSamples(), parameter mutators are
+            //    dangerous:
 
-          if ( radfreq > PI )   //      don't alias
-            amp = 0.;
+            if ( radfreq > PI )   //      don't alias
+              amp = 0.;
 
-          if ( bw > 1. )        //      clamp bandwidth
-            bw = 1.;
-          else if ( bw < 0. )
-            bw = 0.;
+            if ( bw > 1. )        //      clamp bandwidth
+              bw = 1.;
+            else if ( bw < 0. )
+              bw = 0.;
 
 #ifdef DEBUG_LORISGENS
-        /*
-          std::cerr << "initializing oscillator " << std::endl;
-          std::cerr << "parameters: " << bp.frequency() << "  ";
-          std::cerr << amp << "  " << bw << std::endl;
-        */
+            /*
+              std::cerr << "initializing oscillator " << std::endl;
+              std::cerr << "parameters: " << bp.frequency() << "  ";
+              std::cerr << amp << "  " << bw << std::endl;
+            */
 #endif
 
-          //    initialize frequency, amplitude, and bandwidth to
-          //    their target values:
-          /*
-            oscil.setRadianFreq( radfreq );
-            oscil.setAmplitude( amp );
-            oscil.setBandwidth( bw );
-          */
-          oscil.resetEnvelopes( bp, (double) csound->esr );
+            //    initialize frequency, amplitude, and bandwidth to
+            //    their target values:
+            /*
+              oscil.setRadianFreq( radfreq );
+              oscil.setAmplitude( amp );
+              oscil.setBandwidth( bw );
+            */
+            oscil.resetEnvelopes( bp, (double) csound->esr );
 
-          //    roll back the phase:
-          oscil.resetPhase( bp.phase() - ( radfreq * (double) csound->ksmps ) );
-        }
+            //    roll back the phase:
+            oscil.resetPhase( bp.phase() - ( radfreq * (double) csound->ksmps ) );
+          }
 
-      //        accumulate samples into buffer:
-      // oscil.generateSamples( bufbegin, bufbegin + nsamps, radfreq, amp, bw );
-      oscil.oscillate( bufbegin, bufbegin + csound->ksmps,
-                       bp, (double) csound->esr );
-    }
+        //        accumulate samples into buffer:
+        // oscil.generateSamples( bufbegin, bufbegin + nsamps, radfreq, amp, bw );
+        oscil.oscillate( bufbegin, bufbegin + csound->ksmps,
+                         bp, (double) csound->esr );
+      }
 }
 
 // ---------------------------------------------------------------------------
@@ -265,7 +273,7 @@ static void accum_samples( CSOUND * csound,
 //
 static inline void clear_buffer( double * buf, int nsamps )
 {
-  std::fill( buf, buf + nsamps, 0. );
+    std::fill( buf, buf + nsamps, 0. );
 }
 
 // ---------------------------------------------------------------------------
@@ -276,11 +284,11 @@ static inline void clear_buffer( double * buf, int nsamps )
 static inline void convert_samples( CSOUND * csound,
                                     const double * src, MYFLT * tgt )
 {
-  double  scaleFac = (double) csound->e0dbfs;
-  for(int i = 0; i < csound->ksmps; i++)
-    {
-      tgt[i] = (MYFLT) (src[i] * scaleFac);
-    }
+    double  scaleFac = (double) csound->e0dbfs;
+    for(int i = 0; i < csound->ksmps; i++)
+      {
+        tgt[i] = (MYFLT) (src[i] * scaleFac);
+      }
 }
 
 #pragma mark -- EnvelopeReader --
@@ -292,11 +300,11 @@ static inline void convert_samples( CSOUND * csound,
 //      Breakpoints that are members of any Partial. Each set of parameters
 //      (Breakpoint) is paired with the label of the corresponding Partial.
 //
-//      A static map of EnvelopeReader is maintained that allows EnvelopeReader to be
-//      found by index and Csound owner-instrument. A EnvelopeReader can be added to
-//      this map, by is parent LorisReader (below), and subsequently found by
-//      other generators having the same owner instrument. This is how lorisplay
-//      and lorismorph access the data read by a LorisReader.
+//      A static map of EnvelopeReader is maintained that allows EnvelopeReader
+//      to be found by index and Csound owner-instrument. A EnvelopeReader can
+//      be added to this map, by is parent LorisReader (below), and subsequently
+//      found by other generators having the same owner instrument. This is how
+//      lorisplay and lorismorph access the data read by a LorisReader.
 //
 class EnvelopeReader
 {
@@ -333,8 +341,8 @@ class EnvelopeReader
 EnvelopeReader::TagMap &
 EnvelopeReader::Tags( void )
 {
-  static TagMap readers;        // FIXME: should remove statics
-  return readers;
+    static TagMap readers;        // FIXME: should remove statics
+    return readers;
 }
 
 // ---------------------------------------------------------------------------
@@ -346,23 +354,25 @@ EnvelopeReader::Tags( void )
 const EnvelopeReader *
 EnvelopeReader::Find( INSDS * owner, int idx )
 {
-  TagMap & readers = Tags();
-  TagMap::iterator it = readers.find( Tag( owner, idx ) );
-  if ( it != readers.end() )
-    {
+    TagMap & readers = Tags();
+    TagMap::iterator it = readers.find( Tag( owner, idx ) );
+    if ( it != readers.end() )
+      {
 #ifdef DEBUG_LORISGENS
-      std::cerr << "** found EnvelopeReader with owner " << owner << " and index " << idx;
-      std::cerr << " having " << it->second->size() << " envelopes." << std::endl;
+        std::cerr << "** found EnvelopeReader with owner " << owner
+                  << " and index " << idx;
+        std::cerr << " having " << it->second->size() << " envelopes." << std::endl;
 #endif
-      return it->second;
-    }
-  else
-    {
+        return it->second;
+      }
+    else
+      {
 #ifdef DEBUG_LORISGENS
-      std::cerr << "** could not find EnvelopeReader with owner " << owner << " and index " << idx << std::endl;
+        std::cerr << "** could not find EnvelopeReader with owner " << owner
+                  << " and index " << idx << std::endl;
 #endif
-      return NULL;
-    }
+        return NULL;
+      }
 }
 
 #pragma mark -- ImportedPartials --
@@ -403,13 +413,15 @@ class ImportedPartials
   long size( void ) const { return _partials.size(); }
 
   //    comparison:
-  friend bool operator < ( const ImportedPartials & lhs, const ImportedPartials & rhs )
-    {
+  friend bool operator < ( const ImportedPartials & lhs,
+                           const ImportedPartials & rhs )
+  {
       return (lhs._fadetime < rhs._fadetime) || (lhs._fname < rhs._fname);
-    }
+  }
 
   //    static member for managing a permanent collection:
-  static const ImportedPartials & GetPartials( const string & sdiffilname, double fadetime );
+  static const ImportedPartials & GetPartials( const string & sdiffilname,
+                                               double fadetime );
 };
 
 // ---------------------------------------------------------------------------
@@ -485,28 +497,31 @@ class LorisReader
 
   //    envelope parameter computation:
   //    (returns number of active Partials)
-  long updateEnvelopePoints( double time, double fscale, double ascale, double bwscale );
+  long updateEnvelopePoints( double time, double fscale,
+                             double ascale, double bwscale );
 };
 
 // ---------------------------------------------------------------------------
 //      LorisReader construction
 // ---------------------------------------------------------------------------
 //
-LorisReader::LorisReader( const string & fname, double fadetime, INSDS * owner, int idx ) :
+LorisReader::LorisReader( const string & fname, double fadetime,
+                          INSDS * owner, int idx ) :
   _partials( ImportedPartials::GetPartials( fname, fadetime ) ),
-     _envelopes( _partials.size() ),
-     _tag( owner, idx )
+  _envelopes( _partials.size() ),
+  _tag( owner, idx )
 {
-  //    set the labels for the EnvelopeReader:
-  for ( size_t i = 0; i < _partials.size(); ++i )
-    {
-      _envelopes.labelAt(i) = _partials[i].label();
-    }
+    //    set the labels for the EnvelopeReader:
+    for ( size_t i = 0; i < _partials.size(); ++i )
+      {
+        _envelopes.labelAt(i) = _partials[i].label();
+      }
 
-  //    tag these envelopes:
+    //    tag these envelopes:
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** constructed new EnvelopeReader with owner " << owner << " and index " << idx;
-  std::cerr << " having " << _envelopes.size() << " envelopes." << std::endl;
+    std::cerr << "** constructed new EnvelopeReader with owner " << owner
+              << " and index " << idx;
+    std::cerr << " having " << _envelopes.size() << " envelopes." << std::endl;
 #endif
   EnvelopeReader::Tags()[ _tag ] = &_envelopes;
 }
@@ -517,23 +532,24 @@ LorisReader::LorisReader( const string & fname, double fadetime, INSDS * owner, 
 //
 LorisReader::~LorisReader( void )
 {
-  //    if this reader's envelopes are still in the tag map,
-  //    remove them:
-  EnvelopeReader::TagMap & tags = EnvelopeReader::Tags();
-  EnvelopeReader::TagMap::iterator it = tags.find( _tag );
+    //    if this reader's envelopes are still in the tag map,
+    //    remove them:
+    EnvelopeReader::TagMap & tags = EnvelopeReader::Tags();
+    EnvelopeReader::TagMap::iterator it = tags.find( _tag );
 
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** destroying EnvelopeReader with owner " << _tag.first << " and index " << _tag.second;
-  std::cerr << " having " << _envelopes.size() << " envelopes." << std::endl;
+    std::cerr << "** destroying EnvelopeReader with owner " << _tag.first
+              << " and index " << _tag.second;
+    std::cerr << " having " << _envelopes.size() << " envelopes." << std::endl;
 #endif
 
-  if ( it != tags.end() && it->second == &_envelopes )
-    {
+    if ( it != tags.end() && it->second == &_envelopes )
+      {
 #ifdef DEBUG_LORISGENS
-      std::cerr << "(Removing from Tag map.)" << std::endl;
+        std::cerr << "(Removing from Tag map.)" << std::endl;
 #endif
-      tags.erase(it);
-    }
+        tags.erase(it);
+      }
 }
 
 // ---------------------------------------------------------------------------
@@ -541,30 +557,31 @@ LorisReader::~LorisReader( void )
 // ---------------------------------------------------------------------------
 //
 long
-LorisReader::updateEnvelopePoints( double time, double fscale, double ascale, double bwscale )
+LorisReader::updateEnvelopePoints( double time, double fscale,
+                                   double ascale, double bwscale )
 {
-  long countActive = 0;
+    long countActive = 0;
 
-  for (size_t i = 0; i < _partials.size(); ++i )
-    {
-      const Partial & p = _partials[i];
-      Breakpoint & bp = _envelopes.valueAt(i);
+    for (size_t i = 0; i < _partials.size(); ++i )
+      {
+        const Partial & p = _partials[i];
+        Breakpoint & bp = _envelopes.valueAt(i);
 
-      //        update envelope paramters for this Partial:
-      bp.setFrequency( fscale * p.frequencyAt( time ) );
-      bp.setAmplitude( ascale * p.amplitudeAt( time ) );
-      bp.setBandwidth( bwscale * p.bandwidthAt( time ) );
-      bp.setPhase( p.phaseAt( time ) );
+        //        update envelope paramters for this Partial:
+        bp.setFrequency( fscale * p.frequencyAt( time ) );
+        bp.setAmplitude( ascale * p.amplitudeAt( time ) );
+        bp.setBandwidth( bwscale * p.bandwidthAt( time ) );
+        bp.setPhase( p.phaseAt( time ) );
 
-      //        update counter:
-      if ( bp.amplitude() > 0. )
-        ++countActive;
-    }
+        //        update counter:
+        if ( bp.amplitude() > 0. )
+          ++countActive;
+      }
 
-  //    tag these envelopes:
-  EnvelopeReader::Tags()[ _tag ] = &_envelopes;
+    //    tag these envelopes:
+    EnvelopeReader::Tags()[ _tag ] = &_envelopes;
 
-  return countActive;
+    return countActive;
 }
 
 #pragma mark -- lorisread generator functions --
@@ -581,38 +598,39 @@ extern "C"
 int lorisread_setup( CSOUND *csound, LORISREAD * params )
 {
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Setting up lorisread (owner " << params->h.insdshead << ")" << std::endl;
+    std::cerr << "** Setting up lorisread (owner " << params->h.insdshead
+              << ")" << std::endl;
 #endif
 
-  std::string sdiffilname;
+    std::string sdiffilname;
 
-  //    determine the name of the SDIF file to use:
-  {
-    char  *tmp, *pathname;
+    //    determine the name of the SDIF file to use:
+    {
+      char  *tmp, *pathname;
     //  use strg name, if given:
-    tmp = csound->strarg2name(
-        csound, (char*) 0, (void*) params->ifilnam, "loris.sdif.",
-        (int) csound->GetInputArgSMask( (void*) params )
-    );
-    pathname = csound->FindInputFile(csound, tmp, "SADIR");
-    if (pathname == NULL) {
-      csound->InitError(csound, Str("lorisread cannot load %s"), tmp);
-      csound->Free(csound, (void*)tmp);
-      return NOTOK;
+      tmp = csound->strarg2name( csound, (char*) 0, (void*) params->ifilnam,
+                                 "loris.sdif.",
+                                 (int) csound->GetInputArgSMask( (void*) params ));
+      pathname = csound->FindInputFile(csound, tmp, "SADIR");
+      if (pathname == NULL) {
+        csound->InitError(csound, Str("lorisread cannot load %s"), tmp);
+        csound->Free(csound, (void*)tmp);
+        return NOTOK;
+      }
+      sdiffilname = pathname;
+      csound->Free( csound, (void*) tmp );
+      csound->Free( csound, (void*) pathname );
     }
-    sdiffilname = pathname;
-    csound->Free( csound, (void*) tmp );
-    csound->Free( csound, (void*) pathname );
-  }
 
-  //    construct the implementation object:
-  params->imp = new LorisReader( sdiffilname, *params->fadetime, params->h.insdshead, int(*params->readerIdx) );
-  csound->NotifyFileOpened(csound, sdiffilname.c_str(), CSFTYPE_LORIS, 0, 0);
+    //    construct the implementation object:
+    params->imp = new LorisReader( sdiffilname, *params->fadetime,
+                                   params->h.insdshead, int(*params->readerIdx) );
+    csound->NotifyFileOpened(csound, sdiffilname.c_str(), CSFTYPE_LORIS, 0, 0);
 
-  // set lorisplay_cleanup as cleanup routine:
-  csound->RegisterDeinitCallback(csound, params,
-                                 (int (*)(CSOUND*, void*)) lorisread_cleanup);
-  return OK;
+    // set lorisplay_cleanup as cleanup routine:
+    csound->RegisterDeinitCallback(csound, params,
+                                   (int (*)(CSOUND*, void*)) lorisread_cleanup);
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -623,9 +641,9 @@ int lorisread_setup( CSOUND *csound, LORISREAD * params )
 extern "C"
 int lorisread( CSOUND *csound, LORISREAD * p )
 {
-  //*(p->result) =
-  p->imp->updateEnvelopePoints( *p->time, *p->freqenv, *p->ampenv, *p->bwenv );
-  return OK;
+    //*(p->result) =
+    p->imp->updateEnvelopePoints( *p->time, *p->freqenv, *p->ampenv, *p->bwenv );
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -636,13 +654,14 @@ int lorisread( CSOUND *csound, LORISREAD * p )
 extern "C"
 int lorisread_cleanup(CSOUND *, void * p)
 {
-  LORISREAD * tp = (LORISREAD *)p;
+    LORISREAD * tp = (LORISREAD *)p;
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Cleaning up lorisread (owner " << tp->h.insdshead << ")" << std::endl;
+    std::cerr << "** Cleaning up lorisread (owner " << tp->h.insdshead
+              << ")" << std::endl;
 #endif
-  delete tp->imp;
-  tp->imp = 0;
-  return OK;
+    delete tp->imp;
+    tp->imp = 0;
+    return OK;
 }
 
 #pragma mark -- LorisPlayer --
@@ -671,10 +690,11 @@ LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
   reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
      dblbuffer( csound->ksmps, 0.0 )
 {
-  if ( reader != NULL ) {
-    oscils.resize( reader->size() );
-  } else
-    std::cerr << "** Could not find lorisplay source with index " << (int)*(params->readerIdx) << std::endl;
+    if ( reader != NULL ) {
+      oscils.resize( reader->size() );
+    } else
+      std::cerr << "** Could not find lorisplay source with index "
+                << (int)*(params->readerIdx) << std::endl;
 }
 
 #pragma mark -- lorisplay generator functions --
@@ -691,12 +711,13 @@ extern "C"
 int lorisplay_setup( CSOUND *csound, LORISPLAY * p )
 {
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Setting up lorisplay (owner " << p->h.insdshead << ")" << std::endl;
+    std::cerr << "** Setting up lorisplay (owner " << p->h.insdshead
+              << ")" << std::endl;
 #endif
-  p->imp = new LorisPlayer( csound, p );
-  csound->RegisterDeinitCallback(csound, p,
-                                 (int (*)(CSOUND*, void*)) lorisplay_cleanup);
-  return OK;
+    p->imp = new LorisPlayer( csound, p );
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND*, void*)) lorisplay_cleanup);
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -707,27 +728,27 @@ int lorisplay_setup( CSOUND *csound, LORISPLAY * p )
 extern "C"
 int lorisplay( CSOUND *csound, LORISPLAY * p )
 {
-  LorisPlayer & player = *p->imp;
-        OSCILS & oscils = player.oscils;
-  //    clear the buffer first!
-  double * bufbegin =  &(player.dblbuffer[0]);
-  clear_buffer( bufbegin, csound->ksmps );
+    LorisPlayer & player = *p->imp;
+    OSCILS & oscils = player.oscils;
+    //    clear the buffer first!
+    double * bufbegin =  &(player.dblbuffer[0]);
+    clear_buffer( bufbegin, csound->ksmps );
 
-  //    now accumulate samples into the buffer:
-        long numOscils = player.oscils.size();
-        for( long i = 0; i < numOscils; ++i )
-    {
-      const Breakpoint & bp = player.reader->valueAt(i);
-      Breakpoint modifiedBp(  (*p->freqenv) * bp.frequency(),
-                              (*p->ampenv) * bp.amplitude(),
-                              (*p->bwenv) * bp.bandwidth(),
-                              bp.phase() );
-                accum_samples( csound, oscils[i], modifiedBp, bufbegin );
-    }
+    //    now accumulate samples into the buffer:
+    long numOscils = player.oscils.size();
+    for( long i = 0; i < numOscils; ++i )
+      {
+        const Breakpoint & bp = player.reader->valueAt(i);
+        Breakpoint modifiedBp(  (*p->freqenv) * bp.frequency(),
+                                (*p->ampenv) * bp.amplitude(),
+                                (*p->bwenv) * bp.bandwidth(),
+                                bp.phase() );
+        accum_samples( csound, oscils[i], modifiedBp, bufbegin );
+      }
 
-  //    transfer samples into the result buffer:
-  convert_samples( csound, bufbegin, p->result );
-  return OK;
+    //    transfer samples into the result buffer:
+    convert_samples( csound, bufbegin, p->result );
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -738,13 +759,14 @@ int lorisplay( CSOUND *csound, LORISPLAY * p )
 extern "C"
 int lorisplay_cleanup(CSOUND *csound, void * p)
 {
-  LORISPLAY * tp = (LORISPLAY *)p;
+    LORISPLAY * tp = (LORISPLAY *)p;
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Cleaning up lorisplay (owner " << tp->h.insdshead << ")" << std::endl;
+    std::cerr << "** Cleaning up lorisplay (owner " << tp->h.insdshead
+              << ")" << std::endl;
 #endif
-  delete tp->imp;
-  tp->imp = 0;
-  return OK;
+    delete tp->imp;
+    tp->imp = 0;
+    return OK;
 }
 
 #pragma mark -- LorisMorpher --
@@ -767,7 +789,7 @@ class LorisMorpher
   LabelMap labelMap;
   std::vector< long > src_unlabeled, tgt_unlabeled;
 
- public:
+public:
   //    construction:
   LorisMorpher( LORISMORPH * params );
   ~LorisMorpher( void );
@@ -791,13 +813,13 @@ class LorisMorpher
 
     double valueAt( double /* time */ ) const
     {
-      //        ignore time, can only access the current value:
-      double val = *params->freqenv;
-      if ( val > 1 )
-        val = 1;
-      else if ( val < 0 )
-        val = 0;
-      return val;
+        //        ignore time, can only access the current value:
+        double val = *params->freqenv;
+        if ( val > 1 )
+          val = 1;
+        else if ( val < 0 )
+          val = 0;
+        return val;
     }
   };
 
@@ -813,13 +835,13 @@ class LorisMorpher
 
     double valueAt( double /* time */ ) const
     {
-      //        ignore time, can only access the current value:
-      double val = *params->ampenv;
-      if ( val > 1 )
-        val = 1;
-      else if ( val < 0 )
-        val = 0;
-      return val;
+        //        ignore time, can only access the current value:
+        double val = *params->ampenv;
+        if ( val > 1 )
+          val = 1;
+        else if ( val < 0 )
+          val = 0;
+        return val;
     }
   };
 
@@ -835,13 +857,13 @@ class LorisMorpher
 
     double valueAt( double /* time */ ) const
     {
-      //        ignore time, can only access the current value:
-      double val = *params->bwenv;
-      if ( val > 1 )
-        val = 1;
-      else if ( val < 0 )
-        val = 0;
-      return val;
+        //        ignore time, can only access the current value:
+        double val = *params->bwenv;
+        if ( val > 1 )
+          val = 1;
+        else if ( val < 0 )
+          val = 0;
+        return val;
     }
   };
 
@@ -859,84 +881,87 @@ class LorisMorpher
 //
 LorisMorpher::LorisMorpher( LORISMORPH * params ) :
   morpher( GetFreqFunc( params ), GetAmpFunc( params ), GetBwFunc( params ) ),
-     src_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->srcidx) ) ),
-     tgt_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->tgtidx) ) ),
-     tag( params->h.insdshead, (int)*(params->morphedidx) )
+  src_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->srcidx) ) ),
+  tgt_reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->tgtidx) ) ),
+  tag( params->h.insdshead, (int)*(params->morphedidx) )
 {
-  if ( src_reader != NULL )
-    {
-      //        map source Partial indices:
-      //        (make a note of the largest label we see)
-      src_unlabeled.reserve( src_reader->size() );
-      long maxsrclabel = 0;
-      for ( size_t i = 0; i < src_reader->size(); ++i )
-        {
-          long label = src_reader->labelAt(i);
-          if ( label != 0 )
-            labelMap[ label ] = std::make_pair(i, long(-1));
-          else
-            src_unlabeled.push_back( i );
+    if ( src_reader != NULL )
+      {
+        //        map source Partial indices:
+        //        (make a note of the largest label we see)
+        src_unlabeled.reserve( src_reader->size() );
+        long maxsrclabel = 0;
+        for ( size_t i = 0; i < src_reader->size(); ++i )
+          {
+            long label = src_reader->labelAt(i);
+            if ( label != 0 )
+              labelMap[ label ] = std::make_pair(i, long(-1));
+            else
+              src_unlabeled.push_back( i );
 
-          if ( label > maxsrclabel )
-            maxsrclabel = label;
-        }
+            if ( label > maxsrclabel )
+              maxsrclabel = label;
+          }
 #ifdef DEBUG_LORISGENS
-      std::cerr << "** Largest source label is " << maxsrclabel << std::endl;
+        std::cerr << "** Largest source label is " << maxsrclabel << std::endl;
 #endif
-    }
-  else
-    {
-      std::cerr << "** Could not find lorismorph source with index " << (int)*(params->srcidx) << std::endl;
-    }
+      }
+    else
+      {
+        std::cerr << "** Could not find lorismorph source with index "
+                  << (int)*(params->srcidx) << std::endl;
+      }
 
-  if ( tgt_reader != NULL )
-    {
-      //        map target Partial indices:
-      //        (make a note of the largest label we see)
-      tgt_unlabeled.reserve( tgt_reader->size() );
-      long maxtgtlabel = 0;
-      for ( size_t i = 0; i < tgt_reader->size(); ++i )
-        {
-          long label = tgt_reader->labelAt(i);
-          if ( label != 0 )
-            {
-              if ( labelMap.count( label ) > 0 )
-                labelMap[ label ].second = i;
-              else
-                labelMap[ label ] = std::make_pair(long(-1), i);
-            }
-          else
-            tgt_unlabeled.push_back( i );
+    if ( tgt_reader != NULL )
+      {
+        //        map target Partial indices:
+        //        (make a note of the largest label we see)
+        tgt_unlabeled.reserve( tgt_reader->size() );
+        long maxtgtlabel = 0;
+        for ( size_t i = 0; i < tgt_reader->size(); ++i )
+          {
+            long label = tgt_reader->labelAt(i);
+            if ( label != 0 )
+              {
+                if ( labelMap.count( label ) > 0 )
+                  labelMap[ label ].second = i;
+                else
+                  labelMap[ label ] = std::make_pair(long(-1), i);
+              }
+            else
+              tgt_unlabeled.push_back( i );
 
-          if ( label > maxtgtlabel )
-            maxtgtlabel = label;
-        }
+            if ( label > maxtgtlabel )
+              maxtgtlabel = label;
+          }
 #ifdef DEBUG_LORISGENS
-      std::cerr << "** Largest target label is " << maxtgtlabel << std::endl;
+        std::cerr << "** Largest target label is " << maxtgtlabel << std::endl;
 #endif
-    }
-  else
-    {
-      std::cerr << "** Could not find lorismorph target with index " << (int)*(params->tgtidx) << std::endl;
+      }
+    else
+      {
+        std::cerr << "** Could not find lorismorph target with index "
+                  << (int)*(params->tgtidx) << std::endl;
     }
 
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Morph will use " << labelMap.size() << " labeled Partials, ";
-  std::cerr << src_unlabeled.size() << " unlabeled source Partials, and ";
-  std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." << std::endl;
+    std::cerr << "** Morph will use " << labelMap.size() << " labeled Partials, ";
+    std::cerr << src_unlabeled.size() << " unlabeled source Partials, and ";
+    std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." << std::endl;
 #endif
 
-  //    allocate and set the labels for the morphed envelopes:
-  morphed_envelopes.resize( labelMap.size() + src_unlabeled.size() + tgt_unlabeled.size() );
-  long envidx = 0;
-  LabelMap::iterator it;
-  for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
-    {
-      morphed_envelopes.labelAt(envidx) = it->first;
-    }
+    //    allocate and set the labels for the morphed envelopes:
+    morphed_envelopes.resize( labelMap.size() + src_unlabeled.size()
+                              + tgt_unlabeled.size() );
+    long envidx = 0;
+    LabelMap::iterator it;
+    for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
+      {
+        morphed_envelopes.labelAt(envidx) = it->first;
+      }
 
-  //    tag these envelopes:
-  EnvelopeReader::Tags()[ tag ] = &morphed_envelopes;
+    //    tag these envelopes:
+    EnvelopeReader::Tags()[ tag ] = &morphed_envelopes;
 }
 
 // ---------------------------------------------------------------------------
@@ -945,15 +970,15 @@ LorisMorpher::LorisMorpher( LORISMORPH * params ) :
 //
 LorisMorpher::~LorisMorpher( void )
 {
-  //    if the morphed envelopes are still in the tag map,
-  //    remove them:
-  EnvelopeReader::TagMap & tags = EnvelopeReader::Tags();
-  EnvelopeReader::TagMap::iterator it = tags.find( tag );
+    //    if the morphed envelopes are still in the tag map,
+    //    remove them:
+    EnvelopeReader::TagMap & tags = EnvelopeReader::Tags();
+    EnvelopeReader::TagMap::iterator it = tags.find( tag );
 
-  if ( it != tags.end() && it->second == &morphed_envelopes )
-    {
-      tags.erase(it);
-    }
+    if ( it != tags.end() && it->second == &morphed_envelopes )
+      {
+        tags.erase(it);
+      }
 }
 
 // ---------------------------------------------------------------------------
@@ -965,77 +990,81 @@ LorisMorpher::~LorisMorpher( void )
 long
 LorisMorpher::updateEnvelopes( void )
 {
-  //    first render all the labeled (morphed) Partials:
-  // std::cerr << "** Morphing Partials labeled " << labelMap.begin()->first;
-  // std::cerr << " to " << (--labelMap.end())->first << std::endl;
+    //    first render all the labeled (morphed) Partials:
+    // std::cerr << "** Morphing Partials labeled " << labelMap.begin()->first;
+    // std::cerr << " to " << (--labelMap.end())->first << std::endl;
 
-  long envidx = 0;
-  LabelMap::iterator it;
-  for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
-    {
-      std::pair<long, long> & indices = it->second;
-      Breakpoint bp = morphed_envelopes.valueAt(envidx);
+    long envidx = 0;
+    LabelMap::iterator it;
+    for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
+      {
+        std::pair<long, long> & indices = it->second;
+        Breakpoint bp = morphed_envelopes.valueAt(envidx);
 
-      long isrc = indices.first;
-      long itgt = indices.second;
+        long isrc = indices.first;
+        long itgt = indices.second;
 
-      //        this should not happen:
-      if ( itgt < 0 && isrc < 0 )
-        {
+        //        this should not happen:
+        if ( itgt < 0 && isrc < 0 )
+          {
 #ifdef DEBUG_LORISGENS
-          std::cerr << "HEY!!!! The labelMap had a pair of bogus indices in it at pos " << envidx << std::endl;
+            std::cerr << "HEY!!!! The labelMap had a pair of bogus indices in it at pos "
+                      << envidx << std::endl;
 #endif
-          continue;
-        }
+            continue;
+          }
 
-      //        note: the time argument for all these morphParameters calls
-      //        is irrelevant, since it is only used to index the morphing
-      //        functions, which, as defined above, do not use the time
-      //        argument, they can only return their current value.
-      if ( itgt < 0 )
-        {
-          //    morph from the source to a dummy:
-          // std::cerr << "** Fading from source " << envidx << std::endl;
-          bp = morpher.fadeSrcBreakpoint( src_reader->valueAt(isrc), 0.0 );
-        }
-      else if ( isrc < 0 )
-        {
-          //    morph from a dummy to the target:
-          // std::cerr << "** Fading to target " << envidx << std::endl;
-          bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt(itgt), 0.0 );
-        }
-      else
-        {
-          //    morph from the source to the target:
-          // std::cerr << "** Morphing source to target " << envidx << std::endl;
-          bp = morpher.morphBreakpoints( src_reader->valueAt(isrc), tgt_reader->valueAt(itgt), 0.0 );
+        //        note: the time argument for all these morphParameters calls
+        //        is irrelevant, since it is only used to index the morphing
+        //        functions, which, as defined above, do not use the time
+        //        argument, they can only return their current value.
+        if ( itgt < 0 )
+          {
+            //    morph from the source to a dummy:
+            // std::cerr << "** Fading from source " << envidx << std::endl;
+            bp = morpher.fadeSrcBreakpoint( src_reader->valueAt(isrc), 0.0 );
+          }
+        else if ( isrc < 0 )
+          {
+            //    morph from a dummy to the target:
+            // std::cerr << "** Fading to target " << envidx << std::endl;
+            bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt(itgt), 0.0 );
+          }
+        else
+          {
+            //    morph from the source to the target:
+            // std::cerr << "** Morphing source to target " << envidx << std::endl;
+            bp = morpher.morphBreakpoints( src_reader->valueAt(isrc),
+                                           tgt_reader->valueAt(itgt), 0.0 );
         }
     }
 
-  //    render unlabeled source Partials:
-  // std::cerr << "** Crossfading " << src_unlabeled.size();
-  // std::cerr << " unlabeled source Partials" << std::endl;
-  for( size_t i = 0; i < src_unlabeled.size(); ++i, ++envidx )
-    {
-      //        fade from the source:
-      Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-      bp = morpher.fadeSrcBreakpoint( src_reader->valueAt( src_unlabeled[i] ), 0.0 );
-    }
+    //    render unlabeled source Partials:
+    // std::cerr << "** Crossfading " << src_unlabeled.size();
+    // std::cerr << " unlabeled source Partials" << std::endl;
+    for( size_t i = 0; i < src_unlabeled.size(); ++i, ++envidx )
+      {
+        //        fade from the source:
+        Breakpoint & bp = morphed_envelopes.valueAt(envidx);
+        bp = morpher.fadeSrcBreakpoint( src_reader->valueAt( src_unlabeled[i] ),
+                                        0.0 );
+      }
 
-  //    render unlabeled target Partials:
-  // std::cerr << "** Crossfading " << tgt_unlabeled.size();
-  // std::cerr << " unlabeled target Partials" << std::endl;
-  for( size_t i = 0; i < tgt_unlabeled.size(); ++i, ++envidx )
-    {
-      //        fade to the target:
-      Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-      bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt( tgt_unlabeled[i] ), 0.0 );
-    }
+    //    render unlabeled target Partials:
+    // std::cerr << "** Crossfading " << tgt_unlabeled.size();
+    // std::cerr << " unlabeled target Partials" << std::endl;
+    for( size_t i = 0; i < tgt_unlabeled.size(); ++i, ++envidx )
+      {
+        //        fade to the target:
+        Breakpoint & bp = morphed_envelopes.valueAt(envidx);
+        bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt( tgt_unlabeled[i] ),
+                                        0.0 );
+      }
 
-  //    tag these envelopes:
-  EnvelopeReader::Tags()[ tag ] = &morphed_envelopes;
+    //    tag these envelopes:
+    EnvelopeReader::Tags()[ tag ] = &morphed_envelopes;
 
-  return morphed_envelopes.size();
+    return morphed_envelopes.size();
 }
 
 #pragma mark -- lorismorph generator functions --
@@ -1051,12 +1080,13 @@ extern "C"
 int lorismorph_setup( CSOUND *csound, LORISMORPH * p )
 {
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Setting up lorismorph (owner " << p->h.insdshead << ")" << std::endl;
+    std::cerr << "** Setting up lorismorph (owner " << p->h.insdshead
+              << ")" << std::endl;
 #endif
-  p->imp = new LorisMorpher( p );
-  csound->RegisterDeinitCallback(csound, p,
-                                 (int (*)(CSOUND*, void*)) lorismorph_cleanup);
-  return OK;
+    p->imp = new LorisMorpher( p );
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND*, void*)) lorismorph_cleanup);
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -1067,9 +1097,9 @@ int lorismorph_setup( CSOUND *csound, LORISMORPH * p )
 extern "C"
 int lorismorph( CSOUND *csound, LORISMORPH * p )
 {
-  //*p->result =
-  p->imp->updateEnvelopes();
-  return OK;
+    //*p->result =
+    p->imp->updateEnvelopes();
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -1080,13 +1110,14 @@ int lorismorph( CSOUND *csound, LORISMORPH * p )
 extern "C"
 int lorismorph_cleanup(CSOUND *csound, void * p)
 {
-  LORISMORPH * tp = (LORISMORPH *)p;
+    LORISMORPH * tp = (LORISMORPH *)p;
 #ifdef DEBUG_LORISGENS
-  std::cerr << "** Cleaning up lorismorph (owner " << tp->h.insdshead << ")" << std::endl;
+    std::cerr << "** Cleaning up lorismorph (owner " << tp->h.insdshead
+              << ")" << std::endl;
 #endif
-  delete tp->imp;
-  tp->imp = 0;
-  return OK;
+    delete tp->imp;
+    tp->imp = 0;
+    return OK;
 }
 
 // ---------------------------------------------------------------------------
