@@ -190,8 +190,9 @@ int sndinfo_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "sndinfo",
-                    "Prints information about sound files");
+      retval =
+        csound->SetUtilityDescription(csound, "sndinfo",
+                                      Str("Prints information about sound files"));
     }
     return retval;
 }

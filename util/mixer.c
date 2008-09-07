@@ -666,7 +666,7 @@ int mixer_init_(CSOUND *csound)
     char    buf[128];
     int     retval = csound->AddUtility(csound, "mixer", mixer_main);
 
-    sprintf(buf, "Mixes sound files (max. %d)", (int) NUMBER_OF_FILES);
+    sprintf(buf, Str("Mixes sound files (max. %d)"), (int) NUMBER_OF_FILES);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }

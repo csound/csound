@@ -119,8 +119,10 @@ int pv_export_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "pv_export", pv_export);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "pv_export",
-                    "translate PVOC analysis file to text form");
+      retval =
+        csound->SetUtilityDescription(csound, "pv_export",
+                                      Str("translate PVOC analysis file "
+                                          "to text form"));
     }
     return retval;
 }

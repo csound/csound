@@ -511,7 +511,8 @@ int scale_init_(CSOUND *csound)
     int retval = csound->AddUtility(csound, "scale", scale);
     if (retval)
       return retval;
-    return csound->SetUtilityDescription(csound, "scale",
-                                         "Reports and/or adjusts maximum gain");
+    return
+      csound->SetUtilityDescription(csound, "scale",
+                                    Str("Reports and/or adjusts maximum gain"));
 }
 

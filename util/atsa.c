@@ -2810,7 +2810,7 @@ int atsa_init_(CSOUND *csound)
     if (!retval) {
       retval =
           csound->SetUtilityDescription(csound, "atsa",
-                                        "Soundfile analysis for ATS opcodes");
+                                        Str("Soundfile analysis for ATS opcodes"));
     }
     return retval;
 }

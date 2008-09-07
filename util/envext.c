@@ -174,8 +174,9 @@ int envext_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "envext",
-                                             "Create a text file of envelope");
+      retval =
+        csound->SetUtilityDescription(csound, "envext",
+                                      Str("Create a text file of envelope"));
     }
     return retval;
 }
