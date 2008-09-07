@@ -1258,8 +1258,9 @@ int dnoise_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "dnoise", dnoise);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "dnoise",
-                                             "Removes noise from a sound file");
+      retval =
+        csound->SetUtilityDescription(csound, "dnoise",
+                                      Str("Removes noise from a sound file"));
     }
     return retval;
 }

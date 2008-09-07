@@ -855,7 +855,7 @@ int hetro_init_(CSOUND *csound)
     int retval = csound->AddUtility(csound, "hetro", hetro);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "hetro",
-                                             "Soundfile analysis for adsyn");
+                                             Str("Soundfile analysis for adsyn"));
     }
     return retval;
 }

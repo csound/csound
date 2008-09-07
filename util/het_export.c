@@ -80,8 +80,10 @@ int het_export_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "het_export", het_export);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "het_export",
-                    "translate hetro analysis file to text form");
+      retval =
+        csound->SetUtilityDescription(csound, "het_export",
+                                      Str("translate hetro analysis file "
+                                          "to text form"));
     }
     return retval;
 }

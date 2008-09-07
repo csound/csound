@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the Csound package.
 # John ffitch <jpff@sourceforge.net>, 2007.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2008-07-26 19:42+0100\n"
+"PO-Revision-Date: 2008-09-07 15:36+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "MIME-Version: 1.0\n"
@@ -203,9 +202,9 @@ msgid "Line %d: Unknown character: '%s'\n"
 msgstr ""
 
 #: Engine/csound_orc.l:290
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot open file \"%s\"\n"
-msgstr "Can't open input file %s\n"
+msgstr "Can't open input file \"%s\"\n"
 
 #: Engine/csound_orc.l:330 Engine/rdorch.c:835 Engine/sread.c:1657
 #, c-format
@@ -4977,9 +4976,8 @@ msgid "zacl first > last. Not clearing."
 msgstr ""
 
 #: OOps/ugrw1.c:2824
-#, fuzzy
 msgid "printk not initialised"
-msgstr "grain: not initialized"
+msgstr "printk: not initialized"
 
 #: OOps/ugrw1.c:2842
 #, c-format
@@ -4991,9 +4989,8 @@ msgid "printks param 1 was not a \"quoted string\""
 msgstr ""
 
 #: OOps/ugrw1.c:3110
-#, fuzzy
 msgid "printks not initialised"
-msgstr "grain: not initialized"
+msgstr "printks: not initialized"
 
 #: OOps/ugrw1.c:3228
 msgid "inz index > isizea. Not writing."
@@ -5063,7 +5060,7 @@ msgstr ""
 msgid "Non positive reverb time\n"
 msgstr ""
 
-#: Opcodes/Loris/lorisgens5.C:599
+#: Opcodes/Loris/lorisgens5.C:616
 #, c-format
 msgid "lorisread cannot load %s"
 msgstr "lorisread can't load %s"
@@ -6994,9 +6991,8 @@ msgid "Sfload: cannot use globals"
 msgstr "Sfload: can't use globals"
 
 #: Opcodes/sfont.c:170
-#, fuzzy
 msgid "sfload: could not open globals\n"
-msgstr "Sfload: can't use globals"
+msgstr "Sfload: can't open globals\n"
 
 #: Opcodes/sfont.c:214
 #, c-format
@@ -7362,7 +7358,7 @@ msgstr ""
 msgid "stdopcod.c: error: globals already allocated"
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:580
+#: Opcodes/stk/stkOpcodes.cpp:583
 msgid ""
 "Error: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
@@ -7645,72 +7641,72 @@ msgstr ""
 msgid "ATSSINNOI: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1493
+#: Opcodes/ugnorman.c:1494
 #, c-format
 msgid "ATSBUFREAD: Partial out of range, max partial is %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1525
+#: Opcodes/ugnorman.c:1526
 msgid "ATSBUFREAD: Type not implemented"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1627
+#: Opcodes/ugnorman.c:1628
 msgid "ATSBUFREAD: not initialised"
 msgstr "ATSBUFREAD: not initialized"
 
-#: Opcodes/ugnorman.c:1637
+#: Opcodes/ugnorman.c:1638
 msgid ""
 "ATSBUFREAD: only positive time pointer values are allowed, setting to zero\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1646
+#: Opcodes/ugnorman.c:1647
 msgid "ATSBUFREAD: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1673 Opcodes/ugnorman.c:1695
+#: Opcodes/ugnorman.c:1674 Opcodes/ugnorman.c:1696
 msgid "ATSPARTIALTAP: you must have an atsbufread before an atspartialtap"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1677
+#: Opcodes/ugnorman.c:1678
 #, c-format
 msgid "ATSPARTIALTAP: exceeded max partial %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1682
+#: Opcodes/ugnorman.c:1683
 msgid "ATSPARTIALTAP: partial must be positive and nonzero"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1709 Opcodes/ugnorman.c:1725
+#: Opcodes/ugnorman.c:1710 Opcodes/ugnorman.c:1726
 msgid "ATSINTERPREAD: you must have an atsbufread before an atsinterpread"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1731
+#: Opcodes/ugnorman.c:1732
 msgid "ATSINTERPREAD: frequency must be greater than 20 and less than 20000 Hz"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1773
+#: Opcodes/ugnorman.c:1774
 msgid "ATSCROSS: Function table number for synthesis waveform not valid"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1813
+#: Opcodes/ugnorman.c:1814
 #, c-format
 msgid "ATSCROSS: Partial(s) out of range, max partial allowed is %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1847
+#: Opcodes/ugnorman.c:1848
 msgid "ATSCROSS: Type not implemented"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1975
+#: Opcodes/ugnorman.c:1976
 msgid "ATSCROSS: you must have an atsbufread before an atsinterpread"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1988
+#: Opcodes/ugnorman.c:1989
 msgid ""
 "ATSCROSS: only positive time pointer values are allowed, setting to zero\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1997
+#: Opcodes/ugnorman.c:1998
 msgid "ATSCROSS: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
@@ -9586,12 +9582,20 @@ msgstr ""
 msgid "No partials to track -- stopping\n"
 msgstr ""
 
+#: util/atsa.c:2813
+msgid "Soundfile analysis for ATS opcodes"
+msgstr ""
+
 #: util/cvanal.c:141
 msgid "cvanal finished\n"
 msgstr ""
 
 #: util/cvanal.c:167
 msgid "less sound than expected!\n"
+msgstr ""
+
+#: util/cvanal.c:242
+msgid "Soundfile analysis for convolve"
 msgstr ""
 
 #: util/dnoise.c:285
@@ -9838,6 +9842,10 @@ msgid ""
 " closing the file ...)\n"
 msgstr ""
 
+#: util/dnoise.c:1263
+msgid "Removes noise from a sound file"
+msgstr ""
+
 #: util/envext.c:52
 msgid "Usage:\tenvext [-flags] soundfile\n"
 msgstr ""
@@ -9876,6 +9884,14 @@ msgstr ""
 msgid "enveloping %ld sample frames (%3.1f secs)\n"
 msgstr ""
 
+#: util/envext.c:179
+msgid "Create a text file of envelope"
+msgstr ""
+
+#: util/het_export.c:85
+msgid "translate hetro analysis file to text form"
+msgstr ""
+
 #: util/het_import.c:45
 msgid "Usage: het_import csvtext_file het_file\n"
 msgstr ""
@@ -9889,6 +9905,10 @@ msgstr "Can't open input comma file%s\n"
 #, c-format
 msgid "Cannot open output hetro file %s\n"
 msgstr "Can't open output hetro file %s\n"
+
+#: util/het_import.c:108
+msgid "translate text form to hetro analysis file"
+msgstr ""
 
 #: util/hetro.c:149
 msgid "no arguments"
@@ -10025,6 +10045,10 @@ msgstr ""
 msgid "wrote %ld 1TRC frames to %s\n"
 msgstr ""
 
+#: util/hetro.c:858
+msgid "Soundfile analysis for adsyn"
+msgstr ""
+
 #: util/lpanal.c:423
 msgid "no poles"
 msgstr ""
@@ -10109,6 +10133,11 @@ msgstr "soundfile read error, couldn't fill first frame"
 msgid "Found only %d poles...sorry\n"
 msgstr ""
 
+#: util/lpanal.c:638
+#, c-format
+msgid "wanted %d poles\n"
+msgstr ""
+
 #: util/lpanal.c:659
 #, c-format
 msgid "Error in coef %d : %f <> %f \n"
@@ -10188,32 +10217,44 @@ msgid ""
 "-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug (default 0)"
 msgstr ""
 
-#: util/lpanal.c:914
+#: util/lpanal.c:915
 msgid "-g\tgraphical display of results"
 msgstr ""
 
-#: util/lpanal.c:916
+#: util/lpanal.c:917
 msgid "-a\t\talternate (pole) file storage"
 msgstr ""
 
-#: util/lpanal.c:917 util/mixer.c:118
+#: util/lpanal.c:918 util/mixer.c:118
 msgid "-- fname\tLog output to file"
 msgstr ""
 
-#: util/lpanal.c:918
+#: util/lpanal.c:919
 msgid "see also:  Csound Manual Appendix"
 msgstr ""
 
-#: util/lpanal.c:1175
+#: util/lpanal.c:1176
 msgid "LPTRKFNS: inconsistent MAXWindow defines"
 msgstr ""
 
-#: util/lpanal.c:1182
+#: util/lpanal.c:1183
 msgid "LPTRKFNS: called with excessive Windsiz"
+msgstr ""
+
+#: util/lpanal.c:1211
+msgid "Linear predictive analysis for lpread"
 msgstr ""
 
 #: util/lpc_export.c:71 util/lpc_import.c:67
 msgid "Failed to read LPC header\n"
+msgstr ""
+
+#: util/lpc_export.c:102
+msgid "translate linear predictive coding file to text file"
+msgstr ""
+
+#: util/lpc_import.c:98
+msgid "translate text file to linear predictive coding file"
 msgstr ""
 
 #: util/mixer.c:48
@@ -10362,8 +10403,21 @@ msgstr ""
 msgid "Max scale factor = %.3f\n"
 msgstr ""
 
+#: util/mixer.c:669
+#, c-format
+msgid "Mixes sound files (max. %d)"
+msgstr ""
+
+#: util/mypvlook.c:218
+msgid "Prints information about PVOC analysis files"
+msgstr ""
+
 #: util/pv_export.c:40
 msgid "Usage: pv_export pv_file cstext_file\n"
+msgstr ""
+
+#: util/pv_export.c:124
+msgid "translate PVOC analysis file to text form"
 msgstr ""
 
 #: util/pv_import.c:40
@@ -10372,6 +10426,10 @@ msgstr ""
 
 #: util/pv_import.c:127
 msgid "Sync error\n"
+msgstr ""
+
+#: util/pv_import.c:148
+msgid "translate text form to PVOC analysis file"
 msgstr ""
 
 #: util/pvanal.c:206
@@ -10443,6 +10501,10 @@ msgstr ""
 #: util/pvanal.c:332
 #, c-format
 msgid "pvanal error: %s\n"
+msgstr ""
+
+#: util/pvanal.c:345
+msgid "Soundfile analysis for pvoc"
 msgstr ""
 
 #: util/pvlook.c:76
@@ -10539,6 +10601,10 @@ msgstr ""
 msgid "Failed to open %s"
 msgstr ""
 
+#: util/scale.c:516
+msgid "Reports and/or adjusts maximum gain"
+msgstr ""
+
 #: util/sndinfo.c:112
 #, c-format
 msgid "\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"
@@ -10614,6 +10680,10 @@ msgstr ""
 msgid "Coding history   : %.*s\n"
 msgstr ""
 
+#: util/sndinfo.c:195
+msgid "Prints information about sound files"
+msgstr ""
+
 #: util/srconv.c:98
 #, c-format
 msgid "Sound format -%c has been overruled by -%c"
@@ -10685,6 +10755,10 @@ msgstr ""
 
 #: util/srconv.c:739
 msgid "-r num\toutput sample rate (must be specified)"
+msgstr ""
+
+#: util/srconv.c:825
+msgid "Sample rate conversion"
 msgstr ""
 
 #: util/xtrct.c:86
@@ -10771,6 +10845,10 @@ msgstr ""
 #: util/xtrct.c:332
 #, c-format
 msgid "extracting from %ld sample frames (%3.1f secs)\n"
+msgstr ""
+
+#: util/xtrct.c:375
+msgid "Extract part of a sound file"
 msgstr ""
 
 #: util1/scot/scot.c:51

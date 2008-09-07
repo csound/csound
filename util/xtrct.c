@@ -372,7 +372,7 @@ int xtrct_init_(CSOUND *csound)
     int retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "extractor",
-                                             "Extract part of a sound file");
+                                             Str("Extract part of a sound file"));
     }
     return retval;
 }
