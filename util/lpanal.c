@@ -35,7 +35,7 @@
  */
 
 #define DEFpoleCount 34        /* recommended default (max 50 in lpc.h)    */
-#define DEFSLICE 200        /* <= MAXWINDIN/2 (currently 1000 in lpc.h) */
+#define DEFSLICE 200           /* <= MAXWINDIN/2 (currently 1000 in lpc.h) */
 #define PITCHMIN        FL(70.0)
 #define PITCHMAX        FL(200.0)   /* default limits in Hz for pitch search */
 
@@ -99,7 +99,7 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
  *  This routine was kindly provided by someone on
  *   the sci.math.num-analysis newsgroup
  *
- * Find the zeros of a polynome
+ * Find the zeros of a polynomial
  *
  */
 
@@ -224,7 +224,7 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
           u = 0.0;
           v = 0.0;
           k = 2.0*xc;
-          m = xc*xc + yc*yc /*pow(xc,2.0)+pow(yc,2.0)*/;
+          m = xc*xc + yc*yc /* pow(xc,2.0)+pow(yc,2.0)*/;
           p = n1-2;
           for (j=0; j<=p; j++) {
             a[j] += k*u-m*v;
@@ -615,7 +615,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #endif
 
       /* Prepare buffer for output */
-      
+
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
         filterCoef[lpc.poleCount] = 1.0;
@@ -625,7 +625,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
           filterCoef[i] = filterCoef[j];
           filterCoef[j] = z1;
         }
-        
+
         /* Get the Filter Poles */
 
         polyzero(100,lpc.poleCount,filterCoef,polePart1,polePart2,
@@ -635,7 +635,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
           csound->Message(csound,
                           Str("Found only %d poles...sorry\n"), poleFound);
           csound->Message(csound,
-                          "wanted %d poles\n", lpc.poleCount);
+                          Str("wanted %d poles\n"), lpc.poleCount);
           return -1;
         }
         InvertPoles(lpc.poleCount,polePart1,polePart2);
@@ -909,7 +909,8 @@ static const char *usage_txt[] = {
   Str_noop("-P<mincps>\tlower limit for pitch search (default 70 Hz)"),
   Str_noop("\t\t\t(-P0 inhibits pitch tracking)"),
   Str_noop("-Q<maxcps>\tupper limit for pitch search (default 200 Hz)"),
-  Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug (default 0)"),
+  Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug"
+           " (default 0)"),
 #ifndef OLPC
   Str_noop("-g\tgraphical display of results"),
 #endif
@@ -1089,79 +1090,79 @@ static MYFLT lowpass(MYFLT x, LPANAL_GLOBALS* lpg) /* x now MYFLT */
 
 #define c4 -FL(0.930449120)
 
-        MYFLT w1, w2, w3, w4;
-        MYFLT temp,y;
+    MYFLT w1, w2, w3, w4;
+    MYFLT temp,y;
 
-        w1 = c*x - c1*lpg->w11 - d1*lpg->w12;
-        temp = w1 + a1*lpg->w11 + lpg->w12;
-        lpg->w12 = lpg->w11;
-        lpg->w11 = w1;
-        w2 = temp - c2*lpg->w21 - d2*lpg->w22;
-        temp = w2 + a2*lpg->w21 + lpg->w22;
-        lpg->w22 = lpg->w21;
-        lpg->w21 = w2;
-        w3 = temp - c3*lpg->w31 - d3*lpg->w32;
-        temp = w3 + a3*lpg->w31 + lpg->w32;
-        lpg->w32 = lpg->w31;
-        lpg->w31 = w3;
-        w4 = temp - c4*lpg->w41;
-        y = w4 + lpg->w41;
-        /*        lpg->w42 = lpg->w41;   /* w42 set but not used in lowpass */
-        lpg->w41 = w4;
-        return(y);
+    w1 = c*x - c1*lpg->w11 - d1*lpg->w12;
+    temp = w1 + a1*lpg->w11 + lpg->w12;
+    lpg->w12 = lpg->w11;
+    lpg->w11 = w1;
+    w2 = temp - c2*lpg->w21 - d2*lpg->w22;
+    temp = w2 + a2*lpg->w21 + lpg->w22;
+    lpg->w22 = lpg->w21;
+    lpg->w21 = w2;
+    w3 = temp - c3*lpg->w31 - d3*lpg->w32;
+    temp = w3 + a3*lpg->w31 + lpg->w32;
+    lpg->w32 = lpg->w31;
+    lpg->w31 = w3;
+    w4 = temp - c4*lpg->w41;
+    y = w4 + lpg->w41;
+    /*        lpg->w42 = lpg->w41;   /* w42 set but not used in lowpass */
+    lpg->w41 = w4;
+    return(y);
 }
 
 static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
 {
-        MYFLT g[HWIN], h[HWIN], fm, qsum, y, *inp;
-        int   n;
+    MYFLT g[HWIN], h[HWIN], fm, qsum, y, *inp;
+    int   n;
 
-        if (lpg->firstcall) {            /* on first call, alloc dbl dbuf  */
-          lpg->Dwind_dbuf =
-            (MYFLT *) csound->Calloc(csound, (long)lpg->Dwind * 2 * sizeof(MYFLT));
-          lpg->Dwind_end1 = lpg->Dwind_dbuf + lpg->Dwind;
-          lpg->dbp1 = lpg->Dwind_dbuf;   /*   init the local Dsamp pntrs */
-          lpg->dbp2 = lpg->Dwind_end1;   /*   & process the whole inbuf  */
-          for (inp = sigbuf, n = lpg->Windsiz; n--; ) {
-            y = lowpass(*inp++, lpg);    /* lowpass every sample  */
-            if (++lpg->tencount == 10) {
-              lpg->tencount = 0;
-              *lpg->dbp1++ = y;          /*    & save every 10th  */
-              *lpg->dbp2++ = y;
-              if (lpg->dbp1 >= lpg->Dwind_end1) {
-                lpg->dbp1 = lpg->Dwind_dbuf;
-                lpg->dbp2 = lpg->Dwind_end1;
-              }
-            }
-          }
-          lpg->firstcall = 0;
-        }
-        else {                           /* other calls: process only inbuf2  */
-          for (inp = sigbuf+lpg->Windsiz2, n = lpg->Windsiz2; n--; ) {
-            y = lowpass(*inp++, lpg);    /* lowpass every sample  */
-            if (++lpg->tencount == 10) {
-              lpg->tencount = 0;
-              *lpg->dbp1++ = y;                /*    & save every 10th  */
-              *lpg->dbp2++ = y;
-              if (lpg->dbp1 >= lpg->Dwind_end1) {
-                lpg->dbp1 = lpg->Dwind_dbuf;
-                lpg->dbp2 = lpg->Dwind_end1;
-              }
-            }
+    if (lpg->firstcall) {            /* on first call, alloc dbl dbuf  */
+      lpg->Dwind_dbuf =
+        (MYFLT *) csound->Calloc(csound, (long)lpg->Dwind * 2 * sizeof(MYFLT));
+      lpg->Dwind_end1 = lpg->Dwind_dbuf + lpg->Dwind;
+      lpg->dbp1 = lpg->Dwind_dbuf;   /*   init the local Dsamp pntrs */
+      lpg->dbp2 = lpg->Dwind_end1;   /*   & process the whole inbuf  */
+      for (inp = sigbuf, n = lpg->Windsiz; n--; ) {
+        y = lowpass(*inp++, lpg);    /* lowpass every sample  */
+        if (++lpg->tencount == 10) {
+          lpg->tencount = 0;
+          *lpg->dbp1++ = y;          /*    & save every 10th  */
+          *lpg->dbp2++ = y;
+          if (lpg->dbp1 >= lpg->Dwind_end1) {
+            lpg->dbp1 = lpg->Dwind_dbuf;
+            lpg->dbp2 = lpg->Dwind_end1;
           }
         }
-        {
-          MYFLT *gp, *hp, *sp1, *sp2;
-          qsum = FL(0.0);
-          gp = g; hp = h;
-          sp1 = sp2 = lpg->dbp1 + lpg->Hwind - 1;
-          for (n = lpg->Hwind; n--; gp++, hp++, sp1++, sp2-- ) {
-            *gp = FL(0.5) * (*sp1 - *sp2);        /* get sum & diff pairs */
-            *hp = FL(0.5) * (*sp1 + *sp2);
-            qsum += *gp * *gp + *hp * *hp;   /* accum sum of squares */
+      }
+      lpg->firstcall = 0;
+    }
+    else {                           /* other calls: process only inbuf2  */
+      for (inp = sigbuf+lpg->Windsiz2, n = lpg->Windsiz2; n--; ) {
+        y = lowpass(*inp++, lpg);    /* lowpass every sample  */
+        if (++lpg->tencount == 10) {
+          lpg->tencount = 0;
+          *lpg->dbp1++ = y;                /*    & save every 10th  */
+          *lpg->dbp2++ = y;
+          if (lpg->dbp1 >= lpg->Dwind_end1) {
+            lpg->dbp1 = lpg->Dwind_dbuf;
+            lpg->dbp2 = lpg->Dwind_end1;
           }
         }
-        return ( search(&fm, qsum, g, h, lpg) );
+      }
+    }
+    {
+      MYFLT *gp, *hp, *sp1, *sp2;
+      qsum = FL(0.0);
+      gp = g; hp = h;
+      sp1 = sp2 = lpg->dbp1 + lpg->Hwind - 1;
+      for (n = lpg->Hwind; n--; gp++, hp++, sp1++, sp2-- ) {
+        *gp = FL(0.5) * (*sp1 - *sp2);        /* get sum & diff pairs */
+        *hp = FL(0.5) * (*sp1 + *sp2);
+        qsum += *gp * *gp + *hp * *hp;   /* accum sum of squares */
+      }
+    }
+    return ( search(&fm, qsum, g, h, lpg) );
 }
 
 static void ptable(CSOUND *csound,
@@ -1205,8 +1206,9 @@ int lpanal_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "lpanal",
-                    "Linear predictive analysis for lpread");
+      retval =
+        csound->SetUtilityDescription(csound, "lpanal",
+                                      Str("Linear predictive analysis for lpread"));
     }
     return retval;
 }

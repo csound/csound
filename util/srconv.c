@@ -822,7 +822,7 @@ int srconv_init_(CSOUND *csound)
     int retval = csound->AddUtility(csound, "srconv", srconv);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "srconv",
-                                             "Sample rate conversion");
+                                             Str("Sample rate conversion"));
     }
     return retval;
 }

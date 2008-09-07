@@ -97,8 +97,10 @@ int lpc_export_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpc_export", lpc_export);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "lpc_export",
-                    "translate linear predictive coding file to text file");
+      retval =
+        csound->SetUtilityDescription(csound, "lpc_export",
+                                      Str("translate linear predictive "
+                                          "coding file to text file"));
     }
     return retval;
 }

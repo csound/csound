@@ -1284,7 +1284,8 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           noise = nzamp * sinewave
                         * randifats(csound, &(p->randinoise[i]), nzfreq);
           /* calc output */
-          ar[n] +=   csound->e0dbfs *(MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
+          ar[n] += csound->e0dbfs *
+            (MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
         }
         p->oscphase[i] = phase;
       }
@@ -1301,7 +1302,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           sinewave = cos(phase) * amp;
           phase += inc;
           /* calc output */
-          ar[n] += csound->e0dbfs * (MYFLT)sinewave **p->ksinamp;
+          ar[n] += csound->e0dbfs * (MYFLT)sinewave * *p->ksinamp;
         }
         p->oscphase[i] = phase;
       }

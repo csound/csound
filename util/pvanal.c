@@ -342,7 +342,7 @@ int pvanal_init_(CSOUND *csound)
     int retval = csound->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "pvanal",
-                                             "Soundfile analysis for pvoc");
+                                             Str("Soundfile analysis for pvoc"));
     }
     return retval;
 }

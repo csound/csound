@@ -237,8 +237,9 @@ int cvanal_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "cvanal", cvanal);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "cvanal",
-                                             "Soundfile analysis for convolve");
+      retval =
+        csound->SetUtilityDescription(csound, "cvanal",
+                                      Str("Soundfile analysis for convolve"));
     }
     return retval;
 }
