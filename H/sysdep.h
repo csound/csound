@@ -78,8 +78,9 @@ typedef uint_least16_t uint16;
   #define HYPOT hypot
   #define FABS fabs
   #define FLOOR floor
-  #define CEIL ceilf
-  #define FMOD fmodf
+  #define CEIL ceil
+  #define FMOD fmod
+  #define MODF modf
 #else
   #define ACOS acosf
   #define ASIN asinf
@@ -104,6 +105,7 @@ typedef uint_least16_t uint16;
   #define FLOOR floorf
   #define CEIL ceilf
   #define FMOD fmodf
+  #define MODF modff
 #endif
 
 #include <stdio.h>
