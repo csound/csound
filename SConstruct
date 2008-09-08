@@ -505,6 +505,7 @@ elif getPlatform() == 'win32':
         commonEnvironment.Append(CCFLAGS =  '/MP')
         commonEnvironment.Append(CCFLAGS =  '/GR')
         commonEnvironment.Append(CCFLAGS =  '/G7')
+        commonEnvironment.Append(CCFLAGS =  '/D_SCL_SECURE_NO_DEPRECATE')
         commonEnvironment.Prepend(CCFLAGS = Split('''/Zi /D_NDEBUG /DNDEBUG'''))
         commonEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
         commonEnvironment.Prepend(SHLINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
@@ -635,10 +636,13 @@ if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_PTHREAD_BARRIER_INIT')
-syncLockTestAndSetFound = configure.CheckLibWithHeader('m', 'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);')
+if compilerMicrosoft():
+   syncLockTestAndSetFound = False
+else:
+   syncLockTestAndSetFound = configure.CheckLibWithHeader('m', 'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);')
 if syncLockTestAndSetFound:
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SYNC_LOCK_TEST_AND_SET')
-    print  'found sync lock'
+   commonEnvironment.Append(CPPFLAGS = '-DHAVE_SYNC_LOCK_TEST_AND_SET')
+   print  'found sync lock'
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
 if not buildOLPC:
    portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")

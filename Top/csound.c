@@ -328,6 +328,8 @@ extern "C" {
     DFLT_KSMPS,     /*  global_ksmps        */
     DFLT_NCHNLS,    /*  nchnls              */
     0,              /*  spoutactive         */
+    0,              /*  spoutlock           */
+    0,              /*  spinlock            */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     0,              /*  reinitflag          */

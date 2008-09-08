@@ -45,9 +45,14 @@ if sys.platform[:3] == 'win':
 	# customCPPPATH.append(r'U:\msvc2008\VC\INCLUDE')
 	################################################################
 	# If you want to build Csound,
+	# the pthreads library is REQUIRED.
+	customCPPPATH.append(r'U:\pthreads-msvc\Pre-built.2\include')
+	customLIBPATH.append(r'U:\pthreads-msvc\Pre-built.2\lib')
+	################################################################
+	# If you want to build Csound,
 	# libsndfile is REQUIRED.
-	customCPPPATH.append(r'U:\libsndfile-1_0_17')
-	customLIBPATH.append(r'U:\libsndfile-1_0_17')
+	customCPPPATH.append(r'U:\Mega-Nerd\libsndfile\include')
+	customLIBPATH.append(r'U:\Mega-Nerd\libsndfile')
 	################################################################
 	# You need dirent.h, put its path here.
 	# You can get it from http://www.softagalleria.net/dirent.php.
@@ -57,12 +62,6 @@ if sys.platform[:3] == 'win':
 	# for real-time audio performance.
 	customCPPPATH.append(r'U:\portaudio\include')
 	customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
-	################################################################
-	# If you want to build the Open Sound Control (OSC) opcodes,
-	# for real-time network communication and control,
-        # you need liblo.
-	customCPPPATH.append(r'U:\liblo')
-	customLIBPATH.append(r'U:\liblo')
 	################################################################
 	# If you want to build PortMidi,
 	# for real-time MIDI performance.,
@@ -123,8 +122,8 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'U:\jdk1.5.0\include')
-	customCPPPATH.append(r'U:\jdk1.5.0\include\win32')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_10\include')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_10\include\win32')
 	################################################################
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
@@ -141,12 +140,15 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
-	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\lo')
-	customCPPPATH.append(r'D:\utah\home\mkg\projects\liblo\src')
-	customLIBPATH.append(r'D:\utah\home\mkg\projects\liblo\src\.libs')
-	# For OSC on Windows, you will also need a Windows pthread library.
-	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
-	customLIBPATH.append(r'U:\pthreads\Pre-build.2\lib')
+	customCPPPATH.append(r'U:\liblo\lo')
+	customCPPPATH.append(r'U:\liblo\src')
+	customLIBPATH.append(r'U:\liblo\src\.libs')
+	################################################################
+	# If you want to build the linear algebra opcodes,
+	# you need Gmm++ (it is only header files and doesn't need to be
+        # built first).
+	customCPPPATH.append(r'U:\gmm-3.0\include')
+	customCPPPATH.append(r'U:\gmm-3.0\include\gmm')
 	################################################################
 	# print "Adding custom path"
 else:
