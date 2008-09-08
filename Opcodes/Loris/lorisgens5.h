@@ -47,49 +47,49 @@ typedef struct LorisMorpher LorisMorpher;
 /*      Define a structure to hold parameters for the lorisread module. */
 typedef struct
 {
-        /*      standard structure holding csound global data (esr, ksmps, etc.) */
-        OPDS h;
+  /*      standard structure holding csound global data (esr, ksmps, etc.) */
+  OPDS h;
 
-        /* no output
-        MYFLT *result; */
+  /* no output
+     MYFLT *result; */
 
-        /* unit generator parameters/arguments */
-        MYFLT *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;
+  /* unit generator parameters/arguments */
+  MYFLT *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;
 
-        /* private internal data, used by generator */
-        LorisReader *imp;
+  /* private internal data, used by generator */
+  LorisReader *imp;
 } LORISREAD;
 
 /*      Define a structure to hold parameters for the lorisplay module. */
 typedef struct
 {
-        /*      standard structure holding csound global data (esr, ksmps, etc.) */
-        OPDS h;
+  /*      standard structure holding csound global data (esr, ksmps, etc.) */
+  OPDS h;
 
-        /* output */
-        MYFLT *result;
+  /* output */
+  MYFLT *result;
 
-        /* unit generator parameters/arguments */
-        MYFLT *readerIdx, *freqenv, *ampenv, *bwenv;
+  /* unit generator parameters/arguments */
+  MYFLT *readerIdx, *freqenv, *ampenv, *bwenv;
 
-        /* private internal data, used by generator */
-        LorisPlayer *imp;
+  /* private internal data, used by generator */
+  LorisPlayer *imp;
 } LORISPLAY;
 
 /*      Define a structure to hold parameters for the lorismorph module. */
 typedef struct
 {
-        /*      standard structure holding csound global data (esr, ksmps, etc.) */
-        OPDS h;
+  /*      standard structure holding csound global data (esr, ksmps, etc.) */
+  OPDS h;
 
-        /* no output
-        MYFLT *result; */
+  /* no output
+     MYFLT *result; */
 
-        /* unit generator parameters/arguments */
-        MYFLT *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;
+  /* unit generator parameters/arguments */
+  MYFLT *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;
 
-        /* private internal data, used by generator */
-        LorisMorpher *imp;
+  /* private internal data, used by generator */
+  LorisMorpher *imp;
 } LORISMORPH;
 
 #endif  /* nef INCLUDE_LORISGENS_H */

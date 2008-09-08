@@ -1134,10 +1134,10 @@ int out(CSOUND *csound, OUTM *p)
 int outs(CSOUND *csound, OUTS *p)
 {
   MYFLT       *sp, *ap1, *ap2;
+  int nsmps = csound->ksmps;
   ap1 = p->asig1;
   ap2 = p->asig2;
   sp = csound->spout;
-  int nsmps = csound->ksmps;
   CSOUND_SPIN_LOCK
   if (!csound->spoutactive) {
     int n, m;                   /* Amazingly this compiles better!!! */
