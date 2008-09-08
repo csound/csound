@@ -33,6 +33,11 @@
 #include "csoundCore.h"
 #include "csGblMtx.h"
 
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+}
+
 #if defined(WIN32)
 #include <windows.h>
 #include <process.h>
@@ -83,12 +88,17 @@ PUBLIC void csoundSleep(size_t milliseconds)
 }
 
 #elif defined(mac_classic)
+
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 {
+    notImplementedWarning_("csoundRunCommand");
     return -1L;
 }
+
 PUBLIC void csoundSleep(size_t milliseconds)
 {
+    notImplementedWarning_("csoundSleep");
+}
 
 #else
 
@@ -532,11 +542,6 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
 
 #else
 
-static CS_NOINLINE void notImplementedWarning_(const char *name)
-{
-    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
-}
-
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
@@ -583,11 +588,6 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     notImplementedWarning_("csoundDestroyThreadLock");
 }
 
-PUBLIC void csoundSleep(size_t milliseconds)
-{
-    notImplementedWarning_("csoundSleep");
-}
-
 PUBLIC void *csoundCreateMutex(int isRecursive)
 {
     notImplementedWarning_("csoundCreateMutex");
@@ -613,12 +613,6 @@ PUBLIC void csoundUnlockMutex(void *mutex_)
 PUBLIC void csoundDestroyMutex(void *mutex_)
 {
     notImplementedWarning_("csoundDestroyMutex");
-}
-
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
-{
-    notImplementedWarning_("csoundRunCommand");
-    return -1L;
 }
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
