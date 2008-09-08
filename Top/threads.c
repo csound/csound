@@ -42,7 +42,9 @@ static CS_NOINLINE void notImplementedWarning_(const char *name)
 #include <windows.h>
 #include <process.h>
 
+#ifndef MSVC
 void __stdcall GetSystemTimeAsFileTime(FILETIME*);
+#endif
 
 void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
    {
@@ -170,8 +172,12 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
-#include <sys/time.h>
+#ifdef MSVC
+#include <time.h>
+#else
 #include <unistd.h>
+#include <sys/time.h>
+#endif
 
 #define BARRIER_SERIAL_THREAD (-1)
 
