@@ -1,3 +1,8 @@
+2008-09-08  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* Top/threads.c (csoundRunCommand, csoundSleep): Consolidated dummy
+	versions to avoid multiple definitions.
+
 2008-09-08  jpff  <jpff@codemist.co.uk>
 
 	* Top/csound.c ("C"): Do not loas pthreads in mac_clasic
@@ -221,8 +226,6 @@
 	enable MSVC build.
 	Exported new RunCsoundVST function to enable CsoundVstShell to run
 	with MSVC build.
-
-2008-02-21  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Engine/sread.c (nested_repeat, do_repeat, sread, etc.):
 	Renamed struct in_stack_s to avoid debugging conflict with rdorch.c.
