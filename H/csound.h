@@ -1231,7 +1231,7 @@ CSOUND_FILETYPES;
 
 #include <intrin.h>
 
-#pragma(intrinsic, _InterlockedExchange)
+#pragma intrinsic(_InterlockedExchange)
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock)      */
 #define csoundSpinLock(spinlock)                        \
