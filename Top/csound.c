@@ -40,7 +40,9 @@ extern "C" {
 #include "csGblMtx.h"
 #include <stdarg.h>
 #include <signal.h>
+#ifndef mac_classic
 #include <pthread.h>
+#endif
 #include <time.h>
 #include <ctype.h>
 #include <limits.h>
@@ -1127,6 +1129,7 @@ extern "C" {
    */
 
   static int getThreadIndex(CSOUND *csound, void *threadId) {
+#ifndef mac_classic
     int index = 0;
     THREADINFO *current = csound->multiThreadedThreadInfo;
 
@@ -1141,6 +1144,7 @@ extern "C" {
       index++;
       current = current->next;
     }
+#endif
     return -1;
   }
 
