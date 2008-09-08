@@ -949,9 +949,9 @@ int ilogbasetwo(CSOUND *csound, EVAL *p)
 
 int in(CSOUND *csound, INM *p)
 {
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     memcpy(p->ar, csound->spin, csound->ksmps * sizeof(MYFLT));
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -960,7 +960,7 @@ int ins(CSOUND *csound, INS *p)
     MYFLT       *sp, *ar1, *ar2;
     int n, k;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     sp = csound->spin;
     ar1 = p->ar1;
     ar2 = p->ar2;
@@ -968,7 +968,7 @@ int ins(CSOUND *csound, INS *p)
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -979,14 +979,14 @@ int inq(CSOUND *csound, INQ *p)
                                     *ar3 = p->ar3, *ar4 = p->ar4;
     int n, k;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=4) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
       ar3[n] = sp[k+2];
       ar4[n] = sp[k+3];
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -996,7 +996,7 @@ int inh(CSOUND *csound, INH *p)
                                     *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6;
     int n, k;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=6) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
@@ -1005,7 +1005,7 @@ int inh(CSOUND *csound, INH *p)
       ar5[n] = sp[k+4];
       ar6[n] = sp[k+5];
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -1016,7 +1016,7 @@ int ino(CSOUND *csound, INO *p)
                                     *ar7 = p->ar7, *ar8 = p->ar8;
     int n, k;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     for (n=0, k=0; n<nsmps; n++, k+=8) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
@@ -1027,7 +1027,7 @@ int ino(CSOUND *csound, INO *p)
       ar7[n] = sp[k+6];
       ar8[n] = sp[k+7];
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -1037,12 +1037,12 @@ static int inn(CSOUND *csound, INALL *p, int n)
     int   m;
     int   i;
     int   nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     for (m = 0; m < nsmps; m++) {
       for (i = 0; i < n; i++)
         *ara[i] = *sp++;
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -1064,16 +1064,16 @@ int inch_opcode(CSOUND *csound, INCH *p)
     int   nsmps = csound->ksmps;
     MYFLT *sp = csound->spin + (ch - 1);
     MYFLT *ain = p->ar;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     if (ch > csound->nchnls) {
-      CSOUND_SPIN_UNLOCK
+      CSOUND_SPIN_SPINUNLOCK
       return NOTOK;
     }
     for (n = 0; n < nsmps; n++) {
       ain[n] = *sp;
       sp += csound->nchnls;
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -1083,7 +1083,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
     int   m;
     int   i, j = 0, k = 0, nsmps = csound->ksmps;
     MYFLT *spin = csound->spin;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPIN_SPINLOCK
     m = (n < csound->nchnls ? n : csound->nchnls);
     for (j=0; j<nsmps; j++) {
       for (i=0; i<m; i++) {
@@ -1093,7 +1093,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
         p->ar[i][j] = FL(0.0);
       k += csound->nchnls;
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
 
@@ -1102,7 +1102,7 @@ int out(CSOUND *csound, OUTM *p)
     int n;
     int nsmps = csound->ksmps;
     MYFLT *smp = p->asig;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       memcpy(csound->spout, smp, nsmps * sizeof(MYFLT));
       csound->spoutactive = 1;
@@ -1111,7 +1111,7 @@ int out(CSOUND *csound, OUTM *p)
       for (n=0; n<nsmps; n++)
         csound->spout[n] += smp[n];
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1119,7 +1119,7 @@ int outs(CSOUND *csound, OUTS *p)
 {
     MYFLT       *sp= csound->spout, *ap1 = p->asig1, *ap2= p->asig2;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++) {
@@ -1135,7 +1135,7 @@ int outs(CSOUND *csound, OUTS *p)
         sp[m++] += ap2[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1145,7 +1145,7 @@ int outq(CSOUND *csound, OUTQ *p)
     MYFLT       *sp= csound->spout, *ap1= p->asig1, *ap2= p->asig2,
                 *ap3= p->asig3, *ap4= p->asig4;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     sp = csound->spout;
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
@@ -1166,7 +1166,7 @@ int outq(CSOUND *csound, OUTQ *p)
         sp[m+3] += ap4[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 #endif
@@ -1175,7 +1175,7 @@ int outs1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp= csound->spout, *ap1= p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++) {
@@ -1190,7 +1190,7 @@ int outs1(CSOUND *csound, OUTM *p)
         sp[m]   += ap1[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1198,7 +1198,7 @@ int outs2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap2 = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++) {
@@ -1213,7 +1213,7 @@ int outs2(CSOUND *csound, OUTM *p)
         sp[m] += ap2[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1221,7 +1221,7 @@ int outs12(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
 
     if (!csound->spoutactive) {
       int n, m;
@@ -1237,7 +1237,7 @@ int outs12(CSOUND *csound, OUTM *p)
         sp[m++] += ap[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1246,7 +1246,7 @@ int outq1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap1 = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
@@ -1263,7 +1263,7 @@ int outq1(CSOUND *csound, OUTM *p)
         sp[m]   += ap1[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1271,7 +1271,7 @@ int outq2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap2 = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
@@ -1288,15 +1288,15 @@ int outq2(CSOUND *csound, OUTM *p)
         sp[m]   += ap2[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
 int outq3(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spout, *ap3 = p->asig;;
+    MYFLT       *sp = csound->spout, *ap3 = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
@@ -1313,7 +1313,7 @@ int outq3(CSOUND *csound, OUTM *p)
         sp[m]   += ap3[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1321,7 +1321,7 @@ int outq4(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap4 = p->asig;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
@@ -1338,7 +1338,7 @@ int outq4(CSOUND *csound, OUTM *p)
         sp[m]   += ap4[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1347,7 +1347,7 @@ int outh(CSOUND *csound, OUTH *p)
     MYFLT       *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
                                      *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig3;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=6) {
@@ -1371,7 +1371,7 @@ int outh(CSOUND *csound, OUTH *p)
         sp[m+5] += ap6[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1381,7 +1381,7 @@ int outo(CSOUND *csound, OUTO *p)
                                      *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig3,
                                      *ap7 = p->asig7, *ap8 = p->asig8;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=8) {
@@ -1409,7 +1409,7 @@ int outo(CSOUND *csound, OUTO *p)
         sp[m+7] += ap8[n];
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 #endif
@@ -1418,7 +1418,7 @@ static int outn(CSOUND *csound, int n, OUTX *p)
 {
     int   i, j = 0, k = 0;
     int nsmps = csound->ksmps;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
       for (j=0; j<nsmps; j++) {
         for (i=0; i<n; i++) {
@@ -1439,7 +1439,7 @@ static int outn(CSOUND *csound, int n, OUTX *p)
         k += csound->nchnls;
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 
@@ -1470,7 +1470,7 @@ int outch(CSOUND *csound, OUTCH *p)
     int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
     int         nchnls = csound->nchnls;
-    CSOUND_SPIN_LOCK
+    CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
       apn = args[j + 1];
@@ -1493,7 +1493,7 @@ int outch(CSOUND *csound, OUTCH *p)
         }
       }
     }
-    CSOUND_SPIN_UNLOCK
+    CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
 

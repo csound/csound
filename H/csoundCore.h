@@ -982,7 +982,7 @@ extern const uint32_t csPlayScoMask;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
-    int           ksmps, global_ksmps, nchnls, spoutactive;
+    int           ksmps, global_ksmps, nchnls, spoutactive, spoutlock, spinlock;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;

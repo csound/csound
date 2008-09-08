@@ -23,6 +23,11 @@
 
 /*                                                      AOPS.H          */
 
+#define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
+#define CSOUND_SPIN_SPINUNLOCK csoundSpinUnlock(&csound->spinlock);
+#define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);
+#define CSOUND_SPOUT_SPINUNLOCK csoundSpinUnlock(&csound->spoutlock);
+
 typedef struct {
     OPDS    h;
     MYFLT   *r, *a;
