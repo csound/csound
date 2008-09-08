@@ -82,6 +82,14 @@ PUBLIC void csoundSleep(size_t milliseconds)
     Sleep((DWORD) milliseconds);
 }
 
+#elif defined(mac_classic)
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+{
+    return -1L;
+}
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+
 #else
 
 #include <sys/wait.h>
