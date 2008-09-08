@@ -49,12 +49,18 @@
 #  define HAVE_C99 1
 #endif
 
+#ifdef MSVC
+typedef __int32 int32;
+typedef __int16 int16;
+typedef unsigned __int32 uint32;
+typedef unsigned __int16 uint16;
+#else
 #include <stdint.h>
-
 typedef int_least32_t int32;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
+#endif
 
 #if (USE_DOUBLE==1)
   #define ACOS acos
