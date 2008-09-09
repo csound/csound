@@ -1272,16 +1272,9 @@ CSOUND_FILETYPES;
 #else
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
-#define csoundSpinLock(spinlock)                \
-  {                                             \
-    notImplementedWarning_("csoundSpinLock");   \
-  }
-
+#define csoundSpinLock(spinlock)
   /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
-#define csoundSpinUnLock(spinlock)              \
-  {                                             \
-    notImplementedWarning_("csoundSpinUnLock"); \
-  }
+#define csoundSpinUnLock(spinlock)
 
 #define CSOUND_SPIN_LOCK
 
