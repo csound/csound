@@ -183,7 +183,7 @@ static int skiporccomment(CSOUND *csound)
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
         ST(linepos) = -1;
-        return;
+        return srccnt;
       }
     }
     else {
@@ -191,14 +191,14 @@ static int skiporccomment(CSOUND *csound)
       if (c == EOF) {
         if (ST(str) == &ST(inputs)[0]) {
           ST(linepos) = -1;
-          return;
+          return srccnt;
         }
         if (ST(str)->fd != NULL) {
           csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
         }
         ST(str)--; ST(input_cnt)--;
         ST(str)->line++; ST(linepos) = -1;
-        return;
+        return srccnt;
       }
     }
     if (c == '*') mode = 1;     /* look for end of comment */
