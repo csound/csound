@@ -749,7 +749,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
             double si = *sampinc * freq[n];
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
-            Linear_interpolation Mono_out Looped
+            { Linear_interpolation Mono_out Looped }
           }
         }
         else if (*phs < *end) {
@@ -757,7 +757,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
             double si = *sampinc * freq[n];
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
-            Linear_interpolation Mono_out Unlooped
+            { Linear_interpolation Mono_out Unlooped }
           }
         }
         phs++; base++; sampinc++; endloop++; startloop++;
@@ -775,14 +775,14 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
           for (n=0;n<nsmps;n++) {
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
-            Linear_interpolation Mono_out Looped
+            { Linear_interpolation Mono_out Looped }
           }
         }
         else if (*phs < *end) {
           for (n=0;n<nsmps;n++) {
             if (*p->ienv > 1) { ExpEnvelope }
             else if (*p->ienv > 0) { LinEnvelope }
-            Linear_interpolation Mono_out Unlooped
+            { Linear_interpolation Mono_out Unlooped }
           }
         }
         phs++; base++; sampinc++; endloop++; startloop++;
