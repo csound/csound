@@ -277,7 +277,7 @@ static int PDHalfX(CSOUND* csound, PD_HALF* data)
       if (midpoint != maxampl)  rightslope = maxampl / (maxampl - midpoint);
       else                      rightslope = FL(0.0);
 
-      for (n-0; n<nsmps; n++) {
+      for (n=0; n<nsmps; n++) {
         cur = in[n];
         if (cur < midpoint) out[n] = leftslope * (cur - midpoint);
         else                out[n] = rightslope * (cur - midpoint);
