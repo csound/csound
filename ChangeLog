@@ -1,5 +1,8 @@
 2008-09-09  Anthony Kozar  <akozar@users.sourceforge.net>
 
+	* H/csound.h (csoundSpinLock, csoundSpinUnLock): Removed attempt at
+	printing warnings when spinlocks are not implemented.
+
 	* Opcodes/sfont.c (SfPlayMono): More declaration before code fixes.
 
 	* Opcodes/shape.c (PDHalfX): Fixed unitialized variable.
