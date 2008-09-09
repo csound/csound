@@ -42,12 +42,12 @@ typedef struct {
 int vosimset(CSOUND* csound, VOSIM *p)
 {
     if (*p->iskip)
-      return;
+      return OK;
 
     p->ftable = csound->FTFind(csound, p->iftab);
     if (p->ftable == NULL) {
       csound->InitError(csound, Str("vosim: pulse table not found"));
-      return;
+      return NOTOK;
     }
 
     p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
