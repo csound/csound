@@ -488,6 +488,7 @@ elif getPlatform() == 'win32':
     commonEnvironment.Append(CXXFLAGS = '-DWIN32')
     commonEnvironment.Append(CXXFLAGS = '-DPIPES')
     commonEnvironment.Append(CXXFLAGS = '-DOS_IS_WIN32')
+    commonEnvironment.Append(CXXFLAGS = '-DFL_DLL')
     if compilerGNU():
         commonEnvironment.Prepend(CCFLAGS = "-Wall")
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
