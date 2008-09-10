@@ -1012,7 +1012,7 @@ int inh(CSOUND *csound, INH *p)
 int ino(CSOUND *csound, INO *p)
 {
     MYFLT       *sp = csound->spin, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
-                                    *ar4 = p->ar4, *ar5 = p->ar5, *ar6= p->ar6,
+                                    *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6,
                                     *ar7 = p->ar7, *ar8 = p->ar8;
     int n, k;
     int nsmps = csound->ksmps;
