@@ -40,9 +40,7 @@ customSWIGFLAGS = []
 if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Csound,
-	# the pthreads library is REQUIRED.
-	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
-	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
+	# libsndfile is REQUIRED.
  	################################################################
 	# If you want to build Csound,
 	# libsndfile is REQUIRED.
@@ -94,9 +92,8 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\VSTModuleArchitectureSDK\pluginterfaces\base')    
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
-	# customCPPPATH.append(r'U:\LuaJIT-1.1.4')
-	customCPPPATH.append(r'U:\LuaJIT-1.1.4\src')
-	customLIBPATH.append(r'U:\LuaJIT-1.1.4\src')
+	customCPPPATH.append(r'U:\Lua5.1')
+	customLIBPATH.append(r'U:\Lua5.1')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
@@ -113,8 +110,8 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'U:\Java\jdk1.6.0_06\include')
-	customCPPPATH.append(r'U:\Java\jdk1.6.0_06\include\win32')
+	customCPPPATH.append(r'U:\jdk1.5.0\include')
+	customCPPPATH.append(r'U:\jdk1.5.0\include\win32')
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
@@ -131,11 +128,6 @@ if sys.platform[:3] == 'win':
 	# add it here (you do NOT need to build it first):
 	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
-	################################################################
-	# If you want to build the linear algebra opcodes,
-	# you need Gmm++ (it is only header files and doesn't need to be
-        # built first).
-	customCPPPATH.append(r'U:\gmm-3.0\include')
 	################################################################
 	# If you want to build the Loris opcodes,
 	# then copy Loris to csound5\Opcodes\Loris. Loris also
