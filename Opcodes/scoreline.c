@@ -25,41 +25,41 @@
 typedef struct _inmess {
   OPDS h;
   MYFLT *SMess, *ktrig;
-} inmess;
+} INMESS;
 
 
 typedef struct _scorepos {
   OPDS h;
   MYFLT *spos;
-} scorepos;
+} SCOREPOS;
 
-int messi(CSOUND *csound, inmess *p)
+int messi(CSOUND *csound, INMESS *p)
 {
     csound->InputMessage(csound, (char *)p->SMess);
     return OK;
 }
 
-int messk(CSOUND *csound, inmess *p){
-   if(*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
+int messk(CSOUND *csound, INMESS *p){
+    if(*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
     return OK;
 }
 
-int setscorepos(CSOUND *csound, scorepos *p){
-  csound->SetScoreOffsetSeconds(csound, *p->spos);
-  return OK;
+int setscorepos(CSOUND *csound, SCOREPOS *p){
+    csound->SetScoreOffsetSeconds(csound, *p->spos);
+    return OK;
 }
 
-int rewindscore(CSOUND *csound, scorepos *p){
-  csound->RewindScore(csound);
-  return OK;
+int rewindscore(CSOUND *csound, SCOREPOS *p){
+    csound->RewindScore(csound);
+    return OK;
 }
 
 
 static OENTRY localops[] = {
-  {"scoreline_i", sizeof(inmess), 1, "", "S", (SUBR)messi, NULL, NULL},
-  {"scoreline", sizeof(inmess), 2, "", "Sk", NULL, (SUBR)messk, NULL},
-  {"setscorepos", sizeof(inmess), 1, "", "i", (SUBR)setscorepos, NULL, NULL},
-  {"rewindscore", sizeof(inmess), 1, "", "", (SUBR)rewindscore, NULL, NULL}
+  {"scoreline_i", sizeof(INMESS), 1, "", "S", (SUBR)messi, NULL, NULL},
+  {"scoreline", sizeof(INMESS), 2, "", "Sk", NULL, (SUBR)messk, NULL},
+  {"setscorepos", sizeof(SCOREPOS), 1, "", "i", (SUBR)setscorepos, NULL, NULL},
+  {"rewindscore", sizeof(SCOREPOS), 1, "", "", (SUBR)rewindscore, NULL, NULL}
 };
 
 
