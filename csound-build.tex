@@ -62,14 +62,14 @@ All third party libraries will be updated from the most recent version that seem
 \begin{enumerate}
 	\item Update the documentation tools.
 		\begin{enumerate}
-	    \item (No need -- I hope) Update the Docbook toolchain.
+	    \item (No need) Update the Docbook toolchain.
 	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
 	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
 		\end{enumerate}
 	\item Update the build tools.   
 		\begin{enumerate}
 			\item (Done) For Visual C++ from \url{http://www.microsoft.com/express/vc}, probably 2008 is still good (it is as of 6 September 2008). Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
-			\item For MinGW/MSys from \url{www.mingw.org}, first update with Twilight Dragon Media's GCC 4 (\url{http://www.tdragon.net/recentgcc}) (current version 4.3.2-tdm-1). Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}.
+			\item For MinGW/MSys from \url{www.mingw.org}, first update with Twilight Dragon Media's GCC 4 (\url{http://www.tdragon.net/recentgcc}) (current version 4.3.2-tdm-1) (Done). Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}.
 		\end{enumerate}    
 	\item Update third-party dependencies.   
 		\begin{enumerate}
@@ -95,12 +95,12 @@ All third party libraries will be updated from the most recent version that seem
 			\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
 			\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
 			\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
-	    \item (Done) Build Csound using \texttt{build-mingw-release.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
+	    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
 	    \item Build the manual.
 	    \item Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
-	    \item Repeat this entire build in a separate directory, but change \texttt{build-mingw-release.bat} by removing \verb|useDouble=1|. 
+	    \item Build the installers using NSIS from \url{http://nsis.sourceforge.net/Main_Page} with and without the VST stuff.   
+	    \item Repeat this entire build in a separate directory using \texttt{build-mingw-release-double.bat}. 
 	    \item Update this document to reflect any changes in procedure or dependencies. 
-	    \item Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} with and without the VST stuff.   
 	    \item Upload the installers to SourceForge and update the release package.
 		\end{enumerate}
  \end{enumerate}
@@ -117,14 +117,14 @@ All third party libraries will be updated from the most recent version that seem
 	\item Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
 	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
 	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted.
-	\item Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument.
+	\item Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument.
 	\item Ensure \texttt{CsoundVST} plugin works with \texttt{examples/CsoundAC.csd} using VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm} and LMMS for Windows from \url{http://lmms.sourceforge.net}.
 	\item Ensure VST hosting works using Green Oak Crystal from \url{http://www.greenoak.com/crystal}.
 	\item Ensure Python works with \texttt{python examples/koch.py} and \texttt{python examples/Lindenmayer.py}.
+	\item Ensure the Python opcodes work with some of the tests in \url{Opcodes/py/examples}.
 	\item Ensure Lua works with \verb|lua examples/lua_example.lua|.
 	\item Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
 	\item Ensure Java works with \verb|java -jar examples\java\CsoundEditor.jar|.
-	\item Ensure FluidSynth opcodes work by using a SoundFont instrument in \texttt{CsoundAC.csd}.
 	\item Ensure OSC works by connecting to Pure Data.
 \end{enumerate}
 

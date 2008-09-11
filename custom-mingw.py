@@ -66,7 +66,7 @@ if sys.platform[:3] == 'win':
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
 	customCPPPATH.append(r'U:\fltk-mingw')
         # Import libraries MUST come first.
-        customLIBPATH.append(r'U:]fltk-mingw\src')
+        customLIBPATH.append(r'U:\fltk-mingw\src')
         # Then static libraries.
 	customLIBPATH.append(r'U:\fltk-mingw\lib')
 	################################################################
@@ -83,7 +83,7 @@ if sys.platform[:3] == 'win':
 	customLIBPATH.append(r'U:\Python25\libs')
 	################################################################
 	# If you want to build CsoundVST, you need the 
-	# Steinberg VST SDK.
+	# Steinberg VST SDK version 2.4.
 	customCPPPATH.append(r'U:\vstsdk2.4')    
 	################################################################
 	# If you want to build CsoundAC, you need the 
