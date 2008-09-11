@@ -136,7 +136,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
     //warn(csound, "MixerSend::init: instance %d send %d buss "
-    //"%d channel %d frames %d busspointer 0x%x\n", 
+    //"%d channel %d frames %d busspointer 0x%p\n", 
     //csound, send, buss, channel, frames, busspointer);
     return OK;
   }
@@ -153,7 +153,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
         busspointer[i] += (ainput[i] * gain);
       }
     //warn(csound, "MixerSend::audio: instance %d send %d buss "
-    //"%d gain %f busspointer 0x%x\n", csound, send, buss, gain, busspointer);
+    //"%d gain %f busspointer 0x%p\n", csound, send, buss, gain, busspointer);
     return OK;
   }
 };
@@ -185,7 +185,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
     //warn(csound, "MixerReceive::init instance %d buss %d channel "
-    //"%d frames %d busspointer 0x%x\n", instance, buss, channel, 
+    //"%d frames %d busspointer 0x%p\n", instance, buss, channel, 
     //frames, busspointer);
     return OK;
   }
@@ -200,7 +200,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
       {
         aoutput[i] = busspointer[i];
       }
-    //warn(csound, "MixerReceive::audio aoutput 0x%x busspointer 0x%x\n", 
+    //warn(csound, "MixerReceive::audio aoutput 0x%p busspointer 0x%p\n", 
     //aoutput, busspointer);
     return OK;
   }
