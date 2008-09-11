@@ -22,6 +22,8 @@
 #include "CsoundVST.hpp"
 #include "CsoundVstFltk.hpp"
 #include <Python.h>
+#include <cstring>
+#include <cstdlib>
 
 // Stub to avoid bringing in Python.
 
@@ -795,7 +797,7 @@ extern "C"
   SILENCE_PUBLIC CsoundVST* CreateCsoundVST()
   {
     CsoundVST *csoundVST = new CsoundVST;
-    std::fprintf(stderr, "CreateCsoundVST: created 0x%x\n", csoundVST);
+    std::fprintf(stderr, "CreateCsoundVST: created 0x%p\n", csoundVST);
     return csoundVST;
   }
   SILENCE_PUBLIC void RunCsoundVST(const char *filename)
