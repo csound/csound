@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 temp.orc temp.sco
+csound -f -h -M0 -d -m3 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,8 +76,7 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        1,  7
-                        massign			        2, 51
+                        massign			        0, 51
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -104,7 +103,7 @@ giPianoteq              vstinit                 "D:\\utah\\opt\\Pianoteq\\pianot
 
 ; Disabled for Csound installer -- enable if you have the SoundFonts.
 
-#ifdef ENABLE_SOUNDFONTS
+#ifdef ENABLE_SOUNDFONTS = 1
 
 giFluidsynth		    fluidEngine		        0, 0
 giFluidSteinway		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
@@ -1398,7 +1397,7 @@ aleft, aright		    Pan			            p7, asig
                         SendOut			        p1, aleft, aright
                         endin                        
  
-#ifdef ENABLE_PIANOTEQ
+#ifdef ENABLE_PIANOTEQ = 1
 
                         instr 56                ; Pianoteq
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1913,7 +1912,7 @@ aright			        =			            iamplitude * aright
 
 #end
 
-#ifdef ENABLE_PIANOTEQ
+#ifdef ENABLE_PIANOTEQ = 1
                         instr 191               ; Pianoteq output
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ijunk			        = 			            p1 + p2 + p3 + p4 + p5
@@ -2038,6 +2037,11 @@ i 210       0       -1      0.81    0.02  		16000
 ; Master output.
 ; Insno	    Start	Dur	Fadein	Fadeout
 i 220       0       -1   0.1     0.1
+
+f 0 300
+
+
+
 
 
 </CsScore>
