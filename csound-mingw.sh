@@ -1,6 +1,7 @@
 #!/bin/sh
 
-export PATH=/u/libsndfile-1_0_17:${PATH}
+export PATH=/u/Mega-Nerd/libsndfile:${PATH}
+export PATH=/u/fltk-mingw/src:${PATH}
 export PATH=/u/portaudio/build/msvc/Win32/Release:${PATH}
 export PATH=/u/fluidsynth/winbuild:${PATH}
 export PATH=/u/Tcl/bin:${PATH}
