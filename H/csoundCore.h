@@ -982,7 +982,7 @@ extern const uint32_t csPlayScoMask;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
-    int           ksmps, global_ksmps, nchnls, spoutactive, spoutlock, spinlock;
+    int           ksmps, global_ksmps, nchnls, spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
     int           tieflag;
@@ -1001,8 +1001,7 @@ extern const uint32_t csPlayScoMask;
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     double        beatTime;
-    /** unused */
-    int           dummy_01, dummy_02;
+    int           spoutlock, spinlock;
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */

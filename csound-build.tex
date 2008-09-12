@@ -96,8 +96,8 @@ All third party libraries will be updated from the most recent version that seem
 			\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
 			\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
 	    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
-	    \item Build the manual.
-	    \item Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
+	    \item (Done) Build the manual.
+	    \item (Done) Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
 	    \item Build the installers using NSIS from \url{http://nsis.sourceforge.net/Main_Page} with and without the VST stuff.   
 	    \item Repeat this entire build in a separate directory using \texttt{build-mingw-release-double.bat}. 
 	    \item Update this document to reflect any changes in procedure or dependencies. 
@@ -109,23 +109,27 @@ All third party libraries will be updated from the most recent version that seem
 \label{sec:BugFixesAndTests}
 
 \begin{enumerate}
+	\item (Done) Move \texttt{spoutlock} and \texttt{spinlock} to dummy slots in CSOUND structure to preserve Csound API compatibility.
 	\item (Done) Change \texttt{SConstruct} to define \verb|FL_DLL| for linking with the FLTK DLL.
 	\item (Done) Change \texttt{SConstruct} to define \verb|_SCL_SECURE_NO_DEPRECATE| for compiling Gmm++.
-	\item \verb|WAVE_FORMAT_EXTENSIBLE| now seems to be defined in the Windows API for MinGW; fix the build.
+	\item \verb|WAVE_FORMAT_EXTENSIBLE| now seems to be defined in the Windows API for MinGW; fix the build?
+	\item (Done) Ensure \texttt{csound /examples/trapped.csd} works.
+	\item (Done) Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
+	\item (Done) Ensure Python works with \texttt{python examples/koch.py}, which uses SoundFonts in FluidSynth opcodes, and \texttt{python examples/Lindenmayer.py}, which uses \texttt{CsoundAC}. 
+	\item Ensure the Python opcodes work with some of the tests in \url{Opcodes/py/examples}.
+	\item (Done) Ensure Lua works with \verb|luajit examples/lua_example.lua|.
+	\item (Done) Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
+	\item (Done) Ensure Java works with \verb|java -jar examples\java\CsoundEditor.jar|.
 	\item Fix bugs in \texttt{csound5gui}.
-	\item Ensure \texttt{csound /examples/trapped.csd} works.
-	\item Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
 	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
 	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted.
-	\item Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument.
+	\item (Done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, and an STK instrument.
 	\item Ensure \texttt{CsoundVST} plugin works with \texttt{examples/CsoundAC.csd} using VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm} and LMMS for Windows from \url{http://lmms.sourceforge.net}.
 	\item Ensure VST hosting works using Green Oak Crystal from \url{http://www.greenoak.com/crystal}.
-	\item Ensure Python works with \texttt{python examples/koch.py} and \texttt{python examples/Lindenmayer.py}.
-	\item Ensure the Python opcodes work with some of the tests in \url{Opcodes/py/examples}.
-	\item Ensure Lua works with \verb|lua examples/lua_example.lua|.
-	\item Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
-	\item Ensure Java works with \verb|java -jar examples\java\CsoundEditor.jar|.
 	\item Ensure OSC works by connecting to Pure Data.
+	\item Fix up installers for correct third party DLLs.
+	\item Fix up installers for correct Csound examples.
+	\item Make sure installers link to the frames version of the manual and include the quick reference.
 \end{enumerate}
 
 \end{sloppypar}
