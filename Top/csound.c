@@ -328,8 +328,6 @@ extern "C" {
     DFLT_KSMPS,     /*  global_ksmps        */
     DFLT_NCHNLS,    /*  nchnls              */
     0,              /*  spoutactive         */
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     0,              /*  reinitflag          */
@@ -355,8 +353,8 @@ extern "C" {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
-    0,              /*  dummy_01            */
-    0,              /*  dummy_02            */
+    0,              /*  spoutlock           */
+    0,              /*  spinlock            */
     NULL,           /*  widgetGlobals       */
     NULL,           /*  stdOp_Env           */
     NULL,           /*  zkstart             */

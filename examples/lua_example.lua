@@ -7,7 +7,7 @@ require "csnd"
 
 csound = csnd.Csound()
 args = csnd.CsoundArgVList()
-args_ = {"csound", "-o", "dac", "examples/trapped.csd"}
+args_ = {"csound", "-o", "test.wav", "examples/trapped.csd"}
 for i,v in ipairs(args_) do
     args:Append(v)
 end
