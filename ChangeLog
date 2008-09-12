@@ -1,5 +1,8 @@
 2008-09-10  jpff  <jpff@cs.bath.ac.uk>
 
+	* Opcodes/scoreline.c (localops): Wrong structure named in entry
+	-- probably benign
+
 	* H/version.h (CS_PACKAGE_STRING): VERSION 5.09
 
 2008-09-09  Anthony Kozar  <akozar@users.sourceforge.net>
