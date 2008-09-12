@@ -24,7 +24,7 @@ rescale.setRescale( 0, 1, 1,  0,     240)
 rescale.setRescale( 1, 1, 1,  2,       4)
 rescale.setRescale( 3, 1, 1,  2,       6)
 rescale.setRescale( 4, 1, 1, 36,      60)
-rescale.setRescale( 5, 1, 1, 70,      15)
+rescale.setRescale( 5, 1, 1, 50,      15)
 rescale.setRescale( 7, 1, 1, -0.75,    1.5)
 scale = 'E major'
 scalenumber = CsoundAC.Conversions_nameToM(scale)
