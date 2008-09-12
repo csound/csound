@@ -1,6 +1,7 @@
 # vim: filetype=python expandtab sw=4 tabstop=4
 
 import sys
+import glob
 
 Import("commonEnvironment", "commandOptions", "util" )
 Import("configure")
@@ -21,6 +22,12 @@ else:
         '0')
 commandOptions.Add('buildFluidOpcodes',
     'Set to 1 to build the Fluid Opcodes',
+    '0')
+commandOptions.Add('buildDSSI',
+    "Build DSSI/LADSPA host opcodes",
+    '0')
+commandOptions.Add('buildLoris',
+    'Set to 1 to build the Loris Python extension and opcodes',
     '0')
 
 commandOptions.Update(commonEnvironment)
@@ -130,9 +137,10 @@ util.makePlugin(pluginEnvironment, 'partikkel', ['partikkel.c'])
 util.makePlugin(pluginEnvironment, 'shape', ['shape.c'])
 
 if buildOLPC :
-   oggEnvironment = pluginEnvironment.Clone()
-   util.makePlugin(oggEnvironment, 'ogg', ['ogg.c'])
-   oggEnvironment.Append(LIBS=['vorbisfile'])
+    oggEnvironment = pluginEnvironment.Clone()
+    oggEnvironment.Append(LIBS=['vorbisfile', 'vorbis', 'ogg'])
+    util.makePlugin(oggEnvironment, 'ogg', ['ogg.c'])
+    util.makePlugin(oggEnvironment, 'oggplay', ['oggplay.c'])
 
 util.makePlugin(pluginEnvironment, 'vosim', ['Vosim.c'])
 
@@ -152,10 +160,10 @@ if not buildOLPC:
         util.makePlugin(jackEnv, 'jackTransport', 'jackTransport.c')
 
 if commonEnvironment['buildImageOpcodes'] == '1':
-    pngFound = configure.CheckHeader("png.h", language="C")
-    zlibFound = configure.CheckHeader("zlib.h", language = "C")
-    if not (pngFound and zlibFound):
-        util.fatal("You specified buildImageOpcodes but don't have png or libz installed")
+    if not configure.CheckHeader("png.h", language="C"):
+        util.fatal("You specified buildImageOpcodes but libpng was not found")
+    if not configure.CheckHeader("zlib.h", language = "C"):
+        util.fatal("You specified buildImageOpcodes but zlib was not found")
     util.confDecision('Building image opcodes')
     imgEnvironment = pluginEnvironment.Clone()
     imgEnvironment.Append(LIBS= Split(''' png z '''))
@@ -192,17 +200,84 @@ else:
 if commonEnvironment['buildFluidOpcodes']!='0':
     if not configure.CheckHeader("fluidsynth.h", language = "C"):
         util.fatal("You specified buildFluidOpcodes but fluidsynth was not found")
-    else:
-        util.confDecision("Building fluid opcodes.")
-        fluidEnvironment = pluginEnvironment.Clone()
-        fluidEnvironment.Append(LIBS        = ['fluidsynth'])
-        if util.platform == 'win32':
-            fluidEnvironment.Append(CPPFLAGS    = ['-DFLUIDSYNTH_NOT_A_DLL'])
-            fluidEnvironment.Append(LIBS        = ['winmm', 'dsound'])
-        elif util.platform == 'linux' or util.platform == 'darwin':
-            fluidEnvironment.Append(LIBS        = ['pthread'])
-        util.makePlugin(fluidEnvironment, 'fluidOpcodes',
-                        ['fluidOpcodes/fluidOpcodes.c'])
+    util.confDecision("Building fluid opcodes.")
+    fluidEnvironment = pluginEnvironment.Clone()
+    fluidEnvironment.Append(LIBS        = ['fluidsynth'])
+    if util.platform == 'win32':
+        fluidEnvironment.Append(CPPFLAGS    = ['-DFLUIDSYNTH_NOT_A_DLL'])
+        fluidEnvironment.Append(LIBS        = ['winmm', 'dsound'])
+    elif util.platform == 'linux' or util.platform == 'darwin':
+        fluidEnvironment.Append(LIBS        = ['pthread'])
+    util.makePlugin(fluidEnvironment, 'fluidOpcodes',
+                    ['fluidOpcodes/fluidOpcodes.c'])
 else:
     util.confDecision("Not building fluid opcodes.")
-   
+
+# DSSI host
+if commonEnvironment['buildDSSI'] == '1':
+    if not configure.CheckHeader("ladspa.h", language = "C"):
+        util.fatal("You specified buildDSSI but LADSPA was not found")
+    if not configure.CheckLibWithHeader('asound',
+     'alsa/asoundlib.h', language="C"):
+        util.fatal("You specified buildDSSI but ALSA was not found")
+    util.confDecision("Building DSSI plugin host opcodes.")
+    dssiEnvironment = pluginEnvironment.Clone()
+    dssiEnvironment.Append(LIBS = ['dl'])
+    dssiSrc = ['dssi4cs/src/load.c', 'dssi4cs/src/dssi4cs.c']
+    util.makePlugin(dssiEnvironment, 'dssi4cs', dssiSrc)
+else:
+    util.confDecision("Not building DSSI plugin host opcodes.")
+
+# Loris opcodes
+
+if commonEnvironment['buildLoris'] == '1':
+    if not configure.CheckHeader("Opcodes/Loris/src/loris.h"):
+        util.fatal("You specified buildLoris but Loris was not found")
+    if not configure.CheckHeader("fftw3.h"):
+        util.fatal("You specified buildLoris but fftw3.h was not found")
+    util.confDecision("Building Loris Python extension and Csound opcodes.")
+    # For Loris, we build only the loris Python extension module and
+    # the Csound opcodes (modified for Csound 5).
+    # It is assumed that you have copied all contents of the Loris
+    # distribution into the csound5/Opcodes/Loris directory, e.g.
+    # csound5/Opcodes/Loris/src/*, etc.
+    lorisEnvironment = pluginEnvironment.Clone()
+    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+    if commonEnvironment['buildRelease'] == '0':
+        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
+    if util.platform == 'win32':
+        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
+    if util.compilerGNU():
+        lorisEnvironment.Prepend(LIBS = ['stdc++'])
+        lorisEnvironment.Append(CCFLAGS = Split(
+        '-Wno-comment -Wno-unknown-pragmas -Wno-sign-compare'))
+    lorisEnvironment.Append(CPPPATH = Split(
+        'Loris Loris/src'))
+    lorisSources = glob.glob('Loris/src/*.[Cc]')
+    if 'Loris/src/lorisgens.C' in lorisSources:
+        lorisSources.remove('Loris/src/lorisgens.C')
+    lorisLibrarySources = []
+    for i in lorisSources:
+        lorisLibrarySources += lorisEnvironment.SharedObject(i)
+    lorisLibrary = lorisEnvironment.StaticLibrary(
+        'lorisbase', lorisLibrarySources)
+    lorisEnvironment.Prepend(LIBS = [lorisLibrary, 'fftw3'])
+    # The following file has been patched for Csound 5
+    # and you should update it from Csound 5 CVS.
+    lorisOpcodes = util.makePlugin(
+        lorisEnvironment, 'loris', ['Loris/lorisgens5.C'])
+    lorisPythonEnvironment = lorisEnvironment.Clone()
+    util.fixCFlagsForSwig(lorisPythonEnvironment)
+    util.fixEnvForPython(lorisPythonEnvironment, configure)
+    lorisPythonEnvironment.Append(SWIGPATH  = ['#./', '#./Opcodes/Loris/src'])
+    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
+        -module loris -c++ -includeall -verbose -outdir . -python
+        -DHAVE_FFTW3_H
+    '''))
+    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
+        'Loris/scripting/loris.i')
+    lorisPythonEnvironment['SHLIBPREFIX'] = ''
+    lorisPythonModule = util.makePythonModule(
+        lorisPythonEnvironment, 'loris', lorisPythonWrapper)
+else:
+    util.confDecision("Not building Loris Python extension and Csound opcodes.")
