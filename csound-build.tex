@@ -52,7 +52,9 @@
 
 This file should be updated in reasonable detail with each release of the Windows installers for Csound, in order to provide instructions for building Csound on Windows.
 
-Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization. These optimizations preclude debugging. A separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
+Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization.  
+
+These optimizations preclude debugging. A separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
 
 All third party libraries will be updated from the most recent version that seems to be used by a majority of their users --- whatever that is (trunk, most recent tag, stable release, whatever). If pre-built binaries are available, use them; otherwise, build with the recommended toolchain and build system. If that doesn't work, create a Microsoft Visual C++ solution. If that doesn't work, create an SConstruct file. In practice, I build all third party libraries Microsoft Visual C++ Express Edition except for liblo and FLTK, which I build with MinGW/MSys.
 
@@ -112,24 +114,23 @@ All third party libraries will be updated from the most recent version that seem
 	\item (Done) Move \texttt{spoutlock} and \texttt{spinlock} to dummy slots in CSOUND structure to preserve Csound API compatibility.
 	\item (Done) Change \texttt{SConstruct} to define \verb|FL_DLL| for linking with the FLTK DLL.
 	\item (Done) Change \texttt{SConstruct} to define \verb|_SCL_SECURE_NO_DEPRECATE| for compiling Gmm++.
-	\item \verb|WAVE_FORMAT_EXTENSIBLE| now seems to be defined in the Windows API for MinGW; fix the build?
 	\item (Done) Ensure \texttt{csound /examples/trapped.csd} works.
 	\item (Done) Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
 	\item (Done) Ensure Python works with \texttt{python examples/koch.py}, which uses SoundFonts in FluidSynth opcodes, and \texttt{python examples/Lindenmayer.py}, which uses \texttt{CsoundAC}. 
-	\item Ensure the Python opcodes work with some of the tests in \url{Opcodes/py/examples}.
 	\item (Done) Ensure Lua works with \verb|luajit examples/lua_example.lua|.
 	\item (Done) Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
 	\item (Done) Ensure Java works with \verb|java -jar examples\java\CsoundEditor.jar|.
-	\item Fix bugs in \texttt{csound5gui}.
-	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
-	\item Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted.
 	\item (Done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, and an STK instrument.
-	\item Ensure \texttt{CsoundVST} plugin works with \texttt{examples/CsoundAC.csd} using VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm} and LMMS for Windows from \url{http://lmms.sourceforge.net}.
-	\item Ensure VST hosting works using Green Oak Crystal from \url{http://www.greenoak.com/crystal}.
-	\item Ensure OSC works by connecting to Pure Data.
+	\item (Done) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
+	\item (Done) Fix bugs in \texttt{csound5gui}.
+	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
+	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
+	\item (Done) Ensure VST hosting works using \verb|CsoundAC-midi.csd|. Fixed a bug with real-time notes not ending, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
+	\item (Done) Ensure OSC works using example files.
 	\item Fix up installers for correct third party DLLs.
 	\item Fix up installers for correct Csound examples.
 	\item Make sure installers link to the frames version of the manual and include the quick reference.
+	\item Ensure \texttt{CsoundVST} plugin works with \texttt{examples/CsoundAC.csd} using VSTHost from\url{http://www.hermannseib.com/english/vsthost.htm} and LMMS for Windows from \url{http://lmms.sourceforge.net}.
 \end{enumerate}
 
 \end{sloppypar}
