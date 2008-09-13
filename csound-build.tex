@@ -62,18 +62,19 @@ All third party libraries will be updated from the most recent version that seem
 \label{sec:BuildSteps}
 
 \begin{enumerate}
-	\item Update the documentation tools.
+	\item (Done) Update the documentation tools.
 		\begin{enumerate}
 	    \item (No need) Update the Docbook toolchain.
 	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
 	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
 		\end{enumerate}
-	\item Update the build tools.   
+	\item (Done) Update the build tools.   
 		\begin{enumerate}
-			\item (Done) For Visual C++ from \url{http://www.microsoft.com/express/vc}, probably 2008 is still good (it is as of 6 September 2008). Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
+			\item (Done) For Visual C++ from \url{http://www.microsoft.com/express/vc}, probably 2008 is still good (it is as of 6 September 2008). 
 			\item For MinGW/MSys from \url{www.mingw.org}, first update with Twilight Dragon Media's GCC 4 (\url{http://www.tdragon.net/recentgcc}) (current version 4.3.2-tdm-1) (Done). Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}.
+			\item (Done) Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
 		\end{enumerate}    
-	\item Update third-party dependencies.   
+	\item (Done) Update third-party dependencies.   
 		\begin{enumerate}
   		\item (Done) Update Python from \url{www.python.org} to the most recent ``standard'' version (currently 2.5.2).
 	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 10 RC).
@@ -88,20 +89,29 @@ All third party libraries will be updated from the most recent version that seem
     	\item (Done) Update FluidSynth from \url{http://fluidsynth.resonance.org/trac} to the most recent stable version (currently 1.0.8). Apply patches from the FluidSynth mailing list on trac. Build it with Visual C++.
     	\item (Done) Update the Synthesis Toolkit in C++ (STK) from \url{http://ccrma.stanford.edu/software/stk} to the most recent version (currently 4.3.1). Apply any patches from the web site and mailing list. Copy all contents of the STK directory into the Csound \texttt{Opcodes} directory.
     	\item (Done) Install the VST SDK 2.4 from \url{http://www.steinberg.net/en/company/3rd_party_developer.html}.
-    	\item (Done) Update liblo from \url{http://liblo.sourceforge.net} from SVN trunk and build it using my \texttt{SConstruct} file and MinGW.
+    	\item (Done) Update liblo version 0.24 (later versions call \verb|inet_aton| which doesn't exist on Windows) from \url{http://liblo.sourceforge.net} SVN and build it using my \texttt{SConstruct} file and MinGW.
     	\item (Done) Update LuaJIT from \url{http://luajit.org} to the most recent stable version (currently 1.1.4) and build it in the MSVC shell using \url{etc/luavs.bat}.
 		\end{enumerate}
-	\item Build   
-		\begin{enumerate}
-    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
-			\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
-			\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
-			\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
-	    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
-	    \item (Done) Build the manual.
-	    \item (Done) Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
-	    \item Build the installers using NSIS from \url{http://nsis.sourceforge.net/Main_Page} with and without the VST stuff.   
-	    \item Repeat this entire build in a separate directory using \texttt{build-mingw-release-double.bat}. 
+	\item (Done) Build   
+		\begin{enumerate}				
+			\item (Done) Double precision sample build.
+				\begin{enumerate}
+		    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
+					\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
+					\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
+					\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
+			    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
+			    \item (Done) Build the manual.
+			    \item (Done) Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
+			    \item (Done) Run \texttt{strip.sh} to strip debugging infomormation out of the binaries.
+			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
+			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
+			    \item (Done) Build the installer \texttt{without} the \verb|NON_FREE|stuff.   
+				\end{enumerate}
+			\item Single precision sample build.			
+				\begin{enumerate}
+					\item Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
+				\end{enumerate}
 	    \item Update this document to reflect any changes in procedure or dependencies. 
 	    \item Upload the installers to SourceForge and update the release package.
 		\end{enumerate}
@@ -122,15 +132,15 @@ All third party libraries will be updated from the most recent version that seem
 	\item (Done) Ensure Java works with \verb|java -jar examples\java\CsoundEditor.jar|.
 	\item (Done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, and an STK instrument.
 	\item (Done) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
-	\item (Done) Fix bugs in \texttt{csound5gui}.
+	\item (Done) Fix score editing bug in \texttt{csound5gui}.
 	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
 	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
 	\item (Done) Ensure VST hosting works using \verb|CsoundAC-midi.csd|. Fixed a bug with real-time notes not ending, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
 	\item (Done) Ensure OSC works using example files.
-	\item Fix up installers for correct third party DLLs.
-	\item Fix up installers for correct Csound examples.
-	\item Make sure installers link to the frames version of the manual and include the quick reference.
-	\item Ensure \texttt{CsoundVST} plugin works with \texttt{examples/CsoundAC.csd} using VSTHost from\url{http://www.hermannseib.com/english/vsthost.htm} and LMMS for Windows from \url{http://lmms.sourceforge.net}.
+	\item (Done) Fix up installers for correct third party DLLs.
+	\item (Done) Fix up installers for correct Csound examples.
+	\item (Done) Make sure installers link to the frames version of the manual and include the quick reference.
+	\item (Done) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
 \end{enumerate}
 
 \end{sloppypar}
