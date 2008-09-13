@@ -76,7 +76,7 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        0, 42
+                        massign			        0, 69
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -1896,6 +1896,19 @@ p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
+#ifdef ENABLE_VST = 1
+
+                        instr 69                ; AZR3
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+ichan                   init                    1.0
+                        vstnote                 giAzr3, ichan, p4, p5, p3
+                        endin
+
+#end
+
+
 
 #ifdef ENABLE_SOUNDFONTS
 
@@ -1920,6 +1933,22 @@ ifrequency,iamplitude	NoteOn                  p4, p5, 2400.0
 ainleft                 init                    0.0
 ainright                init                    0.0
 aleft, aright           vstaudiog               giPianoteq, ainleft, ainright
+aleft			        = 			            0.5 * aleft * iamplitude
+aright			        =			            0.5 * aright * iamplitude
+                        AssignSend		        p1, 0.2, 0.0, 0.2, 1.0
+                        SendOut			        p1, aleft, aright
+                        endin
+
+#end
+            
+#ifdef ENABLE_PIANOTEQ = 1
+                        instr 192               ; Pianoteq output
+                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ijunk			        = 			            p1 + p2 + p3 + p4 + p5
+ifrequency,iamplitude	NoteOn                  p4, p5, 2400.0
+ainleft                 init                    0.0
+ainright                init                    0.0
+aleft, aright           vstaudiog               giAzr3, ainleft, ainright
 aleft			        = 			            0.5 * aleft * iamplitude
 aright			        =			            0.5 * aright * iamplitude
                         AssignSend		        p1, 0.2, 0.0, 0.2, 1.0
@@ -2024,6 +2053,11 @@ i 190 	    0       -1      0	    73.
 ; Insno     Start   Dur     Key 	Amplitude
 i 191 	    0       -1      0	    1.
 
+; VST OUTPUT
+
+; Insno     Start   Dur     Key 	Amplitude
+i 192 	    0       -1      0	    1.
+
 ; MASTER EFFECT CONTROLS
 
 ; Chorus.
@@ -2039,9 +2073,6 @@ i 210       0       -1      0.81    0.02  		16000
 i 220       0       -1   0.1     0.1
 
 f 0 300
-
-
-
 
 
 
