@@ -391,7 +391,7 @@ void close_cb(Fl_Widget*, void* v) {
   CsoundEditorWindow* w = (CsoundEditorWindow*)v;
   if (!check_save(v)) return;
   w->hide();
-  w->textbuf->remove_modify_callback(changed_cb, w);
+  //w->textbuf->remove_modify_callback(changed_cb, w);
   if (w->isOrc)
     w->parent->closeOrcEditor();
   else
