@@ -132,6 +132,10 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
+	# If you want to build the linear algebra opcodes, 
+	# you need Gmm++ (headers only).
+	customCPPPATH.append(r'U:\gmm-3.0\include')
+	################################################################
 	# If you want to build the Loris opcodes,
 	# then copy Loris to csound5\Opcodes\Loris. Loris also
 	# requires FFTW, if it is not in a standard location,
