@@ -491,14 +491,21 @@ Section "${PRODUCT}" SecCopyUI
 
   	SetOutPath $INSTDIR
 	# Exclude junk soundfiles.
-	File /nonfatal /x test ..\..\test
-	# Exclude all Python stuff. We will install it later, perhaps.
-	File /nonfatal /x  ..\..\*.pyd  ..\..\csnd.dll  ..\..\csnd.py  ..\..\CsoundAC.dll  ..\..\CsoundAC.py  ..\..\py.dll 
+	File /nonfatal /x test x
+	File /nonfatal /x ..\..\test x
+	# Exclude all Python stuff. We will install it later.
+	File /nonfatal /x ..\..\*.pyd x
+	File /nonfatal /x ..\..\csnd.dll x
+	File /nonfatal /x ..\..\csnd.py x
+	File /nonfatal /x ..\..\CsoundAC.dll x
+	File /nonfatal /x ..\..\CsoundAC.py  x
+	File /nonfatal /x ..\..\py.dll x
 !ifdef NONFREE
 	File ..\..\readme-csound5-complete.txt
 !else
 	File ..\..\readme-csound5.txt
 !endif
+	File ..\..\csound-build.pdf
 	File ..\..\etc\.csoundrc
   	File ..\..\INSTALL
 
@@ -513,11 +520,10 @@ Section "${PRODUCT}" SecCopyUI
 	File C:\windows\system32\MSVCRT.DLL
 	File ..\..\csnd.dll
   	File ..\..\_jcsound.dll
+	# CsoundVSTShell is NOT dependent on VST SDK -- it is open source!
+	File ..\..\*.exe
 !ifdef NONFREE
 	File ..\..\CsoundVST.dll
-	File ..\..\*.exe
-!else
-	File /x CsoundVSTShell.exe ..\..\*.exe
 !endif
 	File ..\..\tclcsound.dll
   	File ..\..\csoundapi~.dll
@@ -575,7 +581,7 @@ Section "${PRODUCT}" SecCopyUI
   	File ..\..\..\tutorial\*.py
   	File ..\..\..\tutorial\tutorial3.cpr
   	SetOutPath $INSTDIR\examples
-  	File /x *.wav /x *.orc /x *.sco ..\..\examples\*.*
+  	File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\*.*
   	SetOutPath $INSTDIR\examples\csoundapi_tilde
   	File /x *.wav /x *.orc /x *.sco ..\..\examples\csoundapi_tilde\*.*
   	SetOutPath $INSTDIR\examples\java
