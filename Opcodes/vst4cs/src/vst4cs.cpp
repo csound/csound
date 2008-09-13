@@ -567,7 +567,7 @@ extern "C" {
   {
     VSTNOTEOUT *p = (VSTNOTEOUT *)data;
     if (p->on) {
-      if (csound->curTime >= p->offTime) { // || p->h.insdshead->relesing) {
+      if (csound->curTime >= p->offTime || p->h.insdshead->relesing) {
         // The note may be scheduled to turn off
         // some frames after the actual start of this kperiod.
         double deltaTime = p->offTime - csound->curTime;
