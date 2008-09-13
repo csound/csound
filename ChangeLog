@@ -7,7 +7,7 @@
 	* examples: Updated CsoundAC.csd and CsoundAC-midi.csd, 
 	removed some obsolete precursors of them, added Drone.py Tk GUI example.
 
-	* csound-build.tex: Added for detailed instructions for building
+	* csound-build.tex: Detailed instructions for building
 	the Windows installers.
 
 	* Top/csound.c, H/csoundCore.h: Corrected spinlocks for thread-safe
