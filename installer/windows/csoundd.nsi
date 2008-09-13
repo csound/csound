@@ -525,13 +525,16 @@ Section "${PRODUCT}" SecCopyUI
         # Third party libraries:
 
 	# libsndfile
-	File U:\libsndfile-1_0_17\libsndfile-1.dll
+	File U:\Mega-Nerd\libsndfile\libsndfile-1.dll
+	# FLTK
+	File U:\fltk-mingw\src\mgwfltknox-1.3.dll
+	File U:\fltk-mingw\src\mgwfltknox_images-1.3.dll
 	# PortAudio
 	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
 	# PortMIDI
 	File U:\portmidi\pm_win\Release\pm_dll.dll
 	# Fluidsynth
-	File U:\fluidsynth\winbuild\fluidsynth.dll
+	File U:\fluidsynth.patched\winbuild\fluidsynth.dll
 	# Image opcodes
 	File U:\zlib-1.2.3.win32\bin\zlib1.dll
 	File U:\libpng-1.2.24\.libs\libpng-3.dll
@@ -690,7 +693,7 @@ skipAssoc:
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVSTShell.exe" "" "" "" "" "" "CsoundVST GUI"
 !endif
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\refman.pdf" "" "" "" "" "" "API reference"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
