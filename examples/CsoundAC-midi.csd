@@ -63,10 +63,10 @@ csound -f -h -M0 -d -m3 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 #define ENABLE_SOUNDFONTS #1#
 
 ; Define to enable the use of VST plugins in general.
-#define ENABLE_VST #1#
+; #define ENABLE_VST #1#
 
 ; Define to enable the use of the Pianoteq VST instrument in particular.
-#define ENABLE_PIANOTEQ #1#
+; #define ENABLE_PIANOTEQ #1#
 
 sr                      =                       44100
 ksmps			        =                       15
