@@ -520,10 +520,11 @@ Section "${PRODUCT}" SecCopyUI
 	File C:\windows\system32\MSVCRT.DLL
 	File ..\..\csnd.dll
   	File ..\..\_jcsound.dll
-	# CsoundVSTShell is NOT dependent on VST SDK -- it is open source!
-	File ..\..\*.exe
 !ifdef NONFREE
 	File ..\..\CsoundVST.dll
+	File ..\..\*.exe
+!else
+	File /x CsoundVSTShell.exe ..\..\*.exe
 !endif
 	File ..\..\tclcsound.dll
   	File ..\..\csoundapi~.dll
