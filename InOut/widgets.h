@@ -340,21 +340,21 @@ private:
   char soft_;
   uchar mouseobj;
 
-  static FL_EXPORT void repeat_callback(void *);
-  FL_EXPORT void increment_cb();
-  FL_EXPORT void vertex_by_matrix(float &x, float &y, float &z);
+  static PUBLIC void repeat_callback(void *);
+  PUBLIC void increment_cb();
+  PUBLIC void vertex_by_matrix(float &x, float &y, float &z);
 
-  FL_EXPORT void transform_ball_vertex(float &x, float &y, float &z);
-  FL_EXPORT void rotate(float &x, float &y, float &z,
+  PUBLIC void transform_ball_vertex(float &x, float &y, float &z);
+  PUBLIC void rotate(float &x, float &y, float &z,
                         float rotx=0.0f, float roty=0.0f, float rotz=0.0f);
-  FL_EXPORT void draw_solid_ball(float radius, int slices, int stacks);
-  FL_EXPORT void draw_wire_ball(float radius, int slices, int stacks);
+  PUBLIC void draw_solid_ball(float radius, int slices, int stacks);
+  PUBLIC void draw_wire_ball(float radius, int slices, int stacks);
 public:
-    FL_EXPORT void draw();
-    FL_EXPORT void handle_drag(double v=0.0);
-    FL_EXPORT void handle_release();
-    FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Ball(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
+    PUBLIC void draw();
+    PUBLIC void handle_drag(double v=0.0);
+    PUBLIC void handle_release();
+    PUBLIC int handle(int);
+    PUBLIC Fl_Ball(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
 
   void soft(char x) {soft_ = x;}
   char soft() const {return soft_;}
@@ -422,13 +422,13 @@ class Fl_Spin : public Fl_Valuator {
     int delta, deltadir;
     char soft_;
     uchar mouseobj;
-    static FL_EXPORT void repeat_callback(void *);
-    FL_EXPORT void increment_cb();
+    static PUBLIC void repeat_callback(void *);
+    PUBLIC void increment_cb();
 
  public:
-    FL_EXPORT void draw();
-    FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
+    PUBLIC void draw();
+    PUBLIC int handle(int);
+    PUBLIC Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
 
     void soft(char x) {soft_ = x;}
     char soft() const {return soft_;}
@@ -446,18 +446,18 @@ class Fl_Value_Input_Spin : public Fl_Valuator {
     char soft_;
     uchar mouseobj;
     int butsize;
-    static FL_EXPORT void input_cb(Fl_Widget*, void*);
+    static PUBLIC void input_cb(Fl_Widget*, void*);
     // cause damage() due to value() changing
-    virtual FL_EXPORT void value_damage();
-    static FL_EXPORT void repeat_callback(void *);
-    FL_EXPORT void increment_cb();
+    virtual PUBLIC void value_damage();
+    static PUBLIC void repeat_callback(void *);
+    PUBLIC void increment_cb();
 
  public:
     Fl_Input input;
-    FL_EXPORT void draw();
-    FL_EXPORT int handle(int);
-    FL_EXPORT void resize(int, int, int, int);
-    FL_EXPORT Fl_Value_Input_Spin(CSOUND *csound, int x, int y, int w, int h,
+    PUBLIC void draw();
+    PUBLIC int handle(int);
+    PUBLIC void resize(int, int, int, int);
+    PUBLIC Fl_Value_Input_Spin(CSOUND *csound, int x, int y, int w, int h,
                                   const char *l = 0);
 
     void soft(char x) {soft_ = x;}
@@ -484,16 +484,16 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
     char soft_;
     int txtboxsize;
 
-    static FL_EXPORT void input_cb(Fl_Widget*, void*);
+    static PUBLIC void input_cb(Fl_Widget*, void*);
     // cause damage() due to value() changing
-    virtual FL_EXPORT void value_damage();
+    virtual PUBLIC void value_damage();
 
  public:
     Fl_Input input;
-    FL_EXPORT void draw();
-    FL_EXPORT int handle(int);
-    FL_EXPORT void resize(int, int, int, int);
-    FL_EXPORT Fl_Value_Slider_Input(CSOUND * cs, int x, int y, int w, int h,
+    PUBLIC void draw();
+    PUBLIC int handle(int);
+    PUBLIC void resize(int, int, int, int);
+    PUBLIC Fl_Value_Slider_Input(CSOUND * cs, int x, int y, int w, int h,
                                     const char *l = 0);
 
     void soft(char x) {soft_ = x;}
