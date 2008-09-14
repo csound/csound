@@ -76,7 +76,7 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        0, 69
+                        massign			        0, 11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -103,7 +103,7 @@ giPianoteq              vstinit                 "D:\\utah\\opt\\Pianoteq\\pianot
 
 ; Disabled for Csound installer -- enable if you have the SoundFonts.
 
-#ifdef ENABLE_SOUNDFONTS = 1
+#ifdef ENABLE_SOUNDFONTS
 
 giFluidsynth		    fluidEngine		        0, 0
 giFluidSteinway		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
@@ -1397,7 +1397,7 @@ aleft, aright		    Pan			            p7, asig
                         SendOut			        p1, aleft, aright
                         endin                        
  
-#ifdef ENABLE_PIANOTEQ = 1
+#ifdef ENABLE_PIANOTEQ
 
                         instr 56                ; Pianoteq
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1896,7 +1896,7 @@ p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-#ifdef ENABLE_VST = 1
+#ifdef ENABLE_VST
 
                         instr 69                ; AZR3
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
