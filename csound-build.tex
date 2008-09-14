@@ -106,13 +106,13 @@ All third party libraries will be updated from the most recent version that seem
 			    \item (Done) Run \texttt{strip.sh} to strip debugging infomormation out of the binaries.
 			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
 			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
-			    \item (Done) Build the installer \texttt{without} the \verb|NON_FREE|stuff.   
+			    \item (Done) Build the installer \texttt{without} the \verb|NONFREE|stuff.   
 				\end{enumerate}
 			\item Single precision sample build.			
 				\begin{enumerate}
 					\item Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
 				\end{enumerate}
-	    \item Update this document to reflect any changes in procedure or dependencies. 
+	    \item (Done) Update this document to reflect any changes in procedure or dependencies. 
 	    \item Upload the installers to SourceForge and update the release package.
 		\end{enumerate}
  \end{enumerate}
@@ -135,6 +135,7 @@ All third party libraries will be updated from the most recent version that seem
 	\item (Done) Fix score editing bug in \texttt{csound5gui}.
 	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
 	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
+	\item (Done) Ensure FLTK widgets work. 	
 	\item (Done) Ensure VST hosting works using \verb|CsoundAC-midi.csd|. Fixed a bug with real-time notes not ending, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
 	\item (Done) Ensure OSC works using example files.
 	\item (Done) Fix up installers for correct third party DLLs.
