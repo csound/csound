@@ -2249,7 +2249,7 @@ else:
        if getPlatform() != 'darwin':
          counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd csound32'))
+            LIBS = Split('CsoundAC csnd csound'))
        else: 
           counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
@@ -2321,7 +2321,7 @@ else:
     else:
       csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
-        LIBS = Split('csound32 csnd CsoundVST'))
+        LIBS = Split('csound csnd CsoundVST'))
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
