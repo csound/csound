@@ -1,3 +1,18 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2008-09-16 16:51+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 # Csound
 # Copyright (C) 2008 John ffitch and Csound developers
 # This file is distributed under the same license as the Csound package.
@@ -83,7 +98,7 @@ msgstr ""
 
 #: Engine/cfgvar.c:67
 msgid "string exceeds maximum allowed length"
-msgstr ""
+msgstr "шнур превышает длину позволенную максимумом"
 
 #: Engine/cfgvar.c:68
 msgid "(unknown error)"
@@ -255,7 +270,7 @@ msgstr ""
 
 #: Engine/express.c:252
 msgid "within parens"
-msgstr ""
+msgstr "в пределах скобок"
 
 #: Engine/express.c:293 Engine/express.c:336 Engine/express.c:366
 #: Engine/express.c:402
@@ -358,7 +373,7 @@ msgstr ""
 #: Engine/fgens.c:1154 Engine/fgens.c:2107 Top/cvanal.c:69 Top/main.c:124
 #: Top/pvanal.c:104 util/cvanal.c:66 util/lpanal.c:398 util/pvanal.c:170
 msgid "insufficient arguments"
-msgstr ""
+msgstr "недостаточные аргументы"
 
 #: Engine/fgens.c:383 Engine/fgens.c:1159
 msgid "unknown srctable number"
@@ -402,7 +417,7 @@ msgstr ""
 
 #: Engine/fgens.c:905
 msgid "wrong number of args"
-msgstr ""
+msgstr "неправильный число аргументов"
 
 #: Engine/fgens.c:912
 msgid "a range given exceeds table length"
@@ -418,7 +433,7 @@ msgstr ""
 
 #: Engine/fgens.c:1054
 msgid "Wrong number of input arguments"
-msgstr ""
+msgstr "неправильный число аргументов входного сигнала"
 
 #: Engine/fgens.c:1055
 msgid "unknown distribution"
@@ -753,7 +768,7 @@ msgstr ""
 #: Engine/insert.c:958 OOps/bus.c:762 Opcodes/stackops.c:293
 #, c-format
 msgid "%s: not initialised"
-msgstr ""
+msgstr "%s: не выступлено с иничиативой"
 
 #: Engine/insert.c:1073
 #, c-format
@@ -4177,7 +4192,7 @@ msgstr ""
 
 #: OOps/remote.c:237
 msgid "---> Could not connect \n"
-msgstr ""
+msgstr "---> Не смогл соединиться \n"
 
 #: OOps/remote.c:241
 msgid "---> Failed all attempts to connect. \n"
