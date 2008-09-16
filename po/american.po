@@ -1,3 +1,4 @@
+# SOME DESCRIPTIVE TITLE.
 # Csound Audio Synthesis System
 # Copyright (C) 2007 John ffitch and Csound community
 # This file is distributed under the same license as the Csound package.

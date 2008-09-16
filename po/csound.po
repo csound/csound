@@ -1,3 +1,4 @@
+# SOME DESCRIPTIVE TITLE.
 # Csound
 # Copyright (C) 2008 John ffitch and Csound developers
 # This file is distributed under the same license as the Csound package.
