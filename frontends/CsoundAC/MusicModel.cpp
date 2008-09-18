@@ -41,7 +41,10 @@ namespace csound
 
   void MusicModel::generate()
   {
-    Composition::clear();
+    cppSound->removeScore();
+    if (children.size()) {
+      score.clear();
+    } 
     traverse(getLocalCoordinates(), score);
     System::message("Generated %d events.\n", score.size());
   }
