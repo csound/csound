@@ -1504,8 +1504,12 @@ if jackFound:
     makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
-if (not buildOLPC) and gmmFound:
+if (not buildOLPC) and gmmFound and commonEnvironment['useDouble'] != '0':
     makePlugin(pluginEnvironment, 'linear_algebra', 'Opcodes/linear_algebra.cpp')
+    print 'CONFIGURATION DECISION: Building linear algebra opcodes.'
+else:
+    print 'CONFIGURATION DECISION: Not building linear algebra opcodes.'
+
 #############################################################################
 #
 # Plugins with External Dependencies
@@ -2246,15 +2250,19 @@ else:
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound64'))
     else:
-       if getPlatform() != 'darwin':
-         counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd csound'))
-       else: 
+       if getPlatform() == 'darwin':
           counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd'))
- 
+       elif getPlatform() == 'win32':
+          counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound32'))
+       else:
+          counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound'))
+  
 
 # Build CsoundVST
 
@@ -2321,7 +2329,7 @@ else:
     else:
       csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
-        LIBS = Split('csound csnd CsoundVST'))
+        LIBS = Split('csound32 csnd CsoundVST'))
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
