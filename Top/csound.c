@@ -793,8 +793,7 @@ extern "C" {
       exitNow_ = -1;
       return;
     }
-    //exit(1);
-    exitNow_ = 1;
+    exit(1);
   }
 
   static const int sigs[] = {
