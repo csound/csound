@@ -214,7 +214,7 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
-               'buildCsoundVST=1', 'buildLoris=1', 'buildStkOpcodes=1',
+               'buildCsoundVST=0', 'buildLoris=1', 'buildStkOpcodes=1',
                'buildWinsound=1', 'buildCsound5GUI=1', 'buildUtilities=1']]
 
 for i in range(4):
@@ -285,8 +285,8 @@ for i in range(4):
         os.symlink('%s/lib_csnd.so' % libDir,
                    '%s%s/_csnd.so' % (pkgDir, pythonDir2))
         installXFile('--strip-debug', 'lib_CsoundVST.so', libDir)
-        os.symlink('%s/lib_CsoundVST.so' % libDir,
-                   '%s%s/_CsoundVST.so' % (pkgDir, pythonDir2))
+        #        os.symlink('%s/lib_CsoundVST.so' % libDir,
+        #                   '%s%s/_CsoundVST.so' % (pkgDir, pythonDir2))
         installXFile('--strip-debug', '_loris.so', pythonDir2)
         installXFile('--strip-debug', '_scoregen.so', pythonDir2)
         f = open('__make_pyc.sh', 'w')
@@ -298,8 +298,8 @@ for i in range(4):
         print >> f, 'fi'
         print >> f, 'python -c "import csnd"'
         print >> f, 'python -O -c "import csnd"'
-        print >> f, 'python -c "import CsoundVST"'
-        print >> f, 'python -O -c "import CsoundVST"'
+        #print >> f, 'python -c "import CsoundVST"'
+        #print >> f, 'python -O -c "import CsoundVST"'
         print >> f, 'python -c "import loris"'
         print >> f, 'python -O -c "import loris"'
         print >> f, 'python -c "import scoregen"'
@@ -311,7 +311,7 @@ for i in range(4):
         os.remove('__make_pyc.sh')
         installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo',
                       'loris.py', 'loris.pyc', 'loris.pyo',
-                      'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
+                      #'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
                       'scoregen.py', 'scoregen.pyc', 'scoregen.pyo'],
                      pythonDir)
         # Java interface library

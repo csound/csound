@@ -1,10 +1,14 @@
+2008-09-17  jpff  <jpff@codemist.co.uk>
+
+	* RELEASE VERSION 5.09
+
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
 	* custom-mingw.py: Updated for more recent third party packages.
 
 	* frontends/fltk_gui/CsoundGUIMain.cpp: Score editor works properly now.
 
-	* examples: Updated CsoundAC.csd and CsoundAC-midi.csd, 
+	* examples: Updated CsoundAC.csd and CsoundAC-midi.csd,
 	removed some obsolete precursors of them, added Drone.py Tk GUI example.
 
 	* csound-build.tex: Detailed instructions for building
@@ -13,7 +17,7 @@
 	* Top/csound.c, H/csoundCore.h: Corrected spinlocks for thread-safe
 	access to spin and spout buffers, added to dummy slots of the CSOUND
 	structure to preserve backwards API compatibility.
-	
+
 2008-09-10  jpff  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/scoreline.c (localops): Wrong structure named in entry
