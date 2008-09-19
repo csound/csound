@@ -2128,7 +2128,7 @@ static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
     maxend -= 1; nxtpow = 2;
     while (maxend >>= 1)
       nxtpow <<= 1;
-    csound->Message(csound, Str("non-deferred ftable %d needs size %ld\n"),
+    csound->Message(csound, Str("non-deferred ftable %d needs size %d\n"),
                             (int) ff->fno, nxtpow);
 }
 
@@ -2148,13 +2148,13 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     SOUNDIN tmpspace;
     SNDFILE *fd;
     int     truncmsg = 0;
-    int32    inlocs = 0;
+    int32   inlocs = 0;
     int     def = 0;
 
     p = &tmpspace;
     memset(p, 0, sizeof(SOUNDIN));
     {
-      int32  filno = (int32) MYFLT2LRND(ff->e.p[5]);
+      int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
       if (filno == (int32) SSTRCOD) {
         if (ff->e.strarg[0] == '"') {
@@ -2170,7 +2170,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                csound->strsets && csound->strsets[filno])
         strcpy(p->sfname, csound->strsets[filno]);
       else
-        sprintf(p->sfname, "soundin.%ld", filno);   /* soundin.filno */
+        sprintf(p->sfname, "soundin.%d", filno);   /* soundin.filno */
       if (!fmt)
         p->format = csound->oparms->outformat;
       else {
@@ -2198,7 +2198,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         return fterror(ff, Str("deferred size, but filesize unknown"));
       }
       if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("  defer length %ld\n"), ff->flen);
+        csound->Message(csound, Str("  defer length %d\n"), ff->flen);
       if (p->channel == ALLCHNLS)
         ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
@@ -2262,7 +2262,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
           if ((maxend = ftp->end1) < ftp->end2)
             maxend = ftp->end2;
           csound->Message(csound,
-                          Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
+                          Str("\tlooping endpoint %d exceeds ftsize %d\n"),
                           maxend, ff->flen);
           needsiz(csound, ff, maxend);
           truncmsg = 1;
@@ -2288,7 +2288,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     if (p->audrem > 0 && !truncmsg && p->framesrem > ff->flen) {
       /* Reduce msg */
       csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
-      csound->Warning(csound, Str("\taudio samps %ld exceeds ftsize %ld"),
+      csound->Warning(csound, Str("\taudio samps %d exceeds ftsize %d"),
                               (int32) p->framesrem, (int32) ff->flen);
       needsiz(csound, ff, p->framesrem);     /* ????????????  */
     }
