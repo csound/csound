@@ -1,7 +1,5 @@
 /*
- * C s o u n d A C
- *
- * A VST plugin version of Csound, with Python scripting.
+ * C S O U N D
  *
  * L I C E N S E
  *

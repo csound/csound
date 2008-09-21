@@ -1,5 +1,5 @@
 /*
- * C s o u n d A C
+ * C S O U N D A C
  *
  * A Python extension module for algorithmic composition
  * with Csound.

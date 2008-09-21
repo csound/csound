@@ -1,7 +1,6 @@
 /*
-* C S O U N D   V S T
+* C S O U N D A C
 *
-* An auto-extensible system for making music on computers by means of software alone.
 * Copyright (c) 2001-2003 by Michael Gogins. All rights reserved.
 *
 * L I C E N S E
