@@ -2,8 +2,6 @@
 #define CSOUND_H
 /*! \mainpage 
  *
- * C S O U N D
- *
  * An auto-extensible system for making music on computers
  * by means of software alone.
  *
@@ -30,9 +28,10 @@
  *
  * \subsection section_manual_license Manual
  * 
- * Permission is granted to copy, distribute and/or modify this document under the terms of the
- * GNU Free Documentation License, Version 1.2 or any later version published by the Free Software
- * Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. 
+ * Permission is granted to copy, distribute and/or modify this document 
+ * under the terms of the GNU Free Documentation License, Version 1.2 or 
+ * any later version published by the Free Software Foundation; with no 
+ * Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. 
  *
  * \section section_api_outline Outline of the API
  *
@@ -41,23 +40,33 @@
  * The Csound Application Programming Interface (API) reference is contained herein. 
  * The Csound API actually consists of several APIs:
  * 
- * - The basic Csound C API. Include csound.h and link withlibcsound.a. This also includes the Cscore API (see below).
+ * - The basic Csound C API. Include csound.h and link withlibcsound.a. 
+ *   This also includes the Cscore API (see below).
  * - The basic Csound C++ API. Include csound.hpp and link with libcsound.a.
- * - The extended Csound C++ API. Include CppSound.hpp and link with libcsound.a and lib_csnd.a, 
- *   which adds to the Csound C++ API a CsoundFile class for loading, saving, and editing Csound orchestra and score files.
- * - The CsoundAC C++ API. Include CsoundAC.hpp and link with libcsound.a, lib_csnd.a, and libCsoundAC.a. 
+ * - The extended Csound C++ API. Include CppSound.hpp and link with 
+ *   libcsound.a and lib_csnd.a, 
+ *   which adds to the Csound C++ API a CsoundFile class for loading, saving, 
+ *   and editing Csound orchestra and score files.
+ * - The CsoundAC C++ API. Include CsoundAC.hpp and link with libcsound.a, 
+ *   lib_csnd.a, and libCsoundAC.a. 
  *   The CsoundAC class contains an instance of the CppSound class, 
- *   and provides a class hierarchy for doing algorithmic composition using Michael Gogins' concept of music graphs (previously known as Silence).
- * - The Csound Python API. Import the csnd Python extension module. This provides a complete Python wrapper for csound.hpp, CppSound,
- *   and CsoundFile. The Python API provides a complete Python wrapper for the entire Csound C++ API, 
+ *   and provides a class hierarchy for doing algorithmic composition using 
+ *   Michael Gogins' concept of music graphs (previously known as Silence).
+ * - The Csound Python API. Import the csnd Python extension module. 
+ *   This provides a complete Python wrapper for csound.hpp, CppSound,
+ *   and CsoundFile. The Python API provides a complete Python wrapper 
+ *   for the entire Csound C++ API, 
  *   and the Csound C++ API reference also serves as a reference to the Python API.
- * - The CsoundAC Python API. Import the CsoundAC Python extension module. The Python API provides a complete Python wrapper 
- *   for the entire CsoundAC C++ API, including Silence, and the CsoundAC C++ API reference also serves as a reference to the Python API.
+ * - The CsoundAC Python API. Import the CsoundAC Python extension module. 
+ *   The Python API provides a complete Python wrapper 
+ *   for the entire CsoundAC C++ API, including Silence, and the CsoundAC 
+ *   C++ API reference also serves as a reference to the Python API.
  * - An experimental LISP API.
  * 
  * \section section_api_c_example An Example Using the Csound API
  *
- * The Csound command--line program is itself built using the Csound API. Its code reads in full as follows:
+ * The Csound command--line program is itself built using the Csound API. 
+ * Its code reads as follows:
  * 
  * \code
  * #include "csound.h"
@@ -82,10 +91,11 @@
  *
  * CsoundAC extends the Csound API with C++. There is a C++ class for the Csound API proper, 
  * another C++ class for manipulating Csound files in code, and additional classes for 
- * algorithmic composition based on music space. All these C++ classes also have a Python interface 
- * in the CsoundAC Python extension module.
+ * algorithmic composition based on music space. All these C++ classes also have a 
+ * Python interface in the CsoundAC Python extension module.
  *
- * You can build CsoundAC into your own software using the CsoundAC shared library and CsoundAC.hpp header file. 
+ * You can build CsoundAC into your own software using the CsoundAC shared library and 
+ * CsoundAC.hpp header file. 
  *
  * \section section_api_cscore Cscore
  *
@@ -98,7 +108,8 @@
  * cscoreCreateEvent(), and lcopy() is now cscoreListCopy().  In addition, each
  * function takes an additional first parameter that is a pointer to a CSOUND
  * instance.  You can find the details in the header file, cscore.h, which may
- * be included with your Csound distribution, or if not, can be found in Csound CVS on SourceForge.
+ * be included with your Csound distribution, or if not, can be found in Csound CVS 
+ *`on SourceForge.
  *
  * Before you can use any of the Cscore API functions, you must create a CSOUND
  * instance and initialize Cscore by calling csoundInitializeCscore() -- see
@@ -114,7 +125,6 @@
  * Everything that can be done using C as in the above examples can also be done 
  * in a similar manner in Python or any of the other Csound API languages.
  *
- * 
  * \file
  *
  * \brief Declares the public Csound application programming interface (API).
