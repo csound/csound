@@ -568,7 +568,6 @@ Section "${PRODUCT}" SecCopyUI
   	File ..\..\pluginSDK\custom.py
   	SetOutPath $INSTDIR\doc
   	File ..\..\*.txt
-  	File ..\..\doc\latex\refman.pdf
   	File ..\..\ChangeLog
   	File ..\..\COPYING
   	File ..\..\LICENSE.PortMidi
@@ -576,6 +575,8 @@ Section "${PRODUCT}" SecCopyUI
   	File ..\..\LICENSE.PortAudio
   	SetOutPath $INSTDIR\doc\manual
   	File /r ..\..\..\manual\html\*
+	SetOutPath $INSTDIR\doc\api
+	File ..\..\doc\html\*
   	SetOutPath $INSTDIR\tutorial
   	File ..\..\..\tutorial\tutorial.pdf
   	File ..\..\..\tutorial\*.csd
@@ -702,7 +703,7 @@ skipAssoc:
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\refman.pdf" "" "" "" "" "" "API reference"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\api\index.html" "" "" "" "" "" "API reference"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
 	!insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
