@@ -67,6 +67,7 @@ All third party libraries will be updated from the most recent version that seem
 	    \item (No need) Update the Docbook toolchain.
 	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
 	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
+	    \item (Done) Update ATT Graphviz to version 2.8 from \url{http://www.graphviz.org}. Later versions of Graphviz \texttt{dot} do not work with current Doxygen.
 		\end{enumerate}
 	\item (Done) Update the build tools.   
 		\begin{enumerate}
@@ -101,12 +102,14 @@ All third party libraries will be updated from the most recent version that seem
 					\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
 					\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
 			    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
+			    \item (Done) Build again as above, to ensure \texttt{csnd.jar} is built properly.
+			    \item (Done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
 			    \item (Done) Build the manual.
-			    \item (Done) Build the API reference by executing doxygen.
-			    \item (Done) Run \texttt{strip.sh} to strip debugging infomormation out of the binaries.
+			    \item (Done) Build the API reference by executing \texttt{doxygen}.
+			    \item (Done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
 			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
 			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
-			    \item (Done) Build the installer \texttt{without} the \verb|NONFREE|stuff.   
+			    \item (Done) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
 				\end{enumerate}
 			\item Single precision sample build.			
 				\begin{enumerate}
