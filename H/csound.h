@@ -2,8 +2,19 @@
 #define CSOUND_H
 /*! \mainpage 
  *
- * An auto-extensible system for making music on computers
- * by means of software alone.
+ * Csound is a unit generator-based, user-programmable, user-extensible computer music system. 
+ * It was originally written by Barry Vercoe at the Massachusetts Institute of Technology in 1984 
+ * as the first C language version of this type of software. Since then Csound has received 
+ * numerous contributions from researchers, programmers, and musicians from around the world. 
+ *
+ * CsoundAC is a Python extension module for doing algorithmic composition, in one which one
+ * writes music by programming in Python. Musical events are points in music space with
+ * dimensions {time, duration, event type, instrument, pitch as MIDI key, loudness as MIDI
+ * velocity, phase, pan, depth, height, pitch-class set, 1}, and pieces are composed by
+ * assembling a hierarchical tree of nodes in music space. Each node has its own local 
+ * transformation of coordinates in music space. Nodes can be empty, contain scores or 
+ * fragments of scores, generate scores, or transform scores. CsoundAC also contains a Python
+ * interface to the Csound API, making it easy to render CsoundAC compositions using Csound.
  *
  * \section section_licenses Licenses
  *
@@ -75,7 +86,7 @@
  * {
  *   // Create Csound.
  *   void *csound = csoundCreate(0);
- *   // One complete performance cycle.
+ *   // One complete compile/perform cycle.
  *   int result = csoundCompile(csound, argc, argv);
  *   if(!result) {
  *     while(csoundPerformKsmps(csound) == 0){}
@@ -87,10 +98,10 @@
  * }
  * \endcode
  *
- * \section section_api_example_cpp An Example Using the CsoundAC C++ API
+ * \section section_api_example_cpp The CsoundAC C++ API
  *
- * CsoundAC extends the Csound API with C++. There is a C++ class for the Csound API proper, 
- * another C++ class for manipulating Csound files in code, and additional classes for 
+ * CsoundAC extends the Csound API with C++. There is a C++ class for the Csound API proper (CppSound), 
+ * another C++ class (CsoundFile) for manipulating Csound files in code, and additional classes for 
  * algorithmic composition based on music space. All these C++ classes also have a 
  * Python interface in the CsoundAC Python extension module.
  *
@@ -100,7 +111,6 @@
  * \section section_api_cscore Cscore
  *
  * Beginning with Csound 5, all of the Cscore functions described in the
- *
  * manual are now part of the Csound API, and they can be called from a program
  * that calls the Csound library. 
  * 
