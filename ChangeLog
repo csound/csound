@@ -1,3 +1,9 @@
+2008-09-13 Michael Gogins  <gogins@pipeline.com>
+
+	* H/csound.h: Added Doxygen "mainpage" introductory section at top 
+	of file; switched to HTML format for API documentation (replacing
+	LaTeX/PDF format).
+
 2008-09-17  jpff  <jpff@codemist.co.uk>
 
 	* RELEASE VERSION 5.09

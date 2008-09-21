@@ -71,7 +71,7 @@ All third party libraries will be updated from the most recent version that seem
 	\item (Done) Update the build tools.   
 		\begin{enumerate}
 			\item (Done) For Visual C++ from \url{http://www.microsoft.com/express/vc}, probably 2008 is still good (it is as of 6 September 2008). 
-			\item For MinGW/MSys from \url{www.mingw.org}, first update with Twilight Dragon Media's GCC 4 (\url{http://www.tdragon.net/recentgcc}) (current version 4.3.2-tdm-1) (Done). Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}.
+			\item For MinGW/MSys from \url{www.mingw.org}, update to MinGW version 4.2.1-2 with dw exception handling from \url{http://sourceforge.net/projects/mingw} (Done). Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}.
 			\item (Done) Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
 		\end{enumerate}    
 	\item (Done) Update third-party dependencies.   
@@ -102,7 +102,7 @@ All third party libraries will be updated from the most recent version that seem
 					\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
 			    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
 			    \item (Done) Build the manual.
-			    \item (Done) Build the API reference by executing doxygen, and LaTeXing \texttt{doc/latex/refman.tex} to a PDF file.
+			    \item (Done) Build the API reference by executing doxygen.
 			    \item (Done) Run \texttt{strip.sh} to strip debugging infomormation out of the binaries.
 			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
 			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
