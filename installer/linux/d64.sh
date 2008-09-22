@@ -41,12 +41,15 @@ cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
 find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
 
 ###en_GB/  es_CO/    fr/  ro/  de/   en_US/
-cp -upv ../../po/de/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
-cp -upv ../../po/en_GB/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
-cp -upv ../../po/en_US/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
-cp -upv ../../po/es_CO/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
-cp -upv ../../po/fr/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
-cp -upv ../../po/ro/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc
+###en_GB/  es_CO/    fr/  it/ ro/  de/   en_US/ /ru /ro
+cp -upv ../../po/de/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/de_csound5.mo
+cp -upv ../../po/en_GB/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/en_csound5.mo
+cp -upv ../../po/en_US/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/us_csound5.mo
+cp -upv ../../po/es_CO/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/es_csound5.mo
+cp -upv ../../po/fr/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/fr_csound5.mo
+cp -upv ../../po/it/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/it_csound5.mo
+cp -upv ../../po/ro/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/ro_csound5.mo
+cp -upv ../../po/ru/LC_MESSAGES/csound5.mo ../../../CSDIST/$DIR/loc/ru_csound5.mo
 
 cp -upv installer ../../../CSDIST/$DIR
 cat > ../../../CSDIST/$DIR/def.ins <<'EOF'

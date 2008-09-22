@@ -407,7 +407,7 @@ static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
-    { "FLvkeybd", S(FLVKEYBD), 1,  "", "Tiiii",
+  { (char*)"FLvkeybd", S(FLVKEYBD), 1,  (char*)"", (char*)"Tiiii",
          (SUBR) fl_vkeybd, (SUBR) NULL, (SUBR) NULL },
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL,(SUBR) NULL }
 };
