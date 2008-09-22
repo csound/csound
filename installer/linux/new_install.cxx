@@ -397,7 +397,7 @@ again:
         if (do_jack->value()) {
           sprintf(buff, "cp -pv ./lib/libjack." LIBEXT ".0 %s>/dev/null", b);
           system(buff);
-          sprintf(buff, "ln -s %s/libjacl.0 %s/libjack." LIBEXT "", b, b);
+          sprintf(buff, "ln -s %s/libjack.0 %s/libjack." LIBEXT "", b, b);
           system(buff);
           progress->value(n += 1.0f);
         }
