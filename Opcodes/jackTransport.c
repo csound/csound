@@ -55,8 +55,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
     client = rtjack->client;
 
     if (client == NULL) {
-      csound->InitError(csound, Str("Cannot find Jack client.\n"));
-      return NOTOK;
+      return csound->InitError(csound, Str("Cannot find Jack client.\n"));
     }
     else {
       //move to specified location (in seconds)

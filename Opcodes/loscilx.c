@@ -71,9 +71,9 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
     }
     sf = csound->LoadSoundFile(csound, fname, &sfinfo);
     if (sf == NULL) {
-      csound->InitError(csound, Str("could not load '%s'"), fname);
+      int xx = csound->InitError(csound, Str("could not load '%s'"), fname);
       csound->Free(csound, fname);
-      return NOTOK;
+      return xx;
     }
     csound->Free(csound, fname);
     if (*(p->iBaseFreq) > FL(0.0))
