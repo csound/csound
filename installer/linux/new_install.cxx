@@ -186,7 +186,7 @@ int main(void)
     p = strchr(lib, '\n');
     if (p != lib)
       *p = '\0';
-    fgets(lib, 256, defs);
+    fgets(loc, 256, defs);
     p = strchr(loc, '\n');
     if (p != lib)
       *p = '\0';

@@ -48,28 +48,28 @@ int vosimset(CSOUND* csound, VOSIM *p)
     if (p->ftable == NULL) {
       csound->InitError(csound, Str("vosim: pulse table not found"));
       return NOTOK;
-    }
+     }
 
-    p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
-    p->pulseamp = p->ampdecay = p->lenfact = FL(0.0);
-    return OK;
+     p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
+     p->pulseamp = p->ampdecay = p->lenfact = FL(0.0);
+     return OK;
 }
 
 
 /* Pre: timrem == 0.
- * Post:
- *    IF kform is positive (or zero), pulsephs >= FMAXLEN.
- *    IF kform is negative, pulsephs < 0.
- *    timrem > 0.
- */
+  * Post:
+  *    IF kform >= 0, pulsephs >= FMAXLEN.
+  *    ELSE pulsephs < 0.
+  *    timrem > 0.
+  */
 void vosim_event(CSOUND* csound, VOSIM *p)
 {
     /* count of pulses, (+1 since decr at start of pulse) */
     p->pulstogo = *p->knofpulse + 1;
-    if (*p->kfund == FL(0.0))         /* infinitely long event */
+    if (*p->kfund == FL(0.0))                  /* infinitely long event */
       p->timrem = INT_MAX;
     else
-      p->timrem = (int32)(csound->esr / fabs(*p->kfund));
+      p->timrem = (int32)(csound->esr / FABS(*p->kfund));
     p->pulseinc = (int32)(*p->kform * csound->sicvt);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
     p->ampdecay = *p->kdamp;
@@ -94,12 +94,11 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
     p->pulsephs &= PHMASK;
     p->pulseinc *= p->lenfact;
     /* If pulse can't fit in remaining event time, skip and generate silence */
-    pulselen = (p->pulseinc != FL(0.0))? abs(FMAXLEN / p->pulseinc) : INT_MAX;
-    if (--p->pulstogo <= 0 || pulselen > p->timrem) {
+    pulselen = (p->pulseinc != FL(0.0))? FABS(FMAXLEN / p->pulseinc) : INT_MAX;
+    if (--p->pulstogo <= 0 || pulselen > p->timrem)
       p->pulstogo = 0;
-      return;
-    }
-    p->pulseamp -= p->ampdecay;
+    else
+      p->pulseamp -= p->ampdecay;
 }
 
 
@@ -112,22 +111,21 @@ int vosim(CSOUND* csound, VOSIM *p)
 
     FUNC *ftp = p->ftable;
     if (ftp == NULL) {
-      csound->PerfError(csound, Str("vosim: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("vosim: not initialised"));
     }
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 
-    do {
+    while (nsmps) {
       /* new event? */
-      if (p->timrem-- == 0)
+      if (p->timrem == 0)
         vosim_event(csound, p);
 
       /* new pulse? */
       if (p->pulsephs >= MAXLEN || p->pulsephs < 0)
         vosim_pulse(csound, p);
 
-      /* silence after last pulse in burst */
+      /* silence after last pulse in burst? */
       if (p->pulstogo == 0) {
         /* bypass regular synthesis and fill output with zeros */
         while (p->timrem && nsmps) {
@@ -135,23 +133,19 @@ int vosim(CSOUND* csound, VOSIM *p)
           --p->timrem;
           --nsmps;
         }
-        /* Done with perf-block? */
-        if (nsmps == 0) {
-          /* Here we could override (extreme) timrem if kfund has increased...? */
-          /* But then we'd also have to record event start time(?) */
-          break;
-        }
-        /* else goto top of while loop to make a new event */
-        ++nsmps;
-        continue;
       }
-
-      p->pulsephs &= PHMASK;
-      *ar++ = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
-      p->pulsephs += p->pulseinc;
-    } while (--nsmps);
+      else {
+        /* produce one sample */
+        p->pulsephs &= PHMASK;
+        *ar++ = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
+        --p->timrem;
+        --nsmps;
+        p->pulsephs += p->pulseinc;
+      }
+    }
     return OK;
 }
+
 
 /* ar   vosim   kamp, kFund, kForm, kDamp, kPulseCount, kPulseFactor,
                 ifn [, iskip] */
