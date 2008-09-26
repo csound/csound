@@ -167,8 +167,7 @@ static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handl
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (globals==NULL) {
-      csound->InitError(csound, Str("sfload: could not open globals\n"));
-      return NOTOK;
+      return csound->InitError(csound, Str("sfload: could not open globals\n"));
     }
     fname = csound->strarg2name(csound,
                                 NULL, p->fname, "sfont.",
@@ -2541,8 +2540,9 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   csound->CreateGlobalVariable(csound, "::sfontg",
                                sizeof(sfontg));
   globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-  if (globals == NULL) csound->InitError(csound,
-           "error... could not create sfont globals\n");
+  if (globals == NULL) 
+    return csound->InitError(csound,
+                             Str("error... could not create sfont globals\n"));
 
   globals->currSFndx = 0;
 

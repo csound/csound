@@ -401,13 +401,12 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if(fd == NULL){
-      csound->InitError(csound, Str("diskgrain: could not open file\n"));
-     return NOTOK;
+      return csound->InitError(csound, Str("diskgrain: could not open file\n"));
     }
     if(sfinfo.channels != p->nChannels){
-      csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
-                                    "do not match the number of outputs \n"));
-     return NOTOK;
+      return
+        csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
+                                      "do not match the number of outputs \n"));
     }
 
     if(*p->ioff >= 0)
@@ -416,9 +415,9 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     if(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0){
       p->read1 = 1;
       p->read2 = 0;
-    } else {
-      csound->InitError(csound, Str("diskgrain: could not read file \n"));
-      return NOTOK;
+    } 
+    else {
+      return csound->InitError(csound, Str("diskgrain: could not read file \n"));
     }
 
    /* -===-  */

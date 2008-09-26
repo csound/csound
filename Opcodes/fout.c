@@ -98,16 +98,14 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       if (idx < 0 || idx > pp->file_num ||
           (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
           (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL)) {
-        csound->InitError(csound, Str("invalid file handle"));
-        return -1;
+        return csound->InitError(csound, Str("invalid file handle"));
       }
       goto returnHandle;
     }
     /* check for a valid name */
     if (name == NULL || name[0] == '\0') {
       csound->Free(csound, name);
-      csound->InitError(csound, Str("invalid file name"));
-      return -1;
+      return csound->InitError(csound, Str("invalid file name"));
     }
     /* is this file already open ? */
     if (fileType == CSFILE_STD) {
@@ -413,9 +411,8 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
       char    *fname;
       fname = csound->strarg2name(csound, NULL, p->iFile, "fout.", p->XSTRCODE);
       if (fname == NULL || fname[0] == (char) 0) {
-        csound->InitError(csound, Str("invalid file name"));
         csound->Free(csound, fname);
-        return NOTOK;
+        return csound->InitError(csound, Str("invalid file name"));
       }
       for (idx = 0; idx <= pp->file_num; idx++) {
         if (pp->file_opened[idx].fd != NULL &&
