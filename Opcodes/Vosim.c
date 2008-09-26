@@ -46,9 +46,8 @@ int vosimset(CSOUND* csound, VOSIM *p)
 
     p->ftable = csound->FTFind(csound, p->iftab);
     if (p->ftable == NULL) {
-      csound->InitError(csound, Str("vosim: pulse table not found"));
-      return NOTOK;
-     }
+      return csound->InitError(csound, Str("vosim: pulse table not found"));
+    }
 
      p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
      p->pulseamp = p->ampdecay = p->lenfact = FL(0.0);

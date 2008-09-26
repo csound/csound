@@ -278,26 +278,24 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     fd = csound->FileOpen2(csound, &fp, CSFILE_STD, filename, "wb",
                            "", CSFTYPE_IMAGE_PNG, 0);
     if (fd == NULL) {
-      csound->InitError(csound,
-                        Str("imageload: cannot open image %s for writing.\n"),
-                        filename);
-      return 0;
+      return
+        csound->InitError(csound,
+                          Str("imageload: cannot open image %s for writing.\n"),
+                          filename);
     }
 
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
     if (!png_ptr){
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
-      return 0;
+      return csound->InitError(csound, Str("imageload: out of memory.\n"));
     }
 
     info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
       png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
-      return 0;
+      return csound->InitError(csound, Str("imageload: out of memory.\n"));
     }
 
     png_init_io(png_ptr, fp);
@@ -310,8 +308,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     row_pointers = (png_bytepp)malloc(image->h*sizeof(png_bytep));
     if (row_pointers == NULL) {
       png_destroy_write_struct(&png_ptr, &info_ptr);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
-      return 0;
+      return csound->InitError(csound, Str("imageload: out of memory.\n"));
     }
 
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
@@ -326,7 +323,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     png_destroy_write_struct(&png_ptr, &info_ptr);
     csound->FileClose(csound, fd);
 
-    return 0;
+    return OK;
 #else
     Display *disp;
     ImlibData *id;
@@ -340,7 +337,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     Imlib_save_image(id, im, filename, NULL);
     Imlib_kill_image(id, im);
 
-    return 0;
+    return OK;
 #endif
 }
 
@@ -392,8 +389,7 @@ static int imagecreate (CSOUND *csound, IMGCREATE * p)
     img = createImage(*p->kw, *p->kh);
 
     if (img==NULL) {
-      csound->InitError(csound, Str("Cannot allocate memory.\n"));
-      return NOTOK;
+      return csound->InitError(csound, Str("Cannot allocate memory.\n"));
     }
     else {
       pimages->images[pimages->cnt-1] = img;
@@ -597,8 +593,7 @@ static int imagesave (CSOUND *csound, IMGSAVE * p)
                                                      "imageOpcodes.images");
     img = pimages->images[(int)(*p->kn)-1];
 
-    __doSaveImage(img, filename, csound);
-    return OK;
+    return __doSaveImage(img, filename, csound);
 }
 
 static int imagefree (CSOUND *csound, IMGSAVE * p)
