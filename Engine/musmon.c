@@ -412,7 +412,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       if (csound->oparms->outformat != AE_FLOAT) {
         csound->Message(csound, Str("\n\t   overall samples out of range:"));
         for (rngp = ST(orngcnt), n = csound->nchnls; n--; )
-          csound->Message(csound, "%9ld", *rngp++);
+          csound->Message(csound, "%9d", *rngp++);
       }
       csound->Message(csound, Str("\n%d errors in performance\n"),
                               csound->perferrcnt);
@@ -512,7 +512,7 @@ static void print_amp_values(CSOUND *csound, int score_evt)
       if (p->rngflg) {
         p->Message(p, Str("\t number of samples out of range:"));
         for (n = p->nchnls, rngp = p->rngcnt; n--; )
-          p->Message(p, "%9ld", *rngp++);
+          p->Message(p, "%9d", *rngp++);
         p->Message(p, "\n");
       }
     }
@@ -558,7 +558,7 @@ static void section_amps(CSOUND *csound, int enable_msgs)
       if (ST(srngflg)) {
         p->Message(p, Str("\t number of samples out of range:"));
         for (n = p->nchnls, srngp = ST(srngcnt); n--; )
-          p->Message(p, "%9ld", *srngp++);
+          p->Message(p, "%9d", *srngp++);
         p->Message(p, "\n");
       }
     }
