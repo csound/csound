@@ -307,7 +307,7 @@ void otran(CSOUND *csound)
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
-                  if (!sscanf(c, "%p", &n) || n < 0) {
+                  if (!sscanf(c, "%d", &n) || n < 0) {
                     synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
