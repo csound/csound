@@ -23,7 +23,9 @@
 
 #include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
-/*#include "winEPS.h"                             /* PostSCript routines  */
+#ifndef OLPC
+#include "winEPS.h"                             /* PostSCript routines  */
+#endif
 #include "namedins.h"                           /*  dpwe 16may90        */
 
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
