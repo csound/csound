@@ -1208,7 +1208,7 @@ static int splitline(CSOUND *csound)
           grpp = ST(group)[grpcnt++] = cp;
           /* synthesize labels to represent an else and endif */
           if (prvelsif) { /* elseif, so we just need a new elselabel */
-            sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%d", ST(tempNum)++);
             prvelsif = 0;
           }
           else {
@@ -1216,8 +1216,8 @@ static int splitline(CSOUND *csound)
             ST(iflabels) = (struct iflabel *) mmalloc(csound,
                                                       sizeof(struct iflabel));
             ST(iflabels)->prv = prv;
-            sprintf(ST(iflabels)->end, "__endif_%ld",ST(tempNum)++);
-            sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
+            sprintf(ST(iflabels)->end, "__endif_%d",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%d", ST(tempNum)++);
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
@@ -1237,7 +1237,7 @@ static int splitline(CSOUND *csound)
           grpp = ST(group)[grpcnt++] = cp;
           /* synthesize labels to represent an else and endif */
           if (prvelsif) { /* elseif, so we just need a new elselabel */
-            sprintf(ST(iflabels)->els, "__else_%ld",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%d",ST(tempNum)++);
             prvelsif = 0;
           }
           else {
@@ -1245,8 +1245,8 @@ static int splitline(CSOUND *csound)
             ST(iflabels) = (struct iflabel *)mmalloc(csound,
                                                      sizeof(struct iflabel));
             ST(iflabels)->prv = prv;
-            sprintf(ST(iflabels)->end, "__endif_%ld",ST(tempNum)++);
-            sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
+            sprintf(ST(iflabels)->end, "__endif_%d",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%d", ST(tempNum)++);
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
