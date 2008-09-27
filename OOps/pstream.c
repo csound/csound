@@ -56,7 +56,6 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 int fassign(CSOUND *csound, FASSIGN *p)
 {
-    int i;
     int32 framesize;
     float *fout,*fsrc;
     if (!fsigs_equal(p->fout,p->fsrc))
@@ -74,9 +73,7 @@ int fassign(CSOUND *csound, FASSIGN *p)
     framesize = p->fsrc->N + 2;
     if (p->fout->framecount == p->fsrc->framecount) /* avoid duplicate copying*/
       memcpy(fout, fsrc, framesize*sizeof(float));
-      /* for (i=0;i < framesize;i++) */
-      /*   fout[i] = fsrc[i]; */
-    return OK;
+     return OK;
 }
 
 /************* OSCBANK SYNTH ***********/
