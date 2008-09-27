@@ -159,6 +159,7 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   windowHandle (0),
   csoundVstUi (0),
   useCount (0),
+  updateFlag (0),
   mainTabs (0),
   commandInput (0),
   runtimeMessagesBrowser (0),
@@ -170,8 +171,7 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   aboutTextBuffer (0),
   aboutTextDisplay (0),
   orchestraGroup (0),
-  scoreGroup (0),
-  updateFlag (0)
+  scoreGroup (0)
 {
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
