@@ -63,12 +63,21 @@ int vosimset(CSOUND* csound, VOSIM *p)
   */
 void vosim_event(CSOUND* csound, VOSIM *p)
 {
+    MYFLT fundabs = FABS(*p->kfund);
     /* count of pulses, (+1 since decr at start of pulse) */
     p->pulstogo = *p->knofpulse + 1;
-    if (*p->kfund == FL(0.0))                  /* infinitely long event */
+    if (fundabs == FL(0.0)) {                /* infinitely long event */
       p->timrem = INT_MAX;
+      csound->Warning(csound, Str("vosim: zero kfund. Infinite event generated."));
+    }
+    else if (fundabs >= csound->esr) {
+      p->timrem = csound->ksmps;
+      csound->Warning(csound,
+                      Str("vosim: kfund (%f) > sr. Generating silence."),
+                      *p->kfund);
+    }
     else
-      p->timrem = (int32)(csound->esr / FABS(*p->kfund));
+      p->timrem = (int32)(csound->esr / fundabs);
     p->pulseinc = (int32)(*p->kform * csound->sicvt);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
     p->ampdecay = *p->kdamp;
