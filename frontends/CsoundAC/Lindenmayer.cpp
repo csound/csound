@@ -178,15 +178,15 @@ namespace csound
                 double a = angle * n;
                 ublas::matrix<double> rotation = createRotation (d1, d2, a);
                 std::cerr << "Orientation before rotation: " << std::endl;
-                for (int i = 0; i < turtleOrientation.size(); i++)
+                for (size_t i = 0; i < turtleOrientation.size(); i++)
                   {
                     std::cerr << format("%9.3f ") % turtleOrientation(i);
                   }
                 std::cerr << std::endl;
                 std::cerr << "Rotation for angle " << a << ":" << std::endl;
-                for (int i = 0; i < rotation.size1(); i++)
+                for (size_t i = 0; i < rotation.size1(); i++)
                   {
-                    for (int j = 0; j < rotation.size2(); j++ )
+                    for (size_t j = 0; j < rotation.size2(); j++ )
                       {
                         std::cerr << format("%9.3f ") % rotation(i, j);
                       }
@@ -194,7 +194,7 @@ namespace csound
                   }
                 turtleOrientation = ublas::prod(rotation, turtleOrientation);
                 std::cerr << "Orientation after rotation: " << std::endl;
-                for (int i = 0; i < turtleOrientation.size(); i++)
+                for (size_t i = 0; i < turtleOrientation.size(); i++)
                   {
                     std::cerr << format("%9.3f ") % turtleOrientation(i);
                   }
