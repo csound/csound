@@ -307,7 +307,7 @@ void otran(CSOUND *csound)
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
-                  if (!sscanf(c, "%ld", &n) || n < 0) {
+                  if (!sscanf(c, "%p", &n) || n < 0) {
                     synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
@@ -432,7 +432,7 @@ void otran(CSOUND *csound)
             bp->nxtop = NULL;   /* terminate the optxt chain */
             if (O->odebug) {
               putop(csound, &bp->t);
-              csound->Message(csound, "pmax %ld, kcnt %d, "
+              csound->Message(csound, "pmax %d, kcnt %d, "
                                       "wcnt %d, acnt %d, pcnt %d, scnt %d\n",
                                       pmax, ST(lclnxtkcnt),
                                       ST(lclnxtwcnt), ST(lclnxtacnt),
@@ -584,7 +584,7 @@ void otran(CSOUND *csound)
     if (O->odebug) {
       int32  n;
       MYFLT *p;
-      csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
+      csound->Message(csound, "poolcount = %d, strpool_cnt = %d\n",
                               ST(poolcount), ST(strpool_cnt));
       csound->Message(csound, "pool:");
       for (n = ST(poolcount), p = csound->pool; n--; p++)
@@ -1267,7 +1267,7 @@ void oload(CSOUND *p)
       lclabeg = (int32) (ip->pmax + ip->lclfixed + 1);
       lclsbeg = (int32) (lclabeg + ip->lclacnt);
       lclsbas = (int32) (lclabeg + (ip->lclacnt * (int32) p->ksmps));
-      if (O->odebug) p->Message(p, "lclabeg %ld, lclsbeg %ld\n",
+      if (O->odebug) p->Message(p, "lclabeg %d, lclsbeg %d\n",
                                    lclabeg, lclsbeg);
       ip->localen = ((int32) ip->lclfixed
                      + (int32) ip->lclacnt * (int32) p->ksmps
@@ -1321,7 +1321,7 @@ void oload(CSOUND *p)
         if (opnum >= SETEND) goto realops;
         switch (opnum) {                /*      do oload SETs NOW   */
         case PSET:
-          p->Message(p, "PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
+          p->Message(p, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
           if ((n = aoffp->count) != ip->pmax) {
             p->Warning(p, Str("i%d pset args != pmax"), (int) insno);
             if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
