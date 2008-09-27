@@ -189,10 +189,10 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     MYFLT *win;
 
-    int IMPLENGTH;                /*time domain impulse length */
-    int complexIMPLENGTH;         /*freq domain impulse length*/
-    int overlapsize;              /*overlap add convolution*/
-    int complexfftbuff;           /*complex fft used(min phase needs it)*/
+    int IMPLENGTH = 0;                /*time domain impulse length */
+    int complexIMPLENGTH = 0;         /*freq domain impulse length*/
+    int overlapsize = 0;              /*overlap add convolution*/
+    int complexfftbuff = 0;           /*complex fft used(min phase needs it)*/
 
 
     /* csound->Message(csound,
