@@ -793,13 +793,7 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    int   i = 0;
-
     memcpy(p->arg, p->fp, sizeof(MYFLT)*csound->ksmps);
-    /* do { */
-    /*   p->arg[i] = p->fp[i]; */
-    /* } while (++i < csound->ksmps); */
-
     return OK;
 }
 
@@ -875,13 +869,7 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
-    int   i = 0;
-
     memcpy(p->fp, p->arg, sizeof(MYFLT)*csound->ksmps);
-    /* do { */
-    /*   p->fp[i] = p->arg[i]; */
-    /* } while (++i < csound->ksmps); */
-
     return OK;
 }
 
@@ -890,11 +878,9 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
-
     do {
       p->fp[i] += p->arg[i];
     } while (++i < csound->ksmps);
-
     return OK;
 }
 
@@ -902,7 +888,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
-    memcpy(p->fp, 0, csound->ksmps*sizeof(MYFLT));
+    memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
 
