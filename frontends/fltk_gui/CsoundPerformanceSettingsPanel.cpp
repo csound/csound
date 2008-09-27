@@ -16,17 +16,14 @@
 
 #include "stdarg.h"
 
+#ifdef CS5GUI_EXPERIMENTAL
 static char defaultTmpCsdPre[] ="<CsoundSynthesizer>\n<CsOptions>\n-d -+rtaudio=";
 static char defaultTmpCsdPostOut[] =" -odac999\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n</CsInstruments>\n<CsScore>\n</CsScore>\n</CsoundSynthesizer>";
 static char defaultTmpCsdPostIn[] =" -iadc999\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n</CsInstruments>\n<CsScore>\n</CsScore>\n</CsoundSynthesizer>";
 static char defaultTmpCsdMidiPre[] ="<CsoundSynthesizer>\n<CsOptions>\n-d -+rtmidi=";
 static char defaultTmpCsdMidiPostOut[] =" -M999\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n</CsInstruments>\n<CsScore>\n</CsScore>\n</CsoundSynthesizer>";
 static char defaultTmpCsdMidiPostIn[] =" -Q999\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n</CsInstruments>\n<CsScore>\n</CsScore>\n</CsoundSynthesizer>";
-static char *csoundMessages;
-static char startText[180];
-static char endText[180];
-static bool relevantText;
-
+#endif
 
 static void escapeSlash(char *string_)
 {
@@ -42,7 +39,6 @@ static void escapeSlash(char *string_)
     strcpy(string_, mystring.c_str());
 }
 
-
 static void stripSlash(std::string &string_)
 {
     int len = string_.size();
@@ -52,6 +48,11 @@ static void stripSlash(std::string &string_)
       }
     }
 }
+
+static char *csoundMessages;
+static char startText[180];
+static char endText[180];
+static bool relevantText;
 
 static void getCsoundMessages(CSOUND *csound, int attr,
                                      const char *format, va_list valist)
