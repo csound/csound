@@ -70,7 +70,9 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     char    *fname = NULL;
     int     i, result, nomessages=0;
+#ifdef GNU_GETTEXT
     const char* lang;
+#endif
 
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
