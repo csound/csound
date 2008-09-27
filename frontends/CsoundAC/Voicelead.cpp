@@ -675,8 +675,12 @@ namespace csound
       }
       matrix.push_back(row);
     }
-    for (int i = 0, im1 = -1; i < N; i++, im1++) {
-      for (int j = 0, jm1 = -1; j < N; j++, jm1++) {
+    size_t i;
+    int im1;
+    size_t j;
+    int jm1;
+    for (i = 0, im1 = -1; i < N; i++, im1++) {
+      for (j = 0, jm1 = -1; j < N; j++, jm1++) {
         MatrixCell cell;
         //System::message("N: %d  i: %d  j: %d\n", N, i, j);
         if        (i == 0 && j == 0) {
@@ -869,9 +873,7 @@ namespace csound
     }
     size_t zeroVoicingEnumeration = 0;  
     bool zeroVoicingEnumerationFound = false;
-    size_t modulus = 0;
-    bool modulusFound = false;
-  found:                                                \
+   found:                                                \
     std::vector<double> iterator = sort(zeroIterator);
     for(size_t V = 0; ; V++) {
       if (!zeroVoicingEnumerationFound) {
