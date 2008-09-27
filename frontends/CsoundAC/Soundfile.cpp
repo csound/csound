@@ -269,7 +269,6 @@ namespace csound
      // Precompute grain into buffer.
     double signal = 0.0;
     double temporary = 0.0;
-    double envelopeTemp = 0.0;
     for(size_t frameI = 0; frameI < frameN; frameI++)
       {
         signal = (sinusoid1 * (envelope1 - 1.0)) * amplitude;
