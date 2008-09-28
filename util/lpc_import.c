@@ -67,7 +67,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("Failed to read LPC header\n"));
       return 1;
     }
-    fprintf(outf, "%ld,%ld,%ld,%ld,%f,%f,%f",
+    fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);

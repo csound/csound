@@ -489,10 +489,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     return OK;
 }
 
-#define S(x)    sizeof(x)
-
 static OENTRY localops[] = {
-{ "hrtfer",   S(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk}
+{ "hrtfer",   sizeof(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk}
 };
 
 LINKAGE

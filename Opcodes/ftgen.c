@@ -361,25 +361,25 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
           MYFLT *table = ftp->ftable;
           /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
              will be modified, the following code has to be modified too */
-          fprintf(file,"======= TABLE %ld size: %ld values ======\n",
+          fprintf(file,"======= TABLE %d size: %d values ======\n",
                   ftp->fno, ftp->flen);
-          fprintf(file,"flen: %ld\n", ftp->flen);
-          fprintf(file,"lenmask: %ld\n", ftp->lenmask);
-          fprintf(file,"lobits: %ld\n",ftp->lobits);
-          fprintf(file,"lomask: %ld\n",ftp->lomask);
+          fprintf(file,"flen: %d\n", ftp->flen);
+          fprintf(file,"lenmask: %d\n", ftp->lenmask);
+          fprintf(file,"lobits: %d\n",ftp->lobits);
+          fprintf(file,"lomask: %d\n",ftp->lomask);
           fprintf(file,"lodiv: %f\n",ftp->lodiv);
           fprintf(file,"cvtbas: %f\n",ftp->cvtbas);
           fprintf(file,"cpscvt: %f\n",ftp->cpscvt);
           fprintf(file,"loopmode1: %d\n", (int) ftp->loopmode1);
           fprintf(file,"loopmode2: %d\n", (int) ftp->loopmode2);
-          fprintf(file,"begin1: %ld\n",ftp->begin1);
-          fprintf(file,"end1: %ld\n",ftp->end1);
-          fprintf(file,"begin2: %ld\n",ftp->begin2);
-          fprintf(file,"end2: %ld\n",ftp->end2);
-          fprintf(file,"soundend: %ld\n",ftp->soundend);
-          fprintf(file,"flenfrms: %ld\n",ftp->flenfrms);
-          fprintf(file,"nchnls: %ld\n",ftp->nchanls);
-          fprintf(file,"fno: %ld\n",ftp->fno);
+          fprintf(file,"begin1: %d\n",ftp->begin1);
+          fprintf(file,"end1: %d\n",ftp->end1);
+          fprintf(file,"begin2: %d\n",ftp->begin2);
+          fprintf(file,"end2: %d\n",ftp->end2);
+          fprintf(file,"soundend: %d\n",ftp->soundend);
+          fprintf(file,"flenfrms: %d\n",ftp->flenfrms);
+          fprintf(file,"nchnls: %d\n",ftp->nchanls);
+          fprintf(file,"fno: %d\n",ftp->fno);
 
           fprintf(file,"gen01args.gen01: %f\n",ftp->gen01args.gen01);
           fprintf(file,"gen01args.ifilno: %f\n",ftp->gen01args.ifilno);
