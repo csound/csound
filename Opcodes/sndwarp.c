@@ -80,7 +80,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
       }
       exp[i].offset = (MYFLT)p->begin;
       exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
-      /* exp[i].section = i+1;  /* section number just used for debugging! */
+      /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
     p->ampcode = (XINARG1) ? 1 : 0;
@@ -240,7 +240,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
       }
       exp[i].offset = (MYFLT)p->begin;
       exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
-      /* exp[i].section = i+1;  /* section number just used for debugging! */
+      /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
     p->ampcode = (XINARG1) ? 1 : 0;

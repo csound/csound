@@ -67,7 +67,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
 
     fprintf(outf, "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
             "BlockAlign,BitsPerSample,cbSize\n");
-    fprintf(outf, "%d,%d,%d,%d,%d,%d,%d\n",
+    fprintf(outf, "%d,%d,%d,%d,%u,%u,%d\n",
             fmt.wFormatTag, fmt.nChannels, fmt.nSamplesPerSec,
             fmt.nAvgBytesPerSec, fmt.nBlockAlign, fmt.wBitsPerSample,
             fmt.cbSize);

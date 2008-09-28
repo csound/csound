@@ -1934,7 +1934,7 @@ extern "C" {
       ST(fl_windows)[j].panel->show();
     }
 #ifdef CS_VSTHOST
-    for (int k=0; k < ST(VSTplugEditors).size(); k++) {
+    for (size_t k=0; k < ST(VSTplugEditors).size(); k++) {
       int panelNum = ST(VSTplugEditors)[k]->targetFLpanel;
 #ifdef WIN32
       HWND xid = fl_xid(ST(fl_windows)[panelNum].panel);

@@ -87,10 +87,10 @@ void swrite(CSOUND *csound)
       }
       else { /*make sure p3s (table length) are ints */
         char temp[256];
-        sprintf(temp,"%ld ",(int32)bp->p3val);   /* put p3val  */
+        sprintf(temp,"%d ",(int32)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt);
         putc(SP, csound->scoreout);
-        sprintf(temp,"%ld ",(int32)bp->newp3);   /* put newp3  */
+        sprintf(temp,"%d ",(int32)bp->newp3);   /* put newp3  */
         fpnum(csound,temp, lincnt, pcnt);
         while ((c = *p++) != SP && c != LF)
           ;

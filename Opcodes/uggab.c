@@ -546,7 +546,6 @@ static int product(CSOUND *csound, SUM *p)
 static int rsnsety(CSOUND *csound, RESONY *p)
 {
     int scale;
-    int j;
     p->scale = scale = (int) *p->iscl;
     if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4;  /* default value */
