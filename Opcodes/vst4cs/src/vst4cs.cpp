@@ -533,7 +533,7 @@ extern "C" {
       // In case of real-time performance with indefinite p3...
     } else if (*p->iDuration == FL(0.0)) {
       if (csound->GetDebug(csound)) {
-        csound->Message(csound, "vstnote_init 0x%x: not scheduling 0 duration note.\n");
+        csound->Message(csound, "vstnote_init: not scheduling 0 duration note.\n");
       }
       return OK;
     } else {
@@ -550,7 +550,7 @@ extern "C" {
     p->h.insdshead->xtratim = p->h.insdshead->xtratim + 2;
     p->on = true;
     if (csound->GetDebug(csound)) {
-      csound->Message(csound, "vstnote_init 0x%x: on time:      %f\n", p, onTime);
+      csound->Message(csound, "vstnote_init:      on time:      %f\n", onTime);
       csound->Message(csound, "                   csound time:  %f\n", csound->curTime);
       csound->Message(csound, "                   delta time:   %f\n", deltaTime);
       csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
@@ -578,7 +578,7 @@ extern "C" {
         p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
         p->on = false;
         if (csound->GetDebug(csound)) {
-          csound->Message(csound, "vstnote_perf 0x%x: csound time:  %f\n", p, csound->curTime);
+          csound->Message(csound, "vstnote_perf:      csound time:  %f\n", csound->curTime);
           csound->Message(csound, "                   off time:     %f\n", p->offTime);
           csound->Message(csound, "                   delta time:   %f\n", deltaTime);
           csound->Message(csound, "                   delta frames: %d\n", deltaFrames);

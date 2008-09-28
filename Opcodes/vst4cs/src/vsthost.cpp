@@ -884,13 +884,13 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     }
     // These messages are to tell Csound what the plugin wants it to do.
     if (plugin) {
-      plugin->Debug("VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
-                    "value %d, ptr 0x%x, opt %f)\n",
+      plugin->Debug("VSTPlugin::Master(AEffect 0x%p, opcode %ld %s, index %ld, "
+                    "value %dl, ptr 0x%p, opt %f)\n",
                     effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
     else {
-      fprintf(stdout, "VSTPlugin::Master(AEffect 0x%x, opcode %d %s, index %d, "
-              "value %d, ptr 0x%x, opt %f)\n",
+      fprintf(stdout, "VSTPlugin::Master(AEffect 0x%p, opcode %ld %s, index %ld, "
+              "value %ld, ptr 0x%p, opt %f)\n",
               effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
     switch (opcode) {

@@ -360,7 +360,6 @@ static int vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
     uint32 ndel = (uint32)(*p->maxd * csound->esr);
-    MYFLT *buf;    /* Delay buffer */
     FUNC  *ftp;    /* Pointer to a sine function */
     MYFLT ndsave;
 
@@ -524,7 +523,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs += inc;
         phs &= PHMASK;
         if (p->ampcod) {
-          /*          scal = over2n;        /* Why is this needed?? */
+          /*          scal = over2n;       */ /* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {
@@ -577,7 +576,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs &= PHMASK;
         if (p->ampcod) {
           /* scal = *(++ampp) * over2n; */
-          /*          scal = over2n;        /* Why is this needed?? */
+          /*          scal = over2n;        *//* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {

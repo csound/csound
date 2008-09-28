@@ -70,7 +70,7 @@ int main(int argc, char **argv)
       printf("Failed to read LPC header\n");
       return 1;
     }
-    fprintf(outf, "%ld,%ld,%ld,%ld,%f,%f,%f",
+    fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);

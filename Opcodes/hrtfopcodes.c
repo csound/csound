@@ -1151,10 +1151,10 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     float *fpindexl=NULL;         /* pointers into HRTF files*/
     float *fpindexr=NULL;
 
-    int IMPLENGTH;                /*time domain impulse length */
-    int complexIMPLENGTH;         /*freq domain impulse length*/
-    int overlapsize;              /*overlap add convolution*/
-    int complexfftbuff;           /*complex fft used(min phase needs it)*/
+    int IMPLENGTH = 0;                /*time domain impulse length */
+    int complexIMPLENGTH = 0;         /*freq domain impulse length*/
+    int overlapsize = 0;              /*overlap add convolution*/
+    int complexfftbuff = 0;           /*complex fft used(min phase needs it)*/
 
     int i,elevindex, angleindex, switchchannels=0, skip=0;
 
@@ -1247,14 +1247,6 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
       }
     }
-#if 0
-    /* This cannot happen as sr fixed earlier -- JPff */
-    else {
-      return
-        csound->InitError(csound,
-                          Str("\n\n\n Sampling rate not supported, exiting\n\n"));
-    }
-#endif
 
     p->IMPLENGTH = IMPLENGTH;
     p->complexIMPLENGTH = complexIMPLENGTH;

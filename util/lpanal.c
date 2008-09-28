@@ -1107,7 +1107,7 @@ static MYFLT lowpass(MYFLT x, LPANAL_GLOBALS* lpg) /* x now MYFLT */
     lpg->w31 = w3;
     w4 = temp - c4*lpg->w41;
     y = w4 + lpg->w41;
-    /*        lpg->w42 = lpg->w41;   /* w42 set but not used in lowpass */
+    /*        lpg->w42 = lpg->w41;   *//* w42 set but not used in lowpass */
     lpg->w41 = w4;
     return(y);
 }

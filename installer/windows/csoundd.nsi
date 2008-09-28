@@ -539,7 +539,7 @@ Section "${PRODUCT}" SecCopyUI
 	# PortAudio
 	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
 	# PortMIDI
-	File U:\portmidi\pm_win\Release\pm_dll.dll
+	# File U:\portmidi\pm_win\Release\pm_dll.dll
 	# Fluidsynth
 	File U:\fluidsynth.patched\winbuild\fluidsynth.dll
 	# Image opcodes

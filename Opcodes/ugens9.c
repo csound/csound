@@ -34,7 +34,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     MEMFIL   *mfp;
     MYFLT *fltp;
     CVSTRUCT *cvh;
-    int i, siz;
+    int siz;
     int32     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 

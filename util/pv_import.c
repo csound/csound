@@ -72,7 +72,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
            "BlockAlign,BitsPerSample,cbSize\n");
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
-      fscanf(inf, "%d,%d,%d,%d,%d,%d,%d\n",
+      fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
              &fmt1, &fmt2, &fmt.nSamplesPerSec,
              &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5);
       fmt.wFormatTag = fmt1;

@@ -397,7 +397,6 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
 
 int pvcross(CSOUND *csound, PVCROSS *p)
 {
-    int     n;
     MYFLT   *ar = p->rslt;
     MYFLT   frIndx;
     MYFLT   *buf = p->fftBuf;

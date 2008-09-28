@@ -111,7 +111,7 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
     int i;
-    int n, nsmps = csound->ksmps;
+    int nsmps = csound->ksmps;
     int oddmax,unitproj;
     int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */

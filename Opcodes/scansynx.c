@@ -318,7 +318,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
           pp += MATLENCRLF;
         }
         else {
-         csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
+         csound->Message(csound, "%d: Looking for (%d) %s Found %.12s\n",
                                  i, (int32) MATLENLF, MATRIXLF, pp);
          return csound->InitError(csound, "Not a valid matrix");
        }
