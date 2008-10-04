@@ -137,7 +137,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
     /* set up comb and allpass filters */
     nbytes = 0;
     for (i = 0; i < (NR_COMB << 1); i++) {
-      combp = (freeVerbComb*)(p->auxData.auxp) + (int) nbytes;
+      combp = (freeVerbComb*)((unsigned char*)p->auxData.auxp + (int) nbytes);
       p->Comb[i >> 1][i & 1] = combp;
       k = calc_nsamples(p, comb_delays[i >> 1][i & 1]);
       combp->nSamples = k;
@@ -158,7 +158,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
         allpassp->buf[j] = FL(0.0);
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);
     }
-    p->tmpBuf = (MYFLT*) (p->auxData.auxp) + (int) nbytes;
+    p->tmpBuf = (MYFLT*) ((unsigned char*)p->auxData.auxp + (int)nbytes);
     p->prvDampFactor = -FL(1.0);
     if (*(p->iSampleRate) >= MIN_SRATE)
       p->srFact = POWER((DEFAULT_SRATE / *(p->iSampleRate)), FL(0.8));
