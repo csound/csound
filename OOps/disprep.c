@@ -468,7 +468,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       p->ftable = fltp;   fltp += npts;
       p->xscale = fltp;   fltp += lamspan;
       p->lmults = fltp;   fltp += lamspan;
-      p->lambdas = (short *) fltp;
+      p->lambdas = (int16 *) fltp;
       p->stmemnow = p->stmemp + nptsm1;
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
@@ -598,7 +598,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
    /*   MYFLT *xscale = p->xscale;   */
         const MYFLT *mults, *fracs;
         MYFLT *mulp;
-        short minlen, maxlen, *lenp, *endlens;
+        int16 minlen, maxlen, *lenp, *endlens;
 
         for (memp=p->stmemp,nn=npts,sumsqr=FL(0.0); nn--; memp++)
           sumsqr += *memp * *memp;

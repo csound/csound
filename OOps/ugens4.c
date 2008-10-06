@@ -47,7 +47,7 @@ int buzz(CSOUND *csound, BUZZ *p)
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
     int32       phs, inc, lobits, dwnphs, tnp1, lenmask, nn;
     MYFLT       sicvt2, over2n, scal, num, denom;
-    int         n, k, m;
+    int         n;
 
     ftp = p->ftp;
     if (ftp==NULL) goto err1;         /* RWD fix */
@@ -68,7 +68,6 @@ int buzz(CSOUND *csound, BUZZ *p)
     ar = p->ar;
     phs = p->lphs;
     nn = csound->ksmps;
-    k = m = 0;
     for (n=0; n<nn; n++) {
       dwnphs = phs >> lobits;
       denom = ftbl[dwnphs];
@@ -76,13 +75,13 @@ int buzz(CSOUND *csound, BUZZ *p)
         num = ftbl[dwnphs * tnp1 & lenmask];
         ar[n] = (num / denom - FL(1.0)) * scal;
       }
-      else ar[n] = ampp[k];
+      else ar[n] = *ampp;
       phs += inc;
       phs &= PHMASK;
       if (p->ampcod)
-        scal = ampp[++k] * over2n;
+        scal = *++ampp * over2n;
       if (p->cpscod)
-        inc = (int32)(cpsp[++m] * sicvt2);
+        inc = (int32)(*++cpsp * sicvt2);
     }
     p->lphs = phs;
     return OK;
