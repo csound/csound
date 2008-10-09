@@ -1524,12 +1524,13 @@ guiProgramEnvironment = commonEnvironment.Clone()
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
     fltkConfigFlags += ' --ldflags'
-try:
+if ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
+ try:
     if vstEnvironment.ParseConfig(fltkConfigFlags):
         print 'Parsed fltk-config.'
     else:
         print 'Could not parse fltk-config.'
-except:
+ except:
     print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = Split('''

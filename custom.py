@@ -14,7 +14,6 @@ customLIBS = []
 customLIBPATH = []
 customSHLINKFLAGS = []
 customSWIGFLAGS = []
-customLINKFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
@@ -64,14 +63,14 @@ elif sys.platform[:3] == 'win':
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
     #customCPPPATH.append('C:/Python24/include')
-    #customLIBPATH.append('C:/Python24/Libs')
+    #customLIBPATH.append('C:/Python24/Libs')    
     #customLIBPATH.append('D:/utah/msys/1.0/local/lib')
     customCPPPATH.append('C:/Python25/include')
-    customLIBPATH.append('C:/Python25/Libs')
+    customLIBPATH.append('C:/Python25/Libs')    
     ###############################################################
     # If you want to build vst4cs you need the include
     # path to the VST SDK header files. Add them there:
-    #ustomCPPPATH.append('d:/utah/home/mkg/projects/csoundd/frontends/CsoundVST')
+    #ustomCPPPATH.append('d:/utah/home/mkg/projects/csoundd/frontends/CsoundVST')    
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
@@ -106,8 +105,7 @@ elif sys.platform[:3] == 'win':
     # If you want to build the PD external csoundapi~
     # you need PD. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
-    customCPPPATH.append('c:/msys/1.0/local/java/include')
-    customCPPPATH.append('c:/msys/1.0/local/java/include/win32')
+    #customCPPPATH.append('D:/utah/opt/pd-0.38-4-devel-2/src')
     #customLIBPATH.append('D:/utah/opt/pd-0.38-4-devel-2/bin')
     ################################################################
     # If you want to build the Loris opcodes,

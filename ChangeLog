@@ -1,3 +1,7 @@
+2008-10-09 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* Engine/fgens.c: added an optional parameter
+	  for GEN20 (type 6, Gaussian), to set the variance
+	  (default = 1.0)
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
 	* H/csound.h: Added Doxygen "mainpage" introductory section at top 
