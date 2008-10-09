@@ -372,11 +372,12 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
       csound->UnlockMutex(p->mutex_);
       csound->DestroyMutex(p->mutex_);
     }
-    for (i = 0; i < p->nPorts; i++) {
-      lo_server_thread_stop(p->ports[i].thread);
-      lo_server_thread_free(p->ports[i].thread);
-      csound->DestroyMutex(p->ports[i].mutex_);
-    }
+    for (i = 0; i < p->nPorts; i++)
+      if (p->ports[i].thread) {
+        lo_server_thread_stop(p->ports[i].thread);
+        lo_server_thread_free(p->ports[i].thread);
+        csound->DestroyMutex(p->ports[i].mutex_);
+      }
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
 }
@@ -542,6 +543,23 @@ static void OSC_error(int num, const char *msg, const char *path)
     fprintf(stderr, "OSC server error %d in path %s: %s\n", num, path, msg);
 }
 
+#ifdef BETA
+static int OSC_deinit(CSOUND *csound, OSCINIT *p)
+{
+    int n = (int)*p->ihandle;
+    OSC_GLOBALS *pp = alloc_globals(csound);
+    OSC_PORT    *ports = pp->ports;
+    csound->Message(csound, "handle=%d\n", n);
+    csound->DestroyMutex(ports[n].mutex_);
+    ports[n].mutex_ = NULL;
+    lo_server_thread_stop(ports[n].thread);
+    lo_server_thread_free(ports[n].thread);
+    ports[n].thread =  NULL;
+    csound->Message(csound, "OSC deinitiatised\n");
+    return OK;
+}
+#endif
+
 static int osc_listener_init(CSOUND *csound, OSCINIT *p)
 {
     OSC_GLOBALS *pp;
@@ -564,6 +582,10 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     pp->nPorts = n + 1;
     csound->Message(csound, "OSC listener #%d started on port %s\n", n, buff);
     *(p->ihandle) = (MYFLT) n;
+#ifdef BETA
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND *, void *)) OSC_deinit);
+#endif
     return OK;
 }
 
