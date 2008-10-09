@@ -959,7 +959,7 @@ static int gen19(FGDATA *ff, FUNC *ftp)
 static int gen20(FGDATA *ff, FUNC *ftp)
 {
     MYFLT   cf[4], *ft;
-    double  arg, x, xarg, beta = 0.0;
+    double  arg, x, xarg, beta = 0.0,varian = 1.0;
     int     i, nargs = ff->e.pcnt - 4;
 
     ft = ftp->ftable;
@@ -970,8 +970,10 @@ static int gen20(FGDATA *ff, FUNC *ftp)
       if ( nargs < 2 ) xarg = 1.0;
     }
 
-    if (nargs > 2)
+    if (nargs > 2){
       beta = (double) ff->e.p[7];
+      varian = (double) ff->e.p[7];
+    }
 
     switch ((int) ff->e.p[5])  {
     case 1:                     /* Hamming */
@@ -1005,9 +1007,9 @@ static int gen20(FGDATA *ff, FUNC *ftp)
     case 6:                     /* Gaussian */
         arg = 12.0 / ff->flen;
         for (i = 0, x = -6.0 ; i < ((int) ff->flen >> 1) ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / 2.0)));
+          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / (2.0*varian*varian))));
         for (x = 0.0 ; i <= (int) ff->flen ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / 2.0)));
+          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / (2.0*varian*varian))));
         return OK;
     case 7:                     /* Kaiser */
       {
