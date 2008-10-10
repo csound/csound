@@ -26,7 +26,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *knh, *ifn, *iphs;
-        short   ampcod, cpscod;
+        int16   ampcod, cpscod;
         int32    lphs;
         FUNC    *ftp;
         int     reported;
@@ -35,7 +35,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *kn, *kk, *kr, *ifn, *iphs;
-        short   ampcod, cpscod, prvn;
+        int16   ampcod, cpscod, prvn;
         MYFLT   prvr, twor, rsqp1, rtn, rtnp1, rsumr;
         int32    lphs;
         FUNC    *ftp;
@@ -47,7 +47,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *kamp, *kcps, *icps, *ifn, *imeth, *ipar1, *ipar2;
         MYFLT   sicps, param1, param2;
-        short   thresh1, thresh2, method;
+        int16   thresh1, thresh2, method;
         int32    phs256, npts, maxpts;
         AUXCH   auxch;
 } PLUCK;
@@ -56,14 +56,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *iseed, *sel, *base;
         int     rand;
-        short   ampcod;
-        short   new;
+        int16   ampcod;
+        int16   new;
 } RAND;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
-        short   ampcod, cpscod, new;
+        int16   ampcod, cpscod, new;
         int     rand;
         int32    phs;
         MYFLT   num1;
@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
-        short   ampcod, cpscod, new;
+        int16   ampcod, cpscod, new;
         int     rand;
         int32    phs;
         MYFLT   num1, num2, dfdmax;

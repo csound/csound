@@ -69,7 +69,7 @@ typedef struct {
         MYFLT   *hbeg, *hcur, *hend;
         MYFLT   *xbeg, *xcur, *xend;
         MYFLT   *stmemp, *linexp, *ftable, *xscale, *lmults;
-        short   *lambdas;
+        int16   *lambdas;
         MYFLT   *stmemnow, ncross, coef0, coef1, yt1, thresh;
         MYFLT   fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
         int     dcntdown, dtimcnt;

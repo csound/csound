@@ -40,8 +40,8 @@ struct windat_ {
     MYFLT   *fdata;             /* data passed to DrawGraph */
     int32    npts;               /* size of above array */
     char    caption[CAPSIZE];   /* caption string for graph */
-    short   waitflg;            /* set =1 to wait for ms after Draw */
-    short   polarity;           /* controls positioning of X axis */
+    int16   waitflg;            /* set =1 to wait for ms after Draw */
+    int16   polarity;           /* controls positioning of X axis */
     MYFLT   max, min;           /* workspace .. extrema this frame */
     MYFLT   absmax;             /* workspace .. largest of above */
     MYFLT   oabsmax;            /* Y axis scaling factor */

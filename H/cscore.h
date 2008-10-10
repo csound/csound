@@ -34,8 +34,8 @@
 typedef struct cshdr {
         struct cshdr *prvblk;
         struct cshdr *nxtblk;
-        short  type;
-        short  size;
+        int16  type;
+        int16  size;
 } CSHDR;
 
 /* Single score event structure */
@@ -43,7 +43,7 @@ typedef struct {
         CSHDR h;
         char  *strarg;
         char  op;
-        short pcnt;
+        int16 pcnt;
         MYFLT p2orig;
         MYFLT p3orig;
         MYFLT p[1];
