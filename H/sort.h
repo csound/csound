@@ -31,8 +31,8 @@
 typedef struct srtblk {
         struct srtblk *nxtblk;
         struct srtblk *prvblk;
-        short   insno;
-        short   pcnt;
+        int16   insno;
+        int16   pcnt;
         MYFLT   p1val;
         MYFLT   p2val;
         MYFLT   p3val;

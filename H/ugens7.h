@@ -42,8 +42,8 @@ typedef struct {
         OVRLAP  basovrlap;
         int32    durtogo, fundphs, fofcount, prvsmps;
         MYFLT   prvband, expamp, preamp;
-        short   foftype;        /* Distinguish fof and fof2 */
-        short   xincod, ampcod, fundcod, formcod, fmtmod;
+        int16   foftype;        /* Distinguish fof and fof2 */
+        int16   xincod, ampcod, fundcod, formcod, fmtmod;
         AUXCH   auxch;
         FUNC    *ftp1, *ftp2;
 } FOFS;
