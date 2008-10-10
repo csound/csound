@@ -21,7 +21,7 @@ ktrig   =  	    3 - ktrig    ; make sure that it always changes
 </CsInstruments>
 
 <CsScore>
-i 1 0 1000
+i 1 0 10
 e
 </CsScore>
 

@@ -2,6 +2,12 @@
 	* Engine/fgens.c: added an optional parameter
 	  for GEN20 (type 6, Gaussian), to set the variance
 	  (default = 1.0)
+
+2008-09-29  jpff  <jpff@codemist.co.uk>
+
+	* OOps/diskin.c (diskin_read_buffer): mea culpa; zeros written to
+	wrong place.
+
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
 	* H/csound.h: Added Doxygen "mainpage" introductory section at top 

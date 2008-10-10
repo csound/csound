@@ -1349,8 +1349,10 @@ extern "C" {
         }
 #endif
       }
-      if (!csound->spoutactive)           /*   results now in spout? */
+      if (!csound->spoutactive) {           /*   results now in spout? */
         memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+        csound->DebugMsg(csound,"Zero segment %d\n", csound->cyclesRemaining);
+      }
       csound->spoutran(csound);           /*      send to audio_out  */
       return 0;
   }
