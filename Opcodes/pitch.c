@@ -200,7 +200,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
         *fltp++ = weight;
       }
       if (*--fltp < FL(0.0)) {
-        return csound->InitError(csound, Str("per oct rolloff too steep"));
+        return csound->InitError(csound, Str("per octave rolloff too steep"));
       }
       p->rolloff = 1;
     }
@@ -852,9 +852,9 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       if (p->median.auxp==NULL || p->median.size < (size_t)sizeof(MYFLT)*msize)
         csound->AuxAlloc(csound, (size_t)sizeof(MYFLT)*(msize), &p->median);
       else {
-        medi = (MYFLT*)p->median.auxp;
-        memset(medi, 0, sizeof(MYFLT)*(msize));
+        memset(p->median.auxp, 0, sizeof(MYFLT)*(msize));
       }
+      medi = (MYFLT*)p->median.auxp;
     }
 
     if (p->buffer.auxp==NULL ||
