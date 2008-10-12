@@ -836,9 +836,9 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       if (p->median.auxp==NULL || p->median.size < (int32)msize)
         csound->AuxAlloc(csound, msize, &p->median);
       else {
-        medi = (MYFLT*)p->median.auxp;
-        memset(medi, 0, msize);
+        memset(p->median.auxp, 0, msize);
       }
+      medi = (MYFLT*)p->median.auxp;
     }
 
     if (*p->imedi < 1)
