@@ -50,7 +50,7 @@ if sys.platform[:3] == 'win':
 	# If you want to build PortAudio,
 	# for real-time audio performance.
 	customCPPPATH.append(r'U:\portaudio\include')
-	customLIBPATH.append(r'U:\portaudio\build\msvc\Win32\Release')
+	customLIBPATH.append(r'U:\portaudio')
 	#################################################################
 	# If you want to build PortMidi,
 	# for real-time MIDI performance.,
@@ -58,9 +58,7 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\portmidi\pm_common')
 	customCPPPATH.append(r'U:\portmidi\pm_win')
 	customCPPPATH.append(r'U:\portmidi\porttime')
-	customLIBPATH.append(r'U:\portmidi\pm_win')
-	customLIBPATH.append(r'U:\portmidi\porttime\Release')
-	customLIBPATH.append(r'U:\portmidi\pm_win\Release')
+	customLIBPATH.append(r'U:\portmidi')
 	################################################################
 	# If you want to build the FLTK widgets, csound5gui, cseditor,
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
@@ -106,7 +104,7 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'U:\fluidsynth.patched\winbuild')
+	customLIBPATH.append(r'U:\fluidsynth.patched\src\.libs')
 	customCPPPATH.append(r'U:\fluidsynth.patched\include')
 	# And the dsound library from the Microsoft DirectX SDK.
 	customLIBPATH.append(r'U:\dxsdk\Lib\x86')
