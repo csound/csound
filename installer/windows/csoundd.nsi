@@ -484,8 +484,6 @@ Section "${PRODUCT}" SecCopyUI
 	# If Python is not available, ask the user if they want to install it.
 	Call GetPython
 	# First we do output paths for non-Python stuff.
-	SetOutPath $INSTDIR\bin\Microsoft.VC90.CRT
-	File U:\msvc2008\VC\redist\x86\Microsoft.VC90.CRT\*
 
 	# Outputs to root installation directory.
 
@@ -537,17 +535,18 @@ Section "${PRODUCT}" SecCopyUI
 	File U:\fltk-mingw\src\mgwfltknox-1.3.dll
 	File U:\fltk-mingw\src\mgwfltknox_images-1.3.dll
 	# PortAudio
-	File U:\portaudio\build\msvc\Win32\Release\portaudio_x86.dll
+	File U:\portaudio\portaudio.dll
 	# PortMIDI
-	# File U:\portmidi\pm_win\Release\pm_dll.dll
+	File U:\portmidi\portmidi.dll
+	File U:\portmidi\porttime.dll
 	# Fluidsynth
-	File U:\fluidsynth.patched\winbuild\fluidsynth.dll
+	File U:\fluidsynth.patched\src\.libs\libfluidsynth-1.dll
 	# Image opcodes
 	File U:\zlib-1.2.3.win32\bin\zlib1.dll
 	File U:\libpng-1.2.24\.libs\libpng-3.dll
 	# Lua
-	File U:\Lua5.1\lua51.dll
-	File U:\Lua5.1\luajit.exe
+	File U:\Lua5.1\src\lua51.dll
+	File U:\Lua5.1\src\luajit.exe
 	# OSC
 	File U:\liblo\lo.dll
 	File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
