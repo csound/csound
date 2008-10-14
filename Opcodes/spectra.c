@@ -93,8 +93,8 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-      int32        auxsiz, bufsiz = 0;
-      int32        majr, minr, totsamps, totsize;
+      int32       auxsiz, bufsiz = 0;
+      int32       majr, minr, totsamps, totsize;
       double      hicps,locps,oct;  /*   must alloc anew */
 
       p->nfreqs = nfreqs;
@@ -559,7 +559,7 @@ int specdisp(CSOUND *csound, SPECDISP *p)
 int sptrkset(CSOUND *csound, SPECPTRK *p)
 {
     SPECDAT *inspecp = p->wsig;
-    int32    npts, nptls, nn, lobin;
+    int32   npts, nptls, nn, lobin;
     int     *dstp, ptlmax, inc;
     MYFLT   nfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
@@ -691,7 +691,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       int   nn, *pdist, confirms;
       MYFLT kval, kvar, fmax, *fmaxp, absdiff, realbin;
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
-      int32  lobin, hibin;
+      int32 lobin, hibin;
 
       if (inp==NULL) {             /* RWD fix */
         return csound->PerfError(csound, Str("specptrk: not initialised"));
@@ -972,7 +972,7 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wscaled;
     FUNC    *ftp;
-    int32    npts;
+    int32   npts;
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if size has changed,   */
       SPECset(csound,
@@ -1121,7 +1121,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
     SPECDAT *inspecp = p->wsig;
     SPECDAT *outspecp = p->wfil;
     FUNC    *ftp;
-    int32    npts;
+    int32   npts;
 
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
       SPECset(csound,
@@ -1157,7 +1157,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       }
     }
     {
-      int32  nn;
+      int32 nn;
       MYFLT *flp = p->coefs;
       double halftim, reittim = inspecp->ktimprd * csound->onedkr;
       for (nn=0;nn<npts;nn++) {

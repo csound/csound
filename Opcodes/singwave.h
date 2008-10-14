@@ -68,7 +68,6 @@ typedef struct Modulatr {
     SubNoise noise;
     OnePole  onepole;
     MYFLT    vibAmt;
-/*     MYFLT    rndAmt; */
     MYFLT    lastOutput;
 } Modulatr;
 

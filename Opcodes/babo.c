@@ -63,14 +63,14 @@
  */
 
 /*
- *In general, (x,y,z) are coordinates in a three-dimensional space, either
- *of the sound source or of the pickup point (we use a pair of omnidi-
- *rectional pickups aligned with the x axis).
- *When the diffusion is maximal, each row of the matrix contains a
- *maximum-length sequence of +1 and -1. When the diffusion is minimal, the
- *matrix is diagonal. The continuous control of diffusion is done by moving
- *the eigenvalues along the unit circle and taking the inverse discrete fourier
- *transform of them [2,3].
+ * In general, (x,y,z) are coordinates in a three-dimensional space, either
+ * of the sound source or of the pickup point (we use a pair of omnidi-
+ * rectional pickups aligned with the x axis).
+ * When the diffusion is maximal, each row of the matrix contains a
+ * maximum-length sequence of +1 and -1. When the diffusion is minimal, the
+ * matrix is diagonal. The continuous control of diffusion is done by moving
+ * the eigenvalues along the unit circle and taking the inverse discrete fourier
+ * transform of them [2,3].
  */
 
 /*------------------------------------------------------------------------*\
@@ -138,14 +138,6 @@ static const int sound_speed = 330;
  */
 
 #define square(x)   ((x)*(x))
-
-#ifdef never
-static inline int32
-bround(MYFLT x)
-{
-    return (int32)(x >= 0 ? x + FL(0.5) : x - FL(0.5));
-}
-#endif
 
 /*
  * Memory allocation object methods

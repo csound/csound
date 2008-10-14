@@ -38,7 +38,7 @@ static int32 MYFLOOR(MYFLT x) {
   if (x >= 0.0) {
     return (int32) x;
   } else {
-    return (int32) x - 0.99999999;
+    return (int32) (x - FL(0.99999999));
   } 
 }
 
@@ -58,7 +58,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     OCTDAT  *octp;
     DOWNDAT *dwnp = &p->downsig;
     SPECDAT *specp = &p->wsig;
-    int32    npts, nptls, nn, lobin;
+    int32   npts, nptls, nn, lobin;
     int     *dstp, ptlmax;
     MYFLT   fnfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
@@ -101,7 +101,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
       basfrq = hicps * 0.5;                   /* oct below retuned top */
-      frqmlt = pow(2.0,1.0/nfreqs);           /* nfreq interval mult */
+      frqmlt = pow(2.0,1.0/(double)nfreqs);   /* nfreq interval mult */
       Qfactor = Q * dwnp->srate;
       curfrq = basfrq;
       for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
@@ -150,7 +150,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      SPECset(csound, specp, (int32)ncoefs); /* prep the spec dspace */
+      SPECset(csound, specp, (int32)ncoefs);/* prep the spec dspace */
       specp->downsrcp = dwnp;               /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
@@ -195,9 +195,9 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       MYFLT octdrop = (FL(1.0) - rolloff) / fnfreqs;
       weightsum = FL(0.0);
       for (dstp = p->pdist, nn = nptls; nn--; ) {
-        weight = FL(1.0) - octdrop * *dstp++;       /* rolloff * octdistance */
+        weight     = FL(1.0) - octdrop * *dstp++; /* rolloff * octdistance */
         weightsum += weight;
-        *fltp++ = weight;
+        *fltp+    += weight;
       }
       if (*--fltp < FL(0.0)) {
         return csound->InitError(csound, Str("per octave rolloff too steep"));
@@ -273,13 +273,13 @@ int pitch(CSOUND *csound, PITCH *p)
         if (!(--nocts))  break;             /*  if lastoct, break      */
         coefp = bicoefs;  ytp = octp->feedback;
         for (nfilt = 3; nfilt--; ) {        /*  apply triple biquad:   */
-          yt2 = *ytp++; yt1 = *ytp--;             /* get prev feedback */
-          SIG -= (*coefp++ * yt1);                /* apply recurs filt */
-          SIG -= (*coefp++ * yt2);
-          *ytp++ = yt1; *ytp++ = SIG;             /* stor nxt feedback */
-          SIG *= *coefp++;
-          SIG += (*coefp++ * yt1);                /* apply forwrd filt */
-          SIG += (*coefp++ * yt2);
+          yt2    = *ytp++; yt1 = *ytp--;          /* get prev feedback */
+          SIG   -= (*coefp++ * yt1);              /* apply recurs filt */
+          SIG   -= (*coefp++ * yt2);
+          *ytp+ += yt1; *ytp++ = SIG;             /* stor nxt feedback */
+          SIG   *= *coefp++;
+          SIG   += (*coefp++ * yt1);              /* apply forwrd filt */
+          SIG   += (*coefp++ * yt2);
         }
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
     } while (--nsmps);
@@ -297,9 +297,9 @@ int pitch(CSOUND *csound, PITCH *p)
     while (nocts--) {
       MYFLT  *bufp, *sinp, *cosp;
       int    len, *lenp, *offp, nfreqs;
-      MYFLT    *begp, *curp, *endp, *linbufp;
-      int      len2;
-      octp--;                             /* for each oct (low to high)   */
+      MYFLT  *begp, *curp, *endp, *linbufp;
+      int    len2;
+      octp--;                                 /* for each oct (low to high) */
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
@@ -341,7 +341,7 @@ int pitch(CSOUND *csound, PITCH *p)
       int   nn, *pdist, confirms;
       MYFLT kval, fmax, *fmaxp, absdiff, realbin;
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
-      int32  lobin, hibin;
+      int32 lobin, hibin;
 
       if (inp==NULL) {             /* RWD fix */
         return csound->PerfError(csound, Str("pitch: not initialised"));
@@ -446,7 +446,7 @@ int pitch(CSOUND *csound, PITCH *p)
       fmax += delta * (c - a) * FL(0.25); /* get modified amp */
       p->kavl = fmax;
     }
-output:
+ output:
     *p->koct = p->kval;                   /* output true decoct & amp */
     *p->kamp = p->kavl * FL(4.0);
     return OK;
@@ -751,7 +751,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
       if (freq > hesr)
         amp = FL(0.0);
       inc = (int32)(freq * csound->sicvt);
-      for (n=0;n<nsmps;n++) {
+      for (n=0; n<nsmps; n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
         v1 = *ftab++;
