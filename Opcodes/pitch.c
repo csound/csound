@@ -197,7 +197,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       for (dstp = p->pdist, nn = nptls; nn--; ) {
         weight     = FL(1.0) - octdrop * *dstp++; /* rolloff * octdistance */
         weightsum += weight;
-        *fltp+    += weight;
+        *fltp++    = weight;
       }
       if (*--fltp < FL(0.0)) {
         return csound->InitError(csound, Str("per octave rolloff too steep"));
@@ -276,7 +276,7 @@ int pitch(CSOUND *csound, PITCH *p)
           yt2    = *ytp++; yt1 = *ytp--;          /* get prev feedback */
           SIG   -= (*coefp++ * yt1);              /* apply recurs filt */
           SIG   -= (*coefp++ * yt2);
-          *ytp+ += yt1; *ytp++ = SIG;             /* stor nxt feedback */
+          *ytp++ = yt1; *ytp++ = SIG;             /* stor nxt feedback */
           SIG   *= *coefp++;
           SIG   += (*coefp++ * yt1);              /* apply forwrd filt */
           SIG   += (*coefp++ * yt2);
