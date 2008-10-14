@@ -28,7 +28,7 @@
  * Author: Michael A. Casey MIT Media Labs
  * Language: C
  * Copyright (c) 1994 MIT Media Lab, All Rights Reserved
- * Soem modifications my John ffitch, 2000, simplifying code
+ * Some modifications by John ffitch, 2000, simplifying code
  */
 
 #ifndef _pluck_h
