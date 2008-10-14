@@ -245,8 +245,8 @@ int pitch(CSOUND *csound, PITCH *p)
     double      q;
     double      c1 = p->c1, c2 = p->c2;
 
-    MYFLT   a, b, *dftp, *sigp = p->asig, SIG, yt1, yt2;
-    int     nocts, nsmps = csound->ksmps, winlen;
+    MYFLT   a, b, *dftp, SIG, yt1, yt2;
+    int     nocts, n, nsmps = csound->ksmps, winlen;
     DOWNDAT *downp = &p->downsig;
     OCTDAT  *octp;
     SPECDAT *specp;
@@ -255,10 +255,10 @@ int pitch(CSOUND *csound, PITCH *p)
                                 /* RMS */
     q = p->prvq;
     asig = p->asig;
-    do {
-      MYFLT as = *asig++;
+    for (n=0; n<nsmps; n++) {
+      MYFLT as = asig[n]*DFLT_DBFS/csound->e0dbfs; /* Normalise.... */
       q = c1 * as * as + c2 * q;
-      SIG = *sigp++;                        /* for each source sample: */
+      SIG = as;                              /* for each source sample: */
       octp = downp->octdata;                /*   align onto top octave */
       nocts = downp->nocts;
       do {                                  /*   then for each oct:    */
@@ -282,7 +282,7 @@ int pitch(CSOUND *csound, PITCH *p)
           SIG   += (*coefp++ * yt2);
         }
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
-    } while (--nsmps);
+    }
     p->prvq = q;
     kvar = SQRT((MYFLT)q);       /* End of spectrum part */
 
