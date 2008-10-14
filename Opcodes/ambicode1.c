@@ -96,9 +96,9 @@ abformenc(CSOUND * csound, AMBIC * p) {
   elevation = (double)(*(p->kelevation)) * (PI / 180.0);
 
   /* Find direction cosines: */
-  x = cos(elevation);
-  y = x;
-  z = sin(elevation);
+  x  = cos(elevation);
+  y  = x;
+  z  = sin(elevation);
   x *= cos(angle);
   y *= sin(angle);
   x2 = x * x;
