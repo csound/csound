@@ -1737,7 +1737,7 @@ if not buildOLPC:
 	     	fluidEnvironment.Append(LIBS = ['fluidsynth'])
 		fluidEnvironment.Append(LIBS = ['pthread'])
 	makePlugin(fluidEnvironment, 'fluidOpcodes',
-			   ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
+			   ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])
 
 # VST HOST OPCODES
 if (commonEnvironment['buildvst4cs'] != '1'):
