@@ -3,7 +3,7 @@
  *
  * Adapts Fluidsynth to use global engines, soundFonts, and outputs
  *
- * Based on work by Michael Gogins.  License is identical to
+ * Based on work by Michael Gogins and Steven Yi.  License is identical to
  * SOUNDFONTS VST License (listed below)
  *
  * Copyright (c) 2003 by Steven Yi. All rights reserved.
@@ -42,7 +42,14 @@
 #include <vector>
 #include <string>
 
-std::map<CSOUND *, std::vector<fluid_synth_t *> > fluidSynthsForCsoundInstances;
+/**
+ * This may help avoid problems with the order of static initializations.
+ */
+static std::map<CSOUND *, std::vector<fluid_synth_t *> > &getFluidSynthsForCsoundInstances() 
+{
+  static std::map<CSOUND *, std::vector<fluid_synth_t *> > fluidSynthsForCsoundInstances;
+  return fluidSynthsForCsoundInstances;
+}
 
 /**
  * Template union for safely and efficiently
@@ -70,8 +77,8 @@ template<typename A, typename F> void tof(A *a, F *f)
 };
 
 /**
- * Safely and efficiently typecast the value of a
- * a MYFLT variable to an address.
+ * Safely and efficiently typecast the value
+ * of a MYFLT variable to an address.
  */
 template<typename A, typename F> void toa(F *f, A *&a)
 {
@@ -147,9 +154,8 @@ public:
 	reverbEnabled ? "on" : "off",
 	channelCount,
 	voiceCount);
-    //iFluidSynth = (MYFLT *) fluidSynth;
     tof(fluidSynth, iFluidSynth);
-    fluidSynthsForCsoundInstances[csound].push_back(fluidSynth);
+    getFluidSynthsForCsoundInstances()[csound].push_back(fluidSynth);
     return OK;
   }
 };
@@ -172,7 +178,6 @@ public:
   int init(CSOUND *csound)
   {
     soundFontId = -1; 
-    //fluidSynth = (fluid_synth_t *)iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     listPresets = (int) *iListPresets;
     filename = csound->strarg2name(csound,
@@ -231,7 +236,6 @@ class FluidProgramSelect : public OpcodeBase<FluidProgramSelect>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *)iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     channel = (int) *iChannelNumber;
     instrument = (unsigned int) *iInstrumentNumber;
@@ -262,7 +266,6 @@ class FluidCCI : public OpcodeBase<FluidCCI>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *) iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     channel = (int) *iChannelNumber;
     controller = (int) *iControllerNumber;
@@ -288,7 +291,6 @@ class FluidCCK : public OpcodeBase<FluidCCK>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *) iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     priorValue = -1;
     return OK;
@@ -320,7 +322,6 @@ class FluidNote : public OpcodeNoteoffBase<FluidNote>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *)iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     channel = (int) *iChannelNumber;
     key = (int) *iMidiKeyNumber;
@@ -351,7 +352,6 @@ class FluidOut : public OpcodeBase<FluidOut>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *)iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     ksmps = csound->GetKsmps(csound);
     return OK;
@@ -387,7 +387,7 @@ public:
   }
   int audio(CSOUND *csound)
   {
-    std::vector<fluid_synth_t *> &fluidSynths = fluidSynthsForCsoundInstances[csound];
+    std::vector<fluid_synth_t *> &fluidSynths = getFluidSynthsForCsoundInstances()[csound];
     for (frame = 0; frame < ksmps; frame++) {
       aLeftOut[frame] = FL(0.0);
       aRightOut[frame] = FL(0.0);
@@ -426,7 +426,6 @@ class FluidControl : public OpcodeBase<FluidControl>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *) iFluidEngine;
     toa(iFluidSynth, fluidSynth);
     priorMidiStatus = -1;
     priorMidiChannel = -1;
@@ -526,7 +525,6 @@ class FluidSetInterpMethod : public OpcodeBase<FluidSetInterpMethod>
 public:
   int init(CSOUND *csound)
   {
-    //fluidSynth = (fluid_synth_t *) iFluidSynth;
     toa(iFluidSynth, fluidSynth);
     channel = (int) *iChannelNumber;
     interpolationMethod = (int) *iInterpMethod;
@@ -689,8 +687,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
-  for (std::map<CSOUND *, std::vector<fluid_synth_t *> >::iterator it = fluidSynthsForCsoundInstances.begin();
-       it != fluidSynthsForCsoundInstances.end();
+  for (std::map<CSOUND *, std::vector<fluid_synth_t *> >::iterator it = getFluidSynthsForCsoundInstances().begin();
+       it != getFluidSynthsForCsoundInstances().end();
        ++it) {
     std::vector<fluid_synth_t *> &fluidSynths = it->second;
     for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
