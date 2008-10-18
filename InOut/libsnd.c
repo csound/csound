@@ -43,6 +43,9 @@ typedef struct {
     int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
     uint32        nframes               /* = 1UL */;
     FILE          *pin, *pout;
+#ifndef SOME_FILE_DAY
+    int           dither;
+#endif
 } LIBSND_GLOBALS;
 
 #ifdef PIPES
@@ -175,6 +178,113 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 
     if (ST(outfile) == NULL)
       return;
+    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    if (n < nbytes)
+      sndwrterr(csound, n, nbytes);
+#ifndef OLPC
+    if (O->rewrt_hdr)
+      rewriteheader(ST(outfile));
+    switch (O->heartbeat) {
+      case 1:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+                                 "%c\010", "|/-\\"[csound->nrecs & 3]);
+        break;
+      case 2:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        break;
+      case 3:
+        {
+          char    s[512];
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, csound->curTime, &n);
+          if (n > 0) {
+            memset(&(s[n]), '\b', n);
+            s[n + n] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+          }
+        }
+        break;
+      case 4:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        break;
+    }
+#endif
+}
+
+static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+{
+    OPARMS  *O = csound->oparms;
+    int     n;
+    int m = nbytes / sizeof(MYFLT);
+    MYFLT *buf = (MYFLT*) outbuf;
+
+    if (ST(outfile) == NULL)
+      return;
+    
+    for (n=0; n<m; n++) {
+        int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
+        int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
+        MYFLT result;
+        ST(dither) = rnd;
+        rnd = (rnd+tmp)>>1;           /* triangular distribution */
+        result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+        result /= ((MYFLT) 0x7fff);
+        csound->Message(csound, "%g => %d\n", result, (int)(result*(MYFLT)(1<<16));
+        buf[n] += result;
+    }
+    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    if (n < nbytes)
+      sndwrterr(csound, n, nbytes);
+#ifndef OLPC
+    if (O->rewrt_hdr)
+      rewriteheader(ST(outfile));
+    switch (O->heartbeat) {
+      case 1:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+                                 "%c\010", "|/-\\"[csound->nrecs & 3]);
+        break;
+      case 2:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        break;
+      case 3:
+        {
+          char    s[512];
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, csound->curTime, &n);
+          if (n > 0) {
+            memset(&(s[n]), '\b', n);
+            s[n + n] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+          }
+        }
+        break;
+      case 4:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        break;
+    }
+#endif
+}
+
+static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+{
+    OPARMS  *O = csound->oparms;
+    int     n;
+    int m = nbytes / sizeof(MYFLT);
+    MYFLT *buf = (MYFLT*) outbuf;
+
+    if (ST(outfile) == NULL)
+      return;
+
+    for (n=0; n<m; n++) {
+      int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
+      MYFLT result;
+      ST(dither) = rnd;
+      rnd = (rnd+tmp)>>1;           /* triangular distribution */
+      result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+      result /= ((MYFLT) 0x7f);
+      buf[n] += result;
+    }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (n < nbytes)
@@ -427,7 +537,16 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       }
       else if (strcmp(fName, "null") == 0) {
         ST(outfile) = NULL;
-        csound->audtran = writesf;
+        if (csound->dither.output && csound->oparms->outformat!=AE_FLOAT) {
+          if (csound->oparms->outformat==AE_SHORT)
+            csound->audtran = writesf_dither_16;
+          else if (csound->oparms->outformat==AE_CHAR)
+            csound->audtran = writesf_dither_8;
+          else
+            csound->audtran = writesf;
+        }
+        else
+          csound->audtran = writesf;
         goto outset;
       }
     }
@@ -458,7 +577,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       sf_command(ST(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
     sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SF_TRUE : SF_FALSE));
-    if (csound->dither_output) {        /* This may not be written yet!! */
+#ifdef SOME_FINE_DAY
+    if (csound->dither.output) {        /* This may not be written yet!! */
       SF_DITHER_INFO  ditherInfo;
       memset(&ditherInfo, 0, sizeof(SF_DITHER_INFO));
       ditherInfo.type = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
@@ -467,13 +587,23 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE,
                  &ditherInfo, sizeof(SF_DITHER_INFO));
     }
+#endif
     if (!(O->outformat == AE_FLOAT || O->outformat == AE_DOUBLE) ||
         (O->filetyp == TYP_WAV || O->filetyp == TYP_AIFF ||
          O->filetyp == TYP_W64))
       csound->spoutran = spoutsf;       /* accumulate output */
     else
       csound->spoutran = spoutsf_noscale;
-    csound->audtran = writesf;          /* flush buffer */
+    if (csound->dither.output && csound->oparms->outformat!=AE_FLOAT) {
+      if (csound->oparms->outformat==AE_SHORT)
+        csound->audtran = writesf_dither_16;
+      else if (csound->oparms->outformat==AE_CHAR)
+        csound->audtran = writesf_dither_8;
+      else
+        csound->audtran = writesf;
+    }
+    else
+      csound->audtran = writesf;
     /* Write any tags. */
     if ((s = csound->SF_id_title) != NULL && *s != '\0')
       sf_set_string(ST(outfile), SF_STR_TITLE, s);

@@ -1,3 +1,15 @@
+2008-10-18  jpff  <jpff@codemist.co.uk>
+
+	* InOut/rtwinmm.c (open_device): Dither only if requested
+
+	* H/csoundCore.h ("C"): Move dither to visible
+
+	* InOut/rtpa.c (set_device_params): Dither only if requested
+	(paBlockingReadWriteOpen): Ditto
+
+	* InOut/rtalsa.c (set_format): Dither only if requested
+	(MYFLT_to_short_no_dither): New function
+
 2008-10-09 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* Engine/fgens.c: added an optional parameter
 	  for GEN20 (type 6, Gaussian), to set the variance
