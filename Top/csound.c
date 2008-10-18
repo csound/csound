@@ -318,7 +318,8 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    0,
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
@@ -422,7 +423,7 @@ extern "C" {
     NGOTOS,         /*  ngotos              */
     1,              /*  peakchunks          */
     0,              /*  keep_tmp            */
-    0,              /*  dither_output       */
+    0,              /*  old dither.output   */
     (OENTRY*) NULL, /*  opcodlst            */
     (int*) NULL,    /*  opcode_list         */
     (OENTRY*) NULL, /*  opcodlstend         */

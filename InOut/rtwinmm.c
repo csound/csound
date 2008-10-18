@@ -161,14 +161,31 @@ static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
 {
     MYFLT   tmp_f;
     int     tmp_i;
-    while (nSmps--) {
-      (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (MYFLT) ((*seed) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += *(inBuf++) * (MYFLT) 0x8000;
+    int n;
+    for (n=0; n<nSmps, n++)
+      int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
+      *seed = (((rnd) * 15625) + 1) & 0xFFFF;
+      rnd += *seed;           /* triangular distribution */
+      tmp_f = (MYFLT) (rnd/2 - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += inBuf[n] * (MYFLT) 0x8000;
       tmp_i = (int) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      *(outBuf++) = (int16_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
+    }
+}
+
+static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+{
+    MYFLT   tmp_f;
+    int     tmp_i;
+    int n;
+    for (n=0; n<nSmps, n++)
+      tmp_f = inBuf[n] * (MYFLT) 0x8000;
+      tmp_i = (int) MYFLT2LRND(tmp_f);
+      if (tmp_i < -0x8000) tmp_i = -0x8000;
+      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -177,21 +194,23 @@ static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
     MYFLT   tmp_f;
     int64_t tmp_i;
     (void) seed;
-    while (nSmps--) {
-      tmp_f = *(inBuf++) * (MYFLT) 0x80000000UL;
+    int n;
+    for (n=0; n<nSmps, n++)
+      tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
       tmp_i = (int64_t) (tmp_f + (tmp_f < FL(0.0) ? FL(-0.5) : FL(0.5)));
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
       if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
-      *(outBuf++) = (int32_t) tmp_i;
+      outBuf[n] = (int32_t) tmp_i;
     }
 }
 
 static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
 {
     (void) seed;
-    while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++);
+    int n;
+    for (n=0; n<nSmps, n++)
+      outBuf[n] = (float) inBuf[n];
 }
 
 /* sample conversion routines for recording */
@@ -204,14 +223,16 @@ static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 
 static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
-    while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x80000000UL);
+    int n;
+    for (n=0; n<nSmps, n++)
+      outBuf[n] = (MYFLT) inBuf[n] * (FL(1.0) / (MYFLT) 0x80000000UL);
 }
 
 static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 {
-    while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++);
+    int n;
+    for (n=0; n<nSmps, n++)
+      outBuf[n] = (MYFLT) inBuf[n];
 }
 
 static int open_device(CSOUND *csound,
@@ -289,8 +310,14 @@ static int open_device(CSOUND *csound,
         return err_msg(csound, Str("failed to open device"));
       }
       switch (conv_idx) {
-        case 0: dev->playconv =
-                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;  break;
+        case 0: 
+          if (csound->dither.output) 
+            dev->playconv =
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;
+          else
+            dev->playconv =
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_no_dither;
+          break;
         case 1: dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_long;   break;
         case 2: dev->playconv =
