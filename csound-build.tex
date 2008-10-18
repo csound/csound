@@ -78,7 +78,7 @@ All third party libraries will be updated from the most recent version that seem
 	    \item (Done) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 1.3.36).
 	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 10 RC).
 		\end{enumerate}    
-	\item (TBD) Update third-party libraries.   
+	\item (Done) Update third-party libraries.   
 		\begin{enumerate}
     	\item (Done) Install the VST SDK 2.4 from \url{http://www.steinberg.net/en/company/3rd_party_developer.html}.
    		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.36.0).
@@ -332,9 +332,9 @@ make mingw clean; make mingw all
 \end{lstlisting}
 
  		\end{enumerate}
-	\item (TBD) Build   
+	\item (Done) Build   
 		\begin{enumerate}				
-			\item (TBD) Double precision sample build.
+			\item (Done) Double precision sample build.
 				\begin{enumerate}
 		    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
 					\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
@@ -345,16 +345,16 @@ make mingw clean; make mingw all
 			    \item (Done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
 			    \item (Done) Build the manual.
 			    \item (Done) Build the API reference by executing \texttt{doxygen}.
-			    \item (TBD) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
-			    \item (TBD) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
-			    \item (TBD) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
-			    \item (TBD) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
+			    \item (Done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
+			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
+			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
+			    \item (Done) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
 				\end{enumerate}
-			\item Single precision sample build.			
+			\item (Done) Single precision sample build.			
 				\begin{enumerate}
-					\item Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
+					\item (Done) Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
 				\end{enumerate}
-	    \item (TBD) Update this document to reflect any changes in procedure or dependencies. 
+	    \item (Done) Update this document to reflect any changes in procedure or dependencies. 
 	    \item Upload the installers to SourceForge and update the release package.
 		\end{enumerate}
  \end{enumerate}
@@ -367,16 +367,12 @@ make mingw clean; make mingw all
 	\item (Done) Change \texttt{SConstruct} to define \verb|FL_DLL| for linking with the FLTK DLL.
 	\item (Done) Change \texttt{SConstruct} to define \verb|_SCL_SECURE_NO_DEPRECATE| for compiling Gmm++.
 	\item (Done) Fix score editing bug in \texttt{csound5gui}.
-	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
-	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
-	\item (Done) Ensure FLTK widgets work. 	
-	\item (Done) Ensure VST hosting works using \verb|CsoundAC-midi.csd|. Fixed a bug with real-time notes not ending, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
-	\item (Done) Ensure OSC works using example files.
 	\item (Done) Fix up installers for correct third party DLLs.
 	\item (Done) Fix up installers for correct Csound examples.
 	\item (Done) Make sure installers link to the frames version of the manual and include the quick reference.
-	\item (Done) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
 	\item (Done) Fix a bug with real-time notes not ending in CsoundVST, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
+	\item (Done) Fix up installers for correct third party DLLs.
+	\item (Done) Fix up installers for correct Csound examples.
 \end{enumerate}
 
 \section{Functional Tests}
@@ -393,12 +389,10 @@ make mingw clean; make mingw all
 	\item (Done) Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
 	\item (Done) Ensure Java works with \verb|java -jar examples/java/CsoundEditor.jar|.
 	\item (Done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC-midi.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, a VST plugin instrument, and an STK instrument.
-	\item (TBD) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
-	\item (TBD) Ensure OSC works using example files.
-	\item (TBD) Fix up installers for correct third party DLLs.
-	\item (TBD) Fix up installers for correct Csound examples.
-	\item (TBD) Make sure installers link to the frames version of the manual and include the quick reference.
-	\item (TBD) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
+	\item (Done) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
+	\item (Done) Ensure OSC works using example files.
+	\item (Done) Make sure installers link to the frames version of the manual and include the quick reference.
+	\item (Done) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
 \end{enumerate}
 
 \end{sloppypar}
