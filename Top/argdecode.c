@@ -798,7 +798,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     /* -Z */
     else if (!(strcmp (s, "dither"))) {
-      csound->dither_output = 1;
+      csound->dither.output = 1;
       return 1;
     }
     else if (!(strncmp (s, "midi-key=", 9))) {
@@ -1145,7 +1145,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             csound->LongJmp(csound, 0);
             break;
           case 'Z':
-            csound->dither_output = 1;
+            csound->dither.output = 1;
             break;
           case '@':
             FIND(Str("No indirection file"));

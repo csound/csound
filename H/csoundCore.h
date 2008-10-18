@@ -975,7 +975,11 @@ extern const uint32_t csPlayScoMask;
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[88];
+    SUBR dummyfn_2[87];
+    union dither {
+      int         output;
+      SUBR        dummy;
+    } dither;
     void          *flgraphGlobals;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
@@ -1073,7 +1077,7 @@ extern const uint32_t csPlayScoMask;
     int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    int           dither_output;
+    int           dummy_3;
     OENTRY        *opcodlst;
     int           *opcode_list;
     OENTRY        *oplstend;
