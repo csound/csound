@@ -229,7 +229,6 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         rnd = (rnd+tmp)>>1;           /* triangular distribution */
         result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
         result /= ((MYFLT) 0x7fff);
-        csound->Message(csound, "%g => %d\n", result, (int)(result*(MYFLT)(1<<16));
         buf[n] += result;
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
