@@ -166,7 +166,24 @@ static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
       int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
-      tmp_f = (MYFLT) (rnd/2 - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+      tmp_i = (int) MYFLT2LRND(tmp_f);
+      if (tmp_i < -0x8000) tmp_i = -0x8000;
+      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
+      outBuf[n] = (int16_t) tmp_i;
+    }
+}
+
+static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+{
+    MYFLT   tmp_f;
+    int     tmp_i;
+    int n;
+    for (n=0; n<nSmps, n++)
+      int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
+      *seed = rnd;
+      tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
       tmp_f += inBuf[n] * (MYFLT) 0x8000;
       tmp_i = (int) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
@@ -311,9 +328,12 @@ static int open_device(CSOUND *csound,
       }
       switch (conv_idx) {
         case 0: 
-          if (csound->dither.output) 
+          if (csound->dither.output==1) 
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;
+          else if (csound->dither.output==2) 
+            dev->playconv =
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_u;
           else
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_no_dither;

@@ -140,7 +140,28 @@ static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
       int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
-      tmp_f = (MYFLT) (rnd/2 - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+#ifndef USE_DOUBLE
+      tmp_i = (int) lrintf(tmp_f);
+#else
+      tmp_i = (int) lrint(tmp_f);
+#endif
+      if (tmp_i < -0x8000) tmp_i = -0x8000;
+      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
+      outBuf[n] = (int16_t) tmp_i;
+    }
+}
+
+static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+{
+    MYFLT tmp_f;
+    int   tmp_i;
+    int n;
+    for (n=0; n<nSmps; n++) {
+      int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
+      *seed = rnd;
+      tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
       tmp_f += inBuf[n] * (MYFLT) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int) lrintf(tmp_f);
@@ -234,8 +255,10 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
     switch (csound_format) {
       case AE_SHORT:
         if (play) {
-          if (csound_dither)
+          if (csound_dither==1)
             *convFunc = (void (*)(void)) MYFLT_to_short;
+          else if (csound_dither==2)
+            *convFunc = (void (*)(void)) MYFLT_to_short_u;
           else
             *convFunc = (void (*)(void)) MYFLT_to_short_no_dither;
         }
