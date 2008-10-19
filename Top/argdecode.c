@@ -210,6 +210,8 @@ static const char *longUsageList[] = {
   Str_noop("--list-opcodes\t\tList opcodes in this version"),
   Str_noop("--list-opcodesN\t\tList opcodes in style N in this version"),
   Str_noop("--dither\t\tDither output"),
+  Str_noop("--dither-rect\t\tDither output with rectanular distribution"),
+  Str_noop("--dither-triang\t\tDither output with triangular distribution"),
   Str_noop("--sched\t\t\tset real-time scheduling priority and lock memory"),
   Str_noop("--sched=N\t\tset priority to N and lock memory"),
   Str_noop("--opcode-lib=NAMES\tDynamic libraries to load"),
@@ -801,6 +803,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->dither.output = 1;
       return 1;
     }
+    else if (!(strcmp (s, "dither-rect"))) {
+      csound->dither.output = 2;
+      return 1;
+    }
+    else if (!(strcmp (s, "dither-triang"))) {
+      csound->dither.output = 1;
+      return 1;
+    }
     else if (!(strncmp (s, "midi-key=", 9))) {
       s += 9;
       O->midiKey = atoi(s);
@@ -1145,7 +1155,13 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             csound->LongJmp(csound, 0);
             break;
           case 'Z':
-            csound->dither.output = 1;
+            {
+              int full = 1;
+              if (*s != '\0') {
+                if (isdigit(*s)) full = *s++ - '0';
+              }
+              csound->dither.output = full;
+            }
             break;
           case '@':
             FIND(Str("No indirection file"));
