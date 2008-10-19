@@ -317,6 +317,108 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 #endif
 }
 
+static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+{
+    OPARMS  *O = csound->oparms;
+    int     n;
+    int m = nbytes / sizeof(MYFLT);
+    MYFLT *buf = (MYFLT*) outbuf;
+
+    if (ST(outfile) == NULL)
+      return;
+    
+    for (n=0; n<m; n++) {
+        int   rnd = ((ST(dither) * 15625) + 1) & 0xFFFF;
+        MYFLT result;
+        ST(dither) = rnd;
+        result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+        result /= ((MYFLT) 0x7fff);
+        buf[n] += result;
+    }
+    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    if (n < nbytes)
+      sndwrterr(csound, n, nbytes);
+#ifndef OLPC
+    if (O->rewrt_hdr)
+      rewriteheader(ST(outfile));
+    switch (O->heartbeat) {
+      case 1:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+                                 "%c\010", "|/-\\"[csound->nrecs & 3]);
+        break;
+      case 2:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        break;
+      case 3:
+        {
+          char    s[512];
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, csound->curTime, &n);
+          if (n > 0) {
+            memset(&(s[n]), '\b', n);
+            s[n + n] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+          }
+        }
+        break;
+      case 4:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        break;
+    }
+#endif
+}
+
+static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+{
+    OPARMS  *O = csound->oparms;
+    int     n;
+    int m = nbytes / sizeof(MYFLT);
+    MYFLT *buf = (MYFLT*) outbuf;
+
+    if (ST(outfile) == NULL)
+      return;
+
+    for (n=0; n<m; n++) {
+      int   rnd = ((ST(dither) * 15625) + 1) & 0xFFFF;
+      MYFLT result;
+      ST(dither) = rnd;
+      result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+      result /= ((MYFLT) 0x7f);
+      buf[n] += result;
+    }
+    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    if (n < nbytes)
+      sndwrterr(csound, n, nbytes);
+#ifndef OLPC
+    if (O->rewrt_hdr)
+      rewriteheader(ST(outfile));
+    switch (O->heartbeat) {
+      case 1:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+                                 "%c\010", "|/-\\"[csound->nrecs & 3]);
+        break;
+      case 2:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        break;
+      case 3:
+        {
+          char    s[512];
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, csound->curTime, &n);
+          if (n > 0) {
+            memset(&(s[n]), '\b', n);
+            s[n + n] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+          }
+        }
+        break;
+      case 4:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        break;
+    }
+#endif
+}
+
 static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
 {
     int i, n;
@@ -538,9 +640,15 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         ST(outfile) = NULL;
         if (csound->dither.output && csound->oparms->outformat!=AE_FLOAT) {
           if (csound->oparms->outformat==AE_SHORT)
-            csound->audtran = writesf_dither_16;
+            if (csound->dither.output==1)
+              csound->audtran = writesf_dither_16;
+            else
+              csound->audtran = writesf_dither_u16;
           else if (csound->oparms->outformat==AE_CHAR)
-            csound->audtran = writesf_dither_8;
+            if (csound->dither.output==1)
+              csound->audtran = writesf_dither_8;
+            else
+              csound->audtran = writesf_dither_u8;
           else
             csound->audtran = writesf;
         }
