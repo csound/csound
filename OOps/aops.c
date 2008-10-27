@@ -1344,8 +1344,8 @@ int outq4(CSOUND *csound, OUTM *p)
 
 int outh(CSOUND *csound, OUTH *p)
 {
-    MYFLT       *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
-                                     *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig3;
+    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
+                               *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6;
     int nsmps = csound->ksmps;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
