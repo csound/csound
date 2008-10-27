@@ -1377,9 +1377,9 @@ int outh(CSOUND *csound, OUTH *p)
 
 int outo(CSOUND *csound, OUTO *p)
 {
-    MYFLT       *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
-                                     *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig3,
-                                     *ap7 = p->asig7, *ap8 = p->asig8;
+    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
+                               *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6,
+                               *ap7 = p->asig7, *ap8 = p->asig8;
     int nsmps = csound->ksmps;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
