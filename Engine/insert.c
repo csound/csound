@@ -198,6 +198,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
       double p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
+      ip->offtim = floor(ip->offtim * csound->ekr +0.505)/csound->ekr; /* quantise */
       if (O->Beatmode) {
         p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
         ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
@@ -446,11 +447,11 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
       if (csound->oparms_.Beatmode) {
-        double  tval = csound->curBeat + (0.51 * csound->curBeat_inc);
+        double  tval = csound->curBeat + (0.505 * csound->curBeat_inc);
         if (ip->offbet <= tval) beatexpire(csound, tval);
       }
       else {
-        double  tval = csound->curTime + (0.51 * csound->curTime_inc);
+        double  tval = csound->curTime + (0.505 * csound->curTime_inc);
         if (ip->offtim <= tval) timexpire(csound, tval);
       }
     }
