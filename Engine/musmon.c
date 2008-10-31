@@ -53,7 +53,7 @@ extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 typedef struct evt_cb_func {
     void    (*func)(CSOUND *, void *);
     void    *userData;
-    struct evt_cb_func  *nxt; 
+    struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
 typedef struct {
@@ -87,7 +87,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 static void settempo(CSOUND *csound, MYFLT tempo)
 {
     if (tempo <= FL(0.0)) return;
-    if (csound->oparms->Beatmode==0) 
+    if (csound->oparms->Beatmode==0)
 
     csound->beatTime = 60.0 / (double) tempo;
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
@@ -109,7 +109,7 @@ int tempset(CSOUND *csound, TEMPO *p)
     if ((tempo = *p->istartempo) <= FL(0.0)) {
       return csound->InitError(csound, Str("illegal istartempo value"));
     }
-    if (csound->oparms->Beatmode==0) 
+    if (csound->oparms->Beatmode==0)
       return csound->InitError(csound, Str("Beat mode not in force"));
     settempo(csound, tempo);
     p->prvtempo = tempo;
@@ -543,8 +543,8 @@ static void section_amps(CSOUND *csound, int enable_msgs)
 {
     CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
-    uint32 *maxps, *smaxps;
-    int32          *rngp, *srngp;
+    uint32        *maxps, *smaxps;
+    int32         *rngp, *srngp;
     int           n;
 
     if (enable_msgs) {
@@ -825,11 +825,11 @@ int sensevents(CSOUND *csound)
       double  tval;
       /* the following comparisons must match those in schedofftim() */
       if (O->Beatmode) {
-        tval = csound->curBeat + (0.51 * csound->curBeat_inc);
+        tval = csound->curBeat + (0.505 * csound->curBeat_inc);
         if (csound->frstoff->offbet <= tval) beatexpire(csound, tval);
       }
       else {
-        tval = csound->curTime + (0.51 * csound->curTime_inc);
+        tval = csound->curTime + (0.505 * csound->curTime_inc);
         if (csound->frstoff->offtim <= tval) timexpire(csound, tval);
       }
     }
@@ -911,9 +911,13 @@ int sensevents(CSOUND *csound)
       if (O->Beatmode)
         csound->cyclesRemaining =
           RNDINT((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
-      else
+      else {
         csound->cyclesRemaining =
-          RNDINT((csound->nxtim - csound->curTime) / csound->curTime_inc);
+          RNDINT((csound->nxtim - csound->curTime) * csound->ekr);
+        /* Is this necessary ?? */
+        csound->nxtim =
+          (csound->cyclesRemaining*csound->curTime_inc) + csound->curTime;
+      }
     }
 
     /* handle any real time events now: */

@@ -278,6 +278,7 @@ void otran(CSOUND *csound)
     ST(poolcount) = 0;
     ST(nconsts) = NCONSTS;
     ST(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
+    setlocate(LC_NUMERIC, "C"); /* Ensure C syntax */
     constndx(csound, "0");
 
     while ((tp = getoptxt(csound, &init)) != NULL) {
@@ -882,7 +883,7 @@ static int constndx(CSOUND *csound, const char *s)
       char            *tmp = (char*) s;
       tmpVal = (MYFLT) strtod(s, &tmp);
       newval = tmpVal;
-      if (tmp == s || *tmp != (char) 0) {
+      if (tmp == s || *tmp != '\0') {
         synterr(csound, Str("numeric syntax '%s'"), s);
         return 0;
       }
