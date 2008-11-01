@@ -776,7 +776,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->inerr = 0;
 
     downs = *p->idowns;
-    if (downs < (-1.9)) {
+    if (downs < (-FL(1.9))) {
       upsamp = (int)MYFLT2LONG((-downs));
       downsamp = 0;
       srate = csound->esr * (MYFLT)upsamp;
@@ -809,7 +809,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
 
     size = maxperi + interval;
-    bufsize = size + maxperi + 2;
+    bufsize = sizeof(MYFLT)*(size + maxperi + 2);
 
     p->srate = srate;
     p->downsamp = downsamp;
@@ -831,14 +831,13 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       p->rmsmedisize = ((int)MYFLT2LONG(*p->irmsmedi))*2+1;
     p->rmsmediptr = 0;
 
-    if (p->medisize) {
-      msize = p->medisize * 3 * sizeof(MYFLT);
-      if (p->median.auxp==NULL || p->median.size < (int32)msize)
-        csound->AuxAlloc(csound, msize, &p->median);
+    if (p->rmsmedisize) {
+      msize = p->rmsmedisize * 3 * sizeof(MYFLT);
+      if (p->rmsmedian.auxp==NULL || p->rmsmedian.size < (size_t)msize)
+        csound->AuxAlloc(csound, msize, &p->rmsmedian);
       else {
-        memset(p->median.auxp, 0, msize);
+        memset(p->rmsmedian.auxp, 0, msize);
       }
-      medi = (MYFLT*)p->median.auxp;
     }
 
     if (*p->imedi < 1)
@@ -848,21 +847,19 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->mediptr = 0;
 
     if (p->medisize) {
-      msize = p->medisize * 3;
-      if (p->median.auxp==NULL || p->median.size < (size_t)sizeof(MYFLT)*msize)
-        csound->AuxAlloc(csound, (size_t)sizeof(MYFLT)*(msize), &p->median);
+      msize = p->medisize * 3 * sizeof(MYFLT);
+      if (p->median.auxp==NULL || p->median.size < (size_t)msize)
+        csound->AuxAlloc(csound, (size_t)msize, &p->median);
       else {
-        memset(p->median.auxp, 0, sizeof(MYFLT)*(msize));
+        memset(p->median.auxp, 0, msize);
       }
-      medi = (MYFLT*)p->median.auxp;
     }
 
-    if (p->buffer.auxp==NULL ||
-        p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
-      csound->AuxAlloc(csound, sizeof(MYFLT)*(bufsize), &p->buffer);
+    if (p->buffer.auxp==NULL || p->buffer.size < (size_t)bufsize) {
+      csound->AuxAlloc(csound, bufsize, &p->buffer);
     }
     else
-      memset(p->buffer.auxp, 0, p->buffer.size);
+      memset(p->buffer.auxp, 0, bufsize);
     return OK;
 }
 
@@ -927,21 +924,20 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     int32  minperi = p->minperi;
     int32  maxperi = p->maxperi;
     MYFLT *asig = p->asig;
-    MYFLT srate = p->srate;
+    MYFLT  srate = p->srate;
     int32  peri = p->peri;
-    int32  downsamp = p->downsamp;
     int32  upsamp = p->upsamp;
-    MYFLT upsmp = (MYFLT)upsamp;
-    MYFLT lastval = p->lastval;
-    MYFLT newval, delta;
+    MYFLT  upsmp = (MYFLT)upsamp;
+    MYFLT  lastval = p->lastval;
+    MYFLT  newval, delta;
     int32  readp = p->readp;
     int32  interval = size - maxperi;
-    int   nsmps = csound->ksmps;
-    int   i;
+    int    nsmps = csound->ksmps;
+    int    i;
     int32  i1, i2;
-    MYFLT val, rms;
+    MYFLT  val, rms;
     double sum;
-    MYFLT acc, accmin, diff;
+    MYFLT  acc, accmin, diff;
 
     if (p->inerr) {
       return csound->PerfError(csound, Str("pitchamdf: not initialised"));
@@ -962,15 +958,15 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
             accmin = FL(0.0);
             for (i2 = 0; i2 < size; ++i2) {
               diff = buffer[i2+minperi] - buffer[i2];
-              if (diff > 0)  accmin += diff;
-              else           accmin -= diff;
+              if (diff > 0) accmin += diff;
+              else          accmin -= diff;
             }
             for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
               acc = FL(0.0);
               for (i2 = 0; i2 < size; ++i2) {
                 diff = buffer[i1+i2] - buffer[i2];
-                if (diff > 0)   acc += diff;
-                else            acc -= diff;
+                if (diff > 0) acc += diff;
+                else          acc -= diff;
               }
               if (acc < accmin) {
                 accmin = acc;
@@ -1003,6 +999,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       p->lastval = lastval;
     }
     else {
+      int32  downsamp = p->downsamp;
       while (1) {
         buffer[index++] = asig[readp];
         readp += downsamp;
@@ -1012,15 +1009,15 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
           accmin = FL(0.0);
           for (i2 = 0; i2 < size; ++i2) {
             diff = buffer[i2+minperi] - buffer[i2];
-            if (diff > FL(0.0))  accmin += diff;
-            else              accmin -= diff;
+            if (diff > FL(0.0)) accmin += diff;
+            else                accmin -= diff;
           }
           for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
             acc = FL(0.0);
             for (i2 = 0; i2 < size; ++i2) {
               diff = buffer[i1+i2] - buffer[i2];
-              if (diff > FL(0.0))   acc += diff;
-              else               acc -= diff;
+              if (diff > FL(0.0)) acc += diff;
+              else                acc -= diff;
             }
             if (acc < accmin) {
               accmin = acc;
@@ -1054,10 +1051,13 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     buffer = &buffer[(index + size - peri) % size];
     sum = 0.0;
     for (i1=0; i1<peri; i1++) {
-      val = *buffer++;
+      val = buffer[i1];
       sum += (double)(val * val);
     }
-    rms = (MYFLT)sqrt(sum / (double)peri);
+    if (peri==0)                /* How xould thus happen??? */
+      rms = FL(0.0);
+    else 
+      rms = (MYFLT)sqrt(sum / (double)peri);
     if (rmsmedisize) {
       rmsmedian[rmsmediptr] = rms;
       for (i1 = 0; i1 < rmsmedisize; i1++)
@@ -1072,12 +1072,15 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       p->rmsmediptr = rmsmediptr;
     }
 
-    *p->kcps = srate / (MYFLT)peri;
+    if (peri==0) {
+      *p->kcps = FL(0.0);
+    }
+    else 
+      *p->kcps = srate / (MYFLT)peri;
     *p->krms = rms;
     p->index = index;
     p->peri = peri;
     p->readp = readp;
-
     return OK;
 }
 
