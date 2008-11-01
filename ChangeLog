@@ -1,3 +1,15 @@
+2008-11-01  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (pitchamdf): Arrange that it peri is zero not to
+	return NaN or Inf values.  Suggests some algorithmic error
+	(pitchamdfset): Initialise rmsmedian buffer -- it was undefined.
+	No idea how it ever could work
+
+2008-10-31  jpff  <jpff@codemist.co.uk>
+
+	* Engine/otran.c (otran): Experimentally set locale to C numeric
+	before parsing orchestra.
+
 2008-10-27  jpff  <jpff@codemist.co.uk>
 
 	* OOps/aops.c (outo): Channel 6 was wrong
