@@ -148,10 +148,10 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   float *buf;
   pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
   MYFLT norm = csound->e0dbfs;
-  bufsiz = nbytes/sizeof(float);
+  bufsiz = nbytes/sizeof(MYFLT);
   buf = pulse->buf;
   for(i=0;i<bufsiz;i++) buf[i] = outbuf[i];
-  if(pa_simple_write(pulse->ps, buf, nbytes, &pulserror) < 0)
+  if(pa_simple_write(pulse->ps, buf, bufsiz*sizeof(float), &pulserror) < 0)
     csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
                      pa_strerror(pulserror));
 }
@@ -235,10 +235,10 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
     float *buf;
     pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
     MYFLT norm = csound->e0dbfs;
-    bufsiz = nbytes/sizeof(float);
+    bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;
 
-    if((bufsiz = pa_simple_read(pulse->ps, buf, nbytes, &pulserror)) < 0){
+    if((bufsiz = pa_simple_read(pulse->ps, buf, bufsiz*sizeof(float), &pulserror)) < 0){
       csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
                        pa_strerror(pulserror));
       return -1;
