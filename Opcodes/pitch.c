@@ -790,7 +790,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
 
     minperi = (int32)(srate / *p->imaxcps);
-    maxperi = (int32)(srate / *p->imincps);
+    maxperi = (int32)(FL(0.5)+srate / *p->imincps);
     if (maxperi <= minperi) {
       p->inerr = 1;
       return csound->InitError(csound,
