@@ -209,6 +209,8 @@ namespace csound
   void Shell::main(int argc, char **argv)
   {
     PySys_SetArgv_(argc, argv);
+    /* Sanitize sys.path */
+    PyRun_SimpleString_("import sys; sys.path = filter(None, sys.path)");
   }
 
   void Shell::initialize()
