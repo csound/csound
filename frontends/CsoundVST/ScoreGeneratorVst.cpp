@@ -427,6 +427,8 @@ void ScoreGeneratorVst::open()
   Shell::open();
   char *argv[] = {"",""};
   PySys_SetArgv(1, argv);
+  /* Sanitize sys.path */
+  PyRun_SimpleString("import sys; sys.path = filter(None, sys.path)");
   PyObject *mainModule = PyImport_ImportModule("__main__");
   result = runScript("import sys\n");
   if(result)
