@@ -815,7 +815,7 @@ int comb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it's zero and don't call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / p->kprvt);
+      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
       if (exp_arg < -36.8413615)    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
