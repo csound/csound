@@ -213,6 +213,7 @@ int delset(CSOUND *csound, DELAY *p)
     if ((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
+    
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
       csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
@@ -220,9 +221,10 @@ int delset(CSOUND *csound, DELAY *p)
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      memset(auxp, 0, npts*sizeof(int32));
-    }
+      memset(auxp, 0, npts*sizeof(MYFLT));
+      }
     p->curp = (MYFLT *) auxp;
+  
     return OK;
 }
 
@@ -259,9 +261,9 @@ int delrset(CSOUND *csound, DELAYR *p)
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
-    else if (*p->istor == FL(0.0)) {            /* else if requested */
+     else if (*p->istor == FL(0.0)) {            /* else if requested */
       memset(auxp, 0, npts*sizeof(MYFLT));
-    }
+      }
     p->curp = auxp;
     return OK;
 }
@@ -321,7 +323,8 @@ int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
     int n, nsmps = csound->ksmps;
-
+    
+ 
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return csound->PerfError(csound, Str("delay: not initialised"));
     }
@@ -337,6 +340,7 @@ int delay(CSOUND *csound, DELAY *p)
         curp = (MYFLT *) p->auxch.auxp;
     }
     p->curp = curp;             /* sav the new curp */
+    
     return OK;
 }
 
