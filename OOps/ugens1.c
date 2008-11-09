@@ -148,9 +148,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
 int klnseg(CSOUND *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
-    if (p->auxch.auxp==NULL) {          /* RWD fix */
-      csound->Die(csound, Str("\nError: linseg not initialised (krate)\n"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;          /* RWD fix */
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
@@ -175,6 +173,8 @@ int klnseg(CSOUND *csound, LINSEG *p)
       p->curval += p->curinc;           /* advance the cur val  */
     }
     return OK;
+ err1:
+    return csound->InitError(csound, Str("linseg not initialised (krate)\n"));
 }
 
 int linseg(CSOUND *csound, LINSEG *p)
@@ -182,9 +182,7 @@ int linseg(CSOUND *csound, LINSEG *p)
     MYFLT  val, ainc, *rs = p->rslt;
     int         n, nsmps=csound->ksmps;
 
-    if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return csound->PerfError(csound, Str("linseg: not initialised (arate)\n"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
 
     val = p->curval;                      /* sav the cur value    */
     if (p->segsrem) {                     /* if no more segs putk */
@@ -218,6 +216,8 @@ int linseg(CSOUND *csound, LINSEG *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("linseg: not initialised (arate)\n"));
 }
 
 /* **** ADSR is just a construction and use of linseg */
@@ -570,15 +570,16 @@ int kxpseg(CSOUND *csound, EXXPSEG *p)
     XSEG        *segp;
 
     segp = p->cursegp;
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("expseg (krate): not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
     *p->rslt = segp->val;
     segp->val *= segp->mlt;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("expseg (krate): not initialised"));
 }
+
 
 int expseg(CSOUND *csound, EXXPSEG *p)
 {
@@ -588,9 +589,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     MYFLT       nxtval;
 
     segp = p->cursegp;
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("expseg (arate): not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
     val = segp->val;
@@ -603,6 +602,8 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     }
     segp->val = nxtval;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("expseg (arate): not initialised"));
 }
 
 int xsgrset(CSOUND *csound, EXPSEG *p)
@@ -1036,9 +1037,7 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
     MYFLT       fact, v1, fract, *ftab;
 
     ftp = p->ftp;
-    if (ftp==NULL) {        /* RWD fix */
-      return csound->PerfError(csound, Str("envlpx(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;        /* RWD fix */
 
     if ((phs = p->phs) >= 0) {
       fract = (MYFLT) PFRAC(phs);
@@ -1070,6 +1069,8 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
     }
     *p->rslt = *p->xamp * fact;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("envlpx(krate): not initialised"));
 }
 
 int envlpx(CSOUND *csound, ENVLPX *p)
@@ -1084,9 +1085,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
     val  = p->val;
     if ((phs = p->phs) >= 0L) {
       ftp = p->ftp;
-      if (ftp==NULL) { /* RWD fix */
-        return csound->PerfError(csound, Str("envlpx(krate): not initialised"));
-      }
+      if (ftp==NULL) goto err1; /* RWD fix */
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> ftp->lobits);
       v1 = *ftab++;
@@ -1094,10 +1093,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       phs += p->ki;
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         nxtval = *(ftp->ftable + ftp->flen );
-        if (!nxtval) {
-          return csound->PerfError(csound,
-                                   Str("envlpx rise func ends with zero"));
-        }
+        if (!nxtval) goto err2;
         nxtval -= p->asym;
         phs = -1;
       }
@@ -1128,6 +1124,11 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("envlpx(krate): not initialised"));
+ err2:
+    return csound->PerfError(csound,
+                             Str("envlpx rise func ends with zero"));
 }
 
 int evrset(CSOUND *csound, ENVLPR *p)

@@ -287,17 +287,12 @@ int pluck(CSOUND *csound, PLUCK *p)
     int         n, nsmps = csound->ksmps;
     MYFLT       frac, diff;
 
-    if (p->auxch.auxp==NULL) { /* RWD FIX */
-      return csound->PerfError(csound, Str("pluck: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD FIX */
     ar = p->ar;
     phsinc = (int32)(*p->kcps * p->sicps);
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
-    if (phsinc > ltwopi) {
-      return csound->PerfError(csound,
-                               Str("pluck: kcps more than sample rate"));
-    }
+    if (phsinc > ltwopi) goto err2;
     for (n=0; n<nsmps; n++) {
       offset = phs256 >> 8;
       fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position   */
@@ -372,6 +367,11 @@ int pluck(CSOUND *csound, PLUCK *p)
     }
     p->phs256 = phs256;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pluck: not initialised"));
+ err2:
+    return csound->PerfError(csound,
+                             Str("pluck: kcps more than sample rate"));
 }
 
 #define RNDMUL  15625
