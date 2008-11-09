@@ -126,9 +126,7 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("display: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (!p->nprds) {
       *fp++ = *p->signal;
       if (fp >= p->endp) {
@@ -152,6 +150,8 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
     }
     p->nxtp = fp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("display: not initialised"));
 }
 
 int dsplay(CSOUND *csound, DSPLAY *p)
@@ -346,9 +346,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("dispfft: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (bufp < p->sampbuf)          /* skip any spare samples */
       bufp++;
     else {                          /* then start collecting  */
@@ -376,6 +374,8 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
     }
     p->bufp = bufp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("dispfft: not initialised"));
 }
 
 int dspfft(CSOUND *csound, DSPFFT *p)
@@ -383,9 +383,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
     int   n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("dispfft: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     for (n=0; n<nsmps; n++) {
       if (bufp < p->sampbuf) {            /* skip any spare samples */
         bufp++; sigp++;
@@ -416,6 +414,8 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     }
     p->bufp = bufp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("dispfft: not initialised"));
 }
 
 #define NTERMS  4
@@ -554,9 +554,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
 {
     p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1; /* get lo-pass of kinput */
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("tempest: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (!(--p->countdown)) {                        /* then on countdown:    */
       MYFLT *memp;
       MYFLT kin, expect, *xcur = p->xcur;           /* xcur from prv pass    */
@@ -696,5 +694,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
 /*  if (p->tempo != 0.0)  */
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("tempest: not initialised"));
 }
 

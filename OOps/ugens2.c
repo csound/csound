@@ -333,9 +333,7 @@ int ktable(CSOUND *csound, TABLE   *p)
     MYFLT       ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("table(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;            /* RWD fix */
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor, and add in the offset
@@ -394,6 +392,8 @@ int ktable(CSOUND *csound, TABLE   *p)
      * destination.  */
     *p->rslt = *(ftp->ftable + indx);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("table(krate): not initialised"));
 }
 
 /* tablefn()  */
@@ -412,9 +412,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     int         wrap = p->wrap;
 
     ftp = p->ftp;
-    if (ftp==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("table: not initialised"));
-    }
+    if (ftp==NULL) goto err1;            /* RWD fix */
     rslt = p->rslt;
     length = ftp->flen;
     pxndx = p->xndx;
@@ -446,6 +444,8 @@ int tablefn(CSOUND *csound, TABLE *p)
       rslt[n] = tab[indx];
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("table: not initialised"));
 }
 
 /* ktabli() */
@@ -470,9 +470,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("tablei(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor.
@@ -538,7 +536,10 @@ int ktabli(CSOUND *csound, TABLE   *p)
     v2 = *(ftp->ftable + indx + 1);
     *p->rslt = v1 + (v2 - v1) * fract;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("tablei(krate): not initialised"));
 }
+
 
 int ktabl3(CSOUND *csound, TABLE   *p)
 {
@@ -547,9 +548,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("table3(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor.
@@ -628,6 +627,8 @@ int ktabl3(CSOUND *csound, TABLE   *p)
         + frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0);
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("table3(krate): not initialised"));
 }
 
 /* tabli() */
@@ -644,9 +645,7 @@ int tabli(CSOUND *csound, TABLE   *p)
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("tablei: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     rslt   = p->rslt;
     length = ftp->flen;
     pxndx  = p->xndx;
@@ -701,6 +700,8 @@ int tabli(CSOUND *csound, TABLE   *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("tablei: not initialised"));
 }
 
 int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
@@ -713,9 +714,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
     int         wrap = p->wrap;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("table3: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     rslt = p->rslt;
     length = ftp->flen;
     pxndx = p->xndx;
@@ -766,6 +765,8 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("table3: not initialised"));
 }
 
 /*************************************/
@@ -798,10 +799,7 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
      * a table number of 0, and since that equals pfn, we would
      * otherwise proceed without checking the table number - and none
      * of the pointers would have been set up.  */
-    if (*p->xfn < 1) {
-      return csound->PerfError(csound, Str("k rate function table no. %f < 1"),
-                                       *p->xfn);
-    }
+    if (*p->xfn < 1) goto err1;
     /* Check to see if table number has changed from previous value.
      * On the first run through, the previous value will be 0.  */
 
@@ -840,12 +838,15 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
          * factor and then check it is between 0 and the table length.  */
 
       if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
-          p->offset > p->ftp->flen) {
-        return csound->PerfError(csound, Str("Offset %f < 0 or > tablelength"),
-                                         p->offset);
-      }
+          p->offset > p->ftp->flen) goto err2;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("k rate function table no. %f < 1"),
+                             *p->xfn);
+ err2:
+    return csound->PerfError(csound, Str("Offset %f < 0 or > tablelength"),
+                             p->offset);
 }
 
 /* Now for the four functions, which are called as a result of being
@@ -909,9 +910,7 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
     int32  phs, dcnt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil1(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     phs = p->phs;
     *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
     if ((dcnt = p->dcnt) > 0)
@@ -926,6 +925,8 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
     }
     p->dcnt = dcnt;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil1(krate): not initialised"));
 }
 
 int kosc1i(CSOUND *csound, OSCIL1   *p)
@@ -935,9 +936,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
     int32        phs, dcnt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil1i(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     phs = p->phs;
     fract = PFRAC(phs);
     ftab = ftp->ftable + (phs >> ftp->lobits);
@@ -957,6 +956,8 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
       p->phs = phs;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil1i(krate): not initialised"));
 }
 
 int oscnset(CSOUND *csound, OSCILN *p)
@@ -979,9 +980,7 @@ int osciln(CSOUND *csound, OSCILN *p)
     MYFLT *rs = p->rslt;
     int32  n, nsmps=csound->ksmps;
 
-    if (p->ftp==NULL) {
-      return csound->PerfError(csound, Str("osciln: not initialised"));
-    }
+    if (p->ftp==NULL) goto err1;
     if (p->ntimes) {
       MYFLT *ftbl = p->ftp->ftable;
       MYFLT amp = *p->kamp;
@@ -1010,6 +1009,8 @@ int osciln(CSOUND *csound, OSCILN *p)
       /* } */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("osciln: not initialised"));
 }
 
 int oscset(CSOUND *csound, OSC *p)
@@ -1031,9 +1032,7 @@ int koscil(CSOUND *csound, OSC *p)
     int32    phs, inc;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     phs = p->lphs;
     inc = (int32) (*p->xcps * csound->kicvt);
     *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
@@ -1041,6 +1040,8 @@ int koscil(CSOUND *csound, OSC *p)
     phs &= PHMASK;
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil(krate): not initialised"));
 }
 
 int osckk(CSOUND *csound, OSC *p)
@@ -1051,9 +1052,7 @@ int osckk(CSOUND *csound, OSC *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftbl = ftp->ftable;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1068,6 +1067,8 @@ int osckk(CSOUND *csound, OSC *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil: not initialised"));
 }
 
 int oscka(CSOUND *csound, OSC *p)
@@ -1079,9 +1080,7 @@ int oscka(CSOUND *csound, OSC *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     amp = *p->xamp;
@@ -1096,6 +1095,8 @@ int oscka(CSOUND *csound, OSC *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil: not initialised"));
 }
 
 int oscak(CSOUND *csound, OSC *p)
@@ -1106,9 +1107,7 @@ int oscak(CSOUND *csound, OSC *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1121,6 +1120,8 @@ int oscak(CSOUND *csound, OSC *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil: not initialised"));
 }
 
 int oscaa(CSOUND *csound, OSC *p)
@@ -1132,9 +1133,7 @@ int oscaa(CSOUND *csound, OSC *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1148,6 +1147,8 @@ int oscaa(CSOUND *csound, OSC *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+   return csound->PerfError(csound, Str("oscil: not initialised"));
 }
 
 int koscli(CSOUND *csound, OSC   *p)
@@ -1158,9 +1159,7 @@ int koscli(CSOUND *csound, OSC   *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     fract = PFRAC(phs);
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = ftab[0];
@@ -1170,6 +1169,8 @@ int koscli(CSOUND *csound, OSC   *p)
     phs &= PHMASK;
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscili(krate): not initialised"));
 }
 
 int osckki(CSOUND *csound, OSC   *p)
@@ -1179,9 +1180,7 @@ int osckki(CSOUND *csound, OSC   *p)
     int32   phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
-    if ((ftp = p->ftp)==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
-    }
+    if ((ftp = p->ftp)==NULL) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1197,6 +1196,8 @@ int osckki(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscili: not initialised"));
 }
 
 int osckai(CSOUND *csound, OSC   *p)
@@ -1208,9 +1209,7 @@ int osckai(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     lobits = ftp->lobits;
     amp = *p->xamp;
     cpsp = p->xcps;
@@ -1229,6 +1228,8 @@ int osckai(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscili: not initialised"));
 }
 
 int oscaki(CSOUND *csound, OSC   *p)
@@ -1239,9 +1240,7 @@ int oscaki(CSOUND *csound, OSC   *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1257,6 +1256,8 @@ int oscaki(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscili: not initialised"));
 }
 
 int oscaai(CSOUND *csound, OSC   *p)
@@ -1268,9 +1269,7 @@ int oscaai(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscili: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ft = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1288,6 +1287,8 @@ int oscaai(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscili: not initialised"));
 }
 
 int koscl3(CSOUND *csound, OSC   *p)
@@ -1300,9 +1301,7 @@ int koscl3(CSOUND *csound, OSC   *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil3(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftab = ftp->ftable;
     fract = PFRAC(phs);
     x0 = (phs >> ftp->lobits);
@@ -1328,6 +1327,8 @@ int koscl3(CSOUND *csound, OSC   *p)
     phs &= PHMASK;
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil3(krate): not initialised"));
 }
 
 int osckk3(CSOUND *csound, OSC   *p)
@@ -1340,9 +1341,7 @@ int osckk3(CSOUND *csound, OSC   *p)
     MYFLT   y0, y1, ym1, y2;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil3: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1379,6 +1378,8 @@ int osckk3(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
 
 int oscka3(CSOUND *csound, OSC   *p)
@@ -1392,9 +1393,7 @@ int oscka3(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil3: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     amp = *p->xamp;
@@ -1427,6 +1426,8 @@ int oscka3(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
 
 int oscak3(CSOUND *csound, OSC   *p)
@@ -1439,9 +1440,7 @@ int oscak3(CSOUND *csound, OSC   *p)
     MYFLT   y0, y1, ym1, y2;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil3: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1472,6 +1471,8 @@ int oscak3(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
 
 int oscaa3(CSOUND *csound, OSC   *p)
@@ -1485,9 +1486,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("oscil3: not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1519,5 +1518,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     }
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
 

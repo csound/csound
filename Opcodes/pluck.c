@@ -28,7 +28,7 @@
  * Author: Michael A. Casey MIT Media Labs
  * Language: C
  * Copyright (c) 1994 MIT Media Lab, All Rights Reserved
- * Soem modificatiosn John ffitch, 2000, simplifying code
+ * Some modifications John ffitch, 2000, simplifying code
  */
 
 #include "csdl.h"

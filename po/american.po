@@ -4372,12 +4372,8 @@ msgid "unlike signs"
 msgstr ""
 
 #: OOps/ugens1.c:152
-msgid ""
-"\n"
-"Error: linseg not initialised (krate)\n"
-msgstr ""
-"\n"
-"Error: linseg not initialized (krate)\n"
+msgid "linseg not initialised (krate)\n"
+msgstr "linseg not initialized (krate)\n"
 
 #: OOps/ugens1.c:186
 msgid "linseg: not initialised (arate)\n"
