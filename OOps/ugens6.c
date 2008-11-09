@@ -325,9 +325,7 @@ int delay(CSOUND *csound, DELAY *p)
     int n, nsmps = csound->ksmps;
     
  
-    if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return csound->PerfError(csound, Str("delay: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
     ar = p->ar;
     asig = p->asig;
     curp = p->curp;
@@ -342,6 +340,8 @@ int delay(CSOUND *csound, DELAY *p)
     p->curp = curp;             /* sav the new curp */
     
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("delay: not initialised"));
 }
 
 int delayr(CSOUND *csound, DELAYR *p)
@@ -349,9 +349,7 @@ int delayr(CSOUND *csound, DELAYR *p)
     MYFLT       *ar, *curp, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("delayr: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     ar = p->ar;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
@@ -361,6 +359,8 @@ int delayr(CSOUND *csound, DELAYR *p)
         curp = (MYFLT *) p->auxch.auxp;
     }
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("delayr: not initialised"));
 }
 
 int delayw(CSOUND *csound, DELAYW *p)
@@ -369,9 +369,7 @@ int delayw(CSOUND *csound, DELAYW *p)
     MYFLT       *asig, *curp, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (q->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("delayw: not initialised"));
-    }
+    if (q->auxch.auxp==NULL) goto err1; /* RWD fix */
     asig = p->asig;
     curp = q->curp;
     endp = (MYFLT *) q->auxch.endp;
@@ -382,6 +380,8 @@ int delayw(CSOUND *csound, DELAYW *p)
     }
     q->curp = curp;                                     /* now sav new curp */
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("delayw: not initialised"));
 }
 
 int deltap(CSOUND *csound, DELTAP *p)
@@ -390,9 +390,7 @@ int deltap(CSOUND *csound, DELTAP *p)
     MYFLT       *ar, *tap, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (q->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("deltap: not initialised"));
-    }
+    if (q->auxch.auxp==NULL) goto err1; /* RWD fix */
     ar = p->ar;
     tap = q->curp - (int32) (FL(0.5) + *p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
@@ -404,6 +402,8 @@ int deltap(CSOUND *csound, DELTAP *p)
       ar[n] = *tap++;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltap: not initialised"));
 }
 
 int deltapi(CSOUND *csound, DELTAP *p)
@@ -414,9 +414,8 @@ int deltapi(CSOUND *csound, DELTAP *p)
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
-    if (q->auxch.auxp==NULL) {
+    if (q->auxch.auxp==NULL) goto err1;
       return csound->PerfError(csound, Str("deltapi: not initialised"));
-    }
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -451,6 +450,8 @@ int deltapi(CSOUND *csound, DELTAP *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltapi: not initialised"));
 }
 
 /* ***** From Hans Mikelson ************* */
@@ -463,9 +464,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
     int32  idelsmps;
     MYFLT  delsmps;
 
-    if (q->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("deltapn: not initialised"));
-    }
+    if (q->auxch.auxp==NULL) goto err1;
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -496,6 +495,8 @@ int deltapn(CSOUND *csound, DELTAP *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltapn: not initialised"));
 }
 
 /* **** JPff **** */
@@ -507,9 +508,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
-    if (q->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("deltap3: not initialised"));
-    }
+    if (q->auxch.auxp==NULL) goto err1;
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -568,7 +567,10 @@ int deltap3(CSOUND *csound, DELTAP *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltap3: not initialised"));
 }
+
 
 /* deltapx and deltapxw opcodes by Istvan Varga */
 
@@ -594,9 +596,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     int     nn = csound->ksmps;
     int32   indx, maxd, xpos;
 
-    if (q->auxch.auxp == NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("deltap: not initialised"));
-    }
+    if (q->auxch.auxp == NULL) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
@@ -666,6 +666,8 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
       } while (--nn);
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltap: not initialised"));
 }
 
 int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
@@ -675,9 +677,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     int     nn = csound->ksmps;
     int32   indx, maxd, xpos;
 
-    if (q->auxch.auxp == NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("deltap: not initialised"));
-    }
+    if (q->auxch.auxp == NULL) goto err1; /* RWD fix */
     in1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
@@ -747,6 +747,8 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
       } while (--nn);
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("deltap: not initialised"));
 }
 
 int del1set(CSOUND *csound, DELAY1 *p)
@@ -807,9 +809,7 @@ int comb(CSOUND *csound, COMB *p)
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("comb: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
 #ifdef __alpha__
@@ -841,6 +841,8 @@ int comb(CSOUND *csound, COMB *p)
     }
     p->pntr = xp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("comb: not initialised"));
 }
 
 int alpass(CSOUND *csound, COMB *p)
@@ -850,9 +852,7 @@ int alpass(CSOUND *csound, COMB *p)
     MYFLT       y, z;
     MYFLT       coef = p->coef;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("alpass: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
       coef = p->coef = EXP(log001 * *p->ilpt / p->prvt);
@@ -870,6 +870,8 @@ int alpass(CSOUND *csound, COMB *p)
     }
     p->pntr = xp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("alpass: not initialised"));
 }
 
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
@@ -925,9 +927,7 @@ int reverb(CSOUND *csound, REVERB *p)
     MYFLT       c1,c2,c3,c4,c5,c6;
     int n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("reverb: not intialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       const MYFLT *lptimp = revlptimes;
       MYFLT       logdrvt = log001 / *p->krvt;
@@ -986,6 +986,8 @@ int reverb(CSOUND *csound, REVERB *p)
     p->p5 = p5;
     p->p6 = p6;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("reverb: not intialised"));
 }
 
 int panset(CSOUND *csound, PAN *p)
@@ -1009,9 +1011,7 @@ int pan(CSOUND *csound, PAN *p)
     FUNC    *ftp;
 
     ftp = p->ftp;
-    if (ftp == NULL) {          /* RWD fix */
-      return csound->PerfError(csound, Str("pan: not initialised"));
-    }
+    if (ftp == NULL) goto err1;          /* RWD fix */
     xndx_f = (*p->kx * p->xmul) - p->xoff;
     yndx_f = (*p->ky * p->xmul) - p->xoff;
     flen = ftp->flen;
@@ -1043,5 +1043,7 @@ int pan(CSOUND *csound, PAN *p)
     }
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pan: not initialised"));
 }
 

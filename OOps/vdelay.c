@@ -57,11 +57,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     MYFLT *del = p->adel;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
-    if (buf==NULL) {        /* RWD fix */
-      return
-        csound->PerfError(csound,
-                          Str("vdelay: not initialised"));
-    }
+    if (buf==NULL) goto err1;        /* RWD fix */
     maxd = (uint32) (1+*p->imaxd * ESR);
     indx = p->left;
 
@@ -131,6 +127,8 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     }
     p->left = indx;             /*      and keep track of where you are */
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
@@ -141,9 +139,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     MYFLT *del = p->adel;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
-    if (buf==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay3: not initialised"));
-    }
+    if (buf==NULL) goto err1;            /* RWD fix */
     maxd = (uint32) (*p->imaxd * ESR);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
@@ -231,6 +227,8 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     }
     p->left = indx;             /*      and keep track of where you are */
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay3: not initialised"));
 }
 
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
@@ -325,9 +323,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     double x1, x2, w, d, d2x, n1;
     int32   i, i2, xpos;
 
-    if (buf1 == NULL) {                                         /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if (buf1 == NULL) goto err1;                          /* RWD fix */
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
@@ -374,6 +370,8 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
@@ -387,9 +385,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     double x1, x2, w, d, d2x, n1;
     int32   i, i2, xpos;
 
-    if (buf1 == NULL) {                                         /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if (buf1 == NULL) goto err1;                          /* RWD fix */
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
@@ -434,6 +430,8 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
@@ -451,9 +449,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     int32   i, i2, xpos;
     int n, nsmps = csound->ksmps;
 
-    if ((buf1 == NULL) || (buf2 == NULL)) {                     /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if ((buf1 == NULL) || (buf2 == NULL)) goto err1;           /* RWD fix */
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
@@ -500,6 +496,8 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
@@ -516,9 +514,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     double x1, x2, w, d, d2x, n1, n2;
     int32   i, i2, xpos;
 
-    if ((buf1 == NULL) || (buf2 == NULL)) {                     /* RWD fix */
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if ((buf1 == NULL) || (buf2 == NULL)) goto err1;        /* RWD fix */
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
@@ -566,6 +562,8 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 
     p->left = indx;
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
@@ -588,9 +586,8 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32   i, i2, xpos;
     /* RWD fix */
-    if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if ((buf1 == NULL) || (buf2 == NULL) ||
+        (buf3 == NULL) || (buf4 == NULL)) goto err1;
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
@@ -644,6 +641,8 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
@@ -666,9 +665,8 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32   i, i2, xpos;
     /* RWD fix */
-    if ((buf1 == NULL) || (buf2 == NULL) || (buf3 == NULL) || (buf4 == NULL)) {
-      return csound->PerfError(csound, Str("vdelay: not initialised"));
-    }
+    if ((buf1 == NULL) || (buf2 == NULL) ||
+        (buf3 == NULL) || (buf4 == NULL)) goto err1;
     maxd = (int32)(*p->imaxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     nn = csound->ksmps;
@@ -722,6 +720,8 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vdelay: not initialised"));
 }
 
 int multitap_set(CSOUND *csound, MDEL *p)
@@ -756,9 +756,7 @@ int multitap_play(CSOUND *csound, MDEL *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT max = (MYFLT)p->max;
 
-    if (buf==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("multitap: not initialised"));
-    }
+    if (buf==NULL) goto err1;           /* RWD fix */
     for (i=0; i<nn; i++) {
       MYFLT v = FL(0.0);
       buf[indx] = in[i];        /*      Write input     */
@@ -774,6 +772,8 @@ int multitap_play(CSOUND *csound, MDEL *p)
     }
     p->left = indx;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("multitap: not initialised"));
 }
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
@@ -893,7 +893,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
     int   cmbAllocSize, alpAllocSize;
 
     if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
-      csound->Die(csound, Str("High frequency diffusion not in (0, 1)\n"));
+      csound->InitError(csound, Str("High frequency diffusion not in (0, 1)\n"));
 
     /* Init comb constants and allocate dynamised work space */
     if (*p->inumCombs < FL(1.0)) {  /* Using old defaults */
@@ -1045,9 +1045,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
     int     numCombs = p->numCombs;
     int     numAlpas = p->numAlpas;
 
-    if (p->temp.auxp == NULL) {
-      return csound->PerfError(csound, Str("reverbx: not initialised"));
-    }
+    if (p->temp.auxp == NULL) goto err1;
     buf = (MYFLT*) p->temp.auxp;
     in = p->in;
     memcpy(buf, in, nsmps*sizeof(MYFLT));
@@ -1066,16 +1064,16 @@ int reverbx(CSOUND *csound, NREV2 *p)
         time = FL(0.001);
       }
       for (i = 0; i < numCombs; i++) {
-        p->c_gain[i] = (MYFLT)exp((double)(LOG001 * p->c_time[i] /
-                                            (p->c_orggains[i] * time)));
+        p->c_gain[i] = EXP((LOG001 * p->c_time[i] /
+                            (p->c_orggains[i] * time)));
         p->g[i] = hdif;
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
       }
 
       for (i = 0; i < numAlpas; i++)
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * p->a_time[i] /
-                                            (p->a_orggains[i] * time)));
+        p->a_gain[i] = EXP((LOG001 * p->a_time[i] /
+                            (p->a_orggains[i] * time)));
 
       p->prev_time = time;
       p->prev_hdif = hdif;
@@ -1119,5 +1117,7 @@ int reverbx(CSOUND *csound, NREV2 *p)
     }
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("reverbx: not initialised"));
 }
 

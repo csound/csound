@@ -4585,12 +4585,8 @@ msgid "unlike signs"
 msgstr "signes différents"
 
 #: OOps/ugens1.c:152
-msgid ""
-"\n"
-"Error: linseg not initialised (krate)\n"
-msgstr ""
-"\n"
-"Erreur : linseg non initialisé (taux-k)\n"
+msgid "linseg not initialised (krate)\n"
+msgstr "linseg non initialisé (taux-k)\n"
 
 #: OOps/ugens1.c:186
 msgid "linseg: not initialised (arate)\n"
