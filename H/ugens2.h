@@ -31,6 +31,13 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        MYFLT   *sr, *xcps, *kR, *iphs;
+        double  curphs;
+        double b;
+} EPHSOR;
+
+typedef struct {
+        OPDS    h;
         MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
         MYFLT   offset;
         int32   pfn; /* Previous function table number - used to
