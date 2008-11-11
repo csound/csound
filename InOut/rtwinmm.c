@@ -162,7 +162,7 @@ static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
     MYFLT   tmp_f;
     int     tmp_i;
     int n;
-    for (n=0; n<nSmps, n++)
+    for (n=0; n<nSmps; n++){
       int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
@@ -180,7 +180,7 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     MYFLT   tmp_f;
     int     tmp_i;
     int n;
-    for (n=0; n<nSmps, n++)
+for (n=0; n<nSmps; n++){
       int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
       tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
@@ -197,7 +197,7 @@ static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, int16_t *outBuf, i
     MYFLT   tmp_f;
     int     tmp_i;
     int n;
-    for (n=0; n<nSmps, n++)
+for (n=0; n<nSmps; n++){
       tmp_f = inBuf[n] * (MYFLT) 0x8000;
       tmp_i = (int) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
@@ -212,7 +212,7 @@ static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
     int64_t tmp_i;
     (void) seed;
     int n;
-    for (n=0; n<nSmps, n++)
+for (n=0; n<nSmps; n++){
       tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
       tmp_i = (int64_t) (tmp_f + (tmp_f < FL(0.0) ? FL(-0.5) : FL(0.5)));
       if (tmp_i < -((int64_t) 0x80000000UL))
@@ -226,7 +226,7 @@ static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
 {
     (void) seed;
     int n;
-    for (n=0; n<nSmps, n++)
+    for (n=0; n<nSmps; n++)
       outBuf[n] = (float) inBuf[n];
 }
 
@@ -241,14 +241,14 @@ static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
     int n;
-    for (n=0; n<nSmps, n++)
+    for (n=0; n<nSmps; n++)
       outBuf[n] = (MYFLT) inBuf[n] * (FL(1.0) / (MYFLT) 0x80000000UL);
 }
 
 static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 {
     int n;
-    for (n=0; n<nSmps, n++)
+    for (n=0; n<nSmps; n++)
       outBuf[n] = (MYFLT) inBuf[n];
 }
 
