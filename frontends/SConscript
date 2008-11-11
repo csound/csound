@@ -97,7 +97,7 @@ if commonEnvironment['buildCsound5GUI'] != '0':
     csound5GUIFluidObjectFiles = []
     for i in csound5GUISources:
         csound5GUIObjectFiles += csound5GUIEnvironment.Object(i)
-    csound5GUIEnvironment.Append( CPPPATH = '#interfaces' )
+    csound5GUIEnvironment.Append( CPPPATH = '#/interfaces' )
     csound5GUIObjectFiles += csound5GUIEnvironment.Object(
         'fltk_gui/csPerfThread', '#/interfaces/csPerfThread.cpp')
     for i in csound5GUIFluidSources:
