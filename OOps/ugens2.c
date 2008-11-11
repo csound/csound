@@ -49,6 +49,69 @@ int phsset(CSOUND *csound, PHSOR *p)
       }
       p->curphs = phs - (MYFLT)longphs;
     }
+   
+    return OK;
+}
+
+int ephsset(CSOUND *csound, EPHSOR *p)
+{
+    MYFLT       phs;
+    int32  longphs;
+    if ((phs = *p->iphs) >= FL(0.0)) {
+      if ((longphs = (int32)phs)) {
+        csound->Warning(csound, Str("init phase truncation\n"));
+      }
+      p->curphs = phs - (MYFLT)longphs;
+    }
+    p->b = 1.0;
+    return OK;
+}
+
+int ephsor(CSOUND *csound, EPHSOR *p)
+{
+    double      phase;
+    int         n, nsmps=csound->ksmps;
+    MYFLT       *rs, onedsr = csound->onedsr;
+    double b = p->b;
+    double      incr;
+
+    rs = p->sr;
+    phase = p->curphs;
+    if (p->XINCODE) {
+      MYFLT *cps = p->xcps;
+      for (n=0; n<nsmps; n++) {
+        incr = (double)(cps[n] * onedsr);
+        rs[n] = (MYFLT) b;
+        phase += incr;
+        b *= *p->kR;
+        if (phase >= 1.0){
+          phase -= 1.0;
+          b = 1.0;
+	}
+        else if (phase < 0.0){
+          phase += 1.0;
+          b = 1.0;
+	}
+      }
+    }
+    else {
+      incr = (double)(*p->xcps * onedsr);
+      for (n=0; n<nsmps; n++) {
+        rs[n] = (MYFLT) b;
+        phase += incr;
+        b *= *p->kR;
+        if (phase >= 1.0){
+          phase -= 1.0;
+          b = FL(1.0);
+	}
+        else if (phase < 0.0){
+          phase += 1.0;
+          b = FL(1.0);
+	}
+      }
+    }
+    p->curphs = phase;
+    p->b = b;
     return OK;
 }
 
