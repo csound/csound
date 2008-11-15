@@ -1097,7 +1097,7 @@ int tablew(CSOUND *csound, TABLEW *p)
      * are 0 to 7.  Location 8 is the guard point.  table() does not read
      * the guard point - tabli() does.*/
     int         liwgm;          /* Local copy of iwgm for speed */
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
     /* Assume that TABLEW has been set up correctly. */
@@ -1112,11 +1112,11 @@ int tablew(CSOUND *csound, TABLEW *p)
     xbmul  = (MYFLT)p->xbmul;
     offset = p->offset;
                 /* Main loop - for the number of a samples in a k cycle. */
-    do {
+    for (n=0; n<nsmps; n++) {
       /* Read in the next raw index and increment the pointer ready for the
          next cycle.  Then multiply the ndx by the denormalising factor and
          add in the offset.  */
-      ndx = (*pxndx++ * xbmul) + offset;
+      ndx = (pxndx[n] * xbmul) + offset;
       if (liwgm == 0) {         /* Limit mode - when igmode = 0. */
         indx = (int32) MYFLOOR(ndx);
         if (indx > length - 1) indx = length - 1;
@@ -1132,7 +1132,7 @@ int tablew(CSOUND *csound, TABLEW *p)
         indx &= mask;
       }
       pwrite = ptab + indx;
-      *pwrite = *psig++;
+      *pwrite = psig[n];
                                         /* If this is guard point mode and we
                                          * have just written to location 0,
                                          * then also write to the guard point.
@@ -1148,11 +1148,9 @@ int tablew(CSOUND *csound, TABLEW *p)
                                          * to the same input value.
                                          * Write to guard point.
                                          */
-        psig--;
-        *pwrite = *psig++;
+        *pwrite = psig[n];
       }
     }
-    while(--nsmps);
     return OK;
 }
 
@@ -1195,11 +1193,7 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
  * changes from p->pfn, so we want to generate an error message if the
  * ugen is ever called with a table number of 0.  While we are about
  * it, catch negative values too.  */
-    if (*p->xfn < 1) {
-      return csound->PerfError(csound, Str("Table write k rate "
-                                           "function table no. %f < 1"),
-                                       *p->xfn);
-    }
+    if (*p->xfn < 1) goto err1;
     /* Check to see if table number has changed from previous value.
      *
      * On the first run through, the previous value will be 0.  */
@@ -1241,15 +1235,19 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
        * and then check it is between 0 and the table length.  */
 
       if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
-          p->offset > p->ftp->flen) {
-        return csound->PerfError(csound,
-                                 Str("Table write offset %f < 0 or > tablelength"),
-                                 p->offset);
-      }
+          p->offset > p->ftp->flen) goto err2;
     }
     /* If all is well, return 1 to tell calling function to proceed
      * with a or k rate operations.  */
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("Table write k rate "
+                                         "function table no. %f < 1"),
+                             *p->xfn);
+ err2:
+    return csound->PerfError(csound,
+                             Str("Table write offset %f < 0 or > tablelength"),
+                             p->offset);
 }
 
 /* Now for the two functions, which are called as a result of being
@@ -2692,9 +2690,6 @@ int zacl(CSOUND *csound, ZACL *p)
           loopcount = (last - first + 1) * csound->ksmps;
           writeloc = csound->zastart + (first * csound->ksmps);
           memset(writeloc, 0, loopcount*sizeof(MYFLT));
-/*           do { */
-/*             *writeloc++ = FL(0.0); */
-/*           } while (--loopcount); */
         }
       }
     }
@@ -3161,20 +3156,19 @@ int peakk(CSOUND *csound, PEAK *p)
  * Similar to peakk, but looks at an a rate input variable. */
 int peaka(CSOUND *csound, PEAK *p)
 {
-    int     loop;
-    MYFLT   *peak;
+    int     loop, n;
+    MYFLT   *peak, pp;
     MYFLT   *asigin;
 
     loop = csound->ksmps;
     asigin = p->xsigin;
     peak = p->kpeakout;
-
-    do {
-      if (*peak < FABS(*asigin))
-        *peak = FABS(*asigin);
-      asigin++;
-    } while (--loop);
-
+    pp = *peak;
+    for (n=0;n<loop;n++) {
+      if (pp < FABS(asigin[n]))
+        pp = FABS(asigin[n]);
+    }
+    *peak = pp;
     return OK;
 }
 
@@ -3224,12 +3218,8 @@ int inz(CSOUND *csound, IOZ *p)
 
     /* Check to see this index is within the limits of za space.     */
     indx = (int32) *p->ndx;
-    if ((indx + csound->nchnls) >= csound->zalast) {
-      return csound->PerfError(csound, Str("inz index > isizea. Not writing."));
-    }
-    else if (indx < 0) {
-      return csound->PerfError(csound, Str("inz index < 0. Not writing."));
-    }
+    if ((indx + csound->nchnls) >= csound->zalast) goto err1;
+    else if (indx < 0) goto err2;
     else {
       MYFLT *writeloc;
       int n = csound->ksmps;
@@ -3240,6 +3230,10 @@ int inz(CSOUND *csound, IOZ *p)
           *writeloc++ = csound->spin[i * n + nsmps];
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("inz index > isizea. Not writing."));
+ err2:
+    return csound->PerfError(csound, Str("inz index < 0. Not writing."));
 }
 
 /* outz reads from za space at a rate to output. */
@@ -3251,12 +3245,8 @@ int outz(CSOUND *csound, IOZ *p)
 
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
-    if ((indx + csound->nchnls) >= csound->zalast) {
-      return csound->PerfError(csound, Str("outz index > isizea. No output"));
-    }
-    else if (indx < 0) {
-      return csound->PerfError(csound, Str("outz index < 0. No output."));
-    }
+    if ((indx + csound->nchnls) >= csound->zalast) goto err1;
+    else if (indx < 0) goto err2;
     else {
       MYFLT *readloc;
       int n = csound->ksmps;
@@ -3275,5 +3265,9 @@ int outz(CSOUND *csound, IOZ *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("outz index > isizea. No output"));
+ err2:
+    return csound->PerfError(csound, Str("outz index < 0. No output."));
 }
 

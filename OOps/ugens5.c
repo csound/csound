@@ -390,7 +390,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
     MEMFIL   *mfp;
     int32     magic;
     int32     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(int32) !! */
-    char     lpfilname[MAXNAME];
+    char      lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
     if (csound->lprdaddr == NULL ||
@@ -458,7 +458,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
-    totvals = (mfp->length/sizeof(int32)) - p->headlongs;   /* see NB above!! */
+    totvals = (mfp->length/sizeof(MYFLT)) - p->headlongs;   /* see NB above!! */
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (csound->oparms->odebug)
@@ -501,15 +501,15 @@ static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 
         shouldSwap = 0;
 
-        diff = (MYFLT)(fabs(polePhas[j])-fabs(polePhas[i]));
-        if (diff>1.0e-10)
+        diff = FABS(polePhas[j])-FABS(polePhas[i]);
+        if (diff>FL(1.0e-10))
           shouldSwap = 1;
-        else if (diff>-1.0e-10) {
+        else if (diff>-FL(1.0e-10)) {
           diff = poleMagn[j]-poleMagn[i];
 
-          if (diff>1.0e-10)
+          if (diff>FL(1.0e-10))
             shouldSwap = 1;
-          else if (diff>-1.0e-10)
+          else if (diff>-FL(1.0e-10))
             {
               if (polePhas[j]>polePhas[i])
                 shouldSwap = 1;
@@ -542,12 +542,12 @@ static int DoPoleInterpolation(int poleCount,
     }
 
     for (i=0; i<poleCount; i++) {
-      if (fabs(fabs(pp1[i])-PI)<1.0e-5) {
+      if (FABS(FABS(pp1[i])-PI)<FL(1.0e-5)) {
         pm1[i] = -pm1[i];
         pp1[i] = FL(0.0);
       }
 
-      if (fabs(fabs(pp2[i])-PI)<1.0e-5) {
+      if (FABS(FABS(pp2[i])-PI)<FL(1.0e-5)) {
         pm2[i] = -pm2[i];
         pp2[i] = FL(0.0);
       }
@@ -882,8 +882,7 @@ int lpfreson(CSOUND *csound, LPFRESON *p)
         *pastp = (*pastp1 - *pastp) * p->d + temp1;
         pastp--;   pastp1--;
         temp1 = temp2;
-      }
-      while (--nn);
+      } while (--nn);
       x = *asig++;
       pastp = p->past;
       coefp = q->kcoefs;
@@ -891,8 +890,7 @@ int lpfreson(CSOUND *csound, LPFRESON *p)
       do  x += *coefp++ * *pastp++;
       while (--nn);
       *rslt++ = x * ampscale;
-    }
-    while (--nsmps);
+    } while (--nsmps);
     p->prvout = x;
     return OK;
 }
