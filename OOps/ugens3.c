@@ -196,7 +196,7 @@ int losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
-      int32  maxphs = ((int32) ftp->flenfrms << LOBITS) + ((int32) LOFACT - 1);
+      uint32 maxphs = ((int32) ftp->flenfrms << LOBITS) + ((int32) LOFACT - 1);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
@@ -221,8 +221,10 @@ int losset(CSOUND *csound, LOSC *p)
           /* default to looping the whole sample */
           p->end1 = (p->mod1 ? maxphs : ((int32) ftp->flenfrms << LOBITS));
         }
-        else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1)
+        else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1){
+	  csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n", p->beg1, p->end1, maxphs);
           goto lerr2;
+	}
       }
       if ((p->mod2 = (int16) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;
