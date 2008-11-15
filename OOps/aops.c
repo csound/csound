@@ -31,7 +31,7 @@
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
 #define INTERVAL    (4.0)
-#define ONEdLOG2    (1.4426950408889634074)
+#define ONEdLOG2    FL(1.4426950408889634074)
 #define MIDINOTE0   (3.00)  /* Lowest midi note is 3.00 in oct & pch formats */
 
 /* static lookup tables, initialised once at start-up */
@@ -755,9 +755,7 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
     int numgrades;
     int basekeymidi;
     MYFLT basefreq, factor, interval;
-    if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) {
-      return csound->PerfError(csound, Str("cpstun: invalid table"));
-    }
+    if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) goto err1;
     func = ftp->ftable;
     numgrades = (int)*func++;
     interval = *func++;
@@ -777,6 +775,8 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
     factor = POWER(interval, factor);
     *p->r = func[grade] * factor * basefreq;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("cpstun: invalid table"));
 }
 
 int cpstun(CSOUND *csound, CPSTUN *p)
@@ -789,9 +789,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
       int numgrades;
       int basekeymidi;
       MYFLT basefreq, factor, interval;
-      if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) {
-        return csound->PerfError(csound, Str("cpstun: invalid table"));
-      }
+      if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) goto err1;
       func = ftp->ftable;
       numgrades = (int)*func++;
       interval = *func++;
@@ -814,6 +812,8 @@ int cpstun(CSOUND *csound, CPSTUN *p)
     }
     else *p->r = p->old_r;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("cpstun: invalid table"));
 }
 
 int logbasetwo_set(CSOUND *csound, EVAL *p)
@@ -824,7 +824,7 @@ int logbasetwo_set(CSOUND *csound, EVAL *p)
       csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
                                                  * sizeof(MYFLT));
       for (i = 0; i <= STEPS; i++) {
-        csound->logbase2[i] = (MYFLT)(ONEdLOG2 * log(x));
+        csound->logbase2[i] = ONEdLOG2 * LOG((MYFLT)x);
         x += ((INTERVAL - 1.0 / INTERVAL) / (double)STEPS);
       }
     }
@@ -917,7 +917,7 @@ int logbasetwo(CSOUND *csound, EVAL *p)
     int n = (int)((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                   *  STEPS + FL(0.5));
     if (n<0 || n>STEPS)
-      *p->r = (MYFLT)(log((double)*p->a)*ONEdLOG2);
+      *p->r = LOG(*p->a)*ONEdLOG2;
     else
       *p->r = csound->logbase2[n];
     return OK;
@@ -934,7 +934,7 @@ int logbasetwoa(CSOUND *csound, EVAL *p)
       MYFLT aa = a[n];
       int n = (int)((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                     *  STEPS + FL(0.5));
-      if (n<0 || n>STEPS) r[n] = (MYFLT)(log((double)aa)*ONEdLOG2);
+      if (n<0 || n>STEPS) r[n] = LOG(aa)*ONEdLOG2;
       else                r[n] = csound->logbase2[n];
     }
     return OK;
@@ -1521,7 +1521,7 @@ int invalset(CSOUND *csound, INVAL *p)
          -- pretty unlikely given that the parser thinks
          "$string" is a macro -- but just in case: */
       if (*s == '$')
-        return csound->PerfError(csound, Str("k-rate invalue ChannelName "
+        return csound->InitError(csound, Str("k-rate invalue ChannelName "
                                              "cannot start with $"));
       /* allocate the space used to pass a string during the k-pass */
       csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
