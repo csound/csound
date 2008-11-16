@@ -1,9 +1,9 @@
 2008-11-01  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (pitchamdf): Arrange that it peri is zero not to
-	return NaN or Inf values.  Suggests some algorithmic error
+	return NaN or Inf values. Suggests some algorithmic error
 	(pitchamdfset): Initialise rmsmedian buffer -- it was undefined.
-	No idea how it ever could work
+	No idea how it ever could work.
 
 2008-10-31  jpff  <jpff@codemist.co.uk>
 
@@ -12,25 +12,25 @@
 
 2008-10-27  jpff  <jpff@codemist.co.uk>
 
-	* OOps/aops.c (outo): Channel 6 was wrong
-	(outh): akso here
+	* OOps/aops.c (outo): Channel 6 was wrong,
+	(outh): also here.
 
 2008-10-18  jpff  <jpff@codemist.co.uk>
 
-	* InOut/rtwinmm.c (open_device): Dither only if requested
+	* InOut/rtwinmm.c (open_device): Dither only if requested.
 
-	* H/csoundCore.h ("C"): Move dither to visible
+	* H/csoundCore.h ("C"): Move dither to visible.
 
-	* InOut/rtpa.c (set_device_params): Dither only if requested
-	(paBlockingReadWriteOpen): Ditto
+	* InOut/rtpa.c (set_device_params): Dither only if requested.
+	(paBlockingReadWriteOpen): Ditto.
 
-	* InOut/rtalsa.c (set_format): Dither only if requested
-	(MYFLT_to_short_no_dither): New function
+	* InOut/rtalsa.c (set_format): Dither only if requested.
+	(MYFLT_to_short_no_dither): New function.
 
 2008-10-09 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* Engine/fgens.c: added an optional parameter
 	  for GEN20 (type 6, Gaussian), to set the variance
-	  (default = 1.0)
+	  (default = 1.0).
 
 2008-09-29  jpff  <jpff@codemist.co.uk>
 
