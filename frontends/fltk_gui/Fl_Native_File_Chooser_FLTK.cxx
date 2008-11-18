@@ -42,6 +42,7 @@ Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
     _btype       = val;
     _options     = NO_OPTIONS;
     _filter      = NULL;
+    _filtvalue   = 0;           // Necessary?
     _parsedfilt  = NULL;
     _preset_file = NULL;
     _prevvalue   = NULL;
