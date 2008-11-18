@@ -53,17 +53,19 @@ static int biquad(CSOUND *csound, BIQUAD *p)
 {
     int   n = 0, nsmps = csound->ksmps;
     double xn, yn;
+    double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
     double b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
     for (n=0; n<nsmps; n++) {
       xn = (double)p->in[n];
-      yn = b0*xn + b1*p->xnm1 + b2*p->xnm2 - a1*p->ynm1 - a2*p->ynm2;
-      p->xnm2 = p->xnm1;
-      p->xnm1 = xn;
-      p->ynm2 = p->ynm1;
-      p->ynm1 = yn;
+      yn = b0*xn + b1*xnm1 + b2*xnm2 - a1*ynm1 - a2*ynm2;
+      xnm2 = xnm1;
+      xnm1 = xn;
+      ynm2 = ynm1;
+      ynm1 = yn;
       p->out[n] = (MYFLT)yn;
     }
+    p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
 
@@ -367,7 +369,7 @@ static int vcoset(CSOUND *csound, VCO *p)
     /* csound->AuxAlloc(csound, sizeof(MYFLT)*16385L, &p->auxd); Do this later
        p->sine = (MYFLT*)p->auxd.auxp;
        for (i=0; i<16384; i++)
-         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/4096.0); */
+         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0)); */
 
     if ((ftp = csound->FTFind(csound, p->sine)) != NULL) {
       p->ftp = ftp;

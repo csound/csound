@@ -220,41 +220,4 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     return OK;
 }
 
-/*
-
-void BowedBar_controlChange(BOWEDBAR *p, int number, MYFLT value)
-{
-    if (number == __SK_BowPressure_)
-      {
-        bowTabl->setSlope(FL(10.0) - (FL(9.0) * value * NORM_7));
-        slope = FL(10.0) - (FL(9.0) * value * NORM_7);
-      }
-    else if (number == __SK_BowPosition_)
-      {
-        this->setStrikePosition(value*NORM_7);
-      }
-    else if (number == __SK_Balance_)   {
-      bowPos = value * NORM_7;
-      bowTarg += FL(0.02) * (bowPos - lastBowPos);
-      lastBowPos = bowPos;
-      adsr->setTarget(bowPos);
-    }
-    else if (number == __SK_AfterTouch_Cont_)
-      {
-        bowPos = value * NORM_7;
-        bowTarg += 0.02 * (bowPos - lastBowPos);
-        lastBowPos = bowPos;
-        adsr->setTarget(bowPos);
-      }
-    else if (number == __SK_ModWheel_)
-      {
-        GAIN = FL(0.809) + (FL(0.2) * (value * NORM_7));
-      }
-    else if(number == __SK_ModFrequency_)
-      {
-        integration_const_ = value * NORM_7;
-
-      }
-}
- */
 

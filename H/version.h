@@ -34,10 +34,10 @@
 #define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define CS_PACKAGE_VERSION  "5.09"
+#define CS_PACKAGE_VERSION  "5.10"
 #define CS_VERSION          (5)
-#define CS_SUBVER           (9)
-#define CS_PATCHLEVEL       (03)
+#define CS_SUBVER           (10)
+#define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       1   /* should be increased anytime a new version
                                    contains changes that an older host will

@@ -292,7 +292,7 @@ static MYFLT BaboTapline_single_output(CSOUND *csound,
                                        const BaboTapParameter *pp)
 {
         /*
-         * the assignement right below should be really a floor(p->delay_size),
+         * the assignment right below should be really a floor(p->delay_size),
          * but apparently floor() calls are really expensive on some
          * architectures (notably Pentiums), so we do a simple cast to a
          * size_t instead. This should always work, but I cannot test it on
