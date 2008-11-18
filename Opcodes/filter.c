@@ -209,10 +209,10 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
-    double* coeffs;
+    double *coeffs;
     int i, dim;
 
-    /* since i-time arguments are not guaranteed to propegate to p-time
+    /* since i-time arguments are not guaranteed to propagate to p-time
      * we must copy the i-vars into the p structure.
      */
 
@@ -229,10 +229,6 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
     p->ndelay = MAX(p->numb-1,p->numa);
 
     csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
-
-    /* Initialize the delay line for safety but done by AuxAlloc */
-/*     for (i=0;i<p->ndelay;i++) */
-/*       ((double*)p->delay.auxp)[i] = 0.0; */
 
     /* Set current position pointer to beginning of delay */
     p->currPos = (double*)p->delay.auxp;
@@ -271,6 +267,7 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
 static int afilter(CSOUND *csound, FILTER* p)
 {
     int n,i;
+    int nsmps = csound->ksmps;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -279,7 +276,7 @@ static int afilter(CSOUND *csound, FILTER* p)
     double poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
 
       inSamp = p->in[n];
       poleSamp = inSamp;
@@ -364,6 +361,7 @@ static int kfilter(CSOUND *csound, FILTER* p)
 static int azfilter(CSOUND *csound, ZFILTER* p)
 {
     int n,i;
+    int nsmps = csound->ksmps;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -391,7 +389,7 @@ static int azfilter(CSOUND *csound, ZFILTER* p)
     /* and a contains their associated real coefficients. */
 
     /* Outer loop */
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       inSamp = p->in[n];
       poleSamp = inSamp;
       zeroSamp = 0.0;
