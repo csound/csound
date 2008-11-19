@@ -16,7 +16,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
                'H/pvfileio.h', 'H/soundio.h', 'H/sysdep.h', 'H/text.h',
                'H/version.h',
                'interfaces/CppSound.hpp', 'interfaces/filebuilding.h',
-               'interfaces/CsoundFile.hpp']
+               'interfaces/CsoundFile.hpp', 'interfaces/csPerfThread.hpp']
 
 exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
              'cstclsh', 'cswish', 'cseditor',
