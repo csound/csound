@@ -233,7 +233,7 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
     /* Set current position pointer to beginning of delay */
     p->currPos = (double*)p->delay.auxp;
 
-    for (i=0; i<p->numb+p->numa+1; i++)
+    for (i=0; i<p->numb+p->numa; i++)
       p->dcoeffs[i] = (double)*p->coeffs[i];
 
     /* Add auxillary root memory */
