@@ -149,9 +149,9 @@ static MYFLT biexprand(CSOUND *csound, MYFLT l)
     } while (!r1);
 
     if (r1 < (int32_t)0) {
-      return -((MYFLT)log(-((double)r1) * (1.0 / 2147483648.0)) * l);
+      return -(LOG(-(r1) * (FL(1.0) / FL(2147483648.0))) * l);
     }
-    return ((MYFLT)log((double)r1 * (1.0 / 2147483648.0)) * l);
+    return (LOG(r1 * (FL(1.0) / FL(2147483648.0))) * l);
 }
 
 /* gaussian distribution routine */
@@ -179,7 +179,7 @@ static MYFLT cauchrand(CSOUND *csound, MYFLT a)
     do {
       r1 = csoundRandMT(&(csound->randState_)); /* Limit range artificially */
     } while (r1 > (uint32_t)2143188560U && r1 < (uint32_t)2151778735U);
-    x = (MYFLT)(tan((double)r1 * (PI / 4294967295.0)) * (1.0 / 318.3));
+    x = TAN((MYFLT)r1 * (PI_F / FL(4294967295.0))) * (FL(1.0) / FL(318.3));
     return (x * a);
 }
 
@@ -193,7 +193,7 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
     do {
       r1 = csoundRandMT(&(csound->randState_));
     } while (r1 > (uint32_t)4286377121U);      /* Limit range artificially */
-    x = (MYFLT)(tan((double)r1 * (PI * 0.5 / 4294967295.0)) * (1.0 / 318.3));
+    x = TAN((MYFLT)r1 * (PI_F * FL(0.5) / FL(4294967295.0))) * (FL(1.0) / FL(318.3));
     return (x * a);
 }
 

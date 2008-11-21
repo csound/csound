@@ -59,7 +59,7 @@ int csoundModuleCreate(CSOUND *csound)
     p->CreateGlobalVariable(csound, "::cabuffnos", sizeof(int));
     def = (int *) (p->QueryGlobalVariable(csound, "::cabuffnos"));
     if (def == NULL)
-      p->Message(csound, "warning... could not create global var\n");
+      p->Message(csound, Str("warning... could not create global var\n"));
     else
       *def = 4;
     p->CreateConfigurationVariable(csound, "buffnos", def,
@@ -69,7 +69,7 @@ int csoundModuleCreate(CSOUND *csound)
     p->CreateGlobalVariable(csound, "::cainterleaved", sizeof(int));
     def = (int *) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if (def == NULL)
-      p->Message(csound, "warning... could not create global var\n");
+      p->Message(csound, Str("warning... could not create global var\n"));
     else
       *def = 0;
     p->CreateConfigurationVariable(csound, "noninterleaved", def,
@@ -100,7 +100,7 @@ int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
     if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "rtaudio: CoreAudio module enabled\n");
+      csound->Message(csound, Str("rtaudio: CoreAudio module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);
@@ -249,7 +249,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
         devnum = atoi(parm->devName);
         if (devnum >= 0 && devnum < devnos)
           dev->dev = sysdevs[devnum];
-        p->Message(csound, "selected device: %u \n", (unsigned int) devnum);
+        p->Message(csound, Str("selected device: %u \n"), (unsigned int) devnum);
         free(sysdevs);
       }
 
@@ -258,7 +258,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       name = (char *) malloc(psize);
       AudioDeviceGetProperty(dev->dev, 1, false, kAudioDevicePropertyDeviceName,
                              &psize, name);
-      p->Message(csound, "CoreAudio module: opening %s \n", name);
+      p->Message(csound, Str("CoreAudio module: opening %s \n"), name);
       free(name);
     }
     dev->srate = (float) (parm->sampleRate);
@@ -292,7 +292,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       else {
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, " *** CoreAudio: open: could not set buffer size\n");
+        p->Message(csound, Str(" *** CoreAudio: open: could not set buffer size\n"));
         return -1;
       }
     }
@@ -337,10 +337,10 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     if (format.mSampleRate != dev->srate) {
       csound->rtRecord_userdata = NULL;
       p->Message(csound,
-                 " *** CoreAudio: open: could not set device parameter sr: %d \n",
+                 Str(" *** CoreAudio: open: could not set device parameter sr: %d \n"),
                  (int) dev->srate);
-      p->Message(csound, " *** CoreAudio: current device sampling rate is:%d \n"
-                 "     try setting the above value in your csound orchestra \n",
+      p->Message(csound, Str(" *** CoreAudio: current device sampling rate is:%d \n"
+                             "     try setting the above value in your csound orchestra \n"),
                  (int) format.mSampleRate);
       free(dev);
       return -1;
@@ -348,7 +348,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     else{
 
       p->Message(csound,
-                 "CoreAudio module: sr set to %d with %d audio channels \n",
+                 Str("CoreAudio module: sr set to %d with %d audio channels \n"),
                  (int) dev->srate, (int) dev->nchns);      
     }    
 
@@ -368,7 +368,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
         free(dev->outused);
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
+        p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
         return -1;
       }
       memset(dev->inbuffs[i], 0, buffbytes);
@@ -380,7 +380,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
         free(dev->outused);
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
+        p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
         return -1;
       }
       memset(dev->outbuffs[i], 0, buffbytes);
@@ -399,8 +399,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       csound->rtRecord_userdata = (void *) dev;
 
     p->Message(csound,
-               "CoreAudio module: device open with %d buffers of %d frames\n"
-               "==========================================================\n",
+               Str("CoreAudio module: device open with %d buffers of %d frames\n"
+                   "==========================================================\n"),
                dev->buffnos, dev->bufframes);
     return 0;
 }
@@ -417,7 +417,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
     /* allocate structure */
     dev = (DEVPARAMS *) malloc(sizeof(DEVPARAMS));
     if (dev == NULL) {
-      p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
+      p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
       return -1;
     }
     csound->rtRecord_userdata = (void *) dev;
@@ -437,7 +437,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
     /* allocate structure */
     dev = (DEVPARAMS *) malloc(sizeof(DEVPARAMS));
     if (dev == NULL) {
-      p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
+      p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
       return -1;
     }
     csound->rtPlay_userdata = (void *) dev;
@@ -537,7 +537,7 @@ static void rtclose_(CSOUND *csound)
     p = (CSOUND *) csound;
     dev = (DEVPARAMS *) (csound->rtRecord_userdata);
     if (dev != NULL) {
-      p->Message(csound, "coreaudio module: closing device...\n");
+      p->Message(csound, Str("coreaudio module: closing device...\n"));
       AudioDeviceStop(dev->dev, Csound_IOProcEntry);
       AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);
       csound->rtRecord_userdata = NULL;
@@ -546,7 +546,7 @@ static void rtclose_(CSOUND *csound)
       free(dev->inused);
       free(dev->outused);
       free(dev);
-      p->Message(csound, "coreaudio module: device closed\n");
+      p->Message(csound, Str("coreaudio module: device closed\n"));
     }
 }
 

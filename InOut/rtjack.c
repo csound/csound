@@ -134,13 +134,15 @@ static int bufferSizeCallback(jack_nframes_t nframes, void *arg)
 static void freeWheelCallback(int starting, void *arg)
 {
     RtJackGlobals *p;
+    CSOUND *csound;
 
     p = (RtJackGlobals*) arg;
+    csound = p->csound;
     if (starting) {
       if (sched_getscheduler(0) != SCHED_OTHER) {
         struct sched_param sp;
-        p->csound->Message(p->csound, " *** WARNING: "
-                                      "disabling --sched in freewheel mode\n");
+        csound->Message(csound, Str(" *** WARNING: "
+                                    "disabling --sched in freewheel mode\n"));
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
         sched_setscheduler(0, SCHED_OTHER, &sp);
@@ -208,7 +210,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     int             i, nChn, maxChn, len, nPorts, retval = -1;
 
     portFlags = (isOutput ? (unsigned long) JackPortIsInput
-                            : (unsigned long) JackPortIsOutput);
+                          : (unsigned long) JackPortIsOutput);
     len = jack_port_name_size();
     prvPortName = (char*) malloc((size_t) len);
     if (prvPortName == (char*) NULL)
@@ -291,6 +293,7 @@ static inline size_t rtJack_AlignData(size_t ofs)
 
 static void rtJack_AllocateBuffers(RtJackGlobals *p)
 {
+    CSOUND *csound = p->csound;
     void    *ptr;
     size_t  i, j, m, nBytes, nBytesPerBuf, ofs1, ofs2, ofs3;
 
@@ -311,7 +314,7 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     /* allocate memory */
     ptr = (RtJackBuffer**) malloc(nBytes);
     if (ptr == NULL)
-      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
     p->bufs = (RtJackBuffer**) ptr;
     memset((void*) ptr, 0, nBytes);
     /* set pointer to each buffer */
@@ -323,13 +326,13 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     for (i = (size_t) 0; i < (size_t) p->nBuffers; i++) {
       /* create lock for signaling when the process callback is done */
       /* with the buffer */
-      if (rtJack_CreateLock(p->csound, &(p->bufs[i]->csndLock)) != 0)
-        rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      if (rtJack_CreateLock(csound, &(p->bufs[i]->csndLock)) != 0)
+        rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       /* create lock for signaling when the Csound thread is done */
       /* with the buffer */
-      if (rtJack_CreateLock(p->csound, &(p->bufs[i]->jackLock)) != 0) {
-        rtJack_DestroyLock(p->csound, &(p->bufs[i]->csndLock));
-        rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      if (rtJack_CreateLock(csound, &(p->bufs[i]->jackLock)) != 0) {
+        rtJack_DestroyLock(csound, &(p->bufs[i]->csndLock));
+        rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       }
       ptr = (void*) p->bufs[i];
       ptr = (void*) ((char*) ptr + (long) ofs2);
@@ -362,6 +365,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     char          portName[MAX_NAME_LEN + 4];
     unsigned long flags = 0UL;
     int           i;
+    CSOUND *csound = p->csound;
 
     if (!(p->inputEnabled && p->outputEnabled))
       flags = (unsigned long) JackPortIsTerminal;
@@ -373,7 +377,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
         if (p->inPorts[i] == NULL)
-          rtJack_Error(p->csound, -1, "error registering input ports");
+          rtJack_Error(csound, -1, Str("error registering input ports"));
       }
     }
     if (p->outputEnabled) {
@@ -384,7 +388,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
                                             JACK_DEFAULT_AUDIO_TYPE,
                                             flags | JackPortIsOutput, 0UL);
         if (p->outPorts[i] == NULL)
-          rtJack_Error(p->csound, -1, "error registering output ports");
+          rtJack_Error(csound, -1, Str("error registering output ports"));
       }
     }
 }
@@ -396,32 +400,33 @@ static void openJackStreams(RtJackGlobals *p)
 {
     char    buf[256];
     int     i, j, k;
+    CSOUND *csound = p->csound;
 
     /* connect to JACK server */
     p->client = jack_client_new(&(p->clientName[0]));
     if (p->client == NULL)
-      rtJack_Error(p->csound, -1, "could not connect to JACK server");
+      rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     /* check consistency of parameters */
     if (p->nChannels < 1 || p->nChannels > 255)
-      rtJack_Error(p->csound, -1, "invalid number of channels");
+      rtJack_Error(csound, -1, Str("invalid number of channels"));
     if (p->sampleRate < 1000 || p->sampleRate > 768000)
-      rtJack_Error(p->csound, -1, "invalid sample rate");
+      rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (p->sampleRate != (int) jack_get_sample_rate(p->client)) {
-      sprintf(&(buf[0]), "sample rate %d does not match "
-                         "JACK sample rate %d",
+      sprintf(&(buf[0]), Str("sample rate %d does not match "
+                             "JACK sample rate %d"),
                          p->sampleRate, (int) jack_get_sample_rate(p->client));
       rtJack_Error(p->csound, -1, &(buf[0]));
     }
     if (p->bufSize < 8 || p->bufSize > 32768)
-      rtJack_Error(p->csound, -1, "invalid period size (-b)");
+      rtJack_Error(csound, -1, Str("invalid period size (-b)"));
     if (p->nBuffers < 2)
       p->nBuffers = 2;
     if ((unsigned int) (p->nBuffers * p->bufSize) > (unsigned int) 65536)
-      rtJack_Error(p->csound, -1, "invalid buffer size (-B)");
+      rtJack_Error(csound, -1, Str("invalid buffer size (-B)"));
     if (((p->nBuffers - 1) * p->bufSize)
         < (int) jack_get_buffer_size(p->client))
-      rtJack_Error(p->csound, -1, "buffer size (-B) is too small");
+      rtJack_Error(csound, -1, Str("buffer size (-B) is too small"));
 
     /* register ports */
     rtJack_RegisterPorts(p);
@@ -457,24 +462,24 @@ static void openJackStreams(RtJackGlobals *p)
     /* register callback functions */
     if (jack_set_sample_rate_callback(p->client, sampleRateCallback, (void*) p)
         != 0)
-      rtJack_Error(p->csound, -1, "error setting sample rate callback");
+      rtJack_Error(csound, -1, Str("error setting sample rate callback"));
     if (jack_set_buffer_size_callback(p->client, bufferSizeCallback, (void*) p)
         != 0)
-      rtJack_Error(p->csound, -1, "error setting buffer size callback");
+      rtJack_Error(csound, -1, Str("error setting buffer size callback"));
 #ifdef LINUX
     if (jack_set_freewheel_callback(p->client, freeWheelCallback, (void*) p)
         != 0)
-      rtJack_Error(p->csound, -1, "error setting freewheel callback");
+      rtJack_Error(csound, -1, Str("error setting freewheel callback"));
 #endif
     if (jack_set_xrun_callback(p->client, xrunCallback, (void*) p) != 0)
-      rtJack_Error(p->csound, -1, "error setting xrun callback");
+      rtJack_Error(csound, -1, Str("error setting xrun callback"));
     jack_on_shutdown(p->client, shutDownCallback, (void*) p);
     if (jack_set_process_callback(p->client, processCallback, (void*) p) != 0)
-      rtJack_Error(p->csound, -1, "error setting process callback");
+      rtJack_Error(csound, -1, Str("error setting process callback"));
 
     /* activate client */
     if (jack_activate(p->client) != 0)
-      rtJack_Error(p->csound, -1, "error activating JACK client");
+      rtJack_Error(csound, -1, Str("error activating JACK client"));
 
     /* connect ports if requested */
     if (p->inputEnabled && p->inDevName != NULL) {
@@ -483,8 +488,8 @@ static void openJackStreams(RtJackGlobals *p)
         sprintf(sp, "%d", i + 1);
         if (jack_connect(p->client, p->inDevName,
                                     jack_port_name(p->inPorts[i])) != 0) {
-          rtJack_ListPorts(p->csound, p->client, &(p->clientName[0]), 0);
-          rtJack_Error(p->csound, -1, "error connecting input ports");
+          rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 0);
+          rtJack_Error(csound, -1, Str("error connecting input ports"));
         }
       }
       *sp = (char) 0;
@@ -495,8 +500,8 @@ static void openJackStreams(RtJackGlobals *p)
         sprintf(sp, "%d", i + 1);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                                     p->outDevName) != 0) {
-          rtJack_ListPorts(p->csound, p->client, &(p->clientName[0]), 1);
-          rtJack_Error(p->csound, -1, "error connecting output ports");
+          rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 1);
+          rtJack_Error(csound, -1, Str("error connecting output ports"));
         }
       }
       *sp = (char) 0;
@@ -535,16 +540,16 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
         if (useTmpClient)
           jack_client_close(client_);
       }
-      rtJack_Error(csound, -1, "must specify a device name, not a number");
+      rtJack_Error(csound, -1, Str("must specify a device name, not a number"));
     }
     if (parm->devName != NULL && parm->devName[0] != (char) 0) {
       /* NOTE: this assumes max. 999 channels (the current limit is 255) */
       nBytes = strlen(parm->devName) + 4;
       if (nBytes > (size_t) jack_port_name_size())
-        rtJack_Error(csound, -1, "device name is too long");
+        rtJack_Error(csound, -1, Str("device name is too long"));
       s = (char*) malloc(nBytes);
       if (s == NULL)
-        rtJack_Error(csound, CSOUND_MEMORY, "memory allocation failure");
+        rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       strcpy(s, parm->devName);
       *devName = s;
     }
@@ -552,15 +557,15 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       /* full duplex audio I/O: check consistency of parameters */
       if (p->nChannels != parm->nChannels || p->bufSize != parm->bufSamp_SW)
         rtJack_Error(csound, -1,
-                     "input and output parameters are not consistent");
+                     Str("input and output parameters are not consistent"));
       if (((parm->bufSamp_SW / csound->ksmps) * csound->ksmps)
           != parm->bufSamp_SW)
         rtJack_Error(csound, -1,
-                     "period size (-b) must be an integer multiple of ksmps");
+                     Str("period size (-b) must be an integer multiple of ksmps"));
     }
     p->sampleRate = (int) parm->sampleRate;
     if ((float) p->sampleRate != parm->sampleRate)
-      rtJack_Error(csound, -1, "sample rate must be an integer");
+      rtJack_Error(csound, -1, Str("sample rate must be an integer"));
     p->nChannels = parm->nChannels;
     p->bufSize = parm->bufSamp_SW;
     p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
@@ -582,12 +587,12 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     p->inPorts = (jack_port_t**)
         calloc((size_t) p->nChannels, sizeof(jack_port_t*));
     if (p->inPorts == NULL)
-      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* allocate pointers to input port buffers */
     p->inPortBufs = (jack_default_audio_sample_t**)
         calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
     if (p->inPortBufs == NULL)
-      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
 
     return 0;
 }
@@ -608,12 +613,12 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     p->outPorts = (jack_port_t**)
         calloc((size_t) p->nChannels, sizeof(jack_port_t*));
     if (p->outPorts == NULL)
-      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* allocate pointers to output port buffers */
     p->outPortBufs = (jack_default_audio_sample_t**)
         calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
     if (p->outPortBufs == NULL)
-      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* activate client to start playback */
     openJackStreams(p);
 
@@ -694,10 +699,10 @@ static CS_NOINLINE CS_NORETURN void rtJack_Abort(CSOUND *csound, int err)
 {
     switch (err) {
     case 1:
-      rtJack_Error(csound, -1, "JACK sample rate changed");
+      rtJack_Error(csound, -1, Str("JACK sample rate changed"));
       break;
     default:
-      rtJack_Error(csound, -1, "no connection to JACK server");
+      rtJack_Error(csound, -1, Str("no connection to JACK server"));
     }
 }
 
@@ -893,7 +898,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
 static CS_NORETURN void rtJack_Error(CSOUND *csound,
                                      int errCode, const char *msg)
 {
-    csound->ErrorMsg(csound, Str(" *** rtjack: %s"), Str(msg));
+    csound->ErrorMsg(csound, " *** rtjack: %s", msg);
     rtclose_(csound);
     csound->LongJmp(csound, errCode);
 }
@@ -975,7 +980,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    csound->Message(csound, "rtaudio: JACK module enabled\n");
+    csound->Message(csound, Str("rtaudio: JACK module enabled\n"));
     /* register Csound interface functions */
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
