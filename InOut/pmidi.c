@@ -165,9 +165,9 @@ static int start_portmidi(CSOUND *csound)
     csound_global_mutex_lock();
     if (!portmidi_init_cnt) {
       if (Pm_Initialize() != pmNoError)
-        errMsg = " *** error initialising PortMIDI";
+        errMsg = Str(" *** error initialising PortMIDI");
       else if (Pt_Start(1, NULL, NULL) != ptNoError)
-        errMsg = " *** error initialising PortTime";
+        errMsg = Str(" *** error initialising PortTime");
     }
     if (errMsg == NULL)
       portmidi_init_cnt++;
@@ -422,7 +422,7 @@ static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    csound->Message(csound, "PortMIDI real time MIDI plugin for Csound\n");
+    csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 
@@ -436,7 +436,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "portmidi") == 0 || strcmp(drv, "PortMidi") == 0 ||
           strcmp(drv, "PortMIDI") == 0 || strcmp(drv, "pm") == 0))
       return 0;
-    csound->Message(csound, "rtmidi: PortMIDI module enabled\n");
+    csound->Message(csound, Str("rtmidi: PortMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

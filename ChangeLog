@@ -1,3 +1,8 @@
+2008-11-21  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/filter.c (izfilter): Loop went 1 too many for
+	coeffs->dcoeffs
+
 2008-11-01  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (pitchamdf): Arrange that it peri is zero not to

@@ -115,11 +115,11 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
   if(!strcmp(pg->server,"default")){
     server = NULL;
-    csound->Message(csound, "PulseAudio output server: default\n");
+    csound->Message(csound, Str("PulseAudio output server: default\n"));
   }
   else {
     server = pg->server;
-    csound->Message(csound, "PulseAudio output server %s\n", server);
+    csound->Message(csound, Str("PulseAudio output server %s\n"), server);
   }
 
   pulse->ps = pa_simple_new (server,
@@ -135,7 +135,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
     if(pulse->ps) return 0;
     else {
-     csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
+      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                       pa_strerror(pulserror));
      return -1;
     }
@@ -152,7 +152,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   buf = pulse->buf;
   for(i=0;i<bufsiz;i++) buf[i] = outbuf[i];
   if(pa_simple_write(pulse->ps, buf, bufsiz*sizeof(float), &pulserror) < 0)
-    csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
+    csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                      pa_strerror(pulserror));
 }
 
@@ -203,11 +203,11 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
     if(!strcmp(pg->server,"default")){
       server = NULL;
-      csound->Message(csound, "PulseAudio input server: default\n");
+      csound->Message(csound, Str("PulseAudio input server: default\n"));
     }
     else {
       server = pg->server;
-      csound->Message(csound, "PulseAudio input server %s\n", server);
+      csound->Message(csound, Str("PulseAudio input server %s\n"), server);
     }
 
     pulse->ps = pa_simple_new (server,
@@ -222,7 +222,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
     if(pulse->ps) return 0;
     else {
-      csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
+      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -239,7 +239,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
     buf = pulse->buf;
 
     if((bufsiz = pa_simple_read(pulse->ps, buf, bufsiz*sizeof(float), &pulserror)) < 0){
-      csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
+      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -264,7 +264,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "pulse") == 0) {
-      csound->Message(csound, "rtaudio: pulseaudio module enabled\n");
+      csound->Message(csound, Str("rtaudio: pulseaudio module enabled\n"));
       csound->SetPlayopenCallback(csound, pulse_playopen);
       csound->SetRecopenCallback(csound, pulse_recopen);
       csound->SetRtplayCallback(csound, pulse_play);
