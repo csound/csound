@@ -54,13 +54,15 @@ namespace csound
   public:
     /**
      * Return the pitch-class of the pitch.
-     * The octave is always defined as 12 semitones.
-     * If the number of divisions per octave is also 12,
+     * Pitch is measured in semitones, and
+     * the octave is always 12 semitones,
+     * so the pitch-class is the pitch modulo 12.
+     * If the pitch is an integral number of semitones,
+     * and the number of divisions per octave is also 12,
      * then the pitch-class of a pitch is an integer.
-     * If the number of divisions per octave is not 12,
-     * then the pitch-class is not necessarily an integer;
-     * but this method rounds off the pitch to its exact
-     * pitch-class.
+     * If the pitch is not an integral number of semitones,
+     * or the number of divisions per octave is not 12,
+     * then the pitch-class is not necessarily an integer.
      */
     static double pc(double pitch, size_t divisionsPerOctave = 12);
 
@@ -334,7 +336,7 @@ namespace csound
 
     static void initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave);
 
-   /**
+    /**
      * Return the voiced chord for the prime chord index P, transposition T,
      * and voicing index V within the specified range for the indicated number of tones per octave.
      * The algorithm finds the zero voicing
@@ -353,7 +355,7 @@ namespace csound
      */
     static std::vector<double> ptvToChord(size_t P, size_t T, size_t V_, size_t lowest, size_t range, size_t divisionsPerOctave = 12);
 
-   /**
+    /**
      * Return the voiced chord for the prime chord index P, transposition T,
      * and voicing index V within the specified range for the indicated number of tones per octave.
      * The algorithm finds the zero voicing
@@ -408,6 +410,11 @@ namespace csound
      * Return the chord transposed by the indicated number of semitones.
      */
     static std::vector<double> transpose(const std::vector<double> &chord, double semitones);
+
+    /**
+     * Size of the octave in semitones.
+     */
+    static const double semitonesPerOctave;
   };
 }
 #endif
