@@ -50,6 +50,8 @@ namespace csound
   std::map<size_t, std::map<double, double> > pForCForDivisionsPerOctave;
   std::map<size_t, std::map<double, double> > cForPForDivisionsPerOctave;
   std::map<size_t, std::map< std::vector<double>, double> > pForPrimeChordsForDivisionsPerOctave;
+    
+  const double Voicelead::semitonesPerOctave = double(12); 
 
   void Voicelead::initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave)
   {
@@ -92,10 +94,11 @@ namespace csound
     return sorted;
   }
 
-  double Voicelead::pc(double p, size_t divisionsPerOctave)
+  double Voicelead::pc(double pitchSemitones, size_t divisionsPerOctave)
   {
-    p = std::fabs(round(p));
-    return double(int(round(p)) % divisionsPerOctave);
+    double absolutePitchSemitones = std::abs(pitchSemitones);
+    double pitchClass = std::fmod(absolutePitchSemitones, semitonesPerOctave);
+    return pitchClass;
   }
 
   double Voicelead::pitchClassSetToM(const std::vector<double> &chord, size_t divisionsPerOctave)
