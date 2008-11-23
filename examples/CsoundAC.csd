@@ -76,8 +76,8 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        1, 68
-                        massign			        2, 12
+                        massign			        0, 7
+                        massign			        1, 7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -185,9 +185,12 @@ inormal			        =			            ampdb(80)
 ifrequency 		        = 			            cpsmidinn(ikey)
                         ; Normalize so iamplitude for p5 of 80 == ampdb(80) == 10000.
                         ; This should be the half-amplitude (-6 dB) level in the soundfile.
-imidiamplitude 		    =                       ampdb(ivelocity)
-iamplitude              =                       imidiamplitude * inormal / imeasure
-                        ; print                   ifrequency, inormal, imidiamplitude, imeasure, iamplitude
+                        ; Also scale MIDI velocity to decibels.
+ipower			        pow			            ivelocity / 127.0, 2.0
+idecibels               =			            20.0 * log10(ipower)
+imidiamplitude		    =			            ampdb(idecibels)
+iamplitude    		    =                       13107.2 * (imidiamplitude * inormal / imeasure)
+                        print                   ifrequency, inormal, ivelocity, idecibels, imidiamplitude, imeasure, iamplitude
                         xout			        ifrequency, iamplitude
                         endop
                         
@@ -271,7 +274,7 @@ agleft      		    pluck       		    1.0, cpsoct(ioct + ishift), ipch, 1, 1
 agright     		    pluck       		    1.0, cpsoct(ioct - ishift), ipch, 1, 1
 af1         		    expon       		    0.01, 10.0, 1.0             	        ; exponential from 0.1 to 1.0
 af2         		    expon       		    0.015, 15., 1.055             	        ; exponential from 1.0 to 0.1
-adump       		    delayr      		    2.0                     	            ; set delay line of 2.0 sec
+adump       		    delayr      		    2.1                     	            ; set delay line of 2.0 sec
 atap1       		    deltap3     		    af1                     	            ; tap delay line with kf1 func.
 atap2       		    deltap3     		    af2                     	            ; tap delay line with kf2 func.
 ad1         		    deltap3      		    2.0                     	            ; delay 2 sec.
@@ -1910,7 +1913,7 @@ p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         instr 190               ; Fluidsynth output
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ijunk			        = 			            p1 + p2 + p3 + p4 + p5
-ifrequency,iamplitude	NoteOn                  p4, p5, 450.0
+ifrequency,iamplitude	NoteOn                  p4, p5, 10000.0
 aleft, aright   	    fluidOut		        giFluidsynth
 aleft			        = 			            iamplitude * aleft
 aright			        =			            iamplitude * aright
@@ -2040,7 +2043,7 @@ i 200       0       -1      10      30
 
 ; Reverb.
 ; Insno	    Start	Dur     Delay	Pitchmod	Cutoff
-i 210       0       -1      0.94    0.02  		16000
+i 210       0       -1      0.90    0.02  		13000
 
 ; Master output.
 ; Insno	    Start	Dur	Fadein	Fadeout
@@ -2050,6 +2053,11 @@ i 220       0       -1   0.1     0.1
 ; Will be turned off by 'e' statement in score.
 
 f 0 300
+
+
+
+
+
 
 
 </CsScore>
