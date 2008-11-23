@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 temp.orc temp.sco
+csound -f -h -M0 -d -m3 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,7 +16,7 @@ csound -f -h -+rtmidi=null -M0 -d -n -m7 temp.orc temp.sco
 ; - Highest precision
 ; - Lowest noise
 ; - No clicks
-; - MIDI/offline interoperability
+; - offline/MIDI real-time interoperability
 ; - Gains normalized across instruments, pitches, velocities
 ; - Modular code
 ; - READABLE code!
@@ -76,7 +76,7 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        1, 51
+                        massign			        1, 68
                         massign			        2, 12
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -914,10 +914,16 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 300
-asignal 		        STKBowed 		        ifrequency, 1.0, 1, 4, 2, 0, 4, 0, 11, 50
+                                                ; Controllers: 
+                                                ;   1  Vibrato Gain
+                                                ;   2  Bow Pressure
+                                                ;   4  Bow Position
+                                                ;  11  Vibrato Frequency
+                                                ; 128  Volume 
+asignal 		        STKBowed 		        ifrequency, 1.0, 1, 0.8, 2, 100.0, 4, 50.0, 11, 20.0
 aleft, aright		    Pan			            p7, asignal * iamplitude
 p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
-                        AssignSend		        p1, 0.0, 0.0, 0.1, 1.0
+                        AssignSend		        p1, 0.6, 0.0, 0.8, 1.0
                         SendOut			        p1, aleft, aright
                         endin
 
@@ -1875,28 +1881,29 @@ p3, aleft, aright	    Declick			        iattack, isustain, idecay, aleft, aright
                         instr 68                ; FM with reverberated modulator, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-iattack 		        = 			            0.02
+ifrequency,iamplitude	NoteOn                  p4, p5, 2000
+iattack			        =			            0.004
+idecay				=				    8.0
 isustain		        =			            p3
-irelease 		        = 			            0.25
-icarrier                =                       1.0
-imodulator              =                       1.3
-imodulatorHz            =                       ifrequency * imodulator
-index                   =                       2.0
-imodulatorAmplitude     =                       imodulatorHz * index
-kenvelope               transeg                 0.0, iattack, -9.0, 1.0, isustain, -9.0, 0.5, irelease, -4.0, 0.0
-kfmenvelope             transeg                 0.0, iattack, -9.0, 2.0, isustain, -9.0, 0.5, irelease, -4.0, 0.0
+irelease		        =			            0.05
+icarrier                =                       1
+iratio                  =                       2.0
+imodulatorAmplitude     =                       8
+ifrequencyb             =                       ifrequency * 1.003
+icarrierb               =                       icarrier * 1.004
+aenvelope               transeg                 0.0, iattack, -9.0, 1.0, isustain, -5.0, 0.625,irelease, -4.0, 0.0
+kfmenvelope             transeg                 0.0, iattack, -9.0, 1.5, isustain, -5.0, 0.525, irelease, -4.0, 0.0
                         ; Use poscil to get arate FM.
-amodulator              poscil                  imodulatorAmplitude * kfmenvelope, imodulatorHz, gisine  
-amodl, amodr            reverbsc                amodulator, amodulator, 0.7, sr * 0.75
-asignal                 poscil                  1.0, ifrequency + amodl, gisine  
-asignal                 =                       asignal * kenvelope
+amodulator              poscil                  imodulatorAmplitude * kfmenvelope, ifrequency * iratio, gisine  
+amodl, amodr            reverbsc                amodulator, amodulator, 0.5, sr * 0.75
+asignal                 poscil                  1.0, ifrequency * amodl, gisine  
+asignal                 =                       asignal * aenvelope
+aleft, aright		    Pan			            p7, asignal * iamplitude
 aleft, aright		    Pan			            p7, asignal * iamplitude
 p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
                         endin
-
 
 #ifdef ENABLE_SOUNDFONTS
 
@@ -2033,11 +2040,16 @@ i 200       0       -1      10      30
 
 ; Reverb.
 ; Insno	    Start	Dur     Delay	Pitchmod	Cutoff
-i 210       0       -1      0.81    0.02  		16000
+i 210       0       -1      0.94    0.02  		16000
 
 ; Master output.
 ; Insno	    Start	Dur	Fadein	Fadeout
 i 220       0       -1   0.1     0.1
+
+; 5 minutes of real-time, e.g. MIDI, performance.
+; Will be turned off by 'e' statement in score.
+
+f 0 300
 
 
 </CsScore>
