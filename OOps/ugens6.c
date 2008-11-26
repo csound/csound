@@ -415,7 +415,6 @@ int deltapi(CSOUND *csound, DELTAP *p)
     MYFLT       delsmps, delfrac;
 
     if (q->auxch.auxp==NULL) goto err1;
-      return csound->PerfError(csound, Str("deltapi: not initialised"));
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;

@@ -28,10 +28,10 @@ typedef struct {
         MYFLT *ar, *amp, *kfund, *kform, *kdamp, *knofpulse, *kpulsemul,
               *iftab, *iskip;
         FUNC *ftable;
-        int32  timrem;    /* samples left of event */
-        int32  pulstogo;  /* count of pulses to produce in burst */
-        int32  pulsephs;  /* index into table of this pulse (= MAXLEN / kform) */
-        int32  pulseinc;  /* increment in table of pulse */
+        int32 timrem;    /* samples left of event */
+        int32 pulstogo;  /* count of pulses to produce in burst */
+        int32 pulsephs;  /* index into table of this pulse (= MAXLEN / kform) */
+        int32 pulseinc;  /* increment in table of pulse */
         MYFLT pulseamp;  /* amp of current pulse */
         MYFLT ampdecay;  /* subtract from amp on new pulse */
         MYFLT lenfact;   /* increase length of next pulse */
@@ -105,7 +105,8 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
     p->pulsephs &= PHMASK;
     p->pulseinc *= p->lenfact;
     /* If pulse can't fit in remaining event time, skip and generate silence */
-    pulselen = (p->pulseinc != FL(0.0))? (int32)FABS(FMAXLEN / p->pulseinc) : INT_MAX;
+    pulselen = (p->pulseinc != FL(0.0))?
+                (int32)FABS(FMAXLEN / p->pulseinc) : INT_MAX;
     if (p->pulstogo-- <= 0 || pulselen > p->timrem) {
       p->pulstogo = 0;
     }
