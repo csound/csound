@@ -133,13 +133,16 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                  &pulserror
                              ) ;
 
-    if(pulse->ps) return 0;
+  if(pulse->ps){
+    csound->Message(csound, "pulseaudio output open\n");
+     return 0;
+  }
     else {
       csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                       pa_strerror(pulserror));
      return -1;
     }
-
+ 
 }
 
 static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
@@ -154,6 +157,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   if(pa_simple_write(pulse->ps, buf, bufsiz*sizeof(float), &pulserror) < 0)
     csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                      pa_strerror(pulserror));
+  
 }
 
 
@@ -185,7 +189,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
     pulse = (pulse_params *) malloc(sizeof(pulse_params));
     pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_HW);
-    csound->rtPlay_userdata = (void *) pulse;
+    csound->rtRecord_userdata = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
@@ -233,21 +237,21 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
 
     int i, bufsiz,pulserror;
     float *buf;
-    pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
+    pulse_params *pulse = (pulse_params*) csound->rtRecord_userdata;
     MYFLT norm = csound->e0dbfs;
     bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;
 
-    if((bufsiz = pa_simple_read(pulse->ps, buf, bufsiz*sizeof(float), &pulserror)) < 0){
-      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
+    if(pa_simple_read(pulse->ps, buf, nbytes, &pulserror) < 0){
+      csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
                        pa_strerror(pulserror));
       return -1;
     }
     else {
-      for(i=0;i<bufsiz/sizeof(float);i++) inbuf[i] = buf[i];
-      return bufsiz;
+      for(i=0;i<bufsiz;i++) inbuf[i] = buf[i];
+      return nbytes;
     }
-
+    
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
