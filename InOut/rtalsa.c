@@ -1027,6 +1027,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     if(priority != 0) set_scheduler_priority(csound, priority);
   
+    csound->DeleteConfigurationVariable(csound, "rtscheduler");
+    csound->DestroyGlobalVariable(csound, "::priority");
 
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
