@@ -28,7 +28,7 @@
 #define CS_PACKAGE_NAME     "Csound"
 
 /* Define to the full name and version of this package. */
-#define CS_PACKAGE_STRING   "Csound 5.09.3"
+#define CS_PACKAGE_STRING   "Csound 5.10.0"
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"

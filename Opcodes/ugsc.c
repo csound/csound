@@ -51,15 +51,15 @@ static int svf(CSOUND *csound, SVF *p)
     MYFLT *low, *high, *band, *in, ynm1, ynm2;
     MYFLT low2, high2, band2;
     MYFLT kfco = *p->kfco, kq = *p->kq;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
 
     /* calculate frequency and Q coefficients */
     f1 = FL(2.0) * (MYFLT)sin((double)(kfco * csound->pidsr));
     if (kq<FL(0.000001)) kq = FL(1.0); /* Protect against division by zero */
     q1 = FL(1.0) / kq;
 
-    in = p->in;
-    low = p->low;
+    in   = p->in;
+    low  = p->low;
     band = p->band;
     high = p->high;
     ynm1 = p->ynm1;
@@ -76,13 +76,13 @@ static int svf(CSOUND *csound, SVF *p)
     /* equations derived from Hal Chamberlin, "Musical Applications
      * of Microprocessors.
      */
-    do {
-      *low++ = low2 = ynm2 + f1 * ynm1;
-      *high++ = high2 = scale * *in++ - low2 - q1 * ynm1;
-      *band++ = band2 = f1 * high2 + ynm1;
-      ynm1 = band2;
-      ynm2 = low2;
-    } while (--nsmps);
+    for (n=0; n<nsmps; n++) {
+      low[n]  = low2 = ynm2 + f1 * ynm1;
+      high[n] = high2 = scale * in[n] - low2 - q1 * ynm1;
+      band[n] = band2 = f1 * high2 + ynm1;
+      ynm1    = band2;
+      ynm2    = low2;
+    }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;
     return OK;
@@ -127,7 +127,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
     MYFLT *out1, *out2, *in;
     MYFLT *xnm1, *ynm1, *coef;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int j;
 
     xnm1 = p->xnm1;
@@ -137,8 +137,9 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     out2 = p->out2;
     in = p->in;
 
-    do {
-      xn1 = *in;
+    /* These two loops could be jammed */
+    for (n=0; n<nsmps; n++) {
+      xn1 = in[n];
       /* 6th order allpass filter for sine output. Structure is
        * 6 first-order allpass sections in series. Coefficients
        * taken from arrays calculated at i-time.
@@ -149,7 +150,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
         p->ynm1[j] = yn1;
         xn1 = yn1;
       }
-      xn2 = *in++;
+      xn2 = in[n];
       /* 6th order allpass filter for cosine output. Structure is
        * 6 first-order allpass sections in series. Coefficients
        * taken from arrays calculated at i-time.
@@ -160,9 +161,9 @@ static int hilbert(CSOUND *csound, HILBERT *p)
         p->ynm1[j] = yn2;
         xn2 = yn2;
       }
-      *out1++ = yn2;
-      *out2++ = yn1;
-    } while (--nsmps);
+      out1[n] = yn2;
+      out2[n] = yn1;
+    }
     return OK;
 }
 
@@ -184,7 +185,7 @@ static int resonzset(CSOUND *csound, RESONZ *p)
     p->scaletype = scaletype = (int)*p->iscl;
     if (scaletype && scaletype != 1 && scaletype != 2) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
-                                       *p->iscl);
+                               (float)*p->iscl);
     }
     if (!(*p->istor))
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
@@ -411,7 +412,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     MYFLT b, a, r, freq;
     MYFLT temp;
     MYFLT *nm1, *nm2, feedback;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int j;
 
     nm1 = p->nm1;
@@ -430,8 +431,8 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     if (ksep <= FL(0.0))
       ksep = -ksep;
 
-    do {
-      xn = *in++ + feedback * fbgain;
+    for (n=0; n<nsmps; n++) {
+      xn = in[n] + feedback * fbgain;
       /* The following code is used to determine
        * how the frequencies of the notches are calculated.
        * If imode=1, the notches will be in a harmonic
@@ -451,8 +452,8 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
          * notch, while the pole radius determines the q of
          * the notch.
          */
-        r = (MYFLT)exp(-(double)(freq * csound->pidsr / kq));
-        b = -FL(2.0) * r * (MYFLT)cos((double)(freq * csound->tpidsr));
+        r = EXP(-(freq * csound->pidsr / kq));
+        b = -FL(2.0) * r * COS(freq * csound->tpidsr);
         a = r * r;
 
         /* Difference equations for implementing canonical
@@ -464,9 +465,9 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
         p->nm1[j] = temp;
         xn = yn;
       }
-      *out++ = yn;
+      out[n] = yn;
       feedback = yn;
-    } while (--nsmps);
+    }
     p->feedback = feedback;
     return OK;
 }

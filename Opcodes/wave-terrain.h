@@ -81,5 +81,10 @@ typedef struct {
   MYFLT size;
 
   MYFLT pos;
+  FUNC *fpoint;
+  FUNC *fmass;
+  FUNC *fstiff;
+  FUNC *fdamp;
+  FUNC *fvel;
 
 } SCANTABLE;

@@ -59,12 +59,12 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
     int xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
-    double pch = (double)(*p->kpch);
+    MYFLT pch = *p->kpch;
     MYFLT kcx = *(p->kcx), kcy = *(p->kcy);
     MYFLT krx = *(p->krx), kry = *(p->kry);
     MYFLT sizx = p->sizx, sizy = p->sizy;
-    double theta = p->theta;
-    double dtpidsr = (double) csound->tpidsr;
+    MYFLT theta = p->theta;
+    MYFLT dtpidsr = csound->tpidsr;
 
     for (i=0; i<nsmps; i++) {
 
@@ -86,7 +86,7 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
       theta += pch * dtpidsr;
     }
-    p->theta = fmod(theta,TWOPI);
+    p->theta = FMOD(theta,TWOPI_F);
     return OK;
 }
 
@@ -146,10 +146,12 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
 
     /* CHECK */
     if (fpoint == NULL) {
-      return csound->InitError(csound, Str("Scantable: point table not found"));
+      return csound->InitError(csound,
+                               Str("Scantable: point table not found"));
     }
     if (fmass == NULL) {
-      return csound->InitError(csound, Str("Scantable: mass table not found"));
+      return csound->InitError(csound,
+                               Str("Scantable: mass table not found"));
     }
     if (fstiff == NULL) {
       return csound->InitError(csound,
@@ -171,6 +173,12 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
           (fpoint->flen==fdamp->flen))) {
       return csound->InitError(csound, Str("Table lengths do not agree!!"));
     }
+
+    p->fpoint = fpoint;
+    p->fmass  = fmass;
+    p->fstiff = fstiff;
+    p->fdamp  = fdamp;
+    p->fvel   = fvel;
 
     p->size = (MYFLT)fpoint->flen;
 
@@ -195,14 +203,14 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
     int next, last;
 
     /* DECLARE */
-    FUNC *fpoint = csound->FTFind(csound, p->i_point);
-    FUNC *fmass  = csound->FTFind(csound, p->i_mass);
-    FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
-    FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
-    FUNC *fvel   = csound->FTFind(csound, p->i_vel);
-    MYFLT inc = p->size * *(p->kpch) * csound->onedsr;
-    MYFLT amp = *(p->kamp);
-    MYFLT pos = p->pos;
+    FUNC *fpoint = p->fpoint;
+    FUNC *fmass  = p->fmass;
+    FUNC *fstiff = p->fstiff;
+    FUNC *fdamp  = p->fdamp;
+    FUNC *fvel   = p->fvel;
+    MYFLT inc    = p->size * *(p->kpch) * csound->onedsr;
+    MYFLT amp    = *(p->kamp);
+    MYFLT pos    = p->pos;
 
 /* CALCULATE NEW POSITIONS
  *
@@ -259,7 +267,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
      *
      * replace current values with new ones
      */
-
+    /* Could use memcpy here?? */
     for (i=0; i<p->size; i++) {
       fpoint->ftable[i] = p->newloc[i];
       fvel->ftable[i]   = p->newvel[i];

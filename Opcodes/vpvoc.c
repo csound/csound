@@ -62,8 +62,9 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     p->outfunc->lobits = nxtfunc->lobits;
     p->outfunc->lomask = nxtfunc->lomask;
     p->outfunc->lodiv = nxtfunc->lodiv;
-    for (i=0; i<= flength; i++)
-        *(p->outfunc->ftable + i) = FL(0.0);
+    memset(p->outfunc->ftable, 0, sizeof(MYFLT)*(flength+1));
+    /* for (i=0; i<= flength; i++) */
+    /*     *(p->outfunc->ftable + i) = FL(0.0); */
     if (**argp <= 0.0)  return OK;         /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                      /* else proceed from 1st seg */
     segp--;
@@ -76,7 +77,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
                 segp->d = dur * csound->ekr;
                 segp->function =  curfunc;
                 segp->nxtfunction = nxtfunc;
-                segp->cnt = (int32) (segp->d + .5);
+                segp->cnt = (int32) (segp->d + FL(0.5));
         }
         else break;             /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -109,12 +110,12 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
       p->cursegp = ++segp;
     flength = segp->function->flen;
     for (i=0; i<flength; i++) {
-      curval = *(curtab + i);
-      nxtval = *(nxttab + i);
-      if (durovercnt > 0.0)
-        *(p->outfunc->ftable + i) = (curval + ((nxtval - curval) / durovercnt));
+      curval = curtab[i];
+      nxtval = nxttab[i];
+      if (durovercnt > FL(0.0))
+        p->outfunc->ftable[i] = (curval + ((nxtval - curval) / durovercnt));
       else
-        *(p->outfunc->ftable + i) = curval;
+        p->outfunc->ftable[i] = curval;
     }
     return OK;
 }
@@ -139,9 +140,9 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
       p->cursegp = ++segp;
     flength = segp->function->flen;
     for (i=0; i<flength; i++) {
-      curval = *(curtab + i);
-      nxtval = *(nxttab + i);
-      *(p->outfunc->ftable + i) =
+      curval = curtab[i];
+      nxtval = nxttab[i];
+      p->outfunc->ftable[i] =
         (curval + ((nxtval - curval) * (cntoverdur*cntoverdur)));
     }
     return OK;
@@ -237,9 +238,10 @@ int vpvset(CSOUND *csound, VPVOC *p)
     p->opBpos = 0;
     p->lastPex = FL(1.0);   /* needs to know last pitchexp to update phase */
     /* Set up time window */
-    for (i = 0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
-      p->lastPhase[i] = FL(0.0);
-    }
+    memset(p->lastPhase, 0, sizeof(MYFLT)*pvdasiz(p));
+    /* for (i = 0; i < pvdasiz(p); ++i) {  /\* or maybe pvdasiz(p) *\/ */
+    /*   p->lastPhase[i] = FL(0.0); */
+    /* } */
     if ((OPWLEN / 2 + 1) > PVWINLEN) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
@@ -247,8 +249,9 @@ int vpvset(CSOUND *csound, VPVOC *p)
                                        PVWINLEN, pvfilnam);
     }
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
-      p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+      p->window[i] = (FL(0.5) - FL(0.5) * COS(TWOPI_F*(MYFLT)i/(MYFLT)OPWLEN));
     /* NB: HANNING */
+    /* memset(p->outBuf, 0, sizeof(MYFLT)*pvfrsiz(p))l */
     for (i = 0; i < pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
@@ -271,7 +274,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     int       specwp = (int) *p->ispecwp;   /* spectral warping flag */
     MYFLT     pex, scaleFac = p->scale;
     TABLESEG  *q = p->tableseg;
-    int32      i, j;
+    int32     i, j;
 
     /* RWD fix */
     if (p->auxch.auxp == NULL) {
@@ -305,8 +308,11 @@ int vpvoc(CSOUND *csound, VPVOC *p)
 /**** Apply "spectral envelope" to magnitudes ********/
     if (pex > FL(1.0))
       scaleFac /= pex;
-    for (i = 0, j = 0; i <= size; i += 2, j++)
-      buf[i] *= *(q->outfunc->ftable + j) * scaleFac;
+    {
+      MYFLT *ftable = q->outfunc->ftable;
+      for (i = 0, j = 0; i <= size; i += 2, j++)
+        buf[i] *= ftable[j] * scaleFac;
+    }
 /***************************************************/
 
     FrqToPhase(buf, asize, pex * (MYFLT) csound->ksmps, p->asr,
@@ -335,8 +341,9 @@ int vpvoc(CSOUND *csound, VPVOC *p)
         ApplyHalfWin(buf2, p->window, buf2Size);
     }
     else {
-      for (n = 0; n < buf2Size; ++n)
-        buf2[n] = FL(0.0);
+      memset(buf2, 0, sizeof(MYFLT)*buf2Size);
+      /* for (n = 0; n < buf2Size; ++n) */
+      /*   buf2[n] = FL(0.0); */
     }
 
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
