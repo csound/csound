@@ -76,8 +76,8 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign			        0, 7
-                        massign			        1, 7
+                        massign	                0, 10
+                        massign                 1, 10
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -190,7 +190,7 @@ ipower			        pow			            ivelocity / 127.0, 2.0
 idecibels               =			            20.0 * log10(ipower)
 imidiamplitude		    =			            ampdb(idecibels)
 iamplitude    		    =                       13107.2 * (imidiamplitude * inormal / imeasure)
-                        print                   ifrequency, inormal, ivelocity, idecibels, imidiamplitude, imeasure, iamplitude
+                        print                   p2, p3, ifrequency, inormal, ivelocity, idecibels, imidiamplitude, imeasure, iamplitude
                         xout			        ifrequency, iamplitude
                         endop
                         
@@ -262,6 +262,10 @@ igain0                 	=                       p6
 
                         instr 2                 ; Xanadu instr 1
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                        
+            
+
+
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000.0
 p3,adamping		        Damping			        0.003,  p3, 0.1
@@ -269,20 +273,25 @@ ishift			        =           		    8.0 / 1200.0
 ipch        		    =           		    ifrequency              	            ; convert parameter 5 to cps.
 ioct        		    =           		    octcps(ifrequency)      	            ; convert parameter 5 to oct.
 kvib        		    poscil			        1.0 / 120.0, ipch / 50.0, gicosine	    ; vibrato
-ag          		    pluck       		    1.0, cpsoct(ioct + kvib),   ipch, 1, 1
-agleft      		    pluck       		    1.0, cpsoct(ioct + ishift), ipch, 1, 1
-agright     		    pluck       		    1.0, cpsoct(ioct - ishift), ipch, 1, 1
-af1         		    expon       		    0.01, 10.0, 1.0             	        ; exponential from 0.1 to 1.0
-af2         		    expon       		    0.015, 15., 1.055             	        ; exponential from 1.0 to 0.1
-adump       		    delayr      		    2.1                     	            ; set delay line of 2.0 sec
+ag          		    pluck       		    1, cpsoct(ioct + kvib),   1000, 1, 1
+agleft      		    pluck       		    1, cpsoct(ioct + ishift), 1000, 1, 1
+agright     		    pluck       		    1, cpsoct(ioct - ishift), 1000, 1, 1
+ag          		    =                       adamping * ag
+agleft                  =                       adamping * agleft
+agright                 =                       adamping * agright
+af1         		    transeg       		    0.1, 5., -3, 1.0, 300, 0, 1.0        	; exponential from 0.1 to 1.0
+af2         		    transeg       		    1.0, 5., -3, 0.1, 300, 0, 0.1           ; exponential from 1.0 to 0.1
+adump       		    delayr      		    2.0                     	            ; set delay line of 2.0 sec
 atap1       		    deltap3     		    af1                     	            ; tap delay line with kf1 func.
 atap2       		    deltap3     		    af2                     	            ; tap delay line with kf2 func.
 ad1         		    deltap3      		    2.0                     	            ; delay 2 sec.
 ad2         		    deltap3      		    1.1                     	            ; delay 1.1 sec.
-                        delayw      		    ag * adamping                       	; put ag signal into delay line.
-aleft 			        = 			            agleft + atap1 + ad1
-aright			        =			            agright + atap2 + ad2
-aleft, aright		    Pan			            p7, iamplitude * (aleft + aright) * adamping
+                        delayw      		    ag                      	            ; put ag signal into delay line.
+aleft 			        = 			            agleft + atap1 + ad1 * adamping
+aright			        =			            agright + atap2 + ad2 * adamping
+aleft                   =                       iamplitude * aleft * adamping
+aright                  =                       iamplitude * aright * adamping
+aleft, aright		    Pan			            p7, aleft + aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1.0
                         SendOut			        p1, aleft, aright
                         endin
@@ -291,18 +300,21 @@ aleft, aright		    Pan			            p7, iamplitude * (aleft + aright) * adampin
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-p3,adamping		        Damping			        0.01, p3, 0.01
+p3,adamping		        Damping			        0.006, p3, 0.06
 ishift      		    =           		    8.0 / 1200.0
 ipch       		        =           		    ifrequency
 ioct        		    =           		    octcps(ifrequency) 
-kvib        		    poscil       		    1.0 / 80.0, 6.1, gicosine      	        ; vibrato
-ag          		    pluck       		    1, cpsoct(ioct + kvib),   ipch, 1, 1
-agleft      		    pluck       		    1, cpsoct(ioct + ishift), ipch, 1, 1
-agright     		    pluck       		    1, cpsoct(ioct - ishift), ipch, 1, 1
-adump       		    delayr      		    0.4                     	            ; set delay line of 0.3 sec
-ad1         		    deltap3      		    0.07                     	            ; delay 100 msec.
-ad2         		    deltap3      		    0.105                    	            ; delay 200 msec.
-                        delayw      		    ag * adamping                  	        ; put ag sign into del line.
+kvib        		    poscil       		    1/120, ipch/50, gicosine      	        ; vibrato
+ag          		    pluck       		    1, cpsoct(ioct + kvib),   1000, 1, 1
+agleft      		    pluck       		    1, cpsoct(ioct + ishift), 1000, 1, 1
+agright     		    pluck       		    1, cpsoct(ioct - ishift), 1000, 1, 1
+adump       		    delayr      		    0.3                     	            ; set delay line of 0.3 sec
+ad1         		    deltap3      		    0.1                     	            ; delay 100 msec.
+ad2         		    deltap3      		    0.2                    	                ; delay 200 msec.
+ag                      =                       adamping * ag
+agleft                  =                       adamping * agleft
+agright                 =                       adamping * agright
+                        delayw      		    ag                  	                ; put ag sign into del line.
 aleft			        =			            agleft + ad1
 aright			        =			            agright + ad2
 aleft, aright		    Pan			            p7, iamplitude * (aleft + aright) * adamping
@@ -314,15 +326,16 @@ aleft, aright		    Pan			            p7, iamplitude * (aleft + aright) * adampin
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-p3, adamping		    Damping			        0.01, p3, 0.01
+ip3                     =                       5.0
+p3, adamping		    Damping			        0.01, ip3, 0.01
 ishift      		    =           		    8.0 / 1200.0
 ipch        		    =           		    ifrequency
 ioct        		    =           		    octcps(ifrequency)
 ; kadsr       		    linseg      		    0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 	; ADSR envelope
-amodi       		    linseg      		    0, p3/3, 5, p3/3, 3, p3/3, 0 		; ADSR envelope for I
+amodi       		    linseg      		    0, ip3/3, 5, ip3/3, 3, ip3/3, 0 		; ADSR envelope for I
 ip6			            =			            1.4
 ip7			            =			            0.8
-amodr       		    linseg      		    ip6, p3, ip7              		; r moves from p6->p7 in p3 sec.
+amodr       		    linseg      		    ip6, ip3, ip7              		; r moves from p6->p7 in p3 sec.
 a1          		    =           		    amodi * (amodr - 1 / amodr) / 2
 a1ndx       		    =           		    abs(a1 * 2 / 20)            		; a1*2 is normalized from 0-1.
 a2          		    =           		    amodi * (amodr + 1 / amodr) / 2
@@ -372,8 +385,8 @@ p3, aleft, aright	    Declick			        0.005, p3, 0.3, aleft, aright
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 4000
-acomp                   pluck                   iamplitude, 440.0, 440.0, 0, 1
-asig                    pluck                   iamplitude, ifrequency, ifrequency / 2.0, 0, 1
+acomp                   pluck                   iamplitude, 440.0, 440.0, 0, 1, .1
+asig                    pluck                   iamplitude, ifrequency, ifrequency / 2.0, 0, 1, .1
 aenvelope               transeg                 1.0, 10.0, -5.0, 0.0
 af1                     reson                   asig, 110, 80
 af2                     reson                   asig, 220, 100
@@ -413,9 +426,13 @@ ifn2                    =                       giexponentialrise
 ifn3                    =                       githirteen
 ifn4                    =                       gisine
 ivibefn                 =                       gicosine
-adecay                  transeg                 0.0, 0.001, 4, 1.0, 2.0, -4, 0.1, 0.125, -4, 0.0
+iattack                 =                       0.002
+idecay                  =                       2.0
+isustain                =                       p3
+irelease                =                       0.05
+adecay                  transeg                 0.0, iattack, -4, 1.0, idecay, -4, 0.1, isustain, -4, 0.1, irelease, -4, 0.0
 asignal                 fmmetal                 1.0, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aleft, aright		    Pan			            p7, asignal * iamplitude
+aleft, aright		    Pan			            p7, asignal * iamplitude * adecay
 p3, aleft, aright	    Declick			        0.005, p3, 0.3, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
@@ -627,25 +644,25 @@ p3, aleft, aright	    Declick			        0.005, p3, 0.05, aleft, aright
                         endin
 
                         instr 16                ; FM moderate index, Michael Gogins
-                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+ifrequency,iamplitude	NoteOn                  p4, p5, 7000
 iattack			        =			            0.002
 isustain		        =			            p3
+idecay				=				    1.5
 irelease		        =			            0.05
 icarrier                =                       1
-iratio                  =                       1.25
+iratio                  =                       1
 ifmamplitude            =                       8
 index                   =                       5.4
 ifrequencyb             =                       ifrequency * 1.003
 icarrierb               =                       icarrier * 1.004
-aindenv                 expseg                  0.000001, iattack, 1, isustain, 0.125, irelease, .000001
+aindenv                 transeg                 0.0, iattack, -7.0, 1.0, idecay, -7.0, 0.025, isustain, 0.0, 0.025, irelease, -7.0, 0.0
 aindex                  =                       aindenv * index * ifmamplitude
 aouta                   foscili                 1.0, ifrequency, icarrier, iratio, index, 1
 aoutb                   foscili                 1.0, ifrequencyb, icarrierb, iratio, index, 1
                         ; Plus amplitude correction.
-asignal                 =                       (aouta + aoutb) * aindenv
-aleft, aright		    Pan			            p7, asignal * iamplitude
+afmout                  =                       (aouta + aoutb) * aindenv
+aleft, aright		    Pan			            p7, afmout * iamplitude
 p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
@@ -657,6 +674,7 @@ p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
 ifrequency,iamplitude	NoteOn                  p4, p5, 7000
 iattack			        =			            0.002
 isustain		        =			            p3
+idecay				=				    1.5
 irelease		        =			            0.05
 icarrier                =                       1
 iratio                  =                       1
@@ -664,8 +682,8 @@ ifmamplitude            =                       6
 index                   =                       2.5
 ifrequencyb             =                       ifrequency * 1.003
 icarrierb               =                       icarrier * 1.004
-aindenv                 expseg                  .000001, iattack, 1.0, isustain, .0125, irelease, .000001
-aindex                  =                       aindenv * index * ifmamplitude - .000001
+aindenv                 transeg                 0.0, iattack, -7.0, 1.0, idecay, -7.0, 0.025, isustain, 0.0, 0.025, irelease, -7.0, 0.0
+aindex                  =                       aindenv * index * ifmamplitude
 aouta                   foscili                 1.0, ifrequency, icarrier, iratio, index, 1
 aoutb                   foscili                 1.0, ifrequencyb, icarrierb, iratio, index, 1
                         ; Plus amplitude correction.
@@ -733,6 +751,7 @@ aleft, aright		    Pan			            p7, asignal * adamping
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 8000
 iattack			        =			            0.002
+idecay				=				1.5
 isustain		        =			            p3
 irelease		        =			            0.05
 ihertz                  =                       ifrequency
@@ -744,16 +763,15 @@ ihertzright             =                       cpsoct(ioctave - idetune)
 igenleft                =                       gisine
 igenright               =                       gicosine
 kvibrato                poscil                  1.0 / 120.0, 7.0, 1
-kexponential            expseg                  1.0, p3 + iattack, 0.0001, irelease, .0001
-kenvelope               =                       (kexponential - 0.0001)
+kenvelope            	transeg                 0.0, iattack, -7.0, 1.0, idecay, -7.0, 0.125, isustain, 0.0, 0.125, irelease, -7.0, 0.0
 ag                      pluck                   kenvelope, cpsoct(ioctave + kvibrato), ifrequency, igenleft, 1
 agleft                  pluck                   kenvelope, ihertzleft,  ifrequency, igenleft, 1
 agright                 pluck                   kenvelope, ihertzright, ifrequency, igenright, 1
 imsleft                 =                       0.2 * 1000
 imsright                =                       0.21 * 1000
-adelayleft              vdelay                  ag * kenvelope, imsleft, imsleft + 100
-adelayright             vdelay                  ag * kenvelope, imsright, imsright + 100
-asignal                 =                       agleft + adelayleft + agright + adelayright
+adelayleft              vdelay                  ag, imsleft, imsleft + 100
+adelayright             vdelay                  ag, imsright, imsright + 100
+asignal                 =                       kenvelope * (agleft + adelayleft + agright + adelayright)
                         ; Highpass filter to exclude speaker cone excursions.
 asignal1                butterhp                asignal, 32.0
 asignal2                balance                 asignal1, asignal
@@ -829,7 +847,7 @@ a6th                    poscil                  0, 5.9932*ifqc,  iwheel4, iphase
 a8th                    poscil                  4, 8*ifqc,       iwheel4, iphase/(ikey+36)
 asignal                 =                       asubfund + asub3rd + afund + a2nd + a3rd + a4th + a5th + a6th + a8th
 aleft, aright		    Pan			            p7, asignal * iamplitude
-p3, aleft, aright	    Declick			        0.25, p3, .5, aleft, aright
+p3, aleft, aright	    Declick			        0.025, p3, .15, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
                         endin
@@ -1383,7 +1401,7 @@ afwav  	                deltapi                 ipupos
 afwdout	                deltapi                 idlt - 1 / sr + avibrato	
                         ; lpf/attn due to reflection impedance		
 afwdout	                filter2                 afwdout, 3, 0, ia0, ia1, ia0  
-  			            delayw                  ainputf + afwdout * ifbfac * ifbfac
+                        delayw                  ainputf + afwdout * ifbfac * ifbfac
                         ; backward trav wave delay line
 abkwd  	                delayr                  (idlt + ivibDepth) * 1.1
                         ; output tap point for bkwd traveling wave
@@ -1820,7 +1838,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
                         
-			            instr 65                ; Chebyshev Waveshaping Drone, Michael Gogins
+                        instr 65                ; Chebyshev Waveshaping Drone, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;   p1      p2      p3          p4              p5         p6           p7        p8
                         ;   insno   onset   duration    fundamental     numerator  denominator  velocity  pan
@@ -1844,9 +1862,9 @@ aleft, aright		    Pan			            p7, aleft + aright
 p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         AssignSend		        p1, 0.2, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
-			            endin
+                        endin
                         
-			            instr 66                ; Reverb Sine, Michael Gogins
+                        instr 66                ; Reverb Sine, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 20000
@@ -1861,9 +1879,9 @@ aleft, aright		    Pan			            p7, (aleft + aright) * 2.0
 p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
-			            endin
+                        endin
                         
-			            instr 67                ; Reverb Sine 2, Michael Gogins
+                        instr 67                ; Reverb Sine 2, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 20000
@@ -1879,7 +1897,7 @@ p3, aleft, aright	    Declick			        iattack, isustain, idecay, aleft, aright
                         ; print                   p3, iamplitude, iattack, idecay, isustain
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
-			            endin
+                        endin
                         
                         instr 68                ; FM with reverberated modulator, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2053,6 +2071,14 @@ i 220       0       -1   0.1     0.1
 ; Will be turned off by 'e' statement in score.
 
 f 0 300
+
+
+
+
+
+
+
+
 
 
 
