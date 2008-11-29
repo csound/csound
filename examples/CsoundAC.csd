@@ -24,6 +24,11 @@ csound -f -h -M0 -d -m99 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 ; - Modular code
 ; - READABLE code!
 ;
+; TO DO
+;
+; Add instruments from Cyclic Bells.
+; Clean up 'TODO' commented instruments below.
+;
 ; PFIELDS
 ;
 ; All instruments use the following standardized set of pfields:
@@ -80,8 +85,8 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign	                0, 52
-                        massign                 1, 52
+                        massign	                0, 23
+                        massign                 1, 23
                         
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -1101,35 +1106,24 @@ p3, aleft, aright	    Declick			        0.025, p3, .15, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 23                ; Enhanced FM bell, John ffitch TODO: Fix this
+                        instr 23                ; FM Bell
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 9
-ioct			        =			            octcps(iHz)
-idur      		        =       		        15.0
-iamp      		        =       		        iamplitude
-ifenv     		        =       		        giffitch2                      	; BELL SETTINGS:
-ifdyn     		        =       		        giffitch3                      	; AMP AND INDEX ENV ARE EXPONENTIAL
-ifq1      		        =       		        cpsoct(ioct - 1.) * 5.         	; DECREASING, N1:N2 IS 5:7, imax=10
-if1       		        =         		        giffitch1                       ; DURATION = 15 sec
-ifq2      		        =         		        cpsoct(ioct - 1.) * 7.
-if2       		        =         		        giffitch1
-imax      		        =         		        10
-aenv      		        oscili    		        iamp, 1. / idur, ifenv      	; ENVELOPE
-adyn      		        oscili    		        ifq2 * imax, 1. / idur, ifdyn	; DYNAMIC
-anoise    		        rand      		        50.
-amod      		        oscili    		        adyn + anoise, ifq2, if2   	    ; MODULATOR
-acar      		        oscili    		        aenv, ifq1 + amod, if1     	    ; CARRIER
-                        timout    		        0.5, idur, noisend
-knenv     		        linseg    		        iamp, 0.2, iamp, 0.3, 0
-anoise3   		        rand      		        knenv
-anoise4   		        butterbp  		        anoise3, iamp, 100.
-anoise5   		        balance   		        anoise4, anoise3
-noisend:
-arvb      		        nreverb   		        acar, 2, 0.1
-asignal      		    =         		        acar + anoise5 + arvb
-aleft, aright		    Pan			            p7, asignal
-p3, aleft, aright	    Declick			        0.003, p3, .5, aleft, aright
+kc1                     =                       5
+kc2                     =                       5
+kvdepth                 =                       0.0125
+kvrate                  =                       5.1
+ifn1                    =                       1
+ifn2                    =                       1
+ifn3                    =                       1
+ifn4                    =                       1
+ivfn                    =                       1
+aout	                fmbell	                iamplitude, iHz, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+aenv                    transeg                 0.0, .001, -6, 1.0, 9, -6, 0
+aout                    =                       aout * aenv
+aleft, aright		    Pan			            p7, aout
+p3, aleft, aright	    Declick			        0.001, p3, .5, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.1, 1.0
                         SendOut			        p1, aleft, aright
                         endin
