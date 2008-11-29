@@ -80,9 +80,9 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign	                0, 59
-                        massign                 1, 59
-
+                        massign	                0, 52
+                        massign                 1, 52
+                        
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -115,7 +115,7 @@ giFluidSteinway		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__l
                         fluidProgramSelect	    giFluidsynth, 0, giFluidSteinway, 0, 1
 
 giFluidGM		        fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
-                        fluidProgramSelect	    giFluidsynth, 1, giFluidGM, 0, 26
+                        fluidProgramSelect	    giFluidsynth, 1, giFluidGM, 0, 59
 
 giFluidMarimba		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Marimba Moonman (414KB).SF2", giFluidsynth, 1
                         fluidProgramSelect	    giFluidsynth, 2, giFluidMarimba, 0, 0
@@ -1101,8 +1101,7 @@ p3, aleft, aright	    Declick			        0.025, p3, .15, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 23                ; Enhanced FM bell, John ffitch
-                        ; TODO Fix this
+                        instr 23                ; Enhanced FM bell, John ffitch TODO: Fix this
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 9
@@ -1198,9 +1197,8 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 29                ; STK Brass
+                        instr 29                ; STK Brass TODO: Fix this
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        ; TODO Fix this.
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
                                                 ; Control Change Numbers: 
@@ -1449,9 +1447,8 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 44                ; STK Simple
+                        instr 44                ; STK Simple TODO: Needs work.
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        ; TODO Needs work.
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -33
                                                 ; Control Change Numbers:
@@ -1477,9 +1474,8 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 46                ; STK StifKarp
+                        instr 46                ; STK StifKarp TODO: Fix funny harmonic?
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        ; TODO Needs work -- funny harmonic.
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -3
                                                 ; Control Change Numbers:
@@ -1783,9 +1779,8 @@ ichan                   init                    1.0
 
 #end
 
-                        instr 57                ; Epicycloid or Spirograph curve, Mikelson
+                        instr 57                ; Epicycloid or Spirograph curve, Mikelson TODO: Find better parameters?
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        ; TODO Find better parameters
                         ; This set of parametric equations defines the path traced by
                         ; a point on a circle of radius B rotating outside a circle of
                         ; radius A.
@@ -1909,7 +1904,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 60                ; Low-level plucked string, Comajuncosas
+                        instr 60                ; Low-level plucked string, Comajuncosas TODO: Fix this.
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ; Low level implementation
                         ; of the classic Karplus-Strong algorithm
@@ -1930,7 +1925,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ; e
                         ; i1 0.11 15 6.09 .11  1600
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 27
 ip5                     =                       0.3
 ip6                     =                       iamplitude
 ipluck                  =                       ip5 ; p5; pluck position ( 0 to 1 )
@@ -1990,7 +1985,7 @@ anoize                  =                       0 ; supress last impulse when wa
                         ; i2  .      4    1000  6.03   0.5
                         ; i2  .      16   1000  6.00   0.5
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 21
                         ; Initializations
 ifqc                    =                       iHz
 ip4                     =                       iamplitude
@@ -2041,7 +2036,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ; i3  .      4    .          8.05   0.99      .       .        .
                         ; i3  .      16   .          9.00   1.0       .       .        .
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -3
 aflute1                 init                    0
 ifqc                    =                       iHz ; cpspch(p5)
 ip4                     =                       iamplitude
@@ -2098,7 +2093,7 @@ p3, aleft, aright	    Declick			        0.003, p3, 0.05, aleft, aright
                         ; i4    .     4     .        8.00        1.7   1000        0.2         1
                         ; i4    +    16     .        9.00        1.8   1000        0.2         1
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -2
 ip4                     =                       iamplitude
 ip6                     =                       1.6
 ip7                     =                       1000
@@ -2156,7 +2151,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ; i1  30.7    9.3  900    8.05  .      4       .014    150   2.5
                         ; i1  34.2    8.8  700   10.02  .      4       .14     150   1.6
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 52
 ip4                     =                       iamplitude
 ip5                     =                       iHz
 ip6                     =                       gigrtab
@@ -2178,8 +2173,8 @@ kamp                    linseg                  0, ifade, 1, idur - 2 * ifade, 1
 aoutl                   grain                   ip4,  ifqc,  idens, 100,   ifqc * ifrng, igdur, igrtab,   iwintab,  5
 aoutr                   grain                   ip4,  ifqc,  idens, 100,   ifqc * ifrng, igdur, igrtab,   iwintab,  5
 ;                       outs                    aoutl*kamp,  aoutr*kamp
-aleft                   =                       aoutl * kamp
-aright                  =                       aoutr * kamp
+aleft                   =                       aoutl * kamp * iamplitude
+aright                  =                       aoutr * kamp * iamplitude
 p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         AssignSend		        p1, 0.2, 0.0, 0.2, 1
                         SendOut			        p1, aleft, aright
@@ -2194,7 +2189,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         ; i   1       0      180          60              3          2            60        0.000
                         ; i   1       0       60          60             28         15            60        0.875
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -1
 iattack 		        = 			            0.02
 idecay                  =                       0.05
 isustain		        =			            p3
@@ -2214,7 +2209,7 @@ p3, aleft, aright	    Declick			        iattack, p3, irelease, aleft, aright
                         instr 66                ; Reverb Sine, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 8.5
 iattack 		        = 			            0.02
 idecay                  =                       0.03
 isustain		        =			            p3
@@ -2231,12 +2226,12 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         instr 67                ; Reverb Sine 2, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 0
-iattack 		        = 			            0.02
+iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 4.5
+iattack 		        = 			            0.006
 idecay                  =                       0.03
 isustain		        =			            p3
 irelease 		        = 			            0.25
-kenvelope               transeg                 0.0, iattack, 2.5, iamplitude, isustain, 0.0, iamplitude, idecay, 2.5, 0.0
+kenvelope               transeg                 0.0, iattack, -2.5, iamplitude, isustain, 0.0, iamplitude, idecay, 2.5, 0.0
 asignal                 poscil3                 kenvelope, iHz, gicosine
 aleft, aright           reverbsc                asignal, asignal, 0.80, 10000, sr, 0.375 
 aleft, aright		    Pan			            p7, (aleft + aright) * 2.0
