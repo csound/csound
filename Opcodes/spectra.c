@@ -546,14 +546,14 @@ int spdspset(CSOUND *csound, SPECDISP *p)
 int specdisp(CSOUND *csound, SPECDISP *p)
 {
     /* RWD is this enough? */
-    if (p->wsig->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("specdisp: not initialised"));
-    }
+    if (p->wsig->auxch.auxp==NULL) goto err1;
     if (!(--p->countdown)) {            /* on countdown     */
       csound->display(csound, &p->dwindow);     /*    display spect */
       p->countdown = p->timcount;       /*    & reset count */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specdisp: not initialised"));
 }
 
 int sptrkset(CSOUND *csound, SPECPTRK *p)
@@ -693,9 +693,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
       int32 lobin, hibin;
 
-      if (inp==NULL) {             /* RWD fix */
-        return csound->PerfError(csound, Str("specptrk: not initialised"));
-      }
+      if (inp==NULL) goto err1;             /* RWD fix */
       if ((kvar = *p->kvar) < FL(0.0))
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
@@ -818,6 +816,8 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
     if (p->ftimcnt)
       specdisp(csound,&p->fdisplay);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specptrk: not initialised"));
 }
 
 int spsumset(CSOUND *csound, SPECSUM *p)
@@ -832,9 +832,7 @@ int specsum(CSOUND *csound, SPECSUM *p)
                                /*         optionally interpolate the output  */
 {
     SPECDAT *specp = p->wsig;
-    if (specp->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("specsum: not initialised"));
-    }
+    if (specp->auxch.auxp==NULL) goto err1; /* RWD fix */
     if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
@@ -850,6 +848,8 @@ int specsum(CSOUND *csound, SPECSUM *p)
     if (p->kinterp)           /*   & interp if reqd  */
       p->kval += p->kinc;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specsum: not initialised"));
 }
 
 int spadmset(CSOUND *csound, SPECADDM *p)
@@ -887,9 +887,7 @@ int specaddm(CSOUND *csound, SPECADDM *p)
 {
     if ((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
         (p->wsig2->auxch.auxp==NULL) ||
-        (p->waddm->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, Str("specaddm: not initialised"));
-    }
+        (p->waddm->auxch.auxp==NULL)) goto err1;
     if (p->wsig1->ktimstamp == csound->kcounter) {  /* if inspec1 is new:     */
       MYFLT *in1p = (MYFLT *) p->wsig1->auxch.auxp;
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
@@ -903,6 +901,8 @@ int specaddm(CSOUND *csound, SPECADDM *p)
       p->waddm->ktimstamp = csound->kcounter;  /* mark the output spec as new */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specaddm: not initialised"));
 }
 
 int spdifset(CSOUND *csound, SPECDIFF *p)
@@ -942,9 +942,7 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
         ||
         (p->specsave.auxch.auxp==NULL)
         ||
-        (p->wdiff->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, Str("specdiff: not initialised"));
-    }
+        (p->wdiff->auxch.auxp==NULL)) goto err1;
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
@@ -965,6 +963,8 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
       p->wdiff->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specdiff: not initialised"));
 }
 
 int spsclset(CSOUND *csound, SPECSCAL *p)
@@ -1031,9 +1031,7 @@ int specscal(CSOUND *csound, SPECSCAL *p)
         ||
         (p->wscaled->auxch.auxp==NULL)
         ||
-        (p->fscale==NULL)) {
-      return csound->PerfError(csound, Str("specscal: not initialised"));
-    }
+        (p->fscale==NULL)) goto err1;
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       SPECDAT *outspecp = p->wscaled;
       MYFLT *inp = (MYFLT *) inspecp->auxch.auxp;
@@ -1058,6 +1056,8 @@ int specscal(CSOUND *csound, SPECSCAL *p)
       outspecp->ktimstamp = csound->kcounter;     /* mark the outspec as new */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specscal: not initialised"));
 }
 
 int sphstset(CSOUND *csound, SPECHIST *p)
@@ -1096,9 +1096,7 @@ int spechist(CSOUND *csound, SPECHIST *p)
         ||
         (p->accumer.auxch.auxp==NULL)
         ||
-        (p->wacout->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, Str("spechist: not initialised"));
-    }
+        (p->wacout->auxch.auxp==NULL)) goto err1;
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *acup = (MYFLT *) p->accumer.auxch.auxp;
@@ -1114,6 +1112,8 @@ int spechist(CSOUND *csound, SPECHIST *p)
       p->wacout->ktimstamp = csound->kcounter; /* mark the output spec as new */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("spechist: not initialised"));
 }
 
 int spfilset(CSOUND *csound, SPECFILT *p)
@@ -1189,10 +1189,9 @@ int specfilt(CSOUND *csound, SPECFILT *p)
       MYFLT curval, *coefp = p->coefs;
       MYFLT *persp = p->states;
       int   n,npts = inspecp->npts;
-
-      if (newp==NULL || outp==NULL || coefp==NULL || persp==NULL) { /* RWD */
-        return csound->PerfError(csound, Str("specfilt: not initialised"));
-      }
+      
+      if (newp==NULL || outp==NULL || coefp==NULL || persp==NULL)  /* RWD */
+        goto err1;
       for (n=0; n<npts;n++) {                      /* for npts of inspec:     */
         outp[n] = curval = persp[n];               /*   output current point  */
         persp[n] = coefp[n] * curval + newp[n];    /*   decay & addin newval  */
@@ -1200,6 +1199,8 @@ int specfilt(CSOUND *csound, SPECFILT *p)
       outspecp->ktimstamp = csound->kcounter;      /* mark output spec as new */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("specfilt: not initialised"));
 }
 #endif
 

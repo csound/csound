@@ -243,9 +243,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
     int           i, n, nn, nSamples, rBufPos;
     int           m = csound->ksmps;
 
-    if (p->initDone <= 0) {
-      return csound->PerfError(csound, Str("ftconv: not initialised"));
-    }
+    if (p->initDone <= 0) goto err1;
     nSamples = p->partSize;
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
     for (nn = 0; nn < m; nn++) {
@@ -285,6 +283,8 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("ftconv: not initialised"));
 }
 
 /* module interface functions */

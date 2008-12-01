@@ -124,7 +124,7 @@ static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 
     if ((ftp = csound->FTFind(csound,ifn)) != NULL) p->wave = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for Singwave"));
+      return csound->InitError(csound, Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);

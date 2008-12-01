@@ -135,8 +135,8 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     double *iirdel[4],x1,x2,y,del;
     double  *ydels = p->ydels;
     double scale = p->scaler;
-    int *dp1 = &(p->dp1);
-    int *dp2 = &(p->dp2);
+    int p1 = p->dp1;
+    int p2 = p->dp2;
     int i,j,del1size, iirdelsize, nsmps = csound->ksmps;
 
     iirdel[0] = (double *) p->iirdelay1.auxp;
@@ -150,23 +150,24 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     for (i=0; i < nsmps; i++) {
 
       /* long delay */
-      del = del1[*dp1];
-      del1[*dp1] = x1 = (double)in[i];
+      del = del1[p1];
+      del1[p1] = x1 = (double)in[i];
 
       /* IIR cascade */
       for (j=0; j < 4; j++) {
-        x2 = iirdel[j][*dp2];
-        iirdel[j][*dp2] = x1;
+        x2 = iirdel[j][p2];
+        iirdel[j][p2] = x1;
         y = x1 - x2 + ydels[j];
         ydels[j] = y;
         x1 = y*scale;
       }
       out[i] = (MYFLT)(del - x1);
 
-      *dp1 = (*dp1 == del1size-1 ? 0 : *dp1 + 1);
-      *dp2 = (*dp2 == iirdelsize-1 ? 0 : *dp2 + 1);
+      p1 = (p1 == del1size-1 ? 0 : p1 + 1);
+      p2 = (p2 == iirdelsize-1 ? 0 : p2 + 1);
     }
     return OK;
+    p->dp1 = p1; p->dp2 = p2;
 }
 
 

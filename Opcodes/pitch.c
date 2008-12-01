@@ -343,9 +343,7 @@ int pitch(CSOUND *csound, PITCH *p)
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
       int32 lobin, hibin;
 
-      if (inp==NULL) {             /* RWD fix */
-        return csound->PerfError(csound, Str("pitch: not initialised"));
-      }
+      if (inp==NULL) goto err1;            /* RWD fix */
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
       lobin = (int32)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
       hibin = (int32)((kval + kvar) * specp->nfreqs);
@@ -450,6 +448,8 @@ int pitch(CSOUND *csound, PITCH *p)
     *p->koct = p->kval;                   /* output true decoct & amp */
     *p->kamp = p->kavl * FL(4.0);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pitch: not initialised"));
 }
 
 /* Multiply and accumulate opcodes */

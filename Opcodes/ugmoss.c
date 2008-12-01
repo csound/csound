@@ -403,9 +403,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
 
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("vcomb: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     ar = p->ar;
     asig = p->asig;
     endp = (MYFLT *) p->auxch.endp;
@@ -446,6 +444,8 @@ static int vcomb(CSOUND *csound, VCOMB *p)
     }
     p->pntr = wp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vcomb: not initialised"));
 }
 
 static int valpass(CSOUND *csound, VCOMB *p)
@@ -455,9 +455,7 @@ static int valpass(CSOUND *csound, VCOMB *p)
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
 
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("valpass: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     ar = p->ar;
     asig = p->asig;
     endp = (MYFLT *) p->auxch.endp;
@@ -499,6 +497,8 @@ static int valpass(CSOUND *csound, VCOMB *p)
     }
     p->pntr = wp;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("valpass: not initialised"));
 }
 
 static int ftmorfset(CSOUND *csound, FTMORF *p)

@@ -98,9 +98,7 @@ static int fog(CSOUND *csound, FOGS *p)
     for (n=0;n<nsmps;n++) {
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
         p->fundphs &= PHMASK;
-        if ((ovp = p->basovrlap.nxtfree) == NULL) {
-          return csound->PerfError(csound, Str("FOF needs more overlaps"));
-        }
+        if ((ovp = p->basovrlap.nxtfree) == NULL) goto err1;
         if (newpulse(csound, p, ovp, amp, fund, ptch)) { /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;           /* & link into  */
           p->basovrlap.nxtact = ovp;                   /*   actlist    */
@@ -155,6 +153,8 @@ static int fog(CSOUND *csound, FOGS *p)
       p->durtogo--;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("FOF needs more overlaps"));
 }
 
 static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,

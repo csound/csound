@@ -380,7 +380,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
       CMPLX *bframe;
       int NB = 1+N/2, n;
-      csound->InitError(csound, "pvsosc does not work while sliding");
+      return csound->InitError(csound, "pvsosc does not work while sliding");
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
@@ -740,8 +740,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
     int     test;
     float   *fout, *fa, *fb;
 
-    if (!fsigs_equal(p->fa, p->fb))
-      return csound->PerfError(csound, Str("pvsmix: formats are different."));
+    if (!fsigs_equal(p->fa, p->fb)) goto err1;
 #ifdef SDFT
     if (p->fa->sliding) {
       CMPLX * fout, *fa, *fb;
@@ -779,6 +778,8 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
       p->fout->framecount = p->lastframe = p->fa->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvsmix: formats are different."));
 }
 
 /* pvsfilter  */
@@ -828,11 +829,8 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
     float   *fout = (float *) p->fout->frame.auxp;
     float   *fil = (float *) p->fil->frame.auxp;
 
-    if (fout == NULL)
-      return csound->PerfError(csound, Str("pvsfilter: not initialised"));
-    if (!fsigs_equal(p->fin, p->fil))
-      return csound->PerfError(csound,
-                               Str("pvsfilter: formats are different."));
+    if (fout == NULL) goto err1;
+    if (!fsigs_equal(p->fin, p->fil)) goto err2;
 
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -870,6 +868,11 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvsfilter: not initialised"));
+ err2:
+    return csound->PerfError(csound,
+                             Str("pvsfilter: formats are different."));
 }
 
 /* pvscale  */
@@ -917,8 +920,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
 
-    if (fout == NULL)
-      return csound->PerfError(csound, Str("pvscale: not initialised"));
+    if (fout == NULL) goto err1;
 
 #ifdef SDFT
     if (p->fout->sliding) {
@@ -993,6 +995,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvscale: not initialised"));
 }
 
 /* pvshift */
@@ -1044,8 +1048,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
 
-    if (fout == NULL)
-      return csound->PerfError(csound, Str("pvshift: not initialised"));
+    if (fout == NULL) goto err1;
 #ifdef SDFT
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
@@ -1130,6 +1133,8 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvshift: not initialised"));
 }
 
 /* pvsblur */
@@ -1206,8 +1211,7 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
     float   *fout = (float *) p->fout->frame.auxp;
     float   *delay = (float *) p->delframes.auxp;
 
-    if (fout == NULL || delay == NULL)
-      return csound->PerfError(csound, Str("pvsblur: not initialised"));
+    if (fout == NULL || delay == NULL) goto err1;
 
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -1279,6 +1283,8 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
     }
 
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("pvsblur: not initialised"));
 }
 
 /* pvstencil  */
@@ -1307,7 +1313,6 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
       p->fout->sliding = 1;
     }
     else 
-/* return csound->InitError(csound, "SDFT Not implemented in this case yet"); */
 #endif
     {
       if (p->fout->frame.auxp == NULL ||
@@ -1352,7 +1357,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + n*NB;
         for (i = 0; i < NB; i++) {
-          if (fin[i].re > ftable[i] * masklevel) 
+          if (fin[i].re > ftable[i] * masklevel)
             fout[i].re = fin[i].re;   /* Just copy */
           else {
             fout[i].re = fin[i].re * g; /* or apply gain */
@@ -1376,8 +1381,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 
         framesize = p->fin->N + 2;
 
-        if (fout == NULL)
-          return csound->PerfError(csound, Str("pvstencil: not initialised"));
+        if (fout == NULL) goto err1;
 
         if (p->lastframe < p->fin->framecount) {
 
@@ -1394,6 +1398,8 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
         }
       }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvstencil: not initialised"));
 }
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)

@@ -87,9 +87,7 @@ int pvread(CSOUND *csound, PVREAD *p)
     MYFLT  buf[2];
     int    size = pvfrsiz(p);
 
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
-    }
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err1;
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
@@ -101,6 +99,8 @@ int pvread(CSOUND *csound, PVREAD *p)
     *p->kfreq = buf[1];
     *p->kamp = buf[0];
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 
 static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)

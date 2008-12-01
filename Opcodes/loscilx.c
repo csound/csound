@@ -349,8 +349,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     int     winSmps;
     float   winBuf[LOSCILX_MAX_INTERP_SIZE];
 
-    if (p->dataPtr == NULL)
-      return csound->PerfError(csound, Str("loscilx: not initialised"));
+    if (p->dataPtr == NULL) goto err1;
 
     if (*(p->kcps) != p->prvKcps) {
       double  f;
@@ -662,6 +661,8 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     } while (++i < csound->ksmps);
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("loscilx: not initialised"));
 }
 
  /* ------------------------------------------------------------------------ */

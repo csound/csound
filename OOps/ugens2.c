@@ -204,8 +204,8 @@ static int itblchk(CSOUND *csound, TABLE *p)
      * on the state of ixmode. */
     if (*p->ixmode)
       p->xbmul = p->ftp->flen;
-
-    else    p->xbmul = 1L;
+    else
+      p->xbmul = 1L;
 
     /* Multiply the ixoff value by the xbmul denormalisation
      * factor and then check it is between 0 and the table length.
@@ -269,8 +269,7 @@ int tblset(CSOUND *csound, TABLE *p)
       if (csound->ksmps == 1)
         csound->Warning(csound, msg, opname);
       else {
-        csound->InitError(csound, msg, opname);
-        csound->LongJmp(csound, 1);
+        return csound->InitError(csound, msg, opname);
       }
     }
     p->h.iopadr = (SUBR) itblchk;
@@ -287,8 +286,7 @@ int tblsetkt(CSOUND *csound, TABLE *p)
       if (csound->ksmps == 1)
         csound->Warning(csound, msg, opname);
       else {
-        csound->InitError(csound, msg, opname);
-        csound->LongJmp(csound, 1);
+        return csound->InitError(csound, msg, opname);
       }
     }
     p->h.iopadr = (SUBR) ptblchk;
@@ -1211,7 +1209,7 @@ int oscaa(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-   return csound->PerfError(csound, Str("oscil: not initialised"));
+    return csound->PerfError(csound, Str("oscil: not initialised"));
 }
 
 int koscli(CSOUND *csound, OSC   *p)
@@ -1535,7 +1533,7 @@ int oscak3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-      return csound->PerfError(csound, Str("oscil3: not initialised"));
+    return csound->PerfError(csound, Str("oscil3: not initialised"));
 }
 
 int oscaa3(CSOUND *csound, OSC   *p)

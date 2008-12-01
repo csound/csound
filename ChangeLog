@@ -1,3 +1,8 @@
+2008-11-30  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (csoundFTAlloc): Make size change with active
+	instruments a PerfError
+
 2008-11-21  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/filter.c (izfilter): Loop went 1 too many for

@@ -49,15 +49,7 @@ static int scsnu_initw(CSOUND *csound, PSCSNU *p)
                                Str("scanu: Could not find ifnnit ftable"));
     }
     if (fi->flen != p->len)
-      csound->Die(csound, Str("scanu: Init table has bad size"));
-    /*
-      memcpy is 20 times faster that loop!!
-    for (i = 0 ; i != p->len ; i++) {
-      p->x0[i] = fi->ftable[i];
-      p->x1[i] = fi->ftable[i];
-      p->x2[i] = fi->ftable[i];
-    }
-    */
+      return csound->InitError(csound, Str("scanu: Init table has bad size"));
     memcpy(p->x0, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x1, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x2, fi->ftable, p->len*sizeof(MYFLT));
@@ -220,8 +212,8 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
                                Str("scanu: Could not find ifncentr table"));
     }
     if (f->flen != len)
-      csound->Die(csound, Str("scanu: Parameter tables should all "
-                              "have the same length"));
+      return csound->InitError(csound, Str("scanu: Parameter tables should all "
+                                           "have the same length"));
     p->c = f->ftable;
 
     /* Damping */
@@ -230,8 +222,8 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
                                Str("scanu: Could not find ifndamp table"));
     }
     if (f->flen != len)
-      csound->Die(csound, Str("scanu: Parameter tables should all "
-                              "have the same length"));
+      return csound->InitError(csound, Str("scanu: Parameter tables should all "
+                                           "have the same length"));
     p->d = f->ftable;
 
     /* Spring stiffness */
@@ -246,7 +238,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
      /* Check that the size is good */
       if (f->flen < len*len)
-        csound->Die(csound, Str("scanu: Spring matrix is too small"));
+        return csound->InitError(csound, Str("scanu: Spring matrix is too small"));
 
       /* Setup an easier addressing scheme */
       csound->AuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
@@ -367,8 +359,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
     int     len = p->len;
 
     pp = p->pp;
-    if (pp == NULL)
-      return csound->PerfError(csound, Str("scanu: not initialised"));
+    if (pp == NULL) goto err1;
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
@@ -432,6 +423,8 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
       p->idx++;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("scanu: not initialised"));
 }
 
 /****************************************************************************
@@ -476,11 +469,11 @@ static int scsns_init(CSOUND *csound, PSCSNS *p)
     /* Check that trajectory is within bounds */
     for (i = 0 ; i != p->tlen ; i++)
       if (t->ftable[i] < 0 || t->ftable[i] >= p->p->len)
-        csound->Die(csound, Str("vermp: Trajectory table includes "
-                                "values out of range"));
+        return csound->InitError(csound, Str("vermp: Trajectory table includes "
+                                             "values out of range"));
     /* Allocate memory and pad to accomodate interpolation */
-                              /* Note that the 3 here is a hack -- jpff */
-    csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(int32), &p->aux_t);
+                              /* Note that the 4 here is a hack -- jpff */
+    csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
     p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
     /* Fill 'er up */
     for (i = 0 ; i != p->tlen ; i++)
@@ -489,7 +482,7 @@ static int scsns_init(CSOUND *csound, PSCSNS *p)
     for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
       p->t[-i] = p->t[i];
     for (i = 0 ; i <= oscil_interp/2 ; i++)
-      p->t[p->tlen+1] = p->t[i];
+      p->t[p->tlen+i] = p->t[i];
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
