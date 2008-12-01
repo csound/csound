@@ -584,7 +584,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
                                                "values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      csound->AuxAlloc(csound, (p->tlen + )*sizeof(int32), &p->aux_t);
+      csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
       p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
