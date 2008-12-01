@@ -366,19 +366,19 @@ static int vcoset(CSOUND *csound, VCO *p)
     MYFLT ndsave;
 
     ndsave = (MYFLT) ndel;
-    /* csound->AuxAlloc(csound, sizeof(MYFLT)*16385L, &p->auxd); Do this later
-       p->sine = (MYFLT*)p->auxd.auxp;
-       for (i=0; i<16384; i++)
-         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0)); */
+    if ((ftp = csound->FTFind(csound, p->sine)) == NULL)
+      return NOTOK;
 
-    if ((ftp = csound->FTFind(csound, p->sine)) != NULL) {
-      p->ftp = ftp;
-      if (*p->iphs >= FL(0.0))
-        p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
-      p->ampcod = (XINARG1) ? 1 : 0;
-      p->cpscod = (XINARG2) ? 1 : 0;
+    p->ftp = ftp;
+    if (*p->iphs >= FL(0.0))
+      p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
+    /* Does it need this? */
+    else {
+      printf("Initial value of lphs set to zero\n");
+      p->lphs = 0;
     }
-    else return NOTOK;
+    p->ampcod = (XINARG1) ? 1 : 0;
+    p->cpscod = (XINARG2) ? 1 : 0;
 
     if (*p->iskip==FL(0.0)) {
       p->ynm1 = (*p->wave == FL(1.0)) ? -FL(0.5) : FL(0.0);
@@ -428,9 +428,7 @@ static int vco(CSOUND *csound, VCO *p)
     leaky = p->leaky;
 
     ftp = p->ftp;
-    if (buf==NULL || ftp==NULL) {            /* RWD fix */
-      return csound->PerfError(csound, Str("vco: not initialised"));
-    }
+    if (buf==NULL || ftp==NULL) goto err1;            /* RWD fix */
     maxd = (uint32) (*p->maxd * csound->esr);
     if (maxd == 0) maxd = 1;    /* Degenerate case */
     indx = p->left;
@@ -446,6 +444,7 @@ static int vco(CSOUND *csound, VCO *p)
     rtfqc = SQRT(fqc);
     knh = (int)(csound->esr*p->nyq/fqc);
     if ((n = (int)knh) <= 0) {
+      csound->Message(csound, "knh=%x nyq=%f fqc=%f\n", knh, p->nyq, fqc);
                                 /* Line apparently missing here */
       csound->Message(csound, Str("vco knh (%d) <= 0; taken as 1\n"), n);
       n = 1;
@@ -596,6 +595,8 @@ static int vco(CSOUND *csound, VCO *p)
     p->left = indx;             /*      and keep track of where you are */
     p->lphs = phs;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vco: not initialised"));
 }
 
 /***************************************************************************/
@@ -844,9 +845,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
     MYFLT   in1, g1, g2, g3;
     int     n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("delay: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
 
     outp = p->out;
     inp  = p->in;
@@ -957,6 +956,8 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
       p->del3p = del3p;         /* save the new del3p */
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("delay: not initialised"));
 }
 
 /***************************************************************************/

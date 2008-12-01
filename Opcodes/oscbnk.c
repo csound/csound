@@ -415,9 +415,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     if (p->nr_osc == -1) {
       return OK;         /* nothing to render */
     }
-    else if ((p->seed == 0L) || (p->osc == NULL)) {
-      return csound->PerfError(csound, Str("oscbnk: not initialised"));
-    }
+    else if ((p->seed == 0L) || (p->osc == NULL)) goto err1;
 
     /* check oscillator ftable */
 
@@ -542,6 +540,8 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     }
     p->init_k = 0;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("oscbnk: not initialised"));
 }
 
 /* ---------------- grain2 set-up ---------------- */
@@ -672,9 +672,7 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
     if (p->nr_osc == -1) {
       return OK;                   /* nothing to render */
     }
-    else if ((p->seed == 0L) || (p->osc == NULL)) {
-      return csound->PerfError(csound, Str("grain2: not initialised"));
-    }
+    else if ((p->seed == 0L) || (p->osc == NULL)) goto err1;
 
     /* check grain ftable */
 
@@ -738,6 +736,8 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
       aout++;
     } while (--nn);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("grain2: not initialised"));
 }
 
 /* ---------------- grain3 set-up ---------------- */
@@ -825,9 +825,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     memset(p->ar, 0, nsmps*sizeof(MYFLT));
     /* for (nn = 0; nn < csound->ksmps; nn++) p->ar[nn] = FL(0.0); */
 
-    if ((p->seed == 0L) || (p->osc == NULL)) {
-      return csound->PerfError(csound, Str("grain3: not initialised"));
-    }
+    if ((p->seed == 0L) || (p->osc == NULL)) goto err1;
 
     /* assign object data to local variables */
 
@@ -918,9 +916,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
           grain2_init_grain_phase(p->osc_end, frq, w_frq,
                                    frq_scl, f_nolock);
         if (++(p->osc_end) > p->osc_max) p->osc_end = p->osc;
-        if (p->osc_end == p->osc_start) {
-          return csound->PerfError(csound, Str("grain3 needs more overlaps"));
-        }
+        if (p->osc_end == p->osc_start) goto err2;
         g_ph -= g_frq;
       }
     }
@@ -939,9 +935,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
         }
         grain3_init_grain(p, p->osc_end, w_ph, *phs);
         if (++(p->osc_end) > p->osc_max) p->osc_end = p->osc;
-        if (p->osc_end == p->osc_start) {
-          return csound->PerfError(csound, Str("grain3 needs more overlaps"));
-        }
+        if (p->osc_end == p->osc_start) goto err2;
       }
 
       if (o == p->osc_end) {            /* no active grains     */
@@ -989,6 +983,10 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     }
     p->x_phs = x_ph;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("grain3: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("grain3 needs more overlaps"));
 }
 
 /* ----------------------------- rnd31 opcode ------------------------------ */
@@ -1043,9 +1041,7 @@ static int rnd31k(CSOUND *csound, RND31 *p)
     MYFLT rpow;
     int   rmode;
 
-    if (!p->seed) {
-      return csound->PerfError(csound, Str("rnd31: not initialised"));
-    }
+    if (!p->seed) goto err1;
 
     /* random distribution */
     rpow = *(p->rpow);
@@ -1061,6 +1057,8 @@ static int rnd31k(CSOUND *csound, RND31 *p)
 
     *(p->out) = *(p->scl) * oscbnk_rnd_bipolar(&(p->seed), rpow, rmode);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("rnd31: not initialised"));
 }
 
 /* ---- rnd31 / a-rate ---- */
@@ -1070,9 +1068,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
     MYFLT   scl, *out, rpow;
     int     rmode, nn;
 
-    if (!p->seed) {
-      return csound->PerfError(csound, Str("rnd31: not initialised"));
-    }
+    if (!p->seed) goto err1;
 
     nn = csound->ksmps;
     scl = *(p->scl); out = p->out;
@@ -1098,6 +1094,8 @@ static int rnd31a(CSOUND *csound, RND31 *p)
       *(out++) = scl * oscbnk_rnd_bipolar(&(p->seed), rpow, rmode);
     } while (--nn);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("rnd31: not initialised"));
 }
 
 /* ---- oscilikt initialisation ---- */

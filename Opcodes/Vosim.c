@@ -122,9 +122,7 @@ int vosim(CSOUND* csound, VOSIM *p)
     int32  lobits;
 
     FUNC *ftp = p->ftable;
-    if (ftp == NULL) {
-      return csound->PerfError(csound, Str("vosim: not initialised"));
-    }
+    if (ftp == NULL) goto err1;
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 
@@ -156,6 +154,8 @@ int vosim(CSOUND* csound, VOSIM *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vosim: not initialised"));
 }
 
 

@@ -302,9 +302,7 @@ static int atsread(CSOUND *csound, ATSREAD *p)
     MYFLT   frIndx;
     MYFLT   buf[2];
 
-    if (p->atsmemfile == NULL) {
-      return csound->PerfError(csound, Str("ATSREAD: not initialised"));
-    }
+    if (p->atsmemfile == NULL) goto err1;
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
       if (p->prFlg) {
@@ -330,6 +328,8 @@ static int atsread(CSOUND *csound, ATSREAD *p)
     *p->kfreq = buf[1];
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("ATSREAD: not initialised"));
 }
 
 /*
@@ -422,9 +422,7 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
 {
     MYFLT   frIndx;
 
-    if (p->atsmemfile == NULL) {
-      return csound->PerfError(csound, Str("ATSREADNZ: not initialised"));
-    }
+    if (p->atsmemfile == NULL) goto err1;
     /* make sure we have not over steped the bounds of the data */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
@@ -447,6 +445,8 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
       p->prFlg = 1;
     *p->kenergy = FetchNzBand(p, frIndx);
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("ATSREADNZ: not initialised"));
 }
 
 /*
@@ -575,9 +575,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     buf = p->buf;
 
     /* ftp is a poiter to the ftable */
-    if (p->auxch.auxp == NULL || (ftp = p->ftp) == NULL) {
-      return csound->PerfError(csound, Str("ATSADD: not initialised"));
-    }
+    if (p->auxch.auxp == NULL || (ftp = p->ftp) == NULL) goto err1;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -637,6 +635,8 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       oscphase++;
     }
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("ATSADD: not initialised"));
 }
 
 static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
@@ -1624,9 +1624,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     ATS_DATA_LOC  *buf;
     ATS_DATA_LOC  *buf2;
 
-    if (p->table == NULL) {     /* RWD fix */
-      return csound->PerfError(csound, Str("ATSBUFREAD: not initialised"));
-    }
+    if (p->table == NULL) goto err1;     /* RWD fix */
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -1660,6 +1658,8 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     qsort(buf, (int) *p->iptls, sizeof(ATS_DATA_LOC), mycomp);
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("ATSBUFREAD: not initialised"));
 }
 
 /* ATS partial tap */
@@ -1691,14 +1691,14 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
     ATSBUFREAD  *atsbufreadaddr;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) {
-      return csound->PerfError(csound,
-                               Str("ATSPARTIALTAP: you must have an "
-                                   "atsbufread before an atspartialtap"));
-    }
+    if (atsbufreadaddr == NULL) goto err1;
     *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].freq);
     *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].amp);
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("ATSPARTIALTAP: you must have an "
+                                 "atsbufread before an atspartialtap"));
 }
 
 /* ATS interpread */
@@ -1721,11 +1721,7 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
 
     /* make sure we have data to read from */
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) {
-      return csound->PerfError(csound,
-                               Str("ATSINTERPREAD: you must have an "
-                                   "atsbufread before an atsinterpread"));
-    }
+    if (atsbufreadaddr == NULL) goto err1;
     /* make sure we are not asking for unreasonble frequencies */
     if (*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0)) {
       if (p->overflowflag) {
@@ -1757,6 +1753,10 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
                          (atsbufreadaddr->table[i]).amp));
  /* *p->kamp = (MYFLT) (atsbufreadaddr->table[i]).amp; */
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("ATSINTERPREAD: you must have an "
+                                 "atsbufread before an atsinterpread"));
 }
 
 /* ATS cross */
@@ -1971,11 +1971,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     ATS_DATA_LOC *buf;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) {
-      return csound->PerfError(csound,
-                               Str("ATSCROSS: you must have an "
-                                   "atsbufread before an atsinterpread"));
-    }
+    if (atsbufreadaddr == NULL) goto err1;
 
     buf = p->buf;
     /* ftp is a pointer to the ftable */
@@ -2044,6 +2040,10 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       //oscphase++;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("ATSCROSS: you must have an "
+                                 "atsbufread before an atsinterpread"));
 }
 
 /* end of ugnorman.c */

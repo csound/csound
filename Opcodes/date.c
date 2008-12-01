@@ -22,7 +22,7 @@
 */
 
 #include "csdl.h"
-#include <time.h> 
+#include <time.h>
 
 typedef struct {
    OPDS h;
@@ -67,7 +67,7 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     return OK;
 }
 
-static OENTRY localops[] = 
+static OENTRY localops[] =
 {
     { "date",    sizeof(DATEMYFLT),     1,     "i",    "",(SUBR)datemyfltset, NULL, NULL },
     { "dates",   sizeof(DATESTRING),    1,     "S",    "j",(SUBR)datestringset, NULL, NULL },

@@ -179,9 +179,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                         /* float versions of above to be sent to FFT routines */
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
 
-    if (p->mfp==NULL) {         /* RWD fix */
-      return csound->PerfError(csound, Str("hrtfer: not initialised"));
-    }
+    if (p->mfp==NULL) goto err1;         /* RWD fix */
         /* update local variables */
     kElev = p->kElev;
     kAz = p->kAz;
@@ -487,6 +485,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 #endif
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("hrtfer: not initialised"));
 }
 
 static OENTRY localops[] = {

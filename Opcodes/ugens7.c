@@ -92,9 +92,7 @@ static int fof(CSOUND *csound, FOFS *p)
     int32   n, nsmps = csound->ksmps, fund_inc, form_inc;
     MYFLT   v1, fract ,*ftab;
 
-    if (p->auxch.auxp==NULL) { /* RWD fix */
-      return csound->PerfError(csound, Str("fof: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
     ar = p->ar;
     amp = p->xamp;
     fund = p->xfund;
@@ -106,9 +104,7 @@ static int fof(CSOUND *csound, FOFS *p)
     for (n=0; n<nsmps; n++) {
       if (p->fundphs & MAXLEN) {               /* if phs has wrapped */
         p->fundphs &= PHMASK;
-        if ((ovp = p->basovrlap.nxtfree) == NULL) {
-          return csound->PerfError(csound, Str("FOF needs more overlaps"));
-        }
+        if ((ovp = p->basovrlap.nxtfree) == NULL) goto err2;
         if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
           p->basovrlap.nxtact = ovp;             /*   actlist    */
@@ -169,6 +165,10 @@ static int fof(CSOUND *csound, FOFS *p)
       p->durtogo--;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("fof: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("FOF needs more overlaps"));
 }
 
 static int newpulse(CSOUND *csound,

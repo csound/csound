@@ -928,9 +928,7 @@ static int vibrato(CSOUND *csound, VIBRATO *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("vibrato(krate): not initialised"));
-    }
+    if (ftp==NULL) goto err1;
     fract = (MYFLT) (phs - (int32)phs);
     ftab = ftp->ftable + (int32)phs;
     v1 = *ftab++;
@@ -962,6 +960,8 @@ static int vibrato(CSOUND *csound, VIBRATO *p)
       p->dfdmaxFreq = (p->num2freq - p->num1freq) / FMAXLEN;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vibrato(krate): not initialised"));
 }
 
 static int vibr_set(CSOUND *csound, VIBR *p)
@@ -1214,14 +1214,14 @@ static int jittersa(CSOUND *csound, JITTERS *p)
 static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
-        return csound->PerfError(csound, Str("Invalid ftable no. %f"),
-                                         *p->tableNum);
-      }
+      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     *p->out = p->ftp->ftable[(int32)(randGab * MYFLT2LONG(p->ftp->flen))];
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("Invalid ftable no. %f"),
+                             *p->tableNum);
 }
 
 static int iDiscreteUserRand(CSOUND *csound, DURAND *p)
@@ -1237,10 +1237,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
     int n, nsmps = csound->ksmps, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
-        return csound->PerfError(csound, Str("Invalid ftable no. %f"),
-                                         *p->tableNum);
-      }
+      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     table = p->ftp->ftable;
@@ -1249,6 +1246,9 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
       out[n] = table[(int32)(randGab) * MYFLT2LONG(flen)];
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("Invalid ftable no. %f"),
+                             *p->tableNum);
 }
 
 static int kContinuousUserRand(CSOUND *csound, CURAND *p)
@@ -1256,10 +1256,7 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
-        return csound->PerfError(csound, Str("Invalid ftable no. %f"),
-                                         *p->tableNum);
-      }
+      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
@@ -1269,6 +1266,9 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
     v2 = *(p->ftp->ftable + indx + 1);
     *p->out = (v1 + (v2 - v1) * fract) * (*p->max - *p->min) + *p->min;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("Invalid ftable no. %f"),
+                             *p->tableNum);
 }
 
 static int iContinuousUserRand(CSOUND *csound, CURAND *p)
@@ -1292,10 +1292,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
-        return csound->PerfError(csound, Str("Invalid ftable no. %f"),
-                                         *p->tableNum);
-      }
+      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
 
@@ -1312,6 +1309,9 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
       out[n] = (v1 + (v2 - v1) * fract) * rge + min;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("Invalid ftable no. %f"),
+                             *p->tableNum);
 }
 
 static int ikRangeRand(CSOUND *csound, RANGERAND *p)

@@ -139,23 +139,16 @@ int pvoc(CSOUND *csound, PVOC *p)
     int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
 
-    if (p->auxch.auxp == NULL) {
-      return csound->PerfError(csound, Str("pvoc: not initialised"));
-    }
+    if (p->auxch.auxp == NULL) goto err1;
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (outlen>PVFFTSIZE) {  /* Maximum transposition down is one octave */
-                             /* ..so we won't run into buf2Size problems */
-      return csound->PerfError(csound, Str("PVOC transpose too low"));
-    }
-    if (outlen<2*csound->ksmps) {    /* minimum post-squeeze windowlength */
-      return csound->PerfError(csound, Str("PVOC transpose too high"));
-    }
+    if (outlen>PVFFTSIZE)  /* Maximum transposition down is one octave */
+      goto err2;           /* ..so we won't run into buf2Size problems */
+    if (outlen<2*csound->ksmps)     /* minimum post-squeeze windowlength */
+      goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
-    }
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
@@ -203,6 +196,14 @@ int pvoc(CSOUND *csound, PVOC *p)
       p->rslt[i] *= scaleFac;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvoc: not initialised"));
+ err2:
+      return csound->PerfError(csound, Str("PVOC transpose too low"));
+ err3:
+    return csound->PerfError(csound, Str("PVOC transpose too high"));
+ err4:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 
 /* RWD 8:2001: custom version of ldmemfile();

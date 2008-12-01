@@ -87,9 +87,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     MYFLT       gcount = p->gcount;
 
                                 /* Pick up common values to locals for speed */
-    if (p->aux.auxp==NULL) {
-      return csound->PerfError(csound, Str("grain: not initialised"));
-    }
+    if (p->aux.auxp==NULL) goto err1;
     gtp  = p->gftp;
     gtbl = gtp->ftable;
 
@@ -148,6 +146,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     memcpy(out, rem, csound->ksmps*sizeof(MYFLT));
     p->gcount = gcount;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("grain: not initialised"));
 }
 
 #define S(x)    sizeof(x)

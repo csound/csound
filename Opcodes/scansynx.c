@@ -89,7 +89,7 @@ static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
                                Str("scanux: Could not find ifnnit ftable"));
     }
     if (fi->flen != len)
-      csound->Die(csound, Str("scanux: Init table has bad size"));
+      return csound->InitError(csound, Str("scanux: Init table has bad size"));
     /*
       memcpy is 20 times faster that loop!!
     for (i = 0 ; i != len ; i++) {
@@ -189,14 +189,16 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsnx_elem *) pp->scsnx_list;
     if (i == NULL) {
-      csound->Die(csound, Str("xscans: No scan synthesis net specified"));
+      return csound->InitError(csound,
+                               Str("xscans: No scan synthesis net specified"));
     }
     while (1) {
       if (i->id == id)
         break;
       i = i->next;
       if (i == NULL)
-        csound->Die(csound, Str("Eek ... scan synthesis id was not found"));
+        return csound->InitError(csound,
+                                 Str("Eek ... scan synthesis id was not found"));
     }
     return i->p;
 }
@@ -234,8 +236,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
                                Str("scanux: Could not find ifncentr table"));
     }
     if (f->flen != len)
-      csound->Die(csound, Str("scanux: Parameter tables should all "
-                              "have the same length"));
+      return csound->InitError(csound, Str("scanux: Parameter tables should all "
+                                           "have the same length"));
     p->c = f->ftable;
 
     /* Damping */
@@ -244,8 +246,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
                                Str("scanux: Could not find ifndamp table"));
     }
     if (f->flen != len)
-      csound->Die(csound, Str("scanux: Parameter tables should all "
-                              "have the same length"));
+      return csound->InitError(csound, Str("scanux: Parameter tables should all "
+                                           "have the same length"));
     p->d = f->ftable;
 
     /* Spring stiffness */
@@ -260,7 +262,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
      /* Check that the size is good */
       if (f->flen < len*len)
-        csound->Die(csound, Str("scanux: Spring matrix is too small"));
+        return csound->InitError(csound,
+                                 Str("scanux: Spring matrix is too small"));
 
       /* Setup an easier addressing scheme */
 #ifdef USING_CHAR
@@ -461,8 +464,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     MYFLT   rate = p->rate;
 
     pp = p->pp;
-    if (pp == NULL)
-      return csound->PerfError(csound, Str("xscanu: not initialised"));
+    if (pp == NULL) goto err1;
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
@@ -535,6 +537,8 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     p->idx = idx;
     p->exti = exti;
     return OK;
+ err1:
+      return csound->PerfError(csound, Str("xscanu: not initialised"));
 }
 
 /****************************************************************************
@@ -576,11 +580,11 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
       /* Check that trajectory is within bounds */
       for (i = 0 ; i != p->tlen ; i++)
         if (t->ftable[i] < 0 || t->ftable[i] >= p->p->len)
-          csound->Die(csound, Str("scsn: Trajectory table includes "
-                                  "values out of range"));
+          return csound->InitError(csound, Str("scsn: Trajectory table includes "
+                                               "values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
-      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(int32), &p->aux_t);
+      csound->AuxAlloc(csound, (p->tlen + )*sizeof(int32), &p->aux_t);
       p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
@@ -589,7 +593,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
       for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
         p->t[-i] = p->t[i];
       for (i = 0 ; i <= oscil_interp/2 ; i++)
-        p->t[p->tlen+1] = p->t[i];
+        p->t[p->tlen+i] = p->t[i];
     }
     /* Reset oscillator phase */
     p->phs = FL(0.0);
