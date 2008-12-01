@@ -113,12 +113,8 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
     MYFLT  *buf = p->fftBuf;
     int    size = pvfrsiz(p);
 
-    if (p->auxch.auxp == NULL) {        /* RWD fix */
-      return csound->PerfError(csound, Str("pvbufread: not initialised"));
-    }
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
-    }
+    if (p->auxch.auxp == NULL) goto err1;        /* RWD fix */
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err2;
     if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
@@ -130,6 +126,10 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
     p->buf = buf;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvbufread: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -239,23 +239,16 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     PVBUFREAD *q = p->pvbufread;
     int32    i, j;
 
-    if (p->auxch.auxp == NULL) {    /* RWD Fix */
-      return csound->PerfError(csound, Str("pvinterp: not initialised"));
-    }
+    if (p->auxch.auxp == NULL) goto err1;    /* RWD Fix */
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
-                            /* ..so we won't run into buf2Size problems */
-      return csound->PerfError(csound, Str("PVOC transpose too low"));
-    }
-    if (outlen<2*csound->ksmps) {   /* minimum post-squeeze windowlength */
-      return csound->PerfError(csound, Str("PVOC transpose too high"));
-    }
+    if (outlen>PVFFTSIZE)  /* Maximum transposition down is one octave */
+                           /* ..so we won't run into buf2Size problems */
+      goto err2;
+    if (outlen<2*csound->ksmps) goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
-    }
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
@@ -303,6 +296,14 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvinterp: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("PVOC transpose too low"));
+ err3:
+    return csound->PerfError(csound, Str("PVOC transpose too high"));
+ err4:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -412,23 +413,17 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     MYFLT   ampscale1 = *p->kampscale1;
     MYFLT   ampscale2 = *p->kampscale2;
 
-    if (p->auxch.auxp == NULL) {        /* RWD Fix */
-      return csound->PerfError(csound, Str("pvcross: not initialised"));
-    }
+    if (p->auxch.auxp == NULL) goto err1;        /* RWD Fix */
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
+    if (outlen>PVFFTSIZE)   /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
-      return csound->PerfError(csound, Str("PVOC transpose too low"));
-    }
-    if (outlen<2*csound->ksmps) {  /* minimum post-squeeze windowlength */
-      return csound->PerfError(csound, Str("PVOC transpose too high"));
-    }
+      goto err2;
+    if (outlen<2*csound->ksmps)   /* minimum post-squeeze windowlength */
+      goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
-    }
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
     if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
@@ -473,8 +468,6 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     }
     else {
       memset(buf2, 0, buf2Size*sizeof(MYFLT));
-      /* for (n = 0; n < buf2Size; ++n) */
-      /*   buf2[n] = FL(0.0); */
     }
 
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
@@ -487,5 +480,13 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     p->lastPex = pex;       /* needs to know last pitchexp to update phase */
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvcross: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("PVOC transpose too low"));
+ err3:
+    return csound->PerfError(csound, Str("PVOC transpose too high"));
+ err4:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 

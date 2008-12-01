@@ -145,11 +145,9 @@ int make_FM4Op(CSOUND *csound, FM4OP *p)
     make_ADSR(&p->adsr[2]);
     make_ADSR(&p->adsr[3]);
     make_TwoZero(&p->twozero);
-    if ((ftp = csound->FTFind(csound, p->vifn)) != NULL)
-      p->vibWave = ftp;
-    else { /* Expect sine wave */
-      return csound->PerfError(csound, Str("No table for VibWaveato"));
-    }
+    if ((ftp = csound->FTFind(csound, p->vifn)) == NULL)
+      goto err1;
+    p->vibWave = ftp;
     p->baseFreq = FL(440.0);
     p->ratios[0] = FL(1.0);
     p->ratios[1] = FL(1.0);
@@ -162,38 +160,28 @@ int make_FM4Op(CSOUND *csound, FM4OP *p)
     TwoZero_setZeroCoeffs(&p->twozero, tempCoeffs);
     p->twozero.gain = FL(0.0);
     return OK;
+ err1:
+/* Expect sine wave */
+    return csound->PerfError(csound, Str("No table for VibWaveato"));
 }
 
 static int FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn0)) != NULL)
-      p->waves[0] = ftp;
-    else {
-      return csound->PerfError(csound,
-                               Str("No table for FM4Op")); /* Expect sine wave */
-    }
-    if ((ftp = csound->FTFind(csound, p->ifn1)) != NULL)
-      p->waves[1] = ftp;
-    else {
-      return csound->PerfError(csound,
-                               Str("No table for FM4Op")); /* Expect sine wave */
-    }
-    if ((ftp = csound->FTFind(csound, p->ifn2)) != NULL)
-      p->waves[2] = ftp;
-    else {
-      return csound->PerfError(csound,
-                               Str("No table for FM4Op")); /* Expect sine wave */
-    }
-    if ((ftp = csound->FTFind(csound, p->ifn3)) != NULL)
-      p->waves[3] = ftp;
-    else {
-      return csound->PerfError(csound,
-                               Str("No table for FM4Op")); /* Expect sine wave */
-    }
+    if ((ftp = csound->FTFind(csound, p->ifn0)) == NULL) goto err1;
+    p->waves[0] = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn1)) == NULL) goto err1;
+    p->waves[1] = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn2)) == NULL) goto err1;
+    p->waves[2] = ftp;
+    if ((ftp = csound->FTFind(csound, p->ifn3)) == NULL) goto err1;
+    p->waves[3] = ftp;
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("No table for FM4Op")); /* Expect sine wave */
 }
 
 void FM4Op_setRatio(FM4OP *p, int whichOne, MYFLT ratio)

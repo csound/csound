@@ -77,9 +77,7 @@ static int space(CSOUND *csound, SPACE *p)
     MYFLT   v1, v2, fract, ndx;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
-      if ((ftp = p->ftp) == NULL) {
-        return csound->PerfError(csound, Str("space: not initialised"));
-      }
+      if ((ftp = p->ftp) == NULL) goto err1;
 
       ndx = *p->time * RESOLUTION; /* when data is res. frames/second */
       length = ftp->flen;
@@ -162,6 +160,8 @@ static int space(CSOUND *csound, SPACE *p)
       rrev4[n] = (localrev * ch4) + globalrev;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("space: not initialised"));
 }
 
 static int spsendset(CSOUND *csound, SPSEND *p)
@@ -208,9 +208,7 @@ static int spdist(CSOUND *csound, SPDIST *p)
     r = p->r;
 
     if (*p->ifn > 0) {
-      if ((ftp = p->ftp)==NULL) {
-        return csound->PerfError(csound, Str("spdist: not initialised"));
-      }
+      if ((ftp = p->ftp)==NULL) goto err1;
 
       ndx = *p->time * RESOLUTION; /* when data is 10 frames/second */
       length = ftp->flen;
@@ -244,6 +242,8 @@ static int spdist(CSOUND *csound, SPDIST *p)
     if (distance < FL(1.0)) distance = FL(1.0);
     *r=distance;
     return OK;
+    err1:
+        return csound->PerfError(csound, Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)

@@ -83,10 +83,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) {
-      return csound->PerfError(csound,
-                               Str("grain size smaller than 1 sample\n"));
-    }
+    if (grsize<1) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
@@ -159,6 +156,9 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     p->frac = frac;
 
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("grain size smaller than 1 sample\n"));
 }
 
 
@@ -233,10 +233,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) {
-      return csound->PerfError(csound,
-                               Str("grain size smaller than 1 sample\n"));
-    }
+    if (grsize<1) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -322,6 +319,9 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     p->frac = frac;
     p->firsttime = firsttime;
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("grain size smaller than 1 sample\n"));
 }
 
 #define DGRAIN_MAXCHAN 4
@@ -369,7 +369,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
 
     p->nChannels = (int) (p->OUTOCOUNT);
      if (p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN) {
-      return csound->InitError(csound, 
+      return csound->InitError(csound,
                                Str("diskgrain: invalid number of channels"));
     }
     p->efunc = csound->FTFind(csound, p->ifn2);
@@ -464,11 +464,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     if(fperiod  < FL(0.0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) {
-      return csound->PerfError(csound,
-                               Str("grain size smaller than 1 sample\n"));
-    }
-    else if (grsize > hdataframes) grsize = hdataframes;
+    if (grsize<1) goto err1;
+    if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
@@ -660,6 +657,9 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     p->read2 = read2;
     p->pos = pos;
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("grain size smaller than 1 sample\n"));
 }
 
 

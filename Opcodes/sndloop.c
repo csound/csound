@@ -919,8 +919,7 @@ static int pvsarp_process(CSOUND *csound, pvsarp *p)
   float *fin = (float *) p->fin->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL)
-    return csound->PerfError(csound,Str("pvsarp: not initialised\n"));
+  if (fout==NULL) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
     cf = cf >= 0 ? (cf < bins ? cf*bins : bins-1) : 0;
@@ -934,6 +933,8 @@ static int pvsarp_process(CSOUND *csound, pvsarp *p)
   }
 
   return OK;
+ err1:
+  return csound->PerfError(csound,Str("pvsarp: not initialised\n"));
 }
 
 static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
@@ -968,8 +969,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
   float *ffr = (float *) p->ffr->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL)
-    return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
+  if (fout==NULL) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
 
@@ -982,6 +982,8 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
   }
 
   return OK;
+ err1:
+  return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
 }
 
 static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
@@ -993,8 +995,7 @@ static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
   float *fi2 = (float *) p->ffr->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL)
-    return csound->PerfError(csound,Str("pvsmorph: not initialised\n"));
+  if (fout==NULL) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
 
@@ -1008,6 +1009,8 @@ static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
   }
 
   return OK;
+ err1:
+  return csound->PerfError(csound,Str("pvsmorph: not initialised\n"));
 }
 
 static OENTRY localops[] = {

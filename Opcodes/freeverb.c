@@ -176,9 +176,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
     int             nsmps = csound->ksmps;
 
     /* check if opcode was correctly initialised */
-    if (p->auxData.size <= 0L || p->auxData.auxp == NULL) {
-      return csound->PerfError(csound, Str("freeverb: not initialised"));
-    }
+    if (p->auxData.size <= 0L || p->auxData.auxp == NULL) goto err1;
     /* calculate reverb parameters */
     feedback = (double) *(p->kRoomSize) * scaleRoom + offsetRoom;
     if (*(p->kDampFactor) != p->prvDampFactor) {
@@ -256,6 +254,8 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
       p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("freeverb: not initialised"));
 }
 
 /* module interface functions */

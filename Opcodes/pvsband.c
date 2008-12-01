@@ -86,8 +86,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     MYFLT   fade = *p->fade;
     MYFLT   opef = FL(1.0) - EXP(fade);
 
-    if (fout == NULL)
-      return csound->PerfError(csound, Str("pvsband: not initialised"));
+    if (fout == NULL) goto err1;
 
     if (lowcut<FL(0.0)) lowcut = FL(0.0);
     if (lowbnd<lowcut) lowbnd = lowcut;
@@ -177,6 +176,8 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvsband: not initialised"));
 }
 
 static int pvsbrej(CSOUND *csound, PVSBAND *p)
@@ -191,8 +192,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     MYFLT   fade = *p->fade;
     MYFLT   opef = FL(1.0) - EXP(fade);
 
-    if (fout == NULL)
-      return csound->PerfError(csound, Str("pvsband: not initialised"));
+    if (fout == NULL) goto err1;
 
     if (lowcut<FL(0.0)) lowcut = FL(0.0);
     if (lowbnd<lowcut) lowbnd = lowcut;
@@ -280,6 +280,8 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvsband: not initialised"));
 }
 
 static OENTRY localops[] = {

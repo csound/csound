@@ -4,11 +4,11 @@
 
 static int tanhtable(FGDATA *ff, FUNC *ftp)
 {
-    MYFLT   *fp = ftp->ftable;
+    MYFLT   *fp   = ftp->ftable;
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
-    MYFLT   resc = ff->e.p[7];
-    MYFLT   step = (end - start) / (MYFLT) ftp->flen;
+    MYFLT   resc  = ff->e.p[7];
+    MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int     i;
     for (i = 0, x = start; i <= (int) ftp->flen; i++, x += step)
@@ -21,11 +21,11 @@ static int tanhtable(FGDATA *ff, FUNC *ftp)
 static int exptable(FGDATA *ff, FUNC *ftp)
 {
  /* CSOUND  *csound = ff->csound; */
-    MYFLT   *fp = ftp->ftable;
+    MYFLT   *fp   = ftp->ftable;
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
-    MYFLT   resc = ff->e.p[7];
-    MYFLT   step = (end - start) / (MYFLT) ftp->flen;
+    MYFLT   resc  = ff->e.p[7];
+    MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int     i;
 

@@ -108,11 +108,9 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     MYFLT width = *p->width;
     MYFLT range;
 
-    if (!fsigs_equal(p->finleft,p->finright))
-      csound->Die(csound, "pvsdemix : formats are different.\n");
+    if (!fsigs_equal(p->finleft,p->finright)) goto err1;
 
-    if (out==NULL)
-      csound->Die(csound, "pvsdemix : not initialised \n");
+    if (out==NULL) goto err2;
 
     if (p->lastframe < p->finleft->framecount) {
 
@@ -178,6 +176,10 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     }
 
     return OK;
+ err1:
+      return csound->PerfError(csound, "pvsdemix : formats are different.\n");
+ err2:
+      return csound->PerfError(csound, "pvsdemix : not initialised \n");
 }
 
 static OENTRY localops[] =

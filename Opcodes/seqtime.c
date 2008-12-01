@@ -89,10 +89,7 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
       int32 *ndx = &p->ndx;
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
-        if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
-          return csound->PerfError(csound,
-                                   Str("seqtime: incorrect table number"));
-        }
+        if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) goto err1;
         p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
@@ -144,6 +141,9 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("seqtime: incorrect table number"));
 }
 
 /**---------------------------------------**/
@@ -196,10 +196,7 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
 
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
-        if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) {
-          return csound->PerfError(csound,
-                                   Str("seqtim: incorrect table number"));
-        }
+        if ( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL) goto err1;
         p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
@@ -250,6 +247,9 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound,
+                             Str("seqtim: incorrect table number"));
 }
 
 #define S(x)    sizeof(x)

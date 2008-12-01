@@ -143,8 +143,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     MYFLT frac;
     float *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;
-    if(handle == NULL)
-       return csound->PerfError(csound, "Invalid buffer handle");
+    if(handle == NULL) goto err1;
 
     fout = (float *) p->fout->frame.auxp,
     buffer = handle->data;
@@ -185,6 +184,8 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     p->scnt += csound->ksmps;
 
     return OK;
+ err1:
+    return csound->PerfError(csound, "Invalid buffer handle");
   }
 
 #define S(x)    sizeof(x)

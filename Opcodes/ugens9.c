@@ -191,9 +191,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     ar[2] = p->ar3;
     ar[3] = p->ar4;
 
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("convolve: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
   /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
       if (outcnt <= csound->ksmps)
@@ -339,6 +337,8 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     p->outhead = outhead;
     p->outail = outail;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("convolve: not initialised"));
 }
 
 /* partitioned (low latency) overlap-save convolution.

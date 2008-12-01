@@ -274,9 +274,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
  /* Recover parameters from previous call.... */
    ftp = p->ftp;
-   if (p->ftp==NULL) {          /* RWD fix */
-     return csound->PerfError(csound, Str("grain4: not initialised"));
-   }
+   if (p->ftp==NULL) goto err1;          /* RWD fix */
    flen = ftp->flen;
    ftbl = ftp->ftable;
 
@@ -416,6 +414,9 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
      *ar++ *= *p->xamp;     /* increment audio pointer and multiply the xamp */
    } while (--nsmps);
    return OK;
+ err1:
+   return csound->PerfError(csound, Str("grain4: not initialised"));
+
 } /* end graingenv4(p) */
 
 /* Function return a float random number between -1 to +1 */

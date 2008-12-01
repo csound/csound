@@ -242,7 +242,7 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;
     else {                                    /* Expect an impulslything */
-      return csound->PerfError(csound, Str("No table for Marimba strike"));
+      return csound->InitError(csound, Str("No table for Marimba strike"));
     }
 
     if (make_Modal4(csound,
@@ -356,7 +356,7 @@ int vibraphnset(CSOUND *csound, VIBRAPHN *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL)
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
-      return csound->PerfError(csound, Str("No table for Vibraphone strike"));
+      return csound->InitError(csound, Str("No table for Vibraphone strike"));
     }
 
     if (make_Modal4(csound,
@@ -437,7 +437,7 @@ int agogobelset(CSOUND *csound, VIBRAPHN *p)
     /* Expect an impulslything */
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->m4.wave = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for Agogobell strike"));
+      return csound->InitError(csound, Str("No table for Agogobell strike"));
     }
 
     if (make_Modal4(csound,

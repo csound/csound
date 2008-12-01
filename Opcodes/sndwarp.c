@@ -104,9 +104,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       iwsize = *p->iwsize;
     int         overlap = *p->ioverlap;
 
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("sndwarp: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     r1 = p->r1;
     r2 = p->r2;
     memset(r1, 0, nsmps*sizeof(MYFLT));
@@ -183,6 +181,8 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("sndwarp: not initialised"));
 }
 
 /****************************************************************/
@@ -268,9 +268,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
 
-    if (p->auxch.auxp==NULL) {  /* RWD fix */
-      return csound->PerfError(csound, Str("sndwarpst: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
     r1 = p->r1;
     r2 = p->r2;
     r3 = p->r3;
@@ -352,6 +350,8 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
       }
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("sndwarpst: not initialised"));
 }
 
 #define S(x)    sizeof(x)

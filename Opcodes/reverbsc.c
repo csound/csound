@@ -210,9 +210,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     int       bufferSize; /* Local copy */
     double    dampFact = p->dampFact;
 
-    if (p->initDone <= 0) {
-      return csound->PerfError(csound, Str("reverbsc: not initialised"));
-    }
+    if (p->initDone <= 0) goto err1;
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
@@ -289,6 +287,8 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     }
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("reverbsc: not initialised"));
 }
 
 /* module interface functions */

@@ -673,9 +673,7 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   /* outPoint chases inpoint + 2 for interp and other        */
     outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);
 
-    if (p->length<=0) {
-      return csound->PerfError(csound, Str("DlineA not initialised"));
-    }
+    if (p->length<=0) goto err1;
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
     p->outPoint = (int32) outputPointer;    /* Integer part of delay          */
@@ -687,6 +685,8 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     }
     p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
     return 0;
+ err1:
+    return csound->PerfError(csound, Str("DlineA not initialised"));
 }
 
 MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */

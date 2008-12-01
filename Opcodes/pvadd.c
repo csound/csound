@@ -142,11 +142,9 @@ int pvadd(CSOUND *csound, PVADD *p)
     FUNC    *ftp;
     int32    lobits;
 
-    if (p->auxch.auxp == NULL)
-      return csound->PerfError(csound, Str("pvadd: not initialised"));
+    if (p->auxch.auxp == NULL) goto err1;
     ftp = p->ftp;
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0)
-      return csound->PerfError(csound, Str("PVADD timpnt < 0"));
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err2;
 
     if (frIndx > p->maxFr) { /* not past last one */
       frIndx = (MYFLT) p->maxFr;
@@ -189,6 +187,10 @@ int pvadd(CSOUND *csound, PVADD *p)
       oscphase++;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("pvadd: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("PVADD timpnt < 0"));
 }
 
 static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)

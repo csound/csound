@@ -70,9 +70,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     MYFLT   L = *p->L;
     MYFLT   maxamp, dvmaxamp, maxampd2;
 
-    if (fp == NULL) {                   /* RWD fix */
-      return csound->PerfError(csound, Str("nlfilt: not initialised"));
-    }
+    if (fp == NULL) goto err1;                   /* RWD fix */
     ar   = p->ar;
                                         /* L is k-rate so need to check */
     if (L < FL(1.0))
@@ -115,6 +113,8 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     }
     p->point = point;
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */

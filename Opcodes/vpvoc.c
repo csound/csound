@@ -97,9 +97,7 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
     int32        flength, upcnt;
 
     /* RWD fix */
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("tableseg: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
@@ -118,6 +116,8 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
         p->outfunc->ftable[i] = curval;
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("tableseg: not initialised"));
 }
 
 int ktablexseg(CSOUND *csound, TABLESEG *p)
@@ -128,9 +128,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
     int32        flength, upcnt;
 
     /* RWD fix */
-    if (p->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("tablexseg: not initialised"));
-    }
+    if (p->auxch.auxp==NULL) goto err1;
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
@@ -146,6 +144,8 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
         (curval + ((nxtval - curval) * (cntoverdur*cntoverdur)));
     }
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("tablexseg: not initialised"));
 }
 
 /************************************************************/
@@ -277,23 +277,21 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     int32     i, j;
 
     /* RWD fix */
-    if (p->auxch.auxp == NULL) {
-      return csound->PerfError(csound, Str("vpvoc: not initialised"));
-    }
+    if (p->auxch.auxp == NULL) goto err1;
 
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
     if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
-      return csound->PerfError(csound, Str("PVOC transpose too low"));
+      goto err2;
     }
     if (outlen<2*csound->ksmps) {   /* minimum post-squeeze windowlength */
-      return csound->PerfError(csound, Str("PVOC transpose too high"));
+      goto err3;
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
-      return csound->PerfError(csound, Str("PVOC timpnt < 0"));
+      goto err4;
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
@@ -356,5 +354,13 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
 
     return OK;
+ err1:
+    return csound->PerfError(csound, Str("vpvoc: not initialised"));
+ err2:
+    return csound->PerfError(csound, Str("PVOC transpose too low"));
+ err3:
+    return csound->PerfError(csound, Str("PVOC transpose too high"));
+ err4:
+    return csound->PerfError(csound, Str("PVOC timpnt < 0"));
 }
 
