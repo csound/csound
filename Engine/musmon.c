@@ -89,14 +89,14 @@ static void settempo(CSOUND *csound, MYFLT tempo)
     if (tempo <= FL(0.0)) return;
     if (csound->oparms->Beatmode==0)
 
-    csound->beatTime = 60.0 / (double) tempo;
+      csound->bt.ibeatTime = (int)(csound->esr*60.0 / (double) tempo);
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
 {
     if (csound->oparms->Beatmode)
-      *p->ans = (MYFLT) (60.0 / csound->beatTime);
+      *p->ans = (MYFLT) (60.0 / (csound->bt.ibeatTime * csound->esr));
     else
       *p->ans = FL(60.0);
     return OK;
@@ -485,7 +485,7 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
 
-    return insert_score_event(csound, &evt, csound->curTime);
+    return insert_score_event_at_sample(csound, &evt, csound->ct.icurTime);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -655,7 +655,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         }
         evt->p[1] = (MYFLT) insno;
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
-          evt->p[3] = evt->p3orig * (MYFLT) csound->beatTime;
+          evt->p[3] = evt->p3orig * (MYFLT) csound->bt.ibeatTime/csound->esr;
         if ((n = insert(csound, insno, evt))) {  /* else alloc, init, activate */
           printScoreError(csound, rtEvt,
                           Str(" - note deleted.  i%d (%s) had %d init errors"),
@@ -684,7 +684,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
           infoff(csound, -evt->p[1]);    /*  turnoff any infin cpy */
         else {
           if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
-            evt->p[3] = evt->p3orig * (MYFLT) csound->beatTime;
+            evt->p[3] = evt->p3orig * (MYFLT) csound->bt.ibeatTime/csound->esr;
           if ((n = insert(csound, insno, evt))) {
             /* else alloc, init, activate */
             printScoreError(csound, rtEvt,
@@ -753,8 +753,8 @@ static int process_rt_event(CSOUND *csound, int sensType)
     int     retval, insno, rfd;
 
     retval = 0;
-    if (csound->curp2 < csound->curTime) {
-      csound->curp2 = csound->curTime;
+    if (csound->curp2 * csound->esr < (double)csound->ct.icurTime) {
+      csound->curp2 = (double)csound->ct.icurTime/csound->esr;
       print_amp_values(csound, 0);
     }
     if (sensType == 4) {                  /* RM: Realtime orc event   */
@@ -829,7 +829,7 @@ int sensevents(CSOUND *csound)
         if (csound->frstoff->offbet <= tval) beatexpire(csound, tval);
       }
       else {
-        tval = csound->curTime + (0.505 * csound->curTime_inc);
+        tval = ((double)csound->ct.icurTime + csound->ksmps * 0.505)/csound->esr;
         if (csound->frstoff->offtim <= tval) timexpire(csound, tval);
       }
     }
@@ -894,6 +894,10 @@ int sensevents(CSOUND *csound)
         case 'a':
           csound->nxtim = (double) e->p[2] + csound->timeOffs;
           csound->nxtbt = (double) e->p2orig + csound->beatOffs;
+          if (e->opcod=='i')
+            if (csound->oparms->odebug)
+              csound->Message(csound, "new event: %16.13lf %16.13lf\n",
+                              csound->nxtim, csound->nxtbt);
           break;
         case 'e':
         case 'l':
@@ -913,10 +917,8 @@ int sensevents(CSOUND *csound)
           RNDINT((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
       else {
         csound->cyclesRemaining =
-          RNDINT((csound->nxtim - csound->curTime) * csound->ekr);
-        /* Is this necessary ?? */
-        csound->nxtim =
-          (csound->cyclesRemaining*csound->curTime_inc) + csound->curTime;
+          RNDINT((csound->nxtim*csound->esr - csound->ct.icurTime) / csound->ksmps);
+        csound->nxtim = (csound->cyclesRemaining*csound->ksmps+csound->ct.icurTime)/csound->esr;
       }
     }
 
@@ -954,7 +956,7 @@ int sensevents(CSOUND *csound)
 
               if (bp->type == SCOR_EVT) {
                 EVTBLK *evt = (EVTBLK*)bp->data;
-                evt->p[2] = csound->curTime;
+                evt->p[2] = (double)csound->ct.icurTime/csound->esr;
                 if ((retval = process_score_event(csound, evt, 1)) != 0) {
                   e->opcod = evt->opcod;        /* pass any s, e, or l */
                   goto scode;
@@ -1006,7 +1008,7 @@ int sensevents(CSOUND *csound)
       delete_pending_rt_events(csound);
       if (O->Beatmode)
         csound->curbt = csound->curBeat;
-      csound->curp2 = csound->nxtim = csound->timeOffs = csound->curTime;
+      csound->curp2 = csound->nxtim = csound->timeOffs = csound->ct.icurTime/csound->esr;
       csound->prvbt = csound->nxtbt = csound->beatOffs = csound->curbt;
       section_amps(csound, 1);
     }
@@ -1050,7 +1052,7 @@ static inline uint32 time2kcnt(CSOUND *csound, double tval)
 /* made.                                                              */
 /* Return value is zero on success.                                   */
 
-int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
+int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
 {
     double        start_time;
     EVTNODE       *e, *prv;
@@ -1098,14 +1100,14 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
         if (evt->pcnt < 3)
           goto pfld_err;
         /* calculate actual start time in seconds and k-periods */
-        start_time = (double) p[2] + time_ofs;
+        start_time = (double) p[2] + (double)time_ofs/csound->esr;
         start_kcnt = time2kcnt(csound, start_time);
         /* correct p2 value for section offset */
         p[2] = (MYFLT) (start_time - st->timeOffs);
         if (p[2] < FL(0.0))
           p[2] = FL(0.0);
         /* start beat: this is possibly wrong */
-        evt->p2orig = (MYFLT) (((start_time - st->curTime) / st->beatTime)
+        evt->p2orig = (MYFLT) (((start_time - st->ct.icurTime/st->esr) / st->bt.ibeatTime)
                                + (st->curBeat - st->beatOffs));
         if (evt->p2orig < FL(0.0))
           evt->p2orig = FL(0.0);
@@ -1119,7 +1121,7 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
       case 'i':                         /* note event */
         /* calculate the length in beats */
         if (evt->p3orig > FL(0.0))
-          evt->p3orig = (MYFLT) ((double) evt->p3orig / st->beatTime);
+          evt->p3orig = (MYFLT) ((double) evt->p3orig / st->bt.ibeatTime);
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
         if (evt->strarg != NULL && p[1] == SSTRCOD)
@@ -1135,13 +1137,13 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
         break;
       case 'a':                         /* advance score time */
         /* calculate the length in beats */
-        evt->p3orig = (MYFLT) ((double) evt->p3orig / st->beatTime);
+        evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->bt.ibeatTime);
       case 'f':                         /* function table */
         break;
       case 'e':                         /* end of score, */
       case 'l':                         /*   lplay list, */
       case 's':                         /*   section:    */
-        start_time = time_ofs;
+        start_time = (double)time_ofs/csound->esr;
         if (evt->pcnt >= 2)
           start_time += (double) p[2];
         evt->pcnt = 0;
@@ -1182,6 +1184,11 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
     return retval;
 }
 
+int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
+{
+    return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
+} 
+
 /* called by csoundRewindScore() to reset performance to time zero */
 
 void musmon_rewind_score(CSOUND *csound)
@@ -1197,7 +1204,9 @@ void musmon_rewind_score(CSOUND *csound)
       csound->nxtbt = csound->curbt = csound->prvbt = 0.0;
       csound->nxtim = csound->curp2 = 0.0;
       csound->beatOffs = csound->timeOffs = 0.0;
-      csound->curBeat = csound->curTime = 0.0;
+      /* csound->curBeat = csound->ct.curTime = 0.0; */
+      csound->curBeat = 0.0;
+      csound->ct.icurTime = 0L;
       csound->cyclesRemaining = 0;
       csound->evt.strarg = NULL;
       csound->evt.opcod = '\0';

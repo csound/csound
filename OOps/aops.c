@@ -643,7 +643,7 @@ int acpsoct(CSOUND *csound, EVAL *p)
 
 int octcps(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log((double)*p->a / ONEPT) / LOGTWO);
+    *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
     return OK;
 }
 
@@ -711,7 +711,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
       }
       fract += 0.005;
       *p->r = *p->ref * *(ftp->ftable + (int)(100.0*fract)) *
-        (MYFLT)pow((double)*p->cy, loct);
+        POWER(*p->cy, (MYFLT)loct);
     }
     return OK;
 }
@@ -1344,7 +1344,7 @@ int outq4(CSOUND *csound, OUTM *p)
 
 int outh(CSOUND *csound, OUTH *p)
 {
-    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
+    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3,
                                *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6;
     int nsmps = csound->ksmps;
     CSOUND_SPOUT_SPINLOCK
@@ -1377,7 +1377,7 @@ int outh(CSOUND *csound, OUTH *p)
 
 int outo(CSOUND *csound, OUTO *p)
 {
-    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3, 
+    MYFLT *sp = csound->spout, *ap1 = p->asig1, *ap2 = p->asig2, *ap3 = p->asig3,
                                *ap4 = p->asig4, *ap5 = p->asig5, *ap6 = p->asig6,
                                *ap7 = p->asig7, *ap8 = p->asig8;
     int nsmps = csound->ksmps;

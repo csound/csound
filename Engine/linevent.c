@@ -323,7 +323,7 @@ static void sensLine(CSOUND *csound, void *userData)
             ;
         }
         Linestart = (++cp);
-        insert_score_event(csound, &e, csound->curTime);
+        insert_score_event_at_sample(csound, &e, csound->ct.icurTime);
         continue;
  Lerr:
         n = cp - Linestart;                     /* error position */
@@ -384,7 +384,7 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
-    if (insert_score_event(csound, &evt, csound->curTime) != 0)
+    if (insert_score_event_at_sample(csound, &evt, csound->ct.icurTime) != 0)
       return csound->PerfError(csound, Str("event: error creating '%c' event"),
                                        opcod);
     return OK;
@@ -425,7 +425,7 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
       err = csound->hfgens(csound, &dummyftp, &evt, 0);
     }
     else
-      err = insert_score_event(csound, &evt, csound->curTime);
+      err = insert_score_event_at_sample(csound, &evt, csound->ct.icurTime);
     if (err)
       csound->InitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);

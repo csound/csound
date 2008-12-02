@@ -61,7 +61,7 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
 {
     if (ip->relesing)
       return;
-    ip->offtim = csound->curTime + (csound->curTime_inc * (double) ip->xtratim);
+    ip->offtim = (csound->ct.icurTime + csound->ksmps * (double) ip->xtratim)/csound->esr;
     ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
 }
@@ -78,7 +78,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (csound->advanceCnt)
       return 0;
     if (O->odebug)
-      csound->Message(csound, "activating instr %d\n", insno);
+      csound->Message(csound, "activating instr %d at %d\n", insno, csound->ct.icurTime);
     csound->inerrcnt = 0;
     tp = csound->instrtxtp[insno];
     if (tp->muted == 0) {
@@ -125,9 +125,6 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
     /* Add an active instrument */
     tp->active++;
-#ifdef TESTING
-    csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
-#endif
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
       if (nxtp->insno > insno ||
@@ -173,7 +170,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
     if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
+      ip->p2 = (MYFLT) (csound->ct.icurTime/csound->esr - csound->timeOffs);
     ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
     ip->m_chnbp      = (MCHNBLK*) NULL;
     ip->xtratim      = 0;
@@ -195,14 +192,26 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
     }
+#ifdef BETA
+    if (O->odebug)
+      csound->Message(csound, "In insert:  %d %lf %lf\n",
+                      __LINE__, ip->p3, ip->offtim); /* *********** */
+#endif
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
       double p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
-      ip->offtim = floor(ip->offtim * csound->ekr +0.505)/csound->ekr; /* quantise */
+      /* csound->Message(csound, "ip->offtim = %lf -> ", ip->offtim); */
+      ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
+      /* csound->Message(csound, "%lf\n", ip->offtim); */
       if (O->Beatmode) {
-        p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
-        ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
+        p2 = ((p2*csound->esr - csound->ct.icurTime) / csound->bt.ibeatTime) + csound->curBeat;
+        ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->bt.ibeatTime);
       }
+#ifdef BETA
+      if (O->odebug)
+        csound->Message(csound, "Calling schedofftim line %d; offtime= %lf (%lf)\n",
+                        __LINE__, ip->offtim, ip->offtim*csound->ekr); /* *********** */
+#endif
       schedofftim(csound, ip);                  /*   put in turnoff list */
     }
     else {
@@ -299,7 +308,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->offtim = -1.0;              /* set indef duration */
     ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
     ip->p1 = (MYFLT) insno;         /* set these required p-fields */
-    ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
+    ip->p2 = (MYFLT) (csound->ct.icurTime/csound->esr - csound->timeOffs);
     ip->p3 = FL(-1.0);
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
@@ -446,14 +455,26 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       ip->nxtoff = nxtp;
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
+#ifdef BETA
+      if (csound->oparms->odebug)
+        csound->Message(csound,"schedofftim: %lf %lf %f\n",
+                        ip->offtim, csound->ct.icurTime/csound->esr,
+                        csound->curTime_inc);
+#endif
       if (csound->oparms_.Beatmode) {
         double  tval = csound->curBeat + (0.505 * csound->curBeat_inc);
         if (ip->offbet <= tval) beatexpire(csound, tval);
       }
       else {
-        double  tval = csound->curTime + (0.505 * csound->curTime_inc);
+        double  tval = (csound->ct.icurTime + (0.505 * csound->ksmps))/csound->esr;
         if (ip->offtim <= tval) timexpire(csound, tval);
       }
+#ifdef BETA
+      if (csound->oparms->odebug)
+        csound->Message(csound,"schedofftim: %lf %lf\n", ip->offtim,
+                        (csound->ct.icurTime + (0.505 * csound->ksmps))/csound->esr,
+                        csound->ekr*((csound->ct.icurTime + (0.505 * csound->ksmps))/csound->esr));
+#endif
     }
     else {
       while ((prvp = nxtp)
@@ -550,6 +571,10 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     /* if extra time needed: schedoff at new time */
     if (ip->xtratim > 0) {
       set_xtratim(csound, ip);
+#ifdef BETA
+      if (csound->oparms->odebug)
+        csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+#endif
       schedofftim(csound, ip);
     }
     else {
@@ -1122,7 +1147,6 @@ INSDS *insert_event(CSOUND *csound,
 
     if (csound->advanceCnt)
       return NULL;
-    csound->Message(csound, "insert_event: %d %f %f ...\n", insno, when, dur);
 
     csound->inerrcnt = csound->tieflag = csound->reinitflag = 0;
     tp = csound->instrtxtp[insno];
@@ -1210,7 +1234,7 @@ INSDS *insert_event(CSOUND *csound,
       if (O->odebug) csound->Message(csound, Str("   ending at %p\n"), flp);
     }
     if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
+      ip->p2 = (MYFLT) (csound->ct.icurTime/csound->esr - csound->timeOffs);
     ip->offbet = (double) ip->p3;
     ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
     ip->xtratim = 0;
@@ -1245,8 +1269,8 @@ INSDS *insert_event(CSOUND *csound,
       double p2;
       p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
-      p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
-      ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
+      p2 = ((p2 - csound->ct.icurTime) / csound->bt.ibeatTime) + csound->curBeat;
+      ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->bt.ibeatTime);
       schedofftim(csound, ip);  /*      put in turnoff list */
       if (!ip->actflg) {
         ip = NULL; goto endsched;
@@ -1287,6 +1311,10 @@ void beatexpire(CSOUND *csound, double beat)
           /*   allow extra time for finite length (p3 > 0) score notes */
           set_xtratim(csound, ip);      /* enter release stage */
           csound->frstoff = ip->nxtoff; /* update turnoff list */
+#ifdef BETA
+          if (csound->oparms->odebug)
+            csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+#endif
           schedofftim(csound, ip);
           goto strt;                    /* and start again */
         }
@@ -1320,6 +1348,10 @@ void timexpire(CSOUND *csound, double time)
           /*   allow extra time for finite length (p3 > 0) score notes */
           set_xtratim(csound, ip);      /* enter release stage */
           csound->frstoff = ip->nxtoff; /* update turnoff list */
+#ifdef BETA
+          if (csound->oparms->odebug)
+            csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+#endif
           schedofftim(csound, ip);
           goto strt;                    /* and start again */
         }
