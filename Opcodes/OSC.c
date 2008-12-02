@@ -233,26 +233,26 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
 
     csound->LockMutex(p->mutex_);
     while (p->eventQueue != NULL) {
-      double  startTime;
+      long  startTime;
       rtEvt_t *ep = p->eventQueue;
       p->eventQueue = ep->nxt;
       csound->UnlockMutex(p->mutex_);
-      startTime = (p->absp2mode ? p->baseTime : csound->curTime);
-      startTime += (double) ep->e.p[2];
+      startTime = (p->absp2mode ? p->baseTime*csound->esr : csound->ct.icurTime);
+      startTime += (double) ep->e.p[2]*csound->esr;
       ep->e.p[2] = FL(0.0);
       if (ep->e.pcnt < 3 || ep->e.p[3] < FL(0.0) ||
           ep->e.opcod == 'q' || ep->e.opcod == 'f' || ep->e.opcod == 'e' ||
-          startTime + (double) ep->e.p[3] >= csound->curTime) {
-        if (startTime < csound->curTime) {
+          (double) ep->e.p[3] >= csound->ct.icurTime - startTime) {
+        if (startTime < csound->ct.icurTime) {
           if (ep->e.pcnt >= 3 && ep->e.p[3] > FL(0.0) &&
               ep->e.opcod != 'q' && ep->e.opcod != 'f')
-            ep->e.p[3] -= (MYFLT) (csound->curTime - startTime);
-          startTime = csound->curTime;
+            ep->e.p[3] -= (MYFLT) (csound->ct.icurTime - startTime)/csound->esr;
+          startTime = csound->ct.icurTime;
         }
         if (ep->e.opcod == 'T')
-          p->baseTime = csound->curTime;
+          p->baseTime = csound->ct.icurTime/csound->esr;
         else
-          csound->insert_score_event(csound, &(ep->e), startTime);
+          csound->insert_score_event_at_sample(csound, &(ep->e), startTime);
       }
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);

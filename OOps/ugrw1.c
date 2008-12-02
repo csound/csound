@@ -2835,7 +2835,7 @@ int printk(CSOUND *csound, PRINTK *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int)p->h.insdshead->p1);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->curTime);
+                               csound->ct.icurTime/csound->esr);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
