@@ -65,9 +65,9 @@ static CS_NOINLINE void
 
     if (nbytes < 2)
       return;
-    s = csound->curTime;
+    s = csound->ct.icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
-      s -= csound->curTime_inc;
+      s -= csound->ksmps/csound->esr;
     s *= 3000.0;
 #ifdef HAVE_C99
     t = (unsigned long) lrint(s);

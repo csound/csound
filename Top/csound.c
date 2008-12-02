@@ -309,6 +309,7 @@ extern "C" {
     ldmemfile2,
     csoundNotifyFileOpened,
     sftype2csfiletype,
+    insert_score_event_at_sample,
     /* NULL, */
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -318,8 +319,8 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL},
-    0,
+      NULL, NULL, NULL, NULL, NULL, NULL},
+    0,                          /* dither */
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
     /* ----------------------- public data fields ----------------------- */
@@ -349,8 +350,8 @@ extern "C" {
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
     0.0,            /*  timeOffs            */
     0.0,            /*  beatOffs            */
-    0.0,            /*  curTime             */
-    0.0,            /*  curTime_inc         */
+    0l,             /*  curTime             */
+    0l,             /*  curTime_inc         */
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
@@ -1281,7 +1282,8 @@ extern "C" {
       INSDS *ip;
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);
-      csound->curTime += csound->curTime_inc;
+      /* csound->ct.curTime += csound->cti.curTime_inc; */
+      csound->ct.icurTime += csound->ksmps;
       csound->curBeat += csound->curBeat_inc;
       /* if skipping time on request by 'a' score statement: */
       if (csound->advanceCnt) {
@@ -1543,7 +1545,7 @@ extern "C" {
 
   PUBLIC double csoundGetScoreTime(CSOUND *csound)
   {
-      return csound->curTime;
+      return (double)csound->ct.icurTime/csound->esr;
   }
 
   /*
@@ -1572,7 +1574,7 @@ extern "C" {
       if (!(csound->engineState & CS_STATE_COMP))
         return;
       /* otherwise seek to the requested time now */
-      aTime = (double) offset - csound->curTime;
+      aTime = (double) offset - (csound->ct.icurTime/csound->esr);
       if (aTime < 0.0 || offset < prv) {
         csoundRewindScore(csound);    /* will call csoundSetScoreOffsetSeconds */
         return;
@@ -1584,7 +1586,7 @@ extern "C" {
         evt.pcnt = 3;
         evt.p[2] = evt.p[1] = FL(0.0);
         evt.p[3] = (MYFLT) aTime;
-        insert_score_event(csound, &evt, csound->curTime);
+        insert_score_event_at_sample(csound, &evt, csound->ct.icurTime);
       }
   }
 
@@ -1803,7 +1805,7 @@ extern "C" {
       evt.pcnt = (int16) numFields;
       for (i = 0; i < (int) numFields; i++)
         evt.p[i + 1] = pfields[i];
-      return insert_score_event(csound, &evt, csound->curTime);
+      return insert_score_event_at_sample(csound, &evt, csound->ct.icurTime);
   }
 
   /*

@@ -1,3 +1,19 @@
+2008-12-02  jpff  <jpff@codemist.co.uk>
+
+	* Engine/insert.c:
+	* Engine/linevent.c:
+	* Engine/musmon.c:
+	* Engine/otran.c:
+	* H/csoundCore.h:
+	* H/prototyp.h:
+	* InOut/libsnd.c:
+	* InOut/midisend.c:
+	* OOps/schedule.c:
+	* OOps/ugrw1.c:
+	* Opcodes/OSC.c:
+	* Top/csound.c:	Change curTime to integer and work in samples
+	rather than seconds.  Same for beatTime
+
 2008-11-30  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (csoundFTAlloc): Make size change with active

@@ -68,6 +68,9 @@ extern "C" {
 #define XSTRCODE    ORTXT.xincod_str
 #define XOUTSTRCODE ORTXT.xoutcod_str
 
+#define CURTIME (((double)csound->ct.icurTime)/((double)csound->esr))
+#define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
+
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
 #define PHMASK     0x0FFFFFFL
@@ -974,8 +977,9 @@ extern const uint32_t csPlayScoMask;
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
+    int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[87];
+    SUBR dummyfn_2[86];
     union dither {
       int         output;
       SUBR        dummy;
@@ -1000,11 +1004,18 @@ extern const uint32_t csPlayScoMask;
     /** start time of current section    */
     double        timeOffs, beatOffs;
     /** current time in seconds, inc. per kprd */
-    double        curTime, curTime_inc;
+    union {
+      double        dummy;      /* Ensure old alignment */
+      long          icurTime;   /* Current time in samples */
+    } ct;
+    double        curTime_inc;
     /** current time in beats, inc per kprd */
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
-    double        beatTime;
+    union {
+      double        beatTimedummy;      /* Ensure old alignment */
+      long          ibeatTime;   /* Beat time in samples */
+    } bt;
     int           spoutlock, spinlock;
     /* Widgets */
     void          *widgetGlobals;
