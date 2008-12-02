@@ -121,7 +121,8 @@ int schedule(CSOUND *csound, SCHED *p)
       }
       if (*p->when <= FL(0.0)) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->curTime - csound->timeOffs),
+                                 (MYFLT) (csound->ct.icurTime/csound->esr -
+                                          csound->timeOffs),
                                  dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
@@ -131,7 +132,8 @@ int schedule(CSOUND *csound, SCHED *p)
         }
       }
       else
-        queue_event(csound, (MYFLT) which, (double)*p->when + csound->curTime,
+        queue_event(csound, (MYFLT) which,
+                    (double)*p->when + csound->ct.icurTime/csound->esr,
                             dur, p->INOCOUNT - 3, p->argums);
     }
     return OK;
@@ -197,9 +199,10 @@ int kschedule(CSOUND *csound, WSCHED *p)
       p->todo = 0;
                                 /* Insert event */
       starttime = (double)p->abs_when + (double)*(p->when) + csound->timeOffs;
-      if (starttime <= csound->curTime) {
+      if (starttime*csound->esr <= csound->ct.icurTime) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->curTime - csound->timeOffs),
+                                 (MYFLT) (csound->ct.icurTime/csound->esr -
+                                          csound->timeOffs),
                                  dur, p->INOCOUNT - 4, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
@@ -434,7 +437,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
 
 int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 {         /* k-rate event generator */
-    double  starttime;
+    long  starttime;
     int     i, argnum;
     EVTBLK  evt;
     char    name[512];
@@ -494,8 +497,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     evt.opcod = 'i';
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
-    starttime = (double)(csound->global_kcounter + p->kadjust)
-                / (double)csound->global_ekr;
+    starttime = csound->ksmps*(csound->global_kcounter + p->kadjust);
     /* Copy all arguments to the new event */
     for (i = 1; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];
@@ -510,7 +512,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       p->timrem = (int32) (*p->mintime * csound->global_ekr + FL(0.5));
     else
       p->timrem = 0;
-    return (insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK);
+    return (insert_score_event_at_sample(csound, &evt, starttime) == 0 ? OK : NOTOK);
 }
 
 /* Maldonado triggering of events */
