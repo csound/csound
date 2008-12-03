@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                      OTRAN.C         */
 #include <math.h>
 #include <ctype.h>
+#include <locale.h>
 
 #include "oload.h"
 #include "insert.h"
