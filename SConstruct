@@ -648,6 +648,7 @@ vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/so
 if not buildOLPC:
    portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
    portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
+   #portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
    fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
 if fltkFound:
     fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
@@ -1678,6 +1679,7 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     if getPlatform() == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
+    makePlugin(portMidiEnvironment, 'pmidiall', ['InOut/pmidiall.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
