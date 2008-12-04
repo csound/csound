@@ -90,7 +90,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
     if (p->h.optext->t.intype == 'k')
       npts = (int32)(*p->iprd * csound->ekr);
     else npts = (int32)(*p->iprd * csound->esr);
-    if (npts <= 0) {
+    if (UNLIKELY(npts <= 0)) {
       return csound->InitError(csound, Str("illegal iprd"));
 
     }
@@ -126,7 +126,7 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (!p->nprds) {
       *fp++ = *p->signal;
       if (fp >= p->endp) {
@@ -232,23 +232,21 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     char  strmsg[256];
 
     window_size = (int32)*p->inpts;
-    if (window_size > WINDMAX) {
+    if (UNLIKELY(window_size > WINDMAX)) {
       return csound->InitError(csound, Str("too many points requested"));
     }
-    if (window_size < WINDMIN) {
+    if (UNLIKELY(window_size < WINDMIN)) {
       return csound->InitError(csound, Str("too few points requested"));
     }
-    if (window_size < 1L || (window_size & (window_size - 1L)) != 0L) {
+    if (UNLIKELY(window_size < 1L || (window_size & (window_size - 1L)) != 0L)) {
       return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
       step_size = (int32)(*p->iprd * csound->ekr);
     else step_size = (int32)(*p->iprd * csound->esr);
-    if (step_size <= 0) {
+    if (UNLIKELY(step_size <= 0)) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
- /* if (inerrcnt) */
- /*   return; */
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
@@ -346,7 +344,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (bufp < p->sampbuf)          /* skip any spare samples */
       bufp++;
     else {                          /* then start collecting  */
@@ -383,7 +381,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
     int   n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     for (n=0; n<nsmps; n++) {
       if (bufp < p->sampbuf) {            /* skip any spare samples */
         bufp++; sigp++;
@@ -429,26 +427,26 @@ int tempeset(CSOUND *csound, TEMPEST *p)
     MYFLT b, iperiod = *p->iprd;
     char  strmsg[256];
 
-    if ((p->timcount = (int)(csound->ekr * iperiod)) <= 0)
+    if (UNLIKELY((p->timcount = (int)(csound->ekr * iperiod)) <= 0))
       return csound->InitError(csound, Str("illegal iperiod"));
-    if ((p->dtimcnt = (int)(csound->ekr * *p->idisprd)) < 0)
+    if (UNLIKELY((p->dtimcnt = (int)(csound->ekr * *p->idisprd)) < 0))
       return csound->InitError(csound, Str("illegal idisprd"));
-    if ((p->tweek = *p->itweek) <= 0)
+    if (UNLIKELY((p->tweek = *p->itweek) <= 0))
       return csound->InitError(csound, Str("illegal itweek"));
     if (iperiod != FL(0.0)) {
-      if ((minlam = (int)(*p->imindur/iperiod)) <= 0)
+      if (UNLIKELY((minlam = (int)(*p->imindur/iperiod)) <= 0))
         return csound->InitError(csound, Str("illegal imindur"));
-      if ((npts = (int)(*p->imemdur / iperiod)) <= 0)
+      if (UNLIKELY((npts = (int)(*p->imemdur / iperiod)) <= 0))
         return csound->InitError(csound, Str("illegal imemdur"));
     }
-    if (*p->ihtim <= FL(0.0))
+    if (UNLIKELY(*p->ihtim <= FL(0.0)))
       return csound->InitError(csound, Str("illegal ihtim"));
-    if (*p->istartempo <= FL(0.0))
+    if (UNLIKELY(*p->istartempo <= FL(0.0)))
       return csound->InitError(csound, Str("illegal startempo"));
     ftp = csound->FTFind(csound, p->ifn);
-    if (ftp != NULL && *ftp->ftable == FL(0.0))
+    if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
       return csound->InitError(csound, Str("ifn table begins with zero"));
-    if (ftp==NULL) return NOTOK;
+    if (UNLIKELY(ftp==NULL)) return NOTOK;
 
     nptsm1 = npts - 1;
     if (npts != p->npts || minlam != p->minlam) {
@@ -554,7 +552,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
 {
     p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1; /* get lo-pass of kinput */
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (!(--p->countdown)) {                        /* then on countdown:    */
       MYFLT *memp;
       MYFLT kin, expect, *xcur = p->xcur;           /* xcur from prv pass    */

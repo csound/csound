@@ -181,7 +181,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       return;
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
-    if (n < nbytes)
+    if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
     if (O->rewrt_hdr)
@@ -222,7 +222,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 
     if (ST(outfile) == NULL)
       return;
-    
+
     for (n=0; n<m; n++) {
         int   tmp = ((ST(dither) * 15625) + 1) & 0xFFFF;
         int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
@@ -235,10 +235,10 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
-    if (n < nbytes)
+    if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
-    if (O->rewrt_hdr)
+    if (UNLIKELY(O->rewrt_hdr))
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
@@ -289,10 +289,10 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
-    if (n < nbytes)
+    if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
-    if (O->rewrt_hdr)
+    if (UNLIKELY(O->rewrt_hdr))
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
@@ -330,7 +330,7 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 
     if (ST(outfile) == NULL)
       return;
-    
+
     for (n=0; n<m; n++) {
         int   rnd = ((ST(dither) * 15625) + 1) & 0xFFFF;
         MYFLT result;
@@ -341,10 +341,10 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
-    if (n < nbytes)
+    if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
-    if (O->rewrt_hdr)
+    if (UNLIKELY(O->rewrt_hdr))
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
@@ -393,10 +393,10 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
-    if (n < nbytes)
+    if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
-    if (O->rewrt_hdr)
+    if (UNLIKELY(O->rewrt_hdr))
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
@@ -492,7 +492,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     alloc_globals(csound);
     ST(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;
-    if (sfname == NULL || sfname[0] == '\0')
+    if (UNLIKELY(sfname == NULL || sfname[0] == '\0'))
       csound->Die(csound, Str("error: no input file name"));
 
     if (strcmp(sfname, "stdin") == 0) {
@@ -517,7 +517,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         parm.sampleFormat = O->informat;
         parm.sampleRate = (float) csound->esr;
         /* open devaudio for input */
-        if (csound->recopen_callback(csound, &parm) != 0)
+        if (UNLIKELY(csound->recopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio input"));
         /*  & redirect audio gets  */
         csound->audrecv = csound->rtrecord_callback;
@@ -529,14 +529,14 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     if (ST(pipdevin)) {
       ST(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
-      if (ST(infile) == NULL) {
+      if (UNLIKELY(ST(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
         csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
       }
     }
     else {
       fullName = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
-      if (fullName == NULL)                     /* if not found */
+      if (UNLIKELY(fullName == NULL))                     /* if not found */
         csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
       ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);
       if (ST(infile) == NULL) {
@@ -548,7 +548,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
         ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
       }
-      if (ST(infile) == NULL)
+      if (UNLIKELY(ST(infile) == NULL))
         csoundDie(csound, Str("isfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdin or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -675,11 +675,11 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
-      if (fullName == NULL)
+      if (UNLIKELY(fullName == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fName);
       ST(sfoutname) = fullName;
       ST(outfile) = sf_open(fullName, SFM_WRITE, &sfinfo);
-      if (ST(outfile) == NULL)
+      if (UNLIKELY(ST(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,

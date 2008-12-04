@@ -47,14 +47,14 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
                                 p->XSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
-      if (!csound->oparms->infilename)  /* commandline inputfile */
+      if (UNLIKELY(!csound->oparms->infilename))  /* commandline inputfile */
         csound->Die(csound, Str("no infile specified in the commandline"));
       sfname = csound->oparms->infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                    /* open with full dir paths */
       s = csoundFindInputFile(csound, sfname, "SADIR");
-      if (s == NULL) {
+      if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
         csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
       }
@@ -119,7 +119,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
         sf = sf_open(sfname, SFM_READ, &sfinfo);
       }
     }
-    if (sf == NULL && csFileType == CSFTYPE_UNKNOWN) {
+    if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (sf != NULL) {
@@ -185,14 +185,14 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {        /* get info on the -i    */
       sfname = csound->oparms->infilename;  /* commandline inputfile */
-      if (sfname == NULL)
+      if (UNLIKELY(sfname == NULL))
         csound->Die(csound,
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));    /* open with full dir paths */
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
@@ -213,7 +213,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
     else {
       double  *peaks;
       size_t  nBytes;
-      if (channel > sfinfo.channels)
+      if (UNLIKELY(channel > sfinfo.channels))
         csound->Die(csound, Str("Input channel for peak exceeds number "
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
@@ -230,7 +230,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
 #endif
       csound->Free(csound, peaks);
     }
-    if (peakVal < 0.0)
+    if (UNLIKELY(peakVal < 0.0))
       csound->Die(csound, Str("filepeak: error getting peak value"));
     /* scale output consistently with soundin opcode (see diskin2.c) */
     fmt = sfinfo.format & SF_FORMAT_SUBMASK;

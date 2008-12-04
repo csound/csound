@@ -24,7 +24,7 @@
 
 void rewriteheader(SNDFILE *ofd)
 {
-    if (ofd != NULL)
+    if (LIKELY(ofd != NULL))
       sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
@@ -134,7 +134,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     p->fd = csound->FileOpen2(csound, &(p->sinfd), CSFILE_SND_R,
                                      sfname, &sfinfo, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (p->fd == NULL) {
+    if (UNLIKELY(p->fd == NULL)) {
       csound->ErrorMsg(csound, Str("soundin cannot open %s"), sfname);
       goto err_return;
     }
@@ -161,7 +161,7 @@ void *sndgetset(CSOUND *csound, void *p_)
                       "%s sr = %d, orch sr = %7.1f",
                       sfname, (int) sfinfo.samplerate, csound->esr);
     }
-    if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
+    if (UNLIKELY(p->channel != ALLCHNLS && p->channel > sfinfo.channels)) {
       csound->ErrorMsg(csound, Str("error: req chan %d, file %s has only %d"),
                                (int) p->channel, sfname, (int) sfinfo.channels);
       goto err_return;
@@ -194,7 +194,7 @@ void *sndgetset(CSOUND *csound, void *p_)
                         + (p->skiptime >= FL(0.0) ? 0.5 : -0.5));
     if (skipframes < 0) {
       n = -skipframes;
-      if (n > framesinbuf) {
+      if (UNLIKELY(n > framesinbuf)) {
         csound->ErrorMsg(csound, Str("soundin: invalid skip time"));
         goto err_return;
       }

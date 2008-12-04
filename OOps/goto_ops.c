@@ -87,8 +87,8 @@ int kingoto(CSOUND *csound, CGOTO *p)
 
 int timset(CSOUND *csound, TIMOUT *p)
 {
-    if ((p->cnt1 = (int32)(*p->idel * csound->ekr + FL(0.5))) < 0L
-        || (p->cnt2 = (int32)(*p->idur * csound->ekr + FL(0.5))) < 0L)
+    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * csound->ekr + FL(0.5))) < 0L
+                 || (p->cnt2 = (int32)(*p->idur * csound->ekr + FL(0.5))) < 0L))
       return csoundInitError(csound, Str("negative time period"));
     return OK;
 }
@@ -177,13 +177,13 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p)
       return OK;    /* not triggered */
     p1 = *(p->kInsNo);
     insno = (int) p1;
-    if (insno < 1 || insno > (int) csound->maxinsno ||
-        csound->instrtxtp[insno] == NULL) {
+    if (UNLIKELY(insno < 1 || insno > (int) csound->maxinsno ||
+                 csound->instrtxtp[insno] == NULL)) {
       return csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
     }
     mode = (int) (*(p->kFlags) + FL(0.5));
     allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
-    if (mode < 0 || mode > 15 || (mode & 3) == 3) {
+    if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
       return csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
     }
     ip = &(csound->actanchor);

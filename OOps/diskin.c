@@ -54,7 +54,7 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
           nsmps = bufsmps;
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         i = (int) sf_read_float(p->sf, &(p->buf[0]), (sf_count_t) nsmps);
-        if (i < 0)  /* error ? */
+        if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
     }
@@ -155,7 +155,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
 
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
-    if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
+    if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
       return csound->InitError(csound, Str("diskin: invalid number of channels"));
     }
     /* if already open, close old file first */
@@ -176,7 +176,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
                       | (int) FORMAT2SF(csound->oparms_.outformat);
     }
     else {
-      if (n < 0 || n > 10)
+      if (UNLIKELY(n < 0 || n > 10))
         return csound->InitError(csound, Str("diskin: unknown sample format"));
       sfinfo.format = diskin_format_table[n];
     }
@@ -185,7 +185,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       return
         csound->InitError(csound, Str("diskin: %s: failed to open file"), name);
     }
@@ -203,8 +203,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
                               (int32) sfinfo.frames);
     }
     /* check number of channels in file (must equal the number of outargs) */
-    if (sfinfo.channels != p->nChannels &&
-        (csound->oparms_.msglevel & WARNMSG) != 0) {
+    if (UNLIKELY(sfinfo.channels != p->nChannels &&
+                 (csound->oparms_.msglevel & WARNMSG) != 0)) {
       return csound->InitError(csound,
                                Str("diskin: number of output args "
                                    "inconsistent with number of file channels"));
@@ -235,12 +235,12 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
       p->wrapMode = 0;
     /* initialise read position */
     pos = (double)*(p->iSkipTime) * (double)sfinfo.samplerate;
-    if (pos > (double)p->fileLength) {
+    if (UNLIKELY(pos > (double)p->fileLength)) {
       csound->Warning(csound, Str("skip time larger than audio data, "
                                   "substituting zero."));
       pos = 0.0;
     }
-    else if (pos < 0.0) {
+    else if (UNLIKELY(pos < 0.0)) {
       csound->Warning(csound, Str("negative skip time, substituting zero."));
       pos = 0.0;
     }
@@ -289,7 +289,7 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
     int     nn, chn;
 
     if (p->initDone <= 0) {
-      if (!p->initDone)
+      if (UNLIKELY(!p->initDone))
         return csound->PerfError(csound, Str("diskin: not initialised"));
       p->initDone = 1;
       /* if no skip time, and playing backwards: start from end of file */
@@ -436,7 +436,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
 {
     int nn, nsamps = csound->ksmps;
 
-    if (p->c.sf == NULL)
+    if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundout: not initialised"));
     for (nn = 0; nn < nsamps; nn++) {
       if (p->c.outbufp >= p->c.bufend) {
@@ -453,7 +453,7 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
 {
     int nn, nsamps = csound->ksmps;
 
-    if (p->c.sf == NULL)
+    if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundouts: not initialised"));
     for (nn = 0; nn < nsamps; nn++) {
       if (p->c.outbufp >= p->c.bufend) {

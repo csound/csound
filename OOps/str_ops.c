@@ -55,7 +55,7 @@ static void str_set(CSOUND *csound, int ndx, const char *s)
         csound->strsets[i] = NULL;
       csound->strsmax = newmax;
     }
-    if (ndx < 0)    /* -ve index */
+    if (UNLIKELY(ndx < 0))    /* -ve index */
       csound->Die(csound, Str("illegal strset index"));
 
     if (csound->strsets[ndx] != NULL) {
@@ -86,12 +86,12 @@ void strset_option(CSOUND *csound, char *s)
 {
     int indx = 0;
 
-    if (!isdigit(*s))
+    if (UNLIKELY(!isdigit(*s)))
       csound->Die(csound, Str("--strset: invalid format"));
     do {
       indx = (indx * 10) + (int) (*s++ - '0');
     } while (isdigit(*s));
-    if (*s++ != '=')
+    if (UNLIKELY(*s++ != '='))
       csound->Die(csound, Str("--strset: invalid format"));
     str_set(csound, indx, s);
 }
@@ -113,7 +113,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
     if (indx < 0 || indx > (int) csound->strsmax ||
         csound->strsets == NULL || csound->strsets[indx] == NULL)
       return OK;
-    if ((int) strlen(csound->strsets[indx]) >= csound->strVarMaxLen)
+    if (UNLIKELY((int) strlen(csound->strsets[indx]) >= csound->strVarMaxLen))
       return csound->InitError(csound, Str("strget: buffer overflow"));
     strcpy((char*) p->r, csound->strsets[indx]);
     return OK;
@@ -124,9 +124,9 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *opname = csound->GetOpcodeName(p);
 
-    if (csound->ids != NULL && csound->ids->insdshead == csound->curip)
+    if (UNLIKELY(csound->ids != NULL && csound->ids->insdshead == csound->curip))
       return csound->InitError(csound, "%s: %s", opname, Str(msg));
-    else if (csound->pds != NULL)
+    else if (UNLIKELY(csound->pds != NULL))
       return csound->PerfError(csound, "%s: %s", opname, Str(msg));
     else
       csound->Die(csound, "%s: %s", opname, Str(msg));
@@ -154,7 +154,7 @@ int strcpy_opcode(CSOUND *csound, STRCPY_OP *p)
        csound->strarg2name(csound, (char *)p->r, p->str, "soundin.", p->XSTRCODE);
        return OK;
     }
-    if ((int) strlen(newVal) >= csound->strVarMaxLen)
+    if (UNLIKELY((int) strlen(newVal) >= csound->strVarMaxLen))
       return StrOp_ErrMsg(p, "buffer overflow");
     strcpy((char*) p->r, newVal);
 
@@ -168,7 +168,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     char  *newVal1 = (char*) p->str1;
     char  *newVal2 = (char*) p->str2;
 
-    if ((int) (strlen(newVal1) + strlen(newVal2)) >= csound->strVarMaxLen)
+    if (UNLIKELY((int) (strlen(newVal1) + strlen(newVal2)) >= csound->strVarMaxLen))
       return StrOp_ErrMsg(p, "buffer overflow");
     if (p->r != p->str2) {
       if (p->r != p->str1)
@@ -222,13 +222,13 @@ static CS_NOINLINE int
     const char  *segwaiting = NULL;
     int     maxChars;
 
-    if ((int) ((OPDS*) p)->optext->t.xincod != 0)
+    if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
       return StrOp_ErrMsg(p, "a-rate argument not allowed");
-    if ((int) ((OPDS*) p)->optext->t.inoffs->count > 31)
+    if (UNLIKELY((int) ((OPDS*) p)->optext->t.inoffs->count > 31))
       StrOp_FatalError(p, "too many arguments");
 
     while (1) {
-      if (i >= 2047) {
+      if (UNLIKELY(i >= 2047)) {
         return StrOp_ErrMsg(p, "format string too long");
       }
       if (*fmt != '%' && *fmt != '\0') {
@@ -246,12 +246,12 @@ static CS_NOINLINE int
       if (segwaiting != NULL) {
         maxChars = maxLen - len;
         strseg[i] = '\0';
-        if (numVals <= 0) {
+        if (UNLIKELY(numVals <= 0)) {
           return StrOp_ErrMsg(p, "insufficient arguments for format");
         }
         numVals--;
-        if ((*segwaiting == 's' && !(strCode & 1)) ||
-            (*segwaiting != 's' && (strCode & 1))) {
+        if (UNLIKELY((*segwaiting == 's' && !(strCode & 1)) ||
+                     (*segwaiting != 's' && (strCode & 1)))) {
           return StrOp_ErrMsg(p, "argument type inconsistent with format");
         }
         strCode >>= 1;
@@ -296,7 +296,7 @@ static CS_NOINLINE int
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
-        if (n < 0 || n >= maxChars) {
+        if (UNLIKELY(n < 0 || n >= maxChars)) {
 #ifdef HAVE_SNPRINTF
           /* safely detected excess string length */
           return StrOp_ErrMsg(p, "buffer overflow");
@@ -318,7 +318,7 @@ static CS_NOINLINE int
       while (!isalpha(*segwaiting) && *segwaiting != '\0')
         segwaiting++;
     }
-    if (numVals > 0) {
+    if (UNLIKELY(numVals > 0)) {
       return StrOp_ErrMsg(p, "too many arguments for format");
     }
     return 0;
@@ -326,9 +326,9 @@ static CS_NOINLINE int
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-    if (sprintf_opcode_(p, (char*) p->r, (char*) p->sfmt, &(p->args[0]),
+    if (UNLIKELY(sprintf_opcode_(p, (char*) p->r, (char*) p->sfmt, &(p->args[0]),
                         (int) p->INOCOUNT - 1, ((int) p->XSTRCODE >> 1),
-                        csound->strVarMaxLen) != 0) {
+                                 csound->strVarMaxLen) != 0)) {
       ((char*) p->r)[0] = '\0';
       return NOTOK;
     }
@@ -342,7 +342,7 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
     err = sprintf_opcode_(p, buf, (char*) p->sfmt, &(p->args[0]),
                           (int) p->INOCOUNT - 2, ((int) p->XSTRCODE >> 2),
                           3072);
-    if (err == OK)
+    if (LIKELY(err == OK))
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
 
     return err;
@@ -414,14 +414,14 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
           s = csound->strsets[ndx];
       }
-      if (s == NULL)
+      if (UNLIKELY(s == NULL))
         return StrOp_ErrMsg(p, "empty string");
     }
     while (*s == ' ' || *s == '\t') s++;
-    if (*s == '\0')
+    if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     x = strtod(s, &tmp);
-    if (*tmp != '\0')
+    if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     *p->indx = (MYFLT) x;
 
@@ -444,11 +444,11 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
           s = csound->strsets[ndx];
       }
-      if (s == NULL)
+      if (UNLIKELY(s == NULL))
         return StrOp_ErrMsg(p, "empty string");
     }
     while (*s == ' ' || *s == '\t') s++;
-    if (*s == '\0')
+    if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     if (*s == '+') s++;
     else if (*s == '-') sgn++, s++;
@@ -462,7 +462,7 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
         return OK;
       }
     }
-    if (*s == '\0')
+    if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     switch (radix) {
       case 8:
@@ -483,7 +483,7 @@ int strtol_opcode(CSOUND *csound, STRSET_OP *p)
             break;
         }
     }
-    if (*s != '\0')
+    if (UNLIKELY(*s != '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     if (sgn) x = -x;
     *p->indx = (MYFLT) x;
@@ -535,7 +535,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     }
     src += strt;
     len = end - strt;
-    if (len >= csound->strVarMaxLen) {
+    if (UNLIKELY(len >= csound->strVarMaxLen)) {
       ((char*) p->Sdst)[0] = '\0';
       return StrOp_ErrMsg(p, "buffer overflow");
     }
@@ -725,7 +725,7 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
                                        *(p->iopt));
     }
     if (s != NULL) {
-      if ((int) strlen(s) >= csound->strVarMaxLen)
+      if (UNLIKELY((int) strlen(s) >= csound->strVarMaxLen))
         return csound->InitError(csound, Str("getcfg: buffer overflow"));
       strcpy((char*) p->Sdst, s);
     }
