@@ -53,11 +53,11 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL) return NOTOK;
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL)) return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if ((ftpWind = csound->FTFind(csound, p->ifn)) == NULL) return NOTOK;
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
     p->ftpWind = ftpWind;
     p->flen    = ftpWind->flen;
 
@@ -104,7 +104,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       iwsize = *p->iwsize;
     int         overlap = *p->ioverlap;
 
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     r1 = p->r1;
     r2 = p->r2;
     memset(r1, 0, nsmps*sizeof(MYFLT));
@@ -198,7 +198,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     char        *auxp;
     MYFLT       iwsize;
 
-    if (p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4) {
+    if (UNLIKELY(p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4)) {
       return csound->InitError(csound, Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
@@ -212,12 +212,12 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if ((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL)
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if ((ftpWind = csound->FTFind(csound, p->ifn)) == NULL)
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
@@ -268,7 +268,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
 
-    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     r1 = p->r1;
     r2 = p->r2;
     r3 = p->r3;

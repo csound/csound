@@ -152,17 +152,17 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
 
     /* check parameters */
     p->nChannels = (int) p->OUTOCOUNT;
-    if (p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN) {
+    if (UNLIKELY(p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN)) {
       return csound->InitError(csound, Str("ftconv: invalid number of channels"));
     }
     /* partition length */
     p->partSize = MYFLT2LRND(*(p->iPartLen));
-    if (p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0) {
+    if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
       return csound->InitError(csound, Str("ftconv: invalid impulse response "
                                            "partition length"));
     }
     ftp = csound->FTFind(csound, p->iFTNum);
-    if (ftp == NULL)
+    if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
     /* calculate total length / number of partitions */
     n = (int) ftp->flen / p->nChannels;
@@ -170,7 +170,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     n -= skipSamples;
     if (MYFLT2LRND(*(p->iTotLen)) > 0 && n > MYFLT2LRND(*(p->iTotLen)))
       n = MYFLT2LRND(*(p->iTotLen));
-    if (n <= 0) {
+    if (UNLIKELY(n <= 0)) {
       return csound->InitError(csound,
                                Str("ftconv: invalid length, or insufficient"
                                    " IR data for convolution"));

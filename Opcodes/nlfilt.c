@@ -70,7 +70,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     MYFLT   L = *p->L;
     MYFLT   maxamp, dvmaxamp, maxampd2;
 
-    if (fp == NULL) goto err1;                   /* RWD fix */
+    if (UNLIKELY(fp == NULL)) goto err1;                   /* RWD fix */
     ar   = p->ar;
                                         /* L is k-rate so need to check */
     if (L < FL(1.0))
@@ -79,9 +79,9 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
       L = (MYFLT) MAX_DELAY;
     }
     nmL = point - (int) (L) - 1;
-    if (nm1 < 0) nm1 += MAX_DELAY;      /* Deal with the wrapping */
-    if (nm2 < 0) nm2 += MAX_DELAY;
-    if (nmL < 0) nmL += MAX_DELAY;
+    if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
+    if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
+    if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
@@ -100,11 +100,11 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
       else if (out < -maxamp)
         out = -maxampd2;
       ar[n] = out;
-      if (++point == MAX_DELAY) {
+      if (UNLIKELY(++point == MAX_DELAY)) {
         point = 0;
       }
       fp[point] = yn;                   /* and delay line */
-      if (++nmL == MAX_DELAY) {
+      if (UNLIKELY(++nmL == MAX_DELAY)) {
         nmL = 0;
       }
       ynm2 = ynm1;                      /* Shuffle along */
@@ -134,7 +134,7 @@ int pcount(CSOUND *csound, PFIELD *p)
 int pvalue(CSOUND *csound, PFIELD *p)
 {
     int n = (int)(*p->index);
-    if (csound->currevent==NULL || n<1 || n>csound->currevent->pcnt) {
+    if (UNLIKELY(csound->currevent==NULL || n<1 || n>csound->currevent->pcnt)) {
       *p->ians = FL(0.0);       /* For tidyness */
       return NOTOK;             /* Should this be an error?? */
     }

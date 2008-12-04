@@ -102,8 +102,8 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         char *t;
         int i;
 
-        if (csound->CreateGlobalVariable(csound, "partikkel",
-                                         sizeof(PARTIKKEL_GLOBALS)) != 0)
+        if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
+                                                  sizeof(PARTIKKEL_GLOBALS)) != 0))
             return INITERROR("could not allocate globals");
         pg = csound->QueryGlobalVariable(csound, "partikkel");
         pg->rootentry = NULL;
@@ -265,23 +265,23 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
                     ? csound->FTFind(csound, p->waveamps)
                     : p->globals->zzhhhhz_tab;
 
-    if (!p->disttab)
+    if (UNLIKELY(!p->disttab))
         return INITERROR("unable to load distribution table");
-    if (!p->costab)
+    if (UNLIKELY(!p->costab))
         return INITERROR("unable to load cosine table");
-    if (!p->gainmasktab)
+    if (UNLIKELY(!p->gainmasktab))
         return INITERROR("unable to load gain mask table");
-     if (!p->channelmasktab)
+    if (UNLIKELY(!p->channelmasktab))
         return INITERROR("unable to load channel mask table");
-    if (!p->env_attack_tab || !p->env_decay_tab || !p->env2_tab)
+    if (UNLIKELY(!p->env_attack_tab || !p->env_decay_tab || !p->env2_tab))
         return INITERROR("unable to load envelope table");
-    if (!p->wavfreqstarttab)
+    if (UNLIKELY(!p->wavfreqstarttab))
         return INITERROR("unable to load start frequency scaler table");
-    if (!p->wavfreqendtab)
+    if (UNLIKELY(!p->wavfreqendtab))
         return INITERROR("unable to load end frequency scaler table");
-    if (!p->fmamptab)
+    if (UNLIKELY(!p->fmamptab))
         return INITERROR("unable to load FM index table");
-    if (!p->wavgaintab)
+    if (UNLIKELY(!p->wavgaintab))
         return INITERROR("unable to load wave gain table");
 
     p->disttabshift = sizeof(unsigned)*CHAR_BIT -
@@ -302,7 +302,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     memset(p->aux.auxp, 0, sizeof(MYFLT)*csound->ksmps);
 
     /* allocate memory for the grain pool and initialize it*/
-    if (*p->max_grains < FL(1.0))
+    if (UNLIKELY(*p->max_grains < FL(1.0)))
         return INITERROR("maximum number of grains need to be non-zero "
                          "and positive");
     size = ((unsigned)*p->max_grains)*sizeof(NODE);
@@ -386,7 +386,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
 
     /* place a grain in between two channels according to channel mask value */
     chan = (unsigned)maskchannel;
-    if (chan >= p->num_outputs) {
+    if (UNLIKELY(chan >= p->num_outputs)) {
         return_grain(&p->gpool, node);
         return PERFERROR("channel mask specifies non-existing output channel");
     }
@@ -535,14 +535,14 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         p->wavetabs[n] = *waveformparams[n] >= FL(0.0)
                          ? csound->FTnp2Find(csound, waveformparams[n])
                          : p->globals->zzz_tab;
-        if (p->wavetabs[n] == NULL)
+        if (UNLIKELY(p->wavetabs[n] == NULL))
             return PERFERROR("unable to load waveform table");
     }
     /* look up fm envelope table for use in grains scheduled this kperiod */
     p->fmenvtab = *p->fm_env >= FL(0.0)
                   ? csound->FTFind(csound, p->fm_env)
                   : p->globals->ooo_tab;
-    if (!p->fmenvtab)
+    if (UNLIKELY(!p->fmenvtab))
         return PERFERROR("unable to load FM envelope table");
 
     /* start grain scheduling */
@@ -750,7 +750,7 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
     NODE **nodeptr;
     MYFLT **outputs = &p->output1;
 
-    if (p->aux.auxp == NULL || p->aux2.auxp == NULL)
+    if (UNLIKELY(p->aux.auxp == NULL || p->aux2.auxp == NULL))
         return PERFERROR("not initialised");
 
     /* schedule grains that'll happen this kperiod */
@@ -788,17 +788,17 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKELSYNC *p)
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY *pe;
 
-    if ((int)*p->opcodeid == 0)
+    if (UNLIKELY((int)*p->opcodeid == 0))
         return csound->InitError(csound,
             Str("partikkelsync: opcode id needs to be a non-zero integer"));
     pg = csound->QueryGlobalVariable(csound, "partikkel");
-    if (pg == NULL || pg->rootentry == NULL)
+    if (UNLIKELY(pg == NULL || pg->rootentry == NULL))
         return csound->InitError(csound,
             Str("partikkelsync: could not find opcode id"));
     pe = pg->rootentry;
     while (pe->id != *p->opcodeid && pe->next != NULL)
         pe = pe->next;
-    if (pe->id != *p->opcodeid)
+    if (UNLIKELY(pe->id != *p->opcodeid))
         return csound->InitError(csound,
             Str("partikkelsync: could not find opcode id"));
     p->ge = pe;

@@ -34,7 +34,7 @@ static int flwset(CSOUND *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
     p->length = (int32)(*p->len * csound->esr);
-    if (p->length<=0L) {           /* RWD's suggestion */
+    if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
       csound->Warning(csound, Str("follow - zero length!"));
       p->length = (int32)csound->esr;
     }

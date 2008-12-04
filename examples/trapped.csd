@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--d -m911 -H0 -R -W --expression-opt -otest.wav
+-d -m911 -W --expression-opt -otest.wav
 </CsOptions>
 <CsInstruments>
 ;============================================================================;

@@ -170,11 +170,11 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
       p->sampleRate = (double) csound->esr;
     else
       p->sampleRate = (double) *(p->iSampleRate);
-    if (p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE) {
+    if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
       return csound->InitError(csound,
                                Str("reverbsc: sample rate is out of range"));
     }
-    if (*(p->iPitchMod) < FL(0.0) || *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD) {
+    if (UNLIKELY(*(p->iPitchMod) < FL(0.0) || *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
       return csound->InitError(csound,
                                Str("reverbsc: invalid pitch modulation factor"));
     }
@@ -233,14 +233,14 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         /* send input signal and feedback to delay line */
         lp->buf[lp->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
                                          - lp->filterState);
-        if (++lp->writePos >= bufferSize)
+        if (UNLIKELY(++lp->writePos >= bufferSize))
           lp->writePos -= bufferSize;
         /* read from delay line with cubic interpolation */
         if (lp->readPosFrac >= DELAYPOS_SCALE) {
           lp->readPos += (lp->readPosFrac >> DELAYPOS_SHIFT);
           lp->readPosFrac &= DELAYPOS_MASK;
         }
-        if (lp->readPos >= bufferSize)
+        if (UNLIKELY(lp->readPos >= bufferSize))
           lp->readPos -= bufferSize;
         readPos = lp->readPos;
         frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);

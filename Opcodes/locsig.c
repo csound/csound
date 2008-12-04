@@ -38,7 +38,7 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
     STDOPCOD_GLOBALS  *pp;
     int     outcount = p->OUTOCOUNT;
 
-    if (outcount != 2 && outcount != 4)
+    if (UNLIKELY(outcount != 2 && outcount != 4))
       return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
                                            "must be 2 or 4"));
 
@@ -141,7 +141,7 @@ static int locsendset(CSOUND *csound, LOCSEND *p)
     q = (LOCSIG*) pp->locsigaddr;
     p->locsig = q;
 
-    if (p->OUTOCOUNT != q->OUTOCOUNT) {
+    if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
       return csound->InitError(csound, Str("Number of outputs must be the "
                                            "same as the previous locsig"));
     }

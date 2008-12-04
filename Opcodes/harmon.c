@@ -354,7 +354,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     p->endp = endp;
     p->vocamp = vocamp;
 
-    if (oflow && ++p->hmrngflg > 10) {
+    if (UNLIKELY(oflow && ++p->hmrngflg > 10)) {
       csound->Message(csound, Str("harmon234: out of range\n"));
       p->hmrngflg = 0;
     }

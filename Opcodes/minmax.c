@@ -53,7 +53,7 @@ static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *data)
 
     for (n=0; n<nsmps; n++) {
       cur = in[n];
-      if (cur > out[n])
+      if (UNLIKELY(cur > out[n]))
         out[n] = cur;
     }
 
@@ -69,7 +69,7 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *data)
 
     for (n=0; n<nsmps; n++) {
       cur = in[n];
-      if (cur < out[n])
+      if (UNLIKELY(cur < out[n]))
         out[n] = cur;
     }
 
@@ -86,7 +86,7 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
 
     for (n=0; n<nsmps; n++) {
       inabs = FABS(in[n]);
-      if (inabs > out[n])
+      if (UNLIKELY(inabs > out[n]))
         out[n] = inabs;
     }
 
@@ -102,7 +102,7 @@ static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *data)
 
     for (n=0; n<nsmps; n++) {
       inabs = FABS(in[n]);
-      if (inabs < out[n])
+      if (UNLIKELY(inabs < out[n]))
         out[n] = inabs;
     }
 
@@ -124,7 +124,7 @@ static int Max_arate(CSOUND *csound, MINMAX *data)
       max = in1[n];
       for (i = 0; i < nargs; ++i) {
         temp = in2[i][n];
-        if (temp > max)
+        if (UNLIKELY(temp > max))
           max = temp;
       }
       out[n] = max;
@@ -147,7 +147,7 @@ static int Min_arate(CSOUND *csound, MINMAX *data)
       min = in1[n];
       for (i = 0; i < nargs; ++i) {
         temp = in2[i][n];
-        if (temp < min)
+        if (UNLIKELY(temp < min))
           min = temp;
       }
       out[n] = min;
@@ -171,7 +171,7 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *data)
       max = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {
         temp = FABS(in2[i][n]);
-        if (temp > max)
+        if (UNLIKELY(temp > max))
           max = temp;
       }
       out[n] = max;
@@ -194,7 +194,7 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *data)
       min = FABS(in1[n]);
       for (i = 0; i < nargs; ++i) {
         temp = FABS(in2[i][n]);
-        if (temp < min)
+        if (UNLIKELY(temp < min))
           min = temp;
       }
       out[n] = min;
@@ -216,7 +216,7 @@ static int Max_krate(CSOUND *csound, MINMAX *data)
     max = *in1;
     for (i = 0; i < nargs; ++i) {
       temp = in2[i][0];
-      if (temp > max)
+      if (UNLIKELY(temp > max))
         max = temp;
     }
     *out = max;
@@ -236,7 +236,7 @@ static int Min_krate(CSOUND *csound, MINMAX *data)
     min = *in1;
     for (i = 0; i < nargs; ++i) {
       temp = in2[i][0];
-      if (temp < min)
+      if (UNLIKELY(temp < min))
         min = temp;
     }
     *out = min;
@@ -257,7 +257,7 @@ static int MaxAbs_krate(CSOUND *csound, MINMAX *data)
     max = FABS(*in1);
     for (i = 0; i < nargs; ++i) {
       temp = FABS(in2[i][0]);
-      if (temp > max)
+      if (UNLIKELY(temp > max))
         max = temp;
     }
     *out = max;
@@ -277,7 +277,7 @@ static int MinAbs_krate(CSOUND *csound, MINMAX *data)
     min = FABS(*in1);
     for (i = 0; i < nargs; ++i) {
       temp = FABS(in2[i][0]);
-      if (temp < min)
+      if (UNLIKELY(temp < min))
         min = temp;
     }
     *out = min;

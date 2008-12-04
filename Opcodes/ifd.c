@@ -70,11 +70,11 @@ static int ifd_init(CSOUND * csound, IFD * p)
     wintype = p->wintype = (int) *p->type;
     frames = fftsize / hopsize;
 
-    if ((frames - (float) fftsize / hopsize) != 0.0f)
+    if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
       csound->Die(csound, Str("pvsifd: fftsize should "
                               "be an integral multiple of hopsize"));
 
-    if ((fftsize & (fftsize - 1)))
+    if (UNLIKELY((fftsize & (fftsize - 1))))
       csound->Die(csound, Str("pvsifd: fftsize should be power-of-two"));
 
     p->frames = frames;

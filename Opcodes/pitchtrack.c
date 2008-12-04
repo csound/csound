@@ -365,7 +365,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     int i, winsize = *p->size*2, powtwo, tmp;
     MYFLT *tmpb;
 
-    if (winsize < MINWINSIZ || winsize > MAXWINSIZ) {
+    if (UNLIKELY(winsize < MINWINSIZ || winsize > MAXWINSIZ)) {
       csound->Message(csound, Str("ptrack: FFT size out of range; using %d\n"),
                       winsize = DEFAULTWINSIZ);
     }
@@ -378,7 +378,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
       powtwo++;
     }
 
-    if (winsize != (1 << powtwo)) {
+    if (UNLIKELY(winsize != (1 << powtwo))) {
       csound->Message(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
                       winsize = (1 << powtwo));
     }

@@ -118,7 +118,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     bufnos = p->bufnos;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
@@ -127,8 +127,8 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
-    if (bind(p->sock, (struct sockaddr *) &p->server_addr,
-             sizeof(p->server_addr)) < 0)
+    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+                      sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, "bind failed");
 
     if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
@@ -208,7 +208,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
       p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
@@ -217,8 +217,8 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     p->server_addr.sin_port = htons((int) *p->ptr3);    /* the port */
     /* associate the socket with the address and port */
-    if (bind(p->sock, (struct sockaddr *) &p->server_addr,
-             sizeof(p->server_addr)) < 0)
+    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+                      sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, "bind failed");
 
     if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
@@ -295,7 +295,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
 

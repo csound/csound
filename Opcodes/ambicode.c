@@ -287,14 +287,14 @@ static int iambideco(CSOUND *csound, AMBID *p)
                     Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */
-    if ((p->INOCOUNT != 5) && (p->INOCOUNT != 10) && (p->INOCOUNT != 17)) {
+    if (UNLIKELY((p->INOCOUNT != 5) && (p->INOCOUNT != 10) && (p->INOCOUNT != 17))) {
       return csound->InitError(csound, Str("Wrong number of input arguments!"));
     }
 
     switch (setup) {
       case 1:
         {
-          if (p->OUTOCOUNT != 2) {
+          if (UNLIKELY(p->OUTOCOUNT != 2)) {
             return csound->InitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 2 output cells."));
@@ -339,7 +339,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
       case 2:
         {
-          if (p->OUTOCOUNT != 4) {
+          if (UNLIKELY(p->OUTOCOUNT != 4)) {
             return csound->InitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 4 output cells."));
@@ -384,7 +384,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
         }
 
       case 3: {
-        if (p->OUTOCOUNT != 5) {
+        if (UNLIKELY(p->OUTOCOUNT != 5)) {
           return csound->InitError(csound,
                                    Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
@@ -433,7 +433,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
       case 4:
         {
-          if (p->OUTOCOUNT != 8) {
+          if (UNLIKELY(p->OUTOCOUNT != 8)) {
             return csound->InitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
@@ -483,7 +483,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
       case 5:
         {
-          if (p->OUTOCOUNT != 8) {
+          if (UNLIKELY(p->OUTOCOUNT != 8)) {
             return csound->InitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
@@ -531,7 +531,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
          break;
         }
       case 6: {
-        if (p->OUTOCOUNT != 5) {
+        if (UNLIKELY(p->OUTOCOUNT != 5)) {
           return csound->InitError(csound,
                                    Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));

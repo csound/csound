@@ -95,15 +95,15 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
     else {
       /* or handle to previously opened file */
       idx = (int) MYFLT2LRND(*iFile);
-      if (idx < 0 || idx > pp->file_num ||
+      if (UNLIKELY(idx < 0 || idx > pp->file_num ||
           (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
-          (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL)) {
+                   (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL))) {
         return csound->InitError(csound, Str("invalid file handle"));
       }
       goto returnHandle;
     }
     /* check for a valid name */
-    if (name == NULL || name[0] == '\0') {
+    if (UNLIKELY(name == NULL || name[0] == '\0')) {
       csound->Free(csound, name);
       return csound->InitError(csound, Str("invalid file name"));
     }
@@ -160,7 +160,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       else  csFileType = CSFTYPE_OTHER_TEXT;
       fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, "",
                                csFileType, 0);
-      if (fd == NULL) {
+      if (UNLIKELY(fd == NULL)) {
         csound->InitError(csound, Str("error opening file '%s'"), name);
         csound->Free(csound, name);
         return -1;
@@ -186,7 +186,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         do_scale = ((SF_INFO*) fileParams)->format;
       }
       do_scale = (SF2TYPE(do_scale) == TYP_RAW ? 0 : 1);
-      if (fd == NULL) {
+      if (UNLIKELY(fd == NULL)) {
         csound->InitError(csound, Str("error opening sound file '%s'"), name);
         csound->Free(csound, name);
         return -1;
@@ -410,7 +410,7 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     if (p->XSTRCODE || *(p->iFile) == SSTRCOD) {
       char    *fname;
       fname = csound->strarg2name(csound, NULL, p->iFile, "fout.", p->XSTRCODE);
-      if (fname == NULL || fname[0] == (char) 0) {
+      if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
         csound->Free(csound, fname);
         return csound->InitError(csound, Str("invalid file name"));
       }
@@ -420,7 +420,7 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
             strcmp(fname, pp->file_opened[idx].name) == 0)
           break;
       }
-      if (idx > pp->file_num) {
+      if (UNLIKELY(idx > pp->file_num)) {
         csound->Warning(csound, Str("cannot close '%s': "
                                     "not found in list of open files"), fname);
         csound->Free(csound, fname);
@@ -430,7 +430,7 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
     }
     else {
       idx = (int) MYFLT2LRND(*(p->iFile));
-      if (idx < 0 || idx > pp->file_num || pp->file_opened[idx].fd == NULL) {
+      if (UNLIKELY(idx < 0 || idx > pp->file_num || pp->file_opened[idx].fd == NULL)) {
         csound->Warning(csound,
                         Str("cannot close file #%d: not a valid handle"), idx);
         return OK;
@@ -467,10 +467,10 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
     FILE    *rfil;
     int     j, n = (int) MYFLT2LRND(*p->ihandle);
 
-    if (n < 0 || n > pp->file_num)
+    if (UNLIKELY(n < 0 || n > pp->file_num))
       csound->Die(csound, Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
-    if (rfil == NULL) csound->Die(csound, Str("fouti: invalid file handle"));
+    if (UNLIKELY(rfil == NULL)) csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
@@ -540,10 +540,10 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     args = p->argums;
     n = (int) MYFLT2LRND(*p->ihandle);
-    if (n < 0 || n > pp->file_num)
+    if (UNLIKELY(n < 0 || n > pp->file_num))
       csound->Die(csound, Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
-    if (rfil == NULL)
+    if (UNLIKELY(rfil == NULL))
       csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
@@ -600,7 +600,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
     sfinfo.channels = p->INOCOUNT - 3;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                        p->fname, p->XSTRCODE, &sfinfo);
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return NOTOK;
 
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
@@ -657,7 +657,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     sfinfo.channels = p->INOCOUNT - 3;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                        p->fname, p->XSTRCODE, &sfinfo);
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return NOTOK;
 
     if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
@@ -708,7 +708,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
       idx = 0;
     n = fout_open_file(csound, (FOUT_FILE*) NULL, &fp, CSFILE_STD,
                        p->fname, p->XSTRCODE, omodes[idx]);
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return NOTOK;
 
     nargs = p->INOCOUNT - 3;
@@ -817,7 +817,7 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
     else                                /* fprints */
       n = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
                          p->fname, p->XSTRCODE & 1, "w");
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return NOTOK;
 
     /* Copy the string to the storage place in PRINTKS.
@@ -1024,7 +1024,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 {
     char    string[8192];
 
-    if (fprintf_set(csound, p) != OK)
+    if (UNLIKELY(fprintf_set(csound, p) != OK))
       return NOTOK;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, string);

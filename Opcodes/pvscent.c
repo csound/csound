@@ -37,7 +37,7 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
-    if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
+    if (UNLIKELY(!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE)))
       return csound->InitError(csound,
                                Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
@@ -164,12 +164,12 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
     p->lastframe = 0;
 
 #ifdef SDFT
-    if (p->fin->sliding)
+    if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
     csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->peakfreq);
     csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->inharmonic);
-    if (p->fin->format!=PVS_AMP_FREQ) {
+    if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
                                "PV Frames must be in AMP_FREQ format!\n");
     }

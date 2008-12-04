@@ -35,18 +35,18 @@ static int Load_File_(CSOUND *csound, const char *filnam,
 
     *allocp = NULL;
     f = fopen(filnam, "rb");
-    if (f == NULL)                              /* if cannot open the file */
+    if (UNLIKELY(f == NULL))                              /* if cannot open the file */
       return 1;                                 /*    return 1             */
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
     fseek(f, 0L, SEEK_END);                     /* then get its length     */
     *len = (int32) ftell(f);
     fseek(f, 0L, SEEK_SET);
-    if (*len < 1L)
+    if (UNLIKELY(*len < 1L))
       goto err_return;
     *allocp = mmalloc(csound, (size_t) (*len)); /*   alloc as reqd     */
-    if (fread(*allocp, (size_t) 1,              /*   read file in      */
-              (size_t) (*len), f) != (size_t) (*len))
+    if (UNLIKELY(fread(*allocp, (size_t) 1,              /*   read file in      */
+                       (size_t) (*len), f) != (size_t) (*len)))
       goto err_return;
     fclose(f);                                  /*   and close it      */
     return 0;                                   /*   return 0 for OK   */
@@ -93,12 +93,12 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
     strcpy(mfp->filename, filnam);
 
     pathnam = csoundFindInputFile(csound, filnam, "SADIR");
-    if (pathnam == NULL) {
+    if (UNLIKELY(pathnam == NULL)) {
       csoundMessage(csound, Str("cannot load %s\n"), filnam);
       delete_memfile(csound, filnam);
       return NULL;
     }
-    if (Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0) {
+    if (UNLIKELY(Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0)) {
       /* loadfile */
       csoundMessage(csound, Str("cannot load %s, or SADIR undefined\n"),
                             pathnam);
@@ -188,7 +188,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
     int32          totalframes, framelen;
     float         *pFrame;
 
-    if (fname == NULL || fname[0] == '\0') {
+    if (UNLIKELY(fname == NULL || fname[0] == '\0')) {
       memset(p, 0, sizeof(PVOCEX_MEMFILE));
       return pvx_err_msg(csound, Str("Empty or NULL file name"));
     }
@@ -207,25 +207,25 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
     memset(&pvdata, 0, sizeof(PVOCDATA));
     memset(&fmt, 0, sizeof(WAVEFORMATEX));
     pvx_id = csound->PVOC_OpenFile(csound, fname, &pvdata, &fmt);
-    if (pvx_id < 0) {
+    if (UNLIKELY(pvx_id < 0)) {
       return pvx_err_msg(csound, Str("unable to open pvocex file %s: %s"),
                                  fname, csound->PVOC_ErrorString(csound));
     }
     framelen = 2 * pvdata.nAnalysisBins;
     /* also, accept only 32bit floats for now */
-    if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
+    if (UNLIKELY(pvdata.wWordFormat != PVOC_IEEE_FLOAT)) {
       return pvx_err_msg(csound, Str("pvoc-ex file %s is not 32bit floats"),
                                  fname);
     }
     /* FOR NOW, accept only PVOC_AMP_FREQ: later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
-    if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
+    if (UNLIKELY(pvdata.wAnalFormat != PVOC_AMP_FREQ)) {
       return pvx_err_msg(csound, Str("pvoc-ex file %s not in AMP_FREQ format"),
                                  fname);
     }
     /* ignore the window spec until we can use it! */
     totalframes = csound->PVOC_FrameCount(csound, pvx_id);
-    if (totalframes <= 0) {
+    if (UNLIKELY(totalframes <= 0)) {
       return pvx_err_msg(csound, Str("pvoc-ex file %s is empty!"), fname);
     }
     mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
@@ -245,7 +245,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
      */
     for (pFrame = pp->data, i = 0; i < totalframes; i++) {
       rc = csound->PVOC_GetFrames(csound, pvx_id, pFrame, 1);
-      if (rc != 1)
+      if (UNLIKELY(rc != 1))
         break;          /* read error, but may still have something to use */
       /* scale amps to Csound range, to fit fsig */
       for (j = 0; j < framelen; j += 2) {
@@ -254,11 +254,11 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
       pFrame += framelen;
     }
     csound->PVOC_CloseFile(csound, pvx_id);
-    if (rc < 0) {
+    if (UNLIKELY(rc < 0)) {
       mfree(csound, pp);
       return pvx_err_msg(csound, Str("error reading pvoc-ex file %s"), fname);
     }
-    if (i < totalframes) {
+    if (UNLIKELY(i < totalframes)) {
       mfree(csound, pp);
       return pvx_err_msg(csound, Str("error reading pvoc-ex file %s "
                                      "after %d frames"), fname, i);
@@ -326,7 +326,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     SF_INFO       tmp;
     unsigned char h;
 
-    if (fileName == NULL || fileName[0] == '\0')
+    if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
       return NULL;
     /* check if file is already loaded */
     h = name_hash_2(csound, fileName);
@@ -360,7 +360,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     }
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
                        Str("csoundLoadSoundFile(): failed to open '%s'"),
                        fileName);

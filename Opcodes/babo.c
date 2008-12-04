@@ -736,7 +736,7 @@ set_expert_values(CSOUND *csound, BABO *p)
 static void
 verify_coherence(CSOUND *csound, BABO *p)
 {
-    if (*(p->lx) <= FL(0.0) || *(p->ly) <= FL(0.0) || *(p->lz) <= FL(0.0)) {
+    if (UNLIKELY(*(p->lx) <= FL(0.0) || *(p->ly) <= FL(0.0) || *(p->lz) <= FL(0.0))) {
       csound->Die(csound, Str("Babo: resonator dimensions are incorrect "
                               "(%.1f, %.1f, %.1f)"),
                   *(p->lx), *(p->ly), *(p->lz));

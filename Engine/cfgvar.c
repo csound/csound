@@ -74,14 +74,14 @@ static int check_name(const char *name)
 {
     int i, c;
 
-    if (name == NULL)
+    if (UNLIKELY(name == NULL))
       return CSOUNDCFG_INVALID_NAME;
-    if (name[0] == '\0')
+    if (UNLIKELY(name[0] == '\0'))
       return CSOUNDCFG_INVALID_NAME;
     i = -1;
     while (name[++i] != '\0') {
       c = (int) ((unsigned char) name[i]);
-      if ((c & 0x80) || !(c == '_' || isalpha(c) || isdigit(c)))
+      if (UNLIKELY((c & 0x80) || !(c == '_' || isalpha(c) || isdigit(c))))
         return CSOUNDCFG_INVALID_NAME;
     }
     return CSOUNDCFG_SUCCESS;
@@ -105,7 +105,7 @@ static int check_type(int type)
 
 static int check_flags(int flags)
 {
-    if ((flags & (~(CSOUNDCFG_POWOFTWO))) != 0)
+    if (UNLIKELY((flags & (~(CSOUNDCFG_POWOFTWO))) != 0))
       return CSOUNDCFG_INVALID_FLAG;
     return CSOUNDCFG_SUCCESS;
 }
@@ -153,13 +153,13 @@ static int cfg_alloc_structure(csCfgVariable_t **ptr,
 
     (*ptr) = (csCfgVariable_t*) NULL;
     /* check for valid parameters */
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       return CSOUNDCFG_NULL_POINTER;
-    if (check_name(name) != CSOUNDCFG_SUCCESS)
+    if (UNLIKELY(check_name(name) != CSOUNDCFG_SUCCESS))
       return CSOUNDCFG_INVALID_NAME;
-    if (check_type(type) != CSOUNDCFG_SUCCESS)
+    if (UNLIKELY(check_type(type) != CSOUNDCFG_SUCCESS))
       return CSOUNDCFG_INVALID_TYPE;
-    if (check_flags(flags) != CSOUNDCFG_SUCCESS)
+    if (UNLIKELY(check_flags(flags) != CSOUNDCFG_SUCCESS))
       return CSOUNDCFG_INVALID_FLAG;
     /* calculate the number of bytes to allocate */
     structBytes = ((int) sizeof(csCfgVariable_t) + 15) & (~15);
@@ -177,7 +177,7 @@ static int cfg_alloc_structure(csCfgVariable_t **ptr,
     totBytes = structBytes + nameBytes + sdBytes + ldBytes;
     /* allocate memory */
     pp = (void*) malloc((size_t) totBytes);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_MEMORY;
     memset(pp, 0, (size_t) totBytes);
     (*ptr) = (csCfgVariable_t*) pp;
@@ -296,12 +296,12 @@ int csoundCreateGlobalConfigurationVariable(const char *name,
     unsigned char   h;
 
     /* check if name is already in use */
-    if (csoundQueryGlobalConfigurationVariable(name) != NULL)
+    if (UNLIKELY(csoundQueryGlobalConfigurationVariable(name) != NULL))
       return CSOUNDCFG_INVALID_NAME;
     /* if database is not allocated yet, create an empty one */
     if (global_cfg_db == NULL) {
       global_cfg_db = (void**) malloc(sizeof(void*) * 256);
-      if (global_cfg_db == NULL)
+      if (UNLIKELY(global_cfg_db == NULL))
         return CSOUNDCFG_MEMORY;
       for (i = 0; i < 256; i++)
         global_cfg_db[i] = (void*) NULL;
@@ -341,12 +341,12 @@ PUBLIC int
     unsigned char   h;
 
     /* check if name is already in use */
-    if (csoundQueryConfigurationVariable(csound, name) != NULL)
+    if (UNLIKELY(csoundQueryConfigurationVariable(csound, name) != NULL))
       return CSOUNDCFG_INVALID_NAME;
     /* if database is not allocated yet, create an empty one */
     if (local_cfg_db == NULL) {
       local_cfg_db = (void**) malloc(sizeof(void*) * 256);
-      if (local_cfg_db == NULL)
+      if (UNLIKELY(local_cfg_db == NULL))
         return CSOUNDCFG_MEMORY;
       for (i = 0; i < 256; i++)
         local_cfg_db[i] = (void*) NULL;
@@ -466,14 +466,14 @@ PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
 
     /* look up global configuration variable */
     pp = csoundQueryGlobalConfigurationVariable(name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_INVALID_NAME;
 
     /* check if a local configuration variable with this name already exists */
     lp = csoundQueryConfigurationVariable(csound, name);
     if (lp != NULL) {
       /* found one, find out if it is compatible */
-      if (!are_cfgvars_compatible(lp, pp))
+      if (UNLIKELY(!are_cfgvars_compatible(lp, pp)))
         return CSOUNDCFG_INVALID_NAME;      /* no, report error */
       /* if a new data pointer was specified, store it */
       if (p != NULL)
@@ -483,7 +483,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
     }
     else {
       /* create new local configuration variable */
-      if (p == NULL)
+      if (UNLIKELY(p == NULL))
         return CSOUNDCFG_NULL_POINTER;  /* must have a valid data pointer */
       type = pp->h.type;
       flags = pp->h.flags;
@@ -554,7 +554,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
     char            *s;
     void            *ptr = NULL;
 
-    if (global_cfg_db == NULL) {
+    if (UNLIKELY(global_cfg_db == NULL)) {
       /* empty database: nothing to do */
       return CSOUNDCFG_SUCCESS;
     }
@@ -568,7 +568,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
         if (lp == NULL) {
           /* no, create named global variable */
           s = (char*) malloc((size_t) strlen((char*) pp->h.name) + (size_t) 2);
-          if (s == NULL)
+          if (UNLIKELY(s == NULL))
             return CSOUNDCFG_MEMORY;
           strcpy(s, ".");
           strcat(s, (char*) pp->h.name);
@@ -582,7 +582,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
             default:  k = 1;  /* should not happen */
           }
           j = csoundCreateGlobalVariable(csound, s, (size_t) k);
-          if (j != CSOUND_SUCCESS) {
+          if (UNLIKELY(j != CSOUND_SUCCESS)) {
             if (j == CSOUND_MEMORY)
               return CSOUNDCFG_MEMORY;
             else {
@@ -600,9 +600,9 @@ PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
         /* copy variable */
         j = csoundCopyGlobalConfigurationVariable(csound, (char*) pp->h.name,
                                                   ptr);
-        if (j == CSOUNDCFG_MEMORY || j == CSOUNDCFG_NULL_POINTER)
+        if (UNLIKELY(j == CSOUNDCFG_MEMORY || j == CSOUNDCFG_NULL_POINTER))
           return j;
-        else if (j != CSOUNDCFG_SUCCESS)
+        else if (UNLIKELY(j != CSOUNDCFG_SUCCESS))
           retval = CSOUNDCFG_INVALID_NAME;
         /* continue with next link in chain */
         pp = (csCfgVariable_t*) (pp->h.nxt);
@@ -621,43 +621,43 @@ static int set_cfgvariable_value(csCfgVariable_t *pp, void *value)
     float   fVal;
     int     iVal;
     /* set value depending on type */
-    if (value == NULL)
+    if (UNLIKELY(value == NULL))
       return CSOUNDCFG_NULL_POINTER;
     switch (pp->h.type) {
       case CSOUNDCFG_INTEGER:
         iVal = *((int*) value);
-        if (iVal < pp->i.min) return CSOUNDCFG_TOO_LOW;
-        if (iVal > pp->i.max) return CSOUNDCFG_TOO_HIGH;
+        if (UNLIKELY(iVal < pp->i.min)) return CSOUNDCFG_TOO_LOW;
+        if (UNLIKELY(iVal > pp->i.max)) return CSOUNDCFG_TOO_HIGH;
         if (pp->i.flags & CSOUNDCFG_POWOFTWO)
-          if (iVal < 1 || (iVal & (iVal - 1)) != 0)
+          if (UNLIKELY(iVal < 1 || (iVal & (iVal - 1)) != 0))
             return CSOUNDCFG_NOT_POWOFTWO;
         *(pp->i.p) = iVal;
         break;
       case CSOUNDCFG_BOOLEAN:
         iVal = *((int*) value);
-        if (iVal & (~1)) return CSOUNDCFG_INVALID_BOOLEAN;
+        if (UNLIKELY(iVal & (~1))) return CSOUNDCFG_INVALID_BOOLEAN;
         *(pp->b.p) = iVal;
         break;
       case CSOUNDCFG_FLOAT:
         fVal = *((float*) value);
-        if (fVal < pp->f.min) return CSOUNDCFG_TOO_LOW;
-        if (fVal > pp->f.max) return CSOUNDCFG_TOO_HIGH;
+        if (UNLIKELY(fVal < pp->f.min)) return CSOUNDCFG_TOO_LOW;
+        if (UNLIKELY(fVal > pp->f.max)) return CSOUNDCFG_TOO_HIGH;
         *(pp->f.p) = fVal;
         break;
       case CSOUNDCFG_DOUBLE:
         dVal = *((double*) value);
-        if (dVal < pp->d.min) return CSOUNDCFG_TOO_LOW;
-        if (dVal > pp->d.max) return CSOUNDCFG_TOO_HIGH;
+        if (UNLIKELY(dVal < pp->d.min)) return CSOUNDCFG_TOO_LOW;
+        if (UNLIKELY(dVal > pp->d.max)) return CSOUNDCFG_TOO_HIGH;
         *(pp->d.p) = dVal;
         break;
       case CSOUNDCFG_MYFLT:
         mVal = *((MYFLT*) value);
-        if (mVal < pp->m.min) return CSOUNDCFG_TOO_LOW;
-        if (mVal > pp->m.max) return CSOUNDCFG_TOO_HIGH;
+        if (UNLIKELY(mVal < pp->m.min)) return CSOUNDCFG_TOO_LOW;
+        if (UNLIKELY(mVal > pp->m.max)) return CSOUNDCFG_TOO_HIGH;
         *(pp->m.p) = mVal;
         break;
       case CSOUNDCFG_STRING:
-        if ((int) strlen((char*) value) >= (pp->s.maxlen - 1))
+        if (UNLIKELY((int) strlen((char*) value) >= (pp->s.maxlen - 1)))
           return CSOUNDCFG_STRING_LENGTH;
         strcpy((char*) (pp->s.p), (char*) value);
         break;
@@ -694,7 +694,7 @@ PUBLIC int csoundSetGlobalConfigurationVariable(const char *name, void *value)
 
     /* get pointer to variable */
     pp = csoundQueryGlobalConfigurationVariable(name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (set_cfgvariable_value(pp, value));
 }
@@ -713,7 +713,7 @@ PUBLIC int
 
     /* get pointer to variable */
     pp = csoundQueryConfigurationVariable(csound, name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (set_cfgvariable_value(pp, value));
 }
@@ -727,7 +727,7 @@ static int parse_cfg_variable(csCfgVariable_t *pp, const char *value)
     float   fVal;
     int     iVal;
 
-    if (value == NULL)
+    if (UNLIKELY(value == NULL))
       return CSOUNDCFG_NULL_POINTER;
     switch (pp->h.type) {
       case CSOUNDCFG_INTEGER:
@@ -794,7 +794,7 @@ PUBLIC int
 
     /* get pointer to variable */
     pp = csoundQueryGlobalConfigurationVariable(name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (parse_cfg_variable(pp, value));
 }
@@ -815,7 +815,7 @@ PUBLIC int
 
     /* get pointer to variable */
     pp = csoundQueryConfigurationVariable(csound, name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (parse_cfg_variable(pp, value));
 }
@@ -895,7 +895,7 @@ static csCfgVariable_t **list_db_entries(void **db)
     /* allocate memory for list */
     lst = (csCfgVariable_t**) malloc(sizeof(csCfgVariable_t*)
                                      * (cnt + (size_t) 1));
-    if (lst == NULL)
+    if (UNLIKELY(lst == NULL))
       return (csCfgVariable_t**) NULL;  /* not enough memory */
     /* create list */
     if (cnt) {
@@ -965,7 +965,7 @@ static int remove_entry_from_db(void **db, const char *name)
     csCfgVariable_t *pp, *prvp;
     unsigned char   h;
     /* first, check if this key actually exists */
-    if (find_cfg_variable(db, name) == NULL)
+    if (UNLIKELY(find_cfg_variable(db, name) == NULL))
       return CSOUNDCFG_INVALID_NAME;
     /* calculate hash value */
     h = name_hash_(name);
