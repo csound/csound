@@ -58,7 +58,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     void  *p;
 
 #ifdef MEMDEBUG
-    if (size == (size_t) 0) {
+    if (UNLIKELY(size == (size_t) 0)) {
       fprintf(stderr,
               " *** internal error: mmalloc() called with zero nbytes\n");
       return NULL;
@@ -88,14 +88,14 @@ void *mcalloc(CSOUND *csound, size_t size)
     void  *p;
 
 #ifdef MEMDEBUG
-    if (size == (size_t) 0) {
+    if (UNLIKELY(size == (size_t) 0)) {
       fprintf(stderr,
               " *** internal error: mcalloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
     /* allocate memory */
-    if ((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL) {
+    if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
       memdie(csound, size);
       return NULL;
     }
@@ -121,7 +121,7 @@ void mfree(CSOUND *csound, void *p)
       return;
     pp = HDR_PTR(p);
 #ifdef MEMDEBUG
-    if (pp->magic != MEMALLOC_MAGIC || pp->ptr != p) {
+    if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       fprintf(stderr, " *** internal error: mfree() called with invalid "
                       "pointer (%p)\n", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -157,7 +157,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     }
     pp = HDR_PTR(oldp);
 #ifdef MEMDEBUG
-    if (pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp) {
+    if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
       fprintf(stderr, " *** internal error: mrealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -170,7 +170,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
 #endif
     /* allocate memory */
     p = realloc((void*) pp, ALLOC_BYTES(size));
-    if (p == NULL) {
+    if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;

@@ -215,7 +215,7 @@ int isUDOArgList(char *s) {
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (strchr("aijkKop0", s[len]) == NULL) {
+      if (UNLIKELY(strchr("aijkKop0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -230,7 +230,7 @@ int isUDOAnsList(char *s) {
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (strchr("aikK0", s[len]) == NULL) {
+      if (UNLIKELY(strchr("aikK0", s[len]) == NULL)) {
         return 0;
       }
 
@@ -384,7 +384,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         err++; i--;
       }
       i++; types++;
-      if (i > OPCODENUMOUTS_MAX) {
+      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
         synterr(csound, "too many input args for opcode %s", inm->name);
         csound->LongJmp(csound, 1);
       }
@@ -399,7 +399,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (!strcmp(types, "0"))
       types++;                  /* no output args */
     while (*types) {
-      if (i >= OPCODENUMOUTS_MAX) {
+      if (UNLIKELY(i >= OPCODENUMOUTS_MAX)) {
         synterr(csound, "too many output args for opcode %s", inm->name);
         csound->LongJmp(csound, 1);
       }
@@ -486,7 +486,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
 
     /* IV - Oct 31 2002 */
-    if (!check_instr_name(opname)) {
+    if (UNLIKELY(!check_instr_name(opname))) {
         synterr(csound, Str("invalid name for opcode"));
         return -1;
     }
@@ -496,7 +496,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     if (newopnum) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
-        if (newopnum < SETEND || !strcmp(opname, "subinstr")) {
+      if (UNLIKELY(newopnum < SETEND || !strcmp(opname, "subinstr"))) {
           synterr(csound, Str("cannot redefine %s"), opname);
           return -2;
         }
@@ -538,10 +538,10 @@ int add_udo_definition(CSOUND *csound, char *opname,
                                       + strlen(intypes) + 2);
     newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
 
-    if (parse_opcode_args(csound, newopc) != 0)
+    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
         return -3;
 
-    if(strcmp(outtypes, "0")==0) {
+    if (strcmp(outtypes, "0")==0) {
         add_token(csound, opname, T_OPCODE0);
     } else {
         add_token(csound, opname, T_OPCODE);

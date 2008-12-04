@@ -116,7 +116,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Clarinet"));
     }
@@ -278,7 +278,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
     FUNC        *ftp;
     int32        length;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                   /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Flute"));
     }
@@ -476,7 +476,7 @@ int bowedset(CSOUND *csound, BOWED *p)
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for wgbow vibrato"));
     }
@@ -673,7 +673,7 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   /* outPoint chases inpoint + 2 for interp and other        */
     outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);
 
-    if (p->length<=0) goto err1;
+    if (UNLIKELY(p->length<=0)) goto err1;
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
     p->outPoint = (int32) outputPointer;    /* Integer part of delay          */
@@ -751,7 +751,7 @@ int brassset(CSOUND *csound, BRASS *p)
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Brass"));
     }

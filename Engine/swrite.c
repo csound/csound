@@ -233,7 +233,7 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
       n = *p++ - '0';
     if (isdigit(*p))                /* n is np subscript no */
       n = 10*n + (*p++ - '0');
-    if (*p != SP && *p != LF)
+    if (UNLIKELY(*p != SP && *p != LF))
       goto error;
     if ((bp = prvins(bp)) != NULL   /* for prvins, same p1, */
         && n <= bp->pcnt) {
@@ -269,7 +269,7 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     int     pnum, n;
 
     psav = ++p;
-    if (*psav != SP && *psav != LF)
+    if (UNLIKELY(*psav != SP && *psav != LF))
       goto error1;
     pnum = 0;
     q = bp->text;
@@ -334,7 +334,7 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     int     pnum, n;
 
     psav = ++p;
-    if (*psav != SP && *psav != LF)
+    if (UNLIKELY(*psav != SP && *psav != LF))
       goto error1;
     pnum = 0;
     q = bp->text;
@@ -402,7 +402,7 @@ static char *randramp(CSOUND *csound,
     int     pnum, n;
 
     psav = ++p;
-    if (*psav != SP && *psav != LF)
+    if (UNLIKELY(*psav != SP && *psav != LF))
       goto error1;
     pnum = 0;
     q = bp->text;
@@ -417,7 +417,7 @@ static char *randramp(CSOUND *csound,
       while (n--)
         while (*p++ != SP)
           ;
-      if (*p == '~')
+      if (UNLIKELY(*p == '~'))
         goto backup;
     }
     else goto error2;
@@ -462,7 +462,7 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt)
     while (*p != '"')
       putc(*p++, csound->scoreout);
     putc(*p++, csound->scoreout);
-    if (*p != SP && *p != LF) {
+    if (UNLIKELY(*p != SP && *p != LF)) {
       csound->Message(csound, Str("swrite: output, sect%d line%d p%d "
                                   "has illegally terminated string   "),
                               csound->sectcnt, lincnt, pcnt);
@@ -510,7 +510,7 @@ static char *fpnum(CSOUND *csound,
         dcnt++;
       }
     }
-    if ((*p != SP && *p != LF) || !dcnt) {
+    if (UNLIKELY((*p != SP && *p != LF) || !dcnt)) {
       csound->Message(csound,Str("swrite: output, sect%d line%d p%d has "
                                  "illegal number  "),
                       csound->sectcnt,lincnt,pcnt);

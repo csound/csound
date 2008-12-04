@@ -182,8 +182,8 @@ static int ifilter(CSOUND *csound, FILTER* p)
     p->numb = (int)*p->nb;
 
     /* First check bounds on initialization arguments */
-    if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
-        (p->numa<0) || (p->numa>MAXPOLES))
+    if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
+                 (p->numa<0) || (p->numa>MAXPOLES)))
       return csound->InitError(csound, Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
@@ -220,8 +220,8 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
     p->numb = (int)*p->nb;
 
     /* First check bounds on initialization arguments */
-    if ((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
-        (p->numa<0) || (p->numa>MAXPOLES))
+    if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
+                 (p->numa<0) || (p->numa>MAXPOLES)))
       return csound->InitError(csound, Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 

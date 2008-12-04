@@ -92,12 +92,12 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
 {
     int     numbins = p->fin->N / 2 + 1;
 
-    if (p->fin->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("psynth: first input not in TRACKS format\n"));
     }
     p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
-    if (p->func == NULL) {
+    if (UNLIKELY(p->func == NULL)) {
       return csound->InitError(csound, Str("psynth: function table not found\n"));
     }
 
@@ -248,12 +248,12 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
 {
     int     numbins = p->fin->N / 2 + 1;
 
-    if (p->fin->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("psynth: first input not in TRACKS format\n"));
     }
     p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
-    if (p->func == NULL) {
+    if (UNLIKELY(p->func == NULL)) {
       return csound->InitError(csound, Str("psynth: function table not found\n"));
     }
 
@@ -562,7 +562,7 @@ static int trans_init(CSOUND *csound, _PTRANS *p)
 {
     int     numbins;
 
-    if (p->fin->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("Input not in TRACKS format\n"));
     }
 
@@ -655,7 +655,7 @@ static int trlowest_init(CSOUND *csound, _PLOW *p)
 {
     int     numbins;
 
-    if (p->fin->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("Input not in TRACKS format\n"));
     }
 
@@ -760,7 +760,7 @@ static int trsplit_init(CSOUND *csound, _PSPLIT *p)
 {
     int     numbins;
 
-    if (p->fsig3->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("trsplit: input not "
                                            "in TRACKS format\n"));
     }
@@ -855,12 +855,12 @@ static int trmix_init(CSOUND *csound, _PSMIX *p)
 {
     int     numbins;
 
-    if (p->fsig2->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("trmix: first input not in TRACKS format\n"));
     }
 
-    if (p->fsig3->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("trmix: second input not in TRACKS format\n"));
     }
@@ -935,12 +935,12 @@ static int trfil_init(CSOUND *csound, _PSFIL *p)
 {
     int     numbins;
 
-    if (p->fin->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("trfil: input not in TRACKS format\n"));
     }
     p->tab = csound->FTnp2Find(csound, p->ifn);
-    if (p->tab == NULL) {
+    if (UNLIKELY(p->tab == NULL)) {
       return csound->InitError(csound,
                                Str("trfil: could not find function table\n"));
     }
@@ -1019,12 +1019,12 @@ static int trcross_init(CSOUND *csound, _PSCROSS *p)
 {
     int     numbins;
 
-    if (p->fsig2->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("trmix: first input not in TRACKS format\n"));
     }
 
-    if (p->fsig3->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("trmix: second input not in TRACKS format\n"));
     }
@@ -1127,7 +1127,7 @@ static int binit_init(CSOUND *csound, _PSBIN *p)
 {
     int     numbins, N;
 
-    if (p->fsig2->format != PVS_TRACKS) {
+    if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("binit: first input not in TRACKS format\n"));
     }

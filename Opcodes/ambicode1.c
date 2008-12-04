@@ -158,11 +158,11 @@ abformenc(CSOUND * csound, AMBIC * p) {
 static int
 ibformdec(CSOUND * csound, AMBID * p) {
   /* All we do in here is police our parameters. */
-  if (p->INOCOUNT != 1 + 4 && p->INOCOUNT != 1 + 9 && p->INOCOUNT != 1 + 16) {
+    if (UNLIKELY(p->INOCOUNT != 1 + 4 && p->INOCOUNT != 1 + 9 && p->INOCOUNT != 1 + 16)) {
     return csound->InitError(csound,
                              Str("The number of input arguments is not valid."));
   }
-  else if (*(p->isetup) < 1 || *(p->isetup) > 5) {
+    else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
     return csound->InitError(csound,
                              Str("The isetup value should be between 1 and 5."));
   }

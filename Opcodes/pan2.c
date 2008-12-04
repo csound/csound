@@ -38,7 +38,7 @@ typedef struct {
 static int pan2set(CSOUND *csound, PAN2 *p)
 {
     int type = p->type = MYFLT2LRND(*p->itype);
-    if (type <0 || type > 2)
+    if (UNLIKELY(type <0 || type > 2))
       return csound->InitError(csound, "Unknown panning type");
     return OK;
 }

@@ -45,7 +45,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 {
     int N, hop;
 #ifdef SDFT
-    if (p->fin->sliding)
+    if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
     p->handle.header.N = N = p->fin->N;

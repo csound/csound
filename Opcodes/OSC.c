@@ -112,10 +112,10 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     lo_address t;
 
     /* with too many args, XINCODE/XSTRCODE may not work correctly */
-    if (p->INOCOUNT > 31)
+    if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    if (p->XINCODE)
+    if (UNLIKELY(p->XINCODE))
       return csound->InitError(csound, Str("No a-rate arguments allowed"));
 
     if (*p->port<0)
@@ -151,17 +151,17 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_char(msg, (char) (*arg[i] + FL(0.5)));
           break;
@@ -171,30 +171,30 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
               int32_t  x;
               uint8_t  m[4];
             } mm;
-            if (p->XSTRCODE&msk)
+            if (UNLIKELY(p->XSTRCODE&msk))
               return csound->PerfError(csound, Str("String not expected"));
             mm.x = *arg[i]+FL(0.5);
             lo_message_add_midi(msg, mm.m);
             break;
           }
         case 'f':
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_double(msg, (double)(*arg[i]));
           break;
         case 's':
-          if (p->XSTRCODE&msk)
+          if (LIKELY(p->XSTRCODE&msk))
             lo_message_add_string(msg, (char*)arg[i]);
           else
             return csound->PerfError(csound, Str("Not a string when needed"));
           break;
         case 'b':               /* Boolean */
-          if (p->XSTRCODE&msk)
+          if (UNLIKELY(p->XSTRCODE&msk))
             return csound->PerfError(csound, Str("String not expected"));
           if (*arg[i]==FL(0.0)) lo_message_add_true(msg);
           else lo_message_add_false(msg);
@@ -202,11 +202,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
         case 't':               /* timestamp */
           {
             lo_timetag tt;
-            if (p->XSTRCODE&msk)
+            if (UNLIKELY(p->XSTRCODE&msk))
               return csound->PerfError(csound, Str("String not expected"));
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
             msk <<= 1; i++;
-            if (type[i]!='t')
+            if (UNLIKELY(type[i]!='t'))
               return csound->PerfError(csound,
                                        Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
@@ -391,8 +391,8 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp != NULL)
       return pp;
-    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
-                                             sizeof(OSC_GLOBALS)) != 0)
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "_OSC_globals",
+                                              sizeof(OSC_GLOBALS)) != 0))
       csound->Die(csound, Str("OSC: failed to allocate globals"));
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     pp->csound = csound;
@@ -410,7 +410,7 @@ static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
 
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
-    if (pp->mutex_ != NULL)
+    if (UNLIKELY(pp->mutex_ != NULL))
       return csound->InitError(csound, Str("OSCrecv is already running"));
     pp->eventQueue = NULL;
     pp->mutex_ = csound->Create_Mutex(0);
@@ -631,20 +631,20 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
                         csound->QueryGlobalVariable(csound, "_OSC_globals");
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return csound->InitError(csound, Str("OSC not running"));
     /* find port */
     n = (int) *(p->ihandle);
-    if (n < 0 || n >= pp->nPorts)
+    if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, Str("invalid handle"));
     p->port = &(pp->ports[n]);
     p->saved_path = (char*) csound->Malloc(csound, strlen((char*) p->dest) + 1);
     strcpy(p->saved_path, (char*) p->dest);
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
-    if (n < 1 || n > 28)
+    if (UNLIKELY(n < 1 || n > 28))
       return csound->InitError(csound, "invalid number of arguments");
-    if ((int) strlen((char*) p->type) != n)
+    if (UNLIKELY((int) strlen((char*) p->type) != n))
       return csound->InitError(csound,
                                "argument list inconsistent with format string");
     strcpy(p->saved_types, (char*) p->type);
@@ -659,12 +659,12 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'f':
       case 'h':
       case 'i':
-        if (*s != 'k')
+        if (UNLIKELY(*s != 'k'))
           return csound->InitError(csound, "argument list inconsistent "
                                            "with format string");
         break;
       case 's':
-        if (*s != 'S')
+        if (UNLIKELY(*s != 'S'))
           return csound->InitError(csound, "argument list inconsistent "
                                            "with format string");
         break;

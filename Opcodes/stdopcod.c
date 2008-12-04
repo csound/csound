@@ -32,7 +32,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     STDOPCOD_GLOBALS  *p;
     int               err = 0;
 
-    if (csound->stdOp_Env != NULL)
+    if (UNLIKELY(csound->stdOp_Env != NULL))
       csound->Die(csound, Str("stdopcod.c: error: globals already allocated"));
     csound->stdOp_Env = csound->Calloc(csound, sizeof(STDOPCOD_GLOBALS));
 

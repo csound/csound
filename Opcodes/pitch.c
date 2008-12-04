@@ -77,9 +77,9 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     ncoefs = nocts * nfreqs;
     Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
 
-    if (p->timcount <= 0) return csound->InitError(csound, Str("illegal iprd"));
-    if (nocts > MAXOCTS)  return csound->InitError(csound, Str("illegal iocts"));
-    if (nfreqs > MAXFRQS) return csound->InitError(csound, Str("illegal ifrqs"));
+    if (UNLIKELY(p->timcount <= 0)) return csound->InitError(csound, Str("illegal iprd"));
+    if (UNLIKELY(nocts > MAXOCTS))  return csound->InitError(csound, Str("illegal iocts"));
+    if (UNLIKELY(nfreqs > MAXFRQS)) return csound->InitError(csound, Str("illegal ifrqs"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
@@ -174,7 +174,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     }
     if (*p->inptls<=FL(0.0)) nptls = 4;
     else nptls = (int32)*p->inptls;
-    if (nptls > MAXPTL) {
+    if (UNLIKELY(nptls > MAXPTL)) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
     if (*p->irolloff<=FL(0.0)) p->rolloff = FL(0.6);
@@ -199,7 +199,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
         weightsum += weight;
         *fltp++    = weight;
       }
-      if (*--fltp < FL(0.0)) {
+      if (UNLIKELY(*--fltp < FL(0.0))) {
         return csound->InitError(csound, Str("per octave rolloff too steep"));
       }
       p->rolloff = 1;
@@ -213,7 +213,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     fendp = fundp + specp->npts;
     if (flop < fundp) flop = fundp;
     if (fhip > fendp) fhip = fendp;
-    if (flop >= fhip) {                 /* chk hi-lo range valid */
+    if (UNLIKELY(flop >= fhip)) {                 /* chk hi-lo range valid */
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
@@ -343,7 +343,7 @@ int pitch(CSOUND *csound, PITCH *p)
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
       int32 lobin, hibin;
 
-      if (inp==NULL) goto err1;            /* RWD fix */
+      if (UNLIKELY(inp==NULL)) goto err1;            /* RWD fix */
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
       lobin = (int32)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
       hibin = (int32)((kval + kvar) * specp->nfreqs);
@@ -456,7 +456,7 @@ int pitch(CSOUND *csound, PITCH *p)
 
 int macset(CSOUND *csound, SUM *p)
 {
-    if ((((int)p->INOCOUNT)&1)==1) {
+    if (UNLIKELY((((int)p->INOCOUNT)&1)==1)) {
       return csound->PerfError(csound,
                                Str("Must have even number of arguments in mac\n"));
     }
@@ -546,7 +546,7 @@ int clockread(CSOUND *csound, CLKRD *p)
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     int cnt = (int) *p->a;
     if (cnt < 0 || cnt > 32) cnt = 32;
-    if (clk->running[cnt])
+    if (UNLIKELY(clk->running[cnt]))
       return csound->InitError(csound, Str("clockread: clock still running, "
                                            "call clockoff first"));
     /* result in ms */
@@ -566,7 +566,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 
     p->inerr = 0;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
@@ -579,27 +579,27 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
       count = 1;
     p->count = count;
 
-    if ((ftp = csound->FTFind(csound, p->ifreqtbl)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifreqtbl)) != NULL)) {
       p->freqtp = ftp;
     }
     else {
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt: freqtable not found!"));
     }
-    if (ftp->flen < count) {
+    if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
       return csound->InitError(csound, Str(
                     "adsynt: partial count is greater than freqtable size!"));
     }
 
-    if ((ftp = csound->FTFind(csound, p->iamptbl)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->iamptbl)) != NULL)) {
       p->amptp = ftp;
     }
     else {
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt: amptable not found!"));
     }
-    if (ftp->flen < count) {
+    if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
       return csound->InitError(csound, Str(
                     "adsynt: partial count is greater than amptable size!"));
@@ -632,7 +632,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     int32    *lphs;
     int     n, nsmps = csound->ksmps, count;
 
-    if (p->inerr) {
+    if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, Str("adsynt: not initialised"));
     }
     ftp = p->ftp;
@@ -709,7 +709,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 
     ftp = p->ftp;
     mixtp = p->mixtp;
-    if (ftp==NULL || mixtp==NULL) {
+    if (UNLIKELY(ftp==NULL || mixtp==NULL)) {
       return csound->PerfError(csound, Str("hsboscil: not initialised"));
     }
 
@@ -791,7 +791,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
     minperi = (int32)(srate / *p->imaxcps);
     maxperi = (int32)(FL(0.5)+srate / *p->imincps);
-    if (maxperi <= minperi) {
+    if (UNLIKELY(maxperi <= minperi)) {
       p->inerr = 1;
       return csound->InitError(csound,
                                Str("pitchamdf: maxcps must be > mincps !"));
@@ -939,7 +939,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     double sum;
     MYFLT  acc, accmin, diff;
 
-    if (p->inerr) {
+    if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, Str("pitchamdf: not initialised"));
     }
 
@@ -1119,11 +1119,11 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     int     size = p->curphs.size / sizeof(double);
     int     index = (int)(*p->kindx);
 
-    if (curphs == NULL) {
+    if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, Str("phasorbnk: not initialised"));
     }
 
-    if (index<0 || index>=size) {
+    if (UNLIKELY(index<0 || index>=size)) {
       *p->sr = FL(0.0);
       return NOTOK;
     }
@@ -1146,11 +1146,11 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
     int     size = p->curphs.size / sizeof(double);
     int     index = (int)(*p->kindx);
 
-    if (curphs == NULL) {
+    if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, Str("phasorbnk: not initialised"));
     }
 
-    if (index<0 || index>=size) {
+    if (UNLIKELY(index<0 || index>=size)) {
       *p->sr = FL(0.0);
       return NOTOK;
     }
@@ -1207,8 +1207,8 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p);
 int pinkset(CSOUND *csound, PINKISH *p)
 {
         /* Check valid method */
-    if (*p->imethod != GARDNER_PINK && *p->imethod != KELLET_PINK
-        && *p->imethod != KELLET_CHEAP_PINK) {
+    if (UNLIKELY(*p->imethod != GARDNER_PINK && *p->imethod != KELLET_PINK
+                 && *p->imethod != KELLET_CHEAP_PINK)) {
       return csound->InitError(csound, Str("pinkish: Invalid method code"));
     }
     /* User range scaling can be a- or k-rate for Gardner, a-rate only
@@ -1218,7 +1218,7 @@ int pinkset(CSOUND *csound, PINKISH *p)
     }
     else {
       /* Cannot accept k-rate input with filter method */
-      if (*p->imethod != FL(0.0)) {
+      if (UNLIKELY(*p->imethod != FL(0.0))) {
         return csound->InitError(csound, Str(
                       "pinkish: Filter method requires a-rate (noise) input"));
       }
@@ -1342,7 +1342,7 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
     else {
       p->grd_NumRows = 20;
       /* Warn if user tried but failed to give sensible number */
-      if (*p->iparam1 != FL(0.0))
+      if (UNLIKELY(*p->iparam1 != FL(0.0)))
         csound->Message(csound, Str("pinkish: Gardner method requires 4-%d bands. "
                                     "Default %ld substituted for %d.\n"),
                         GRD_MAX_RANDOM_ROWS, p->grd_NumRows,
@@ -1573,7 +1573,7 @@ int Fosckk(CSOUND *csound, XOSC *p)
     int flen;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
@@ -1600,7 +1600,7 @@ int Foscak(CSOUND *csound, XOSC *p)
     int flen;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
@@ -1627,7 +1627,7 @@ int Foscka(CSOUND *csound, XOSC *p)
     int flen;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
@@ -1656,7 +1656,7 @@ int Foscaa(CSOUND *csound, XOSC *p)
     int flen;
 
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, Str("oscil: not initialised"));
     }
     flen = ftp->flen;
@@ -1770,7 +1770,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
 int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
-    if (p->auxch.auxp==NULL) { /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
       csound->Die(csound, Str("\nError: transeg not initialised (krate)"));
     }
     if (p->segsrem) {                   /* done if no more segs */
@@ -1805,7 +1805,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
     MYFLT  val, *rs = p->rslt;
     int         nsmps = csound->ksmps;
     NSEG        *segp = p->cursegp;
-    if (p->auxch.auxp==NULL) {
+    if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
     }
     val = p->curval;                      /* sav the cur value    */

@@ -43,11 +43,11 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     int32        bufsize;
     MYFLT       *d;
 
-    if ((gftp = csound->FTFind(csound, p->igfn)) != NULL)
+    if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if ((eftp = csound->FTFind(csound, p->iefn)) != NULL)
+    if (LIKELY((eftp = csound->FTFind(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 
@@ -87,7 +87,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     MYFLT       gcount = p->gcount;
 
                                 /* Pick up common values to locals for speed */
-    if (p->aux.auxp==NULL) goto err1;
+    if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     gtp  = p->gftp;
     gtbl = gtp->ftable;
 

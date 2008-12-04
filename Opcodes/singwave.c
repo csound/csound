@@ -122,14 +122,14 @@ static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound,ifn)) != NULL) p->wave = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL)) p->wave = ftp;
     else {
       return csound->InitError(csound, Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
     p->sweepRate = FL(0.001);
-    if (make_Modulatr(csound, &p->modulator, ivfn)) return NOTOK;
+    if (UNLIKELY(make_Modulatr(csound, &p->modulator, ivfn))) return NOTOK;
     Modulatr_setVibFreq(p->modulator, FL(6.0));
     Modulatr_setVibAmt(p->modulator, FL(0.04));
     make_Envelope(&p->envelope);
@@ -311,7 +311,7 @@ int voicformset(CSOUND *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK) return NOTOK;
+    if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK)) return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
     Envelope_setTarget(&(p->voiced.envelope), FL(0.0));
 

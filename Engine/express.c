@@ -60,7 +60,7 @@ static CS_NOINLINE char *extend_tokenstring(CSOUND *csound, size_t len)
     csound->tokenstring = tt;               /* Reset string and length */
     csound->toklen = (int32) newLen;
     csound->stringend = csound->tokenstring + csound->toklen;
-    if (newLen != (size_t) 128)
+    if (UNLIKELY(newLen != (size_t) 128))
       csound->Message(csound, Str("Token length extended to %ld\n"),
                               csound->toklen);
     return &(csound->tokenstring[len]);
@@ -76,7 +76,7 @@ int express(CSOUND *csound, char *s)
 
     if (*s == '"')                 /* if quoted string, not an exprssion */
       return (0);
-    if (csound->tokens == NULL) {
+    if (UNLIKELY(csound->tokens == NULL)) {
       csound->tokens    = (TOKEN*) mmalloc(csound, TOKMAX * sizeof(TOKEN));
       csound->tokend    = csound->tokens + TOKMAX;
       csound->tokenlist = (TOKEN**) mmalloc(csound, TOKMAX * sizeof(TOKEN*));
@@ -87,7 +87,7 @@ int express(CSOUND *csound, char *s)
       csound->toklen    = 0L;
     }
     sorig = s;
-    if (strlen(s) >= (size_t) csound->toklen)
+    if (UNLIKELY(strlen(s) >= (size_t) csound->toklen))
       extend_tokenstring(csound, strlen(s));
 
     csound->token = csound->tokens;
@@ -102,8 +102,8 @@ int express(CSOUND *csound, char *s)
           if (*s == '.' || (*s >= '0' && *s <= '9' && s[1] != 'd'))
             *t++ = c;
           else {                    /* neg symbol: prv / illegal */
-            if (csound->token > csound->tokens &&
-                *(csound->token-1)->str == '/')
+            if (UNLIKELY(csound->token > csound->tokens &&
+                         *(csound->token-1)->str == '/'))
               XERROR(Str("divide by unary minus"))
             csound->token->str = (char*) strminus1; csound->token++;
             csound->token->str = (char*) strmult; csound->token++;
@@ -111,7 +111,7 @@ int express(CSOUND *csound, char *s)
           }
           c = *s++;                 /* beg rem of token */
         }
-        else if (c == '*' || c == '/' || c == '%')  /* unary mlt, div */
+        else if (UNLIKELY(c == '*' || c == '/' || c == '%'))  /* unary mlt, div */
           XERROR(Str("unary mult or divide"))       /*   illegal      */
             open = 0;
       }
@@ -296,7 +296,7 @@ int express(CSOUND *csound, char *s)
         sprintf(op, "%s.%c", (*csound->revp)->str, c); /* Type at end now */
         if (strcmp(op,"i.k") == 0) {
           outype = 'i';                          /* i(karg) is irreg. */
-          if (pp->arg[1][0] == '#' && pp->arg[1][1] == 'k') {
+          if (UNLIKELY(pp->arg[1][0] == '#' && pp->arg[1][1] == 'k')) {
             /* IV - Jan 15 2003: input arg should not be a k-rate expression */
             if (csound->oparms->expr_opt) {
               XERROR(Str("i() with expression argument not "
@@ -332,7 +332,7 @@ int express(CSOUND *csound, char *s)
         pp->incount = 1;                    /*   copy 1 arg txts    */
         pp->arg[1] = copystring((*--csound->argp)->str);
         e = argtyp(csound, pp->arg[1]);
-        if (e == 'B' || e == 'b')
+        if (UNLIKELY(e == 'B' || e == 'b'))
           XERROR(Str("misplaced relational op"));
         if (c == '\254' || c == '~') {
           strcpy(op, "not");                /*   to complete optxt  */
@@ -362,7 +362,7 @@ int express(CSOUND *csound, char *s)
         pp->arg[1] = copystring((*--csound->argp)->str);
         e = argtyp(csound, pp->arg[1]);
         d = argtyp(csound, pp->arg[2]);     /*   now use argtyps */
-        if (e == 'B' || e == 'b' || d == 'B' || d == 'b' )
+        if (UNLIKELY(e == 'B' || e == 'b' || d == 'B' || d == 'b' ))
           XERROR(Str("misplaced relational op"))
 /*      csound->Message(csound, "op=%s e=%c c=%c d=%c\n", op, e, c, d); */
         if (e == 'a') {                     /*   to complet optxt*/
@@ -396,9 +396,9 @@ int express(CSOUND *csound, char *s)
         pp->arg[1] = copystring((*--csound->argp)->str);
         c = argtyp(csound, pp->arg[1]);
         d = argtyp(csound, pp->arg[2]);     /*   now use argtyps */
-        if (c == 'a' || d == 'a')           /*   to determ outs  */
+        if (UNLIKELY(c == 'a' || d == 'a'))           /*   to determ outs  */
           XERROR(Str("audio relational"))
-        if (c == 'B' || c == 'b' || d == 'B' || d == 'b' )
+            if (UNLIKELY(c == 'B' || c == 'b' || d == 'B' || d == 'b' ))
           XERROR(Str("misplaced relational op"))
         if (c == 'k' || d == 'k')
           outype = 'B';
@@ -427,9 +427,9 @@ int express(CSOUND *csound, char *s)
         b = argtyp(csound, pp->arg[1]);
         c = argtyp(csound, pp->arg[2]);
         d = argtyp(csound, pp->arg[3]);
-        if ((b != 'B' && b != 'b') ||       /*   chk argtypes, */
+        if (UNLIKELY((b != 'B' && b != 'b') ||       /*   chk argtypes, */
             c == 'B' || c == 'b'   || d == 'B' || d == 'b' ||
-            (c == 'a' && d != 'a') || (d == 'a' && c != 'a'))
+                     (c == 'a' && d != 'a') || (d == 'a' && c != 'a')))
           XERROR(Str("incorrect cond value format"))
         outype = 'i';                       /*   determine outyp */
         if (b == 'B' || c == 'k' || d == 'k')

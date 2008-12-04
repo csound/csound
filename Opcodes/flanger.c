@@ -64,7 +64,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
       v1 = (int32)fv1;
       v2 = (fv1 < maxdelayM1)? v1+1 : 0; /*Find next sample for interpolation*/
       out[n] = yt1 = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
-      if (++indx == maxdelay)
+      if (UNLIKELY(++indx == maxdelay))
         indx = 0;                      /* Advance current pointer */
     }
     p->left = indx;
@@ -183,7 +183,7 @@ static int wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->xdel1cod = (XINARG2) ? 1 : 0;
     p->xdel2cod = (XINARG3) ? 1 : 0;
 
-    if (p->xdel1cod != p->xdel2cod)
+    if (UNLIKELY(p->xdel1cod != p->xdel2cod))
       return csound->InitError(csound, Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));

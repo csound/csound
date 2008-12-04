@@ -60,7 +60,7 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     }
     time_string = ctime(&temp_time);
     ((char*) p->Stime_)[0] = '\0';
-    if ((int) strlen(time_string) >= csound->strVarMaxLen) {
+    if (UNLIKELY((int) strlen(time_string) >= csound->strVarMaxLen)) {
       return csound->InitError(csound, Str("dates: buffer overflow"));
     }
     strcpy((char*) p->Stime_, time_string);

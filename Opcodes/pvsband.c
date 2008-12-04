@@ -42,7 +42,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
 {
     int     N = p->fin->N;
 
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 
 #ifdef SDFT
@@ -86,7 +86,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     MYFLT   fade = *p->fade;
     MYFLT   opef = FL(1.0) - EXP(fade);
 
-    if (fout == NULL) goto err1;
+    if (UNLIKELY(fout == NULL)) goto err1;
 
     if (lowcut<FL(0.0)) lowcut = FL(0.0);
     if (lowbnd<lowcut) lowbnd = lowcut;
@@ -192,7 +192,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     MYFLT   fade = *p->fade;
     MYFLT   opef = FL(1.0) - EXP(fade);
 
-    if (fout == NULL) goto err1;
+    if (UNLIKELY(fout == NULL)) goto err1;
 
     if (lowcut<FL(0.0)) lowcut = FL(0.0);
     if (lowbnd<lowcut) lowbnd = lowcut;

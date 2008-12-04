@@ -54,7 +54,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
         return(1);
     }
-    if (!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.')) {
+    if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
         ungetc(c, csound->scfp);
         csound->Message(csound,
                         Str("ERROR: illegal character %c(%.2x) in scoreline: "),
@@ -120,7 +120,7 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
                 if (c == '\n' || c == EOF)   break;     /* newline? done  */
                 ungetc(c, csound->scfp);                /* pfld:  back up */
                 if (!scanflt(csound, ++pp))  break;     /*   & read value */
-                if (pp >= plim) {
+                if (UNLIKELY(pp >= plim)) {
                     csound->Message(csound, Str("ERROR: too many pfields: "));
                     dumpline(csound);
                     break;

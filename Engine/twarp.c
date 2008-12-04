@@ -102,15 +102,15 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       csound->tplim = (TSEG*) csound->tseg + TSEGMAX-1;
     }
     tp = (TSEG*) (csound->tpsave = csound->tseg);
-    if (bp->pcnt < 2)
+    if (UNLIKELY(bp->pcnt < 2))
       goto error1;
     p = bp->text;                             /* first go to p1        */
     p += 2;
-    if ((tp->betbas = stof(csound, p)) != 0)  /* betbas1 must be zero  */
+    if (UNLIKELY((tp->betbas = stof(csound, p)) != 0))  /* betbas1 must be zero  */
       goto error1;
     while ((c = *p++) != SP)
       ;
-    if ((tempo = stof(csound, p)) <= 0)       /* durbas = 60/tempo     */
+    if (UNLIKELY((tempo = stof(csound, p)) <= 0))       /* durbas = 60/tempo     */
       goto error2;
     if (bp->pcnt == 2 && tempo == FL(60.0))   /* just t0 60 means done */
       return(0);
@@ -120,17 +120,17 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       ;
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
-      if (++tp > (TSEG*) csound->tplim)
+      if (UNLIKELY(++tp > (TSEG*) csound->tplim))
         goto error3;
       tp->betbas = stof(csound, p);           /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
         ;
-      if (c == LF)
+      if (UNLIKELY(c == LF))
         goto error1;
-      if ((tempo = stof(csound, p)) <= 0)     /* get tempo             */
+      if (UNLIKELY((tempo = stof(csound, p)) <= 0))     /* get tempo             */
         goto error2;
       if ((betspan = tp->betbas - prvtp->betbas) <= 0) {
-        if (betspan < 0)                      /* if time = lastime */
+        if (UNLIKELY(betspan < 0))                      /* if time = lastime */
           goto error1;
         tp--;                                 /* overwrit prvdurbas*/
         tp->durbas = FL(60.0)/tempo;          /*   with 60/tempo   */
@@ -145,7 +145,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
         ;
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
-    if (++tp > (TSEG*) csound->tplim)
+    if (UNLIKELY(++tp > (TSEG*) csound->tplim))
       goto error3;
     tp->betbas = FL(999999.9);                /* and cap with large betval */
     return(1);

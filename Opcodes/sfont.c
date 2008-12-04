@@ -130,13 +130,13 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     */
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csound->Die(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
     }
     soundFont = &globals->sfArray[globals->currSFndx];
-    if (soundFont==NULL)  csound->Die(csound, Str("Sfload: cannot use globals"));
+    if (UNLIKELY(soundFont==NULL))  csound->Die(csound, Str("Sfload: cannot use globals"));
     strcpy(soundFont->name, csound->GetFileName(fd));
     chunk_read(fil, &soundFont->chunk.main_chunk);
     csound->FileClose(csound, fd);
@@ -166,7 +166,7 @@ static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handl
     SFBANK *sf;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (globals==NULL) {
+    if (UNLIKELY(globals==NULL)) {
       return csound->InitError(csound, Str("sfload: could not open globals\n"));
     }
     fname = csound->strarg2name(csound,
@@ -292,7 +292,7 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     }
     *p->ipresethandle = (MYFLT) presetHandle;
 
-    if (globals->presetp[presetHandle] == NULL) {
+    if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
       csound->Die(csound, Str("sfpreset: cannot find any preset having prog "
                               "number %d and bank number %d in SoundFont file "
                               "\"%s\""),
@@ -314,7 +314,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
-    if (!preset) {
+    if (!UNLIKELY(preset)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
@@ -641,7 +641,7 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
-    if (!preset) {
+    if (UNLIKELY(!preset)) {
       return csound->InitError(csound, Str("sfplaym: invalid or "
                                            "out-of-range preset number"));
     }
@@ -896,7 +896,7 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     int index = (int) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[index];
-    if (index > globals->currSFndx || *p->instrNum >  sf->instrs_num) {
+    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1158,7 +1158,7 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     SFBANK *sf;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[index];
-    if (index > globals->currSFndx || *p->instrNum >  sf->instrs_num) {
+    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1606,7 +1606,7 @@ static void fill_SfStruct(CSOUND *csound)
                         int num = igen[m].genAmount.wAmount;
                         split->num= num;
                         split->sample = &shdr[num];
-                        if (split->sample->sfSampleType & 0x8000) {
+                        if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
                           csound->Die(csound, Str("SoundFont file \"%s\" "
                                                   "contains ROM samples !\n"
                                                   "At present time only RAM "
@@ -1843,7 +1843,7 @@ static void fill_SfStruct(CSOUND *csound)
                   int num = igen[m].genAmount.wAmount;
                   split->num= num;
                   split->sample = &shdr[num];
-                  if (split->sample->sfSampleType & 0x8000) {
+                  if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
                     csound->Die(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
@@ -1995,16 +1995,16 @@ static void fill_SfPointers(CSOUND *csound)
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
-    if (globals == NULL) {
+    if (UNLIKELY(globals == NULL)) {
       csound->Die(csound, Str("Sfont: cannot use globals/"));
     }
 
     soundFont = globals->soundFont;
-    if (soundFont != NULL)
-    main_chunk=&(soundFont->chunk.main_chunk);
+    if (LIKELY(soundFont != NULL))
+      main_chunk=&(soundFont->chunk.main_chunk);
     else  csound->Die(csound, Str("Sfont: cannot use globals/"));
 
-    if (main_chunk->ckDATA == NULL) {
+    if (UNLIKELY(main_chunk->ckDATA == NULL)) {
       csound->Die(csound, Str("Sfont format not compatible"));
     }
     chkp = (char *) main_chunk->ckDATA+4;
