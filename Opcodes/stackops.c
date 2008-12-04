@@ -76,7 +76,7 @@ typedef struct POP_OPCODE_ {
 static CS_NOINLINE void fassign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
-    if (fsrc->frame.auxp == NULL)
+    if (UNLIKELY(fsrc->frame.auxp == NULL))
       csound->Die(csound, Str("fsig = : source signal is not initialised"));
     fdst->N = fsrc->N;
     fdst->overlap = fsrc->overlap;
@@ -104,11 +104,11 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    if (csound->ids != NULL && csound->pds == NULL) {
+    if (UNLIKELY(csound->ids != NULL && csound->pds == NULL)) {
       csound->InitError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
       csound->LongJmp(csound, CSOUND_INITIALIZATION);
     }
-    else if (csound->ids == NULL && csound->pds != NULL) {
+    else if (UNLIKELY(csound->ids == NULL && csound->pds != NULL)) {
       csound->PerfError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
       csound->LongJmp(csound, CSOUND_PERFORMANCE);
     }
@@ -156,14 +156,14 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
     CsoundArgStack_t  *pp;
     int               nBytes;
 
-    if (stackSize < 1024)
+    if (UNLIKELY(stackSize < 1024))
       stackSize = 1024;
-    else if (stackSize > 16777200)
+    else if (UNLIKELY(stackSize > 16777200))
       stackSize = 16777200;
     nBytes = csoundStack_Align((int) sizeof(CsoundArgStack_t));
     nBytes += stackSize;
-    if (csound->CreateGlobalVariable(csound, "csArgStack", (size_t) nBytes)
-        != 0)
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "csArgStack", (size_t) nBytes)
+                 != 0))
       csound->Die(csound, Str("Error allocating argument stack"));
     pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
     pp->curBundle = (CsoundArgStack_t*) NULL;
@@ -203,7 +203,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(void *p, int *argMap,
       aMask = csound->GetOutputArgAMask(p);
       sMask = csound->GetOutputArgSMask(p);
     }
-    if (argCnt > 31)
+    if (UNLIKELY(argCnt > 31))
       return csoundStack_Error(p, Str("too many arguments"));
     argMap[0] = 0;
     argCnt_i = 0;
@@ -282,7 +282,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(void *p, int *argMap,
 
 static int stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 {
-    if (csound->QueryGlobalVariable(csound, "csArgStack") != NULL)
+    if (UNLIKELY(csound->QueryGlobalVariable(csound, "csArgStack") != NULL))
       return csound->InitError(csound, Str("the stack is already allocated"));
     csoundStack_AllocGlobals(csound, (int) (*(p->iStackSize) + 0.5));
     return OK;
@@ -336,7 +336,7 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
 {
     if (!p->initDone) {
       p->pp = csoundStack_GetGlobals(csound);
-      if (csoundStack_CreateArgMap(p, &(p->argMap[0]), 0) != OK)
+      if (UNLIKELY(csoundStack_CreateArgMap(p, &(p->argMap[0]), 0) != OK))
         return NOTOK;
       p->h.opadr = (int (*)(CSOUND *, void *)) push_opcode_perf;
       p->initDone = 1;
@@ -344,7 +344,7 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
     if (p->argMap[1] != 0) {
       void  *bp;
       int   i, *ofsp;
-      if (p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset)
+      if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
         return csoundStack_OverflowError(p);
       bp = (void*) ((char*) p->pp->dataSpace + (int) p->pp->freeSpaceOffset);
       p->pp->freeSpaceOffset += p->argMap[1];
@@ -389,7 +389,7 @@ static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
     if (p->argMap[2] != 0) {
       void  *bp;
       int   i, *ofsp;
-      if (p->pp->curBundle == NULL)
+      if (UNLIKELY(p->pp->curBundle == NULL))
         return csoundStack_EmptyError(p);
       bp = p->pp->curBundle;
       ofsp = (int*) ((char*) bp + (int) csoundStack_Align((int) sizeof(void*)));
@@ -427,7 +427,7 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
 {
     if (!p->initDone) {
       p->pp = csoundStack_GetGlobals(csound);
-      if (csoundStack_CreateArgMap(p, &(p->argMap[0]), 1) != OK)
+      if (UNLIKELY(csoundStack_CreateArgMap(p, &(p->argMap[0]), 1) != OK))
         return NOTOK;
       p->h.opadr = (int (*)(CSOUND *, void *)) pop_opcode_perf;
       p->initDone = 1;
@@ -469,7 +469,7 @@ static int push_f_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
     int     *ofsp;
     int     offs;
 
-    if (p->pp->freeSpaceOffset + p->argMap[2] > p->pp->freeSpaceEndOffset)
+    if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[2] > p->pp->freeSpaceEndOffset))
       return csoundStack_OverflowError(p);
     bp = (void*) ((char*) p->pp->dataSpace + (int) p->pp->freeSpaceOffset);
     p->pp->freeSpaceOffset += p->argMap[2];
@@ -511,7 +511,7 @@ static int push_f_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       p->h.opadr = (int (*)(CSOUND *, void *)) push_f_opcode_perf;
       p->initDone = 1;
     }
-    if (p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset)
+    if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
       return csoundStack_OverflowError(p);
     bp = (void*) ((char*) p->pp->dataSpace + (int) p->pp->freeSpaceOffset);
     p->pp->freeSpaceOffset += p->argMap[1];
@@ -533,15 +533,15 @@ static int pop_f_opcode_perf(CSOUND *csound, POP_OPCODE *p)
     int     *ofsp;
     int     offs;
 
-    if (p->pp->curBundle == NULL)
+    if (UNLIKELY(p->pp->curBundle == NULL))
       return csoundStack_EmptyError(p);
     bp = p->pp->curBundle;
     ofsp = (int*) ((char*) bp + (int) csoundStack_Align((int) sizeof(void*)));
     offs = p->argMap[3];
-    if (offs != *ofsp)
+    if (UNLIKELY(offs != *ofsp))
       csoundStack_TypeError(p);
     ofsp++;
-    if (*ofsp != CS_STACK_END)
+    if (UNLIKELY(*ofsp != CS_STACK_END))
       csoundStack_TypeError(p);
     fassign(csound,
             (PVSDAT*) p->args[0],
@@ -578,15 +578,15 @@ static int pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
       p->h.opadr = (int (*)(CSOUND *, void *)) pop_f_opcode_perf;
       p->initDone = 1;
     }
-    if (p->pp->curBundle == NULL)
+    if (UNLIKELY(p->pp->curBundle == NULL))
       return csoundStack_EmptyError(p);
     bp = p->pp->curBundle;
     ofsp = (int*) ((char*) bp + (int) csoundStack_Align((int) sizeof(void*)));
     offs = p->argMap[3];
-    if (offs != *ofsp)
+    if (UNLIKELY(offs != *ofsp))
       csoundStack_TypeError(p);
     ofsp++;
-    if (*ofsp != CS_STACK_END)
+    if (UNLIKELY(*ofsp != CS_STACK_END))
       csoundStack_TypeError(p);
     fassign(csound,
             (PVSDAT*) p->args[0],
@@ -632,7 +632,7 @@ static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 
 static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
-    if (csound->GetOutputArgCnt(p) != csound->nchnls)
+    if (UNLIKELY(csound->GetOutputArgCnt(p) != csound->nchnls))
       return csound->InitError(csound, Str("number of arguments != nchnls"));
     p->h.opadr = (SUBR) monitor_opcode_perf;
     return OK;

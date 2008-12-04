@@ -48,23 +48,23 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
     p->ilohi = (int)*p->lohi;
-    if ((p->ilohi < 0) || (p->ilohi > 1)) {
+    if (UNLIKELY((p->ilohi < 0) || (p->ilohi > 1))) {
       return csound->InitError(csound,
                                Str("filter type not lowpass or "
                                    "highpass in clfilt"));
     }
     p->ikind = (int)*p->kind;
-    if ((p->ikind < 0) || (p->ikind > 3)) {
+    if (UNLIKELY((p->ikind < 0) || (p->ikind > 3))) {
       return csound->InitError(csound,
                                Str("filter kind, %d, out of range in clfilt"),
                                p->ikind);
     }
-    if ((*p->npol < FL(1.0)) || (*p->npol > 2*CL_LIM)) {
+    if (UNLIKELY((*p->npol < FL(1.0)) || (*p->npol > 2*CL_LIM))) {
       return csound->InitError(csound, Str("number of poles, %f, out of range "
                                            "in clfilt"), *p->npol);
 /*       p->nsec = nsec = 1; */
     }
-    else if (fmod((double)*p->npol,2.0) != 0.0) {
+    else if (UNLIKELY(fmod((double)*p->npol,2.0) != 0.0)) {
       p->nsec = nsec = (int)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
                                   " rounded to %d"), 2*nsec);
@@ -89,12 +89,12 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
         }
         break;
       case 1: /* Lowpass Chebyshev type I */
-        if ( pbr < FL(0.0) ) {
+        if (UNLIKELY( pbr < FL(0.0) )) {
           pbr = -pbr;
           csound->Warning(csound, Str("passband ripple must be positive "
                                       "in clfilt. Set to %f"), pbr);
         }
-        else if ( pbr == FL(0.0) ) {
+        else if (UNLIKELY( pbr == FL(0.0) )) {
           pbr = FL(1.0);
           csound->Warning(csound, Str("passband ripple must be non-zero in "
                                       "clfilt. Set to %f"), pbr);
@@ -136,12 +136,12 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
         if ( sbr == FL(1.0) ) {
           sbr = FL(-60.0);
         }
-        else if ( sbr > FL(0.0) ) {
+        else if (UNLIKELY( sbr > FL(0.0) )) {
           sbr = -sbr;
           csound->Warning(csound, Str("stopband attenuation must be negative "
                                       "in clfilt. Set to %f"), sbr);
         }
-        else if ( sbr == FL(0.0) ) {
+        else if (UNLIKELY( sbr == FL(0.0) )) {
           sbr = FL(-60.0);
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
                                       "in clfilt. Set to %f"), sbr);
@@ -191,13 +191,13 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
         }
         break;
       case 1: /* Highpass Chebyshev type I */
-        if ( pbr < FL(0.0) ) {
+        if (UNLIKELY( pbr < FL(0.0) )) {
           pbr = -pbr;
           csound->Warning(csound,
                           Str("passband ripple must be positive in clfilt. "
                               "Set to %f"), pbr);
         }
-        else if ( pbr == FL(0.0) ) {
+        else if (UNLIKELY( pbr == FL(0.0) )) {
           pbr = FL(1.0);
           csound->Warning(csound, Str("passband ripple must be non-zero "
                                       "in clfilt. Set to %f"), pbr);
@@ -239,12 +239,12 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
         if ( sbr == FL(1.0) ) {
           sbr = FL(-60.0);
         }
-        else if ( sbr > FL(0.0) ) {
+        else if (UNLIKELY( sbr > FL(0.0) )) {
           sbr = -sbr;
           csound->Warning(csound, Str("stopband attenuation must be negative "
                                       "in clfilt. Set to %f"), sbr);
         }
-        else if ( sbr == FL(0.0) ) {
+        else if (UNLIKELY( sbr == FL(0.0) )) {
           sbr = FL(-60.0);
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
                                       "in clfilt. Set to %f"), sbr);

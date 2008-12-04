@@ -63,7 +63,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     int     bsize;
 
     p->bsize = bsize = (int) *p->buffersize;
-    if ((sizeof(MYFLT) * bsize) > MTU) {
+    if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
       return csound->InitError(csound, "The buffersize must be <= %d samples "
                                "to fit in a udp-packet.",
                                (int) (MTU / sizeof(MYFLT)));
@@ -71,7 +71,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     p->wp = 0;
 
     p->sock = socket(PF_INET, SOCK_DGRAM, 0);
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
@@ -102,8 +102,8 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     for (i = 0, wp = p->wp; i < ksmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
-                   sizeof(p->server_addr)) < 0) {
+        if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
+                            sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, "sendto failed");
         }
         wp = 0;
@@ -121,7 +121,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     int     bsize;
 
     p->bsize = bsize = (int) *p->buffersize;
-    if ((sizeof(MYFLT) * bsize) > MTU) {
+    if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
       return csound->InitError(csound, "The buffersize must be <= %d samples "
                                "to fit in a udp-packet.",
                                (int) (MTU / sizeof(MYFLT)));
@@ -129,7 +129,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
     /* create server address: where we want to send to and clear it out */
@@ -164,8 +164,8 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     for (i = 0, wp = p->wp; i < ksmps; i++, wp += 2) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
-                   sizeof(p->server_addr)) < 0) {
+        if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
+                            sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, "sendto failed");
         }
         wp = 0;
@@ -186,7 +186,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
-    if (p->sock < 0) {
+    if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, "creating socket");
     }
 
@@ -205,20 +205,20 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_port = htons((int) *p->port);
 
     /* associate the socket with the address and port */
-    if (bind
+    if (UNLIKELY(bind
         (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
-        < 0) {
+                 < 0)) {
       return csound->InitError(csound, "bind failed");
     }
 
     /* start the socket listening for new connections -- may wait */
-    if (listen(p->sock, 5) < 0) {
+    if (UNLIKELY(listen(p->sock, 5) < 0)) {
       return csound->InitError(csound, "listen failed");
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
 
-    if (p->conn < 0) {
+    if (UNLIKELY(p->conn < 0)) {
       return csound->InitError(csound, "accept failed");
     }
     return OK;
@@ -228,7 +228,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
     int     n = sizeof(MYFLT) * csound->ksmps;
 
-    if (n != write(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps)) {
+    if (UNLIKELY(n != write(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps))) {
       return csound->PerfError(csound, "write to socket failed");
     }
     return OK;

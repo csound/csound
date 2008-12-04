@@ -70,7 +70,7 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
       sfinfo.samplerate = (tmp > 0 ? tmp : (int) MYFLT2LRND(csound->esr));
     }
     sf = csound->LoadSoundFile(csound, fname, &sfinfo);
-    if (sf == NULL) {
+    if (UNLIKELY(sf == NULL)) {
       int xx = csound->InitError(csound, Str("could not load '%s'"), fname);
       csound->Free(csound, fname);
       return xx;
@@ -84,7 +84,7 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
       sf->startOffs = (double) *(p->iStartOffset);
     loopMode = (int) MYFLT2LRND(*(p->iLoopMode1));
     if (loopMode >= 0) {
-      if (loopMode > 3)
+      if (UNLIKELY(loopMode > 3))
         return csound->InitError(csound, Str("invalid loop mode: %d"),
                                          loopMode);
       sf->loopMode = loopMode + 1;
@@ -166,7 +166,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
 
     p->dataPtr = NULL;
     nChannels = csound->GetOutputArgCnt(p);
-    if (nChannels < 1 || nChannels > LOSCILX_MAXOUTS)
+    if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
       csound->Die(csound, Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
     if (csound->GetInputArgSMask(p) != 0UL) {
@@ -174,7 +174,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
 
       p->usingFtable = 0;
       sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SF_INFO*) NULL);
-      if (sf == NULL)
+      if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);
       if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
@@ -186,7 +186,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         sf->loopStart = sf->loopEnd;
         sf->loopEnd = tmp;
       }
-      if (sf->nChannels != nChannels)
+      if (UNLIKELY(sf->nChannels != nChannels))
         return csound->InitError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
@@ -215,7 +215,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       ftp = csound->FTnp2Find(csound, p->ifn);
       if (ftp == NULL)
         return NOTOK;
-      if ((int) ftp->nchanls != nChannels)
+      if (UNLIKELY((int) ftp->nchanls != nChannels))
         return csound->InitError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
@@ -254,7 +254,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->curLoopDir = 1;
     loopMode = (int) MYFLT2LRND(*(p->imod1));
     if (loopMode >= 0) {
-      if (loopMode > 3)
+      if (UNLIKELY(loopMode > 3))
         return csound->InitError(csound, Str("invalid loop mode: %d"),
                                          loopMode);
       p->curLoopMode = loopMode;
@@ -349,7 +349,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     int     winSmps;
     float   winBuf[LOSCILX_MAX_INTERP_SIZE];
 
-    if (p->dataPtr == NULL) goto err1;
+    if (UNLIKELY(p->dataPtr == NULL)) goto err1;
 
     if (*(p->kcps) != p->prvKcps) {
       double  f;

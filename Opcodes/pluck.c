@@ -169,7 +169,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 
     /* This memory must be freed after use */
     shape = (MYFLT *) csound->Malloc(csound, len*sizeof(MYFLT));
-    if (!shape)
+    if (UNLIKELY(!shape))
       error(csound,
             Str("Could not allocate for initial shape"),"<pluckShape>");
 
@@ -188,7 +188,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 {
     *gr->pointer++ = samp;
-    if (gr->pointer > gr->endPoint)
+    if (UNLIKELY(gr->pointer > gr->endPoint))
       gr->pointer = gr->data;
 }
 
@@ -203,7 +203,7 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
-    if (pickupSamp<1) pickupSamp = 1;
+    if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
 
       for (n=0;n<nsmps;n++) {
         ar[n] = guideRailAccess(&p->wg.upperRail,pickupSamp)
@@ -240,7 +240,7 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 static void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
-    if (!data)
+    if (UNLIKELY(!data))
       error(csound, Str("Buffer memory not allocated!"),
                     "<circularBuffer::circularBuffer>");
 

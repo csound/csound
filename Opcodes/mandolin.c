@@ -75,7 +75,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->soundfile = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
       return csound->InitError(csound, Str("No table for Mandolin"));
     }
@@ -83,7 +83,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       if (*p->lowestFreq!=FL(0.0)) {
         p->length = (int32) (csound->esr / (*p->lowestFreq * FL(0.9)) + FL(1.0));
       }
-      else if (*p->frequency!=FL(0.0)) {
+      else if (LIKELY(*p->frequency!=FL(0.0))) {
         p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       }
       else {

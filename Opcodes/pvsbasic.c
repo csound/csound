@@ -99,7 +99,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
 #ifdef SDFT
-    if (p->fin->sliding)
+    if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
     p->pvfile= -1;
@@ -132,7 +132,7 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
         fout[i] = fin[i]/scale;
         fout[i+1] = fin[i+1];
       }
-      if (!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1))
+      if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
         return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
       p->lastframe = p->fin->framecount;
     }
@@ -167,7 +167,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
                                       "pvoc.",p->XSTRCODE);
 
 #ifdef SDFT
-    if (p->fout->sliding)
+    if (UNLIKELY(p->fout->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
     if((p->pvfile  = csound->PVOC_OpenFile(csound, fname,
@@ -268,7 +268,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 {
     int32    N = p->fin->N;
 
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
@@ -300,8 +300,8 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
         if (p->freez.auxp == NULL || p->freez.size < sizeof(float) * (N + 2))
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->freez);
 
-        if (!(p->fout->format == PVS_AMP_FREQ) ||
-            (p->fout->format == PVS_AMP_PHASE))
+        if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                     (p->fout->format == PVS_AMP_PHASE)))
           return csound->InitError(csound, Str("pvsfreeze: signal format "
                                                "must be amp-phase or amp-freq."));
       }
@@ -581,7 +581,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 {
     int32    N = p->fin->N;
 
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 #ifdef SDFT
     p->fout->NB = (N/2)+1;
@@ -612,8 +612,8 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-    if (!(p->fout->format == PVS_AMP_FREQ) ||
-        (p->fout->format == PVS_AMP_PHASE))
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvsmooth: signal format "
                                            "must be amp-phase or amp-freq."));
     return OK;
@@ -702,7 +702,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     int32    N = p->fa->N;
 
-    if (p->fa == p->fout || p->fb == p->fout)
+    if (UNLIKELY(p->fa == p->fout || p->fb == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 #ifdef SDFT
     p->fout->sliding = 0;
@@ -726,8 +726,8 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
     p->fout->format = p->fa->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-    if (!(p->fout->format == PVS_AMP_FREQ) ||
-        (p->fout->format == PVS_AMP_PHASE))
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvsmix: signal format "
                                            "must be amp-phase or amp-freq."));
     return OK;
@@ -740,7 +740,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
     int     test;
     float   *fout, *fa, *fb;
 
-    if (!fsigs_equal(p->fa, p->fb)) goto err1;
+    if (UNLIKELY(!fsigs_equal(p->fa, p->fb))) goto err1;
 #ifdef SDFT
     if (p->fa->sliding) {
       CMPLX * fout, *fa, *fb;
@@ -788,10 +788,10 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
     int32    N = p->fin->N;
 
-    if (p->fin == p->fout || p->fil == p->fout)
+    if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-    if (!(p->fout->format == PVS_AMP_FREQ) ||
-        (p->fout->format == PVS_AMP_PHASE))
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvsfilter: signal format "
                                            "must be amp-phase or amp-freq."));
 #ifdef SDFT
@@ -829,8 +829,8 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
     float   *fout = (float *) p->fout->frame.auxp;
     float   *fil = (float *) p->fil->frame.auxp;
 
-    if (fout == NULL) goto err1;
-    if (!fsigs_equal(p->fin, p->fil)) goto err2;
+    if (UNLIKELY(fout == NULL)) goto err1;
+    if (UNLIKELY(!fsigs_equal(p->fin, p->fil))) goto err2;
 
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -881,7 +881,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
     int32    N = p->fin->N;
 
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 #ifdef SDFT
     p->fout->NB = p->fin->NB;
@@ -920,7 +920,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
 
-    if (fout == NULL) goto err1;
+    if (UNLIKELY(fout == NULL)) goto err1;
 
 #ifdef SDFT
     if (p->fout->sliding) {
@@ -1005,7 +1005,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     int    N = p->fin->N;
 
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -1048,7 +1048,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
 
-    if (fout == NULL) goto err1;
+    if (UNLIKELY(fout == NULL)) goto err1;
 #ifdef SDFT
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
@@ -1145,7 +1145,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     int32    N = p->fin->N, i, j;
     int     olap = p->fin->overlap;
     int     delayframes, framesize = N + 2;
-    if (p->fin == p->fout)
+    if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -1211,7 +1211,7 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
     float   *fout = (float *) p->fout->frame.auxp;
     float   *delay = (float *) p->delframes.auxp;
 
-    if (fout == NULL || delay == NULL) goto err1;
+    if (UNLIKELY(fout == NULL || delay == NULL)) goto err1;
 
 #ifdef SDFT
     if (p->fin->sliding) {
@@ -1319,8 +1319,8 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
           p->fout->frame.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-      if (!(p->fout->format == PVS_AMP_FREQ) ||
-          (p->fout->format == PVS_AMP_PHASE))
+      if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                   (p->fout->format == PVS_AMP_PHASE)))
         return csound->InitError(csound, Str("pvstencil: signal format "
                                              "must be amp-phase or amp-freq."));
     }
@@ -1328,7 +1328,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     if (p->func == NULL)
       return OK;
 
-    if (p->func->flen + 1 < chans)
+    if (UNLIKELY(p->func->flen + 1 < chans))
       return csound->InitError(csound, Str("pvstencil: ftable needs to equal "
                                            "the number of bins"));
 
@@ -1381,7 +1381,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 
         framesize = p->fin->N + 2;
 
-        if (fout == NULL) goto err1;
+        if (UNLIKELY(fout == NULL)) goto err1;
 
         if (p->lastframe < p->fin->framecount) {
 

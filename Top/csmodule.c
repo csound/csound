@@ -229,6 +229,9 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (fname[0] == '\0')
       return CSOUND_ERROR;
     /* load library */
+ #if defined(LINUX)
+      printf("About to open library '%s'\n", libraryPath);
+#endif
     err = csound->OpenLibrary(&h, libraryPath);
     if (err) {
 /* #ifdef BETA */
@@ -673,6 +676,9 @@ int csoundLoadModules(CSOUND *csound)
       if (fname[0]=='_') continue;
 #endif
       n = len = (int) strlen(fname);
+#ifdef BETA
+      if (fname[0]=='_') continue;
+#endif
 #if defined(WIN32)
       strcpy(buf, "dll");
       n -= 4;

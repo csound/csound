@@ -277,23 +277,23 @@ static int flooper_init(CSOUND *csound, flooper *p)
     int32 durs = (int32)  (*(p->dur)*csound->esr);    /* dur in samps   */
     int32 len, i;
 
-    if (cfds > durs) {
+    if (UNLIKELY(cfds > durs)) {
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
     }
 
     inc =  FL(1.0)/cfds;    /* inc/dec */
     p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
-    if (p->sfunc==NULL) {
+    if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
     tab = p->sfunc->ftable,  /* func table pointer */
       len = p->sfunc->flen;    /* function table length */
-    if (starts > len) {
+    if (UNLIKELY(starts > len)) {
       return csound->InitError(csound,Str("start time beyond end of table\n"));
     }
 
-    if (starts+durs+cfds > len) {
+    if (UNLIKELY(starts+durs+cfds > len)) {
       return csound->InitError(csound,Str("table not long enough for loop\n"));
     }
 
@@ -371,7 +371,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
 {
 
   p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
-  if (p->sfunc==NULL) {
+  if (UNLIKELY(p->sfunc==NULL)) {
     return csound->InitError(csound,Str("function table not found\n"));
   }
   if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
@@ -620,7 +620,7 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
 {
   int len,i,p2s,lomod;
   p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
-  if (p->sfunc==NULL) {
+  if (UNLIKELY(p->sfunc==NULL)) {
     return csound->InitError(csound,Str("function table not found\n"));
   }
   if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
@@ -902,7 +902,7 @@ static int pvsarp_init(CSOUND *csound, pvsarp *p)
   p->fout->framecount = 1;
   p->lastframe = 0;
 
-  if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
+  if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))){
     return csound->InitError(csound,
                              Str("pvsarp: signal format must be amp-phase "
                              "or amp-freq.\n"));
@@ -919,7 +919,7 @@ static int pvsarp_process(CSOUND *csound, pvsarp *p)
   float *fin = (float *) p->fin->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL) goto err1;
+  if (UNLIKELY(fout==NULL)) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
     cf = cf >= 0 ? (cf < bins ? cf*bins : bins-1) : 0;
@@ -951,7 +951,7 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
   p->fout->framecount = 1;
   p->lastframe = 0;
 
-  if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
+  if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))){
     return csound->InitError(csound,
                              Str("signal format must be amp-phase "
                                  "or amp-freq.\n"));
@@ -969,7 +969,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
   float *ffr = (float *) p->ffr->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL) goto err1;
+  if (UNLIKELY(fout==NULL)) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
 
@@ -995,7 +995,7 @@ static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
   float *fi2 = (float *) p->ffr->frame.auxp;
   float *fout = (float *) p->fout->frame.auxp;
 
-  if (fout==NULL) goto err1;
+  if (UNLIKELY(fout==NULL)) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
 

@@ -158,7 +158,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     MYFLT   state = p->state;
     MYFLT   reflect = *p->reflect;
 
-    if (reflect <= FL(0.0) || reflect >= FL(1.0)) {
+    if (UNLIKELY(reflect <= FL(0.0) || reflect >= FL(1.0))) {
       csound->Message(csound, Str("Reflection invalid (%f)\n"), reflect);
       reflect = FL(0.5);
     }
@@ -171,7 +171,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     pickup     = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len); /* fract delays */
     pickfrac   = pickup & OVERMSK;
     pickup     = pickup>>OVERSHT;
-    if (pickup<0 || pickup > p->rail_len) {
+    if (UNLIKELY(pickup<0 || pickup > p->rail_len)) {
       csound->Message(csound, Str("Pickup out of range (%f)\n"), *p->pickup);
       pickup   = p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
@@ -203,7 +203,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
         {
           MYFLT *ptr = upper_rail->pointer;
           ptr--;
-          if (ptr < upper_rail->data)
+          if (UNLIKELY(ptr < upper_rail->data))
             ptr = upper_rail->end;
           *ptr = yp0;
           upper_rail->pointer = ptr;
@@ -213,7 +213,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
           MYFLT *ptr = lower_rail->pointer;
           *ptr = ymM;
           ptr++;
-          if (ptr > lower_rail->end)
+          if (UNLIKELY(ptr > lower_rail->end))
             ptr = lower_rail->data;
           lower_rail->pointer = ptr;
         }

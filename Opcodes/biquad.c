@@ -387,7 +387,7 @@ static int vcoset(CSOUND *csound, VCO *p)
 
     /* finished setting up buzz now set up internal vdelay */
 
-    if (ndel == 0) ndel = 1;    /* fix due to Troxler */
+    if (UNLIKELY(ndel == 0)) ndel = 1;    /* fix due to Troxler */
     if (p->aux.auxp == NULL ||
         (int)(ndel*sizeof(MYFLT)) > p->aux.size)  /* allocate space for delay
                                                      buffer */
@@ -548,7 +548,7 @@ static int vco(CSOUND *csound, VCO *p)
         v2 = (v1 < (maxd - 1L) ? v1 + 1L : 0L);
         out1 = buf[v1] + fv1 * (buf[v2] - buf[v1]);
 
-        if (++indx == maxd) indx = 0;             /* Advance current pointer */
+        if (UNLIKELY(++indx == maxd)) indx = 0;             /* Advance current pointer */
         /* End of VDelay */
 
         /* Integrate twice and ouput */
@@ -785,8 +785,8 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     npts3 = (int32)(*p->del3 * csound->esr);
     npts1 = (int32)(*p->del1 * csound->esr) - npts2 -npts3;
 
-    if (((int32)(*p->del1 * csound->esr)) <=
-        ((int32)(*p->del2 * csound->esr) + (int32)(*p->del3 * csound->esr))) {
+    if (UNLIKELY(((int32)(*p->del1 * csound->esr)) <=
+                 ((int32)(*p->del2 * csound->esr) + (int32)(*p->del3 * csound->esr)))) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
@@ -797,14 +797,14 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
       p->npts = npts;
 
       if (*p->mode == FL(1.0)) {
-        if (npts1 <= 0) {
+        if (UNLIKELY(npts1 <= 0)) {
           return csound->InitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
         p->end1p = (MYFLT *) p->auxch.endp;
       }
       else if (*p->mode == FL(2.0)) {
-        if (npts1 <= 0 || npts2 <= 0) {
+        if (UNLIKELY(npts1 <= 0 || npts2 <= 0)) {
           return csound->InitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *)  p->auxch.auxp;
@@ -813,7 +813,7 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
         p->end2p = (MYFLT *)  p->auxch.endp;
       }
       else if (*p->mode == FL(3.0)) {
-        if (npts1 <= 0 || npts2 <= 0 || npts3 <= 0) {
+        if (UNLIKELY(npts1 <= 0 || npts2 <= 0 || npts3 <= 0)) {
           return csound->InitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
@@ -845,7 +845,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
     MYFLT   in1, g1, g2, g3;
     int     n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
 
     outp = p->out;
     inp  = p->in;
@@ -864,7 +864,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
 
         /* dw1 delay dr1, dt1 */
         *del1p = in1 + g1 * p->out1;
-        if (++del1p >= end1p)
+        if (UNLIKELY(++del1p >= end1p))
           del1p = beg1p;
 
         outp[n] = p->out1;
@@ -895,11 +895,11 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
         *del2p = *del1p + g2 * p->out2;
 
         /* delay 2 */
-        if (++del2p >= end2p)
+        if (UNLIKELY(++del2p >= end2p))
           del2p = beg2p;
 
         /* delay 1 */
-        if (++del1p >= end1p)
+        if (UNLIKELY(++del1p >= end1p))
           del1p = beg1p;
 
         outp[n] = p->out1;
@@ -938,15 +938,15 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
         *del3p = p->out2  + g3 * p->out3;
 
         /* delay 1 */
-        if (++del1p >= end1p)
+        if (UNLIKELY(++del1p >= end1p))
           del1p = beg1p;
 
         /* delay 2 */
-        if (++del2p >= end2p)
+        if (UNLIKELY(++del2p >= end2p))
           del2p = beg2p;
 
         /* delay 3 */
-        if (++del3p >= end3p)
+        if (UNLIKELY(++del3p >= end3p))
           del3p = beg3p;
 
         outp[n] = p->out1;

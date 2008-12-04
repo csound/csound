@@ -138,7 +138,7 @@ static MYFLT Samp_tick(Wave *p)
 
     temp = (int32) temp_time;    /*  Integer part of time address    */
     temp1 = temp + 1;
-    if (temp1==p->wave->flen) temp1 = 0; /* Wrap!! */
+    if (UNLIKELY(temp1==p->wave->flen)) temp1 = 0; /* Wrap!! */
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
@@ -162,13 +162,13 @@ int Moog1set(CSOUND *csound, MOOG1 *p)
     make_FormSwep(&p->filters[0]);
     make_FormSwep(&p->filters[1]);
 
-    if ((ftp = csound->FTFind(csound, p->iatt)) != NULL)
+    if (LIKELY((ftp = csound->FTFind(csound, p->iatt)) != NULL))
       p->attk.wave = ftp; /* mandpluk */
     else return NOTOK;
-    if ((ftp = csound->FTFind(csound, p->ifn )) != NULL)
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn )) != NULL))
       p->loop.wave = ftp; /* impuls20 */
     else return NOTOK;
-    if ((ftp = csound->FTFind(csound, p->ivfn)) != NULL)
+    if (LIKELY((ftp = csound->FTFind(csound, p->ivfn)) != NULL))
       p->vibr.wave = ftp; /* sinewave */
     else return NOTOK;
     p->attk.time = p->attk.phase = FL(0.0);

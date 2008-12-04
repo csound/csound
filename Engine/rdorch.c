@@ -162,7 +162,7 @@ static inline int isNameChar(int c, int pos)
 
 static inline void ungetorchar(CSOUND *csound, int c)
 {
-    if (ST(str)->unget_cnt < 128)
+    if (LIKELY(ST(str)->unget_cnt < 128))
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
     else
       csoundDie(csound, "ungetorchar(): buffer overflow");
@@ -217,7 +217,7 @@ static void skiporchar(CSOUND *csound)
 {
     int c;
  top:
-    if (ST(str)->unget_cnt) {
+    if (UNLIKELY(ST(str)->unget_cnt)) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
       if (c == '\n') {
         ST(linepos) = -1;
@@ -248,7 +248,7 @@ static void skiporchar(CSOUND *csound)
         }
         return;
       }
-      if (c == EOF) {
+      if (UNLIKELY(c == EOF)) {
         if (ST(str) == &ST(inputs)[0]) {
           ST(linepos) = -1;
           return;
@@ -269,7 +269,7 @@ static int getorchar(CSOUND *csound)
 {
     int c;
  top:
-    if (ST(str)->unget_cnt) {
+    if (UNLIKELY(ST(str)->unget_cnt)) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
       if (c == '\n')
         ST(linepos) = -1;
@@ -277,7 +277,7 @@ static int getorchar(CSOUND *csound)
     }
     else if (ST(str)->string) {
       c = *ST(str)->body++;
-      if (c == '\0') {
+      if (UNLIKELY(c == '\0')) {
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
         goto top;
@@ -285,8 +285,8 @@ static int getorchar(CSOUND *csound)
     }
     else {
       c = getc(ST(str)->file);
-      if (c == 26) goto top;    /* MS-DOS spare ^Z */
-      if (c == EOF) {
+      if (UNLIKELY(c == 26)) goto top;    /* MS-DOS spare ^Z */
+      if (UNLIKELY(c == EOF)) {
         if (ST(str) == &ST(inputs)[0]) return EOF;
         if (ST(str)->fd != NULL) {
           csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
@@ -328,7 +328,7 @@ static int getorchar_noeof(CSOUND *csound)
     int     c;
 
     c = getorchar(csound);
-    if (c == EOF)
+    if (UNLIKELY(c == EOF))
       lexerr(csound, Str("Unexpected end of orchestra file"));
     return c;
 }
@@ -413,7 +413,7 @@ static void init_omacros(CSOUND *csound, NAMES *nn)
       if (csound->oparms->msglevel & 7)
         csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
-      if (s == NULL || s >= p)
+      if (UNLIKELY(s == NULL || s >= p))
         csound->Die(csound, Str("Invalid macro name for --omacro"));
       mname = (char*) mmalloc(csound, (p - s) + 1);
       strncpy(mname, s, p - s);
@@ -483,13 +483,13 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       }
     }
     csound->Message(csound, Str("orch compiler:\n"));
-    if ((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD,
+    if (UNLIKELY((ST(fd) = csound->FileOpen2(csound, &ST(fp), CSFILE_STD,
                               csound->orchname, "rb", NULL, CSFTYPE_ORCHESTRA,
-                              (csound->tempStatus & csOrcMask)!=0)) == NULL)
+                                             (csound->tempStatus & csOrcMask)!=0)) == NULL))
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
-    if (fseek(ST(fp), 0L, SEEK_END) != 0)
+    if (UNLIKELY(fseek(ST(fp), 0L, SEEK_END) != 0))
       csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
-    if ((ST(orchsiz) = ftell(ST(fp))) <= 0)
+    if (UNLIKELY((ST(orchsiz) = ftell(ST(fp))) <= 0))
       csoundDie(csound, Str("ftell error on %s"), csound->orchname);
     rewind(ST(fp));
     ST(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
@@ -622,7 +622,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         mname[cnt++] = '#';
         do {
           c = getorchar(csound);
-          if (c == EOF)
+          if (UNLIKELY(c == EOF))
             break;
           mname[cnt++] = c;
         } while ((c == ' ' || c == '\t') && cnt < 99);
@@ -682,7 +682,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
               while (isspace(c))
                 c = getorchar_noeof(csound);
             } while (c == '\'' || c == '#');
-            if (c != ')')
+            if (UNLIKELY(c != ')'))
               csound->Message(csound, Str("macro error\n"));
           }
           mm->acnt = arg;
@@ -692,11 +692,11 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           mm->body = (char*) mmalloc(csound, 100);
           while ((c = getorchar_noeof(csound)) != '#') {
             mm->body[i++] = c;
-            if (i >= size)
+            if (UNLIKELY(i >= size))
               mm->body = mrealloc(csound, mm->body, size += 100);
             if (c == '\\') {                    /* allow escaped # */
               mm->body[i++] = c = getorchar_noeof(csound);
-              if (i >= size)
+              if (UNLIKELY(i >= size))
                 mm->body = mrealloc(csound, mm->body, size += 100);
             }
             if (c == '\n')
@@ -737,7 +737,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           ST(str)->string = 0;
           ST(str)->fd = fopen_path(csound, &(ST(str)->file),
                                         mname, csound->orchname, "INCDIR", 0);
-          if (ST(str)->fd == NULL) {
+          if (UNLIKELY(ST(str)->fd == NULL)) {
             csound->Message(csound,
                             Str("Cannot open #include'd file %s\n"), mname);
             /* Should this stop things?? */
@@ -785,7 +785,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
  ifdefSkipCode:
             do {
               while (c != '\n') {
-                if (c == EOF)
+                if (UNLIKELY(c == EOF))
                   lexerr(csound, Str("unmatched #ifdef"));
                 c = getorchar(csound);
               }
@@ -810,7 +810,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         else if (strcmp(preprocName, "end") == 0 ||
                  strcmp(preprocName, "endif") == 0) {
           IFDEFSTACK  *pp = ST(ifdefStack);
-          if (pp == NULL)
+          if (UNLIKELY(pp == NULL))
             lexerr(csound, Str("Unmatched #endif"));
           while (c != '\n' && c != EOF) {
             c = getorchar(csound);
@@ -885,7 +885,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           }
         }
         mm = mm_save;
-        if (mm == NULL) {
+        if (UNLIKELY(mm == NULL)) {
           if (i)
             lexerr(csound,Str("Undefined macro: '%s'"), name);
           else
@@ -910,7 +910,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         /* Should bind arguments here */
         /* How do I recognise entities?? */
         if (mm->acnt) {
-          if ((c = getorchar(csound)) != '(')
+          if (UNLIKELY((c = getorchar(csound)) != '('))
             lexerr(csound, Str("Syntax error in macro call"));
           for (j = 0; j < mm->acnt; j++) {
             char  term = (j == mm->acnt - 1 ? ')' : '\'');
@@ -925,12 +925,12 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
             i = 0;
             nn->body = (char*) mmalloc(csound, 100);
             while ((c = getorchar(csound))!= term && c!=trm1) {
-              if (i > 98) {
+              if (UNLIKELY(i > 98)) {
                 csound->Die(csound, Str("Missing argument terminator\n%.98s"),
                                     nn->body);
               }
               nn->body[i++] = c;
-              if (i >= size)
+              if (UNLIKELY(i >= size))
                 nn->body = mrealloc(csound, nn->body, size += 100);
               if (c == '\n') {
                 srccnt++;
@@ -960,9 +960,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         ST(ingappop) = 1;
       }
     }
-    if (ST(ifdefStack) != NULL)
+    if (UNLIKELY(ST(ifdefStack) != NULL))
       lexerr(csound, Str("Unmatched #ifdef"));
-    if (cp >= endspace) {                   /* Ought to extend */
+    if (UNLIKELY(cp >= endspace)) {                   /* Ought to extend */
       csoundDie(csound, Str("file too large for ortext space"));
     }
     if (*(cp-1) != '\n')                    /* if no final NL,      */
@@ -1060,7 +1060,7 @@ static int splitline(CSOUND *csound)
               goto nxtlin;
             }
             /* check to see we did not have an 'else' before */
-            if (!ST(iflabels)->els[0]) {
+            if (UNLIKELY(!ST(iflabels)->els[0])) {
               synterr(csound,
                       Str("'elseif' statement cannot occur after an 'else'"));
               goto nxtlin;
@@ -1117,7 +1117,7 @@ static int splitline(CSOUND *csound)
           ll = strstr(lp, "*/");
           goto nxtl;
         }
-        if (ll == NULL) {
+        if (UNLIKELY(ll == NULL)) {
           synterrp(csound, lp - 2, Str("Unmatched comment"));
           lp = eol + 1; break;
         }
@@ -1171,9 +1171,9 @@ static int splitline(CSOUND *csound)
         continue;
       }
       else if (c == ',') {                  /* comma:            */
-        if (!collecting)
+        if (UNLIKELY(!collecting))
           synterrp(csound, lp - 1, Str("misplaced comma"));
-        if (parens) {
+        if (UNLIKELY(parens)) {
           synterrp(csound, lp - 2, Str("unbalanced parens"));
           parens = 0;
         }
@@ -1267,7 +1267,7 @@ static int splitline(CSOUND *csound)
       if (isalnum(c) || c == '_')
         continue;
       /* other characters are valid only after an opcode */
-      if (!ST(opgrpno))
+      if (UNLIKELY(!ST(opgrpno)))
         goto char_err;
       switch (c) {
       case '<':
@@ -1283,14 +1283,14 @@ static int splitline(CSOUND *csound)
       case '&':
       case '|':
         if (*lp == c) {                     /* &&, ||, &, | */
-          if (!prvif && !parens)
+          if (UNLIKELY(!prvif && !parens))
             goto char_err;
           logical++; lp++; *cp++ = c;
         }
         break;
       case '!':
       case '=':
-        if (!prvif && !parens)              /* ==, !=, <=, >= */
+        if (UNLIKELY(!prvif && !parens))              /* ==, !=, <=, >= */
           goto char_err;
         logical++;
         break;
@@ -1315,7 +1315,7 @@ static int splitline(CSOUND *csound)
         parens++;                           /* and monitor function */
         break;
       case ')':
-        if (!parens) {
+        if (UNLIKELY(!parens)) {
           synterrp(csound, lp - 1, Str("unbalanced parens"));
           cp--;
         }
@@ -1323,12 +1323,12 @@ static int splitline(CSOUND *csound)
           --parens;
         break;
       case '?':
-        if (!logical)
+        if (UNLIKELY(!logical))
           goto char_err;
         condassgn++;
         break;
       case ':':
-        if (!condassgn)
+        if (UNLIKELY(!condassgn))
           goto char_err;
         break;
       default:
@@ -1350,13 +1350,13 @@ static int splitline(CSOUND *csound)
          <elselabel>
          to do this, we parse the current twice */
       if (strcmp(grpp, "else") == 0) {
-        if (!ST(iflabels)) {    /* 'else': check to see we had an 'if' before */
+        if (UNLIKELY(!ST(iflabels))) {    /* 'else': check to see we had an 'if' before */
           synterr(csound, Str("invalid 'else' statement.  "
                               "must have a corresponding 'if'"));
           goto nxtlin;
         }
         if (ST(repeatingElseLine)) {        /* add the elselabel */
-          if (!ST(iflabels)->els[0]) {
+          if (UNLIKELY(!ST(iflabels)->els[0])) {
             /* check to see we had not another 'else' */
             synterr(csound, Str("duplicate 'else' statement"));
             goto nxtlin;
@@ -1386,7 +1386,7 @@ static int splitline(CSOUND *csound)
       else if (strcmp(grpp, "endif") == 0) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
-        if (!ST(iflabels)) {    /* check to see we had an 'if' before  */
+        if (UNLIKELY(!ST(iflabels))) {    /* check to see we had an 'if' before  */
           synterr(csound, Str("invalid 'endif' statement.  "
                               "must have a corresponding 'if'"));
           goto nxtlin;
@@ -1413,15 +1413,15 @@ static int splitline(CSOUND *csound)
       if (isopcod(csound, grpp))        /*      chk for opcod      */
         ST(opgrpno) = grpcnt;
     }
-    if (parens)                                   /* check balanced parens   */
+    if (UNLIKELY(parens))                                   /* check balanced parens   */
       synterrp(csound, lp - 1, Str("unbalanced parens"));
-    if (grpcnt > ST(linlabels) && !ST(opgrpno)) { /* if no full line opcod,  */
+    if (UNLIKELY(grpcnt > ST(linlabels) && !ST(opgrpno))) { /* if no full line opcod,  */
       synterr(csound, Str("no legal opcode"));    /*      complain &         */
       goto nxtlin;                                /*      try another        */
     }
     ST(linopnum) = ST(opnum);                     /* else save full line ops */
     ST(linopcod) = ST(opcod);
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       printgroups(csound, grpcnt);
     return grpcnt;
 }
@@ -1549,7 +1549,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         POLISH  *pol;                           /* for real polish ops, */
         int n;
         pol = &(csound->polish[--ST(polcnt)]);  /*    grab top one      */
-        if (isopcod(csound, pol->opcod) == 0) { /* and check it out     */
+        if (UNLIKELY(isopcod(csound, pol->opcod) == 0)) { /* and check it out     */
           synterr(csound, Str("illegal opcod from expr anal"));
           goto tstnxt;
         }
@@ -1581,7 +1581,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           case 'p': c = 'i';
           default:  sprintf(str, "=.%c", c);
         }
-        if (!(isopcod(csound, str))) {
+        if (UNLIKELY(!(isopcod(csound, str)))) {
           synterr(csound,
                   Str("failed to find %s, output arg '%s' illegal type"),
                   str, ST(group)[ST(nxtest)]);  /* report syntax error     */
@@ -1604,7 +1604,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       if (c == 'p')   c = 'i';
       if (c == '?')   c = 'a';                  /* tmp */
       sprintf(str, "%s.%c", ST(linopcod), c);
-      if (!(isopcod(csound, str))) {
+      if (UNLIKELY(!(isopcod(csound, str)))) {
         synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
                 str, ST(group)[ST(nxtest)]);    /* report syntax error     */
         ST(nxtest) = 100;                       /* step way over this line */
@@ -1645,7 +1645,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       default:
         strcpy(str, ST(linopcod));  /* unknown code: use original opcode   */
       }
-      if (!(isopcod(csound, str))) {
+      if (UNLIKELY(!(isopcod(csound, str)))) {
                         /* if opcode is not found: report syntax error     */
         synterr(csound, Str("failed to find %s, input arg illegal type"), str);
         ST(nxtest) = 100;                       /* step way over this line */
@@ -1659,10 +1659,10 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     tp->opcod = strsav_string(csound, ST(linopcod));  /*   full line opcode   */
     /* IV - Oct 24 2002: check for invalid use of setksmps */
     if (strcmp(ST(linopcod), "setksmps") == 0) {
-      if (!ST(opcodblk))
+      if (UNLIKELY(!ST(opcodblk)))
         synterr(csound,
                 Str("setksmps is allowed only in user defined opcodes"));
-      else if ((int) ST(opcodflg) & 4)
+      else if (UNLIKELY((int) ST(opcodflg) & 4))
         synterr(csound,
                 Str("multiple uses of setksmps in the same opcode definition"));
       else
@@ -1716,9 +1716,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
  spctst:
     tp->xincod_str = tp->xincod = 0;
     if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
-      if (ST(opcodblk))
+      if (UNLIKELY(ST(opcodblk)))
         synterr(csound, Str("opcode blks cannot be nested (missing 'endop'?)"));
-      else if (ST(instrblk))
+      else if (UNLIKELY(ST(instrblk)))
         synterr(csound, Str("opcode not allowed in instr block"));
       else ST(instrblk) = ST(opcodblk) = 1;
       ST(opcodflg) = 0;
@@ -1727,16 +1727,16 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     }
     else if (tp->opnum == ENDOP) {      /* IV - Sep 8 2002:     ENDOP:  */
       lblchk(csound);                   /* chk missed labels */
-      if (!ST(instrblk))
+      if (UNLIKELY(!ST(instrblk)))
         synterr(csound, Str("unmatched endop"));
-      else if (!ST(opcodblk))
+      else if (UNLIKELY(!ST(opcodblk)))
         synterr(csound, Str("endop not allowed in instr block"));
       else ST(instrblk) = ST(opcodblk) = 0;
     }
     else if (tp->opnum == INSTR) {      /* IV - Sep 8 2002: for opcod INSTR  */
-      if (ST(opcodblk))     /* IV - Sep 8 2002 */
+      if (UNLIKELY(ST(opcodblk)))     /* IV - Sep 8 2002 */
         synterr(csound, Str("instr not allowed in opcode block"));
-      else if (ST(instrblk))
+      else if (UNLIKELY(ST(instrblk)))
         synterr(csound,
                 Str("instr blocks cannot be nested (missing 'endin'?)"));
       else ST(instrblk) = 1;
@@ -1745,9 +1745,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     }
     else if (tp->opnum == ENDIN) {              /* ENDIN:       */
       lblchk(csound);                           /* chk missed labels */
-      if (ST(opcodblk))
+      if (UNLIKELY(ST(opcodblk)))
         synterr(csound, Str("endin not allowed in opcode blk"));
-      else if (!ST(instrblk))
+      else if (UNLIKELY(!ST(instrblk)))
         synterr(csound, Str("unmatched endin"));
       else ST(instrblk) = 0;
     }
@@ -1757,15 +1757,15 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       char      tfound = '\0', treqd, *types = NULL;
       char      xtypes[OPCODENUMOUTS_MAX + 1];  /* IV - Oct 24 2002 */
 
-      if (!ST(instrblk))
+      if (UNLIKELY(!ST(instrblk)))
         synterr(csound, Str("misplaced opcode"));
       /* IV - Oct 24 2002: moved argument parsing for xout here */
       n = incnt;
       nreqd = -1;
       if (!strcmp(ep->opname, "xout")) {
-        if (!ST(opcodblk))
+        if (UNLIKELY(!ST(opcodblk)))
           synterr(csound, Str("xout is allowed only in user defined opcodes"));
-        else if ((int) ST(opcodflg) & 2)
+        else if (UNLIKELY((int) ST(opcodflg) & 2))
           synterr(csound,
                   Str("multiple uses of xout in the same opcode definition"));
         else {
@@ -1807,11 +1807,11 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         nreqd = strlen(types = ep->intypes);
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
         if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
-          if (!(incnt & 01))                    /* require odd */
+          if (UNLIKELY(!(incnt & 01)))                    /* require odd */
             synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
-        else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-                 treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
+        else if (UNLIKELY(treqd != 'm' && treqd != 'z' && treqd != 'y' &&
+                          treqd != 'Z' && treqd != 'M' && treqd != 'N')) /* else any no */
           synterr(csound, Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
@@ -1880,7 +1880,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
+        if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"')) {
           synterr(csound, Str("input arg '%s' used before defined"), s);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -1894,7 +1894,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           /* check for exceptional types */
           switch (treqd) {
           case 'Z':                             /* indef kakaka ... */
-            if (!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk)))
+            if (UNLIKELY(!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk))))
               intyperr(csound, n, tfound, treqd);
             break;
           case 'x':
@@ -1924,9 +1924,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       n = outcnt;
       nreqd = -1;
       if (!strcmp(ep->opname, "xin")) {
-        if (!ST(opcodblk))
+        if (UNLIKELY(!ST(opcodblk)))
           synterr(csound, Str("xin is allowed only in user defined opcodes"));
-        else if ((int) ST(opcodflg) & 1)
+        else if (UNLIKELY((int) ST(opcodflg) & 1))
           synterr(csound,
                   Str("multiple uses of xin in the same opcode definition"));
         else {
@@ -1968,10 +1968,10 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       }
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->outypes);
-      if ((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
+      if (UNLIKELY((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
-             types[n] == (char) 'X' || types[n] == (char) 'N'))) {
+             types[n] == (char) 'X' || types[n] == (char) 'N')))) {
         synterr(csound, Str("illegal no of output args"));
         if (n > nreqd)
           n = nreqd;
@@ -1990,12 +1990,12 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           tp->xoutcod_str |= (1 << n);
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & ARGTYP_w)
-          if (ST(lgprevdef)) {
+          if (UNLIKELY(ST(lgprevdef))) {
             synterr(csound, Str("output name previously used, "
                                 "type '%c' must be uniquely defined"), tfound);
           }
         /* IV - Oct 31 2002: simplified code */
-        if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
+        if (UNLIKELY(!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd]))) {
           synterr(csound, Str("output arg '%s' illegal type"), s);
         }
       }
@@ -2122,7 +2122,7 @@ static void lblfound(CSOUND *csound, char *s)
 
     for (req=0; req<ST(lblcnt); req++ )
       if (strcmp(ST(lblreq)[req].label,s) == 0) {
-        if (ST(lblreq)[req].reqline == 0)
+        if (UNLIKELY(ST(lblreq)[req].reqline == 0))
           synterr(csound, Str("duplicate label"));
         goto noprob;
       }
@@ -2143,7 +2143,7 @@ static void lblchk(CSOUND *csound)
     int n;
 
     for (req=0; req<ST(lblcnt); req++ )
-      if ((n = ST(lblreq)[req].reqline)) {
+      if (UNLIKELY((n = ST(lblreq)[req].reqline))) {
         char    *s;
         csound->Message(csound, Str("error line %d.  unknown label:\n"), n);
         s = ST(linadr)[n];

@@ -72,17 +72,17 @@ int pvaddset(CSOUND *csound, PVADD *p)
     int32     memsize;
 
    if (*p->ifn > FL(0.0))
-     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
        return NOTOK;
    p->ftp = ftp;
 
    if (*p->igatefun > FL(0.0))
-     if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)
+     if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
-    if (pvx_loadfile(csound, pvfilnam, p) != OK)
+    if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
 
     memsize = (int32) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
@@ -142,9 +142,9 @@ int pvadd(CSOUND *csound, PVADD *p)
     FUNC    *ftp;
     int32    lobits;
 
-    if (p->auxch.auxp == NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     ftp = p->ftp;
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err2;
+    if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err2;
 
     if (frIndx > p->maxFr) { /* not past last one */
       frIndx = (MYFLT) p->maxFr;
@@ -197,21 +197,21 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
       return csound->InitError(csound, Str("PVADD cannot load %s"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
-    if (pp.fftsize > PVFRAMSIZE) {
+    if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
       return csound->InitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
                                fname, (int) pp.fftsize);
     }
-    if (pp.fftsize < 128) {
+    if (UNLIKELY(pp.fftsize < 128)) {
       return csound->InitError(csound, Str("PV frame %ld seems too small in %s"),
                                (int32) pp.fftsize, fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
-    if (pp.chans > 1) {
+    if (UNLIKELY(pp.chans > 1)) {
       return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */

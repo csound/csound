@@ -39,7 +39,7 @@ static int spaceset(CSOUND *csound, SPACE *p)
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
         return NOTOK;
       p->ftp = ftp;
     }
@@ -77,7 +77,7 @@ static int space(CSOUND *csound, SPACE *p)
     MYFLT   v1, v2, fract, ndx;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
-      if ((ftp = p->ftp) == NULL) goto err1;
+      if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
 
       ndx = *p->time * RESOLUTION; /* when data is res. frames/second */
       length = ftp->flen;
@@ -190,7 +190,7 @@ static int spdistset(CSOUND *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
        return NOTOK;
      p->ftp = ftp;
    }
@@ -208,7 +208,7 @@ static int spdist(CSOUND *csound, SPDIST *p)
     r = p->r;
 
     if (*p->ifn > 0) {
-      if ((ftp = p->ftp)==NULL) goto err1;
+      if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
 
       ndx = *p->time * RESOLUTION; /* when data is 10 frames/second */
       length = ftp->flen;
@@ -242,8 +242,8 @@ static int spdist(CSOUND *csound, SPDIST *p)
     if (distance < FL(1.0)) distance = FL(1.0);
     *r=distance;
     return OK;
-    err1:
-        return csound->PerfError(csound, Str("spdist: not initialised"));
+ err1:
+    return csound->PerfError(csound, Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)

@@ -49,7 +49,7 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
 
 static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 {
-    if (lag > p->length-1) {                   /* if delay is too big, */
+    if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
       csound->Message(csound, Str("DLineN: Delay length too big ... setting to "
                                   "maximum length of %ld.\n"), p->length - 1);
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
@@ -64,10 +64,10 @@ static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 {
     MYFLT *xx = (MYFLT*)p->inputs.auxp;
     xx[p->inPoint++] = sample;   /* Input next sample */
-    if (p->inPoint == p->length) /* Check for end condition */
+    if (UNLIKELY(p->inPoint == p->length)) /* Check for end condition */
       p->inPoint -= p->length;
     p->lastOutput = xx[p->outPoint++]; /* Read nxt value */
-    if (p->outPoint>=p->length)        /* Check for end condition */
+    if (UNLIKELY(p->outPoint>=p->length))        /* Check for end condition */
       p->outPoint -= p->length;
 }
 

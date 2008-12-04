@@ -73,15 +73,15 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     p->dbout = (int)*p->idbout;
     if ((p->disprd = (int)(csound->ekr * *p->idisprd)) < 0)  p->disprd = 0;
 
-    if (p->timcount <= 0)
+    if (UNLIKELY(p->timcount <= 0))
       return csound->InitError(csound, Str("illegal iprd"));
-    if (nocts <= 0 || nocts > MAXOCTS)
+    if (UNLIKELY(nocts <= 0 || nocts > MAXOCTS))
       return csound->InitError(csound, Str("illegal iocts"));
-    if (nfreqs <= 0 || nfreqs > MAXFRQS)
+    if (UNLIKELY(nfreqs <= 0 || nfreqs > MAXFRQS))
       return csound->InitError(csound, Str("illegal ifrqs"));
-    if (Q <= FL(0.0))
+    if (UNLIKELY(Q <= FL(0.0)))
       return csound->InitError(csound, Str("illegal Q value"));
-    if (p->dbout < 0 || p->dbout > 3)
+    if (UNLIKELY(p->dbout < 0 || p->dbout > 3))
       return csound->InitError(csound, Str("unknown dbout code"));
 
     if (nocts != dwnp->nocts ||
@@ -512,10 +512,10 @@ int spdspset(CSOUND *csound, SPECDISP *p)
 {
     char  strmsg[256];
     /* RWD is this enough? */
-    if (p->wsig->auxch.auxp==NULL) {
+    if (UNLIKELY(p->wsig->auxch.auxp==NULL)) {
       return csound->InitError(csound, Str("specdisp: not initialised"));
     }
-    if ((p->timcount = (int)(csound->ekr * *p->iprd)) <= 0) {
+    if (UNLIKELY((p->timcount = (int)(csound->ekr * *p->iprd)) <= 0)) {
       return csound->InitError(csound, Str("illegal iperiod"));
     }
     if (!(p->dwindow.windid)) {
@@ -546,7 +546,7 @@ int spdspset(CSOUND *csound, SPECDISP *p)
 int specdisp(CSOUND *csound, SPECDISP *p)
 {
     /* RWD is this enough? */
-    if (p->wsig->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->wsig->auxch.auxp==NULL)) goto err1;
     if (!(--p->countdown)) {            /* on countdown     */
       csound->display(csound, &p->dwindow);     /*    display spect */
       p->countdown = p->timcount;       /*    & reset count */
@@ -583,7 +583,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
       spdspset(csound,fdp);                     /*  & call specdisp init */
     }
     else p->ftimcnt = 0;
-    if ((nptls = (int32)*p->inptls) <= 0 || nptls > MAXPTL) {
+    if (UNLIKELY((nptls = (int32)*p->inptls) <= 0 || nptls > MAXPTL)) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
     p->nptls = nptls;        /* number, whether all or odd */
@@ -610,7 +610,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
         weightsum += weight;
         *fltp++ = weight;
       }
-      if (*--fltp < FL(0.0)) {
+      if (UNLIKELY(*--fltp < FL(0.0))) {
         return csound->InitError(csound, Str("per oct rolloff too steep"));
       }
       p->rolloff = 1;
@@ -693,7 +693,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
       MYFLT *flop, *fhip, *ilop, *ihip, a, b, c, denom, delta;
       int32 lobin, hibin;
 
-      if (inp==NULL) goto err1;             /* RWD fix */
+      if (UNLIKELY(inp==NULL)) goto err1;             /* RWD fix */
       if ((kvar = *p->kvar) < FL(0.0))
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
@@ -832,7 +832,7 @@ int specsum(CSOUND *csound, SPECSUM *p)
                                /*         optionally interpolate the output  */
 {
     SPECDAT *specp = p->wsig;
-    if (specp->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(specp->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (specp->ktimstamp == csound->kcounter) { /* if spectrum is new   */
       MYFLT *valp = (MYFLT *) specp->auxch.auxp;
       MYFLT sum = FL(0.0);
@@ -858,17 +858,17 @@ int spadmset(CSOUND *csound, SPECADDM *p)
     SPECDAT *inspec2p = p->wsig2;
     int   npts;
 
-    if ((npts = inspec1p->npts) != inspec2p->npts)
+    if (UNLIKELY((npts = inspec1p->npts) != inspec2p->npts))
       /* inspecs must agree in size */
       return csound->InitError(csound, Str("inputs have different sizes"));
-    if (inspec1p->ktimprd != inspec2p->ktimprd)
+    if (UNLIKELY(inspec1p->ktimprd != inspec2p->ktimprd))
       /*                time period */
       return csound->InitError(csound, Str("inputs have diff. time periods"));
-    if (inspec1p->nfreqs != inspec2p->nfreqs)
+    if (UNLIKELY(inspec1p->nfreqs != inspec2p->nfreqs))
       /*                frq resoltn */
       return csound->InitError(csound,
                                Str("inputs have different freq resolution"));
-    if (inspec1p->dbout != inspec2p->dbout)
+    if (UNLIKELY(inspec1p->dbout != inspec2p->dbout))
       /*                and db type */
       return csound->InitError(csound, Str("inputs have different amptypes"));
     if (npts != p->waddm->npts) {                 /* if out does not match ins */
@@ -885,9 +885,9 @@ int spadmset(CSOUND *csound, SPECADDM *p)
 
 int specaddm(CSOUND *csound, SPECADDM *p)
 {
-    if ((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
-        (p->wsig2->auxch.auxp==NULL) ||
-        (p->waddm->auxch.auxp==NULL)) goto err1;
+    if (UNLIKELY((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
+                 (p->wsig2->auxch.auxp==NULL) ||
+                 (p->waddm->auxch.auxp==NULL))) goto err1;
     if (p->wsig1->ktimstamp == csound->kcounter) {  /* if inspec1 is new:     */
       MYFLT *in1p = (MYFLT *) p->wsig1->auxch.auxp;
       MYFLT *in2p = (MYFLT *) p->wsig2->auxch.auxp;
@@ -924,7 +924,7 @@ int spdifset(CSOUND *csound, SPECDIFF *p)
     p->wdiff->dbout = inspecp->dbout;
     lclp = (MYFLT *) p->specsave.auxch.auxp;
     outp = (MYFLT *) p->wdiff->auxch.auxp;
-    if (lclp==NULL || outp==NULL) { /* RWD  */
+    if (UNLIKELY(lclp==NULL || outp==NULL)) { /* RWD  */
       return csound->InitError(csound,
                                Str("specdiff: local buffers not initialised"));
     }
@@ -938,11 +938,11 @@ int specdiff(CSOUND *csound, SPECDIFF *p)
 {
     SPECDAT *inspecp = p->wsig;
 
-    if ((inspecp->auxch.auxp==NULL) /* RWD fix */
+    if (UNLIKELY((inspecp->auxch.auxp==NULL) /* RWD fix */
         ||
         (p->specsave.auxch.auxp==NULL)
         ||
-        (p->wdiff->auxch.auxp==NULL)) goto err1;
+                 (p->wdiff->auxch.auxp==NULL))) goto err1;
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
@@ -984,12 +984,12 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
     outspecp->nfreqs = inspecp->nfreqs;
     outspecp->dbout = inspecp->dbout;
     p->fscale = (MYFLT *) p->auxch.auxp;       /* setup scale & thresh fn areas */
-    if (p->fscale==NULL) {  /* RWD fix */
+    if (UNLIKELY(p->fscale==NULL)) {  /* RWD fix */
       return csound->InitError(csound,
                                Str("specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
-    if ((ftp=csound->FTFind(csound, p->ifscale)) == NULL) {
+    if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
       /* if fscale given,        */
       return csound->InitError(csound, Str("missing fscale table"));
     }
@@ -1079,7 +1079,7 @@ int sphstset(CSOUND *csound, SPECHIST *p)
     p->wacout->dbout = inspecp->dbout;
     lclp = (MYFLT *) p->accumer.auxch.auxp;
     outp = (MYFLT *) p->wacout->auxch.auxp;
-    if (lclp==NULL || outp==NULL) { /* RWD fix */
+    if (UNLIKELY(lclp==NULL || outp==NULL)) { /* RWD fix */
       return csound->InitError(csound,
                                Str("spechist: local buffers not intiialised"));
     }
@@ -1092,11 +1092,11 @@ int sphstset(CSOUND *csound, SPECHIST *p)
 int spechist(CSOUND *csound, SPECHIST *p)
 {
     SPECDAT *inspecp = p->wsig;
-    if ((inspecp->auxch.auxp==NULL) /* RWD fix */
+    if (UNLIKELY((inspecp->auxch.auxp==NULL) /* RWD fix */
         ||
         (p->accumer.auxch.auxp==NULL)
         ||
-        (p->wacout->auxch.auxp==NULL)) goto err1;
+                 (p->wacout->auxch.auxp==NULL))) goto err1;
     if (inspecp->ktimstamp == csound->kcounter) {   /* if inspectrum is new: */
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *acup = (MYFLT *) p->accumer.auxch.auxp;
@@ -1132,7 +1132,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
       p->coefs = (MYFLT *) p->auxch.auxp;            /*   reassign filt tbls  */
       p->states = p->coefs + npts;
     }
-    if (p->coefs==NULL || p->states==NULL) { /* RWD fix */
+    if (UNLIKELY(p->coefs==NULL || p->states==NULL)) { /* RWD fix */
       return csound->InitError(csound,
                                Str("specfilt: local buffers not initialised"));
     }
@@ -1140,7 +1140,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
     outspecp->nfreqs = inspecp->nfreqs;
     outspecp->dbout = inspecp->dbout;
     outspecp->downsrcp = inspecp->downsrcp;
-    if ((ftp=csound->FTFind(csound, p->ifhtim)) == NULL) {
+    if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
       /* if fhtim table given,    */
       return csound->InitError(csound, Str("missing htim ftable"));
     }
@@ -1190,7 +1190,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
       MYFLT *persp = p->states;
       int   n,npts = inspecp->npts;
       
-      if (newp==NULL || outp==NULL || coefp==NULL || persp==NULL)  /* RWD */
+      if (UNLIKELY(newp==NULL || outp==NULL || coefp==NULL || persp==NULL))  /* RWD */
         goto err1;
       for (n=0; n<npts;n++) {                      /* for npts of inspec:     */
         outp[n] = curval = persp[n];               /*   output current point  */

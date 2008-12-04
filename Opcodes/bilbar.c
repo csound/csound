@@ -78,7 +78,7 @@ static int bar_init(CSOUND *csound, BAR *p)
       p->N = N;
     }
     else {
-      if (p->w_aux.auxp == NULL)
+      if (UNLIKELY(p->w_aux.auxp == NULL))
         return csound->InitError(csound, Str("No data to continue"));
     }
     p->first = 0;
@@ -103,7 +103,7 @@ static int bar_run(CSOUND *csound, BAR *p)
     double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
     double COS1W = cos(xofreq);
 
-    if ((bcL|bcR)&(~3) && (bcL|bcR)!=0)
+    if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound,
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));

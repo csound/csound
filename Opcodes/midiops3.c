@@ -40,7 +40,7 @@
 {                                                                 \
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
-    if (chan > 15) {                                              \
+    if (UNLIKELY(chan > 15)) {                                    \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
@@ -53,13 +53,13 @@
       MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < n) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
-        if (*slnum > 127) {                                       \
+      if (UNLIKELY(*slnum > 127)) {                               \
           sprintf(sbuf,                                           \
                   Str("illegal control number at position n.%d"), j); \
           return csound->InitError(csound, sbuf);                 \
         }                                                         \
-        if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
-            value > (*max=*sld->imax) ) {                         \
+      if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) || \
+                   value > (*max=*sld->imax) )) {                 \
           sprintf(sbuf,                                           \
                   Str("illegal initvalue at position n.%d"),      \
                   j);                                             \
@@ -142,7 +142,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
 {                                                                 \
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
-    if (chan  > 15)  {                                            \
+    if (UNLIKELY(chan  > 15))  {                                  \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
@@ -157,13 +157,13 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
       MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < 8) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
-        if (*slnum > 127) {                                       \
+      if (UNLIKELY(*slnum > 127)) {                               \
           sprintf(sbuf,                                           \
                   Str("illegal control number at position n.%d"), j); \
           return csound->InitError(csound, sbuf);                 \
         }                                                         \
-        if ((value=*sld->initvalue) < (*min=*sld->imin) ||        \
-            value > (*max=*sld->imax) ) {                         \
+      if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) || \
+                   value > (*max=*sld->imax) )) {                 \
           sprintf(sbuf,                                           \
                   Str("illegal initvalue at position n.%d"), j);  \
           return csound->InitError(csound, sbuf);                 \
@@ -255,7 +255,7 @@ static int slider64f(CSOUND *csound, SLIDER64f *p)
 {                                                                 \
     unsigned char chan= (unsigned char) ((*p->ichan)-1);          \
     char sbuf[120];                                               \
-    if (chan  > 15)  {                                            \
+if (UNLIKELY(chan  > 15))  {                                      \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
@@ -269,7 +269,7 @@ static int slider64f(CSOUND *csound, SLIDER64f *p)
                                                                   \
       while (j++ < n) {                                           \
         slnum=(unsigned char) *sld->ictlno;                       \
-        if (slnum > 127) {                                        \
+        if (UNLIKELY(slnum > 127)) {                                    \
           sprintf(sbuf, Str("illegal control number at position n.%d"), j); \
           return csound->InitError(csound, sbuf);                 \
         }                                                         \
@@ -313,7 +313,7 @@ static int islider64(CSOUND *csound, ISLIDER64 *p)
 {                                                                      \
     unsigned char chan= p->slchan = (unsigned char)((*p->ichan)-1);    \
     char sbuf[120];                                                    \
-    if (chan  > 15)  {                                                 \
+if (UNLIKELY(chan  > 15))  {                                           \
       return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
@@ -328,21 +328,21 @@ static int islider64(CSOUND *csound, ISLIDER64 *p)
                                                                        \
       while (j++ < n) {                                                \
         *slnum_msb = (unsigned char)*sld->ictlno_msb;                  \
-        if (*slnum_msb > 127) {                                        \
+        if (UNLIKELY(*slnum_msb > 127)) {                              \
           sprintf(sbuf,                                                \
                   Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
           return csound->InitError(csound, sbuf);                      \
         }                                                              \
         *slnum_lsb = (unsigned char)*sld->ictlno_lsb;                  \
-        if (*slnum_lsb > 127) {                                        \
+        if (UNLIKELY(*slnum_lsb > 127)) {                              \
           sprintf(sbuf,                                                \
                   Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
           return csound->InitError(csound, sbuf);                      \
         }                                                              \
-        if ((value=*sld->initvalue) < (*min=*sld->imin) ||             \
-            value > (*max=*sld->imax) ) {                              \
+        if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) ||    \
+                     value > (*max=*sld->imax) )) {                    \
           sprintf(sbuf,                                                \
                   Str("illegal initvalue at position n.%d"), j);       \
           return csound->InitError(csound, sbuf);                      \
@@ -409,7 +409,7 @@ static int slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
 {                                                                      \
     unsigned char chan = (unsigned char)((*p->ichan)-1);               \
     char sbuf[120];                                                    \
-    if (chan  > 15)  {                                                 \
+if (UNLIKELY(chan  > 15))  {                                           \
       return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
@@ -423,14 +423,14 @@ static int slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
                                                                        \
       while (j++ < n) {                                                \
         slnum_msb=(unsigned char)*sld->ictlno_msb;                     \
-        if (slnum_msb > 127) {                                         \
+        if (UNLIKELY(slnum_msb > 127)) {                               \
           sprintf(sbuf,                                                \
                   Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
           return csound->InitError(csound, sbuf);                      \
         }                                                              \
         slnum_lsb=(unsigned char)*sld->ictlno_lsb;                     \
-        if (slnum_lsb > 127) {                                         \
+        if (UNLIKELY(slnum_lsb > 127)) {                               \
           sprintf(sbuf,                                                \
                   Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
@@ -460,7 +460,7 @@ static int islider16bit14(CSOUND *csound, ISLIDER16BIT14 *p)
 
 static int islider32bit14(CSOUND *csound, ISLIDER32BIT14 *p)
 {
-    ISLIDER14(p, 16);
+    ISLIDER14(p, 32);
 }
 
 #define S(x)    sizeof(x)

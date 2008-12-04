@@ -54,7 +54,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
                                          "_rtjackGlobals");
     client = rtjack->client;
 
-    if (client == NULL) {
+    if (UNLIKELY(client == NULL)) {
       return csound->InitError(csound, Str("Cannot find Jack client.\n"));
     }
     else {

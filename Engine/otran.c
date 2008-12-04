@@ -143,7 +143,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         err++; i--;
       }
       i++; types++;
-      if (i > OPCODENUMOUTS_MAX) {
+      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
         synterr(csound, "too many input args for opcode %s", inm->name);
         csound->LongJmp(csound, 1);
       }
@@ -158,7 +158,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (!strcmp(types, "0"))
       types++;                  /* no output args */
     while (*types) {
-      if (i >= OPCODENUMOUTS_MAX) {
+      if (UNLIKELY(i >= OPCODENUMOUTS_MAX)) {
         synterr(csound, "too many output args for opcode %s", inm->name);
         csound->LongJmp(csound, 1);
       }
@@ -304,12 +304,12 @@ void otran(CSOUND *csound)
               /* IV - Oct 16 2002: allow both numbers and names for instr */
               for (cnt = 0; cnt < alp->count; cnt++) {
                 char *c = alp->arg[cnt];
-                if (strlen(c) <= 0) {
+                if (UNLIKELY(strlen(c) <= 0)) {
                   synterr(csound, Str("missing instrument number or name"));
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
-                  if (!sscanf(c, "%d", &n) || n < 0) {
+                  if (UNLIKELY(!sscanf(c, "%d", &n) || n < 0)) {
                     synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
@@ -324,7 +324,7 @@ void otran(CSOUND *csound)
                     for (i = old_maxinsno + 1; i <= csound->maxinsno; i++)
                       csound->instrtxtp[i] = NULL;
                   }
-                  if (csound->instrtxtp[n] != NULL) {
+                  if (UNLIKELY(csound->instrtxtp[n] != NULL)) {
                     synterr(csound, Str("instr %ld redefined"), (int32) n);
                     err++; continue;
                   }
@@ -336,12 +336,12 @@ void otran(CSOUND *csound)
                     insno_priority--; c++;
                   }
                   /* IV - Oct 31 2002: some error checking */
-                  if (!check_instr_name(c)) {
+                  if (UNLIKELY(!check_instr_name(c))) {
                     synterr(csound, Str("invalid name for instrument"));
                     err++; continue;
                   }
                   /* IV - Oct 31 2002: store the name */
-                  if (!named_instr_alloc(csound, c, ip, insno_priority)) {
+                  if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority))) {
                     synterr(csound, "instr %s redefined", c);
                     err++; continue;
                   }
@@ -349,7 +349,7 @@ void otran(CSOUND *csound)
                   n = -2;
                 }
               }
-              if (err) continue;
+              if (UNLIKELY(err)) continue;
               if (n) putop(csound, &ip->t);     /* print, except i0 */
             }
             else {                  /* opcode definition with string name */
@@ -359,16 +359,16 @@ void otran(CSOUND *csound)
               char      *name = alp->arg[0];
 
               /* some error checking */
-              if (!alp->count || (strlen(name) <= 0)) {
+              if (UNLIKELY(!alp->count || (strlen(name) <= 0))) {
                   synterr(csound, Str("No opcode name"));
                   continue;
                 }
               /* IV - Oct 31 2002 */
-              if (!check_instr_name(name)) {
+              if (UNLIKELY(!check_instr_name(name))) {
                 synterr(csound, Str("invalid name for opcode"));
                 continue;
               }
-              if (ip->t.inlist->count != 3) {
+              if (UNLIKELY(ip->t.inlist->count != 3)) {
                 synterr(csound, Str("opcode declaration error "
                                     "(usage: opcode name, outtypes, intypes) "
                                     "-- opcode %s"), name);
@@ -379,7 +379,7 @@ void otran(CSOUND *csound)
               newopnum = find_opcode(csound, name);
               if (newopnum) {
                 /* IV - Oct 31 2002: redefine old opcode if possible */
-                if (newopnum < SETEND || !strcmp(name, "subinstr")) {
+                if (UNLIKELY(newopnum < SETEND || !strcmp(name, "subinstr"))) {
                   synterr(csound, Str("cannot redefine %s"), name);
                   continue;
                 }
@@ -432,7 +432,7 @@ void otran(CSOUND *csound)
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
             bp->nxtop = NULL;   /* terminate the optxt chain */
-            if (O->odebug) {
+            if (UNLIKELY(O->odebug)) {
               putop(csound, &bp->t);
               csound->Message(csound, "pmax %d, kcnt %d, "
                                       "wcnt %d, acnt %d, pcnt %d, scnt %d\n",
@@ -465,7 +465,7 @@ void otran(CSOUND *csound)
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= csound->opcodlst[opnum].thread;
             opdstot += csound->opcodlst[opnum].dsblksiz;  /* sum opds's */
-            if (O->odebug) putop(csound, &bp->t);
+            if (UNLIKELY(O->odebug)) putop(csound, &bp->t);
             for (alp=bp->t.inlist, nn=alp->count; nn>0; ) {
               s = alp->arg[--nn];
               if ((n = pnum(s)) >= 0)
@@ -474,7 +474,7 @@ void otran(CSOUND *csound)
             }
             for (alp=bp->t.outlist, nn=alp->count; nn>0; ) {
               s = alp->arg[--nn];
-              if (*s == '"') {
+              if (UNLIKELY(*s == '"')) {
                 synterr(csound, Str("string constant used as output"));
                 continue;
               }
@@ -503,7 +503,7 @@ void otran(CSOUND *csound)
             break;
         }
     }
-    if (n != -1)
+    if (UNLIKELY(n != -1))
       synterr(csound, Str("Missing endin"));
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
@@ -548,14 +548,14 @@ void otran(CSOUND *csound)
       char      err_msg[128];
       sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
                        p->tran_sr, p->tran_kr, p->tran_ksmps);
-      if (p->tran_sr <= FL(0.0))
+      if (UNLIKELY(p->tran_sr <= FL(0.0)))
         synterr(p, Str("%s invalid sample rate"), err_msg);
-      if (p->tran_kr <= FL(0.0))
+      if (UNLIKELY(p->tran_kr <= FL(0.0)))
         synterr(p, Str("%s invalid control rate"), err_msg);
-      else if (p->tran_ksmps < FL(0.75) ||
-               FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps)))
+      else if (UNLIKELY(p->tran_ksmps < FL(0.75) ||
+                        FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps))))
         synterr(p, Str("%s invalid ksmps value"), err_msg);
-      else if (FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps))
+      else if (UNLIKELY(FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
     }
 
@@ -566,16 +566,16 @@ void otran(CSOUND *csound)
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
       if (opnum == LABEL) continue;
-      if ((thread = csound->opcodlst[opnum].thread) & 06 ||
-          (!thread && bp->t.pftype != 'b'))
+      if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
+                   (!thread && bp->t.pftype != 'b')))
         synterr(csound, Str("perf-pass statements illegal in header blk"));
     }
-    if (csound->synterrcnt) {
+    if (UNLIKELY(csound->synterrcnt)) {
       print_opcodedir_warning(csound);
       csound->Die(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid"), csound->synterrcnt);
     }
-    if (O->syntaxCheckOnly) {
+    if (UNLIKELY(O->syntaxCheckOnly)) {
       /* no need to go any further, so cleanup */
       delete_local_namepool(csound);
       delete_global_namepool(csound);
@@ -583,7 +583,7 @@ void otran(CSOUND *csound)
       ST(constTbl) = NULL;
       return;
     }
-    if (O->odebug) {
+    if (UNLIKELY(O->odebug)) {
       int32  n;
       MYFLT *p;
       csound->Message(csound, "poolcount = %d, strpool_cnt = %d\n",
@@ -631,7 +631,7 @@ void otran(CSOUND *csound)
     ip = &(csound->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL)        /* add all other entries */
       insprep(csound, ip);                      /*   as combined offsets */
-    if (O->odebug) {
+    if (UNLIKELY(O->odebug)) {
       int *p = csound->argoffspace;
       csound->Message(csound, "argoff array:\n");
       do {
@@ -639,7 +639,7 @@ void otran(CSOUND *csound)
       } while (p < ST(argofflim));
       csound->Message(csound, "\n");
     }
-    if (ST(nxtargoffp) != ST(argofflim))
+    if (UNLIKELY(ST(nxtargoffp) != ST(argofflim)))
       csoundDie(csound, Str("inconsistent argoff sumcount"));
 
     ip = &(csound->instxtanchor);               /* set the OPARMS values */
@@ -719,7 +719,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         continue;
       }
       ep = &(csound->opcodlst[opnum]);
-      if (O->odebug) csound->Message(csound, "%s argndxs:", ep->opname);
+      if (UNLIKELY(O->odebug)) csound->Message(csound, "%s argndxs:", ep->opname);
       if ((outlist = ttp->outlist) == ST(nullist) || !outlist->count)
         ttp->outoffs = ST(nulloffs);
       else {
@@ -729,7 +729,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         ndxp = outoffs->indx;
         while (n--) {
           *ndxp++ = indx = plgndx(csound, *argp++);
-          if (O->odebug) csound->Message(csound, "\t%d", indx);
+          if (UNLIKELY(O->odebug)) csound->Message(csound, "\t%d", indx);
         }
       }
       if ((inlist = ttp->inlist) == ST(nullist) || !inlist->count)
@@ -742,7 +742,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         ndxp = inoffs->indx;
         for (n=0; n < inlist->count; n++, argp++, ndxp++) {
           if (n < inreqd && ep->intypes[n] == 'l') {
-            if (largp - larg >= csound->ngotos) {
+            if (UNLIKELY(largp - larg >= csound->ngotos)) {
               int oldn = csound->ngotos;
               csound->ngotos += NGOTOS;
               if (csound->oparms->msglevel)
@@ -755,7 +755,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
                 mrealloc(csound, larg, csound->ngotos * sizeof(LBLARG));
               largp = &larg[oldn];
             }
-            if (O->odebug)
+            if (UNLIKELY(O->odebug))
               csound->Message(csound, "\t***lbl");  /* if arg is label,  */
             largp->lbltxt = *argp;
             largp->ndxp = ndxp;                     /*  defer till later */
@@ -764,12 +764,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
           else {
             char *s = *argp;
             indx = plgndx(csound, s);
-            if (O->odebug) csound->Message(csound, "\t%d", indx);
+            if (UNLIKELY(O->odebug)) csound->Message(csound, "\t%d", indx);
             *ndxp = indx;
           }
         }
       }
-      if (O->odebug) csound->Message(csound, "\n");
+      if (UNLIKELY(O->odebug)) csound->Message(csound, "\n");
     }
  nxt:
     while (--largp >= larg) {                   /* resolve the lbl refs */
@@ -834,7 +834,7 @@ static int strconstndx(CSOUND *csound, const char *s)
 
     /* check syntax */
     cnt = (int) strlen(s);
-    if (cnt < 2 || *s != '"' || s[cnt - 1] != '"') {
+    if (UNLIKELY(cnt < 2 || *s != '"' || s[cnt - 1] != '"')) {
       synterr(csound, Str("string syntax '%s'"), s);
       return 0;
     }
@@ -884,7 +884,7 @@ static int constndx(CSOUND *csound, const char *s)
       char            *tmp = (char*) s;
       tmpVal = (MYFLT) strtod(s, &tmp);
       newval = tmpVal;
-      if (tmp == s || *tmp != '\0') {
+      if (UNLIKELY(tmp == s || *tmp != '\0')) {
         synterr(csound, Str("numeric syntax '%s'"), s);
         return 0;
       }
@@ -908,7 +908,7 @@ static int constndx(CSOUND *csound, const char *s)
       n = ST(constTbl)[prv];
     }
     n = ST(poolcount)++;
-    if (n >= ST(nconsts)) {
+    if (UNLIKELY(n >= ST(nconsts))) {
       ST(nconsts) = ((ST(nconsts) + (ST(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
       if (csound->oparms->msglevel)
         csound->Message(csound, Str("extending Floating pool to %d\n"),
@@ -982,7 +982,7 @@ static void gblnamset(CSOUND *csound, char *s)
     if (p != NULL)                              /* if name is there     */
       return;                                   /*    return            */
     p = (NAME*) malloc(sizeof(NAME));
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       csound->Die(csound, Str("gblnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
     p->nxt = ST(gblNames)[h];
@@ -1010,7 +1010,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
     if (p != NULL)                              /* if name is there     */
       return p;                                 /*    return ptr        */
     p = (NAME*) malloc(sizeof(NAME));
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       csound->Die(csound, Str("lclnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
     p->nxt = ST(lclNames)[h];
@@ -1035,7 +1035,7 @@ static int gbloffndx(CSOUND *csound, char *s)
     NAME          *p = ST(gblNames)[h];
 
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       csoundDie(csound, Str("unexpected global name"));
     switch (p->type) {
       case ATYPE: return (ST(gblfixed) + p->count);
@@ -1218,9 +1218,9 @@ void oload(CSOUND *p)
       }
     }
     /* why I want oload() to return an error value.... */
-    if (p->e0dbfs <= FL(0.0))
+    if (UNLIKELY(p->e0dbfs <= FL(0.0)))
       p->Die(p, Str("bad value for 0dbfs: must be positive."));
-    if (O->odebug)
+    if (UNLIKELY(O->odebug))
       p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                     "0dbfs = %.1f\n",
                     p->esr, p->ekr, p->ksmps, p->nchnls, p->e0dbfs);
@@ -1269,7 +1269,7 @@ void oload(CSOUND *p)
       lclabeg = (int32) (ip->pmax + ip->lclfixed + 1);
       lclsbeg = (int32) (lclabeg + ip->lclacnt);
       lclsbas = (int32) (lclabeg + (ip->lclacnt * (int32) p->ksmps));
-      if (O->odebug) p->Message(p, "lclabeg %d, lclsbeg %d\n",
+      if (UNLIKELY(O->odebug)) p->Message(p, "lclabeg %d, lclsbeg %d\n",
                                    lclabeg, lclsbeg);
       ip->localen = ((int32) ip->lclfixed
                      + (int32) ip->lclacnt * (int32) p->ksmps
@@ -1298,7 +1298,7 @@ void oload(CSOUND *p)
         for (ndxp = aoffp->indx; n--; ndxp++) {
           indx = *ndxp;
           if (indx > 0) {               /* positive index: global   */
-            if (indx >= STR_OFS)        /* string constant          */
+            if (UNLIKELY(indx >= STR_OFS))        /* string constant          */
               p->Die(p, Str("internal error: string constant outarg"));
             if (indx > gblsbeg)         /* global string variable   */
               indx = gblsbas + (indx - gblsbeg) * p->strVarSamples;
@@ -1390,13 +1390,13 @@ void oload(CSOUND *p)
       char  s[256];
       sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
                  p->esr, p->ekr, ensmps);
-      if (p->ksmps < 1 || FLOAT_COMPARE(ensmps, p->ksmps))
+      if (UNLIKELY(p->ksmps < 1 || FLOAT_COMPARE(ensmps, p->ksmps)))
         csoundDie(p, Str("%s invalid ksmps value"), s);
-      if (p->esr <= FL(0.0))
+      if (UNLIKELY(p->esr <= FL(0.0)))
         csoundDie(p, Str("%s invalid sample rate"), s);
-      if (p->ekr <= FL(0.0))
+      if (UNLIKELY(p->ekr <= FL(0.0)))
         csoundDie(p, Str("%s invalid control rate"), s);
-      if (FLOAT_COMPARE(p->esr, (double) p->ekr * ensmps))
+      if (UNLIKELY(FLOAT_COMPARE(p->esr, (double) p->ekr * ensmps)))
         csoundDie(p, Str("%s inconsistent sr, kr, ksmps"), s);
     }
     /* initialise sensevents state */
@@ -1420,7 +1420,7 @@ void oload(CSOUND *p)
     p->larg = (LARGNO*) mmalloc(p, sizeof(LARGNO) * p->ngotos);
 
     /* run instr 0 inits */
-    if (init0(p) != 0)
+    if (UNLIKELY(init0(p) != 0))
       csoundDie(p, Str("header init errors"));
 }
 

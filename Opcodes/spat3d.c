@@ -599,7 +599,7 @@ static int    spat3d(CSOUND *csound, SPAT3D *p)
 
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
-    if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) goto err1;
+    if (UNLIKELY((p->ws.auxp == NULL) || (p->y.auxp == NULL))) goto err1;
 
     /* spatialize and send to delay line */
 
@@ -754,7 +754,7 @@ static int    spat3di(CSOUND *csound, SPAT3D *p)
 
     if (p->maxdep < 0) return OK;  /* depth < 0 : nothing to render */
 
-    if ((p->ws.auxp == NULL) || (p->y.auxp == NULL)) goto err1;
+    if (UNLIKELY((p->ws.auxp == NULL) || (p->y.auxp == NULL))) goto err1;
 
     /* spatialize and send to delay line */
 
@@ -848,7 +848,7 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
     spat3d_init_wall(p, 0, 0, &wmax,
                      *(p->args[1]), *(p->args[2]), *(p->args[3]));
     p->outftlnth = ((p->outftlnth) >> 2) << 2;      /* table length  */
-    if ((p->outft == NULL) || (p->outftlnth < 4)) return NOTOK; /* no table */
+    if (UNLIKELY((p->outft == NULL) || (p->outftlnth < 4))) return NOTOK; /* no table */
 
     /* initialise IR */
 

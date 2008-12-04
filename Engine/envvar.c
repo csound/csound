@@ -218,10 +218,10 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     char                    *s1, *s2;
 
     /* check for valid parameters */
-    if (csound == NULL || !is_valid_envvar_name(name))
+    if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
       return CSOUND_ERROR;
     pp = getEnvVarChain(csound, name);
-    if (pp == NULL)
+    if (UNLIKELY(pp == NULL))
       return CSOUND_ERROR;
     /* invalidate search path cache */
     ep = (searchPathCacheEntry_t*) csound->searchPathCache;
@@ -286,7 +286,7 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
     int         retval;
 
     /* check for valid parameters */
-    if (csound == NULL || !is_valid_envvar_name(name))
+    if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
       return CSOUND_ERROR;
     /* get original value of variable */
     oldval = csoundGetEnv(csound, name);
@@ -322,7 +322,7 @@ int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
     int         retval;
 
     /* check for valid parameters */
-    if (csound == NULL || !is_valid_envvar_name(name))
+    if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
       return CSOUND_ERROR;
     /* get original value of variable */
     oldval = csoundGetEnv(csound, name);
@@ -403,7 +403,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     /* check assignment format */
     value = strchr(name, '=');
     append_mode = 0;
-    if (value == NULL || value == name) {
+    if (UNLIKELY(value == NULL || value == name)) {
       sprintf(msg, " *** invalid format for --env\n");
       retval = CSOUND_ERROR;
       goto err_return;
@@ -413,7 +413,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       append_mode = 1;
       *(value - 2) = '\0';
     }
-    if (!is_valid_envvar_name(name)) {
+    if (UNLIKELY(!is_valid_envvar_name(name))) {
       sprintf(msg, " *** invalid environment variable name\n");
       retval = CSOUND_ERROR;
       goto err_return;
@@ -423,13 +423,13 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       retval = csoundSetEnv(csound, name, value);
     else
       retval = csoundAppendEnv(csound, name, value);
-    if (retval == CSOUND_MEMORY)
+    if (UNLIKELY(retval == CSOUND_MEMORY))
       sprintf(msg, " *** memory allocation failure\n");
     else
       sprintf(msg, " *** error setting environment variable\n");
 
  err_return:
-    if (retval != CSOUND_SUCCESS)
+    if (UNLIKELY(retval != CSOUND_SUCCESS))
       csound->Message(csound, Str(msg));
     if (name != NULL)
       mfree(csound, name);
@@ -1077,7 +1077,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
 
     /* check file type */
-    if ((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W) {
+    if (UNLIKELY((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
                                  "invalid type: %d"), type);
       return NULL;
@@ -1102,7 +1102,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     else {
       if (type == CSFILE_STD) {
         tmp_f = csoundFindFile_Std(csound, &fullName, name, (char*) param, env);
-        if (tmp_f == NULL)
+        if (UNLIKELY(tmp_f == NULL))
           goto err_return;
       }
       else {
@@ -1110,14 +1110,14 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 0, env);
         else
           tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 1, env);
-        if (tmp_fd < 0)
+        if (UNLIKELY(tmp_fd < 0))
           goto err_return;
       }
     }
     nbytes += (int) strlen(fullName);
     /* allocate file structure */
     p = (CSFILE*) malloc((size_t) nbytes);
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       goto err_return;
     p->nxt = (CSFILE*) csound->open_files;
     p->prv = (CSFILE*) NULL;
@@ -1161,7 +1161,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           /* maybe raw file ? rewind and try again */
           if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0)
             p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
-          if (p->sf == (SNDFILE*) NULL)
+          if (UNLIKELY(p->sf == (SNDFILE*) NULL))
             goto err_return;
         }
         else {
@@ -1172,7 +1172,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         break;
       case CSFILE_SND_W:                        /* sound file write */
         p->sf = sf_open_fd(tmp_fd, SFM_WRITE, (SF_INFO*) param, 0);
-        if (p->sf == (SNDFILE*) NULL)
+        if (UNLIKELY(p->sf == (SNDFILE*) NULL))
           goto err_return;
         sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
         *((SNDFILE**) fd) = p->sf;

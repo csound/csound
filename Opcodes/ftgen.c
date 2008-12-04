@@ -59,7 +59,7 @@ typedef struct {
 static int ftable_delete(CSOUND *csound, void *p)
 {
     int err = csound->FTDelete(csound, ((FTDELETE*) p)->fno);
-    if (err != OK)
+    if (UNLIKELY(err != OK))
       csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
                                ((FTDELETE*) p)->fno);
     free(p);
@@ -69,7 +69,7 @@ static int ftable_delete(CSOUND *csound, void *p)
 static int register_ftable_delete(CSOUND *csound, void *p, int tableNum)
 {
     FTDELETE  *op = (FTDELETE*) calloc((size_t) 1, sizeof(FTDELETE));
-    if (op == NULL)
+    if (UNLIKELY(op == NULL))
       return csound->InitError(csound, Str("memory allocation failure"));
     op->h.insdshead = ((OPDS*) p)->insdshead;
     op->fno = tableNum;
@@ -127,7 +127,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     }
     n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
     csound->Free(csound, ftevt);
-    if (n != 0)
+    if (UNLIKELY(n != 0))
       return csound->InitError(csound, Str("ftgen error"));
     if (ftp != NULL)
       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
@@ -138,7 +138,7 @@ static int ftgentmp(CSOUND *csound, FTGEN *p)
 {
     int   p1, fno;
 
-    if (ftgen(csound, p) != OK)
+    if (UNLIKELY(ftgen(csound, p) != OK))
       return NOTOK;
     p1 = (int) MYFLT2LRND(*p->p1);
     if (p1)
@@ -151,7 +151,7 @@ static int ftfree(CSOUND *csound, FTFREE *p)
 {
     int fno = (int) MYFLT2LRND(*p->iftno);
 
-    if (fno <= 0)
+    if (UNLIKELY(fno <= 0))
       return csound->InitError(csound, Str("Invalid table number: %d"), fno);
     if (*p->ifreeTime == FL(0.0)) {
       if (csound->FTDelete(csound, fno) != 0)
@@ -182,7 +182,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
       err_func = csound->InitError;
     }
 
-    if (nargs <= 0)
+    if (UNLIKELY(nargs <= 0))
       goto err2;
 
     csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
@@ -190,7 +190,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     if (*p->iflag <= FL(0.0)) {
       fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "rb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
-      if (fd == NULL) goto err3;
+      if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC  header;
         int   fno = (int) MYFLT2LRND(**argp);
@@ -200,7 +200,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         /* ***** Need to do byte order here ***** */
         fread(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
         header.fno = (int32) fno;
-        if (csound->FTAlloc(csound, fno, (int) header.flen) != 0)
+        if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ);
@@ -213,7 +213,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
     else {
       fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "r",
                                "", CSFTYPE_FTABLES_TEXT, 0);
-      if (fd == NULL) goto err3;
+      if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC  header;
         char  s[64], *s1;
@@ -275,7 +275,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
         header.fno = (int32) fno;
-        if (csound->FTAlloc(csound, fno, (int) header.flen) != 0)
+        if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
@@ -326,7 +326,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
       err_func = csound->InitError;
     }
 
-    if (nargs <= 0)
+    if (UNLIKELY(nargs <= 0))
       goto err2;
 
     csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
@@ -334,7 +334,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     if (*p->iflag <= FL(0.0)) {
       fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "wb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
-      if (fd == NULL) goto err3;
+      if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
 
@@ -351,7 +351,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
     else {
       fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "w",
                                "", CSFTYPE_FTABLES_TEXT, 0);
-      if (fd == NULL) goto err3;
+      if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
 

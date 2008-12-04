@@ -46,7 +46,7 @@ static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     p->beta = (int)(*p->slices);
 
  #ifdef SDFT
-    if (p->finleft->sliding)
+    if (UNLIKELY(p->finleft->sliding))
       return csound->InitError(csound, "SDFT case not implemented yet");
 #endif
    M = (N+2)*sizeof(float);
@@ -108,9 +108,9 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     MYFLT width = *p->width;
     MYFLT range;
 
-    if (!fsigs_equal(p->finleft,p->finright)) goto err1;
+    if (UNLIKELY(!fsigs_equal(p->finleft,p->finright))) goto err1;
 
-    if (out==NULL) goto err2;
+    if (UNLIKELY(out==NULL)) goto err2;
 
     if (p->lastframe < p->finleft->framecount) {
 
