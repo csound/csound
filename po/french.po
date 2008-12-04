@@ -4585,8 +4585,13 @@ msgid "unlike signs"
 msgstr "signes différents"
 
 #: OOps/ugens1.c:152
-msgid "linseg not initialised (krate)\n"
-msgstr "linseg non initialisé (taux-k)\n"
+#, fuzzy
+msgid ""
+"\n"
+"Error: linseg not initialised (krate)\n"
+msgstr ""
+"\n"
+"Erreur : transeg non initialisé (taux-k)"
 
 #: OOps/ugens1.c:186
 msgid "linseg: not initialised (arate)\n"
@@ -11533,6 +11538,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "linseg not initialised (krate)\n"
+#~ msgstr "linseg non initialisé (taux-k)\n"
 
 #~ msgid "csoundCreateBarrier() is not implemented on this platform.\n"
 #~ msgstr "csoundCreateBarrier() n'est pas implémenté sur cette plateforme.\n"

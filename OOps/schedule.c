@@ -100,8 +100,8 @@ int schedule(CSOUND *csound, SCHED *p)
       which = (int) named_instr_find(csound, csound->currevent->strarg);
     else
       which = (int) (FL(0.5) + *p->which);
-    if (which < 1 || which > csound->maxinsno ||
-        csound->instrtxtp[which] == NULL) {
+    if (UNLIKELY(which < 1 || which > csound->maxinsno ||
+                 csound->instrtxtp[which] == NULL)) {
       return csound->InitError(csound, Str("Instrument not defined"));
     }
     {
@@ -187,8 +187,8 @@ int kschedule(CSOUND *csound, WSCHED *p)
         which = (int) named_instr_find(csound, csound->currevent->strarg);
       else
         which = (int) (FL(0.5) + *p->which);
-      if (which < 1 || which > csound->maxinsno ||
-          csound->instrtxtp[which] == NULL) {
+      if (UNLIKELY(which < 1 || which > csound->maxinsno ||
+                   csound->instrtxtp[which] == NULL)) {
         return csound->PerfError(csound, Str("Instrument not defined"));
       }
       p->midi = (dur <= FL(0.0));
@@ -265,7 +265,7 @@ int lfoset(CSOUND *csound, LFO *p)
         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0));
 /*        csound->Message(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
     }
-    else if (type>5 || type<0) {
+    else if (UNLIKELY(type>5 || type<0)) {
       return csound->InitError(csound, Str("LFO: unknown oscilator type %d"),
                                        type);
     }
@@ -520,7 +520,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
       return csound->InitError(csound, Str("trigseq: incorrect table number"));
     }
     p->done  = 0;
@@ -542,7 +542,7 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
 
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
-        if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL) {
+        if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
           return csound->PerfError(csound,
                                    Str("trigseq: incorrect table number"));
         }

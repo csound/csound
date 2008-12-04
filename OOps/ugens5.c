@@ -194,7 +194,7 @@ int rsnset(CSOUND *csound, RESON *p)
 {
     int scale;
     p->scale = scale = (int)*p->iscl;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
     }
@@ -256,7 +256,7 @@ int rsnsetx(CSOUND *csound, RESONX *p)
                        (int)(p->loop*2*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
     }
@@ -439,7 +439,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       p->nvals = lph->nvals;
       p->framrat16 = lph->framrate * FL(65536.0);/* scaled framno cvt */
     }
-    else if (BYTREVL(lph->lpmagic) == LP_MAGIC) {   /* Header reversed:  */
+    else if (UNLIKELY(BYTREVL(lph->lpmagic) == LP_MAGIC)) { /* Header reversed: */
       return csound->InitError(csound, Str("file %s bytes are in wrong order"),
                                        lpfilname);
     }
@@ -448,20 +448,20 @@ int lprdset(CSOUND *csound, LPREAD *p)
       p->npoles = (int32)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
-      if (!p->npoles || !p->framrat16) {
+      if (UNLIKELY(!p->npoles || !p->framrat16)) {
         return csound->InitError(csound,
                                  Str("insufficient args and no file header"));
       }
     }
     /* Check  pole number */
-    if (p->npoles > MAXPOLES) {
+    if (UNLIKELY(p->npoles > MAXPOLES)) {
       return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
     totvals = (mfp->length/sizeof(MYFLT)) - p->headlongs;   /* see NB above!! */
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str(
                  "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
@@ -536,7 +536,7 @@ static int DoPoleInterpolation(int poleCount,
 {
     int i;
 
-    if (poleCount%2!=0) {
+    if (UNLIKELY(poleCount%2!=0)) {
 /*    printf (Str("Cannot handle uneven pole count yet \n")); */
       return (0);
     }
@@ -648,16 +648,17 @@ int lpread(CSOUND *csound, LPREAD *p)
     MYFLT   poleMagn2[MAXPOLES], polePhas2[MAXPOLES];
     MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
 
-    if (p->mfp==NULL) {
+    if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, Str("lpread: not initialised"));
     }
     /* Locate frame position range */
-    if ((framphase = (int32)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd*/
+    if (UNLIKELY((framphase = (int32)(*p->ktimpt*p->framrat16)) < 0)) {
+      /* for kfram reqd*/
       return csound->PerfError(csound, Str("lpread timpnt < 0"));
     }
     if (framphase > p->lastfram16) {                /* not past last one */
       framphase = p->lastfram16;
-      if (!p->lastmsg) {
+      if (UNLIKELY(!p->lastmsg)) {
         p->lastmsg = 1;
         csound->Warning(csound, Str("lpread ktimpnt truncated to last frame"));
       }
@@ -687,7 +688,7 @@ int lpread(CSOUND *csound, LPREAD *p)
       status =
         DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                             polePhas2,fract,interMagn,interPhas);
-      if (!status) {
+      if (UNLIKELY(!status)) {
         return csound->PerfError(csound, Str("Interpolation failed"));
       }
       for (i=0; i<p->npoles; i++) {
@@ -1035,7 +1036,7 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     int n;
 
     n = (int) *(p->islotnum);
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return csound->InitError(csound, Str("lpslot number should be positive"));
     else {
       if (n >= csound->max_lpc_slot) {
@@ -1052,10 +1053,10 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
 int lpitpset(CSOUND *csound, LPINTERPOL *p)
 {
 
-    if ((unsigned int) ((int) *(p->islot1))
-          >= (unsigned int) csound->max_lpc_slot ||
-        (unsigned int) ((int) *(p->islot2))
-          >= (unsigned int) csound->max_lpc_slot)
+    if (UNLIKELY((unsigned int) ((int) *(p->islot1))
+                 >= (unsigned int) csound->max_lpc_slot ||
+                 (unsigned int) ((int) *(p->islot2))
+                 >= (unsigned int) csound->max_lpc_slot))
       return csound->InitError(csound, Str("LPC slot is not allocated"));
   /* Get lpread pointers */
     p->lp1 = ((LPREAD**) csound->lprdaddr)[(int) *(p->islot1)];
@@ -1063,11 +1064,11 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 
   /* Check if workable */
 
-    if ((!p->lp1->storePoles) || (!p->lp2->storePoles)) {
+    if (UNLIKELY((!p->lp1->storePoles) || (!p->lp2->storePoles))) {
       return csound->InitError(csound, Str("lpinterpol works only "
                                            "with poles files.."));
     }
-    if (p->lp1->npoles != p->lp2->npoles) {
+    if (UNLIKELY(p->lp1->npoles != p->lp2->npoles)) {
       return csound->InitError(csound, Str("The poles files "
                                            "have different pole count"));
     }
@@ -1092,7 +1093,7 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
     MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
 
     /* RWD: guessing this... */
-    if (p->lp1==NULL || p->lp2==NULL) {
+    if (UNLIKELY(p->lp1==NULL || p->lp2==NULL)) {
       return csound->PerfError(csound, Str("lpinterpol: not initialised"));
     }
     cp1 =  p->lp1->kcoefs;
@@ -1107,7 +1108,7 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 
     status = DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                                      polePhas2,*p->kmix,interMagn,interPhas);
-    if (!status) {
+    if (UNLIKELY(!status)) {
       return csound->PerfError(csound, Str("Interpolation failed"));
     }
 

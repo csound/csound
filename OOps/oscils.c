@@ -208,15 +208,15 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
 
     /* window size */
     wsize = p->wsize;
-    if ((wsize < 2) || (wsize > 1024)) {
+    if (UNLIKELY((wsize < 2) || (wsize > 1024))) {
       return csound->PerfError(csound, Str("tablexkt: not initialised"));
     }
     wsized2 = wsize >> 1;
 
     /* check ftable */
-    if ((ftp = csound->FTFindP(csound, p->kfn)) == NULL)
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
       return NOTOK;     /* invalid table */
-    if ((ftable = ftp->ftable) == NULL) return NOTOK;
+    if (UNLIKELY((ftable = ftp->ftable) == NULL)) return NOTOK;
     flen = ftp->flen;               /* table length */
     flen_d = (double)flen;
 
@@ -311,7 +311,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
             } while (--i);
             /* sample 0 */
             /* avoid division by zero */
-            if (ndx < 0.00003) ar[n] += onedwarp * ftable[ndx_i];
+            if (UNLIKELY(ndx < 0.00003)) ar[n] += onedwarp * ftable[ndx_i];
             else {
               a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
               a1 = a1 * a1 / (MYFLT) d;
@@ -341,7 +341,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
           }
           else {                /* ---- warp disabled ---- */
             /* avoid division by zero */
-            if (ndx < 0.00001) {
+            if (UNLIKELY(ndx < 0.00001)) {
               ndx_i += (int32) (wsized2 - 1);    /* no need to check here */
               ar[n] = ftable[ndx_i];
             }

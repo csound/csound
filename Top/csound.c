@@ -1286,12 +1286,12 @@ extern "C" {
       csound->ct.icurTime += csound->ksmps;
       csound->curBeat += csound->curBeat_inc;
       /* if skipping time on request by 'a' score statement: */
-      if (csound->advanceCnt) {
+      if (UNLIKELY(csound->advanceCnt)) {
         csound->advanceCnt--;
         return 1;
       }
       /* if i-time only, return now */
-      if (csound->initonly)
+      if (UNLIKELY(csound->initonly))
         return 1;
       /* PC GUI needs attention, but avoid excessively frequent */
       /* calls of csoundYield() */
@@ -1429,7 +1429,7 @@ extern "C" {
       int returnValue;
       csound->performState = 0;
       /* setup jmp for return after an exit() */
-      if ((returnValue = setjmp(csound->exitjmp))) {
+      if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
 #ifndef MACOSX
         csoundMessage(csound, "Early return from csoundPerform().\n");
 #endif
@@ -1437,7 +1437,7 @@ extern "C" {
       }
       do {
         do {
-          if ((done = sensevents(csound))) {
+          if (UNLIKELY((done = sensevents(csound)))) {
             csoundMessage(csound, "Score finished in csoundPerform().\n");
             return done;
           }

@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.14  2005-08-13 14:44:37  istvanv
+ *      Revision 1.15  2008-12-04 14:55:04  jpff
+ *      Branch prediction
+ *
+ *      Revision 1.14  2005/08/13 14:44:37  istvanv
  *      Minor code changes
  *
  *      Revision 1.13  2005/08/12 19:01:23  istvanv
@@ -164,7 +167,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     }
     if (m <= kt+1)
       maxp = m + kt + 1;
-    if (m+kt > 15) {
+    if (UNLIKELY(m+kt > 15)) {
       csound->Die(csound, Str("\nerror - fft parameter n has "
                               "more than 15 factors : %d"), n);
     }
@@ -929,7 +932,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
       buf[FFTsize] = buf[1];
     }
     else {
-      if (FFTsize < 2 || (FFTsize & 1))
+      if (UNLIKELY(FFTsize < 2 || (FFTsize & 1)))
         csoundDie(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
       buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
       fft_(csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
@@ -950,7 +953,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
  */
 void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
-    if (FFTsize < 2 || (FFTsize & 1))
+    if (UNLIKELY(FFTsize < 2 || (FFTsize & 1)))
       csoundDie(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
     buf[1] = buf[FFTsize + 1] = FL(0.0);
     reals_(csound, buf, &(buf[1]), (FFTsize >> 1), 2);

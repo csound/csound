@@ -66,10 +66,10 @@ int expset(CSOUND *csound, EXPON *p)
 {
     MYFLT       dur, a, b;
 
-    if ((dur = *p->idur) > FL(0.0) ) {
+    if (LIKELY((dur = *p->idur) > FL(0.0) )) {
       a = *p->ia;
       b = *p->ib;
-      if ((a * b) > FL(0.0)) {
+      if (LIKELY((a * b) > FL(0.0))) {
         p->mlt = POWER(b/a, csound->onedkr/dur);
         p->val = a;
       }
@@ -232,9 +232,9 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     MYFLT       release = *argp[3];
     int32       relestim;
 
-    if (len<=FL(0.0)) len = FL(100000.0); /* MIDI case set int32 */
+    if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32 */
     len -= release;         /* len is time remaining */
-    if (len<FL(0.0)) {         /* Odd case of release time greater than dur */
+    if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
       release = csound->curip->p3; len = FL(0.0);
     }
     nsegs = 6;          /* DADSR */
@@ -883,7 +883,7 @@ int lnrset(CSOUND *csound, LINENR *p)
       int relestim = (int)(*p->idec * csound->ekr + FL(0.5));
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
-      if (*p->iatdec <= FL(0.0)) {
+      if (UNLIKELY(*p->iatdec <= FL(0.0))) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
       else p->mlt2 = POWER(*p->iatdec, csound->onedkr / *p->idec);
@@ -972,11 +972,11 @@ int evxset(CSOUND *csound, ENVLPX *p)
       return NOTOK;
     p->ftp = ftp;
     if ((idur = *p->idur) > FL(0.0)) {
-      if ((iatss = FABS(*p->iatss)) == FL(0.0)) {
+      if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
         return csound->InitError(csound, "iatss = 0");
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-        if (FABS(ixmod) > FL(0.95)) {
+        if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
           return csound->InitError(csound, Str("ixmod out of range."));
         }
         ixmod = -SIN(SIN(ixmod));
@@ -1004,7 +1004,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
         p->val = *(ftp->ftable + ftp->flen)-asym;
         irise = FL(0.0);  /* in case irise < 0 */
       }
-      if (!(*(ftp->ftable + ftp->flen))) {
+      if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
         return csound->InitError(csound, Str("rise func ends with zero"));
       }
       cnt1 = (int32) ((idur - irise - *p->idec) * csound->ekr + FL(0.5));
@@ -1019,7 +1019,7 @@ int evxset(CSOUND *csound, ENVLPX *p)
       }
       p->mlt1 = POWER(iatss, (FL(1.0)/nk));
       if (*p->idec > FL(0.0)) {
-        if (*p->iatdec <= FL(0.0)) {
+        if (UNLIKELY(*p->iatdec <= FL(0.0))) {
           return csound->InitError(csound, Str("non-positive iatdec"));
         }
         p->mlt2 = POWER(*p->iatdec, (csound->onedkr / *p->idec));
@@ -1047,7 +1047,7 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
       phs += p->ki;
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
-        if (!p->val) {
+        if (UNLIKELY(!p->val)) {
           return csound->PerfError(csound,
                                    Str("envlpx rise func ends with zero"));
         }
@@ -1139,11 +1139,11 @@ int evrset(CSOUND *csound, ENVLPR *p)
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
-    if ((iatss = (MYFLT)fabs((double)*p->iatss)) == FL(0.0)) {
+    if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
       return csound->InitError(csound, "iatss = 0");
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
-      if (FABS(ixmod) > FL(0.95)) {
+      if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
         return csound->InitError(csound, Str("ixmod out of range."));
       }
       ixmod = -SIN(SIN(ixmod));
@@ -1171,7 +1171,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
       p->val = *(ftp->ftable + ftp->flen)-asym;
       irise = FL(0.0);          /* in case irise < 0 */
     }
-    if (!(*(ftp->ftable + ftp->flen))) {
+    if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
       return csound->InitError(csound, Str("rise func ends with zero"));
     }
     p->mlt1 = POWER(iatss, csound->onedkr);
@@ -1181,7 +1181,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
         p->rlscnt = rlscnt;
       else if (rlscnt > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)rlscnt;
-      if ((p->atdec = *p->iatdec) <= FL(0.0) ) {
+      if (UNLIKELY((p->atdec = *p->iatdec) <= FL(0.0) )) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
     }

@@ -72,7 +72,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
     double      phase;
     int         n, nsmps=csound->ksmps;
     MYFLT       *rs, onedsr = csound->onedsr;
-    double b = p->b;
+    double      b = p->b;
     double      incr;
 
     rs = p->sr;
@@ -84,14 +84,14 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         rs[n] = (MYFLT) b;
         phase += incr;
         b *= *p->kR;
-        if (phase >= 1.0){
+        if (phase >= 1.0) {
           phase -= 1.0;
           b = 1.0;
-	}
-        else if (phase < 0.0){
+        }
+        else if (phase < 0.0) {
           phase += 1.0;
           b = 1.0;
-	}
+        }
       }
     }
     else {
@@ -100,14 +100,14 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         rs[n] = (MYFLT) b;
         phase += incr;
         b *= *p->kR;
-        if (phase >= 1.0){
+        if (phase >= 1.0) {
           phase -= 1.0;
           b = FL(1.0);
-	}
-        else if (phase < 0.0){
+        }
+        else if (phase < 0.0) {
           phase += 1.0;
           b = FL(1.0);
-	}
+        }
       }
     }
     p->curphs = phase;
@@ -189,7 +189,7 @@ int phsor(CSOUND *csound, PHSOR *p)
 
 static int itblchk(CSOUND *csound, TABLE *p)
 {
-    if ((p->ftp = csound->FTFind(csound, p->xfn)) == NULL)
+    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->xfn)) == NULL))
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -212,8 +212,8 @@ static int itblchk(CSOUND *csound, TABLE *p)
      *
      * Bug fix: was p->offset * *p->ixoff */
 
-    if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
-        p->offset > p->ftp->flen) {
+    if (UNLIKELY((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
+                 p->offset > p->ftp->flen)) {
       return csound->InitError(csound, Str("Offset %f < 0 or > tablelength"),
                                        p->offset);
     }
@@ -263,7 +263,7 @@ static int ptblchk(CSOUND *csound, TABLE *p)
 
 int tblset(CSOUND *csound, TABLE *p)
 {
-    if (p->XINCODE != p->XOUTCODE) {
+    if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (csound->ksmps == 1)
@@ -280,7 +280,7 @@ int tblset(CSOUND *csound, TABLE *p)
 
 int tblsetkt(CSOUND *csound, TABLE *p)
 {
-    if (p->XINCODE != p->XOUTCODE) {
+    if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (csound->ksmps == 1)
@@ -310,19 +310,19 @@ int ktabl3(CSOUND *,TABLE*);
 
 int itable(CSOUND *csound, TABLE *p)
 {
-    if (itblchk(csound,p)==OK) return ktable(csound,p);
+    if (LIKELY(itblchk(csound,p)==OK)) return ktable(csound,p);
     return NOTOK;
 }
 
 int itabli(CSOUND *csound, TABLE *p)
 {
-    if (itblchk(csound,p)==OK) return ktabli(csound,p);
+    if (LIKELY(itblchk(csound,p)==OK)) return ktabli(csound,p);
     return NOTOK;
 }
 
 int itabl3(CSOUND *csound, TABLE *p)
 {
-    if (itblchk(csound,p)==OK) return ktabl3(csound,p);
+    if (LIKELY(itblchk(csound,p)==OK)) return ktabl3(csound,p);
     return NOTOK;
 }
 
@@ -433,11 +433,11 @@ int ktable(CSOUND *csound, TABLE   *p)
        *
        * So instead of limiting to the table length, we limit to
        * (table length - 1).  */
-      if (indx > length - 1)
+      if (UNLIKELY(indx > length - 1))
         indx = length - 1;
 
       /* Now limit negative values to zero.  */
-      else if (indx < 0L)
+      else if (UNLIKELY(indx < 0L))
         indx = 0L;
     }
     /* The following code uses an AND with an integer like 0000 0111
@@ -873,7 +873,7 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
          * Return 0 to tell calling function not to proceed with a or
          * k rate operations. */
 
-      if ( (p->ftp = csound->FTFindP(csound, p->xfn) ) == NULL) {
+      if (UNLIKELY((p->ftp = csound->FTFindP(csound, p->xfn) ) == NULL)) {
         return NOTOK;
       }
 
@@ -915,37 +915,37 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
 
 int    ktablekt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return ktable(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return ktable(csound,p);
     return NOTOK;
 }
 
 int    tablekt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return tablefn(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return tablefn(csound,p);
     return NOTOK;
 }
 
 int    ktablikt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return ktabli(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return ktabli(csound,p);
     return NOTOK;
 }
 
 int    tablikt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return tabli(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return tabli(csound,p);
     return NOTOK;
 }
 
 int    ktabl3kt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return ktabl3(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return ktabl3(csound,p);
     return NOTOK;
 }
 
 int    tabl3kt(CSOUND *csound, TABLE *p)
 {
-    if (ftkrchk(csound,p)==OK) return tabl3(csound,p);
+    if (LIKELY(ftkrchk(csound,p)==OK)) return tabl3(csound,p);
     return NOTOK;
 }
 
@@ -953,9 +953,9 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
-    if (*p->idur <= FL(0.0)) {
+    if (UNLIKELY(*p->idur <= FL(0.0))) {
       csound->Warning(csound, Str("duration < zero\n"));
     }
     p->ftp = ftp;
@@ -1025,7 +1025,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * csound->onedsr;
       p->index = FL(0.0);
@@ -1078,7 +1078,7 @@ int oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;

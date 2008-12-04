@@ -669,6 +669,9 @@ int csoundLoadModules(CSOUND *csound)
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
+#ifdef BETA
+      if (fname[0]=='_') continue;
+#endif
       n = len = (int) strlen(fname);
 #if defined(WIN32)
       strcpy(buf, "dll");

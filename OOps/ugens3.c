@@ -30,7 +30,7 @@ int foscset(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->cphs = p->mphs = (int32)(*p->iphs * FMAXLEN);
@@ -261,13 +261,13 @@ int losset(CSOUND *csound, LOSC *p)
       else p->looping = 0;
       if (p->OUTOCOUNT == 1) {
         p->stereo = 0;
-        if (ftp->nchanls != 1)
+        if (UNLIKELY(ftp->nchanls != 1))
           return csound->InitError(csound, Str(
                                "mono loscil cannot read from stereo ftable"));
       }
       else {
         p->stereo = 1;
-        if (ftp->nchanls != 2)
+        if (UNLIKELY(ftp->nchanls != 2))
           return csound->InitError(csound, Str(
                                "stereo loscil cannot read from mono ftable"));
       }
@@ -844,7 +844,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     MYFLT   ampscale, frqscale;
     int32    timkincr, nxtim;
 
-    if (csound->isintab == NULL) {      /* RWD fix */
+    if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
       return csound->PerfError(csound, Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */

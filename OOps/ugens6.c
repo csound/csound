@@ -210,7 +210,7 @@ int delset(CSOUND *csound, DELAY *p)
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
     /* Round not truncate */
-    if ((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0) {
+    if (UNLIKELY((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     
@@ -233,7 +233,7 @@ int delrset(CSOUND *csound, DELAYR *p)
     int32       npts;
     MYFLT       *auxp;
 
-    if (p->XOUTCODE != 1)
+    if (UNLIKELY(p->XOUTCODE != 1))
       return csound->InitError(csound, Str("delayr: invalid outarg type"));
     /* fifo for delayr pointers by Jens Groh: */
     /* append structadr for delayw to fifo: */
@@ -252,7 +252,7 @@ int delrset(CSOUND *csound, DELAYR *p)
     if (*p->istor != FL(0.0) && p->auxch.auxp != NULL)
       return OK;
     /* ksmps is min dely */
-    if ((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) < csound->ksmps) {
+    if (UNLIKELY((npts=(int32)(FL(0.5) + *p->idlt*csound->esr)) < csound->ksmps)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -271,7 +271,7 @@ int delrset(CSOUND *csound, DELAYR *p)
 int delwset(CSOUND *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
-    if (csound->first_delayr == NULL) {
+    if (UNLIKELY(csound->first_delayr == NULL)) {
       return csound->InitError(csound,
                                Str("delayw: associated delayr not found"));
     }
@@ -301,7 +301,7 @@ static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
       n = csound->delayr_stack_depth - n;       /* ndx > 0: LIFO index mode */
     else
       n = -n;                                   /* ndx < 0: FIFO index mode */
-    if (n < 1 || n > csound->delayr_stack_depth) {
+    if (UNLIKELY(n < 1 || n > csound->delayr_stack_depth)) {
       csound->InitError(csound,
                         Str("deltap: delayr index %.0f is out of range"),
                         (double)*ndx);
@@ -325,7 +325,7 @@ int delay(CSOUND *csound, DELAY *p)
     int n, nsmps = csound->ksmps;
     
  
-    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     ar = p->ar;
     asig = p->asig;
     curp = p->curp;
@@ -334,7 +334,7 @@ int delay(CSOUND *csound, DELAY *p)
       MYFLT in = asig[n];       /* Allow overwriting form */
       ar[n] = *curp;
       *curp = in;
-      if (++curp >= endp)
+      if (UNLIKELY(++curp >= endp))
         curp = (MYFLT *) p->auxch.auxp;
     }
     p->curp = curp;             /* sav the new curp */
@@ -349,13 +349,13 @@ int delayr(CSOUND *csound, DELAYR *p)
     MYFLT       *ar, *curp, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
     curp = p->curp;
     endp = (MYFLT *) p->auxch.endp;
     for (n=0; n<nsmps; n++) {
       ar[n] = *curp++;
-      if (curp >= endp)
+      if (UNLIKELY(curp >= endp))
         curp = (MYFLT *) p->auxch.auxp;
     }
     return OK;
@@ -369,13 +369,13 @@ int delayw(CSOUND *csound, DELAYW *p)
     MYFLT       *asig, *curp, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (q->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     asig = p->asig;
     curp = q->curp;
     endp = (MYFLT *) q->auxch.endp;
     for (n=0; n<nsmps; n++) {
       *curp = asig[n];
-      if (++curp >= endp)
+      if (UNLIKELY(++curp >= endp))
         curp = (MYFLT *) q->auxch.auxp;
     }
     q->curp = curp;                                     /* now sav new curp */
@@ -390,14 +390,14 @@ int deltap(CSOUND *csound, DELTAP *p)
     MYFLT       *ar, *tap, *endp;
     int n, nsmps = csound->ksmps;
 
-    if (q->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
     tap = q->curp - (int32) (FL(0.5) + *p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
     for (n=0; n<nsmps; n++) {
-      if (tap >= endp)
+      if (UNLIKELY(tap >= endp))
         tap -= q->npts;
       ar[n] = *tap++;
     }
@@ -463,7 +463,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
     int32  idelsmps;
     MYFLT  delsmps;
 
-    if (q->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -473,9 +473,9 @@ int deltapn(CSOUND *csound, DELTAP *p)
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=0; n<nsmps; n++) {
-        if (tap >= endp )
+        if (UNLIKELY(tap >= endp ))
           tap -= q->npts;
-        if (tap < begp)
+        if (UNLIKELY(tap < begp))
           tap += q->npts;
         ar[n] = *tap;
         tap++;
@@ -507,7 +507,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
-    if (q->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -545,9 +545,9 @@ int deltap3(CSOUND *csound, DELTAP *p)
         delsmps = *timp++ * csound->esr;
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
-        if ((tap = curq++ - idelsmps) < begp)
+        if (UNLIKELY((tap = curq++ - idelsmps) < begp))
           tap += q->npts;
-        else if (tap >= endp)
+        else if (UNLIKELY(tap >= endp))
           tap -= q->npts;
         if ((prv = tap - 1) < begp)
           prv += q->npts;
@@ -576,7 +576,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
 int tapxset(CSOUND *csound, DELTAPX *p)
 {
     p->delayr = delayr_find(csound, p->indx);
-    if (p->delayr == NULL)
+    if (UNLIKELY(p->delayr == NULL))
       return NOTOK;
     p->wsize = (int)(*(p->iwsize) + FL(0.5));          /* window size */
     p->wsize = ((p->wsize + 2) >> 2) << 2;
@@ -595,7 +595,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     int     nn = csound->ksmps;
     int32   indx, maxd, xpos;
 
-    if (q->auxch.auxp == NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
@@ -626,10 +626,10 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
           n1 = 0.0;
           do {
             w = 1.0 - d * d * d2x;
-            if (++bufp >= bufend) bufp = buf1;
+            if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
             n1 += w * w * (double)*bufp / d; d++;
             w = 1.0 - d * d * d2x;
-            if (++bufp >= bufend) bufp = buf1;
+            if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
             n1 -= w * w * (double)*bufp / d; d++;
           } while (--i);
           *out1 = (MYFLT)(n1 * sin(PI * x1) / PI);
@@ -656,9 +656,9 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
         bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
         while (bufp >= bufend) bufp -= maxd;
-        x = am1 * (double)*bufp;   if (++bufp >= bufend) bufp = buf1;
-        x += a0 * (double)*bufp;   if (++bufp >= bufend) bufp = buf1;
-        x += a1 * (double)*bufp;   if (++bufp >= bufend) bufp = buf1;
+        x = am1 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        x += a0 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        x += a1 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
         x += a2 * (double)*bufp;
 
         indx++; *out1++ = (MYFLT)x;
@@ -676,7 +676,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
     int     nn = csound->ksmps;
     int32   indx, maxd, xpos;
 
-    if (q->auxch.auxp == NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     in1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
     indx = (int32) (q->curp - buf1);
