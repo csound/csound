@@ -1,17 +1,25 @@
 (cd .. ; xgettext --keyword=Str --keyword=Str_noop -o /tmp/str --omit-header -f all_string_files)
 msgmerge csound.po /tmp/str -o new.po
+mv csound.po old_csound.po
 mv new.po csound.po
 msgmerge american.po /tmp/str -o new.po
+mv american.po old_american.po
 mv new.po american.po
 msgmerge french.po /tmp/str -o new.po
+mv french.po old_french.po
 mv new.po french.po
 msgmerge romanian.po /tmp/str -o new.po
+mv romanian.po old_romanian.po
 mv new.po romanian.po
 msgmerge german.po /tmp/str -o new.po
+mv german.po old_german.po
 mv new.po german.po
 msgmerge italian.po /tmp/str -o new.po
+mv italian.po old_italian.po
 mv new.po italian.po
 msgmerge es_CO.po /tmp/str -o new.po
+mv es_CO.po old_es_CO.po
 mv new.po es_CO.po
 msgmerge russian.po /tmp/str -o new.po
+mv russian.po old_russian.po
 mv new.po russian.po

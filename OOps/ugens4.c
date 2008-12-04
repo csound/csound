@@ -25,11 +25,13 @@
 #include "ugens4.h"
 #include <math.h>
 
+/* The branch prediction slows it down!! */
+
 int bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
@@ -50,18 +52,18 @@ int buzz(CSOUND *csound, BUZZ *p)
     int         n;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;         /* RWD fix */
+    if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
     ftbl = ftp->ftable;
-    sicvt2 = csound->sicvt * FL(0.5);           /* for theta/2  */
+    sicvt2 = csound->sicvt * FL(0.5); /* for theta/2  */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
     if ((n = (int)*p->knh) < 0) n = -n;
-    if (n == 0) {              /* fix n = knh */
+    if (n == 0) {     /* fix n = knh */
       n = 1;
     }
-    tnp1 = (n<<1) + 1;                 /* calc 2n + 1 */
+    tnp1 = (n<<1) + 1;          /* calc 2n + 1 */
     over2n = FL(0.5) / (MYFLT)n;
     scal = *ampp * over2n;
     inc = (int32)(*cpsp * sicvt2);
@@ -93,7 +95,7 @@ int gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = (int32)(*p->iphs * FMAXLEN);
@@ -138,7 +140,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     int32       lphs = p->lphs;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
@@ -146,14 +148,14 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     cpsp = p->xcps;
     k = (int32)*p->kk;                   /* fix k and n  */
     if ((n = (int32)*p->kn)<0) n = -n;
-    if (n == 0) {               /* n must be > 0 */
+    if (n == 0) {              /* n must be > 0 */
       n = 1;
     }
     km1 = k - 1;
     kpn = k + n;
     kpnm1 = kpn - 1;
     if ((r = *p->kr) != p->prvr || n != p->prvn) {
-      p->twor = r * FL(2.0);
+      p->twor = r + r;
       p->rsqp1 = r * r + FL(1.0);
       p->rtn = intpow1(r, n);
       p->rtnp1 = p->rtn * r;
@@ -209,7 +211,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if ((npts = (int32)(csound->esr / *p->icps)) < PLUKMIN) {
+    if (UNLIKELY((npts = (int32)(csound->esr / *p->icps)) < PLUKMIN)) {
                                         /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
     }
@@ -244,30 +246,30 @@ int plukset(CSOUND *csound, PLUCK *p)
     case 1:     /* ignore any given parameters */
       break;
     case 2:     /* stretch factor: param1 >= 1 */
-      if (p->param1 < FL(1.0))
+      if (UNLIKELY(p->param1 < FL(1.0)))
         return csound->InitError(csound,
                                  Str("illegal stretch factor(param1) value"));
       else p->thresh1 =  (int16)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
-      if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
+      if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
         return csound->InitError(csound,
                                  Str("illegal roughness factor(param1) value"));
       else
         p->thresh1 = (int16)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
-      if (p->param1 < FL(0.0) || p->param1 > FL(1.0))
+      if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
         return csound->InitError(csound,
                                  Str("illegal roughness factor(param1) value"));
       else p->thresh1 = (int16)(FL(32768.0) * p->param1);
-      if (p->param2 < FL(1.0))
+      if (UNLIKELY(p->param2 < FL(1.0)))
         return csound->InitError(csound,
                                  Str("illegal stretch factor(param2) value"));
       else p->thresh2 = (int16)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
-      if (p->param1 + p->param2 > 1)
+      if (UNLIKELY(p->param1 + p->param2 > 1))
         return csound->InitError(csound, Str("coefficients too large "
                                              "(param1 + param2)"));
       break;
@@ -443,7 +445,7 @@ int rndset(CSOUND *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {
-      if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
+      if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
         csound->Message(csound, Str("Seeding from current time %lu\n"), seed);

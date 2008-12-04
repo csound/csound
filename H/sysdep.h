@@ -278,6 +278,8 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
 /* a function with no side effects or dependencies on volatile data */
 #  define CS_PURE       __attribute__ ((__pure__))
+#  define LIKELY(x)     __builtin_expect(x,1)
+#  define UNLIKELY(x)   __builtin_expect(x,0)
 #else
 #  define CS_DEPRECATED
 #  define CS_NOINLINE
@@ -286,6 +288,8 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF2
 #  define CS_PRINTF3
 #  define CS_PURE
+#  define LIKELY(x)     x
+#  define UNLIKELY(x)   x
 #endif
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)

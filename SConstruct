@@ -435,6 +435,7 @@ if commonEnvironment['useGprof'] == '1':
 elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
    if not buildOLPC:
     commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
+    commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
 if compilerGNU():
     commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])

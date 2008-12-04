@@ -262,7 +262,7 @@ int divzak(CSOUND *csound, DIVZ *p)
     a = p->a;
     b = *p->b;
     def = *p->def;
-    if (b==FL(0.0)) {
+    if (UNLIKELY(b==FL(0.0))) {
       for (n=0; n<nsmps; n++) r[n] = def;
     }
     else {
@@ -529,7 +529,7 @@ int ftlen(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
       *p->r = -FL(1.0);       /* Return something */
       return NOTOK;
     }
@@ -542,7 +542,7 @@ int ftchnls(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
       *p->r = -FL(1.0);       /* Return something */
       return NOTOK;
     }
@@ -555,9 +555,9 @@ int ftlptim(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL))
       return NOTOK;
-    if (ftp->loopmode1)
+    if (LIKELY(ftp->loopmode1))
       *p->r = ftp->begin1 * csound->onedsr;
     else {
       *p->r = FL(0.0);
@@ -570,7 +570,7 @@ int numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
       *p->r = FL(0.0);
       return NOTOK;
     }
@@ -586,7 +586,7 @@ int ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
       *p->r = FL(0.0);
       return NOTOK;
     }
@@ -702,7 +702,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32 len;
-      if (ftp == NULL)
+      if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, Str("No tuning table %d"),
                                  -((int)*p->et));
       len = ftp->flen;
@@ -730,7 +730,7 @@ int cps2pch(CSOUND *csound, XENH *p)
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32 len;
-      if (ftp == NULL)
+      if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, Str("No tuning table %d"),
                                  -((int)*p->et));
       len = ftp->flen;
@@ -1065,7 +1065,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
     MYFLT *sp = csound->spin + (ch - 1);
     MYFLT *ain = p->ar;
     CSOUND_SPIN_SPINLOCK
-    if (ch > csound->nchnls) {
+    if (UNLIKELY(ch > csound->nchnls)) {
       CSOUND_SPIN_SPINUNLOCK
       return NOTOK;
     }

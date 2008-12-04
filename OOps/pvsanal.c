@@ -70,12 +70,12 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
         }
         return OK;
       default:
-        if (type >= 0)
+        if (UNLIKELY(type >= 0))
           return csound->InitError(csound, Str("invalid window type"));
     }
     /* use table created with GEN20 */
     flen = csound->GetTable(csound, &ftable, -(type));
-    if (flen < 0)
+    if (UNLIKELY(flen < 0))
       return csound->InitError(csound, Str("ftable for window not found"));
     inc = (double)flen / (double)(winLen & (~1));
     fpos = ((double)flen + (double)even * inc) * 0.5;
@@ -179,16 +179,16 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
 #endif
-    if (N <= 32)
+    if (UNLIKELY(N <= 32))
       csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
     N = N  + N%2;       /* Make N even */
-    if (M < N)
+    if (UNLIKELY(M < N))
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
-    if (overlap > N / 2)
+    if (UNLIKELY(overlap > N / 2))
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
 #ifndef SDFT
-    if (overlap < csound->ksmps)
+    if (UNLIKELY(overlap < csound->ksmps))
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
     halfwinsize = M/2;
@@ -214,7 +214,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     analwinbase = (MYFLT *) (p->analwinbuf.auxp);
     analwinhalf = analwinbase + halfwinsize;
 
-    if (PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK)
+    if (UNLIKELY(PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK))
       return NOTOK;
 
     for (i = 1; i <= halfwinsize; i++)
@@ -346,7 +346,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
         *i0 = HYPOT(real, imag);
         /* phase unwrapping */
         /*if (*i0 == 0.)*/
-        if (*i0 < FL(1.0E-10))
+        if (UNLIKELY(*i0 < FL(1.0E-10)))
           /* angleDif = 0.0f; */
           phase = FL(0.0);
 
@@ -371,7 +371,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       *i0 = HYPOT(real, imag);
       /* phase unwrapping */
       /*if (*i0 == 0.)*/
-      if (*i0 < FL(1.0E-10))
+      if (UNLIKELY(*i0 < FL(1.0E-10)))
         angleDif = FL(0.0);
       else {
         rratio =  atan2((double)imag,(double)real);
@@ -451,7 +451,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     double *h = (double*)p->oldInPhase.auxp;
     int nsmps = csound->ksmps;
     int wintype = p->fsig->wintype;
-    if (data==NULL) {
+    if (UNLIKELY(data==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
@@ -474,7 +474,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         fw[j].re = ci*re - si*im;
         fw[j].im = ci*im + si*re;
       }
-      loc++; if (loc==p->nI) loc = 0; /* Circular buffer */
+      loc++; if (UNLIKELY(loc==p->nI)) loc = 0; /* Circular buffer */
       /* apply window and transfer to ff buffer*/
       /* Rectang :Fw_t =     F_t                          */
       /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
@@ -660,7 +660,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
 
     ain = p->ain;
 
-    if (p->input.auxp==NULL) {
+    if (UNLIKELY(p->input.auxp==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
 #ifdef SDFT
@@ -732,7 +732,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     analwinhalf = (MYFLT *) (p->analwinbuf.auxp) + halfwinsize;
     synwinhalf = (MYFLT *) (p->synwinbuf.auxp) + halfwinsize;
 
-    if (PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK)
+    if (UNLIKELY(PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK))
       return NOTOK;
 
     for (i = 1; i <= halfwinsize; i++)
@@ -758,7 +758,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 
     /* synthesis windows */
     if (M <= N) {
-      if (PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK)
+      if (UNLIKELY(PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK))
         return NOTOK;
 
       for (i = 1; i <= halfwinsize; i++)
@@ -773,7 +773,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
         sum += *(synwinhalf + i) * *(synwinhalf + i);
     }
     else {
-      if (PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK)
+      if (UNLIKELY(PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK))
         return NOTOK;
 
       for (i = 1; i <= halfwinsize; i++)
@@ -1011,7 +1011,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     int i;
     MYFLT *aout = p->aout;
 
-    if (p->output.auxp==NULL) {
+    if (UNLIKELY(p->output.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
 #ifdef SDFT
