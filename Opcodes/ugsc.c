@@ -55,7 +55,8 @@ static int svf(CSOUND *csound, SVF *p)
 
     /* calculate frequency and Q coefficients */
     f1 = FL(2.0) * (MYFLT)sin((double)(kfco * csound->pidsr));
-    if (kq<FL(0.000001)) kq = FL(1.0); /* Protect against division by zero */
+    /* Protect against division by zero */
+    if (UNLIKELY(kq<FL(0.000001))) kq = FL(1.0);
     q1 = FL(1.0) / kq;
 
     in   = p->in;
@@ -183,7 +184,7 @@ static int resonzset(CSOUND *csound, RESONZ *p)
     /* error message code derived from code for reson in ugens5.c */
     int scaletype;
     p->scaletype = scaletype = (int)*p->iscl;
-    if (scaletype && scaletype != 1 && scaletype != 2) {
+    if (UNLIKELY(UNLIKELY(scaletype && scaletype != 1 && scaletype != 2))) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                (float)*p->iscl);
     }
@@ -388,7 +389,7 @@ static int phaser2set(CSOUND *csound, PHASER2 *p)
     int loop;
 
     p->modetype = modetype = (int)*p->mode;
-    if (modetype && modetype != 1 && modetype != 2) {
+    if (UNLIKELY(UNLIKELY(modetype && modetype != 1 && modetype != 2))) {
       return csound->InitError(csound,
                                Str("Phaser mode must be either 1 or 2"));
     }

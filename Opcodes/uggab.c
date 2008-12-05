@@ -208,7 +208,7 @@ static int posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) return NOTOK;
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
     p->tablenUPsr = p->tablen * csound->onedsr;
@@ -414,8 +414,8 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     FUNC   *ftp;
     MYFLT  loop, end, looplength;
 
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL) return NOTOK;
-    if (!(p->fsr=ftp->gen01args.sample_rate)) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) return NOTOK;
+    if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
       csound->Message(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
       p->fsr=csound->esr;
@@ -425,7 +425,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
  /* changed from
         p->phs    = *p->iphs * p->tablen;   */
 
-     if ((loop = *p->kloop) < 0) loop=FL(0.0);
+    if (UNLIKELY((loop = *p->kloop) < 0)) loop=FL(0.0);
      if ((end = *p->kend) > p->tablen || end <=0 )
        end = (MYFLT)p->tablen;
      looplength = end - loop;
@@ -473,7 +473,7 @@ static int lposc3(CSOUND *csound, LPOSC *p)
     int         x0;
     MYFLT       y0, y1, ym1, y2;
 
-    if ((loop = *p->kloop) < 0) loop=0;
+    if (UNLIKELY((loop = *p->kloop) < 0)) loop=0;
     if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
     looplength = end - loop;
 
@@ -553,7 +553,7 @@ static int rsnsety(CSOUND *csound, RESONY *p)
                       (int32) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value: %f"),
                                        *p->iscl);
     }
@@ -928,7 +928,7 @@ static int vibrato(CSOUND *csound, VIBRATO *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     fract = (MYFLT) (phs - (int32)phs);
     ftab = ftp->ftable + (int32)phs;
     v1 = *ftab++;
@@ -977,7 +977,7 @@ static int vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = ((int32)(iphs * FMAXLEN)) & PHMASK;
     }
@@ -1002,7 +1002,7 @@ static int vibr(CSOUND *csound, VIBR *p)
       (p->num1freq+(MYFLT)p->phsFreqRate*p->dfdmaxFreq)*randAmountFreq;
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (int32)phs); /*PFRAC(phs);*/
@@ -1214,7 +1214,7 @@ static int jittersa(CSOUND *csound, JITTERS *p)
 static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     *p->out = p->ftp->ftable[(int32)(randGab * MYFLT2LONG(p->ftp->flen))];
@@ -1237,7 +1237,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
     int n, nsmps = csound->ksmps, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     table = p->ftp->ftable;
@@ -1256,7 +1256,7 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
@@ -1292,7 +1292,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) goto err1;
+      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL)) goto err1;
       p->pfn = (int32)*p->tableNum;
     }
 

@@ -38,20 +38,20 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     int32     Hlenpadded = 1, obufsiz, Hlen;
     int      nchanls;
 
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
-      if ((mfp = csound->ldmemfile2(csound, cvfilnam, CSFTYPE_CVANAL))
-          == NULL) {
+      if (UNLIKELY((mfp = csound->ldmemfile2(csound, cvfilnam, CSFTYPE_CVANAL))
+                   == NULL)) {
         return csound->InitError(csound,
                                  Str("CONVOLVE cannot load %s"), cvfilnam);
       }
     }
     cvh = (CVSTRUCT *)mfp->beginp;
-    if (cvh->magic != CVMAGIC) {
+    if (UNLIKELY(cvh->magic != CVMAGIC)) {
       return csound->InitError(csound,
                                Str("%s not a CONVOLVE file (magic %ld)"),
                                cvfilnam, cvh->magic);
@@ -60,7 +60,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
 
     if (*p->channel == FL(0.0)) {
-      if (p->OUTOCOUNT == nchanls)
+      if (LIKELY(p->OUTOCOUNT == nchanls))
         p->nchanls = nchanls;
       else {
         return csound->InitError(csound,
@@ -70,7 +70,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     }
     else {
       if (*p->channel <= nchanls) {
-        if (p->OUTOCOUNT != 1) {
+        if (UNLIKELY(p->OUTOCOUNT != 1)) {
           return csound->InitError(csound,
                                    Str("CONVOLVE: output channels not equal "
                                         "to number of channels in source"));
@@ -92,12 +92,12 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if ((p->nchanls == 1) && (*p->channel > 0))
       p->H += (Hlenpadded + 2) * (int)(*p->channel - 1);
 
-    if (cvh->samplingRate != csound->esr) {
+    if (UNLIKELY(cvh->samplingRate != csound->esr)) {
       /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               cvfilnam, cvh->samplingRate, csound->esr);
     }
-    if (cvh->dataFormat != CVMYFLT) {
+    if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
       return csound->InitError(csound,
                                Str("unsupported CONVOLVE data "
                                    "format %ld in %s"),
@@ -368,16 +368,16 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",
                                 p->XSTRCODE);
     IRfile.sr = 0;
-    if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
+    if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {
       return csound->InitError(csound, "channel request %d illegal", channel);
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
-    if ((infd = csound->sndgetset(csound, &IRfile)) == NULL) {
+    if (UNLIKELY((infd = csound->sndgetset(csound, &IRfile)) == NULL)) {
       return csound->InitError(csound, "pconvolve: error while impulse file");
     }
 
-    if (IRfile.framesrem < 0) {
+    if (UNLIKELY(IRfile.framesrem < 0)) {
       csound->Warning(csound, Str("undetermined file length, "
                                   "will attempt requested duration"));
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
@@ -391,12 +391,12 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
                             (long) IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
-    if (p->nchanls != p->OUTOCOUNT) {
+    if (UNLIKELY(p->nchanls != p->OUTOCOUNT)) {
       return csound->InitError(csound, "PCONVOLVE: number of output channels "
                                        "not equal to input channels");
     }
 
-    if (IRfile.sr != csound->esr) {
+    if (UNLIKELY(IRfile.sr != csound->esr)) {
       /* ## RWD suggests performing sr conversion here! */
       csound->Warning(csound, "IR srate != orch's srate");
     }
@@ -427,8 +427,8 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     for (part = 0; part < p->numPartitions; part++) {
       /* get the block of input samples and normalize -- soundin code
          handles finding the right channel */
-      if ((read_in = csound->getsndin(csound, infd, inbuf,
-                                      p->Hlen*p->nchanls, &IRfile)) <= 0)
+      if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
+                                               p->Hlen*p->nchanls, &IRfile)) <= 0))
         csound->Die(csound, "PCONVOLVE: less sound than expected!");
 
       /* take FFT of each channel */

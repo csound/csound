@@ -42,7 +42,7 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
         if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
           p->fundphs = MAXLEN;                  /*   trigger new FOF */
         else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
-        if ((olaps = (int32)*p->iolaps) <= 0) {
+        if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
           return csound->InitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
@@ -92,7 +92,7 @@ static int fof(CSOUND *csound, FOFS *p)
     int32   n, nsmps = csound->ksmps, fund_inc, form_inc;
     MYFLT   v1, fract ,*ftab;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
     amp = p->xamp;
     fund = p->xfund;
@@ -246,7 +246,7 @@ static int hrngflg=0;
 static int harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
-    if (minfrq < FL(64.0)) {
+    if (UNLIKELY(minfrq < FL(64.0))) {
       return csound->InitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
@@ -498,7 +498,7 @@ static int harmon(CSOUND *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
 #if 0
-        else if (++hrngflg > 200) {
+        else if (UNLIKELY(++hrngflg > 200)) {
           csound->Message(csound, Str("harmon out of range...\n"));
           hrngflg = 0;
         }
@@ -537,7 +537,7 @@ static int harmon(CSOUND *csound, HARMON *p)
           p->pnt33 = p->pnt3;
         }
 #if 0
-        else if (++hrngflg > 200) {
+        else if (UNLIKELY(++hrngflg > 200)) {
           csound->Message(csound, Str("harmon out of range\n"));
           hrngflg = 0;
         }
