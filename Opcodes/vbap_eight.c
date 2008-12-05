@@ -91,7 +91,7 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
     int32 i,j, spreaddirnum;
     MYFLT tmp_gains[EIGHT],sum=FL(0.0);
     
-    if (p->dim == 2 && fabs(*p->ele) > 0.0) {
+    if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
@@ -207,7 +207,7 @@ int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT *p)
            \nMissing vbaplsinit opcode in orchestra?"));
    
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
-     if (p->aux.auxp==NULL) {
+    if (UNLIKELY(p->aux.auxp==NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
@@ -225,7 +225,7 @@ int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT *p)
     }
 
     /* other initialization */
-    if (p->dim == 2 && fabs(*p->ele) > 0.0) {
+    if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
@@ -294,7 +294,7 @@ int vbap_EIGHT_moving_control(CSOUND *csound, VBAP_EIGHT_MOVING *p)
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
     MYFLT tmp_gains[EIGHT],sum=FL(0.0);
-    if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
+    if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
@@ -320,10 +320,10 @@ int vbap_EIGHT_moving_control(CSOUND *csound, VBAP_EIGHT_MOVING *p)
             p->next_fld = 1;
         }
       }
-      if ((p->fld[abs(p->next_fld)]==NULL))
+      if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
         csound->Die(csound, Str("Missing fields in vbap8move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
-        if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
+        if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0))
           csound->Message(csound,
                           Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
@@ -489,7 +489,7 @@ int vbap_EIGHT_moving_init(CSOUND *csound, VBAP_EIGHT_MOVING *p)
       return csound->InitError(csound, Str("vbap system NOT configured. \
            \nMissing vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
-    if (p->aux.auxp == NULL) {
+    if (UNLIKELY(p->aux.auxp == NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
@@ -508,7 +508,7 @@ int vbap_EIGHT_moving_init(CSOUND *csound, VBAP_EIGHT_MOVING *p)
 
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
-    if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
+    if (UNLIKELY(fabs(*p->field_am) < (2+ (p->dim - 2)*2))) {
       csound->Die(csound,
                   Str("Have to have at least %d directions in vbap8move"),
                   2 + (p->dim - 2) * 2);

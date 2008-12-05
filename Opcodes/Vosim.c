@@ -45,7 +45,7 @@ int vosimset(CSOUND* csound, VOSIM *p)
       return OK;
 
     p->ftable = csound->FTFind(csound, p->iftab);
-    if (p->ftable == NULL) {
+    if (UNLIKELY(p->ftable == NULL)) {
       return csound->InitError(csound, Str("vosim: pulse table not found"));
     }
 
@@ -66,14 +66,14 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     MYFLT fundabs = FABS(*p->kfund);
     /* count of pulses, (+1 since decr at start of pulse) */
     p->pulstogo = 1+(int32)*p->knofpulse;
-    if (fundabs == FL(0.0)) {                /* infinitely long event */
+    if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
       p->timrem = INT_MAX;
       csound->Warning(csound,
                       Str("vosim: zero kfund. 'Infinite' length event generated."));
     }
     else {
         p->timrem = (int32)(csound->esr / fundabs);
-        if (p->timrem == 0) {
+        if (UNLIKELY(p->timrem == 0)) {
           p->timrem = csound->ksmps;
           p->pulstogo = 0;
           csound->Warning(csound,
@@ -122,7 +122,7 @@ int vosim(CSOUND* csound, VOSIM *p)
     int32  lobits;
 
     FUNC *ftp = p->ftable;
-    if (ftp == NULL) goto err1;
+    if (UNLIKELY(ftp == NULL)) goto err1;
     ftdata = ftp->ftable;
     lobits = ftp->lobits;
 

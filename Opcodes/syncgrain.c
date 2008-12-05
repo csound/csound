@@ -29,16 +29,16 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int size;
     p->efunc = csound->FTFind(csound, p->ifn2);
-    if (p->efunc == NULL)
+    if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
     p->sfunc = csound->FTnp2Find(csound, p->ifn1);
-    if (p->sfunc == NULL)
+    if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
     p->olaps = (int) *p->ols+2;
 
-    if (p->olaps < 2)
+    if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
@@ -83,7 +83,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) goto err1;
+    if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
@@ -165,18 +165,18 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
 static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
     p->efunc = csound->FTFind(csound, p->ifn2);
-    if (p->efunc == NULL)
+    if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
     p->sfunc = csound->FTnp2Find(csound, p->ifn1);
-    if (p->sfunc == NULL)
+    if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
     p->datasize =  p->sfunc->flen;
     p->envtablesize = p->efunc->flen;   /* size of envtable */
     p->olaps = (int) *p->ols+1;
 
-    if (p->olaps <2)
+    if (UNLIKELY(p->olaps <2))
       p->olaps = 2;
 
     if(*p->iskip == 0){
@@ -233,7 +233,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if(fperiod  < 0) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) goto err1;
+    if (UNLIKELY(grsize<1)) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -368,12 +368,12 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
                                       "soundin.",p->XSTRCODE);
 
     p->nChannels = (int) (p->OUTOCOUNT);
-     if (p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN) {
+    if (UNLIKELY(p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN)) {
       return csound->InitError(csound,
                                Str("diskgrain: invalid number of channels"));
     }
     p->efunc = csound->FTFind(csound, p->ifn2);
-    if (p->efunc == NULL)
+    if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
     p->olaps = (int) *p->ols + 1;
@@ -464,7 +464,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     if(fperiod  < FL(0.0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
-    if (grsize<1) goto err1;
+    if (UNLIKELY(grsize<1)) goto err1;
     if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
     prate = *p->prate;

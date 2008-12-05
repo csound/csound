@@ -866,13 +866,13 @@ extern "C" {
         return NULL;
     }
     csound = (CSOUND*) malloc(sizeof(CSOUND));
-    if (csound == NULL)
+    if (UNLIKELY(csound == NULL))
       return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
     csound->oparms = &(csound->oparms_);
     csound->hostdata = hostdata;
     p = (csInstance_t*) malloc(sizeof(csInstance_t));
-    if (p == NULL) {
+    if (UNLIKELY(p == NULL)) {
       free(csound);
       return NULL;
     }
@@ -916,7 +916,7 @@ extern "C" {
     csoundReset(p);
     /* copy system environment variables */
     i = csoundInitEnv(p);
-    if (i != CSOUND_SUCCESS) {
+    if (UNLIKELY(i != CSOUND_SUCCESS)) {
       p->engineState |= CS_STATE_JMP;
       return i;
     }
@@ -1207,8 +1207,7 @@ extern "C" {
                        *start,
                        *end,
                        numActive,
-                       partition);
-  }
+                       partition);  }
 
   unsigned long kperfThread(void * cs)
   {
@@ -1354,7 +1353,7 @@ extern "C" {
       }
       if (!csound->spoutactive) {           /*   results now in spout? */
         memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-        csound->DebugMsg(csound,"Zero segment %d\n", csound->cyclesRemaining);
+        /* csound->DebugMsg(csound,"Zero segment %d\n", csound->cyclesRemaining); */
       }
       csound->spoutran(csound);           /*      send to audio_out  */
       return 0;
@@ -1372,7 +1371,7 @@ extern "C" {
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
       do {
-        if ((done = sensevents(csound))) {
+        if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, "Score finished in csoundPerformKsmps().\n");
           return done;
         }
@@ -1413,7 +1412,7 @@ extern "C" {
       csound->sampsNeeded += csound->oparms_.outbufsamps;
       while (csound->sampsNeeded > 0) {
         do {
-          if ((done = sensevents(csound)))
+          if (UNLIKELY((done = sensevents(csound))))
             return done;
         } while (kperf(csound));
         csound->sampsNeeded -= csound->nspout;
@@ -1820,8 +1819,8 @@ extern "C" {
 
       p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
       if (p == NULL) {
-        if (csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
-                                         sizeof(double) * 4) != 0)
+        if (UNLIKELY(csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
+                                                  sizeof(double) * 4) != 0))
           csound->Die(csound, Str("rtdummy: failed to allocate globals"));
         csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
         p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
@@ -2244,7 +2243,7 @@ extern "C" {
       tmpEntry.kopadr     = (SUBR) kopadr;
       tmpEntry.aopadr     = (SUBR) aopadr;
       err = opcode_list_new_oentry(csound, &tmpEntry);
-      if (err)
+      if (UNLIKELY(err))
         csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
 
       return err;
@@ -2262,12 +2261,12 @@ extern "C" {
       OENTRY  *ep = (OENTRY*) opcodeList;
       int     err, retval = 0;
 
-      if (opcodeList == NULL)
+      if (UNLIKELY(opcodeList == NULL))
         return -1;
-      if (n <= 0)
+      if (UNLIKELY(n <= 0))
         n = 0x7FFFFFFF;
       while (n && ep->opname != NULL) {
-        if ((err = opcode_list_new_oentry(csound, ep)) != 0) {
+        if (UNLIKELY((err = opcode_list_new_oentry(csound, ep)) != 0)) {
           csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
                          ep->opname);
           retval = err;
@@ -2466,13 +2465,13 @@ extern "C" {
   {
       CsoundCallbackEntry_t *pp;
 
-      if (func == (int (*)(void *, void *, unsigned int)) NULL ||
+      if (UNLIKELY(func == (int (*)(void *, void *, unsigned int)) NULL ||
           (typeMask
-           & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT))) != 0U)
+           & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT))) != 0U))
         return CSOUND_ERROR;
       csoundRemoveCallback(csound, func);
       pp = (CsoundCallbackEntry_t*) malloc(sizeof(CsoundCallbackEntry_t));
-      if (pp == (CsoundCallbackEntry_t*) NULL)
+      if (UNLIKELY(pp == (CsoundCallbackEntry_t*) NULL))
         return CSOUND_MEMORY;
       pp->typeMask = (typeMask ? typeMask : 0xFFFFFFFFU);
       pp->nxt = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
@@ -2566,7 +2565,7 @@ extern "C" {
 
       /* if frequency is not known yet */
       f = fopen("/proc/cpuinfo", "r");
-      if (f == NULL) {
+      if (UNLIKELY(f == NULL)) {
         fprintf(stderr, Str("Cannot open /proc/cpuinfo. "
                             "Support for RDTSC is not available.\n"));
         return -1;
@@ -2596,7 +2595,7 @@ extern "C" {
         }
       }
       fclose(f);
-      if (timeResolutionSeconds <= 0.0) {
+      if (UNLIKELY(timeResolutionSeconds <= 0.0)) {
         fprintf(stderr, Str("No valid CPU frequency entry "
                             "was found in /proc/cpuinfo.\n"));
         return -1;
@@ -2742,7 +2741,7 @@ extern "C" {
       opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
 
       (void) csound;
-      if (dp == NULL)
+      if (UNLIKELY(dp == NULL))
         return CSOUND_MEMORY;
       dp->p = p;
       dp->func = func;
@@ -2765,7 +2764,7 @@ extern "C" {
   {
       resetCallback_t *dp = (resetCallback_t*) malloc(sizeof(resetCallback_t));
 
-      if (dp == NULL)
+      if (UNLIKELY(dp == NULL))
         return CSOUND_MEMORY;
       dp->userData = userData;
       dp->func = func;
@@ -3162,7 +3161,7 @@ extern "C" {
 
       csoundLockMutex(pp->mutex_);
       len = vsprintf(pp->buf, fmt, args);         // FIXME: this can overflow
-      if ((unsigned int) len >= (unsigned int) 16384) {
+      if (UNLIKELY((unsigned int) len >= (unsigned int) 16384)) {
         csoundUnlockMutex(pp->mutex_);
         fprintf(stderr, "csound: internal error: message buffer overflow\n");
         exit(-1);

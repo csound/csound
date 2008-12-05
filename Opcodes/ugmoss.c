@@ -40,7 +40,7 @@ static int dconvset(CSOUND *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int)*p->isize;
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {   /* find table */
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
       if ((unsigned)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */
@@ -364,18 +364,18 @@ static int vcombset(CSOUND *csound, VCOMB *p)
     int32        lpsiz, nbytes;
 
     if (*p->insmps != FL(0.0)) {
-      if ((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0) {
+      if (UNLIKELY((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0)) {
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if ((lpsiz = (int32)(*p->imaxlpt * csound->esr)) <= 0) {
+    else if (UNLIKELY((lpsiz = (int32)(*p->imaxlpt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
       csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
-      if (p->pntr==NULL) {
+      if (UNLIKELY(p->pntr==NULL)) {
         return csound->InitError(csound, Str("could not allocate memory"));
       }
     }
@@ -403,7 +403,7 @@ static int vcomb(CSOUND *csound, VCOMB *p)
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
 
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     asig = p->asig;
     endp = (MYFLT *) p->auxch.endp;
@@ -455,7 +455,7 @@ static int valpass(CSOUND *csound, VCOMB *p)
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
 
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     asig = p->asig;
     endp = (MYFLT *) p->auxch.endp;
@@ -507,14 +507,14 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
     int j = 0;
     unsigned int len;
     /* make sure resfn exists and set it up */
-    if ((ftp = csound->FTFind(csound, p->iresfn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->iresfn)) != NULL)) {
       p->resfn = ftp, len = p->resfn->flen;
     }
     else {
       return csound->InitError(csound, Str("iresfn for ftmorf does not exist"));
     }
     /* make sure ftfn exists and set it up */
-    if ((ftp = csound->FTFind(csound, p->iftfn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->iftfn)) != NULL)) {
       p->ftfn = ftp;
     }
     else {
@@ -522,8 +522,8 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
-      if ((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL) {
-        if ((unsigned int)ftp->flen != len) {
+      if (LIKELY((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL)) {
+        if (UNLIKELY((unsigned int)ftp->flen != len)) {
           return csound->InitError(csound,
                                    Str("table in iftfn for ftmorf wrong size"));
         }

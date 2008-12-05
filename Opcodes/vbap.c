@@ -53,8 +53,8 @@ static void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
 static MYFLT *create_ls_table(CSOUND *csound, size_t cnt)
 {
     csound->DestroyGlobalVariable(csound, "vbap_ls_table");
-    if (csound->CreateGlobalVariable(csound, "vbap_ls_table",
-                                             cnt * sizeof(MYFLT)) != 0)
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "vbap_ls_table",
+                                              cnt * sizeof(MYFLT)) != 0))
       csound->Die(csound, Str("vbap: error allocating loudspeaker table"));
     return get_ls_table(csound);
 }
@@ -190,7 +190,7 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
     MYFLT atorad = (TWOPI_F / FL(360.0));
 
     tmp3 = SQRT(FL(1.0) - cvec.z*cvec.z);
-    if (fabs(tmp3) > 0.001) {
+    if (FABS(tmp3) > FL(0.001)) {
       tmp4 = (cvec.x / tmp3);
       if (tmp4 > FL(1.0)) tmp4 = FL(1.0);
       if (tmp4 < -FL(1.0)) tmp4 = -FL(1.0);
@@ -235,7 +235,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
     lgth =    FABS(vec_angle(lss[i].coords,lss[j].coords))
             + FABS(vec_angle(lss[i].coords,lss[k].coords))
             + FABS(vec_angle(lss[j].coords,lss[k].coords));
-    if (lgth>0.00001)
+    if (lgth>FL(0.00001))
       return volper / lgth;
     else
       return FL(0.0);
@@ -261,7 +261,7 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
     MYFLT distance;
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
-    if (ls_amount == 0) {
+    if (UNLIKELY(ls_amount == 0)) {
       csound->Die(csound, Str("Number of loudspeakers is zero\nExiting"));
     }
 
@@ -573,7 +573,7 @@ int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 
     dim = (int) *p->dim;
     csound->Message(csound, "dim : %d\n",dim);
-    if (!((dim==2) || (dim == 3))) {
+    if (UNLIKELY(!((dim==2) || (dim == 3)))) {
       csound->Die(csound, Str("Error in loudspeaker dimension."));
     }
     count = (int) *p->ls_amount;
@@ -596,7 +596,7 @@ int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
       i++;
     }
     ls_amount = (int)*p->ls_amount;
-    if (ls_amount < dim) {
+    if (UNLIKELY(ls_amount < dim)) {
       csound->Die(csound, Str("Too few loudspeakers"));
     }
 
@@ -622,7 +622,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     struct ls_triplet_chain *tr_ptr = ls_triplets;
     int triplet_amount = 0, i,j,k;
 
-    if (tr_ptr == NULL) {
+    if (UNLIKELY(tr_ptr == NULL)) {
       csound->Die(csound, Str("Not valid 3-D configuration"));
     }
 

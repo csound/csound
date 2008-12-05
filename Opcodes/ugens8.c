@@ -49,7 +49,7 @@ int pvset(CSOUND *csound, PVOC *p)
     p->pp = PVOC_GetGlobals(csound);
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
-    if (pvx_loadfile(csound, pvfilnam, p) != OK)
+    if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
 
     memsize = (int32) (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN);
@@ -91,7 +91,7 @@ int pvset(CSOUND *csound, PVOC *p)
     /* for (i=0; i < pvdasiz(p); ++i) {  /\* or maybe pvdasiz(p) *\/ */
     /*   p->lastPhase[i] = FL(0.0); */
     /* } */
-    if ((OPWLEN/2 + 1)>PVWINLEN ) {
+    if (UNLIKELY((OPWLEN/2 + 1)>PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
                                        csound->ksmps, (OPWLEN/2 + 1), PVWINLEN,
@@ -99,7 +99,7 @@ int pvset(CSOUND *csound, PVOC *p)
     }
 
     if (*p->igatefun > 0)
-      if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
@@ -139,16 +139,16 @@ int pvoc(CSOUND *csound, PVOC *p)
     int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
 
-    if (p->auxch.auxp == NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (outlen>PVFFTSIZE)  /* Maximum transposition down is one octave */
+    if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (outlen<2*csound->ksmps)     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*csound->ksmps))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
+    if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
@@ -215,17 +215,17 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
       return csound->InitError(csound, Str("PVOC cannot load %s"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
-    if (pp.fftsize > PVFRAMSIZE) {
+    if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
       return csound->InitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
                                fname, (int) pp.fftsize);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
-    if (pp.chans > 1) {
+    if (UNLIKELY(pp.chans > 1)) {
       return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */

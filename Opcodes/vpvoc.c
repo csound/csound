@@ -52,7 +52,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
       (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL)
+    if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
         return NOTOK;
     flength = nxtfunc->flen;
     p->outfunc =
@@ -72,7 +72,8 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
         segp++;                 /* init each seg ..  */
         curfunc = nxtfunc;
         dur = **argp++;
-        if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL) return OK;
+        if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
+          return OK;
         if (dur > FL(0.0)) {
                 segp->d = dur * csound->ekr;
                 segp->function =  curfunc;
@@ -97,7 +98,7 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
     int32        flength, upcnt;
 
     /* RWD fix */
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
@@ -128,7 +129,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
     int32        flength, upcnt;
 
     /* RWD fix */
-    if (p->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
@@ -169,13 +170,13 @@ int vpvset(CSOUND *csound, VPVOC *p)
     else {
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
-      if ((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL) {
+      if (UNLIKELY((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL)) {
         return csound->InitError(csound,
                                  Str("vpvoc: Could not find ifnmagctrl table %f"),
                                  *p->isegtab);
       }
     }
-    if (p->tableseg == NULL)
+    if (UNLIKELY(p->tableseg == NULL))
       return csound->InitError(csound,
                                Str("vpvoc: associated tableseg not found"));
 
@@ -192,28 +193,28 @@ int vpvset(CSOUND *csound, VPVOC *p)
       p->window = fltp;
     }
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
-    if (csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)
+    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("VPVOC cannot load %s"), pvfilnam);
 
     p->frSiz = pp.fftsize;
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != csound->esr) {                /* & chk the data */
+    if (UNLIKELY(p->asr != csound->esr)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               pvfilnam, p->asr, csound->esr);
     }
-    if (p->frSiz > PVFRAMSIZE) {
+    if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
                                (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
     }
-    if (p->frSiz < 128) {
+    if (UNLIKELY(p->frSiz < 128)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
                                (long) p->frSiz, pvfilnam);
     }
-    if (chans != 1) {
+    if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
                                        (int) chans, pvfilnam);
     }
@@ -242,7 +243,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     /* for (i = 0; i < pvdasiz(p); ++i) {  /\* or maybe pvdasiz(p) *\/ */
     /*   p->lastPhase[i] = FL(0.0); */
     /* } */
-    if ((OPWLEN / 2 + 1) > PVWINLEN) {
+    if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN)) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
                                        csound->ksmps, (OPWLEN / 2 + 1),
@@ -277,20 +278,20 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     int32     i, j;
 
     /* RWD fix */
-    if (p->auxch.auxp == NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
 
     pex = *p->kfmod;
     outlen = (int) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
-    if (outlen>PVFFTSIZE) { /* Maximum transposition down is one octave */
+    if (UNLIKELY(outlen>PVFFTSIZE)) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
       goto err2;
     }
-    if (outlen<2*csound->ksmps) {   /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<2*csound->ksmps)) {   /* minimum post-squeeze windowlength */
       goto err3;
     }
     buf2Size = OPWLEN;     /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
+    if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) {
       goto err4;
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
