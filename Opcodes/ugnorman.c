@@ -116,7 +116,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                 (int) csound->GetInputArgSMask(p));
 
     /* load memfile */
-    if ((*mfp = csound->ldmemfile2(csound, fname, CSFTYPE_ATS)) == NULL) {
+    if (UNLIKELY((*mfp = csound->ldmemfile2(csound, fname, CSFTYPE_ATS)) == NULL)) {
       return csound->InitError(csound,
                                Str("%s: Ats file %s not read (does it exist?)"),
                                opname, fname);
@@ -127,7 +127,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     if (atsh->magic == 123.0)
       return 0;
     /* check to see if it is byteswapped */
-    if ((int) bswap(&(atsh->magic)) != 123) {
+    if (UNLIKELY((int) bswap(&(atsh->magic)) != 123)) {
       return csound->InitError(csound, Str("%s: either %s is not an ATS file "
                                            "or the byte endianness is wrong"),
                                opname, fname);
@@ -156,7 +156,7 @@ static int atsinfo(CSOUND *csound, ATSINFO *p)
 
     /* load memfile */
     swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno);
-    if (swapped < 0)
+    if (UNLIKELY(swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) memfile->beginp;
 
@@ -242,7 +242,7 @@ static int atsreadset(CSOUND *csound, ATSREAD *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
@@ -261,7 +261,7 @@ static int atsreadset(CSOUND *csound, ATSREAD *p)
     }
 
     /* check to see if partial is valid */
-    if ((int) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0) {
+    if (UNLIKELY((int) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
                                        (int) (*p->ipartial), n_partials);
@@ -302,10 +302,10 @@ static int atsread(CSOUND *csound, ATSREAD *p)
     MYFLT   frIndx;
     MYFLT   buf[2];
 
-    if (p->atsmemfile == NULL) goto err1;
+    if (UNLIKELY(p->atsmemfile == NULL)) goto err1;
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSREAD: only positive time pointer "
                                     "values allowed, setting to zero\n"));
@@ -314,7 +314,7 @@ static int atsread(CSOUND *csound, ATSREAD *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSREAD: timepointer out of range, "
                                     "truncated to last frame\n"));
@@ -368,7 +368,7 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
@@ -390,7 +390,7 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
     /* check to see if band is valid */
-    if ((int) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0) {
+    if (UNLIKELY((int) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
       return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                            "1-25 are the valid band values"),
                                        (int) (*p->inzbin));
@@ -422,11 +422,11 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
 {
     MYFLT   frIndx;
 
-    if (p->atsmemfile == NULL) goto err1;
+    if (UNLIKELY(p->atsmemfile == NULL)) goto err1;
     /* make sure we have not over steped the bounds of the data */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSREADNZ: only positive time pointer "
                                     "values allowed, setting to zero\n"));
@@ -435,7 +435,7 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSREADNZ: timepointer out of range, "
                                     "truncated to last frame\n"));
@@ -463,7 +463,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     int     memsize, n_partials, type;
 
     /* set up function table for synthesis */
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
       return csound->InitError(csound, Str("ATSADD: Function table number "
                                            "for synthesis waveform not valid"));
     }
@@ -471,7 +471,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
     /* set up gate function table */
     if (*p->igatefun > FL(0.0)) {
-      if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL) {
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
         return csound->InitError(csound, Str("ATSADD: Gate Function table "
                                              "number not valid"));
       }
@@ -482,7 +482,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
@@ -516,8 +516,8 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     }
 
     /* make sure partials are in range */
-    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int) (*p->iptloffset) < 0) {
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -575,12 +575,12 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     buf = p->buf;
 
     /* ftp is a poiter to the ftable */
-    if (p->auxch.auxp == NULL || (ftp = p->ftp) == NULL) goto err1;
+    if (UNLIKELY(p->auxch.auxp == NULL || (ftp = p->ftp) == NULL)) goto err1;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
         csound->Message(csound, Str("ATSADD: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
@@ -589,7 +589,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSADD: time pointer out of range, "
                                     "truncating to last frame\n"));
@@ -828,7 +828,7 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* make sure that this file contains noise */
     type = (p->swapped == 1) ? (int) bswap(&atsh->type) : (int) atsh->type;
 
-    if (type != 4 && type != 3) {
+    if (UNLIKELY(type != 4 && type != 3)) {
       if (type < 5)
         return csound->InitError(csound,
                                  Str("ATSADDNZ: "
@@ -855,9 +855,9 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     }
 
     /* make sure partials are in range */
-    if ((p->bandoffset + p->bands * p->bandincr) > 25 ||
+    if (UNLIKELY((p->bandoffset + p->bands * p->bandincr) > 25 ||
         p->bands <0 || /* Allow zero bands for no good reason */
-        p->bandoffset < 0) {
+                 p->bandoffset < 0)) {
       return csound->InitError(csound, Str("ATSADDNZ: Band(s) out of range, "
                                            "max band allowed is 25"));
     }
@@ -984,7 +984,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
         csound->Message(csound, Str("ATSADDNZ: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
@@ -993,7 +993,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSADDNZ: time pointer out of range, "
                                     "truncating to last frame\n"));
@@ -1100,7 +1100,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
@@ -1143,8 +1143,8 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     }
 
     /* make sure partials are in range */
-    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
-        (int) (*p->iptloffset) < 0) {
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
+                 (int) (*p->iptloffset) < 0)) {
       return csound->InitError(csound,
                                Str("ATSSINNOI: Partial(s) out of range, "
                                    "max partial allowed is %i"), p->npartials);
@@ -1234,7 +1234,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
         csound->Message(csound, Str("ATSSINNOI: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
@@ -1243,7 +1243,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSSINNOI: time pointer out of range, "
                                     "truncating to last frame\n"));
@@ -1456,7 +1456,7 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) mfp->beginp;
 
@@ -1489,8 +1489,8 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     p->utable = fltp + ((int) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int) (*p->iptloffset) < 0) {
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
     }
@@ -1624,14 +1624,14 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     ATS_DATA_LOC  *buf;
     ATS_DATA_LOC  *buf2;
 
-    if (p->table == NULL) goto err1;     /* RWD fix */
+    if (UNLIKELY(p->table == NULL)) goto err1;     /* RWD fix */
 
     *(get_atsbufreadaddrp(csound)) = p;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
         csound->Message(csound, Str("ATSBUFREAD: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
@@ -1640,7 +1640,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSBUFREAD: time pointer out of range, "
                                     "truncating to last frame\n"));
@@ -1669,17 +1669,17 @@ static int atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
     ATSBUFREAD  *atsbufreadaddr;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) {
+    if (UNLIKELY(atsbufreadaddr == NULL)) {
       return csound->InitError(csound,
                                Str("ATSPARTIALTAP: you must have an "
                                    "atsbufread before an atspartialtap"));
     }
-    if ((int) *p->iparnum > (int) *(atsbufreadaddr->iptls)) {
+    if (UNLIKELY((int) *p->iparnum > (int) *(atsbufreadaddr->iptls))) {
       return csound->InitError(csound, Str("ATSPARTIALTAP: exceeded "
                                            "max partial %i"),
                                        (int) *(atsbufreadaddr->iptls));
     }
-    if ((int) *p->iparnum <= 0) {
+    if (UNLIKELY((int) *p->iparnum <= 0)) {
       return csound->InitError(csound, Str("ATSPARTIALTAP: partial must be "
                                            "positive and nonzero"));
     }
@@ -1691,7 +1691,7 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
     ATSBUFREAD  *atsbufreadaddr;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) goto err1;
+    if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
     *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].freq);
     *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].amp);
     return OK;
@@ -1705,7 +1705,7 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 
 static int atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
 {
-    if (*(get_atsbufreadaddrp(csound)) == NULL)
+    if (UNLIKELY(*(get_atsbufreadaddrp(csound)) == NULL))
       return csound->InitError(csound,
                                Str("ATSINTERPREAD: you must have an "
                                    "atsbufread before an atsinterpread"));
@@ -1721,10 +1721,10 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
 
     /* make sure we have data to read from */
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) goto err1;
+    if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
     /* make sure we are not asking for unreasonble frequencies */
     if (*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0)) {
-      if (p->overflowflag) {
+      if (UNLIKELY(p->overflowflag)) {
         csound->Warning(csound, Str("ATSINTERPREAD: frequency must be greater "
                                     "than 20 and less than 20000 Hz"));
         p->overflowflag = 0;
@@ -1770,7 +1770,7 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     int     type, n_partials;
 
     /* set up function table for synthesis */
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
       return csound->InitError(csound, Str("ATSCROSS: Function table number for "
                                            "synthesis waveform not valid"));
     }
@@ -1971,16 +1971,16 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     ATS_DATA_LOC *buf;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
-    if (atsbufreadaddr == NULL) goto err1;
+    if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
 
     buf = p->buf;
     /* ftp is a pointer to the ftable */
     ftp = p->ftp;
 
     /* make sure time pointer is within range */
-    if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
+    if (UNLIKELY((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0))) {
       frIndx = FL(0.0);
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
         csound->Message(csound, Str("ATSCROSS: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
@@ -1989,7 +1989,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     else if (frIndx > p->maxFr) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Message(csound, Str("ATSCROSS: time pointer out of range, "
                                     "truncating to last frame\n"));

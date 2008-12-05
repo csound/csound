@@ -45,7 +45,7 @@ static int fogset(CSOUND *csound, FOGS *p)
         if (*p->iphs == FL(0.0))                  /* if fundphs zero,  */
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
         else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
-        if ((olaps = (int32)*p->iolaps) <= 0) {
+        if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
           return csound->InitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
@@ -98,7 +98,7 @@ static int fog(CSOUND *csound, FOGS *p)
     for (n=0;n<nsmps;n++) {
       if (p->fundphs & MAXLEN) {                       /* if phs has wrapped */
         p->fundphs &= PHMASK;
-        if ((ovp = p->basovrlap.nxtfree) == NULL) goto err1;
+        if (UNLIKELY((ovp = p->basovrlap.nxtfree) == NULL)) goto err1;
         if (newpulse(csound, p, ovp, amp, fund, ptch)) { /* init new fof */
           ovp->nxtact = p->basovrlap.nxtact;           /* & link into  */
           p->basovrlap.nxtact = ovp;                   /*   actlist    */

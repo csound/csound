@@ -110,8 +110,10 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
       csound->Free(csound, initial_shape);
     }
     else {
-      for (i = 0; i < rail_len; i++)
-        upper_rail->data[i] = lower_rail->data[i] = FL(0.0);
+      memset(upper_rail->data, 0, rail_len*sizeof(MYFLT));
+      memset(lower_rail->data, 0, rail_len*sizeof(MYFLT));
+      /* for (i = 0; i < rail_len; i++) */
+      /*   upper_rail->data[i] = lower_rail->data[i] = FL(0.0); */
     }
                                 /* Copy data into structure */
     p->state = FL(0.0);         /* filter memory */
@@ -153,8 +155,8 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
     int     pickup, pickfrac;
-    int         i;
-    int         scale;
+    int     i;
+    int     scale;
     MYFLT   state = p->state;
     MYFLT   reflect = *p->reflect;
 

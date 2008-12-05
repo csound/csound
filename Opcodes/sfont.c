@@ -314,7 +314,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
-    if (!UNLIKELY(preset)) {
+    if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
