@@ -1,3 +1,8 @@
+2008-12-04  mantaraya36  <mantaraya36@gmail.com>
+
+	* Opcodes/pmidi.c : Added option to listen on all MIDI ports
+        using 'a' instead of a device number.
+
 2008-12-04  jpff  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/midiops3.c (islider32bit14): I think it shoudl have 32

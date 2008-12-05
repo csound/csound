@@ -3,6 +3,7 @@
 
     Copyright (C) 2004 John ffitch after Barry Vercoe
               (C) 2005 Istvan Varga
+              (C) 2008 Andres Cabrera
 
     This file is part of Csound.
 
@@ -42,6 +43,11 @@ void _wassert(wchar_t *condition)
 }
 
 #endif
+
+typedef struct _pmall_data {
+  PortMidiStream *midistream;
+  struct _pmall_data *next;
+} pmall_data;
 
 static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
@@ -181,57 +187,84 @@ static int start_portmidi(CSOUND *csound)
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    int         cntdev, devnum;
+    int         cntdev, devnum, opendevs, i;
     PmEvent     buffer;
     PmError     retval;
     PmDeviceInfo *info;
-    PortMidiStream *midistream;
+//     PortMidiStream *midistream;
+    pmall_data *data = NULL;
+    pmall_data *next;
+
 
     if (start_portmidi(csound) != 0)
       return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(0);
-    if (cntdev < 1) {
-      return portMidiErrMsg(csound, Str("no input devices are available"));
-    }
     portMidi_listDevices(csound, 0);
     /* look up device in list */
     if (dev == NULL || dev[0] == '\0')
       devnum =
         portMidi_getPackedDeviceID((int)Pm_GetDefaultInputDeviceID(), 0);
-    else if (dev[0] < '0' || dev[0] > '9') {
-      portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
-                                 "not a name"));
+    else if (dev[0] < '0' || dev[0] > '9' && dev[0] != 'a') {
+      portMidiErrMsg(csound,
+                     Str("error: must specify a device number (>=0) or 'a' for all, "
+                         "not a name"));
       return -1;
     }
-    else
+    else if (dev[0] != 'a') {
       devnum = (int)atoi(dev);
-    if (devnum < 0 || devnum >= cntdev) {
-      portMidiErrMsg(csound, Str("error: device number is out of range"));
-      return -1;
+      if (devnum < 0 || devnum >= cntdev) {
+        portMidiErrMsg(csound, Str("error: device number is out of range"));
+        return -1;
+      }
     }
-    info = portMidi_getDeviceInfo(devnum, 0);
-    if (info->interf != NULL)
-      csound->Message(csound,
-                      Str("PortMIDI: selected input device %d: '%s' (%s)\n"),
-                      devnum, info->name, info->interf);
-    else
-      csound->Message(csound, Str("PortMIDI: selected input device %d: '%s'\n"),
-                              devnum, info->name);
-    retval = Pm_OpenInput(&midistream,
-                          (PmDeviceID) portMidi_getRealDeviceID(devnum, 0),
-                          NULL, 512L, (PmTimeProcPtr) NULL, NULL);
-    if (retval != pmNoError) {
-      return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
-                                    devnum, Pm_GetErrorText(retval));
+    else {
+    // allow to proceed if 'a' is given even if there are no MIDI devices
+      devnum = -1;
     }
-    *userData = (void*) midistream;
-    /* only interested in channel messages (note on, control change, etc.) */
-    Pm_SetFilter(midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX)); /* GAB: fixed for portmidi v.23Aug06 */
-    /* empty the buffer after setting filter */
-    while (Pm_Poll(midistream) == TRUE) {
-      Pm_Read(midistream, &buffer, 1);
+
+    if (cntdev < 1 && dev[0] != 'a') {
+      return portMidiErrMsg(csound, Str("no input devices are available"));
     }
+    opendevs = 0;
+    for (i = 0; i < cntdev; i++) {
+      if (devnum == i || devnum == -1) {
+        if (opendevs == 0) {
+          data = (pmall_data *) malloc(sizeof(pmall_data));
+          next = data;
+          data->next = NULL;
+          opendevs++;
+        }
+        else {
+          next->next = (pmall_data *) malloc(sizeof(pmall_data));
+          next = next->next;
+          next->next = NULL;
+          opendevs++;
+        }
+        info = portMidi_getDeviceInfo(i, 0);
+        if (info->interf != NULL)
+          csound->Message(csound,
+                          Str("PortMIDI: Activated input device %d: '%s' (%s)\n"),
+                          i, info->name, info->interf);
+        else
+          csound->Message(csound, Str("PortMIDI: Activated input device %d: '%s'\n"),
+                                  i, info->name);
+        retval = Pm_OpenInput(&next->midistream,
+                                (PmDeviceID) portMidi_getRealDeviceID(i, 0),
+                              NULL, 512L, (PmTimeProcPtr) NULL, NULL);
+        if (retval != pmNoError) {
+          return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
+                                          i, Pm_GetErrorText(retval));
+        }
+          /* only interested in channel messages (note on, control change, etc.) */
+        Pm_SetFilter(next->midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX)); /* GAB: fixed for portmidi v.23Aug06 */
+        /* empty the buffer after setting filter */
+          while (Pm_Poll(next->midistream) == TRUE) {
+          Pm_Read(next->midistream, &buffer, 1);
+        }
+      }
+    }
+    *userData = (void*) data;
     /* report success */
     return 0;
 }
@@ -292,54 +325,57 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 {
     int             n, retval, st, d1, d2;
     PmEvent         mev;
-    PortMidiStream  *midistream;
+    pmall_data *data;
     /*
-     * Reads from user-defined MIDI input.
+     * Reads from MIDI input device linked list.
      */
-    midistream = (PortMidiStream*) userData;
-    retval = Pm_Poll(midistream);
-    if (retval == FALSE)
-      return 0;
-    if (retval < 0)
-      return portMidiErrMsg(csound, Str("error polling input device"));
     n = 0;
-    while ((retval = Pm_Read(midistream, &mev, 1L)) > 0) {
-      st = (int)Pm_MessageStatus(mev.message);
-      d1 = (int)Pm_MessageData1(mev.message);
-      d2 = (int)Pm_MessageData2(mev.message);
-      /* unknown message or sysex data: ignore */
-      if (st < 0x80)
-        continue;
-      /* ignore most system messages */
-      if (st >= 0xF0 &&
-          !(st == 0xF8 || st == 0xFA || st == 0xFB || st == 0xFC || st == 0xFF))
-        continue;
-      nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
-      if (nbytes < 0) {
-        portMidiErrMsg(csound, Str("buffer overflow in MIDI input"));
-        break;
+    data = (pmall_data *)userData;
+    while (data) {
+      retval = Pm_Poll(data->midistream);
+      if (retval != FALSE) {
+        if (retval < 0)
+          return portMidiErrMsg(csound, Str("error polling input device"));
+        while ((retval = Pm_Read(data->midistream, &mev, 1L)) > 0) {
+          st = (int)Pm_MessageStatus(mev.message);
+          d1 = (int)Pm_MessageData1(mev.message);
+          d2 = (int)Pm_MessageData2(mev.message);
+          /* unknown message or sysex data: ignore */
+          if (st < 0x80)
+            continue;
+          /* ignore most system messages */
+          if (st >= 0xF0 &&
+              !(st == 0xF8 || st == 0xFA || st == 0xFB || st == 0xFC || st == 0xFF))
+            continue;
+          nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+          if (nbytes < 0) {
+            portMidiErrMsg(csound, Str("buffer overflow in MIDI input"));
+            break;
+          }
+          /* channel messages */
+          n += (datbyts[(st - 0x80) >> 4] + 1);
+          switch (datbyts[(st - 0x80) >> 4]) {
+            case 0:
+              *mbuf++ = (unsigned char) st;
+              break;
+            case 1:
+              *mbuf++ = (unsigned char) st;
+              *mbuf++ = (unsigned char) d1;
+              break;
+            case 2:
+              *mbuf++ = (unsigned char) st;
+              *mbuf++ = (unsigned char) d1;
+              *mbuf++ = (unsigned char) d2;
+              break;
+          }
+        }
+        if (retval < 0) {
+          portMidiErrMsg(csound, Str("read error %d"), retval);
+          if (n < 1)
+            n = -1;
+        }
       }
-      /* channel messages */
-      n += (datbyts[(st - 0x80) >> 4] + 1);
-      switch (datbyts[(st - 0x80) >> 4]) {
-        case 0:
-          *mbuf++ = (unsigned char) st;
-          break;
-        case 1:
-          *mbuf++ = (unsigned char) st;
-          *mbuf++ = (unsigned char) d1;
-          break;
-        case 2:
-          *mbuf++ = (unsigned char) st;
-          *mbuf++ = (unsigned char) d1;
-          *mbuf++ = (unsigned char) d2;
-          break;
-      }
-    }
-    if (retval < 0) {
-      portMidiErrMsg(csound, Str("read error %d"), retval);
-      if (n < 1)
-        n = -1;
+      data = data->next;
     }
     /* return the number of bytes read */
     return n;
@@ -394,12 +430,16 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
     PmError retval;
-
-    if (userData != NULL) {
-      retval = Pm_Close((PortMidiStream*) userData);
+    pmall_data* data = (pmall_data*) userData;
+    while (data) {
+      retval = Pm_Close(data->midistream);
       if (retval != pmNoError) {
         return portMidiErrMsg(csound, Str("error closing input device"));
       }
+      pmall_data* olddata;
+      olddata = data;
+      data = data->next;
+      free(olddata);
     }
     return 0;
 }
@@ -451,4 +491,3 @@ PUBLIC int csoundModuleInfo(void)
     /* does not depend on MYFLT type */
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
 }
-
