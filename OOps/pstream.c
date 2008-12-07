@@ -42,7 +42,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
         && (f1->wintype == f2->wintype) /* harsh, maybe... */
         && (f1->N       == f2->N)
         && (f1->format  == f2->format)
-#ifdef SDFT
+#ifndef OLPC
         && (f1->sliding == f2->sliding)
 #endif
         )
@@ -60,7 +60,7 @@ int fassign(CSOUND *csound, FASSIGN *p)
     float *fout,*fsrc;
     if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
       csound->Die(csound, Str("fsig = : formats are different.\n"));
-#ifdef SDFT
+#ifndef OLPC
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
              sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
@@ -88,7 +88,7 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     int32 startbin,binoffset;
     MYFLT *p_x;
 
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fsig->sliding))
       csound->InitError(csound, "Sliding version not yet available");
 #endif
@@ -256,7 +256,7 @@ int pvscrosset(CSOUND *csound, PVSCROSS *p)
     p->fout->winsize = p->winsize;
     p->fout->wintype = p->wintype;
     p->fout->format = p->format;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->format = p->fsrc->sliding;
     if (p->fsrc->sliding) {
       p->fout->NB = p->fsrc->NB;
@@ -290,7 +290,7 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
       csound->Die(csound, Str("pvscross: mismatch in fsrc format\n"));
     if (UNLIKELY(!fsigs_equal(p->fout,p->fdest)))
       csound->Die(csound, Str("pvscross: mismatch in fdest format\n"));
-#ifdef SDFT
+#ifndef OLPC
     if (p->fsrc->sliding) {
       CMPLX *fout, *fsrc, *fdest;
       int n, nsmps = csound->ksmps;
@@ -346,7 +346,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
     p->arate   = csound->esr / (MYFLT) pp.overlap;
     p->membase = (float*) pp.data;
 
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
       csound->InitError(csound, "Sliding version not yet available");
 #endif
@@ -464,7 +464,7 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fout->winsize = p->winsize;
     p->fout->wintype = p->wintype;
     p->fout->format  = p->format;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = p->fsrc->sliding;
     if (p->fsrc->sliding) {
       csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
@@ -536,7 +536,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     depth = (float)(FL(1.0) - depth);
 
     margin = (float)(FL(1.0) - depth);
-#ifdef SDFT
+#ifndef OLPC
     if (p->fsrc->sliding) {
       int NB = p->fsrc->NB;
       CMPLX *fout, *fsrc;
@@ -600,7 +600,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
     p->outfna = csound->FTFind(csound, p->ifna);
     if (UNLIKELY(p->outfna==NULL))
       return NOTOK;
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fsrc->sliding))
       csound->InitError(csound, "Sliding version not yet available");
 #endif
@@ -714,7 +714,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
       if (UNLIKELY(flena < nbins))
         csound->Die(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
       csound->InitError(csound, "Sliding version not yet available");
 #endif

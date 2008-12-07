@@ -67,7 +67,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = p->fin->sliding;
     p->fout->NB = p->fin->NB;
 #endif
@@ -92,7 +92,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     if (lowbnd<lowcut) lowbnd = lowcut;
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB  = p->fout->NB;
@@ -198,7 +198,7 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     if (lowbnd<lowcut) lowbnd = lowcut;
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB  = p->fout->NB;

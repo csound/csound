@@ -222,9 +222,10 @@ int losset(CSOUND *csound, LOSC *p)
           p->end1 = (p->mod1 ? maxphs : ((int32) ftp->flenfrms << LOBITS));
         }
         else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1){
-	  csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n", p->beg1, p->end1, maxphs);
+          csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n",
+                          p->beg1, p->end1, maxphs);
           goto lerr2;
-	}
+        }
       }
       if ((p->mod2 = (int16) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;

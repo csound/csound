@@ -50,7 +50,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
     MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -75,7 +75,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-#ifdef SDFT
+#ifndef OLPC
 static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
@@ -163,7 +163,7 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
     /* Initialise frame count to zero. */
     p->lastframe = 0;
 
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
