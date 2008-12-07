@@ -227,9 +227,6 @@ commandOptions.Add('buildNewParser',
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
-commandOptions.Add('buildSDFT',
-    'Set to 0 to avoid building SDFT code',
-    '1')
 if getPlatform() == 'win32':
   commandOptions.Add('useGettext',
     'Set to 1 to use the GBU internationalisation/localisation scheme)',
@@ -370,7 +367,6 @@ if commonEnvironment['buildOLPC'] == '1':
     commonEnvironment['buildDSSI'] = '0'
     commonEnvironment['buildVirtual'] = '1'
     commonEnvironment['buildInterfaces'] = '1'
-    commonEnvironment['buildSDFT'] = '0'
     commonEnvironment['buildJavaWrapper'] = '0'
     commonEnvironment['buildNewParser'] = '0'
     commonEnvironment['buildvst4cs'] = '0'
@@ -458,9 +454,6 @@ if commonEnvironment['useDouble'] == '0':
 else:
     print 'CONFIGURATION DECISION: Using double-precision floating point for audio samples.'
     commonEnvironment.Append(CPPFLAGS = ['-DUSE_DOUBLE'])
-
-if commonEnvironment['buildSDFT'] == '1':
-    commonEnvironment.Prepend(CPPFLAGS = ['-DSDFT'])
 
 # Define different build environments for different types of targets.
 
@@ -675,6 +668,7 @@ if not tclhfound:
 zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
 luaFound = configure.CheckHeader("lua.h", language = "C")
+#print 'LUA: %s' % (['no', 'yes'][int(luaFound)])
 if buildOLPC:
    luaFound = False
 swigFound = 'swig' in commonEnvironment['TOOLS']

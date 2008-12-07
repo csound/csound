@@ -44,7 +44,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     p->fout->wintype = (int32) *p->wintype;
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 1;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = 0;
     if (p->fout->overlap < csound->ksmps || p->fout->overlap <=10) {
       int n;
@@ -98,7 +98,7 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
     int N;
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
@@ -166,7 +166,7 @@ static int pvsdiskinset(CSOUND *csound, pvsdiskin *p)
     char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
 
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fout->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
 #endif
@@ -278,7 +278,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-#ifdef SDFT
+#ifndef OLPC
     p->fout->NB = (N/2)+1;
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
@@ -308,7 +308,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     return OK;
 }
 
-#ifdef SDFT
+#ifndef OLPC
 static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 {
     int i, n, k, nsmps = csound->ksmps;
@@ -337,7 +337,7 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     int32    framesize;
     MYFLT   freeza, freezf;
     float   *fout, *fin, *freez;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding)
       return pvssfreezeprocess(csound, p);
 #endif
@@ -375,7 +375,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->wintype = (int32) *p->wintype;
     p->fout->format = (int32) *p->format;
     p->fout->framecount = 0;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = 0;
     if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
       CMPLX *bframe;
@@ -432,7 +432,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
 
     framesize = p->fout->N + 2;
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fout->sliding) {
       CMPLX *fout;
       int m, nsmps = csound->ksmps;
@@ -515,7 +515,7 @@ static int pvsbinset(CSOUND *csound, PVSBIN *p)
 static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
     int32    framesize, pos;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
       framesize = p->fin->NB;
@@ -543,7 +543,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
     return OK;
 }
 
-#ifdef SDFT
+#ifndef OLPC
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
     int32    framesize, pos, k;
@@ -583,7 +583,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-#ifdef SDFT
+#ifndef OLPC
     p->fout->NB = (N/2)+1;
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
@@ -631,7 +631,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 
     framesize = p->fin->N + 2;
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       CMPLX *fout, *fin, *del;
       double  costh1, costh2, coef1, coef2;
@@ -704,7 +704,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
 
     if (UNLIKELY(p->fa == p->fout || p->fb == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = 0;
     if (p->fa->sliding) {
       if (p->fout->frame.auxp == NULL ||
@@ -741,7 +741,7 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
     float   *fout, *fa, *fb;
 
     if (UNLIKELY(!fsigs_equal(p->fa, p->fb))) goto err1;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fa->sliding) {
       CMPLX * fout, *fa, *fb;
       int n, nsmps=csound->ksmps;
@@ -794,7 +794,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
                  (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvsfilter: signal format "
                                            "must be amp-phase or amp-freq."));
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = 0;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
@@ -832,7 +832,7 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
     if (UNLIKELY(fout == NULL)) goto err1;
     if (UNLIKELY(!fsigs_equal(p->fin, p->fil))) goto err2;
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       int NB = p->fout->NB;
       int n, nsmps = csound->ksmps;
@@ -883,7 +883,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-#ifdef SDFT
+#ifndef OLPC
     p->fout->NB = p->fin->NB;
     p->fout->sliding = p->fin->sliding;
     if (p->fin->sliding) {
@@ -922,7 +922,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
     if (UNLIKELY(fout == NULL)) goto err1;
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fout->sliding) {
       int n, nsmps = csound->ksmps;
       int NB    = p->fout->NB;
@@ -1007,7 +1007,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
           csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
@@ -1029,7 +1029,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = p->fin->sliding;
     p->fout->NB = p->fin->NB;
 #endif
@@ -1049,7 +1049,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     float   *fout = (float *) p->fout->frame.auxp;
 
     if (UNLIKELY(fout == NULL)) goto err1;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB  = p->fout->NB;
@@ -1147,7 +1147,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     int     delayframes, framesize = N + 2;
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       csound->InitError(csound, "pvsblur does not work sliding yet");
       delayframes = (int) (FL(0.5) + *p->maxdel * csound->esr);
@@ -1192,7 +1192,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
     p->count = 0;
- #ifdef SDFT
+ #ifndef OLPC
     p->fout->sliding = p->fin->sliding;
     p->fout->NB = p->fin->NB;
 #endif
@@ -1213,7 +1213,7 @@ static int pvsblur(CSOUND *csound, PVSBLUR *p)
 
     if (UNLIKELY(fout == NULL || delay == NULL)) goto err1;
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB = p->fin->NB;
@@ -1303,7 +1303,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
- #ifdef SDFT
+ #ifndef OLPC
     p->fout->NB = chans;
     if (p->fin->sliding) {
       if (p->fout->frame.auxp == NULL ||
@@ -1343,7 +1343,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 {
     MYFLT   *ftable;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       MYFLT g = FABS(*p->kgain);
       MYFLT masklevel = FABS(*p->klevel);
@@ -1405,7 +1405,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if (
-#ifdef SDFT
+#ifndef OLPC
         (f1->sliding == f2->sliding) &&
 #endif
         (f1->overlap == f2->overlap) &&
@@ -1421,7 +1421,7 @@ static OENTRY localops[] = {
 
     {"pvsfwrite", sizeof(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
          (SUBR) pvsfwrite},
-#ifdef SDFT
+#ifndef OLPC
     {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
     {"pvscale", sizeof(PVSSCALE), 3, "f", "fxop", (SUBR) pvsscaleset,
@@ -1437,7 +1437,7 @@ static OENTRY localops[] = {
          (SUBR) pvsshift},
 #endif
     {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
-#ifdef SDFT
+#ifndef OLPC
     {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
          (SUBR) pvsfilter},
 #else
@@ -1449,7 +1449,7 @@ static OENTRY localops[] = {
     {"pvstencil", sizeof(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
          (SUBR) pvstencil},
     {"pvsinit", sizeof(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
-#ifdef SDFT
+#ifndef OLPC
    {"pvsbin", sizeof(PVSBIN), 3, "ss", "fk", (SUBR) pvsbinset,
          (SUBR) pvsbinprocess, (SUBR) pvsbinprocessa},
 #else
@@ -1458,7 +1458,7 @@ static OENTRY localops[] = {
 #endif
     {"pvsfreeze", sizeof(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
          (SUBR) pvsfreezeprocess, NULL},
-#ifdef SDFT
+#ifndef OLPC
     {"pvsmooth", sizeof(PVSFREEZE), 3, "f", "fxx", (SUBR) pvsmoothset,
      (SUBR) pvsmoothprocess, NULL},
 #else
