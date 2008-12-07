@@ -96,7 +96,7 @@ enum PVS_ANALFORMAT {
     PVS_TRACKS          /* added VL, 24.06.2005 */
 };
 
-#ifdef SDFT
+#ifndef OLPC
 typedef struct {
   MYFLT re;
   MYFLT im;
@@ -105,7 +105,7 @@ typedef struct {
 
 typedef struct pvsdat {
         int32            N;
-#ifdef SDFT
+#ifndef OLPC
         int             sliding; /* Flag to indicate sliding case */
         int32            NB;
 #endif
@@ -144,7 +144,7 @@ typedef struct {
         AUXCH   analbuf;
         AUXCH   analwinbuf;     /* prewin in SDFT case */
         AUXCH   oldInPhase;
-#ifdef SDFT
+#ifndef OLPC
         AUXCH           trig;
         double          *cosine, *sine;
 #endif

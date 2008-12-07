@@ -44,7 +44,7 @@ typedef struct {
 static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 {
     int N, hop;
-#ifdef SDFT
+#ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
@@ -128,7 +128,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-#ifdef SDFT
+#ifndef OLPC
     p->fout->sliding = 0;
 #endif
     p->scnt = p->fout->overlap;

@@ -94,7 +94,7 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
 }
 
-#ifdef SDFT
+#ifndef OLPC
 
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -175,7 +175,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
-#ifdef SDFT
+#ifndef OLPC
     if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
 #endif
@@ -257,7 +257,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->wintype = wintype;
     p->fsig->framecount = 1;
     p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
-#ifdef SDFT
+#ifndef OLPC
     p->fsig->sliding = 0;
 #endif
     return OK;
@@ -426,7 +426,7 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 
 }
 
-#ifdef SDFT
+#ifndef OLPC
 static inline double mod2Pi(double x)
 {
     x = fmod(x,TWOPI);
@@ -663,7 +663,7 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     if (UNLIKELY(p->input.auxp==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
-#ifdef SDFT
+#ifndef OLPC
     {
       int overlap = (int)*p->overlap;
       if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
@@ -696,7 +696,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->overlap = overlap;
     p->wintype = wintype;
     p->format = p->fsig->format;
-#ifdef SDFT
+#ifndef OLPC
     if (p->fsig->sliding) {
       /* get params from input fsig */
       /* we TRUST they are legal */
@@ -736,7 +736,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
       return NOTOK;
 
     for (i = 1; i <= halfwinsize; i++)
-      *(analwinhalf - i) = *(analwinhalf + i - Mf);
+      analwinhalf[-i] = analwinhalf[i - Mf];
     if (M > N) {
       double dN = (double)N;
       /* sinc function */
@@ -850,15 +850,15 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
        This automatically incorporates the proper phase scaling for
        time modifications. */
 
-    if (NO <= N) {
+    if (LIKELY(NO <= N)) {
       for (i = 0; i < NO+2; i++)
-        *(syn+i) = (MYFLT) *(anal+i);
+        syn[i] = (MYFLT) anal[i];
     }
     else {
       for (i = 0; i <= N+1; i++)
-        *(syn+i) = (MYFLT) *(anal+i);
+        syn[i] = (MYFLT) anal[i];
       for (i = N+2; i < NO+2; i++)
-        *(syn+i) = FL(0.0);
+        syn[i] = FL(0.0);
     }
 #ifdef NOTDEF
     if (format==PVS_AMP_PHASE) {
@@ -966,7 +966,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
-#ifdef SDFT
+#ifndef OLPC
 int pvssynth(CSOUND *csound, PVSYNTH *p)
 {
     int i, k;
@@ -983,7 +983,7 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
       MYFLT a;
       ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
       for (k=0; k<NB; k++) {
-        double tmp,phase;
+        double tmp, phase;
 
         tmp = ff[k].im; /* Actually frequency */
         /* subtract bin mid frequency */
@@ -1014,7 +1014,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     if (UNLIKELY(p->output.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
-#ifdef SDFT
+#ifndef OLPC
     if (p->fsig->sliding) return pvssynth(csound, p);
 #endif
     for (i=0;i < csound->ksmps;i++)
@@ -1031,13 +1031,13 @@ static void hamming(MYFLT *win, int winLen, int even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*((double)i+0.5)));
-      *(win+winLen) = FL(0.0);
+        win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*((double)i+0.5)));
+      win[winLen] = FL(0.0);
     }
     else {
-      *(win) = FL(1.0);
+      win[0] = FL(1.0);
       for (i=1; i<=winLen; i++)
-        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*(double)i));
+        win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*(double)i));
     }
 
 }

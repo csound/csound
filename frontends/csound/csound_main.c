@@ -77,11 +77,11 @@ int main(int argc, char **argv)
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
-        }
+    }
 
 #ifdef GNU_GETTEXT
     /* We need to set the locale for the translations to work */
-    lang = csoundGetEnv(NULL, "CS_LANG"); 
+    lang = csoundGetEnv(NULL, "CS_LANG");
     /* If set, use that. Otherwise use the system locale */
     if(lang == NULL)
         lang = setlocale(LC_MESSAGES, "");
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     /* Should we warn if we couldn't set the locale (lang == NULL)? */
     /* If the strings for this binary are ever translated,
      * the textdomain should be set here */
-#endif 
+#endif
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
 #ifdef LINUX
