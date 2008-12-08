@@ -1428,7 +1428,7 @@ extern "C" {
       int returnValue;
       csound->performState = 0;
       /* setup jmp for return after an exit() */
-      if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
+      if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
         csoundMessage(csound, "Early return from csoundPerform().\n");
 #endif
@@ -1436,7 +1436,7 @@ extern "C" {
       }
       do {
         do {
-          if (UNLIKELY((done = sensevents(csound)))) {
+          if ((done = sensevents(csound))) {
             csoundMessage(csound, "Score finished in csoundPerform().\n");
             return done;
           }

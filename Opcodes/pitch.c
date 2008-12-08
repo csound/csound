@@ -77,9 +77,12 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     ncoefs = nocts * nfreqs;
     Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
 
-    if (UNLIKELY(p->timcount <= 0)) return csound->InitError(csound, Str("illegal iprd"));
-    if (UNLIKELY(nocts > MAXOCTS))  return csound->InitError(csound, Str("illegal iocts"));
-    if (UNLIKELY(nfreqs > MAXFRQS)) return csound->InitError(csound, Str("illegal ifrqs"));
+    if (UNLIKELY(p->timcount <= 0))
+      return csound->InitError(csound, Str("illegal iprd"));
+    if (UNLIKELY(nocts > MAXOCTS))
+      return csound->InitError(csound, Str("illegal iocts"));
+    if (UNLIKELY(nfreqs > MAXFRQS))
+      return csound->InitError(csound, Str("illegal ifrqs"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
