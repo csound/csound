@@ -213,7 +213,7 @@ int delset(CSOUND *csound, DELAY *p)
     if (UNLIKELY((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
-    
+
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
       csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
@@ -222,9 +222,9 @@ int delset(CSOUND *csound, DELAY *p)
     }
     else if (!(*p->istor)) {                    /* else if requested */
       memset(auxp, 0, npts*sizeof(MYFLT));
-      }
+    }
     p->curp = (MYFLT *) auxp;
-  
+
     return OK;
 }
 
@@ -261,9 +261,9 @@ int delrset(CSOUND *csound, DELAYR *p)
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
-     else if (*p->istor == FL(0.0)) {            /* else if requested */
+    else if (*p->istor == FL(0.0)) {            /* else if requested */
       memset(auxp, 0, npts*sizeof(MYFLT));
-      }
+    }
     p->curp = auxp;
     return OK;
 }
@@ -486,9 +486,9 @@ int deltapn(CSOUND *csound, DELTAP *p)
       for (n=0; n<nsmps; n++) {
         delsmps = timp[n];
         idelsmps = (int32)delsmps;
-        if ((tap = curq++ - idelsmps) < begp)
+        if (UNLIKELY((tap = curq++ - idelsmps) < begp))
           tap += q->npts;
-        else if (tap >= endp)
+        else if (UNLIKELY(tap >= endp))
           tap -= q->npts;
         ar[n] = *tap;
       }
@@ -519,14 +519,18 @@ int deltap3(CSOUND *csound, DELTAP *p)
       while (tap < begp) tap += q->npts;
       for (n=0; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
-        if (tap >= endp)
+        if (UNLIKELY(tap >= endp))
           tap -= q->npts;
-        if ((prv = tap - 1) < begp)
+        if (UNLIKELY((prv = tap - 1) < begp))
           prv += q->npts;
-        if (prv - 1 < begp) y2 = *(prv-1+q->npts);
-        else                y2 = *(prv-1);
-        if (tap + 1 >= endp) ym1 = *(tap+1-q->npts);
-        else                ym1 = *(tap+1);
+        if (UNLIKELY(prv - 1 < begp))
+          y2 = *(prv-1+q->npts);
+        else
+          y2 = *(prv-1);
+        if (UNLIKELY(tap + 1 >= endp))
+          ym1 = *(tap+1-q->npts);
+        else
+          ym1 = *(tap+1);
         y0 = *tap; y1 = *prv;
         {
           MYFLT w, x, y, z;
