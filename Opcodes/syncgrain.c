@@ -380,7 +380,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     p->dataframes = (int)(*p->max*csound->esr*4);
     if(p->dataframes < MINFBUFSIZE)
       p->dataframes =  MINFBUFSIZE;
-    if (p->olaps < 2)
+    if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
