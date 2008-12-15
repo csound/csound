@@ -797,7 +797,7 @@ void midifile_rewind_score(CSOUND *csound)
 int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 {
     if (MIDIFILE == NULL)
-      *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->bt.ibeatTime);
+      *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
     else
       *(p->kResult) = (MYFLT) MF(currentTempo);
     return OK;
