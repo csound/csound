@@ -198,7 +198,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->ct.icurTime/csound->esr, &n);
+                  csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -252,7 +252,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->ct.icurTime/csound->esr, &n);
+                  csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -306,7 +306,7 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->ct.icurTime/csound->esr, &n);
+                  csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -358,7 +358,7 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->ct.icurTime/csound->esr, &n);
+                  csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -410,7 +410,7 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->ct.icurTime/csound->esr, &n);
+                  csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -644,14 +644,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       }
       else if (strcmp(fName, "null") == 0) {
         ST(outfile) = NULL;
-        if (csound->dither.output && csound->oparms->outformat!=AE_FLOAT) {
+        if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT) {
           if (csound->oparms->outformat==AE_SHORT)
-            if (csound->dither.output==1)
+            if (csound->dither_output==1)
               csound->audtran = writesf_dither_16;
             else
               csound->audtran = writesf_dither_u16;
           else if (csound->oparms->outformat==AE_CHAR)
-            if (csound->dither.output==1)
+            if (csound->dither_output==1)
               csound->audtran = writesf_dither_8;
             else
               csound->audtran = writesf_dither_u8;
@@ -691,7 +691,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SF_TRUE : SF_FALSE));
 #ifdef SOME_FINE_DAY
-    if (csound->dither.output) {        /* This may not be written yet!! */
+    if (csound->dither_output) {        /* This may not be written yet!! */
       SF_DITHER_INFO  ditherInfo;
       memset(&ditherInfo, 0, sizeof(SF_DITHER_INFO));
       ditherInfo.type = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
@@ -707,7 +707,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->spoutran = spoutsf;       /* accumulate output */
     else
       csound->spoutran = spoutsf_noscale;
-    if (csound->dither.output && csound->oparms->outformat!=AE_FLOAT) {
+    if (csound->dither_output && csound->oparms->outformat!=AE_FLOAT) {
       if (csound->oparms->outformat==AE_SHORT)
         csound->audtran = writesf_dither_16;
       else if (csound->oparms->outformat==AE_CHAR)

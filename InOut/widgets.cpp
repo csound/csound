@@ -109,7 +109,7 @@ extern "C" {
           p->eventQueue = ep->nxt;
           csound->UnlockMutex(p->mutex_);
           csound->insert_score_event_at_sample(csound, &(ep->evt),
-                                               csound->ct.icurTime);
+                                               csound->icurTime);
           free(ep);
           csound->LockMutex(p->mutex_);
         }
@@ -120,7 +120,7 @@ extern "C" {
         EVTBLK  e;
         memset(&e, 0, sizeof(EVTBLK));
         e.opcod = 'e';
-        csound->insert_score_event_at_sample(csound, &e, csound->ct.icurTime);
+        csound->insert_score_event_at_sample(csound, &e, csound->icurTime);
       }
   }
 }       // extern "C"
@@ -192,7 +192,7 @@ extern "C" {
             e.p[i] = *args[i];
           if (e.p[2] < FL(0.0))
             e.p[2] = FL(0.0);
-          csound->insert_score_event_at_sample(csound, &e, csound->ct.icurTime);
+          csound->insert_score_event_at_sample(csound, &e, csound->icurTime);
         }
   }
 }

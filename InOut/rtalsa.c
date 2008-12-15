@@ -345,7 +345,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     dev->sampleSize = (int) sizeof(MYFLT) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
-      alsaFmt = set_format(&fp, dev->format, play, csound->dither.output);
+      alsaFmt = set_format(&fp, dev->format, play, csound->dither_output);
       if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }

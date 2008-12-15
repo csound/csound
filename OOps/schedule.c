@@ -121,7 +121,7 @@ int schedule(CSOUND *csound, SCHED *p)
       }
       if (*p->when <= FL(0.0)) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->ct.icurTime/csound->esr -
+                                 (MYFLT) (csound->icurTime/csound->esr -
                                           csound->timeOffs),
                                  dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (p->midi) {
@@ -133,7 +133,7 @@ int schedule(CSOUND *csound, SCHED *p)
       }
       else
         queue_event(csound, (MYFLT) which,
-                    (double)*p->when + csound->ct.icurTime/csound->esr,
+                    (double)*p->when + csound->icurTime/csound->esr,
                             dur, p->INOCOUNT - 3, p->argums);
     }
     return OK;
@@ -199,9 +199,9 @@ int kschedule(CSOUND *csound, WSCHED *p)
       p->todo = 0;
                                 /* Insert event */
       starttime = (double)p->abs_when + (double)*(p->when) + csound->timeOffs;
-      if (starttime*csound->esr <= csound->ct.icurTime) {
+      if (starttime*csound->esr <= csound->icurTime) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->ct.icurTime/csound->esr -
+                                 (MYFLT) (csound->icurTime/csound->esr -
                                           csound->timeOffs),
                                  dur, p->INOCOUNT - 4, p->argums, p->midi);
         if (p->midi) {

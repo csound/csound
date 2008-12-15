@@ -291,8 +291,6 @@ extern "C" {
     MYFLT   pchbend;
     /** pitch bend sensitivity in semitones */
     MYFLT   pbensens;
-    /** unused */
-    MYFLT   dummy_;
     /** number of held (sustaining) notes */
     int16   ksuscnt;
     /** current state of sustain pedal (0: off) */
@@ -980,10 +978,7 @@ extern const uint32_t csPlayScoMask;
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
  /* SUBR dummyfn_1; */
     SUBR dummyfn_2[86];
-    union dither {
-      int         output;
-      SUBR        dummy;
-    } dither;
+    int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
@@ -1004,18 +999,12 @@ extern const uint32_t csPlayScoMask;
     /** start time of current section    */
     double        timeOffs, beatOffs;
     /** current time in seconds, inc. per kprd */
-    union {
-      double        dummy;      /* Ensure old alignment */
-      long          icurTime;   /* Current time in samples */
-    } ct;
+    long          icurTime;   /* Current time in samples */
     double        curTime_inc;
     /** current time in beats, inc per kprd */
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
-    union {
-      double        beatTimedummy;      /* Ensure old alignment */
-      long          ibeatTime;   /* Beat time in samples */
-    } bt;
+    long          ibeatTime;   /* Beat time in samples */
     int           spoutlock, spinlock;
     /* Widgets */
     void          *widgetGlobals;
@@ -1049,6 +1038,8 @@ extern const uint32_t csPlayScoMask;
     CsoundRandMTState *csRandState;
     int           randSeed1;
     int           randSeed2;
+    int   dummyint[10];
+    int32 dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
@@ -1088,12 +1079,11 @@ extern const uint32_t csPlayScoMask;
     int16         ngotos;
     int           peakchunks;
     int           keep_tmp;
-    int           dummy_3;
     OENTRY        *opcodlst;
     int           *opcode_list;
     OENTRY        *oplstend;
     int           maxopcno;
-    int32          nrecs;
+    int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
     void          *csoundCallbacks_;

@@ -328,10 +328,10 @@ static int open_device(CSOUND *csound,
       }
       switch (conv_idx) {
         case 0: 
-          if (csound->dither.output==1) 
+          if (csound->dither_output==1) 
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;
-          else if (csound->dither.output==2) 
+          else if (csound->dither_output==2) 
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_u;
           else

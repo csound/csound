@@ -747,7 +747,7 @@ else:
 # Package contents.
 
 # library version is CS_VERSION.CS_APIVERSION
-csoundLibraryVersion = '5.1'
+csoundLibraryVersion = '5.2'
 csoundLibraryName = 'csound'
 if commonEnvironment['useDouble'] != '0':
     csoundLibraryName += '64'
