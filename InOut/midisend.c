@@ -65,7 +65,7 @@ static CS_NOINLINE void
 
     if (nbytes < 2)
       return;
-    s = csound->ct.icurTime/csound->esr;
+    s = csound->icurTime/csound->esr;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->ksmps/csound->esr;
     s *= 3000.0;

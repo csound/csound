@@ -800,15 +800,15 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     /* -Z */
     else if (!(strcmp (s, "dither"))) {
-      csound->dither.output = 1;
+      csound->dither_output = 1;
       return 1;
     }
     else if (!(strcmp (s, "dither-uniform"))) {
-      csound->dither.output = 2;
+      csound->dither_output = 2;
       return 1;
     }
     else if (!(strcmp (s, "dither-triangular"))) {
-      csound->dither.output = 1;
+      csound->dither_output = 1;
       return 1;
     }
     else if (!(strncmp (s, "midi-key=", 9))) {
@@ -1160,7 +1160,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
-              csound->dither.output = full;
+              csound->dither_output = full;
             }
             break;
           case '@':
