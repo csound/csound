@@ -192,7 +192,7 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   if (fluidSynth == NULL) {
     if (fluidSettings != NULL)
       delete_fluid_settings(fluidSettings);
-    return csound->InitError(csound, "error allocating fluid engine\n");
+    return csound->InitError(csound, Str("error allocating fluid engine\n"));
   }
   csound_global_mutex_lock();
   fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
@@ -200,11 +200,11 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   csound_global_mutex_unlock();
 
   ndx = fluidEngine_Alloc(csound, fluidSynth);
-  csound->Message(csound, "Created fluidEngine %d with sampling rate = %f, "
-                          "chorus %s, reverb %s, channels %d, polyphony %d.\n",
+  csound->Message(csound, Str("Created fluidEngine %d with sampling rate = %f, "
+                              "chorus %s, reverb %s, channels %d, polyphony %d.\n"),
                   ndx, (double) csound->esr,
-                  chorusEnabled ? "on" : "off",
-                  reverbEnabled ? "on" : "off",
+                  chorusEnabled ? Str("on") : Str("off"),
+                  reverbEnabled ? Str("on") : Str("off"),
                   numChannels,
                   polyphony);
   *(p->iEngineNum) = (MYFLT) ndx;
@@ -226,7 +226,7 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
   int     sfontId = -1;
 
   if (engineNum >= (int) pp->cnt || engineNum < 0) {
-    csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
+    csound->InitError(csound, Str("Illegal Engine Number: %i.\n"), engineNum);
     return NOTOK;
   }
   filename = csound->strarg2name(csound,
@@ -234,13 +234,13 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
                                  (int) csound->GetInputArgSMask(p));
   filename_fullpath = csound->FindInputFile(csound, filename, "SFDIR;SSDIR");
   if (filename_fullpath != NULL && fluid_is_soundfont(filename_fullpath)) {
-    csound->Message(csound, "Loading SoundFont : %s.\n", filename_fullpath);
+    csound->Message(csound, Str("Loading SoundFont : %s.\n"), filename_fullpath);
     sfontId = fluid_synth_sfload(pp->fluid_engines[engineNum],
                                  filename_fullpath, 0);
   }
   *(p->iInstrumentNumber) = (MYFLT) sfontId;
   if (sfontId < 0)
-    csound->InitError(csound, "fluid: unable to load %s", filename);
+    csound->InitError(csound, Str("fluid: unable to load %s"), filename);
   csound->NotifyFileOpened(csound, filename_fullpath, CSFTYPE_SOUNDFONT, 0, 0);
   csound->Free(csound, filename_fullpath);
   csound->Free(csound, filename);
@@ -257,7 +257,7 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
     fluidSoundfont->iteration_start(fluidSoundfont);
     if (csound->oparms->msglevel & 0x7)
       while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
-        csound->Message(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
+        csound->Message(csound, Str("SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n"),
                         sfontId,
                         fluidPreset.get_banknum(&fluidPreset),
                         fluidPreset.get_num(&fluidPreset),
@@ -387,7 +387,7 @@ static int fluidOutIopadr(CSOUND *csound, FLUIDOUT *p)
   int   engineNum = (int) *(p->iEngineNum);
 
   if (engineNum >= (int) pp->cnt || engineNum < 0) {
-    csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
+    csound->InitError(csound, Str("Illegal Engine Number: %i.\n"), engineNum);
     return NOTOK;
   }
   p->fluidEngine = pp->fluid_engines[engineNum];
@@ -479,7 +479,7 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
     noteOff:
       res = fluid_synth_noteoff(fluidEngine, midiChannel, midiData1);
       if (printMsgs)
-        csound->Message(csound, "result: %d \n Note off: c:%3d k:%3d\n",res,
+        csound->Message(csound, Str("result: %d \n Note off: c:%3d k:%3d\n"),res,
                         midiChannel, midiData1);
       break;
     case (int) 0x90:
@@ -487,25 +487,26 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
         goto noteOff;
       res = fluid_synth_noteon(fluidEngine, midiChannel, midiData1, midiData2);
       if (printMsgs)
-        csound->Message(csound, "result: %d \nNote on: c:%3d k:%3d v:%3d\n",res,
-                        midiChannel, midiData1, midiData2);
+        csound->Message(csound, Str("result: %d \nNote on: c:%3d k:%3d v:%3d\n"),
+                        res, midiChannel, midiData1, midiData2);
       break;
     case (int) 0xA0:
       if (printMsgs)
-        csound->Message(csound, "Key pressure (not handled): "
-                        "c:%3d k:%3d v:%3d\n",
+        csound->Message(csound, Str("Key pressure (not handled): "
+                                    "c:%3d k:%3d v:%3d\n"),
                         midiChannel, midiData1, midiData2);
       break;
     case (int) 0xB0:
       res = fluid_synth_cc(fluidEngine, midiChannel, midiData1, midiData2);
       if (printMsgs)
-        csound->Message(csound, "Result: %d Control change: c:%3d c:%3d v:%3d\n",res,
-                        midiChannel, midiData1, midiData2);
+        csound->Message(csound,
+                        Str("Result: %d Control change: c:%3d c:%3d v:%3d\n"),
+                        res, midiChannel, midiData1, midiData2);
       break;
     case (int) 0xC0:
       res = fluid_synth_program_change(fluidEngine, midiChannel, midiData1);
       if (printMsgs)
-        csound->Message(csound, "Result: %d Program change: c:%3d p:%3d\n",res,
+        csound->Message(csound, Str("Result: %d Program change: c:%3d p:%3d\n"),res,
                         midiChannel, midiData1);
       break;
     case (int) 0xD0:
@@ -518,14 +519,14 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
         int pbVal = midiData1 + (midiData2 << 7);
         fluid_synth_pitch_bend(fluidEngine, midiChannel, pbVal);
         if (printMsgs)
-          csound->Message(csound, "Result: %d, Pitch bend:     c:%d b:%d\n", res,
-                          midiChannel, pbVal);
+          csound->Message(csound, Str("Result: %d, Pitch bend:     c:%d b:%d\n"),
+                          res, midiChannel, pbVal);
       }
       break;
     case (int) 0xF0:
       if (printMsgs)
-        csound->Message(csound, "System exclusive (not handled): "
-                        "c:%3d v1:%3d v2:%3d\n",
+        csound->Message(csound, Str("System exclusive (not handled): "
+                                    "c:%3d v1:%3d v2:%3d\n"),
                         midiChannel, midiData1, midiData2);
       break;
     }
@@ -547,7 +548,8 @@ static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
 
         if (engineNum >= (int) pp->cnt || engineNum < 0)
         {
-                csound->InitError(csound, "Illegal Engine Number: %i.\n", engineNum);
+          csound->InitError(csound, Str("Illegal Engine Number: %i.\n"),
+                            engineNum);
                 return NOTOK;
         }
 
@@ -555,7 +557,8 @@ static int fluidSetInterpMethod(CSOUND *csound, FLUID_SET_INTERP_METHOD *p)
                         interpMethod != 7)
         {
                 csound->InitError(csound,
-                                "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n");
+                                  Str("Illegal Interpolation Method: Must "
+                                      "be either 0, 1, 4, or 7.\n"));
                                 return NOTOK;
         }
 
