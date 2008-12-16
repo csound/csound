@@ -1402,15 +1402,15 @@ void oload(CSOUND *p)
     /* initialise sensevents state */
     p->prvbt = p->curbt = p->nxtbt = 0.0;
     p->curp2 = p->nxtim = p->timeOffs = p->beatOffs = 0.0;
-    p->ct.icurTime = 0L;
+    p->icurTime = 0L;
     if (O->Beatmode && O->cmdTempo > 0) {
       /* if performing from beats, set the initial tempo */
       p->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) p->ekr);
-      p->bt.ibeatTime = (int)(p->esr*60.0 / (double) O->cmdTempo);
+      p->ibeatTime = (int)(p->esr*60.0 / (double) O->cmdTempo);
     }
     else {
       p->curBeat_inc = 1.0 / (double) p->ekr;
-      p->bt.ibeatTime = 1;
+      p->ibeatTime = 1;
     }
     p->cyclesRemaining = 0;
     memset(&(p->evt), 0, sizeof(EVTBLK));
