@@ -204,7 +204,6 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
       /* csound->Message(csound, "%lf\n", ip->offtim); */
       if (O->Beatmode) {
-<<<<<<< insert.c
         p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime) + csound->curBeat;
         ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->ibeatTime);
       }
@@ -456,7 +455,6 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       ip->nxtoff = nxtp;
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
-<<<<<<< insert.c
 #ifdef BETA
       if (csound->oparms->odebug)
         csound->Message(csound,"schedofftim: %lf %lf %f\n",
