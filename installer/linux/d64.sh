@@ -30,8 +30,8 @@ cp -puv ../../loris.py ../../../CSDIST/$DIR/opc/frontends
 rm ../../../CSDIST/$DIR/opc/libcsound64.so
 rm ../../../CSDIST/$DIR/opc/lib_CsoundVST.so
 
-cp -upv ../../libcsound64.so.5.1  ../../../CSDIST/$DIR/lib
-(cd  ../../../CSDIST/$DIR/lib; ln -s libcsound64.so.5.1 libcsound64.so)
+cp -upv ../../libcsound64.so.5.2  ../../../CSDIST/$DIR/lib
+(cd  ../../../CSDIST/$DIR/lib; ln -s libcsound64.so.5.2 libcsound64.so)
 
 cp -upv ../../libcsound64.a ../../../CSDIST/$DIR/lib
 
