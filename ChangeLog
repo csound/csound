@@ -1,3 +1,11 @@
+2008-12-15  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h (CS_APIVERSION): Upped version to 2/0
+
+	* H/csoundCore.h: Cleaned up unused fields in struct CSOUND_ and
+	added some expansions.  Tidied timing counters as well.  Involved
+	a number of small canges elsewhere
+
 2008-12-04  mantaraya36  <mantaraya36@gmail.com>
 
 	* Opcodes/pmidi.c : Added option to listen on all MIDI ports
