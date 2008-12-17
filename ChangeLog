@@ -10,7 +10,7 @@
 
 	* H/csoundCore.h: Cleaned up unused fields in struct CSOUND_ and
 	added some expansions.  Tidied timing counters as well.  Involved
-	a number of small canges elsewhere
+	a number of small changes elsewhere
 
 2008-12-04  mantaraya36  <mantaraya36@gmail.com>
 
