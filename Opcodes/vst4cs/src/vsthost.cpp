@@ -830,7 +830,7 @@ VstTimeInfo *VSTPlugin::GetTime(void)
 {
     Debug("VSGPlugin::GetTime().\n");
     if (csound)
-      vstTimeInfo.samplePos = csound->curTime * csound->esr;
+      vstTimeInfo.samplePos = csound->icurTime;
     else
       vstTimeInfo.samplePos = 0;
     vstTimeInfo.sampleRate = framesPerSecond;

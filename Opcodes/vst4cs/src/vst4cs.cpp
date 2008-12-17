@@ -518,11 +518,11 @@ extern "C" {
     VSTNOTEOUT *p = (VSTNOTEOUT *)data;
     size_t vstHandle = (size_t) *p->iVSThandle;
     p->vstPlugin = ST(vstPlugins)[vstHandle];
-    p->startTime = csound->curTime;
+    p->startTime = CURTIME;
     // The note may be scheduled to turn on some frames after the actual start of this kperiod.
     // Use the warped p2 to compute this time.
     double onTime = double(csound->timeOffs + p->h.insdshead->p2);
-    double deltaTime = onTime - csound->curTime;
+    double deltaTime = onTime - CURTIME;
     int deltaFrames = 0;
     if (deltaTime > 0) {
       deltaFrames = int(deltaTime / csound->GetSr(csound));
@@ -551,7 +551,7 @@ extern "C" {
     p->on = true;
     if (csound->GetDebug(csound)) {
       csound->Message(csound, "vstnote_init:      on time:      %f\n", onTime);
-      csound->Message(csound, "                   csound time:  %f\n", csound->curTime);
+      csound->Message(csound, "                   csound time:  %f\n", CURTIME);
       csound->Message(csound, "                   delta time:   %f\n", deltaTime);
       csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
       csound->Message(csound, "                   off time:     %f\n", p->offTime);
@@ -567,10 +567,10 @@ extern "C" {
   {
     VSTNOTEOUT *p = (VSTNOTEOUT *)data;
     if (p->on) {
-      if (csound->curTime >= p->offTime || p->h.insdshead->relesing) {
+      if (CURTIME >= p->offTime || p->h.insdshead->relesing) {
         // The note may be scheduled to turn off
         // some frames after the actual start of this kperiod.
-        double deltaTime = p->offTime - csound->curTime;
+        double deltaTime = p->offTime - CURTIME;
         int deltaFrames = 0;
         if (deltaTime > 0) {
           deltaFrames = int(deltaTime / csound->GetSr(csound));
@@ -578,7 +578,7 @@ extern "C" {
         p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16), deltaFrames, 0);
         p->on = false;
         if (csound->GetDebug(csound)) {
-          csound->Message(csound, "vstnote_perf:      csound time:  %f\n", csound->curTime);
+          csound->Message(csound, "vstnote_perf:      csound time:  %f\n", CURTIME);
           csound->Message(csound, "                   off time:     %f\n", p->offTime);
           csound->Message(csound, "                   delta time:   %f\n", deltaTime);
           csound->Message(csound, "                   delta frames: %d\n", deltaFrames);
