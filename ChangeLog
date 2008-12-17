@@ -1,3 +1,9 @@
+2008-12-17  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* SConstruct:  Add libintl on OS X when useGettext=1.  Commented out
+	-fno-rtti option on OS X.  Revised Python detection logic so that it
+	works on multiple versions of OS X.
+
 2008-12-15  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h (CS_APIVERSION): Upped version to 2/0
