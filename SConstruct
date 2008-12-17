@@ -396,6 +396,8 @@ if commonEnvironment['useGettext'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
     if getPlatform() == "win32":
         commonEnvironment.Append(LIBS=['intl'])
+    if getPlatform() == "darwin":
+        commonEnvironment.Append(LIBS=['intl'])
 else:
     print "Using Istvan localisation"
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
@@ -471,7 +473,7 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     if commonEnvironment['useAltivec'] == '1':
-        print 'CONFIGURATION DECISION using Altivec optmisation'
+        print 'CONFIGURATION DECISION: Using Altivec optimisation'
         commonEnvironment.Append(CCFLAGS = "-faltivec")
 elif getPlatform() == 'win32':
     commonEnvironment.Append(CCFLAGS =  '-D_WIN32')
@@ -531,14 +533,31 @@ if getPlatform() == 'linux':
         pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
-    vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
-    if vers[1] == 3:
-        print "Python version is 2.%s, using Apple Python Framework" % vers[1]
+    # find Mac OS X major version
+    fout = os.popen("uname -r")
+    kernelstr = fout.readline()
+    fout.close()
+    OSXvers = int(kernelstr[:kernelstr.find('.')]) - 4
+    print "Mac OS X version 10.%d" % OSXvers
+    # dictionary mapping OS X version to Apple Python version
+    # ex. 4:3 maps OS X 10.4 to Python 2.3
+    # Note that OS X 10.2 did not ship with a Python framework
+    # and 10.0 and 10.1 shipped with no Python at all
+    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5 }
+    sysPyVers = OSXSystemPythonVersions[OSXvers]
+    if OSXvers >= 2:
+        print "Apple Python version is 2.%d" % sysPyVers
+    # vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
+    vers = sys.version_info
+    pvers = "%s.%s" % (vers[0], vers[1])
+    # This logic is not quite right on OS X 10.2 and earlier
+    # or if the MacPython version equals the expected Apple Python version
+    if vers[1] == sysPyVers:
+        print "Current Python version is %s, using Apple Python Framework" % pvers
         pyBasePath = '/System/Library/Frameworks/Python.framework'
     else:
-        print "Python version is 2.%s, using MacPython Framework" % vers[1]
-        pyBasePath = '/Library/Frameworks/Python.Framework'
-    pvers = "2.%s" % vers[1]
+        print "Current Python version is %s, using MacPython Framework" % pvers
+        pyBasePath = '/Library/Frameworks/Python.framework'
     if commonEnvironment['pythonVersion'] != pvers:
         commonEnvironment['pythonVersion'] = pvers
         print "WARNING python version used is " + pvers
@@ -679,7 +698,7 @@ if not pythonFound:
         tmp = '%s/Python.h' % i
         pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
 if getPlatform() == 'darwin':
-    tmp = "/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h"
+    tmp = "/System/Library/Frameworks/JavaVM.framework/Headers/jni.h"
     javaFound = configure.CheckHeader(tmp, language = "C++")
 else:
     javaFound = configure.CheckHeader("jni.h", language = "C++")
@@ -766,7 +785,7 @@ if getPlatform() == 'darwin':
         # framework (CsoundLib64) for double precision
         if commonEnvironment['useDouble'] != '0':
             CsoundLib_OSX += '64'
-        OSXFrameworkBaseDir = '%s.Framework' % CsoundLib_OSX
+        OSXFrameworkBaseDir = '%s.framework' % CsoundLib_OSX
         tmp = OSXFrameworkBaseDir + '/Versions/%s'
         OSXFrameworkCurrentVersion = tmp % csoundLibraryVersion
 
@@ -1154,7 +1173,7 @@ if getPlatform() == 'darwin':
     '''))
     # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
-    pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
+    # pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
 #############################################################################
 #
@@ -1249,7 +1268,7 @@ else:
         csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Clone()
         if getPlatform() == 'darwin':
             csoundWrapperEnvironment.Append(CPPPATH =
-                ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
+                ['/System/Library/Frameworks/JavaVM.framework/Headers'])
         if getPlatform() == 'linux' or getPlatform() == 'darwin':
             # ugly hack to work around bug that requires running scons twice
             tmp = [csoundWrapperEnvironment['SWIG']]
@@ -2369,10 +2388,10 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     csTclEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
-            -I/Library/Frameworks/Tcl.Framework/Headers
-            -I/Library/Frameworks/Tk.Framework/Headers
-            -I/System/Library/Frameworks/Tcl.Framework/Headers
-            -I/System/Library/Frameworks/Tk.Framework/Headers
+            -I/Library/Frameworks/Tcl.framework/Headers
+            -I/Library/Frameworks/Tk.framework/Headers
+            -I/System/Library/Frameworks/Tcl.framework/Headers
+            -I/System/Library/Frameworks/Tk.framework/Headers
         '''))
         csTclEnvironment.Append(LINKFLAGS = Split('''
             -framework tk -framework tcl
