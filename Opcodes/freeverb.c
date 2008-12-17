@@ -202,7 +202,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
         x = combp->filterState * feedback + (double) p->aInL[n];
         combp->buf[combp->bufPos] = (MYFLT) x;
-        if (++(combp->bufPos) >= combp->nSamples)
+        if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
       }
     }
@@ -213,7 +213,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
-        if (++(allpassp->bufPos) >= allpassp->nSamples)
+        if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
         p->tmpBuf[n] = (MYFLT) x;
       }
@@ -233,7 +233,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
         x = combp->filterState * feedback + (double) p->aInR[n];
         combp->buf[combp->bufPos] = (MYFLT) x;
-        if (++(combp->bufPos) >= combp->nSamples)
+        if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
       }
     }
@@ -244,7 +244,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
         x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
-        if (++(allpassp->bufPos) >= allpassp->nSamples)
+        if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
         p->tmpBuf[n] = (MYFLT) x;
       }
