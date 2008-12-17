@@ -672,7 +672,7 @@ gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 #if not buildOLPC:
-jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h", language = "C")
+jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 #if not buildOLPC:
 pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
 #else:
@@ -1340,6 +1340,8 @@ else:
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s''' % ('5.1', ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('_csnd', csoundInterfacesSources)
+            try: os.symlink('libcsnd.dylib', 'lib_csnd.dylib')
+            except: print "link exists..."
         else:
             csoundInterfaces = csoundInterfacesEnvironment.Library('_csnd', csoundInterfacesSources)
     elif getPlatform() == 'linux':
@@ -1516,7 +1518,14 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
 '''))
 makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if jackFound:
-    makePlugin(pluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+    jpluginEnvironment = pluginEnvironment.Clone()
+    if getPlatform() == 'linux':
+        jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+    elif getPlatform() == 'win32':
+        jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
+    else:
+        jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
+    makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
 if (not buildOLPC) and gmmFound and commonEnvironment['useDouble'] != '0':
@@ -1679,7 +1688,7 @@ else:
     elif getPlatform() == 'win32':
         jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
     else:
-        jackEnvironment.Append(LIBS = ['jack', 'pthread'])
+        jackEnvironment.Append(LIBS = ['pthread', 'jack'])
     makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
 
 if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
