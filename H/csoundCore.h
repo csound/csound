@@ -68,7 +68,7 @@ extern "C" {
 #define XSTRCODE    ORTXT.xincod_str
 #define XOUTSTRCODE ORTXT.xoutcod_str
 
-#define CURTIME (((double)csound->ct.icurTime)/((double)csound->esr))
+#define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
 #define MAXLEN     0x1000000L
