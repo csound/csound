@@ -204,15 +204,15 @@ if vimDir != '':
 
 # build Csound
 
-buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
+buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
-              ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
+              ['useDouble=0', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
                'buildLoris=1', 'buildStkOpcodes=1', 'buildWinsound=1',
                'buildCsound5GUI=1', 'buildUtilities=1'],
-              ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
+              ['useDouble=1', 'dynamicCsoundLibrary=0', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
-              ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
+              ['useDouble=1', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
                'buildCsoundVST=0', 'buildLoris=1', 'buildStkOpcodes=1',
                'buildWinsound=1', 'buildCsound5GUI=1', 'buildUtilities=1']]
