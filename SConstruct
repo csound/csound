@@ -1340,7 +1340,7 @@ else:
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s''' % ('5.1', ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('_csnd', csoundInterfacesSources)
-            try: os.symlink('libcsnd.dylib', 'lib_csnd.dylib')
+            try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: print "link exists..."
         else:
             csoundInterfaces = csoundInterfacesEnvironment.Library('_csnd', csoundInterfacesSources)
