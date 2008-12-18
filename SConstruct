@@ -2271,7 +2271,12 @@ else:
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
     if commonEnvironment['useDouble'] != '0' :
-        counterpoint = acEnvironment.Program(
+        if getPlatform() == 'darwin':
+          counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd'))
+        else:
+            counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound64'))
     else:
