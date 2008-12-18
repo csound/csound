@@ -1,3 +1,8 @@
+2008-12-18  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (hsboscset): Bug whereby two internal variables may
+	be unititialised fixed.
+
 2008-12-17  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct:  Add libintl on OS X when useGettext=1.  Commented out

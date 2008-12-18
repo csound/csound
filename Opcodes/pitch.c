@@ -158,8 +158,6 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
       octp->curp = octp->begp;
-/*       for (fltp=octp->feedback,n=6; n--; ) */
-/*         *fltp++ = FL(0.0); */
       memset(octp->feedback, '\0', 6*sizeof(MYFLT));
       octp->scount = 0;
     }
@@ -183,13 +181,13 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     if (*p->irolloff<=FL(0.0)) p->rolloff = FL(0.6);
     else p->rolloff = *p->irolloff;
     p->nptls = nptls;        /* number, whether all or odd */
-      ptlmax = nptls;
+    ptlmax = nptls;
     dstp = p->pdist;
     fnfreqs = (MYFLT)specp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn++)
-      *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
-    if ((rolloff = p->rolloff) == FL(0.0) ||
-        rolloff == FL(1.0) || nptls == 1) {
+      *dstp++ = (int) ((LOG((MYFLT) nn) / (MYFLT)LOGTWO) * fnfreqs + FL(0.5));
+    if (UNLIKELY((rolloff = p->rolloff) == FL(0.0) ||
+                 rolloff == FL(1.0) || nptls == 1)) {
       p->rolloff = FL(0.0);
       weightsum = (MYFLT)nptls;
     }
@@ -270,10 +268,10 @@ int pitch(CSOUND *csound, PITCH *p)
         int   nfilt;
         curp = octp->curp;
         *curp++ = SIG;                      /*  write samp to cur buf  */
-        if (curp >= octp->endp)
+        if (UNLIKELY(curp >= octp->endp))
           curp = octp->begp;                /*    & modulo the pointer */
         octp->curp = curp;
-        if (!(--nocts))  break;             /*  if lastoct, break      */
+        if (UNLIKELY(!(--nocts)))  break;             /*  if lastoct, break      */
         coefp = bicoefs;  ytp = octp->feedback;
         for (nfilt = 3; nfilt--; ) {        /*  apply triple biquad:   */
           yt2    = *ytp++; yt1 = *ytp--;          /* get prev feedback */
@@ -306,7 +304,7 @@ int pitch(CSOUND *csound, PITCH *p)
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
-      if ((len = endp - curp) >= winlen)      /*   if no wrap               */
+      if (UNLIKELY((len = endp - curp) >= winlen)) /*   if no wrap          */
         linbufp = curp;                       /*     use samples in circbuf */
       else {
         len2 = winlen - len;
@@ -519,7 +517,7 @@ static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 int clockset(CSOUND *csound, CLOCK *p)
 {
     p->c = (int)*p->cnt;
-    if (p->c < 0 || p->c > 31)
+    if (UNLIKELY(p->c < 0 || p->c > 31))
       p->c = 32;
     return OK;
 }
@@ -527,7 +525,7 @@ int clockset(CSOUND *csound, CLOCK *p)
 int clockon(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
-    if (!clk->running[p->c]) {
+    if (LIKELY(!clk->running[p->c])) {
       clk->running[p->c] = 1;
       clk->counters[p->c] = csound->GetCPUTime(&(clk->r));
     }
@@ -537,7 +535,7 @@ int clockon(CSOUND *csound, CLOCK *p)
 int clockoff(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
-    if (clk->running[p->c]) {
+    if (LIKELY(clk->running[p->c])) {
       clk->running[p->c] = 0;
       clk->counters[p->c] = csound->GetCPUTime(&(clk->r)) - clk->counters[p->c];
     }
@@ -548,7 +546,7 @@ int clockread(CSOUND *csound, CLKRD *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     int cnt = (int) *p->a;
-    if (cnt < 0 || cnt > 32) cnt = 32;
+    if (UNLIKELY(cnt < 0 || cnt > 32)) cnt = 32;
     if (UNLIKELY(clk->running[cnt]))
       return csound->InitError(csound, Str("clockread: clock still running, "
                                            "call clockoff first"));
@@ -578,7 +576,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
     }
 
     count = (int)*p->icnt;
-    if (count < 1)
+    if (UNLIKELY(count < 1))
       count = 1;
     p->count = count;
 
@@ -653,9 +651,6 @@ int adsynt(CSOUND *csound, ADSYNT *p)
 
     ar = p->sr;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     do */
-/*       *ar++ = FL(0.0); */
-/*     while (--nsmps); */
 
     do {
       amp = *amptbl++ * amp0;
@@ -677,7 +672,7 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
     FUNC        *ftp;
     int         octcnt, i;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->ioctcnt < 2)
         octcnt = 3;
@@ -691,9 +686,11 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
           p->lphs[i] = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
       }
     }
-    if ((ftp = csound->FTFind(csound, p->imixtbl)) != NULL) {
+    else p->ftp = NULL;
+    if (LIKELY((ftp = csound->FTFind(csound, p->imixtbl)) != NULL)) {
       p->mixtp = ftp;
     }
+    else p->mixtp = NULL:
     return OK;
 }
 
@@ -751,7 +748,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     for (i=0; i<octcnt; i++) {
       phs = phases[i];
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
-      if (freq > hesr)
+      if (UNLIKELY(freq > hesr))
         amp = FL(0.0);
       inc = (int32)(freq * csound->sicvt);
       for (n=0; n<nsmps; n++) {
@@ -1057,7 +1054,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       val = buffer[i1];
       sum += (double)(val * val);
     }
-    if (peri==0)                /* How xould thus happen??? */
+    if (UNLIKELY(peri==0))      /* How xould thus happen??? */
       rms = FL(0.0);
     else 
       rms = (MYFLT)sqrt(sum / (double)peri);
@@ -1075,7 +1072,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       p->rmsmediptr = rmsmediptr;
     }
 
-    if (peri==0) {
+    if (UNLIKELY(peri==0)) {
       *p->kcps = FL(0.0);
     }
     else 
@@ -1098,7 +1095,7 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
     double  *curphs;
 
     count = (int)(*p->icnt + FL(0.5));
-    if (count < 2)
+    if (UNLIKELY(count < 2))
       count = 2;
 
     if (p->curphs.auxp==NULL || p->curphs.size < (size_t)sizeof(double)*count)
@@ -1132,9 +1129,9 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if ((phs += *p->xcps * csound->onedkr) >= 1.0)
+    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
       phs -= 1.0;
-    else if (phs < 1.0)
+    else if (UNLIKELY(phs < 1.0))
       phs += 1.0;
     curphs[index] = phs;
     return OK;
@@ -1166,9 +1163,9 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
         incr = (double)(cps[n] * csound->onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -1177,9 +1174,9 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
       for (n=0; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -1503,12 +1500,12 @@ int clip(CSOUND *csound, CLIP *p)
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
         if (x>=FL(0.0)) {
-          if (x>limit) x = k2;
+          if (UNLIKELY(x>limit)) x = k2;
           else if (x>a)
             x = a + (x-a)/(FL(1.0)+(x-a)*(x-a)*k1);
         }
         else {
-          if (x<-limit)
+          if (UNLIKELY(x<-limit))
             x = -k2;
           else if (-x>a)
             x = -a + (x+a)/(FL(1.0)+(x+a)*(x+a)*k1);
@@ -1519,9 +1516,9 @@ int clip(CSOUND *csound, CLIP *p)
     case 1:
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
-        if (x>=limit)
+        if (UNLIKELY(x>=limit))
             x = limit;
-        else if (x<= -limit)
+        else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
             x = limit*SIN(k1*x);
@@ -1531,9 +1528,9 @@ int clip(CSOUND *csound, CLIP *p)
     case 2:
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
-        if (x>=limit)
-            x = limit;
-        else if (x<= -limit)
+        if (UNLIKELY(x>=limit))
+          x = limit;
+        else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
           x = limit*k1*TANH(x*rlim);
@@ -1701,7 +1698,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
       else sfreq = (int)(frq*csound->esr); /* Normal case */
       for (n=0;n<nsmps;n++) {
-        if (next-- == 0) {
+        if (UNLIKELY(next-- == 0)) {
           ar[n] = *p->amp;
           next = sfreq - 1;     /* Note can be less than k-rate */
         }
@@ -1816,7 +1813,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         segp = p->cursegp;
       chk1:
-        if (!--p->segsrem) {              /*   if none left       */
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
           val = p->curval = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
@@ -1962,7 +1959,7 @@ int wavesetset(CSOUND *csound, BARRI *p)
       p->length = 1 + (int)(p->h.insdshead->p3 * csound->esr * FL(0.5));
     else
       p->length = 1 + (int)*p->len;
-    if (p->length <= 1) p->length = (int)csound->esr;
+    if (UNLIKELY(p->length <= 1)) p->length = (int)csound->esr;
     csound->AuxAlloc(csound, (int32)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;
