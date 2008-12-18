@@ -52,7 +52,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
     auxchp->size = nbytes;
     auxchp->auxp = mcalloc(csound, nbytes);
     auxchp->endp = (char*)auxchp->auxp + nbytes;
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       auxchprint(csound, csound->curip);
 }
 
@@ -63,7 +63,7 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 {
     fdchp->nxtchp = csound->curip->fdchp;
     csound->curip->fdchp = fdchp;
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       fdchprint(csound, csound->curip);
 }
 
@@ -131,7 +131,7 @@ void fdchclose(CSOUND *csound, INSDS *ip)
         csoundFileClose(csound, fd);    /*    & close the file  */
       }
     }
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       fdchprint(csound, ip);
 }
 

@@ -161,13 +161,13 @@ UNDEF           "#undef"
                       break;
                     mm = mm->next;
                   }
-                  if (mm == NULL) {
+                  if (UNLIKELY(mm == NULL)) {
                     csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                     csound->LongJmp(csound, 1);
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
@@ -182,13 +182,13 @@ UNDEF           "#undef"
                       break;
                     mm = mm->next;
                   }
-                  if (mm == NULL) {
+                  if (UNLIKELY(mm == NULL)) {
                     csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                     csound->LongJmp(csound, 1);
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
@@ -263,7 +263,7 @@ void do_comment(void)              /* Skip until * and / chars */
     for(;;) {
       while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
       if ((c=input())=='/') return;
-      if (c=='\n') yyline++;
+      if (UNLIKELY(c=='\n')) yyline++;
     }
 }
 
@@ -278,14 +278,14 @@ void do_include(CSOUND *csound, int term)
     }
     buffer[p] = '\0';
     while ((c=input())!='\n');
-    if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+    if (UNLIKELY( include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
       csound->Message(csound, Str("Includes nested too deeply"));
       exit(1);
     }
 
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     yyin = fopen( buffer, "r" );
-    if ( ! yyin ) {
+    if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
@@ -307,14 +307,14 @@ void do_macro(CSOUND *csound, char *name0)
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input()) != '#') {
       mm->body[i++] = c;
-      if (i >= size)
+      if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input();
         if (i >= size)
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (c == '\n')
+      if (UNLIKELY(c == '\n'))
         yyline++;
     }
     mm->body[i] = '\0';

@@ -39,7 +39,7 @@ static int32 MYFLOOR(MYFLT x) {
     return (int32) x;
   } else {
     return (int32) (x - FL(0.99999999));
-  } 
+  }
 }
 
 static const MYFLT bicoefs[] = {
@@ -898,7 +898,7 @@ MYFLT medianvalue(uint32 n, MYFLT *vals)
         while (1) {
           do i++; while (vals[i] < a);
           do j--; while (vals[j] > a);
-          if (j < i) break;
+          if (UNLIKELY(j < i)) break;
           SWAP(vals[i], vals[j]);
         }
         vals[l] = vals[j];
@@ -1056,7 +1056,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     }
     if (UNLIKELY(peri==0))      /* How xould thus happen??? */
       rms = FL(0.0);
-    else 
+    else
       rms = (MYFLT)sqrt(sum / (double)peri);
     if (rmsmedisize) {
       rmsmedian[rmsmediptr] = rms;
@@ -1075,7 +1075,7 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
     if (UNLIKELY(peri==0)) {
       *p->kcps = FL(0.0);
     }
-    else 
+    else
       *p->kcps = srate / (MYFLT)peri;
     *p->krms = rms;
     p->index = index;
@@ -1103,7 +1103,7 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      for (n=0; n<count;n++) 
+      for (n=0; n<count;n++)
         curphs[n] = (double) rand_31(csound) / 2147483645.0;
     }
     else if ((phs = *p->iphs) >= 0) {
