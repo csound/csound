@@ -690,7 +690,7 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->imixtbl)) != NULL)) {
       p->mixtp = ftp;
     }
-    else p->mixtp = NULL:
+    else p->mixtp = NULL;
     return OK;
 }
 
