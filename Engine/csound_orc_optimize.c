@@ -36,48 +36,48 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
     TREE *previous = NULL;
 
     while(current != NULL) {
-        switch(current->type) {
-            case T_INSTR:
-                csound->Message(csound, "Instrument found\n");
+      switch(current->type) {
+      case T_INSTR:
+        csound->Message(csound, "Instrument found\n");
 
-                current->right = csound_orc_optimize(csound, current->right);
+        current->right = csound_orc_optimize(csound, current->right);
 
-                break;
-            case T_UDO:
-                //csound->Message(csound, "UDO found\n");
+        break;
+      case T_UDO:
+        //csound->Message(csound, "UDO found\n");
 
-                break;
+        break;
 
-            case T_IF:
+      case T_IF:
 
-                break;
-            default:
+        break;
+      default:
 
-                if(current->right != NULL) {
-                    csound->Message(csound, "Found Statement.\n");
+        if(current->right != NULL) {
+          csound->Message(csound, "Found Statement.\n");
 
-                    if(current->type == S_ASSIGN && previous != NULL) {
-                        /* S_ASSIGN should be guaranteed to have left and right
-                         * arg by the time it gets here */
-                        if(previous->left != NULL && previous->left->value != NULL) {
-                            if(strcmp(previous->left->value->lexeme,
-                                current->right->value->lexeme) == 0) {
+          if(current->type == S_ASSIGN && previous != NULL) {
+            /* S_ASSIGN should be guaranteed to have left and right
+             * arg by the time it gets here */
+            if(previous->left != NULL && previous->left->value != NULL) {
+              if(strcmp(previous->left->value->lexeme,
+                        current->right->value->lexeme) == 0) {
 
-                            
-                        }
 
-                    }
+              }
 
-                }
             }
-        }
 
-        if(anchor == NULL) {
-            anchor = current;
+          }
         }
+      }
 
-        previous = current;
-        current = current->next;
+      if(anchor == NULL) {
+        anchor = current;
+      }
+
+      previous = current;
+      current = current->next;
 
     }
 
