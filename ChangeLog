@@ -1,3 +1,7 @@
+2008-12-19  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h: VERSION 5.10.1
+
 2008-12-18  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (hsboscset): Bug whereby two internal variables may
