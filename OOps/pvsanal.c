@@ -187,7 +187,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
     if (UNLIKELY(overlap > N / 2))
       csound->Die(csound, Str("pvsanal: overlap too big for fft size\n"));
-#ifndef SDFT
+#ifdef OPLC
     if (UNLIKELY(overlap < csound->ksmps))
       csound->Die(csound, Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
@@ -317,9 +317,9 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       k += N;
     k = k % N;
     for (i = -analWinLen; i <= analWinLen; i++) {
-      if (++j >= buflen)
+      if (UNLIKELY(++j >= buflen))
         j -= buflen;
-      if (++k >= N)
+      if (UNLIKELY(++k >= N))
         k -= N;
       *(anal + k) += *(analWindow + i) * *(input + j);
     }
@@ -433,10 +433,11 @@ static inline double mod2Pi(double x)
     if (x <= -PI) {
         return x + TWOPI;
     }
-    if (x > PI) {
+    else if (x > PI) {
         return x - TWOPI;
     }
-    return x;
+    else
+      return x;
 }
 
 int pvssanal(CSOUND *csound, PVSANAL *p)
@@ -518,10 +519,11 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         csound->Message(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
       case PVS_WIN_RECT:
-        for (j=0; j<NB; j++) {
-          ff[j].re = fw[j].re;
-          ff[j].im = fw[j].im;
-        }
+        memcpy(ff, fw, NB*sizeof(CMPLX));
+        /* for (j=0; j<NB; j++) { */
+        /*   ff[j].re = fw[j].re; */
+        /*   ff[j].im = fw[j].im; */
+        /* } */
         break;
       case PVS_WIN_BLACKMAN:
         for (j=0; j<NB; j++) {

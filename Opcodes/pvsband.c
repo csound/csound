@@ -45,7 +45,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "Unsafe to have same fsig as in and out");
 
-#ifdef SDFT
+#ifndef OLPC
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
           csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)

@@ -461,7 +461,7 @@ else:
 
 if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
@@ -649,13 +649,13 @@ if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 	Exit(-1)
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_PTHREAD_BARRIER_INIT')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
 if compilerMicrosoft():
    syncLockTestAndSetFound = False
 else:
    syncLockTestAndSetFound = configure.CheckLibWithHeader('m', 'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);')
 if syncLockTestAndSetFound:
-   commonEnvironment.Append(CPPFLAGS = '-DHAVE_SYNC_LOCK_TEST_AND_SET')
+   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
    print  'found sync lock'
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
 if not buildOLPC:
@@ -745,14 +745,14 @@ for h in headerMacroCheck:
 
 if getPlatform() == 'win32':
     if configure.CheckHeader("winsock.h", language = "C"):
-        commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+        commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
 elif configure.CheckHeader("sys/socket.h", language = "C"):
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
 
 if getPlatform() == 'darwin':
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_DIRENT_H'])
 elif configure.CheckHeader("dirent.h", language = "C"):
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_DIRENT_H'])
 
 if configure.CheckSndFile1016():
     commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1016'])
@@ -1250,7 +1250,7 @@ else:
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
     fixCFlagsForSwig(csoundWrapperEnvironment)
-    csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
+    csoundWrapperEnvironment.Append(CPPFLAGS = ['-D__BUILDING_CSOUND_INTERFACES'])
     for option in csoundWrapperEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
