@@ -1233,6 +1233,7 @@ else:
     print "Python Version: " + commonEnvironment['pythonVersion']
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = []
+    headers += ['csPerfThread.hpp']
     for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
         csoundInterfacesSources.append(csoundInterfacesEnvironment.SharedObject('interfaces/%s.cpp' % i))
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'win32':
