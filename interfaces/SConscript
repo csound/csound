@@ -119,6 +119,8 @@ if commonEnvironment['buildInterfaces'] == '1':
                  tmp % ('5.1', ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
                 '_csnd', csoundInterfacesSources)
+            try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
+            except: pass
         else:
             csoundInterfaces = csoundInterfacesEnvironment.Library(
                 '_csnd', csoundInterfacesSources)
