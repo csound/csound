@@ -3,6 +3,7 @@
 # SConscript into several.
 
 import os
+import string
 
 Import("commonEnvironment", "commandOptions", "util" )
 Import("configure")
@@ -25,6 +26,9 @@ commandOptions.Add('buildPDClass',
     '0')
 commandOptions.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
+    '0')
+commandOptions.Add('buildCsoundAC',
+    'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
     '0')
 
 commandOptions.Update(commonEnvironment)
@@ -337,3 +341,105 @@ if commonEnvironment['buildTclcsound'] == '1':
 
 else:
     util.confDecision("Not building Tclcsound")
+
+# CsoundAC
+
+if commonEnvironment['buildCsoundAC'] == '1':
+    fltkfound = configure.CheckLibWithHeader("fltk", "FL/Fl.H",
+            language = "C++", autoadd = False)
+    if not fltkfound:
+        util.fatal("You specified buildCsoundAC but FLTK was not found")
+    if not 'swig' in commonEnvironment['TOOLS']:
+        util.fatal('You specified buildCsoundAC but SWIG was not found')
+    if not configure.CheckHeader("boost/any.hpp", language = "C++"):
+        util.fatal('You specified buildCsoundAC but Boost was not found')
+    acEnvironment = commonEnvironment.Clone()
+    if not util.fixEnvForPython(acEnvironment, configure):
+        util.fatal('You specified buildCsoundAC but Python was not found')
+
+    Import("csoundInterfaces")
+    try:
+        asdf = csoundInterfaces
+    except NameError:
+        util.fatal("You specified buildCsoundAC but you didn't specify buildInterfaces")
+
+    util.confDecision('Building CsoundAC extension module for Csound with algorithmic composition.')
+
+    acEnvironment.Prepend(CPPPATH   = ['#frontends/CsoundAC', '#interfaces'])
+    acEnvironment.Prepend(LIBS      = csoundInterfaces[0])
+    acEnvironment.Prepend(LIBPATH   = ['#interfaces'])
+    acEnvironment.Append(SWIGFLAGS  = Split(
+        '-c++ -includeall -verbose'))
+    # fltk_images doesn't interact well with this flag
+    flag = '-Wl,-as-needed'
+    if flag in acEnvironment['LINKFLAGS']:
+        acEnvironment['LINKFLAGS'].remove(flag)
+    if flag in acEnvironment['SHLINKFLAGS']:
+        acEnvironment['SHLINKFLAGS'].remove(flag)
+    if util.platform == 'linux':
+        acEnvironment.Append(LIBS               = ['util', 'dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS        = '--no-export-all-symbols')
+        acEnvironment.Append(LINKFLAGS          = ['-Wl,-rpath-link,interfaces'])
+        acEnvironment.Append(LIBS               = ['fltk', 'fltk_images'])
+        try     : os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        except  : pass
+        Clean('_CsoundAC.so', 'lib_CsoundAC.so')
+    elif util.platform == 'darwin':
+        acEnvironment.Append(LIBS = ['dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        acEnvironment['SHLIBSUFFIX'] = '.dylib'
+    elif util.platform == 'win32':
+        if  util.compilerGNU():
+            acEnvironment.Prepend(LIBS = Split(
+                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+        else:
+            acEnvironment.Prepend(LIBS = Split(
+                'fltk fltkimages fltkpng fltkjpeg fltkz'))
+    for option in acEnvironment['CCFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPPATH']:
+        option = '-I' + option
+        acEnvironment.Append(SWIGFLAGS = [option])
+    print 'PATH =', commonEnvironment['ENV']['PATH']
+    csoundAcSources = Split('''
+    CsoundAC/Cell.cpp             CsoundAC/Composition.cpp
+    CsoundAC/Conversions.cpp      CsoundAC/Counterpoint.cpp
+    CsoundAC/CounterpointNode.cpp CsoundAC/Event.cpp
+    CsoundAC/Hocket.cpp           CsoundAC/ImageToScore.cpp
+    CsoundAC/Lindenmayer.cpp      CsoundAC/MCRM.cpp
+    CsoundAC/Midifile.cpp         CsoundAC/MusicModel.cpp
+    CsoundAC/Node.cpp             CsoundAC/Random.cpp
+    CsoundAC/Rescale.cpp          CsoundAC/Score.cpp
+    CsoundAC/ScoreNode.cpp        CsoundAC/Sequence.cpp
+    CsoundAC/Shell.cpp            CsoundAC/Soundfile.cpp
+    CsoundAC/StrangeAttractor.cpp CsoundAC/System.cpp
+    CsoundAC/Voicelead.cpp        CsoundAC/VoiceleadingNode.cpp
+    ''')
+    acWrapperEnvironment = acEnvironment.Clone()
+    util.fixCFlagsForSwig(acWrapperEnvironment)
+    if commonEnvironment['dynamicCsoundLibrary'] == '1':
+        csoundac = acEnvironment.SharedLibrary('CsoundAC', csoundAcSources)
+    else:
+        csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
+
+    acWrapperEnvironment.Append(SWIGFLAGS =
+        ['-python', '-outdir', 'frontends/CsoundAC'])
+    csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
+        'CsoundAC/CsoundAC.i')
+    acWrapperEnvironment.Clean('.', 'CsoundAC/CsoundAC_wrap.h')
+    acPythonEnvironment  = acEnvironment.Clone()
+
+    acPythonEnvironment.Prepend(LIBS        = ['CsoundAC'])
+
+    csoundAcPythonModule = util.makePythonModule(
+        acPythonEnvironment, 'CsoundAC', [csoundAcPythonWrapper])
+
+    counterpoint = acEnvironment.Program('counterpoint',
+        ['CsoundAC/CounterpointMain.cpp'], LIBS = ['CsoundAC'] )
+else:
+    util.confDecision('Not building CsoundAC extension module for Csound with algorithmic composition.')

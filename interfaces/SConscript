@@ -52,7 +52,10 @@ javaSources = Split('''
     SWIGTYPE_p_float.java
     SWIGTYPE_p_f_p_CSOUND__int_p_q_const__char_va_list__void.java
     SWIGTYPE_p_f_p_CSOUND__p_p_void_p_q_const__char__int.java
+    SWIGTYPE_p_f_p_CSOUND__p_q_const__char_double__void.java
     SWIGTYPE_p_f_p_CSOUND__p_q_const__char_float__void.java
+    SWIGTYPE_p_f_p_CSOUND__p_q_const__char_p_double_int__void.java
+    SWIGTYPE_p_f_p_CSOUND__p_q_const__char_p_double__void.java
     SWIGTYPE_p_f_p_CSOUND__p_q_const__char_p_float_int__void.java
     SWIGTYPE_p_f_p_CSOUND__p_q_const__char_p_float__void.java
     SWIGTYPE_p_f_p_CSOUND__p_void__int.java
@@ -60,6 +63,7 @@ javaSources = Split('''
     SWIGTYPE_p_f_p_void_p_void_unsigned_int__int.java
     SWIGTYPE_p_f_p_void__uintptr_t.java
     SWIGTYPE_p_f_p_void__void.java
+    SWIGTYPE_p_p_double.java
     SWIGTYPE_p_int32.java
     SWIGTYPE_p_int.java
     SWIGTYPE_p_int_least64_t.java
@@ -119,7 +123,7 @@ if commonEnvironment['buildInterfaces'] == '1':
             csoundInterfaces = csoundInterfacesEnvironment.Library(
                 '_csnd', csoundInterfacesSources)
     elif util.platform == 'linux':
-        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,interfaces'])
         name    = 'libcsnd.so'
         soname  = name + '.' + util.csoundLibraryVersion
         # This works because scons chdirs while reading SConscripts
@@ -138,6 +142,9 @@ if commonEnvironment['buildInterfaces'] == '1':
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
             'csnd', csoundInterfacesSources)
 
+    # CsoundAC needs this
+    Export("csoundInterfaces")
+
     util.fixCFlagsForSwig(csoundWrapperEnvironment)
     csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
     csoundWrapperEnvironment.Append(LIBS = csoundInterfaces[0])
@@ -149,7 +156,6 @@ if commonEnvironment['buildInterfaces'] == '1':
             csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
     for option in csoundWrapperEnvironment['CPPPATH']:
         csoundWrapperEnvironment.Append(SWIGPATH = [option])
-    swigflags = csoundWrapperEnvironment['SWIGFLAGS']
 
     if commonEnvironment['buildPythonWrapper'] != '0':
         csndPythonEnvironment = csoundWrapperEnvironment.Clone()
@@ -157,10 +163,6 @@ if commonEnvironment['buildInterfaces'] == '1':
             util.fatal("You specified buildPythonWrapper but Python was not found")
 
         util.confDecision("Building Csound Python interface library")
-        csndPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        csndPythonEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-        csndPythonEnvironment.Prepend(LIBS = pythonLibs)
-        csndPythonEnvironment.Append(CPPPATH = pythonIncludePath)
         util.fixCFlagsForSwig(csndPythonEnvironment)
         csndPythonEnvironment.Append(LIBS = csoundInterfaces)
         csndPythonEnvironment.Append(SWIGFLAGS = ['-python', '-outdir',
@@ -219,17 +221,17 @@ if commonEnvironment['buildInterfaces'] == '1':
         # Make sure the java builder sees all java files
         Execute( Touch(javaSources) )
         jcsnd = csoundJavaWrapperEnvironment.Java(
-            target      = './', source = './',
+            target      = 'classes/', source = '.',
             JAVACFLAGS  = ['-source', '1.4', '-target', '1.4'] )
 
         Depends(jcsnd, csoundJavaWrapper)
-        Clean( '.', 'java_interface_wrap.h')
+        Clean( '.', 'java_interface_wrap.h' )
         Clean( csoundJavaWrapper, javaSources )
         Clean( jcsnd, 'csnd' )
+        Clean( jcsnd, 'classes' )
 
-        Execute( Mkdir('csnd') )
+        #Execute( Mkdir('csnd') )
         jcsndJar = csoundJavaWrapperEnvironment.Jar(
-            'csnd.jar', ['csnd'], JARCHDIR = 'interfaces')
-        Depends(jcsndJar, jcsnd)
+            'csnd.jar', 'classes', JARCHDIR = 'interfaces/classes')
     else:
         util.confDecision('Not building Java wrappers for Csound interfaces library.')
