@@ -443,3 +443,87 @@ if commonEnvironment['buildCsoundAC'] == '1':
         ['CsoundAC/CounterpointMain.cpp'], LIBS = ['CsoundAC'] )
 else:
     util.confDecision('Not building CsoundAC extension module for Csound with algorithmic composition.')
+
+
+# Build CsoundVST
+
+if commonEnvironment['buildCsoundVST'] == '1':
+    if not fltkfound:
+        util.fatal("You specified buildCsoundVST but FLTK was not found")
+    if not configure.CheckHeader("boost/any.hpp", language = "C++"):
+        util.fatal('You specified buildCsoundVST but Boost was not found')
+    util.confDecision('Building CsoundVST plugin and standalone.')
+
+    vstEnvironment = commonEnvironment.Clone()
+    vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
+    vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags')
+    flag = '-Wl,-as-needed'
+    if flag in vstEnvironment['LINKFLAGS']:
+        vstEnvironment['LINKFLAGS'].remove(flag)
+    if flag in vstEnvironment['SHLINKFLAGS']:
+        vstEnvironment['SHLINKFLAGS'].remove(flag)
+
+    guiProgramEnvironment = commonEnvironment.Clone()
+    vstEnvironment.Prepend(CPPPATH = ['#interfaces', 'CsoundVST'])
+    guiProgramEnvironment.Append(CPPPATH = ['CsoundVST', '#interfaces'])
+    vstEnvironment.Prepend(LIBS = ['csnd'], LIBPATH=['#interfaces'])
+    
+    if util.platform == 'darwin':
+    # fltk_png z fltk_jpeg are not on OSX at the mo
+        vstEnvironment.Append(LIBS = Split('fltk fltk_images'))
+    if util.platform == 'win32':
+        if util.compilerGNU():
+            vstEnvironment.Append(          LINKFLAGS   = "--subsystem:windows")
+            guiProgramEnvironment.Append(   LINKFLAGS   = "--subsystem:windows")
+            vstEnvironment.Append(          LIBS        = ['stdc++', 'supc++'])
+            guiProgramEnvironment.Append(   LIBS        = ['stdc++', 'supc++'])
+    else:
+        if util.platform == 'linux':
+            vstEnvironment.Append(          LIBS = ['dl'])
+            guiProgramEnvironment.Append(   LIBS = ['dl'])
+        vstEnvironment.Append(              LIBS = ['stdc++', 'pthread', 'm'])
+        guiProgramEnvironment.Append(       LIBS = ['stdc++', 'pthread', 'm'])
+
+    if util.platform == 'linux':
+        vstEnvironment.Append(LIBS              = ['util', 'dl', 'm'])
+    elif util.platform == 'darwin':
+        vstEnvironment.Append(LIBS              = ['dl', 'm'])
+        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
+        vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS       = '--add-stdcall-alias')
+        vstEnvironment['SHLIBSUFFIX']           = '.dylib'
+    elif util.platform == 'win32':
+        if util.compilerGNU():
+            vstEnvironment['ENV']['PATH']       = os.environ['PATH']
+            vstEnvironment.Append(SHLINKFLAGS   = Split('-Wl,--add-stdcall-alias --no-export-all-symbols'))
+            vstEnvironment.Append(CCFLAGS       = ['-DNDEBUG'])
+            guiProgramEnvironment.Prepend(LINKFLAGS = Split(
+                '-mwindows -Wl,--enable-runtime-pseudo-reloc'))
+            vstEnvironment.Prepend(LINKFLAGS =
+                ['-Wl,--enable-runtime-pseudo-reloc'])
+            guiProgramEnvironment.Append(LINKFLAGS  = '-mwindows')
+            vstEnvironment.Append(LIBS              = Split(
+                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+        else:
+            vstEnvironment.Append(LIBS = Split(
+                'fltk fltkimages fltkpng fltkjpeg fltkz'))
+    csoundVstSources = Split('''
+    CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
+    CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
+    CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/vstplugmain.cpp
+    CsoundVST/CsoundVST.cpp
+    CsoundVST/CsoundVstFltk.cpp
+    CsoundVST/CsoundVSTMain.cpp
+    CsoundVST/CsoundVstUi.cpp
+    ''')
+    if util.platform == 'win32':
+        if util.compilerGNU():
+           vstEnvironment.Append(SHLINKFLAGS = ['-module'])
+        csoundVstSources.append('CsoundVST/_CsoundVST.def')
+    csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
+    guiEnvironment.Append(LIBS = 'CsoundVST')
+    csoundvstGui = guiProgramEnvironment.Program(
+        'CsoundVSTShell', ['CsoundVST/csoundvst_main.cpp'])
+    Depends(csoundvstGui, csoundvst)
+else:
+    util.confDecision('Not building CsoundVST plugin and standalone.')
