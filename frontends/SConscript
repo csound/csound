@@ -30,6 +30,9 @@ commandOptions.Add('buildTclcsound',
 commandOptions.Add('buildCsoundAC',
     'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
     '0')
+commandOptions.Add('buildCsoundVST',
+    'Set to 1 to build CsoundVST (needs CsoundAC, FLTK, boost, Python, SWIG).',
+    '0')
 
 commandOptions.Update(commonEnvironment)
 
@@ -125,6 +128,8 @@ else:
 if commonEnvironment['buildWinsound'] == '1':
     fltkfound = configure.CheckLibWithHeader("fltk", "FL/Fl.H",
             language = "C++", autoadd = False)
+    if not fltkfound:
+        util.fatal("You specified buildWinsound but FLTK was not found")
     util.confDecision("Building Winsound frontend")
     # should these be installed ?
     # headers += glob.glob('frontends/winsound/*.h')
@@ -404,7 +409,6 @@ if commonEnvironment['buildCsoundAC'] == '1':
             acEnvironment.Append(SWIGFLAGS = [option])
     for option in acEnvironment['CPPPATH']:
         acEnvironment.Append(SWIGPATH = [option])
-    print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
     CsoundAC/Cell.cpp             CsoundAC/Composition.cpp
     CsoundAC/Conversions.cpp      CsoundAC/Counterpoint.cpp
@@ -447,10 +451,14 @@ else:
 # Build CsoundVST
 
 if commonEnvironment['buildCsoundVST'] == '1':
-    if not fltkfound:
+    if not configure.CheckLibWithHeader("fltk", "FL/Fl.H",
+     language = "C++", autoadd = False):
         util.fatal("You specified buildCsoundVST but FLTK was not found")
     if not configure.CheckHeader("boost/any.hpp", language = "C++"):
         util.fatal('You specified buildCsoundVST but Boost was not found')
+    vstHeader   = "CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
+    if not configure.CheckHeader(vstHeader, language = "C++"):
+        util.fatal("You specified buildCsoundVST but the VST SDK was not found")
     util.confDecision('Building CsoundVST plugin and standalone.')
 
     vstEnvironment = commonEnvironment.Clone()

@@ -311,9 +311,6 @@ commandOptions.Add('useJack',
 commandOptions.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
-commandOptions.Add('buildCsoundVST',
-    'Set to 1 to build CsoundVST (needs CsoundAC, FLTK, boost, Python, SWIG).',
-    '0')
 commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
@@ -462,11 +459,6 @@ customSWIGFLAGS     = initialEnvironment['customSWIGFLAGS']
 initialEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
 buildOLPC           = ( initialEnvironment['buildOLPC'] == '1')
-if buildOLPC:
-    jackFound       = False
-    fltkFound       = False
-    portaudioFound  = False
-    oscFound        = True
 util.fixEnvForOLPC( initialEnvironment )
 
 if initialEnvironment['useDouble'] != '0'   : util.csoundLibraryName += '64'
@@ -740,63 +732,9 @@ if not util.compilerMicrosoft():
       autoadd = False):
         initialEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
 
-vstHeader   = "frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
-vstSdkFound = configure.CheckHeader(vstHeader, language = "C++")
-if not buildOLPC:
-    portaudioFound = configure.CheckLibWithHeader(
-        "portaudio","portaudio.h", language = "C", autoadd = False)
-    portmidiFound = configure.CheckLibWithHeader(
-        "portmidi", "portmidi.h", language = "C", autoadd = False)
-    fltkFound = configure.CheckLibWithHeader(
-        "fltk", "FL/Fl.H", language = "C++", autoadd = False)
-boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
-alsaFound  = configure.CheckLibWithHeader(
-    "asound", "alsa/asoundlib.h", language = "C", autoadd = False)
-oscFound   = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C", autoadd = False)
-if not buildOLPC:
-    jackFound   = configure.CheckHeader("jack/jack.h", language = "C")
-stkFound        = configure.CheckHeader(
-    "Opcodes/stk/include/Stk.h", language = "C++")
-midiPluginSdkFound  = configure.CheckHeader("funknown.h", language = "C++")
-
-swigFound = 'swig' in initialEnvironment['TOOLS']
-print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
-
-pythonFound = configure.CheckHeader("Python.h", language = "C")
-if not pythonFound:
-    for i in pythonIncludePath:
-        pythonFound = pythonFound or configure.CheckHeader(
-            '%s/Python.h' % i, language = "C")
-
-if util.platform == 'darwin':
-    javaFound   = configure.CheckHeader(
-        "/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h",
-        language = "C++")
-else:
-    javaFound   = configure.CheckHeader("jni.h", language = "C++")
-if util.platform == 'linux' and not javaFound:
-    if initialEnvironment['buildInterfaces'] != '0':
-        if initialEnvironment['buildJavaWrapper'] != '0':
-            baseDir = '/usr/lib'
-            if initialEnvironment['Lib64'] == '1':
-                baseDir += '64'
-            for i in ['java', 'jvm/java', 'jvm/java-1.5.0']:
-                javaIncludePath = '%s/%s/include' % (baseDir, i)
-                tmp = '%s/linux/jni_md.h' % javaIncludePath
-                if configure.CheckHeader(tmp, language = "C++"):
-                    javaFound = 1
-                    break
-    if javaFound:
-        initialEnvironment.Append(CPPPATH = [javaIncludePath])
-        initialEnvironment.Append(CPPPATH = [javaIncludePath + '/linux'])
-
 if util.platform == 'win32':
     initialEnvironment['ENV']['PATH']   = os.environ['PATH']
     initialEnvironment['SYSTEMROOT']    = os.environ['SYSTEMROOT']
-
-if vstSdkFound:
-    initialEnvironment.Prepend(CPPFLAGS = ['-DHAVE_VST_SDK'])
-
 
 # Define macros that configure and config.h used to define.
 headerMacroCheck = [
@@ -1197,124 +1135,6 @@ if commonEnvironment['usePortMIDI'] == '1':
 else:
     util.confDecision('Not building with PortMIDI.')
 
-
-# VST HOST OPCODES
-if (commonEnvironment['buildvst4cs'] != '1'):
-    print "CONFIGURATION DECISION: Not building vst4cs opcodes."
-else:
-    print "CONFIGURATION DECISION: Building vst4cs opcodes."
-    if (util.platform == 'win32'or util.platform == 'linux') and fltkFound:
-        vst4Environment = vstEnvironment.Clone()
-        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
-        vst4Environment.Append(CPPPATH  = ['frontends/CsoundVST'])
-        if util.compilerGNU():
-            vst4Environment.Append(LIBS = Split(
-                'fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-            vst4Environment.Append(LIBS = ['stdc++'])
-        else:
-            vst4Environment.Append(LIBS = Split(
-                'fltkimages fltkpng fltkz fltkjpeg fltk'))
-        util.makePlugin(vst4Environment, 'vst4cs', Split('''
-                        Opcodes/vst4cs/src/vst4cs.cpp
-                        Opcodes/vst4cs/src/fxbank.cpp
-                        Opcodes/vst4cs/src/vsthost.cpp
-                        '''))
-    elif util.platform == 'darwin' and fltkFound:
-        vst4Environment = vstEnvironment.Clone()
-        vst4Environment.Append(LIBS = ['fltk'])
-        vst4Environment.Append(LIBS = ['stdc++'])
-        vst4Environment.Append(LINKFLAGS =
-            ['-framework', 'carbon', '-framework', 'ApplicationServices'])
-        vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
-        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
-        util.makePlugin(vst4Environment, 'vst4cs', Split('''
-            Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
-            Opcodes/vst4cs/src/vsthost.cpp
-        '''))
-
-
-# STK opcodes
-
-if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
-    print 'CONFIGURATION DECISION: Not building STK opcodes.'
-else:
-    print 'CONFIGURATION DECISION: Building STK opcodes.'
-    # For the STK opcodes, the STK distribution include, src, and rawwaves
-    # directories should be copied thusly:
-    #   csound5/Opcodes/stk/include
-    #   csound5/Opcodes/stk/src
-    #   csound5/Opcodes/stk/rawwaves
-    # Then, the following sources (and any other future I/O or OS dependent
-    # sources) should be ignored:
-    removeSources = Split('''
-        Opcodes/stk/src/InetWvIn.cpp    Opcodes/stk/src/InetWvOut.cpp
-        Opcodes/stk/src/Mutex.cpp       Opcodes/stk/src/RtAudio.cpp
-        Opcodes/stk/src/RtMidi.cpp
-        Opcodes/stk/src/RtWvIn.cpp      Opcodes/stk/src/RtWvOut.cpp
-        Opcodes/stk/src/Socket.cpp      Opcodes/stk/src/TcpClient.cpp
-        Opcodes/stk/src/TcpServer.cpp   Opcodes/stk/src/Thread.cpp
-        Opcodes/stk/src/UdpSocket.cpp
-    ''')
-    stkEnvironment = pluginEnvironment.Clone()
-    if util.platform == 'win32':
-        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
-    elif util.platform == 'linux':
-        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
-    elif util.platform == 'darwin':
-        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__')
-    if sys.byteorder == 'big':
-        stkEnvironment.Append(CCFLAGS = '-D__BIG_ENDIAN__')
-    else:
-        stkEnvironment.Append(CCFLAGS = '-D__LITTLE_ENDIAN__')
-    stkEnvironment.Prepend(CPPPATH = Split(
-        'Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
-    stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
-    stkSources = []
-    for source in stkSources_:
-        stkSources.append(source.replace('\\', '/'))
-    for removeMe in removeSources:
-        stkSources.remove(removeMe)
-    stkLibrarySources = []
-    for i in stkSources:
-        stkLibrarySources += stkEnvironment.SharedObject(i)
-    stkLibrary = stkEnvironment.StaticLibrary('stk_base', stkLibrarySources)
-    stkEnvironment.Prepend(LIBS = ['stk_base'])
-    if util.compilerGNU():
-        stkEnvironment.Append(LIBS = ['stdc++'])
-    elif util.platform == 'linux' or util.platform == 'darwin':
-        stkEnvironment.Append(LIBS = ['pthread'])
-    # This is the one that actually defines the opcodes.
-    # They are straight wrappers, as simple as possible.
-    stk = util.makePlugin(stkEnvironment, 'stk', ['Opcodes/stk/stkOpcodes.cpp'])
-    Depends(stk, stkLibrary)
-
-# Python opcodes
-
-if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
-    print "CONFIGURATION DECISION: Not building Python opcodes."
-else:
-    print "CONFIGURATION DECISION: Building Python opcodes."
-    pyEnvironment = pluginEnvironment.Clone()
-    if util.platform != 'darwin':
-       pyEnvironment.Append(CPPPATH = pythonIncludePath)
-       pyEnvironment.Append(LIBPATH = pythonLibraryPath)
-    else:
-       pyEnvironment.Append(
-            CPPPATH = "/System/Library/Frameworks/Python.framework/Headers")
-
-    pyEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    pyEnvironment.Append(LIBS = pythonLibs)
-    if util.platform == 'linux':
-        pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-    elif util.platform == 'darwin':
-        pyEnvironment.Append(LIBS = ['dl', 'm'])
-    elif util.platform == 'win32':
-        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    pythonOpcodes = util.makePlugin(
-        pyEnvironment, 'py', ['Opcodes/py/pythonopcodes.c'])
-    if util.platform == 'win32' and pythonLibs[0] < 'python24':
-        Depends(pythonOpcodes, pythonImportLibrary)
 
 #############################################################################
 #
