@@ -89,6 +89,8 @@ util.makePlugin(pluginEnvironment, 'pitch',
     ['pitch.c', 'pitch0.c', 'spectra.c'])
 util.makePlugin(pluginEnvironment, 'scansyn',
     ['scansyn.c', 'scansynx.c'])
+util.makePlugin(pluginEnvironment, 'ambicode1',
+    ['Opcodes/ambicode1.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if util.compilerGNU():
@@ -152,12 +154,20 @@ util.makePlugin(pluginEnvironment, 'gabnew', Split('''
 util.makePlugin(pluginEnvironment, 'hrtfnew', 'hrtfopcodes.c')
 
 if not buildOLPC:
-    jackFound = configure.CheckLibWithHeader("jack", "jack/jack.h",
-        language = "C", autoadd=False)
+    jackFound = configure.CheckHeader("jack/jack.h", language = "C")
     if jackFound:
-        jackEnv = pluginEnvironment.Clone()
-        jackEnv.Append(LIBS = 'jack')
-        util.makePlugin(jackEnv, 'jackTransport', 'jackTransport.c')
+        jpluginEnvironment = pluginEnvironment.Clone()
+        if getPlatform() == 'linux':
+            jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+        elif getPlatform() == 'win32':
+            jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
+        else:
+            jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
+        util.makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+    if configure.CheckHeader("boost/any.hpp", language = "C++"):
+        util.makePlugin(pluginEnvironment, 'chua', 'chua/ChuaOscillator.cpp')
+    if configure.CheckHeader("gmm/gmm.h", language = "C++"):
+        util.makePlugin(pluginEnvironment, 'linear_algebra', 'linear_algebra.cpp')
 
 if commonEnvironment['buildImageOpcodes'] == '1':
     if not configure.CheckHeader("png.h", language="C"):
@@ -209,7 +219,7 @@ if commonEnvironment['buildFluidOpcodes']!='0':
     elif util.platform == 'linux' or util.platform == 'darwin':
         fluidEnvironment.Append(LIBS        = ['pthread'])
     util.makePlugin(fluidEnvironment, 'fluidOpcodes',
-                    ['fluidOpcodes/fluidOpcodes.c'])
+                    ['fluidOpcodes/fluidOpcodes.cpp'])
 else:
     util.confDecision("Not building fluid opcodes.")
 
@@ -217,8 +227,10 @@ else:
 if commonEnvironment['buildDSSI'] == '1':
     if not configure.CheckHeader("ladspa.h", language = "C"):
         util.fatal("You specified buildDSSI but LADSPA was not found")
+    if not configure.CheckHeader("dssi.h", language = "C"):
+        util.fatal("You specified buildDSSI but DSSI was not found")
     if not configure.CheckLibWithHeader('asound',
-     'alsa/asoundlib.h', language="C"):
+     'alsa/asoundlib.h', language="C", autoadd = False):
         util.fatal("You specified buildDSSI but ALSA was not found")
     util.confDecision("Building DSSI plugin host opcodes.")
     dssiEnvironment = pluginEnvironment.Clone()
