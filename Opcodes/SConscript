@@ -90,7 +90,7 @@ util.makePlugin(pluginEnvironment, 'pitch',
 util.makePlugin(pluginEnvironment, 'scansyn',
     ['scansyn.c', 'scansynx.c'])
 util.makePlugin(pluginEnvironment, 'ambicode1',
-    ['Opcodes/ambicode1.c'])
+    ['ambicode1.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if util.compilerGNU():
@@ -157,13 +157,13 @@ if not buildOLPC:
     jackFound = configure.CheckHeader("jack/jack.h", language = "C")
     if jackFound:
         jpluginEnvironment = pluginEnvironment.Clone()
-        if getPlatform() == 'linux':
+        if util.platform == 'linux':
             jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
-        elif getPlatform() == 'win32':
+        elif util.platform == 'win32':
             jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
         else:
             jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
-        util.makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+        util.makePlugin(jpluginEnvironment, 'jackTransport', 'jackTransport.c')
     if configure.CheckHeader("boost/any.hpp", language = "C++"):
         util.makePlugin(pluginEnvironment, 'chua', 'chua/ChuaOscillator.cpp')
     if configure.CheckHeader("gmm/gmm.h", language = "C++"):
