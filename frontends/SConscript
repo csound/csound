@@ -403,8 +403,7 @@ if commonEnvironment['buildCsoundAC'] == '1':
         if string.find(option, '-D') == 0:
             acEnvironment.Append(SWIGFLAGS = [option])
     for option in acEnvironment['CPPPATH']:
-        option = '-I' + option
-        acEnvironment.Append(SWIGFLAGS = [option])
+        acEnvironment.Append(SWIGPATH = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
     CsoundAC/Cell.cpp             CsoundAC/Composition.cpp
