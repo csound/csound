@@ -160,7 +160,8 @@ class Utility:
             env['useGettext']           = '1'
             env['useDouble']            = '0'
             env['usePortAudio']         = '0'
-            env['useJack']              = '0'
+            env['useJack']              = '1'
+            env['usePulseAudio']        = '1'
             env['buildCsoundAC']        = '0'
             env['buildCsound5GUI']      = '0'
             env['useDouble']            = '0'
@@ -176,7 +177,7 @@ class Utility:
             env['buildFluidOpcodes']    = '0'
             env['prefix']               = '/usr'
             env['buildUtilities']       = '0'
-            ##env['gcc4opt']            = '1'
+            env['gcc3opt']              = 'k6'
             env['useLrint']             = '1'
             env['Word64']               = '0'
             env['Lib64']                = '0'
@@ -184,7 +185,6 @@ class Utility:
             env['buildDSSI']            = '0'
             env['buildVirtual']         = '1'
             env['buildInterfaces']      = '1'
-            env['buildSDFT']            = '0'
             env['buildJavaWrapper']     = '0'
             env['buildNewParser']       = '0'
             env['buildvst4cs']          = '0'
@@ -205,23 +205,40 @@ class Utility:
                 pythonLibraryPath   = ['/usr/local/lib', '/usr/lib', tmp]
             pythonLibs              = ['python%s' % env['pythonVersion']]
         elif util.platform == 'darwin':
-            vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
-            if vers[1] == 3:
-                print "Python version is 2.3, using Apple Python Framework"
+            # find Mac OS X major version
+            fout = os.popen("uname -r")
+            kernelstr = fout.readline()
+            fout.close()
+            OSXvers = int(kernelstr[:kernelstr.find('.')]) - 4
+            print "Mac OS X version 10.%d" % OSXvers
+            # dictionary mapping OS X version to Apple Python version
+            # ex. 4:3 maps OS X 10.4 to Python 2.3
+            # Note that OS X 10.2 did not ship with a Python framework
+            # and 10.0 and 10.1 shipped with no Python at all
+            OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5 }
+            sysPyVers = OSXSystemPythonVersions[OSXvers]
+            if OSXvers >= 2:
+                print "Apple Python version is 2.%d" % sysPyVers
+            # vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
+            vers = sys.version_info
+            pvers = "%s.%s" % (vers[0], vers[1])
+            # This logic is not quite right on OS X 10.2 and earlier
+            # or if the MacPython version equals the expected Apple Python version
+            if vers[1] == sysPyVers:
+                print "Current Python version is %s, using Apple Python Framework" % pvers
                 pyBasePath = '/System/Library/Frameworks/Python.framework'
             else:
-                print "Python version is 2.%s, using MacPython Framework" % vers[1]
-                pyBasePath = '/Library/Frameworks/Python.Framework'
-            pvers = "2.%s" % vers[1]
-            if env['pythonVersion'] != pvers:
-                env['pythonVersion'] = pvers
+                print "Current Python version is %s, using MacPython Framework" % pvers
+                pyBasePath = '/Library/Frameworks/Python.framework'
+            if commonEnvironment['pythonVersion'] != pvers:
+                commonEnvironment['pythonVersion'] = pvers
                 print "WARNING python version used is " + pvers
-            pythonIncludePath   = ['%s/Headers' % pyBasePath]
-            pythonLinkFlags     = [ '-F' + pyBasePath, '-framework', 'python']
-            path1               = '%s/Versions/Current/lib' % pyBasePath
-            path2 = '%s/python%s/config' % (path1, env['pythonVersion'])
-            pythonLibraryPath   = [path1, path2]
-            pythonLibs          = []
+            pythonIncludePath = ['%s/Headers' % pyBasePath]
+            pythonLinkFlags = [ '-F' + pyBasePath, '-framework', 'python']
+            path1 = '%s/Versions/Current/lib' % pyBasePath
+            path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
+            pythonLibraryPath = [path1, path2]
+            pythonLibs = []
         elif util.platform == 'win32':
             pythonIncludePath   = []
             pythonLinkFlags     = []
@@ -285,6 +302,9 @@ commandOptions.Add('usePortMIDI',
 commandOptions.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio and MIDI input and output.',
     '1')
+commandOptions.Add('usePulseAudio',
+    'Set to 1 to use PulseAudio for real-time audio and MIDI input and output.',
+    '0')
 commandOptions.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack; also builds Jack plugin.',
     '1')
@@ -333,6 +353,9 @@ commandOptions.Add('Word64',
 commandOptions.Add('Lib64',
     'Build for lib64 rather than lib',
     '0')
+commandOptions.Add('bufferoverflowu',
+    'Set to 1 to use the Windows buffer overflow library, required if you use MinGW to link with MSVC-built libraries',
+    '0')
 if util.platform == 'win32':
     commandOptions.Add('dynamicCsoundLibrary',
         'Set to 0 to build static Csound library instead of csound.dll',
@@ -368,18 +391,12 @@ commandOptions.Add('buildNewParser',
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
-commandOptions.Add('buildSDFT',
-    'Set to 0 to avoid building SDFT code',
-    '1')
 commandOptions.Add('useGettext',
     'Set to 1 to use the GNU internationalisation/localisation scheme',
     '0')
 ##### JPff for OLPC #####
 commandOptions.Add('buildOLPC',
     'Set to 1 to build OLPC version',
-    '0')
-commandOptions.Add('useBufferOverflowLibrary',
-    'Set to 1 to use the Microsoft buffer overflow library (required for linking with some MSVC-built DLLs)',
     '0')
 
 # Define the common part of the build environment.
@@ -488,8 +505,11 @@ else:
     initialEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
 
 if initialEnvironment['gcc3opt'] != '0' or initialEnvironment['gcc4opt'] != '0':
-    initialEnvironment.Prepend(CCFLAGS = Split(
-        '-fomit-frame-pointer -ffast-math'))
+    initialEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
+    if not buildOLPC:
+        initialEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
+        if initialEnvironment['useGprof'] != '1':
+            initialEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer'])
     if initialEnvironment['gcc4opt'] != '0':
         initialEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = initialEnvironment['gcc4opt']
@@ -512,7 +532,9 @@ if initialEnvironment['noDebug'] == '0':
 
 if initialEnvironment['useGprof'] == '1':
     initialEnvironment.Append(CCFLAGS = ['-pg'])
+    initialEnvironment.Append(CXXFLAGS = ['-pg'])
     initialEnvironment.Append(LINKFLAGS = ['-pg'])
+    initialEnvironment.Append(SHLINKFLAGS = ['-pg'])
 
 if util.compilerGNU():
     initialEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
@@ -535,9 +557,6 @@ if initialEnvironment['useDouble'] == '0':
 else:
     print 'CONFIGURATION DECISION: Using double-precision floating point for audio samples.'
     initialEnvironment.Append(CPPFLAGS = ['-DUSE_DOUBLE'])
-
-if initialEnvironment['buildSDFT'] == '1':
-    initialEnvironment.Prepend(CPPFLAGS = ['-DSDFT'])
 
 # Define different build environments for different types of targets.
 
@@ -566,6 +585,7 @@ elif util.platform == 'win32':
     initialEnvironment.Append(CXXFLAGS  = '-DWIN32')
     initialEnvironment.Append(CXXFLAGS  = '-DPIPES')
     initialEnvironment.Append(CXXFLAGS  = '-DOS_IS_WIN32')
+    initialEnvironment.Append(CXXFLAGS = '-DFL_DLL')
     if util.compilerGNU():
         initialEnvironment.Prepend(CCFLAGS  = "-Wall")
         initialEnvironment.Append(CPPPATH   = '/usr/local/include')
@@ -585,6 +605,7 @@ elif util.platform == 'win32':
         initialEnvironment.Append(CCFLAGS   =  '/MP')
         initialEnvironment.Append(CCFLAGS   =  '/GR')
         initialEnvironment.Append(CCFLAGS   =  '/G7')
+        initialEnvironment.Append(CCFLAGS =  '/D_SCL_SECURE_NO_DEPRECATE')
         initialEnvironment.Prepend(CCFLAGS  = Split('/Zi /D_NDEBUG /DNDEBUG'))
         initialEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
         initialEnvironment.Prepend(SHLINKFLAGS = Split(
@@ -639,6 +660,12 @@ elif util.platform == 'win32':
     tclIncludePath      = []
     pythonLibs          = ['python%s' %
         initialEnvironment['pythonVersion'].replace('.', '')]
+else:
+    pythonIncludePath   = []
+    pythonLinkFlags     = []
+    pythonLibraryPath   = []
+    tclIncludePath      = []
+    pythonLibs          = []
 
 # Check for prerequisites.
 # We check only for headers; checking for libs may fail
@@ -702,6 +729,17 @@ if not configure.CheckHeader("stdio.h", language = "C"):
 if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
     print "The sndfile library is required to build Csound 5."
     Exit(-1)
+if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
+    print "The pthread library is required to build Csound 5."
+    Exit(-1)
+if not configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);'):
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
+if not util.compilerMicrosoft():
+    if configure.CheckLibWithHeader('m', 
+     'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);',
+      autoadd = False):
+        commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
+
 vstHeader   = "frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
 vstSdkFound = configure.CheckHeader(vstHeader, language = "C++")
 if not buildOLPC:
@@ -716,8 +754,7 @@ alsaFound  = configure.CheckLibWithHeader(
     "asound", "alsa/asoundlib.h", language = "C", autoadd = False)
 oscFound   = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C", autoadd = False)
 if not buildOLPC:
-    jackFound   = configure.CheckLibWithHeader(
-        "jack", "jack/jack.h", language = "C", autoadd = False)
+    jackFound   = configure.CheckHeader("jack/jack.h", language = "C")
 stkFound        = configure.CheckHeader(
     "Opcodes/stk/include/Stk.h", language = "C++")
 midiPluginSdkFound  = configure.CheckHeader("funknown.h", language = "C++")
@@ -865,22 +902,21 @@ if util.platform == 'win32':
             ws2_32      wsock32     advapi32    comctl32    comdlg32
             glu32       kernel32    odbc32      odbccp32    ole32
             oleaut32    shell32     user32      uuid        winmm
-            winspool    ws2_32      wsock32
+            winspool    ws2_32      wsock32     pthread
         ''')
-       	if initialEnvironment['useBufferOverflowLibrary'] != '0':
-           csoundWindowsLibraries.append('bufferoverflowu')       	  
-           csoundWindowsLibraries.append('winmm')       	  
     else:
         csoundWindowsLibraries = Split('''
             kernel32        gdi32           wsock32         ole32
             uuid            winmm           user32.lib      ws2_32.lib
             comctl32.lib    gdi32.lib       comdlg32.lib    advapi32.lib
             shell32.lib     ole32.lib       oleaut32.lib    uuid.lib
-            odbc32.lib      odbccp32.lib    bufferoverflowu kernel32.lib
+            odbc32.lib      odbccp32.lib    kernel32.lib
             user32.lib      gdi32.lib       winspool.lib    comdlg32.lib
             advapi32.lib    shell32.lib     ole32.lib       oleaut32.lib
-            uuid.lib        odbc32.lib      odbccp32.lib    bufferoverflowu
+            uuid.lib        odbc32.lib      odbccp32.lib    pthread.lib
         ''')
+    if commonEnvironment['bufferoverflowu'] != '0':
+        csoundWindowsLibraries.append('bufferoverflowu')
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if util.compilerGNU():
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
@@ -1035,8 +1071,7 @@ else:
     csoundLibrary = csoundLibraryEnvironment.Library(
         util.csoundLibraryName, libCsoundSources)
 
-if not util.platform == 'win32' : libCsoundLibs.append(csoundLibrary)
-else                            : libCsoundLibs.append(util.csoundLibraryName)
+libCsoundLibs.append(util.csoundLibraryName)
 libs.append(csoundLibrary)
 # Make everything link (correctly) against libcsound, even if not needed.
 # FIXME: when linking statically this may lead to larger than normal binaries.
@@ -1109,6 +1144,14 @@ else:
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     util.makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
 
+if commonEnvironment['usePulseAudio'] == '1':
+    if not configure.CheckHeader("pulse/simple.h", language = "C"):
+        util.fatal("You specified usePulseAudio but PulseAudio was not found")
+    util.confDecision("Building PulseAudio plugin")
+    pulseaudioEnv = pluginEnvironment.Clone()
+    pulseaudioEnv.Append(LIBS = ['pulse-simple'])
+    makePlugin(pulseaudioEnv, 'rtpulse', ['InOut/rtpulse.c'])
+
 if util.platform == 'win32':
     winmmEnvironment = pluginEnvironment.Clone()
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
@@ -1157,14 +1200,9 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if util.platform == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
-    if util.platform == 'win32' and initialEnvironment['useBufferOverflowLibrary'] != '0':
-        portMidiEnvironment.Append(LIBS = ['bufferoverflowu', 'winmm'])
     util.makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
-
-#util.makePlugin(pluginEnvironment, 'asciimidi',
-#                   ['InOut/ascii_midi_driver/ascii_midi_driver.cpp'])
 
 
 # VST HOST OPCODES
@@ -1291,9 +1329,7 @@ else:
 if buildOLPC:
   stdutilSources = Split('''
                         util/cvanal.c       util/dnoise.c
-    util/envext.c
-                        util/hetro.c        util/lpanal.c
-                                            util/mixer.c
+    util/envext.c       util/lpanal.c       util/mixer.c
     util/pvanal.c       util/pvlook.c       util/scale.c
     util/sndinfo.c      util/srconv.c
     util/std_util.c
@@ -1382,9 +1418,9 @@ if commonEnvironment['useGettext'] == '1':
     util.gettextTarget(csound5GettextEnvironment, 'es_CO', 'es_CO')
     ##  The following are incomplete
     util.gettextTarget(csound5GettextEnvironment, 'german', 'de')
-    ## italian is not in the repository (VL 28-01-08), will not build
-    #gettextTarget(csound5GettextEnvironment, 'italian', 'it')
+    util.gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     util.gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
+    util.gettextTarget(csound5GettextEnvironment, 'russian', 'ru')
 
 # INSTALL OPTIONS
 
