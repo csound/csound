@@ -60,9 +60,9 @@ static CS_NOINLINE char *extend_tokenstring(CSOUND *csound, size_t len)
     csound->tokenstring = tt;               /* Reset string and length */
     csound->toklen = (int32) newLen;
     csound->stringend = csound->tokenstring + csound->toklen;
-    if (UNLIKELY(newLen != (size_t) 128))
-      csound->Message(csound, Str("Token length extended to %ld\n"),
-                              csound->toklen);
+    /* if (UNLIKELY(newLen != (size_t) 128)) */
+    /*   csound->Message(csound, Str("Token length extended to %ld\n"), */
+    /*                           csound->toklen); */
     return &(csound->tokenstring[len]);
 }
 
