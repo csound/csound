@@ -455,7 +455,7 @@ if commonEnvironment['buildCsoundVST'] == '1':
 
     vstEnvironment = commonEnvironment.Clone()
     vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
-    vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags')
+    vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --libs')
     flag = '-Wl,-as-needed'
     if flag in vstEnvironment['LINKFLAGS']:
         vstEnvironment['LINKFLAGS'].remove(flag)
@@ -466,10 +466,7 @@ if commonEnvironment['buildCsoundVST'] == '1':
     vstEnvironment.Prepend(CPPPATH = ['#interfaces', 'CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['CsoundVST', '#interfaces'])
     vstEnvironment.Prepend(LIBS = ['csnd'], LIBPATH=['#interfaces'])
-    
-    if util.platform == 'darwin':
-    # fltk_png z fltk_jpeg are not on OSX at the mo
-        vstEnvironment.Append(LIBS = Split('fltk fltk_images'))
+
     if util.platform == 'win32':
         if util.compilerGNU():
             vstEnvironment.Append(          LINKFLAGS   = "--subsystem:windows")
@@ -487,7 +484,6 @@ if commonEnvironment['buildCsoundVST'] == '1':
         vstEnvironment.Append(LIBS              = ['util', 'dl', 'm'])
     elif util.platform == 'darwin':
         vstEnvironment.Append(LIBS              = ['dl', 'm'])
-        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
         vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS       = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX']           = '.dylib'
@@ -501,11 +497,6 @@ if commonEnvironment['buildCsoundVST'] == '1':
             vstEnvironment.Prepend(LINKFLAGS =
                 ['-Wl,--enable-runtime-pseudo-reloc'])
             guiProgramEnvironment.Append(LINKFLAGS  = '-mwindows')
-            vstEnvironment.Append(LIBS              = Split(
-                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
-        else:
-            vstEnvironment.Append(LIBS = Split(
-                'fltk fltkimages fltkpng fltkjpeg fltkz'))
     csoundVstSources = Split('''
     CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
     CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
