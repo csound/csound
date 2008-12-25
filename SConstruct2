@@ -1075,39 +1075,15 @@ else:
 # FLTK widgets
 
 csoundProgramEnvironment    = commonEnvironment.Clone()
-vstEnvironment              = commonEnvironment.Clone()
-vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
-guiProgramEnvironment       = commonEnvironment.Clone()
 
-fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
-if util.platform != 'darwin':
-    fltkConfigFlags += ' --ldflags'
-try:
-    if vstEnvironment.ParseConfig(fltkConfigFlags):
-        print 'Parsed fltk-config.'
-    else:
-        print 'Could not parse fltk-config.'
-except:
-    print 'Exception when attempting to parse fltk-config.'
-if util.platform == 'darwin':
-    # fltk_png z fltk_jpeg are not on OSX at the mo
-    vstEnvironment.Append(LIBS = Split('fltk fltk_images'))
+
 if util.platform == 'win32':
-    if util.compilerGNU():
-        vstEnvironment.Append(          LINKFLAGS   = "--subsystem:windows")
-        guiProgramEnvironment.Append(   LINKFLAGS   = "--subsystem:windows")
-        vstEnvironment.Append(          LIBS        = ['stdc++', 'supc++'])
-        guiProgramEnvironment.Append(   LIBS        = ['stdc++', 'supc++'])
-    else:
+    if not util.compilerGNU():
         csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
 else:
     if util.platform == 'linux':
         csoundProgramEnvironment.Append(LIBS = ['dl'])
-        vstEnvironment.Append(          LIBS = ['dl'])
-        guiProgramEnvironment.Append(   LIBS = ['dl'])
     csoundProgramEnvironment.Append(    LIBS = ['pthread', 'm'])
-    vstEnvironment.Append(              LIBS = ['stdc++', 'pthread', 'm'])
-    guiProgramEnvironment.Append(       LIBS = ['stdc++', 'pthread', 'm'])
     if util.platform == 'darwin':
         csoundProgramEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
@@ -1384,81 +1360,6 @@ if not buildOLPC:
         'sdif2ad', ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
 for i in executables : Depends(i, csoundLibrary)
-
-#############################################################################
-#
-# Front ends.
-#############################################################################
-
-
-
-# Build CsoundVST
-
-if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
-    print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
-else:
-    print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
-    headers += glob.glob('frontends/CsoundVST/*.h')
-    headers += glob.glob('frontends/CsoundVST/*.hpp')
-    vstEnvironment.Prepend(CPPPATH = ['interfaces', 'frontends/CsoundVST'])
-    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
-    vstEnvironment.Prepend(LIBS = ['csnd'])
-    if util.platform == 'linux':
-        vstEnvironment.Append(LIBS              = ['util', 'dl', 'm'])
-        vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
-        vstEnvironment.Append(LINKFLAGS         = ['-Wl,-rpath-link,.'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
-    elif util.platform == 'darwin':
-        vstEnvironment.Append(LIBS              = ['dl', 'm'])
-        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
-        vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
-        vstEnvironment.Append(SHLINKFLAGS       = '--add-stdcall-alias')
-        vstEnvironment['SHLIBSUFFIX']           = '.dylib'
-    elif util.platform == 'win32':
-        if util.compilerGNU():
-            vstEnvironment['ENV']['PATH']       = os.environ['PATH']
-            vstEnvironment.Append(SHLINKFLAGS   = Split('-Wl,--add-stdcall-alias --no-export-all-symbols'))
-            vstEnvironment.Append(CCFLAGS       = ['-DNDEBUG'])
-            guiProgramEnvironment.Prepend(LINKFLAGS = Split(
-                '-mwindows -Wl,--enable-runtime-pseudo-reloc'))
-            vstEnvironment.Prepend(LINKFLAGS =
-                ['-Wl,--enable-runtime-pseudo-reloc'])
-            guiProgramEnvironment.Append(LINKFLAGS  = '-mwindows')
-            vstEnvironment.Append(LIBS              = Split(
-                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
-        else:
-            vstEnvironment.Append(LIBS = Split(
-                'csound64 csnd fltk fltkimages fltkpng fltkjpeg fltkz'))
-    print 'PATH =', commonEnvironment['ENV']['PATH']
-    csoundVstSources = Split('''
-    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
-    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
-    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/vstplugmain.cpp
-    frontends/CsoundVST/CsoundVST.cpp       
-    frontends/CsoundVST/CsoundVstFltk.cpp
-    frontends/CsoundVST/CsoundVSTMain.cpp   
-    frontends/CsoundVST/CsoundVstUi.cpp
-    ''')
-    if util.platform == 'win32':
-        if util.compilerGNU():
-           vstEnvironment.Append(SHLINKFLAGS = ['-module'])
-           vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-        csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
-    csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
-    libs.append(csoundvst)
-    Depends(csoundvst, csoundInterfaces)
-    Depends(csoundvst, csoundLibrary)
-    if commonEnvironment['useDouble'] != '0':
-        csoundvstGui = guiProgramEnvironment.Program(
-            'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
-            LIBS = Split('csound64 csnd CsoundVST'))
-    else:
-        csoundvstGui = guiProgramEnvironment.Program(
-            'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
-            LIBS = Split('csound32 csnd CsoundVST'))
-    executables.append(csoundvstGui)
-    Depends(csoundvstGui, csoundvst)
-
 
 if (commonEnvironment['generateTags']=='0') or (util.platform != 'darwin' and util.platform != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
