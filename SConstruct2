@@ -732,13 +732,13 @@ if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
 if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
     print "The pthread library is required to build Csound 5."
     Exit(-1)
-if not configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);'):
-    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
+if configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);'):
+    initialEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
 if not util.compilerMicrosoft():
     if configure.CheckLibWithHeader('m', 
      'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);',
       autoadd = False):
-        commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
+        initialEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
 
 vstHeader   = "frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
 vstSdkFound = configure.CheckHeader(vstHeader, language = "C++")
