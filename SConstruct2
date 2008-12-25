@@ -1128,21 +1128,24 @@ pluginEnvironment = commonEnvironment.Clone()
 # REAL TIME AUDIO AND MIDI
 
 if commonEnvironment['useCoreAudio'] == '1' and util.platform == 'darwin':
-    print "CONFIGURATION DECISION: Building CoreAudio plugin."
+    util.confDecision("Building CoreAudio plugin.")
     coreaudioEnvironment = pluginEnvironment.Clone()
     coreaudioEnvironment.Append(
         CCFLAGS = '-I/system/library/Frameworks/CoreAudio.framework/Headers')
     util.makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
 else:
-    print "CONFIGURATION DECISION: Not building CoreAudio plugin."
+    util.confDecision("Not building CoreAudio plugin.")
 
-if not (commonEnvironment['useALSA'] == '1' and alsaFound):
-    print "CONFIGURATION DECISION: Not building ALSA plugin."
-else:
-    print "CONFIGURATION DECISION: Building ALSA plugin."
+if commonEnvironment['useALSA'] == '1':
+    if not configure.CheckLibWithHeader("asound", "alsa/asoundlib.h",
+      language = "C", autoadd = False):
+        util.fatal("You specified useALSA but asound was not found")
+    util.confDecision("Building ALSA plugin.")
     alsaEnvironment = pluginEnvironment.Clone()
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     util.makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
+else:
+    util.confDecision("Building ALSA plugin")
 
 if commonEnvironment['usePulseAudio'] == '1':
     if not configure.CheckHeader("pulse/simple.h", language = "C"):
@@ -1157,52 +1160,42 @@ if util.platform == 'win32':
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
     util.makePlugin(winmmEnvironment, 'rtwinmm', ['InOut/rtwinmm.c'])
 
-if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
-    print "CONFIGURATION DECISION: Not building PortAudio module."
-else:
-    print "CONFIGURATION DECISION: Building PortAudio module."
+if commonEnvironment['usePortAudio'] == '1':
+    if not configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C",
+      autoadd = False):
+        util.fatal("You specified usePortAudio but PortAudio was not found")
     portaudioEnvironment = pluginEnvironment.Clone()
+    portaudioEnvironment.Append(LIBS = ['portaudio'])
     if util.platform == 'win32':
-       portaudioEnvironment.Append(LIBS = ['portaudio'])
-    else:
-       portaudioEnvironment.Append(LIBS = ['portaudio'])
-    if (util.platform == 'linux'):
-        if (commonEnvironment['useJack']=='1' and jackFound):
-            print "Adding Jack library for PortAudio"
-            portaudioEnvironment.Append(LIBS = ['jack'])
-        portaudioEnvironment.Append(LIBS = ['pthread'])
-        if alsaFound:
-            portaudioEnvironment.Append(LIBS = ['asound'])
-    elif util.platform == 'win32':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
     util.makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
 
-if not (commonEnvironment['useJack'] == '1' and jackFound):
-    print "CONFIGURATION DECISION: Not building JACK plugin."
-else:
-    print "CONFIGURATION DECISION: Building JACK plugin."
+
+if commonEnvironment['useJack'] == '1':
+    if not configure.CheckHeader("jack/jack.h", language = "C"):
+        util.fatal("You specified useJack but JACK was not found")
+    util.confDecision("Building JACK plugin.")
     jackEnvironment = pluginEnvironment.Clone()
-    if util.platform == 'linux':
-        jackEnvironment.Append(LIBS = ['jack', 'pthread'])
-        if alsaFound and portaudioFound:
-            portaudioEnvironment.Append(LIBS = ['asound'])
-    elif util.platform == 'win32':
+    if util.platform == 'win32':
         jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
     else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     util.makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
+else:
+    util.confDecision("Not building JACK plugin.")
 
-if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
-    print 'CONFIGURATION DECISION: Building with PortMIDI.'
+if commonEnvironment['usePortMIDI'] == '1':
+    if not configure.CheckLibWithHeader("portmidi", "portmidi.h",
+     language = "C", autoadd = False):
+        util.fatal("You specified usePortMIDI but PortMIDI was not found")
+    util.confDecision('Building with PortMIDI.')
     portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
     if util.platform != 'darwin':
         portMidiEnvironment.Append(LIBS = ['porttime'])
-    if util.platform == 'linux' and alsaFound:
-        portMidiEnvironment.Append(LIBS = ['asound'])
     util.makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
-    print 'CONFIGURATION DECISION: Not building with PortMIDI.'
+    util.confDecision('Not building with PortMIDI.')
 
 
 # VST HOST OPCODES
