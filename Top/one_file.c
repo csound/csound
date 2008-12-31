@@ -70,6 +70,18 @@ typedef struct {
 
 #define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 
+char *mytmpnam(char *name)
+{
+    int fd;
+    char *tmpdir = getenv("TMPDIR");
+    sprintf(name, "%s/csound-XXXXXX",  (tmpdir!=NULL ? tmpdir :"/tmp"));
+    umask(0077); /* ensure exclusive access on buggy implementations of mkstemp */
+    fd = mkstemp(name);
+    close(fd);
+    unlink(name);
+    return (fd<0 ? NULL : name);
+}
+
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 {
     size_t  nBytes = L_tmpnam+4;
@@ -88,7 +100,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
       do {
 #endif
 #ifndef WIN32
-        if (tmpnam(buf) == NULL)
+        if (mytmpnam(buf) == NULL)
           csound->Die(csound, Str(" *** cannot create temporary file"));
 #else
         {
