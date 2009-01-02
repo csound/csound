@@ -70,6 +70,7 @@ typedef struct {
 
 #define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 
+#if !defined(WIN32)
 char *mytmpnam(char *name)
 {
     int fd;
@@ -81,6 +82,8 @@ char *mytmpnam(char *name)
     unlink(name);
     return (fd<0 ? NULL : name);
 }
+#endif
+
 
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 {
