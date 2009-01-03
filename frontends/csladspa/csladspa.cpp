@@ -154,7 +154,7 @@ void CsoundPlugin::Process(unsigned long cnt){
           spin[j+pos] =  inp[j][i]*scale;
           outp[j][i] = (LADSPA_Data) (spout[j+pos]/scale);
         } else outp[j][i] = 0;
-    }
+     }
   }
 }
 
