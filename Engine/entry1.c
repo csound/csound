@@ -312,7 +312,7 @@ OENTRY opcodlst_1[] = {
 { "envlpx", S(ENVLPX),  7,      "s","xiiiiiio", evxset, knvlpx, envlpx  },
 { "envlpxr", S(ENVLPR), 7,      "s","xiiiiioo", evrset, knvlpxr,envlpxr },
 { "phasor", S(PHSOR),   7,      "s",    "xo",   phsset, kphsor, phsor   },
-{ "ephasor", S(EPHSOR),   5,      "s",    "xko",  ephsset, NULL, ephsor   },
+{ "ephasor", S(EPHSOR),   5,    "ss",    "xko",  ephsset, NULL, ephsor   },
 { "table",  0xffff                                                      },
 { "tablei", 0xffff                                                      },
 { "table3", 0xffff                                                      },
