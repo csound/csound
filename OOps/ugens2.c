@@ -71,17 +71,19 @@ int ephsor(CSOUND *csound, EPHSOR *p)
 {
     double      phase;
     int         n, nsmps=csound->ksmps;
-    MYFLT       *rs, onedsr = csound->onedsr;
-    double      b = p->b;
+    MYFLT       *rs, *aphs, onedsr = csound->onedsr;
+    double b = p->b;
     double      incr;
 
     rs = p->sr;
+    aphs = p->aphs;
     phase = p->curphs;
     if (p->XINCODE) {
       MYFLT *cps = p->xcps;
       for (n=0; n<nsmps; n++) {
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT) b;
+        aphs[n] = (MYFLT) phase;
         phase += incr;
         b *= *p->kR;
         if (phase >= 1.0) {
@@ -98,6 +100,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
       incr = (double)(*p->xcps * onedsr);
       for (n=0; n<nsmps; n++) {
         rs[n] = (MYFLT) b;
+        aphs[n] = (MYFLT) phase;
         phase += incr;
         b *= *p->kR;
         if (phase >= 1.0) {

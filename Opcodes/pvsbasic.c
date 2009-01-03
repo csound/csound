@@ -126,7 +126,7 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     float *fin = p->fin->frame.auxp;
 
     if (p->lastframe < p->fin->framecount) {
-      int32 framesize = p->fin->N + 2, i;
+      int32 framesize = p->fin->N+2, i;
       MYFLT scale = csound->e0dbfs;
       for(i=0;i < framesize; i+=2) {
         fout[i] = fin[i]/scale;
