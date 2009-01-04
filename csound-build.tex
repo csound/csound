@@ -64,7 +64,48 @@ All third party libraries will be updated from the most recent version that seem
 \begin{enumerate}
 	\item (Done) Update the documentation tools.
 		\begin{enumerate}
-	    \item (No need) Update the Docbook toolchain.
+	    \item (Done) Update the Docbook toolchain with DocBook stylesheets from \url{http://downloads.sourceforge.net/docbook/docbook-xsl-1.74.0.tar.gz} and the current Windows build of \texttt{xsltproc} from \url{http://www.zlatkovic.com/libxml.en.html}. It is necessary also to download the DocBook DTD from \url{http://www.docbook.org/xml/4.5/docbook-xml-4.5.zip} and create a catalog like this, referenced from the \verb|XML_CATALOG_FILES| environment variable.
+	    
+\begin{lstlisting}
+<?xml version="1.0"?>
+<!DOCTYPE catalog
+   PUBLIC "-//OASIS/DTD Entity Resolution XML Catalog V1.0//EN"
+   "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <!-- DTD and stylesheet files installed under /usr/share/xml -->
+  <group  xml:base="file:///D:/utah/opt/">
+    <!-- Resolve DTD URL system ID to local file -->
+    <rewriteSystem
+        systemIdStartString="http://www.oasis-open.org/docbook/xml/4.2/"
+        rewritePrefix="docbook_xml_dtd/" />
+    <!-- Resolve stylesheet URL to local file -->
+    <rewriteURI
+        uriStartString="http://docbook.sourceforge.net/release/xsl/current/"
+        rewritePrefix="docbook-xsl-1.74.0/" />
+    <!-- Resolve DTD PUBLIC identifiers -->
+    <nextCatalog  catalog="docbook_xml_dtd/catalog.xml" />
+    <!-- To resolve simple DTD SYSTEM identifiers. -->
+    <!-- Note: this does not work with Java resolver -->
+    <!--   classes in Saxon or Xalan -->
+    <system
+         systemId="docbook.dtd"
+         uri="docbook_xml_dtd/docbookx.dtd" />
+
+    <!-- To resolve short stylesheet references -->
+    <uri
+        name="docbook.xsl"
+        uri="docbook-xsl-1.74.0/html/docbook.xsl" />
+    <uri 
+        name="chunk.xsl"
+        uri="docbook-xsl-1.74.0/html/chunk.xsl" />
+    <uri
+        name="fo-docbook.xsl"
+        uri="docbook-xsl-1.74.0/fo/docbook.xsl" />
+  </group>
+</catalog>
+\end{lstlisting}
+	    
 	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
 	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
 	    \item (Done) Update ATT Graphviz to version 2.8 from \url{http://www.graphviz.org}. Later versions of Graphviz \texttt{dot} do not work with current Doxygen.
@@ -343,7 +384,7 @@ make mingw clean; make mingw all
 			    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
 			    \item (Done) Build again as above, to ensure \texttt{csnd.jar} is built properly.
 			    \item (Done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
-			    \item (Done) Build the manual.
+			    \item (Done) Build the manual using a command line such as \verb|make html-dist XSL_BASE_PATH=D:/utah/opt/docbook-xsl-1.74.0|
 			    \item (Done) Build the API reference by executing \texttt{doxygen}.
 			    \item (Done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
 			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
