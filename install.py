@@ -256,7 +256,7 @@ libList = findFiles('.', 'libcsound\\.a')
 libList += findFiles('.', 'libcsound64\\.a')
 libList += findFiles('.', 'libcsound\\.so\\..+')
 libList += findFiles('.', 'libcsound64\\.so\\..+')
-libList += findFiles('.', 'libcsnd\\.so')
+libList += findFiles('.', 'libcsnd\\.so\\..+')
 libList += findFiles('.', 'lib_jcsound\\.so')
 libList += findFiles('.', 'lib_CsoundVST\\.so')
 for i in libList:
@@ -269,9 +269,8 @@ for i in libList:
             err = installLink(i, concatPath([libDir, 'libcsound.so']))
         elif i[:15] == 'libcsound64.so.':
             err = installLink(i, concatPath([libDir, 'libcsound64.so']))
-        elif i == 'libcsnd.so':
-            err = installLink(concatPath([libDir, i]),
-                              concatPath([pythonDir2, '_csnd.so']))
+        elif i[:11] == 'libcsnd.so':
+            err = installLink(i, concatPath([libDir, 'libcsnd.so']))
         elif i == 'lib_CsoundVST.so':
             err = installLink(concatPath([libDir, i]),
                               concatPath([pythonDir2, '_CsoundVST.so']))
@@ -307,6 +306,7 @@ wrapperList = [['csnd\\.py', '0', pythonDir],
                ['loris\\.py', '0', pythonDir],
                ['CsoundVST\\.py', '0', pythonDir],
                ['scoregen\\.py', '0', pythonDir],
+               ['_csnd\\.so', '1', pythonDir2],
                ['_loris\\.so', '1', pythonDir2],
                ['_scoregen\\.so', '1', pythonDir2],
                ['csnd\\.jar', '0', javaDir],
