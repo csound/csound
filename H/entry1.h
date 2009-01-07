@@ -151,7 +151,7 @@ int     linenr(CSOUND *, void *), evxset(CSOUND *, void *);
 int     knvlpx(CSOUND *, void *), envlpx(CSOUND *, void *);
 int     evrset(CSOUND *, void *), knvlpxr(CSOUND *, void *);
 int     envlpxr(CSOUND *, void *), phsset(CSOUND *, void *);
-int     ephsset(CSOUND *, void *), ephsor(CSOUND *, void *);;
+int     ephsset(CSOUND *, void *), ephsor(CSOUND *, void *);
 int     kphsor(CSOUND *, void *), phsor(CSOUND *, void *);
 int     itablew1(CSOUND *, void *), itablegpw1(CSOUND *, void *);
 int     itablemix1(CSOUND *, void *), itablecopy1(CSOUND *, void *);
