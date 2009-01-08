@@ -85,8 +85,8 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign	                0, 23
-                        massign                 1, 23
+                        massign	                0, 55
+                        massign                 1, 55
                         
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -230,7 +230,7 @@ iHz 		            = 			            cpsmidinn(ikey)
 kpitchbend              pchbend                 -6.0, +6.0    
 kpitchbend              =                       kpitchbend + 6.0
 iinitialpb              init                    i(kpitchbend)
-                        print                   iinitialpb
+                        ;print                   iinitialpb
                         ; Smooth out the stepping in the MIDI control signal.
 ksmoothbend             port                    kpitchbend, 0.125, iinitialpb                        
 kKey                    =                       ikey + ksmoothbend
@@ -244,7 +244,7 @@ inormalFS		        =			            ampdbfs(0)
 imeasured127            =                       ampdbfs(imeasureddBFS)
 inormal                 =                       inormalFS / imeasured127
 inormalizedamplitude    =                       imidiamplitude * inormal
-                        print                   ivelocity, idecibels, imidiamplitude, inormal, inormalizedamplitude
+                        ;print                   ivelocity, idecibels, imidiamplitude, inormal, inormalizedamplitude
                         xout			        iHz, kHz, inormalizedamplitude, idecibels
                         endop
                         
@@ -407,7 +407,7 @@ kpch        		    =           		    kHz
 koct        		    =           		    octcps(kpch)
 ; kadsr       		    linseg      		    0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 	; ADSR envelope
 amodi       		    linseg      		    0, ip3/3, 5, ip3/3, 3, ip3/3, 0 		; ADSR envelope for I
-ip6			            =			            1.4
+ip6			            =			            1.2
 ip7			            =			            0.8
 amodr       		    linseg      		    ip6, ip3, ip7              		; r moves from p6->p7 in p3 sec.
 a1          		    =           		    amodi * (amodr - 1 / amodr) / 2

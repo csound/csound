@@ -15,14 +15,34 @@ with one dimension per voice, voices ordered by pitch,
 pitch measured in tones per octave,
 and a modulus equal to the range of the voices.
 I.e., it is a complete Tonnetz.
-Root progressions are motions more or less up and down
-the 'columns' of identically structured chords.
-The closest voice-leadings are between the closest chords in the space.
-The 'best' voice-leadings are closest
-first by 'smoothness,' and then by 'parsimony' (see below).
-
-Based on: Dmitri Tymoczko, _The Geometry of Musical Chords_, 2005
+Root progressions are motions more or less 
+up and down the 'columns' of identically 
+structured chords. The closest voice-leadings are 
+between the closest chords in the space.
+The 'best' voice-leadings are closest first 
+by 'smoothness,' and then  by 'parsimony.' 
+See Dmitri Tymoczko, 
+_The Geometry of Musical Chords_, 2005
 (Princeton University).
+
+This script also demonstrates the triadic 
+neo-Riemannian transformations
+of leading-tone exchange (press l), 
+parallel (press p),  
+relative (press r),
+and dominant (press d) progression. 
+See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra, 
+_Musical Actions of Dihedral Groups_, 2008 
+(arXiv:0711.1873v2).
+
+You can do a plain old transpositions
+by pressing 1, 2, 3, 4, 5, or 6.
+
+You can move each voice independently with the arrow keys: 
+up arrow to move voice 1 up 1 semitone (shift for down), 
+right arrow to move voice 2 in the same way,
+down arrow to move voice 3.
+
 '''
 print __doc__
 import gc
@@ -66,7 +86,7 @@ class Tonnetz(object):
         self.NR = self.N * self.R
         self.cubeOctaveCount = cubeOctaveCount
         self.cubeTessitura = self.tonesPerOctave * self.cubeOctaveCount
-        self.cubeRadius = 0.075
+        self.cubeRadius = 0.07
         self.prismRadius = self.cubeRadius * 2.0
         self.normalPrismRadius = self.prismRadius #* 2.0
     def getTessitura(self):
@@ -80,6 +100,75 @@ class Tonnetz(object):
         d.sort()
         c[0:self.N] = d
         return c
+    '''
+    Move 1 voice.
+    '''
+    def move(self, chord_, voice, interval):
+        chord = list(chord_)
+        print 'Move %d by %f.' % (voice, interval)
+        chord[voice] = chord[voice] + interval
+        chord = tuple(self.bounceInside(chord))
+        return chord
+    ''' 
+    Do a root progression by tranposition.
+    '''
+    def pT(self, chord, interval):
+        chord = self.firstInversion(chord)
+        print 'Transpose by %f.' % interval
+        for i in xrange(3):
+            chord[i] = chord[i] + interval
+        chord = tuple(self.bounceInside(chord))
+        return chord
+    '''
+    Perform the leading tone exchange neo-Riemannian transformation.
+    '''
+    def nrL(self, chord):
+        print 'Leading-tone exchange transformation.'
+        chord = self.firstInversion(chord)
+        z1 = self.zeroFormFirstInversion(chord)
+        if   z1[1] == 4.0:
+            chord[0] = chord[0] - 1
+        elif z1[1] == 3.0:
+            chord[2] = chord[2] + 1
+        chord = tuple(self.keepInside(chord))
+        return chord
+    '''
+    Perform the parallel neo-Riemannian transformation.
+    '''
+    def nrP(self, chord):
+        print 'Parallel transformation.'
+        chord = self.firstInversion(chord)
+        z1 = self.zeroFormFirstInversion(chord)
+        if   z1[1] == 4.0:
+            chord[1] = chord[1] - 1
+        elif z1[1] == 3.0:
+            chord[1] = chord[1] + 1
+        chord = tuple(self.keepInside(chord))
+        return chord
+    '''
+    Perform the relative neo-Riemannian transformation.
+    '''
+    def nrR(self, chord):
+        print 'Relative transformation.'
+        chord = self.firstInversion(chord)
+        z1 = self.zeroFormFirstInversion(chord)
+        if   z1[1] == 4.0:
+            chord[2] = chord[2] + 2
+        elif z1[1] == 3.0:
+            chord[0] = chord[0] - 2
+        chord = tuple(self.keepInside(chord))
+        return chord
+    '''
+    Perform the dominant neo-Riemannian transformation.
+    '''
+    def nrD(self, chord):
+        print 'Dominant transformation.'
+        chord = self.firstInversion(chord)
+        chord[0] = chord[0] - 7
+        chord[1] = chord[1] - 7
+        chord[2] = chord[2] - 7
+        chord = tuple(self.keepInside(chord))
+        return chord
     def tones(self, chord):
         c = array(chord, Float).copy()
         for i in xrange(self.N):
@@ -318,7 +407,15 @@ class Tonnetz(object):
         c[0:self.N] = r
         if self.debug:
             print c
-        return c         
+        return c  
+    def bounceInside(self, chord):
+        inversions = self.inversions(chord)
+        if self.debug:
+            print inversions
+        for inversion in inversions:
+            if tuple(inversion) in self.trichords:
+                return inversion
+            return None
     def keepInside(self, chord):
         if self.isInFundamentalDomain(chord):
             return chord
@@ -387,7 +484,7 @@ class Tonnetz(object):
         if self.debug:
             for inv in invs:
                 print '        ',inv
-	c = self.closest(a, invs, avoidParallels)
+            c = self.closest(a, invs, avoidParallels)
         if self.debug:
             print '(%d inversions) is:' % len(invs)
             print '        ', c
@@ -424,7 +521,7 @@ class TonnetzModel(Tonnetz):
                             self.balls[ball.trichord] = ball
                             self.setColor(ball)
                             ball.name = self.label(trichord)
-                            ball.label = label(pos = trichord, text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 1, xoffset = 20, yoffset = 20)
+                            ball.label = label(pos = trichord, text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.9,0.5,0.9), visible = 0, line = 2, xoffset = 20, yoffset = 20)
         if self.isPrism or self.isNormalPrism:
             for x in xrange(-self.R, self.R+1):
                 for y in xrange(x, x + self.R+1):
@@ -440,7 +537,7 @@ class TonnetzModel(Tonnetz):
                                 self.balls[ball.trichord] = ball
                                 self.setColor(ball)
                                 ball.name = self.label(trichord)
-                                ball.label = label(pos = trichord, text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 1, xoffset = 20, yoffset = 20)
+                                ball.label = label(pos = trichord, text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.9,0.5,0.9), visible = 0, line = 2, xoffset = 20, yoffset = 20)
                             else:
                                 self.balls[trichord].radius = self.prismRadius
                         if self.isNormalPrism and self.isInsideNormalPrism(trichord, self.R):
@@ -452,7 +549,7 @@ class TonnetzModel(Tonnetz):
                                 self.balls[ball.trichord] = ball
                                 self.setColor(ball)
                                 ball.name = self.label(trichord)
-                                ball.label = label(pos = trichord,  text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 1, xoffset = -20, yoffset = 20)
+                                ball.label = label(pos = trichord,  text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 2, xoffset = -20, yoffset = 20)
         
                             else:
                                 self.balls[trichord].radius = self.normalPrismRadius
@@ -494,7 +591,7 @@ class TonnetzModel(Tonnetz):
         o = tuple(origin)
         n = tuple(neighbor)
         if n in self.trichords:
-            curve(pos = [o, n], color = (0.65, 0.65, 0.65))
+            curve(pos = [o, n], color = (0.65, 0.65, 0.65), radius = 0.020)
     def runGrab(self, filename, bbox=None):
         while scene.visible:
             if scene.mouse.clicked:
@@ -516,14 +613,125 @@ class TonnetzModel(Tonnetz):
                 except:
                     traceback.print_exc()
                 scene.mouse.events = 0
-
+    def playBall(self, pickedBall):
+        pickedBall.label.visible = 1
+        print pickedBall.name
+        note1 = "i 2 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
+        note2 = "i 2 0 4 %d 70 0  .0"  % (60 + pickedBall.pos[1])
+        note3 = "i 2 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
+        print '%s\n%s\n%s' % (note1, note2, note3)
+        if self.enableCsound:
+            self.csound.inputMessage(note1)
+            self.csound.inputMessage(note2)
+            self.csound.inputMessage(note3)
+        print
+        
     def run(self):
         pickedBall = None
         oldBall = None
         movingChord = ( 0, 4, 7)
-        movingChord = tuple(self.sort(movingChord))
         translation = (1,1,1)
         while scene.visible:
+            movingChord = tuple(self.sort(movingChord))
+            if scene.kb.keys:
+                k = scene.kb.getkey() 
+                print 'key: %s' % k
+                if   k == 'up':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 0,  1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'right':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 1,  1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'down':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 2,  1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'shift+up':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 0, -1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'shift+right':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 1, -1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'shift+down':
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.move(movingChord, 2, -1.0)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                if k in ('p', 'P'):
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.nrP(movingChord)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k in ('l', 'L'):
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.nrL(movingChord)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k in ('r', 'R'):
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.nrR(movingChord)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k in ('d', 'D'):
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    movingChord = self.nrD(movingChord)
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k in ('1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'):                    
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 0
+                    if k == 'a':
+                        k = 10
+                    if k == 'b':
+                        k = 11
+                    movingChord = self.pT(movingChord, float(k))
+                    movingBall = self.balls[movingChord]
+                    movingBall.label.visible = 1
+                    self.playBall(movingBall)
+                    oldBall = movingBall
+                elif k == 'g':
+                    self.runGrab("orbifold.png")
+                elif k in ('x', 'X', 'q', 'Q'):
+                    sys.exit()
             if scene.mouse.clicked:
                 try:
                     m = scene.mouse.getclick()
@@ -534,16 +742,9 @@ class TonnetzModel(Tonnetz):
                     oldBall = pickedBall
                     pickedBall = m.pick
                     if pickedBall:
-                        pickedBall.label.visible = 1
-                        note1 = "i 2 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
-                        note2 = "i 2 0 4 %d 70 0  .0"  % (60 + pickedBall.pos[1])
-                        note3 = "i 2 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
-                        print '%s\n%s\n%s' % (note1, note2, note3)
-                        if self.enableCsound:
-                            self.csound.inputMessage(note1)
-                            self.csound.inputMessage(note2)
-                            self.csound.inputMessage(note3)
-                        print
+                        movingBall = pickedBall
+                        movingChord = tuple(movingBall.pos)
+                        self.playBall(pickedBall)
                 except:
                     traceback.print_exc()
                     print self.label(movingChord)
@@ -561,18 +762,7 @@ class TonnetzModel(Tonnetz):
                     print 'New chord',movingChord
                     #movingChord = self.voiceLead(a, b, True)
                     movingChord = tuple(self.keepInside(movingChord))
-                    print 'New chord inside',movingChord
-                    note1 = "i  2 0 4 %d 70 0 -.75" % (60 + movingBall.pos[0])
-                    note2 = "i  2 0 4 %d 70 0  .0"  % (60 + movingBall.pos[1])
-                    note3 = "i  2 0 4 %d 70 0  .75" % (60 + movingBall.pos[2])
-                    print note1
-                    print note2
-                    print note3
-                    if self.enableCsound:
-                        self.csound.inputMessage(note1)
-                        self.csound.inputMessage(note2)
-                        self.csound.inputMessage(note3)
-                    print
+                    self.playBall(movingChord)
                 except:
                     traceback.print_exc()
                     print self.label(movingChord)
@@ -596,14 +786,14 @@ iafno ftgen 3, 		0, 	4097, 	10, 	1, .4, .2, .1, .1, .05
 iafno ftgen 41, 	0, 	65537, 	10, 	1 ; Sine wave.
 iafno ftgen 42, 	0, 	65537, 	11, 	1 ; Cosine wave. Get that noise down on the most widely used table!
 
-instr 2 ; Heavy metal model, Perry Cook
+instr 2 
 ; INITIALIZATION
-ioctave                 =                       p4 / 12.0 + 3.0
+ioctave         =                       p4 / 12.0 + 3.0
 iattack 		= 			0.01
 idecay			=			2.0
 isustain 		= 			p3
 irelease 		= 			0.125
-p3			= 			iattack + idecay + isustain + irelease
+p3			    = 			iattack + idecay + isustain + irelease
 iindex 			= 			1
 icrossfade 		= 			3
 ivibedepth 		= 			0.02
@@ -628,10 +818,10 @@ ijunk9 			= 			p9
 ijunk10 		= 			p10
 ijunk11 		= 			p11
 ; AUDIO
-adecay0 		expsegr 		1.0, iattack, 2.0, idecay, 1.1, isustain, 1.001, irelease, 1.0, irelease, 1.0
+adecay0 		expsegr 	1.0, iattack, 2.0, idecay, 1.1, isustain, 1.001, irelease, 1.0, irelease, 1.0
 adecay			=			adecay0 - 1.0
-asignal			fmmetal 		0.1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-			outs 			ileftgain * asignal * adecay, irightgain * asignal * adecay
+asignal			fmrhode 	0.1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
+			    outs 		ileftgain * asignal * adecay, irightgain * asignal * adecay
 endin
             ''')
         model.csound.setScore('''
@@ -639,7 +829,7 @@ endin
             f0 600
             e
             ''')
-        model.csound.setCommand('csound -h -d -r 44100 -k 441 -m128 -b100 -B100 -odac temp.orc temp.sco')
+        model.csound.setCommand('csound -h -d -r 44100 -k 441 -m128 -b100 -B100 -odac6 temp.orc temp.sco')
         model.csound.exportForPerformance()
         gc.disable()
         model.csound.compile()
@@ -669,7 +859,9 @@ print 'Program finished.'
     
 
 if __name__ == '__main__':
-    scene.fullscreen = True
+    scene.fullscreen = False
+    scene.width = 300 * 7
+    scene.height = 300 * 5
     # Tonnetz for trichords
     model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space

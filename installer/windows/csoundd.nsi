@@ -511,9 +511,9 @@ Section "${PRODUCT}" SecCopyUI
 
   	SetOutPath $INSTDIR\bin
 !ifdef FLOAT
-	File ..\..\csound32.dll.5.1
+	File ..\..\csound32.dll.5.2
 !else
-	File ..\..\csound64.dll.5.1
+	File ..\..\csound64.dll.5.2
 !endif
 	File C:\windows\system32\MSVCRT.DLL
 	File ..\..\csnd.dll
