@@ -43,7 +43,8 @@
 \begin{sloppypar}
 
 \lstset{language=c++,basicstyle=\ttfamily\tiny,commentstyle=\ttfamily\tiny,tabsize=2,breaklines,backgroundcolor=\color{LstColor},fontadjust=true,keepspaces=false,fancyvrb=true,showstringspaces=false,moredelim=[is][\textbf]{\\emph\{}{\}}}.
-\title{Csound Windows Build}
+\title{Csound Windows Build \\ 5.10.0}
+
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
 
@@ -106,27 +107,27 @@ All third party libraries will be updated from the most recent version that seem
 </catalog>
 \end{lstlisting}
 	    
-	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
-	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
+	    \item (Done) Update LaTeX to MikTex version 2.7 from \url{http://miktex.org} and TeXniCenter 1 Stable RC1 from \url{http://www.texniccenter.org}. 
+	    \item (Done) Update Doxygen to the current version (1.5.8) from \url{http://www.stack.nl/~dimitri/doxygen}.
 	    \item (Done) Update ATT Graphviz to version 2.8 from \url{http://www.graphviz.org}. Later versions of Graphviz \texttt{dot} do not work with current Doxygen.
 		\end{enumerate}
 	\item (Done) Update the build tools.   
 		\begin{enumerate}
-  		\item (Done) Update Python from \url{www.python.org} to the most recent ``standard'' version (currently 2.5.2).
-	    \item (Done) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.1.0).
-			\item (Done) Update MinGW/MSys from \url{www.mingw.org} to gcc version 4.2.1-sjlj (mingw32-2) from \url{http://sourceforge.net/projects/mingw}. Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}. Also, add pkg.m4 from \url{http://johnnypops.demon.co.uk/mingw/msys-pkg-config-win32.zip}. The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhatfaster code, because the dw2 compiler generates buggy code for DLL relocations.
+  		\item (Done) Update Python from \url{www.python.org} to the most recent ``standard'' version (currently 2.5.4).
+	    \item (Done) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.2.0).
+			\item (Done) Update MinGW/MSys from \url{www.mingw.org} to gcc version 4.2.1-sjlj (mingw32-2) from \url{http://sourceforge.net/projects/mingw}. Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}. Also, add pkg.m4 from \url{http://johnnypops.demon.co.uk/mingw/msys-pkg-config-win32.zip}. The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhat faster code, because the dw2 compiler generates buggy code for DLL relocations.
 			\item (Done) Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
 	    \item (Done) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 1.3.36).
-	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 10 RC).
+	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 11).
 		\end{enumerate}    
 	\item (Done) Update third-party libraries.   
 		\begin{enumerate}
     	\item (Done) Install the VST SDK 2.4 from \url{http://www.steinberg.net/en/company/3rd_party_developer.html}.
-   		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.36.0).
+   		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.37.0).
     	\item (Done) Update the Synthesis Toolkit in C++ (STK) from \url{http://ccrma.stanford.edu/software/stk} to the most recent version (currently 4.3.1). Apply any patches from the web site and mailing list. Copy all contents of the STK directory into the Csound \texttt{Opcodes} directory.
-			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile}. Try the most recent pre-release version first (currently 1.0.18pre22a); if that doesn't work, use the latest stable release (currently 1.0.17). Do not build from sources. 
+			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile}. Try the most recent pre-release version first (currently 1.0.18pre24); if that doesn't work, use the latest stable release (currently 1.0.17). Do not build from sources. 
     	\item (Done) Update FLTK from \url{www.fltk.org} to \texttt{branch-1.3 HEAD} from SVN and build it with MinGW using \verb|./configure --enable-threads --enable-shared|. Make sure that \texttt{custom-mingw.py} searches FLTK's \texttt{src} directory for import libraries before it searches FLTK's \texttt{lib} directory for static libraries (both are required).
-     	\item (Done) Update liblo version 0.24 (later versions call \verb|inet_aton| which doesn't exist on Windows) from \url{http://liblo.sourceforge.net} SVN and build with this SConstruct:
+     	\item (Done) Update liblo tag 0.24 (later versions call \verb|inet_aton| which doesn't exist on Windows) from the tarball at \url{http://liblo.sourceforge.net} (\emph{not} SVN!), and build with this SConstruct:
     	
 \begin{lstlisting}
 # S C O N S T R U C T   F O R   L I B L O . D L L
