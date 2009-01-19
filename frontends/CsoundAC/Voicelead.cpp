@@ -347,6 +347,7 @@ namespace csound
   /**
    * Bijective voiceleading first by closeness, then by simplicity,
    * with optional avoidance of parallel fifths.
+   * If source and target are the same, parallel fifths are not avoided.
    */
   std::vector<double> Voicelead::voicelead(const std::vector<double> &source_,
                                            const std::vector<double> &target_,
@@ -357,8 +358,13 @@ namespace csound
   {
     std::vector<double> source = source_;
     std::vector<double> target = target_;
-    std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range, divisionsPerOctave);
-    std::vector<double> voicing = closest(source, voicings_, avoidParallels);
+    std::vector<double> voicing;
+    if (source != target) {
+      std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range, divisionsPerOctave);
+      voicing = closest(source, voicings_, avoidParallels);
+    } else {
+      voicing = target_;
+    }
     if (debug) {
       std::cerr << "   From: " << source_ << std::endl;
       std::cerr << "     To: " << target_ << std::endl;
