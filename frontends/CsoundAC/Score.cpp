@@ -460,7 +460,7 @@ namespace csound
       if( gains.find( oldInstrument ) != gains.end() ) {
         double inputDb = it->getVelocity();
         double gain = gains[oldInstrument];
-        double outputDb = Conversions::gainToDb( inputDb, gain );
+        double outputDb = inputDb + gain;
         it->setVelocity( outputDb );
       }
       if( pans.find( oldInstrument ) != pans.end() ) {
