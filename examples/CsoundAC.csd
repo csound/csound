@@ -102,7 +102,7 @@ giAzr3                  vstinit                 "D:\\utah\\opt\\Steinberg\\Cubas
                         
 #ifdef ENABLE_PIANOTEQ
             
-giPianoteq              vstinit                 "D:\\utah\\opt\\Pianoteq\\pianoteq20", 0
+giPianoteq              vstinit                 "D:\\utah\\opt\\pianoteq-2.3\\Pianoteq23.dll", 0
                         vstinfo                 giPianoteq
 
 #end
@@ -425,7 +425,7 @@ aright			        =			            aoutr * iamplitude * adamping
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 5                 ; Tone wheel organ by Mikelson
+                        instr 5                 ; Tone wheel organ, Mikelson
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, 25.0
@@ -482,7 +482,7 @@ aenvelope               transeg                 1.0, 10.0, -5.0, 0.0
 apluck                  pluck                   iamplitude, kHz, i(kHz), 0, 1
 aharp                   poscil                  aenvelope, kHz, giharpsichord
 aharp2                  balance                 apluck, aharp
-asignal			        =			            apluck + aharp2
+asignal			        =			            (apluck + aharp2) * iamplitude
 aleft, aright		    Pan			            p7, asignal
 p3, aleft, aright	    Declick			        0.005, p3, 0.3, aleft, aright
                         AssignSend		        p1, 0.0, 0.0, 0.2, 1
