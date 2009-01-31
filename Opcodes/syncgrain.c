@@ -456,6 +456,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     uint32  pos = p->pos;
     int32   negpos, flen = p->flen;
     float   trigger = p->trigger, incr;
+	
+	memset(sig, 0, DGRAIN_MAXCHAN*sizeof(MYFLT));
 
     datasize = dataframes*chans;
     hdatasize = hdataframes*chans;
@@ -616,7 +618,9 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
         /* sum all the grain streams */
         tndx = (int)index[j]*chans;
         endx = (int) envindex[j];
+		//sig[0] = sig[1] = sig[2] = sig[3] = 0.0;
         for(n=0; n < chans; n++){
+
           sig[n] += ((datap[tndx+n] +
                       (index[j] - (int)index[j])*
                       (datap[tndx+n+chans] - datap[tndx+n])
@@ -626,6 +630,9 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
                       (ftable[endx+1] - ftable[endx])
                       )
                      );
+					 
+				 
+	         	 
         }
 
         /* increment the indexes */
@@ -643,7 +650,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
       count++;
       /* scale the output */
       for(n=0; n < chans; n++){
-         output[n][vecpos] = sig[n]*amp;
+	     output[n][vecpos] = sig[n]*amp;
          sig[n] = 0;
       }
     }
