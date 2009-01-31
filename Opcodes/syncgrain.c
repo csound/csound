@@ -47,7 +47,7 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
    if(p->envindex.auxp == NULL || p->envindex.size < size)
           csound->AuxAlloc(csound, size, &p->envindex);
    size = (p->olaps) * sizeof(int);
-   if(p->streamon.auxp == NULL || p->streamon.size > size)
+   if(p->streamon.auxp == NULL || p->streamon.size < size)
           csound->AuxAlloc(csound, size, &p->streamon);
 
 
@@ -389,10 +389,10 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
    if(p->envindex.auxp == NULL || p->envindex.size < size)
           csound->AuxAlloc(csound, size, &p->envindex);
    size = (p->olaps) * sizeof(int);
-   if(p->streamon.auxp == NULL || p->streamon.size > size)
+   if(p->streamon.auxp == NULL || p->streamon.size < size)
           csound->AuxAlloc(csound, size, &p->streamon);
    if(p->buffer.auxp == NULL ||
-      p->buffer.size > (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
+      p->buffer.size < (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
      csound->AuxAlloc(csound,
                       (p->dataframes+1)*sizeof(MYFLT)*p->nChannels, &p->buffer);
 
@@ -400,6 +400,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
    /* open file and read the first block using *p->ioff */
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+	memset(buffer, 0,p->buffer.size);
     if(fd == NULL){
       return csound->InitError(csound, Str("diskgrain: could not open file\n"));
     }
