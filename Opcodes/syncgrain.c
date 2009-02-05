@@ -24,6 +24,7 @@
 #include "csdl.h"
 #include "syncgrain.h"
 #include "soundio.h"
+#include <values.h>
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
@@ -51,7 +52,7 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
           csound->AuxAlloc(csound, size, &p->streamon);
 
 
-    p->count = 0xFFFFFFFF;              /* sampling period counter */
+    p->count = MAXINT;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->datasize =  p->sfunc->flen;
@@ -188,7 +189,7 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
       size = (p->olaps) * sizeof(int);
        if(p->streamon.auxp == NULL || p->streamon.size > size)
           csound->AuxAlloc(csound, size, &p->streamon);
-    p->count = 0xFFFFFFFF;              /* sampling period counter */
+    p->count = MAXINT;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->start = *p->startpos*(csound->GetSr(csound));
@@ -422,7 +423,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     }
 
    /* -===-  */
-    p->count = 0xFFFFFFFF;              /* sampling period counter */
+    p->count = MAXINT;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->envtablesize = p->efunc->flen;   /* size of envtable */
