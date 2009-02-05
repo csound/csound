@@ -53,12 +53,14 @@ typedef struct {
     MYFLT   *arg;
     MYFLT   *iname;
     MYFLT   *fp;
+    int     *lock;
 } CHNGET;
 
 typedef struct {
     OPDS    h;
     MYFLT   *iname;
     MYFLT   *fp;
+    int     *lock;
 } CHNCLEAR;
 
 typedef struct {
@@ -67,6 +69,7 @@ typedef struct {
     MYFLT   *imode;
     const char  *name;
     MYFLT   *fp;
+    int     *lock;
     int     type;
 } CHNSEND;
 

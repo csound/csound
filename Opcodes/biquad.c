@@ -1038,7 +1038,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
 {
     int32 n, nsmps = csound->ksmps;
     MYFLT *out, *in;
-    MYFLT x;
+    double x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
     double fco, res, dist, asym;
     double y = p->y, y1 = p->y1, y2 = p->y2;
@@ -1083,7 +1083,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
         q  = q1*fco1*fco1*0.0005;
         fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
       }
-      x  = in[n];
+      x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
       y1  = y1 + ih*((x - y1)*fc - fdbk);
       d  = -0.1*y*20.0;
