@@ -81,12 +81,14 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
+    int     *lock;
 } CHN_OPCODE_K;
 
 typedef struct {
     OPDS    h;
     MYFLT   *iname;
     MYFLT   *imode;
+    int     *lock;
 } CHN_OPCODE;
 
 typedef struct {
