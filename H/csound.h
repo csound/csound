@@ -1641,6 +1641,26 @@ CSOUND_FILETYPES;
                                          CsoundChannelIOCallback_t func);
 
   /**
+   * Recovers a pointer to a lock for the specified channel of the bus in *p
+   * which must exist.
+   * 'type' must be the bitwise OR of exactly one of the following values,
+   *   CSOUND_CONTROL_CHANNEL
+   *     control data (one MYFLT value)
+   *   CSOUND_AUDIO_CHANNEL
+   *     audio data (csoundGetKsmps(csound) MYFLT values)
+   *   CSOUND_STRING_CHANNEL
+   *     string data (MYFLT values with enough space to store
+   *     csoundGetStrVarMaxLen(csound) characters, including the
+   *     NULL character at the end of the string)
+   * and at least one of these:
+   *   CSOUND_INPUT_CHANNEL
+   *   CSOUND_OUTPUT_CHANNEL
+   * Return value is the address of the lock
+   */
+  PUBLIC int *csoundGetChannelLock(CSOUND *,
+                                   const char *name, int type);
+
+  /**
    * Simple linear congruential random number generator:
    *   (*seedVal) = (*seedVal) * 742938285 % 2147483647
    * the initial value of *seedVal must be in the range 1 to 2147483646.

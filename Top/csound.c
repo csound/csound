@@ -310,6 +310,7 @@ extern "C" {
     csoundNotifyFileOpened,
     sftype2csfiletype,
     insert_score_event_at_sample,
+    csoundGetChannelLock,
     /* NULL, */
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -319,7 +320,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL},
+      NULL, NULL, NULL, NULL, NULL},
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */

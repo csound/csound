@@ -1,3 +1,12 @@
+2009-02-06  jpff  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h ("C"): Added GetChannelLock to API
+
+	* OOps/bus.c (csoundGetChannelLock): New function, deployed as
+	well all over this file
+
+	* H/csound.h ("C"): Added csoundGetChannelLock
+
 2008-12-19  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h: VERSION 5.10.1
