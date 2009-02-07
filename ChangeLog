@@ -1,3 +1,8 @@
+2009-02-07  jpff  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (rdorchfile): 
+	* Engine/sread.c (sget1): Mane mname grow rather than being fixed size
+
 2009-02-06  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h ("C"): Added GetChannelLock to API

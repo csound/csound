@@ -1529,7 +1529,8 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       }
     }
     if (c == '#') {
-      char  mname[100];         /* Start Macro definition */
+      int mlen = 40;
+      char  *mname = malloc(40);         /* Start Macro definition */
       int   i = 0;
       while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
@@ -1539,13 +1540,15 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         mm->margs = MARGS;
         if (UNLIKELY(!check_preproc_name(csound, "define"))) {
           csound->Message(csound, Str("Not #define"));
-          mfree(csound, mm);
+          mfree(csound, mm); free(mname);
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';
@@ -1559,6 +1562,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
             i = 0;
             while (isNameChar(c, i)) {
               mname[i++] = c;
+              if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
               c = getscochar(csound, 1);
             }
             mname[i] = '\0';
@@ -1574,6 +1578,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           if (UNLIKELY(c!=')')) {
             csound->Message(csound, Str("macro error\n"));
             flushlin(csound);
+            free(mname);
             goto srch;
           }
         }
@@ -1601,6 +1606,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 #endif
         c = ' ';
         flushlin(csound);
+        free(mname);
         goto srch;
       }
       else if (c == 'i') {
@@ -1608,12 +1614,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "include"))) {
           csound->Message(csound, Str("Not #include"));
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         delim = c;
         i = 0;
-        while ((c=getscochar(csound, 1))!=delim) mname[i++] = c;
+        while ((c=getscochar(csound, 1))!=delim) {
+          mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+        }
         mname[i]='\0';
         while ((c=getscochar(csound, 1))!='\n');
         ST(input_cnt)++;
@@ -1638,6 +1648,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         else {
           ST(str)->body = csound->GetFileName(ST(str)->fd);
           ST(str)->line = 1; ST(str)->unget_cnt = 0;
+          free(mname);
           goto srch;
         }
       }
@@ -1645,11 +1656,13 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "undef"))) {
           csound->Message(csound, Str("Not #undef"));
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';
@@ -1663,6 +1676,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         sreaderr(csound, Str("unknown # option"));
         flushlin(csound);
       }
+      free(mname);
       goto srch;
     }
 
