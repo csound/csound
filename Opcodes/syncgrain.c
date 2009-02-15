@@ -26,6 +26,11 @@
 #include "soundio.h"
 #include <values.h>
 
+#ifndef MAXINT
+#include <limits.h>
+#define MAXINT INT_MAX
+#endif
+
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int size;
