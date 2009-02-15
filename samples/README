@@ -1,0 +1,7 @@
+The HRTF datafiles are the result of a Discrete Fourier Transform of the 
+measurements made in the MIT Media Lab by Bill Gardner <billg@media.mit.edu> 
+and Keith Martin <kdm@media.mit.edu>. The original data is Copyright 1994 by 
+the MIT Media Lab and is provided free with no restrictions on use, provided 
+the authors are cited when the data is used in any research or commercial 
+application. The original data can be found at 
+http://sound.media.mit.edu/resources/KEMAR.html, in the compact dataset.
