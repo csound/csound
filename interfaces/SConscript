@@ -144,6 +144,8 @@ if commonEnvironment['buildInterfaces'] == '1':
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
             'csnd', csoundInterfacesSources)
 
+    util.installLib(csoundInterfaces)
+
     # CsoundAC needs this
     Export("csoundInterfaces")
 
@@ -182,12 +184,13 @@ if commonEnvironment['buildInterfaces'] == '1':
         csoundLuaEnvironment.Append(SWIGFLAGS = ['-lua', '-outdir',
             'interfaces'])
         csoundLuaEnvironment.Append(LIBS = csoundInterfaces)
+        if util.platform == 'win32':
+            csoundLuaEnvironment.Prepend(LIBS = ['lua51'])
+        else:
+            csoundLuaEnvironment.Prepend(LIBS = ['lua'])
         csoundLuaInterface = csoundLuaEnvironment.SharedLibrary('lua-csnd',
             'lua_interface.i')
-        if util.platform == 'win32':
-            csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
-        else:
-            csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
+        util.installLib(csoundLuaInterface)
 
 
     if commonEnvironment['buildJavaWrapper'] != '0':
@@ -220,6 +223,8 @@ if commonEnvironment['buildInterfaces'] == '1':
             csoundJavaWrapper = csoundJavaWrapperEnvironment.SharedLibrary(
                 '_jcsound', csoundJavaWrapperSources)
 
+        util.installLib(csoundJavaWrapper, "jni")
+
         # Make sure the java builder sees all java files
         Execute( Touch(javaSources) )
         jcsnd = csoundJavaWrapperEnvironment.Java(
@@ -235,5 +240,7 @@ if commonEnvironment['buildInterfaces'] == '1':
         #Execute( Mkdir('csnd') )
         jcsndJar = csoundJavaWrapperEnvironment.Jar(
             'csnd.jar', 'classes', JARCHDIR = 'interfaces/classes')
+
+        util.installFiles(jcsndJar, "share/java")
     else:
         util.confDecision('Not building Java wrappers for Csound interfaces library.')

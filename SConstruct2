@@ -82,8 +82,12 @@ class Utility:
 
     def makePlugin(self, env, pluginName, srcs):
         pluginLib = env.SharedLibrary(pluginName, srcs)
-        pluginLibraries.append(pluginLib)
         self.MacOSX_InstallPlugin('lib' + pluginName + '.dylib')
+        plugindir = "csound/plugins"
+        if env['useDouble'] == '1':
+            plugindir += '64'
+        plugindir += '-%s' % self.csoundLibraryVersion
+        self.installLib(pluginLib, plugindir)
         return pluginLib
 
     def fixCFlagsForSwig(self, env):
@@ -111,8 +115,9 @@ class Utility:
              initialEnvironment['pythonVersion'] < '2.4':
                     Depends(pyModule_, pythonImportLibrary)
             print "PYTHON MODULE %s..." % targetName
-        pythonModules.append(pyModule_)
-        pythonModules.append('%s.py' % targetName)
+        modulesdir = 'lib/python%s/site-packages' % env['pythonVersion']
+        self.installFiles(pyModule_, modulesdir)
+        self.installFiles('%s.py' % targetName, modulesdir)
         return pyModule_
 
     def addOSXResourceFork(self, env, baseName, dirName):
@@ -141,6 +146,7 @@ class Utility:
         gtFile = 'po/' + baseName + '.po'
         ttFile = 'po/' + target + '/LC_MESSAGES/csound5.mo'
         env.Command(ttFile, gtFile, 'msgfmt -o %s %s' % (ttFile, gtFile))
+        self.installFiles(target, 'share/locale')
         return ttFile
     # Output stuff
     def confDecision(self, msg):
@@ -258,18 +264,39 @@ class Utility:
         env.Append( LIBS = pythonLibs )
         return True
 
+    def installFiles(self, files, subdir):
+        # initialEnvironment is the first one to exist
+        if initialEnvironment['install'] == '1':
+            destdir = initialEnvironment['instdir']
+            destdir += "/%s/%s" % (initialEnvironment['prefix'], subdir)
+            destdir = destdir.replace("//", "/")
+            # most likely
+            if destdir[0] != '/':
+                destdir = '#' + destdir
+            Default(initialEnvironment.Install(destdir, files))
+
+    def installProgram(self, program):
+        self.installFiles(program, "bin")
+
+    def installLib(self, lib, subdir = None):
+        libdir = "lib"
+        if initialEnvironment['Lib64'] == '1':
+            libdir += "64"
+        if subdir:
+            libdir += "/" + subdir
+        self.installFiles(lib, libdir)
+
+    def installHeaders(self, headers):
+        self.installFiles(headers, "include/csound")
 
 util = Utility()
 
-pluginLibraries = []
-executables     = []
-libs            = []
-pythonModules   = []
 headers = Split('''
     H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csound.hpp H/csoundCore.h
     H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h H/pvfileio.h
     H/soundio.h H/sysdep.h H/text.h H/version.h
     interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h
+    interfaces/csPerfThread.hpp
 ''')
 
 #############################################################################
@@ -430,6 +457,8 @@ Help(commandOptions.GenerateHelpText(initialEnvironment))
 
 if initialEnvironment['custom']:
     optionsFilename = initialEnvironment['custom']
+
+util.installHeaders(headers)
 
 print "Using options from '%s.'" % optionsFilename
 
@@ -1010,7 +1039,9 @@ else:
         util.csoundLibraryName, libCsoundSources)
 
 libCsoundLibs.append(util.csoundLibraryName)
-libs.append(csoundLibrary)
+
+util.installLib(csoundLibrary)
+
 # Make everything link (correctly) against libcsound, even if not needed.
 # FIXME: when linking statically this may lead to larger than normal binaries.
 # Stripping should help (?). It appears that at least gcc doesn't link
@@ -1185,30 +1216,28 @@ if not buildOLPC:
         ['sndinfo',     'util/sndinfo_main.c' ],
         ['srconv',      'util/srconv_main.c'  ]]
     for i in utils:
-      executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
+        util.installProgram(csoundProgramEnvironment.Program(i[0], i[1]))
 
 if not buildOLPC:
-    executables.append(csoundProgramEnvironment.Program(
+    util.installProgram(csoundProgramEnvironment.Program(
         'scsort',['util1/sortex/smain.c']))
-    executables.append(csoundProgramEnvironment.Program(
+    util.installProgram(csoundProgramEnvironment.Program(
         'extract', ['util1/sortex/xmain.c']))
     if util.compilerGNU():
-        executables.append(commonEnvironment.Program(
+        util.installProgram(commonEnvironment.Program(
             'cs', ['util1/csd_util/cs.c']))
-        executables.append(commonEnvironment.Program(
+        util.installProgram(commonEnvironment.Program(
             'csb64enc',
-            ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
-        executables.append(commonEnvironment.Program(
+                ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
+        util.installProgram(commonEnvironment.Program(
             'makecsd',
-            ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
-        executables.append(commonEnvironment.Program(
+                ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
+        util.installProgram(commonEnvironment.Program(
             'scot', ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
-    executables.append(commonEnvironment.Program(
+    util.installProgram(commonEnvironment.Program(
         'sdif2ad', ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
-
-for i in executables : Depends(i, csoundLibrary)
 
 if (commonEnvironment['generateTags']=='0') or (util.platform != 'darwin' and util.platform != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
@@ -1234,46 +1263,6 @@ if commonEnvironment['useGettext'] == '1':
     util.gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     util.gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
     util.gettextTarget(csound5GettextEnvironment, 'russian', 'ru')
-
-# INSTALL OPTIONS
-
-INSTDIR = commonEnvironment['instdir']
-PREFIX = INSTDIR + commonEnvironment['prefix']
-
-BIN_DIR = PREFIX + "/bin"
-INCLUDE_DIR = PREFIX + "/include/csound"
-
-if (commonEnvironment['Lib64'] == '1'):
-    LIB_DIR = PREFIX + "/lib64"
-    PYTHON_DIR = '%s/lib64' % sys.prefix
-else:
-    LIB_DIR = PREFIX + "/lib"
-    PYTHON_DIR = '%s/lib' % sys.prefix
-
-PYTHON_DIR += '/python%s/site-packages' % commonEnvironment['pythonVersion']
-
-for i in sys.path:
-    if i[:sys.prefix.__len__()] == sys.prefix and i[-13:] == 'site-packages':
-        PYTHON_DIR = i
-
-if commonEnvironment['useDouble'] == '0':
-    PLUGIN_DIR = LIB_DIR + "/csound/plugins"
-else:
-    PLUGIN_DIR = LIB_DIR + "/csound/plugins64"
-
-if commonEnvironment['install'] == '1':
-    installExecutables = Alias('install-executables',
-        Install(BIN_DIR, executables))
-    installOpcodes = Alias('install-opcodes',
-        Install(PLUGIN_DIR, pluginLibraries))
-    installHeaders = Alias('install-headers',
-        Install(INCLUDE_DIR, headers))
-    installLibs = Alias('install-libs',
-        Install(LIB_DIR, libs))
-    installPythonModules = Alias('install-py',
-        Install(PYTHON_DIR, pythonModules))
-    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installPythonModules])
-
 
 ###Code to create pkconfig files
 #env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])
