@@ -44,7 +44,7 @@ csoundSources = ['csound/csound_main.c']
 if util.platform == 'linux':
     csoundSources += ['csound/sched.c'] 
 csoundProgram = programEnvironment.Program('csound/csound', csoundSources)
-
+util.installProgram(csoundProgram)
 # FLTK csound5gui
 
 
@@ -120,7 +120,8 @@ if commonEnvironment['buildCsound5GUI'] != '0':
         csound5GUIEnvironment.Command(
             '%s/csound5gui' % appDir, 'csound5gui', "cp $SOURCE %s/" % appDir)
         util.addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', appDir)
- 
+
+    util.installProgram(csound5GUI)
 else:
     util.confDecision("Not building FLTK CSOUND5GUI frontend.")
 
@@ -175,6 +176,7 @@ if commonEnvironment['buildWinsound'] == '1':
     Depends(winsoundMain, winsoundSrc)
     winsound5 = csWinEnvironment.Program(
         'winsound/winsound', [winsoundMain, winsoundSrc])
+    util.installProgram(winsound5)
 else:
     util.confDecision("Not building Winsound")
 
@@ -186,6 +188,7 @@ if (util.platform == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
         '''OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
         'OSX/main.c',
         "cd frontends/OSX; xcodebuild -buildstyle Deployment")
+    util.installProgram(OSXGUI)
 else:
     util.confDecision("Not building OSX GUI frontend")
 
@@ -205,6 +208,7 @@ if util.platform == "darwin":
          'csladspa/csladspa.cpp' )
 else:
     csladspa = csLadspaEnv.SharedLibrary('csladspa/csladspa.cpp')
+    util.installLib(csladspa, "ladspa")
 
 # Cseditor
 if commonEnvironment['buildCSEditor'] == '1':
@@ -239,6 +243,7 @@ if commonEnvironment['buildCSEditor'] == '1':
 
     csEditor = csEditorEnvironment.Program( 'cseditor/cseditor',
             'cseditor/cseditor.cxx')
+    util.installProgram(csEditor)
 else:
     util.confDecision('Not building Csound Text Editor.')
 
@@ -266,6 +271,7 @@ if commonEnvironment['buildPDClass'] != '0':
         pdClass = pdClassEnvironment.SharedLibrary(
             'csoundapi_tilde/csoundapi~',
             'csoundapi_tilde/csoundapi_tilde.c')
+    util.installLib(pdClass, "pd/extra")
 
 # Tclcsound
 if commonEnvironment['buildTclcsound'] == '1':
@@ -326,6 +332,8 @@ if commonEnvironment['buildTclcsound'] == '1':
     Tclcsoundlib    = csTclEnvironment.SharedLibrary(
         'tclcsound/tclcsound', ['tclcsound/tclcsound.c', csTclCmdObj],
         SHLIBPREFIX = '')
+    util.installProgram([csTcl,csTk])
+    util.installLib(Tclcsoundlib, "tclcsound")
     if util.platform == 'darwin':
         tmp = "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r"
         csTclEnvironment.Command('cswish_resources', 'cswish', tmp)
@@ -430,6 +438,8 @@ if commonEnvironment['buildCsoundAC'] == '1':
     else:
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
 
+    util.installLib(csoundac)
+
     acWrapperEnvironment.Append(SWIGFLAGS =
         ['-python', '-outdir', 'frontends/CsoundAC'])
     csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
@@ -444,6 +454,7 @@ if commonEnvironment['buildCsoundAC'] == '1':
 
     counterpoint = acEnvironment.Program('counterpoint',
         ['CsoundAC/CounterpointMain.cpp'], LIBS = ['CsoundAC'] )
+    util.installProgram(counterpoint)
 else:
     util.confDecision('Not building CsoundAC extension module for Csound with algorithmic composition.')
 
@@ -519,9 +530,10 @@ if commonEnvironment['buildCsoundVST'] == '1':
            vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         csoundVstSources.append('CsoundVST/_CsoundVST.def')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
-    guiEnvironment.Append(LIBS = 'CsoundVST')
     csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVSTShell', ['CsoundVST/csoundvst_main.cpp'])
     Depends(csoundvstGui, csoundvst)
+    util.installLib(csoundvst)
+    util.installProgram(csoundvstGui)
 else:
     util.confDecision('Not building CsoundVST plugin and standalone.')
