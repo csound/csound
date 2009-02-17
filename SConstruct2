@@ -1,5 +1,5 @@
 # vim: filetype=python expandtab sw=4 tabstop=4
-# Copied from SConstruct revision 1.646
+# Synched to SConstruct revision 1.710, except for the Sun changes in 1.769
 print '''
 C S O U N D 5
 
