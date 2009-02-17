@@ -116,7 +116,7 @@ if commonEnvironment['buildInterfaces'] == '1':
             tmp = '''-install_name
                 /Library/Frameworks/CsoundLib.framework/Versions/%s/%s'''
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
-                 tmp % ('5.1', ilibName)))
+                 tmp % (ilibVersion, ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
                 '_csnd', csoundInterfacesSources)
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
