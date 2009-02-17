@@ -35,6 +35,7 @@ commandOptions.Add('buildCsoundVST',
     '0')
 
 commandOptions.Update(commonEnvironment)
+Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 util.fixEnvForOLPC(commonEnvironment)
 
