@@ -249,6 +249,9 @@ commandOptions.Add('buildOLPC',
 commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
     '8.4')
+commandOptions.Add('includeMP3',
+     'Set to 1 if using mpadec', 
+     '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -476,6 +479,15 @@ if commonEnvironment['Word64'] == '1':
     else:    
         commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 
+# Support for GEN49 (load MP3 file)
+if commonEnvironment['includeMP3'] == '1' :
+    commonEnvironment.Append(CPPFLAGS = ['-DINC_MP3'])
+    commonEnvironment.Append(LINKFLAGS = ['-lmpadec'])
+    print 'CONFIGURATION DECISION: Building with MP3 support'
+else:
+    print 'CONFIGURATION DECISION: No MP3 support'
+
+
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
 else:
@@ -691,6 +703,7 @@ if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
 if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 	print "The pthread library is required to build Csound 5."
 	Exit(-1)
+
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])

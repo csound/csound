@@ -60,6 +60,11 @@ static int gn1314(FGDATA *, FUNC *, MYFLT, MYFLT);
 static int gen51(FGDATA *, FUNC *), gen52(FGDATA *, FUNC *);
 static int gen53(FGDATA *, FUNC *);
 static int GENUL(FGDATA *, FUNC *);
+#ifdef INC_MP3
+static int gen49(FGDATA *, FUNC *);
+#else
+#define gen49 GENUL
+#endif
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
@@ -67,7 +72,7 @@ static const GEN or_sub[GENMAX + 1] = {
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
+    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, gen49, GENUL,
     gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
 
@@ -2383,6 +2388,126 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+
+#ifdef INC_MP3
+#include <mp3dec.h>
+static int gen49(FGDATA *ff, FUNC *ftp)
+{
+    CSOUND  *csound = ff->csound;
+    MYFLT   *fp = ftp->ftable;
+    mp3dec_t mpa   = NULL;
+    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
+                               MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
+                               MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
+                               0.0 };
+    int     truncmsg = 0;
+    int32   inlocs = 0;
+    int     skip = 0, chan = 0, r, fd;
+    int p          = 0;
+    char    sfname[1024];
+    mpadec_info_t mpainfo;
+    uint32_t bufsize, bufused = 0;
+    uint64_t maxsize;
+    char *s;
+    static uint8_t buffer[0x10000];
+
+    if (UNLIKELY(ff->e.pcnt < 7)) {
+      return fterror(ff, Str("insufficient arguments"));
+    }
+    {
+      int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
+      if (filno == (int32) SSTRCOD) {
+        if (ff->e.strarg[0] == '"') {
+          int len = (int) strlen(ff->e.strarg) - 2;
+          strncpy(sfname, ff->e.strarg + 1, 1023);
+          if (len >= 0 && sfname[len] == '"')
+            sfname[len] = '\0';
+        }
+        else
+          strncpy(sfname, ff->e.strarg, 1023);
+      }
+      else if (filno >= 0 && filno <= csound->strsmax &&
+               csound->strsets && csound->strsets[filno])
+        strncpy(sfname, csound->strsets[filno], 1023);
+      else
+        sprintf(sfname, "soundin.%d", filno);   /* soundin.filno */
+    }
+    skip = ff->e.p[6];
+    chan  = (int) MYFLT2LRND(ff->e.p[7]);
+    if (UNLIKELY(chan < 0)) {
+      return fterror(ff, Str("channel %d illegal"), (int) chan);
+    }
+    switch (chan) {
+    case 0:
+      config.mode = MPADEC_CONFIG_AUTO; break;
+    case 1:
+      config.mode = MPADEC_CONFIG_MONO; break;
+    case 2:
+      config.mode = MPADEC_CONFIG_STEREO; break;
+    case 3:
+      config.mode = MPADEC_CONFIG_CHANNEL1; break;
+    case 4:
+      config.mode = MPADEC_CONFIG_CHANNEL2; break;
+    }
+    mpa = mp3dec_init();
+    if (!mpa) {
+      return fterror(ff, "Not enough memory\n");
+    }
+    if ((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK) {
+      return fterror(ff, mp3dec_error(r));
+    }
+    fd = open(sfname, O_RDONLY); /* search paths */
+    if (fd < 0) {
+      perror(sfname);
+      exit(1);
+    }
+    if ((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK) {
+      return fterror(ff, mp3dec_error(r));
+    } 
+    if ((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
+        MP3DEC_RETCODE_OK) {
+      return fterror(ff, mp3dec_error(r));
+    }
+    ftp->gen01args.sample_rate = mpainfo.frequency;
+    maxsize = mpainfo.decoded_sample_size
+             *mpainfo.decoded_frame_samples
+             *mpainfo.frames;
+    {
+      char temp[80];
+      if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
+      else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
+      else strcpy(temp, "MPEG-1 ");
+      if (mpainfo.layer == 1) strcat(temp, "Layer I");
+      else if (mpainfo.layer == 2) strcat(temp, "Layer II");
+      else strcat(temp, "Layer III");
+      fprintf(stderr, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+              temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
+              mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
+              mpainfo.duration%60);
+    }
+    bufsize = sizeof(buffer)/mpainfo.decoded_sample_size;
+    if (skip > 0) {
+      if ((uint32_t)skip > bufsize) skip = bufsize;
+      mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*skip, &bufused);
+    }
+    bufsize *= mpainfo.decoded_sample_size;
+    r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
+    while ((r == MP3DEC_RETCODE_OK) && bufused) {
+      int i;
+      int len = ftp->flen;
+      short *bb = (short*)buffer;
+      for (i=0; i<bufused; i++)  {
+        fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->e0dbfs;
+        p++;
+        if (p>len) break;
+      }
+      if (i <= 0) break;
+      r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
+    }
+    mp3dec_uninit(mpa);
+    return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
+}
+#endif
 
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
