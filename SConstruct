@@ -479,14 +479,6 @@ if commonEnvironment['Word64'] == '1':
     else:    
         commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 
-# Support for GEN49 (load MP3 file)
-if commonEnvironment['includeMP3'] == '1' :
-    commonEnvironment.Append(CPPFLAGS = ['-DINC_MP3'])
-    commonEnvironment.Append(LINKFLAGS = ['-lmpadec'])
-    print 'CONFIGURATION DECISION: Building with MP3 support'
-else:
-    print 'CONFIGURATION DECISION: No MP3 support'
-
 
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
@@ -703,6 +695,16 @@ if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
 if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 	print "The pthread library is required to build Csound 5."
 	Exit(-1)
+
+# Support for GEN49 (load MP3 file)
+if commonEnvironment['includeMP3'] == '1' : ### and configure.CheckHeader("mp3dec.h", language = "C") :
+    mpafound = 1
+    commonEnvironment.Append(CPPFLAGS = ['-DINC_MP3'])
+    print 'CONFIGURATION DECISION: Building with MP3 support'
+else:
+    mpafound = 0
+    print 'CONFIGURATION DECISION: No MP3 support'
+
 
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
@@ -942,6 +944,8 @@ pthread
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
 elif getPlatform() == 'linux' or getPlatform() == 'sunos':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
+    if mpafound :
+        csoundDynamicLibraryEnvironment.Append(LIBS = ['mpadec'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 
 if buildOSXFramework:
@@ -1641,6 +1645,8 @@ else:
         vstEnvironment.Append(LIBS = ['dl'])
         guiProgramEnvironment.Append(LIBS = ['dl'])
     csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
+    if mpafound :
+        csoundProgramEnvironment.Append(LIBS = ['mpadec'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
@@ -1771,7 +1777,6 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
-
 
 # OSC opcodes
 
@@ -2470,6 +2475,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     csTclEnvironment = commonEnvironment.Clone()
     csTclEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csTclEnvironment.Append(LIBS = libCsoundLibs)
+    if mpafound :
+        csTclEnvironment.Append(LIBS = ['mpadec'])
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
             -I/Library/Frameworks/Tcl.framework/Headers
@@ -2536,6 +2543,8 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     csWinEnvironment = commonEnvironment.Clone()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
+    if mpafound :
+        csWinEnvironment.Append(LIBS = ['mpadec'])
     # not used
     # if (commonEnvironment['noFLTKThreads'] == '1'):
     #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
@@ -2679,7 +2688,6 @@ if commonEnvironment['install'] == '1':
 if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     addOSXResourceFork(commonEnvironment, 'csound', '')
-
 
 ###Code to create pkconfig files
 #env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])
