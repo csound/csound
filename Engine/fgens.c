@@ -2390,20 +2390,20 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 }
 
 #ifdef INC_MP3
-#include <mp3dec.h>
+#include "mp3dec.h"
 static int gen49(FGDATA *ff, FUNC *ftp)
 {
-    CSOUND  *csound = ff->csound;
-    MYFLT   *fp = ftp->ftable;
-    mp3dec_t mpa   = NULL;
-    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
+    CSOUND  *csound        = ff->csound;
+    MYFLT   *fp            = ftp->ftable;
+    mp3dec_t mpa           = NULL;
+    mpadec_config_t config    = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
-    int     truncmsg = 0;
-    int32   inlocs = 0;
-    int     skip = 0, chan = 0, r, fd;
-    int p          = 0;
+    int     truncmsg          = 0;
+    int32   inlocs            = 0;
+    int     skip              = 0, chan = 0, r, fd;
+    int p                     = 0;
     char    sfname[1024];
     mpadec_info_t mpainfo;
     uint32_t bufsize, bufused = 0;
@@ -2454,18 +2454,21 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       return fterror(ff, "Not enough memory\n");
     }
     if ((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK) {
+      mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
     fd = open(sfname, O_RDONLY); /* search paths */
     if (fd < 0) {
-      perror(sfname);
-      exit(1);
+      mp3dec_uninit(mpa);
+      fterror(ff, "sfname");
     }
     if ((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK) {
+      mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     } 
     if ((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
         MP3DEC_RETCODE_OK) {
+      mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
     ftp->gen01args.sample_rate = mpainfo.frequency;
@@ -2497,10 +2500,12 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       int len = ftp->flen;
       short *bb = (short*)buffer;
       for (i=0; i<bufused; i++)  {
+        if (p>=len) {
+          return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
+        }
         fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->e0dbfs;
         p++;
-        if (p>len) break;
-      }
+       }
       if (i <= 0) break;
       r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
     }
