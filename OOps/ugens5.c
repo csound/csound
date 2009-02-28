@@ -389,7 +389,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
     LPHEADER *lph;
     MEMFIL   *mfp;
     int32     magic;
-    int32     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(int32) !! */
+    int32     totvals;
     char      lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
@@ -425,7 +425,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
-      p->headlongs = lph->headersize/sizeof(int32);
+      p->headlen = lph->headersize;
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
         csound->Warning(csound, Str("lpheader overriding inputs"));
@@ -444,7 +444,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
                                        lpfilname);
     }
     else {                                    /* No Header on file:*/
-      p->headlongs = 0;
+      p->headlen = 0;
       p->npoles = (int32)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
@@ -458,7 +458,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
-    totvals = (mfp->length/sizeof(MYFLT)) - p->headlongs;   /* see NB above!! */
+    totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (UNLIKELY(csound->oparms->odebug))
@@ -664,9 +664,10 @@ int lpread(CSOUND *csound, LPREAD *p)
       }
     }
     /* Locate frames bounding current time */
-    nn = (framphase >> 16) * p->nvals + p->headlongs;   /* see NB above!! */
-    bp = (MYFLT *)p->mfp->beginp + nn;          /* locate begin this frame */
-    np = bp + p->nvals;                         /* & interp betw adj frams */
+    bp = (MYFLT *)(p->mfp->beginp + p->headlen); /* locate begin frame data */
+    nn = (framphase >> 16) * p->nvals;
+    bp = bp + nn;                                /* locate begin this frame */
+    np = bp + p->nvals;                          /* & interp betw adj frams */
     fract = (framphase & 0x0FFFFL) / FL(65536.0);
     /* Interpolate freq/amplpitude and store in opcode */
     *p->krmr = *bp + (*np - *bp) * fract;   bp++;   np++; /* for 4 rslts */
