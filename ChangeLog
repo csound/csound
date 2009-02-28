@@ -1,3 +1,9 @@
+2009-02-28  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* H/ugens5.h:
+	* OOps/ugens5.c (lprdset, lpread): Fixed bad assumptions in doubles
+	build when skipping over the LPC file header.
+
 2009-02-23  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen49): New gen to read MP3 files using mpadec
