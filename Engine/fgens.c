@@ -2396,7 +2396,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound        = ff->csound;
     MYFLT   *fp            = ftp->ftable;
     mp3dec_t mpa           = NULL;
-    mpadec_config_t config    = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
+    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
@@ -2409,7 +2409,8 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     uint32_t bufsize, bufused = 0;
     uint64_t maxsize;
     char *s;
-    static uint8_t buffer[0x10000];
+    uint8_t *buffer;
+    int size = 0x10000;
 
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -2451,7 +2452,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     }
     mpa = mp3dec_init();
     if (!mpa) {
-      return fterror(ff, "Not enough memory\n");
+      return fterror(ff, Str("Not enough memory\n"));
     }
     if ((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK) {
       mp3dec_uninit(mpa);
@@ -2473,8 +2474,8 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     }
     ftp->gen01args.sample_rate = mpainfo.frequency;
     maxsize = mpainfo.decoded_sample_size
-             *mpainfo.decoded_frame_samples
-             *mpainfo.frames;
+      *mpainfo.decoded_frame_samples
+      *mpainfo.frames;
     {
       char temp[80];
       if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
@@ -2489,9 +2490,11 @@ static int gen49(FGDATA *ff, FUNC *ftp)
               mpainfo.duration%60);
     }
     bufsize = sizeof(buffer)/mpainfo.decoded_sample_size;
-    if (skip > 0) {
-      if ((uint32_t)skip > bufsize) skip = bufsize;
-      mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*skip, &bufused);
+    while (skip > 0) {
+      uint32_t xx = skip;
+      if ((uint32_t)xx > bufsize) xx = bufsize;
+      skip -=xx;
+      mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*xx, &bufused);
     }
     bufsize *= mpainfo.decoded_sample_size;
     r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
