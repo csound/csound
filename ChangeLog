@@ -1,3 +1,7 @@
+2009-03-01  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/mp3in.c: New code to read MP3 files (still experimental)
+
 2009-02-28  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* H/ugens5.h:

@@ -1502,7 +1502,7 @@ else:
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c      
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
     '''))
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
@@ -1525,6 +1525,8 @@ if not buildOLPC:
  makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
  makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+if mpafound = 1:
+  makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
