@@ -65,7 +65,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       /* skip initialisation if requested */
       if (*(p->iSkipInit) != FL(0.0))
         return OK;
-      fdclose(csound, &(p->fdch));
+      csound->FDClose(csound, &(p->fdch));
     }
     /* set default format parameters */
     /* open file */
@@ -79,7 +79,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     }
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_W,
+    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       return
@@ -170,7 +170,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       for (i=0; i<2; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
-        while (r != MP3DEC_RETCODE_OK || pos >  p->bufused) {
+        while (r != MP3DEC_RETCODE_OK || 2*pos >  p->bufused) {
           r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
           pos = 0;
         }
@@ -188,7 +188,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"mp3in", S(MP3IN), 5, "aa", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in}
+    {"mp3in", S(MP3IN), 5, "aa", "Toooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in}
 };
 
 LINKAGE
