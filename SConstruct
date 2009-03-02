@@ -1525,7 +1525,7 @@ if not buildOLPC:
  makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
  makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
-if mpafound = 1:
+if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
