@@ -2,12 +2,11 @@
 <CsOptions>
 </CsOptions>
 <CsInstruments>
+nchnls =        2
 
 instr 1  
-  k2 oscil 10000, 1, 1
-  a1 oscil 10000+k2, 120, 1
-  chano a1, 1
-  out a1
+  a1,a2 mp3in "new.mp3"
+        outs a1,a2
 endin
 
 </CsInstruments>
@@ -16,7 +15,7 @@ endin
 
 f1 0 16384 49 "mpadec/new.mp3" 0 0 0
 ; run for 30 secs
-i1 0 30 
+i1 0 10 
 
 </CsScore>
 
