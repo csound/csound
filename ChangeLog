@@ -1,3 +1,8 @@
+2009-03-04  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/wiimote.c: New code (still experimental) to ue wiimote
+	in Csound (Linux only at present)
+
 2009-03-01  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/mp3in.c: New code to read MP3 files (still experimental)
