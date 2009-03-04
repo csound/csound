@@ -252,6 +252,9 @@ commandOptions.Add('tclversion',
 commandOptions.Add('includeMP3',
      'Set to 1 if using mpadec', 
      '0')
+commandOptions.Add('includeWii',
+     'Set to 1 if using libwiimote', 
+     '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -704,6 +707,13 @@ if commonEnvironment['includeMP3'] == '1' : ### and configure.CheckHeader("mp3de
 else:
     mpafound = 0
     print 'CONFIGURATION DECISION: No MP3 support'
+
+if commonEnvironment['includeWii'] == '1' : ### and configure.CheckLibWithHeader('cwiimote', "wiimote.h", language = "C") :
+    wiifound = 1
+    print 'CONFIGURATION DECISION: Building with Wiimote support'
+else:
+    wiifound = 0
+    print 'CONFIGURATION DECISION: No Wiimote support'
 
 
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
@@ -1527,6 +1537,8 @@ if not buildOLPC:
  makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
+if wiifound==1:
+  makePlugin(pluginEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
@@ -1649,6 +1661,8 @@ else:
     csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
     if mpafound :
         csoundProgramEnvironment.Append(LIBS = ['mpadec'])
+    if wiifound :
+        csoundProgramEnvironment.Append(LIBS = ['cwiimote', 'bluetooth'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
