@@ -28,13 +28,47 @@
 #include "wiimote_api.h"
 
 typedef struct {
+  MYFLT axis_x_min;             /* 0 -> 255 */
+  MYFLT axis_x_scale;           /* 1 */
+  MYFLT axis_y_min;
+  MYFLT axis_y_scale;
+  MYFLT axis_z_min;
+  MYFLT axis_z_scale;
+  MYFLT tilt_x_min;             /* -90 -> +90 */
+  MYFLT tilt_x_scale;           /* 1 */
+  MYFLT tilt_y_min;
+  MYFLT tilt_y_scale;
+  MYFLT tilt_z_min;
+  MYFLT tilt_z_scale;
+  /* MYFLT joyx_min; */
+  /* MYFLT joyx_max; */
+  /* MYFLT joyy_min; */
+  /* MYFLT joyy_max; */
+  /* MYFLT naxis_x_min; */
+  /* MYFLT naxis_x_max; */
+  /* MYFLT naxis_y_min; */
+  /* MYFLT naxis_y_max; */
+  /* MYFLT naxis_z_min; */
+  /* MYFLT naxis_z_max; */
+} wiirange_t;
+
+
+typedef struct {
     OPDS      h;
     MYFLT     *res;
     MYFLT     *kControl;
     MYFLT     *kValue;
  /* ------------------------------------- */
     wiimote_t *wii;
+    wiirange_t *wiir;
 } WIIMOTE;
+
+typedef struct {
+    OPDS      h;
+    MYFLT     *iControl;
+    MYFLT     *iMin;
+    MYFLT     *iMax;
+} WIIRANGE;
 
 int wiimote_find(CSOUND *csound, WIIMOTE *p)
 {
@@ -42,11 +76,19 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
     int cont = (int)(*p->kControl+FL(0.5));
     int val = (int)(*p->kValue+FL(0.5));
     wiimote_t *wiimote;
+    wiirange_t *wiirange;
+
     wiimote = (wiimote_t *)csound->QueryGlobalVariable(csound, "wiiMote");
     if (wiimote == NULL) {
       csound->CreateGlobalVariable(csound, "wiiMote",
                                            sizeof(wiimote_t));
-      wiimote = csound->QueryGlobalVariable(csound, "wiiMote");
+      wiimote = (wiimote_t *)csound->QueryGlobalVariable(csound, "wiiMote");
+    }
+    wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
+    if (wiirange == NULL) {
+      csound->CreateGlobalVariable(csound, "wiiRange",
+                                           sizeof(wiirange_t));
+      wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiMote");
     }
     if (p->XSTRCODE==0) {
       n  = wiimote_discover(wiimote, 1); /* Only one for now -- could be 4 */
@@ -61,6 +103,19 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
                Str("unable to open wiimote: %s\n"), wiimote_get_error());
       csound->InitError(csound, buffer);
     }
+    /* Initialise ranges */
+    wiirange->axis_x_min = FL(0.0);
+    wiirange->axis_x_scale = FL(1.0);
+    wiirange->axis_y_min = FL(0.0);
+    wiirange->axis_y_scale = FL(1.0);
+    wiirange->axis_z_min = FL(0.0);
+    wiirange->axis_z_scale = FL(1.0);
+    wiirange->tilt_x_min = -FL(90.0);
+    wiirange->tilt_x_scale = FL(1.0);
+    wiirange->tilt_y_min = -FL(90.0);
+    wiirange->tilt_y_scale = FL(1.0);
+    wiirange->tilt_z_min = -FL(90.0);
+    wiirange->tilt_z_scale = FL(1.0);
     wiimote->led.bits  = 1;
     wiimote->mode.bits = WIIMOTE_MODE_ACC_EXT;
     /* wiimote->mode.acc = (val&1); */
@@ -75,15 +130,21 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
 int wii_data_init(CSOUND *csound, WIIMOTE *p)
 {
     wiimote_t *wiimote;
+    wiirange_t *wiirange;
     wiimote = (wiimote_t *)csound->QueryGlobalVariable(csound, "wiiMote");
     if (wiimote==NULL) 
       return csound->InitError(csound, "No wii open");
+    wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
+    if (wiirange==NULL) 
+      return csound->InitError(csound, "No wii open");
     p->wii = wiimote;
+    p->wiir = wiirange;
 }
 
 int wii_data(CSOUND *csound, WIIMOTE *p)
 {
     wiimote_t *wii = p->wii;
+    wiirange_t *wiir = p->wiir;
     if (!wiimote_is_open(wii)) return csound->PerfError(csound, "Not open");
     wiimote_update(wii);
     if (*p->kControl<0) {
@@ -130,22 +191,22 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
       *p->res = (MYFLT)wii->keys.home;
       return OK;
     case 17:
-      *p->res = (MYFLT)wii->axis.x;
+      *p->res = wiir->axis_x_min+wiir->axis_x_scale*(MYFLT)wii->axis.x;
       return OK;
     case 18:
-      *p->res = (MYFLT)wii->axis.y;
+      *p->res = wiir->axis_y_min+wiir->axis_y_scale*(MYFLT)wii->axis.y;
       return OK;
     case 19:
-      *p->res = (MYFLT)wii->axis.z;
+      *p->res = wiir->axis_z_min+wiir->axis_z_scale*(MYFLT)wii->axis.z;
       return OK;
     case 20:
-      *p->res = (MYFLT)wii->tilt.x;
+      *p->res = wiir->tilt_x_min+wiir->tilt_x_scale*(FL(90.0)+(MYFLT)wii->tilt.x);
       return OK;
     case 21:
-      *p->res = (MYFLT)wii->tilt.y;
+      *p->res = wiir->tilt_y_min+wiir->tilt_y_scale*(FL(90.0)+(MYFLT)wii->tilt.y);
       return OK;
     case 22:
-      *p->res = (MYFLT)wii->tilt.z;
+      *p->res = wiir->tilt_z_min+wiir->tilt_z_scale*(FL(90.0)+(MYFLT)wii->tilt.z);
       return OK;
     case 23:
       *p->res = (MYFLT)wii->force.x;
@@ -220,13 +281,51 @@ int wii_send(CSOUND *csound, WIIMOTE *p)
     return OK;
 }
 
+int wiimote_range(CSOUND *csound, WIIRANGE *p)
+{
+    wiirange_t *wiirange =
+      (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
+    if (wiirange==NULL) 
+      return csound->InitError(csound, "No wii range");
+    switch ((int)(*p->iControl+FL(0.5))) {
+    case 17:
+      wiirange->axis_x_min = *p->iMin;
+      wiirange->axis_x_scale = (*p->iMax-*p->iMin)/FL(255.0);
+      retrun OK;
+    case 18:
+      wiirange->axis_y_min = *p->iMin;
+      wiirange->axis_y_scale = (*p->iMax-*p->iMin)/FL(255.0);
+      retrun OK;
+    case 19:
+      wiirange->axis_z_min = *p->iMin;
+      wiirange->axis_z_scale = (*p->iMax-*p->iMin)/FL(255.0);
+      retrun OK;
+    case 20:
+      wiirange->tilt_x_min = *p->iMin;
+      wiirange->tilt_x_scale = (*p->iMax-*p->iMin)/FL(180.0);
+      return OK;
+    case 21:
+      wiirange->tilt_y_min = *p->iMin;
+      wiirange->tilt_y_scale = (*p->iMax-*p->iMin)/FL(180.0);
+      return OK;
+    case 22:
+      wiirange->tilt_z_min = *p->iMin;
+      wiirange->tilt_z_scale = (*p->iMax-*p->iMin)/FL(180.0);
+      return OK;
+    default:
+      return NOTOK;
+    }
+}
+
+
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   {"wiiconnect", S(WIIMOTE), 1, "i", "To", (SUBR)wiimote_find, NULL, NULL },
   {"wiidata", S(WIIMOTE), 3, "k", "k", (SUBR)wii_data_init, (SUBR)wii_data, NULL },
-  {"wiisend", S(WIIMOTE), 3, "", "k", (SUBR)wii_data_init, (SUBR)wii_send, NULL }
+  {"wiisend", S(WIIMOTE), 3, "", "k", (SUBR)wii_data_init, (SUBR)wii_send, NULL },
+  {"wiirange", S(WIIRANGE), 1, "", "iii", (SUBR)wiimote_range, NULL, NULL }
 };
 
 LINKAGE
