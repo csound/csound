@@ -88,7 +88,7 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
     if (wiirange == NULL) {
       csound->CreateGlobalVariable(csound, "wiiRange",
                                            sizeof(wiirange_t));
-      wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiMote");
+      wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
     }
     if (p->XSTRCODE==0) {
       n  = wiimote_discover(wiimote, 1); /* Only one for now -- could be 4 */
@@ -148,10 +148,19 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
     if (!wiimote_is_open(wii)) return csound->PerfError(csound, "Not open");
     wiimote_update(wii);
     if (*p->kControl<0) {
-      printf("%d -- %.4x: axis=(%d %d %d); tilt=(%f %f %f); force=(%f %f %f)\n",
+      printf("%d -- %.4x: axis=(%3d %3d %3d); tilt=(%f %f %f);\tforce=(%f %f %f)\n",
              wii->battery, wii->keys.bits,
              wii->axis.x, wii->axis.y, wii->axis.z,
              wii->tilt.x, wii->tilt.y, wii->tilt.z,
+             wii->force.x, wii->force.y, wii->force.z);
+      printf("%d -- %.4x: axis=[%f %f %f]; tilt=[%f %f %f];\nforce=(%f %f %f)\n",
+             wii->battery, wii->keys.bits,
+             wiir->axis_x_min+wiir->axis_x_scale*(MYFLT)wii->axis.x,
+             wiir->axis_y_min+wiir->axis_y_scale*(MYFLT)wii->axis.y,
+             wiir->axis_z_min+wiir->axis_z_scale*(MYFLT)wii->axis.z,
+             wiir->tilt_x_min+wiir->tilt_x_scale*(FL(90.0)+(MYFLT)wii->tilt.x),
+             wiir->tilt_y_min+wiir->tilt_y_scale*(FL(90.0)+(MYFLT)wii->tilt.y),
+             wiir->tilt_z_min+wiir->tilt_z_scale*(FL(90.0)+(MYFLT)wii->tilt.z),
              wii->force.x, wii->force.y, wii->force.z);
       *p->res = FL(0.0);
       return OK;
@@ -291,15 +300,15 @@ int wiimote_range(CSOUND *csound, WIIRANGE *p)
     case 17:
       wiirange->axis_x_min = *p->iMin;
       wiirange->axis_x_scale = (*p->iMax-*p->iMin)/FL(255.0);
-      retrun OK;
+      return OK;
     case 18:
       wiirange->axis_y_min = *p->iMin;
       wiirange->axis_y_scale = (*p->iMax-*p->iMin)/FL(255.0);
-      retrun OK;
+      return OK;
     case 19:
       wiirange->axis_z_min = *p->iMin;
       wiirange->axis_z_scale = (*p->iMax-*p->iMin)/FL(255.0);
-      retrun OK;
+      return OK;
     case 20:
       wiirange->tilt_x_min = *p->iMin;
       wiirange->tilt_x_scale = (*p->iMax-*p->iMin)/FL(180.0);
