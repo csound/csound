@@ -219,14 +219,12 @@ udodecl   : T_UDOSTART
               }
               statementlist T_UDOEND S_NL
               {
-                udoflag = -1;
-
-
-                csound->Message(csound, "UDO COMPLETE\n");
                 TREE *udoTop = make_leaf(csound, T_UDO, (ORCTOKEN *)NULL);
                 TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
                 TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$7);
                 TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$10);
+                udoflag = -1;
+                if (PARSER_DEBUG) csound->Message(csound, "UDO COMPLETE\n");
 
                 udoTop->left = ident;
                 ident->left = udoAns;
@@ -236,7 +234,7 @@ udodecl   : T_UDOSTART
 
                 $$ = udoTop;
 
-                print_tree(csound, (TREE *)$$);
+                if (PARSER_DEBUG) print_tree(csound, (TREE *)$$);
 
               }
 
@@ -330,14 +328,14 @@ ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL
           }
           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ENDIF S_NL
           {
-            csound->Message(csound, "IF-ELSEIF FOUND!\n");
+            if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF FOUND!\n");
             $5->right = $7;
             $5->next = $8;
             $$ = make_node(csound, T_IF, $3, $5);
           }
           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL
           {
-            csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");
+            if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");
             TREE * tempLastNode;
 
             $5->right = $7;
@@ -372,7 +370,7 @@ elseiflist : elseiflist elseif
 
 elseif    : T_ELSEIF S_LB expr S_RB then S_NL statementlist
             {
-                csound->Message(csound, "ELSEIF FOUND!\n");
+                if (PARSER_DEBUG) csound->Message(csound, "ELSEIF FOUND!\n");
                 $5->right = $7;
                 $$ = make_node(csound, T_ELSEIF, $3, $5);
             }
@@ -515,7 +513,8 @@ constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
 
 opcode0   : T_OPCODE0
             {
-                csound->Message(csound, "opcode0 yylval=%p\n", yylval);
+                if (PARSER_DEBUG)
+                  csound->Message(csound, "opcode0 yylval=%p\n", yylval);
                 $$ = make_leaf(csound, T_OPCODE0, (ORCTOKEN *)yylval);
             }
           ;

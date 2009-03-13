@@ -152,7 +152,8 @@ char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
                   sprintf(str, "=.%c", c);
     }
 
-    csound->Message(csound, "Found Assignment type: %s\n", str);
+    if (PARSER_DEBUG)
+      csound->Message(csound, "Found Assignment type: %s\n", str);
 
     return str;
 }
@@ -305,7 +306,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     }
 }
 
-void print_tree_xml(CSOUND *csound, TREE *l, int n)
+static void print_tree_xml(CSOUND *csound, TREE *l, int n)
 {
     int i;
     if (l==NULL) {
@@ -466,24 +467,25 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
 
 void print_tree(CSOUND * csound, TREE *l)
 {
-    csound->Message(csound, "Printing Tree\n");
-    csound->Message(csound, "<ast>\n");
-    print_tree_xml(csound, l, 0);
-    csound->Message(csound, "</ast>\n");
+    if (PARSER_DEBUG) {
+      csound->Message(csound, "Printing Tree\n");
+      csound->Message(csound, "<ast>\n");
+      print_tree_xml(csound, l, 0);
+      csound->Message(csound, "</ast>\n");
+    }
 }
 
-
-
-void handle_optional_args(CSOUND *csound, TREE *l) {
+void handle_optional_args(CSOUND *csound, TREE *l)
+{
     int opnum = find_opcode(csound, l->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
     int nreqd = strlen(ep->intypes);
     int incnt = tree_arg_list_count(l->right);
-
     TREE * temp;
 
-    csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
-                    ep->opname, incnt, nreqd);
+    if (PARSER_DEBUG)
+      csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
+                      ep->opname, incnt, nreqd);
 
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
@@ -561,14 +563,15 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
 
         case 0xffff:
           /* use outype to modify some opcodes flagged as translating */
-          csound->Message(csound, "[%s]\n", tree->left->value->lexeme);
+          if (PARSER_DEBUG)
+            csound->Message(csound, "[%s]\n", tree->left->value->lexeme);
 
           c = tree_argtyp(csound, tree->left);
           if (c == 'p')   c = 'i';
           if (c == '?')   c = 'a';                   /* tmp */
           sprintf(str, "%s.%c", ep->opname, c);
 
-          csound->Message(csound, "New Value: %s\n", str);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
 
           /*if (find_opcode(csound, str) == 0) {*/
           /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
@@ -582,11 +585,12 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           csound->DebugMsg(csound, Str("modified opcod: %s"), str);
           break;
         case 0xfffe:                              /* Two tags for OSCIL's    */
-          csound->Message(csound, "POLYMORPHIC 0xfffe\n");
+          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffe\n");
           if (c != 'a') c = 'k';
           if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
           sprintf(str, "%s.%c%c", ep->opname, c, d);
-          csound->Message(csound, "New Value: %s\n", str);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
           tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                  strlen(str) + 1);
           strcpy(tree->value->lexeme, str);

@@ -94,7 +94,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
+    if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
@@ -419,7 +419,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
     lph = (LPHEADER *) mfp->beginp;
 
     magic=lph->lpmagic;
-    if ((magic==LP_MAGIC)||(magic==LP_MAGIC2)) {
+    if (LIKELY((magic==LP_MAGIC)||(magic==LP_MAGIC2))) {
       p->storePoles = (magic==LP_MAGIC2);
 
       csound->Message(csound, Str("Using %s type of file.\n"),
