@@ -28,7 +28,7 @@
 /* Optimizes tree (expressions, etc.) */
 TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
 {
-    csound->Message(csound, "Optimizing AST\n");
+    if (PARSER_DEBUG) csound->Message(csound, "Optimizing AST\n");
 
     TREE *anchor = NULL;
 
@@ -38,13 +38,13 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
     while(current != NULL) {
       switch(current->type) {
       case T_INSTR:
-        csound->Message(csound, "Instrument found\n");
+        if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
 
         current->right = csound_orc_optimize(csound, current->right);
 
         break;
       case T_UDO:
-        //csound->Message(csound, "UDO found\n");
+        if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
 
         break;
 
@@ -54,7 +54,7 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
       default:
 
         if(current->right != NULL) {
-          csound->Message(csound, "Found Statement.\n");
+          if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
 
           if(current->type == S_ASSIGN && previous != NULL) {
             /* S_ASSIGN should be guaranteed to have left and right
@@ -62,7 +62,6 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
             if(previous->left != NULL && previous->left->value != NULL) {
               if(strcmp(previous->left->value->lexeme,
                         current->right->value->lexeme) == 0) {
-
 
               }
 
@@ -81,7 +80,7 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
 
     }
 
-    csound->Message(csound, "[End Optimizing AST]\n");
+    if (PARSER_DEBUG) csound->Message(csound, "[End Optimizing AST]\n");
 
     return anchor;
 

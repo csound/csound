@@ -20,6 +20,7 @@ enum {
 };
 
 #define YYDEBUG 1
+#define PARSER_DEBUG (0)
 
 TREE* make_node(CSOUND *, int, TREE*, TREE*);
 TREE* make_leaf(CSOUND *,int, ORCTOKEN*);

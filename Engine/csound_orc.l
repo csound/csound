@@ -260,7 +260,7 @@ void comment(void)              /* Skip until nextline */
 void do_comment(void)              /* Skip until * and / chars */
 {
     char c;
-    for(;;) {
+    for (;;) {
       while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
       if ((c=input())=='/') return;
       if (UNLIKELY(c=='\n')) yyline++;
