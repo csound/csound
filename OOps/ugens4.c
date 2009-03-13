@@ -176,7 +176,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
         - r * ftbl[phs * km1 & lenmask]
         - p->rtn * ftbl[phs * kpn & lenmask]
         + p->rtnp1 * ftbl[phs * kpnm1 & lenmask];
-      if (denom > FL(0.0002) || denom < -FL(0.0002)) {
+      if (LIKELY(denom > FL(0.0002) || denom < -FL(0.0002))) {
         ar[n] = last = num / denom * scal;
       }
       else if (last<0)
