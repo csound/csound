@@ -1,3 +1,9 @@
+2009-03-15  jpff  <jpff@codemist.co.uk>
+
+	* Top/one_file.c (createExScore): Added new facility to have score
+	generatd by external code
+	(read_unified_file): and call it
+
 2009-03-14  jpff  <jpff@codemist.co.uk>
 
 	* util/lpc_export.c (lpc_export): Fix from Martin Rocamora on line 83
