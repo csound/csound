@@ -152,7 +152,7 @@ UNDEF           "#undef"
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
 
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
-                  csound->Message(csound,"%d\n", (*lvalp)->type);
+                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
                   MACRO     *mm = macros, *mm_save = NULL;
