@@ -998,6 +998,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     while(current != NULL) {
 
         switch(current->type) {
+            case T_INIT:
             case S_ASSIGN:
                 /* csound->Message(csound, "Assignment found\n"); */
                 break;
@@ -1059,7 +1060,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 break;
             default:
                 csound->Message(csound, "Unknown TREE node of type %d found in root.\n", current->type);
-                if (PARSER_DEBUG) print_tree(csound, current);
+                /* if (PARSER_DEBUG) */ print_tree(csound, current);
         }
 
         current = current->next;

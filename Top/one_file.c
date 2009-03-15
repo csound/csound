@@ -390,6 +390,52 @@ static int createScore(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
+static int createExScore(CSOUND *csound, char *p, FILE *unf)
+{
+    char    extname[L_tmpnam + 4];
+    char *q = strchr(p, '>');
+    char prog[L_tmpnam + 4];
+    void *fd;
+    FILE  *scof;
+
+    if (q==NULL) {              /* No program given */
+      csoundErrorMsg(csound, Str("Missing program in tag </CsExScore>"));
+      return FALSE;
+    }
+    *q = '\0';
+    strcpy(prog, p+10); /* after "<CsExScore " */
+    /* Generate score name */
+    csoundTmpFileName(csound, ST(sconame), ".sco");
+    csoundTmpFileName(csound, extname, ".ext");
+    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
+                                CSFTYPE_SCORE, 1);
+    csound->tempStatus |= csScoInMask;
+/* #ifdef _DEBUG */
+    csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
+/* #endif */
+    if (fd == NULL)
+      return FALSE;
+
+    csound->scoLineOffset = ST(csdlinecount);
+    while (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
+      if (strstr(p, "</CsExScore>") == p) {
+        char sys[1024];
+        csoundFileClose(csound, fd);
+        sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
+        if (system(sys) != 0) {
+          csoundErrorMsg(csound, Str("External generation failed"));
+          return FALSE;
+        }
+        add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
+        return TRUE;
+      }
+      else fputs(ST(buffer), scof);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsExScore>"));
+    return FALSE;
+} 
+
 static int createMIDI(CSOUND *csound, FILE *unf)
 {
     int   size, c;
@@ -763,6 +809,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       else if (strstr(p, "<CsLicence>") == p ||
                strstr(p, "<CsLicense>") == p) {
         r = checkLicence(csound, unf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsExScore ") == p) {
+        csoundMessage(csound, Str("Creating External score\n"));
+        r = createExScore(csound, p, unf);
         result = r && result;
       }
       else if (blank_buffer(csound)) continue;
