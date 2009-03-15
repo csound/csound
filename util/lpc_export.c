@@ -80,7 +80,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
-    for (i = 0; i<hdr.nvals; i++) {
+    for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
       fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf);
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
