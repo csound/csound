@@ -1,3 +1,8 @@
+2009-03-16  jpff  <jpff@codemist.co.uk>
+
+	* InOut/rtalsa.c (set_device_params): Change to
+	snd_pcm_hw_params_set_rate_near rather than exact samplerate from "Pete G."
+
 2009-03-15  jpff  <jpff@codemist.co.uk>
 
 	* Top/one_file.c (createExScore): Added new facility to have score

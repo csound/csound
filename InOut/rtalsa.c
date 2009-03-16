@@ -364,11 +364,16 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       sprintf(msg, "Unable to set number of channels on soundcard");
       goto err_return_msg;
     }
-    /* sample rate, */
-    if (snd_pcm_hw_params_set_rate(dev->handle, hw_params,
-                                   (unsigned int) dev->srate, 0) < 0) {
-      sprintf(msg, "Unable to set sample rate on soundcard");
-      goto err_return_msg;
+    /* sample rate, (patched for sound cards that object to fixed rate) */
+    {
+      unsigned int target = dev->srate;
+      if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
+                                          (unsigned int *) &dev->srate, 0) < 0) {
+        sprintf(msg, "Unable to set sample rate on soundcard");
+        goto err_return_msg;
+      }
+      if (dev->srate!=target)
+        p->MessageS(p, CSOUNDMSG_WARNING, " *** rate set to %d\n", dev->srate);
     }
     /* buffer size, */
     if (dev->buffer_smps == 0)
