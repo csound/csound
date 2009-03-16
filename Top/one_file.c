@@ -399,7 +399,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     FILE  *scof;
 
     if (q==NULL) {              /* No program given */
-      csoundErrorMsg(csound, Str("Missing program in tag </CsExScore>"));
+      csoundErrorMsg(csound, Str("Missing program in tag <CsExScore>"));
       return FALSE;
     }
     *q = '\0';
@@ -427,6 +427,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
           csoundErrorMsg(csound, Str("External generation failed"));
           return FALSE;
         }
+        remove(extname);
         add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
       }
