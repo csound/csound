@@ -11,7 +11,7 @@ endin
 
 </CsInstruments>
 
-<CsScore bin=nullscore>
+<CsScore bin="nullscore">
 
 f1 0 16384 49 "mpadec/new.mp3" 0 0 0
 ; run for 30 secs

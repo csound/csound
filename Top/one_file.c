@@ -393,22 +393,23 @@ static int createScore(CSOUND *csound, FILE *unf)
 static int createExScore(CSOUND *csound, char *p, FILE *unf)
 {
     char    extname[L_tmpnam + 4];
-    char *q = strchr(p, '>');
+    char *q;
     char prog[L_tmpnam + 4];
     void *fd;
     FILE  *scof;
 
+    p = strstr(p, "bin=\"");
+    if (p==NULL) {
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    q = strchr(p+5, '"');
     if (q==NULL) {              /* No program given */
       csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
     *q = '\0';
-    p = strstr(p, "bin=");
-    if (p==NULL) {
-      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
-      return FALSE;
-    }
-    strcpy(prog, p+4); /* after "<CsExScore " */
+    strcpy(prog, p+5); /* after "<CsExScore " */
     /* Generate score name */
     csoundTmpFileName(csound, ST(sconame), ".sco");
     csoundTmpFileName(csound, extname, ".ext");
