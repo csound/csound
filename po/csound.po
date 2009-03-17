@@ -1,4 +1,3 @@
-# SOME DESCRIPTIVE TITLE.
 # Csound
 # Copyright (C) 2008 John ffitch and Csound developers
 # This file is distributed under the same license as the Csound package.
@@ -9274,15 +9273,11 @@ msgid "Missing end tag </CsScore>"
 msgstr ""
 
 #: Top/one_file.c:402
-msgid "Missing program in tag </CsExScore>"
+msgid "Missing program in tag </CsScore>"
 msgstr ""
 
 #: Top/one_file.c:427
 msgid "External generation failed"
-msgstr ""
-
-#: Top/one_file.c:436
-msgid "Missing end tag </CsExScore>"
 msgstr ""
 
 #: Top/one_file.c:452 Top/one_file.c:548
