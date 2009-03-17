@@ -11,12 +11,12 @@ endin
 
 </CsInstruments>
 
-<CsExScore nullscore>
+<CsScore bin=nullscore>
 
 f1 0 16384 49 "mpadec/new.mp3" 0 0 0
 ; run for 30 secs
 i1 0 10 
 
-</CsExScore>
+</CsScore>
 
 </CsoundSynthesizer>

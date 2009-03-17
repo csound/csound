@@ -399,11 +399,16 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     FILE  *scof;
 
     if (q==NULL) {              /* No program given */
-      csoundErrorMsg(csound, Str("Missing program in tag <CsExScore>"));
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
     *q = '\0';
-    strcpy(prog, p+10); /* after "<CsExScore " */
+    p = strstr(p, "bin=");
+    if (p==NULL) {
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    strcpy(prog, p+4); /* after "<CsExScore " */
     /* Generate score name */
     csoundTmpFileName(csound, ST(sconame), ".sco");
     csoundTmpFileName(csound, extname, ".ext");
@@ -419,7 +424,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     csound->scoLineOffset = ST(csdlinecount);
     while (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
-      if (strstr(p, "</CsExScore>") == p) {
+      if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd);
         sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
@@ -433,7 +438,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       }
       else fputs(ST(buffer), scof);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsExScore>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 } 
 
@@ -782,9 +787,12 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         r = createOrchestra(csound, unf);
         result = r && result;
       }
-      else if (strstr(p, "<CsScore>") == p) {
+      else if (strstr(p, "<CsScore") == p) {
         csoundMessage(csound, Str("Creating score\n"));
-        r = createScore(csound, unf);
+        if (strstr(p, "<CsScore>") == p)
+          r = createScore(csound, unf);
+        else
+          r = createExScore(csound, p, unf);
         result = r && result;
       }
       else if (strstr(p, "<CsMidifile>") == p) {
@@ -810,11 +818,6 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       else if (strstr(p, "<CsLicence>") == p ||
                strstr(p, "<CsLicense>") == p) {
         r = checkLicence(csound, unf);
-        result = r && result;
-      }
-      else if (strstr(p, "<CsExScore ") == p) {
-        csoundMessage(csound, Str("Creating External score\n"));
-        r = createExScore(csound, p, unf);
         result = r && result;
       }
       else if (blank_buffer(csound)) continue;
