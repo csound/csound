@@ -29,21 +29,30 @@ extern void cscore(CSOUND*);
 /* Cscore stub to run a user program standalone */
 
 /* To create a standalone cscore program, compile this file with your own 
-   file (e.g. mycscore.c) containing a cscore() control function.  Use 
-   this command (or your system's equivalent):
+   file (e.g. mycscore.c) containing a cscore() control function.  An 
+   example is given in the file cscore.c in this directory.  More examples
+   may be found in the examples/cscore/ directory of the csound5 source tree.
+   
+   Use this command (or your system's equivalent) to compile:
 
-gcc mycscore.c cscoremain.c -o cscore -lcsound -L/usr/local/lib -I/usr/local/include/csound
+     gcc mycscore.c cscoremain.c -o cscore -lcsound -L/usr/local/lib -I/usr/local/include/csound
+
+   On Mac OS X, use this command to compile:
+
+     gcc mycscore.c cscoremain.c -o cscore -framework CsoundLib -I/Library/Frameworks/CsoundLib.framework/Headers
 
    The resulting executable can be run with:
 
-./cscore scorein > scoreout
+     ./cscore scorein > scoreout
+                OR
+     ./cscore scorein scoreout  
 
  */
 
 int main(int argc, char **argv)
 {
     CSOUND  *cs;
-    FILE    *insco;
+    FILE    *insco, *outsco;
     int     result;
 
     /* Standalone Cscore is now a client of the Csound API */
@@ -64,11 +73,18 @@ int main(int argc, char **argv)
       return -1;
     }
     if (!(insco = fopen(argv[1], "r"))) {
-      fprintf(stderr, "Cannot open the input score %s\n", *argv);
+      fprintf(stderr, "Cannot open the input score '%s'\n", argv[1]);
       return -1;
     }
 
-    csoundInitializeCscore(cs, insco, stdout);
+    /* open the command line scoreout file (stdout if none provided) */
+    if (argc < 3) outsco = stdout;
+    else if (!(outsco = fopen(argv[2], "w"))) {
+      fprintf(stderr, "Cannot open the output score '%s'\n", argv[2]);
+      return -1;
+    }
+
+    csoundInitializeCscore(cs, insco, outsco);
     cscore(cs);                         /* and call the user cscore program   */
     return 0;
 }

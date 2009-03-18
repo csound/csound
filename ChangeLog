@@ -1,3 +1,13 @@
+2009-03-18  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* SConstruct:
+	* Opcodes/syncgrain.c: Added config test for values.h.
+	
+	* frontends/cscore/cscoremain.c:
+	* frontends/cscore/cscoremain_MacOS9.c:
+	* util1/scot/scot_main.c:  Changed Scot and Cscore to take an optional
+	second commandline argument specifying the output file.
+
 2009-03-16  jpff  <jpff@codemist.co.uk>
 
 	* InOut/rtalsa.c (set_device_params): Change to
