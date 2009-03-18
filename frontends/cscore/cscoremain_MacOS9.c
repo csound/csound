@@ -37,7 +37,7 @@ extern void cscore(CSOUND*);
 int main(int argc, char **argv)
 {
     CSOUND  *cs;
-    FILE    *insco;
+    FILE    *insco, *outsco;
     int     result;
 
 #if defined(macintosh) && defined(__MWERKS__)
@@ -68,11 +68,18 @@ int main(int argc, char **argv)
       return -1;
     }
     if (!(insco = fopen(argv[1], "r"))) {
-      fprintf(stderr, "Cannot open the input score %s\n", *argv);
+      fprintf(stderr, "Cannot open the input score '%s'\n", argv[1]);
       return -1;
     }
 
-    csoundInitializeCscore(cs, insco, stdout);
+    /* open the command line scoreout file (stdout if none provided) */
+    if (argc < 3) outsco = stdout;
+    else if (!(outsco = fopen(argv[2], "w"))) {
+      fprintf(stderr, "Cannot open the output score '%s'\n", argv[2]);
+      return -1;
+    }
+
+    csoundInitializeCscore(cs, insco, outsco);
     cscore(cs);                         /* and call the user cscore program   */
     return 0;
 }
