@@ -24,7 +24,10 @@
 #include "csdl.h"
 #include "syncgrain.h"
 #include "soundio.h"
+
+#ifdef HAVE_VALUES_H
 #include <values.h>
+#endif
 
 #ifndef MAXINT
 #include <limits.h>
