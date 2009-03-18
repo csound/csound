@@ -806,7 +806,8 @@ headerMacroCheck = [
     ['stdint.h',    '-DHAVE_STDINT_H'   ],
     ['sys/time.h',  '-DHAVE_SYS_TIME_H' ],
     ['sys/types.h', '-DHAVE_SYS_TYPES_H'],
-    ['termios.h',   '-DHAVE_TERMIOS_H'  ]]
+    ['termios.h',   '-DHAVE_TERMIOS_H'  ],
+    ['values.h',    '-DHAVE_VALUES_H'   ]]
 
 for h in headerMacroCheck:
     if configure.CheckHeader(h[0], language = "C"):
