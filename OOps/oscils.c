@@ -380,7 +380,6 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
           }
           break;
       }
-      ar++;             /* next sample */
     }
     return OK;
 }

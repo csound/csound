@@ -85,7 +85,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       return
         csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
     }
-    /* GOW TO record file handle so that it will be closed at note-off */
+    /* HOW TO record file handle so that it will be closed at note-off */
     /* memset(&(p->fdch), 0, sizeof(FDCH)); */
     /* p->fdch.fd = fd; */
     /* fdrecord(csound, &(p->fdch)); */
@@ -181,9 +181,12 @@ int mp3in(CSOUND *csound, MP3IN *p)
       }
     }
     p->pos = pos;
-    if (r != MP3DEC_RETCODE_OK)
+    if (r != MP3DEC_RETCODE_OK) {
       mp3dec_uninit(mpa);
-    return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
+      p->mpa = NULL;
+      return NOTOK;
+    }
+    return OK;
 }
 #define S(x)    sizeof(x)
 
