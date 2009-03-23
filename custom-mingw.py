@@ -126,7 +126,7 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
-	# add it here (you do NOT need to build it first):
+	# Add it here (you do NOT need to build it first):
 	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
@@ -141,7 +141,16 @@ if sys.platform[:3] == 'win':
 	#customCPPPATH.append(r'U:\fftw-3.0.1\api')
 	#customLIBPATH.append(r'U:\fftw-3.0.1\.libs')
 	################################################################
-	# print "Adding custom path"
+	# If you want to build MusicXML import and export, 
+	# you need the MusicXML library.
+        # Add it here (the CodeBlocks build seems to work).
+	customCPPPATH.append(r'U:\musicxml-v2\src\elements') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\files') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\visitors') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\lib') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\parser') 
+	customLIBPATH.append(r'U:\musicxml-v2\win32\codeblocks')
+	# print "Adding custom path."
 else:
 	platform = 'unsupported platform'
 
