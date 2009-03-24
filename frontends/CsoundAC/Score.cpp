@@ -23,6 +23,7 @@
 #include "System.hpp"
 #include "Conversions.hpp"
 #include "Voicelead.hpp"
+
 #include <algorithm>
 #include <cfloat>
 #include <set>
@@ -30,6 +31,18 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#if defined(HAVE_MUSICXML2)
+#include "elements.h"
+#include "factory.h"
+#include "xml.h"
+#include "xmlfile.h"
+#include "xml_tree_browser.h"
+#include "xmlreader.h"
+#include "midicontextvisitor.h"
+
+using namespace MusicXML2;
+#endif
 
 namespace csound
 {
@@ -70,17 +83,100 @@ namespace csound
   {
   }
 
+#if defined(HAVE_MUSICXML2)
+
+  class ScoreMidiWriter : public midiwriter
+  {
+  public:
+    long tpq;
+    double tempo;
+    ScoreMidiWriter(Score *score_) : score(*score_), tpq(1000), tempo(1.0)
+    {
+      score.clear();
+      score.removeArrangement();
+    }
+    virtual void startPart (int instrCount)
+    {
+    }
+    virtual void newInstrument (std::string instrName, int chan=-1)
+    {
+    }
+    virtual void endPart (long date)
+    {
+    }
+    virtual void newNote (long start_, int channel_, float key_, int velocity_, int duration_)
+    {
+      double start = double(start_) / double(tpq) * tempo;
+      double duration = double(duration_) / double(tpq) * tempo;
+      double status = 144.0;
+      double channel = double(channel_);
+      double key = key_;
+      double velocity = velocity_;
+      score.append(start, duration, status, channel, key, velocity);
+    }
+    virtual void tempoChange (long date, int bpm)
+    {
+      tempo = 60.0 / double(bpm);
+    }
+    virtual void pedalChange (long date, pedalType t, int value)
+    {
+    }
+    virtual void volChange (long date, int chan, int vol)
+    {
+    }
+    virtual void bankChange (long date, int chan, int bank)
+    {
+    }
+    virtual void progChange (long date, int chan, int prog)
+    {
+    }
+  protected:
+    Score &score;
+  };
+
+#endif
+
   void Score::load(std::string filename)
   {
     System::inform("BEGAN Score::load(%s)...\n", filename.c_str());
-    std::ifstream stream;
-    //stream.open(filename.c_str(), std::ios_base::binary);
-    stream.open(filename.c_str(), std::ifstream::binary);
-    load(stream);
-    stream.close();
+    if (filename.find(".mid") != std::string::npos ||
+	filename.find(".MID") != std::string::npos) {
+      std::ifstream stream;
+      stream.open(filename.c_str(), std::ifstream::binary);
+      load(stream);
+      stream.close();
+    } 
+#if defined(HAVE_MUSICXML2)
+    else if (filename.find(".xml") != std::string::npos ||
+	     filename.find(".XML") != std::string::npos) {
+      xmlreader xmlReader;
+      Sxmlelement sxmlElement;
+      // Try to read an SXMLFile out of the MusicXML file.
+      SXMLFile sxmlFile = xmlReader.read(filename.c_str());
+      if (sxmlFile) {
+	// Get the document tree of XML elements from the SXMLFile.
+	sxmlElement = sxmlFile->elements();
+      }
+      if (sxmlElement) {
+	// Create a ScoreMidiWriter that is attached to this Score.
+	ScoreMidiWriter scoreMidiWriter(this);
+	// Create a midicontextvisitor, which calls into an abstract midiwriter interface,
+	// which is attached to our ScoreMidiWriter, which implements that midiwriter interface.
+	midicontextvisitor midicontextvisitor_(scoreMidiWriter.tpq, &scoreMidiWriter);
+	// Create an xml_tree_browser that is attached to our midicontextvisitor.
+	xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
+	// The xml_tree_browser will carry the midicontextvisitor to all the elements
+	// of the document tree, in the proper order, calling newNote as appropriate.
+	xmlTreeBrowser.browse(*sxmlElement);
+      }
+    }
+#endif 
+    else {
+      System::error("Unknown file format in Score::load().");
+    }
     System::inform("ENDED Score::load().\n");
   }
-
+  
   void Score::load(std::istream &stream)
   {
     MidiFile midiFile;
@@ -88,17 +184,161 @@ namespace csound
     load(midiFile);
   }
 
+#if defined(HAVE_MUSICXML2_)
+  static Sxmlattribute newAttribute(const string& name, const string& value)
+  {
+    Sxmlattribute attribute = xmlattribute::create();
+    attribute->setName(name);
+    attribute->setValue(value);
+    return attribute;
+  }
+
+  static Sxmlattribute newAttributeI(const string& name, int value)
+  {
+    Sxmlattribute attribute = xmlattribute::create();
+    attribute->setName(name);
+    attribute->setValue(value);
+    return attribute;
+  }
+
+  static Sxmlelement newElement(int type, const string& value)
+  {
+    Sxmlelement elt = factory::instance().create(type);
+    elt->setValue (value);
+    return elt;
+  }
+
+  static Sxmlelement newElementI(int type, int value)
+  {
+    Sxmlelement elt = factory::instance().create(type);
+    elt->setValue (value);
+    return elt;
+  }
+
+  static Sxmlelement makeAttributes() 
+  {
+    Sxmlelement attributes = factory::instance().create(k_attributes);
+    attributes->push (newElementI(k_divisions, 1000));
+    Sxmlelement time = factory::instance().create(k_time);
+    time->push (newElement(k_beats, "4"));
+    time->push (newElement(k_beat_type, "4"));
+    attributes->push (time);
+    Sxmlelement clef = factory::instance().create(k_clef);
+    clef->push (newElement(k_sign, "G"));
+    clef->push (newElement(k_line, "2"));
+    attributes->push (clef);
+    return attributes;
+  }
+
+  static std::string makePartId(int partid)
+  {
+    
+  }
+
+  static Sxmlelement makePart(int instrument, const std::vector<const Event *> &part_) 
+  {
+    Sxmlelement part = factory::instance().create(k_part);
+    char buffer[0x100];
+    std::sprintf("Instrument %d", instrument);
+    part->add(newAttribute("id", buffer));
+    size_t measure = 0;
+    size_t time = 0;
+    size_t divisionsPerMeasure = 4 * 32;
+    // We have to quantize time in divisions of a quarter note.
+    // We assume that 32nd notes are good enough.
+    // We have to keep track of what measure we are in, and create new measures as required.
+    // We have to translate pitches to diatonic names, and get the accidental.
+    // And we have to back up to make chords.
+    return part;
+  }
+  
+  static Sxmlelement makePartList(std::map<int, std::vector<const Event *> > parts) 
+  {
+    Sxmlelement partlist = factory::instance().create(k_part_list);
+    for (std::map<int, std::vector<const Event *> >::iterator it = parts.begin(); it != parts.end(); ++it) {
+      Sxmlelement scorepart = factory::instance().create(k_score_part);
+      char partid[0x100];
+      std::sprintf(partid, "Instrument %d", it->first);
+      scorepart->add(newAttribute("id", partid));
+      scorepart->push(newElement(k_part_name, partid));
+      Sxmlelement scoreinstrument = factory::instance().create(k_score_instrument);
+      scoreinstrument->add(newAttribute("id", partid));
+      scoreinstrument->push(newElement(k_instrument_name, partid));
+      scorepart->push(scoreinstrument);
+      partlist->push(scorepart);
+    }
+    return partlist;
+  }
+
+  static Sxmlelement makeIdentification(Score &score) 
+  {
+    Sxmlelement id = factory::instance().create(k_identification);
+    Sxmlelement encoding = factory::instance().create(k_encoding);
+    encoding->push (newElement(k_software, "MusicXML Library v2"));
+    id->push (encoding);
+    return id;
+  }
+  
+  static Sxmlelement createScore(const Score &score_, std::string filename) 
+  {
+    Sxmlelement score = factory::instance().create(k_score_partwise);
+    score->push (newElement(k_movement_title, filename().c_str()));
+    score->push (makeIdentification());
+    // Break up this Score into parts, each for one whole instrument number.
+    std::map<int, std::vector<const Event *> > parts;
+    for (size_t i = 0, n = size(); i < n; ++i) {
+      const Event &event = score_[i];
+      instrument = event.getInstrumentNumber();
+      parts[instrument].push_back(&event);
+    }
+    // First we have to make our part list.
+    score->push(makePartList(parts));
+    // Now add each Score part to the corresponding MusicXML part.
+    for (std::map<int, std::vector<Event *> >::iterator it = parts.begin(); it != parts.end(); ++it) {
+      const std::vector<const Event *> part = it->second;
+      score->push(makePart(part));
+     }
+    return score;
+  }
+#endif
+
   void Score::save(std::string filename)
   {
     System::inform("BEGAN Score::save(%s)...\n", filename.c_str());
     std::ofstream stream;
     //stream.open(filename.c_str(), std::ios_base::binary);
     stream.open(filename.c_str(), std::ifstream::binary);
-    save(stream);
+    if (filename.find(".mid") != std::string::npos ||
+	filename.find(".MID") != std::string::npos) {
+      save(stream);
+      System::inform("ENDED Score::save().\n");
+    }
+#if defined(HAVE_MUSICXML2_)
+    else if (filename.find(".xml") != std::string::npos ||
+	     filename.find(".XML") != std::string::npos) {     
+      // This Score has to be sorted first.
+      sort();
+      // Create an XMLFile to write to.
+      SXMLFile xmlFile = TXMLFile::create();
+      // Add an XML declaration to the XMLFile.
+      TXMLDecl xmlDeclaration = new TXMLDecl("1.0", "", TXMLDecl::kNo);
+      xmlFile->set(xmlDeclaration);
+      // Add a document type declaration.
+      TDocType documentTypeDeclaration = new TDocType("score-partwise");
+      xmlFile->set(documentTypeDeclaration);
+      // Create a MusicXML2 document in which first one part is written, 
+      // then the next part, and so on.
+      xmlFile->set(createScore(*this, filename));
+      // Print the XML document to the output stream.
+      xmlFile->print(stream);
+    }
+#endif
+    else {
+      System::error("Unknown file format in Score::load().");
+    }
     stream.close();
-    System::inform("ENDED Score::save().\n");
   }
-
+  
   void Score::save(std::ostream &stream)
   {
     save(midifile);
@@ -714,7 +954,7 @@ namespace csound
       }
       event.setKey(pitch);
     }
-   }
+  }
 
   void Score::voicelead(size_t beginSource,
                         size_t endSource,
@@ -865,7 +1105,7 @@ namespace csound
     }
     std::vector<double> source = getVoicing(beginSource, endSource, divisionsPerOctave_);
     printChord("  source voicing:      ", source);
-     if (source.size() == 0) {
+    if (source.size() == 0) {
       return;
     }
     if (target.size() == 0) {
