@@ -67,11 +67,18 @@ namespace csound
     virtual void initialize();
     virtual void append(Event event);
     virtual void append(double time, double duration, double status, double channel, double key, double velocity, double phase=0, double pan=0, double depth=0, double height=0, double pitches=4095);
+    /**
+     * Loads score data from a MIDI (.mid) file,
+     * or a MusicXML (.xml) file. 
+     * Non-sounding data is ignored.
+     */
     virtual void load(std::string filename);
     virtual void load(std::istream &stream);
     virtual void load(MidiFile &midiFile);
     /**
-     * Save as a MIDI file, format 1.
+     * Save as a MIDI file, format 1 (.mid) file,
+     * or as a partwise MusicXML (.xml) file.
+     * Only sounding data is saved.
      */
     virtual void save(std::string filename);
     /**
