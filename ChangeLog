@@ -1,14 +1,12 @@
-2008-09-13 Michael Gogins  <michael.gogins@gmail.com>
+2009-03-22  jpff  <jpff@codemist.co.uk>
 
-	* frontends/CsoundAC/Score.cpp: Implemented importation of
-	MusicXML v2 files into the CsoundAC Score class, using the
-	Grame MusicXML library.
-	
+	* OOps/oscils.c (tablexkt): Line adding to ar removed as wrong
+
 2009-03-18  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct:
 	* Opcodes/syncgrain.c: Added config test for values.h.
-	
+
 	* frontends/cscore/cscoremain.c:
 	* frontends/cscore/cscoremain_MacOS9.c:
 	* util1/scot/scot_main.c:  Changed Scot and Cscore to take an optional
@@ -171,6 +169,12 @@
 2008-09-17  jpff  <jpff@codemist.co.uk>
 
 	* RELEASE VERSION 5.09
+
+2008-09-13 Michael Gogins  <michael.gogins@gmail.com>
+
+	* frontends/CsoundAC/Score.cpp: Implemented importation of
+	MusicXML v2 files into the CsoundAC Score class, using the
+	Grame MusicXML library.
 
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
