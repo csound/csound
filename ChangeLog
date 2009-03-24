@@ -1,3 +1,9 @@
+2008-09-13 Michael Gogins  <michael.gogins@gmail.com>
+
+	* frontends/CsoundAC/Score.cpp: Implemented importation of
+	MusicXML v2 files into the CsoundAC Score class, using the
+	Grame MusicXML library.
+	
 2009-03-18  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct:
