@@ -740,6 +740,10 @@ boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();')
+if musicXmlFound:
+   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
+
 #if not buildOLPC:
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 #if not buildOLPC:
@@ -2269,6 +2273,7 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
+        acEnvironment.Prepend(LIBS = 'musicxml2')
         if getPlatform() != 'win32':
            acEnvironment.Prepend(LIBS = csndModule)
         else:  acEnvironment.Prepend(LIBS = 'csnd')
