@@ -239,7 +239,6 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       mfree(csound, ftp);
       return -1;
     }
-
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
     ftresdisp(&ff, ftp);                        /* rescale and display      */
     *ftpp = ftp;
@@ -2489,7 +2488,8 @@ static int gen49(FGDATA *ff, FUNC *ftp)
               mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
               mpainfo.duration%60);
     }
-    bufsize = sizeof(buffer)/mpainfo.decoded_sample_size;
+    buffer = (uint8_t *)malloc(size);
+    bufsize = size/mpainfo.decoded_sample_size;
     while (skip > 0) {
       uint32_t xx = skip;
       if ((uint32_t)xx > bufsize) xx = bufsize;
@@ -2504,6 +2504,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       short *bb = (short*)buffer;
       for (i=0; i<bufused; i++)  {
         if (p>=len) {
+          free(buffer);
           return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
         }
         fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->e0dbfs;
@@ -2512,7 +2513,8 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       if (i <= 0) break;
       r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
     }
-    mp3dec_uninit(mpa);
+    free(buffer);
+    r |= mp3dec_uninit(mpa);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
 }
 #endif
