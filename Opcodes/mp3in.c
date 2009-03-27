@@ -55,7 +55,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
     mpadec_info_t mpainfo;
-    int buffersize = 0x10000;
+    int buffersize = 0x1000;
     uint64_t maxsize;
     int r;
     int skip;
@@ -69,12 +69,13 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     }
     /* set default format parameters */
     /* open file */
-    p->mpa= mpa = mp3dec_init();
+    p->mpa = mpa = mp3dec_init();
     if (!mpa) {
       return csound->InitError(csound, Str("Not enough memory\n"));
     }
     if ((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK) {
       mp3dec_uninit(mpa);
+      p->mpa = NULL;
       return csound->InitError(csound, mp3dec_error(r));
     }
     /* FIXME: name can overflow with very long string */
@@ -116,8 +117,6 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
                       mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                       mpainfo.duration%60);
     }
-    p->bufSize = buffersize;
-    buffersize /= mpainfo.decoded_sample_size;
     /* check number of channels in file (must equal the number of outargs) */
     /* if (UNLIKELY(sfinfo.channels != p->nChannels && */
     /*              (csound->oparms_.msglevel & WARNMSG) != 0)) { */
@@ -136,16 +135,18 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
                       mpainfo.frequency, (int) (csound->esr + FL(0.5)));
     }
     /* initialise buffer */
+    p->bufSize = buffersize;
     if(p->auxch.auxp == NULL || p->auxch.size < buffersize)
       csound->AuxAlloc(csound, buffersize, &p->auxch);
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
+    buffersize /= mpainfo.decoded_sample_size;
     if (skip > 0) {
       do {
         uint32_t xx= skip;
         if ((uint32_t)xx > buffersize) xx = buffersize;
         skip -= xx;
-        mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
+        r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
       } while (skip>0);
     }
     csound->Message(csound, Str("bufsize %d\n"), p->bufSize);
@@ -181,6 +182,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       }
     }
     p->pos = pos;
+    p->r = r;
     if (r != MP3DEC_RETCODE_OK) {
       mp3dec_uninit(mpa);
       p->mpa = NULL;
