@@ -13,7 +13,7 @@ endin
 
 <CsScore bin="nullscore">
 
-f1 0 16384 49 "mpadec/new.mp3" 0 0 0
+f1 0 16384 49 "new.mp3" 0 0 0
 ; run for 30 secs
 i1 0 10 
 
