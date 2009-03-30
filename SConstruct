@@ -708,7 +708,7 @@ else:
     mpafound = 0
     print 'CONFIGURATION DECISION: No MP3 support'
 
-if commonEnvironment['includeWii'] == '1' : ### and configure.CheckLibWithHeader('cwiimote', "wiimote.h", language = "C") :
+if commonEnvironment['includeWii'] == '1' and configure.CheckLibWithHeader('wiiuse', "wiiuse.h", language = "C") :
     wiifound = 1
     print 'CONFIGURATION DECISION: Building with Wiimote support'
 else:
@@ -1667,7 +1667,7 @@ else:
     if mpafound :
         csoundProgramEnvironment.Append(LIBS = ['mpadec'])
     if wiifound :
-        csoundProgramEnvironment.Append(LIBS = ['cwiimote', 'bluetooth'])
+        csoundProgramEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
