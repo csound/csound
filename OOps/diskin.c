@@ -59,7 +59,7 @@ static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
       }
     }
     /* fill rest of buffer with zero samples */
-    memcpy(p->buf+i, 0, sizeof(float)*(bufsmps-i));
+    memset(p->buf+i, 0, sizeof(float)*(bufsmps-i));
     /* while (i < bufsmps) */
     /*   p->buf[i++] = 0.0f; */
 }
