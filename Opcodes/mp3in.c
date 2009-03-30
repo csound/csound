@@ -55,7 +55,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
     mpadec_info_t mpainfo;
-    int buffersize = 0x1000;
+    int buffersize = (*p->ibufsize<=0.0 ? 0x1000 : (int)*p->ibufsize);
     uint64_t maxsize;
     int r;
     int skip;
