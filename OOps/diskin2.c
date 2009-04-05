@@ -67,9 +67,9 @@ static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
       }
     }
     /* fill rest of buffer with zero samples */
-    /* memset(&p->buf[i], 0, sizeof(MYFLT)*(p->bufSize * p->nChannels-i)); */
-    while (i < (p->bufSize * p->nChannels))
-      p->buf[i++] = FL(0.0);
+    memset(&p->buf[i], 0, sizeof(MYFLT)*(p->bufSize * p->nChannels-i));
+    /* while (i < (p->bufSize * p->nChannels)) */
+    /*   p->buf[i++] = FL(0.0); */
 }
 
 /* Mix one sample frame from input file at location 'pos' to outputs    */
