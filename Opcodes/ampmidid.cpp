@@ -56,8 +56,10 @@ public:
     onedrms = MYFLT(1.0) / MYFLT(0.707);
     // Convert dynamic range in decibels to RMS dynamic range.
     ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
-    // Solve for coefficients of the linear conversion function given RMS dynamic range.
-    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) - MYFLT(1.0) / MYFLT(126.0);
+    // Solve for coefficients of the linear conversion function given 
+    // RMS dynamic range.
+    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) -
+         MYFLT(1.0) / MYFLT(126.0);
     im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
     return OK;
   }
@@ -88,8 +90,10 @@ public:
     onedrms = MYFLT(1.0) / MYFLT(0.707);
     // Convert dynamic range in decibels to RMS dynamic range.
     ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
-    // Solve for coefficients of the linear conversion function given RMS dynamic range.
-    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) - MYFLT(1.0) / MYFLT(126.0);
+    // Solve for coefficients of the linear conversion function given
+    // RMS dynamic range.
+    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) - 
+         MYFLT(1.0) / MYFLT(126.0);
     im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
     *iamplitude = std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
     return OK;

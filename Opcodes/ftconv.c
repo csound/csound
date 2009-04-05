@@ -188,7 +188,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       if (n > (int) ftp->flen)
         n = (int) ftp->flen;
       for (i = 0; i < n; i++) {
-        if (ftp->ftable[i] != FL(0.0)) {
+        if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
           csound->Message(csound,
                           Str("ftconv: warning: skipped non-zero samples, "
                               "impulse response may be truncated\n"));
@@ -200,6 +200,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
     /* clear ring buffer to zero */
     n = (p->partSize << 1) * p->nPartitions;
+    /* memset(p->ringBuf, 0, n*sizeof(MYFLT)); */
     for (i = 0; i < n; i++)
       p->ringBuf[i] = FL(0.0);
     /* initialise buffer index */
@@ -228,6 +229,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       } while (n >= 0);
     }
     /* clear output buffers to zero */
+    /*memset(p->outBuffers, 0, p->nChannels*(p->partSize << 1)*sizeof(MYFLT));*/
     for (j = 0; j < p->nChannels; j++) {
       for (i = 0; i < (p->partSize << 1); i++)
         p->outBuffers[j][i] = FL(0.0);

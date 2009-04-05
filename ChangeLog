@@ -5,10 +5,10 @@
 2009-03-24  Michael Gogins <michael.gogins@gmail.com>
 
 	* frontends/CsoundAC/Score.cpp:
-	* interfaces/CsoundFile.cpp: 
+	* interfaces/CsoundFile.cpp:
 	Implemented importation of MusicXML v2 files into the CsoundAC Score class
 	and the csnd CsoundFile class, using the Grame MusicXML library.
-	
+
 2009-03-22  jpff  <jpff@codemist.co.uk>
 
 	* OOps/oscils.c (tablexkt): Line adding to ar removed as wrong
