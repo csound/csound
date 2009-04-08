@@ -2,6 +2,7 @@
     rtalsa.c:
 
     Copyright (C) 2005 Istvan Varga
+              (C) 2009 Andrés Cabrera, Clemens Ladisch
 
     This file is part of Csound.
 
@@ -82,7 +83,9 @@ typedef struct alsaMidiInputDevice_ {
     snd_rawmidi_t  *dev;
     int            bufpos, nbytes, datreq;
     unsigned char  prvStatus, dat1, dat2;
+    struct alsaMidiInputDevice_ *next;
 } alsaMidiInputDevice;
+
 
 typedef struct midiDevFile_ {
     unsigned char  buf[BUF_SIZE];
@@ -670,29 +673,83 @@ static void rtclose_(CSOUND *csound)
     }
 }
 
-static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
+static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
 {
-    alsaMidiInputDevice *dev;
-    const char  *s = "hw:0,0";
     int         err;
+    alsaMidiInputDevice *dev;
 
-    (*userData) = NULL;
     dev = (alsaMidiInputDevice*) malloc(sizeof(alsaMidiInputDevice));
     if (dev == NULL) {
       csound->ErrorMsg(csound, Str("ALSA MIDI: memory allocation failure"));
-      return -1;
+      return dev;
     }
     memset(dev, 0, sizeof(alsaMidiInputDevice));
-    if (devName != NULL && devName[0] != '\0')
-      s = devName;
     err = snd_rawmidi_open(&(dev->dev), NULL, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
-      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI input device"));
-      free((void*) dev);
-      return -1;
+      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI input device: '%s'"), s);
+      free(dev);
+      return NULL;
     }
     csound->Message(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
+    return dev;
+}
+
+// This is the function which contains code from amidi
+static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
+{
+    alsaMidiInputDevice *dev, *newdev, *olddev;
+    const char  *s = "hw:0,0";
+    int card, err;
+    int device;
+    snd_ctl_t *ctl;
+    char* name;
+    name = (char *) calloc(32, sizeof(char));
+
+    (*userData) = NULL;
+    olddev = NULL;
+    if (devName[0] == 'a') {
+      card = -1;
+      if (snd_card_next(&card) >= 0 && card >= 0) {
+        do {
+          sprintf(name, "hw:%d", card);
+          if (snd_ctl_open(&ctl, name, 0) >= 0) {
+            device = -1;
+            for (;;) {
+              if (snd_ctl_rawmidi_next_device(ctl, &device) < 0) {
+                break;
+              }
+              if (device < 0)
+                break;
+              sprintf(name, "hw:%d,%d", card, device);
+              newdev = open_midi_device(csound, name);
+              if (newdev != NULL) {   /* Device opened successfully */
+                if (olddev != NULL) {
+                  olddev->next = newdev;
+                }
+                else { /* First Device */
+                  dev = newdev;
+                }
+                olddev = newdev;
+                newdev = NULL;
+              }
+            }
+          }
+          if (snd_card_next(&card) < 0)
+            break;
+        } while (card >= 0);
+
+        snd_ctl_close(ctl);
+      }
+    }
+    else if (devName != NULL && devName[0] != '\0') {
+      dev = open_midi_device(csound, devName);
+      if (dev == NULL) {
+        free(name);
+        return -1;
+      }
+    }
     (*userData) = (void*) dev;
+    free(name);
     return 0;
 }
 
@@ -703,58 +760,73 @@ static int midi_in_read(CSOUND *csound,
     int             bufpos = 0;
     unsigned char   c;
 
+    if (!dev) { /* No devices */
+//       fprintf(stderr, "No devices!");
+      return 0;
+    }
     (void) csound;
-    while ((nbytes - bufpos) >= 3) {
-      if (dev->bufpos >= dev->nbytes) { /* read from device */
-        int n = (int) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
-        dev->bufpos = 0;
-        if (n <= 0) {                   /* until there is no more data left */
-          dev->nbytes = 0;
-          break;
+    dev->bufpos = 0;
+    while (dev) {
+      while ((nbytes - bufpos) >= 3) {
+        if (dev->bufpos >= dev->nbytes) { /* read from device */
+          int n = (int) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
+          dev->bufpos = 0;
+          if (n <= 0) {                   /* until there is no more data left */
+            dev->nbytes = 0;
+            break;
+          }
+          dev->nbytes = n;
         }
-        dev->nbytes = n;
-      }
-      c = dev->buf[dev->bufpos++];
-      if (c >= (unsigned char) 0xF8) {          /* real time message */
-        buf[bufpos++] = c;
-        continue;
-      }
-      if (c == (unsigned char) 0xF7)            /* end of system exclusive */
-        c = dev->prvStatus;
-      if (c < (unsigned char) 0x80) {           /* data byte */
-        if (dev->datreq <= 0)
+        c = dev->buf[dev->bufpos++];
+        if (c >= (unsigned char) 0xF8) {          /* real time message */
+          buf[bufpos++] = c;
           continue;
-        if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
-          dev->dat1 = c;
-        else
-          dev->dat2 = c;
-        if (--(dev->datreq) != 0)
+        }
+        if (c == (unsigned char) 0xF7)            /* end of system exclusive */
+          c = dev->prvStatus;
+        if (c < (unsigned char) 0x80) {           /* data byte */
+          if (dev->datreq <= 0)
+            continue;
+          if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
+            dev->dat1 = c;
+          else
+            dev->dat2 = c;
+          if (--(dev->datreq) != 0)
+            continue;
+          dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
+          buf[bufpos] = dev->prvStatus;
+          buf[bufpos + 1] = dev->dat1;
+          buf[bufpos + 2] = dev->dat2;
+          bufpos += (dev->datreq + 1);
           continue;
-        dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
-        buf[bufpos] = dev->prvStatus;
-        buf[bufpos + 1] = dev->dat1;
-        buf[bufpos + 2] = dev->dat2;
-        bufpos += (dev->datreq + 1);
-        continue;
+        }
+        else if (c < (unsigned char) 0xF0) {      /* channel message */
+          dev->prvStatus = c;
+          dev->datreq = dataBytes[(int) c >> 4];
+          continue;
+        }
+        if (c < (unsigned char) 0xF4)             /* ignore system messages */
+          dev->datreq = -1;
       }
-      else if (c < (unsigned char) 0xF0) {      /* channel message */
-        dev->prvStatus = c;
-        dev->datreq = dataBytes[(int) c >> 4];
-        continue;
-      }
-      if (c < (unsigned char) 0xF4)             /* ignore system messages */
-        dev->datreq = -1;
+      dev = dev->next;
     }
     return bufpos;
 }
 
 static int midi_in_close(CSOUND *csound, void *userData)
 {
-    int retval = 0;
+    int ret, retval = 0;
+    alsaMidiInputDevice *olddev, *dev = NULL;
     (void) csound;
-    if (userData != NULL) {
-      retval = snd_rawmidi_close(((alsaMidiInputDevice*) userData)->dev);
-      free(userData);
+    dev = (alsaMidiInputDevice*) userData;
+    while (dev != NULL) {
+      if (dev->dev)
+        ret = snd_rawmidi_close(dev->dev);
+      olddev = dev;
+      dev = dev->next;
+      free(olddev);
+      if (retval != -1)
+        retval = ret;
     }
     return retval;
 }
@@ -770,8 +842,8 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
       s = devName;
     err = snd_rawmidi_open(NULL, &dev, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
-      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI output device"));
-      return -1;
+      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI output device '%s'"));
+      return 0;
     }
     csound->Message(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
     (*userData) = (void*) dev;
