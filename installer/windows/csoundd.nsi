@@ -550,6 +550,20 @@ Section "${PRODUCT}" SecCopyUI
 	# OSC
 	File U:\liblo\lo.dll
 	File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
+	# MusicXML
+	File U:\musicxml-v2\win32\codeblocks\libmusicxml2.dll
+	# QuteCsound
+!ifdef NONFREE
+	# U:\QuteCsound-d\QtCore4.dll
+	# U:\QuteCsound-d\QtGui4.dll
+	# U:\QuteCsound-d\QtXml4.dll
+	# U:\QuteCsound-d\mingwm10.dll
+!ifdef FLOAT
+	# U:\QuteCsound-d\qutecsound.exe
+!else
+	# U:\QuteCsound-d\qutecsound-d.exe
+!endif
+!endif
 
 !ifdef FLOAT
   	File ..\..\csound32.def
