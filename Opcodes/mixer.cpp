@@ -257,6 +257,16 @@ extern "C"
       0
     },
     {
+      (char*)"MixerSetLevel_i",
+      sizeof(MixerSetLevel),
+      1,
+      (char*)"",
+      (char*)"iii",
+      (SUBR)&MixerSetLevel::init_,
+      0,
+      0
+    },
+    {
       (char*)"MixerGetLevel",
       sizeof(MixerGetLevel),
       3,
