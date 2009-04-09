@@ -1,3 +1,10 @@
+2009-04-08  Michael Gogins <michael.gogins@gmail.com>
+
+	* Opcodes/mixer.cpp:
+	Added MixerSetLevel_i, an init-time only version of MixerSetLevel,
+	so that it is possible to set the levels of mixer sends in the
+	orchestra header.
+
 2009-03-30  jpff  <jpff@codemist.co.uk>
 
 	* OOps/diskin.c (diskin_read_buffer): Typo corrected
