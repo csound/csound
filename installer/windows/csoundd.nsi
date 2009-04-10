@@ -554,14 +554,14 @@ Section "${PRODUCT}" SecCopyUI
 	File U:\musicxml-v2\win32\codeblocks\libmusicxml2.dll
 	# QuteCsound
 !ifdef NONFREE
-	# U:\QuteCsound-d\QtCore4.dll
-	# U:\QuteCsound-d\QtGui4.dll
-	# U:\QuteCsound-d\QtXml4.dll
-	# U:\QuteCsound-d\mingwm10.dll
+	File U:\QuteCsound-d\QtCore4.dll
+	File U:\QuteCsound-d\QtGui4.dll
+	File U:\QuteCsound-d\QtXml4.dll
+	File U:\QuteCsound-d\mingwm10.dll
 !ifdef FLOAT
-	# U:\QuteCsound-d\qutecsound.exe
+	File U:\QuteCsound-d\qutecsound.exe
 !else
-	# U:\QuteCsound-d\qutecsound-d.exe
+	File U:\QuteCsound-d\qutecsound-d.exe
 !endif
 !endif
 
