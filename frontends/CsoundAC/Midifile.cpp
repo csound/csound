@@ -222,59 +222,52 @@ namespace csound
   {
   }
 
-  void MidiEvent::write(std::ostream &stream, MidiFile &midiFile, int lastTick)
+  void MidiEvent::write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const
   {
-    int deltaTicks = ticks - lastTick;
+     int deltaTicks = ticks - lastTick;
     MidiFile::writeVariableLength(stream, deltaTicks);
     //  Channel event.
-    if(getMetaType() < 0)
-      {
-        for(size_t i = 0, n = size(); i < n; i++)
-          {
-            stream.put((*this)[i]);
-          }
+    if(getStatusNybble() != 0xf) {
+      for(size_t i = 0, n = size(); i < n; i++) {
+	stream.put((*this)[i]);
       }
-    //  Meta event.
-    else
-      {
-        stream.put((*this)[0]);
-        stream.put((*this)[1]);
-        size_t n = getMetaSize();
-        MidiFile::writeVariableLength(stream, (int) n);
-        size_t i;
-        for(i = 3, n = size(); i < n; i++)
-          {
-            stream.put((*this)[i]);
-          }
+      // Meta event.
+    } else {
+      stream.put(getStatus());
+      stream.put(getMetaType());
+      MidiFile::writeVariableLength(stream, getMetaSize());
+      for(size_t i = 0, n = getMetaSize(); i < n; i++) {
+	stream.put((*this)[2 + i]);
       }
+    }
   }
 
-  int MidiEvent::getStatus()
+  int MidiEvent::getStatus() const
   {
     return (*this)[0];
   }
 
-  int MidiEvent::getStatusNybble()
+  int MidiEvent::getStatusNybble() const
   {
     return (*this)[0] & 0xf0;
   }
 
-  int MidiEvent::getChannelNybble()
+  int MidiEvent::getChannelNybble() const
   {
     return (*this)[0] & 0x0f;
   }
 
-  int MidiEvent::getKey()
+  int MidiEvent::getKey() const
   {
     return (*this)[1];
   }
 
-  int MidiEvent::getVelocity()
+  int MidiEvent::getVelocity() const
   {
     return (*this)[2];
   }
 
-  int MidiEvent::getMetaType()
+  int MidiEvent::getMetaType() const
   {
     if(getStatus() == MidiFile::META_EVENT)
       {
@@ -283,12 +276,12 @@ namespace csound
     return -1;
   }
 
-  unsigned char MidiEvent::getMetaData(int i)
+  unsigned char MidiEvent::getMetaData(int i) const
   {
     return (*this)[i + 2];
   }
 
-  size_t MidiEvent::getMetaSize()
+  size_t MidiEvent::getMetaSize() const
   {
     return (size() - 2);
   }
@@ -304,7 +297,7 @@ namespace csound
     return (unsigned char) c;
   }
 
-  bool MidiEvent::isChannelVoiceMessage()
+  bool MidiEvent::isChannelVoiceMessage() const
   {
     if(getStatusNybble() < MidiFile::CHANNEL_NOTE_OFF)
       {
@@ -317,7 +310,7 @@ namespace csound
     return true;
   }
 
-  bool MidiEvent::isNoteOn()
+  bool MidiEvent::isNoteOn() const
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON && (*this)[2] > 0)
       {
@@ -326,7 +319,7 @@ namespace csound
     return false;
   }
 
-  bool MidiEvent::isNoteOff()
+  bool MidiEvent::isNoteOff() const
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_OFF)
       {
@@ -339,7 +332,7 @@ namespace csound
     return false;
   }
 
-  bool MidiEvent::isMatchingNoteOff(MidiEvent &offEvent)
+  bool MidiEvent::matchesNoteOffEvent(const MidiEvent &offEvent) const
   {
     if(getChannelNybble() != offEvent.getChannelNybble())
       {
@@ -353,7 +346,7 @@ namespace csound
       {
         return false;
       }
-    if(!(offEvent.time > time))
+    if(!(offEvent.time >= time))
       {
         return false;
       }
@@ -659,9 +652,20 @@ namespace csound
     std::sort(begin(), end());
   }
 
-  bool operator < (const MidiEvent &a, MidiEvent &b)
+  bool operator < (const MidiEvent &a, const MidiEvent &b)
   {
-
-    return (a.time < b.time);
+    if (a.time < b.time) {
+      return true;
+    }
+    size_t n = std::min(a.size(), b.size());
+    for (size_t i = 0; i < n; i++) {
+      if (a[i] < b[i]) {
+	return true;
+      }
+    }
+    if (a.size() < b.size()) {
+      return true;
+    }
+    return false;
   }
 }
