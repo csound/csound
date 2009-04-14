@@ -90,21 +90,21 @@ namespace csound
     MidiEvent(void);
     virtual ~MidiEvent(void);
     virtual void read(std::istream &stream, MidiFile &midiFile);
-    virtual void write(std::ostream &stream, MidiFile &midiFile, int lastTick);
-    virtual int getStatus(void);
-    virtual int getStatusNybble(void);
-    virtual int getChannelNybble(void);
-    virtual int getKey(void);
-    virtual int getVelocity(void);
-    virtual int getMetaType(void);
-    virtual unsigned char getMetaData(int i);
-    virtual size_t getMetaSize(void);
+    virtual void write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const;
+    virtual int getStatus(void) const;
+    virtual int getStatusNybble(void) const;
+    virtual int getChannelNybble(void) const;
+    virtual int getKey(void) const;
+    virtual int getVelocity(void) const;
+    virtual int getMetaType(void) const;
+    virtual unsigned char getMetaData(int i) const;
+    virtual size_t getMetaSize(void) const;
     virtual unsigned char read(std::istream &stream);
-    virtual bool isChannelVoiceMessage();
-    virtual bool isNoteOn(void);
-    virtual bool isNoteOff(void);
-    virtual bool isMatchingNoteOff(MidiEvent &offEvent);
-    friend bool operator < (const MidiEvent &a, MidiEvent &b);
+    virtual bool isChannelVoiceMessage() const;
+    virtual bool isNoteOn(void) const;
+    virtual bool isNoteOff(void) const;
+    virtual bool matchesNoteOffEvent(const MidiEvent &offEvent) const;
+    friend bool operator < (const MidiEvent &a, const MidiEvent &b);
   };
 
   class MidiTrack : public Chunk, public std::vector<MidiEvent>
@@ -228,6 +228,6 @@ namespace csound
     virtual void sort(void);
   };
 
-  bool operator < (const MidiEvent &a, MidiEvent &b);
+  bool operator < (const MidiEvent &a, const MidiEvent &b);
 }
 #endif

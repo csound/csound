@@ -219,10 +219,10 @@ namespace csound
   {
     Sxmlelement attributes = factory::instance().create(k_attributes);
     attributes->push (newElementI(k_divisions, 1000));
-    Sxmlelement time = factory::instance().create(k_time);
-    time->push (newElement(k_beats, "4"));
-    time->push (newElement(k_beat_type, "4"));
-    attributes->push (time);
+    Sxmlelement time_ = factory::instance().create(k_time);
+    time_->push (newElement(k_beats, "4"));
+    time_->push (newElement(k_beat_type, "4"));
+    attributes->push (time_);
     Sxmlelement clef = factory::instance().create(k_clef);
     clef->push (newElement(k_sign, "G"));
     clef->push (newElement(k_line, "2"));
@@ -242,7 +242,7 @@ namespace csound
     std::sprintf("Instrument %d", instrument);
     part->add(newAttribute("id", buffer));
     size_t measure = 0;
-    size_t time = 0;
+    size_t time_ = 0;
     size_t divisionsPerMeasure = 4 * 32;
     // We have to quantize time in divisions of a quarter note.
     // We assume that 32nd notes are good enough.
@@ -515,36 +515,31 @@ namespace csound
   void Score::load(MidiFile &midiFile)
   {
     std::vector<Event>::clear();
-    for(std::vector<MidiTrack>::iterator trackI = midiFile.midiTracks.begin(); trackI != midiFile.midiTracks.end(); ++trackI)
-      {
-        std::set<MidiEvent*> offEvents;
-        for(std::vector<MidiEvent>::iterator onEventI = (*trackI).begin(); onEventI != (*trackI).end(); ++onEventI)
-          {
-            MidiEvent &noteOnEvent = *onEventI;
-            if(noteOnEvent.isNoteOn())
-              {
-                for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != (*trackI).end(); ++offEventI)
-                  {
-                    MidiEvent &noteOffEvent = *offEventI;
-                    if(noteOnEvent.isMatchingNoteOff(noteOffEvent))
-                      {
-                        if(offEvents.find(&noteOffEvent) == offEvents.end())
-                          {
-                            double status = noteOnEvent.getStatusNybble();
-                            double instrument = noteOnEvent.getChannelNybble();
-                            double time = noteOnEvent.time;
-                            double duration = noteOffEvent.time - noteOnEvent.time;
-                            double key = noteOnEvent.getKey();
-                            double velocity = noteOnEvent.getVelocity();
-                            append(time, duration, status, instrument, key, velocity);
-                            offEvents.insert(&noteOffEvent);
-                            break;
-                          }
-                      }
-                  }
-              }
-          }
+    for(std::vector<MidiTrack>::iterator trackI = midiFile.midiTracks.begin(); trackI != midiFile.midiTracks.end(); ++trackI) {
+      std::set<MidiEvent> usedNoteOffEvents;
+      for(std::vector<MidiEvent>::iterator onEventI = trackI->begin(); onEventI != trackI->end(); ++onEventI) {
+	const MidiEvent &noteOnEvent = *onEventI;
+	if(noteOnEvent.isNoteOn()) {
+	  for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != trackI->end(); ++offEventI) {
+	    const MidiEvent &noteOffEvent = *offEventI;
+	    if (usedNoteOffEvents.find(noteOffEvent) == usedNoteOffEvents.end()) {
+	      if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
+		double status = noteOnEvent.getStatusNybble();
+		double instrument = noteOnEvent.getChannelNybble();
+		double time_ = noteOnEvent.time;
+		double duration = noteOffEvent.time - noteOnEvent.time;
+		double key = noteOnEvent.getKey();
+		double velocity = noteOnEvent.getVelocity();
+		append(time_, duration, status, instrument, key, velocity);
+		fprintf(stderr, "Score::load append(%9.3f %9.3f %9.3f %9.3f %9.3f %9.3f)\n", time_, duration, status, instrument, key, velocity);
+		usedNoteOffEvents.insert(noteOffEvent);
+		break;
+	      }
+	    }
+	  }
+	}
       }
+    }
     findScale();
     sort();
   }
@@ -556,42 +551,33 @@ namespace csound
     // Format 0 file.
     midiFile.clear();
     MidiTrack midiTrack;
-    midiFile.midiTracks.push_back(midiTrack);
-    for(Score::iterator it = begin(); it != end(); ++it)
-      {
-        Event &event = (*it);
-        // event.dump(std::cout);
-        if(event.isNoteOn())
-          {
-            MidiEvent onEvent;
-            onEvent.time = event.getTime();
-            onEvent.ticks = int(Conversions::round(onEvent.time / midiFile.currentSecondsPerTick));
-            onEvent.push_back(event.getMidiStatus());
-            onEvent.push_back(event.getKeyNumber());
-            onEvent.push_back(event.getVelocityNumber());
-            midiFile.midiTracks[0].push_back(onEvent);
-            MidiEvent offEvent;
-            offEvent.time = event.getTime() + event.getDuration();
-            offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
-            offEvent.push_back(event.getMidiStatus());
-            offEvent.push_back(event.getKeyNumber());
-            offEvent.push_back(0);
-            midiFile.midiTracks[0].push_back(offEvent);
-          }
+    for(Score::iterator it = begin(); it != end(); ++it) {
+      const Event &event = *it;
+      // event.dump(std::cout);
+      if(event.isNoteOn()) {
+	MidiEvent onEvent;
+	onEvent.time = event.getTime();
+	onEvent.ticks = int(Conversions::round(onEvent.time / midiFile.currentSecondsPerTick));
+	onEvent.push_back(event.getMidiStatus());
+	onEvent.push_back(event.getKeyNumber());
+	onEvent.push_back(event.getVelocityNumber());
+	midiTrack.push_back(onEvent);
+	MidiEvent offEvent;
+	offEvent.time = event.getOffTime();
+	offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
+	offEvent.push_back(event.getMidiStatus());
+	offEvent.push_back(event.getKeyNumber());
+	offEvent.push_back(0);
+	midiTrack.push_back(offEvent);
       }
-    midiFile.midiTracks[0].sort();
+    }
     MidiEvent trackEnd;
-    if(midiFile.midiTracks.size() > 0)
-      {
-        if(midiFile.midiTracks[0].size() > 0)
-          {
-            trackEnd.ticks = midiFile.midiTracks[0][midiFile.midiTracks[0].size() - 1].ticks;
-          }
-      }
+    trackEnd.ticks = midiTrack.back().ticks;
     trackEnd.push_back(MidiFile::META_EVENT);
     trackEnd.push_back(MidiFile::META_END_OF_TRACK);
     trackEnd.push_back(0);
-    midiFile.midiTracks[0].push_back(trackEnd);
+    midiTrack.push_back(trackEnd);
+    midiFile.midiTracks.push_back(midiTrack);
   }
 
   void Score::dump(std::ostream &stream)
@@ -643,10 +629,10 @@ namespace csound
     rescaleRanges[Event::HOMOGENEITY] = false;
   }
 
-  void Score::append(double time, double duration, double status, double instrument, double key, double velocity, double phase, double pan, double depth, double height, double pitches)
+  void Score::append(double time_, double duration, double status, double instrument, double key, double velocity, double phase, double pan, double depth, double height, double pitches)
   {
     Event event;
-    event.setTime(time);
+    event.setTime(time_);
     event.setDuration(duration);
     event.setStatus(status);
     event.setInstrument(instrument);
@@ -1167,10 +1153,10 @@ namespace csound
     }
   };
 
-  int Score::indexAtTime(double time)
+  int Score::indexAtTime(double time_)
   {
     int index = size();
-    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAtComparator(time));
+    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAtComparator(time_));
     if (it != end()) {
       index = (it - begin());
     }
@@ -1193,10 +1179,10 @@ namespace csound
     }
   };
 
-  int Score::indexAfterTime(double time)
+  int Score::indexAfterTime(double time_)
   {
     int index = size();
-    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAfterComparator(time));
+    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeAfterComparator(time_));
     if (it != end()) {
       index = (it - begin());
     }
@@ -1205,11 +1191,11 @@ namespace csound
 
   double Score::indexToTime(size_t index)
   {
-    double time = DBL_MAX;
+    double time_ = DBL_MAX;
     if (index >= 0 && index < size()) {
-      time = (*this)[index].getTime();
+      time_ = (*this)[index].getTime();
     }
-    return time;
+    return time_;
   }
 
   void Score::setDuration(double targetDuration)
@@ -1221,9 +1207,9 @@ namespace csound
     double factor = targetDuration / currentDuration;
     for (size_t i = 0, n = size(); i < n; i++) {
       Event &event = (*this)[i];
-      double time = event.getTime();
+      double time_ = event.getTime();
       double duration = event.getDuration();
-      event.setTime(time * factor);
+      event.setTime(time_ * factor);
       event.setDuration(duration * factor);
     }
   }
