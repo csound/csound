@@ -448,7 +448,7 @@ elif util.platform == 'win32':
     #Tool('mingw')(initialEnvironment)
     optionsFilename = 'custom-mingw.py'
 else:
-    initialEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
+    initialEnvironment = Environment(ENV = os.environ)
     optionsFilename = 'custom.py'
 
 commandOptions.Update(initialEnvironment)
