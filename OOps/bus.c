@@ -1144,10 +1144,11 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
       return csound->InitError(csound, Str("channel already exists"));
     /* now create new channel, using output variable for data storage */
     dummy = p->arg;
-    lock = csoundGetChannelLock(csound, (char*) p->iname, 0);
-    csoundSpinLock(lock);  /* Need this but what lock? */
+    /* THIS NEEDS A LOCK BUT DOES NOT EXIST YET */
+    /* lock = csoundGetChannelLock(csound, (char*) p->iname, 0); */
+    /* csoundSpinLock(lock); */
     err = create_new_channel(csound, &dummy, (char*) p->iname, type);
-    csoundSpinLock(lock);
+    /* csoundSpinLock(lock); */
     if (err)
       return print_chn_err(p, err);
     /* if control channel, set additional parameters */
