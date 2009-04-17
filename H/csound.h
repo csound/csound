@@ -380,6 +380,7 @@ typedef enum
     CSFTYPE_FLOATS_BINARY = 52,  /* used by dumpk, readk, etc. */
     CSFTYPE_INTEGER_TEXT = 53,   /* used by dumpk, readk, etc. */
     CSFTYPE_INTEGER_BINARY = 54, /* used by dumpk, readk, etc. */
+    CSFTYPE_FLOATS_BINARY_SW = 60,  /* used by HRTF to swap data bytes. */
 
     /* image file formats */
     CSFTYPE_IMAGE_PNG = 59,

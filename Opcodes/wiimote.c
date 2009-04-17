@@ -345,9 +345,7 @@ int wii_send(CSOUND *csound, WIIMOTES *p)
       wiiuse_rumble(wii[num], (int)*p->kValue);
       break;
     case WII_SET_LEDS:
-      printf("set leds: %d\n", (uint16)*p->kValue);
       wiiuse_set_leds(wii[num], ((uint16)*p->kValue)<<4);
-      printf("-> %d\n", wii[num]->leds);
       break;
     }
     return OK;

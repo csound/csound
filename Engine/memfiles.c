@@ -32,7 +32,8 @@ static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
     FILE *f;
-
+    int swapped = csFileType==CSFTYPE_FLOATS_BINARY_SW;
+    if (swapped) csFileType = CSFTYPE_FLOATS_BINARY;
     *allocp = NULL;
     f = fopen(filnam, "rb");
     if (UNLIKELY(f == NULL))                              /* if cannot open the file */
@@ -48,6 +49,19 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     if (UNLIKELY(fread(*allocp, (size_t) 1,              /*   read file in      */
                        (size_t) (*len), f) != (size_t) (*len)))
       goto err_return;
+#ifdef WORDS_BIGENDIAN
+    if (swapped) {
+      int size = *len;
+        char c1, c2, c3, c4;
+        char *p = *allocp;
+        int32 i, times;
+        while (size > 0) {
+          c1 = p[0]; c2 = p[1]; c3 = p[2]; c4 = p[3];
+          p[0] = c4; p[1] = c3; p[2] = c2; p[3] = c1;
+          size -= 4; p +=4;
+        }
+    }
+#endif
     fclose(f);                                  /*   and close it      */
     return 0;                                   /*   return 0 for OK   */
 
