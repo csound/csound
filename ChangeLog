@@ -1,3 +1,10 @@
+2009-04-17  jpff  <jpff@codemist.co.uk>
+
+	* Engine/memfiles.c (Load_File_): Add option for byteswap from
+	LITTLE- to BIG-ENDIAN if necessary (CSFTYPE_FLOATS_BINARY_SW)
+
+	* H/csound.h: New file type CSFTYPE_FLOATS_BINARY_SW
+
 2009-04-08  Michael Gogins <michael.gogins@gmail.com>
 
 	* Opcodes/mixer.cpp:

@@ -226,18 +226,19 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
         /*added ldmemfile2: reading floats without a header!*/
         if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                               CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                               CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
           return
             csound->InitError(csound,
                               Str("\n\n\ncannot load left data file, exiting\n\n"));
         }
-
+        /* Byte swap */
         if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                               CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                               CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
       }
+        /* Byte swap */
     }
 
     else if(sr == 48000) {
@@ -247,14 +248,14 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       complexfftbuff = (complexIMPLENGTH*2);
 
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -268,14 +269,14 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       complexfftbuff = (complexIMPLENGTH*2);
 
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1193,13 +1194,13 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       overlapsize = (IMPLENGTH-1);
       complexfftbuff = (complexIMPLENGTH*2);
 
-      if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY)) == NULL)) {
+      if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
-      if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,CSFTYPE_FLOATS_BINARY)) == NULL)) {
+      if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1213,14 +1214,14 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       complexfftbuff = (complexIMPLENGTH*2);
 
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1234,14 +1235,14 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       complexfftbuff = (complexIMPLENGTH*2);
 
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1746,14 +1747,14 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
       /*  csound->Message(csound,"\ndatafile:44.1k\n");*/
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1766,14 +1767,14 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
       /*csound->Message(csound,"\ndatafile:48k\n");*/
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
@@ -1786,14 +1787,14 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
       /*csound->Message(csound,"\ndatafile:96k\n");*/
       if (UNLIKELY((fpl = csound->ldmemfile2(csound, filel,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load left data file, exiting\n\n"));
       }
 
       if (UNLIKELY((fpr = csound->ldmemfile2(csound, filer,
-                                             CSFTYPE_FLOATS_BINARY)) == NULL)) {
+                                             CSFTYPE_FLOATS_BINARY_SW)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("\n\n\ncannot load right data file, exiting\n\n"));
