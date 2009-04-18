@@ -28,6 +28,18 @@
 #include "pstream.h"
 #include "namedins.h"
 
+#ifndef WORDS_BIGENDIAN
+#  if defined(__POWERPC__) || defined(__PPC__) || defined(__ppc__)
+#    define WORDS_BIGENDIAN 1
+#  elif defined(mac_classic)
+#    define WORDS_BIGENDIAN 1
+#  endif
+#endif
+
+#if defined(WORDS_BIGENDIAN) && defined(__i386__)
+#  undef WORDS_BIGENDIAN
+#endif
+
 static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
