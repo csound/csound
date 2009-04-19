@@ -596,8 +596,14 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           strcpy(tree->value->lexeme, str);
           break;
         case 0xfffd:                              /* For peak, etc.          */
-          /*if (c != 'a') c = 'k';
-            sprintf(str, "%s.%c", ST(linopcod), c);*/
+          //          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffd\n");
+          if (c != 'a') c = 'k';
+          sprintf(str, "%s.%c", ep->opname, c);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
           break;
         case 0xfffc:                              /* For divz types          */
           /*d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
