@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-                                                        /* wiimote.c */
+                                                        /* p5glove.c */
 #include "csdl.h"
 #include <p5glove.h>
 #include <errno.h>
@@ -50,14 +50,22 @@ typedef struct {
     P5Glove   p5g;
 } P5GRANGE;
 
-#define P5GLOVE_BUTTONS 0
-#define P5G_DELTA_X     10
-#define P5G_DELTA_Y     11
-#define P5G_DELTA_Z     12
-#define P5G_DELTA_XR    13
-#define P5G_DELTA_YR    14
-#define P5G_DELTA_ZR    15
-#define P5G_ANGLES      16
+#define P5G_BUTTONS 0
+#define P5G_BUTTON_A    1
+#define P5G_BUTTON_B    2
+#define P5G_BUTTON_C    4
+#define P5G_FINGER_INDEX 8
+#define P5G_FINGER_MIDDLE 9
+#define P5G_FINGER_RING	 10
+#define P5G_FINGER_PINKY 11
+#define P5G_FINGER_THUMB 12
+#define P5G_DELTA_X     16
+#define P5G_DELTA_Y     17
+#define P5G_DELTA_Z     18
+#define P5G_DELTA_XR    19
+#define P5G_DELTA_YR    20
+#define P5G_DELTA_ZR    21
+#define P5G_ANGLES      22
 
 int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 {
@@ -118,22 +126,25 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
       uint32_t buttons;
       p5glove_get_buttons(glove,&buttons);
       switch (kontrol) {
-      case P5GLOVE_BUTTONS:
+      case P5G_BUTTONS:
         *p->res = (MYFLT)(buttons);
-      case P5GLOVE_BUTTON_A:
+      case P5G_BUTTON_A:
         *p->res = (MYFLT)(buttons & P5GLOVE_BUTTON_A);
         return OK;
-      case P5GLOVE_BUTTON_B:
+      case P5G_BUTTON_B:
         *p->res = (MYFLT)(buttons & P5GLOVE_BUTTON_B);
         return OK;
-      case P5GLOVE_BUTTON_C:
+      case P5G_BUTTON_C:
         *p->res = (MYFLT)(buttons & P5GLOVE_BUTTON_C);
         return OK;
+      default:
+        *p->res = 0.0;
+        return NOTOK;
       }
     }
-    else if (kontrol<=P5GLOVE_BUTTON_C+6) {
+    else if (kontrol<=P5G_FINGER_THUMB) {
       double clench;
-      p5glove_get_finger(glove,kontrol-P5GLOVE_BUTTON_C-1,&clench);
+      p5glove_get_finger(glove,kontrol-P5G_FINGER_INDEX,&clench);
       *p->res = (MYFLT)clench;
       return OK;
     }

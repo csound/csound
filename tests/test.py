@@ -61,6 +61,7 @@ def runTest():
         ["test22.csd", "simple UDO"],
         ["test23.csd", "named instrument"],
         ["test24.csd", "la_i opcodes"],
+        ["test25.csd", "polymorphic test, 0xfffd (peak)"],
     ]
 
 
