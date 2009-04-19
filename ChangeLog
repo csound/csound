@@ -1,3 +1,10 @@
+2009-04-19  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/p5glove.c: New code to controlP5 Glove directly
+
+	* Engine/csound_orc_semantics.c (handle_polymorphic_opcode): Added
+	polymorphic type 0xfffd
+
 2009-04-17  jpff  <jpff@codemist.co.uk>
 
 	* Engine/memfiles.c (Load_File_): Add option for byteswap from

@@ -1545,9 +1545,11 @@ if not buildOLPC:
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 if wiifound==1:
-  makePlugin(pluginEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
+  WiiEnvironment = pluginEnvironment.Clone()
+  makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
 if p5gfound==1:
-  makePlugin(pluginEnvironment, 'p5glove', ['Opcodes/p5glove.c'])
+  P5GEnvironment = pluginEnvironment.Clone()
+  makePlugin(P5GEnvironment, 'p5glove', ['Opcodes/p5glove.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
@@ -1671,9 +1673,9 @@ else:
     if mpafound :
         csoundProgramEnvironment.Append(LIBS = ['mpadec'])
     if wiifound :
-        csoundProgramEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
+        WiiEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
     if p5gfound :
-        csoundProgramEnvironment.Append(LIBS = ['p5glove'])
+        P5GEnvironment.Append(LIBS = ['p5glove'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
