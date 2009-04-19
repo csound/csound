@@ -2272,6 +2272,8 @@ if not ((commonEnvironment['buildCsoundAC'] == '1') and fltkFound and boostFound
 else:
     print 'CONFIGURATION DECISION: Building CsoundAC extension module for Csound with algorithmic composition.'
     acEnvironment = vstEnvironment.Clone()
+    if getPlatform() == 'linux':
+        acEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
     headers += glob.glob('frontends/CsoundAC/*.hpp')
     acEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces'])
     acEnvironment.Append(CPPPATH = pythonIncludePath)
@@ -2279,7 +2281,8 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-        acEnvironment.Prepend(LIBS = 'musicxml2')
+	if musicXmlFound:
+           acEnvironment.Prepend(LIBS = 'musicxml2')
         if getPlatform() != 'win32':
            acEnvironment.Prepend(LIBS = csndModule)
         else:  acEnvironment.Prepend(LIBS = 'csnd')
@@ -2296,7 +2299,7 @@ else:
         acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
-        os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
     elif getPlatform() == 'darwin':
         acEnvironment.Append(LIBS = ['dl', 'm'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
@@ -2373,6 +2376,8 @@ else:
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
+    Depends(csoundAcPythonModule, csndModule)
+    Depends(csoundAcPythonModule, csoundac)
     if commonEnvironment['useDouble'] != '0' :
         if getPlatform() == 'darwin':
           counterpoint = acEnvironment.Program(
