@@ -255,6 +255,9 @@ commandOptions.Add('includeMP3',
 commandOptions.Add('includeWii',
      'Set to 1 if using libwiimote', 
      '0')
+commandOptions.Add('includeP5Glove',
+     'Set to 1 if using P5 Glove', 
+     '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -707,6 +710,13 @@ else:
     wiifound = 0
     print 'CONFIGURATION DECISION: No Wiimote support'
 
+if commonEnvironment['includeP5Glove'] == '1' :
+    p5gfound = 1
+    print 'CONFIGURATION DECISION: Building with P5 Glove support'
+else:
+    p5gfound = 0
+    print 'CONFIGURATION DECISION: No P5 Glove support'
+
 
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
@@ -751,7 +761,7 @@ if not tclhfound:
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
 zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
-luaFound = configure.CheckHeader("lua.h", language = "C")
+luaFound = False ####configure.CheckHeader("lua.h", language = "C")
 #print 'LUA: %s' % (['no', 'yes'][int(luaFound)])
 if buildOLPC:
    luaFound = False
@@ -1536,6 +1546,8 @@ if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 if wiifound==1:
   makePlugin(pluginEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
+if p5gfound==1:
+  makePlugin(pluginEnvironment, 'p5glove', ['Opcodes/p5glove.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
@@ -1660,6 +1672,8 @@ else:
         csoundProgramEnvironment.Append(LIBS = ['mpadec'])
     if wiifound :
         csoundProgramEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
+    if p5gfound :
+        csoundProgramEnvironment.Append(LIBS = ['p5glove'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
