@@ -1449,10 +1449,14 @@ else:
         if getPlatform() != 'darwin':
             csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
+                        #if  commonEnvironment['pythonVersion']  == '2.3':  
+        
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Clone()
         fixCFlagsForSwig(csndPythonEnvironment)
+        pyVersToken = '-DPYTHON_24_or_newer'
         if getPlatform() == 'darwin':
+            if  float(commonEnvironment['pythonVersion'] ) < 2.4: pyVersToken = '-DPYTHON_23_or_older'
             if commonEnvironment['dynamicCsoundLibrary'] == '1':
                 csndPythonEnvironment.Append(LIBS = ['_csnd'])                 
             else:
@@ -1463,7 +1467,7 @@ else:
             csndPythonEnvironment.Append(LIBS = ['csnd'])
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
             'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.', pyVersToken])
         csndPythonEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundPythonInterface, pythonImportLibrary)
