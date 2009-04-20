@@ -17,7 +17,7 @@ nchnls=1
   kresults divz ka, kb, ksubst
 
   ; Print out the results.
-  printks "%f / %f = %f\\n", 0.1, ka, kb, kresults
+  printks "%f / %f = %f\n", 0.1, ka, kb, kresults
 endin
 
 </CsInstruments>
