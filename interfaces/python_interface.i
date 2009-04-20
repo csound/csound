@@ -257,7 +257,7 @@ static int PythonMidiRead(CSOUND *in, void *udata,
   PyObject *GetHostData() {
    return ((pycbdata *)self->pydata)->hostdata;
 }
-#ifndef MACOSX
+#ifndef PYTHON_23_or_older
   void SetMessageCallback(PyObject *pyfunc){
      // thread safety mechanism 
     pycbdata *pydata = (pycbdata *) self->pydata;
@@ -361,7 +361,7 @@ static void PythonCallback(void *p){
    // Set the Python callback
    void SetProcessCallback(PyObject *pyfunc, PyObject *p){
     if(self->GetProcessCallback() == NULL) {
-#ifndef MACOSX
+#ifndef PYTHON_23_or_older
        if(!PyEval_ThreadsInitialized()) 
 #endif                      
                           PyEval_InitThreads();
