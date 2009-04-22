@@ -229,6 +229,9 @@ commandOptions.Add('withSunStudio',
 commandOptions.Add('buildNewParser',
     'Enable building new parser (requires Flex/Bison)',
     '0')
+commandOptions.Add('NewParserDebug',
+    'Enable tracing of new parser',
+    '0')
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
@@ -882,6 +885,9 @@ if commonEnvironment['buildNewParser'] != '0':
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
+    if commonEnvironment['NewParserDebug'] != '0':
+        print 'CONFIGURATION DECISION: Building with new parser debugging'
+        csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
 else:
     print 'CONFIGURATION DECISION: Not building with new parser'
 
@@ -1553,7 +1559,7 @@ if wiifound==1:
   makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
 if p5gfound==1:
   P5GEnvironment = pluginEnvironment.Clone()
-  makePlugin(P5GEnvironment, 'p5glove', ['Opcodes/p5glove.c'])
+  makePlugin(P5GEnvironment, 'p5g', ['Opcodes/p5glove.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():

@@ -360,7 +360,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
     case S_GE:
       csound->Message(csound,"name=\"S_GE\""); break;
     case T_LABEL:
-      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"",
+                      l->value->lexeme); break;
     case T_IF:
       csound->Message(csound,"name=\"T_IF\""); break;
     case T_THEN:
@@ -390,61 +391,85 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
     case T_INSTR:
       csound->Message(csound,"name=\"T_INSTR\""); break;
     case T_STRCONST:
-      csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT:
-      csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_I:
-      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GI:
-      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_K:
-      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GK:
-      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_A:
-      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GA:
-      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_S:
-      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GS:
-      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_W:
-      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GW:
-      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_F:
-      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GF:
-      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_P:
-      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_B:
-      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_b:
-      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_INTGR:
-      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"", l->value->value); break;
+      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"",
+                      l->value->value); break;
     case T_NUMBER:
-      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"", l->value->fvalue); break;
+      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"",
+                      l->value->fvalue); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
     case S_APPLY:
       csound->Message(csound,"name=\"S_APPLY\""); break;
     case T_OPCODE0:
-      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"",
+                      l->value->lexeme); break;
     case T_OPCODE:
-      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"",
+                      l->value->lexeme); break;
     case T_FUNCTION:
-      csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
+                      l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"name=\"S_UMINUS\""); break;
     case T_UDO:
         csound->Message(csound,"name=\"T_UDO\""); break;
     case T_UDO_ANS:
-        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"", l->value->lexeme); break;
+        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"",
+                        l->value->lexeme); break;
     case T_UDO_ARGS:
-        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"", l->value->lexeme); break;
+        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"",
+                        l->value->lexeme); break;
     default:
       csound->Message(csound,"name=\"unknown\"");
     }
@@ -576,11 +601,12 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           /*if (find_opcode(csound, str) == 0) {*/
           /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
              str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
-          /*ST(nxtest) = 100; */                       /* step way over this line */
-          /*goto tstnxt;*/                            /* & go to next            */
+          /*ST(nxtest) = 100; */                    /* step way over this line */
+          /*goto tstnxt;*/                          /* & go to next            */
           /*break;*/
           /*}*/
-          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme, strlen(str) + 1);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
           csound->DebugMsg(csound, Str("modified opcod: %s"), str);
           break;
