@@ -636,6 +636,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           strcpy(tree->value->lexeme, str);
           break;
         default:
+          csound->Message(csound, "Impossible case\n");
           break;
           /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
         }
