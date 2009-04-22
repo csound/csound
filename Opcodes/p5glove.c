@@ -146,6 +146,7 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
       double clench;
       p5glove_get_finger(glove,kontrol-P5G_FINGER_INDEX,&clench);
       *p->res = (MYFLT)clench;
+      /*      *p->res = (MYFLT)(p5->data.finger[finger]/63.0); */
       return OK;
     }
     {

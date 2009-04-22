@@ -374,7 +374,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, T_LABEL);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len);
-    strncpy(ans->lexeme, s, len - 1);
+    strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
     return ans;
 }
 
