@@ -606,28 +606,34 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           strcpy(tree->value->lexeme, str);
           break;
         case 0xfffc:                              /* For divz types          */
-         if (PARSER_DEBUG)
+          if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffc\n");
-         d = tree_argtyp(csound, tree->right->next);
-         if ((c=='i' || c=='c') && (d=='i' || d=='c'))
-           c = 'i', d = 'i';
-         else {
-           if (c != 'a') c = 'k';
-           if (d != 'a') d = 'k';
-         }
-         sprintf(str, "%s.%c%c", ep->opname, c, d);
+          d = tree_argtyp(csound, tree->right->next);
+          if ((c=='i' || c=='c') && (d=='i' || d=='c'))
+            c = 'i', d = 'i';
+          else {
+            if (c != 'a') c = 'k';
+            if (d != 'a') d = 'k';
+          }
+          sprintf(str, "%s.%c%c", ep->opname, c, d);
           if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
           tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                  strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
           break;
         case 0xfffb:          /* determine opcode by type of first input arg */
-         if (PARSER_DEBUG)
+          if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffb\n");
           /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
+          if (c=='p') c = 'i';
           /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
             c = 'i';
             sprintf(str, "%s.%c", ST(linopcod), c);*/
+          sprintf(str, "%s.%c", ep->opname, c);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
           break;
         default:
           break;
