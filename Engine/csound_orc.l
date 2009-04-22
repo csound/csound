@@ -382,9 +382,12 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, T_STRCONST);
     int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len-1);
-    strncpy(ans->lexeme, s+1, len-2);
-    ans->lexeme[len-2] = '\0';
+/* Keep the quote marks */
+    /* ans->lexeme = (char*)mcalloc(csound, len-1); */
+    /* strncpy(ans->lexeme, s+1, len-2); */
+    /* ans->lexeme[len-2] = '\0';  */
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    strcpy(ans->lexeme, s);
     return ans;
 }
 
