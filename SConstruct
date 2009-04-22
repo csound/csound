@@ -878,7 +878,8 @@ if commonEnvironment['buildNewParser'] != '0':
         Tool('lex')(csoundLibraryEnvironment)
         Tool('yacc')(csoundLibraryEnvironment)
     print 'CONFIGURATION DECISION: Building with new parser enabled'
-    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '--report=itemset', '-p','csound_orc'])
+    reportflag='--report=itemset'
+    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
     csoundLibraryEnvironment.Append(LEXFLAGS = ['-Pcsound_orc'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
@@ -974,6 +975,8 @@ csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 if buildOSXFramework:
     csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
     # create directory structure for the framework
+    if commonEnvironment['buildNewParser'] != '0':
+      csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
     tmp = [OSXFrameworkBaseDir]
     tmp += ['%s/Versions' % OSXFrameworkBaseDir]
     tmp += [OSXFrameworkCurrentVersion]
