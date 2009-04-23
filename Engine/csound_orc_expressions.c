@@ -32,7 +32,7 @@ extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
 
-char *create_out_arg(CSOUND *csound, char outype) 
+char *create_out_arg(CSOUND *csound, char outype)
 {
     char* s = (char *)csound->Malloc(csound, 8);
 
@@ -164,7 +164,7 @@ TREE * create_opcode_token(CSOUND *csound, char* op)
 TREE * create_ans_token(CSOUND *csound, char* var)
 {
     TREE *ans = create_empty_token(csound);
-    
+
     ans->type = get_expression_ans_type(csound, var);
     ans->value = make_token(csound, var);
     ans->value->type = ans->type;
@@ -440,7 +440,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       break;
     }
 
-    if (PARSER_DEBUG) csound->Message(csound, "Operator Found: %s\n", op); 
+    if (PARSER_DEBUG) csound->Message(csound, "Operator Found: %s\n", op);
 
     outarg = get_boolean_arg(csound);
 
@@ -640,30 +640,30 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 ifBlockLast = labelEnd;
                 ifBlockCurrent = tempRight->next;
               }
-              if (endLabelCounter > 0) {
-                TREE *endLabel = create_synthetic_label(csound,
-                                                        endLabelCounter);
-                endLabel->next = ifBlockLast->next;
-                ifBlockLast->next = endLabel;
-                ifBlockLast = endLabel;
-              }
-              ifBlockLast->next = current->next;
-
-              /* Connect in all of the TREE nodes that were flattened from
-               * the if-else-else block
-               */
-              /* Set as anchor if necessary */
-              if (anchor == NULL) {
-                anchor = ifBlockStart;
-              }
-
-              /* reconnect into chain */
-              if (previous != NULL) {
-                previous->next = ifBlockStart;
-              }
-              current = ifBlockStart;
-
             }
+
+		    if (endLabelCounter > 0) {
+			  TREE *endLabel = create_synthetic_label(csound,
+													endLabelCounter);
+			  endLabel->next = ifBlockLast->next;
+			  ifBlockLast->next = endLabel;
+			  ifBlockLast = endLabel;
+		    }
+		    ifBlockLast->next = current->next;
+
+		    /* Connect in all of the TREE nodes that were flattened from
+		     * the if-else-else block
+		     */
+            /* Set as anchor if necessary */
+		    if (anchor == NULL) {
+			  anchor = ifBlockStart;
+		    }
+
+		    /* reconnect into chain */
+		    if (previous != NULL) {
+			  previous->next = ifBlockStart;
+		    }
+		    current = ifBlockStart;
           }
           else {
             csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
@@ -725,7 +725,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               else {
                 previousArg->next = newArgTree;
               }
-                
+
               newArgTree->next = nextArg;
               currentArg = newArgTree;
               /* TODO - Delete the expression nodes here */
@@ -738,7 +738,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           handle_optional_args(csound, current);
         }
       }
-      
+
       if (anchor == NULL) {
         anchor = current;
       }
@@ -748,7 +748,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
     if (PARSER_DEBUG)
       csound->Message(csound, "[End Expanding Expressions in AST]\n");
-      
+
     return anchor;
 }
 
