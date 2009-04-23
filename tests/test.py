@@ -60,10 +60,11 @@ def runTest():
         ["test21.csd", "if-elseif-else with multiple elseif blocks"],
         ["test22.csd", "simple UDO"],
         ["test23.csd", "named instrument"],
-        ["test24.csd", "la_i opcodes"],
+##        ["test24.csd", "la_i opcodes"],
         ["test25.csd", "polymorphic test, 0xfffd (peak)"],
         ["test26.csd", "polymorphic test, 0xfffc (divz)"],
         ["test27.csd", "polymorphic test, 0xfffb (chnget)"],
+        ["test28.csd", "label test"],
     ]
 
 
