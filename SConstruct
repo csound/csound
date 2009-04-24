@@ -764,7 +764,7 @@ if not tclhfound:
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
 zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
-luaFound = False ####configure.CheckHeader("lua.h", language = "C")
+luaFound = configure.CheckHeader("lua.h", language = "C")
 #print 'LUA: %s' % (['no', 'yes'][int(luaFound)])
 if buildOLPC:
    luaFound = False
@@ -1622,7 +1622,10 @@ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
 '''))
-makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
+hrtfnewEnvironment = pluginEnvironment.Clone()
+if sys.byteorder == 'big':
+    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if jackFound:
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':

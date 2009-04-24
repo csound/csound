@@ -1,3 +1,22 @@
+2009-04-24  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* SConstruct: Define WORDS_BIGENDIAN for hrtfnew opcodes when appropriate.
+
+	* H/prototyp.h:
+	* H/csoundCore.h:
+	* Top/csound.c:
+	* Engine/memfiles.c: New API function pointer ldmemfile2withCB() which is
+	a version of ldmemfile() allowing a callback to be set and called exactly
+	once to process the MEMFIL buffer after it is loaded.
+
+	* H/version.h: Increased API version to 2.1.
+
+	* Engine/memfiles.c (Load_File_):
+	* Opcodes/hrtfopcodes.c: Moved byteswapping code for HRTF opcodes to 
+	hrtfnew module utilizing ldmemfile2withCB().
+
+	* H/csound.h: Removed file type CSFTYPE_FLOATS_BINARY_SW
+
 2009-04-19  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/p5glove.c: New code to controlP5 Glove directly
