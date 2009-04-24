@@ -977,8 +977,10 @@ extern const uint32_t csPlayScoMask;
     int (*sftype2csfiletype)(int type);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
+    MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
+                                int (*callback)(CSOUND *, MEMFIL *));
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[85];
+    SUBR dummyfn_2[84];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
