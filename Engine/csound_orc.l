@@ -100,6 +100,8 @@ UNDEF           "#undef"
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
+"<<"            { return S_BITSHL; }
+">>"            { return S_BITSHR; }
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
@@ -108,6 +110,10 @@ UNDEF           "#undef"
                   return S_ASSIGN; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
+"|"             { return S_BITOR; }
+"&"             { return S_BITAND; }
+"#"             { return S_NEQV; }
+"¬"             { return S_BITNOT; }
 
 "if"            { return T_IF; }
 "then"          { return T_THEN; }

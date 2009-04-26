@@ -41,8 +41,12 @@
 %token S_ASSIGN
 %token S_GT
 %token S_GE
-%token S_XOR
-%token S_MOD
+%token S_BITAND
+%token S_BITOR
+%token S_NEQV
+%token S_BITSHL
+%token S_BITSHR
+%token S_BITNOT
 
 %token T_LABEL
 %token T_IF
@@ -451,6 +455,13 @@ ifac      : ident               { $$ = $1; }
             {
                 $$ = make_node(csound, S_UMINUS, NULL, $2);
             }
+          | ifac S_BITOR ifac   { $$ = make_node(csound, S_BITOR, $1, $3); }
+          | ifac S_BITAND ifac   { $$ = make_node(csound, S_BITAND, $1, $3); }
+          | ifac S_NEQV ifac   { $$ = make_node(csound, S_NEQV, $1, $3); }
+          | ifac S_BITSHL ifac   { $$ = make_node(csound, S_BITSHL, $1, $3); }
+          | ifac S_BITSHR ifac   { $$ = make_node(csound, S_BITSHR, $1, $3); }
+          | S_BITNOT ifac %prec S_UMINUS 
+            { $$ = make_node(csound, S_BITNOT, NULL, $2);}
           | S_MINUS error
           | S_LB expr S_RB      { $$ = $2; }
           | S_LB expr error
