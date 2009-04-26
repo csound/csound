@@ -31,7 +31,9 @@
 #include "insert.h"
 #include "namedins.h"
 
+#ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
+#endif
 
 ORCTOKEN** symbtab;
 extern int yyline;
