@@ -76,6 +76,12 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        MYFLT   *kcf,*kbw, *kfor;
+        LPREAD  *lpread;
+} LPFORM;
+
+typedef struct {
+        OPDS    h;
         MYFLT   *ar, *asig, *kfrqratio;
         MYFLT   past[MAXPOLES], prvratio, d, prvout;
         LPREAD  *lpread;
