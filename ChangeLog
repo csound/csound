@@ -1,3 +1,12 @@
+2009-04-27 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* Opcodes/pvsbasic.c: added rounding bin code to pvsscale
+	* Opcodes/ftgen.c: added NP2 support for ftload and ftsave
+	* Engine/fgen.c: moved a PerfError to a Warning when tables are resized to enable
+	ftload to resize deferred-allocation tables.
+	* OOps/ugens5.c: experimental LPC read opcode
+	* H/ugens.h: as above
+	* Engine/oentry1.c: as above
+	
 2009-04-24  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct: Define WORDS_BIGENDIAN for hrtfnew opcodes when appropriate.
