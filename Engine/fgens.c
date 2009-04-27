@@ -275,8 +275,8 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
       csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
     else if (len != (int) ftp->flen) {
       if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
-        return 
-          csound->PerfError(csound, Str("ftable %d relocating due to size change"
+        /* return */  /* VL: changed this into a Warning */
+          csound->Warning(csound, Str("ftable %d relocating due to size change"
                                         "\n         currently active instruments "
                                         "may find this disturbing"), tableNum);
       }
