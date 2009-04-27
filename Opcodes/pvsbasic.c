@@ -974,7 +974,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
 
-        int newchan = ((int) (chan * pscal)) << 1;
+        int newchan;
+        newchan  = ((int) ((chan * pscal) + 0.5)) << 1;
 
         if (newchan < N && newchan > 0) {
           fout[newchan] += keepform ?
@@ -987,7 +988,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       for (i = 2; i < N; i += 2) {
         if (fout[i + 1] == -1.0f)
-          fout[i] = 0.0f;
+	fout[i] = 0.0f;
         else
           fout[i] *= g;
       }
