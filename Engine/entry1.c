@@ -360,6 +360,7 @@ OENTRY opcodlst_1[] = {
 { "resonx", S(RESONX),  5,      "a",    "akkooo", rsnsetx, NULL, resonx },
 { "areson", S(RESON),   5,      "a",    "akkoo",rsnset, NULL,   areson  },
 { "lpread", S(LPREAD),  3,      "kkkk", "kToo", lprdset,lpread          },
+{ "lpform", S(LPFORM),  3,      "kk", "k",     lpformantset,lpformant   },
 { "lpreson",S(LPRESON), 5,      "a",    "a",    lprsnset,NULL,  lpreson },
 { "lpfreson",S(LPFRESON),5,     "a",    "ak",   lpfrsnset,NULL, lpfreson},
 { "lpslot"  ,  S(LPSLOT),  1,   "",     "i",    lpslotset, NULL, NULL   },
