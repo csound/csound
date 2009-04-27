@@ -224,7 +224,7 @@ TREE *create_simple_goto_token(CSOUND *csound, TREE *label)
     return opTree;
 }
 
-/* Returns if passed in TREE node is a numerical expression */
+/* Returns true if passed in TREE node is a numerical expression */
 int is_expression_node(TREE *node)
 {
     if (node == NULL) {
@@ -238,9 +238,15 @@ int is_expression_node(TREE *node)
     case S_DIV:
     case T_FUNCTION:
     case S_UMINUS:
+    case S_BITOR:
+    case S_BITAND:
+    case S_BITSHR:
+    case S_BITSHL:
+    case S_NEQV:
+    case S_BITNOT:
       return 1;
     }
-    return 0;
+   return 0;
 }
 
 /* Returns if passed in TREE node is a boolean expression */
@@ -349,6 +355,30 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       arg1 = 'k';
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITOR:
+      strncpy(op, "or", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITAND:
+      strncpy(op, "and", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITSHR:
+      strncpy(op, "shr", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITSHL:
+      strncpy(op, "shl", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_NEQV:
+      strncpy(op, "xor", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITNOT:
+      strncpy(op, "not", 80);
+      outarg = set_expression_type(csound, op, arg1, '\0');
       break;
     }
 

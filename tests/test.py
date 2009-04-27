@@ -65,6 +65,7 @@ def runTest():
         ["test26.csd", "polymorphic test, 0xfffc (divz)"],
         ["test27.csd", "polymorphic test, 0xfffb (chnget)"],
         ["test28.csd", "label test"],
+        ["test29.csd", "bit operations test"],
     ]
 
 
