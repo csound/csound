@@ -178,7 +178,7 @@ static int ftload(CSOUND *csound, FTLOAD *p)
       err_func = csound->PerfError;
     }
     else {
-      ft_func = csound->FTFind;
+      ft_func = csound->FTnp2Find;
       err_func = csound->InitError;
     }
 
@@ -322,7 +322,7 @@ static int ftsave(CSOUND *csound, FTLOAD *p)
       err_func = csound->PerfError;
     }
     else {
-      ft_func = csound->FTFind;
+      ft_func = csound->FTnp2Find;
       err_func = csound->InitError;
     }
 
