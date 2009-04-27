@@ -359,6 +359,18 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
       csound->Message(csound,"name=\"S_GE\""); break;
+    case S_BITOR:
+      csound->Message(csound,"name=\"S_BITOR\""); break;
+    case S_BITAND:
+      csound->Message(csound,"name=\"S_BITAND\""); break;
+    case S_BITSHR:
+      csound->Message(csound,"name=\"S_BITSHR\""); break;
+    case S_BITSHL:
+      csound->Message(csound,"name=\"S_BITSHL\""); break;
+    case S_NEQV:
+      csound->Message(csound,"name=\"S_NEQV\""); break;
+    case S_BITNOT:
+      csound->Message(csound,"name=\"S_BITNOT\""); break;
     case T_LABEL:
       csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"",
                       l->value->lexeme); break;
