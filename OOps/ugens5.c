@@ -715,6 +715,53 @@ int lpread(CSOUND *csound, LPREAD *p)
     return OK;
 }
 
+
+int lpformantset(CSOUND *csound, LPFORM *p)
+{
+    LPREAD *q;
+
+   /* connect to previously loaded lpc analysis */
+   /* get adr lpread struct */
+    p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+return OK;
+}
+
+int lpformant(CSOUND *csound, LPFORM *p)
+{
+    LPREAD *q = p->lpread;
+    MYFLT   *coefp, sr = csound->esr;
+    MYFLT   cfs[MAXPOLES/2], bws[MAXPOLES/2];
+    int     i, j, ndx = *p->kfor;
+    double  pm,pp;
+
+    if (q->storePoles) {
+      coefp = q->kcoefs;
+      for (i=2,j=0; i<q->npoles*2; i+=4, j++) {
+        pm = coefp[i];
+        pp = coefp[i+1];
+        cfs[j] = pp*sr/TWOPI;
+	// if(pm > 1.0) csound->Message(csound, "warning unstable pole %f\n", pm);
+        bws[j] = -log(pm)*sr/PI;
+	//csound->Message(csound, "form %d, fr=%.2f, BW=%.2f\n", j,cfs[j],bws[j]);
+      }
+    }else {
+	csound->PerfError(csound, "this opcode only works with LPC \
+               pole analysis type (-a)\n");
+        return NOTOK;
+      }
+
+      j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
+      if(bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
+      if(bws[j] < 1.0) bws[j] = 1.0;
+      if(cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
+      if(cfs[j] < 0) cfs[j] = -cfs[j];
+      *p->kcf = cfs[j];
+      *p->kbw = bws[j];
+   
+      return OK;      
+}
+  
+
 /*
  *
  * LPRESON: initialisation time
@@ -761,6 +808,9 @@ int lpreson(CSOUND *csound, LPRESON *p)
       for (i=0; i<q->npoles; i++) {
         pm = *coefp++;
         pp = *coefp++;
+	/*	 csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
+			pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
+	*/
         if (fabs(pm)>0.999999)
           pm = 1/pm;
         poleReal[i] = pm*cos(pp);
