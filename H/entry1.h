@@ -197,6 +197,7 @@ int     resonx(CSOUND *, void *), aresonx(CSOUND *, void *);
 int     rsnsetx(CSOUND *, void *), tonex(CSOUND *, void *);
 int     atonex(CSOUND *, void *), tonsetx(CSOUND *, void *);
 int     lprdset(CSOUND *, void *), lpread(CSOUND *, void *);
+int     lpformantset(CSOUND *, void *), lpformant(CSOUND *, void*);
 int     lprsnset(CSOUND *, void *), lpreson(CSOUND *, void *);
 int     lpfrsnset(CSOUND *, void *), lpfreson(CSOUND *, void *);
 int     lpslotset(CSOUND *, void *), lpitpset(CSOUND *, void *);
