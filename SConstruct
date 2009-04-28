@@ -889,6 +889,7 @@ if commonEnvironment['buildNewParser'] != '0':
     if commonEnvironment['NewParserDebug'] != '0':
         print 'CONFIGURATION DECISION: Building with new parser debugging'
         csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
+    else: print 'CONFIGURATION DECISION: Not building with new parser debugging'
 else:
     print 'CONFIGURATION DECISION: Not building with new parser'
 
@@ -976,7 +977,7 @@ if buildOSXFramework:
     csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
     # create directory structure for the framework
     if commonEnvironment['buildNewParser'] != '0':
-      csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
+       csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
     tmp = [OSXFrameworkBaseDir]
     tmp += ['%s/Versions' % OSXFrameworkBaseDir]
     tmp += [OSXFrameworkCurrentVersion]
@@ -1432,8 +1433,9 @@ else:
             ilibVersion = csoundLibraryVersion
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
-            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s''' % (ilibVersion, ilibName)))
+            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('_csnd', csoundInterfacesSources)
+            csoundInterfacesEnvironment.Command('interfaces install', csoundInterfaces, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: print "link exists..."
         else:
@@ -1616,12 +1618,11 @@ if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeade
 	makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
- 
-makePlugin(pluginEnvironment, 'gabnew', Split('''
+if not buildOLPC:
+ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-'''))
+    Opcodes/gab/newgabopc.c'''))
 hrtfnewEnvironment = pluginEnvironment.Clone()
 if sys.byteorder == 'big':
     hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
@@ -1666,9 +1667,7 @@ if ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
  except:
     print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
-    vstEnvironment.Append(LIBS = Split('''
-        fltk fltk_images
-    ''')) # fltk_png z fltk_jpeg are not on OSX at the mo
+    vstEnvironment.Append(LIBS = ['fltk', 'fltk_images']) # fltk_png z fltk_jpeg are not on OSX at the mo
 if getPlatform() == 'win32':
     if compilerGNU():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
@@ -1695,10 +1694,7 @@ else:
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
-        csoundProgramEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
-        '''))
-
+        csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMidi'''))
 if buildOLPC or (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
