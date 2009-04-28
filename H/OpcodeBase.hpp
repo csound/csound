@@ -27,10 +27,10 @@
  *     double state2;
  *     MYFLT state3;
  *     // Declare and implement only whichever of these are required:
- *     void init();
- *     void kontrol();
- *     void audio;
- *     void noteoff();
+ *     int init();
+ *     int kontrol();
+ *     int audio;
+ *     int noteoff();
  *     void deinit();
  * };
  */
