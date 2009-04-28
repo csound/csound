@@ -1042,7 +1042,8 @@ extern const uint32_t csPlayScoMask;
     int           randSeed1;
     int           randSeed2;
     int           memlock;
-    int   dummyint[9];
+    int           floatsize;
+    int   dummyint[8];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND

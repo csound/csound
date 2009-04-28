@@ -388,7 +388,8 @@ extern "C" {
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
     0,              /*  memlock             */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint[9]; */
+    0,              /*  floatsize           */
+    {0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint[8]; */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
