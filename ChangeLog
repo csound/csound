@@ -1,3 +1,8 @@
+
+2009-04-29 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* InOut/FL_graph.cpp: fixed the redrawing of graphs so that only 
+	selected ones get redrawn.
+	
 2009-04-28  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h ("C"): Declare
