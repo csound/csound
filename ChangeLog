@@ -13,7 +13,7 @@
 	* OOps/ugens5.c: experimental LPC read opcode
 	* H/ugens.h: as above
 	* Engine/oentry1.c: as above
-	
+
 2009-04-24  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct: Define WORDS_BIGENDIAN for hrtfnew opcodes when appropriate.
