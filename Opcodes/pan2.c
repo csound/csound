@@ -34,6 +34,7 @@ typedef struct {
     MYFLT *itype;                /* type of panning */
     int   type;
 } PAN2;
+#define SQRT2 FL(1.41421356237309504880)
 
 static int pan2set(CSOUND *csound, PAN2 *p)
 {
@@ -76,6 +77,18 @@ static int pan2run(CSOUND *csound, PAN2 *p)
         al[n] = ain[n] * (FL(1.0)-kangl);
       }
       break;
+    }
+    case 3: {
+      MYFLT kangl = *p->pan, cc, ss, l, r;
+      for (n=0; n<nsmps; n++) {
+        if (XINARG2) kangl = p->pan[n];
+        cc = COS(PI*kangl*FL(0.5));
+        cc = SIN(PI*kangl*FL(0.5));
+        l = SQRT2*(cc+ss)*0.5;
+        r = SQRT2*(cc-ss)*0.5;
+        al[n] = ain[n] * l;
+        ar[n] = ain[n] * r;
+      }
     }
     }
     return OK;
