@@ -198,7 +198,6 @@ int musmon(CSOUND *csound)
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
-    csound->floatsize = sizeof(MYFLT);
     if (LIKELY(csound->musmonGlobals == NULL))
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
     /* initialise search path cache */
