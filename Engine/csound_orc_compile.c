@@ -534,11 +534,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
     while(current != NULL) {
 
-      if(current->type != T_INSTR && current->type != T_UDO) {
+      if (current->type != T_INSTR && current->type != T_UDO) {
 
         /* csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme); */
 
-        if(current->type == S_ASSIGN
+        if (current->type == S_ASSIGN
            && strcmp(current->value->lexeme, "=.r") == 0) {
 
           MYFLT val = csound->pool[constndx(csound,
@@ -1015,14 +1015,28 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 /* Handle Inserting into CSOUND here by checking id's (name or
                  * numbered) and using new insert_instrtxt?
                  */
-
+                printf("Starting to install instruments\n");
                 /* Temporarily using the following code */
-                    if(current->left->type == T_INTGR) { /* numbered instrument */
-                        int32 instrNum = (int32)current->left->value->value;
+                if (current->left->type == T_INTGR) { /* numbered instrument */
+                  int32 instrNum = (int32)current->left->value->value;
 
-                        insert_instrtxt(csound, instrtxt, instrNum);
+                  insert_instrtxt(csound, instrtxt, instrNum);
+                }
+                else if (current->left->type == T_INTLIST) {
+                  TREE *p =  current->left;
+                  printf("intlist case:\n");
+                  while (p) {
+                    print_tree(csound, p);
+                    if (p->left)
+                    insert_instrtxt(csound, instrtxt, p->left->value->value);
+                    else {
+                      insert_instrtxt(csound, instrtxt, p->value->value);
+                      break;
                     }
-
+                    p = p->right;
+                  }
+                }
+                
                 break;
             case T_UDO:
                 /* csound->Message(csound, "UDO found\n"); */

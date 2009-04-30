@@ -118,6 +118,12 @@
 %nonassoc T_THEN T_ITHEN T_KTHEN T_ELSE /* NOT SURE IF THIS IS NECESSARY */
 %left S_PLUS S_MINUS
 %left S_STAR S_SLASH
+%left S_BITOR
+%left S_BITAND
+%left S_NEQV
+%left S_BITSHL
+%left S_BITSHR
+%right S_BITNOT
 %right S_UNOT
 %right S_UMINUS
 %token S_GOTO
@@ -183,7 +189,8 @@ rootstatement     : rootstatement topstatement
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 intlist   : intlist S_COM T_INTGR 
-                { $$ = make_node(csound, T_INTLIST, $1, (YYSTYPE)$3); }
+                { $$ = make_node(csound, T_INTLIST, $1,
+                                 make_leaf(csound, T_INTGR, (ORCTOKEN *)$3)); }
           | T_INTGR { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)$1); }
           ;
 
