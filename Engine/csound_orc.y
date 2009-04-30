@@ -142,8 +142,11 @@
 
 #include "csound_orc.h"
 
-int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
-int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
+    //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
+#define udoflag csound->parserUdoflag
+
+//int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
+#define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern int csound_orclex (TREE*, CSOUND *);
