@@ -66,6 +66,7 @@ def runTest():
         ["test27.csd", "polymorphic test, 0xfffb (chnget)"],
         ["test28.csd", "label test"],
         ["test29.csd", "bit operations test"],
+        ["test30.csd", "multi-numbered instrument test"],
     ]
 
 

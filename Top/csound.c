@@ -389,7 +389,7 @@ extern "C" {
     0,              /*  randSeed2           */
     0,              /*  memlock             */
     sizeof(MYFLT),  /*  floatsize           */
-    {0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint[8]; */
+    {0, 0, 0, 0, 0, 0}, /* dummyint[8]; */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -645,7 +645,9 @@ extern "C" {
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL            /* csdname */
-  };
+    -1,             /*  parserUdoflag */
+    0,              /*  parserNamedInstrFlag */
+ };
 
   /* from threads.c */
   void csoundLock(void);
