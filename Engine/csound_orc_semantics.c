@@ -294,6 +294,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"T_FUNCTION: %s\n", l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"S_UMINUS:\n"); break;
+    case T_INTLIST:
+        csound->Message(csound,"T_INTLIST:\n"); break;
     default:
       csound->Message(csound,"t:%d\n", l->type);
     }
@@ -474,6 +476,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
                       l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"name=\"S_UMINUS\""); break;
+    case T_INTLIST:
+        csound->Message(csound,"name=\"T_INTLIST\""); break;
     case T_UDO:
         csound->Message(csound,"name=\"T_UDO\""); break;
     case T_UDO_ANS:
