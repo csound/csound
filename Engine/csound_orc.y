@@ -110,6 +110,8 @@
 %token T_ELSE
 %token T_ENDIF
 
+%token T_INTLIST
+
 %start orcfile
 %left S_AND S_OR
 %nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
@@ -145,7 +147,7 @@
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
 
-//int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
+   //int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
@@ -180,15 +182,18 @@ rootstatement     : rootstatement topstatement
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-/* FIXME: Does not allow named instruments i.e. "instr trumpet" */
+intlist   : intlist S_COM T_INTGR 
+                { $$ = make_node(csound, T_INTLIST, $1, (YYSTYPE)$3); }
+          | T_INTGR { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)$1); }
+          ;
+
 instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
-            T_INTGR S_NL
+            intlist S_NL
                 { namedInstrFlag = 0; }
             statementlist T_ENDIN S_NL
                 {
-                    TREE *leaf = make_leaf(csound, T_INTGR, (ORCTOKEN *)$3);
-                    $$ = make_node(csound, T_INSTR, leaf, $6);
+                    $$ = make_node(csound, T_INSTR, $3, $6);
                 }
 
           | T_INSTR
