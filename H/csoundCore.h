@@ -1268,6 +1268,8 @@ extern const uint32_t csPlayScoMask;
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
     char*         csdname;       /* original CSD name; do not free() */
+    int           parserUdoflag;
+    int           parserNamedInstrFlag;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
