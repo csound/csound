@@ -1,3 +1,7 @@
+2009-04-30  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y: Remove two globals to teh CSOUND structure
+	and start numbered instruments
 
 2009-04-29 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* InOut/FL_graph.cpp: fixed the redrawing of graphs so that only 
