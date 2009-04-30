@@ -644,9 +644,9 @@ extern "C" {
     0,              /* tempStatus */
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
-    NULL            /* csdname */
+    NULL,           /* csdname */
     -1,             /*  parserUdoflag */
-    0,              /*  parserNamedInstrFlag */
+    0              /*  parserNamedInstrFlag */
  };
 
   /* from threads.c */

@@ -37,8 +37,10 @@
 
 ORCTOKEN** symbtab;
 extern int yyline;
-extern int udoflag;
-extern int namedInstrFlag;
+#define udoflag csound->parserUdoflag
+#define namedInstrFlag csound->parserNamedInstrFlag
+//extern int udoflag;
+//extern int namedInstrFlag;
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 
@@ -77,8 +79,8 @@ void init_symbtab(CSOUND *csound)
     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
-          if (PARSER_DEBUG)
-            csound->Message(csound, "Found PolyMorphic Opcode %s\n",ep->opname);
+          /* if (PARSER_DEBUG) */
+          /*   csound->Message(csound, "Found PolyMorphic Opcode %s\n",ep->opname); */
 
           len = strlen(ep->opname) + 1;
           polyName = mcalloc(csound, len + 1);

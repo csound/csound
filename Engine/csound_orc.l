@@ -44,8 +44,10 @@ void do_comment(void);
 void do_include(CSOUND *, int);
 void do_macro(CSOUND *, char *);
 void do_umacro(CSOUND *, char *);
-extern int udoflag;
-extern int namedInstrFlag;
+#define udoflag csound->parserUdoflag
+#define namedInstrFlag csound->parserNamedInstrFlag
+//extern int udoflag;
+//extern int namedInstrFlag;
 int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
 YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
