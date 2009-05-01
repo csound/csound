@@ -1,12 +1,17 @@
+2009-05-01  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y (if, ifthen, elsif): Removed requirement for
+	brackets round condition.
+
 2009-04-30  jpff  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc.y: Remove two globals to teh CSOUND structure
 	and start numbered instruments
 
 2009-04-29 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
-	* InOut/FL_graph.cpp: fixed the redrawing of graphs so that only 
+	* InOut/FL_graph.cpp: fixed the redrawing of graphs so that only
 	selected ones get redrawn.
-	
+
 2009-04-28  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h ("C"): Declare
@@ -17,8 +22,8 @@
 2009-04-27 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* Opcodes/pvsbasic.c: added rounding bin code to pvsscale
 	* Opcodes/ftgen.c: added NP2 support for ftload and ftsave
-	* Engine/fgen.c: moved a PerfError to a Warning when tables are resized to enable
-	ftload to resize deferred-allocation tables.
+	* Engine/fgen.c: moved a PerfError to a Warning when tables are
+	resized to enable ftload to resize deferred-allocation tables.
 	* OOps/ugens5.c: experimental LPC read opcode
 	* H/ugens.h: as above
 	* Engine/oentry1.c: as above
@@ -37,7 +42,7 @@
 	* H/version.h: Increased API version to 2.1.
 
 	* Engine/memfiles.c (Load_File_):
-	* Opcodes/hrtfopcodes.c: Moved byteswapping code for HRTF opcodes to 
+	* Opcodes/hrtfopcodes.c: Moved byteswapping code for HRTF opcodes to
 	hrtfnew module utilizing ldmemfile2withCB().
 
 	* H/csound.h: Removed file type CSFTYPE_FLOATS_BINARY_SW
@@ -122,11 +127,11 @@
 2009-02-23  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen49): New gen to read MP3 files using mpadec
-	library 
+	library
 
 2009-02-07  jpff  <jpff@codemist.co.uk>
 
-	* Engine/rdorch.c (rdorchfile): 
+	* Engine/rdorch.c (rdorchfile):
 	* Engine/sread.c (sget1): Mane mname grow rather than being fixed size
 
 2009-02-06  jpff  <jpff@codemist.co.uk>
@@ -238,7 +243,7 @@
 
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
-	* H/csound.h: Added Doxygen "mainpage" introductory section at top 
+	* H/csound.h: Added Doxygen "mainpage" introductory section at top
 	of file; switched to HTML format for API documentation (replacing
 	LaTeX/PDF format).
 
@@ -773,7 +778,7 @@
 2007-09-09  jpff  <jpff@codemist.co.uk>
 
 	* Made SDFT dependent of SDFT macro and adjust SConstruct to set
-	it 
+	it
 
 	* Opcodes/pvsbasic.c (pvsshift, pvsscale): Added SDFT support
 
@@ -784,7 +789,7 @@
 2007-08-28  Steven Yi   <stevenyi@gmail.com>
 
 	* InOut/rtwinmm.c: midi_in_close had incorrect check causing
-	device not to be closed properly 
+	device not to be closed properly
 
 2007-09-06  jpff  <jpff@codemist.co.uk>
 
