@@ -308,17 +308,17 @@ statement : ident S_ASSIGN expr S_NL
 
                     $$ = $1;
                 }
-          | T_LABEL S_NL
+          | T_LABEL
                 {
                     $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)yylval);
                 }
-          | goto T_IDENT S_NL
+          | goto label S_NL
                 {
                     $1->left = NULL;
                     $1->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$2);
                     $$ = $1;
                 }
-          | T_IF expr goto T_IDENT S_NL
+          | T_IF expr goto label S_NL
                 {
                     $3->left = NULL;
                     $3->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$4);
@@ -465,6 +465,11 @@ goto  : T_GOTO
           | T_IGOTO
             { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)yylval); }
           ;
+
+label : T_IDENT     { $$ = (ORCTOKEN *)$1; }
+      | T_OPCODE    { $$ = (ORCTOKEN *)$1; }
+      | T_OPCODE0   { $$ = (ORCTOKEN *)$1; }
+      ;
 
 
 exprlist  : exprlist S_COM expr
