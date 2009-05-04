@@ -25,6 +25,7 @@
 #include "syncgrain.h"
 #include "soundio.h"
 
+/*
 #ifdef HAVE_VALUES_H
 #include <values.h>
 #endif
@@ -33,6 +34,7 @@
 #include <limits.h>
 #define MAXINT INT_MAX
 #endif
+*/
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
@@ -59,13 +61,13 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
    if(p->streamon.auxp == NULL || p->streamon.size < size)
           csound->AuxAlloc(csound, size, &p->streamon);
 
-
-    p->count = MAXINT;                  /* sampling period counter */
+    p->count = 0;                  /* sampling period counter */
+    
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->datasize =  p->sfunc->flen;
     p->envtablesize = p->efunc->flen;   /* size of envtable */
-
+    
     p->start = 0.0f;
     p->frac = 0.0f;
 
@@ -95,6 +97,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
+  
 
     for(vecpos = 0; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
@@ -103,12 +106,12 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         numstreams--; /* decrease the no of streams */
         firststream=(firststream+1)%olaps; /* first stream is the next */
       }
-
+        
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod - frac;
-      if (count >= period) {
-        frac = count - period; /* frac part to be accummulated */
+      if (count == 0 || count >= period) {
+        if(count) frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
         envindex[newstream] = 0.0;
@@ -148,8 +151,10 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         /* if the envelope is finished */
         /* the grain is also finished */
 
-        if (envindex[j] > envtablesize)
+        if (envindex[j] > envtablesize){
           streamon[j] = 0;
+         
+	}
       }
 
       /* increment the period counter */
@@ -197,7 +202,7 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
       size = (p->olaps) * sizeof(int);
        if(p->streamon.auxp == NULL || p->streamon.size > size)
           csound->AuxAlloc(csound, size, &p->streamon);
-    p->count = MAXINT;                  /* sampling period counter */
+    p->count = 0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->start = *p->startpos*(csound->GetSr(csound));
@@ -258,8 +263,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod - frac;
-      if (count >= period) {
-        frac = count - period; /* frac part to be accummulated */
+      if (count == 0 || count >= period) {
+        if(count) frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
         envindex[newstream] = 0.0;
@@ -431,7 +436,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     }
 
    /* -===-  */
-    p->count = MAXINT;                  /* sampling period counter */
+    p->count =  0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
     p->envtablesize = p->efunc->flen;   /* size of envtable */
@@ -441,6 +446,7 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
     p->pos = *p->ioff*csound->esr;
     p->trigger = 0.0f;
     p->flen = sfinfo.frames;
+   
     return OK;
 }
 
@@ -466,7 +472,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     int32   negpos, flen = p->flen;
     float   trigger = p->trigger, incr;
 	
-	memset(sig, 0, DGRAIN_MAXCHAN*sizeof(MYFLT));
+    memset(sig, 0, DGRAIN_MAXCHAN*sizeof(MYFLT));
 
     datasize = dataframes*chans;
     hdatasize = hdataframes*chans;
@@ -481,6 +487,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
     envincr = envtablesize/grsize;
     prate = *p->prate;
 
+     
     for(vecpos = 0; vecpos < vecsize; vecpos++) {
       /* sig = (MYFLT) 0; */
       /* if a grain has finished, clean up */
@@ -491,8 +498,8 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
       /* if a fund period has elapsed */
       /* start a new grain */
       period = fperiod - frac;
-      if (count >= period) {
-        frac = count - period;
+      if (count ==0  || count >= period) {
+        if(count) frac = count - period;
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1;
         envindex[newstream] = 0.0;
