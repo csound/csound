@@ -1,3 +1,7 @@
+2009-05-05  jpff  <jpff@cs.bath.ac.uk>
+
+	* Engine/csound_orc.l: Deal with \+NL
+
 2009-05-01  jpff  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc.y (if, ifthen, elsif): Removed requirement for

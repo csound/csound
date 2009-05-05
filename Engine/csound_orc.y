@@ -324,13 +324,6 @@ statement : ident S_ASSIGN expr S_NL
                     $3->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$4);
                     $$ = make_node(csound, T_IF, $2, $3);
                 }
-          /* | T_IF S_LB expr S_RB goto T_IDENT S_NL */
-          /*       { */
-          /*           $5->left = NULL; */
-          /*           $5->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$6); */
-          /*           $$ = make_node(csound, T_IF, $3, $5); */
-          /*       } */
-
           | ifthen
           | S_NL { $$ = NULL; }
           ;
