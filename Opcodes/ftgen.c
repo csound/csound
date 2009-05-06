@@ -154,7 +154,7 @@ static int ftfree(CSOUND *csound, FTFREE *p)
     if (UNLIKELY(fno <= 0))
       return csound->InitError(csound, Str("Invalid table number: %d"), fno);
     if (*p->ifreeTime == FL(0.0)) {
-      if (csound->FTDelete(csound, fno) != 0)
+      if (UNLIKELY(csound->FTDelete(csound, fno) != 0))
         return csound->InitError(csound, Str("Error deleting ftable %d"), fno);
       return OK;
     }
