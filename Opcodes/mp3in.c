@@ -70,10 +70,10 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     /* set default format parameters */
     /* open file */
     p->mpa = mpa = mp3dec_init();
-    if (!mpa) {
+    if (UNLIKELY(!mpa)) {
       return csound->InitError(csound, Str("Not enough memory\n"));
     }
-    if ((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK) {
+    if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       p->mpa = NULL;
       return csound->InitError(csound, mp3dec_error(r));
@@ -90,12 +90,12 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     /* memset(&(p->fdch), 0, sizeof(FDCH)); */
     /* p->fdch.fd = fd; */
     /* fdrecord(csound, &(p->fdch)); */
-    if ((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, mp3dec_error(r));
     }
-    if ((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
-        MP3DEC_RETCODE_OK) {
+    if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
+                 MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, mp3dec_error(r));
     }
@@ -183,7 +183,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
     }
     p->pos = pos;
     p->r = r;
-    if (r != MP3DEC_RETCODE_OK) {
+    if (UNLIKELY(r != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       p->mpa = NULL;
       return NOTOK;

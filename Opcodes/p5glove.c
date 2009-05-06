@@ -78,7 +78,7 @@ int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
       glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     }
     p->p5g = *glove = p5glove_open(0);
-    if (*glove==NULL) {
+    if (UNLIKELY(*glove==NULL)) {
       return csound->InitError(csound, Str("unable to open p5glove\n"));
     }
     return OK;
@@ -89,7 +89,7 @@ int p5glove_poll(CSOUND *csound, P5GLOVE *p)
     P5Glove glove = p->p5g;
     int res = p5glove_sample(glove, -1);
     while (res < 0 && errno == EAGAIN) res = p5glove_sample(glove, -1);
-    if (res < 0)
+    if (UNLIKELY(res < 0))
       return csound->PerfError(csound, "P5Glove failure");
     return OK;
 }
@@ -109,7 +109,7 @@ int p5g_data_init(CSOUND *csound, P5GLOVE *p)
 {
     P5Glove *p5g;
     p5g = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
-    if (p5g==NULL) 
+    if (UNLIKELY(p5g==NULL))
       return csound->InitError(csound, Str("No p5glove open"));
     p->p5g = *p5g;
 }
@@ -122,7 +122,8 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
       printf("debug: \n");
       *p->res = FL(0.0);
       return OK;
-    }    else if (kontrol<=P5GLOVE_BUTTON_C) {
+    }
+    else if (kontrol<=P5GLOVE_BUTTON_C) {
       uint32_t buttons;
       p5glove_get_buttons(glove,&buttons);
       switch (kontrol) {
@@ -175,7 +176,7 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
       case P5G_ANGLES:
         *p->res = (MYFLT)angle;
         return OK;
-      default: 
+      default:
         break;
       }
     }

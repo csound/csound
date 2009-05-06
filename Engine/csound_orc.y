@@ -459,6 +459,7 @@ goto  : T_GOTO
             { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)yylval); }
           ;
 
+/* Allow all words as a label */
 label : T_IDENT     { $$ = (ORCTOKEN *)$1; }
       | T_OPCODE    { $$ = (ORCTOKEN *)$1; }
       | T_OPCODE0   { $$ = (ORCTOKEN *)$1; }
