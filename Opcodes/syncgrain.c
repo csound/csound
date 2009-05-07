@@ -102,7 +102,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     for (vecpos = 0; vecpos < vecsize; vecpos++) {
       sig = FL(0.0);
       /* if a grain has finished, clean up */
-      if (UNLIKLY((!streamon[firststream]) && (numstreams) )) {
+      if (UNLIKELY((!streamon[firststream]) && (numstreams) )) {
         numstreams--; /* decrease the no of streams */
         firststream=(firststream+1)%olaps; /* first stream is the next */
       }
