@@ -913,6 +913,7 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
         flg |= RTLD_GLOBAL;
     }
     *library = (void*) dlopen(libraryPath, flg);
+    if (*library != NULL) printf("Fail to load: %s\n", dlerror());
     return (*library != NULL ? 0 : -1);
 }
 
