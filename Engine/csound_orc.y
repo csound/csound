@@ -83,6 +83,7 @@
 %token T_KRATE
 %token T_KSMPS
 %token T_NCHNLS
+%token T_0DBFS
 %token T_STRCONST
 %token T_IDENT
 
@@ -561,6 +562,7 @@ rident    : T_SRATE     { $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_KRATE, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_KSMPS, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NCHNLS, (ORCTOKEN *)yylval); }
+          | T_0DBFS     { $$ = make_leaf(csound, T_0DBFS, (ORCTOKEN *)yylval); }
           ;
 
 ident     : T_IDENT_I   { $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)yylval); }
@@ -588,6 +590,7 @@ constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_0DBFS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           ;
 
 opcode0   : T_OPCODE0
