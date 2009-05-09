@@ -160,6 +160,10 @@ UNDEF           "#undef"
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
 
+"0dbfs"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_0DBFS;
+                  csound->Message(csound,"%d\n", (*lvalp)->type);
+                 return T_0DBFS; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
