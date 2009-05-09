@@ -29,7 +29,6 @@
 typedef struct {
     OPDS      h;
  /* ------------------------------------- */
-    P5Glove   p5g;
 } P5GLOVEINIT;
 
 typedef struct {
@@ -38,7 +37,6 @@ typedef struct {
     MYFLT     *kControl;
     MYFLT     *num;
  /* ------------------------------------- */
-    P5Glove   p5g;
 } P5GLOVE;
 
 typedef struct {
@@ -47,7 +45,6 @@ typedef struct {
     MYFLT     *iMin;
     MYFLT     *iMax;
     MYFLT     *num;
-    P5Glove   p5g;
 } P5GRANGE;
 
 #define P5G_BUTTONS 0
@@ -67,17 +64,16 @@ typedef struct {
 #define P5G_DELTA_ZR    21
 #define P5G_ANGLES      22
 
+//P5Glove myGlove;
+
 int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 {
-    int n, i;
-    P5Glove    *glove;
-
-    glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
+    P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     if (glove == NULL) {
       csound->CreateGlobalVariable(csound, "p5glove", sizeof(P5Glove));
       glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     }
-    p->p5g = *glove = p5glove_open(0);
+    *glove = p5glove_open(0);
     if (UNLIKELY(*glove==NULL)) {
       return csound->InitError(csound, Str("unable to open p5glove\n"));
     }
@@ -86,9 +82,12 @@ int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 
 int p5glove_poll(CSOUND *csound, P5GLOVE *p)
 {
-    P5Glove glove = p->p5g;
-    int res = p5glove_sample(glove, -1);
-    while (res < 0 && errno == EAGAIN) res = p5glove_sample(glove, -1);
+    P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
+    int res;
+    if (glove == NULL)
+      return csound->PerfError(csound, Str("No glove open"));
+    res = p5glove_sample(*glove, -1);
+    while (res < 0 && errno == EAGAIN) res = p5glove_sample(*glove, -1);
     if (UNLIKELY(res < 0))
       return csound->PerfError(csound, "P5Glove failure");
     return OK;
@@ -96,28 +95,27 @@ int p5glove_poll(CSOUND *csound, P5GLOVE *p)
 
 int p5glove_closer(CSOUND *csound, P5GLOVE *p)
 {
-    P5Glove glove = p->p5g;
-    P5Glove *g;
-
-    g = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
-    p5glove_close(p->p5g);
-    *g = NULL;
+    P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
+    if (glove==NULL) return NOTOK;
+    p5glove_close(*glove);
+    csound->DestroyGlobalVariable(csound, "p5glove");
     return OK;
 }
 
 int p5g_data_init(CSOUND *csound, P5GLOVE *p)
 {
-    P5Glove *p5g;
-    p5g = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
-    if (UNLIKELY(p5g==NULL))
-      return csound->InitError(csound, Str("No p5glove open"));
-    p->p5g = *p5g;
+    /* P5Glove p5g; */
+    /* p5g = (P5Glove)csound->QueryGlobalVariable(csound, "p5glove"); */
+    /* if (UNLIKELY(p5g==NULL)) */
+    /*   return csound->InitError(csound, Str("No p5glove open")); */
 }
 
 int p5g_data(CSOUND *csound, P5GLOVE *p)
 {
-    P5Glove glove = p->p5g;
+    P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     int kontrol = (int)(*p->kControl+FL(0.5));
+    if (glove==NULL)
+      csound->PerfError(csound, Str("No open glove"));
     if (kontrol<0) {
       printf("debug: \n");
       *p->res = FL(0.0);
@@ -125,7 +123,7 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
     }
     else if (kontrol<=P5GLOVE_BUTTON_C) {
       uint32_t buttons;
-      p5glove_get_buttons(glove,&buttons);
+      p5glove_get_buttons(*glove,&buttons);
       switch (kontrol) {
       case P5G_BUTTONS:
         *p->res = (MYFLT)(buttons);
@@ -145,15 +143,15 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
     }
     else if (kontrol<=P5G_FINGER_THUMB) {
       double clench;
-      p5glove_get_finger(glove,kontrol-P5G_FINGER_INDEX,&clench);
+      p5glove_get_finger(*glove,kontrol-P5G_FINGER_INDEX,&clench);
       *p->res = (MYFLT)clench;
       /*      *p->res = (MYFLT)(p5->data.finger[finger]/63.0); */
       return OK;
     }
     {
       double pos[3], axis[3],angle;
-      p5glove_get_position(glove, pos);
-      p5glove_get_rotation(glove, &angle, axis);
+      p5glove_get_position(*glove, pos);
+      p5glove_get_rotation(*glove, &angle, axis);
       switch (kontrol) {
       case P5G_DELTA_X:
         *p->res = (MYFLT)pos[0];
