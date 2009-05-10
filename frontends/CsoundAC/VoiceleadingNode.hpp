@@ -241,7 +241,6 @@ namespace csound
      * Same as PTL, except the chord is specified by
      * a single number instead of P and T numbers.
      */
-     */
     virtual void CL(double time, std::string C_, bool avoidParallels = true);
     /**
      * Same as PTL, except the chord is specified by
