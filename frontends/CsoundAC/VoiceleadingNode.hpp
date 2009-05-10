@@ -37,6 +37,10 @@ using namespace boost::numeric;
 
 namespace csound
 {
+  /** 
+   * Utility class for storing voice-leading operations
+   * within a VoiceleadNode for future application.
+   */
   class VoiceleadingOperation 
   {
   public:
@@ -102,7 +106,7 @@ namespace csound
    * prime chord (P),
    * transpose (T),
    * unordered pitch-class set (C, equivalent to PT),
-   * voicing (V),
+   * voicing (V) within a specified range of pitches,
    * and voice-lead (L).
    * The values of P, T, C, and V 
    * each form an additive cyclic group
@@ -123,32 +127,141 @@ namespace csound
     public Node
   {
   public:
+    /** 
+     * Voice-leading operations stored in order 
+     * of starting time.
+     */
     std::map<double, VoiceleadingOperation> operations;
+    /**
+     * The lowest pitch of the range of voicings,
+     * as a MIDI key number (default = 36).
+     */
     double base;
+    /**
+     * The range of voicings, from the lowest to the highest
+     * pitch, as a MIDI key number (default = 60).
+     */
     double range;
+    /**
+     * If true (the default), rescale times of voice-leading operations
+     * in proportion to the duration of the notes produced
+     * by this and its child nodes.
+     */
     bool rescaleTimes;
+    /**
+     * If true (the default), voice-leadings will avoid
+     * parallel fifths.
+     */
     bool avoidParallels;
+    /** 
+     * The number of equally tempered divisions of the octave (default = 12).
+     * Note that the octave is always size 12. The size of a division of the
+     * octave is then 1 in 12-tone equal temperament, 0.5 in 24-tone
+     * equal temperament, 1.33333 in 9-tone equal temperament, and so on.
+     */
     size_t divisionsPerOctave;
     VoiceleadingNode();
     virtual ~VoiceleadingNode();
     /**
-     * Applies stored operations to specified ranges of notes produced by children of this node.
+     * Apply the current voice-leading operation to the score, within the specified range of notes.
+     * If voice-leading proper is to be performed, the prior voice-leading operation is used to determine
+     * how to lead the voices.
      */
     virtual void apply(Score &score, const VoiceleadingOperation &priorOperation, const VoiceleadingOperation &currentOperation);
+    /**
+     * Applies all of the stored voice-leading operations 
+     * to the specified range of notes in the score.
+     * if rescaleTimes is true, the times of the operations
+     * will be rescaled to fit the times in the range of notes.
+     */
     virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+    /**
+     * Beginning at the specified time and continuing 
+     * to the beginning of the next operation 
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children 
+     * to the specified prime chord and transposition.
+     * Note that PT specifies what musicians normally call a chord,
+     * e.g. "E flat major ninth." However, chords do not have to be
+     * in twelve tone equal temperament.
+     */
     virtual void PT(double time, double P_, double T);
+    /**
+     * Beginning at the specified time and continuing 
+     * to the beginning of the next operation 
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children 
+     * to the specified prime chord, transposition, and voicing.
+     * Note that PTV specifies what musicians normally call 
+     * the voicing, or inversion, of a chord.
+     */
     virtual void PTV(double time, double P_, double T, double V_);
+    /**
+     * Beginning at the specified time and continuing 
+     * to the beginning of the next operation 
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children 
+     * to the specified chord; the voicing of the chord will be
+     * the smoothest voice-leading from the pitches of the previous chord.
+     * Optionally, parallel fifths can be avoided.
+     * Note that PTL specifies what musicians normally call
+     * the voice-leading of a chord.
+     */
     virtual void PTL(double time, double P_, double T, bool avoidParallels = true);
+    /**
+     * Beginning at the specified time and continuing 
+     * to the beginning of the next operation 
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children 
+     * to the specified prime chord and transposition.
+     * Note that PT specifies what musicians normally call a chord.
+     */
     virtual void C(double time, double C_);
+    /**
+     * Same as PT, except that a single number
+     * is used in place of the P and T numbers.
+     */
     virtual void C(double time, std::string C_);
+    /**
+     * Same as PT, except the chord can be specified by
+     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     */
     virtual void CV(double time, double C_, double V_);
+    /**
+     * Same as PTV, except the chord is specified by
+     * a single number instead of the P and T numbers.
+     */
     virtual void CV(double time, std::string C_, double V_);
+    /**
+     * Same as PTV, except the chord is specified by
+     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     */
     virtual void CL(double time, double C_, bool avoidParallels = true);
+    /**
+     * Same as PTL, except the chord is specified by
+     * a single number instead of P and T numbers.
+     */
+     */
     virtual void CL(double time, std::string C_, bool avoidParallels = true);
+    /**
+     * Same as PTL, except the chord is specified by
+     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     */
     virtual void V(double time, double V_);
+    /**
+     * Beginning at the specified time and continuing 
+     * to the beginning of the next operation 
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children 
+     * to the specified voicing of the chord.
+     * Note that V specifies what musicians normally call
+     * the voicing or inversion of the chord.
+     */
     virtual void L(double time, bool avoidParallels = true);
     /**
-     * Simplifies use out of the context of a music graph.
+     * Apply all of the voice-leading operations stored within this 
+     * node to the score. Enables voice-leading operations to be used 
+     * outside the context of a music graph.
      */
     virtual void transform(Score &score, bool rescaleTime = false);
   };

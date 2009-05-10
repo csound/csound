@@ -32,6 +32,9 @@ namespace csound
 
   extern void printChord(std::string label, const std::vector<double> &chord);
 
+  /**
+   * Utility class for storing voice-leading operations.
+   */
   VoiceleadingOperation::VoiceleadingOperation() :
     beginTime(0.0),
     rescaledBeginTime(0.0),
