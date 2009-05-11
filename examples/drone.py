@@ -85,13 +85,13 @@ soundfilePlayer = r'D:/utah/opt/Audacity/audacity.exe'
 print 'Soundfile player:   %s' % soundfilePlayer
 author = 'Michael_Gogins'
 print 'Author:             %s' % author
-archiveDirectory = 'd:/utah/home/mkg/projects/music/__latest'
-archivedFilename = os.path.normpath(os.path.join(archiveDirectory, title))
-latestFilename = os.path.normpath(os.path.join(archiveDirectory, 'latest.py'))
-shutil.copyfile(scriptFilename, archivedFilename)
-print 'Archived as:        %s' % archivedFilename
-shutil.copyfile(scriptFilename, latestFilename)
-print 'Also as:            %s' % latestFilename
+#archiveDirectory = 'd:/utah/home/mkg/projects/music/__latest'
+#archivedFilename = os.path.normpath(os.path.join(archiveDirectory, title))
+#latestFilename = os.path.normpath(os.path.join(archiveDirectory, 'latest.py'))
+#shutil.copyfile(scriptFilename, archivedFilename)
+#print 'Archived as:        %s' % archivedFilename
+#shutil.copyfile(scriptFilename, latestFilename)
+#print 'Also as:            %s' % latestFilename
 print
 
 
