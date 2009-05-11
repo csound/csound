@@ -1253,7 +1253,9 @@ else:
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
 if getPlatform() == 'linux' or getPlatform() == 'sunos':
- libCsoundLibs.append(csoundLibrary)
+ # We need the library before sndfile in case we are building a static
+ # libcsound and passing -Wl,-as-needed
+ libCsoundLibs.insert(0,csoundLibrary)
 elif getPlatform() == 'win32' or (getPlatform() == 'darwin' and commonEnvironment['dynamicCsoundLibrary']=='0'):
  libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
