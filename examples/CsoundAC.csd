@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -M0 -d -m99 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
+csound -f -h -M0 -d -m99 --midi-key=4 --midi-velocity=5 -odac4 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,14 +79,14 @@ csound -f -h -M0 -d -m99 --midi-key=4 --midi-velocity=5 -odac6 temp.orc temp.sco
 sr                      =                       44100
 ksmps			        =                       16
 nchnls                  =                       2
-0dbfs                   =                       1.0
+0dbfs                   =                       2.0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign	                0, 55
-                        massign                 1, 55
+                        massign	                0, 7
+                        massign                 1, 7
                         
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; V S T   P L U G I N S
@@ -102,7 +102,7 @@ giAzr3                  vstinit                 "D:\\utah\\opt\\Steinberg\\Cubas
                         
 #ifdef ENABLE_PIANOTEQ
             
-giPianoteq              vstinit                 "D:\\utah\\opt\\pianoteq-2.3\\Pianoteq23.dll", 0
+giPianoteq              vstinit                 "D:\\utah\\opt\\pianoteq-3.0\\Pianoteq30.dll", 0
                         vstinfo                 giPianoteq
 
 #end
@@ -116,16 +116,16 @@ giPianoteq              vstinit                 "D:\\utah\\opt\\pianoteq-2.3\\Pi
 #ifdef ENABLE_SOUNDFONTS
 
 giFluidsynth		    fluidEngine		        0, 0
-giFluidSteinway		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
+giFluidSteinway		    fluidLoad		        "Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
                         fluidProgramSelect	    giFluidsynth, 0, giFluidSteinway, 0, 1
 
-giFluidGM		        fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
+giFluidGM		        fluidLoad		        "63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
                         fluidProgramSelect	    giFluidsynth, 1, giFluidGM, 0, 59
 
-giFluidMarimba		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Marimba Moonman (414KB).SF2", giFluidsynth, 1
+giFluidMarimba		    fluidLoad		        "Marimba Moonman (414KB).SF2", giFluidsynth, 1
                         fluidProgramSelect	    giFluidsynth, 2, giFluidMarimba, 0, 0
 
-giFluidOrgan		    fluidLoad		        "\\utah\\home\\mkg\\projects\\music\\__library\\soundfonts\\Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
+giFluidOrgan		    fluidLoad		        "Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
                         fluidProgramSelect	    giFluidsynth, 3, giFluidOrgan, 0, 40
                         
 #end
@@ -479,7 +479,7 @@ p3, aleft, aright	    Declick			        0.007, p3, 0.05, aleft, aright
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
 iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -2.43
 aenvelope               transeg                 1.0, 10.0, -5.0, 0.0
-apluck                  pluck                   iamplitude, kHz, i(kHz), 0, 1
+apluck                  pluck                   iamplitude, kHz, iHz, 0, 1
 aharp                   poscil                  aenvelope, kHz, giharpsichord
 aharp2                  balance                 apluck, aharp
 asignal			        =			            (apluck + aharp2) * iamplitude
@@ -502,8 +502,8 @@ ifn2                    =                       giexponentialrise
 ifn3                    =                       githirteen
 ifn4                    =                       gisine
 ivibefn                 =                       gicosine
-iattack                 =                       0.002
-idecay                  =                       2.0
+iattack                 =                       0.003
+idecay                  =                       3.0
 isustain                =                       p3
 irelease                =                       0.05
 adecay                  transeg                 0.0, iattack, -4, 1.0, idecay, -4, 0.1, isustain, -4, 0.1, irelease, -4, 0.0
@@ -1014,7 +1014,7 @@ ihertzright             =                       cpsoct(ioctave - idetune)
 igenleft                =                       gisine
 igenright               =                       gicosine
 kvibrato                poscil                  1.0 / 120.0, 7.0, 1
-kenvelope            	transeg                 0.0, iattack, -7.0, 1.0, idecay, -7.0, 0.125, isustain, 0.0, 0.125, irelease, -7.0, 0.0
+kenvelope            	transeg                 0.0, iattack, -7.0, 1.0, idecay, -7.0, 0.25, isustain, 0.0, 0.125, irelease, -7.0, 0.0
 ag                      pluck                   kenvelope, cpsoct(ioctave + kvibrato), iHz, igenleft, 1
 agleft                  pluck                   kenvelope, ihertzleft,  iHz, igenleft, 1
 agright                 pluck                   kenvelope, ihertzright, iHz, igenright, 1
@@ -2407,6 +2407,5 @@ i 220       0       -1   0.1     0.1
 ; Will be turned off by 'e' statement in score.
 
 f 0 300
-;i 17 1 5 60 127
 </CsScore>
 </CsoundSynthesizer>
