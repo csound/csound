@@ -263,7 +263,7 @@ int main(int argc, char **argv)
     /* create CSD file */
     fprintf(outfile, "<CsoundSynthesizer>\n");
     fprintf(outfile, "; this CSD file was generated with makecsd v1.1\n");
-    fprintf(outfile, "; (written by Istvan Varga, Mar 2003)\n");
+    /* fprintf(outfile, "; (written by Istvan Varga, Mar 2003)\n"); */
     fprintf(outfile, "<CsOptions>\n");
     fprintf(outfile, "; set command line options here\n");
     /* CSD options */

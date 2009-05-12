@@ -44,8 +44,10 @@ void do_comment(void);
 void do_include(CSOUND *, int);
 void do_macro(CSOUND *, char *);
 void do_umacro(CSOUND *, char *);
-extern int udoflag;
-extern int namedInstrFlag;
+#define udoflag csound->parserUdoflag
+#define namedInstrFlag csound->parserNamedInstrFlag
+//extern int udoflag;
+//extern int namedInstrFlag;
 int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
 YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
@@ -83,6 +85,7 @@ UNDEF           "#undef"
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
+"\\\n"          { yyline++; }
 "\n"            { yyline++; return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }
@@ -100,6 +103,8 @@ UNDEF           "#undef"
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
 "||"            { return S_OR; }
+"<<"            { return S_BITSHL; }
+">>"            { return S_BITSHR; }
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
@@ -108,6 +113,10 @@ UNDEF           "#undef"
                   return S_ASSIGN; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
+"|"             { return S_BITOR; }
+"&"             { return S_BITAND; }
+"#"             { return S_NEQV; }
+"¬"             { return S_BITNOT; }
 
 "if"            { return T_IF; }
 "then"          { return T_THEN; }
@@ -151,8 +160,16 @@ UNDEF           "#undef"
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
 
-{IDENT}         { *lvalp = lookup_token(csound, yytext);
+"0dbfs"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_0DBFS;
                   csound->Message(csound,"%d\n", (*lvalp)->type);
+                 return T_0DBFS; }
+{IDENT}         { *lvalp = lookup_token(csound, yytext);
+                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
+                  return (*lvalp)->type; }
+"0dbfs"         { *lvalp = lookup_token(csound, yytext);
+                  printf("Found 0dbfs with type %d\n", (*lvalp)->type);
+                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
                   MACRO     *mm = macros, *mm_save = NULL;
@@ -161,13 +178,13 @@ UNDEF           "#undef"
                       break;
                     mm = mm->next;
                   }
-                  if (mm == NULL) {
+                  if (UNLIKELY(mm == NULL)) {
                     csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                     csound->LongJmp(csound, 1);
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
@@ -182,13 +199,13 @@ UNDEF           "#undef"
                       break;
                     mm = mm->next;
                   }
-                  if (mm == NULL) {
+                  if (UNLIKELY(mm == NULL)) {
                     csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                     csound->LongJmp(csound, 1);
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
@@ -260,10 +277,10 @@ void comment(void)              /* Skip until nextline */
 void do_comment(void)              /* Skip until * and / chars */
 {
     char c;
-    for(;;) {
+    for (;;) {
       while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
       if ((c=input())=='/') return;
-      if (c=='\n') yyline++;
+      if (UNLIKELY(c=='\n')) yyline++;
     }
 }
 
@@ -278,14 +295,14 @@ void do_include(CSOUND *csound, int term)
     }
     buffer[p] = '\0';
     while ((c=input())!='\n');
-    if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+    if (UNLIKELY( include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
       csound->Message(csound, Str("Includes nested too deeply"));
       exit(1);
     }
 
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     yyin = fopen( buffer, "r" );
-    if ( ! yyin ) {
+    if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
@@ -307,14 +324,14 @@ void do_macro(CSOUND *csound, char *name0)
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input()) != '#') {
       mm->body[i++] = c;
-      if (i >= size)
+      if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input();
         if (i >= size)
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (c == '\n')
+      if (UNLIKELY(c == '\n'))
         yyline++;
     }
     mm->body[i] = '\0';
@@ -374,7 +391,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, T_LABEL);
     int len = strlen(s);
     ans->lexeme = (char*)mcalloc(csound, len);
-    strncpy(ans->lexeme, s, len - 1);
+    strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
     return ans;
 }
 
@@ -382,9 +399,12 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, T_STRCONST);
     int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len-1);
-    strncpy(ans->lexeme, s+1, len-2);
-    ans->lexeme[len-2] = '\0';
+/* Keep the quote marks */
+    /* ans->lexeme = (char*)mcalloc(csound, len-1); */
+    /* strncpy(ans->lexeme, s+1, len-2); */
+    /* ans->lexeme[len-2] = '\0';  */
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    strcpy(ans->lexeme, s);
     return ans;
 }
 
