@@ -312,7 +312,7 @@ OENTRY opcodlst_1[] = {
 { "envlpx", S(ENVLPX),  7,      "s","xiiiiiio", evxset, knvlpx, envlpx  },
 { "envlpxr", S(ENVLPR), 7,      "s","xiiiiioo", evrset, knvlpxr,envlpxr },
 { "phasor", S(PHSOR),   7,      "s",    "xo",   phsset, kphsor, phsor   },
-{ "ephasor", S(EPHSOR),   5,      "s",    "xko",  ephsset, NULL, ephsor   },
+{ "ephasor", S(EPHSOR),   5,    "ss",    "xko",  ephsset, NULL, ephsor   },
 { "table",  0xffff                                                      },
 { "tablei", 0xffff                                                      },
 { "table3", 0xffff                                                      },
@@ -360,6 +360,7 @@ OENTRY opcodlst_1[] = {
 { "resonx", S(RESONX),  5,      "a",    "akkooo", rsnsetx, NULL, resonx },
 { "areson", S(RESON),   5,      "a",    "akkoo",rsnset, NULL,   areson  },
 { "lpread", S(LPREAD),  3,      "kkkk", "kToo", lprdset,lpread          },
+{ "lpform", S(LPFORM),  3,      "kk", "k",     lpformantset,lpformant   },
 { "lpreson",S(LPRESON), 5,      "a",    "a",    lprsnset,NULL,  lpreson },
 { "lpfreson",S(LPFRESON),5,     "a",    "ak",   lpfrsnset,NULL, lpfreson},
 { "lpslot"  ,  S(LPSLOT),  1,   "",     "i",    lpslotset, NULL, NULL   },
@@ -861,6 +862,8 @@ OENTRY opcodlst_1[] = {
    (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
 { "remove",      S(DELETEIN),         1,      "",             "T",
    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
+{ "globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globallock,   globallock,   NULL},
+{ "globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globalunlock, globalunlock, NULL},
 /* terminate list */
 {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };

@@ -55,6 +55,8 @@ def getPlatform():
         return 'win32'
     elif sys.platform[:6] == 'darwin':
         return 'darwin'
+    elif sys.platform[:5] == 'sunos':
+        return 'sunos'    
     else:
         return 'unsupported'
 
@@ -221,8 +223,14 @@ commandOptions.Add('withICL',
 commandOptions.Add('withMSVC',
     'On Windows, set to 1 to build with Microsoft Visual C++, or set to 0 to build with MinGW',
     '0')
+commandOptions.Add('withSunStudio',
+    'On Solaris, set to 1 to build with Sun Studio, or set to 0 to build with gcc',
+    '1')    
 commandOptions.Add('buildNewParser',
     'Enable building new parser (requires Flex/Bison)',
+    '0')
+commandOptions.Add('NewParserDebug',
+    'Enable tracing of new parser',
     '0')
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
@@ -244,12 +252,21 @@ commandOptions.Add('buildOLPC',
 commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
     '8.4')
+commandOptions.Add('includeMP3',
+     'Set to 1 if using mpadec', 
+     '0')
+commandOptions.Add('includeWii',
+     'Set to 1 if using libwiimote', 
+     '0')
+commandOptions.Add('includeP5Glove',
+     'Set to 1 if using P5 Glove', 
+     '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
 
-commonEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
+commonEnvironment = Environment(ENV = os.environ)
 commandOptions.Update(commonEnvironment)
 
 def compilerIntel():
@@ -263,9 +280,15 @@ def compilerMicrosoft():
         return True
     else:
         return False
+        
+def compilerSun():
+    if getPlatform() == 'sunos' and commonEnvironment['withSunStudio'] == '1':
+        return True
+    else:
+        return False        
 
 def compilerGNU():
-    if not compilerIntel() and not compilerMicrosoft():
+    if not compilerIntel() and not compilerMicrosoft() and not compilerSun():
         return True
     else:
         return False
@@ -274,21 +297,13 @@ optionsFilename = 'custom.py'
 
 if compilerIntel():
 	print 'Importing complete environment for the Intel C++ Compiler (ICL)...'
-	commonEnvironment = Environment(ENV = os.environ)
-	commandOptions.Update(commonEnvironment)
 	Tool('icl')(commonEnvironment)
 	optionsFilename = 'custom-msvc.py'
 elif compilerMicrosoft():
-	# To enable the Microsoft tools, 
-	# the WHOLE environment must be imported,
-	# not just the PATH; so we replace the 
-	# enviroment with a more complete one.
 	print 'Importing complete environment for Microsoft Visual C++ (MSVC)...'
-	commonEnvironment = Environment(ENV = os.environ)
-	commandOptions.Update(commonEnvironment)
 	optionsFilename = 'custom-msvc.py'
 elif getPlatform() == 'win32':
-        # Similarly, on Windows, to exclude MSVC tools,
+	# On Windows, to exclude MSVC tools,
 	# we have to force MinGW tools and then re-create
 	# the environment from scratch.
 	commonEnvironment = Environment(ENV = os.environ, tools = ['mingw', 'swig', 'javac', 'jar'])
@@ -376,8 +391,13 @@ else:
     buildOLPC = False
 
 # Define options for different platforms.
-if getPlatform() != 'win32':
+if getPlatform() != 'win32' and getPlatform() != 'sunos':
     print "Build platform is '" + getPlatform() + "'."
+elif getPlatform() == 'sunos':
+    if compilerSun():
+        print "Build platform is Sun Studio."
+    elif compilerGNU():
+        print "Build platform is '" + getPlatform() + "'."        
 else:
     if compilerMicrosoft():
         print "Build platform is Microsoft Visual C++ (MSVC)."
@@ -398,6 +418,8 @@ if commonEnvironment['useGettext'] != '0':
         commonEnvironment.Append(LIBS=['intl'])
     if getPlatform() == "darwin":
         commonEnvironment.Append(LIBS=['intl'])
+    if getPlatform() == "sunos":
+        commonEnvironment.Append(LIBS=['intl'])    
 else:
     print "Using Istvan localisation"
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
@@ -432,8 +454,9 @@ if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(SHLINKFLAGS = ['-pg'])
 elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
    if not buildOLPC:
-    commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
-    commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
+    if not compilerSun():
+        commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
+        commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
 if compilerGNU():
     commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
@@ -444,12 +467,19 @@ if commonEnvironment['buildRelease'] == '0':
     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 
 if commonEnvironment['Lib64'] == '1':
-    commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
+    if getPlatform() == 'sunos':
+        commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/lib/64', '/usr/lib/64'])
+    else:    
+        commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
 else:
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
 
 if commonEnvironment['Word64'] == '1':
-    commonEnvironment.Append(CCFLAGS = ['-fPIC'])
+    if compilerSun():
+        commonEnvironment.Append(CCFLAGS = ['-xcode=pic32'])
+    else:    
+        commonEnvironment.Append(CCFLAGS = ['-fPIC'])
+
 
 if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
@@ -461,13 +491,21 @@ else:
 
 if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
+elif getPlatform() == 'sunos':
+    commonEnvironment.Append(CCFLAGS = "-D_SOLARIS")
+    commonEnvironment.Append(CPPPATH = '/usr/local/include')
+    commonEnvironment.Append(CPPPATH = '/usr/include')
+    commonEnvironment.Append(CPPPATH = '/usr/jdk/instances/jdk1.5.0/include')
+    if compilerGNU():
+        commonEnvironment.Append(CCFLAGS = "-DPIPES")
+        commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])  
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
@@ -532,6 +570,17 @@ if getPlatform() == 'linux':
         tmp = '/usr/lib/python%s/config' % commonEnvironment['pythonVersion']
         pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
+elif getPlatform() == 'sunos':
+    path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
+    path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
+    pythonIncludePath = [path1, path2]
+    pythonLinkFlags = []
+    if commonEnvironment['Lib64'] == '1':
+        pythonLibraryPath = ['/usr/local/lib/64', '/usr/lib/64']
+    else:
+        pythonLibraryPath = ['/usr/local/lib', '/usr/lib']
+    pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
+    tclIncludePath = []
 elif getPlatform() == 'darwin':
     # find Mac OS X major version
     fout = os.popen("uname -r")
@@ -647,15 +696,40 @@ if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
 if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
 	print "The pthread library is required to build Csound 5."
 	Exit(-1)
+
+# Support for GEN49 (load MP3 file)
+if commonEnvironment['includeMP3'] == '1' : ### and configure.CheckHeader("mp3dec.h", language = "C") :
+    mpafound = 1
+    commonEnvironment.Append(CPPFLAGS = ['-DINC_MP3'])
+    print 'CONFIGURATION DECISION: Building with MP3 support'
+else:
+    mpafound = 0
+    print 'CONFIGURATION DECISION: No MP3 support'
+
+if commonEnvironment['includeWii'] == '1' and configure.CheckLibWithHeader('wiiuse', "wiiuse.h", language = "C") :
+    wiifound = 1
+    print 'CONFIGURATION DECISION: Building with Wiimote support'
+else:
+    wiifound = 0
+    print 'CONFIGURATION DECISION: No Wiimote support'
+
+if commonEnvironment['includeP5Glove'] == '1' :
+    p5gfound = 1
+    print 'CONFIGURATION DECISION: Building with P5 Glove support'
+else:
+    p5gfound = 0
+    print 'CONFIGURATION DECISION: No P5 Glove support'
+
+
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_PTHREAD_BARRIER_INIT')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
 if compilerMicrosoft():
    syncLockTestAndSetFound = False
 else:
    syncLockTestAndSetFound = configure.CheckLibWithHeader('m', 'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);')
 if syncLockTestAndSetFound:
-   commonEnvironment.Append(CPPFLAGS = '-DHAVE_SYNC_LOCK_TEST_AND_SET')
+   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
    print  'found sync lock'
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
 if not buildOLPC:
@@ -671,6 +745,10 @@ boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();')
+if musicXmlFound:
+   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
+
 #if not buildOLPC:
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 #if not buildOLPC:
@@ -737,7 +815,8 @@ headerMacroCheck = [
     ['stdint.h',    '-DHAVE_STDINT_H'   ],
     ['sys/time.h',  '-DHAVE_SYS_TIME_H' ],
     ['sys/types.h', '-DHAVE_SYS_TYPES_H'],
-    ['termios.h',   '-DHAVE_TERMIOS_H'  ]]
+    ['termios.h',   '-DHAVE_TERMIOS_H'  ],
+    ['values.h',    '-DHAVE_VALUES_H'   ]]
 
 for h in headerMacroCheck:
     if configure.CheckHeader(h[0], language = "C"):
@@ -745,14 +824,14 @@ for h in headerMacroCheck:
 
 if getPlatform() == 'win32':
     if configure.CheckHeader("winsock.h", language = "C"):
-        commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+        commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
 elif configure.CheckHeader("sys/socket.h", language = "C"):
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SOCKETS'])
 
 if getPlatform() == 'darwin':
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_DIRENT_H'])
 elif configure.CheckHeader("dirent.h", language = "C"):
-    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_DIRENT_H'])
 
 if configure.CheckSndFile1016():
     commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1016'])
@@ -774,7 +853,10 @@ elif getPlatform() == 'win32':
     csoundLibraryName += '32'
 # flags for linking with the Csound library
 libCsoundLinkFlags = []
-libCsoundLibs = ['sndfile']
+if getPlatform() == 'sunos':
+    libCsoundLibs = ['sndfile', 'socket', 'rt', 'nsl']
+else:
+    libCsoundLibs = ['sndfile']
 
 buildOSXFramework = 0
 if getPlatform() == 'darwin':
@@ -796,13 +878,18 @@ if commonEnvironment['buildNewParser'] != '0':
         Tool('lex')(csoundLibraryEnvironment)
         Tool('yacc')(csoundLibraryEnvironment)
     print 'CONFIGURATION DECISION: Building with new parser enabled'
-    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', '--report=itemset', '-p','csound_orc'])
-    csoundLibraryEnvironment.Append(LEXFLAGS = ['-d', '-Pcsound_orc'])
+    reportflag='--report=itemset'
+    csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
+    csoundLibraryEnvironment.Append(LEXFLAGS = ['-Pcsound_orc'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',
                                source = 'Engine/csound_orc.l')
+    if commonEnvironment['NewParserDebug'] != '0':
+        print 'CONFIGURATION DECISION: Building with new parser debugging'
+        csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARSER_DEBUG=1'])
+    else: print 'CONFIGURATION DECISION: Not building with new parser debugging'
 else:
     print 'CONFIGURATION DECISION: Not building with new parser'
 
@@ -880,13 +967,17 @@ pthread
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if compilerGNU():
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
-elif getPlatform() == 'linux':
+elif getPlatform() == 'linux' or getPlatform() == 'sunos':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
+    if mpafound :
+        csoundDynamicLibraryEnvironment.Append(LIBS = ['mpadec'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Clone()
 
 if buildOSXFramework:
     csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Clone()
     # create directory structure for the framework
+    if commonEnvironment['buildNewParser'] != '0':
+       csoundFrameworkEnvironment.Append(LINKFLAGS=["-Wl,-single_module"])
     tmp = [OSXFrameworkBaseDir]
     tmp += ['%s/Versions' % OSXFrameworkBaseDir]
     tmp += [OSXFrameworkCurrentVersion]
@@ -1096,6 +1187,9 @@ Engine/csound_orc_semantics.c
 Engine/csound_orc_expressions.c
 Engine/csound_orc_optimize.c
 Engine/csound_orc_compile.c
+Engine/cs_par_base.c
+Engine/cs_par_orc_semantic_analysis.c
+Engine/cs_par_dispatch.c
 Engine/new_orc_parser.c
 Engine/symbtab.c
 ''')
@@ -1106,13 +1200,16 @@ if commonEnvironment['buildNewParser'] != '0':
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
 if commonEnvironment['dynamicCsoundLibrary'] == '1':
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
-    if getPlatform() == 'linux':
+    if getPlatform() == 'linux' or getPlatform() == 'sunos':
         libName = 'lib' + csoundLibraryName + '.so'
         libName2 = libName + '.' + csoundLibraryVersion
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', libName])
         os.symlink(libName2, libName)
         tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
-        tmp += ['-Wl,-soname=%s' % libName2]
+        if compilerSun():
+            tmp += ['-soname=%s' % libName2]
+        else:
+            tmp += ['-Wl,-soname=%s' % libName2]        
         cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
         if configure.CheckGcc4():
             cflags   += ['-fvisibility=hidden']
@@ -1158,8 +1255,10 @@ else:
     csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
-if getPlatform() == 'linux':
- libCsoundLibs.append(csoundLibrary)
+if getPlatform() == 'linux' or getPlatform() == 'sunos':
+ # We need the library before sndfile in case we are building a static
+ # libcsound and passing -Wl,-as-needed
+ libCsoundLibs.insert(0,csoundLibrary)
 elif getPlatform() == 'win32' or (getPlatform() == 'darwin' and commonEnvironment['dynamicCsoundLibrary']=='0'):
  libCsoundLibs.append(csoundLibraryName)
 libs.append(csoundLibrary)
@@ -1215,7 +1314,7 @@ def makePythonModule(env, targetName, srcs):
         env.Prepend(LINKFLAGS = ['-bundle'])
         pyModule_ = env.Program('_%s.so' % targetName, srcs)
     else:
-        if getPlatform() == 'linux':
+        if getPlatform() == 'linux' or getPlatform() == 'sunos':
             pyModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="_", SHLIBSUFFIX = '.so')
         else:
             pyModule_ = env.SharedLibrary('_%s' % targetName, srcs, SHLIBSUFFIX = '.pyd')
@@ -1233,6 +1332,7 @@ else:
     print "Python Version: " + commonEnvironment['pythonVersion']
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = []
+    headers += ['csPerfThread.hpp']
     for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
         csoundInterfacesSources.append(csoundInterfacesEnvironment.SharedObject('interfaces/%s.cpp' % i))
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'win32':
@@ -1250,7 +1350,7 @@ else:
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
     fixCFlagsForSwig(csoundWrapperEnvironment)
-    csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
+    csoundWrapperEnvironment.Append(CPPFLAGS = ['-D__BUILDING_CSOUND_INTERFACES'])
     for option in csoundWrapperEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
@@ -1338,9 +1438,10 @@ else:
             ilibVersion = csoundLibraryVersion
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
-            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s''' % ('5.1', ilibName)))
+            csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
             csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('_csnd', csoundInterfacesSources)
-            try: os.symlink('libcsnd.dylib', 'lib_csnd.dylib')
+            csoundInterfacesEnvironment.Command('interfaces install', csoundInterfaces, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
+            try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: print "link exists..."
         else:
             csoundInterfaces = csoundInterfacesEnvironment.Library('_csnd', csoundInterfacesSources)
@@ -1364,10 +1465,14 @@ else:
         if getPlatform() != 'darwin':
             csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
             csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
+                        #if  commonEnvironment['pythonVersion']  == '2.3':  
+        
         csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
         csndPythonEnvironment = csoundInterfacesEnvironment.Clone()
         fixCFlagsForSwig(csndPythonEnvironment)
+        pyVersToken = '-DPYTHON_24_or_newer'
         if getPlatform() == 'darwin':
+            if  float(commonEnvironment['pythonVersion'] ) < 2.4: pyVersToken = '-DPYTHON_23_or_older'
             if commonEnvironment['dynamicCsoundLibrary'] == '1':
                 csndPythonEnvironment.Append(LIBS = ['_csnd'])                 
             else:
@@ -1378,7 +1483,7 @@ else:
             csndPythonEnvironment.Append(LIBS = ['csnd'])
         csoundPythonInterface = csndPythonEnvironment.SharedObject(
             'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.', pyVersToken])
         csndPythonEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundPythonInterface, pythonImportLibrary)
@@ -1434,7 +1539,7 @@ else:
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c      
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
     '''))
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
@@ -1457,6 +1562,14 @@ if not buildOLPC:
  makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
  makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+if mpafound==1:
+  makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
+if wiifound==1:
+  WiiEnvironment = pluginEnvironment.Clone()
+  makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
+if p5gfound==1:
+  P5GEnvironment = pluginEnvironment.Clone()
+  makePlugin(P5GEnvironment, 'p5g', ['Opcodes/p5glove.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
@@ -1510,13 +1623,15 @@ if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeade
 	makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
- 
-makePlugin(pluginEnvironment, 'gabnew', Split('''
+if not buildOLPC:
+ makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-'''))
-makePlugin(pluginEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
+    Opcodes/gab/newgabopc.c'''))
+hrtfnewEnvironment = pluginEnvironment.Clone()
+if sys.byteorder == 'big':
+    hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
+makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
 if jackFound:
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':
@@ -1557,9 +1672,7 @@ if ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
  except:
     print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
-    vstEnvironment.Append(LIBS = Split('''
-        fltk fltk_images
-    ''')) # fltk_png z fltk_jpeg are not on OSX at the mo
+    vstEnvironment.Append(LIBS = ['fltk', 'fltk_images']) # fltk_png z fltk_jpeg are not on OSX at the mo
 if getPlatform() == 'win32':
     if compilerGNU():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
@@ -1577,13 +1690,16 @@ else:
         vstEnvironment.Append(LIBS = ['dl'])
         guiProgramEnvironment.Append(LIBS = ['dl'])
     csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
+    if mpafound :
+        csoundProgramEnvironment.Append(LIBS = ['mpadec'])
+    if wiifound :
+        WiiEnvironment.Append(LIBS = ['wiiuse', 'bluetooth'])
+    if p5gfound :
+        P5GEnvironment.Append(LIBS = ['p5glove'])
     vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
-        csoundProgramEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
-        '''))
-
+        csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMidi'''))
 if buildOLPC or (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
@@ -1592,10 +1708,13 @@ else:
         widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-    if getPlatform() == 'linux':
+    if getPlatform() == 'linux' or (getPlatform() == 'sunos' and compilerGNU()):
         ## dont do this  widgetsEnvironment.Append(CCFLAGS = ['-DCS_VSTHOST'])
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif compilerSun():
+        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        widgetsEnvironment.Append(LIBS = ['pthread', 'm'])         
     elif getPlatform() == 'win32':
         if compilerGNU():
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -1648,7 +1767,7 @@ else:
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
 
-if pulseaudioFound and getPlatform() == 'linux':
+if pulseaudioFound and (getPlatform() == 'linux' or getPlatform() == 'sunos'):
    print "CONFIGURATION DECISION: Building PulseAudio plugin"
    pulseaudioEnv = pluginEnvironment.Clone()
    pulseaudioEnv.Append(LIBS = ['pulse-simple'])
@@ -1704,7 +1823,6 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
-
 
 # OSC opcodes
 
@@ -1917,7 +2035,7 @@ else:
         stkEnvironment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
         stkEnvironment.Append(LIBS = csoundWindowsLibraries)
-    elif getPlatform() == 'linux' or getPlatform() == 'darwin':
+    elif getPlatform() == 'linux' or getPlatform() == 'darwin' or getPlatform() == 'sunos':
         stkEnvironment.Append(LIBS = ['pthread'])
     # This is the one that actually defines the opcodes.
     # They are straight wrappers, as simple as possible.
@@ -1941,7 +2059,7 @@ else:
     pyEnvironment.Append(LIBS = pythonLibs)
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-    elif getPlatform() == 'darwin':
+    elif getPlatform() == 'darwin' or getPlatform() == 'sunos':
         pyEnvironment.Append(LIBS = ['dl', 'm'])
     elif getPlatform() == 'win32':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -2067,9 +2185,12 @@ else:
     if jackFound:
         csound5GUIEnvironment.Append(LIBS = ['jack'])
         csound5GUIEnvironment.Prepend(CPPFLAGS = ['-DHAVE_JACK'])
-    if getPlatform() == 'linux':
+    if getPlatform() == 'linux' or (getPlatform() == 'sunos' and compilerGNU()):
         csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif compilerSun():
+        csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csound5GUIEnvironment.Append(LIBS = ['pthread', 'm'])    
     elif getPlatform() == 'win32':
         if compilerGNU():
             csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -2170,6 +2291,8 @@ if not ((commonEnvironment['buildCsoundAC'] == '1') and fltkFound and boostFound
 else:
     print 'CONFIGURATION DECISION: Building CsoundAC extension module for Csound with algorithmic composition.'
     acEnvironment = vstEnvironment.Clone()
+    if getPlatform() == 'linux':
+        acEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
     headers += glob.glob('frontends/CsoundAC/*.hpp')
     acEnvironment.Prepend(CPPPATH = ['frontends/CsoundAC', 'interfaces'])
     acEnvironment.Append(CPPPATH = pythonIncludePath)
@@ -2177,6 +2300,8 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
+	if musicXmlFound:
+           acEnvironment.Prepend(LIBS = 'musicxml2')
         if getPlatform() != 'win32':
            acEnvironment.Prepend(LIBS = csndModule)
         else:  acEnvironment.Prepend(LIBS = 'csnd')
@@ -2193,7 +2318,7 @@ else:
         acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
-        os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
     elif getPlatform() == 'darwin':
         acEnvironment.Append(LIBS = ['dl', 'm'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
@@ -2270,8 +2395,15 @@ else:
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
             Depends(csoundvstPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
+    Depends(csoundAcPythonModule, csndModule)
+    Depends(csoundAcPythonModule, csoundac)
     if commonEnvironment['useDouble'] != '0' :
-        counterpoint = acEnvironment.Program(
+        if getPlatform() == 'darwin':
+          counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd'))
+        else:
+            counterpoint = acEnvironment.Program(
             'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
             LIBS = Split('CsoundAC csnd csound64'))
     else:
@@ -2395,6 +2527,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     csTclEnvironment = commonEnvironment.Clone()
     csTclEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csTclEnvironment.Append(LIBS = libCsoundLibs)
+    if mpafound :
+        csTclEnvironment.Append(LIBS = ['mpadec'])
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
             -I/Library/Frameworks/Tcl.framework/Headers
@@ -2461,6 +2595,8 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     csWinEnvironment = commonEnvironment.Clone()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
+    if mpafound :
+        csWinEnvironment.Append(LIBS = ['mpadec'])
     # not used
     # if (commonEnvironment['noFLTKThreads'] == '1'):
     #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
@@ -2604,7 +2740,6 @@ if commonEnvironment['install'] == '1':
 if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     addOSXResourceFork(commonEnvironment, 'csound', '')
-
 
 ###Code to create pkconfig files
 #env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])

@@ -887,6 +887,28 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->newParser = 1;             /* Use New Parser */
       return 1;
     }
+    else if (!(strncmp(s, "weight-info=", 12))) {
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no weight-info"));
+      csound->weight_info = s;
+      return 1;
+    }
+    else if (!(strncmp(s, "weight-dump=", 12))) {
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no weight-dump"));
+      csound->weight_dump = s;
+      return 1;
+    }
+    else if (!(strncmp(s, "weights=", 8))) {
+      s += 8;
+      if (*s=='\0') dieu(csound, Str("no weights"));
+      csound->weights = s;
+      return 1;
+    }
+    else if (!(strcmp(s, "compute-weights"))) {
+      O->calculateWeights = 1;
+      return 1;
+    }
 #endif
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);

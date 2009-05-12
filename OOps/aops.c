@@ -27,6 +27,9 @@
 #include <math.h>
 #include <time.h>
 
+extern void inline csp_locks_lock(CSOUND * csound, int global_index);
+extern void inline csp_locks_unlock(CSOUND * csound, int global_index);
+
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
@@ -1619,3 +1622,16 @@ int outvalset(CSOUND *csound, OUTVAL *p)
     return OK;
 }
 
+int globallock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
+{
+    /* csound->Message(csound, "Locking:   %i\n", (int)*p->gvar_ix); */
+    csp_locks_lock(csound, (int)*p->gvar_ix);
+    return OK;
+}
+
+int globalunlock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
+{
+    /* csound->Message(csound, "UnLocking: %i\n", (int)*p->gvar_ix); */
+    csp_locks_unlock(csound, (int)*p->gvar_ix);
+    return OK;
+}

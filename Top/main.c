@@ -26,6 +26,12 @@
 #include "soundio.h"
 #include "csmodule.h"
 
+#include "csound_orc.h"
+
+#include "cs_par_base.h"
+#include "cs_par_orc_semantic_analysis.h"
+#include "cs_par_dispatch.h"
+
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
@@ -410,11 +416,31 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         int i;
         THREADINFO *current = NULL;
 
+#ifdef NUM_THREADS_OLD_DEF
         csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads + 1);
         csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads + 1);
+#else
+        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads/* + 1*/);
+        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads/* + 1*/);
+#endif
+        
+#if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
+  #ifdef NUM_THREADS_OLD_DEF
+        csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads + 1);
+        csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads + 1);
+  #else
+        csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
+        csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
+  #endif
+#endif
+        
         csound->multiThreadedComplete = 0;
 
+#ifdef NUM_THREADS_OLD_DEF
         for(i = 0; i < O->numThreads; i++) {
+#else
+        for(i = 1; i < O->numThreads; i++) {
+#endif
             THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
 
             t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
@@ -428,6 +454,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
             current = t;
         }
 
+#if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
+        csp_barrier_wait(csound, csound->barrier2);
+#else
+        csound->WaitBarrier(csound->multiThreadedBarrier2);
+#endif
+        
+        csp_parallel_compute_spec_setup(csound);
     }
 
     return musmon(csound);

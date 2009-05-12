@@ -165,3 +165,7 @@ typedef struct {
     AUXCH   channelName;
 } OUTVAL;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *gvar_ix;
+} GLOBAL_LOCK_UNLOCK;

@@ -118,9 +118,9 @@ extern "C" {
 #define DV32768         FL(0.000030517578125)
 
 #ifndef PI
-#define PI      (3.1415926535897932384626433832795)
+#define PI      (3.141592653589793238462643383279502884197)
 #endif
-#define TWOPI   (6.28318530717958647692528676655901)
+#define TWOPI   (6.283185307179586476925286766559005768394)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
 
@@ -161,6 +161,7 @@ extern "C" {
     int     useCsdLineCounts;
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
+    int     calculateWeights;
 #endif
   } OPARMS;
 
@@ -976,8 +977,11 @@ extern const uint32_t csPlayScoMask;
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, long);
+    int *(*GetChannelLock)(CSOUND *, const char *name, int type);
+    MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
+                                int (*callback)(CSOUND *, MEMFIL *));
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[86];
+    SUBR dummyfn_2[84];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
@@ -1038,7 +1042,9 @@ extern const uint32_t csPlayScoMask;
     CsoundRandMTState *csRandState;
     int           randSeed1;
     int           randSeed2;
-    int   dummyint[10];
+    int           memlock;
+    int           floatsize;
+    int   dummyint[8];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
@@ -1259,10 +1265,20 @@ extern const uint32_t csPlayScoMask;
     THREADINFO    *multiThreadedThreadInfo;
     INSDS         *multiThreadedStart;
     INSDS         *multiThreadedEnd;
+    
+    char                  *weight_info;
+    char                  *weight_dump;
+    char                  *weights;
+    struct dag_t        *multiThreadedDag;
+    struct barrier_spin_t *barrier1;
+    struct barrier_spin_t *barrier2;
+    
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
     char*         csdname;       /* original CSD name; do not free() */
+    int           parserUdoflag;
+    int           parserNamedInstrFlag;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
