@@ -202,7 +202,7 @@ instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
             intlist S_NL
                 { namedInstrFlag = 0;
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$3)->lexeme); }
+                  csp_orc_sa_instr_add_tree(csound, $3); }
             statementlist T_ENDIN S_NL
                 {
                     $$ = make_node(csound, T_INSTR, $3, $6);

@@ -624,10 +624,8 @@ extern "C" {
       1,            /*    numThreads        */
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
-#ifdef ENABLE_NEW_PARSER
-      0,            /*    newParser   */
+      1,            /*    newParser   */
       0,            /*    calculateWeights   */
-#endif
     },
     0L, 0L,         /*  instxtcount, optxtsize  */
     0L, 0L,         /*  poolcount, gblfixed     */

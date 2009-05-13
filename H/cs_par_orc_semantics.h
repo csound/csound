@@ -17,7 +17,7 @@
  */
 
 /* maintain information about insturments defined */
-struct instr_semantics_t {
+typedef struct instr_semantics_t {
     char                        hdr[HDR_LEN];
     char                        *name;
     int32                       insno;
@@ -26,7 +26,7 @@ struct instr_semantics_t {
     struct set_t                *read_write;
     uint32_t                    weight;
     struct instr_semantics_t    *next;
-};
+} INSTR_SEMANTICS;
 
 void csp_orc_sa_cleanup(CSOUND *csound);
 void csp_orc_sa_print_list(CSOUND *csound);
@@ -34,6 +34,7 @@ void csp_orc_sa_print_list(CSOUND *csound);
 /* maintain state about the current instrument we are parsing */
 /* add a new instrument */
 void csp_orc_sa_instr_add(CSOUND *csound, char *name);
+void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x);
 /* finish the current instrument */
 void csp_orc_sa_instr_finalize(CSOUND *csound);
 

@@ -1,7 +1,7 @@
 #ifndef __CS_PAR_DISPATCH_H__
 #define __CS_PAR_DISPATCH_H__
 
-/* 
+/*
  * locks must first be inserted and then the cache built
  * following this globals can be locked and unlocked with
  * the appropriate functions
@@ -29,14 +29,9 @@ void csp_weights_dump_file(CSOUND *csound);
 /* load opcode weights from a file */
 void csp_weights_load(CSOUND *csound);
 /* calculate the weight for each instrument in the AST
- * put the weight in the instr_semantics_t structure stored in 
+ * put the weight in the instr_semantics_t structure stored in
  * cs_par_orc_semantic_analysis */
 void csp_weights_calculate(CSOUND *csound, TREE *root);
-
-/* load the parallel decision infomation from specified file */
-void csp_parallel_compute_spec_setup(CSOUND *csound);
-/* decide based in parallel decision info whether to do this dag in parallel */
-int inline csp_parallel_compute_should(CSOUND *csound, struct dag_t *dag);
 
 /* dag2 prototypes */
 enum dag_node_type_t {
@@ -50,9 +45,9 @@ struct dag_base_t {
     enum dag_node_type_t        type;
 };
 
-struct dag_t {
+typedef struct dag_t {
     struct dag_base_t           hdr;
-    
+
     int                         count;
     void                        *mutex;
     int32_t                     spinlock;
@@ -76,15 +71,20 @@ struct dag_t {
     int                         first_root;
     uint8_t                     **table_ori;
     uint8_t                     **table;
-    
+
     /* used for deciding whether to run this dag in parallel */
     int                         max_roots;
     uint32_t                    weight;
-};
+} DAG;
 
-struct dag_node_t {
+/* load the parallel decision infomation from specified file */
+void csp_parallel_compute_spec_setup(CSOUND *csound);
+/* decide based in parallel decision info whether to do this dag in parallel */
+int inline csp_parallel_compute_should(CSOUND *csound, DAG *dag);
+
+typedef struct dag_node_t {
     struct dag_base_t           hdr;
-    
+
     union {
         struct {
             struct instr_semantics_t    *instr;
@@ -96,34 +96,34 @@ struct dag_node_t {
             struct dag_node_t **nodes;
         };
     };
-};
+} DAG_NODE;
 
-void csp_dag_alloc(CSOUND *csound, struct dag_t **dag);
-void csp_dag_dealloc(CSOUND *csound, struct dag_t **dag);
+void csp_dag_alloc(CSOUND *csound, DAG **dag);
+void csp_dag_dealloc(CSOUND *csound, DAG **dag);
 /* add a node to the dag with instrument info */
-void csp_dag_add(CSOUND *csound, struct dag_t *dag,
+void csp_dag_add(CSOUND *csound, DAG *dag,
                  struct instr_semantics_t *instr, INSDS *insds);
 
 /* once a DAG has been created and had all its instruments added call this
  * prepares a DAG for use
  * builds edges, roots, root countdowns, finds weight, etc */
-void csp_dag_build(CSOUND *csound, struct dag_t **dag, INSDS *chain);
-void csp_dag_print(CSOUND *csound, struct dag_t *dag);
+void csp_dag_build(CSOUND *csound, DAG **dag, INSDS *chain);
+void csp_dag_print(CSOUND *csound, DAG *dag);
 
 /* return 1 if the DAG is completely consume */
-int inline csp_dag_is_finished(CSOUND *csound, struct dag_t *dag);
+int inline csp_dag_is_finished(CSOUND *csound, DAG *dag);
 /* get a node from the dag
  * update_hdl should be passed into consume_update when the node has
  * been performed */
-void csp_dag_consume(CSOUND *csound, struct dag_t *dag,
+void csp_dag_consume(CSOUND *csound, DAG *dag,
                      struct dag_node_t **node, int *update_hdl);
 /* update the dag having consumed a node previously */
-void csp_dag_consume_update(CSOUND *csound, struct dag_t *dag, int update_hdl);
+void csp_dag_consume_update(CSOUND *csound, DAG *dag, int update_hdl);
 
 /* get a dag from the cache
  * if it exists it is retuned
  * if not builds a new one and stores in the cache, then returns */
-void csp_dag_cache_fetch(CSOUND *csound, struct dag_t **dag, INSDS *chain);
+void csp_dag_cache_fetch(CSOUND *csound, DAG **dag, INSDS *chain);
 void csp_dag_cache_print(CSOUND *csound);
 
 #endif /* end of include guard: __CS_PAR_DISPATCH_H__ */

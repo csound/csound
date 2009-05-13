@@ -3,7 +3,7 @@
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
-#define TRACE 0
+#define TRACE 2
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
@@ -136,7 +136,8 @@ int csp_set_alloc(CSOUND *csound,   struct set_t **set,
                   set_element_data_eq *ele_eq_func,
                   set_element_data_print *ele_print_func);
 int csp_set_dealloc(CSOUND *csound, struct set_t **set);
-/* shortcut to get a set of strings uses string element equality and printing functions */
+/* shortcut to get a set of strings uses string element equality and
+   printing functions */
 int csp_set_alloc_string(CSOUND *csound, struct set_t **set);
 
 /* functions to manipulate set, return CSOUND_SUCCESS if successful */

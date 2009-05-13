@@ -882,9 +882,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       longusage(csound);
       csound->LongJmp(csound, 0);
     }
-#ifdef ENABLE_NEW_PARSER
-    else if (!(strcmp(s, "new-parser"))) {
-      O->newParser = 1;             /* Use New Parser */
+    else if (!(strcmp(s, "old-parser"))) {
+      O->newParser = 0;             /* Use New Parser */
       return 1;
     }
     else if (!(strncmp(s, "weight-info=", 12))) {
@@ -909,7 +908,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->calculateWeights = 1;
       return 1;
     }
-#endif
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
