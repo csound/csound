@@ -29,7 +29,7 @@
 #include "tok.h"
 
 #include "cs_par_base.h"
-#include "cs_par_orc_semantic_analysis.h"
+#include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
 /***********************************************************************
@@ -53,22 +53,22 @@ static uint32_t hash_string(char *str, uint32_t hash_size);
  */
 static uint32_t inline hash( uint32_t a )
 {
-   a = (a+0x7ed55d16) + (a<<12);
-   a = (a^0xc761c23c) ^ (a>>19);
-   a = (a+0x165667b1) + (a<<5);
-   a = (a+0xd3a2646c) ^ (a<<9);
-   a = (a+0xfd7046c5) + (a<<3);
-   a = (a^0xb55a4f09) ^ (a>>16);
-   return a;
+    a = (a+0x7ed55d16) + (a<<12);
+    a = (a^0xc761c23c) ^ (a>>19);
+    a = (a+0x165667b1) + (a<<5);
+    a = (a+0xd3a2646c) ^ (a<<9);
+    a = (a+0xfd7046c5) + (a<<3);
+    a = (a^0xb55a4f09) ^ (a>>16);
+    return a;
 }
 
 static uint32_t hash_chain(INSDS *chain, uint32_t hash_size)
 {
     uint32_t val = 0;
     while (chain != NULL) {
-         val = val ^ chain->insno;
-         val = hash( val );
-         chain = chain->nxtact;
+      val = val ^ chain->insno;
+      val = hash( val );
+      chain = chain->nxtact;
     }
     return val % hash_size;
 }
@@ -79,9 +79,9 @@ static uint32_t hash_string(char *str, uint32_t hash_size)
     uint32_t val = 0;
     uint32_t len = strlen(str);
     while (ctr < len) {
-         val = val ^ str[ctr];
-         val = hash( val );
-         ctr++;
+      val = val ^ str[ctr];
+      val = hash( val );
+      ctr++;
     }
     return val % hash_size;
 }
@@ -94,11 +94,11 @@ static uint32_t hash_string(char *str, uint32_t hash_size)
 
 /* global variables lock support */
 struct global_var_lock_t {
-    char                        hdr[HDR_LEN];
-    char                        *name;
-    int                         index;
-    int32_t                     lock;
-    struct global_var_lock_t    *next;
+  char                        hdr[HDR_LEN];
+  char                        *name;
+  int                         index;
+  int32_t                     lock;
+  struct global_var_lock_t    *next;
 };
 
 static struct global_var_lock_t *global_var_lock_root;
@@ -108,8 +108,8 @@ static struct global_var_lock_t **global_var_lock_cache;
 void inline csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= global_var_lock_count)) {
-        csound->Die(csound, "Poorly specified global lock index: %i [max: %i]\n",
-                    global_index, global_var_lock_count);
+      csound->Die(csound, "Poorly specified global lock index: %i [max: %i]\n",
+                  global_index, global_var_lock_count);
     }
     TRACE_2("Locking:   %i [%p %s]\n", global_index,
             global_var_lock_cache[global_index],
@@ -120,8 +120,8 @@ void inline csp_locks_lock(CSOUND * csound, int global_index)
 void inline csp_locks_unlock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= global_var_lock_count)) {
-        csound->Die(csound, "Poorly specified global lock index: %i [max: %i]\n",
-                    global_index, global_var_lock_count);
+      csound->Die(csound, "Poorly specified global lock index: %i [max: %i]\n",
+                  global_index, global_var_lock_count);
     }
     TRACE_2("UnLocking: %i [%p %s]\n",
             global_index, global_var_lock_cache[global_index],
@@ -153,39 +153,39 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
       csound->Die(csound, "Invalid NULL parameter name for a global variable\n");
     
     if (global_var_lock_root == NULL) {
-        global_var_lock_root = global_var_lock_alloc(csound, name, 0);
-        return global_var_lock_root;
+      global_var_lock_root = global_var_lock_alloc(csound, name, 0);
+      return global_var_lock_root;
     } 
     else {
-        struct global_var_lock_t *current = global_var_lock_root, *previous = NULL;
-        int ctr = 0;
-        while (current != NULL) {
-            if (strcmp(current->name, name) == 0) {
-                break;
-            }
-            previous = current;
-            current = current->next;
-            ctr++;
+      struct global_var_lock_t *current = global_var_lock_root, *previous = NULL;
+      int ctr = 0;
+      while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+          break;
         }
-        if (current == NULL) {
-            previous->next = global_var_lock_alloc(csound, name, ctr);
-            return previous->next;
-        } else {
-            return current;
-        }
+        previous = current;
+        current = current->next;
+        ctr++;
+      }
+      if (current == NULL) {
+        previous->next = global_var_lock_alloc(csound, name, ctr);
+        return previous->next;
+      } else {
+        return current;
+      }
     }
 }
 
 /* static void locks_print(CSOUND *csound)
-{
-    csound->Message(csound, "Current Global Locks\n");
-    struct global_var_lock_t *current_global = global_var_lock_root;
-    while (current_global != NULL) {
-        csound->Message(csound, "[%i] %s [%p]\n", current_global->index,
-                        current_global->name, current_global);
-        current_global = current_global->next;
-    }   
-} */
+   {
+   csound->Message(csound, "Current Global Locks\n");
+   struct global_var_lock_t *current_global = global_var_lock_root;
+   while (current_global != NULL) {
+   csound->Message(csound, "[%i] %s [%p]\n", current_global->index,
+   current_global->name, current_global);
+   current_global = current_global->next;
+   }   
+   } */
 
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
@@ -198,79 +198,79 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
     struct instr_semantics_t *instr = NULL;
     
     while(current != NULL) {
-        switch(current->type) {
-            case T_INSTR:
-                instr = csp_orc_sa_instr_get_by_name(current->left->value->lexeme);
-                if (instr->read_write->count > 0 &&
-                    instr->read->count == 0 &&
-                    instr->write->count == 0) {
-                    current->right = csp_locks_insert(csound, current->right);
-                }
-                break;
-
-            case T_UDO:
-            case T_IF:
-                break;
-
-            default:
-                if (current->type == S_ASSIGN) {
-                    struct set_t *left = NULL, *right  = NULL;
-                    left = csp_orc_sa_globals_find(csound, current->left);
-                    right = csp_orc_sa_globals_find(csound, current->right);
-                    
-                    struct set_t *new = NULL;
-                    csp_set_union(csound, left, right, &new);
-                    /* add locks if this is a read-write global variable 
-                     * that is same global read and written in this operation */
-                    if (left->count == 1 && right->count == 1 && new->count == 1) {
-                        char *global_var = NULL;
-                        csp_set_get_num(csound, new, 0, (void **)&global_var);
-                        
-                        struct global_var_lock_t *gvar =
-                          global_var_lock_find(csound, global_var);
-                        
-                        /* add_token(csound, "str", A_TYPE); */
-                        
-                        char buf[8];
-                        snprintf(buf, 8, "%i", gvar->index);
-                        
-                        ORCTOKEN *lock_tok   = lookup_token(csound, "globallock");
-                        ORCTOKEN *unlock_tok = lookup_token(csound, "globalunlock");
-                        ORCTOKEN *var_tok    = make_int(csound, buf);
-                        
-                        TREE *lock_leaf = make_leaf(csound, T_OPCODE, lock_tok);
-                        lock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
-                        TREE *unlock_leaf = make_leaf(csound, T_OPCODE, unlock_tok);
-                        unlock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
-                        
-                        if (previous == NULL) {
-                            TREE *old_current = lock_leaf;
-                            lock_leaf->next = current;
-                            unlock_leaf->next = current->next;
-                            current->next = unlock_leaf;
-                            current = old_current;
-                        }
-                        else {
-                            previous->next = lock_leaf;
-                            lock_leaf->next = current;
-                            unlock_leaf->next = current->next;
-                            current->next = unlock_leaf;
-                        }
-                    }
-
-                    csp_set_dealloc(csound, &new);
-                    csp_set_dealloc(csound, &left);
-                    csp_set_dealloc(csound, &right);
-                }
-                break;
+      switch(current->type) {
+      case T_INSTR:
+        instr = csp_orc_sa_instr_get_by_name(current->left->value->lexeme);
+        if (instr->read_write->count > 0 &&
+            instr->read->count == 0 &&
+            instr->write->count == 0) {
+          current->right = csp_locks_insert(csound, current->right);
         }
+        break;
 
-        if (anchor == NULL) {
-            anchor = current;
+      case T_UDO:
+      case T_IF:
+        break;
+
+      default:
+        if (current->type == S_ASSIGN) {
+          struct set_t *left = NULL, *right  = NULL;
+          left = csp_orc_sa_globals_find(csound, current->left);
+          right = csp_orc_sa_globals_find(csound, current->right);
+          
+          struct set_t *new = NULL;
+          csp_set_union(csound, left, right, &new);
+          /* add locks if this is a read-write global variable 
+           * that is same global read and written in this operation */
+          if (left->count == 1 && right->count == 1 && new->count == 1) {
+            char *global_var = NULL;
+            csp_set_get_num(csound, new, 0, (void **)&global_var);
+                        
+            struct global_var_lock_t *gvar =
+              global_var_lock_find(csound, global_var);
+                        
+            /* add_token(csound, "str", A_TYPE); */
+                        
+            char buf[8];
+            snprintf(buf, 8, "%i", gvar->index);
+            
+            ORCTOKEN *lock_tok   = lookup_token(csound, "globallock");
+            ORCTOKEN *unlock_tok = lookup_token(csound, "globalunlock");
+            ORCTOKEN *var_tok    = make_int(csound, buf);
+                        
+            TREE *lock_leaf = make_leaf(csound, T_OPCODE, lock_tok);
+            lock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
+            TREE *unlock_leaf = make_leaf(csound, T_OPCODE, unlock_tok);
+            unlock_leaf->right = make_leaf(csound, T_INTGR, var_tok);
+                        
+            if (previous == NULL) {
+              TREE *old_current = lock_leaf;
+              lock_leaf->next = current;
+              unlock_leaf->next = current->next;
+              current->next = unlock_leaf;
+              current = old_current;
+            }
+            else {
+              previous->next = lock_leaf;
+              lock_leaf->next = current;
+              unlock_leaf->next = current->next;
+              current->next = unlock_leaf;
+            }
+          }
+
+          csp_set_dealloc(csound, &new);
+          csp_set_dealloc(csound, &left);
+          csp_set_dealloc(csound, &right);
         }
+        break;
+      }
 
-        previous = current;
-        current = current->next;
+      if (anchor == NULL) {
+        anchor = current;
+      }
+
+      previous = current;
+      current = current->next;
 
     }
 
@@ -282,7 +282,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 void csp_locks_cache_build(CSOUND *csound)
 {
     if (global_var_lock_count < 1) {
-        return;
+      return;
     }
     
     global_var_lock_cache =
@@ -292,18 +292,18 @@ void csp_locks_cache_build(CSOUND *csound)
     int ctr = 0;
     struct global_var_lock_t *glob = global_var_lock_root;
     while (glob != NULL && ctr < global_var_lock_count) {
-        global_var_lock_cache[ctr] = glob;
-        glob = glob->next;
-        ctr++;
+      global_var_lock_cache[ctr] = glob;
+      glob = glob->next;
+      ctr++;
     }
     
     /* csound->Message(csound, "Global Locks Cache\n");
-    ctr = 0;
-    while (ctr < global_var_lock_count) {
-        csound->Message(csound, "[%i] %s\n", global_var_lock_cache[ctr]->index,
-                        global_var_lock_cache[ctr]->name);
-        ctr++;
-    } */
+       ctr = 0;
+       while (ctr < global_var_lock_count) {
+       csound->Message(csound, "[%i] %s\n", global_var_lock_cache[ctr]->index,
+       global_var_lock_cache[ctr]->name);
+       ctr++;
+       } */
 }
 
 
@@ -314,14 +314,14 @@ void csp_locks_cache_build(CSOUND *csound)
 #pragma mark Instr weightings
 
 /* static struct instr_weight_info_t *instr_weight_info_alloc(CSOUND *csound)
-{
-    struct instr_weight_info_t *ret =
-        csound->Malloc(csound, sizeof(struct instr_weight_info_t));
-    memset(ret, 0, sizeof(struct instr_weight_info_t));
-    strncpy(ret->hdr, INSTR_WEIGHT_INFO_HDR, HDR_LEN);
+   {
+   struct instr_weight_info_t *ret =
+   csound->Malloc(csound, sizeof(struct instr_weight_info_t));
+   memset(ret, 0, sizeof(struct instr_weight_info_t));
+   strncpy(ret->hdr, INSTR_WEIGHT_INFO_HDR, HDR_LEN);
     
-    return ret;
-} */
+   return ret;
+   } */
 
 #define WEIGHT_UNKNOWN_NODE     1
 #define WEIGHT_S_ASSIGN_NODE    1
@@ -366,9 +366,9 @@ static void csp_weights_calculate_instr(CSOUND *csound, TREE *root,
                         "calculation walk %i\n", current->type);
         instr->weight += WEIGHT_UNKNOWN_NODE;
         break;
-        }
+      }
         
-        current = current->next;
+      current = current->next;
     }
 
     csound->Message(csound, "[End Calculating Instrument weight from AST]\n");
@@ -435,16 +435,16 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
     TREE *current = root;
 
     while(current != NULL) {
-        switch(current->type) {
-            case T_INSTR:
-                csp_orc_sa_opcode_dump_instr(csound, current->right);
-                break;
+      switch(current->type) {
+      case T_INSTR:
+        csp_orc_sa_opcode_dump_instr(csound, current->right);
+        break;
             
-            default:
-                break;
-        }
+      default:
+        break;
+      }
         
-        current = current->next;
+      current = current->next;
     }
 
     csound->Message(csound, "[End Opcode List from AST]\n");
@@ -458,12 +458,12 @@ void csp_orc_sa_opcode_dump(CSOUND *csound, TREE *root)
 #pragma mark weights structure
 
 struct opcode_weight_cache_entry_t {
-    uint32_t                            hash_val;
-    struct opcode_weight_cache_entry_t  *next;
+  uint32_t                            hash_val;
+  struct opcode_weight_cache_entry_t  *next;
     
-    char                                *name;
-    double                              play_time;
-    uint32_t                            weight;
+  char                                *name;
+  double                              play_time;
+  uint32_t                            weight;
 };
 
 #define OPCODE_WEIGHT_CACHE_SIZE     128
@@ -482,7 +482,7 @@ static int opcode_weight_entry_alloc(CSOUND *csound, struct opcode_weight_cache_
     
     *entry = csound->Malloc(csound, sizeof(struct opcode_weight_cache_entry_t));
     if (*entry == NULL) {
-        csound->Die(csound, "Failed to allocate Opcode Weight cache entry");
+      csound->Die(csound, "Failed to allocate Opcode Weight cache entry");
     }
     memset(*entry, 0, sizeof(struct opcode_weight_cache_entry_t));
 
@@ -509,16 +509,16 @@ uint32_t csp_opcode_weight_fetch(CSOUND *csound, char *name)
     if (name == NULL) csound->Die(csound, "Invalid NULL Parameter name");
     
     if (opcode_weight_have_cache == 0) {
-        return WEIGHT_OPCODE_NODE;
+      return WEIGHT_OPCODE_NODE;
     }
     
     uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
     struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
     while (curr != NULL) {
-        if (strcmp(curr->name, name) == 0) {
-            return curr->weight;
-        }
-        curr = curr->next;
+      if (strcmp(curr->name, name) == 0) {
+        return curr->weight;
+      }
+      curr = curr->next;
     }
     /* no weight for this opcode use default */
     csound->Message(csound, "WARNING: no weight found for opcode: %s\n", name);
@@ -530,7 +530,7 @@ void csp_opcode_weight_set(CSOUND *csound, char *name, double play_time)
     if (name == NULL) csound->Die(csound, "Invalid NULL Parameter name");
     
     if (opcode_weight_have_cache == 0) {
-        return;
+      return;
     }
     
     uint32_t hash_val = hash_string(name, OPCODE_WEIGHT_CACHE_SIZE);
@@ -538,16 +538,16 @@ void csp_opcode_weight_set(CSOUND *csound, char *name, double play_time)
     struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
 
     while (curr != NULL) {
-        /* TRACE_0("Looking at: %s\n", curr->name); */
-        if (strcmp(curr->name, name) == 0) {
-            if (UNLIKELY(curr->play_time == 0)) {
-                curr->play_time = play_time;
-            } else {
-                curr->play_time = 0.9 * curr->play_time + 0.1 * play_time;
-            }
-            return;
+      /* TRACE_0("Looking at: %s\n", curr->name); */
+      if (strcmp(curr->name, name) == 0) {
+        if (UNLIKELY(curr->play_time == 0)) {
+          curr->play_time = play_time;
+        } else {
+          curr->play_time = 0.9 * curr->play_time + 0.1 * play_time;
         }
-        curr = curr->next;
+        return;
+      }
+      curr = curr->next;
     }
     
     /* TRACE_0("Not Found Adding\n"); */
@@ -568,40 +568,40 @@ static void opcode_weight_entry_add(CSOUND *csound, char *name, uint32_t weight)
     struct opcode_weight_cache_entry_t *curr = opcode_weight_cache[hash_val];
     int found = 0;
     while (curr != NULL) {
-        if (strcmp(curr->name, name) == 0) {
-            found = 1;
-            break;
-        }
-        curr = curr->next;
+      if (strcmp(curr->name, name) == 0) {
+        found = 1;
+        break;
+      }
+      curr = curr->next;
     }
     if (found == 0) {
-        /* TRACE_0("Allocing %s\n", name); */
-        opcode_weight_entry_alloc(csound, &curr, name, weight, hash_val);
-        opcode_weight_cache_ctr++;
+      /* TRACE_0("Allocing %s\n", name); */
+      opcode_weight_entry_alloc(csound, &curr, name, weight, hash_val);
+      opcode_weight_cache_ctr++;
 
-        curr->next = opcode_weight_cache[hash_val];
-        opcode_weight_cache[hash_val] = curr;
+      curr->next = opcode_weight_cache[hash_val];
+      opcode_weight_cache[hash_val] = curr;
     }
 }
 
 void csp_weights_dump(CSOUND *csound)
 {
     if (opcode_weight_have_cache == 0) {
-        csound->Message(csound, "No Weights to Dump (Using Defaults)\n");
-        return;
+      csound->Message(csound, "No Weights to Dump (Using Defaults)\n");
+      return;
     }
     
     csound->Message(csound, "Weights Dump\n");
     uint32_t bin_ctr = 0;
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
         
-        while (entry != NULL) {
-            csound->Message(csound, "%s => %u\n", entry->name, entry->weight);
-            entry = entry->next;
-        }
+      while (entry != NULL) {
+        csound->Message(csound, "%s => %u\n", entry->name, entry->weight);
+        entry = entry->next;
+      }
         
-        bin_ctr++;
+      bin_ctr++;
     }
     csound->Message(csound, "[Weights Dump end]\n");
 }
@@ -609,55 +609,55 @@ void csp_weights_dump(CSOUND *csound)
 void csp_weights_dump_file(CSOUND *csound)
 {
     if (opcode_weight_have_cache == 0) {
-        csound->Message(csound, "No Weights to Dump to file\n");
-        return;
+      csound->Message(csound, "No Weights to Dump to file\n");
+      return;
     }
     
     char *path = csound->weights;
     if (path == NULL) {
-        return;
+      return;
     }
     
     FILE *f = fopen(path, "w+");
     if (f == NULL) {
-        csound->Die(csound, "Opcode Weight Spec File not found at: %s", path);
+      csound->Die(csound, "Opcode Weight Spec File not found at: %s", path);
     }
     
     uint32_t bin_ctr = 0;
     double min = 0, max = 0;
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
         
-        while (entry != NULL) {
-            if (min == 0) {
-                min = entry->play_time;
-            }
-            
-            if (entry->play_time != 0 && entry->play_time < min) {
-                min = entry->play_time;
-            } else if (entry->play_time != 0 && entry->play_time > max) {
-                max = entry->play_time;
-            }
-            
-            entry = entry->next;
+      while (entry != NULL) {
+        if (min == 0) {
+          min = entry->play_time;
         }
+            
+        if (entry->play_time != 0 && entry->play_time < min) {
+          min = entry->play_time;
+        } else if (entry->play_time != 0 && entry->play_time > max) {
+          max = entry->play_time;
+        }
+            
+        entry = entry->next;
+      }
         
-        bin_ctr++;
+      bin_ctr++;
     }
     
     double scale = 99 / (max - min);
     
     bin_ctr = 0;
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
         
-        while (entry != NULL) {
-            uint32_t weight = floor((entry->play_time - min) * scale) + 1;
-            fprintf(f, "%s, %u, %g\n", entry->name, weight, entry->play_time);
-            entry = entry->next;
-        }
+      while (entry != NULL) {
+        uint32_t weight = floor((entry->play_time - min) * scale) + 1;
+        fprintf(f, "%s, %u, %g\n", entry->name, weight, entry->play_time);
+        entry = entry->next;
+      }
         
-        bin_ctr++;
+      bin_ctr++;
     }
     
     fclose(f);
@@ -666,31 +666,31 @@ void csp_weights_dump_file(CSOUND *csound)
 void csp_weights_dump_normalised(CSOUND *csound)
 {
     if (opcode_weight_have_cache == 0) {
-        csound->Message(csound, "No Weights to Dump (Using Defaults)\n");
-        return;
+      csound->Message(csound, "No Weights to Dump (Using Defaults)\n");
+      return;
     }
     
     csound->Message(csound, "Weights Dump\n");
     uint32_t bin_ctr = 0;
     double min = 0, max = 0;
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
         
-        while (entry != NULL) {
-            if (min == 0) {
-                min = entry->play_time;
-            }
-            
-            if (entry->play_time != 0 && entry->play_time < min) {
-                min = entry->play_time;
-            } else if (entry->play_time != 0 && entry->play_time > max) {
-                max = entry->play_time;
-            }
-            
-            entry = entry->next;
+      while (entry != NULL) {
+        if (min == 0) {
+          min = entry->play_time;
         }
+            
+        if (entry->play_time != 0 && entry->play_time < min) {
+          min = entry->play_time;
+        } else if (entry->play_time != 0 && entry->play_time > max) {
+          max = entry->play_time;
+        }
+            
+        entry = entry->next;
+      }
         
-        bin_ctr++;
+      bin_ctr++;
     }
     
     csound->Message(csound, "min: %g\n", min);
@@ -702,20 +702,20 @@ void csp_weights_dump_normalised(CSOUND *csound)
     
     bin_ctr = 0;
     while (bin_ctr < OPCODE_WEIGHT_CACHE_SIZE) {
-        struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
+      struct opcode_weight_cache_entry_t *entry = opcode_weight_cache[bin_ctr];
         
-        while (entry != NULL) {
-            uint32_t weight = floor((entry->play_time - min) * scale) + 1;
-            csound->Message(csound, "%s => %u, %g\n",
-                            entry->name, weight, entry->play_time);
-            entry = entry->next;
-        }
+      while (entry != NULL) {
+        uint32_t weight = floor((entry->play_time - min) * scale) + 1;
+        csound->Message(csound, "%s => %u, %g\n",
+                        entry->name, weight, entry->play_time);
+        entry = entry->next;
+      }
         
-        bin_ctr++;
+      bin_ctr++;
     }
     
     if (csound->oparms->calculateWeights) {
-        csp_weights_dump_file(csound);
+      csp_weights_dump_file(csound);
     }
     
     csound->Message(csound, "[Weights Dump end]\n");
@@ -725,8 +725,8 @@ void csp_weights_load(CSOUND *csound)
 {
     char *path = csound->weights;
     if (path == NULL) {
-        opcode_weight_have_cache = 0;
-        return;
+      opcode_weight_have_cache = 0;
+      return;
     }
     opcode_weight_have_cache = 1;
     
@@ -735,7 +735,7 @@ void csp_weights_load(CSOUND *csound)
     
     FILE *f = fopen(path, "r");
     if (f == NULL) {
-        csound->Die(csound, "Opcode Weight Spec File not found at: %s", path);
+      csound->Die(csound, "Opcode Weight Spec File not found at: %s", path);
     }
     
     char buf[1024];
@@ -798,10 +798,10 @@ void csp_weights_load(CSOUND *csound)
 /* static struct instr_weight_info_t *weight_info; */
 
 struct weight_decision_info_t {
-    uint32_t    weight_min;
-    uint32_t    weight_max;
-    int         roots_avail_min;
-    int         roots_avail_max;
+  uint32_t    weight_min;
+  uint32_t    weight_max;
+  int         roots_avail_min;
+  int         roots_avail_max;
 };
 
 static struct weight_decision_info_t global_weight_info = {0, 0, 0, 0}; /* {1125, 0, 2, 0}; */
@@ -810,7 +810,7 @@ void csp_orc_sa_parallel_compute_spec_read(CSOUND *csound, const char *path)
 {
     FILE *f = fopen(path, "r");
     if (f == NULL) {
-        csound->Die(csound, "Parallel Spec File not found at: %s", path);
+      csound->Die(csound, "Parallel Spec File not found at: %s", path);
     }
     
     int rc = 0;
@@ -838,20 +838,20 @@ void csp_parallel_compute_spec_setup(CSOUND *csound)
     char *path = "Default";
     
     if (csound->weight_info != NULL) {
-        path = csound->weight_info;
-        csp_orc_sa_parallel_compute_spec_read(csound, path);
+      path = csound->weight_info;
+      csp_orc_sa_parallel_compute_spec_read(csound, path);
     }
     
     csound->Message(csound, "InstrWeightInfo: [%s]\n"
-                            "  weight_min:      %u\n"
-                            "  weight_max:      %u\n"
-                            "  roots_avail_min: %i\n"
-                            "  roots_avail_max: %i\n", 
-                            path, 
-                            global_weight_info.weight_min,
-                            global_weight_info.weight_max,
-                            global_weight_info.roots_avail_min,
-                            global_weight_info.roots_avail_max);
+                    "  weight_min:      %u\n"
+                    "  weight_max:      %u\n"
+                    "  roots_avail_min: %i\n"
+                    "  roots_avail_max: %i\n", 
+                    path, 
+                    global_weight_info.weight_min,
+                    global_weight_info.weight_max,
+                    global_weight_info.roots_avail_min,
+                    global_weight_info.roots_avail_max);
 }
 
 int inline csp_parallel_compute_should(CSOUND *csound, struct dag_t *dag)
@@ -899,7 +899,7 @@ void csp_dag_alloc(CSOUND *csound, struct dag_t **dag)
     
     *dag = csound->Malloc(csound, sizeof(struct dag_t));
     if (*dag == NULL) {
-        csound->Die(csound, "Failed to allocate dag");
+      csound->Die(csound, "Failed to allocate dag");
     }
     memset(*dag, 0, sizeof(struct dag_t));
     strncpy((*dag)->hdr.hdr, DAG_2_HDR, HDR_LEN);
@@ -923,9 +923,9 @@ void csp_dag_dealloc(CSOUND *csound, struct dag_t **dag)
     
     int ctr = 0;
     while (ctr < (*dag)->count) {
-        dag_node_2_dealloc(csound, &((*dag)->all[ctr]));
-        (*dag)->all[ctr] = NULL;
-        ctr++;
+      dag_node_2_dealloc(csound, &((*dag)->all[ctr]));
+      (*dag)->all[ctr] = NULL;
+      ctr++;
     }
     
     if ((*dag)->all                 != NULL) csound->Free(csound, (*dag)->all);
@@ -958,7 +958,7 @@ static void dag_node_2_alloc(CSOUND *csound, struct dag_node_t **dag_node, struc
 
     *dag_node = csound->Malloc(csound, sizeof(struct dag_node_t));
     if (*dag_node == NULL) {
-        csound->Die(csound, "Failed to allocate dag_node");
+      csound->Die(csound, "Failed to allocate dag_node");
     }
     memset(*dag_node, 0, sizeof(struct dag_node_t));
     strncpy((*dag_node)->hdr.hdr, DAG_NODE_2_HDR, HDR_LEN);
@@ -974,7 +974,7 @@ static void dag_node_2_alloc_list(CSOUND *csound, struct dag_node_t **dag_node, 
 
     *dag_node = csound->Malloc(csound, sizeof(struct dag_node_t));
     if (*dag_node == NULL) {
-        csound->Die(csound, "Failed to allocate dag_node");
+      csound->Die(csound, "Failed to allocate dag_node");
     }
     memset(*dag_node, 0, sizeof(struct dag_node_t));
     strncpy((*dag_node)->hdr.hdr, DAG_NODE_2_HDR, HDR_LEN);
@@ -989,7 +989,7 @@ static void dag_node_2_dealloc(CSOUND *csound, struct dag_node_t **dag_node)
     if (*dag_node == NULL) csound->Die(csound, "Invalid NULL Parameter dag_node");
     
     if ((*dag_node)->hdr.type == DAG_NODE_LIST) {
-        csound->Free(csound, (*dag_node)->nodes);
+      csound->Free(csound, (*dag_node)->nodes);
     }
     
     csound->Free(csound, *dag_node);
@@ -1005,17 +1005,17 @@ void csp_dag_add(CSOUND *csound, struct dag_t *dag, struct instr_semantics_t *in
     dag->all = csound->Malloc(csound, sizeof(struct dag_node_t *) * (dag->count + 1));
     int ctr = 0;
     while (ctr < dag->count) {
-        dag->all[ctr] = old[ctr];
-        ctr++;
+      dag->all[ctr] = old[ctr];
+      ctr++;
     }
     dag->all[ctr] = dag_node;
     if (old != NULL) csound->Free(csound, old);
     dag->count++;
     
     if (dag->count == 1) {
-        dag->insds_chain_start = dag->all[0];
+      dag->insds_chain_start = dag->all[0];
     } else if (dag->count > 1) {
-        dag->all[dag->count - 2]->insds_chain_next = dag->all[dag->count - 1];
+      dag->all[dag->count - 2]->insds_chain_next = dag->all[dag->count - 1];
     }
 }
 
@@ -1035,17 +1035,17 @@ static void csp_dag_build_prepare(CSOUND *csound, struct dag_t *dag)
     if (dag->table               != NULL) csound->Free(csound, dag->table);
     
     if (dag->count == 0) {
-        dag->roots_ori           = NULL;
-        dag->roots               = NULL;
+      dag->roots_ori           = NULL;
+      dag->roots               = NULL;
 #ifndef COUNTING_SEMAPHORE
-        dag->root_seen_ori       = NULL;
+      dag->root_seen_ori       = NULL;
 #endif
-        dag->root_seen           = NULL;
-        dag->remaining_count_ori = NULL;
-        dag->remaining_count     = NULL;
-        dag->table_ori           = NULL;
-        dag->table               = NULL;
-        return;
+      dag->root_seen           = NULL;
+      dag->remaining_count_ori = NULL;
+      dag->remaining_count     = NULL;
+      dag->table_ori           = NULL;
+      dag->table               = NULL;
+      return;
     }
     
     dag->roots_ori           = csound->Malloc(csound, sizeof(struct dag_node_t *) * dag->count);
@@ -1062,9 +1062,9 @@ static void csp_dag_build_prepare(CSOUND *csound, struct dag_t *dag)
     /* set up pointers for 2D array */
     int ctr = 0;
     while (ctr < dag->count) {
-        dag->table_ori[ctr] = ((uint8_t *)dag->table_ori) + (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
-        dag->table[ctr]     = ((uint8_t *)dag->table)     + (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
-        ctr++;
+      dag->table_ori[ctr] = ((uint8_t *)dag->table_ori) + (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
+      dag->table[ctr]     = ((uint8_t *)dag->table)     + (sizeof(uint8_t *) * dag->count) + (sizeof(uint8_t) * dag->count * ctr);
+      ctr++;
     }
     
     memset(dag->roots_ori,           0,           sizeof(struct dag_node_t *) * dag->count);
@@ -1087,13 +1087,13 @@ static struct dag_t *csp_dag_build_initial(CSOUND *csound, INSDS *chain)
     csp_dag_alloc(csound, &dag);
     
     while (chain != NULL) {
-        struct instr_semantics_t *current_instr = csp_orc_sa_instr_get_by_num(chain->insno);
-        if (current_instr == NULL) csound->Die(csound, "Failed to find semantic information for instrument '%i'", chain->insno);
+      struct instr_semantics_t *current_instr = csp_orc_sa_instr_get_by_num(chain->insno);
+      if (current_instr == NULL) csound->Die(csound, "Failed to find semantic information for instrument '%i'", chain->insno);
         
-        csp_dag_add(csound, dag, current_instr, chain);
-        dag->weight += current_instr->weight;
+      csp_dag_add(csound, dag, current_instr, chain);
+      dag->weight += current_instr->weight;
         
-        chain = chain->nxtact;
+      chain = chain->nxtact;
     }
     
     return dag;
@@ -1105,124 +1105,124 @@ static void csp_dag_build_edges(CSOUND *csound, struct dag_t *dag)
     
     int dag_root_ctr = 0;
     while (dag_root_ctr < dag->count) {
-        int dag_curr_ctr = dag_root_ctr + 1;
-        while (dag_curr_ctr < dag->count) {
+      int dag_curr_ctr = dag_root_ctr + 1;
+      while (dag_curr_ctr < dag->count) {
             
-            /* csound->Message(csound, "=== %s <> %s ===\n", dag->all[dag_root_ctr]->instr->name, dag->all[dag_curr_ctr]->instr->name); */
+        /* csound->Message(csound, "=== %s <> %s ===\n", dag->all[dag_root_ctr]->instr->name, dag->all[dag_curr_ctr]->instr->name); */
             
-            int depends = DAG_NO_LINK;
-            struct set_t *write_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
-                                     dag->all[dag_curr_ctr]->instr->read, 
-                                     &write_intersection);
-            if (csp_set_count(csound, write_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &write_intersection);
-            
-            /* csound->Message(csound, "write_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read); */
-            
-            struct set_t *read_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read, 
-                                     dag->all[dag_curr_ctr]->instr->write, 
-                                     &read_intersection);
-            if (csp_set_count(csound, read_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &read_intersection);
-            
-            /* csound->Message(csound, "read_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
-            
-            struct set_t *double_write_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
-                                     dag->all[dag_curr_ctr]->instr->write, 
-                                     &double_write_intersection);
-            if (csp_set_count(csound, double_write_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &double_write_intersection);
-            
-            /* csound->Message(csound, "double_write_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
-            
-            struct set_t *readwrite_write_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
-                                     dag->all[dag_curr_ctr]->instr->write, 
-                                     &readwrite_write_intersection);
-            if (csp_set_count(csound, readwrite_write_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &readwrite_write_intersection);
-            
-            /* csound->Message(csound, "readwrite_write_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
-            
-            struct set_t *readwrite_read_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
-                                     dag->all[dag_curr_ctr]->instr->read, 
-                                     &readwrite_read_intersection);
-            if (csp_set_count(csound, readwrite_read_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &readwrite_read_intersection);
-            
-            /* csound->Message(csound, "readwrite_read_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
-            
-            struct set_t *read_readwrite_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read, 
-                                     dag->all[dag_curr_ctr]->instr->read_write, 
-                                     &read_readwrite_intersection);
-            if (csp_set_count(csound, read_readwrite_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &read_readwrite_intersection);
-            
-            /* csound->Message(csound, "read_readwrite_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
-            
-            struct set_t *write_readwrite_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
-                                     dag->all[dag_curr_ctr]->instr->read_write, 
-                                     &write_readwrite_intersection);
-            if (csp_set_count(csound, write_readwrite_intersection) != 0) {
-                depends |= DAG_STRONG_LINK;
-            }
-            csp_set_dealloc(csound, &write_readwrite_intersection);
-            
-            /* csound->Message(csound, "write_readwrite_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
-            
-            struct set_t *readwrite_readwrite_intersection = NULL;
-            csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
-                                     dag->all[dag_curr_ctr]->instr->read_write, 
-                                     &readwrite_readwrite_intersection);
-            if (csp_set_count(csound, readwrite_readwrite_intersection) != 0) {
-                depends |= DAG_WEAK_LINK;
-            }
-            csp_set_dealloc(csound, &readwrite_readwrite_intersection);
-
-            /* csound->Message(csound, "readwrite_readwrite_intersection depends: %i\n", depends);
-            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
-            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
-            
-            if (depends & DAG_STRONG_LINK) {
-                dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_STRONG_LINK;
-            } else if (depends & DAG_WEAK_LINK) {
-                dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_WEAK_LINK;
-            }
-            dag_curr_ctr++;
+        int depends = DAG_NO_LINK;
+        struct set_t *write_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
+                             dag->all[dag_curr_ctr]->instr->read, 
+                             &write_intersection);
+        if (csp_set_count(csound, write_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
         }
-        dag_root_ctr++;
+        csp_set_dealloc(csound, &write_intersection);
+            
+        /* csound->Message(csound, "write_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read); */
+            
+        struct set_t *read_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read, 
+                             dag->all[dag_curr_ctr]->instr->write, 
+                             &read_intersection);
+        if (csp_set_count(csound, read_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &read_intersection);
+            
+        /* csound->Message(csound, "read_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+            
+        struct set_t *double_write_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
+                             dag->all[dag_curr_ctr]->instr->write, 
+                             &double_write_intersection);
+        if (csp_set_count(csound, double_write_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &double_write_intersection);
+            
+        /* csound->Message(csound, "double_write_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+            
+        struct set_t *readwrite_write_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
+                             dag->all[dag_curr_ctr]->instr->write, 
+                             &readwrite_write_intersection);
+        if (csp_set_count(csound, readwrite_write_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &readwrite_write_intersection);
+            
+        /* csound->Message(csound, "readwrite_write_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+            
+        struct set_t *readwrite_read_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
+                             dag->all[dag_curr_ctr]->instr->read, 
+                             &readwrite_read_intersection);
+        if (csp_set_count(csound, readwrite_read_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &readwrite_read_intersection);
+            
+        /* csound->Message(csound, "readwrite_read_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
+            
+        struct set_t *read_readwrite_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read, 
+                             dag->all[dag_curr_ctr]->instr->read_write, 
+                             &read_readwrite_intersection);
+        if (csp_set_count(csound, read_readwrite_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &read_readwrite_intersection);
+            
+        /* csound->Message(csound, "read_readwrite_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+            
+        struct set_t *write_readwrite_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->write, 
+                             dag->all[dag_curr_ctr]->instr->read_write, 
+                             &write_readwrite_intersection);
+        if (csp_set_count(csound, write_readwrite_intersection) != 0) {
+          depends |= DAG_STRONG_LINK;
+        }
+        csp_set_dealloc(csound, &write_readwrite_intersection);
+            
+        /* csound->Message(csound, "write_readwrite_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->write);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+            
+        struct set_t *readwrite_readwrite_intersection = NULL;
+        csp_set_intersection(csound, dag->all[dag_root_ctr]->instr->read_write, 
+                             dag->all[dag_curr_ctr]->instr->read_write, 
+                             &readwrite_readwrite_intersection);
+        if (csp_set_count(csound, readwrite_readwrite_intersection) != 0) {
+          depends |= DAG_WEAK_LINK;
+        }
+        csp_set_dealloc(csound, &readwrite_readwrite_intersection);
+
+        /* csound->Message(csound, "readwrite_readwrite_intersection depends: %i\n", depends);
+           csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
+           csp_set_print(csound, dag->all[dag_curr_ctr]->instr->read_write); */
+            
+        if (depends & DAG_STRONG_LINK) {
+          dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_STRONG_LINK;
+        } else if (depends & DAG_WEAK_LINK) {
+          dag->table_ori[dag_root_ctr][dag_curr_ctr] = DAG_WEAK_LINK;
+        }
+        dag_curr_ctr++;
+      }
+      dag_root_ctr++;
     }
 }
 
@@ -1232,25 +1232,25 @@ static void csp_dag_build_roots(CSOUND *csound, struct dag_t *dag)
     
     int col = 0;
     while (col < dag->count) {
-        int exists_in = 0;
-        int row = 0;
-        while (row < dag->count) {
-            if (dag->table_ori[row][col] == DAG_STRONG_LINK) {
-                exists_in = 1;
-                dag->remaining_count_ori[col]++;
-            }
-            row++;
+      int exists_in = 0;
+      int row = 0;
+      while (row < dag->count) {
+        if (dag->table_ori[row][col] == DAG_STRONG_LINK) {
+          exists_in = 1;
+          dag->remaining_count_ori[col]++;
         }
-        if (exists_in == 0) {
-            dag->roots_ori[col] = dag->all[col];
+        row++;
+      }
+      if (exists_in == 0) {
+        dag->roots_ori[col] = dag->all[col];
 #ifndef COUNTING_SEMAPHORE
-            dag->root_seen_ori[col] = 1;
+        dag->root_seen_ori[col] = 1;
 #endif
-            if (dag->first_root_ori == -1) {
-                dag->first_root_ori = col;
-            }
+        if (dag->first_root_ori == -1) {
+          dag->first_root_ori = col;
         }
-        col++;
+      }
+      col++;
     }
 }
 
@@ -1292,10 +1292,10 @@ static inline void csp_dag_prepare_use_insds(CSOUND *csound, struct dag_t *dag, 
     struct dag_node_t *node = dag->insds_chain_start;
     INSDS *current_insds = chain;
     while (node != NULL && current_insds != NULL) {
-        TRACE_2("  node: %p, insds: %p\n", node, current_insds);
-        node->insds = current_insds;
-        current_insds = current_insds->nxtact;
-        node = node->insds_chain_next;
+      TRACE_2("  node: %p, insds: %p\n", node, current_insds);
+      node->insds = current_insds;
+      current_insds = current_insds->nxtact;
+      node = node->insds_chain_next;
     }
 }
 
@@ -1309,23 +1309,23 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, struct dag_t *dag)
     int update_hdl = -1;
     
     while (!csp_dag_is_finished(csound, dag)) {
-        int ctr = 0, roots_avail = 0;
-        while (ctr < dag->count) {
-            if (dag->roots[ctr] != NULL) {
-                roots_avail++;
-            }
-            ctr++;
+      int ctr = 0, roots_avail = 0;
+      while (ctr < dag->count) {
+        if (dag->roots[ctr] != NULL) {
+          roots_avail++;
         }
-        if (roots_avail > dag->max_roots) {
-            dag->max_roots = roots_avail;
-        }
-        csp_dag_consume(csound, dag, &node, &update_hdl);
-        instr = node->instr;
-        insds = node->insds;
+        ctr++;
+      }
+      if (roots_avail > dag->max_roots) {
+        dag->max_roots = roots_avail;
+      }
+      csp_dag_consume(csound, dag, &node, &update_hdl);
+      instr = node->instr;
+      insds = node->insds;
         
-        if (insds != NULL) {
-            csp_dag_consume_update(csound, dag, update_hdl);
-        }
+      if (insds != NULL) {
+        csp_dag_consume_update(csound, dag, update_hdl);
+      }
     }
 }
 
@@ -1349,10 +1349,10 @@ int inline csp_dag_is_finished(CSOUND *csound, struct dag_t *dag)
 {
     /* if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag"); */
     /* csoundSpinLock(&(dag->spinlock));
-    int res = (dag->remaining <= 0);
-    csoundSpinUnLock(&(dag->spinlock));
-    return res;
-     */
+       int res = (dag->remaining <= 0);
+       csoundSpinUnLock(&(dag->spinlock));
+       return res;
+    */
     return (dag->remaining <= 0);
 }
 
@@ -1383,23 +1383,23 @@ void csp_dag_consume(CSOUND *csound, struct dag_t *dag, struct dag_node_t **node
     TRACE_2("[%i] Consuming Have Spinlock [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 
     if (dag->remaining <= 0) {
-        TRACE_2("[%i] Consuming Nothing [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
+      TRACE_2("[%i] Consuming Nothing [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 #ifdef COUNTING_SEMAPHORE
-        csp_semaphore_release(csound, dag->consume_semaphore);
-        csp_semaphore_release_end(csound, dag->consume_semaphore);
-        /* csp_semaphore_grow(csound, dag->consume_semaphore); */
+      csp_semaphore_release(csound, dag->consume_semaphore);
+      csp_semaphore_release_end(csound, dag->consume_semaphore);
+      /* csp_semaphore_grow(csound, dag->consume_semaphore); */
 #else
-        csoundSpinUnLock(&(dag->consume_spinlock));
+      csoundSpinUnLock(&(dag->consume_spinlock));
 #endif
-        csoundSpinUnLock(&(dag->spinlock));
-        *node = NULL;
-        *update_hdl = -1;
-        return;
+      csoundSpinUnLock(&(dag->spinlock));
+      *node = NULL;
+      *update_hdl = -1;
+      return;
     } else if (UNLIKELY(dag->first_root == -1)) {
         
-        csp_dag_print(csound, dag);
+      csp_dag_print(csound, dag);
         
-        csound->Die(csound, "Expected a root to perform. Found none (%i remaining)", dag->remaining);
+      csound->Die(csound, "Expected a root to perform. Found none (%i remaining)", dag->remaining);
     }
 
     first_root = dag->first_root;
@@ -1413,33 +1413,33 @@ void csp_dag_consume(CSOUND *csound, struct dag_t *dag, struct dag_node_t **node
     dag->first_root = -1;
     
     if (dag->remaining > 0) {
-        while (ctr < dag->count) {
-            if (dag->roots[ctr] != NULL) {
-                dag->first_root = ctr;
+      while (ctr < dag->count) {
+        if (dag->roots[ctr] != NULL) {
+          dag->first_root = ctr;
 
 #ifdef COUNTING_SEMAPHORE
-                if (dag->root_seen[ctr] == 0) {
-                    TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
-                    dag->root_seen[ctr] = 1;
-                    csp_semaphore_grow(csound, dag->consume_semaphore);
-                }
-                break;
+          if (dag->root_seen[ctr] == 0) {
+            TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
+            dag->root_seen[ctr] = 1;
+            csp_semaphore_grow(csound, dag->consume_semaphore);
+          }
+          break;
 #else
-                if (dag->root_seen[ctr] == 1) {
-                    dag->root_seen[ctr] = 2;
-                    TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
-                    csoundSpinUnLock(&(dag->consume_spinlock));
-                }
-                break;
+          if (dag->root_seen[ctr] == 1) {
+            dag->root_seen[ctr] = 2;
+            TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
+            csoundSpinUnLock(&(dag->consume_spinlock));
+          }
+          break;
 #endif
-            }
-            ctr++;
         }
+        ctr++;
+      }
     } else {
 #ifdef COUNTING_SEMAPHORE
-        csp_semaphore_release_end(csound, dag->consume_semaphore);
+      csp_semaphore_release_end(csound, dag->consume_semaphore);
 #else
-        csoundSpinUnLock(&(dag->consume_spinlock));
+      csoundSpinUnLock(&(dag->consume_spinlock));
 #endif
     }
     
@@ -1466,53 +1466,53 @@ void csp_dag_consume_update(CSOUND *csound, struct dag_t *dag, int update_hdl)
     TRACE_2("[%i] Consuming Update [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 
     while (col < dag->count) {
-        if (dag->table[update_hdl][col] == DAG_STRONG_LINK) {
+      if (dag->table[update_hdl][col] == DAG_STRONG_LINK) {
                         
-            /* csoundSpinLock(&(dag->table_spinlock)); */
+        /* csoundSpinLock(&(dag->table_spinlock)); */
             
-            dag->remaining_count[col]--;
-            TRACE_3("[%i] Consuming Remaining (%i, %i) [%i, %i]\n", csp_thread_index_get(csound), col, dag->remaining_count[col], dag->first_root, dag->consume_spinlock);
+        dag->remaining_count[col]--;
+        TRACE_3("[%i] Consuming Remaining (%i, %i) [%i, %i]\n", csp_thread_index_get(csound), col, dag->remaining_count[col], dag->first_root, dag->consume_spinlock);
             
 #ifdef COUNTING_SEMAPHORE
-            if (dag->remaining_count[col] == 0) {
-                csoundSpinLock(&(dag->spinlock));
-                dag->roots[col] = dag->all[col];
-                dag->root_seen[col] = 1;
-                TRACE_3("[%i] Consuming Found Root [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
+        if (dag->remaining_count[col] == 0) {
+          csoundSpinLock(&(dag->spinlock));
+          dag->roots[col] = dag->all[col];
+          dag->root_seen[col] = 1;
+          TRACE_3("[%i] Consuming Found Root [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 
-                if (dag->first_root == -1) {
-                    dag->first_root = col;
-                    TRACE_3("[%i] Consuming First Root Set [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
-                }
-                csoundSpinUnLock(&(dag->spinlock));
+          if (dag->first_root == -1) {
+            dag->first_root = col;
+            TRACE_3("[%i] Consuming First Root Set [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
+          }
+          csoundSpinUnLock(&(dag->spinlock));
                 
-                TRACE_3("[%i] Consuming Unlock [%i, %i] -----\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);   
-                csp_semaphore_grow(csound, dag->consume_semaphore);
-            }
-#else
-            if (dag->remaining_count[col] == 0) {
-                csoundSpinLock(&(dag->spinlock));
-                TRACE_3("[%i] Consuming Found Root [%i]\n", csp_thread_index_get(csound), dag->first_root);
-                
-                if (dag->root_seen[col] == 0) {
-                    dag->root_seen[col] = 1;
-                    dag->roots[col] = dag->all[col];
-                    TRACE_3("[%i] Consuming First Root Set [%i]\n", csp_thread_index_get(csound), dag->first_root);
-                }
-                
-                if (dag->root_seen[col] == 1 && dag->first_root == -1) {
-                    dag->first_root = col;
-                    
-                    dag->root_seen[col] = 2;
-                    TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
-                    csoundSpinUnLock(&(dag->consume_spinlock));
-                }
-                csoundSpinUnLock(&(dag->spinlock));
-            }
-#endif
-            /* csoundSpinUnLock(&(dag->table_spinlock)); */
+          TRACE_3("[%i] Consuming Unlock [%i, %i] -----\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);   
+          csp_semaphore_grow(csound, dag->consume_semaphore);
         }
-        col++;
+#else
+        if (dag->remaining_count[col] == 0) {
+          csoundSpinLock(&(dag->spinlock));
+          TRACE_3("[%i] Consuming Found Root [%i]\n", csp_thread_index_get(csound), dag->first_root);
+                
+          if (dag->root_seen[col] == 0) {
+            dag->root_seen[col] = 1;
+            dag->roots[col] = dag->all[col];
+            TRACE_3("[%i] Consuming First Root Set [%i]\n", csp_thread_index_get(csound), dag->first_root);
+          }
+                
+          if (dag->root_seen[col] == 1 && dag->first_root == -1) {
+            dag->first_root = col;
+                    
+            dag->root_seen[col] = 2;
+            TRACE_3("[%i] Consuming Unlock [%i] -----\n", csp_thread_index_get(csound), dag->first_root);
+            csoundSpinUnLock(&(dag->consume_spinlock));
+          }
+          csoundSpinUnLock(&(dag->spinlock));
+        }
+#endif
+        /* csoundSpinUnLock(&(dag->table_spinlock)); */
+      }
+      col++;
     }
     
 #ifdef COUNTING_SEMAPHORE
@@ -1526,7 +1526,7 @@ void csp_dag_consume_update(CSOUND *csound, struct dag_t *dag, int update_hdl)
 
 static char *csp_dag_string(CSOUND *csound, struct dag_t *dag)
 {
-    #define DAG_2_BUF 4096
+#define DAG_2_BUF 4096
     char buf[DAG_2_BUF];
     char *bufp = buf;
     
@@ -1535,52 +1535,52 @@ static char *csp_dag_string(CSOUND *csound, struct dag_t *dag)
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "Dag2:\n");
     int ctr = 0;
     while (ctr < dag->count) {
-        if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
-            bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->all[ctr]->instr->name, dag->all[ctr]);
-        } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
-            bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
-            int inner_ctr = 0;
-            while (inner_ctr < dag->all[ctr]->count) {
-                bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%s [%p] ", dag->all[ctr]->nodes[inner_ctr]->instr->name, dag->all[ctr]->nodes[inner_ctr]);
-                inner_ctr++;
-            }
-            bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
+      if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
+        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->all[ctr]->instr->name, dag->all[ctr]);
+      } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
+        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
+        int inner_ctr = 0;
+        while (inner_ctr < dag->all[ctr]->count) {
+          bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%s [%p] ", dag->all[ctr]->nodes[inner_ctr]->instr->name, dag->all[ctr]->nodes[inner_ctr]);
+          inner_ctr++;
         }
-        ctr++;
+        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
+      }
+      ctr++;
     }
     
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "roots:\n");
     ctr = 0;
     while (ctr < dag->count) {
-        if (dag->roots[ctr] != NULL) {
-            if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
-                bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->roots[ctr]->instr->name, dag->roots[ctr]);
-            } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
-                bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
-                int inner_ctr = 0;
-                while (inner_ctr < dag->roots[ctr]->count) {
-                    bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%s [%p] ", dag->roots[ctr]->nodes[inner_ctr]->instr->name, dag->roots[ctr]->nodes[inner_ctr]);
-                    inner_ctr++;
-                }
-                bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
-            }
+      if (dag->roots[ctr] != NULL) {
+        if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
+          bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->roots[ctr]->instr->name, dag->roots[ctr]);
+        } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
+          bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
+          int inner_ctr = 0;
+          while (inner_ctr < dag->roots[ctr]->count) {
+            bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%s [%p] ", dag->roots[ctr]->nodes[inner_ctr]->instr->name, dag->roots[ctr]->nodes[inner_ctr]);
+            inner_ctr++;
+          }
+          bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
         }
-        ctr++;
+      }
+      ctr++;
     }
     
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "root_seen:\n ");
     ctr = 0;
     while (ctr < dag->count) {
-        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), " %hhu ", dag->root_seen[ctr]);
-        ctr++;
+      bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), " %hhu ", dag->root_seen[ctr]);
+      ctr++;
     }
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
     
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "remaining:\n");
     ctr = 0;
     while (ctr < dag->count) {
-        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %i\n", dag->remaining_count[ctr]);
-        ctr++;
+      bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %i\n", dag->remaining_count[ctr]);
+      ctr++;
     }
     
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "remaining:      %i\n",  dag->remaining);
@@ -1589,13 +1589,13 @@ static char *csp_dag_string(CSOUND *csound, struct dag_t *dag)
     bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "table:\n");
     ctr = 0;
     while (ctr < dag->count) {
-        int inner_ctr = 0;
-        while (inner_ctr < dag->count) {
-            bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%hhi ", dag->table[ctr][inner_ctr]);
-            inner_ctr++;
-        }
-        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
-        ctr++;
+      int inner_ctr = 0;
+      while (inner_ctr < dag->count) {
+        bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "%hhi ", dag->table[ctr][inner_ctr]);
+        inner_ctr++;
+      }
+      bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "\n");
+      ctr++;
     }
     
     return strdup(buf);
@@ -1605,12 +1605,12 @@ void csp_dag_print(CSOUND *csound, struct dag_t *dag)
 {
     char *str = csp_dag_string(csound, dag);
     if (str != NULL) {
-        csound->Message(csound, "%s", str);
+      csound->Message(csound, "%s", str);
 #ifdef COUNTING_SEMAPHORE
-        csp_semaphore_release_print(csound, dag->consume_semaphore);
+      csp_semaphore_release_print(csound, dag->consume_semaphore);
 #endif
 
-        free(str);
+      free(str);
     }
 #if 0    
     if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
@@ -1618,17 +1618,17 @@ void csp_dag_print(CSOUND *csound, struct dag_t *dag)
     csound->Message(csound, "Dag2:\n");
     int ctr = 0;
     while (ctr < dag->count) {
-        csound->Message(csound, "  %s\n", dag->all[ctr]->instr->name);
-        ctr++;
+      csound->Message(csound, "  %s\n", dag->all[ctr]->instr->name);
+      ctr++;
     }
     
     csound->Message(csound, "roots:\n");
     ctr = 0;
     while (ctr < dag->count) {
-        if (dag->roots[ctr] != NULL) {
-            csound->Message(csound, "  %s\n", dag->roots[ctr]->instr->name);
-        }
-        ctr++;
+      if (dag->roots[ctr] != NULL) {
+        csound->Message(csound, "  %s\n", dag->roots[ctr]->instr->name);
+      }
+      ctr++;
     }
     
     csound->Message(csound, "remaining:      %i\n",  dag->remaining);
@@ -1638,13 +1638,13 @@ void csp_dag_print(CSOUND *csound, struct dag_t *dag)
     csound->Message(csound, "table:\n");
     ctr = 0;
     while (ctr < dag->count) {
-        int inner_ctr = 0;
-        while (inner_ctr < dag->count) {
-            csound->Message(csound, "%hhi ", dag->table[ctr][inner_ctr]);
-            inner_ctr++;
-        }
-        csound->Message(csound, "\n");
-        ctr++;
+      int inner_ctr = 0;
+      while (inner_ctr < dag->count) {
+        csound->Message(csound, "%hhi ", dag->table[ctr][inner_ctr]);
+        inner_ctr++;
+      }
+      csound->Message(csound, "\n");
+      ctr++;
     }
 #endif
 }
@@ -1675,10 +1675,10 @@ void csp_dag_optimization(CSOUND *csound, struct dag_t *dag)
     
     /* loop through from start to the end of all the rows */
     while (starting_row < end_point)
-    {
+      {
         TRACE_2("Start Loop\n");
         /* struct dag_node_t *readwrite_group[dag->count];
-        memset(readwrite_group, 0, sizeof(struct dag_node_t *) * dag->count); */
+           memset(readwrite_group, 0, sizeof(struct dag_node_t *) * dag->count); */
         int readwrite_group[dag->count];
         
         /* try and find sqaures of target side length
@@ -1690,243 +1690,243 @@ void csp_dag_optimization(CSOUND *csound, struct dag_t *dag)
         int found_block = 0;
         int target = dag->count - starting_row;
         while (target >= threads && found_block == 0) {
-            TRACE_2("Start Loop Target target: %i\n", target);
-            TRACE_2("end_point: %i\n", end_point);
-            TRACE_2("starting_row: %i\n", starting_row);
+          TRACE_2("Start Loop Target target: %i\n", target);
+          TRACE_2("end_point: %i\n", end_point);
+          TRACE_2("starting_row: %i\n", starting_row);
             
-            int count_matching_cols = 0;
-            memset(readwrite_group, -1, sizeof(int) * dag->count);
+          int count_matching_cols = 0;
+          memset(readwrite_group, -1, sizeof(int) * dag->count);
             
-            TRACE_2("readwrite_group done\n");
+          TRACE_2("readwrite_group done\n");
             
-            int row = starting_row, col = starting_row;
-            while (col < dag->count) {
-                row = starting_row;
-                while (row < dag->count && (dag->table_ori[row][col] == DAG_WEAK_LINK || dag->table_ori[row][col] == DAG_NO_LINK)) {
-                    row++;
-                }
-                TRACE_2("row: %i\n", row - starting_row);
-                if ((row - starting_row) >= target) {
-                    readwrite_group[count_matching_cols] = col;
-                    count_matching_cols++;
-                }
-                col++;
+          int row = starting_row, col = starting_row;
+          while (col < dag->count) {
+            row = starting_row;
+            while (row < dag->count && (dag->table_ori[row][col] == DAG_WEAK_LINK || dag->table_ori[row][col] == DAG_NO_LINK)) {
+              row++;
             }
-            TRACE_2("count_matching_cols: %i\n", count_matching_cols);
-            if (count_matching_cols >= target) { /* we have a target x target sized square somewhere inside */
-                found_block = 1;
+            TRACE_2("row: %i\n", row - starting_row);
+            if ((row - starting_row) >= target) {
+              readwrite_group[count_matching_cols] = col;
+              count_matching_cols++;
+            }
+            col++;
+          }
+          TRACE_2("count_matching_cols: %i\n", count_matching_cols);
+          if (count_matching_cols >= target) { /* we have a target x target sized square somewhere inside */
+            found_block = 1;
                 
-            } else {                             /* go around again looking for a smaller target */
-                target--;
-            }
+          } else {                             /* go around again looking for a smaller target */
+            target--;
+          }
         }
         
         TRACE_2("Found Target? %i (%i)\n", target > threads, target);
         
         /* we've found a target square */
         if (target > threads) {
-            dag_opt_counter++;
+          dag_opt_counter++;
             
-            /* replace starting_row..starting_row+target with a new row */
-            int ctr = 0;  
+          /* replace starting_row..starting_row+target with a new row */
+          int ctr = 0;  
             
-            /* copy the original dependency table */
-            uint8_t table_copy[dag_table_original_size][dag_table_original_size];
-            memcpy(table_copy, dag->table_ori[0], sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
+          /* copy the original dependency table */
+          uint8_t table_copy[dag_table_original_size][dag_table_original_size];
+          memcpy(table_copy, dag->table_ori[0], sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
 
-            TRACE_2("Table Copy\n");
+          TRACE_2("Table Copy\n");
 #if TRACE > 1
-            ctr = 0;
-            while (ctr < dag->count) {
-                int col_ctr = 0;
-                while (col_ctr < dag->count) {
-                    csound->Message(csound, "%i ", table_copy[ctr][col_ctr]);
-                    col_ctr++;
-                }
-                csound->Message(csound, "\n");
-                ctr++;
+          ctr = 0;
+          while (ctr < dag->count) {
+            int col_ctr = 0;
+            while (col_ctr < dag->count) {
+              csound->Message(csound, "%i ", table_copy[ctr][col_ctr]);
+              col_ctr++;
             }
+            csound->Message(csound, "\n");
+            ctr++;
+          }
 #endif            
             
-            /* stream data structure */
-            int streams[threads][dag->count];
-            memset(streams, -1, sizeof(int) * threads * dag->count);
-            int streams_ix[threads];
-            memset(streams_ix, 0, sizeof(int) * threads);
-            int readwrite_group_copy[target];
-            memcpy(readwrite_group_copy, readwrite_group, sizeof(int) * target);
+          /* stream data structure */
+          int streams[threads][dag->count];
+          memset(streams, -1, sizeof(int) * threads * dag->count);
+          int streams_ix[threads];
+          memset(streams_ix, 0, sizeof(int) * threads);
+          int readwrite_group_copy[target];
+          memcpy(readwrite_group_copy, readwrite_group, sizeof(int) * target);
             
-            TRACE_2("Copied Everything\n");
+          TRACE_2("Copied Everything\n");
 #if TRACE > 1
-            ctr = 0;
-            while (ctr < target) {
-                csound->Message(csound, "%i: %i\n", ctr, readwrite_group_copy[ctr]);
-                ctr++;
-            }
+          ctr = 0;
+          while (ctr < target) {
+            csound->Message(csound, "%i: %i\n", ctr, readwrite_group_copy[ctr]);
+            ctr++;
+          }
 #endif
             
-            /* fill out the streams data structure which we use as instructions to build the new nodes */
-            ctr = 0;
-            while (ctr < target) {
-                int current_thread = 0;
-                while (ctr < target && current_thread < threads) {
-                    int inner_ctr = 0, max_ix = 0;
-                    uint32_t max_weight = 0;
-                    while (inner_ctr < target) {
-                        if (readwrite_group_copy[inner_ctr] >= 0 && dag->all[readwrite_group_copy[inner_ctr]]->instr->weight > max_weight) {
-                            max_weight = dag->all[readwrite_group_copy[inner_ctr]]->instr->weight;
-                            max_ix = inner_ctr;
-                        }
-                        inner_ctr++;
-                    }
-                    streams[current_thread][streams_ix[current_thread]] = readwrite_group_copy[max_ix];
-                    readwrite_group_copy[max_ix] = -1;
-                    ctr++;
-                    streams_ix[current_thread]++;
-                    current_thread++;
+          /* fill out the streams data structure which we use as instructions to build the new nodes */
+          ctr = 0;
+          while (ctr < target) {
+            int current_thread = 0;
+            while (ctr < target && current_thread < threads) {
+              int inner_ctr = 0, max_ix = 0;
+              uint32_t max_weight = 0;
+              while (inner_ctr < target) {
+                if (readwrite_group_copy[inner_ctr] >= 0 && dag->all[readwrite_group_copy[inner_ctr]]->instr->weight > max_weight) {
+                  max_weight = dag->all[readwrite_group_copy[inner_ctr]]->instr->weight;
+                  max_ix = inner_ctr;
                 }
+                inner_ctr++;
+              }
+              streams[current_thread][streams_ix[current_thread]] = readwrite_group_copy[max_ix];
+              readwrite_group_copy[max_ix] = -1;
+              ctr++;
+              streams_ix[current_thread]++;
+              current_thread++;
             }
+          }
             
-            TRACE_2("Done Stream Instructions\n");
+          TRACE_2("Done Stream Instructions\n");
 #if TRACE > 1
-            ctr = 0;
-            while (ctr < threads) {
-                csound->Message(csound, "Stream %i: [%i]\n  ", ctr, streams_ix[ctr]);
-                int stream_ix = 0;
-                while (stream_ix < streams_ix[ctr]) {
-                    csound->Message(csound, "%i ", streams[ctr][stream_ix]);
-                    stream_ix++;
-                }
-                csound->Message(csound, "\n");
-                ctr++;
+          ctr = 0;
+          while (ctr < threads) {
+            csound->Message(csound, "Stream %i: [%i]\n  ", ctr, streams_ix[ctr]);
+            int stream_ix = 0;
+            while (stream_ix < streams_ix[ctr]) {
+              csound->Message(csound, "%i ", streams[ctr][stream_ix]);
+              stream_ix++;
             }
+            csound->Message(csound, "\n");
+            ctr++;
+          }
 #endif
             
-            /* allocate the replacement list dag_nodes */
-            ctr = 0;
-            struct dag_node_t *new_nodes[threads];
-            memset(new_nodes, 0, sizeof(struct dag_node_t *) * threads);
-            while (ctr < threads) {
-                dag_node_2_alloc_list(csound, &(new_nodes[ctr]), streams_ix[ctr]);
-                ctr++;
+          /* allocate the replacement list dag_nodes */
+          ctr = 0;
+          struct dag_node_t *new_nodes[threads];
+          memset(new_nodes, 0, sizeof(struct dag_node_t *) * threads);
+          while (ctr < threads) {
+            dag_node_2_alloc_list(csound, &(new_nodes[ctr]), streams_ix[ctr]);
+            ctr++;
+          }
+            
+          TRACE_2("Allocated all nodes\n");
+            
+          /* copy nodes from dag into array inside dag_node */
+          ctr = 0;
+          while (ctr < threads) {
+            int inner_ctr = 0;
+            while (inner_ctr < new_nodes[ctr]->count) {
+              new_nodes[ctr]->nodes[inner_ctr] = dag->all[streams[ctr][inner_ctr]];
+              dag->all[streams[ctr][inner_ctr]] = NULL;
+              inner_ctr++;
             }
+            ctr++;
+          }
             
-            TRACE_2("Allocated all nodes\n");
+          TRACE_2("Copied all old node references into new nodes\n");
             
-            /* copy nodes from dag into array inside dag_node */
-            ctr = 0;
-            while (ctr < threads) {
-                int inner_ctr = 0;
-                while (inner_ctr < new_nodes[ctr]->count) {
-                    new_nodes[ctr]->nodes[inner_ctr] = dag->all[streams[ctr][inner_ctr]];
-                    dag->all[streams[ctr][inner_ctr]] = NULL;
-                    inner_ctr++;
+          int map_old_to_new_locations[dag->count];
+          memset(map_old_to_new_locations, -1, sizeof(int) * dag->count);
+            
+          /* shuffle up all the nodes into the gaps left */
+          ctr = 0;
+          int streams_remaining = 0;
+          while (ctr < dag->count) {
+            /* we only move things if necessary ie we're in a spot where a node was removed for merging before */
+            if (dag->all[ctr] == NULL) {
+              if (streams_remaining < threads) {  /* slot new nodes in first */
+                TRACE_2("Is merged node\n");
+                dag->all[ctr] = new_nodes[streams_remaining];
+                        
+                int stream_ctr = 0;
+                while (stream_ctr < streams_ix[streams_remaining]) {
+                  map_old_to_new_locations[streams[streams_remaining][stream_ctr]] = ctr;
+                  stream_ctr++;
                 }
-                ctr++;
-            }
-            
-            TRACE_2("Copied all old node references into new nodes\n");
-            
-            int map_old_to_new_locations[dag->count];
-            memset(map_old_to_new_locations, -1, sizeof(int) * dag->count);
-            
-            /* shuffle up all the nodes into the gaps left */
-            ctr = 0;
-            int streams_remaining = 0;
-            while (ctr < dag->count) {
-                /* we only move things if necessary ie we're in a spot where a node was removed for merging before */
-                if (dag->all[ctr] == NULL) {
-                    if (streams_remaining < threads) {  /* slot new nodes in first */
-                        TRACE_2("Is merged node\n");
-                        dag->all[ctr] = new_nodes[streams_remaining];
                         
-                        int stream_ctr = 0;
-                        while (stream_ctr < streams_ix[streams_remaining]) {
-                            map_old_to_new_locations[streams[streams_remaining][stream_ctr]] = ctr;
-                            stream_ctr++;
-                        }
-                        
-                        streams_remaining++;
-                    } else {                            /* slide down the rest of the nodes */
-                        TRACE_2("No more merged nodes\n");
-                        int next = ctr + 1;
-                        while (next < dag->count && dag->all[next] == NULL) {
-                            next++;
-                        }
-                        if (next < dag->count) {
-                            TRACE_2("Normal Node\n");
-                            dag->all[ctr] = dag->all[next];
-                            dag->all[next] = NULL;
+                streams_remaining++;
+              } else {                            /* slide down the rest of the nodes */
+                TRACE_2("No more merged nodes\n");
+                int next = ctr + 1;
+                while (next < dag->count && dag->all[next] == NULL) {
+                  next++;
+                }
+                if (next < dag->count) {
+                  TRACE_2("Normal Node\n");
+                  dag->all[ctr] = dag->all[next];
+                  dag->all[next] = NULL;
                             
-                            map_old_to_new_locations[next] = ctr;
-                        } else {
-                            TRACE_2("Done copying normal nodes\n");
-                            /* we're done at this point no more nodes to copy */
-                            break;
-                        }
-                    }
+                  map_old_to_new_locations[next] = ctr;
                 } else {
-                    map_old_to_new_locations[ctr] = ctr;
+                  TRACE_2("Done copying normal nodes\n");
+                  /* we're done at this point no more nodes to copy */
+                  break;
                 }
-                ctr++;
+              }
+            } else {
+              map_old_to_new_locations[ctr] = ctr;
             }
+            ctr++;
+          }
             
-            TRACE_2("Shuffled up all nodes\n");
+          TRACE_2("Shuffled up all nodes\n");
             
 #if TRACE > 1
-            ctr = 0;
-            while (ctr < dag->count) {
-                csound->Message(csound, "%i -> %i\n", ctr, map_old_to_new_locations[ctr]);
-                ctr++;
-            }
+          ctr = 0;
+          while (ctr < dag->count) {
+            csound->Message(csound, "%i -> %i\n", ctr, map_old_to_new_locations[ctr]);
+            ctr++;
+          }
 #endif
             
-            /* empty the table of dependencies */
-            memset(dag->table_ori[0], 0, sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
+          /* empty the table of dependencies */
+          memset(dag->table_ori[0], 0, sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
                         
-            /* copy across the new dependency info */
-            int update_col = 0, update_row = 0;
-            while (update_col < dag->count) {
-                update_row = 0;
-                int working_col = map_old_to_new_locations[update_col];
-                while (update_row < dag->count) {
-                    int working_row = map_old_to_new_locations[update_row];
+          /* copy across the new dependency info */
+          int update_col = 0, update_row = 0;
+          while (update_col < dag->count) {
+            update_row = 0;
+            int working_col = map_old_to_new_locations[update_col];
+            while (update_row < dag->count) {
+              int working_row = map_old_to_new_locations[update_row];
                     
-                    TRACE_2("(%i, %i) -> (%i, %i)\n", update_row, update_col, working_row, working_col);
-                    TRACE_2("%i -> %i\n", table_copy[update_row][update_col], dag->table_ori[working_row][working_col]);
+              TRACE_2("(%i, %i) -> (%i, %i)\n", update_row, update_col, working_row, working_col);
+              TRACE_2("%i -> %i\n", table_copy[update_row][update_col], dag->table_ori[working_row][working_col]);
                 
-                    switch (table_copy[update_row][update_col]) {
-                        case DAG_STRONG_LINK:
-                            dag->table_ori[working_row][working_col] = DAG_STRONG_LINK;
-                            break;
-                        case DAG_WEAK_LINK:
-                            if (dag->table_ori[working_row][working_col] != DAG_STRONG_LINK) {
-                                dag->table_ori[working_row][working_col] = DAG_WEAK_LINK;
-                            }
-                            break;
-                        case DAG_NO_LINK:
-                            if (dag->table_ori[working_row][working_col] != DAG_STRONG_LINK && dag->table_ori[working_row][working_col] != DAG_WEAK_LINK) {
-                                dag->table_ori[working_row][working_col] = DAG_NO_LINK;
-                            }
-                            break;
-                    }
-                    TRACE_2("-> %i\n", dag->table_ori[working_row][working_col]);
-                    update_row++;
+              switch (table_copy[update_row][update_col]) {
+              case DAG_STRONG_LINK:
+                dag->table_ori[working_row][working_col] = DAG_STRONG_LINK;
+                break;
+              case DAG_WEAK_LINK:
+                if (dag->table_ori[working_row][working_col] != DAG_STRONG_LINK) {
+                  dag->table_ori[working_row][working_col] = DAG_WEAK_LINK;
                 }
-                update_col++;
+                break;
+              case DAG_NO_LINK:
+                if (dag->table_ori[working_row][working_col] != DAG_STRONG_LINK && dag->table_ori[working_row][working_col] != DAG_WEAK_LINK) {
+                  dag->table_ori[working_row][working_col] = DAG_NO_LINK;
+                }
+                break;
+              }
+              TRACE_2("-> %i\n", dag->table_ori[working_row][working_col]);
+              update_row++;
             }
+            update_col++;
+          }
             
-            TRACE_2("Completed dependencies merge\n");
+          TRACE_2("Completed dependencies merge\n");
             
-            /* update the dag->count */
-            dag->count = dag->count - target + threads;   
-            starting_row = starting_row + threads;
-            end_point = dag->count - threads;
+          /* update the dag->count */
+          dag->count = dag->count - target + threads;   
+          starting_row = starting_row + threads;
+          end_point = dag->count - threads;
         } else {
-            /* not enough parallelism after this instrument */
-            starting_row++;
+          /* not enough parallelism after this instrument */
+          starting_row++;
         }
-    }
+      }
     
     /* reset ready to redo roots and similar things */
     memcpy(dag->table[0], dag->table_ori[0], sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
@@ -1963,12 +1963,12 @@ void csp_dag_optimization(CSOUND *csound, struct dag_t *dag)
 #ifdef LINEAR_CACHE
 
 struct dag_cache_entry_t {
-    struct dag_t              *dag;
-    uint32_t                    uses;
-    uint32_t                    age;
-    struct dag_cache_entry_t  *next;
-    int16                       instrs;
-    int16                       chain[];
+  struct dag_t              *dag;
+  uint32_t                    uses;
+  uint32_t                    age;
+  struct dag_cache_entry_t  *next;
+  int16                       instrs;
+  int16                       chain[];
 };
 
 static int cache_ctr;
@@ -1994,11 +1994,11 @@ void csp_dag_cache_print(CSOUND *csound)
     uint32_t sum = 0, max = 0, min = UINT32_MAX, sum_age = 0;
     struct dag_cache_entry_t *entry = cache, *prev = NULL;
     while (entry != NULL) {
-        if (entry->uses > max) max = entry->uses;
-        else if (entry->uses < min) min = entry->uses;
-        sum = sum + entry->uses;
-        sum_age = sum_age + entry->age;
-        entry = entry->next;
+      if (entry->uses > max) max = entry->uses;
+      else if (entry->uses < min) min = entry->uses;
+      sum = sum + entry->uses;
+      sum_age = sum_age + entry->age;
+      entry = entry->next;
     }
     csound->Message(csound, "Dag2 Avg Uses: %u\n", sum / cache_ctr);
     csound->Message(csound, "Dag2 Min Uses: %u\n", min);
@@ -2015,13 +2015,13 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound, struct dag_cache_entry_t **
     int ctr = 0;
     INSDS *current_insds = chain;
     while (current_insds != NULL) {
-        ctr++;
-        current_insds = current_insds->nxtact;
+      ctr++;
+      current_insds = current_insds->nxtact;
     }
 
     *entry = csound->Malloc(csound, sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr);
     if (*entry == NULL) {
-        csound->Die(csound, "Failed to allocate Dag2 cache");
+      csound->Die(csound, "Failed to allocate Dag2 cache");
     }
     memset(*entry, 0, sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr);
     (*entry)->uses   = 1;
@@ -2031,9 +2031,9 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound, struct dag_cache_entry_t **
     ctr = 0;    
     current_insds = chain;
     while (current_insds != NULL) {
-        (*entry)->chain[ctr] = current_insds->insno;
-        ctr++;
-        current_insds = current_insds->nxtact;
+      (*entry)->chain[ctr] = current_insds->insno;
+      ctr++;
+      current_insds = current_insds->nxtact;
     }
     
     struct dag_t *dag = NULL;
@@ -2059,45 +2059,45 @@ static int csp_dag_cache_entry_dealloc(CSOUND *csound, struct dag_cache_entry_t 
 static void csp_dag_cache_update(CSOUND *csound)
 {
     if (cache_ctr < DAG_2_CACHE_SIZE) {
-        return;
+      return;
     }
     csound->Message(csound, "Cache Update\n");
     struct dag_cache_entry_t *entry = cache, *prev = NULL;
     while (entry != NULL) {
-        entry->uses = entry->uses >> DAG_2_DECAY_COMP;
-        entry->age  = entry->age  >> DAG_2_DECAY_COMP;
-        if (entry->uses < DAG_2_MIN_USE_LIMIT && entry->age < DAG_2_MIN_AGE_LIMIT && prev != NULL) {
-            prev->next = entry->next;
-            csp_dag_cache_entry_dealloc(csound, &entry);
-            entry = prev->next;
-            cache_ctr--;
-        } else {
-            prev = entry;
-            entry = entry->next;
-        }
+      entry->uses = entry->uses >> DAG_2_DECAY_COMP;
+      entry->age  = entry->age  >> DAG_2_DECAY_COMP;
+      if (entry->uses < DAG_2_MIN_USE_LIMIT && entry->age < DAG_2_MIN_AGE_LIMIT && prev != NULL) {
+        prev->next = entry->next;
+        csp_dag_cache_entry_dealloc(csound, &entry);
+        entry = prev->next;
+        cache_ctr--;
+      } else {
+        prev = entry;
+        entry = entry->next;
+      }
     }
 }
 
 static int csp_dag_cache_compare(CSOUND *csound, struct dag_cache_entry_t *entry, INSDS *chain)
 {
     /* if (entry == NULL) csound->Die(csound, "Invalid NULL Parameter entry");
-    if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
+       if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
     
     INSDS *current_insds = chain;
     int32_t ctr = 0;
     while (current_insds != NULL && ctr < entry->instrs) {
-        if (current_insds->insno != entry->chain[ctr]) {
-            return 0;
-        }
-        current_insds = current_insds->nxtact;
-        ctr++;
+      if (current_insds->insno != entry->chain[ctr]) {
+        return 0;
+      }
+      current_insds = current_insds->nxtact;
+      ctr++;
     }
     if (ctr >= entry->instrs && current_insds != NULL) {
-        return 0;
+      return 0;
     } else if (ctr < entry->instrs && current_insds == NULL) {
-        return 0;
+      return 0;
     } else {
-        return 1;
+      return 1;
     }
 }
 
@@ -2110,32 +2110,32 @@ void csp_dag_cache_fetch(CSOUND *csound, struct dag_t **dag, INSDS *chain)
     
     update_ctr++;
     if (update_ctr == 10000) {
-        csp_dag_cache_update(csound);
-        update_ctr = 0;
+      csp_dag_cache_update(csound);
+      update_ctr = 0;
     }
     
     struct dag_cache_entry_t *curr = cache;
     while (curr != NULL) {
-        if (csp_dag_cache_compare(csound, curr, chain)) {
-            TRACE_2("Cache Hit [%i]\n", cache_ctr);
-            *dag = curr->dag;
+      if (csp_dag_cache_compare(csound, curr, chain)) {
+        TRACE_2("Cache Hit [%i]\n", cache_ctr);
+        *dag = curr->dag;
             
-            curr->uses++;
+        curr->uses++;
             
-            csp_dag_prepare_use_insds(csound, curr->dag, chain);
-            csp_dag_prepare_use(csound, curr->dag);
-            break;
-        }
-        curr = curr->next;
+        csp_dag_prepare_use_insds(csound, curr->dag, chain);
+        csp_dag_prepare_use(csound, curr->dag);
+        break;
+      }
+      curr = curr->next;
     }
     if (*dag == NULL) {
-        csp_dag_cache_entry_alloc(csound, &curr, chain);
-        cache_ctr++;
-        *dag = curr->dag;
-        curr->next = cache;
-        cache = curr;
+      csp_dag_cache_entry_alloc(csound, &curr, chain);
+      cache_ctr++;
+      *dag = curr->dag;
+      curr->next = cache;
+      cache = curr;
         
-        TRACE_2("Cache Miss [%i]\n", cache_ctr);
+      TRACE_2("Cache Miss [%i]\n", cache_ctr);
     }
 }
 
@@ -2145,14 +2145,14 @@ void csp_dag_cache_fetch(CSOUND *csound, struct dag_t **dag, INSDS *chain)
 #ifdef HASH_CACHE
 
 struct dag_cache_entry_t {
-    uint32_t                    hash_val;
-    struct dag_cache_entry_t  *next;
-    struct dag_t              *dag;
-    uint32_t                    uses;
-    uint32_t                    age;
+  uint32_t                    hash_val;
+  struct dag_cache_entry_t  *next;
+  struct dag_t              *dag;
+  uint32_t                    uses;
+  uint32_t                    age;
 
-    int16                       instrs;
-    int16                       chain[];
+  int16                       instrs;
+  int16                       chain[];
 };
 
 #define DAG_2_CACHE_SIZE     128
@@ -2186,37 +2186,37 @@ void csp_dag_cache_print(CSOUND *csound)
     uint32_t root_avail_sum = 0, root_avail_max = 0, root_avail_min = UINT32_MAX;
     uint32_t bin_ctr = 0, bins_empty = 0, bins_used = 0, bin_max = 0;
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-        struct dag_cache_entry_t *entry = cache[bin_ctr];
+      struct dag_cache_entry_t *entry = cache[bin_ctr];
         
-        if (entry == NULL) bins_empty++;
-        else bins_used++;
+      if (entry == NULL) bins_empty++;
+      else bins_used++;
         
-        uint32_t entry_ctr = 0;
-        while (entry != NULL) {
-            entry_ctr++;
-            if (entry->uses > max) max = entry->uses;
-            else if (entry->uses < min) min = entry->uses;
-            sum = sum + entry->uses;
-            sum_age = sum_age + entry->age;
+      uint32_t entry_ctr = 0;
+      while (entry != NULL) {
+        entry_ctr++;
+        if (entry->uses > max) max = entry->uses;
+        else if (entry->uses < min) min = entry->uses;
+        sum = sum + entry->uses;
+        sum_age = sum_age + entry->age;
             
-            weight_sum += entry->dag->weight;
-            if (entry->dag->weight > weight_max) weight_max = entry->dag->weight;
-            else if (entry->dag->weight < weight_min) weight_min = entry->dag->weight;
+        weight_sum += entry->dag->weight;
+        if (entry->dag->weight > weight_max) weight_max = entry->dag->weight;
+        else if (entry->dag->weight < weight_min) weight_min = entry->dag->weight;
             
-            instr_num_sum += entry->instrs;
-            if (entry->instrs > instr_num_max) instr_num_max = entry->instrs;
-            else if (entry->instrs < instr_num_min) instr_num_min = entry->instrs;
+        instr_num_sum += entry->instrs;
+        if (entry->instrs > instr_num_max) instr_num_max = entry->instrs;
+        else if (entry->instrs < instr_num_min) instr_num_min = entry->instrs;
             
-            root_avail_sum += entry->dag->max_roots;
-            if (entry->dag->max_roots > root_avail_max) root_avail_max = entry->dag->max_roots;
-            else if (entry->dag->max_roots < root_avail_min) root_avail_min = entry->dag->max_roots;
+        root_avail_sum += entry->dag->max_roots;
+        if (entry->dag->max_roots > root_avail_max) root_avail_max = entry->dag->max_roots;
+        else if (entry->dag->max_roots < root_avail_min) root_avail_min = entry->dag->max_roots;
             
-            entry = entry->next;
-        }
+        entry = entry->next;
+      }
         
-        if (entry_ctr > bin_max) bin_max = entry_ctr;
+      if (entry_ctr > bin_max) bin_max = entry_ctr;
         
-        bin_ctr++;
+      bin_ctr++;
     }
     csound->Message(csound, "Dag2 Avg Uses: %u\n", sum / cache_ctr);
     csound->Message(csound, "Dag2 Min Uses: %u\n", min);
@@ -2243,7 +2243,7 @@ void csp_dag_cache_print(CSOUND *csound)
     
     
     if (csound->weight_dump != NULL) {
-        csp_dag_cache_print_weights_dump(csound);
+      csp_dag_cache_print_weights_dump(csound);
     }
 }
 
@@ -2253,37 +2253,37 @@ static void csp_dag_cache_print_weights_dump(CSOUND *csound)
     
     FILE *f = fopen(path, "w+");
     if (f == NULL) {
-        csound->Die(csound, "Parallel Dump File not found at: %s for writing", path);
+      csound->Die(csound, "Parallel Dump File not found at: %s for writing", path);
     }
     
     uint32_t bin_ctr = 0;
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-        struct dag_cache_entry_t *entry = cache[bin_ctr];
+      struct dag_cache_entry_t *entry = cache[bin_ctr];
 
-        while (entry != NULL) {
-            struct dag_t *dag = entry->dag;
-            int ctr = 0;
-            while (ctr < entry->instrs) {
-                fprintf(f, "%hi", entry->chain[ctr]);
-                if (ctr != entry->instrs - 1) {
-                    fprintf(f, ", ");
-                }
-                ctr++;
-            }
-            fprintf(f, "\n");
-            fprintf(f, "%u\n", dag->weight);
-            fprintf(f, "%u\n", dag->max_roots);
-            
-            char *dag_str = csp_dag_string(csound, dag);
-            if (dag_str != NULL) {
-                fprintf(f, "%s", dag_str);
-                free(dag_str);
-            }
-            fprintf(f, "\n");
-            entry = entry->next;
+      while (entry != NULL) {
+        struct dag_t *dag = entry->dag;
+        int ctr = 0;
+        while (ctr < entry->instrs) {
+          fprintf(f, "%hi", entry->chain[ctr]);
+          if (ctr != entry->instrs - 1) {
+            fprintf(f, ", ");
+          }
+          ctr++;
         }
+        fprintf(f, "\n");
+        fprintf(f, "%u\n", dag->weight);
+        fprintf(f, "%u\n", dag->max_roots);
+            
+        char *dag_str = csp_dag_string(csound, dag);
+        if (dag_str != NULL) {
+          fprintf(f, "%s", dag_str);
+          free(dag_str);
+        }
+        fprintf(f, "\n");
+        entry = entry->next;
+      }
 
-        bin_ctr++;
+      bin_ctr++;
     }
     
     fclose(f);
@@ -2297,13 +2297,13 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound, struct dag_cache_entry_t **
     int ctr = 0;
     INSDS *current_insds = chain;
     while (current_insds != NULL) {
-        ctr++;
-        current_insds = current_insds->nxtact;
+      ctr++;
+      current_insds = current_insds->nxtact;
     }
 
     *entry = csound->Malloc(csound, sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr);
     if (*entry == NULL) {
-        csound->Die(csound, "Failed to allocate Dag2 cache entry");
+      csound->Die(csound, "Failed to allocate Dag2 cache entry");
     }
     memset(*entry, 0, sizeof(struct dag_cache_entry_t) + sizeof(int16) * ctr);
     (*entry)->uses   = 1;
@@ -2314,9 +2314,9 @@ static int csp_dag_cache_entry_alloc(CSOUND *csound, struct dag_cache_entry_t **
     ctr = 0;    
     current_insds = chain;
     while (current_insds != NULL) {
-        (*entry)->chain[ctr] = current_insds->insno;
-        ctr++;
-        current_insds = current_insds->nxtact;
+      (*entry)->chain[ctr] = current_insds->insno;
+      ctr++;
+      current_insds = current_insds->nxtact;
     }
     
     struct dag_t *dag = NULL;
@@ -2343,129 +2343,129 @@ static int csp_dag_cache_entry_dealloc(CSOUND *csound, struct dag_cache_entry_t 
 static void csp_dag_cache_update(CSOUND *csound)
 {
     if (cache_ctr < DAG_2_CACHE_SIZE) {
-        return;
+      return;
     }
     csound->Message(csound, "Cache Update\n");
     
     uint32_t bin_ctr = 0;
     while (bin_ctr < DAG_2_CACHE_SIZE) {
-        if (cache[bin_ctr] == NULL) {
-            bin_ctr++;
-            continue;
-        }
-        
-        struct dag_cache_entry_t *entry = cache[bin_ctr], *prev = NULL;
-        while (entry != NULL) {
-            entry->uses = entry->uses >> DAG_2_DECAY_COMP;
-            entry->age  = entry->age  >> DAG_2_DECAY_COMP;
-            if (entry->uses < DAG_2_MIN_USE_LIMIT && entry->age < DAG_2_MIN_AGE_LIMIT) {
-                if (prev == NULL) {
-                    cache[bin_ctr] = entry->next;
-                } else {
-                    prev->next = entry->next;
-                }
-                csp_dag_cache_entry_dealloc(csound, &entry);
-                if (prev == NULL) {
-                    entry = cache[bin_ctr];
-                } else {
-                    entry = prev->next;
-                }
-                cache_ctr--;
-            } else {
-                prev = entry;
-                entry = entry->next;
-            }
-        }
+      if (cache[bin_ctr] == NULL) {
         bin_ctr++;
+        continue;
+      }
+        
+      struct dag_cache_entry_t *entry = cache[bin_ctr], *prev = NULL;
+      while (entry != NULL) {
+        entry->uses = entry->uses >> DAG_2_DECAY_COMP;
+        entry->age  = entry->age  >> DAG_2_DECAY_COMP;
+        if (entry->uses < DAG_2_MIN_USE_LIMIT && entry->age < DAG_2_MIN_AGE_LIMIT) {
+          if (prev == NULL) {
+            cache[bin_ctr] = entry->next;
+          } else {
+            prev->next = entry->next;
+          }
+          csp_dag_cache_entry_dealloc(csound, &entry);
+          if (prev == NULL) {
+            entry = cache[bin_ctr];
+          } else {
+            entry = prev->next;
+          }
+          cache_ctr--;
+        } else {
+          prev = entry;
+          entry = entry->next;
+        }
+      }
+      bin_ctr++;
     }
 }
 
 static int csp_dag_cache_compare(CSOUND *csound, struct dag_cache_entry_t *entry, INSDS *chain)
 {
     /* if (entry == NULL) csound->Die(csound, "Invalid NULL Parameter entry");
-    if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
+       if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
     
     INSDS *current_insds = chain;
     int32_t ctr = 0;
     while (current_insds != NULL && ctr < entry->instrs) {
-        if (current_insds->insno != entry->chain[ctr]) {
-            return 0;
-        }
-        current_insds = current_insds->nxtact;
-        ctr++;
+      if (current_insds->insno != entry->chain[ctr]) {
+        return 0;
+      }
+      current_insds = current_insds->nxtact;
+      ctr++;
     }
     if (ctr >= entry->instrs && current_insds != NULL) {
-        return 0;
+      return 0;
     } else if (ctr < entry->instrs && current_insds == NULL) {
-        return 0;
+      return 0;
     } else {
-        return 1;
+      return 1;
     }
 }
 
 void csp_dag_cache_fetch(CSOUND *csound, struct dag_t **dag, INSDS *chain)
 {
     /* if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
-    if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
+       if (chain == NULL) csound->Die(csound, "Invalid NULL Parameter chain"); */
     
     /* static int ctr = 0; */
     
     update_ctr++;
     if (update_ctr == 10000) {
-        csp_dag_cache_update(csound);
-        update_ctr = 0;
+      csp_dag_cache_update(csound);
+      update_ctr = 0;
         
 #ifdef HYBRID_HASH_CACHE
-        cache_last = NULL;
+      cache_last = NULL;
 #endif
     }
     
 #ifdef HYBRID_HASH_CACHE
     if (cache_last != NULL && csp_dag_cache_compare(csound, cache_last, chain)) {
-  #if TRACE > 2
-        csound->Message(csound, "Cache Hit (Last) [%i]\n", cache_ctr);
-  #endif
-        struct dag_cache_entry_t *curr = cache_last;
+#if TRACE > 2
+      csound->Message(csound, "Cache Hit (Last) [%i]\n", cache_ctr);
+#endif
+      struct dag_cache_entry_t *curr = cache_last;
         
-        *dag = curr->dag;
+      *dag = curr->dag;
         
-        curr->uses++;
+      curr->uses++;
         
-        csp_dag_prepare_use_insds(csound, curr->dag, chain);
-        csp_dag_prepare_use(csound, curr->dag);
-        return;
+      csp_dag_prepare_use_insds(csound, curr->dag, chain);
+      csp_dag_prepare_use(csound, curr->dag);
+      return;
     }
 #endif
     
     uint32_t hash_val = hash_chain(chain, DAG_2_CACHE_SIZE);
     struct dag_cache_entry_t *curr = cache[hash_val];
     while (curr != NULL) {
-        if (csp_dag_cache_compare(csound, curr, chain)) {
-            TRACE_2("Cache Hit [%i]\n", cache_ctr);
+      if (csp_dag_cache_compare(csound, curr, chain)) {
+        TRACE_2("Cache Hit [%i]\n", cache_ctr);
             
-            *dag = curr->dag;
-            
-            curr->uses++;
-            
-            csp_dag_prepare_use_insds(csound, curr->dag, chain);
-            csp_dag_prepare_use(csound, curr->dag);
-#ifdef HYBRID_HASH_CACHE
-            cache_last = curr;
-#endif
-            break;
-        }
-        curr = curr->next;
-    }
-    if (*dag == NULL) {
-        TRACE_2("Cache Miss [%i]\n", cache_ctr);
-        csp_dag_cache_entry_alloc(csound, &curr, chain, hash_val);
-        cache_ctr++;
         *dag = curr->dag;
-        
-        curr->next = cache[hash_val];
-        cache[hash_val] = curr;
+            
+        curr->uses++;
+            
+        csp_dag_prepare_use_insds(csound, curr->dag, chain);
+        csp_dag_prepare_use(csound, curr->dag);
 #ifdef HYBRID_HASH_CACHE
         cache_last = curr;
+#endif
+        break;
+      }
+      curr = curr->next;
+    }
+    if (*dag == NULL) {
+      TRACE_2("Cache Miss [%i]\n", cache_ctr);
+      csp_dag_cache_entry_alloc(csound, &curr, chain, hash_val);
+      cache_ctr++;
+      *dag = curr->dag;
+        
+      curr->next = cache[hash_val];
+      cache[hash_val] = curr;
+#ifdef HYBRID_HASH_CACHE
+      cache_last = curr;
 #endif
     }
 }

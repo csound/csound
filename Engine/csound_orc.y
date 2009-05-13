@@ -151,7 +151,7 @@
 
 #include "csound_orc.h"
 #include "cs_par_base.h"
-#include "cs_par_orc_semantic_analysis.h"
+#include "cs_par_orc_semantics.h"
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag

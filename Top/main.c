@@ -29,7 +29,7 @@
 #include "csound_orc.h"
 
 #include "cs_par_base.h"
-#include "cs_par_orc_semantic_analysis.h"
+#include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
 extern  void    dieu(CSOUND *, char *, ...);
@@ -423,7 +423,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads/* + 1*/);
         csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads/* + 1*/);
 #endif
-        
+
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
   #ifdef NUM_THREADS_OLD_DEF
         csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads + 1);
@@ -433,7 +433,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
   #endif
 #endif
-        
+
         csound->multiThreadedComplete = 0;
 
 #ifdef NUM_THREADS_OLD_DEF
@@ -459,7 +459,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 #else
         csound->WaitBarrier(csound->multiThreadedBarrier2);
 #endif
-        
+
         csp_parallel_compute_spec_setup(csound);
     }
 

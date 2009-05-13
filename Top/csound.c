@@ -61,7 +61,7 @@ extern "C" {
 #include "csound_orc.h"
 
 #include "cs_par_base.h"
-#include "cs_par_orc_semantic_analysis.h"
+#include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
