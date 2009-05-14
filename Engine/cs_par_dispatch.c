@@ -1401,12 +1401,12 @@ int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
 void csp_dag_consume(CSOUND *csound, DAG *dag,
                      struct dag_node_t **node, int *update_hdl)
 {
+    struct dag_node_t *dag_node = NULL;
+    int ctr, first_root;
+
     if (UNLIKELY(dag == NULL)) csound->Die(csound, "Invalid NULL Parameter dag");
     if (UNLIKELY(node == NULL)) csound->Die(csound, "Invalid NULL Parameter node");
     if (UNLIKELY(update_hdl == NULL)) csound->Die(csound, "Invalid NULL Parameter update_hdl");
-
-    struct dag_node_t *dag_node = NULL;
-    int ctr, first_root;
 
     TRACE_2("[%i] Consuming PreLock [%i, %i] +++++\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 
@@ -1423,7 +1423,9 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
     TRACE_2("[%i] Consuming Have Spinlock [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
 
     if (dag->remaining <= 0) {
-      TRACE_2("[%i] Consuming Nothing [%i, %i]\n", csp_thread_index_get(csound), dag->first_root, dag->consume_spinlock);
+      TRACE_2("[%i] Consuming Nothing [%i, %i]\n",
+              csp_thread_index_get(csound), dag->first_root,
+              dag->consume_spinlock);
 #ifdef COUNTING_SEMAPHORE
       csp_semaphore_release(csound, dag->consume_semaphore);
       csp_semaphore_release_end(csound, dag->consume_semaphore);
@@ -1435,11 +1437,14 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
       *node = NULL;
       *update_hdl = -1;
       return;
-    } else if (UNLIKELY(dag->first_root == -1)) {
+    } 
+    else if (UNLIKELY(dag->first_root == -1)) {
 
       csp_dag_print(csound, dag);
 
-      csound->Die(csound, "Expected a root to perform. Found none (%i remaining)", dag->remaining);
+      csound->Die(csound,
+                  "Expected a root to perform. Found none (%i remaining)",
+                  dag->remaining);
     }
 
     first_root = dag->first_root;

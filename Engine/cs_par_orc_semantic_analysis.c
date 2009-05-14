@@ -122,13 +122,13 @@ void csp_orc_sa_print_list(CSOUND *csound)
     INSTR_SEMANTICS *current = root;
     while (current != NULL) {
         csound->Message(csound, "Instr: %s\n", current->name);
-        csound->Message(csound, "  read\n");
+        csound->Message(csound, "  read: ");
         csp_set_print(csound, current->read);
 
-        csound->Message(csound, "  write\n");
+        csound->Message(csound, "  write: ");
         csp_set_print(csound, current->write);
 
-        csound->Message(csound, "  read_write\n");
+        csound->Message(csound, "  read_write: ");
         csp_set_print(csound, current->read_write);
 
         csound->Message(csound, "  weight: %u\n", current->weight);
@@ -215,7 +215,6 @@ static int inInstr = 0;
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    printf("*** csp_orc_sa_instr_add %s\n", name);
     inInstr = 1;
     if (root == NULL) {
       root = instr_semantics_alloc(csound, name);
@@ -241,12 +240,8 @@ void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 /* New code to deal with lists of integer instruments -- JPff */
 void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 {
-    printf("*** csp_orc_sa_instr_add_tree %p\n", x);
     while (x) {
-      printf("*** csp_orc_sa_instr_add_tree %p\n", x);
-      printf("*** type %d\n", x->type);
       if (x->type == T_INTGR) {
-        printf("lexeme: %s\n", x->value->lexeme);
         csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
