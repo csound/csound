@@ -246,11 +246,12 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
       printf("*** csp_orc_sa_instr_add_tree %p\n", x);
       printf("*** type %d\n", x->type);
       if (x->type == T_INTGR) {
-        csp_orc_sa_instr_add(csound, ((ORCTOKEN*)x)->lexeme);
+        printf("lexeme: %s\n", x->value->lexeme);
+        csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
       if (x->type != T_INTLIST) csound->Die(csound, "Not a proper list of ints");
-      csp_orc_sa_instr_add(csound, x->left->value);
+      csp_orc_sa_instr_add(csound, x->left->value->lexeme);
       x = x->right;
     }
 }

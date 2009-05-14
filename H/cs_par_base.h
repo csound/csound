@@ -3,7 +3,7 @@
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
-#define TRACE 2
+#define TRACE 0
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
