@@ -424,7 +424,9 @@ else:
     print "Using Istvan localisation"
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
     
-if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
+if commonEnvironment['gcc4opt'] == 'atom':
+    commonEnvironment.Prepend(CCFLAGS = Split('-march=prescott -O2 -fomit-frame-pointer'))
+elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     if not buildOLPC:
      commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
     if commonEnvironment['gcc4opt'] != '0':
@@ -454,7 +456,7 @@ if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(SHLINKFLAGS = ['-pg'])
 elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
    if not buildOLPC:
-    if not compilerSun():
+    if not compilerSun() and commonEnvironment['gcc4opt'] != 'atom':
         commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
         commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
