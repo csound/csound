@@ -535,17 +535,27 @@ namespace csound
 
   double Voicelead::mToC(double M, size_t divisionsPerOctave)
   {
-    int C = int(std::fabs(M + 0.5)) - 1;
+    // Only C has a modulus.
     int modulus = int(std::pow(2.0, double(divisionsPerOctave))) - 1;
+    // Round off the absolute value of M.
+    M = int(std::fabs(M + 0.5));
+    // C is always 1 less than M.
+    int C = M - 1;
+    // Take the modulus of C.
     C = C % modulus;
     return double(C);
   }
 
   double Voicelead::cToM(double C, size_t divisionsPerOctave)
   {
-    int M = int(std::fabs(C + 0.5)) + 1;
+    // Only C has a modulus.
     int modulus = int(std::pow(2.0, double(divisionsPerOctave))) - 1;
-    M = M % modulus;
+    // Round off the absolute value of C.
+    C = int(std::fabs(C + 0.5));
+    // Take the modulus of C.
+    C = C % modulus;
+    // M is always 1 more than C.
+    int M = C + 1;    
     return double(M);
   }
   
