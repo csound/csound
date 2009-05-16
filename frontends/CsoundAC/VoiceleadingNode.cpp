@@ -40,17 +40,10 @@ namespace csound
     rescaledBeginTime(0.0),
     endTime(0.0),
     rescaledEndTime(0.0),
-#ifdef MSVC
     P(DBL_MAX),
     T(DBL_MAX),
     C(DBL_MAX),
     V(DBL_MAX),
-#else
-    P(double(0.0) / double(0.0)),
-    T(double(0.0) / double(0.0)),
-    C(double(0.0) / double(0.0)),
-    V(double(0.0) / double(0.0)),
-#endif
     L(false),
     begin(0),
     end(0),
@@ -83,7 +76,6 @@ namespace csound
     stream << "  rescaledEndTime:   " << operation.rescaledEndTime << std::endl;
     stream << "  begin:             " << operation.begin << std::endl;
     stream << "  end:               " << operation.end << std::endl;
-#ifdef MSVC
     if (!(operation.P == DBL_MAX)) {
       stream << "  P:                 " << operation.P << std::endl;
     }
@@ -96,20 +88,6 @@ namespace csound
     if (!(operation.V == DBL_MAX)) {
       stream << "  V:                 " << operation.V << std::endl;
     }
-#else
-    if (!std::isnan(operation.P)) {
-      stream << "  P:                 " << operation.P << std::endl;
-    }
-    if (!std::isnan(operation.T)) {
-      stream << "  T:                 " << operation.T << std::endl;
-    }
-    if (!std::isnan(operation.C)) {
-      stream << "  C:                 " << operation.C << std::endl;
-    }
-    if (!std::isnan(operation.V)) {
-      stream << "  V:                 " << operation.V << std::endl;
-    }
-#endif
     if (operation.L) {
       stream << "  L:                 " << int(operation.L) << std::endl;
     }
@@ -132,13 +110,8 @@ namespace csound
     if (operation.begin == operation.end) {
       return;
     }
-#ifdef MSVC
     if (!(operation.P == DBL_MAX) && !(operation.T == DBL_MAX)) {
       if (!(operation.V == DBL_MAX)) {
-#else
-    if (!std::isnan(operation.P) && !std::isnan(operation.T)) {
-      if (!std::isnan(operation.V)) {
-#endif
         score.setPTV(operation.begin,
                      operation.end,
                      operation.P,
@@ -171,13 +144,8 @@ namespace csound
                     range,
                     divisionsPerOctave);
       }
-#ifdef MSVC
     } else if (!(operation.C == DBL_MAX)) {
       if (!(operation.V == DBL_MAX)) {
-#else
-    } else if (!std::isnan(operation.C)) {
-      if (!std::isnan(operation.V)) {
-#endif
         std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
         printChord("CV", pcs);
         std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
@@ -211,11 +179,7 @@ namespace csound
                                divisionsPerOctave);
       }
     } else {
-#ifdef MSVC
         if (!(operation.V == DBL_MAX)) {
-#else
-      if (!std::isnan(operation.V)) {
-#endif
         std::vector<double> ptv = score.getPTV(operation.begin,
                                                operation.end,
                                                base,

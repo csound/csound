@@ -59,8 +59,10 @@ namespace csound
       double C = 0.0;
       double P = 0.0;
       double N = std::pow(2.0, double(divisionsPerOctave)) - 1.0;
+      double M = 0.0;
       for ( ; C < N; C = C + 1.0) {
-        std::vector<double> chord = mToPitchClassSet(cToM(C, divisionsPerOctave), divisionsPerOctave);
+	M = cToM(C, divisionsPerOctave);
+        std::vector<double> chord = mToPitchClassSet(M, divisionsPerOctave);
         std::vector<double> normalChord_ = normalChord(chord);
         std::vector<double> zeroChord = toOrigin(normalChord_);
         if (normalChord_ == zeroChord) {
@@ -119,11 +121,13 @@ namespace csound
   {
     size_t M_ = size_t(round(M));
     std::vector<double> pcs;
-    double i = 0.0;
-    for ( ; i < double(divisionsPerOctave); i = i + 1.0) {
-      size_t p2 = size_t(std::pow(2.0, i));
-      if ((p2 & M_) == p2) {
-        pcs.push_back(i);
+    if (M != 0) {
+      double i = 0.0;
+      for ( ; i < double(divisionsPerOctave); i = i + 1.0) {
+	size_t p2 = size_t(std::pow(2.0, i));
+	if ((p2 & M_) == p2) {
+	  pcs.push_back(i);
+	}
       }
     }
     return pcs;
@@ -551,11 +555,11 @@ namespace csound
     // Only C has a modulus.
     int modulus = int(std::pow(2.0, double(divisionsPerOctave))) - 1;
     // Round off the absolute value of C.
-    C = int(std::fabs(C + 0.5));
+    int C_ = int(std::fabs(C + 0.5));
     // Take the modulus of C.
-    C = C % modulus;
+    C_ = C_ % modulus;
     // M is always 1 more than C.
-    int M = C + 1;    
+    int M = C_ + 1;    
     return double(M);
   }
   
