@@ -439,6 +439,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     else:
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
      
+
 if commonEnvironment['buildRelease'] != '0':
     if compilerMicrosoft():
         commonEnvironment.Append(CCFLAGS = Split('/O2'))
@@ -1563,6 +1564,7 @@ if not buildOLPC:
  makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
+##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
 if wiifound==1:
   WiiEnvironment = pluginEnvironment.Clone()
   makePlugin(WiiEnvironment, 'wiimote', ['Opcodes/wiimote.c'])
@@ -2311,10 +2313,17 @@ else:
     else:
       acEnvironment.Prepend(LINKFLAGS = ['-F.', '-framework', 'CsoundLib'])
     acEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
+    # csoundAC uses fltk_images, but -Wl,-as-needed willl wrongly discard it
+    flag = '-Wl,-as-needed'
+    if flag in acEnvironment['SHLINKFLAGS']:
+        acEnvironment['SHLINKFLAGS'].remove(flag)
+    if flag in acEnvironment['LINKFLAGS']:
+        acEnvironment['LINKFLAGS'].remove(flag)
     if getPlatform() == 'linux':
         acEnvironment.Append(LIBS = ['util', 'dl', 'm'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        acEnvironment.Append(LIBS = ['fltk_images'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
         #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
