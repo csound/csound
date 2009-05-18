@@ -23,11 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-/*#include <string.h>
-#include <errno.h>*/
 
 #include "csoundCore.h"
-/*#include "namedins.h"*/
 #include "csound_orc.h"
 #include "tok.h"
 

@@ -499,8 +499,8 @@ static int opcode_weight_entry_alloc(CSOUND *csound,
 static int opcode_weight_entry_dealloc(CSOUND *csound,
                                        struct opcode_weight_cache_entry_t **entry)
 {
-    if (entry == NULL) csound->Die(csound, "Invalid NULL Parameter entry");
-    if (*entry == NULL) csound->Die(csound, "Invalid NULL Parameter entry");
+    if (entry == NULL || *entry == NULL)
+      csound->Die(csound, "Invalid NULL Parameter entry");
 
     csound->Free(csound, *entry);
     *entry = NULL;
@@ -999,7 +999,8 @@ static void dag_node_2_alloc_list(CSOUND *csound,
     memset(*dag_node, 0, sizeof(struct dag_node_t));
     strncpy((*dag_node)->hdr.hdr, DAG_NODE_2_HDR, HDR_LEN);
     (*dag_node)->hdr.type = DAG_NODE_LIST;
-    (*dag_node)->nodes = csound->Malloc(csound, sizeof(struct dag_node_t *) * count);
+    (*dag_node)->nodes = csound->Malloc(csound,
+                                        sizeof(struct dag_node_t *) * count);
     (*dag_node)->count = count;
 }
 
@@ -1140,7 +1141,9 @@ static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
       int dag_curr_ctr = dag_root_ctr + 1;
       while (dag_curr_ctr < dag->count) {
 
-        /* csound->Message(csound, "=== %s <> %s ===\n", dag->all[dag_root_ctr]->instr->name, dag->all[dag_curr_ctr]->instr->name); */
+        /* csound->Message(csound, "=== %s <> %s ===\n",
+            dag->all[dag_root_ctr]->instr->name,
+            dag->all[dag_curr_ctr]->instr->name); */
 
         int depends = DAG_NO_LINK;
         struct set_t *write_intersection = NULL;
@@ -1178,7 +1181,8 @@ static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &double_write_intersection);
 
-        /* csound->Message(csound, "double_write_intersection depends: %i\n", depends);
+        /* csound->Message(csound, "double_write_intersection depends: %i\n",
+                           depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 
@@ -1191,7 +1195,8 @@ static void csp_dag_build_edges(CSOUND *csound, DAG *dag)
         }
         csp_set_dealloc(csound, &readwrite_write_intersection);
 
-        /* csound->Message(csound, "readwrite_write_intersection depends: %i\n", depends);
+        /* csound->Message(csound, "readwrite_write_intersection depends: %i\n",
+                           depends);
            csp_set_print(csound, dag->all[dag_root_ctr]->instr->read_write);
            csp_set_print(csound, dag->all[dag_curr_ctr]->instr->write); */
 

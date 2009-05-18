@@ -334,13 +334,13 @@ statement : ident S_ASSIGN expr S_NL
           | goto label S_NL
                 {
                     $1->left = NULL;
-                    $1->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$2);
+                    $1->right = make_leaf(csound, T_LABEL, (ORCTOKEN *)$2);
                     $$ = $1;
                 }
           | T_IF expr goto label S_NL
                 {
                     $3->left = NULL;
-                    $3->right = make_leaf(csound, T_IDENT, (ORCTOKEN *)$4);
+                    $3->right = make_leaf(csound, T_LABEL, (ORCTOKEN *)$4);
                     $$ = make_node(csound, T_IF, $2, $3);
                 }
           | ifthen
