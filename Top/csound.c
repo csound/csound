@@ -1470,9 +1470,7 @@ extern "C" {
 
           TIMER_START(thread, "[0] ")
         
-  #ifndef NUM_THREADS_OLD_DEF
           main_played_count = nodePerf(csound, 0);
-  #endif
 
           TIMER_END(thread, "[0] ")
 

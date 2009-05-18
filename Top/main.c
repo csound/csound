@@ -416,31 +416,17 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         int i;
         THREADINFO *current = NULL;
 
-#ifdef NUM_THREADS_OLD_DEF
-        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads + 1);
-        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads + 1);
-#else
-        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads/* + 1*/);
-        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads/* + 1*/);
-#endif
+        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
+        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
 
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
-  #ifdef NUM_THREADS_OLD_DEF
-        csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads + 1);
-        csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads + 1);
-  #else
         csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
         csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-  #endif
 #endif
 
         csound->multiThreadedComplete = 0;
 
-#ifdef NUM_THREADS_OLD_DEF
-        for(i = 0; i < O->numThreads; i++) {
-#else
         for(i = 1; i < O->numThreads; i++) {
-#endif
             THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
 
             t->threadId = csound->CreateThread(&kperfThread, (void *)csound);

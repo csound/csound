@@ -3,13 +3,11 @@
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
-#define TRACE 1
+#define TRACE 0
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
 #define SPINLOCK_2_BARRIER
-
-/* #define NUM_THREADS_OLD_DEF */
 
 #define HASH_CACHE
 /* #define HYBRID_HASH_CACHE */
