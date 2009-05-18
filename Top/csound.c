@@ -645,14 +645,14 @@ extern "C" {
     NULL,           /* multiThreadedThreadInfo */
     NULL,           /* multiThreadedStart */
     NULL,           /* multiThreadedEnd */
-    
+
     NULL,           /* weight_info */
     NULL,           /* weight_dump */
     NULL,           /* weights */
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
-    
+
     0,              /* tempStatus */
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
@@ -1236,30 +1236,31 @@ extern "C" {
     int update_hdl = -1;
     int played_count = 0;
     struct dag_node_t *node;
-    
-    do {      
+
+    do {
       csp_dag_consume(csound, csound->multiThreadedDag, &node, &update_hdl);
-      
+
       if (UNLIKELY(node == NULL)) {
         return played_count;
       }
-      
+
       if (node->hdr.type == DAG_NODE_INDV) {
         instr = node->instr;
         insds = node->insds;
         played_count++;
-      
+
         TRACE_2("[%i] Playing: %s [%p]\n", index, instr->name, insds);
-      
+
         opstart = (OPDS *)insds;
         while ((opstart = opstart->nxtp) != NULL) {
           (*opstart->opadr)(csound, opstart); /* run each opcode */
-        }          
-      
+        }
+
         TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
-      } else if (node->hdr.type == DAG_NODE_LIST) {
+      }
+      else if (node->hdr.type == DAG_NODE_LIST) {
         played_count += node->count;
-        
+
         int node_ctr = 0;
         while (node_ctr < node->count) {
           struct dag_node_t *play_node = node->nodes[node_ctr];
@@ -1270,23 +1271,25 @@ extern "C" {
 
           opstart = (OPDS *)insds;
           while ((opstart = opstart->nxtp) != NULL) {
-            csound->Message(csound, "**opstart=%p; opadr=%p\n", opstart,
-                            opstart->opadr);
+            csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", opstart,
+                            opstart->opadr, opstarr->optext->t.opcod);
             (*opstart->opadr)(csound, opstart); /* run each opcode */
-          }          
+          }
 
           TRACE_2("[%i] Played:  %s [%p]\n", index, instr->name, insds);
           node_ctr++;
         }
-      } else if (node->hdr.type == DAG_NODE_DAG) {
+      }
+      else if (node->hdr.type == DAG_NODE_DAG) {
         csound->Die(csound, "Recursive DAGs not implemented");
-      } else {
+      }
+      else {
         csound->Die(csound, "Unknown DAG node type");
       }
 
       csp_dag_consume_update(csound, csound->multiThreadedDag, update_hdl);
     } while (!csp_dag_is_finished(csound, csound->multiThreadedDag));
-    
+
     return played_count;
   }
 
@@ -1296,13 +1299,13 @@ extern "C" {
       CSOUND *csound = (CSOUND *)cs;
       void   *barrier1 = csound->multiThreadedBarrier1;
       void   *barrier2 = csound->multiThreadedBarrier2;
-      
+
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
       csp_barrier_wait(csound, csound->barrier2);
 #else
       csound->WaitBarrier(barrier2);
 #endif
-      
+
       void *threadId = csound->GetCurrentThreadID();
       int index = getThreadIndex(csound, threadId);
       int numThreads = csound->oparms->numThreads;
@@ -1318,7 +1321,7 @@ extern "C" {
         return ULONG_MAX;
       }
       index++;
-      
+
       while (1) {
 
         TRACE_1("[%i] Barrier1 Reached\n", index);
@@ -1328,9 +1331,9 @@ extern "C" {
 #else
         csound->WaitBarrier(barrier1);
 #endif
-        
+
         TRACE_1("[%i] Go\n", index);
-        
+
         /* TIMER_INIT(mutex, "Mutex ")
         TIMER_T_START(mutex, index, "Mutex ") */
 
@@ -1347,7 +1350,7 @@ extern "C" {
           return 0UL;
         }
         csound_global_mutex_unlock();
-      
+
         /* TIMER_T_END(mutex, index, "Mutex ") */
 
         TIMER_INIT(thread, "")
@@ -1377,13 +1380,13 @@ extern "C" {
           }
         }
 #endif
-        
+
         nodePerf(csound, index);
-        
+
         TIMER_T_END(thread, index, "")
-        
+
         TRACE_1("[%i] Done\n", index);
-        
+
         SHARK_SIGNPOST(BARRIER_2_WAIT_SYM);
 #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
         csp_barrier_wait(csound, csound->barrier2);
@@ -1435,16 +1438,16 @@ extern "C" {
         TIMER_INIT(thread, "")
         TIMER_START(thread, "Clock Sync ")
         TIMER_END(thread, "Clock Sync ")
-        
+
         SHARK_SIGNPOST(KPERF_SYM);
         TRACE_1("[%i] kperf\n", 0);
-        
+
         /* There are 2 partitions of work: 1st by inso,
            2nd by inso count / thread count. */
         if (csound->multiThreadedThreadInfo != NULL) {
           struct dag_t *dag2 = NULL;
           int main_played_count = 0;
-          
+
           TIMER_START(thread, "Dag ")
   #if defined(LINEAR_CACHE) || defined(HASH_CACHE)
           csp_dag_cache_fetch(csound, &dag2, ip);
@@ -1452,7 +1455,7 @@ extern "C" {
           csp_dag_build(csound, &dag2, ip);
   #endif
           TIMER_END(thread, "Dag ")
-          
+
           TRACE_1("{Time: %f}\n", csound->GetScoreTime(csound));
   #if TRACE > 1
           csp_dag_print(csound, dag2);
@@ -1469,7 +1472,7 @@ extern "C" {
   #endif
 
           TIMER_START(thread, "[0] ")
-        
+
           main_played_count = nodePerf(csound, 0);
 
           TIMER_END(thread, "[0] ")
@@ -1592,11 +1595,11 @@ extern "C" {
         do {
           if ((done = sensevents(csound))) {
             csoundMessage(csound, "Score finished in csoundPerform().\n");
-            
+
             if (csound->oparms->numThreads > 1) {
 #if   defined(LINEAR_CACHE) || defined(HASH_CACHE)
               csp_dag_cache_print(csound);
-#endif 
+#endif
               csound->multiThreadedComplete = 1;
 
 #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
@@ -1609,7 +1612,7 @@ extern "C" {
               /* csp_weights_dump(csound); */
               csp_weights_dump_normalised(csound);
             }
-            
+
             return done;
           }
         } while (kperf(csound));

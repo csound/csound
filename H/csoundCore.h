@@ -209,9 +209,9 @@ extern "C" {
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
     int16   muted;
-    int32    localen;
-    int32    opdstot;                /* Total size of opds structs in instr */
-    int32    *inslist;               /* Only used in parsing (?) */
+    int32   localen;
+    int32   opdstot;                /* Total size of opds structs in instr */
+    int32   *inslist;               /* Only used in parsing (?) */
     MYFLT   *psetdata;              /* Used for pset opcode */
     struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */

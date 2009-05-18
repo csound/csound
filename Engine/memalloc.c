@@ -29,6 +29,8 @@
 #endif
 
 #define MEMALLOC_MAGIC  0x6D426C6B
+#define CSOUND_MEM_SPINLOCK csoundSpinLock(&csound->memlock);
+#define CSOUND_MEM_SPINUNLOCK csoundSpinUnLock(&csound->memlock);
 
 typedef struct memAllocBlock_s {
 #ifdef MEMDEBUG
@@ -65,6 +67,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
+    CSOUND_MEM_SPINLOCK
     if ((p = malloc(ALLOC_BYTES(size))) == NULL) {
       memdie(csound, size);
       return NULL;
@@ -79,6 +82,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     if (MEMALLOC_DB != NULL)
       ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
     MEMALLOC_DB = (void*) p;
+    CSOUND_MEM_SPINUNLOCK
     /* return with data pointer */
     return DATA_PTR(p);
 }
@@ -95,6 +99,7 @@ void *mcalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
+    CSOUND_MEM_SPINLOCK
     if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
       memdie(csound, size);
       return NULL;
@@ -109,6 +114,7 @@ void *mcalloc(CSOUND *csound, size_t size)
     if (MEMALLOC_DB != NULL)
       ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
     MEMALLOC_DB = (void*) p;
+    CSOUND_MEM_SPINUNLOCK
     /* return with data pointer */
     return DATA_PTR(p);
 }
@@ -130,6 +136,7 @@ void mfree(CSOUND *csound, void *p)
     }
     pp->magic = 0;
 #endif
+    CSOUND_MEM_SPINLOCK
     /* unlink from chain */
     {
       memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
@@ -142,6 +149,7 @@ void mfree(CSOUND *csound, void *p)
     }
     /* free memory */
     free((void*) pp);
+    CSOUND_MEM_SPINUNLOCK
 }
 
 void *mrealloc(CSOUND *csound, void *oldp, size_t size)
@@ -169,6 +177,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
+    CSOUND_MEM_SPINLOCK
     p = realloc((void*) pp, ALLOC_BYTES(size));
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
@@ -176,6 +185,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
 #endif
+      CSOUND_MEM_SPINUNLOCK
       memdie(csound, size);
       return NULL;
     }
@@ -194,6 +204,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
       else
         MEMALLOC_DB = (void*) pp;
     }
+    CSOUND_MEM_SPINUNLOCK
     /* return with data pointer */
     return DATA_PTR(pp);
 }

@@ -37,7 +37,7 @@ int csp_thread_index_get(CSOUND *csound)
     THREADINFO *current = csound->multiThreadedThreadInfo;
 
     if(current == NULL) {
-        return -1;
+      return -1;
     }
 
     while(current != NULL) {
@@ -606,11 +606,12 @@ int csp_set_add(CSOUND *csound, struct set_t *set, void *data)
     struct set_element_t *ele = NULL;
     set_element_alloc(csound, &ele, data);
     if (set->head == NULL) {
-        set->head = ele;
-        set->tail = ele;
-    } else {
-        set->tail->next = ele;
-        set->tail = ele;
+      set->head = ele;
+      set->tail = ele;
+    }
+    else {
+      set->tail->next = ele;
+      set->tail = ele;
     }
     set->count++;
 
@@ -633,9 +634,11 @@ int csp_set_remove(CSOUND *csound, struct set_t *set, void *data)
             if (ele == set->head && ele == set->tail) {
                 set->head = NULL;
                 set->tail = NULL;
-            } else if (ele == set->head) {
+            }
+            else if (ele == set->head) {
                 set->head = ele->next;
-            } else {
+            }
+            else {
                 prev->next = ele->next;
             }
             set_element_delloc(csound, &ele);
@@ -715,12 +718,13 @@ int inline csp_set_get_num(CSOUND *csound, struct set_t *set, int num, void **da
     /*
     if (set->cache != NULL) {
 
-    } else {
-        int ctr = 0;
-        struct set_element_t *ele = set->head;
-        while (ctr < num && ele != NULL) {
-            ctr++;
-            ele = ele->next;
+    }
+    else {
+    int ctr = 0;
+    struct set_element_t *ele = set->head;
+    while (ctr < num && ele != NULL) {
+    ctr++;
+    ele = ele->next;
         }
         if (ctr == num && ele != NULL) {
             *data = ele->data;

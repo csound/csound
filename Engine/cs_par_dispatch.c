@@ -170,7 +170,8 @@ static struct global_var_lock_t *global_var_lock_find(CSOUND *csound, char *name
       if (current == NULL) {
         previous->next = global_var_lock_alloc(csound, name, ctr);
         return previous->next;
-      } else {
+      }
+      else {
         return current;
       }
     }
@@ -640,7 +641,8 @@ void csp_weights_dump_file(CSOUND *csound)
 
         if (entry->play_time != 0 && entry->play_time < min) {
           min = entry->play_time;
-        } else if (entry->play_time != 0 && entry->play_time > max) {
+        }
+        else if (entry->play_time != 0 && entry->play_time > max) {
           max = entry->play_time;
         }
 
@@ -688,7 +690,8 @@ void csp_weights_dump_normalised(CSOUND *csound)
 
         if (entry->play_time != 0 && entry->play_time < min) {
           min = entry->play_time;
-        } else if (entry->play_time != 0 && entry->play_time > max) {
+        }
+        else if (entry->play_time != 0 && entry->play_time > max) {
           max = entry->play_time;
         }
 
@@ -1037,7 +1040,8 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
 
     if (dag->count == 1) {
       dag->insds_chain_start = dag->all[0];
-    } else if (dag->count > 1) {
+    }
+    else if (dag->count > 1) {
       dag->all[dag->count - 2]->insds_chain_next = dag->all[dag->count - 1];
     }
 }
@@ -1485,7 +1489,8 @@ void csp_dag_consume(CSOUND *csound, DAG *dag,
         }
         ctr++;
       }
-    } else {
+    }
+    else {
 #ifdef COUNTING_SEMAPHORE
       csp_semaphore_release_end(csound, dag->consume_semaphore);
 #else
@@ -1587,7 +1592,8 @@ static char *csp_dag_string(CSOUND *csound, DAG *dag)
     while (ctr < dag->count) {
       if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
         bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->all[ctr]->instr->name, dag->all[ctr]);
-      } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
+      }
+      else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
         bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
         int inner_ctr = 0;
         while (inner_ctr < dag->all[ctr]->count) {
@@ -1605,7 +1611,8 @@ static char *csp_dag_string(CSOUND *csound, DAG *dag)
       if (dag->roots[ctr] != NULL) {
         if (dag->all[ctr]->hdr.type == DAG_NODE_INDV) {
           bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  %s [%p]\n", dag->roots[ctr]->instr->name, dag->roots[ctr]);
-        } else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
+        }
+        else if (dag->all[ctr]->hdr.type == DAG_NODE_LIST) {
           bufp = bufp + snprintf(bufp, DAG_2_BUF - (bufp - buf), "  ");
           int inner_ctr = 0;
           while (inner_ctr < dag->roots[ctr]->count) {
@@ -1766,7 +1773,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
           if (count_matching_cols >= target) { /* we have a target x target sized square somewhere inside */
             found_block = 1;
 
-          } else {                             /* go around again looking for a smaller target */
+          }
+          else {    /* go around again looking for a smaller target */
             target--;
           }
         }
@@ -1897,7 +1905,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
                 }
 
                 streams_remaining++;
-              } else {                            /* slide down the rest of the nodes */
+              }
+              else {            /* slide down the rest of the nodes */
                 TRACE_2("No more merged nodes\n");
                 int next = ctr + 1;
                 while (next < dag->count && dag->all[next] == NULL) {
@@ -1909,13 +1918,15 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
                   dag->all[next] = NULL;
 
                   map_old_to_new_locations[next] = ctr;
-                } else {
+                }
+                else {
                   TRACE_2("Done copying normal nodes\n");
                   /* we're done at this point no more nodes to copy */
                   break;
                 }
               }
-            } else {
+            }
+            else {
               map_old_to_new_locations[ctr] = ctr;
             }
             ctr++;
@@ -1972,7 +1983,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
           dag->count = dag->count - target + threads;
           starting_row = starting_row + threads;
           end_point = dag->count - threads;
-        } else {
+        }
+        else {
           /* not enough parallelism after this instrument */
           starting_row++;
         }
@@ -2121,7 +2133,8 @@ static void csp_dag_cache_update(CSOUND *csound)
         csp_dag_cache_entry_dealloc(csound, &entry);
         entry = prev->next;
         cache_ctr--;
-      } else {
+      }
+      else {
         prev = entry;
         entry = entry->next;
       }
@@ -2144,9 +2157,11 @@ static int csp_dag_cache_compare(CSOUND *csound, struct dag_cache_entry_t *entry
     }
     if (ctr >= entry->instrs && current_insds != NULL) {
       return 0;
-    } else if (ctr < entry->instrs && current_insds == NULL) {
+    }
+    else if (ctr < entry->instrs && current_insds == NULL) {
       return 0;
-    } else {
+    }
+    else {
       return 1;
     }
 }
@@ -2411,17 +2426,20 @@ static void csp_dag_cache_update(CSOUND *csound)
         if (entry->uses < DAG_2_MIN_USE_LIMIT && entry->age < DAG_2_MIN_AGE_LIMIT) {
           if (prev == NULL) {
             cache[bin_ctr] = entry->next;
-          } else {
+          }
+          else {
             prev->next = entry->next;
           }
           csp_dag_cache_entry_dealloc(csound, &entry);
           if (prev == NULL) {
             entry = cache[bin_ctr];
-          } else {
+          }
+          else {
             entry = prev->next;
           }
           cache_ctr--;
-        } else {
+        }
+        else {
           prev = entry;
           entry = entry->next;
         }
@@ -2446,9 +2464,11 @@ static int csp_dag_cache_compare(CSOUND *csound, struct dag_cache_entry_t *entry
     }
     if (ctr >= entry->instrs && current_insds != NULL) {
       return 0;
-    } else if (ctr < entry->instrs && current_insds == NULL) {
+    }
+    else if (ctr < entry->instrs && current_insds == NULL) {
       return 0;
-    } else {
+    }
+    else {
       return 1;
     }
 }
