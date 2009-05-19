@@ -1272,7 +1272,7 @@ extern "C" {
           opstart = (OPDS *)insds;
           while ((opstart = opstart->nxtp) != NULL) {
             csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", opstart,
-                            opstart->opadr, opstarr->optext->t.opcod);
+                            opstart->opadr, opstart->optext->t.opcod);
             (*opstart->opadr)(csound, opstart); /* run each opcode */
           }
 
