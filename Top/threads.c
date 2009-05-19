@@ -282,8 +282,10 @@ PUBLIC void csoundNotifyThreadLock(void *lock)
 
 PUBLIC void csoundDestroyThreadLock(void *lock)
 {
-    pthread_mutex_destroy((pthread_mutex_t*) lock);
-    free(lock);
+    if (0==pthread_mutex_destroy((pthread_mutex_t*) lock))
+      free(lock);
+    else
+      perror("csoundDestroyThreadLock: ");
 }
 
 
@@ -411,10 +413,9 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 #else
   pthread_barrier_t *barrier =
     (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
-  int status = pthread_barrier_init(barrier, 0, max);
-  if (status) {
-    return 0;
-  }
+  int status = pthread_barrier_init(barrier, 0, max-1);
+  fprintf(stderr, "Create barrier %d => %p ($d)\n", max, barrier, status);
+  if (status) return 0;
   return barrier;
 #endif
 }

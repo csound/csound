@@ -419,10 +419,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
         csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
 
-#if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
         csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
         csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-#endif
 
         csound->multiThreadedComplete = 0;
 
@@ -443,7 +441,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
         csp_barrier_wait(csound, csound->barrier2);
 #else
-        csound->WaitBarrier(csound->multiThreadedBarrier2);
+        csound->WaitBarrier(csound->barrier2);
 #endif
 
         csp_parallel_compute_spec_setup(csound);

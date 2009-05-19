@@ -1297,13 +1297,11 @@ extern "C" {
   {
       INSDS *start;
       CSOUND *csound = (CSOUND *)cs;
-      void   *barrier1 = csound->multiThreadedBarrier1;
-      void   *barrier2 = csound->multiThreadedBarrier2;
 
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
       csp_barrier_wait(csound, csound->barrier2);
 #else
-      csound->WaitBarrier(barrier2);
+      csound->WaitBarrier(csound->barrier2);
 #endif
 
       void *threadId = csound->GetCurrentThreadID();
@@ -1316,7 +1314,7 @@ extern "C" {
                       start ? start->insno : -1,
                       index,
                       numThreads);
-      if(index < 0) {
+      if (index < 0) {
         csound->Die(csound, "Bad ThreadId");
         return ULONG_MAX;
       }
@@ -1329,7 +1327,7 @@ extern "C" {
 #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
         csp_barrier_wait(csound, csound->barrier1);
 #else
-        csound->WaitBarrier(barrier1);
+        csound->WaitBarrier(csound->barrier1);
 #endif
 
         TRACE_1("[%i] Go\n", index);
@@ -1391,7 +1389,7 @@ extern "C" {
 #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
         csp_barrier_wait(csound, csound->barrier2);
 #else
-        csound->WaitBarrier(barrier2);
+        csound->WaitBarrier(csound->barrier2);
 #endif
         TRACE_1("[%i] Barrier2 Done\n", index);
       }
@@ -1468,7 +1466,7 @@ extern "C" {
   #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
           csp_barrier_wait(csound, csound->barrier1);
   #else
-          csound->WaitBarrier(barrier1);
+          csound->WaitBarrier(csound->barrier1);
   #endif
 
           TIMER_START(thread, "[0] ")
@@ -1482,7 +1480,7 @@ extern "C" {
   #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
           csp_barrier_wait(csound, csound->barrier2);
   #else
-          csound->WaitBarrier(barrier2);
+          csound->WaitBarrier(csound->barrier2);
   #endif
           TRACE_1("[%i] Barrier2 Done\n", 0);
           TIMER_END(thread, "")
@@ -1605,7 +1603,7 @@ extern "C" {
 #if   defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
               csp_barrier_wait(csound, csound->barrier1);
 #else
-              csound->WaitBarrier(barrier1);
+              csound->WaitBarrier(csound->barrier1);
 #endif
             }
             if (csound->oparms->calculateWeights) {

@@ -1326,7 +1326,7 @@ static void csp_dag_prepare_use(CSOUND *csound, DAG *dag)
     dag->root_seen[dag->first_root] = 2;
 #endif
 #ifdef COUNTING_SEMAPHORE
-    dag->consume_semaphore->thread_count = 1;
+    /* dag->consume_semaphore->thread_count = 1; */
 #endif
 }
 

@@ -46,35 +46,35 @@ struct dag_base_t {
 };
 
 typedef struct dag_t {
-    struct dag_base_t           hdr;
+    struct dag_base_t       hdr;
 
-    int                         count;
-    void                        *mutex;
-    int32_t                     spinlock;
-    int32_t                     table_spinlock;
-    int32_t                     consume_spinlock;
+    int                     count;
+    void                    *mutex;
+    int32_t                 spinlock;
+    int32_t                 table_spinlock;
+    int32_t                 consume_spinlock;
 #ifdef COUNTING_SEMAPHORE
-    struct semaphore_spin_t     *consume_semaphore;
+    sem_t                   *consume_semaphore;
 #endif
-    struct dag_node_t           **all;
-    struct dag_node_t           *insds_chain_start;
-    struct dag_node_t           **roots_ori;
-    struct dag_node_t           **roots;
+    struct dag_node_t       **all;
+    struct dag_node_t       *insds_chain_start;
+    struct dag_node_t       **roots_ori;
+    struct dag_node_t       **roots;
 #ifndef COUNTING_SEMAPHORE
-    uint8_t                     *root_seen_ori;
+    uint8_t                 *root_seen_ori;
 #endif
-    uint8_t                     *root_seen;
-    int                         *remaining_count_ori;
-    int                         *remaining_count;
-    int                         remaining;
-    int                         first_root_ori;
-    int                         first_root;
-    uint8_t                     **table_ori;
-    uint8_t                     **table;
+    uint8_t                 *root_seen;
+    int                     *remaining_count_ori;
+    int                     *remaining_count;
+    int                     remaining;
+    int                     first_root_ori;
+    int                     first_root;
+    uint8_t                 **table_ori;
+    uint8_t                 **table;
 
     /* used for deciding whether to run this dag in parallel */
-    int                         max_roots;
-    uint32_t                    weight;
+    int                     max_roots;
+    uint32_t                weight;
 } DAG;
 
 /* load the parallel decision infomation from specified file */

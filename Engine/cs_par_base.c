@@ -56,361 +56,101 @@ int csp_thread_index_get(CSOUND *csound)
 /***********************************************************************
  * parallel primitives
  */
-#pragma mark -
-#pragma mark barrier_spin
-
-#ifdef SPINLOCK_BARRIER
-int csp_barrier_alloc(CSOUND *csound, struct barrier_spin_t **barrier,
-                      int thread_count)
-{
-    if (barrier == NULL)
-      csound->Die(csound, Str("Invalid NULL Parameter barrier"));
-    if (thread_count < 1)
-      csound->Die(csound, Str("Invalid Parameter thread_count must be > 0"));
-
-    *barrier = csound->Malloc(csound, sizeof(struct barrier_spin_t));
-    if (*barrier == NULL) {
-      csound->Die(csound, Str("Failed to allocate barrier"));
-    }
-    memset(*barrier, 0, sizeof(struct barrier_spin_t));
-
-    (*barrier)->thread_count = thread_count;
-    /* csoundSpinLock(&((*barrier)->lock)); */
-}
-
-int csp_barrier_dealloc(CSOUND *csound, struct barrier_spin_t **barrier)
-{
-    if (barrier == NULL || *barrier == NULL)
-      csound->Die(csound, "Invalid NULL Parameter barrier");
-
-    csoundSpinUnLock(&((*barrier)->spinlock));
-    csoundSpinUnLock(&((*barrier)->lock));
-
-    csound->Free(csound, *barrier);
-    *barrier = NULL;
-}
-
-int csp_barrier_wait(CSOUND *csound, struct barrier_spin_t *barrier)
-{
-    /* if (barrier == NULL)
-       csound->Die(csound, "Invalid NULL Parameter barrier"); */
-
-    /* csound->Message(csound, "Barrier Wait Enter\n"); */
-
-    csoundSpinLock(&(barrier->spinlock));
-    barrier->arrived = barrier->arrived + 1;
-    if (barrier->arrived == 1) {
-      csoundSpinLock(&(barrier->lock));
-      csoundSpinUnLock(&(barrier->spinlock));
-      TRACE_1("Blocking First\n");
-      csoundSpinLock(&(barrier->lock));
-      TRACE_1("UnBlocking First\n");
-      csoundSpinUnLock(&(barrier->lock));
-    }
-    else if (barrier->arrived >= barrier->thread_count) {
-      barrier->arrived = 0;
-      TRACE_1("UnBlocking All\n");
-      csoundSpinUnLock(&(barrier->lock));
-      csoundSpinUnLock(&(barrier->spinlock));
-    }
-    else {
-      csoundSpinUnLock(&(barrier->spinlock));
-      TRACE_1("Blocking\n");
-      csoundSpinLock(&(barrier->lock));
-      TRACE_1("UnBlocking\n");
-      csoundSpinUnLock(&(barrier->lock));
-    }
-
-    /* csound->Message(csound, "Barrier Wait Exit\n"); */
-}
-#endif
-
-#ifdef SPINLOCK_2_BARRIER
-void csp_barrier_alloc(CSOUND *csound, struct barrier_spin_t **barrier,
+void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
                        int thread_count)
 {
     if (barrier == NULL) csound->Die(csound, "Invalid NULL Parameter barrier");
     if (thread_count < 1)
       csound->Die(csound, "Invalid Parameter thread_count must be > 0");
 
-    *barrier = csound->Malloc(csound, sizeof(struct barrier_spin_t) +
-                                      sizeof(int) * (thread_count - 1));
+    *barrier = (pthread_barrier_t *)csound->Malloc(csound, sizeof(pthread_barrier_t));
     if (*barrier == NULL) {
         csound->Die(csound, "Failed to allocate barrier");
     }
-    memset(*barrier, 0, sizeof(struct barrier_spin_t) +
-                               sizeof(int) * (thread_count - 1));
-
-    (*barrier)->thread_count = thread_count;
-
-    int ctr = 0;
-    while (ctr < (*barrier)->thread_count - 1) {
-        csoundSpinLock(&((*barrier)->locks[ctr]));
-        ctr++;
-    }
+    fprintf(stderr, "Calling barrier init(%p, NULL, %d)\n", *barrier, thread_count);
+    pthread_barrier_init(*barrier, NULL, thread_count);
 }
 
-void csp_barrier_dealloc(CSOUND *csound, struct barrier_spin_t **barrier)
+void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 {
     if (barrier == NULL || *barrier == NULL)
       csound->Die(csound, "Invalid NULL Parameter barrier");
 
-    csoundSpinUnLock(&((*barrier)->spinlock));
-
-    int ctr = 0;
-    while (ctr < (*barrier)->thread_count - 1) {
-      csoundSpinUnLock(&((*barrier)->locks[ctr]));
-      ctr++;
-    }
-    csound->Free(csound, *barrier);
-
-    *barrier = NULL;
+    pthread_barrier_destroy(*barrier);
 }
 
-void csp_barrier_wait(CSOUND *csound, struct barrier_spin_t *barrier)
+void csp_barrier_wait(CSOUND *csound, pthread_barrier_t *barrier)
 {
-    csoundSpinLock(&(barrier->spinlock));
-    barrier->arrived = barrier->arrived + 1;
-    TRACE_1("BARRIER WAIT n:%i\n", barrier->arrived);
-    if (barrier->arrived >= barrier->thread_count) {
-      int ctr = 0;
-      TRACE_1("UnBlock All\n");
-      barrier->arrived = 0;
-      while (ctr < barrier->thread_count - 1) {
-        TRACE_1("BARRIER UNBLOCKING n:%i\n", ctr);
-        csoundSpinUnLock(&(barrier->locks[ctr]));
-        ctr++;
-      }
-      csoundSpinUnLock(&(barrier->spinlock));
-    }
-    else {
-      int num = barrier->arrived;
-      csoundSpinUnLock(&(barrier->spinlock));
-      TRACE_1("Block\n");
-      csoundSpinLock(&(barrier->locks[num-1]));
-      TRACE_1("UnBlock\n");
-    }
+    TRACE_1("Barrier Wait %p\n", barrier);
+   pthread_barrier_wait(barrier);
 }
-#endif
 
 /***********************************************************************
- * semaphore_spin data structure
+ * semaphore
  */
-#pragma mark -
-#pragma mark semaphore_spin
 
-void csp_semaphore_alloc(CSOUND *csound, struct semaphore_spin_t **sem,
-                         int max_threads)
+void csp_semaphore_alloc(CSOUND *csound, sem_t **sem, int max_threads)
 {
     if (sem == NULL) csound->Die(csound, "Invalid NULL Parameter sem");
 
-    *sem = csound->Malloc(csound, sizeof(struct semaphore_spin_t) +
-                                  max_threads * sizeof(int));
+    *sem = csound->Malloc(csound, sizeof(sem_t));
     if (*sem == NULL) {
       csound->Die(csound, "Failed to allocate barrier");
     }
-    memset(*sem, 0, sizeof(struct semaphore_spin_t) + max_threads * sizeof(int));
-    strncpy((*sem)->hdr, SEMAPHORE_HDR, HDR_LEN);
-
-    (*sem)->max_threads = max_threads;
-    (*sem)->key = csound->Malloc(csound, max_threads * sizeof(int));
-    memset((*sem)->key, 0, max_threads * sizeof(int));
-
-    /* int ctr = 0;
-    while (ctr < max_threads) {
-        csoundSpinLock(&((*sem)->locks[ctr]));
-    } */
+    sem_init(*sem, 0, (unsigned int)max_threads);
 }
 
-void csp_semaphore_dealloc(CSOUND *csound, struct semaphore_spin_t **sem)
+void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem)
 {
-    if (sem == NULL) csound->Die(csound, "Invalid NULL Parameter sem");
-    if (*sem == NULL) csound->Die(csound, "Invalid NULL Parameter sem");
-
+    if (sem == NULL || *sem == NULL)
+      csound->Die(csound, "Invalid NULL Parameter sem");
+    sem_destroy(*sem);
     csound->Free(csound, *sem);
     *sem = NULL;
 }
 
-void csp_semaphore_wait(CSOUND *csound, struct semaphore_spin_t *sem)
+void csp_semaphore_wait(CSOUND *csound, sem_t *sem)
 {
     if (UNLIKELY(sem == NULL)) csound->Die(csound, "Invalid NULL Parameter sem");
 
-    csoundSpinLock(&(sem->spinlock));
-
-    TRACE_2("[%i] wait\n  arrived: %i\n  threads: %i\n  held:    %i\n"
-            "  [0]:     %i\n  [1]:     %i\n",
-            csp_thread_index_get(csound), sem->arrived, sem->thread_count,
-            sem->held, sem->locks[0], sem->locks[1]);
-
-    sem->arrived++;
-
-    if (sem->arrived > sem->thread_count) {
-      int ctr = 0;
-      sem->held++;
-
-      while (ctr < sem->max_threads) {
-        if (sem->key[ctr] == 0) {
-          break;
-        }
-        ctr++;
-      }
-      if (UNLIKELY(ctr >= sem->max_threads)) {
-        csound->Die(csound, "Should have found a lock to lock. None found.");
-      }
-      sem->key[ctr] = 3;
-      /* int hdl = sem->held - 1;
-         sem->key[hdl] = 1; */
-      TRACE_2("[%i] blocking (%i)\n", csp_thread_index_get(csound), ctr);
-      csoundSpinLock(&(sem->locks[ctr]));
-      csoundSpinUnLock(&(sem->spinlock));
-      
-      csoundSpinLock(&(sem->locks[ctr]));
-      csoundSpinLock(&(sem->spinlock));
-      csoundSpinUnLock(&(sem->locks[ctr]));
-      TRACE_2("[%i] unblocking (%i)\n", csp_thread_index_get(csound), ctr);
-
-      sem->key[ctr] = 0;
-      csoundSpinUnLock(&(sem->spinlock));
-    }
-    else {
-      csoundSpinUnLock(&(sem->spinlock));
-    }
+    TRACE_1("[%i] wait:\n", csp_thread_index_get(csound));
+    sem_wait(sem);
+    TRACE_1("[%i] continue:\n", csp_thread_index_get(csound));
 }
 
-void csp_semaphore_grow(CSOUND *csound, struct semaphore_spin_t *sem)
+void csp_semaphore_grow(CSOUND *csound, sem_t *sem)
 {
-    if (UNLIKELY(sem == NULL)) csound->Die(csound, "Invalid NULL Parameter sem");
-
-    csoundSpinLock(&(sem->spinlock));
-
-    TRACE_2("[%i] grow\n  arrived: %i\n  threads: %i\n  held:    %i\n"
-            "  [0]:     %i\n  [1]:     %i\n",
-            csp_thread_index_get(csound), sem->arrived, sem->thread_count,
-            sem->held, sem->locks[0], sem->locks[1]);
-
-    /* csoundSpinUnLock(&(sem->locks[sem->thread_count])); */
-    sem->thread_count++;
-
-    if (sem->held > 0) {
-      int ctr = 0;
-      while (ctr < sem->max_threads) {
-        if (sem->key[ctr] & 2) {
-          break;
-        }
-        ctr++;
-      }
-      if (LIKELY(ctr < sem->max_threads)) {
-        TRACE_2("[%i] free (%i)\n", csp_thread_index_get(csound), ctr);
-        sem->held--;
-        sem->key[ctr] = 1;
-        csoundSpinUnLock(&(sem->locks[ctr]));
-      }
-      else {
-        csound->Die(csound, "Should have found a lock to unlock. None found.");
-      }
-    }
-
-    /* int ctr = 0;
-    while (ctr < sem->max_threads) {
-    if (sem->locks[ctr] != 0) {
-    csoundSpinUnLock(&(sem->locks[ctr]));
-    break;
-    }
-    } */
-
-    csoundSpinUnLock(&(sem->spinlock));
+    /* This should not happen! */
+    csound->Die(csound, "csp_semaphore_grow");
 }
 
-void csp_semaphore_release(CSOUND *csound, struct semaphore_spin_t *sem)
+void csp_semaphore_release(CSOUND *csound, sem_t *sem)
 {
-    if (UNLIKELY(sem == NULL)) csound->Die(csound, "Invalid NULL Parameter sem");
+    TRACE_2("[%i] post:\n", csp_thread_index_get(csound));
 
-    csoundSpinLock(&(sem->spinlock));
-
-    TRACE_2("[%i] release\n  arrived: %i\n  threads: %i\n  held:    %i\n"
-            "  [0]:     %i\n  [1]:     %i\n",
-            csp_thread_index_get(csound), sem->arrived, sem->thread_count,
-            sem->held, sem->locks[0], sem->locks[1]);
-
-    sem->arrived--;
-    sem->thread_count--;
-
-    csoundSpinUnLock(&(sem->spinlock));
+    sem_post(sem);
 }
 
-void csp_semaphore_release_end(CSOUND *csound, struct semaphore_spin_t *sem)
+void csp_semaphore_release_end(CSOUND *csound, sem_t *sem)
 {
-    if (UNLIKELY(sem == NULL)) csound->Die(csound, "Invalid NULL Parameter sem");
-
-    csoundSpinLock(&(sem->spinlock));
-
-    TRACE_2("[%i] release_end\n  arrived: %i\n  threads: %i\n  held:    %i\n"
-            "  [0]:     %i\n  [1]:     %i\n",
-            csp_thread_index_get(csound), sem->arrived, sem->thread_count,
-            sem->held, sem->locks[0], sem->locks[1]);
-
-    /* csoundSpinUnLock(&(sem->lock)); */
-
-    sem->thread_count++;
-
-    if (sem->held > 0) {
-      int ctr = 0;
-      while (ctr < sem->max_threads) {
-        if (sem->key[ctr] & 2) {
-          break;
-        }
-        ctr++;
-      }
-      if (LIKELY(ctr < sem->max_threads)) {
-        TRACE_2("[%i] free (%i)\n", csp_thread_index_get(csound), ctr);
-        sem->held--;
-        sem->key[ctr] = 1;
-        csoundSpinUnLock(&(sem->locks[ctr]));
-      }
-      else {
-        csound->Die(csound, "Should have found a lock to unlock. None found.");
-      }
-    }
-    
-    /* int ctr = 0;
-       while (ctr < sem->max_threads) {
-       csoundSpinUnLock(&(sem->locks[ctr]));
-       } */
-
-    csoundSpinUnLock(&(sem->spinlock));
+    int val, res;
+    do {
+      res = sem_getvalue(sem, &val);
+      if (val<=0) sem_post(sem);
+    } while (val==0);
 }
 
-void csp_semaphore_release_print(CSOUND *csound, struct semaphore_spin_t *sem)
+void csp_semaphore_release_print(CSOUND *csound, sem_t *sem)
 {
+    int val, res;
     if (sem == NULL) csound->Die(csound, "Invalid NULL Parameter sem");
-
-    csoundSpinLock(&(sem->spinlock));
-
-    #define SEMAPHORE_SPIN_BUF 4096
-    char buf[SEMAPHORE_SPIN_BUF];
-    char *bufp = buf;
-
-    bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-                           "Semaphore Spin:\n");
-    bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-                           "  arrived: %i\n", sem->arrived);
-    bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-                           "  threads: %i\n", sem->thread_count);
-    bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-                           "  held:    %i\n", sem->held);
-    /* bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-       "  locked:  %i\n", sem->locks[0]); */
-
-    int ctr = 0;
-    while (ctr < sem->max_threads) {
-        bufp = bufp + snprintf(bufp, SEMAPHORE_SPIN_BUF - (bufp - buf),
-                               "  [%i]:     %i\n", ctr, sem->locks[ctr]);
-        ctr++;
-    }
-
-    csound->Message(csound, "%s", buf);
-
-    csoundSpinUnLock(&(sem->spinlock));
+    do {
+      res = sem_getvalue(sem, &val);
+      if (val<=0) {
+        TRACE_1("Release\n");
+        sem_post(sem);
+      }
+    } while (val==0);
 }
 
 
@@ -450,14 +190,15 @@ int csp_set_alloc(CSOUND *csound, struct set_t **set,
 
 int csp_set_dealloc(CSOUND *csound, struct set_t **set)
 {
-    if (set == NULL) csound->Die(csound, "Invalid NULL Parameter set");
-    if (*set == NULL) csound->Die(csound, "Invalid NULL Parameter set");
+    struct set_element_t *ele, *next = NULL;
+    if (set == NULL || *set == NULL)
+      csound->Die(csound, "Invalid NULL Parameter set");
     if (!set_is_set(csound, *set))
       csound->Die(csound, "Invalid Parameter set not a set");
 
     if ((*set)->cache != NULL) csound->Free(csound, (*set)->cache);
 
-    struct set_element_t *ele = (*set)->head, *next = NULL;
+    ele = (*set)->head;
     while (ele != NULL) {
         next = ele->next;
         set_element_delloc(csound, &ele);
@@ -472,12 +213,11 @@ int csp_set_dealloc(CSOUND *csound, struct set_t **set)
 static int set_element_alloc(CSOUND *csound,
                              struct set_element_t **set_element, char *data)
 {
-    if (set_element == NULL) csound->Die(csound, "Invalid NULL Parameter set");
-    if (data == NULL) csound->Die(csound, "Invalid NULL Parameter data");
+    if (set_element == NULL || data == NULL)
+      csound->Die(csound, "Invalid NULL Parameter data");
 
     *set_element = csound->Malloc(csound, sizeof(struct set_element_t));
     if (*set_element == NULL) {
-        // rc = err_report(RC_ALLOC_FAIL, "Failed to allocate hashtable");
         csound->Die(csound, "Failed to allocate set element");
     }
     memset(*set_element, 0, sizeof(struct set_element_t));
@@ -489,9 +229,7 @@ static int set_element_alloc(CSOUND *csound,
 
 static int set_element_delloc(CSOUND *csound, struct set_element_t **set_element)
 {
-    if (set_element == NULL)
-      csound->Die(csound, "Invalid NULL Parameter set_element");
-    if (*set_element == NULL)
+    if (set_element == NULL || *set_element == NULL)
       csound->Die(csound, "Invalid NULL Parameter set_element");
     csound->Free(csound, *set_element);
     *set_element = NULL;
@@ -501,8 +239,8 @@ static int set_element_delloc(CSOUND *csound, struct set_element_t **set_element
 
 static int set_is_set(CSOUND *csound, struct set_t *set)
 {
-    if (set == NULL) return 0;
     char buf[4];
+    if (set == NULL) return 0;
     strncpy(buf, (char *)set, HDR_LEN);
     buf[3] = 0;
     return strcmp(buf, SET_HDR) == 0;

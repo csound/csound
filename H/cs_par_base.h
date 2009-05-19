@@ -1,13 +1,15 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
+#include <semaphore.h>
+
 #define DYNAMIC_2_SERIALIZE_PAR
 
 #define TRACE 0
 /* #define TIMING */
 
 /* #define SPINLOCK_BARRIER */
-#define SPINLOCK_2_BARRIER
+/* #define SPINLOCK_2_BARRIER */
 
 #define HASH_CACHE
 /* #define HYBRID_HASH_CACHE */
@@ -160,66 +162,41 @@ int csp_set_intersection(CSOUND *csound, struct set_t *first,
                          struct set_t *second, struct set_t **result);
 
 /* spinlock */
-#if   defined(SPINLOCK_BARRIER)
-struct barrier_spin_t {
-    int thread_count;
-    int arrived;
-    int spinlock;
-    int lock;
-};
-#elif defined(SPINLOCK_2_BARRIER)
-struct barrier_spin_t {
-    int   thread_count;
-    int   arrived;
-    int   spinlock;
-    int   locks[];
-};
-#endif
-
-#if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
-/* create a barrier which synchronises thread_count threads */
-void csp_barrier_alloc(CSOUND *csound, struct barrier_spin_t **barrier,
-                       int thread_count);
-void csp_barrier_dealloc(CSOUND *csound, struct barrier_spin_t **barrier);
-/* calling thread either is the last thread and releases others 
- * or blocks waiting for last thread */
-void csp_barrier_wait(CSOUND *csound, struct barrier_spin_t *barrier);
-#endif
 
 /* semaphore */
-struct semaphore_spin_t {
-    char    hdr[HDR_LEN];
-    int     thread_count;
-    int     max_threads;
-    int     arrived;
-    int     held;
-    int     spinlock;
-    int     count;
-    int     lock;
-    int     *key;
-    int     locks[];
-};
+/* struct semaphore_spin_t { */
+/*     char    hdr[HDR_LEN]; */
+/*     int     thread_count; */
+/*     int     max_threads; */
+/*     int     arrived; */
+/*     int     held; */
+/*     int     spinlock; */
+/*     int     count; */
+/*     int     lock; */
+/*     int     *key; */
+/*     int     locks[]; */
+/* }; */
 
 /* create a semaphore with a maximum number of threads
  * initially 1 thread is allowed in
  */
-void csp_semaphore_alloc(CSOUND *csound, struct semaphore_spin_t **sem,
+void csp_semaphore_alloc(CSOUND *csound, sem_t **sem,
                          int max_threads);
-void csp_semaphore_dealloc(CSOUND *csound, struct semaphore_spin_t **sem);
+void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem);
 /* wait at the semaphore. if the number allowed in is greater than the 
  * number arrived calling thread continues
  * otherwise thread blocks until semaphore is grown
  */
-void csp_semaphore_wait(CSOUND *csound, struct semaphore_spin_t *sem);
+void csp_semaphore_wait(CSOUND *csound, sem_t *sem);
 /* increase the number of threads allowed in by 1 */
-void csp_semaphore_grow(CSOUND *csound, struct semaphore_spin_t *sem);
+void csp_semaphore_grow(CSOUND *csound, sem_t *sem);
 /* reduce the number of threads allowed in and the arrive count by 1
  * call this when calling thread is finished with the semaphore. */
-void csp_semaphore_release(CSOUND *csound, struct semaphore_spin_t *sem);
+void csp_semaphore_release(CSOUND *csound, sem_t *sem);
 /* call when all threads are done with the resource the semaphore is protecting.
  * releases all blocked threads. */
-void csp_semaphore_release_end(CSOUND *csound, struct semaphore_spin_t *sem);
+void csp_semaphore_release_end(CSOUND *csound, sem_t *sem);
 /* print semaphore info */
-void csp_semaphore_release_print(CSOUND *csound, struct semaphore_spin_t *sem);
+void csp_semaphore_release_print(CSOUND *csound, sem_t *sem);
 
 #endif /* end of include guard: __CS_PAR_BASE_H__ */

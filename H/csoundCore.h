@@ -1266,12 +1266,12 @@ extern const uint32_t csPlayScoMask;
     INSDS         *multiThreadedStart;
     INSDS         *multiThreadedEnd;
     
-    char                  *weight_info;
-    char                  *weight_dump;
-    char                  *weights;
+    char                *weight_info;
+    char                *weight_dump;
+    char                *weights;
     struct dag_t        *multiThreadedDag;
-    struct barrier_spin_t *barrier1;
-    struct barrier_spin_t *barrier2;
+    pthread_barrier_t   *barrier1;
+    pthread_barrier_t   *barrier2;
     
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
