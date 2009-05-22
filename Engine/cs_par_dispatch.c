@@ -883,11 +883,11 @@ int inline csp_parallel_compute_should(CSOUND *csound, DAG *dag)
 #pragma mark Dag2
 
 /* prototypes for dag2 */
-static void dag_node_2_alloc(CSOUND *csound, struct dag_node_t **dag_node,
+static void dag_node_2_alloc(CSOUND *csound, DAG_NODE **dag_node,
                              INSTR_SEMANTICS *instr, INSDS *insds);
-static void dag_node_2_alloc_list(CSOUND *csound, struct dag_node_t **dag_node,
+static void dag_node_2_alloc_list(CSOUND *csound, DAG_NODE **dag_node,
                                   int count);
-static void dag_node_2_dealloc(CSOUND *csound, struct dag_node_t **dag_node);
+static void dag_node_2_dealloc(CSOUND *csound, DAG_NODE **dag_node);
 
 /* add all the instruments to a DAG found in an insds chain */
 static DAG *csp_dag_build_initial(CSOUND *csound, INSDS *chain);
@@ -970,18 +970,18 @@ void csp_dag_dealloc(CSOUND *csound, DAG **dag)
     *dag = NULL;
 }
 
-static void dag_node_2_alloc(CSOUND *csound, struct dag_node_t **dag_node,
+static void dag_node_2_alloc(CSOUND *csound, DAG_NODE **dag_node,
                              INSTR_SEMANTICS *instr, INSDS *insds)
 {
     if (dag_node == NULL) csound->Die(csound, "Invalid NULL Parameter dag_node");
     if (instr == NULL) csound->Die(csound, "Invalid NULL Parameter instr");
     if (insds == NULL) csound->Die(csound, "Invalid NULL Parameter insds");
 
-    *dag_node = csound->Malloc(csound, sizeof(struct dag_node_t));
+    *dag_node = csound->Malloc(csound, sizeof(DAG_NODE));
     if (*dag_node == NULL) {
       csound->Die(csound, "Failed to allocate dag_node");
     }
-    memset(*dag_node, 0, sizeof(struct dag_node_t));
+    memset(*dag_node, 0, sizeof(DAG_NODE));
     strncpy((*dag_node)->hdr.hdr, DAG_NODE_2_HDR, HDR_LEN);
     (*dag_node)->hdr.type = DAG_NODE_INDV;
     (*dag_node)->instr = instr;
@@ -989,25 +989,25 @@ static void dag_node_2_alloc(CSOUND *csound, struct dag_node_t **dag_node,
 }
 
 static void dag_node_2_alloc_list(CSOUND *csound,
-                                  struct dag_node_t **dag_node, int count)
+                                  DAG_NODE **dag_node, int count)
 {
     if (dag_node == NULL) csound->Die(csound, "Invalid NULL Parameter dag_node");
     if (count <= 0)
       csound->Die(csound, "Invalid Parameter count must be greater than 0");
 
-    *dag_node = csound->Malloc(csound, sizeof(struct dag_node_t));
+    *dag_node = csound->Malloc(csound, sizeof(DAG_NODE));
     if (*dag_node == NULL) {
       csound->Die(csound, "Failed to allocate dag_node");
     }
-    memset(*dag_node, 0, sizeof(struct dag_node_t));
+    memset(*dag_node, 0, sizeof(DAG_NODE));
     strncpy((*dag_node)->hdr.hdr, DAG_NODE_2_HDR, HDR_LEN);
     (*dag_node)->hdr.type = DAG_NODE_LIST;
     (*dag_node)->nodes = csound->Malloc(csound,
-                                        sizeof(struct dag_node_t *) * count);
+                                        sizeof(DAG_NODE *) * count);
     (*dag_node)->count = count;
 }
 
-static void dag_node_2_dealloc(CSOUND *csound, struct dag_node_t **dag_node)
+static void dag_node_2_dealloc(CSOUND *csound, DAG_NODE **dag_node)
 {
     if (dag_node == NULL) csound->Die(csound, "Invalid NULL Parameter dag_node");
     if (*dag_node == NULL) csound->Die(csound, "Invalid NULL Parameter dag_node");
@@ -1023,12 +1023,13 @@ static void dag_node_2_dealloc(CSOUND *csound, struct dag_node_t **dag_node)
 void csp_dag_add(CSOUND *csound, DAG *dag,
                  INSTR_SEMANTICS *instr, INSDS *insds)
 {
-    struct dag_node_t *dag_node = NULL;
+    DAG_NODE *dag_node = NULL;
+    DAG_NODE **old = dag->all;
     dag_node_2_alloc(csound, &dag_node, instr, insds);
 
-    struct dag_node_t **old = dag->all;
-    dag->all = csound->Malloc(csound,
-                              sizeof(struct dag_node_t *) * (dag->count + 1));
+    printf("dag->count = %d\n", dag->count);
+    dag->all = (DAG_NODE **)csound->Malloc(csound,
+                                           sizeof(DAG_NODE *) * (dag->count + 1));
     int ctr = 0;
     while (ctr < dag->count) {
       dag->all[ctr] = old[ctr];
@@ -1050,35 +1051,35 @@ static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
 {
     if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
 
-    if (dag->roots_ori        != NULL) csound->Free(csound, dag->roots_ori);
-    if (dag->roots            != NULL) csound->Free(csound, dag->roots);
+    if (dag->roots_ori       != NULL) csound->Free(csound, dag->roots_ori);
+    if (dag->roots           != NULL) csound->Free(csound, dag->roots);
 #ifndef COUNTING_SEMAPHORE
-    if (dag->root_seen_ori    != NULL) csound->Free(csound, dag->root_seen_ori);
+    if (dag->root_seen_ori   != NULL) csound->Free(csound, dag->root_seen_ori);
 #endif
-    if (dag->root_seen        != NULL) csound->Free(csound, dag->root_seen);
+    if (dag->root_seen       != NULL) csound->Free(csound, dag->root_seen);
     if (dag->remaining_count_ori != NULL)
       csound->Free(csound, dag->remaining_count_ori);
-    if (dag->remaining_count  != NULL) csound->Free(csound, dag->remaining_count);
-    if (dag->table_ori        != NULL) csound->Free(csound, dag->table_ori);
-    if (dag->table            != NULL) csound->Free(csound, dag->table);
+    if (dag->remaining_count != NULL) csound->Free(csound, dag->remaining_count);
+    if (dag->table_ori       != NULL) csound->Free(csound, dag->table_ori);
+    if (dag->table           != NULL) csound->Free(csound, dag->table);
 
     if (dag->count == 0) {
-      dag->roots_ori           = NULL;
-      dag->roots               = NULL;
+      dag->roots_ori         = NULL;
+      dag->roots             = NULL;
 #ifndef COUNTING_SEMAPHORE
-      dag->root_seen_ori       = NULL;
+      dag->root_seen_ori     = NULL;
 #endif
-      dag->root_seen           = NULL;
+      dag->root_seen         = NULL;
       dag->remaining_count_ori = NULL;
-      dag->remaining_count     = NULL;
-      dag->table_ori           = NULL;
-      dag->table               = NULL;
+      dag->remaining_count   = NULL;
+      dag->table_ori         = NULL;
+      dag->table             = NULL;
       return;
     }
 
     dag->roots_ori =
-      csound->Malloc(csound, sizeof(struct dag_node_t *) * dag->count);
-    dag->roots = csound->Malloc(csound, sizeof(struct dag_node_t *) * dag->count);
+      csound->Malloc(csound, sizeof(DAG_NODE *) * dag->count);
+    dag->roots = csound->Malloc(csound, sizeof(DAG_NODE *) * dag->count);
 #ifndef COUNTING_SEMAPHORE
     dag->root_seen_ori = csound->Malloc(csound, sizeof(uint8_t) * dag->count);
 #endif
@@ -1104,8 +1105,8 @@ static void csp_dag_build_prepare(CSOUND *csound, DAG *dag)
         ctr++;
       }
     }
-    memset(dag->roots_ori, 0,        sizeof(struct dag_node_t *) * dag->count);
-    memset(dag->roots,     0,        sizeof(struct dag_node_t *) * dag->count);
+    memset(dag->roots_ori, 0,        sizeof(DAG_NODE *) * dag->count);
+    memset(dag->roots,     0,        sizeof(DAG_NODE *) * dag->count);
 #ifndef COUNTING_SEMAPHORE
     memset(dag->root_seen_ori, 0,    sizeof(uint8_t) * dag->count);
 #endif
@@ -1310,7 +1311,7 @@ static void csp_dag_prepare_use(CSOUND *csound, DAG *dag)
 {
     if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
 
-    memcpy(dag->roots, dag->roots_ori, sizeof(struct dag_node_t *) * dag->count);
+    memcpy(dag->roots, dag->roots_ori, sizeof(DAG_NODE *) * dag->count);
 #ifdef COUNTING_SEMAPHORE
     memset(dag->root_seen, 0, sizeof(uint8_t) * dag->count);
 #else
@@ -1333,7 +1334,7 @@ static void csp_dag_prepare_use(CSOUND *csound, DAG *dag)
 static inline void csp_dag_prepare_use_insds(CSOUND *csound,
                                              DAG *dag, INSDS *chain)
 {
-    struct dag_node_t *node;
+    DAG_NODE *node;
    if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
 
     TRACE_2("updating insds\n");
@@ -1351,7 +1352,7 @@ static void csp_dag_calculate_max_roots(CSOUND *csound, DAG *dag)
 {
     INSTR_SEMANTICS *instr = NULL;
     INSDS *insds = NULL;
-    struct dag_node_t *node;
+    DAG_NODE *node;
     int update_hdl = -1;
 
     if (dag == NULL) csound->Die(csound, "Invalid NULL Parameter dag");
@@ -1408,9 +1409,9 @@ int inline csp_dag_is_finished(CSOUND *csound, DAG *dag)
  * consume an instr and update the first root cache
  */
 void csp_dag_consume(CSOUND *csound, DAG *dag,
-                     struct dag_node_t **node, int *update_hdl)
+                     DAG_NODE **node, int *update_hdl)
 {
-    struct dag_node_t *dag_node = NULL;
+    DAG_NODE *dag_node = NULL;
     int ctr, first_root;
 
     if (UNLIKELY(dag == NULL)) csound->Die(csound, "Invalid NULL Parameter dag");
@@ -1734,8 +1735,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
     while (starting_row < end_point)
       {
         TRACE_2("Start Loop\n");
-        /* struct dag_node_t *readwrite_group[dag->count];
-           memset(readwrite_group, 0, sizeof(struct dag_node_t *) * dag->count); */
+        /* DAG_NODE *readwrite_group[dag->count];
+           memset(readwrite_group, 0, sizeof(DAG_NODE *) * dag->count); */
         int readwrite_group[dag->count];
 
         /* try and find sqaures of target side length
@@ -1862,8 +1863,8 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 
           /* allocate the replacement list dag_nodes */
           ctr = 0;
-          struct dag_node_t *new_nodes[threads];
-          memset(new_nodes, 0, sizeof(struct dag_node_t *) * threads);
+          DAG_NODE *new_nodes[threads];
+          memset(new_nodes, 0, sizeof(DAG_NODE *) * threads);
           while (ctr < threads) {
             dag_node_2_alloc_list(csound, &(new_nodes[ctr]), streams_ix[ctr]);
             ctr++;
@@ -1992,7 +1993,7 @@ void csp_dag_optimization(CSOUND *csound, DAG *dag)
 
     /* reset ready to redo roots and similar things */
     memcpy(dag->table[0], dag->table_ori[0], sizeof(uint8_t) * dag_table_original_size * dag_table_original_size);
-    memset(dag->roots_ori, 0, sizeof(struct dag_node_t *) * dag_table_original_size);
+    memset(dag->roots_ori, 0, sizeof(DAG_NODE *) * dag_table_original_size);
     dag->first_root_ori = -1;
 
 #ifndef COUNTING_SEMAPHORE
