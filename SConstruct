@@ -296,11 +296,9 @@ def compilerGNU():
 optionsFilename = 'custom.py'
 
 if compilerIntel():
-	print 'Importing complete environment for the Intel C++ Compiler (ICL)...'
 	Tool('icl')(commonEnvironment)
 	optionsFilename = 'custom-msvc.py'
 elif compilerMicrosoft():
-	print 'Importing complete environment for Microsoft Visual C++ (MSVC)...'
 	optionsFilename = 'custom-msvc.py'
 elif getPlatform() == 'win32':
 	# On Windows, to exclude MSVC tools,
