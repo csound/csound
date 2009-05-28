@@ -525,7 +525,7 @@ expr      : expr S_Q expr S_COL expr %prec S_Q
 iexp      : iexp S_PLUS iterm   { $$ = make_node(csound, S_PLUS, $1, $3); }
           | iexp S_PLUS error
           | iexp S_MINUS iterm  { $$ = make_node(csound, S_MINUS, $1, $3); }
-          | expr S_MINUS error
+          | iexp S_MINUS error
           | iterm               { $$ = $1; }
           ;
 

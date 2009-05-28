@@ -1235,7 +1235,7 @@ extern "C" {
     OPDS  *opstart = NULL;
     int update_hdl = -1;
     int played_count = 0;
-    struct dag_node_t *node;
+    DAG_NODE *node;
 
     do {
       csp_dag_consume(csound, csound->multiThreadedDag, &node, &update_hdl);
@@ -1263,16 +1263,18 @@ extern "C" {
 
         int node_ctr = 0;
         while (node_ctr < node->count) {
-          struct dag_node_t *play_node = node->nodes[node_ctr];
+          DAG_NODE *play_node = node->nodes[node_ctr];
           instr = play_node->instr;
           insds = play_node->insds;
+          printf("DAG_NODE_LIST: node->nodes=%p: play_node = %p, instr=%p, insds=%p\n",
+                 node->nodes, play_node, instr, insds);
 
           TRACE_2("[%i] Playing: %s [%p]\n", index, instr->name, insds);
 
           opstart = (OPDS *)insds;
           while ((opstart = opstart->nxtp) != NULL) {
-            csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", opstart,
-                            opstart->opadr, opstart->optext->t.opcod);
+            /* csound->Message(csound, "**opstart=%p; opadr=%p (%s)\n", opstart, */
+            /*                 opstart->opadr, opstart->optext->t.opcod); */
             (*opstart->opadr)(csound, opstart); /* run each opcode */
           }
 

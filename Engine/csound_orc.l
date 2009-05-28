@@ -73,7 +73,7 @@ MACRO           [a-zA-Z0-9_]+\(
 MACRONAME       "$"[a-zA-Z0-9_]+
 MACRONAMED      "$"[a-zA-Z0-9_]+\.
 INTGR           [0-9]+
-NUMBER          [0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
+NUMBER          [0-9]+\.[0-9]*?(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
 INCLUDE		"#include"
@@ -93,7 +93,7 @@ UNDEF           "#undef"
 "("             { return S_LB; }
 ")"             { return S_RB; }
 "+"             { return S_PLUS; }
-"-"             { return S_MINUS; }
+"-"             { printf("MINUS!!:\n"); return S_MINUS; }
 "*"             { return S_TIMES; }
 "/"             { return S_DIV; }
 "?"             { return S_Q; }
@@ -427,6 +427,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     ans->lexeme = (char*)mcalloc(csound, len + 1);
     strncpy(ans->lexeme, s, len);
     ans->fvalue = n;
+    printf("make_num: %s\n", s);
     return ans;
 }
 
