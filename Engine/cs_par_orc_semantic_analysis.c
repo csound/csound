@@ -50,6 +50,10 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
     strncpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
     instr->name = name;
     instr->insno = -1;
+    /* always check for greater than 0 in optimisation
+       so this is a good default
+     */
+    instr->weight = 1;
 
     csp_set_alloc_string(csound, &(instr->read_write));
     csp_set_alloc_string(csound, &(instr->write));

@@ -1266,7 +1266,7 @@ extern "C" {
           DAG_NODE *play_node = node->nodes[node_ctr];
           instr = play_node->instr;
           insds = play_node->insds;
-          printf("DAG_NODE_LIST: node->nodes=%p: play_node = %p, instr=%p, insds=%p\n",
+          TRACE_1("DAG_NODE_LIST: node->nodes=%p: play_node = %p, instr=%p, insds=%p\n",
                  node->nodes, play_node, instr, insds);
 
           TRACE_2("[%i] Playing: %s [%p]\n", index, instr->name, insds);

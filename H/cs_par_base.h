@@ -15,7 +15,7 @@
 /* #define HYBRID_HASH_CACHE */
 /* #define LINEAR_CACHE */
 
-#define COUNTING_SEMAPHORE
+/* #define COUNTING_SEMAPHORE */
 
 /* #define CACLULATE_WEIGHTS_BUILD */
 #define LOOKUP_WEIGHTS

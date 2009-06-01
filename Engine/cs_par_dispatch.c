@@ -1027,7 +1027,7 @@ void csp_dag_add(CSOUND *csound, DAG *dag,
     DAG_NODE **old = dag->all;
     dag_node_2_alloc(csound, &dag_node, instr, insds);
 
-    printf("dag->count = %d\n", dag->count);
+    TRACE_1("dag->count = %d\n", dag->count);
     dag->all = (DAG_NODE **)csound->Malloc(csound,
                                            sizeof(DAG_NODE *) * (dag->count + 1));
     int ctr = 0;
