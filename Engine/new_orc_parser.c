@@ -3,6 +3,7 @@
 
     Copyright (C) 2006
     Steven Yi
+    Modifications 2009 by Christopher Wilson
 
     This file is part of Csound.
 

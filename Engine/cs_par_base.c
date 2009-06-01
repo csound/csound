@@ -53,6 +53,84 @@ int csp_thread_index_get(CSOUND *csound)
     return -1;
 }
 
+#ifdef __MACH__
+#define BARRIER_SERIAL_THREAD (-1)
+
+typedef struct {
+  pthread_mutex_t mut;
+  pthread_cond_t cond;
+  unsigned int count, max, iteration;
+} barrier_t;
+
+extern int barrier_init(barrier_t *b, unsigned int max);
+extern int barrier_destroy(barrier_t *b);
+extern int barrier_wait(barrier_t *b);
+
+#ifndef PTHREAD_BARRIER_SERIAL_THREAD
+#define pthread_barrier_t barrier_t
+#define PTHREAD_BARRIER_SERIAL_THREAD BARRIER_SERIAL_THREAD
+#define pthread_barrier_init(barrier, attr, count) \
+  barrier_init(barrier, NULL, count)
+#define pthread_barrier_destroy barrier_destroy
+#define pthread_barrier_wait barrier_wait
+#endif
+
+int barrier_init(barrier_t *b, unsigned int max)
+{
+  if (max == 0) return EINVAL;
+
+  if (pthread_mutex_init(&b->mut, NULL)) {
+    return -1;
+  }
+
+  if (pthread_cond_init(&b->cond, NULL)) {
+    int err = errno;
+    pthread_mutex_destroy(&b->mut);
+    errno = err;
+    return -1;
+  }
+
+  b->count = 0;
+  b->iteration = 0;
+  b->max = max;
+
+  return 0;
+}
+
+int barrier_destroy(barrier_t *b)
+{
+  if (b->count > 0) return EBUSY;
+
+  pthread_cond_destroy(&b->cond);
+  pthread_mutex_destroy(&b->mut);
+
+  return 0;
+}
+
+// when barrier is passed, all threads except one return 0
+int barrier_wait(barrier_t *b)
+{
+  int ret, it;
+
+  pthread_mutex_lock(&b->mut);
+  b->count++;
+  it = b->iteration;
+  if (b->count >= b->max) {
+    b->count = 0;
+    b->iteration++;
+    pthread_cond_broadcast(&b->cond);
+    ret = BARRIER_SERIAL_THREAD;
+  }
+  else {
+    while (it == b->iteration) pthread_cond_wait(&b->cond, &b->mut);
+    ret = 0;
+  }
+  pthread_mutex_unlock(&b->mut);
+
+  return ret;
+}
+#endif
+
 /***********************************************************************
  * parallel primitives
  */
