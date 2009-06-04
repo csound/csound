@@ -86,11 +86,11 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
     return s;
 }
 
-char * get_boolean_arg(CSOUND *csound)
+char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
 
-    sprintf(s, "#B%d", csound->Bcount++);
+    sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
 
     return s;
 }
@@ -173,7 +173,8 @@ TREE * create_ans_token(CSOUND *csound, char* var)
 
 }
 
-TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode)
+TREE * create_goto_token(CSOUND *csound, char * booleanVar,
+                         TREE * gotoNode, int type)
 {
 /*     TREE *ans = create_empty_token(csound); */
     char* op = (char *)csound->Malloc(csound, 7);
@@ -199,7 +200,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode)
 
     opTree = create_opcode_token(csound, op);
     bVar = create_empty_token(csound);
-    bVar->type = T_IDENT_B;
+    bVar->type = (type ? T_IDENT_B : T_IDENT_b);
     bVar->value = make_token(csound, booleanVar);
     bVar->value->type = bVar->type;
 
@@ -472,7 +473,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
 
     if (PARSER_DEBUG) csound->Message(csound, "Operator Found: %s\n", op);
 
-    outarg = get_boolean_arg(csound);
+    outarg = get_boolean_arg(csound,
+                             root->left->type=='k' || root->right->type=='k');
 
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;
@@ -588,7 +590,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             }
             gotoToken = create_goto_token(csound,
                                           expressionNodes->left->value->lexeme,
-                                          right);
+                                          right,
+                                          expressionNodes->left->type == 'k' ||
+                                          right->type =='k');
             last->next = gotoToken;
             gotoToken->next = current->next;
 
@@ -645,7 +649,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 tempRight->right = label;
                 gotoToken = create_goto_token(csound,
                                               expressionNodes->left->value->lexeme,
-                                              tempRight);
+                                              tempRight,
+                                              expressionNodes->left->type == 'k' ||
+                                              tempRight->type == 'k');
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
