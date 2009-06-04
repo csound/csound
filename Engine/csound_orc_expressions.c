@@ -173,8 +173,7 @@ TREE * create_ans_token(CSOUND *csound, char* var)
 
 }
 
-TREE * create_goto_token(CSOUND *csound, char * booleanVar,
-                         TREE * gotoNode, int type)
+TREE * create_goto_token(CSOUND *csound, char * booleanVar, TREE * gotoNode, int type)
 {
 /*     TREE *ans = create_empty_token(csound); */
     char* op = (char *)csound->Malloc(csound, 7);
@@ -591,8 +590,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             gotoToken = create_goto_token(csound,
                                           expressionNodes->left->value->lexeme,
                                           right,
-                                          expressionNodes->left->type == 'k' ||
-                                          right->type =='k');
+                                          expressionNodes->left->type == 'k' || right->type =='k');
             last->next = gotoToken;
             gotoToken->next = current->next;
 
@@ -650,8 +648,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 gotoToken = create_goto_token(csound,
                                               expressionNodes->left->value->lexeme,
                                               tempRight,
-                                              expressionNodes->left->type == 'k' ||
-                                              tempRight->type == 'k');
+                                              expressionNodes->left->type == 'k' || tempRight->type == 'k');
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
