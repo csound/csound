@@ -62,36 +62,6 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
     return instr;
 }
 
-#if 0
-static int csp_thread_index_get(CSOUND *csound)
-{
-    int index = 0;
-    void *threadId = csound->GetCurrentThreadID();
-    THREADINFO *current = csound->multiThreadedThreadInfo;
-
-    /* if(current == NULL) {
-        return -2;
-    }
-
-    while(current != NULL) {
-        if (pthread_equal(*(pthread_t *)threadId,
-                          *(pthread_t *)current->threadId)) {
-            return index;
-        }
-        index++;
-        current = current->next;
-    }
-    return -1; */
-
-    int equal = pthread_equal(*(pthread_t *)threadId,
-                              *(pthread_t *)current->threadId);
-    free(threadId);
-    return equal;
-}
-
-/* #define csp_thread_index_get(csound) 1 */
-#endif
-
 /***********************************************************************
  * parse time support
  */
@@ -104,13 +74,13 @@ void csp_orc_sa_cleanup(CSOUND *csound)
     INSTR_SEMANTICS *current = root, *h = NULL;
     while (current != NULL) {
 
-        csp_set_dealloc(csound, &(current->read));
-        csp_set_dealloc(csound, &(current->write));
-        csp_set_dealloc(csound, &(current->read_write));
+      csp_set_dealloc(csound, &(current->read));
+      csp_set_dealloc(csound, &(current->write));
+      csp_set_dealloc(csound, &(current->read_write));
 
-        h = current;
-        current = current->next;
-        csound->Free(csound, h);
+      h = current;
+      current = current->next;
+      csound->Free(csound, h);
     }
 
     curr = NULL;
@@ -122,19 +92,19 @@ void csp_orc_sa_print_list(CSOUND *csound)
     csound->Message(csound, "Semantic Analysis\n");
     INSTR_SEMANTICS *current = root;
     while (current != NULL) {
-        csound->Message(csound, "Instr: %s\n", current->name);
-        csound->Message(csound, "  read: ");
-        csp_set_print(csound, current->read);
+      csound->Message(csound, "Instr: %s\n", current->name);
+      csound->Message(csound, "  read: ");
+      csp_set_print(csound, current->read);
 
-        csound->Message(csound, "  write: ");
-        csp_set_print(csound, current->write);
+      csound->Message(csound, "  write: ");
+      csp_set_print(csound, current->write);
 
-        csound->Message(csound, "  read_write: ");
-        csp_set_print(csound, current->read_write);
+      csound->Message(csound, "  read_write: ");
+      csp_set_print(csound, current->read_write);
 
-        csound->Message(csound, "  weight: %u\n", current->weight);
+      csound->Message(csound, "  weight: %u\n", current->weight);
 
-        current = current->next;
+      current = current->next;
     }
     csound->Message(csound, "Semantic Analysis Ends\n");
 }
@@ -260,42 +230,43 @@ void csp_orc_sa_instr_finalize(CSOUND *csound)
 
 struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
 {
+    struct set_t *left, *right;
+    struct set_t *current_set = NULL;
+
     if (node == NULL) {
       struct set_t *set = NULL;
       csp_set_alloc_string(csound, &set);
       return set;
     }
 
-    struct set_t *left  = csp_orc_sa_globals_find(csound, node->left);
-    struct set_t *right = csp_orc_sa_globals_find(csound, node->right);
-
-    struct set_t *current_set = NULL;
+    left  = csp_orc_sa_globals_find(csound, node->left);
+    right = csp_orc_sa_globals_find(csound, node->right);
     csp_set_union(csound, left, right, &current_set);
 
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
     switch (node->type) {
-        case T_IDENT_GI:
-        case T_IDENT_GK:
-        case T_IDENT_GF:
-        case T_IDENT_GW:
-        case T_IDENT_GS:
-        case T_IDENT_GA:
-            csp_set_add(csound, current_set, node->value->lexeme);
-            break;
-        default:
-              /* no globals */
-            break;
+    case T_IDENT_GI:
+    case T_IDENT_GK:
+    case T_IDENT_GF:
+    case T_IDENT_GW:
+    case T_IDENT_GS:
+    case T_IDENT_GA:
+      csp_set_add(csound, current_set, node->value->lexeme);
+      break;
+    default:
+      /* no globals */
+      break;
     }
 
     if (node->next != NULL) {
-        struct set_t *prev_set = current_set;
-        struct set_t *next = csp_orc_sa_globals_find(csound, node->next);
-        csp_set_union(csound, prev_set, next, &current_set);
+      struct set_t *prev_set = current_set;
+      struct set_t *next = csp_orc_sa_globals_find(csound, node->next);
+      csp_set_union(csound, prev_set, next, &current_set);
 
-        csp_set_dealloc(csound, &prev_set);
-        csp_set_dealloc(csound, &next);
+      csp_set_dealloc(csound, &prev_set);
+      csp_set_dealloc(csound, &next);
     }
 
     return current_set;
@@ -315,7 +286,9 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_name(char *instr_name)
 
 INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(int16 insno)
 {
+#define BUF_LENGTH 8
     INSTR_SEMANTICS *current_instr = root;
+    char buf[BUF_LENGTH];
     while (current_instr != NULL) {
       if (current_instr->insno != -1 && current_instr->insno == insno) {
         return current_instr;
@@ -323,13 +296,11 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(int16 insno)
       current_instr = current_instr->next;
     }
 
-    #define BUF_LENGTH 8
-    char buf[BUF_LENGTH];
     snprintf(buf, BUF_LENGTH, "%i", insno);
 
     current_instr = csp_orc_sa_instr_get_by_name(buf);
     if (current_instr != NULL) {
-        current_instr->insno = insno;
+      current_instr->insno = insno;
     }
     return current_instr;
 }

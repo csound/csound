@@ -36,11 +36,11 @@ int csp_thread_index_get(CSOUND *csound)
     int index = 0;
     THREADINFO *current = csound->multiThreadedThreadInfo;
 
-    if(current == NULL) {
+    if (current == NULL) {
       return -1;
     }
 
-    while(current != NULL) {
+    while (current != NULL) {
       if (pthread_equal(*(pthread_t *)threadId,
                         *(pthread_t *)current->threadId)) {
         free(threadId);
@@ -141,11 +141,11 @@ void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
     if (thread_count < 1)
       csound->Die(csound, "Invalid Parameter thread_count must be > 0");
 
-    *barrier = (pthread_barrier_t *)csound->Malloc(csound, sizeof(pthread_barrier_t));
+    *barrier = (pthread_barrier_t *)csound->Malloc(csound,
+                                                   sizeof(pthread_barrier_t));
     if (*barrier == NULL) {
         csound->Die(csound, "Failed to allocate barrier");
     }
-    fprintf(stdout, "Calling barrier init(%p, NULL, %d)\n", *barrier, thread_count);
     pthread_barrier_init(*barrier, NULL, thread_count);
 }
 
@@ -160,7 +160,7 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 void csp_barrier_wait(CSOUND *csound, pthread_barrier_t *barrier)
 {
     TRACE_1("Barrier Wait %p\n", barrier);
-   pthread_barrier_wait(barrier);
+    pthread_barrier_wait(barrier);
 }
 
 /***********************************************************************
@@ -183,22 +183,12 @@ void csp_semaphore_alloc(CSOUND *csound, sem_t **sem, int max_threads)
       csound->Die(csound, "Failed to allocate semaphore");
     }
     sem_init(*sem, 0, 1);
-    {
-      int val, res;
-      res = sem_getvalue(*sem, &val);
-      //      fprintf(stdout, "after sem_alloc: %d %p\n", val, *sem);
-    }
 }
 
 void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem)
 {
     if (sem == NULL || *sem == NULL)
       csound->Die(csound, "Invalid NULL Parameter sem");
-    {
-      int val, res;
-      res = sem_getvalue(*sem, &val);
-      //      fprintf(stdout, "before sem_dealloc: %d %p\n", val, *sem);
-    }
     sem_destroy(*sem);
     csound->Free(csound, *sem);
     *sem = NULL;
@@ -210,7 +200,7 @@ void csp_semaphore_wait(CSOUND *csound, sem_t *sem)
 
     TRACE_1("[%i] wait:\n", csp_thread_index_get(csound));
     {
-      int val, res;
+      /* int val, res; */
       /* res = sem_getvalue(sem, &val); */
       /* fprintf(stdout, "before sem_wait: %d %i:\t", val, */
       /*         csp_thread_index_get(csound)); */
@@ -224,7 +214,7 @@ void csp_semaphore_wait(CSOUND *csound, sem_t *sem)
 
 void csp_semaphore_grow(CSOUND *csound, sem_t *sem)
 {
-    int val, res;
+    /* int val, res; */
     /* res = sem_getvalue(sem, &val); */
     /* fprintf(stdout, "before sem_grow: %d %i\t", val, csp_thread_index_get(csound)); */
     sem_post(sem);
@@ -245,17 +235,14 @@ void csp_semaphore_release(CSOUND *csound, sem_t *sem)
 
 void csp_semaphore_release_end(CSOUND *csound, sem_t *sem)
 {
-    int val, res;
-    {
-      int val, res;
-      /* res = sem_getvalue(sem, &val); */
-      /* fprintf(stdout, "before sem_release_end: %d %i\t", */
-      /*         val, csp_thread_index_get(csound)); */
-      sem_post(sem);
-      /* res = sem_getvalue(sem, &val); */
-      /* fprintf(stdout, "after sem_release_end: %d %i\n", */
-      /*         val, csp_thread_index_get(csound)); */
-    }
+    /* int val, res; */
+    /* res = sem_getvalue(sem, &val); */
+    /* fprintf(stdout, "before sem_release_end: %d %i\t", */
+    /*         val, csp_thread_index_get(csound)); */
+    sem_post(sem);
+    /* res = sem_getvalue(sem, &val); */
+    /* fprintf(stdout, "after sem_release_end: %d %i\n", */
+    /*         val, csp_thread_index_get(csound)); */
 }
 
 void csp_semaphore_release_print(CSOUND *csound, sem_t *sem)
@@ -291,7 +278,7 @@ int csp_set_alloc(CSOUND *csound, struct set_t **set,
 
     *set = csound->Malloc(csound, sizeof(struct set_t));
     if (*set == NULL) {
-        csound->Die(csound, "Failed to allocate set");
+      csound->Die(csound, "Failed to allocate set");
     }
     memset(*set, 0, sizeof(struct set_t));
     strncpy((*set)->hdr, SET_HDR, HDR_LEN);
@@ -314,8 +301,8 @@ int csp_set_dealloc(CSOUND *csound, struct set_t **set)
 
     ele = (*set)->head;
     while (ele != NULL) {
-        next = ele->next;
-        set_element_delloc(csound, &ele);
+      next = ele->next;
+      set_element_delloc(csound, &ele);
     }
 
     csound->Free(csound, *set);
@@ -332,7 +319,7 @@ static int set_element_alloc(CSOUND *csound,
 
     *set_element = csound->Malloc(csound, sizeof(struct set_element_t));
     if (*set_element == NULL) {
-        csound->Die(csound, "Failed to allocate set element");
+      csound->Die(csound, "Failed to allocate set element");
     }
     memset(*set_element, 0, sizeof(struct set_element_t));
     strncpy((*set_element)->hdr, SET_ELEMENT_HDR, HDR_LEN);

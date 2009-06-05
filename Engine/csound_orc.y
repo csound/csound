@@ -542,6 +542,10 @@ ifac      : ident               { $$ = $1; }
             {
                 $$ = make_node(csound, S_UMINUS, NULL, $2);
             }
+          | S_PLUS ifac %prec S_UMINUS
+            {
+                $$ = $2;
+            }
           | ifac S_BITOR ifac   { $$ = make_node(csound, S_BITOR, $1, $3); }
           | ifac S_BITAND ifac   { $$ = make_node(csound, S_BITAND, $1, $3); }
           | ifac S_NEQV ifac   { $$ = make_node(csound, S_NEQV, $1, $3); }

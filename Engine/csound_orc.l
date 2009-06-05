@@ -73,7 +73,7 @@ MACRO           [a-zA-Z0-9_]+\(
 MACRONAME       "$"[a-zA-Z0-9_]+
 MACRONAMED      "$"[a-zA-Z0-9_]+\.
 INTGR           [0-9]+
-NUMBER          [0-9]+\.[0-9]*?(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
+NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
 INCLUDE		"#include"

@@ -1299,6 +1299,9 @@ extern "C" {
   {
       INSDS *start;
       CSOUND *csound = (CSOUND *)cs;
+      void *threadId;
+      int index;
+      int numThreads;
 
 #if defined(SPINLOCK_BARRIER) || defined(SPINLOCK_2_BARRIER)
       csp_barrier_wait(csound, csound->barrier2);
@@ -1306,9 +1309,9 @@ extern "C" {
       csound->WaitBarrier(csound->barrier2);
 #endif
 
-      void *threadId = csound->GetCurrentThreadID();
-      int index = getThreadIndex(csound, threadId);
-      int numThreads = csound->oparms->numThreads;
+      threadId = csound->GetCurrentThreadID();
+      index = getThreadIndex(csound, threadId);
+      numThreads = csound->oparms->numThreads;
       start = NULL;
       csound->Message(csound,
                       "Multithread performance: insno: %3d  thread %d of "
@@ -1404,9 +1407,9 @@ extern "C" {
 #endif
       INSDS *ip;
       /* update orchestra time */
-      csound->kcounter = ++(csound->global_kcounter);
+      csound->kcounter  = ++(csound->global_kcounter);
       csound->icurTime += csound->ksmps;
-      csound->curBeat += csound->curBeat_inc;
+      csound->curBeat  += csound->curBeat_inc;
       /* if skipping time on request by 'a' score statement: */
       if (UNLIKELY(csound->advanceCnt)) {
         csound->advanceCnt--;
