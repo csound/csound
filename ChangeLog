@@ -1,9 +1,13 @@
+2009-06-05  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h: Marked as 5.10.90 and 5.11rc1
+
 2009-06-04  jpff  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_expressions.c (create_goto_token)
 	(get_boolean_arg, create_boolean_expression)
 	(create_synthetic_ident, csound_orc_expand_expressions): 
-	Create and use Boolean variables wity heither k or i type as required
+	Create and use Boolean variables with either k or i type as required
 
 2009-05-05  jpff  <jpff@cs.bath.ac.uk>
 
