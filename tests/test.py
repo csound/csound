@@ -68,6 +68,7 @@ def runTest():
         ["test29.csd", "bit operations test"],
         ["test30.csd", "multi-numbered instrument test"],
         ["test31.csd", "i-rate conditional test"],
+        ["test32.csd", "continuation lines test"],
     ]
 
 

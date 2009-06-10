@@ -1,4 +1,10 @@
+2009-06-10  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.l: Corrected continuation line pattern
+
 2009-06-05  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y (ident): Added unary +
 
 	* H/version.h: Marked as 5.10.90 and 5.11rc1
 
