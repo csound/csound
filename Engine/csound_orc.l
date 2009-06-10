@@ -79,13 +79,14 @@ WHITE           [ \t]+
 INCLUDE		"#include"
 DEFINE          "#define"
 UNDEF           "#undef"
+CONT            \\[[ \t]*\n
 %x incl
 %x macro
 %x umacro
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-"\\\n"          { yyline++; }
+{CONT}          { printf("****Continuation found\n"); yyline++; }
 "\n"            { yyline++; return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }
