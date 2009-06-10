@@ -86,7 +86,7 @@ CONT            \\[[ \t]*\n
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-{CONT}          { printf("****Continuation found\n"); yyline++; }
+{CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
 "\n"            { yyline++; return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }
