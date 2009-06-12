@@ -1753,7 +1753,7 @@ else:
 if commonEnvironment['useCoreAudio'] == '1' and getPlatform() == 'darwin':
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Clone()
-    coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
+    coreaudioEnvironment.Append(CCFLAGS = ['-I/System/Library/Frameworks/CoreAudio.framework/Headers'])
     makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
