@@ -499,6 +499,7 @@ OENTRY opcodlst_1[] = {
 { "filelen", S(SNDINFO), 1,     "i",    "Tp",   filelen, NULL, NULL        },
 { "filenchnls", S(SNDINFO), 1,  "i",    "Tp",   filenchnls, NULL, NULL     },
 { "filesr", S(SNDINFO),  1,     "i",    "Tp",   filesr, NULL, NULL         },
+{ "filebit", S(SNDINFO),  1,     "i",    "Tp",   filebit, NULL, NULL         },
 { "filepeak", S(SNDINFOPEAK), 1, "i",   "To",   filepeak, NULL, NULL       },
 /*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
 /* Robin Whittle */
