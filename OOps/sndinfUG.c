@@ -177,8 +177,8 @@ int filebit(CSOUND *csound, SNDINFO *p)
     if(format < 5)
       bits = format*8 ;
     else if(format == 5) bits = 8;
-    else if(format == 6) bits = 32;
-    else if(format == 7) bits = 64;
+    else if(format == 6) bits = -1;
+    else if(format == 7) bits = -2;
     else bits = -format; /* non-PCM data */
 
     *(p->r1) = (MYFLT) bits;
