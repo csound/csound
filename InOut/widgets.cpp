@@ -648,7 +648,7 @@ void Fl_Value_Input_Spin::draw(void)
     if (damage()&~FL_DAMAGE_CHILD) input.clear_damage(FL_DAMAGE_ALL);
     input.box(box());
     input.color(FL_WHITE, selection_color());
-    input.draw();
+    input.redraw();
     input.clear_damage();
     sxx+=border_size;
     syy+=border_size;
@@ -896,7 +896,7 @@ void Fl_Value_Slider_Input::draw(void)
     if (damage()&~FL_DAMAGE_CHILD)  input.clear_damage(FL_DAMAGE_ALL);
     input.box(box());
     input.color(FL_WHITE, selection_color());
-    input.draw();
+    input.redraw();
     input.resize(X,Y,W,H);
     input.clear_damage();
     //  if (horizontal())   input.draw();
