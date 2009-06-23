@@ -43,6 +43,7 @@ class CsoundVstFltk;
 #include "CsoundVstUi.h"
 
 #if defined(WIN32)
+#include <windows.h>
 
 extern HINSTANCE hInstance;
 
