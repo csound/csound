@@ -71,6 +71,7 @@ if sys.platform[:3] == 'win':
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
 	customCPPPATH.append(r'U:\zlib-1.2.3.win32\include')
+	customLIBPATH.append(r'U:\zlib-1.2.3.win32\lib')
 	customLIBPATH.append(r'U:\zlib-1.2.3.win32\bin')
 	customCPPPATH.append(r'U:\libpng-1.2.24')
 	customLIBPATH.append(r'U:\libpng-1.2.24\.libs')
@@ -104,8 +105,8 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'U:\fluidsynth-1.09\src\.libs')
-	customCPPPATH.append(r'U:\fluidsynth-1.09\include')
+	customLIBPATH.append(r'U:\fluidsynth-1.0.9\src\.libs')
+	customCPPPATH.append(r'U:\fluidsynth-1.0.9\include')
 	# And the dsound library from the Microsoft DirectX SDK.
 	customLIBPATH.append(r'U:\dxsdk\Lib\x86')
 	################################################################
@@ -119,7 +120,7 @@ if sys.platform[:3] == 'win':
 	customCPPPATH.append(r'U:\liblo-0.26')
 	customCPPPATH.append(r'U:\liblo-0.26\lo')
 	customCPPPATH.append(r'U:\liblo-0.26\src')
-	customLIBPATH.append(r'U:\liblo-0.26\.libs')
+	customLIBPATH.append(r'U:\liblo-0.26')
 	# For OSC on Windows, you will also need a Windows pthread library.
 	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
 	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
