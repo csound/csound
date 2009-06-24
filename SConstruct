@@ -2009,6 +2009,7 @@ else:
     stkEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'win32':
         stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
+        stkEnvironment.Append(CCFLAGS = '-D__STK_REALTIME__')
     elif getPlatform() == 'linux':
         stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
     elif getPlatform() == 'darwin':
