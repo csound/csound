@@ -383,16 +383,16 @@ make mingw clean; make mingw all
  		\end{enumerate}
 	\item (Not done) Build   
 		\begin{enumerate}				
-			\item (Not done) Double precision sample build.
+			\item (Done) Double precision sample build.
 				\begin{enumerate}
-		    	\item (Not done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
-					\item (Not done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
+		    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
+					\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
 					\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}. Build the \texttt{html-dist} target.
-					\item (Not done) Run \texttt{./cleanup.sh} to make everything really clean.
-			    \item (Not done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
-			    \item (Not done) Build again as above, to ensure \texttt{csnd.jar} is built properly.
+					\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
+			    \item (Done) Build Csound using \texttt{build-mingw-release-double.sh}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
+			    \item (Done) Build again as above, to ensure \texttt{csnd.jar} is built properly.
 			    \item (Not done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
-			    \item (Not done) Build the manual using a command line such as \verb|make html-dist XSL_BASE_PATH=D:/utah/opt/docbook-xsl-1.74.0|
+			    \item (Done) Build the manual using a command line such as \verb|make html-dist XSL_BASE_PATH=D:/utah/opt/docbook-xsl-1.75.1|
 			    \item (Not done) Build the API reference by executing \texttt{doxygen}.
 			    \item (Not done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
 			    \item (Not done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
