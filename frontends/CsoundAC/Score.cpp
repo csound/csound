@@ -548,9 +548,12 @@ namespace csound
   {
     findScale();
     sort();
-    // Format 0 file.
+    // Make this a Format 1 file.
     midiFile.clear();
+    midiFile.midiHeader.type = 1;
     MidiTrack midiTrack;
+    // Each track contains all events for one channel.
+    std::map<int, MidiTrack> midiTracks;
     for(Score::iterator it = begin(); it != end(); ++it) {
       const Event &event = *it;
       // event.dump(std::cout);
@@ -561,23 +564,28 @@ namespace csound
 	onEvent.push_back(event.getMidiStatus());
 	onEvent.push_back(event.getKeyNumber());
 	onEvent.push_back(event.getVelocityNumber());
-	midiTrack.push_back(onEvent);
+	int channel = event.getChannel();
+	midiTracks[channel].push_back(onEvent);
 	MidiEvent offEvent;
 	offEvent.time = event.getOffTime();
 	offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
 	offEvent.push_back(event.getMidiStatus());
 	offEvent.push_back(event.getKeyNumber());
 	offEvent.push_back(0);
-	midiTrack.push_back(offEvent);
+	midiTracks[channel].push_back(offEvent);
       }
     }
-    MidiEvent trackEnd;
-    trackEnd.ticks = midiTrack.back().ticks;
-    trackEnd.push_back(MidiFile::META_EVENT);
-    trackEnd.push_back(MidiFile::META_END_OF_TRACK);
-    trackEnd.push_back(0);
-    midiTrack.push_back(trackEnd);
-    midiFile.midiTracks.push_back(midiTrack);
+    for (std::map<int, MidiTrack>::iterator it = midiTracks.begin(); it != midiTracks.end(); ++it) {
+      MidiTrack &midiTrack = it->second;
+      MidiEvent trackEnd;
+      trackEnd.ticks = midiTrack.back().ticks;
+      trackEnd.push_back(MidiFile::META_EVENT);
+      trackEnd.push_back(MidiFile::META_END_OF_TRACK);
+      trackEnd.push_back(0);
+      midiTrack.push_back(trackEnd);
+      midiFile.midiTracks.push_back(midiTrack);
+    }
+    midiFile.midiHeader.trackCount = midiTracks.size();
   }
 
   void Score::dump(std::ostream &stream)
