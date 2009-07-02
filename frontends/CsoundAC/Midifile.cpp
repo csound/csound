@@ -224,7 +224,7 @@ namespace csound
 
   void MidiEvent::write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const
   {
-     int deltaTicks = ticks - lastTick;
+    int deltaTicks = ticks - lastTick;
     MidiFile::writeVariableLength(stream, deltaTicks);
     //  Channel event.
     if(getStatusNybble() != 0xf) {
@@ -587,6 +587,7 @@ namespace csound
       {
         int frameCode = (-midiHeader.timeFormat) >> 8;
         double framesPerSecond;
+	//cout << " frameCode:   " << frameCode;
         switch(frameCode)
           {
           case 24:
@@ -604,7 +605,9 @@ namespace csound
           default:
             framesPerSecond = 30.0;
           }
+ 	//cout << " framesPerSecond: " << framesPerSecond;
         int ticksPerFrame = midiHeader.timeFormat & 0xff;
+	//cout << " ticksPerFrame:   " << ticksPerFrame;
         currentSecondsPerTick = (1.0 / framesPerSecond) / ticksPerFrame;
       }
     else
@@ -612,7 +615,11 @@ namespace csound
         double ticksPerQuarterNote = double(midiHeader.timeFormat);
         double secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0;
         currentSecondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
+	//cout << " ticksPerQuarterNote:   " << ticksPerQuarterNote;
+	//cout << " secondsPerQuarterNote: " << secondsPerQuarterNote;
       }
+    //cout << " currentSecondsPerTick: " << currentSecondsPerTick;
+    //cout << endl;
     tempoMap[currentTick] = currentSecondsPerTick;
   }
 
