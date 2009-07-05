@@ -409,8 +409,10 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
 if commonEnvironment['useLrint'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
-if commonEnvironment['useGettext'] != '0':
-    print "Using GNU gettext scheme"
+
+cf = Configure(commonEnvironment)
+if commonEnvironment['useGettext'] != '0' and cf.CheckHeader("libintl.h"):
+    print "CONFIGURATION DECISION: Using GNU gettext scheme"
     commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
     if getPlatform() == "win32":
         commonEnvironment.Append(LIBS=['intl'])
@@ -419,9 +421,11 @@ if commonEnvironment['useGettext'] != '0':
     if getPlatform() == "sunos":
         commonEnvironment.Append(LIBS=['intl'])    
 else:
-    print "Using Istvan localisation"
+    print "CONFIGURATION DECISION: Using Istvan localisation"
     commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
     
+commonEnvironment = cf.Finish()
+
 if commonEnvironment['gcc4opt'] == 'atom':
     commonEnvironment.Prepend(CCFLAGS = Split('-march=prescott -O2 -fomit-frame-pointer'))
 elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
