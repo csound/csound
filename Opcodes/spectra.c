@@ -1247,7 +1247,7 @@ static OENTRY localops[] = {
 { "active.k", S(INSTCNT),2,     "k",    "k",    NULL, (SUBR)instcount, NULL },
 { "p.i", S(PFUN),        1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
 { "p.k", S(PFUN),        2,     "k",    "k",     NULL, (SUBR)pfun, NULL     },
-{ "mute", S(MUTE), 1,          "",      "So",   (SUBR)mute_inst             },
+{ "mute", S(MUTE), 1,          "",      "To",   (SUBR)mute_inst             },
 #ifdef BETA
 { "oscilv",  0xfffe                                                         },
 { "oscilv.kk", S(XOSC),  5,     "a",   "kkio", (SUBR)Foscset, NULL, (SUBR)Fosckk },
