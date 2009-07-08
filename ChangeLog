@@ -1,5 +1,8 @@
 2009-07-05  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/spectra.c (mute opcode): Shoudl be type T to acceept
+	string or number
+
 	* SConstruct (cf): Check that libintl.h exists in the GETTEXT version
 
 2009-06-10  jpff  <jpff@codemist.co.uk>
