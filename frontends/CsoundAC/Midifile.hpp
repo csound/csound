@@ -47,6 +47,7 @@
 namespace csound
 {
   typedef unsigned char csound_u_char;
+
   class MidiFile;
 
   class Chunk
@@ -57,8 +58,11 @@ namespace csound
     int chunkSizePosition;
     int chunkStart;
     int chunkEnd;
+    Chunk();
     Chunk(const char *_id);
-    virtual ~Chunk(void);
+    Chunk(const Chunk &a);
+    virtual ~Chunk();
+    Chunk &operator = (const Chunk &a);
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
     virtual void markChunkSize(std::ostream &stream);
@@ -72,9 +76,11 @@ namespace csound
     short type;
     short trackCount;
     short timeFormat;
-    MidiHeader(void);
-    virtual ~MidiHeader(void);
-    virtual void clear(void);
+    MidiHeader();
+    MidiHeader(const MidiHeader &a);
+    virtual ~MidiHeader();
+    MidiHeader &operator = (const MidiHeader &a);
+    virtual void clear();
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
   };
@@ -87,22 +93,24 @@ namespace csound
   public:
     int ticks;
     double time;
-    MidiEvent(void);
-    virtual ~MidiEvent(void);
+    MidiEvent();
+    MidiEvent(const MidiEvent &a); 
+    virtual ~MidiEvent();
+    MidiEvent &operator = (const MidiEvent &a);
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const;
-    virtual int getStatus(void) const;
-    virtual int getStatusNybble(void) const;
-    virtual int getChannelNybble(void) const;
-    virtual int getKey(void) const;
-    virtual int getVelocity(void) const;
-    virtual int getMetaType(void) const;
+    virtual int getStatus() const;
+    virtual int getStatusNybble() const;
+    virtual int getChannelNybble() const;
+    virtual int getKey() const;
+    virtual int getVelocity() const;
+    virtual int getMetaType() const;
     virtual unsigned char getMetaData(int i) const;
-    virtual size_t getMetaSize(void) const;
+    virtual size_t getMetaSize() const;
     virtual unsigned char read(std::istream &stream);
     virtual bool isChannelVoiceMessage() const;
-    virtual bool isNoteOn(void) const;
-    virtual bool isNoteOff(void) const;
+    virtual bool isNoteOn() const;
+    virtual bool isNoteOff() const;
     virtual bool matchesNoteOffEvent(const MidiEvent &offEvent) const;
     friend bool operator < (const MidiEvent &a, const MidiEvent &b);
   };
@@ -110,11 +118,11 @@ namespace csound
   class MidiTrack : public Chunk, public std::vector<MidiEvent>
   {
   public:
-    MidiTrack(void);
-    virtual ~MidiTrack(void);
+    MidiTrack();
+    virtual ~MidiTrack();
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, MidiFile &midiFile);
-    virtual void sort(void);
+    MidiTrack &operator = (const MidiTrack &a);
   };
 
   class TempoMap : public std::map<int, double>
@@ -208,7 +216,7 @@ namespace csound
     static short readShort(std::istream &stream);
     static void writeShort(std::ostream &stream, short value);
     static int chunkName(int a, int b, int c, int d);
-    void computeTimes(void);
+    void computeTimes();
     int currentTick;
     double currentTime;
     double currentSecondsPerTick;
@@ -217,17 +225,41 @@ namespace csound
     MidiHeader midiHeader;
     TempoMap tempoMap;
     std::vector<MidiTrack> midiTracks;
-    MidiFile(void);
-    virtual ~MidiFile(void);
-    virtual void clear(void);
+    MidiFile();
+    virtual ~MidiFile();
+    virtual void clear();
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
     virtual void load(std::string filename);
     virtual void save(std::string filename);
     virtual void dump(std::ostream &stream);
-    virtual void sort(void);
   };
 
   bool operator < (const MidiEvent &a, const MidiEvent &b);
+  
+  struct MidiEventComparator
+  {
+    bool operator()(const MidiEvent &a, const MidiEvent &b)
+    {
+      if (a.ticks < b.ticks) {
+	return true;
+      }
+      if (a.size() <= 0 && b.size() <= 0) {
+	return false;
+      }
+      size_t n = std::min(a.size(), b.size());
+      for (size_t i = 0; i < n; i++) {
+	if (a[i] < b[i]) {
+	  return true;
+	}
+      }
+      if (a.size() < b.size()) {
+	return true;
+      }
+      return false;
+    }
+  };
+  
+
 }
 #endif

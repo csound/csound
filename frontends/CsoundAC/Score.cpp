@@ -543,7 +543,7 @@ namespace csound
     findScale();
     sort();
   }
-
+  
   void Score::save(MidiFile &midiFile)
   {
     findScale();
@@ -551,41 +551,48 @@ namespace csound
     // Make this a Format 1 file.
     midiFile.clear();
     midiFile.midiHeader.type = 1;
-    MidiTrack midiTrack;
-    // Each track contains all events for one channel.
-    std::map<int, MidiTrack> midiTracks;
-    for(Score::iterator it = begin(); it != end(); ++it) {
+    // Each track contains all events for one instrument 
+    // (not the same as MIDI channel).
+    std::map<int, Score> eventsForInstruments;
+    for (Score::iterator it = begin(); it != end(); ++it) {
       const Event &event = *it;
-      // event.dump(std::cout);
+      //event.dump(std::cout);
       if(event.isNoteOn()) {
-	MidiEvent onEvent;
-	onEvent.time = event.getTime();
-	onEvent.ticks = int(Conversions::round(onEvent.time / midiFile.currentSecondsPerTick));
-	onEvent.push_back(event.getMidiStatus());
-	onEvent.push_back(event.getKeyNumber());
-	onEvent.push_back(event.getVelocityNumber());
-	int channel = event.getChannel();
-	midiTracks[channel].push_back(onEvent);
-	MidiEvent offEvent;
-	offEvent.time = event.getOffTime();
-	offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
-	offEvent.push_back(event.getMidiStatus());
-	offEvent.push_back(event.getKeyNumber());
-	offEvent.push_back(0);
-	midiTracks[channel].push_back(offEvent);
+	Event onEvent = *it;
+	int instrument = event.getInstrument();
+	eventsForInstruments[instrument].push_back(onEvent);	
+	Event offEvent = onEvent;
+	onEvent.createNoteOffEvent(offEvent);
+	eventsForInstruments[instrument].push_back(offEvent);
       }
     }
-    for (std::map<int, MidiTrack>::iterator it = midiTracks.begin(); it != midiTracks.end(); ++it) {
-      MidiTrack &midiTrack = it->second;
+    for (std::map<int, Score>::iterator it = eventsForInstruments.begin(); 
+         it != eventsForInstruments.end(); 
+         ++it) {
+      Score &eventsForInstrument = it->second;
+      eventsForInstrument.sort();
+      MidiTrack midiTrack;
+      for (size_t i = 0, n = eventsForInstrument.size(); i < n; i++) {
+	const Event &event = eventsForInstrument[i];
+	MidiEvent midiEvent;
+	midiEvent.time = event.getTime();
+	midiEvent.ticks = int(Conversions::round(midiEvent.time / midiFile.currentSecondsPerTick));
+	midiEvent.push_back(event.getMidiStatus());
+	midiEvent.push_back(event.getKeyNumber());
+	midiEvent.push_back(event.getVelocity());
+	midiTrack.push_back(midiEvent);
+      }
       MidiEvent trackEnd;
       trackEnd.ticks = midiTrack.back().ticks;
+      trackEnd.time = midiTrack.back().time;
       trackEnd.push_back(MidiFile::META_EVENT);
       trackEnd.push_back(MidiFile::META_END_OF_TRACK);
       trackEnd.push_back(0);
       midiTrack.push_back(trackEnd);
       midiFile.midiTracks.push_back(midiTrack);
+      System::inform("Saved MIDI track for instrument %3d (MIDI channel %3d) with %7d events.\n", it->first, it->first % 16, it->second.size());
     }
-    midiFile.midiHeader.trackCount = midiTracks.size();
+    midiFile.midiHeader.trackCount = midiFile.midiTracks.size();
   }
 
   void Score::dump(std::ostream &stream)
@@ -661,7 +668,7 @@ namespace csound
 
   void Score::sort()
   {
-    std::sort(begin(), end(), std::less<Event>());
+    std::sort(begin(), end());
   }
 
   double Score::getDuration()
