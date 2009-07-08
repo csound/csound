@@ -124,15 +124,40 @@ namespace csound
     return (a << 24) + (b << 16) + (c << 8) + d;
   }
 
+  Chunk::Chunk() :
+    id(0),
+    chunkSize(0),
+    chunkSizePosition(0),
+    chunkStart(0),
+    chunkEnd(0)
+  {
+  }
+
   Chunk::Chunk(const char *_id)
   {
     id = MidiFile::chunkName(_id[0], _id[1], _id[2], _id[3]);
+  }
+
+  Chunk::Chunk(const Chunk &a)
+  {
+    *this = a;
   }
 
   Chunk::~Chunk()
   {
   }
 
+  Chunk &Chunk::operator = (const Chunk &a)
+  {
+    if (this != &a) {
+      id = a.id;
+      chunkSize = a.chunkSize;
+      chunkSizePosition = a.chunkSizePosition;
+      chunkStart = a.chunkStart;
+      chunkEnd = a.chunkEnd;
+    }
+  }
+  
   void Chunk::read(std::istream &stream)
   {
     int _id = MidiFile::readInt(stream);
@@ -185,9 +210,28 @@ namespace csound
     clear();
   }
 
+  MidiHeader::MidiHeader(const MidiHeader &a)
+  {
+    *this = a;
+  }
+
   MidiHeader::~MidiHeader()
   {
     clear();
+  }
+
+  MidiHeader &MidiHeader::operator = (const MidiHeader &a)
+  {
+    if (this != &a) {
+      id = a.id;
+      chunkSize = a.chunkSize;
+      chunkSizePosition = a.chunkSizePosition;
+      chunkStart = a.chunkStart;
+      chunkEnd = a.chunkEnd;
+      type = a.type;
+      trackCount = a.trackCount;
+      timeFormat = a.timeFormat;
+    }
   }
 
   void MidiHeader::clear()
@@ -218,8 +262,26 @@ namespace csound
   {
   }
 
+  MidiEvent::MidiEvent(const MidiEvent &a)
+  {
+    *this = a;
+  }
+
   MidiEvent::~MidiEvent()
   {
+  }
+
+  MidiEvent &MidiEvent::operator = (const MidiEvent &a)
+  {
+    if (this != &a) {
+      this->ticks = a.ticks;
+      this->time = a.time;
+      resize(a.size());
+      for (size_t i = 0; i < a.size(); i++) {
+	(*this)[i] = a[i];
+      }
+    }
+    return *this;
   }
 
   void MidiEvent::write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const
@@ -346,7 +408,7 @@ namespace csound
       {
         return false;
       }
-    if(!(offEvent.time >= time))
+    if(!(offEvent.ticks >= ticks))
       {
         return false;
       }
@@ -356,13 +418,28 @@ namespace csound
       }
     return true;
   }
-
+  
   MidiTrack::MidiTrack() : Chunk("MTrk")
   {
   }
 
   MidiTrack::~MidiTrack()
   {
+  }
+
+  MidiTrack &MidiTrack::operator = (const MidiTrack &a)
+  {
+    if (this != &a) {
+      id = a.id;
+      chunkSize = a.chunkSize;
+      chunkSizePosition = a.chunkSizePosition;
+      chunkStart = a.chunkStart;
+      chunkEnd = a.chunkEnd;
+      resize(a.size());
+      for (size_t i = 0; i < size(); i++) {
+	(*this)[i] = a[i];
+      }
+    }
   }
 
   void MidiTrack::read(std::istream &stream, MidiFile &midiFile)
@@ -393,7 +470,7 @@ namespace csound
       {
         secondsPerTick = midiFile.currentSecondsPerTick;
       }
-    time = midiFile.currentTime = (midiFile.currentTime + (secondsPerTick * ticks));
+    this->time = midiFile.currentTime = (midiFile.currentTime + (secondsPerTick * ticks));
     int peeked = stream.peek();
     if(stream.eof())
       {
@@ -539,7 +616,7 @@ namespace csound
     currentSecondsPerTick = 0;
     lastStatus = 0;
     midiHeader.clear();
-    midiTracks.erase(midiTracks.begin(), midiTracks.end());
+    midiTracks.clear();
     tempoMap.erase(tempoMap.begin(), tempoMap.end());
     microsecondsPerQuarterNote = (60.0 / 120.0) * 1000000.0;
     computeTimes();
@@ -646,23 +723,13 @@ namespace csound
       }
   }
 
-  void MidiFile::sort()
-  {
-    for(std::vector<MidiTrack>::iterator it = midiTracks.begin(); it != midiTracks.end(); ++it)
-      {
-        (*it).sort();
-      }
-  }
-
-  void MidiTrack::sort()
-  {
-    std::sort(begin(), end());
-  }
-
   bool operator < (const MidiEvent &a, const MidiEvent &b)
   {
-    if (a.time < b.time) {
+    if (a.ticks < b.ticks) {
       return true;
+    }
+    if (a.size() <= 0 && b.size() <= 0) {
+      return false;
     }
     size_t n = std::min(a.size(), b.size());
     for (size_t i = 0; i < n; i++) {
