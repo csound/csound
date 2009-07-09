@@ -1209,9 +1209,9 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         os.symlink(libName2, libName)
         tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
         if compilerSun():
-            tmp += ['-soname=%s' % libName2]
+            tmp = tmp + ['-soname=%s' % libName2]
         else:
-            tmp += ['-Wl,-soname=%s' % libName2]        
+            tmp = temp + ['-Wl,-soname=%s' % libName2]        
         cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
         if configure.CheckGcc4():
             cflags   += ['-fvisibility=hidden']
@@ -2337,6 +2337,7 @@ else:
         acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         acEnvironment['SHLIBSUFFIX'] = '.dylib'
     elif getPlatform() == 'win32':
+        acEnvironment.Prepend(CCFLAGS = Split('-D__Windows__ -D__BuildLib__'))
         if  compilerGNU():
             acEnvironment.Prepend(LIBS = Split('fltk fltk_images fltk_png fltk_jpeg fltk_z'))
         else:
