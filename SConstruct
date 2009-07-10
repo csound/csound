@@ -427,7 +427,7 @@ else:
 commonEnvironment = cf.Finish()
 
 if commonEnvironment['gcc4opt'] == 'atom':
-    commonEnvironment.Prepend(CCFLAGS = Split('-march=prescott -O2 -fomit-frame-pointer'))
+    commonEnvironment.Prepend(CCFLAGS = Split('-mtune=prescott -O2 -fomit-frame-pointer'))
 elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     if not buildOLPC:
      commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
@@ -1541,7 +1541,7 @@ else:
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c      
     '''))
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
@@ -2016,6 +2016,8 @@ else:
         stkEnvironment.Append(CCFLAGS = '-D__STK_REALTIME__')
     elif getPlatform() == 'linux':
         stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
+        stkEnvironment.Append(CCFLAGS = '-D__LINUX_ALSA__')
+        stkEnvironment.Append(CCFLAGS = '-D__STK_REALTIME__')
     elif getPlatform() == 'darwin':
         stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__')
     if sys.byteorder == 'big':
@@ -2369,6 +2371,7 @@ else:
     frontends/CsoundAC/Random.cpp
     frontends/CsoundAC/Rescale.cpp
     frontends/CsoundAC/Score.cpp
+    frontends/CsoundAC/ScoreModel.cpp
     frontends/CsoundAC/ScoreNode.cpp
     frontends/CsoundAC/Sequence.cpp
     frontends/CsoundAC/Shell.cpp
@@ -2389,7 +2392,7 @@ else:
     Depends(csoundac, csoundInterfaces)
     Depends(csoundac, csoundLibrary)
     csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
-        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, '-python'])
+        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, Split('-python')])
     acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
     if getPlatform() == 'darwin':
         acPythonEnvironment = acEnvironment.Clone()
