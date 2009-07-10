@@ -24,21 +24,18 @@
 #ifdef SWIG
 %module CsoundAC
 %{
-#include "CppSound.hpp"
 #include "Score.hpp"
   %}
 #else
-#include "CppSound.hpp"
 #include "Score.hpp"
 #endif
 
 namespace csound
 {
   /**
-   * Base class for user-derived musical compositions.
+   * Base class for user-defined musical compositions.
    * Contains a Score object for collecting generated Events
-   * such as notes and control messages,
-   * and an Orchestra object for rendering the generated scores.
+   * such as notes and control messages.
    */
   class Composition
   {
@@ -46,12 +43,6 @@ namespace csound
     Score score;
     double tonesPerOctave;
     bool conformPitches;
-    CppSound cppSound_;
-    CppSound *cppSound;
-    /**
-     * Prepended to generated score.
-     */
-    std::string csoundScoreHeader;
   public:
     Composition();
     virtual ~Composition();
@@ -61,20 +52,13 @@ namespace csound
      */
     virtual void generate();
     /**
-     * Translate the generated score to a Csound score
-     * and export it for performance.
-     * The time given by extendSeconds is used for a concluding e statement.
-     */
-    virtual void createCsoundScore(std::string addToScore = "",
-                                   double extendSeconds = 5.0);
-    /**
      * Convenience function that erases the existing score,
-     * appends optional text to it,
-     * invokes generate(), invokes createCsoundScore(), and invokes perform().
+     * invokes generate(), and invokes perform().
      */
     virtual void render();
     /**
-     * Uses csound to perform the current score.
+     * Performs the current score.
+     * The default implementation does nothing.
      */
     virtual void perform();
     /**
@@ -87,96 +71,33 @@ namespace csound
      */
     virtual Score &getScore();
     /**
-     * Sets the self-contained Orchestra.
-     */
-    virtual void setCppSound(CppSound *orchestra);
-    /**
-     * Return the self-contained Orchestra.
-     */
-    virtual CppSound *getCppSound();
-    /**
-     * Write as if to stdout or stderr.
+     * Write as if to stderr.
      */
     virtual void write(const char *text);
+    /**
+     * Sets the number of equally tempered intervals
+     * per octave (the default is 12, 0 means
+     * non-equally tempered).
+     */
     virtual void setTonesPerOctave(double tonesPerOctave);
+    /**
+     * Returns the number of equally tempered intervals
+     * per octave (the default is 12, 0 means
+     * non-equally tempered).
+     */
     virtual double getTonesPerOctave() const;
+    /**
+     * Sets whether or not the pitches in generated
+     * scores will be conformed to the nearest equally
+     * tempered pitch.
+     */
     virtual void setConformPitches(bool conformPitches);
+    /**
+     * Returns whether or not the pitches in generated
+     * scores will be conformed to the nearest equally
+     * tempered pitch.
+     */
     virtual bool getConformPitches() const;
-    /**
-     * Set the Csound orchestra
-     * (convenience wrapper for CppSound::setOrchestra()).
-     */
-    virtual void setCsoundOrchestra(std::string orchestra);
-    /**
-     * Return the Csound orchestra
-     * (convenience wrapper for CppSound::getOrchestra()).
-      */
-    virtual std::string getCsoundOrchestra() const;
-    /**
-     * Set a Csound score fragment to be prepended
-     * to the generated score (createCsoundScore is called with it).
-     */
-    virtual void setCsoundScoreHeader(std::string header);
-    /**
-     * Return the Csound score header that is prepended
-     * to generated scores.
-     */
-    virtual std::string getCsoundScoreHeader() const;
-    /**
-     * Re-assign instrument number for export to Csound score
-     * (convenience wrapper for Score::arrange()).
-     */
-    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
-    /**
-     * Re-assign instrument number and adjust gain
-     * for export to Csound score
-     * (convenience wrapper for Score::arrange()).
-     */
-    virtual void arrange(int oldInstrumentNumber,
-                         int newInstrumentNumber,
-                         double gain);
-    /**
-     * Re-assign instrument number, adjust gain,
-     * and change pan for export to Csound score
-     * (convenience wrapper for Score::arrange()).
-     */
-    virtual void arrange(int oldInstrumentNumber,
-                         int newInstrumentNumber,
-                         double gain,
-                         double pan);
-    /**
-     * Re-assign instrument by name for export to Csound score.
-     */
-    virtual void arrange(int silenceInstrumentNumber,
-                         std::string csoundInstrumentName);
-    /**
-     * Re-assign instrument by name and adjust gains for export to Csound score.
-     */
-    virtual void arrange(int silenceInstrumentNumber,
-                         std::string csoundInstrumentName,
-                         double gain);
-    /**
-     * Re-assign instrument by name, adjust gain, and change pan for export to Csound score.
-     */
-    virtual void arrange(int silenceInstrumentNumber,
-                         std::string csoundInstrumentName,
-                         double gain,
-                         double pan);
-   /**
-     * Remove instrument number, gain, and pan assignments
-     * (convenience wrapper for Score::removeArrangement()).
-     */
-    virtual void removeArrangement();
-    /**
-     * Set Csound command line
-     * (convenience wrapper for CppSound::setCommand()).
-     */
-    virtual void setCsoundCommand(std::string command);
-    /**
-     * Return Csound command line
-     * (convenience wrapper for CppSound::getCommand()).
-     */
-    virtual std::string getCsoundCommand() const;
   };
 }
 #endif

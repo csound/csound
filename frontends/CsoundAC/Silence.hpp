@@ -69,6 +69,7 @@
 #include "Cell.hpp"
 #include "Hocket.hpp"
 #include "Rescale.hpp"
+#include "ScoreModel.hpp"
 #include "MusicModel.hpp"
 #include "Sequence.hpp"
 #include "Random.hpp"

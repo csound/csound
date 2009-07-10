@@ -24,12 +24,14 @@
 #ifdef SWIG
 %module CsoundAC
 %{
-#include "Composition.hpp"
+#include "ScoreModel.hpp"
+#include "CppSound.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
   %}
 #else
-#include "Composition.hpp"
+#include "ScoreModel.hpp"
+#include "CppSound.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
 using namespace boost::numeric;
@@ -38,29 +40,17 @@ using namespace boost::numeric;
 namespace csound
 {
   /**
-   * Base class for compositions
-   * that use the principle of a music graph to generate a score.
-   * A music graph is a directed acyclic graph of nodes
-   * including empty nodes, nodes that contain only child nodes,
-   * score nodes, event generator nodes, event transformer nodes,
-   * and others. Each node is associated with a local transformation
-   * of coordinate system in music space using a 12 x 12 homogeneous matrix.
-   * To generate the score, the music graph is traversed depth first, and
-   * each node postconcatenates its local transformation of coordinate system
-   * with the coordinate system of its parent to derive a new local coordinate system,
-   * which is applied to all child events.
+   * A ScoreModel that uses Csound to render generated scores,
+   * via the CppSound class.
    */
   class MusicModel :
-    public Composition,
-    public Node
+    public ScoreModel
   {
-    std::string filename;
   public:
     MusicModel();
     virtual ~MusicModel();
     virtual void initialize();
     virtual void generate();
-    virtual void clear();
     virtual std::string getFilename() const;
     virtual void setFilename(std::string filename);
     static std::string generateFilename();
@@ -68,6 +58,127 @@ namespace csound
     virtual std::string getOutputSoundfileName();
     virtual long getThis();
     virtual Node *getThisNode();
+    /**
+     * Translate the generated score to a Csound score
+     * and export it for performance.
+     * The time given by extendSeconds is used for a concluding e statement.
+     */
+    virtual void createCsoundScore(std::string addToScore = "",
+                                   double extendSeconds = 5.0);
+    /**
+     * Convenience function that erases the existing score,
+     * appends optional text to it,
+     * invokes generate(), invokes createCsoundScore(), and invokes perform().
+     */
+    virtual void render();
+    /**
+     * Uses csound to perform the current score.
+     */
+    virtual void perform();
+    /**
+     * Clear all contents of this.
+     */
+    virtual void clear();
+    /**
+     * Sets the self-contained Orchestra.
+     */
+    virtual void setCppSound(CppSound *orchestra);
+    /**
+     * Return the self-contained Orchestra.
+     */
+    virtual CppSound *getCppSound();
+    /**
+     * Set the Csound orchestra
+     * (convenience wrapper for CppSound::setOrchestra()).
+     */
+    virtual void setCsoundOrchestra(std::string orchestra);
+    /**
+     * Return the Csound orchestra
+     * (convenience wrapper for CppSound::getOrchestra()).
+      */
+    virtual std::string getCsoundOrchestra() const;
+    /**
+     * Set a Csound score fragment to be prepended
+     * to the generated score (createCsoundScore is called with it).
+     */
+    virtual void setCsoundScoreHeader(std::string header);
+    /**
+     * Return the Csound score header that is prepended
+     * to generated scores.
+     */
+    virtual std::string getCsoundScoreHeader() const;
+    /**
+     * Re-assign instrument number for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
+    /**
+     * Re-assign instrument number and adjust gain
+     * for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber,
+                         int newInstrumentNumber,
+                         double gain);
+    /**
+     * Re-assign instrument number, adjust gain,
+     * and change pan for export to Csound score
+     * (convenience wrapper for Score::arrange()).
+     */
+    virtual void arrange(int oldInstrumentNumber,
+                         int newInstrumentNumber,
+                         double gain,
+                         double pan);
+    /**
+     * Re-assign instrument by name for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber,
+                         std::string csoundInstrumentName);
+    /**
+     * Re-assign instrument by name and adjust gains for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber,
+                         std::string csoundInstrumentName,
+                         double gain);
+    /**
+     * Re-assign instrument by name, adjust gain, and change pan for export to Csound score.
+     */
+    virtual void arrange(int silenceInstrumentNumber,
+                         std::string csoundInstrumentName,
+                         double gain,
+                         double pan);
+   /**
+     * Remove instrument number, gain, and pan assignments
+     * (convenience wrapper for Score::removeArrangement()).
+     */
+    virtual void removeArrangement();
+    /**
+     * Set Csound command line
+     * (convenience wrapper for CppSound::setCommand()).
+     */
+    virtual void setCsoundCommand(std::string command);
+    /**
+     * Return Csound command line
+     * (convenience wrapper for CppSound::getCommand()).
+     */
+    virtual std::string getCsoundCommand() const;
+  protected:
+    /**
+     * Self-contained Csound object.
+     */
+    CppSound cppSound_;
+    /**
+     * Pointer to a Csound object that is
+     * used to render scores. Defaults to
+     * the internal Csound object, but
+     * can be re-set to an external Csound object.
+     */
+    CppSound *cppSound;
+    /**
+     * Prepended to generated score.
+     */
+    std::string csoundScoreHeader;
   };
 }
+
 #endif
