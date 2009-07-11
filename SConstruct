@@ -1211,7 +1211,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         if compilerSun():
             tmp = tmp + ['-soname=%s' % libName2]
         else:
-            tmp = temp + ['-Wl,-soname=%s' % libName2]        
+            tmp = tmp + ['-Wl,-soname=%s' % libName2]        
         cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
         if configure.CheckGcc4():
             cflags   += ['-fvisibility=hidden']
@@ -1326,6 +1326,18 @@ def makePythonModule(env, targetName, srcs):
     pythonModules.append(pyModule_)
     pythonModules.append('%s.py' % targetName)
     return pyModule_
+
+def makeLuaModule(env, targetName, srcs):
+    if getPlatform() == 'darwin':
+        env.Prepend(LINKFLAGS = ['-bundle'])
+        lusModule_ = env.Program('%s.so' % targetName, srcs)
+    else:
+        if getPlatform() == 'linux' or getPlatform() == 'sunos':
+            luaModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="", SHLIBSUFFIX = '.so')
+        else:
+            luaModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBSUFFIX = '.dll')
+        print "LUA MODULE %s..." % targetName
+    return luaModule_
 
 if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
@@ -1886,6 +1898,7 @@ if not buildOLPC:
 			   ['Opcodes/fluidOpcodes/fluidOpcodes.cpp'])
 
 # VST HOST OPCODES
+
 if (commonEnvironment['buildvst4cs'] != '1'):
     print "CONFIGURATION DECISION: Not building vst4cs opcodes."
 else:
@@ -2413,6 +2426,13 @@ else:
         pythonModules.append('CsoundAC.py')
     Depends(csoundAcPythonModule, csndModule)
     Depends(csoundAcPythonModule, csoundac)
+    if luaFound:
+       luaCsoundACWrapper = acWrapperEnvironment.SharedObject(
+       	 'frontends/CsoundAC/luaCsoundAC.i', SWIGFLAGS = [swigflags, Split('-lua ')])
+       acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
+       CsoundAclModule = makeLuaModule(acPythonEnvironment, 'luaCsoundAC', [luaCsoundACWrapper])
+       Depends(CsoundAclModule, csndModule)
+       Depends(CsoundAclModule, csoundac)
     if commonEnvironment['useDouble'] != '0' :
         if getPlatform() == 'darwin':
           counterpoint = acEnvironment.Program(
