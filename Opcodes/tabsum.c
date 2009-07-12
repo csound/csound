@@ -25,7 +25,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   kans;
+    MYFLT   *kans;
     MYFLT   *itab;
     MYFLT   *kmin, *kmax;
   /* Local */
@@ -60,7 +60,7 @@ static int tabsum(CSOUND *csound, TABSUM *p)
     }
 
     for (i=min; i<=max; i++) ans += t[i];
-    p->kans = ans;
+    *p->kans = ans;
     return OK;
 }
 
