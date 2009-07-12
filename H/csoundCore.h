@@ -738,7 +738,7 @@ extern const uint32_t csPlayScoMask;
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*InputMessage)(CSOUND *, const char *message__);
-    void (*KeyPress)(CSOUND *, char c__);
+    void (*KeyPressed)(CSOUND *, char c__);
     void (*SetInputValueCallback)(CSOUND *,
                 void (*inputValueCalback)(CSOUND *, const char *channelName,
                                                     MYFLT *value));
