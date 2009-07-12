@@ -1627,6 +1627,7 @@ makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
 makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
 makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
 makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
+makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
 if buildOLPC :
    oggEnvironment = pluginEnvironment.Clone()
    makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
