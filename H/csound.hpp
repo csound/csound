@@ -400,7 +400,7 @@ public:
   {
     csoundInputMessage(csound, message);
   }
-  virtual void KeyPress(char c)
+  virtual void KeyPressed(char c)
   {
     csoundKeyPress(csound, c);
   }
