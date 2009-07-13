@@ -55,7 +55,8 @@ static int tabsum(CSOUND *csound, TABSUM *p)
     t = (MYFLT*)p->ftp;
     min = MYFLT2LRND(*p->kmin);
     max = MYFLT2LRND(*p->kmax);
-    if (min > max) {
+    if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen;
+    else if (UNLIKELY(min > max)) {
       int k = min; min = max; max = k;
     }
 
@@ -67,7 +68,7 @@ static int tabsum(CSOUND *csound, TABSUM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "tabsum",     S(TABSUM),     3,     "k",    "ikk",(SUBR)tabsuminit, (SUBR)tabsum },
+{ "tabsum",     S(TABSUM),     3,     "k",    "iOO",(SUBR)tabsuminit, (SUBR)tabsum },
 };
 
 LINKAGE
