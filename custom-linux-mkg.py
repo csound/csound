@@ -25,6 +25,8 @@ if sys.platform[:5] == 'linux':
     customCPPPATH.append('/usr/share/musicxml-v2/src/lib')
     customCPPPATH.append('/usr/share/musicxml-v2/src/visitors')
     customLIBPATH.append('/usr/share/musicxml-v2')
+    customCPPPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
+    customLIBPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
