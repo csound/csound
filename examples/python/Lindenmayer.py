@@ -37,7 +37,7 @@ model.generate()
 filename = os.path.abspath('Lindenmayer.py')
 print 'Filename:', filename
 model.setConformPitches(True)
-csound.load('./CsoundAC.csd')
+csound.load('examples/CsoundAC.csd')
 csound.setCommand("csound -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setFilename(filename)
 score = model.getScore()
