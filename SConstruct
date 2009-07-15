@@ -1441,7 +1441,7 @@ else:
         if getPlatform() == 'win32':
             luaWrapperEnvironment.Prepend(LIBS = ['lua51'])
         else:
-            luaWrapperEnvironment.Prepend(LIBS = ['lua', 'csnd'])
+            luaWrapperEnvironment.Prepend(LIBS = ['lua'])
        	luaWrapper = makeLuaModule(luaWrapperEnvironment, 'luaCsnd', [csoundLuaInterface])
 
     if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
