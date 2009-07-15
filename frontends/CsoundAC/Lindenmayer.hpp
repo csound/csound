@@ -72,6 +72,20 @@ namespace csound
    * <li>[     = Push the current state of the turtle state onto a stack.</li>
    * <li>]     = Pop the current state of the turtle from the stack.</li>
    * </ul>
+   * The abbreviations for the dimensions are: 
+   * <ol>
+   * <li>i = instrument</li>
+   * <li>t = time</li>
+   * <li>d = duration</li>
+   * <li>k = MIDI key number</li>
+   * <li>v = MIDI velocity number</li>
+   * <li>p = phase</li>
+   * <li>x = pan</li>
+   * <li>y = height</li>
+   * <li>z = depth</li>
+   * <li>s = pitch-class set as Mason number</li>
+   * </ol>
+   */
    */
   class Lindenmayer :
     public ScoreNode
