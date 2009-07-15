@@ -86,7 +86,6 @@ namespace csound
    * <li>s = pitch-class set as Mason number</li>
    * </ol>
    */
-   */
   class Lindenmayer :
     public ScoreNode
   {
