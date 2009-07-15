@@ -1389,7 +1389,7 @@ else:
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
             except: pass
         else:
-            csoundInterfaces = csoundInterfacesEnvironment.Library('csnd', csoundInterfacesSources)
+            csnd = csoundInterfacesEnvironment.Library('csnd', csoundInterfacesSources)
     elif getPlatform() == 'linux':
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,interfaces'])
         name    = 'libcsnd.so'
@@ -1465,7 +1465,7 @@ else:
             javaWrapperSources = [javaWrapperEnvironment.SharedObject(
                 'interfaces/java_interface_wrap.cc')]
         else:
-            javaWrapperSources = [jWrapperEnvironment.SharedObject(
+            javaWrapperSources = [javaWrapperEnvironment.SharedObject(
                 'interfaces/java_interface.i',
         SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         if getPlatform() == 'darwin':
@@ -1476,8 +1476,8 @@ else:
                 'lib_jcsound.jnilib', javaWrapperSources)
         else:
             javaWrapper = javaWrapperEnvironment.SharedLibrary(
-                '_jcsound', csoundJavaWrapperSources)
-        Depends(csoundJavaWrapper, csoundLibrary)
+                '_jcsound', javaWrapperSources)
+        Depends(javaWrapper, csoundLibrary)
         libs.append(javaWrapper)
         jcsnd = javaWrapperEnvironment.Java(
             target = './interfaces', source = './interfaces',
@@ -1486,7 +1486,7 @@ else:
             os.mkdir('interfaces/csnd', 0755)
         except:
             pass
-        jcsndJar = csoundJavaWrapperEnvironment.Jar(
+        jcsndJar = javaWrapperEnvironment.Jar(
             'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
         Depends(jcsndJar, jcsnd)
         libs.append(jcsndJar)
@@ -1511,9 +1511,7 @@ else:
 		pythonWrapperEnvironment.Command('interfaces install', pythonWrapper, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
 		try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
 		except: print "link exists..."
-	elif getPlatform() == 'linux':
-	    name = 'libcsnd.so'
-	    soname = name + '.' + csoundLibraryVersion
+	else:
 	    pythonWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
 	    if getPlatform() != 'darwin':
 		pythonWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -2449,7 +2447,7 @@ else:
         csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
                                                 [csoundAcPythonWrapper])
         if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
-            Depends(csoundvstPythonModule, pythonImportLibrary)
+            Depends(csoundAcPythonModule, pythonImportLibrary)
         pythonModules.append('CsoundAC.py')
     Depends(csoundAcPythonModule, csnd)
     Depends(csoundAcPythonModule, csoundac)
@@ -2539,7 +2537,7 @@ else:
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
     libs.append(csoundvst)
-    Depends(csoundvst, csoundInterfaces)
+    Depends(csoundvst, csnd)
     Depends(csoundvst, csoundLibrary)
     guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if commonEnvironment['useDouble'] != '0':
