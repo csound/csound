@@ -75,7 +75,6 @@ public:
   virtual bool getIsPerforming() const;
   virtual bool getIsGo();
   virtual void stop();
-  virtual void setPythonMessageCallback();
 };
 
 #endif
