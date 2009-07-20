@@ -171,7 +171,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       for (i=0; i<2; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
-        while (r != MP3DEC_RETCODE_OK || 2*pos >  p->bufused) {
+        while (r != MP3DEC_RETCODE_OK || 2*pos >=  p->bufused) {
           r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
           pos = 0;
         }
