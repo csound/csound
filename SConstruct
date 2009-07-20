@@ -244,11 +244,12 @@ commandOptions.Add('buildvst4cs',
     '0')
 if getPlatform() == 'win32':
   commandOptions.Add('useGettext',
-    'Set to 1 to use the GBU internationalisation/localisation scheme)',
+    'Set to 1 to use the GBU internationalisation/localisation scheme',
     '0')
 else:
   commandOptions.Add('useGettext',
-    'Set to 0 to use the Varga internationalisation/localisation scheme)', '1')
+    'Set to 0 for none and 1 for GNU internationalisation/localisation scheme',
+    '1')
 commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
@@ -418,7 +419,7 @@ if commonEnvironment['useLrint'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
 
 cf = Configure(commonEnvironment)
-if commonEnvironment['useGettext'] != '0' and cf.CheckHeader("libintl.h"):
+if commonEnvironment['useGettext'] == '1' and cf.CheckHeader("libintl.h"):
     print "CONFIGURATION DECISION: Using GNU gettext scheme"
     commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
     if getPlatform() == "win32":
@@ -428,9 +429,8 @@ if commonEnvironment['useGettext'] != '0' and cf.CheckHeader("libintl.h"):
     if getPlatform() == "sunos":
         commonEnvironment.Append(LIBS=['intl'])    
 else:
-    print "CONFIGURATION DECISION: Using Istvan localisation"
-    commonEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
-    
+    print "CONFIGURATION DECISION: No localisation"
+
 commonEnvironment = cf.Finish()
 
 if commonEnvironment['gcc4opt'] == 'atom':

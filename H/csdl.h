@@ -37,7 +37,11 @@ extern "C" {
 
 
 #undef Str
+#ifndef GNU_GETTEXT
+#define Str(x)  (x)
+#else
 #define Str(x)  (csound->LocalizeString(x))
+#endif
 
 PUBLIC  long    csound_opcode_init(CSOUND *, OENTRY **);
 PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);

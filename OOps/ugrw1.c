@@ -2910,7 +2910,7 @@ int printksset(CSOUND *csound, PRINTKS *p)
        * the look flag.  I could use goto - but I would rather not.      */
                                 /* This is really a if then else if...
                                  * construct and is currently grotty -- JPff */
-      do {
+      while (*sarg) {
         temp  = *sarg++;
         tempn = *sarg--;
         /* Look for a single caret and insert an escape char.  */
@@ -2997,7 +2997,8 @@ int printksset(CSOUND *csound, PRINTKS *p)
           *sdest++ = temp;
         }
       /* Increment pointer and process next character until end of string.  */
-      } while (*++sarg != 0);
+        ++sarg;
+      }
     }
     return OK;
 }
@@ -3114,6 +3115,7 @@ int printks(CSOUND *csound, PRINTKS *p)
     if (p->cysofar < cycles) {
       p->cysofar = cycles;
       /* Do the print cycle. */
+      string[0]='\0';           /* incase of empty string */
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     }
@@ -3126,6 +3128,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     PRINTKS pk;
     char        string[8192];
     MYFLT ptime = 1;
+    string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;

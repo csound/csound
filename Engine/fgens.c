@@ -2414,6 +2414,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
     }
+    /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); /* Is this necessary? */
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       if (filno == (int32) SSTRCOD) {

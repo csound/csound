@@ -672,10 +672,10 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #else
     int         opt = (int) (*(p->iopt) + FL(0.5));
 #endif
-    char        buf[64];
+    char        buf[32];
 
-    ((char*) p->Sdst)[0] = (char) 0;
-    buf[0] = (char) 0;
+    ((char*) p->Sdst)[0] = '\0';
+    buf[0] = '\0';
     s = &(buf[0]);
     switch (opt) {
     case 1:             /* maximum length of string variables */

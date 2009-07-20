@@ -1,12 +1,17 @@
+2009-07-20  jpff  <jpff@codemist.co.uk>
+
+	* OOps/ugrw1.c (printsset): Set string[0] to null as otherwise
+	sprints does wrong thing on empty string
+
 2009-07-18  Michael Gogins  <michael.gogins@gmail.com>
 
-    * SConstruct now builds completely independent shared libraries for
-    Python, Lua, and Java wrappers.
-    
-    * Reorganized examples directory to put all examples for C, C++,
-    Python, Lua, Java, and Lisp wrappers in separate subdirectories.
-    Opcode demos also go into a separate subdirectory. The root examples
-    directory should now contain only complete pieces or tutorial pieces.
+	* SConstruct now builds completely independent shared libraries
+	for Python, Lua, and Java wrappers.
+
+	* Reorganized examples directory to put all examples for C, C++,
+	Python, Lua, Java, and Lisp wrappers in separate subdirectories.
+	Opcode demos also go into a separate subdirectory. The root examples
+	directory should now contain only complete pieces or tutorial pieces.
 
 2009-07-05  jpff  <jpff@codemist.co.uk>
 
@@ -29,7 +34,7 @@
 
 	* Engine/csound_orc_expressions.c (create_goto_token)
 	(get_boolean_arg, create_boolean_expression)
-	(create_synthetic_ident, csound_orc_expand_expressions): 
+	(create_synthetic_ident, csound_orc_expand_expressions):
 	Create and use Boolean variables with either k or i type as required
 
 2009-05-05  jpff  <jpff@cs.bath.ac.uk>
