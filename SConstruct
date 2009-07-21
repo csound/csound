@@ -2454,7 +2454,11 @@ else:
     Depends(csoundAcPythonModule, csnd)
     if luaFound:
        luaCsoundACWrapperEnvironment = acWrapperEnvironment.Clone()
-       luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))
+       if getPlatform() == 'win32':
+       	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))
+       else:
+       	  luaCsoundACWrapperEnvironment.Prepend(LIBS = [luaWrapper])
+       	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('lua CsoundAC csnd fltk_images'))
        luaCsoundACWrapper = luaCsoundACWrapperEnvironment.SharedObject(
        	 'frontends/CsoundAC/luaCsoundAC.i', SWIGFLAGS = [swigflags, Split('-lua ')])
        luaCsoundACWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
