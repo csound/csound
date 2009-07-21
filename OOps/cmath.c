@@ -69,7 +69,7 @@ int seedrand(CSOUND *csound, PRAND *p)
 
     if (*p->out > FL(0.0))
       seedVal = (uint32_t)((double)*p->out + 0.5);
-    if (!seedVal) {
+    else if (!seedVal) {
       seedVal = (uint32_t)csound->GetRandomSeedFromTime();
       csound->Message(csound, Str("Seeding from current time %u\n"),
                               (unsigned int)seedVal);
