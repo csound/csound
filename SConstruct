@@ -1413,7 +1413,7 @@ else:
     # Common stuff for SWIG for all wrappers.
 
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
-    csoundWrapperEnvironment.Append(LIBS = [csnd])
+    #csoundWrapperEnvironment.Append(LIBS = [csnd])
     csoundWrapperEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
     fixCFlagsForSwig(csoundWrapperEnvironment)
     csoundWrapperEnvironment.Append(CPPFLAGS = ['-D__BUILDING_CSOUND_INTERFACES'])
@@ -1439,9 +1439,9 @@ else:
             'interfaces/lua_interface.i',
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
         if getPlatform() == 'win32':
-            luaWrapperEnvironment.Prepend(LIBS = ['lua51'])
+            luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua51'])
         else:
-            luaWrapperEnvironment.Prepend(LIBS = ['lua'])
+            luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua'])
        	luaWrapper = makeLuaModule(luaWrapperEnvironment, 'luaCsnd', [csoundLuaInterface])
 
     if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
@@ -1449,6 +1449,7 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Java wrapper to Csound C++ interface library.'
         javaWrapperEnvironment = csoundWrapperEnvironment.Clone()
+	javaWrapperEnvironment.Prepend(LIBS = ['csnd'])
         if getPlatform() == 'darwin':
             javaWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.framework/Headers'])
@@ -1496,6 +1497,7 @@ else:
     else:
         print 'CONFIGURATION DECISION: Building Python wrapper to Csound C++ interface library.'
         pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
+        pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
 	if getPlatform() == 'linux':
 	    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
 	    # os.symlink('lib_csnd.so', '_csnd.so')
@@ -2349,8 +2351,10 @@ else:
            acEnvironment.Prepend(LIBS = 'musicxml2')
         if getPlatform() != 'win32':
            acEnvironment.Prepend(LIBS = csnd)
-        else:  acEnvironment.Prepend(LIBS = 'csnd')
-    else: acEnvironment.Prepend(LIBS = '_csnd')
+        else:  
+	   acEnvironment.Prepend(LIBS = 'csnd')
+    else: 
+        acEnvironment.Prepend(LIBS = '_csnd')
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     if not getPlatform() == 'darwin' or commonEnvironment['dynamicCsoundLibrary']== '0':
       acEnvironment.Prepend(LIBS = libCsoundLibs)
@@ -2420,7 +2424,7 @@ else:
     frontends/CsoundAC/VoiceleadingNode.cpp
     ''')
     swigflags = acEnvironment['SWIGFLAGS']
-    acWrapperEnvironment = acEnvironment.Clone()
+    acWrapperEnvironment = csoundWrapperEnvironment.Clone()
     fixCFlagsForSwig(acWrapperEnvironment)
     if commonEnvironment['dynamicCsoundLibrary'] == '1':
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
@@ -2428,36 +2432,36 @@ else:
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
     libs.append(csoundac)
     Depends(csoundac, csnd)
-    Depends(csoundac, csoundLibrary)
-    csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
-        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, Split('-python')])
-    acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
+    pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
-        acPythonEnvironment = acEnvironment.Clone()
-        acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
-        csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
-                                                csoundAcPythonWrapper)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
     else:
-        acPythonEnvironment = acEnvironment.Clone()
-        acPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-        acPythonEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-        acPythonEnvironment.Prepend(LIBS = pythonLibs)
-        acPythonEnvironment.Append(CPPPATH = pythonIncludePath)
-        acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
-        csoundAcPythonModule = makePythonModule(acPythonEnvironment, 'CsoundAC',
-                                                [csoundAcPythonWrapper])
-        if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
-            Depends(csoundAcPythonModule, pythonImportLibrary)
-        pythonModules.append('CsoundAC.py')
-    Depends(csoundAcPythonModule, csnd)
+        pythonCsoundACWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = pythonLibs)
+        pythonCsoundACWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC', 'csnd', 'fltk_images'])
+    csoundAcPythonWrapper = pythonCsoundACWrapperEnvironment.SharedObject(
+        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, Split('-python')])
+    pythonCsoundACWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
+    csoundAcPythonModule = makePythonModule(pythonCsoundACWrapperEnvironment, 'CsoundAC',
+                                            csoundAcPythonWrapper)
+    if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and compilerGNU():
+	Depends(csoundAcPythonModule, pythonImportLibrary)
+    pythonModules.append('CsoundAC.py')
+    Depends(csoundAcPythonModule, pythonWrapper)
     Depends(csoundAcPythonModule, csoundac)
+    Depends(csoundAcPythonModule, csnd)
     if luaFound:
-       luaCsoundACWrapper = acWrapperEnvironment.SharedObject(
+       luaCsoundACWrapperEnvironment = acWrapperEnvironment.Clone()
+       luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))
+       luaCsoundACWrapper = luaCsoundACWrapperEnvironment.SharedObject(
        	 'frontends/CsoundAC/luaCsoundAC.i', SWIGFLAGS = [swigflags, Split('-lua ')])
-       acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
-       CsoundAclModule = makeLuaModule(acPythonEnvironment, 'luaCsoundAC', [luaCsoundACWrapper])
-       Depends(CsoundAclModule, csnd)
+       luaCsoundACWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
+       CsoundAclModule = makeLuaModule(luaCsoundACWrapperEnvironment, 'luaCsoundAC', [luaCsoundACWrapper])
+       Depends(CsoundAclModule, luaWrapper)
        Depends(CsoundAclModule, csoundac)
+       Depends(CsoundAclModule, csnd)
     if commonEnvironment['useDouble'] != '0' :
         if getPlatform() == 'darwin':
           counterpoint = acEnvironment.Program(
