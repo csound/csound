@@ -549,6 +549,8 @@ skipAssoc:
       File U:\libpng-1.2.24\.libs\libpng-3.dll
       # OSC
       File U:\liblo-0.26\lo.dll
+      # MusicXML
+      File C:\utah\opt\libmusicxml-2.00-src\win32\codeblocks\libmusicxml2.dll
       # pthreads
       File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
       # C runtime library
