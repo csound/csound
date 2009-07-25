@@ -1,3 +1,12 @@
+2009-07-25  Michael Gogins  <michael.gogins@gmail.com>
+
+	* The Windows installer now provides the user with options for 
+	core, custom, or complete installation. Custom options include
+	independent installation of C/C++, Lua, Python, Java, and Lisp
+	interfaces;  independent installation of csnd and 
+	CsoundAC; and independent intstallation of front ends and 
+	various other options.
+	
 2009-07-21    <jpff@codemist.co.uk>
 
 	* OOps/cmath.c (seedrand): if positive would still seed from time
