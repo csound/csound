@@ -380,6 +380,21 @@ make mingw clean; make mingw all
 
 			\item (Done) Update the MusicXML library using Subversion from \url{https://libmusicxml.svn.sourceforge.net/svnroot/libmusicxml}, and build it using the CodeBlocks project.
 
+			\item (Done) Install the LGPL/Free license version of the Qt 4.5 software development kit for Windows from \url{http://www.qtsoftware.com/downloads}.
+			
+			\item (Done) Use Subversion to install the current QuteCsound source code from \url{https://qutecsound.svn.sourceforge.net/svnroot/qutecsound/trunk/qutecsound}. Rebuild QuteCsound in its src directory using the following commands, possibly with INCLUDEPATH and LIBPATH modified for your system:
+			
+			\begin{lstlisting}
+qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csound-mingw-release
+mingw32-make
+			\end{lstlisting}
+			
+			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for csnd, libcsound64, and libsndfile, add the required libraries and library paths, and re-run the edited link line, something like this:
+			
+			\begin(lstlisting}
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Debug -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXmld4 -lQtGuid4 -lQtCored4			
+			\end(lstlisting}
+			
  		\end{enumerate}
 	\item (Not done) Build   
 		\begin{enumerate}				

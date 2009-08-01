@@ -672,18 +672,18 @@ SectionGroupEnd
 SectionGroup "Front ends"
   Section /o "QuteCsound (user-defined widgets)"
     SectionIn 2
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound-d.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound.exe" "" "" "" "" "" " QuteCsound"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
-      File C:\utah\opt\QuteCsound-d\QtCore4.dll
-      File C:\utah\opt\QuteCsound-d\QtGui4.dll
-      File C:\utah\opt\QuteCsound-d\QtXml4.dll
-      File C:\utah\opt\QuteCsound-d\mingwm10.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtCore4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtGui4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
 !ifdef FLOAT
-      File C:\utah\opt\QuteCsound-d\qutecsound.exe
+      File D:\utah\opt\qutecsound\src\bin\qutecsound-f.exe
 !else
-      File C:\utah\opt\QuteCsound-d\qutecsound-d.exe
+      File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
   SectionEnd
   Section "WinSound (simple)" 
@@ -709,7 +709,9 @@ SectionGroup "Front ends"
     SectionIn 2
     SetOutPath $INSTDIR\bin
       File ..\..\cswish.exe
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cswish.lnk" "$INSTDIR\bin\cswish.exe" "" "" "" "" "" "Csound wish (tcl/tk)"
       File ..\..\cstclsh.exe
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cstclsh.lnk" "$INSTDIR\bin\cstclsh.exe" "" "" "" "" "" "Csound tcl shell"
       File ..\..\tclcsound.dll
     SetOutPath $INSTDIR\examples\tclcsound
       File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
@@ -785,6 +787,7 @@ SectionGroup "Csound interfaces"
     SectionEnd
     Section /o "luaCsoundAC: Lua interface to CsoundAC"
       SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
       SetOutPath $INSTDIR\bin
         File U:\Lua5.1\src\lua51.dll
         File U:\Lua5.1\src\luajit.exe
