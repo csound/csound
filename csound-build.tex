@@ -385,8 +385,8 @@ make mingw clean; make mingw all
 			\item (Done) Use Subversion to install the current QuteCsound source code from \url{https://qutecsound.svn.sourceforge.net/svnroot/qutecsound/trunk/qutecsound}. Rebuild QuteCsound in its src directory using the following commands, possibly with INCLUDEPATH and LIBPATH modified for your system:
 			
 			\begin{lstlisting}
-qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csound-mingw-release
-mingw32-make
+qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csound-mingw-release LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
+mingw32-make release
 			\end{lstlisting}
 			
 			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for csnd, libcsound64, and libsndfile, add the required libraries and library paths, and re-run the edited link line, something like this:
