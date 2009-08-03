@@ -500,8 +500,6 @@ skipAssoc:
 	# Create shortcuts. The format of these lines is:
 	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 	CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\csound.exe" "" "" "" "" "" "Command-line Csound"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
@@ -516,7 +514,6 @@ skipAssoc:
       File ..\..\etc\.csoundrc
       File ..\..\INSTALL
     SetOutPath $INSTDIR\doc
-      File ..\..\*.txt
       File ..\..\ChangeLog
       File ..\..\COPYING
       File ..\..\LICENSE.PortMidi
@@ -686,19 +683,12 @@ SectionGroup "Front ends"
       File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
   SectionEnd
-  Section "WinSound (simple)" 
-  SectionIn 1 2
-    SetOutPath $INSTDIR\bin
-      File ..\..\Winsound.exe
-  SectionEnd
 !ifdef NONFREE
-  Section /o "CsoundVST"
+  Section /o "CsoundVST (requires VST host)"
     SectionIn 2
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVSTShell.exe" "" "" "" "" "" "CsoundVST GUI"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       File ..\..\CsoundVST.dll
-      File ..\..\CsoundVstShell.exe
     SetOutPath $INSTDIR\include
       File ..\..\frontends\CsoundVST\*.h
       File ..\..\frontends\CsoundVST\*.hpp
@@ -852,9 +842,6 @@ Section "Uninstall"
   	RMDir /r $INSTDIR
   	!insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
   	Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\cseditor.lnk"
 !ifdef NONFREE
 	Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
 !endif
