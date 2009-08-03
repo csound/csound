@@ -2466,28 +2466,6 @@ else:
        Depends(CsoundAclModule, luaWrapper)
        Depends(CsoundAclModule, csoundac)
        Depends(CsoundAclModule, csnd)
-    if commonEnvironment['useDouble'] != '0' :
-        if getPlatform() == 'darwin':
-          counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd'))
-        else:
-            counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd csound64'))
-    else:
-       if getPlatform() == 'darwin':
-          counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd'))
-       elif getPlatform() == 'win32':
-          counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd csound32'))
-       else:
-          counterpoint = acEnvironment.Program(
-            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
-            LIBS = Split('CsoundAC csnd csound'))
   
 
 # Build CsoundVST
