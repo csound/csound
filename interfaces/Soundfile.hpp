@@ -68,6 +68,14 @@
 #include <cstring>
 #endif
 
+#if defined(WIN32)
+#define SILENCE_PUBLIC __declspec(dllexport)
+#elif defined(__GNUC__)
+#define SILENCE_PUBLIC __attribute__ ( (visibility("default")) )
+#else
+#define SILENCE_PUBLIC
+#endif
+
 namespace csound
 {
   /**
@@ -77,7 +85,11 @@ namespace csound
    * See http://www.mega-nerd.com/libsndfile for more information
    * on the underlying libsndfile library.
    */
+#ifdef SWIG
   class Soundfile
+#else
+  class SILENCE_PUBLIC Soundfile
+#endif
   {
     SNDFILE *sndfile;
     SF_INFO sf_info;
