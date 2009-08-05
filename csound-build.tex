@@ -399,7 +399,7 @@ strip bin/*
  		\end{enumerate}
 	\item (Not done) Build   
 		\begin{enumerate}				
-			\item (Done) Double precision sample build.
+			\item (Done) Double precision sample build -- the only target at this time.
 				\begin{enumerate}
 		    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
 					\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
@@ -412,12 +412,8 @@ strip bin/*
 			    \item (Not done) Build the API reference by executing \texttt{doxygen}.
 			    \item (Not done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
 			    \item (Not done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
-			    \item (Not done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
+			    \item (Not done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{QuteCsound} running to verify that all DLLs required have been installed, or are already part of Windows.
 			    \item (Not done) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
-				\end{enumerate}
-			\item (Not done) Single precision sample build.			
-				\begin{enumerate}
-					\item (Not done) Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
 				\end{enumerate}
 	    \item (Not done) Update this document to reflect any changes in procedure or dependencies. 
 	    \item Upload the installers to SourceForge and update the release package.
