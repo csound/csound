@@ -496,10 +496,12 @@ skipAssoc:
 	Push "WAV"
 	Call WriteEnvStr
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
+    SetOutPath $INSTDIR
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 	# Create shortcuts. The format of these lines is:
 	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 	CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Csound.lnk" "cmd" "/K $INSTDIR\bin\csound.exe" "" "" "" "" "Csound"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
@@ -841,16 +843,13 @@ SectionGroupEnd
 Section "Uninstall"
   	RMDir /r $INSTDIR
   	!insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-  	Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
-!ifdef NONFREE
-	Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
-!endif
+  	Delete "$SMPROGRAMS\$MUI_TEMP\Csound.lnk"
 	Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
-	# Delete empty start menu parent dircetories.
+	# Delete empty start menu parent directories.
   	StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
 startMenuDeleteLoop:
 	RMDir $MUI_TEMP
