@@ -4,7 +4,7 @@ require "luaCsnd"
 
 csound = luaCsnd.Csound()
 args = luaCsnd.CsoundArgVList()
-args_ = {"csound", "-o", "test.wav", "examples/trapped.csd"}
+args_ = {"csound", "-o", "test.wav", "../trapped.csd"}
 for i,v in ipairs(args_) do
     args:Append(v)
 end
