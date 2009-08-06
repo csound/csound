@@ -21,7 +21,7 @@ rescale:setRescale( 0, true, true,  0,     240)
 rescale:setRescale( 1, true, true,  2,       4)
 rescale:setRescale( 3, true, true,  2,       8)
 rescale:setRescale( 4, true, true,  36,      60)
-rescale:setRescale( 5, true, true,  35,      15)
+rescale:setRescale( 5, true, true,  20,      10)
 rescale:setRescale( 7, true, true,  -0.9875,    1.875)
 scale = 'Dm11'
 scalenumber = luaCsoundAC.Conversions_nameToM(scale)
