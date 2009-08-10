@@ -52,14 +52,14 @@ static int tabsum(CSOUND *csound, TABSUM *p)
 
     if (ftp==NULL)
       return csound->PerfError(csound, Str("tabsum: Not initialised"));
-    t = (MYFLT*)p->ftp;
+    t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);
     max = MYFLT2LRND(*p->kmax);
-    if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen;
+    if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen-1;
     else if (UNLIKELY(min > max)) {
       int k = min; min = max; max = k;
     }
-
+    /* printf("tabsum: min, max = %d, %d\n", min, max); */
     for (i=min; i<=max; i++) ans += t[i];
     *p->kans = ans;
     return OK;
