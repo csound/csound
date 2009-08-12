@@ -123,8 +123,9 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     if (!ff.fno) {
       if (!mode)
         return 0;                               /*  fno = 0: return,        */
+      ff.fno = csound->ftldno;
       do {                                      /*      or automatic number */
-        ff.fno = ++csound->ftldno;
+        ++ff.fno;
       } while (ff.fno <= csound->maxfnum && csound->flist[ff.fno] != NULL);
       ff.e.p[1] = (MYFLT) (ff.fno);
     }

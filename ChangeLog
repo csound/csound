@@ -1,3 +1,9 @@
+2009-08-12  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (hfgens): Do not extend table of ftables
+	unnecessarily; it used to always extend even if spare slots
+	existed.
+
 2009-08-10  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/tabsum.c (tabsum): Fixed silly error that made it all
