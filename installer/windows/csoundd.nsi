@@ -496,13 +496,13 @@ skipAssoc:
 	Push "WAV"
 	Call WriteEnvStr
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
-    SetOutPath $INSTDIR
+    SetOutPath $INSTDIR\examples
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 	# Create shortcuts. The format of these lines is:
 	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 	CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Csound.lnk" "cmd" "/K $INSTDIR\bin\csound.exe" "" "" "" "" "Csound"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
 	!insertmacro MUI_STARTMENU_WRITE_END
@@ -512,15 +512,14 @@ skipAssoc:
 !else
       File ..\..\readme-csound5.txt
 !endif
-      File ..\..\csound-build.pdf
       File ..\..\etc\.csoundrc
-      File ..\..\INSTALL
     SetOutPath $INSTDIR\doc
       File ..\..\ChangeLog
       File ..\..\COPYING
       File ..\..\LICENSE.PortMidi
       File ..\..\LICENSE.FLTK
       File ..\..\LICENSE.PortAudio
+      File ..\..\csound-build.pdf
     SetOutPath $INSTDIR\bin
       # Csound itself.
       File ..\..\csound.exe
@@ -615,7 +614,13 @@ skipAssoc:
       File /r ..\..\samples\*
       File /r ..\..\Opcodes\stk\rawwaves\*.raw
     SetOutPath $INSTDIR\examples
-      File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\*.*
+      File ..\..\examples\CsoundAC.csd
+      File ..\..\examples\CsoundVST.csd
+      File ..\..\examples\trapped.csd
+      File ..\..\examples\trapped-high-resolution.csd
+      File ..\..\examples\xanadu.csd
+      File ..\..\examples\xanadu-high-resolution.csd
+      File ..\..\examples\tpscaler.csd
     SetOutPath $INSTDIR\examples\cscore
       File /r /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\cscore\*.*
     SetOutPath $INSTDIR\examples\opcode_demos
@@ -659,12 +664,21 @@ skipAssoc:
     SectionEnd
     Section /o "A Csound Tutorial"
       SectionIn 2
-      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "A Csound Tutorial"
       SetOutPath $INSTDIR\tutorial
   	File ..\..\..\tutorial\tutorial.pdf
   	File ..\..\..\tutorial\*.csd
   	File ..\..\..\tutorial\*.py
   	File ..\..\..\tutorial\tutorial3.cpr
+    SectionEnd
+    Section /o "A Csound Algorithmic Composition Tutorial"
+      SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundAcTutorial.lnk" "$INSTDIR\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf" "" "" "" "" "" "A Csound Algorithmic Composition Tutorial"
+      SetOutPath $INSTDIR\tutorial
+  	File ..\..\..\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf
+  	File /r ..\..\..\tutorial\code\*.csd
+  	File /r ..\..\..\tutorial\code\*.py
+  	File /r ..\..\..\tutorial\code\*.mid
     SectionEnd
   SectionGroupEnd
 SectionGroupEnd
