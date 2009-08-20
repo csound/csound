@@ -1,3 +1,8 @@
+2009-08-19  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (hfgens): Correct error string to 1, 23 or 28 for
+	deferred size.
+
 2009-08-12  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (hfgens): Do not extend table of ftables

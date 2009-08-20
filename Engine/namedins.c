@@ -269,7 +269,8 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
     }
     else {      /* numbered instrument */
       insno = (int32) *((MYFLT*) p);
-      if (UNLIKELY(insno < 1 || insno > csound->maxinsno || !csound->instrtxtp[insno])) {
+      if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
+                   !csound->instrtxtp[insno])) {
         csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
         return -1;
       }
@@ -465,14 +466,14 @@ int find_opcode(CSOUND *csound, char *opname)
     return 0;
 }
 
-/* ----------------------------------------------------------------------- */
-/* These functions replace the functionality of strsav() in rdorch.c.      */
+/* -------------------------------------------------------------------- */
+/* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (8000)      /* number of bytes in a buffer  */
+#define STRSPACE    (8000)              /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
-        struct strsav_t *nxt;   /* pointer to next structure    */
-        char    s[1];           /* the string stored            */
+        struct strsav_t *nxt;           /* pointer to next structure    */
+        char    s[1];                   /* the string stored            */
 } STRSAV;
 
 typedef struct strsav_space_t {
@@ -1074,7 +1075,7 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 }
 
 /* static CS_NOINLINE int csoundLoadOpcodeDB_AddFile(CSOUND *csound, */
-/*                                                   CsoundOpcodePluginFile_t *fp) */
+/*                                     CsoundOpcodePluginFile_t *fp) */
 /* { */
 /*     CsoundOpcodePluginFile_t    **pp, *p; */
 /*     unsigned char               h; */
@@ -1095,7 +1096,7 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 /* } */
 
 /* static CS_NOINLINE int csoundLoadOpcodeDB_AddOpcode(CSOUND *csound, */
-/*                                                     CsoundPluginOpcode_t *op) */
+/*                                           CsoundPluginOpcode_t *op) */
 /* { */
 /*     CsoundPluginOpcode_t    **pp, *p; */
 /*     unsigned char           h; */
