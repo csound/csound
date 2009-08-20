@@ -316,203 +316,203 @@ msgstr ""
 msgid "unknown GEN number"
 msgstr ""
 
-#: Engine/fgens.c:135
+#: Engine/fgens.c:136
 msgid "ftable does not exist"
 msgstr ""
 
-#: Engine/fgens.c:140
+#: Engine/fgens.c:141
 #, c-format
 msgid "ftable %d now deleted\n"
 msgstr ""
 
-#: Engine/fgens.c:155 Engine/fgens.c:1378 Engine/fgens.c:1460
-#: Engine/fgens.c:1524 Engine/fgens.c:1640 Engine/fgens.c:1721
-#: Engine/fgens.c:2566
+#: Engine/fgens.c:156 Engine/fgens.c:1379 Engine/fgens.c:1461
+#: Engine/fgens.c:1525 Engine/fgens.c:1641 Engine/fgens.c:1722
+#: Engine/fgens.c:2568
 msgid "insufficient gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:170
+#: Engine/fgens.c:171
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr ""
 
-#: Engine/fgens.c:177
+#: Engine/fgens.c:178
 msgid "illegal gen number"
 msgstr ""
 
-#: Engine/fgens.c:185
-msgid "deferred size for GEN1 only"
+#: Engine/fgens.c:186
+msgid "deferred size for GENs 1, 23 or 28 only"
 msgstr ""
 
-#: Engine/fgens.c:188 Engine/fgens.c:236
+#: Engine/fgens.c:189 Engine/fgens.c:237
 #, c-format
 msgid "ftable %d:\n"
 msgstr ""
 
-#: Engine/fgens.c:213 Engine/fgens.c:220
+#: Engine/fgens.c:214 Engine/fgens.c:221
 msgid "illegal table length"
 msgstr ""
 
-#: Engine/fgens.c:279 Engine/fgens.c:1955
+#: Engine/fgens.c:280 Engine/fgens.c:1956
 #, c-format
 msgid ""
 "ftable %d relocating due to size change\n"
 "         currently active instruments may find this disturbing"
 msgstr ""
 
-#: Engine/fgens.c:350
+#: Engine/fgens.c:351
 msgid "no coefs present"
 msgstr ""
 
-#: Engine/fgens.c:355 Engine/fgens.c:559 Engine/fgens.c:567
+#: Engine/fgens.c:356 Engine/fgens.c:560 Engine/fgens.c:568
 msgid "illegal x interval"
 msgstr ""
 
-#: Engine/fgens.c:384 Engine/fgens.c:511 Engine/fgens.c:552 Engine/fgens.c:756
-#: Engine/fgens.c:1161 Engine/fgens.c:2114 Engine/fgens.c:2415 Top/cvanal.c:69
+#: Engine/fgens.c:385 Engine/fgens.c:512 Engine/fgens.c:553 Engine/fgens.c:757
+#: Engine/fgens.c:1162 Engine/fgens.c:2115 Engine/fgens.c:2416 Top/cvanal.c:69
 #: Top/main.c:124 Top/pvanal.c:104 util/cvanal.c:66 util/lpanal.c:398
 #: util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr ""
 
-#: Engine/fgens.c:388 Engine/fgens.c:1166
+#: Engine/fgens.c:389 Engine/fgens.c:1167
 msgid "unknown srctable number"
 msgstr ""
 
-#: Engine/fgens.c:401
+#: Engine/fgens.c:402
 msgid "table size too large"
 msgstr ""
 
-#: Engine/fgens.c:468 Engine/fgens.c:501
+#: Engine/fgens.c:469 Engine/fgens.c:502
 msgid "gen call has negative segment size:"
 msgstr ""
 
-#: Engine/fgens.c:470
+#: Engine/fgens.c:471
 msgid "illegal input vals for gen call, beginning:"
 msgstr ""
 
-#: Engine/fgens.c:520
+#: Engine/fgens.c:521
 msgid "negative segsiz"
 msgstr ""
 
-#: Engine/fgens.c:663
+#: Engine/fgens.c:664
 msgid "nh partials < 1"
 msgstr ""
 
-#: Engine/fgens.c:759
+#: Engine/fgens.c:760
 msgid "illegal xint value"
 msgstr ""
 
-#: Engine/fgens.c:762
+#: Engine/fgens.c:763
 msgid "illegal xamp value"
 msgstr ""
 
-#: Engine/fgens.c:800
+#: Engine/fgens.c:801
 msgid "uneven number of args"
 msgstr ""
 
-#: Engine/fgens.c:895
+#: Engine/fgens.c:896
 msgid "gen call has illegal x-ordinate values:"
 msgstr ""
 
-#: Engine/fgens.c:910
+#: Engine/fgens.c:911
 msgid "wrong number of args"
 msgstr ""
 
-#: Engine/fgens.c:917
+#: Engine/fgens.c:918
 msgid "a range given exceeds table length"
 msgstr ""
 
-#: Engine/fgens.c:924
+#: Engine/fgens.c:925
 msgid "an input function does not exist"
 msgstr ""
 
-#: Engine/fgens.c:1043
+#: Engine/fgens.c:1044
 msgid "No such window!"
 msgstr ""
 
-#: Engine/fgens.c:1061
+#: Engine/fgens.c:1062
 msgid "Wrong number of input arguments"
 msgstr ""
 
-#: Engine/fgens.c:1062
+#: Engine/fgens.c:1063
 msgid "unknown distribution"
 msgstr ""
 
-#: Engine/fgens.c:1082
+#: Engine/fgens.c:1083
 msgid "error opening ASCII file"
 msgstr ""
 
-#: Engine/fgens.c:1112
+#: Engine/fgens.c:1113
 #, c-format
 msgid "%ld elements in %s\n"
 msgstr ""
 
-#: Engine/fgens.c:1174
+#: Engine/fgens.c:1175
 msgid "table size must be the same of source table"
 msgstr "il formato della tabella deve essere la stessa della tabella di fonte"
 
-#: Engine/fgens.c:1233 Engine/fgens.c:1280
+#: Engine/fgens.c:1234 Engine/fgens.c:1281
 msgid "x coordinates must all be in increasing order:"
 msgstr "coordinata x devono tutti essere nell'ordine aumentante"
 
-#: Engine/fgens.c:1236 Engine/fgens.c:1282
+#: Engine/fgens.c:1237 Engine/fgens.c:1283
 msgid "x coordinate greater than function size:"
 msgstr ""
 
-#: Engine/fgens.c:1240
+#: Engine/fgens.c:1241
 msgid "illegal input val (y <= 0) for gen call, beginning:"
 msgstr ""
 
-#: Engine/fgens.c:1300
+#: Engine/fgens.c:1301
 msgid "GEN28 requires zero table length"
 msgstr ""
 
-#: Engine/fgens.c:1362
+#: Engine/fgens.c:1363
 msgid "could not open space file"
 msgstr ""
 
-#: Engine/fgens.c:1364
+#: Engine/fgens.c:1365
 msgid "Time values must be in increasing order"
 msgstr ""
 
-#: Engine/fgens.c:1385
+#: Engine/fgens.c:1386
 msgid "GEN30: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:1464
+#: Engine/fgens.c:1465
 msgid "GEN31: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:1557
+#: Engine/fgens.c:1558
 #, c-format
 msgid "GEN32: source ftable %d not found"
 msgstr ""
 
-#: Engine/fgens.c:1651
+#: Engine/fgens.c:1652
 msgid "GEN33: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:1819
+#: Engine/fgens.c:1820
 msgid "unknown source table number"
 msgstr ""
 
-#: Engine/fgens.c:1891
+#: Engine/fgens.c:1892
 #, c-format
 msgid "ftable %d: "
 msgstr ""
 
-#: Engine/fgens.c:1935
+#: Engine/fgens.c:1936
 #, c-format
 msgid "ftable %d:"
 msgstr ""
 
-#: Engine/fgens.c:1950
+#: Engine/fgens.c:1951
 #, c-format
 msgid "replacing previous ftable %d"
 msgstr ""
 
-#: Engine/fgens.c:1986 Engine/fgens.c:2073 Engine/fgens.c:2097
+#: Engine/fgens.c:1987 Engine/fgens.c:2074 Engine/fgens.c:2098
 #: Opcodes/gab/gab.c:547 Opcodes/gab/gab.c:601 Opcodes/midiops2.c:218
 #: Opcodes/midiops2.c:370 Opcodes/midiops2.c:452 Opcodes/uggab.c:1223
 #: Opcodes/uggab.c:1250 Opcodes/uggab.c:1270 Opcodes/uggab.c:1313
@@ -520,121 +520,121 @@ msgstr ""
 msgid "Invalid ftable no. %f"
 msgstr ""
 
-#: Engine/fgens.c:1991
+#: Engine/fgens.c:1992
 #, c-format
 msgid "deferred-size ftable %f illegal here"
 msgstr ""
 
-#: Engine/fgens.c:2017
+#: Engine/fgens.c:2018
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr ""
 
-#: Engine/fgens.c:2079
+#: Engine/fgens.c:2080
 #, c-format
 msgid "Deferred-size ftable %f load not available at perf time."
 msgstr ""
 
-#: Engine/fgens.c:2138
+#: Engine/fgens.c:2139
 #, c-format
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2185 Opcodes/loscilx.c:62
+#: Engine/fgens.c:2186 Opcodes/loscilx.c:62
 #, c-format
 msgid "invalid sample format: %d"
 msgstr ""
 
-#: Engine/fgens.c:2193 Engine/fgens.c:2438
+#: Engine/fgens.c:2194 Engine/fgens.c:2440
 #, c-format
 msgid "channel %d illegal"
 msgstr ""
 
-#: Engine/fgens.c:2199
+#: Engine/fgens.c:2200
 msgid "deferred alloc\n"
 msgstr ""
 
-#: Engine/fgens.c:2205
+#: Engine/fgens.c:2206
 msgid "deferred size, but filesize unknown"
 msgstr ""
 
-#: Engine/fgens.c:2208
+#: Engine/fgens.c:2209
 #, c-format
 msgid "  defer length %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2268
+#: Engine/fgens.c:2269
 msgid "GEN1: input file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2272
+#: Engine/fgens.c:2273
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2293
+#: Engine/fgens.c:2294
 msgid "GEN1 read error"
 msgstr ""
 
-#: Engine/fgens.c:2297
+#: Engine/fgens.c:2298
 msgid "GEN1: aiff file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2298
+#: Engine/fgens.c:2299
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr ""
 
-#: Engine/fgens.c:2338
+#: Engine/fgens.c:2339
 msgid "wrong number of ftable arguments"
 msgstr "numero errato di discussioni ftable"
 
-#: Engine/fgens.c:2348 OOps/pstream.c:336
+#: Engine/fgens.c:2349 OOps/pstream.c:336
 msgid "Failed to load PVOC-EX file"
 msgstr ""
 
-#: Engine/fgens.c:2359 InOut/midirecv.c:416 OOps/midiops.c:377
+#: Engine/fgens.c:2360 InOut/midirecv.c:416 OOps/midiops.c:377
 #: OOps/midiops.c:419 OOps/midiops.c:431
 msgid "illegal channel number"
 msgstr ""
 
-#: Engine/fgens.c:2377
+#: Engine/fgens.c:2378
 msgid "ftable size too small"
 msgstr "formato ftable troppo piccolo"
 
-#: Engine/fgens.c:2454 Opcodes/mp3in.c:74
+#: Engine/fgens.c:2456 Opcodes/mp3in.c:74
 msgid "Not enough memory\n"
 msgstr ""
 
-#: Engine/fgens.c:2536
+#: Engine/fgens.c:2538
 msgid "gen51: invalid number of p-fields (too few grades)"
 msgstr ""
 
-#: Engine/fgens.c:2570
+#: Engine/fgens.c:2572
 msgid "number of channels inconsistent with number of args"
 msgstr ""
 
-#: Engine/fgens.c:2724
+#: Engine/fgens.c:2726
 msgid "GEN53: invalid number of gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:2734
+#: Engine/fgens.c:2736
 msgid "GEN53: invalid table length"
 msgstr "GEN53: lunghezza non valida della tabella"
 
-#: Engine/fgens.c:2738
+#: Engine/fgens.c:2740
 msgid "GEN53: invalid source table number"
 msgstr ""
 
-#: Engine/fgens.c:2741
+#: Engine/fgens.c:2743
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr ""
 
-#: Engine/fgens.c:2745
+#: Engine/fgens.c:2747
 msgid "GEN53: invalid source table length"
 msgstr ""
 
-#: Engine/fgens.c:2750
+#: Engine/fgens.c:2752
 msgid "GEN53: invalid window table"
 msgstr ""
 
@@ -1213,7 +1213,7 @@ msgstr ""
 msgid "instr %s uses instrument number %d\n"
 msgstr ""
 
-#: Engine/namedins.c:325
+#: Engine/namedins.c:326
 msgid "cannot find the specified instrument or opcode"
 msgstr ""
 
@@ -5197,23 +5197,23 @@ msgstr ""
 msgid "printks param 1 was not a \"quoted string\""
 msgstr ""
 
-#: OOps/ugrw1.c:3105
+#: OOps/ugrw1.c:3106
 msgid "printks not initialised"
 msgstr "printks: non inizializzato"
 
-#: OOps/ugrw1.c:3234
+#: OOps/ugrw1.c:3237
 msgid "inz index > isizea. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:3236
+#: OOps/ugrw1.c:3239
 msgid "inz index < 0. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:3269 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
+#: OOps/ugrw1.c:3272 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
 msgid "outz index > isizea. No output"
 msgstr ""
 
-#: OOps/ugrw1.c:3271 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
+#: OOps/ugrw1.c:3274 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
 msgid "outz index < 0. No output."
 msgstr ""
 
@@ -7726,6 +7726,11 @@ msgid ""
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
+#: Opcodes/stk/stkOpcodes.cpp:599
+#, c-format
+msgid "RAWWAVE_PATH: %s\n"
+msgstr ""
+
 #: Opcodes/syncgrain.c:175 Opcodes/syncgrain.c:338 Opcodes/syncgrain.c:683
 msgid "grain size smaller than 1 sample\n"
 msgstr ""
@@ -7746,6 +7751,15 @@ msgstr ""
 #: Opcodes/syncgrain.c:435
 msgid "diskgrain: could not read file \n"
 msgstr ""
+
+#: Opcodes/tabsum.c:39
+msgid "tabsum: No table"
+msgstr ""
+
+#: Opcodes/tabsum.c:54
+#, fuzzy
+msgid "tabsum: Not initialised"
+msgstr "table: non inizializzato"
 
 #: Opcodes/ugens7.c:46 Opcodes/ugensa.c:49
 msgid "illegal value for iolaps"
