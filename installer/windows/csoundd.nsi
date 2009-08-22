@@ -176,8 +176,7 @@ FunctionEnd
 ;====================================================
 !macro select_NT_profile UN
 Function ${UN}select_NT_profile
-   MessageBox MB_YESNO|MB_ICONQUESTION "Change the environment for all users?$\r$\nSaying no here will change the envrironment for the current user only.$\r$\n(Administrator permissions required for all users)" \
-      IDNO environment_single
+   MessageBox MB_YESNO|MB_ICONQUESTION "Change the environment for all users?$\r$\nSaying no here will change the envrironment for the current user only.$\r$\n(Administrator permissions required for all users,$\r$\ndefaults to Yes on silent installations)" /SD IDYES IDNO environment_single 
       DetailPrint "Selected environment for all users"
       Push "all"
       Return
