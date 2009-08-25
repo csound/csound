@@ -1590,6 +1590,7 @@ makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 if not buildOLPC:
   makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
+makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
 makePlugin(pluginEnvironment, 'modal4',
            ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
 makePlugin(pluginEnvironment, 'physmod', Split('''
