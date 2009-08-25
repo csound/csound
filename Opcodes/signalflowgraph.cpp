@@ -5,12 +5,12 @@
 
 /**
  * These opcodes enable the declaration of a signal flow graph 
- * for directly connecting time-domain signal flows between instruments
- * in a Csound orchestra. Either arate or krate signals can be sent.
+ * that directly connects instruments in a Csound orchestra using
+ * time-domain k-rate and a-rate signal flows from outlets to inlets.
  * Instruments must be defined in the orchestra in the order of depth-first traversal
  * of the signal flow graph. As instruments with outlets are dynamically created,
  * their outlets are automatically connected and summed to their assigned inlets.
- * Usage would  be something like this:
+ * Usage would be something like this:
 
  * instr 1 ; Howling wind
  * ...
@@ -46,7 +46,7 @@ std::map<size_t, std::map<std::string, std::vector<Outlet *> > > outlets;
 struct Outlet : public OpcodeBase<Outlet>
 {
   // No outputs.
-  // Inputs: "ik" or "ia", insno is implicit.
+  // Inputs: "Sk" or "Sa", insno is implicit.
   MYFLT *iName;
   MYFLT *xInput;
   /**
@@ -83,11 +83,11 @@ struct Inlet : public OpcodeBase<Inlet>
 {
   // Outputs: "a" or "k".
   MYFLT *xOutput;
-  // Inputs: "is"
+  // Inputs: "iS"
   MYFLT *iSourceInstrument;
   MYFLT *iSourceOutlet;
   // State.
-  std::vector<Outlet> *sourceOutlets;
+  std::vector<Outlet *> *sourceOutlets;
   size_t ksmps;
   /**
    * Get a pointer to the vector of outlets feeding this inlet.
@@ -97,11 +97,12 @@ struct Inlet : public OpcodeBase<Inlet>
     // Get a pointer to the vector of outlets feeding this inlet.
     std::string sourceOutlet = csound->strarg2name(csound,
 						   (char*) NULL,
-						   iSourcePort,
+						   iSourceOutlet,
 						   (char *)"",
 						   (int) csound->GetInputArgSMask(this));
     sourceOutlets = &outlets[size_t(*iSourceInstrument)][sourceOutlet];
     ksmps = csound->GetKsmps(csound);
+    return OK;
   }
   /**
    * Sum krate values from active outlets feeding this inlet.
@@ -110,25 +111,26 @@ struct Inlet : public OpcodeBase<Inlet>
   {
     *xOutput = 0;
     for (size_t i = 0, n = sourceOutlets->size(); i < n; i++) {
-      SourcePort *sourceOutlet = (*sourceOutlets)[i];
+      Outlet *sourceOutlet = (*sourceOutlets)[i];
       if (sourceOutlet->h.insdshead->actflg) {
 	*xOutput += *sourceOutlet->xInput;
       }
     }
+    return OK;
   }
   /**
    * Sum arate values from active outlets feeding this inlet.
    */
   int audio(CSOUND *csound)
   {
-    for (i = 0; i < ksmps; i++) {
-      xOutput[I] = FL(0.0);
+    for (size_t i = 0; i < ksmps; i++) {
+      xOutput[i] = FL(0.0);
     }
     for (size_t i = 0, n = sourceOutlets->size(); i < n; i++) {
-      SourcePort *sourcePort = (*sourceOutlets)[i];
+      Outlet *sourceOutlet = (*sourceOutlets)[i];
       if (sourceOutlet->h.insdshead->actflg) {
 	for (size_t j = 0; j < ksmps; j++) {
-	  xOutput[j] += sourceOutlets->xInput[j];
+	  xOutput[j] += sourceOutlet->xInput[j];
 	}
       }
     }
@@ -202,7 +204,7 @@ extern "C"
                                   (int (*)(CSOUND *, void*)) ep->aopadr);
       ep++;
     }
-    sources.clear();
+    outlets.clear();
     return err;
   }
 
