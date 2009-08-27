@@ -483,7 +483,7 @@ int turnon(CSOUND *csound, TURNON *p)
       evt.p[1] = *p->insno;
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
-
+    evt.c.extra = NULL;
     return insert_score_event_at_sample(csound, &evt, csound->icurTime);
 }
 
@@ -885,7 +885,7 @@ int sensevents(CSOUND *csound)
         switch (e->opcod) {
         case 'w':
           if (!O->Beatmode)                   /* Not beatmode: read 'w' */
-            settempo(csound, e->p2orig);           /*   to init the tempo    */
+            settempo(csound, e->p2orig);      /*   to init the tempo    */
           continue;                           /*   for this section     */
         case 'q':
         case 'i':

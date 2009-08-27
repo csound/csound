@@ -1215,12 +1215,13 @@ static void ifa(CSOUND *csound)
     ST(bp)->pcnt = 0;
     while (getpfld(csound)) {   /* while there's another pfield,  */
       nocarry = 0;
-      if (UNLIKELY(++ST(bp)->pcnt == PMAX)) {
-        sreaderr(csound, Str("instr pcount exceeds PMAX"));
-        csound->Message(csound, Str("      remainder of line flushed\n"));
-        flushlin(csound);
-        continue;
-      }
+      ++ST(bp)->pcnt;
+      /* if (UNLIKELY(++ST(bp)->pcnt == PMAX)) { */
+      /*   sreaderr(csound, Str("instr pcount exceeds PMAX")); */
+      /*   csound->Message(csound, Str("      remainder of line flushed\n")); */
+      /*   flushlin(csound); */
+      /*   continue; */
+      /* } */
       if (*ST(sp) == '^' && ST(op) == 'i' && ST(bp)->pcnt == 2) {
         int foundplus = 0;
         if (*(ST(sp)+1)=='+') { ST(sp)++; foundplus = 1; }
