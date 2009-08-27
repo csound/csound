@@ -1,3 +1,16 @@
+2009-08-27  jpff  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h (PMAX): Reduced by 2
+	(EVTBLK): Added c.extra field to EVTBLK
+
+	* Engine/fgens.c: LOTS of changes to allow extension of arguments uses.
+
+	* Engine/sread.c (ifa): removed limit of PMAX arguments to events
+
+	* Engine/rdscor.c (rdscor): Allow reading of more than PMAX fields
+
+	* Engine/fgens.c (gen23): Total rewrite
+
 2009-08-19  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (hfgens): Correct error string to 1, 23 or 28 for

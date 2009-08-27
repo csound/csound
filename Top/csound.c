@@ -490,7 +490,7 @@ extern "C" {
     0.0, 0.0, 0.0,  /*  prvbt, curbt, nxtbt */
     0.0, 0.0,       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) } },   /*  evt     */
+    { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, NULL },   /*  evt     */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */

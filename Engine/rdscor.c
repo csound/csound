@@ -128,6 +128,7 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
             }
             e->p2orig = e->p[2];                 /* now go count the pfields */
             e->p3orig = e->p[3];
+            e->c.extra = NULL;
             goto setp;
         case 'e':
             e->opcod = c;
@@ -136,6 +137,8 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
         default:                                /* WARPED scorefile:       */
             if (!csound->warped) goto unwarped;
             e->opcod = c;                                       /* opcod */
+            free(e->c.extra);
+            e->c.extra = NULL;
             pp = &e->p[0];
             plim = &e->p[PMAX];
             if (getc(xx) != '\n' && scanflt(csound, ++pp))         /* p1      */
@@ -146,9 +149,27 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
                       while (getc(xx) != '\n' && scanflt(csound, ++pp))
                         /* p4....  */
                         if (pp >= plim) {
-                          flushline(csound);
-                          ++pp;
-                          break;
+                          MYFLT *q;
+                          int c=1;
+                          fprintf(stderr, "Extra p-fields (%d %d %d %d)\n",
+                                  (int)e->p[1],(int)e->p[2],
+                                  (int)e->p[3],(int)e->p[4]);
+                          e->c.extra = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
+                          e->c.extra[0] = PMAX-2;
+                          q = e->c.extra;
+                          while (getc(xx) != '\n' && scanflt(csound, &q[c++])) {
+                            if (c > e->c.extra[0]) {
+                              fprintf(stderr, "and more extra p-fields [%d](%d)%d\n",
+                                      c, (int)e->c.extra[0], sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
+                              q = e->c.extra =
+                                (MYFLT*)realloc(e->c.extra,
+                                                sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+                              e->c.extra[0] = e->c.extra[0]+PMAX-1;
+                            }
+                          }
+                          e->c.extra[0] = c;
+                          /* flushline(csound); */
+                          goto setp;
                         }
  setp:      if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
               /* FIXME: should pause and not mute */
@@ -157,6 +178,7 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
               return 1;
             }
             e->pcnt = pp - &e->p[0];                   /* count the pfields */
+            if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
             if (csound->sstrlen) {        /* if string arg present, save it */
                 e->strarg = mmalloc(csound, csound->sstrlen); /* FIXME:       */
                 strcpy(e->strarg, csound->sstrbuf);           /* leaks memory */
