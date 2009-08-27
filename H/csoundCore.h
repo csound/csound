@@ -50,8 +50,8 @@ extern "C" {
 #define CSFILE_SND_W    5
 
 #define MAXINSNO  (200)
-#define PMAX      (1000)
-#define VARGMAX   (1001)
+#define PMAX      (1998)
+#define VARGMAX   (1999)
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
@@ -440,6 +440,10 @@ extern "C" {
     MYFLT   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
     MYFLT   p[PMAX + 1];
+    union {                   /* To ensure size is same as earlier */
+      MYFLT   *extra;
+      MYFLT   p[2];
+    } c;
   } EVTBLK;
 
   typedef struct {
