@@ -419,7 +419,8 @@ if commonEnvironment['useLrint'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
 
 cf = Configure(commonEnvironment)
-if commonEnvironment['useGettext'] == '1' and cf.CheckHeader("libintl.h"):
+if commonEnvironment['useGettext'] == '1':
+  if cf.CheckHeader("libintl.h"):
     print "CONFIGURATION DECISION: Using GNU gettext scheme"
     commonEnvironment.Prepend(CCFLAGS = ['-DGNU_GETTEXT'])
     if getPlatform() == "win32":
@@ -1374,7 +1375,7 @@ else:
     if getPlatform() == 'darwin':
         if commonEnvironment['dynamicCsoundLibrary'] == '1':
             ilibName = "lib_csnd.dylib"
-            ilibVersion = util.csoundLibraryVersion
+            ilibVersion = csoundLibraryVersion
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
                 '''-Xlinker -compatibility_version
                 -Xlinker %s''' % ilibVersion))
@@ -1509,8 +1510,15 @@ else:
 		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -compatibility_version -Xlinker %s''' % ilibVersion))
 		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
 		pythonWrapperEnvironment.Append(SHLINKFLAGS = Split('''-install_name /Library/Frameworks/%s/%s''' % (OSXFrameworkCurrentVersion, ilibName)))
-		pythonWrapper = pythonWrapperEnvironment.SharedLibrary('_csnd', pythonWrapperSources)
-		pythonWrapperEnvironment.Command('interfaces install', pythonWrapper, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
+                pythonWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
+                pythonWrapperEnvironment.Append(LINKFLAGS = ['-framework','python'])
+		#pythonWrapper = pythonWrapperEnvironment.SharedLibrary('_csnd', pythonWrapperSources)
+		pyVersToken = '-DPYTHON_24_or_newer'
+	        csoundPythonInterface = pythonWrapperEnvironment.SharedObject(
+		'interfaces/python_interface.i',
+		SWIGFLAGS = [swigflags, '-python', '-outdir', '.', pyVersToken])
+	        pythonWrapperEnvironment.Clean('.', 'interfaces/python_interface_wrap.h')
+		pythonWrapperEnvironment.Command('interfaces install', csoundPythonInterface, "cp lib_csnd.dylib /Library/Frameworks/%s/lib_csnd.dylib" % (OSXFrameworkCurrentVersion))
 		try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')
 		except: print "link exists..."
 	else:
