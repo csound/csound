@@ -708,6 +708,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     (*userData) = NULL;
     olddev = NULL;
     if (devName[0] == 'a') {
+      csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
         do {
@@ -732,6 +733,11 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
                 olddev = newdev;
                 newdev = NULL;
               }
+	      else { /* Device couldn't be opened */
+		csound->Message(csound,
+				Str("ALSA midi: Error opening device: %s\n"),
+				name);
+	      }
             }
           }
           if (snd_card_next(&card) < 0)
@@ -748,7 +754,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         return -1;
       }
     }
-    (*userData) = (void*) dev;
+    *userData = (void*) dev;
     free(name);
     return 0;
 }
@@ -761,12 +767,12 @@ static int midi_in_read(CSOUND *csound,
     unsigned char   c;
 
     if (!dev) { /* No devices */
-//       fprintf(stderr, "No devices!");
+     /*  fprintf(stderr, "No devices!"); */
       return 0;
     }
-    (void) csound;
+    /* (void) csound; */
     dev->bufpos = 0;
-    while (dev) {
+    while (dev && dev->dev) {
       while ((nbytes - bufpos) >= 3) {
         if (dev->bufpos >= dev->nbytes) { /* read from device */
           int n = (int) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
@@ -820,8 +826,9 @@ static int midi_in_close(CSOUND *csound, void *userData)
     (void) csound;
     dev = (alsaMidiInputDevice*) userData;
     while (dev != NULL) {
-      if (dev->dev)
-        ret = snd_rawmidi_close(dev->dev);
+      if (dev->dev) {
+        ret = snd_rawmidi_close(dev->dev); 
+      }     
       olddev = dev;
       dev = dev->next;
       free(olddev);
