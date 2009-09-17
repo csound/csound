@@ -19,6 +19,11 @@
  * of an instrument is instantiated 
  * during performance, the declared connections also 
  * are automatically instantiated.
+ * 
+ * Note that inlets and outlets are defined in 
+ * instruments without reference to how they are connected.
+ * Connections are defined in the orchestra header. It is
+ * this separation that enables plug-in instruments.
  *
  * Signal flow graphs simplify the construction of complex mixers,
  * signal processing chains, and the like. They also simplify the
@@ -84,7 +89,7 @@
  * When the instrument is activated, p1 is the insno, p2 is 0, and p3 is -1.
  * The optional pfields are sent to the instrument following p3.
  *
- * ifno ftgenonce isize, igen [, iarga, iargb, ...]
+ * ifno ftgentmp ip1, ip2dummy, isize, igen, iarga, iargb [, ...]
  *
  * Enables the creation of function tables 
  * entirely inside instrument definitions,
@@ -98,11 +103,12 @@
  * either in the score, or in the orchestra header.
  *
  * The ftgenonce opcode is similar to ftgentmp, 
- * except that function tables are neither 
+ * and has identical arguments.
+ * However, function tables are neither 
  * duplicated nor deleted. Instead, all of the arguments
  * to the opcode are concatenated to form the key 
  * to a lookup table that points to the function
- * table structure. Every request to ftgenonce 
+ * table number. Thus, every request to ftgenonce 
  * with the same arguments receives the same
  * instance of the function table data. 
  * Every change in the value of any ftgenonce argument
@@ -122,6 +128,8 @@ struct FtGenOnce;
 
 // Internally, identifiers are always "sourcename:outletname" or "sinkname:inletname".
 
+// TODO: For true thread-safety across multiple instances, access must be protected.
+
 std::map<CSOUND * /* instance */, std::map< std::string /* source_outlet */, std::vector< Outleta * /* outlets */ > > > \
 aoutletsForInstancesForSourcesForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* source_outlet */, std::vector< Outletk * /* outlets */ > > > \
@@ -134,13 +142,17 @@ std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::v
 kinletsForInstancesForSinksForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< Inletf * /* inlets */ > > > \
 finletsForInstancesForSinksForNames;
-std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< std::string /* source_outlets */ > > > connections;
+std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< std::string /* source_outlets */ > > > \
+connectionsForInstances;
+std::map< std::map<CSOUND /* instance */, std::vector<MYFLT> /* pfields */, int /* fno */ > > \
+functionTablesForInstancesForArguments;
 
 /**
- * All it does is clear the data structures, 
+ * All it does is clear the data structures 
+ * for the current instance of Csound,
  * in case they are full from a previous performance.
  */
-struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph
+struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph>
 {
   int init(CSOUND *csound)
   {
@@ -151,6 +163,7 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph
     kinletsForInstancesForSinksforNames[csound].clear();
     finletsForInstancesForSinksForNames[csound].clear();
     connections[csound].clear();
+    functionTablesForArguments[csound].clear();
     return OK;
   };
 };
@@ -265,25 +278,98 @@ struct Inleta : public OpcodeBase<Inleta>
   {
     MYFLT *Sinstrument;
     MYFLT *argums[VARGMAX];
+    std::vector<MYFLT> pfields;
     int init(CSOUND *csound)
     {
       return OK;
     }
- };
+  };
 
   struct FtGenOnce : public OpcodeBase<FtGenOnce>
   {
-    MYFLT *Sinstrument;
+    /**
+     * Outputs.
+     */
+    MYFLT *ifno;
+    /**
+     * Inputs.
+     */
+    MYFLT *p1;
+    MYFLT *p2;
+    MYFLT *p3; 
+    MYFLT *p4; 
+    MYFLT *p5;
     MYFLT *argums[VARGMAX];
     int init(CSOUND *csound)
     {
+      // Will contain the same data as the event block fields,
+      // but it is already comparable and is dynamically sized.
+      std::vector<MYFLT> pfields;
+      // Default output.
+      *ifno = FL(0.0);
+      // Create an EVTBLK for a function table event from the opcode inputs.
+      // Every value field is also pushed into our pfields vector.
+      EVTBLK evtblk;
+      evtblk.opcod = 'f';
+      pfields.push_back(fevt.opcod);
+      evtblk.strarg = 0;
+      evtblk.p[0] = FL(0.0);
+      pfields.push_back(evtblk.p[0]);
+      evtblk.p[1] = *p1;                                     
+      pfields.push_back(evtblk.p[1]);
+      evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
+      pfields.push_back(evtblk.p[2]);
+      evtblk.p[3] = evtblk.p3orig = -1.0;
+      pfields.push_back(evtblk.p[3]);
+      evtblk.p[4] = *p4;
+      pfields.push_back(evtblk.p[4]);
+      int n = 0;
+      if (csound->GetInputArgSMask(this)) {  
+	n = (int) evtblk.p[4];
+	evtblk.p[5] = SSTRCOD;
+	if (n < 0) {
+	  n = -n;
+	}
+	// Only GEN 1, 23, 28, or 43 can take strings.
+	switch (n) {                      
+	case 1:
+	case 23:
+	case 28:
+	case 43:
+	  // This one is not comparable for us...
+	  ftevt.strarg = (char*) p5;
+	  break;
+	default:
+	  return csound->InitError(csound, Str("ftgen string arg not allowed"));
+	}
+      }
+      else {
+	evtblk.p[5] = *p5;                                  
+      }
+      pfields.push_back(evtblk.p[5]);
+      n = csound->GetInputArgCnt(this);
+      ftevt.pcnt = (int16) n;
+      for (size_t fpI = 6, argumsI = 0; argumsI < n; fpI++, argumsI++) {
+	evtblk.p[fpI] = argums[argumsI];
+	pfields.push_back(evtblk.p[fpI]);
+      }
+      if(functionTablesForArguments.find(pfields) == functionTablesForArguments.end()) {
+	FUNC *func;
+	n = csound->hfgens(csound, &func, &evtblk, 1);       
+	if (UNLIKELY(n != 0)) {
+	  return csound->InitError(csound, Str("ftgen error"));
+	}
+	if (ftp) {
+	  *ifno = (MYFLT) func->fno;                     
+	  functionTablesForArguments[pfields] = *ifno;
+	}
+      } 
       return OK;
     }
- };
+  };
 
   extern "C"
   {
-
     static OENTRY localops[] = {
       {
 	(char*)"signalflowgraph",
