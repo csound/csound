@@ -278,9 +278,33 @@ struct Inleta : public OpcodeBase<Inleta>
   {
     MYFLT *Sinstrument;
     MYFLT *argums[VARGMAX];
-    std::vector<MYFLT> pfields;
     int init(CSOUND *csound)
     {
+      std::string source = csound->strarg2name(csound,
+					       (char *) 0,
+					       Sinstrument,
+					       (char *)"",
+					       (int) csound->GetInputArgSMask(this));
+      EVTBLK evtblk;
+      evtblk.opcod = 'i';
+      evtblk.strarg = 0;
+      evtblk.p[0] = FL(0.0);
+      evtblk.p[1] = *p1;                                     
+      evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
+      evtblk.p[3] = evtblk.p3orig = -1.0;
+      int n = 0;
+      if (csound->GetInputArgSMask(this)) {  
+	evtblk.p[0] = SSTRCOD;
+	  ftevt.strarg = (char*) p0;
+      } else {
+	evtblk.p[0] = *p0;                                  
+      }
+      n = csound->GetInputArgCnt(this);
+      ftevt.pcnt = (int16) n;
+      for (size_t fpI = 4, argumsI = 0; argumsI < n; fpI++, argumsI++) {
+	evtblk.p[fpI] = argums[argumsI];
+      }
+    csound->insert_score_event(csound, &evtblk, FL(0.0));	
       return OK;
     }
   };
@@ -421,7 +445,7 @@ struct Inleta : public OpcodeBase<Inleta>
       int     err = 0;
 
       while (ep->opname != NULL) {
-	err |= csound->AppendOpcode(csound,
+	    err |= csound->AppendOpcode(csound,
 				    ep->opname, ep->dsblksiz, ep->thread,
 				    ep->outypes, ep->intypes,
 				    (int (*)(CSOUND *, void*)) ep->iopadr,
