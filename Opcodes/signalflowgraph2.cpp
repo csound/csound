@@ -300,6 +300,9 @@ struct Inleta : public OpcodeBase<Inleta>
     MYFLT *p4; 
     MYFLT *p5;
     MYFLT *argums[VARGMAX];
+    /** 
+     * State is external and global.
+     */
     int init(CSOUND *csound)
     {
       // Will contain the same data as the event block fields,
@@ -308,10 +311,11 @@ struct Inleta : public OpcodeBase<Inleta>
       // Default output.
       *ifno = FL(0.0);
       // Create an EVTBLK for a function table event from the opcode inputs.
-      // Every value field is also pushed into our pfields vector.
+      // Each value field is also pushed into our pfields vector.
       EVTBLK evtblk;
+      // No need to compare this one, always has the same value.
       evtblk.opcod = 'f';
-      pfields.push_back(fevt.opcod);
+      // This one is not comparable.
       evtblk.strarg = 0;
       evtblk.p[0] = FL(0.0);
       pfields.push_back(evtblk.p[0]);
@@ -336,7 +340,7 @@ struct Inleta : public OpcodeBase<Inleta>
 	case 23:
 	case 28:
 	case 43:
-	  // This one is not comparable for us...
+	  // This one is not comparable.
 	  ftevt.strarg = (char*) p5;
 	  break;
 	default:
@@ -353,15 +357,17 @@ struct Inleta : public OpcodeBase<Inleta>
 	evtblk.p[fpI] = argums[argumsI];
 	pfields.push_back(evtblk.p[fpI]);
       }
-      if(functionTablesForArguments.find(pfields) == functionTablesForArguments.end()) {
-	FUNC *func;
+      // If the arguments have not been used before for this instance of Csound,
+      // create a new function table and store the arguments and table number.
+      if(functionTablesForArguments[csound].find(pfields) == functionTablesForArguments[csound].end()) {
+	FUNC *func = 0;
 	n = csound->hfgens(csound, &func, &evtblk, 1);       
 	if (UNLIKELY(n != 0)) {
 	  return csound->InitError(csound, Str("ftgen error"));
 	}
-	if (ftp) {
+	if (func) {
 	  *ifno = (MYFLT) func->fno;                     
-	  functionTablesForArguments[pfields] = *ifno;
+	  functionTablesForArguments[csound][pfields] = func->fno;
 	}
       } 
       return OK;
