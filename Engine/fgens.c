@@ -351,7 +351,8 @@ static int gen02(FGDATA *ff, FUNC *ftp)
     int nsw = 1;
     CSOUND  *csound = ff->csound;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (nvals >= (int) ff->flen)
       nvals = (int) ff->flen + 1;               /* for all vals up to flen+1 */
     while (nvals--) {
@@ -472,7 +473,8 @@ static int gen05(FGDATA *ff, FUNC *ftp)
     int nsw = 1;
     CSOUND  *csound = ff->csound;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((nsegs = (ff->e.pcnt-5) >> 1) <= 0)    /* nsegs = nargs-1 /2 */
       return OK;
     valp = &ff->e.p[5];
@@ -555,7 +557,8 @@ static int gen06(FGDATA *ff, FUNC *ftp)
     int nsw = 1;
     CSOUND  *csound = ff->csound;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY((nsegs = ((ff->e.pcnt - 5) >> 1)) < 1)) {
       return fterror(ff, Str("insufficient arguments"));
     }
@@ -635,7 +638,8 @@ static int gen08(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY((nsegs = (ff->e.pcnt - 5) >> 1) <= 0)) {
       return fterror(ff, Str("insufficient arguments"));
     }
@@ -643,7 +647,7 @@ static int gen08(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     fplim = fp + ff->flen;
     f0 = *valp++;                    /* 1st 3 params give vals at x0, x1 */
-    if (UNLIKELY((dx01 = *valp++) <= FL(0.0))) {      /*      and dist between     */
+    if (UNLIKELY((dx01 = *valp++) <= FL(0.0))) {      /* and dist between*/
       return fterror(ff, Str("illegal x interval"));
     }
     f1 = *valp++;
@@ -709,7 +713,8 @@ static int gen09(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((hcnt = (ff->e.pcnt - 4) / 3) <= 0)         /* hcnt = nargs / 3 */
       return OK;
     valp = &ff->e.p[5];
@@ -758,11 +763,13 @@ static int gen10(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");    
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     hcnt = ff->e.pcnt - 4;                              /* hcnt is nargs    */
     finp = &ftp->ftable[flen];
     do {
-      MYFLT *valp = (hcnt+4>=PMAX ? &ff->e.c.extra[hcnt+5-PMAX] : &ff->e.p[hcnt + 4]); 
+      MYFLT *valp = (hcnt+4>=PMAX ? &ff->e.c.extra[hcnt+5-PMAX] :
+                                    &ff->e.p[hcnt + 4]);
       if ((amp = *valp) != FL(0.0))         /* for non-0 amps,  */
         for (phs = 0, fp = ftp->ftable; fp <= finp; fp++) {
           *fp += (MYFLT) sin(phs * tpdlen) * amp;         /* accum sin pts    */
@@ -877,7 +884,8 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     MYFLT   xamp, xintvl, scalfac, sum, prvm;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY((nh = ff->e.pcnt - 6) <= 0)) {
       return fterror(ff, Str("insufficient arguments"));
     }
@@ -953,7 +961,8 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     hsin = (MYFLT*)malloc(sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     if (UNLIKELY(nargs & 01)) {
       return fterror(ff, Str("uneven number of args"));
@@ -1047,7 +1056,8 @@ static int gen17(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((nsegs = nargs >> 1) <= 0)       /* nsegs = nargs /2 */
       goto gn17err;
     valp = &ff->e.p[5];
@@ -1088,7 +1098,8 @@ static int gen18(FGDATA *ff, FUNC *ftp)
     int     nargs = ff->e.pcnt - 4;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY((cnt = nargs >> 2) <= 0)) {
       return fterror(ff, Str("wrong number of args"));
     }
@@ -1107,7 +1118,7 @@ static int gen18(FGDATA *ff, FUNC *ftp)
         return fterror(ff, Str("a range given exceeds table length"));
       }
 
-      if (LIKELY((fnp = csoundFTFind(csound,&fn)) != NULL)) { /* make sure fn exists */
+      if (LIKELY((fnp=csoundFTFind(csound,&fn))!=NULL)) { /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
       }
       else {
@@ -1134,20 +1145,25 @@ static int gen19(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((hcnt = nargs / 4) <= 0)                /* hcnt = nargs / 4 */
       return OK;
     valp = &ff->e.p[5];
     finp = &ftp->ftable[ff->flen];
     do {
       inc = *(valp++) * tpdlen;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       amp = *(valp++);
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       phs = *(valp++) * tpd360;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       dc = *(valp++);
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       for (fp = ftp->ftable; fp <= finp; fp++) {
         *fp += (MYFLT) (sin(phs) * amp + dc);   /* dc after str scale */
         if ((phs += inc) >= TWOPI)
@@ -1211,15 +1227,15 @@ static int gen20(FGDATA *ff, FUNC *ftp)
     case 6:                     /* Gaussian */
         arg = 12.0 / ff->flen;
         for (i = 0, x = -6.0 ; i < ((int) ff->flen >> 1) ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / (2.0*varian*varian))));
+          ft[i] = (MYFLT)(xarg * (pow(2.718281828459,-(x*x)/(2.0*varian*varian))));
         for (x = 0.0 ; i <= (int) ff->flen ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * (pow(2.718281828459, -(x*x) / (2.0*varian*varian))));
+          ft[i] = (MYFLT)(xarg * (pow(2.718281828459,-(x*x)/(2.0*varian*varian))));
         return OK;
     case 7:                     /* Kaiser */
       {
         double flen2 = 4.0 / ((double) ff->flen * (double) ff->flen);
         double besbeta = 1.0 / besseli(beta);
-        x = (double) ff->flen * -0.5 + 1.0;
+        x = (double) ff->flen * (-0.5) + 1.0;
         ft[0] = ft[ff->flen] = (MYFLT) (xarg * besbeta);
         for (i = 1 ; i < (int) ff->flen ; i++, x += 1.0)
           ft[i] = (MYFLT) (xarg * besseli(beta * sqrt(1.0 - x * x * flen2))
@@ -1381,7 +1397,8 @@ static int gen25(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((nsegs = ((nargs / 2) - 1)) <= 0)
       return OK;
     valp = &ff->e.p[5];
@@ -1389,12 +1406,15 @@ static int gen25(FGDATA *ff, FUNC *ftp)
     finp = fp + ff->flen;
     do {
       x1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       y1 =  *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       x2 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
-      if (nsegs > 1) {
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
+      if (LIKELY(nsegs > 1)) {
         y2 =  *valp++;
         if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
           nsw =0, valp = &(ff->e.c.extra[1]);
@@ -1439,7 +1459,8 @@ static int gen27(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if ((nsegs = ((nargs / 2) - 1)) <= 0)
       return OK;
     valp = &ff->e.p[5];
@@ -1447,12 +1468,15 @@ static int gen27(FGDATA *ff, FUNC *ftp)
     finp = fp + ff->flen;
     do {
       x1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       y1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       x2 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
-      if (nsegs > 1) {
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
+      if (LIKELY(nsegs > 1)) {
         y2 =  *valp++;
         if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
           nsw =0, valp = &(ff->e.c.extra[1]);
@@ -1657,7 +1681,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     MYFLT   *valp = &ff->e.p[6];
     int nsw = 1;
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     if (UNLIKELY(nargs < 4)) {
       return fterror(ff, Str("insufficient gen arguments"));
     }
@@ -1680,11 +1705,14 @@ static int gen31(FGDATA *ff, FUNC *ftp)
 
     for (j = 6; j < (nargs + 3); j++) {
       n = (int) (FL(0.5) + *valp++); if (n < 1) n = 1; /* frequency */
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       a = *valp++;                                     /* amplitude */
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       p = *valp++;                                       /* phase     */
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
@@ -1716,6 +1744,12 @@ static int gen31(FGDATA *ff, FUNC *ftp)
 
 /* gen32: transpose, phase shift, and mix source tables */
 
+static inline paccess(FGDATA *ff, int i)
+{
+    if (LIKELY(i<PMAX)) return ff->e.p[i];
+    else return ff->e.c.extra[i-PMAX+1];
+}
+
 static int gen32(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
@@ -1727,8 +1761,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     int nsw = 1;
 
     if (ff->e.pcnt>=PMAX) {
-      csound->Warning(csound, "not using extended arguments\n");
-      ff->e.pcnt = PMAX-1;
+      csound->Warning(csound, Str("using extended arguments\n"));
     }
     if (UNLIKELY(nargs < 4)) {
       return fterror(ff, Str("insufficient gen arguments"));
@@ -1741,7 +1774,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     do {
       i = k = 0;                        /* sort by table number */
       while (i < (ntabl - 1)) {
-        if (ff->e.p[pnum[i]] > ff->e.p[pnum[i + 1]]) {
+        if (paccess(ff,pnum[i]) > paccess(ff,pnum[i + 1])) {
           j = pnum[i]; pnum[i] = pnum[i + 1]; pnum[i + 1] = j;
           k = 1;
         }
@@ -1760,7 +1793,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     j  = -1;                    /* current wave number */
 
     while (++j < ntabl) {
-      p = ff->e.p[pnum[j]];                /* table number */
+      p = paccess(ff,pnum[j]);                /* table number */
       i = (int) MYFLT2LRND(p);
       l2 = csound->GetTable(csound, &f2, abs(i));
       if (UNLIKELY(l2 < 0)) {
@@ -1772,12 +1805,12 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       }
       if (i < 0) {              /* use linear interpolation */
         ft = i;
-        p_re  = (double) ff->e.p[pnum[j] + 3];     /* start phase */
+        p_re  = (double) paccess(ff,pnum[j] + 3);     /* start phase */
         p_re -= (double) ((int) p_re); if (p_re < 0.0) p_re++;
         p_re *= (double) l2;
-        d_re  = (double) ff->e.p[pnum[j] + 1];     /* frequency */
+        d_re  = (double) paccess(ff,pnum[j] + 1);     /* frequency */
         d_re *= (double) l2 / (double) l1;
-        a     = ff->e.p[pnum[j] + 2];              /* amplitude */
+        a     = paccess(ff,pnum[j] + 2);              /* amplitude */
         for (i = 0; i <= l1; i++) {
           k = (int) p_re; p = (MYFLT) (p_re - (double) k);
           if (k >= l2) k -= l2;
@@ -1802,11 +1835,11 @@ static int gen32(FGDATA *ff, FUNC *ftp)
           x[l2] = x[1];
           x[1] = x[l2 + 1] = FL(0.0);
         }
-        n = (int) (FL(0.5) + ff->e.p[pnum[j] + 1]);         /* frequency */
+        n = (int) (FL(0.5) + paccess(ff,pnum[j] + 1));         /* frequency */
         if (n < 1) n = 1;
-        a = ff->e.p[pnum[j] + 2] * (MYFLT) l1 / (MYFLT) l2; /* amplitude */
+        a = paccess(ff,pnum[j] + 2) * (MYFLT) l1 / (MYFLT) l2; /* amplitude */
         a *= csound->GetInverseRealFFTScale(csound, (int) l1);
-        p = ff->e.p[pnum[j] + 3];                           /* phase */
+        p = paccess(ff,pnum[j] + 3);                           /* phase */
         p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
         d_re = cos ((double) p); d_im = sin ((double) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
@@ -2080,24 +2113,31 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     int nsw = 1;
     MYFLT   *valp = &ff->e.p[2];
 
-    if (ff->e.pcnt>=PMAX) csound->Warning(csound, "using extended arguments\n");
+    if (ff->e.pcnt>=PMAX)
+      csound->Warning(csound, Str("using extended arguments\n"));
     for (j=0; j < nargs; j+=3) {
       tot_prob += (int32) *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
     }
     nsw = 1; valp = &ff->e.p[2];
     for (j=0; j< nargs; j+=3) {
       MYFLT p1, p2, p3;
       p1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       p2 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       p3 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1])) nsw =0, valp = &(ff->e.c.extra[1]);
+      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        nsw =0, valp = &(ff->e.c.extra[1]);
       width = (int) ((p3/tot_prob) * ff->flen +FL(0.5));
       inc = (p2-p1) / (MYFLT) (width-1);
       for ( k=0; k < width; k++) {
@@ -2753,11 +2793,10 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     MYFLT   basefreq, factor, interval;
     MYFLT   *fp = ftp->ftable, *pp;
     CSOUND  *csound = ff->csound;
-    int nsw = 1;
+    int indp;
 
     if (ff->e.pcnt>=PMAX) {
-      csound->Warning(csound, "not using extended arguments\n");
-      ff->e.pcnt = PMAX-1;
+      csound->Warning(csound, "using extended arguments\n");
     }
     nvals       = ff->flen;
     pp          = &(ff->e.p[5]);
@@ -2765,12 +2804,12 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     interval    = *pp++;
     basefreq    = *pp++;
     basekeymidi = (int) *pp++;
-
     if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
       return fterror(ff, Str("gen51: invalid number of p-fields (too few grades)"));
     }
 
     for (j = 0; j < nvals; j++) {
+      MYFLT x;
       notenum = j;
       if (notenum < basekeymidi) {
         notenum = basekeymidi - notenum;
@@ -2783,7 +2822,9 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
         factor = (MYFLT) ((int) (notenum / numgrades));
       }
       factor = POWER(interval, factor);
-      fp[j] = pp[grade] * factor * basefreq;
+      if (LIKELY(grade<PMAX-10)) x = pp[grade];
+      else x = ff->e.c.extra[grade-PMAX+11];
+      fp[j] = x * factor * basefreq;
     }
     return OK;
 }
@@ -2795,11 +2836,9 @@ static int gen52(FGDATA *ff, FUNC *ftp)
     FUNC    *f;
     int     nchn, len, len2, i, j, k, n;
     int     nargs = (int) ff->e.pcnt - 4;
-    int nsw = 1;
  
     if (ff->e.pcnt>=PMAX) {
-      csound->Warning(csound, "not using extended arguments\n");
-      ff->e.pcnt = PMAX-1;
+      csound->Warning(csound, "using extended arguments\n");
     }
     if (UNLIKELY(nargs < 4)) {
       return fterror(ff, Str("insufficient gen arguments"));
@@ -2815,14 +2854,19 @@ static int gen52(FGDATA *ff, FUNC *ftp)
     /* for (i = len; i <= (int) ftp->flen; i++) */
     /*   dst[i] = FL(0.0); */
     for (n = 0; n < nchn; n++) {
-      f = csoundFTFind(csound, &(ff->e.p[(n * 3) + 6]));
+      MYFLT *pp;
+      if (LIKELY((n * 3) + 6<PMAX-1)) pp = &(ff->e.p[(n * 3) + 6]);
+      else pp = &(ff->e.c.extra[(n * 3) + 6-PMAX]);
+      f = csoundFTFind(csound, pp);
       if (UNLIKELY(f == NULL))
         return NOTOK;
       len2 = (int) f->flen;
       src = &(f->ftable[0]);
       i = n;
-      j = MYFLT2LRND(ff->e.p[(n * 3) + 7]);
-      k = MYFLT2LRND(ff->e.p[(n * 3) + 8]);
+      if (LIKELY((n * 3) + 7<PMAX-1)) j = MYFLT2LRND(ff->e.p[(n * 3) + 7]);
+      else j = MYFLT2LRND(ff->e.c.extra[(n * 3) + 7-PMAX]);
+      if (LIKELY((n * 3) + 8<PMAX-1)) k = MYFLT2LRND(ff->e.p[(n * 3) + 8]);
+      else k = MYFLT2LRND(ff->e.c.extra[(n * 3) + 8-PMAX]);
       while (i < len) {
         if (j >= 0 && j < len2)
           dst[i] = src[j];

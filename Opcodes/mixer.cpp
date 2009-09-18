@@ -174,7 +174,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSend::init: instance %p send %d buss "
-	 "%d channel %d frames %d busspointer %p\n", 
+	 "%d channel %d frames %d busspointer %p\n",
 	 csound, send, buss, channel, frames, busspointer);
 #endif
     return OK;
@@ -232,7 +232,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init csound %p buss %d channel "
-	 "%d frames %d busspointer %p\n", csound, buss, channel, 
+	 "%d frames %d busspointer %p\n", csound, buss, channel,
 	 frames, busspointer);
 #endif
     return OK;
@@ -251,7 +251,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
         aoutput[i] = busspointer[i];
       }
 #ifdef ENABLE_MIXER_KDEBUG
-    warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n", 
+    warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n",
 	 aoutput, buss);
 #endif
     return OK;
@@ -275,16 +275,16 @@ struct MixerClear : public OpcodeBase<MixerClear>
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerClear::audio...\n")
 #endif
-      for(std::map<size_t, 
+      for(std::map<size_t,
 	    std::vector< std::vector<MYFLT> > >::iterator
 	    busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
 	{
-	  for(std::vector< std::vector<MYFLT> >::iterator 
-		channeli = busi->second.begin(); 
+	  for(std::vector< std::vector<MYFLT> >::iterator
+		channeli = busi->second.begin();
 	      channeli != busi->second.end(); ++channeli)
 	    {
 	      for(std::vector<MYFLT>::iterator
-		    framei = (*channeli).begin(); 
+		    framei = (*channeli).begin();
 		  framei != (*channeli).end(); ++framei)
 		{
 		  *framei = 0;

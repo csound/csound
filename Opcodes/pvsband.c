@@ -165,7 +165,7 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
             fout[i+1] = frq;
           }
           else {
-            if (fade != FL(0.0)) 
+            if (fade != FL(0.0))
               fout[i] = fin[i] *
                 (1.0f - expf(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
             else
