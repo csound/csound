@@ -1,3 +1,12 @@
+2009-09-14  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen32): And allow extended here as well, via aux
+	function
+
+2009-09-10  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen52, gen51): Added extended arg support
+
 2009-08-27  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h (PMAX): Reduced by 2

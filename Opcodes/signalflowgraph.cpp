@@ -4,12 +4,13 @@
 #include <vector>
 
 /**
- * These opcodes enable the declaration of a signal flow graph 
+ * These opcodes enable the declaration of a signal flow graph
  * that directly connects instruments in a Csound orchestra using
  * time-domain k-rate and a-rate signal flows from outlets to inlets.
- * Instruments must be defined in the orchestra in the order of depth-first traversal
- * of the signal flow graph. As instruments with outlets are dynamically created,
- * their outlets are automatically connected and summed to their assigned inlets.
+ * Instruments must be defined in the orchestra in the order of depth-
+ * first traversal of the signal flow graph. As instruments with
+ * outlets are dynamically created, their outlets are automatically
+ * connected and summed to their assigned inlets.
  * Usage would be something like this:
 
  * instr 1 ; Howling wind
