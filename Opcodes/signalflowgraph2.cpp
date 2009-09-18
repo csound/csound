@@ -1,4 +1,5 @@
 #include "OpcodeBase.hpp"
+#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -135,7 +136,7 @@ aoutletsForInstancesForSourcesForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* source_outlet */, std::vector< Outletk * /* outlets */ > > > \
 koutletsForInstancesForSourcesForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* source_outlet */, std::vector< Outletf * /* outlets */ > > > \
-kfoutletsForInstancesForSourcesForNames;
+foutletsForInstancesForSourcesForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< Inleta * /* inlets */ > > > \
 ainletsForInstancesForSinksForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< Inletk * /* inlets */ > > > \
@@ -144,7 +145,7 @@ std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::v
 finletsForInstancesForSinksForNames;
 std::map<CSOUND * /* instance */, std::map< std::string /* sink_inlet */, std::vector< std::string /* source_outlets */ > > > \
 connectionsForInstances;
-std::map< std::map<CSOUND /* instance */, std::vector<MYFLT> /* pfields */, int /* fno */ > > \
+std::map<CSOUND * /* instance */, std::map< std::vector< MYFLT > /* pfields */, int /* fno */ > > \
 functionTablesForInstancesForArguments;
 
 /**
@@ -160,10 +161,10 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph>
     koutletsForInstancesForSourcesForNames[csound].clear();
     foutletsForInstancesForSourcesForNames[csound].clear();
     ainletsForInstancesForSinksForNames[csound].clear();
-    kinletsForInstancesForSinksforNames[csound].clear();
+    kinletsForInstancesForSinksForNames[csound].clear();
     finletsForInstancesForSinksForNames[csound].clear();
-    connections[csound].clear();
-    functionTablesForArguments[csound].clear();
+    connectionsForInstances[csound].clear();
+    functionTablesForInstancesForArguments[csound].clear();
     return OK;
   };
 };
@@ -185,13 +186,13 @@ struct Outleta : public OpcodeBase<Outleta>
   int init(CSOUND *csound)
   {
     // May need to convert insno to name if not named.
-    std::string source = ((INSTRTXT *)h.insdshead->optxt)->instrname;
+    std::string source = ((INSTRTXT *)h.insdshead->nxti->optext)->insname;
     std::string name = csound->strarg2name(csound,
-                                           (char*) NULL,
+                                           (char *)0,
                                            Sname,
                                            (char *)"",
                                            (int) csound->GetInputArgSMask(this));
-    sourceIdentifier = source + ":" name;
+    sourceIdentifier = source + ":" + name;
     std::vector<Outleta *> &aoutlets = aoutletsForInstancesForSourcesForNames[csound][sourceIdentifier];
     if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
       aoutlets.push_back(this);
@@ -215,20 +216,20 @@ struct Inleta : public OpcodeBase<Inleta>
   int init(CSOUND *csound)
   {
     // May need to convert insno to name if not named.
-    std::string sink = ((INSTRTXT *)h.insdshead->optxt)->instrname;
+    std::string sink = ((INSTRTXT *)h.insdshead->nxti->optext)->insname;
     std::string name = csound->strarg2name(csound,
-                                           (char*) NULL,
+                                           (char *)0,
                                            Sname,
                                            (char *)"",
                                            (int) csound->GetInputArgSMask(this));
-    sinkIdentifier = sink + ":" + name;
-    std::vector<Inleta *> &ainlets = ainletsForInstancesForSinksForNames[csound][identifier];
+    std::string sinkIdentifier = sink + ":" + name;
+    std::vector<Inleta *> &ainlets = ainletsForInstancesForSinksForNames[csound][sinkIdentifier];
     if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
       ainlets.push_back(this);
     }
     // Find source outlets connecting to this.
     // Any number of sources may connect to any number of sinks.
-    std::vector<std::string> &sourceIdentifiers = connections[csound][sinkIdentifier];
+    std::vector<std::string> &sourceIdentifiers = connectionsForInstances[csound][sinkIdentifier];
     for (size_t i = 0, n = sourceIdentifiers.size(); i < n; i++) {
       std::string sourceIdentifier = sourceIdentifiers[i];
       std::vector<Outleta *> *aoutlets = &aoutletsForInstancesForSourcesForNames[csound][sourceIdentifier];
@@ -248,28 +249,28 @@ struct Inleta : public OpcodeBase<Inleta>
     int init(CSOUND *csound)
     {
       std::string source = csound->strarg2name(csound,
-                                               (char*) NULL,
+                                               (char *) 0,
                                                Source,
                                                (char *)"",
                                                (int) csound->GetInputArgSMask(this));
       std::string outlet = csound->strarg2name(csound,
-                                               (char*) NULL,
+                                               (char *) 0,
                                                Soutlet,
                                                (char *)"",
                                                (int) csound->GetInputArgSMask(this));
       std::string source_outlet = source + ":" + outlet;
       std::string sink = csound->strarg2name(csound,
-                                             (char*) NULL,
+                                             (char *) 0,
                                              Sink,
                                              (char *)"",
                                              (int) csound->GetInputArgSMask(this));
       std::string inlet = csound->strarg2name(csound,
-                                              (char*) NULL,
+                                              (char *) 0,
                                               Sinlet,
                                               (char *)"",
                                               (int) csound->GetInputArgSMask(this));
       std::string sink_inlet = sink + ":" + inlet;
-      connections[csound][sinkIdentifer].push_back(sourceIdentifier);
+      connectionsForInstances[csound][sinkIdentifer].push_back(sourceIdentifier);
       return OK;
     }
   };
@@ -402,12 +403,12 @@ struct Inleta : public OpcodeBase<Inleta>
   {
     static OENTRY localops[] = {
       {
-        (char*)"signalflowgraph",
+        (char *)"signalflowgraph",
         sizeof(SignalFlowGraph),
         1,
-        (char*)"",
-        (char*)"",
-        (SUBR)&SignalFlowGraph::init_,
+        (char *)"",
+        (char *)"",
+        (SUBR) &SignalFlowGraph::init_,
         0,
         0,
       },
