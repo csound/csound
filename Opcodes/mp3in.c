@@ -122,8 +122,8 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     /*              (csound->oparms_.msglevel & WARNMSG) != 0)) { */
     /*   mp3dec_uninit(mpa); */
     /*   return csound->InitError(csound, */
-    /*                            Str("mp3in: number of output args " */
-    /*                                "inconsistent with number of file channels")); */
+    /*                      Str("mp3in: number of output args " */
+    /*                          "inconsistent with number of file channels")); */
     /* } */
     /* skip initialisation if requested */
     if (*(p->iSkipInit) != FL(0.0))
