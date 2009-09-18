@@ -69,7 +69,7 @@ namespace csound
     virtual void append(double time, double duration, double status, double channel, double key, double velocity, double phase=0, double pan=0, double depth=0, double height=0, double pitches=4095);
     /**
      * Loads score data from a MIDI (.mid) file,
-     * or a MusicXML (.xml) file. 
+     * or a MusicXML (.xml) file.
      * Non-sounding data is ignored.
      */
     virtual void load(std::string filename);
@@ -256,7 +256,7 @@ namespace csound
      * that is, return "begin" for the time;
      * if the time is not found, return the size of the score.
      * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
-     * to iterate over all and only those events included 
+     * to iterate over all and only those events included
      * between t1 and t2.
      */
     virtual int indexAtTime(double time);
@@ -265,7 +265,7 @@ namespace csound
      * that is return "end" for the time;
      * if the time is not found, return the size of the score.
      * Iterating from indexAtTime(t1) to indexAfterTime(t2) is guaranteed
-     * to iterate over all and only those events included 
+     * to iterate over all and only those events included
      * from and including t1 and up to but not including t2.
      */
     virtual int indexAfterTime(double time);

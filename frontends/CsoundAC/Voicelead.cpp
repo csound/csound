@@ -50,8 +50,8 @@ namespace csound
   std::map<size_t, std::map<double, double> > pForCForDivisionsPerOctave;
   std::map<size_t, std::map<double, double> > cForPForDivisionsPerOctave;
   std::map<size_t, std::map< std::vector<double>, double> > pForPrimeChordsForDivisionsPerOctave;
-    
-  const double Voicelead::semitonesPerOctave = double(12); 
+
+  const double Voicelead::semitonesPerOctave = double(12);
 
   void Voicelead::initializePrimeChordsForDivisionsPerOctave(size_t divisionsPerOctave)
   {
@@ -61,7 +61,7 @@ namespace csound
       double N = std::pow(2.0, double(divisionsPerOctave)) - 1.0;
       double M = 0.0;
       for ( ; C < N; C = C + 1.0) {
-	M = cToM(C, divisionsPerOctave);
+        M = cToM(C, divisionsPerOctave);
         std::vector<double> chord = mToPitchClassSet(M, divisionsPerOctave);
         std::vector<double> normalChord_ = normalChord(chord);
         std::vector<double> zeroChord = toOrigin(normalChord_);
@@ -75,7 +75,7 @@ namespace csound
       }
     }
   }
-  
+
   std::vector<double> Voicelead::transpose(const std::vector<double> &chord, double semitones)
   {
     std::vector<double> transposed = chord;
@@ -116,7 +116,7 @@ namespace csound
     }
     return M;
   }
-  
+
   std::vector<double> Voicelead::mToPitchClassSet(double M, size_t divisionsPerOctave)
   {
     size_t M_ = size_t(round(M));
@@ -124,16 +124,16 @@ namespace csound
     if (M != 0) {
       double i = 0.0;
       for ( ; i < double(divisionsPerOctave); i = i + 1.0) {
-	size_t p2 = size_t(std::pow(2.0, i));
-	if ((p2 & M_) == p2) {
-	  pcs.push_back(i);
-	}
+        size_t p2 = size_t(std::pow(2.0, i));
+        if ((p2 & M_) == p2) {
+          pcs.push_back(i);
+        }
       }
     }
     return pcs;
   }
 
-  std::vector<double> Voicelead::pitchClassSetToPandT(const std::vector<double> &pcs_, 
+  std::vector<double> Voicelead::pitchClassSetToPandT(const std::vector<double> &pcs_,
                                                       size_t divisionsPerOctave)
   {
     std::vector<double> normalChord_ = normalChord(pcs_);
@@ -559,10 +559,10 @@ namespace csound
     // Take the modulus of C.
     C_ = C_ % modulus;
     // M is always 1 more than C.
-    int M = C_ + 1;    
+    int M = C_ + 1;
     return double(M);
   }
-  
+
   double Voicelead::cToP(double C, size_t divisionsPerOctave)
   {
     initializePrimeChordsForDivisionsPerOctave(divisionsPerOctave);
@@ -571,7 +571,7 @@ namespace csound
     std::vector<double> primeChord_ = primeChord(pitchClassSet);
     return pForPrimeChordsForDivisionsPerOctave[divisionsPerOctave][primeChord_];
   }
-  
+
   double Voicelead::pToC(double P, size_t divisionsPerOctave)
   {
     initializePrimeChordsForDivisionsPerOctave(divisionsPerOctave);
@@ -588,10 +588,10 @@ namespace csound
     p = p % primeChordsForDivisionsPerOctave[divisionsPerOctave].size();
     return primeChordsForDivisionsPerOctave[divisionsPerOctave][p];
   }
-  
 
-  std::vector<double> Voicelead::pAndTtoPitchClassSet(double P, 
-                                                      double T, 
+
+  std::vector<double> Voicelead::pAndTtoPitchClassSet(double P,
+                                                      double T,
                                                       size_t divisionsPerOctave)
   {
     std::vector<double> pitchClassSet = pToPrimeChord(P, divisionsPerOctave);
@@ -627,9 +627,9 @@ namespace csound
       if (d < 0.0) {
         d  = (pcB + double(divisionsPerOctave)) - pcA;
       }
-      return d;  
+      return d;
     }
-    bool operator()(double a, double b) 
+    bool operator()(double a, double b)
     {
       double dA = ascendingDistance(origin, a);
       double dB = ascendingDistance(origin, b);
@@ -678,8 +678,8 @@ namespace csound
     }
   }
 
-  std::vector< std::vector<MatrixCell> > createMatrix(const std::vector<double> &sourceMultiset_, 
-                                                      const std::vector<double> &targetMultiset_, 
+  std::vector< std::vector<MatrixCell> > createMatrix(const std::vector<double> &sourceMultiset_,
+                                                      const std::vector<double> &targetMultiset_,
                                                       const std::vector<double> &sourceChord_)
   {
     std::vector<double> sourceMultiset = sourceMultiset_;
@@ -741,7 +741,7 @@ namespace csound
     return copy;
   }
 
-  std::vector< std::vector<double> > Voicelead::nonBijectiveVoicelead(const std::vector<double> &sourceChord, 
+  std::vector< std::vector<double> > Voicelead::nonBijectiveVoicelead(const std::vector<double> &sourceChord,
                                                                       const std::vector<double> &targetPitchClassSet,
                                                                       size_t divisionsPerOctave)
   {
@@ -767,7 +767,7 @@ namespace csound
     returnedSourceChord.pop_back();
     std::vector<double> returnedResultChord = returnedSourceChord;
     for (size_t i = 0, n = returnedVoiceleading.size(); i < n; i++) {
-      returnedResultChord[i] = returnedSourceChord[i] + returnedVoiceleading[i]; 
+      returnedResultChord[i] = returnedSourceChord[i] + returnedVoiceleading[i];
     }
     std::vector< std::vector<double> > result;
     result.push_back(returnedSourceChord);
@@ -796,7 +796,7 @@ namespace csound
     return false;
   }
 
-  std::vector<double> Voicelead::wrap(const std::vector<double> &chord, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave) 
+  std::vector<double> Voicelead::wrap(const std::vector<double> &chord, size_t lowestPitch, size_t highestPitch, size_t divisionsPerOctave)
   {
     std::vector<double> wrapped = chord;
     for(size_t i = 0, n = chord.size(); i < n; i++) {
@@ -821,12 +821,12 @@ namespace csound
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
         zeroVoicing[i] += double(divisionsPerOctave);
       }
-    }    
+    }
     while (zeroVoicing[0] >= (lowestPitch + double(divisionsPerOctave))) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
         zeroVoicing[i] -= double(divisionsPerOctave);
       }
-    }    
+    }
     std::vector<double> zeroVoicing_ = sort(zeroVoicing);
     std::vector<double> zeroIterator = pcs(zeroVoicing, divisionsPerOctave);
     for(size_t i = 0, n = zeroIterator.size(); i < n; i++) {
@@ -837,7 +837,7 @@ namespace csound
         zeroIterator[i] -= double(divisionsPerOctave);
       }
     }
-    size_t zeroVoicingEnumeration = 0;  
+    size_t zeroVoicingEnumeration = 0;
     bool zeroVoicingEnumerationFound = false;
     size_t modulus = 0;
     bool modulusFound = false;
@@ -878,12 +878,12 @@ namespace csound
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
         zeroVoicing[i] += double(divisionsPerOctave);
       }
-    }    
+    }
     while (zeroVoicing[0] >= (lowestPitch + double(divisionsPerOctave))) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
         zeroVoicing[i] -= double(divisionsPerOctave);
       }
-    }    
+    }
     std::vector<double> zeroVoicing_ = sort(zeroVoicing);
     std::vector<double> zeroIterator = pcs(zeroVoicing, divisionsPerOctave);
     for(size_t i = 0, n = zeroIterator.size(); i < n; i++) {
@@ -894,7 +894,7 @@ namespace csound
         zeroIterator[i] -= double(divisionsPerOctave);
       }
     }
-    size_t zeroVoicingEnumeration = 0;  
+    size_t zeroVoicingEnumeration = 0;
     bool zeroVoicingEnumerationFound = false;
    found:                                                \
     std::vector<double> iterator = sort(zeroIterator);

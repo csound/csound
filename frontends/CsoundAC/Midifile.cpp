@@ -157,7 +157,7 @@ namespace csound
       chunkEnd = a.chunkEnd;
     }
   }
-  
+
   void Chunk::read(std::istream &stream)
   {
     int _id = MidiFile::readInt(stream);
@@ -278,7 +278,7 @@ namespace csound
       this->time = a.time;
       resize(a.size());
       for (size_t i = 0; i < a.size(); i++) {
-	(*this)[i] = a[i];
+        (*this)[i] = a[i];
       }
     }
     return *this;
@@ -291,7 +291,7 @@ namespace csound
     //  Channel event.
     if(getStatusNybble() != 0xf) {
       for(size_t i = 0, n = size(); i < n; i++) {
-	stream.put((*this)[i]);
+        stream.put((*this)[i]);
       }
       // Meta event.
     } else {
@@ -299,7 +299,7 @@ namespace csound
       stream.put(getMetaType());
       MidiFile::writeVariableLength(stream, getMetaSize());
       for(size_t i = 0, n = getMetaSize(); i < n; i++) {
-	stream.put((*this)[2 + i]);
+        stream.put((*this)[2 + i]);
       }
     }
   }
@@ -418,7 +418,7 @@ namespace csound
       }
     return true;
   }
-  
+
   MidiTrack::MidiTrack() : Chunk("MTrk")
   {
   }
@@ -437,7 +437,7 @@ namespace csound
       chunkEnd = a.chunkEnd;
       resize(a.size());
       for (size_t i = 0; i < size(); i++) {
-	(*this)[i] = a[i];
+        (*this)[i] = a[i];
       }
     }
   }
@@ -664,7 +664,7 @@ namespace csound
       {
         int frameCode = (-midiHeader.timeFormat) >> 8;
         double framesPerSecond;
-	//cout << " frameCode:   " << frameCode;
+        //cout << " frameCode:   " << frameCode;
         switch(frameCode)
           {
           case 24:
@@ -682,9 +682,9 @@ namespace csound
           default:
             framesPerSecond = 30.0;
           }
- 	//cout << " framesPerSecond: " << framesPerSecond;
+        //cout << " framesPerSecond: " << framesPerSecond;
         int ticksPerFrame = midiHeader.timeFormat & 0xff;
-	//cout << " ticksPerFrame:   " << ticksPerFrame;
+        //cout << " ticksPerFrame:   " << ticksPerFrame;
         currentSecondsPerTick = (1.0 / framesPerSecond) / ticksPerFrame;
       }
     else
@@ -692,8 +692,8 @@ namespace csound
         double ticksPerQuarterNote = double(midiHeader.timeFormat);
         double secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0;
         currentSecondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
-	//cout << " ticksPerQuarterNote:   " << ticksPerQuarterNote;
-	//cout << " secondsPerQuarterNote: " << secondsPerQuarterNote;
+        //cout << " ticksPerQuarterNote:   " << ticksPerQuarterNote;
+        //cout << " secondsPerQuarterNote: " << secondsPerQuarterNote;
       }
     //cout << " currentSecondsPerTick: " << currentSecondsPerTick;
     //cout << endl;
@@ -734,7 +734,7 @@ namespace csound
     size_t n = std::min(a.size(), b.size());
     for (size_t i = 0; i < n; i++) {
       if (a[i] < b[i]) {
-	return true;
+        return true;
       }
     }
     if (a.size() < b.size()) {

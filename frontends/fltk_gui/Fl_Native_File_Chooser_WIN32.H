@@ -22,47 +22,47 @@
 #ifndef _FL_NATIVE_FILE_BROWSER_H
 #define _FL_NATIVE_FILE_BROWSER_H
 
-// #define _WIN32_WINNT	0x0501	// needed for OPENFILENAME's 'FlagsEx'
+// #define _WIN32_WINNT 0x0501  // needed for OPENFILENAME's 'FlagsEx'
 #include <stdio.h>
-#include <stdlib.h>		// malloc
+#include <stdlib.h>             // malloc
 #include <windows.h>
-#include <commdlg.h>		// OPENFILENAME, GetOpenFileName()
-#include <shlobj.h>		// BROWSEINFO, SHBrowseForFolder()
+#include <commdlg.h>            // OPENFILENAME, GetOpenFileName()
+#include <shlobj.h>             // BROWSEINFO, SHBrowseForFolder()
 
-#define MAXFILTERS	80
+#define MAXFILTERS      80
 
 class Fl_Native_File_Chooser {
 public:
     enum Type {
-	BROWSE_FILE = 0,
+        BROWSE_FILE = 0,
         BROWSE_DIRECTORY,
-	BROWSE_MULTI_FILE,
-	BROWSE_MULTI_DIRECTORY,
-	BROWSE_SAVE_FILE,
-	BROWSE_SAVE_DIRECTORY
+        BROWSE_MULTI_FILE,
+        BROWSE_MULTI_DIRECTORY,
+        BROWSE_SAVE_FILE,
+        BROWSE_SAVE_DIRECTORY
     };
     enum Option {
-        NO_OPTIONS     = 0x0000,	// no options enabled
-	SAVEAS_CONFIRM = 0x0001,	// Show native 'Save As' overwrite
-					// confirm dialog (if supported)
-	NEW_FOLDER     = 0x0002,	// Show 'New Folder' icon
-					// (if supported)
-	PREVIEW        = 0x0004,	// enable preview mode
+        NO_OPTIONS     = 0x0000,        // no options enabled
+        SAVEAS_CONFIRM = 0x0001,        // Show native 'Save As' overwrite
+                                        // confirm dialog (if supported)
+        NEW_FOLDER     = 0x0002,        // Show 'New Folder' icon
+                                        // (if supported)
+        PREVIEW        = 0x0004,        // enable preview mode
     };
 private:
-    int  _btype;		// kind-of browser to show()
-    int  _options;		// general options
-    OPENFILENAME _ofn;		// GetOpenFileName() & GetSaveFileName() struct
-    BROWSEINFO   _binf;		// SHBrowseForFolder() struct
-    char  **_pathnames;		// array of pathnames
-    int     _tpathnames;	// total pathnames
-    char   *_directory;		// default pathname to use
-    char   *_title;		// title for window
-    char   *_filter;		// user-side search filter
-    char   *_parsedfilt;	// filter parsed for Windows dialog
-    int     _nfilters;		// number of filters parse_filter counted
-    char   *_preset_file;	// the file to preselect
-    char   *_errmsg;		// error message
+    int  _btype;                // kind-of browser to show()
+    int  _options;              // general options
+    OPENFILENAME _ofn;          // GetOpenFileName() & GetSaveFileName() struct
+    BROWSEINFO   _binf;         // SHBrowseForFolder() struct
+    char  **_pathnames;         // array of pathnames
+    int     _tpathnames;        // total pathnames
+    char   *_directory;         // default pathname to use
+    char   *_title;             // title for window
+    char   *_filter;            // user-side search filter
+    char   *_parsedfilt;        // filter parsed for Windows dialog
+    int     _nfilters;          // number of filters parse_filter counted
+    char   *_preset_file;       // the file to preselect
+    char   *_errmsg;            // error message
 
     // Private methods
     void errmsg(const char *msg);

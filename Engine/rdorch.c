@@ -340,7 +340,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
 {
     void *fd;
     int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
-    
+
                                 /* First try to open name given */
     fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", NULL,
                                              csftype, 0);
@@ -1829,7 +1829,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
         else if (UNLIKELY(treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-                          treqd != 'Z' && treqd != 'M' && treqd != 'N')) /* else any no */
+                          treqd != 'Z' && treqd != 'M' &&
+                          treqd != 'N')) /* else any no */
           synterr(csound, Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
@@ -1898,7 +1899,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"')) {
+        if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) &&
+                     !ST(lgprevdef) && *s != '"')) {
           synterr(csound, Str("input arg '%s' used before defined"), s);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -1986,7 +1988,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       }
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->outypes);
-      if (UNLIKELY((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
+      if (UNLIKELY((n != nreqd) &&      /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
              types[n] == (char) 'X' || types[n] == (char) 'N')))) {

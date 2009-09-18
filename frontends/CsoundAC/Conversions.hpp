@@ -149,7 +149,7 @@ namespace csound
     /**
      * Return the jazz-style scale or chord name for
      * the pitch-class set number M = sum over pitch-classes of (2 ^ pitch-class)
-     * These numbers form a multiplicative monoid 
+     * These numbers form a multiplicative monoid
      * for all pitch-class sets in a system of equal temperament.
      */
     static std::string mToName(double pitchClassSet);
@@ -159,10 +159,10 @@ namespace csound
      */
     static char *dupstr(const char *string);
     /**
-     * Return a new value in dB that represents 
+     * Return a new value in dB that represents
      * the input value in dB adjusted by the specified gain.
-     * If odbfs is false (the default), then 
-     * 0 dB is the threshold of hearing; 
+     * If odbfs is false (the default), then
+     * 0 dB is the threshold of hearing;
      * otherwise, 0 dB is full scale.
      */
     static double gainToDb(double inputDb, double gain, bool odbfs = false);

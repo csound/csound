@@ -35,9 +35,9 @@ static void createBuss(CSOUND *csound, size_t buss)
       size_t frames = csound->ksmps;
       busses[csound][buss].resize(channels);
       for(size_t channel = 0; channel < channels; channel++)
-	{
-	  busses[csound][buss][channel].resize(frames);
-	}
+        {
+          busses[csound][buss][channel].resize(frames);
+        }
 #ifdef ENABLE_MIXER_IDEBUG
       csound->Message(csound, "createBuss: created buss.\n");
 #endif
@@ -84,7 +84,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     matrix[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerSetLevel::kontrol: csound %p send %d buss "
-	 "%d gain %f\n", csound, send, buss, matrix[csound][send][buss]);
+         "%d gain %f\n", csound, send, buss, matrix[csound][send][buss]);
 #endif
     return OK;
   }
@@ -174,8 +174,8 @@ struct MixerSend : public OpcodeBase<MixerSend>
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSend::init: instance %p send %d buss "
-	 "%d channel %d frames %d busspointer %p\n",
-	 csound, send, buss, channel, frames, busspointer);
+         "%d channel %d frames %d busspointer %p\n",
+         csound, send, buss, channel, frames, busspointer);
 #endif
     return OK;
   }
@@ -195,7 +195,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
       }
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerSend::audio: instance %d send %d buss "
-	 "%d gain %f busspointer %p\n", csound, send, buss, gain, busspointer);
+         "%d gain %f busspointer %p\n", csound, send, buss, gain, busspointer);
 #endif
     return OK;
   }
@@ -232,8 +232,8 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     busspointer = &busses[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init csound %p buss %d channel "
-	 "%d frames %d busspointer %p\n", csound, buss, channel,
-	 frames, busspointer);
+         "%d frames %d busspointer %p\n", csound, buss, channel,
+         frames, busspointer);
 #endif
     return OK;
   }
@@ -252,7 +252,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
       }
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n",
-	 aoutput, buss);
+         aoutput, buss);
 #endif
     return OK;
   }
@@ -276,21 +276,21 @@ struct MixerClear : public OpcodeBase<MixerClear>
     warn(csound, "MixerClear::audio...\n")
 #endif
       for(std::map<size_t,
-	    std::vector< std::vector<MYFLT> > >::iterator
-	    busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
-	{
-	  for(std::vector< std::vector<MYFLT> >::iterator
-		channeli = busi->second.begin();
-	      channeli != busi->second.end(); ++channeli)
-	    {
-	      for(std::vector<MYFLT>::iterator
-		    framei = (*channeli).begin();
-		  framei != (*channeli).end(); ++framei)
-		{
-		  *framei = 0;
-		}
-	    }
-	}
+            std::vector< std::vector<MYFLT> > >::iterator
+            busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
+        {
+          for(std::vector< std::vector<MYFLT> >::iterator
+                channeli = busi->second.begin();
+              channeli != busi->second.end(); ++channeli)
+            {
+              for(std::vector<MYFLT>::iterator
+                    framei = (*channeli).begin();
+                  framei != (*channeli).end(); ++framei)
+                {
+                  *framei = 0;
+                }
+            }
+        }
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerClear::audio\n")
 #endif

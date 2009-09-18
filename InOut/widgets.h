@@ -550,8 +550,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *koutx, *kouty, *kinside; //outs
-        MYFLT   *ioutx_min, *ioutx_max, *iouty_min, *iouty_max, 
-                    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max, 
+        MYFLT   *ioutx_min, *ioutx_max, *iouty_min, *iouty_max,
+                    *iwindx_min, *iwindx_max, *iwindy_min, *iwindy_max,
                         *iexpx, *iexpy, *ioutx, *iouty; //ins
         MYFLT oldx, oldy, *tablex, *tabley;
         int expx, expy;

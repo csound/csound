@@ -51,7 +51,7 @@
 // % ABC - Adventures in Bifurication & Chaos ... Prof M.P Kennedy 1993
 // %
 // % James McEvoy, Tom Murray
-// % 
+// %
 // % University e-mail: 99375940@student.ucc.ie
 // % Lifetime e-mail: sacevoy@eircom.net
 // % Homepage: http://www.sacevoy.com
@@ -60,7 +60,7 @@
 // % Models Initial Variables
 // %-------------------------
 // %Initial Conditions set by x0,y0,z0
-// TimeSeries = [x0, y0, z0]'; % models initial conditions 
+// TimeSeries = [x0, y0, z0]'; % models initial conditions
 //                             %x0 = I3, y0 = V2, z0 = V1 from datafiles
 // % Optimized Runge-Kutta Variables
 // %--------------------------------
@@ -75,9 +75,9 @@
 // M = [0 0 0]';
 // % Calculate Time Series
 // %----------------------
-// % values have to be switched around 
+// % values have to be switched around
 // M(1) = TimeSeries(3);   %V1
-// M(2) = TimeSeries(2);   %V2 
+// M(2) = TimeSeries(2);   %V2
 // M(3) = TimeSeries(1); %I3
 
 // for i=1:dataset_size
@@ -97,12 +97,12 @@
 //     % Round Four
 //     k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1),sys_variables))/C1;
 //     k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
-//     k4(3) = (-(M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;    
+//     k4(3) = (-(M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;
 //     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); %Finishes integration and assigns values to M(1),
-//                                           %M(2) and M(3)      
+//                                           %M(2) and M(3)
 //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
 //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
-//     TimeSeries(1,i+1) = M(3); %TimeSeries 1 is I3    
+//     TimeSeries(1,i+1) = M(3); %TimeSeries 1 is I3
 //     i=i+1;
 // end
 // %gnor Calculates the cubic nonlinearity
@@ -175,7 +175,7 @@ public:
     // h6 = (h)/(6);
     h6 = h / 6.0;
     // NOTE: The original MATLAB code uses 1-based indexing.
-    //       Although the MATLAB vectors are columns, 
+    //       Although the MATLAB vectors are columns,
     //       these are rows; it doesn't matter here.
     // k1 = [0 0 0]';
     k1.resize(4);
@@ -187,10 +187,10 @@ public:
     k4.resize(4);
     // M = [0 0 0]';
     M.resize(4);
-    // % values have to be switched around 
+    // % values have to be switched around
     // M(1) = TimeSeries(3); %V1
     M(1) = *V1_;
-    // M(2) = TimeSeries(2); %V2 
+    // M(2) = TimeSeries(2); %V2
     M(2) = *V2_;
     // M(3) = TimeSeries(1); %I3
     M(3) = *I3_;
@@ -242,7 +242,7 @@ public:
     for (size_t i = 0; i < ksmps; i++) {
       //     TimeSeries(3,i+1) = M(1);  %TimeSeries 3 is V1
       //     TimeSeries(2,i+1) = M(2);  %TimeSeries 2 is V2
-      //     TimeSeries(1,i+1) = M(3); %TimeSeries 1 is I3    
+      //     TimeSeries(1,i+1) = M(3); %TimeSeries 1 is I3
       V1[i] = M(1);
       V2[i] = M(2);
       I3[i] = M(3);
@@ -263,9 +263,9 @@ public:
       // Round Four
       k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1)))/C1;
       k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
-      k4(3) = (- (M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;    
+      k4(3) = (- (M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;
       // Finishes integration and assigns values to M
-      M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6); 
+      M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
     }
     return OK;
   }
@@ -347,7 +347,7 @@ public:
 //     k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
 //     M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
 //     TimeSeries(3,i+1) = E*M(1);
-//     TimeSeries(2,i+1) = E*M(2); 
+//     TimeSeries(2,i+1) = E*M(2);
 //     TimeSeries(1,i+1) = (E*G)*M(3);
 //     i=i+1;
 // end
@@ -410,7 +410,7 @@ public:
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
     // NOTE: The original MATLAB code uses 1-based indexing.
-    // Although the MATLAB vectors are columns, 
+    // Although the MATLAB vectors are columns,
     // these are rows; it doesn't matter here.
     // k1 = [0 0 0]';
     k1.resize(4);
@@ -514,8 +514,8 @@ public:
       M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
       // TimeSeries(3,i+1) = E*M(1);
       V1[i] = E * M(1);
-      // TimeSeries(2,i+1) = E*M(2); 
-      V2[i] = E * M(2); 
+      // TimeSeries(2,i+1) = E*M(2);
+      V2[i] = E * M(2);
       // TimeSeries(1,i+1) = (E*G)*M(3);
       I3[i] = (E * G) * M(3);
       // warn(csound, "%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);

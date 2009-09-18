@@ -76,7 +76,7 @@ INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
-INCLUDE		"#include"
+INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
 CONT            \\[[ \t]*\n

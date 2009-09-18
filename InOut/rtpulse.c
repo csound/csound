@@ -1,4 +1,4 @@
-/*
+*
   rtpulse.c:
 
   Copyright (C) 2008 Victor Lazzarini
@@ -142,7 +142,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                       pa_strerror(pulserror));
      return -1;
     }
- 
+
 }
 
 static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
@@ -157,7 +157,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   if(pa_simple_write(pulse->ps, buf, bufsiz*sizeof(float), &pulserror) < 0)
     csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                      pa_strerror(pulserror));
-  
+
 }
 
 
@@ -251,7 +251,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
       for(i=0;i<bufsiz;i++) inbuf[i] = buf[i];
       return nbytes;
     }
-    
+
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)

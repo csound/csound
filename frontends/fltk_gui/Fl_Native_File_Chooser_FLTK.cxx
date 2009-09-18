@@ -30,14 +30,14 @@
 #include "Fl_Native_File_Chooser.H"
 #include "common.cxx"
 
-static int G_init = 0;				// 'first time' initialize flag
+static int G_init = 0;                          // 'first time' initialize flag
 
 // CTOR
 Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
     if ( G_init == 0 ) {
         // Initialize when instanced for first time
-	Fl_File_Icon::load_system_icons();	// OK to call more than once
-	G_init = 1;				// eg. if app already called from main()
+        Fl_File_Icon::load_system_icons();      // OK to call more than once
+        G_init = 1;                             // eg. if app already called from main()
     }
     _btype       = val;
     _options     = NO_OPTIONS;
@@ -49,7 +49,7 @@ Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
     _directory   = NULL;
     _errmsg      = NULL;
     file_chooser = new Fl_File_Chooser(NULL, NULL, 0, NULL);
-    type(val);		// do this after file_chooser created
+    type(val);          // do this after file_chooser created
     _nfilters    = 0;
 }
 
@@ -143,7 +143,7 @@ int Fl_Native_File_Chooser::show() {
 
     // OPTIONS: NEW FOLDER
     if ( options() & NEW_FOLDER )
-        file_chooser->type(file_chooser->type() | Fl_File_Chooser::CREATE);	// on
+        file_chooser->type(file_chooser->type() | Fl_File_Chooser::CREATE);     // on
 
     // SHOW
     file_chooser->show();
@@ -154,20 +154,20 @@ int Fl_Native_File_Chooser::show() {
 
     if ( file_chooser->value() && file_chooser->value()[0] ) {
         _prevvalue = strfree(_prevvalue);
-	_prevvalue = strnew(file_chooser->value());
-	_filtvalue = file_chooser->filter_value();	// update filter value
+        _prevvalue = strnew(file_chooser->value());
+        _filtvalue = file_chooser->filter_value();      // update filter value
 
-	// HANDLE SHOWING 'SaveAs' CONFIRM
-	if ( options() & SAVEAS_CONFIRM && type() == BROWSE_SAVE_FILE ) {
-	    struct stat buf;
-	    if ( stat(file_chooser->value(), &buf) != -1 ) {
-		if ( buf.st_mode & S_IFREG ) {			// Regular file + exists?
-		     if ( fl_choice("File exists. Are you sure you want to overwrite?", "Cancel", "   OK   ", NULL) == 0 ) {
-		         return(1);
-		     }
-		}
-	    }
-	}
+        // HANDLE SHOWING 'SaveAs' CONFIRM
+        if ( options() & SAVEAS_CONFIRM && type() == BROWSE_SAVE_FILE ) {
+            struct stat buf;
+            if ( stat(file_chooser->value(), &buf) != -1 ) {
+                if ( buf.st_mode & S_IFREG ) {                  // Regular file + exists?
+                     if ( fl_choice("File exists. Are you sure you want to overwrite?", "Cancel", "   OK   ", NULL) == 0 ) {
+                         return(1);
+                     }
+                }
+            }
+        }
     }
 
     if ( file_chooser->count() ) return(0);
@@ -187,7 +187,7 @@ const char* Fl_Native_File_Chooser::filename() const {
 
 // GET FILENAME FROM LIST OF FILENAMES
 const char* Fl_Native_File_Chooser::filename(int i) const {
-    if ( i < file_chooser->count() ) return(file_chooser->value(i+1));	// convert fltk 1 based to our 0 based
+    if ( i < file_chooser->count() ) return(file_chooser->value(i+1));  // convert fltk 1 based to our 0 based
     return("");
 }
 
@@ -260,15 +260,15 @@ const char *Fl_Native_File_Chooser::directory() const {
 //     for freeing with strfree().
 //
 void Fl_Native_File_Chooser::parse_filter() {
-    _parsedfilt = strfree(_parsedfilt);	// clear previous parsed filter (if any)
+    _parsedfilt = strfree(_parsedfilt); // clear previous parsed filter (if any)
     _nfilters = 0;
     char *in = _filter;
     if ( !in ) return;
 
     int has_name = strchr(in, '\t') ? 1 : 0;
 
-    char mode = has_name ? 'n' : 'w';	// parse mode: n=title, w=wildcard
-    char wildcard[1024] = "";		// parsed wildcard
+    char mode = has_name ? 'n' : 'w';   // parse mode: n=title, w=wildcard
+    char wildcard[1024] = "";           // parsed wildcard
     char name[1024] = "";
 
     // Parse filter user specified
@@ -276,50 +276,50 @@ void Fl_Native_File_Chooser::parse_filter() {
 
         /*** DEBUG
         printf("WORKING ON '%c': mode=<%c> name=<%s> wildcard=<%s>\n",
-	                    *in, mode,     name,     wildcard);
-	***/
+                            *in, mode,     name,     wildcard);
+        ***/
 
         switch (*in) {
-	    // FINISHED PARSING NAME?
-	    case '\t':
-	        if ( mode != 'n' ) goto regchar;
-		mode = 'w';
-		break;
+            // FINISHED PARSING NAME?
+            case '\t':
+                if ( mode != 'n' ) goto regchar;
+                mode = 'w';
+                break;
 
-	    // ESCAPE NEXT CHAR
-	    case '\\':
-	        ++in;
-		goto regchar;
+            // ESCAPE NEXT CHAR
+            case '\\':
+                ++in;
+                goto regchar;
 
-	    // FINISHED PARSING ONE OF POSSIBLY SEVERAL FILTERS?
-	    case '\r':
-	    case '\n':
-	    case '\0':
-		// APPEND NEW FILTER TO LIST
-		if ( wildcard[0] ) {
-		    // OUT: "name(wild)\tname(wild)"
-		    char comp[2048];
-		    sprintf(comp, "%s%.511s(%.511s)", ((_parsedfilt)?"\t":""), name, wildcard);
-		    _parsedfilt = strapp(_parsedfilt, comp);
-		    _nfilters++;
-		    //DEBUG printf("DEBUG: PARSED FILT NOW <%s>\n", _parsedfilt);
-		}
-		// RESET
-		wildcard[0] = name[0] = '\0';
-		mode = strchr(in, '\t') ? 'n' : 'w';
-		// DONE?
-		if ( *in == '\0' ) return;	// done
-		else continue;			// not done yet, more filters
+            // FINISHED PARSING ONE OF POSSIBLY SEVERAL FILTERS?
+            case '\r':
+            case '\n':
+            case '\0':
+                // APPEND NEW FILTER TO LIST
+                if ( wildcard[0] ) {
+                    // OUT: "name(wild)\tname(wild)"
+                    char comp[2048];
+                    sprintf(comp, "%s%.511s(%.511s)", ((_parsedfilt)?"\t":""), name, wildcard);
+                    _parsedfilt = strapp(_parsedfilt, comp);
+                    _nfilters++;
+                    //DEBUG printf("DEBUG: PARSED FILT NOW <%s>\n", _parsedfilt);
+                }
+                // RESET
+                wildcard[0] = name[0] = '\0';
+                mode = strchr(in, '\t') ? 'n' : 'w';
+                // DONE?
+                if ( *in == '\0' ) return;      // done
+                else continue;                  // not done yet, more filters
 
-	    // Parse all other chars
-	    default:				// handle all non-special chars
-	    regchar:				// handle regular char
+            // Parse all other chars
+            default:                            // handle all non-special chars
+            regchar:                            // handle regular char
                 switch ( mode ) {
-	            case 'n': chrcat(name, *in);     continue;
-	            case 'w': chrcat(wildcard, *in); continue;
-	        }
-		break;
-	}
+                    case 'n': chrcat(name, *in);     continue;
+                    case 'w': chrcat(wildcard, *in); continue;
+                }
+                break;
+        }
     }
     //NOTREACHED
 }

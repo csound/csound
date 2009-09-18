@@ -177,12 +177,12 @@ namespace csound
     virtual size_t getIteration() const;
     /**
      * Types:
-     * 1 = 1-dimensional polynomial map, 
-     * 2 = 2-dimensional polynomial map, 
-     * 3 = 3-dimensional polynomial map, 
-     * 4 = 4-dimensional polynomial map, 
-     * 5 = 3-dimensional ODE, 
-     * 6 = 4-dimensional ODE, 
+     * 1 = 1-dimensional polynomial map,
+     * 2 = 2-dimensional polynomial map,
+     * 3 = 3-dimensional polynomial map,
+     * 4 = 4-dimensional polynomial map,
+     * 5 = 3-dimensional ODE,
+     * 6 = 4-dimensional ODE,
      * 7 through 12 = special functions.
      */
     virtual void setAttractorType(int attractorType);

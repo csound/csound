@@ -45,7 +45,7 @@ typedef struct {
         int     size;
         WINDAT  dwindow;
         AUXCH   fdata;
-        uint32  lastframe;        
+        uint32  lastframe;
 } FSIGDISP;
 
 #define WINDMAX 4096

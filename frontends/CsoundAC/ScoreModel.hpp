@@ -73,7 +73,7 @@ namespace csound
      */
     virtual std::string getFilename() const;
     /**
-     * Sets the filename of this -- basically, the 
+     * Sets the filename of this -- basically, the
      * title of the composition.
      */
     virtual void setFilename(std::string filename);

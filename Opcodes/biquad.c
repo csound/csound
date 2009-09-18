@@ -135,7 +135,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     res     = (double)*resptr;
 
   /* Only need to calculate once */
-    if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) { 
+    if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       double fcon;
       fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */

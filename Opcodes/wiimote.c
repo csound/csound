@@ -24,7 +24,7 @@
                                                         /* wiimote.c */
 #include "csdl.h"
 #include "wiiuse.h"             /* Uses WIIUSE library which is LGPL */
-#define MAX_WIIMOTES				4
+#define MAX_WIIMOTES                            4
 #include "wii_mac.h"
 
 typedef struct {
@@ -80,7 +80,7 @@ typedef struct {
     MYFLT     *num;
  } WIIRANGE;
 
-#define WIIMOTE_STATE_CONNECTED		(0x0008)
+#define WIIMOTE_STATE_CONNECTED         (0x0008)
 
 int wiimote_find(CSOUND *csound, WIIMOTE *p)
 {
@@ -91,7 +91,7 @@ int wiimote_find(CSOUND *csound, WIIMOTE *p)
 
     wiimotes = (wiimote**)csound->QueryGlobalVariable(csound, "wiiMote");
     if (wiimotes == NULL) {
-      csound->CreateGlobalVariable(csound, "wiiMote", 
+      csound->CreateGlobalVariable(csound, "wiiMote",
                                            MAX_WIIMOTES*sizeof(wiimote*));
       wiimotes = (wiimote**)csound->QueryGlobalVariable(csound, "wiiMote");
     }
@@ -163,9 +163,9 @@ int wiimote_poll(CSOUND *csound, WIIMOTE *p)
         return;
       case WIIUSE_NUNCHUK_INSERTED:
         /*
-         *	This is a good place to set any nunchuk specific
-         *	threshold values.  By default they are the same
-         *	as the wiimote.
+         *      This is a good place to set any nunchuk specific
+         *      threshold values.  By default they are the same
+         *      as the wiimote.
          */
         /* wiiuse_set_nunchuk_orient_threshold((struct nunchuk_t*)&wiimotes[i]-> */
         /*                                     exp.nunchuk, 90.0f); */

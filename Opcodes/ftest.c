@@ -50,7 +50,7 @@ static int sonetable(FGDATA *ff, FUNC *ftp)
 
     for (i = 0, x = start; i <= (int) ftp->flen; i++, x += step)
       fp[i] = x*POWER(x/start, FL(33.0)/FL(78.0));
-    
+
     if (resc!=FL(0.0)) ff->e.p[4] = -1;
     return OK;
 }

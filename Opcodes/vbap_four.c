@@ -199,7 +199,7 @@ int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
     p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
-    ptr = &(ls_table[3]);  
+    ptr = &(ls_table[3]);
     if(!p->ls_set_am)
       return csound->InitError(csound, Str("vbap system NOT configured. \
            \nMissing vbaplsinit opcode in orchestra?"));
@@ -483,7 +483,7 @@ int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING *p)
     p->dim       = (int)ls_table[0];
     p->ls_am     = (int)ls_table[1];
     p->ls_set_am = (int)ls_table[2];
-    ptr = &(ls_table[3]);  
+    ptr = &(ls_table[3]);
     if(!p->ls_set_am)
       return csound->InitError(csound, Str("vbap system NOT configured. \
            \nMissing vbaplsinit opcode in orchestra?"));

@@ -3,24 +3,24 @@
 #include <string>
 #include <vector>
 /**
- * T H E   S I G N A L   F L O W   G R A P H   
+ * T H E   S I G N A L   F L O W   G R A P H
  * F A M I L Y   O F   O P C O D E S
  *
  * Michael Gogins
  *
- * These opcodes enable the declaration 
+ * These opcodes enable the declaration
  * of signal flow graphs (AKA asynchronous data flow graphs)
- * in Csound orchestras. Signals flow 
+ * in Csound orchestras. Signals flow
  * from the outlets of source instruments
  * to the inlets of sink instruments.
  * Signals may be k-rate, a-rate, or f-rate.
- * Any number of outlets may be connected 
- * to any number of inlets. When a new instance 
- * of an instrument is instantiated 
- * during performance, the declared connections also 
+ * Any number of outlets may be connected
+ * to any number of inlets. When a new instance
+ * of an instrument is instantiated
+ * during performance, the declared connections also
  * are automatically instantiated.
- * 
- * Note that inlets and outlets are defined in 
+ *
+ * Note that inlets and outlets are defined in
  * instruments without reference to how they are connected.
  * Connections are defined in the orchestra header. It is
  * this separation that enables plug-in instruments.
@@ -28,22 +28,22 @@
  * Signal flow graphs simplify the construction of complex mixers,
  * signal processing chains, and the like. They also simplify the
  * re-use of "plug and play" instrument definitions
- * and even entire sub-orchestras, 
- * which can simply be #included and then "plugged in" 
+ * and even entire sub-orchestras,
+ * which can simply be #included and then "plugged in"
  * to existing orchestras.
  *
- * Instruments must be named, and each source instrument 
+ * Instruments must be named, and each source instrument
  * must be defined in the orchestra before any of its sinks.
- * The reason instruments must be named is so that 
+ * The reason instruments must be named is so that
  * outlets and inlets in any higher-level orchestra can
- * be connected to inlets and outlets in any lower-level 
- * #included orchestra. 
+ * be connected to inlets and outlets in any lower-level
+ * #included orchestra.
  *
  * O P C O D E S
- * 
+ *
  * signalflowgraph
  *
- * Initializes the signal flow graph; must be declared once 
+ * Initializes the signal flow graph; must be declared once
  * and only once in the top-level orchestra,
  * before any of the other signal flow graph opcodes.
  *
@@ -62,7 +62,7 @@
  * fsignal inletf Sname
  *
  * Inlets receive a, k, or f-rate signals from outlets in other instruments.
- * The signals from all the source outlet instances are summed 
+ * The signals from all the source outlet instances are summed
  * in each sink inlet instance.
  *
  * The name of the inlet is implicitly qualified by the instrument name,
@@ -74,16 +74,16 @@
  * The connect opcode, valid only in orchestra headers, sends the signals
  * from the indicated outlets in all instances of the indicated source
  * instrument to the indicated inlets in all instances of the indicated sink
- * instrument. 
- * 
+ * instrument.
+ *
  * alwayson Sinstrumentname [p4, ..., pn]
  *
  * Activates the indicated instrument in the orchestra header,
- * without need for an i statement. Instruments must be 
+ * without need for an i statement. Instruments must be
  * activated in the same order as they are defined.
  *
- * The alwayson opcode is designed to simplify 
- * the definition of re-usable orchestras with 
+ * The alwayson opcode is designed to simplify
+ * the definition of re-usable orchestras with
  * signal processing or effects chains and networks.
  *
  * When the instrument is activated, p1 is the insno, p2 is 0, and p3 is -1.
@@ -91,26 +91,26 @@
  *
  * ifno ftgenonce ip1, ip2dummy, isize, igen, iarga, iargb [, ...]
  *
- * Enables the creation of function tables 
+ * Enables the creation of function tables
  * entirely inside instrument definitions,
  * without any duplication of data.
  *
- * The ftgenonce opcode is designed to simplify 
- * writing instrument definitions that can be 
+ * The ftgenonce opcode is designed to simplify
+ * writing instrument definitions that can be
  * re-used in different orchestras simply by #including them
- * and plugging them into some output instrument. 
- * There is no need to define function tables 
+ * and plugging them into some output instrument.
+ * There is no need to define function tables
  * either in the score, or in the orchestra header.
  *
- * The ftgenonce opcode is similar to ftgentmp, 
+ * The ftgenonce opcode is similar to ftgentmp,
  * and has identical arguments.
- * However, function tables are neither 
+ * However, function tables are neither
  * duplicated nor deleted. Instead, all of the arguments
- * to the opcode are concatenated to form the key 
+ * to the opcode are concatenated to form the key
  * to a lookup table that points to the function
- * table number. Thus, every request to ftgenonce 
+ * table number. Thus, every request to ftgenonce
  * with the same arguments receives the same
- * instance of the function table data. 
+ * instance of the function table data.
  * Every change in the value of any ftgenonce argument
  * causes the creation of a new function table.
  */
@@ -148,7 +148,7 @@ std::map< std::map<CSOUND /* instance */, std::vector<MYFLT> /* pfields */, int 
 functionTablesForInstancesForArguments;
 
 /**
- * All it does is clear the data structures 
+ * All it does is clear the data structures
  * for the current instance of Csound,
  * in case they are full from a previous performance.
  */
@@ -187,10 +187,10 @@ struct Outleta : public OpcodeBase<Outleta>
     // May need to convert insno to name if not named.
     std::string source = ((INSTRTXT *)h.insdshead->optxt)->instrname;
     std::string name = csound->strarg2name(csound,
-					   (char*) NULL,
-					   Sname,
-					   (char *)"",
-					   (int) csound->GetInputArgSMask(this));
+                                           (char*) NULL,
+                                           Sname,
+                                           (char *)"",
+                                           (int) csound->GetInputArgSMask(this));
     sourceIdentifier = source + ":" name;
     std::vector<Outleta *> &aoutlets = aoutletsForInstancesForSourcesForNames[csound][sourceIdentifier];
     if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
@@ -217,10 +217,10 @@ struct Inleta : public OpcodeBase<Inleta>
     // May need to convert insno to name if not named.
     std::string sink = ((INSTRTXT *)h.insdshead->optxt)->instrname;
     std::string name = csound->strarg2name(csound,
-					   (char*) NULL,
-					   Sname,
-					   (char *)"",
-					   (int) csound->GetInputArgSMask(this));
+                                           (char*) NULL,
+                                           Sname,
+                                           (char *)"",
+                                           (int) csound->GetInputArgSMask(this));
     sinkIdentifier = sink + ":" + name;
     std::vector<Inleta *> &ainlets = ainletsForInstancesForSinksForNames[csound][identifier];
     if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
@@ -233,7 +233,7 @@ struct Inleta : public OpcodeBase<Inleta>
       std::string sourceIdentifier = sourceIdentifiers[i];
       std::vector<Outleta *> *aoutlets = &aoutletsForInstancesForSourcesForNames[csound][sourceIdentifier];
       if (std::find(aoutlets, sourceOutlets.begin(), sourceOutlets.end()) != sourceOutlets.end()) {
-	sourceOutlets.push_back(aoutlets);
+        sourceOutlets.push_back(aoutlets);
       }
       return OK;
     }
@@ -248,26 +248,26 @@ struct Inleta : public OpcodeBase<Inleta>
     int init(CSOUND *csound)
     {
       std::string source = csound->strarg2name(csound,
-					       (char*) NULL,
-					       Source,
-					       (char *)"",
-					       (int) csound->GetInputArgSMask(this));
+                                               (char*) NULL,
+                                               Source,
+                                               (char *)"",
+                                               (int) csound->GetInputArgSMask(this));
       std::string outlet = csound->strarg2name(csound,
-					       (char*) NULL,
-					       Soutlet,
-					       (char *)"",
-					       (int) csound->GetInputArgSMask(this));
+                                               (char*) NULL,
+                                               Soutlet,
+                                               (char *)"",
+                                               (int) csound->GetInputArgSMask(this));
       std::string source_outlet = source + ":" + outlet;
       std::string sink = csound->strarg2name(csound,
-					     (char*) NULL,
-					     Sink,
-					     (char *)"",
-					     (int) csound->GetInputArgSMask(this));
+                                             (char*) NULL,
+                                             Sink,
+                                             (char *)"",
+                                             (int) csound->GetInputArgSMask(this));
       std::string inlet = csound->strarg2name(csound,
-					      (char*) NULL,
-					      Sinlet,
-					      (char *)"",
-					      (int) csound->GetInputArgSMask(this));
+                                              (char*) NULL,
+                                              Sinlet,
+                                              (char *)"",
+                                              (int) csound->GetInputArgSMask(this));
       std::string sink_inlet = sink + ":" + inlet;
       connections[csound][sinkIdentifer].push_back(sourceIdentifier);
       return OK;
@@ -281,30 +281,30 @@ struct Inleta : public OpcodeBase<Inleta>
     int init(CSOUND *csound)
     {
       std::string source = csound->strarg2name(csound,
-					       (char *) 0,
-					       Sinstrument,
-					       (char *)"",
-					       (int) csound->GetInputArgSMask(this));
+                                               (char *) 0,
+                                               Sinstrument,
+                                               (char *)"",
+                                               (int) csound->GetInputArgSMask(this));
       EVTBLK evtblk;
       evtblk.opcod = 'i';
       evtblk.strarg = 0;
       evtblk.p[0] = FL(0.0);
-      evtblk.p[1] = *p1;                                     
-      evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
+      evtblk.p[1] = *p1;
+      evtblk.p[2] = evtblk.p2orig = FL(0.0);
       evtblk.p[3] = evtblk.p3orig = -1.0;
       int n = 0;
-      if (csound->GetInputArgSMask(this)) {  
-	evtblk.p[0] = SSTRCOD;
-	  ftevt.strarg = (char*) p0;
+      if (csound->GetInputArgSMask(this)) {
+        evtblk.p[0] = SSTRCOD;
+          ftevt.strarg = (char*) p0;
       } else {
-	evtblk.p[0] = *p0;                                  
+        evtblk.p[0] = *p0;
       }
       n = csound->GetInputArgCnt(this);
       ftevt.pcnt = (int16) n;
       for (size_t fpI = 4, argumsI = 0; argumsI < n; fpI++, argumsI++) {
-	evtblk.p[fpI] = argums[argumsI];
+        evtblk.p[fpI] = argums[argumsI];
       }
-    csound->insert_score_event(csound, &evtblk, FL(0.0));	
+    csound->insert_score_event(csound, &evtblk, FL(0.0));
       return OK;
     }
   };
@@ -320,11 +320,11 @@ struct Inleta : public OpcodeBase<Inleta>
      */
     MYFLT *p1;
     MYFLT *p2;
-    MYFLT *p3; 
-    MYFLT *p4; 
+    MYFLT *p3;
+    MYFLT *p4;
     MYFLT *p5;
     MYFLT *argums[VARGMAX];
-    /** 
+    /**
      * State is external and global.
      */
     int init(CSOUND *csound)
@@ -343,57 +343,57 @@ struct Inleta : public OpcodeBase<Inleta>
       evtblk.strarg = 0;
       evtblk.p[0] = FL(0.0);
       pfields.push_back(evtblk.p[0]);
-      evtblk.p[1] = *p1;                                     
+      evtblk.p[1] = *p1;
       pfields.push_back(evtblk.p[1]);
-      evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
+      evtblk.p[2] = evtblk.p2orig = FL(0.0);
       pfields.push_back(evtblk.p[2]);
       evtblk.p[3] = evtblk.p3orig = -1.0;
       pfields.push_back(evtblk.p[3]);
       evtblk.p[4] = *p4;
       pfields.push_back(evtblk.p[4]);
       int n = 0;
-      if (csound->GetInputArgSMask(this)) {  
-	n = (int) evtblk.p[4];
-	evtblk.p[5] = SSTRCOD;
-	if (n < 0) {
-	  n = -n;
-	}
-	// Only GEN 1, 23, 28, or 43 can take strings.
-	switch (n) {                      
-	case 1:
-	case 23:
-	case 28:
-	case 43:
-	  // This one is not comparable.
-	  ftevt.strarg = (char*) p5;
-	  break;
-	default:
-	  return csound->InitError(csound, Str("ftgen string arg not allowed"));
-	}
+      if (csound->GetInputArgSMask(this)) {
+        n = (int) evtblk.p[4];
+        evtblk.p[5] = SSTRCOD;
+        if (n < 0) {
+          n = -n;
+        }
+        // Only GEN 1, 23, 28, or 43 can take strings.
+        switch (n) {
+        case 1:
+        case 23:
+        case 28:
+        case 43:
+          // This one is not comparable.
+          ftevt.strarg = (char*) p5;
+          break;
+        default:
+          return csound->InitError(csound, Str("ftgen string arg not allowed"));
+        }
       }
       else {
-	evtblk.p[5] = *p5;                                  
+        evtblk.p[5] = *p5;
       }
       pfields.push_back(evtblk.p[5]);
       n = csound->GetInputArgCnt(this);
       ftevt.pcnt = (int16) n;
       for (size_t fpI = 6, argumsI = 0; argumsI < n; fpI++, argumsI++) {
-	evtblk.p[fpI] = argums[argumsI];
-	pfields.push_back(evtblk.p[fpI]);
+        evtblk.p[fpI] = argums[argumsI];
+        pfields.push_back(evtblk.p[fpI]);
       }
       // If the arguments have not been used before for this instance of Csound,
       // create a new function table and store the arguments and table number.
       if(functionTablesForArguments[csound].find(pfields) == functionTablesForArguments[csound].end()) {
-	FUNC *func = 0;
-	n = csound->hfgens(csound, &func, &evtblk, 1);       
-	if (UNLIKELY(n != 0)) {
-	  return csound->InitError(csound, Str("ftgen error"));
-	}
-	if (func) {
-	  *ifno = (MYFLT) func->fno;                     
-	  functionTablesForArguments[csound][pfields] = func->fno;
-	}
-      } 
+        FUNC *func = 0;
+        n = csound->hfgens(csound, &func, &evtblk, 1);
+        if (UNLIKELY(n != 0)) {
+          return csound->InitError(csound, Str("ftgen error"));
+        }
+        if (func) {
+          *ifno = (MYFLT) func->fno;
+          functionTablesForArguments[csound][pfields] = func->fno;
+        }
+      }
       return OK;
     }
   };
@@ -402,34 +402,34 @@ struct Inleta : public OpcodeBase<Inleta>
   {
     static OENTRY localops[] = {
       {
-	(char*)"signalflowgraph",
-	sizeof(SignalFlowGraph),
-	1,
-	(char*)"",
-	(char*)"",
-	(SUBR)&SignalFlowGraph::init_,
-	0,
-	0,
+        (char*)"signalflowgraph",
+        sizeof(SignalFlowGraph),
+        1,
+        (char*)"",
+        (char*)"",
+        (SUBR)&SignalFlowGraph::init_,
+        0,
+        0,
       },
       {
-	(char*)"inletk",
-	sizeof(Inlet),
-	3,
-	(char*)"k",
-	(char*)"iS",
-	(SUBR)&Inlet::init_,
-	(SUBR)&Inlet::kontrol_,
-	0
+        (char*)"inletk",
+        sizeof(Inlet),
+        3,
+        (char*)"k",
+        (char*)"iS",
+        (SUBR)&Inlet::init_,
+        (SUBR)&Inlet::kontrol_,
+        0
       },
       {
-	(char*)"inleta",
-	sizeof(Inlet),
-	5,
-	(char*)"a",
-	(char*)"iS",
-	(SUBR)&Inlet::init_,
-	0,
-	(SUBR)&Inlet::audio_
+        (char*)"inleta",
+        sizeof(Inlet),
+        5,
+        (char*)"a",
+        (char*)"iS",
+        (SUBR)&Inlet::init_,
+        0,
+        (SUBR)&Inlet::audio_
       },
       { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
     };
@@ -445,13 +445,13 @@ struct Inleta : public OpcodeBase<Inleta>
       int     err = 0;
 
       while (ep->opname != NULL) {
-	    err |= csound->AppendOpcode(csound,
-				    ep->opname, ep->dsblksiz, ep->thread,
-				    ep->outypes, ep->intypes,
-				    (int (*)(CSOUND *, void*)) ep->iopadr,
-				    (int (*)(CSOUND *, void*)) ep->kopadr,
-				    (int (*)(CSOUND *, void*)) ep->aopadr);
-	ep++;
+            err |= csound->AppendOpcode(csound,
+                                    ep->opname, ep->dsblksiz, ep->thread,
+                                    ep->outypes, ep->intypes,
+                                    (int (*)(CSOUND *, void*)) ep->iopadr,
+                                    (int (*)(CSOUND *, void*)) ep->kopadr,
+                                    (int (*)(CSOUND *, void*)) ep->aopadr);
+        ep++;
       }
       outlets.clear();
       return err;

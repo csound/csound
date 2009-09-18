@@ -1094,7 +1094,7 @@ int chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
     if (mode & 2)
       type |= CSOUND_OUTPUT_CHANNEL;
     err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
-    if (UNLIKELY(err)) 
+    if (UNLIKELY(err))
       return print_chn_err(p, err);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname, type);
     return OK;

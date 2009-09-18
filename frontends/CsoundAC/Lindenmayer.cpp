@@ -127,7 +127,7 @@ namespace csound
   {
     try
       {
-        action = Conversions::trim(action); 
+        action = Conversions::trim(action);
           char command = action[0];
           switch(command)
             {

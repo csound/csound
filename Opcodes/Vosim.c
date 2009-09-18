@@ -134,7 +134,7 @@ int vosim(CSOUND* csound, VOSIM *p)
       /* new pulse? */
       if (p->pulsephs >= MAXLEN || p->pulsephs < 0)
         vosim_pulse(csound, p);
-      
+
       if (p->pulstogo > 0) {
         /* produce one sample */
         p->pulsephs &= PHMASK;

@@ -156,7 +156,7 @@ public:
   }
   static int noteoff_(CSOUND *csound, void *opcode)
   {
-    return reinterpret_cast<T *>(opcode)->noteoff(csound);    
+    return reinterpret_cast<T *>(opcode)->noteoff(csound);
   }
   OPDS h;
 };

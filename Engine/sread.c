@@ -908,7 +908,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                 10 * ST(repeat_cnt_n)[ST(repeat_index)] + c - '0';
               c = getscochar(csound, 1);
             }
-            if (UNLIKELY(ST(repeat_cnt_n)[ST(repeat_index)] <= 0 
+            if (UNLIKELY(ST(repeat_cnt_n)[ST(repeat_index)] <= 0
                          || (c != ' ' && c != '\t' && c != '\n')))
               scorerr(csound, Str("{: invalid repeat count"));
             if (ST(repeat_index) > 1) {
@@ -1283,7 +1283,7 @@ static void ifa(CSOUND *csound)
         if (getmore) continue; /* not the best, but not easy to delete event */
                                /* since ifa() doesn't return anything */
         else break;
-      } 
+      }
       else switch (ST(bp)->pcnt) {      /*  watch for p1,p2,p3, */
       case 1:                           /*   & MYFLT, setinsno..*/
         if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"')

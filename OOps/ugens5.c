@@ -703,8 +703,9 @@ int lpread(CSOUND *csound, LPREAD *p)
       }
     }
 /*  if (csound->oparms->odebug) {
-      csound->Message(csound, "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
-             framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
+      csound->Message(csound,
+          "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
+          framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
       cp = p->kcoefs;
       nn = p->npoles;
       do {
@@ -723,7 +724,7 @@ int lpformantset(CSOUND *csound, LPFORM *p)
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
-return OK;
+    return OK;
 }
 
 int lpformant(CSOUND *csound, LPFORM *p)
@@ -740,27 +741,28 @@ int lpformant(CSOUND *csound, LPFORM *p)
         pm = coefp[i];
         pp = coefp[i+1];
         cfs[j] = pp*sr/TWOPI;
-	// if(pm > 1.0) csound->Message(csound, "warning unstable pole %f\n", pm);
+        /* if(pm > 1.0) csound->Message(csound,
+                                        Str("warning unstable pole %f\n"), pm); */
         bws[j] = -log(pm)*sr/PI;
-	//csound->Message(csound, "form %d, fr=%.2f, BW=%.2f\n", j,cfs[j],bws[j]);
       }
-    }else {
-	csound->PerfError(csound, "this opcode only works with LPC \
-               pole analysis type (-a)\n");
-        return NOTOK;
-      }
+    }
+    else {
+      csound->PerfError(csound, Str("this opcode only works with LPC "
+                                    "pole analysis type (-a)\n"));
+      return NOTOK;
+    }
 
-      j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
-      if(bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
-      if(bws[j] < 1.0) bws[j] = 1.0;
-      if(cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
-      if(cfs[j] < 0) cfs[j] = -cfs[j];
-      *p->kcf = cfs[j];
-      *p->kbw = bws[j];
-   
-      return OK;      
+    j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
+    if(bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
+    if(bws[j] < 1.0) bws[j] = 1.0;
+    if(cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
+    if(cfs[j] < 0) cfs[j] = -cfs[j];
+    *p->kcf = cfs[j];
+    *p->kbw = bws[j];
+
+    return OK;
 }
-  
+
 
 /*
  *
@@ -808,9 +810,9 @@ int lpreson(CSOUND *csound, LPRESON *p)
       for (i=0; i<q->npoles; i++) {
         pm = *coefp++;
         pp = *coefp++;
-	/*	 csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
-			pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
-	*/
+        /*       csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
+                        pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
+        */
         if (fabs(pm)>0.999999)
           pm = 1/pm;
         poleReal[i] = pm*cos(pp);
@@ -821,13 +823,8 @@ int lpreson(CSOUND *csound, LPRESON *p)
       synthetize(q->npoles,poleReal,poleImag,polyReal,polyImag);
       coefp = q->kcoefs;
       for (i=0; i<q->npoles; i++) {
-        coefp[i] = -(MYFLT)polyReal[q->npoles-i]; /* MR_WHY - somthing with the atan2 ? */
-#ifdef _DEBUG
-/*                      if (polyImag[i]>1.0e-10) */
-/*                      { */
-/*                              printf ("bad polymag: %f\n",polyImag[i]); */
-/*                      } */
-#endif
+        /* MR_WHY - somthing with the atan2 ? */
+        coefp[i] = -(MYFLT)polyReal[q->npoles-i];
       }
     }
 

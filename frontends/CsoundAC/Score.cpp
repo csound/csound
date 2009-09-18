@@ -47,7 +47,7 @@ using namespace MusicXML2;
 namespace csound
 {
 
-  void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord) 
+  void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord)
   {
     if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
       return;
@@ -62,7 +62,7 @@ namespace csound
     stream << "]" << std::endl;
   }
 
-  void printChord(std::string label, const std::vector<double> &chord) 
+  void printChord(std::string label, const std::vector<double> &chord)
   {
     if (!( (System::getMessageLevel() & System::INFORMATION_LEVEL) == System::INFORMATION_LEVEL) ) {
       return;
@@ -140,43 +140,43 @@ namespace csound
   {
     System::inform("BEGAN Score::load(%s)...\n", filename.c_str());
     if (filename.find(".mid") != std::string::npos ||
-	filename.find(".MID") != std::string::npos) {
+        filename.find(".MID") != std::string::npos) {
       std::ifstream stream;
       stream.open(filename.c_str(), std::ifstream::binary);
       load(stream);
       stream.close();
-    } 
+    }
 #if defined(HAVE_MUSICXML2)
     else if (filename.find(".xml") != std::string::npos ||
-	     filename.find(".XML") != std::string::npos) {
+             filename.find(".XML") != std::string::npos) {
       xmlreader xmlReader;
       Sxmlelement sxmlElement;
       // Try to read an SXMLFile out of the MusicXML file.
       SXMLFile sxmlFile = xmlReader.read(filename.c_str());
       if (sxmlFile) {
-	// Get the document tree of XML elements from the SXMLFile.
-	sxmlElement = sxmlFile->elements();
+        // Get the document tree of XML elements from the SXMLFile.
+        sxmlElement = sxmlFile->elements();
       }
       if (sxmlElement) {
-	// Create a ScoreMidiWriter that is attached to this Score.
-	ScoreMidiWriter scoreMidiWriter(this);
-	// Create a midicontextvisitor, which calls into an abstract midiwriter interface,
-	// which is attached to our ScoreMidiWriter, which implements that midiwriter interface.
-	midicontextvisitor midicontextvisitor_(scoreMidiWriter.tpq, &scoreMidiWriter);
-	// Create an xml_tree_browser that is attached to our midicontextvisitor.
-	xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
-	// The xml_tree_browser will carry the midicontextvisitor to all the elements
-	// of the document tree, in the proper order, calling newNote as appropriate.
-	xmlTreeBrowser.browse(*sxmlElement);
+        // Create a ScoreMidiWriter that is attached to this Score.
+        ScoreMidiWriter scoreMidiWriter(this);
+        // Create a midicontextvisitor, which calls into an abstract midiwriter interface,
+        // which is attached to our ScoreMidiWriter, which implements that midiwriter interface.
+        midicontextvisitor midicontextvisitor_(scoreMidiWriter.tpq, &scoreMidiWriter);
+        // Create an xml_tree_browser that is attached to our midicontextvisitor.
+        xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
+        // The xml_tree_browser will carry the midicontextvisitor to all the elements
+        // of the document tree, in the proper order, calling newNote as appropriate.
+        xmlTreeBrowser.browse(*sxmlElement);
       }
     }
-#endif 
+#endif
     else {
       System::error("Unknown file format in Score::load().");
     }
     System::inform("ENDED Score::load().\n");
   }
-  
+
   void Score::load(std::istream &stream)
   {
     MidiFile midiFile;
@@ -215,7 +215,7 @@ namespace csound
     return elt;
   }
 
-  static Sxmlelement makeAttributes() 
+  static Sxmlelement makeAttributes()
   {
     Sxmlelement attributes = factory::instance().create(k_attributes);
     attributes->push (newElementI(k_divisions, 1000));
@@ -232,10 +232,10 @@ namespace csound
 
   static std::string makePartId(int partid)
   {
-    
+
   }
 
-  static Sxmlelement makePart(int instrument, const std::vector<const Event *> &part_) 
+  static Sxmlelement makePart(int instrument, const std::vector<const Event *> &part_)
   {
     Sxmlelement part = factory::instance().create(k_part);
     char buffer[0x100];
@@ -251,8 +251,8 @@ namespace csound
     // And we have to back up to make chords.
     return part;
   }
-  
-  static Sxmlelement makePartList(std::map<int, std::vector<const Event *> > parts) 
+
+  static Sxmlelement makePartList(std::map<int, std::vector<const Event *> > parts)
   {
     Sxmlelement partlist = factory::instance().create(k_part_list);
     for (std::map<int, std::vector<const Event *> >::iterator it = parts.begin(); it != parts.end(); ++it) {
@@ -270,7 +270,7 @@ namespace csound
     return partlist;
   }
 
-  static Sxmlelement makeIdentification(Score &score) 
+  static Sxmlelement makeIdentification(Score &score)
   {
     Sxmlelement id = factory::instance().create(k_identification);
     Sxmlelement encoding = factory::instance().create(k_encoding);
@@ -278,8 +278,8 @@ namespace csound
     id->push (encoding);
     return id;
   }
-  
-  static Sxmlelement createScore(const Score &score_, std::string filename) 
+
+  static Sxmlelement createScore(const Score &score_, std::string filename)
   {
     Sxmlelement score = factory::instance().create(k_score_partwise);
     score->push (newElement(k_movement_title, filename().c_str()));
@@ -309,13 +309,13 @@ namespace csound
     //stream.open(filename.c_str(), std::ios_base::binary);
     stream.open(filename.c_str(), std::ifstream::binary);
     if (filename.find(".mid") != std::string::npos ||
-	filename.find(".MID") != std::string::npos) {
+        filename.find(".MID") != std::string::npos) {
       save(stream);
       System::inform("ENDED Score::save().\n");
     }
 #if defined(HAVE_MUSICXML2_)
     else if (filename.find(".xml") != std::string::npos ||
-	     filename.find(".XML") != std::string::npos) {     
+             filename.find(".XML") != std::string::npos) {
       // This Score has to be sorted first.
       sort();
       // Create an XMLFile to write to.
@@ -326,7 +326,7 @@ namespace csound
       // Add a document type declaration.
       TDocType documentTypeDeclaration = new TDocType("score-partwise");
       xmlFile->set(documentTypeDeclaration);
-      // Create a MusicXML2 document in which first one part is written, 
+      // Create a MusicXML2 document in which first one part is written,
       // then the next part, and so on.
       xmlFile->set(createScore(*this, filename));
       // Print the XML document to the output stream.
@@ -338,7 +338,7 @@ namespace csound
     }
     stream.close();
   }
-  
+
   void Score::save(std::ostream &stream)
   {
     save(midifile);
@@ -413,12 +413,12 @@ namespace csound
     range = maximum - minimum;
   }
 
-  void Score::setScale(std::vector<Event> &score, 
-                       int dimension, bool rescaleMinimum, 
-                       bool rescaleRange, 
-                       size_t beginAt, 
-                       size_t endAt, 
-                       double targetMinimum, 
+  void Score::setScale(std::vector<Event> &score,
+                       int dimension, bool rescaleMinimum,
+                       bool rescaleRange,
+                       size_t beginAt,
+                       size_t endAt,
+                       double targetMinimum,
                        double targetRange)
   {
     if(!(rescaleMinimum || rescaleRange))
@@ -518,32 +518,32 @@ namespace csound
     for(std::vector<MidiTrack>::iterator trackI = midiFile.midiTracks.begin(); trackI != midiFile.midiTracks.end(); ++trackI) {
       std::set<MidiEvent> usedNoteOffEvents;
       for(std::vector<MidiEvent>::iterator onEventI = trackI->begin(); onEventI != trackI->end(); ++onEventI) {
-	const MidiEvent &noteOnEvent = *onEventI;
-	if(noteOnEvent.isNoteOn()) {
-	  for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != trackI->end(); ++offEventI) {
-	    const MidiEvent &noteOffEvent = *offEventI;
-	    if (usedNoteOffEvents.find(noteOffEvent) == usedNoteOffEvents.end()) {
-	      if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
-		double status = noteOnEvent.getStatusNybble();
-		double instrument = noteOnEvent.getChannelNybble();
-		double time_ = noteOnEvent.time;
-		double duration = noteOffEvent.time - noteOnEvent.time;
-		double key = noteOnEvent.getKey();
-		double velocity = noteOnEvent.getVelocity();
-		append(time_, duration, status, instrument, key, velocity);
-		fprintf(stderr, "Score::load append(%9.3f %9.3f %9.3f %9.3f %9.3f %9.3f)\n", time_, duration, status, instrument, key, velocity);
-		usedNoteOffEvents.insert(noteOffEvent);
-		break;
-	      }
-	    }
-	  }
-	}
+        const MidiEvent &noteOnEvent = *onEventI;
+        if(noteOnEvent.isNoteOn()) {
+          for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != trackI->end(); ++offEventI) {
+            const MidiEvent &noteOffEvent = *offEventI;
+            if (usedNoteOffEvents.find(noteOffEvent) == usedNoteOffEvents.end()) {
+              if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
+                double status = noteOnEvent.getStatusNybble();
+                double instrument = noteOnEvent.getChannelNybble();
+                double time_ = noteOnEvent.time;
+                double duration = noteOffEvent.time - noteOnEvent.time;
+                double key = noteOnEvent.getKey();
+                double velocity = noteOnEvent.getVelocity();
+                append(time_, duration, status, instrument, key, velocity);
+                fprintf(stderr, "Score::load append(%9.3f %9.3f %9.3f %9.3f %9.3f %9.3f)\n", time_, duration, status, instrument, key, velocity);
+                usedNoteOffEvents.insert(noteOffEvent);
+                break;
+              }
+            }
+          }
+        }
       }
     }
     findScale();
     sort();
   }
-  
+
   void Score::save(MidiFile &midiFile)
   {
     findScale();
@@ -551,36 +551,36 @@ namespace csound
     // Make this a Format 1 file.
     midiFile.clear();
     midiFile.midiHeader.type = 1;
-    // Each track contains all events for one instrument 
+    // Each track contains all events for one instrument
     // (not the same as MIDI channel).
     std::map<int, Score> eventsForInstruments;
     for (Score::iterator it = begin(); it != end(); ++it) {
       const Event &event = *it;
       //event.dump(std::cout);
       if(event.isNoteOn()) {
-	Event onEvent = *it;
-	int instrument = event.getInstrument();
-	eventsForInstruments[instrument].push_back(onEvent);	
-	Event offEvent = onEvent;
-	onEvent.createNoteOffEvent(offEvent);
-	eventsForInstruments[instrument].push_back(offEvent);
+        Event onEvent = *it;
+        int instrument = event.getInstrument();
+        eventsForInstruments[instrument].push_back(onEvent);
+        Event offEvent = onEvent;
+        onEvent.createNoteOffEvent(offEvent);
+        eventsForInstruments[instrument].push_back(offEvent);
       }
     }
-    for (std::map<int, Score>::iterator it = eventsForInstruments.begin(); 
-         it != eventsForInstruments.end(); 
+    for (std::map<int, Score>::iterator it = eventsForInstruments.begin();
+         it != eventsForInstruments.end();
          ++it) {
       Score &eventsForInstrument = it->second;
       eventsForInstrument.sort();
       MidiTrack midiTrack;
       for (size_t i = 0, n = eventsForInstrument.size(); i < n; i++) {
-	const Event &event = eventsForInstrument[i];
-	MidiEvent midiEvent;
-	midiEvent.time = event.getTime();
-	midiEvent.ticks = int(Conversions::round(midiEvent.time / midiFile.currentSecondsPerTick));
-	midiEvent.push_back(event.getMidiStatus());
-	midiEvent.push_back(event.getKeyNumber());
-	midiEvent.push_back(event.getVelocity());
-	midiTrack.push_back(midiEvent);
+        const Event &event = eventsForInstrument[i];
+        MidiEvent midiEvent;
+        midiEvent.time = event.getTime();
+        midiEvent.ticks = int(Conversions::round(midiEvent.time / midiFile.currentSecondsPerTick));
+        midiEvent.push_back(event.getMidiStatus());
+        midiEvent.push_back(event.getKeyNumber());
+        midiEvent.push_back(event.getVelocity());
+        midiTrack.push_back(midiEvent);
       }
       MidiEvent trackEnd;
       trackEnd.ticks = midiTrack.back().ticks;
@@ -802,10 +802,10 @@ namespace csound
     }
   }
 
-  std::vector<double> Score::getPTV(size_t begin_, 
-                                    size_t end_, 
-                                    double lowest, 
-                                    double range, 
+  std::vector<double> Score::getPTV(size_t begin_,
+                                    size_t end_,
+                                    double lowest,
+                                    double range,
                                     size_t divisionsPerOctave_) const
   {
     if (begin_ < 0) {
@@ -823,13 +823,13 @@ namespace csound
     return ptv;
   }
 
-  void Score::setPTV(size_t begin_, 
-                     size_t end_, 
-                     double P, 
-                     double T, 
-                     double V, 
-                     double lowest, 
-                     double range, 
+  void Score::setPTV(size_t begin_,
+                     size_t end_,
+                     double P,
+                     double T,
+                     double V,
+                     double lowest,
+                     double range,
                      size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
@@ -849,10 +849,10 @@ namespace csound
     System::inform("ENDED Score::setPTV.\n");
   }
 
-  std::vector<double> Score::getPT(size_t begin_, 
-                                   size_t end_, 
-                                   double lowest, 
-                                   double range, 
+  std::vector<double> Score::getPT(size_t begin_,
+                                   size_t end_,
+                                   double lowest,
+                                   double range,
                                    size_t divisionsPerOctave_) const
   {
     if (begin_ < 0) {
@@ -871,12 +871,12 @@ namespace csound
     return pt;
   }
 
-  void Score::setPT(size_t begin_, 
-                    size_t end_, 
-                    double P, 
-                    double T, 
-                    double lowest, 
-                    double range, 
+  void Score::setPT(size_t begin_,
+                    size_t end_,
+                    double P,
+                    double T,
+                    double lowest,
+                    double range,
                     size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
@@ -895,12 +895,12 @@ namespace csound
     std::vector<double> result = getPitches(begin_, end_, divisionsPerOctave_);
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
-    printChord("  as pitch-class set:  ", resultTones);  
+    printChord("  as pitch-class set:  ", resultTones);
     System::inform("ENDED Score::setPT.\n");
   }
 
-  std::vector<double> Score::getVoicing(size_t begin_, 
-                                        size_t end_, 
+  std::vector<double> Score::getVoicing(size_t begin_,
+                                        size_t end_,
                                         size_t divisionsPerOctave_) const
   {
     System::inform("BEGAN Score::getVoicing(%d, %d, %d)...\n", begin_, end_, divisionsPerOctave_);
@@ -918,15 +918,15 @@ namespace csound
     std::sort(voicing.begin(), voicing.end());
     printChord("  voicing:             ", voicing);
     std::vector<double> resultTones = Voicelead::uniquePcs(voicing, divisionsPerOctave_);
-    printChord("  as pitch-class set:  ", resultTones);  
+    printChord("  as pitch-class set:  ", resultTones);
     System::inform("ENDED Score::getVoicing.\n");
     return voicing;
   }
 
-  void Score::setVoicing(size_t begin_, 
-                         size_t end_, 
-                         const std::vector<double> &voicing, 
-                         double range, 
+  void Score::setVoicing(size_t begin_,
+                         size_t end_,
+                         const std::vector<double> &voicing,
+                         double range,
                          size_t divisionsPerOctave_)
   {
     if (begin_ < 0) {
@@ -1048,7 +1048,7 @@ namespace csound
     std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave_);
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
-    printChord("  as pitch-class set:  ", resultTones);  
+    printChord("  as pitch-class set:  ", resultTones);
     System::inform("ENDED Score::voicelead.\n");
   }
 
@@ -1101,7 +1101,7 @@ namespace csound
       std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave_);
       printChord("  result:              ", result);
       std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
-      printChord("  as pitch-class set:  ", resultTones);  
+      printChord("  as pitch-class set:  ", resultTones);
       return;
     }
     std::vector<double> source = getVoicing(beginSource, endSource, divisionsPerOctave_);
@@ -1148,7 +1148,7 @@ namespace csound
     std::vector<double> result = getPitches(beginTarget, endTarget, divisionsPerOctave_);
     printChord("  result:              ", result);
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
-    printChord("  as pitch-class set:  ", resultTones);  
+    printChord("  as pitch-class set:  ", resultTones);
     System::inform("ENDED Score::voicelead.\n");
   }
 

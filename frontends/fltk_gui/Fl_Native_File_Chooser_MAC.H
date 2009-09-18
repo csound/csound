@@ -30,68 +30,68 @@
 #endif
 
 #include <FL/filename.H>
-#define MAXFILTERS	80
+#define MAXFILTERS      80
 
 class Fl_Native_File_Chooser {
 public:
     enum Type {
-	BROWSE_FILE = 0,
-	BROWSE_DIRECTORY,
-	BROWSE_MULTI_FILE,
-	BROWSE_MULTI_DIRECTORY,
-	BROWSE_SAVE_FILE,
-	BROWSE_SAVE_DIRECTORY
+        BROWSE_FILE = 0,
+        BROWSE_DIRECTORY,
+        BROWSE_MULTI_FILE,
+        BROWSE_MULTI_DIRECTORY,
+        BROWSE_SAVE_FILE,
+        BROWSE_SAVE_DIRECTORY
     };
     enum Option {
-        NO_OPTIONS     = 0x0000,	// no options enabled
-	SAVEAS_CONFIRM = 0x0001,	// Show native 'Save As' overwrite
-					// confirm dialog (if supported)
-	NEW_FOLDER     = 0x0002,	// Show 'New Folder' icon
-					// (if supported)
-	PREVIEW        = 0x0004,	// enable preview mode
+        NO_OPTIONS     = 0x0000,        // no options enabled
+        SAVEAS_CONFIRM = 0x0001,        // Show native 'Save As' overwrite
+                                        // confirm dialog (if supported)
+        NEW_FOLDER     = 0x0002,        // Show 'New Folder' icon
+                                        // (if supported)
+        PREVIEW        = 0x0004,        // enable preview mode
     };
 protected:
-    NavDialogCreationOptions _opts;	// file navigation options
+    NavDialogCreationOptions _opts;     // file navigation options
 private:
-    int             _btype;		// kind-of browser to show()
-    int             _options;		// general options
-    NavDialogRef    _ref;		// file navigation reference
-    NavActionState  _keepstate;		// holds button permissions
-    NavMenuItemSpec _tempitem;   	// Popup menu selection
-    char          **_pathnames;		// array of pathnames
-    int             _tpathnames;	// total pathnames
-    char           *_directory;		// default pathname to use
-    char           *_title;		// title for window
-    char           *_preset_file;	// the 'save as' filename
+    int             _btype;             // kind-of browser to show()
+    int             _options;           // general options
+    NavDialogRef    _ref;               // file navigation reference
+    NavActionState  _keepstate;         // holds button permissions
+    NavMenuItemSpec _tempitem;          // Popup menu selection
+    char          **_pathnames;         // array of pathnames
+    int             _tpathnames;        // total pathnames
+    char           *_directory;         // default pathname to use
+    char           *_title;             // title for window
+    char           *_preset_file;       // the 'save as' filename
 
-    char           *_filter;		// user-side search filter, eg:
-					// C Files\t*.[ch]\nText Files\t*.txt"
+    char           *_filter;            // user-side search filter, eg:
+                                        // C Files\t*.[ch]\nText Files\t*.txt"
 
-    char           *_filt_names;	// filter names (tab delimited)
-    					// eg. "C Files\tText Files"
+    char           *_filt_names;        // filter names (tab delimited)
+                                        // eg. "C Files\tText Files"
 
     char           *_filt_patt[MAXFILTERS];
                                         // array of filter patterns, eg:
-					//     _filt_patt[0]="*.{cxx,h}"
-					//     _filt_patt[1]="*.txt"
+                                        //     _filt_patt[0]="*.{cxx,h}"
+                                        //     _filt_patt[1]="*.txt"
 
-    int             _filt_total;	// parse_filter() # of filters loaded
-    int             _filt_value;	// index of the selected filter
-    char           *_errmsg;		// error message
+    int             _filt_total;        // parse_filter() # of filters loaded
+    int             _filt_value;        // index of the selected filter
+    char           *_errmsg;            // error message
 
     // PRIVATE CLASS TO HANDLE NAVIGATION DIALOG REPLY STRUCT
     //     Class-ified, mainly to ensure proper cleanup.
     //
     class NavReply {
         int _valid_reply;
-	NavReplyRecord _reply;
+        NavReplyRecord _reply;
     public:
         NavReply();
-	~NavReply();
-	int get_reply(NavDialogRef& ref);
-	int get_saveas_basename(char *s, int slen);
-	int get_dirname(char *s, int slen);
-	int get_pathnames(char **&pathnames, int& tpathnames);
+        ~NavReply();
+        int get_reply(NavDialogRef& ref);
+        int get_saveas_basename(char *s, int slen);
+        int get_dirname(char *s, int slen);
+        int get_pathnames(char **&pathnames, int& tpathnames);
     };
 
     // Private methods
@@ -100,8 +100,8 @@ private:
     void set_single_pathname(const char *s);
     int get_saveas_basename(NavDialogRef& ref);
     int get_pathnames(NavDialogRef& ref);
-    static void event_handler(NavEventCallbackMessage callBackSelector, 
-    					     NavCBRecPtr cbparm, void *data);
+    static void event_handler(NavEventCallbackMessage callBackSelector,
+                                             NavCBRecPtr cbparm, void *data);
 
     void clear_filters();
     void add_filter(const char *, const char *);
@@ -109,7 +109,7 @@ private:
     static Boolean filter_proc_cb(AEDesc *, void *, void *, NavFilterModes);
     Boolean filter_proc_cb2(AEDesc*, void*, void*, NavFilterModes);
     int post();
-    
+
 public:
     Fl_Native_File_Chooser(int val = BROWSE_FILE);
     ~Fl_Native_File_Chooser();

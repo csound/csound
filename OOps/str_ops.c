@@ -429,7 +429,7 @@ int strtod_opcode(CSOUND *csound, STRSET_OP *p)
 }
 
 int strtol_opcode(CSOUND *csound, STRSET_OP *p)
-{ 
+{
     char  *s = NULL;
     int   sgn = 0, radix = 10;
     int32  x = 0L;

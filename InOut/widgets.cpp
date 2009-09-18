@@ -61,13 +61,13 @@ void widget_init(CSOUND *csound)
       //      ST(indrag)            = 0;
       //      ST(sldrag)            = 0;
       //      ST(stack_count)       = 0;
-      
+
       ST(FLcontrol_iheight) = 15;
       ST(FLroller_iheight)  = 18;
       ST(FLcontrol_iwidth)  = 400;
       ST(FLroller_iwidth)   = 150;
       ST(FLvalue_iwidth)    = 100;
-      
+
       ST(FLcolor)           = -1;
       ST(FLcolor2)          = -1;
       // below was commented out, why? VL 24-04-08
@@ -76,7 +76,7 @@ void widget_init(CSOUND *csound)
       ST(FLtext_font)       = -1;
       //  below was commented out, why? VL 24-04-08
       ST(FLtext_align)      = 0;
-      
+
       ST(FL_ix)             = 10;
       ST(FL_iy)             = 10;
       ST(currentSnapGroup)  = 0;
@@ -180,7 +180,7 @@ extern "C" {
         {
           EVTBLK  e;
           int     i;
-          
+
           /* Create the new event */
           e.strarg = NULL;
           e.opcod = (char) *args[0];
@@ -1285,7 +1285,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
             base = ::pow(fld->max / (double)fld->min, 1.0/(double)range);
           #else
             base = ::pow(fld->max / fld->min, 1.0/(double)range);
-          #endif  
+          #endif
           ((Fl_Positioner*) o)->xvalue(log(val/fld->min) / log(base)) ;
           break;
         default:
@@ -1303,7 +1303,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           range  = fld->max2 - fld->min2;
           #if defined(sun)
             base = ::pow(fld->max2 / (double)fld->min2, 1.0/(double)range);
-          #else 
+          #else
             base = ::pow(fld->max2 / fld->min2, 1.0/(double)range);
           #endif
           ((Fl_Positioner*) o)->yvalue(log(val/fld->min2) / log(base)) ;
@@ -1364,10 +1364,10 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
             #if defined(sun)
               base = ::pow(p->slider_data[j].max / (double)p->slider_data[j].min,
                            1.0/(double)range);
-            #else                       
+            #else
               base = ::pow(p->slider_data[j].max / p->slider_data[j].min,
                            1.0/(double)range);
-            #endif             
+            #endif
             ((Fl_Valuator*) grup->child(j))->
               value(log(val/p->slider_data[j].min) / log(base)) ;
             break;
@@ -1417,9 +1417,9 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
           range  = fld->max - fld->min;
           #if defined(sun)
             base = ::pow(fld->max / (double)fld->min, 1.0/(double)range);
-          #else  
+          #else
             base = ::pow(fld->max / fld->min, 1.0/(double)range);
-          #endif  
+          #endif
           ((Fl_Valuator*) o)->value(log(val/fld->min) / log(base)) ;
           break;
         default: // TABLE the value must be in the 0 to 1 range...
@@ -2178,10 +2178,10 @@ static void fl_callbackExponentialSlider(Fl_Valuator* w, void *a)
     #if defined(sun)
       displ(*p->kout = p->min * ::pow ((double)p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #else        
+    #else
       displ(*p->kout = p->min * ::pow (p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #endif        
+    #endif
 }
 
 static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
@@ -2216,7 +2216,7 @@ static void fl_callbackExponentialSliderBank(Fl_Valuator* w, void *a)
       *p->out = p->min * ::pow ((double)p->base, w->value());
     #else
       *p->out = p->min * ::pow (p->base, w->value());
-    #endif  
+    #endif
 }
 
 static void fl_callbackInterpTableSliderBank(Fl_Valuator* w, void *a)
@@ -2250,9 +2250,9 @@ static void fl_callbackJoystick(Fl_Widget* w, void *a)
     case EXP_:
       #if defined(sun)
         val = *p->iminx * ::pow ((double)p->basex, j->xvalue());
-      #else  
+      #else
         val = *p->iminx * ::pow (p->basex, j->xvalue());
-      #endif  
+      #endif
       break;
     default:
       if (iexpx > 0) { //interpolated
@@ -2274,9 +2274,9 @@ static void fl_callbackJoystick(Fl_Widget* w, void *a)
     case EXP_:
       #if defined(sun)
         val = *p->iminy * ::pow ((double)p->basey, j->yvalue());
-      #else  
+      #else
         val = *p->iminy * ::pow (p->basey, j->yvalue());
-      #endif  
+      #endif
       break;
     default:
       if (iexpy > 0) { //interpolated
@@ -2307,10 +2307,10 @@ static void fl_callbackExponentialRoller(Fl_Valuator* w, void *a)
     #if defined(sun)
       displ(*p->kout = ((FLROLLER*) a)->min * ::pow ((double)p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #else        
+    #else
       displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #endif         
+    #endif
 }
 
 static void fl_callbackInterpTableRoller(Fl_Valuator* w, void *a)
@@ -2342,10 +2342,10 @@ static void fl_callbackExponentialKnob(Fl_Valuator* w, void *a)
     #if defined(sun)
       displ(*p->kout = ((FLKNOB*) a)->min * ::pow ((double)p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #else        
+    #else
       displ(*p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()),
             *p->idisp, p->h.insdshead->csound);
-    #endif        
+    #endif
 }
 
 static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
@@ -2843,9 +2843,9 @@ extern "C" {
         case EXP_:        // exponential
           #if defined(sun)
             log_base = (MYFLT) log(::pow(v.max / (double)v.min, 1.0 / (v.max - v.min)));
-          #else  
+          #else
             log_base = (MYFLT) log(::pow(v.max / v.min, 1.0 / (v.max - v.min)));
-          #endif  
+          #endif
           break;
         default:
           csound->Warning(csound, Str("(fl_setWidgetValuei): "
@@ -2879,9 +2879,9 @@ extern "C" {
         case EXP_:        // exponential
           #if defined(sun)
             log_base = (MYFLT) log(::pow(v.max / (double)v.min, 1.0 / (v.max - v.min)));
-          #else  
+          #else
             log_base = (MYFLT) log(::pow(v.max / v.min, 1.0 / (v.max - v.min)));
-          #endif  
+          #endif
           break;
         default:
           csound->Warning(csound, Str("(fl_setWidgetValue_set): "
@@ -3273,9 +3273,9 @@ extern "C" {
         o->range(0,range);
         #if defined(sun)
           p->base = ::pow((max / (double)min), 1.0/(double)range);
-        #else  
+        #else
           p->base = ::pow((max / min), 1.0/(double)range);
-        #endif  
+        #endif
         o->callback((Fl_Callback*)fl_callbackExponentialSlider,(void *) p);
         break;
       default:
@@ -3448,9 +3448,9 @@ extern "C" {
           o->range(0,range);
           #if defined(sun)
             p->slider_data[j].base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->slider_data[j].base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialSliderBank,
                       (void *) &(p->slider_data[j]));
           {
@@ -3458,9 +3458,9 @@ extern "C" {
             MYFLT range = max-min;
             #if defined(sun)
               MYFLT base = ::pow(max / (double)min, 1.0/(double)range);
-            #else  
+            #else
               MYFLT base = ::pow(max / min, 1.0/(double)range);
-            #endif  
+            #endif
             val = (log(val/min) / log(base)) ;
           }
           break;
@@ -3545,9 +3545,9 @@ extern "C" {
           o->xbounds(0,range);
           #if defined(sun)
             p->basex = ::pow((*p->imaxx / (double)*p->iminx), 1.0/(double)range);
-          #else  
+          #else
             p->basex = ::pow((*p->imaxx / *p->iminx), 1.0/(double)range);
-          #endif  
+          #endif
         } break;
       default:
         {
@@ -3578,9 +3578,9 @@ extern "C" {
           o->ybounds(range,0);
           #if defined(sun)
             p->basey = ::pow((*p->imaxy / (double)*p->iminy), 1.0/(double)range);
-          #else  
+          #else
             p->basey = ::pow((*p->imaxy / *p->iminy), 1.0/(double)range);
-          #endif  
+          #endif
         } break;
       default:
         {
@@ -3687,9 +3687,9 @@ extern "C" {
           o->range(0,range);
           #if defined(sun)
             p->base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
         } break;
       default:
@@ -4069,9 +4069,9 @@ extern "C" {
           o->range(0,range);
           #if defined(sun)
             p->base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialRoller,(void *) p);
         }
         break;
@@ -4519,9 +4519,9 @@ extern "C" {
           o->range(range,0);
           #if defined(sun)
             p->slider_data[j].base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->slider_data[j].base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialSliderBank,
                       (void *) &(p->slider_data[j]));
           {
@@ -4529,9 +4529,9 @@ extern "C" {
             MYFLT range = max-min;
             #if defined(sun)
               MYFLT base = ::pow(max / (double)min, 1.0/(double)range);
-            #else  
+            #else
               MYFLT base = ::pow(max / min, 1.0/(double)range);
-            #endif  
+            #endif
             val = (log(val/min) / log(base)) ;
           }
           break;
@@ -4695,9 +4695,9 @@ extern "C" {
           o->range(0,range);
           #if defined(sun)
             p->slider_data[j].base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->slider_data[j].base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialSliderBank,
                       (void *) &(p->slider_data[j]));
           {
@@ -4705,9 +4705,9 @@ extern "C" {
             MYFLT range = max-min;
             #if defined(sun)
               MYFLT base = ::pow(max / (double)min, 1.0/(double)range);
-            #else  
+            #else
               MYFLT base = ::pow(max / min, 1.0/(double)range);
-            #endif  
+            #endif
             val = (log(val/min) / log(base)) ;
           }
           break;
@@ -4872,9 +4872,9 @@ extern "C" {
           o->range(range,0);
           #if defined(sun)
             p->slider_data[j].base = ::pow((max / (double)min), 1.0/(double)range);
-          #else  
+          #else
             p->slider_data[j].base = ::pow((max / min), 1.0/(double)range);
-          #endif  
+          #endif
           o->callback((Fl_Callback*)fl_callbackExponentialSliderBank,
                       (void *) &(p->slider_data[j]));
           {
@@ -4882,9 +4882,9 @@ extern "C" {
             MYFLT range = max-min;
             #if defined(sun)
               MYFLT base = ::pow(max / (double)min, 1.0/(double)range);
-            #else  
+            #else
               MYFLT base = ::pow(max / min, 1.0/(double)range);
-            #endif  
+            #endif
             val = (log(val/min) / log(base)) ;
           }
           break;

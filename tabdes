@@ -20,7 +20,8 @@ my @dp = (0,0,0,0,0,0,0,0,0,0);
 my @min_y = (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
 my @max_y = (1, 1, 1, 1, 1,1,1,1,1,1);
 my @formula = ('sin w');
-my @colours = ('red', 'blue', 'green', 'magenta', 'cyan', 'orange', 'darkblue', 'purple', 'brown', 'black');
+my @colours = ('red', 'blue', 'green', 'magenta', 'cyan', 'orange',
+               'darkblue', 'purple', 'brown', 'black');
 my @on = (1,0,0,0,0,0,0,0,0,0);
 my @files = ('t.0', 't.1', 't.2', 't.3', 't.4', 't.5', 't.6', 't.7', 't.8', 't.9');
 
@@ -35,11 +36,11 @@ my $ftl = $bft->Frame->pack(qw/-side left -fill y/);
 my $ftr = $bft->Frame->pack(qw/-side right/);
 
 my $c = $ftr->Canvas(
-                          relief => 'raised',
-                          width => 308,
-                          height => 311,
-                          cursor => 'top_left_arrow',
-                          );
+    relief => 'raised',
+    width => 308,
+    height => 311,
+    cursor => 'top_left_arrow',
+    );
 $c->pack(qw/-side right/);
 
 my $rect = $c->createRectangle(4,4,304,304, -fill => 'white');
@@ -100,7 +101,7 @@ sub draw_formula(){
 
     for ($count=0; $count<$num_lines; $count++){
         $c->delete("line$count");
-    }   
+    }
 
     for ($count=0; $count<$num_lines; $count++){
 
@@ -109,7 +110,7 @@ sub draw_formula(){
             my $nf = $formula[$count];
             $nf =~ s/w/$wdef/g;
             $nf =~ s/x/\$i_temp/g;
-            $nf =~ s/pi/$pi/g;      
+            $nf =~ s/pi/$pi/g;
 
             # Help from jpff with inlining of bit function
             $nf =~ s/bit\((.+?),(.+?),(.+?)\)/(((\3>\1)&&(\3<=\2))?1:0)/g;
@@ -117,7 +118,7 @@ sub draw_formula(){
             my $oldx=5;
             my $oldy=(eval($nf) - $min_y[$count])/($max_y[$count] - $min_y[$count]);
             $oldy = int 300-$oldy*299 +4;
-            
+
             for ($i=1; $i<300; $i++){
                 $x = $i+4;
                 $i_temp = $i/300;
@@ -125,7 +126,7 @@ sub draw_formula(){
                 $y = int 300-$y*299 +4;
                 my $lne = $c->createLine($oldx, $oldy, $x, $y, -fill => $colours[$count]);
                 $c->addtag("line$count", 'withtag', $lne);
-                
+
                 $oldx = $x;
                 $oldy = $y;
             }
@@ -161,7 +162,7 @@ sub make_files(){
                     print FILE "$y\n";
                 }
             }
-            close FILE;   
+            close FILE;
         }
     }
 }

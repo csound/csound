@@ -114,7 +114,7 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
 
     p->scaler = 1.0/order;
     if (!*p->iskip) {
-      memset(p->ydels, 0, 4*sizeof(double)); 
+      memset(p->ydels, 0, 4*sizeof(double));
       /* p->ydels[0] = 0.0;   p->ydels[1] = 0.0; */
       /* p->ydels[2] = 0.0;   p->ydels[3] = 0.0; */
       memset(p->delay1.auxp, 0, sizeof(double)*(order-1)*2);

@@ -135,7 +135,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         /*---------------- filter -----------------------*/
         out[n] = yt1 = c1 * out_delay + c2 * yt1;
       }
-    } 
+    }
     else {
       for (n=0; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
