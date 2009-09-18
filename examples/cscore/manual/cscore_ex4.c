@@ -38,7 +38,7 @@ void cscore(CSOUND *cs)
       cscorePutString(cs, "s");
       cscorePutEvent(cs, e);                   /* write out another tempo statement */
       b = cscoreListCopyEvents(cs, a);
-      
+
       dim = 0;                                 /* initialize dim to 0 */
       for (n = 1; n <= b->nevents; n++)
       {
@@ -47,7 +47,7 @@ void cscore(CSOUND *cs)
           f->p[5] *= 0.5;                      /* transpose pitch down one octave */
           dim += 2000;                         /* increase dim for each note */
       }
-      
+
       a = cscoreListAppendList(cs, a, b);      /* now add these notes to original pitches */
       cscoreListPut(cs, a);
       cscorePutString(cs, "e");

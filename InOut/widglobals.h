@@ -52,8 +52,8 @@
 
 using namespace std;
 
-/* 
-** Undefine CS_VSTHOST to build FLTK without VST. 
+/*
+** Undefine CS_VSTHOST to build FLTK without VST.
 */
 #ifdef CS_VSTHOST
 #include "Opcodes/vst4cs/src/vsthost.h"
@@ -121,8 +121,8 @@ struct VALUATOR_FIELD {
 private:
   vector<MYFLT> sldbnkValues;
 public:
-  VALUATOR_FIELD() {  
-    value = 0; value2 =0; widg_name= ""; opcode_name =""; 
+  VALUATOR_FIELD() {
+    value = 0; value2 =0; widg_name= ""; opcode_name ="";
     min = 0; max =1; min2=0; max2=1; exp=LIN_; exp2=LIN_; sldbnk=0;
   }
   void set_sldbnk(int ndx, MYFLT val) {
@@ -150,7 +150,7 @@ struct ADDR_SET_VALUE /*: ADDR*/{
   ADDR_SET_VALUE(int new_exponential,MYFLT new_min, MYFLT new_max,
                  void *new_WidgAddress, void *new_opcode,  int grp = 0) :
       exponential(new_exponential),min(new_min), max(new_max),
-      WidgAddress(new_WidgAddress),opcode(new_opcode), 
+      WidgAddress(new_WidgAddress),opcode(new_opcode),
       widg_type(FL_WIDG), group(grp) {}
   ADDR_SET_VALUE() {
       exponential=LIN_; min=0; max=0; WidgAddress=NULL; opcode=NULL;
@@ -197,28 +197,28 @@ typedef struct {
     char hack_o_rama2;
     int ix, drag, indrag, sldrag;
     int stack_count;
-        
+
     int FLcontrol_iheight;
     int FLroller_iheight;
     int FLcontrol_iwidth;
     int FLroller_iwidth;
     int FLvalue_iwidth;
-        
+
     int FLcolor;
     int FLcolor2;
     int FLtext_size;
     int FLtext_color;
     int FLtext_font;
     int FLtext_align;
-        
+
     int currentSnapGroup; // GAB for snapshot groups
     int last_KEY;  // GAB
     bool isKeyDown;  //GAB
-        
-        
+
+
     int FL_ix;
     int FL_iy;
-        
+
     vector<PANELS> fl_windows; // all panels
     //static vector<void*> AddrValue;
     //        addresses of widgets that display current value of valuators
@@ -228,18 +228,18 @@ typedef struct {
 //      map<int, SNAPVEC> snapshots; //gab
 //      map<int, SNAPVEC>::iterator snapshots_iterator; // iterator of the map
     int last_sldbnk;
-    
-    FL_MIDI_WIDGET_VALUE *midiFLaddress[16][128]; // gab128 cc * 16 midi channels 
+
+    FL_MIDI_WIDGET_VALUE *midiFLaddress[16][128]; // gab128 cc * 16 midi channels
     int midiFLold_val[16][128]; //gab
 // GAB (MAKING snapshots GLOBAL IS CERTAINLY A TEMPORARY UGLY HACK, but map
 // seems not to function in the WIDGET_GLOBALS structure)
-    vector<SNAPVEC> snapshots;  
+    vector<SNAPVEC> snapshots;
  //GAB (MAKING snapshots_iterator GLOBAL IS A TEMPORARY UGLY HACK)
     vector<SNAPVEC>::iterator snapshots_iterator;
     FLTKMETER *p_vumeter;
 #ifdef CS_VSTHOST
     vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
-    vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins 
+    vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins
 #endif
 
 #ifdef CS_IMAGE

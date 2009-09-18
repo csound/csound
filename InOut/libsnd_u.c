@@ -384,12 +384,12 @@ int type2csfiletype(int type, int encoding)
     switch (type) {
       case TYP_RAW:    return CSFTYPE_RAW_AUDIO;
       case TYP_IRCAM:  return CSFTYPE_IRCAM;
-      case TYP_AIFF:   
+      case TYP_AIFF:
         switch (encoding) {
-          case AE_CHAR:   
-          case AE_SHORT:   
-          case AE_24INT:   
-          case AE_LONG:   
+          case AE_CHAR:
+          case AE_SHORT:
+          case AE_24INT:
+          case AE_LONG:
                        return CSFTYPE_AIFF;
           default:     return CSFTYPE_AIFC;
         }

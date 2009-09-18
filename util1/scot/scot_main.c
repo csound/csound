@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     char    *name = NULL,   *outname = "score";
 
     if (argc == 2 || argc == 3) {
-      if (argc == 3) outname = argv[2];      
+      if (argc == 3) outname = argv[2];
       if (!(infile = fopen(argv[1], "r"))) {
         fprintf(stderr, "Can't open input file \"%s\"\n", argv[1]);
         return -1;

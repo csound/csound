@@ -1,6 +1,6 @@
 /*
 * C S O U N D A C
-* 
+*
 * Copyright (c) 2001-2003 by Michael Gogins. All rights reserved.
 *
 * L I C E N S E

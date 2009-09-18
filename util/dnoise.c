@@ -485,7 +485,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
-          csound->NotifyFileOpened(csound, name, 
+          csound->NotifyFileOpened(csound, name,
                       csound->type2csfiletype(O->filetyp, O->outformat), 1, 0);
         csound->Free(csound, name);
       }

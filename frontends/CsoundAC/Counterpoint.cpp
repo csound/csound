@@ -220,7 +220,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
   int Counterpoint::MIN(int a, int b) {if (a < b) return(a); else return(b);}
   int Counterpoint::MAX(int a, int b) {if (a > b) return(a); else return(b);}
   void Counterpoint::ARRBLT(int *dest, int *source, int num) {int i; for (i=0;i<num;i++) dest[i]=source[i];} /* SAIL p51 */
-  
+
   int Counterpoint::InMode(int Pitch, int Mode)
   {
     int pit;

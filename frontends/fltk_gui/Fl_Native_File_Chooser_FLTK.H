@@ -27,31 +27,31 @@
 class Fl_Native_File_Chooser {
 public:
     enum Type {
-	BROWSE_FILE = 0,
-	BROWSE_DIRECTORY,
-	BROWSE_MULTI_FILE,
-	BROWSE_MULTI_DIRECTORY,
-	BROWSE_SAVE_FILE,
-	BROWSE_SAVE_DIRECTORY
+        BROWSE_FILE = 0,
+        BROWSE_DIRECTORY,
+        BROWSE_MULTI_FILE,
+        BROWSE_MULTI_DIRECTORY,
+        BROWSE_SAVE_FILE,
+        BROWSE_SAVE_DIRECTORY
     };
     enum Option {
-        NO_OPTIONS     = 0x0000,	// no options enabled
-	SAVEAS_CONFIRM = 0x0001,	// Show native 'Save As' overwrite
-					// confirm dialog (if supported)
-	NEW_FOLDER     = 0x0002,	// Show 'New Folder' icon
-					// (if supported)
-	PREVIEW        = 0x0004,	// enable preview mode
+        NO_OPTIONS     = 0x0000,        // no options enabled
+        SAVEAS_CONFIRM = 0x0001,        // Show native 'Save As' overwrite
+                                        // confirm dialog (if supported)
+        NEW_FOLDER     = 0x0002,        // Show 'New Folder' icon
+                                        // (if supported)
+        PREVIEW        = 0x0004,        // enable preview mode
     };
 private:
-    int   _btype;			// kind-of browser to show()
-    int   _options;			// general options
-    char *_filter;			// user supplied filter
-    char *_parsedfilt;			// parsed filter
-    int   _filtvalue;			// selected filter
+    int   _btype;                       // kind-of browser to show()
+    int   _options;                     // general options
+    char *_filter;                      // user supplied filter
+    char *_parsedfilt;                  // parsed filter
+    int   _filtvalue;                   // selected filter
     char *_preset_file;
-    char *_prevvalue;			// Returned filename
+    char *_prevvalue;                   // Returned filename
     char *_directory;
-    char *_errmsg;			// error message
+    char *_errmsg;                      // error message
     Fl_File_Chooser *file_chooser;
     int _nfilters;
 

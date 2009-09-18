@@ -323,8 +323,8 @@ int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
     int n, nsmps = csound->ksmps;
-    
- 
+
+
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     ar = p->ar;
     asig = p->asig;
@@ -338,7 +338,7 @@ int delay(CSOUND *csound, DELAY *p)
         curp = (MYFLT *) p->auxch.auxp;
     }
     p->curp = curp;             /* sav the new curp */
-    
+
     return OK;
  err1:
       return csound->PerfError(csound, Str("delay: not initialised"));

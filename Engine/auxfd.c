@@ -42,7 +42,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
       /* if size change only, free the old space and re-allocate */
       auxchp->auxp = NULL;
       mfree(csound, tmp);
-    }  
+    }
   }
   else {                                  /* else linkin new auxch blk */
     auxchp->nxtchp = csound->curip->auxchp;
@@ -79,15 +79,15 @@ void fdclose(CSOUND *csound, FDCH *fdchp)
     if (nxtchp == fdchp) {                    /*   till find this one */
       void  *fd = fdchp->fd;
       if (fd) {
-	fdchp->fd = NULL;                     /* then delete the fd   */
-	csoundFileClose(csound, fd);          /*   close the file &   */
+        fdchp->fd = NULL;                     /* then delete the fd   */
+        csoundFileClose(csound, fd);          /*   close the file &   */
       }
       if (prvchp)
-	prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
+        prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
       else
-	csound->curip->fdchp = fdchp->nxtchp;
+        csound->curip->fdchp = fdchp->nxtchp;
       if (csound->oparms->odebug)
-	fdchprint(csound, csound->curip);
+        fdchprint(csound, csound->curip);
       return;
     }
     prvchp = nxtchp;
@@ -145,8 +145,8 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
   /* chain through auxlocs */
   for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
     csound->Message(csound,
-		    Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
-		    curchp, curchp->size, curchp->auxp, curchp->endp);
+                    Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
+                    curchp, curchp->size, curchp->auxp, curchp->endp);
 }
 
 /* print the fd chain for this insds blk */

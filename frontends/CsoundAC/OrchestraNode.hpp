@@ -19,7 +19,7 @@ public:
   virtual void setSource(size_t index, OrchestraNode *source);
   virtual void removeAllSources();
 
-  
+
 };
 
 #endif

@@ -26,7 +26,7 @@
 /****************************************/
 #ifndef MIDIOPS2_H
 #define MIDIOPS2_H
- 
+
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno, *imin, *imax, *ifn;

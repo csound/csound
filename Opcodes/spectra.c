@@ -1189,8 +1189,9 @@ int specfilt(CSOUND *csound, SPECFILT *p)
       MYFLT curval, *coefp = p->coefs;
       MYFLT *persp = p->states;
       int   n,npts = inspecp->npts;
-      
-      if (UNLIKELY(newp==NULL || outp==NULL || coefp==NULL || persp==NULL))  /* RWD */
+
+      if (UNLIKELY(newp==NULL || outp==NULL ||
+                   coefp==NULL || persp==NULL))  /* RWD */
         goto err1;
       for (n=0; n<npts;n++) {                      /* for npts of inspec:     */
         outp[n] = curval = persp[n];               /*   output current point  */

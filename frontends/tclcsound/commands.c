@@ -91,16 +91,16 @@ uintptr_t csThread2(void *clientData) {
 
 void csTimerproc(ClientData clientData)
 {
-  csdata *p = (csdata *) clientData; 
+  csdata *p = (csdata *) clientData;
   CSOUND *cs = p->instance;
   if(p->result == 0 && p->status > CS_COMPILED) {
     if(p->status == CS_RUNNING) p->result = csoundPerformBuffer(cs);
-    if(p->result == 0) 
+    if(p->result == 0)
       Tcl_CreateTimerHandler(1, csTimerproc, clientData);
     else {
       csoundReset(cs);
       p->status = CS_READY;
-    } 
+    }
   }
 }
 
@@ -413,7 +413,7 @@ int csTableList(ClientData clientData, Tcl_Interp * interp,
       for (i = 0; i < largc; i++)
         pFields[i] = (MYFLT) atof(largv[i]);
       if (p->status == CS_RUNNING || p->status == CS_COMPILED
-          || p->status == CS_PAUSED) {   
+          || p->status == CS_PAUSED) {
         // csoundLockMutex(p->threadlock);
         p->result = csoundScoreEvent(cs, 'f', pFields, largc);
         // csoundUnlockMutex(p->threadlock);
@@ -596,7 +596,7 @@ int SetChannelValue(ctlchn * chan, char *name, MYFLT val, csdata *p)
 
     while (chan != NULL) {
       if (!strcmp(chan->name, name)) {
-        csoundLockMutex(p->threadlock); 
+        csoundLockMutex(p->threadlock);
         chan->value = (double) val;
         csoundUnlockMutex(p->threadlock);
         return CHAN_FOUND;
@@ -654,7 +654,7 @@ int csInChannel(ClientData clientData, Tcl_Interp * interp,
     if (argc >= 2) {
       if (FindChannel(p, argv[1]) != IN_CHAN) {
         newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
-        tmp = p->inchan; 
+        tmp = p->inchan;
         p->inchan = newch;
         p->inchan->next = tmp;
         p->inchan->name = (char *) Tcl_Alloc(strlen(argv[1])+1);
@@ -770,7 +770,7 @@ int PvsChannelCallback(CSOUND *csound)
 {
   csdata *p = (csdata *) csoundGetHostData(csound);
   pvsctlchn *chan = p->pvsinchan;
-    while (chan != NULL) { 
+    while (chan != NULL) {
       csoundPvsinSet(csound, &chan->data, chan->n);
       chan = chan->next;
     }
@@ -785,7 +785,7 @@ int PvsChannelCallback(CSOUND *csound)
 int FindPVSInChannel(csdata * p, int n)
 {
     pvsctlchn *chan = p->pvsinchan;
-    
+
     while (chan != NULL) {
       if (chan->n == n)
         return IN_CHAN;
@@ -805,7 +805,7 @@ int FindPVSOutChannel(csdata * p, int n)
    return CHAN_NOT_FOUND;
 }
 
-int SetPVSChannelBin(csdata *p, 
+int SetPVSChannelBin(csdata *p,
   int n, int bin, float amp, float freq)
 {
   pvsctlchn *chan = p->pvsinchan;
@@ -870,7 +870,7 @@ void FreePVSChannels(csdata * p)
 }
 
 /*
-csPvsIn channel [size olaps winsize wintype] 
+csPvsIn channel [size olaps winsize wintype]
 Register new input channel for use with invalue opcode
 */
 int csPvsIn(ClientData clientData, Tcl_Interp * interp,
@@ -882,7 +882,7 @@ int csPvsIn(ClientData clientData, Tcl_Interp * interp,
     if (argc >= 2) {
       if (FindPVSInChannel(p, atoi(argv[1])) != IN_CHAN) {
         newch = (pvsctlchn *) Tcl_Alloc(sizeof(pvsctlchn));
-        tmp = p->pvsinchan; 
+        tmp = p->pvsinchan;
         p->pvsinchan = newch;
         p->pvsinchan->next = tmp;
         p->pvsinchan->n = atoi(argv[1]);
@@ -901,7 +901,7 @@ int csPvsIn(ClientData clientData, Tcl_Interp * interp,
 }
 
 /*
-csPvsOut channel [size olaps winsize wintype] 
+csPvsOut channel [size olaps winsize wintype]
 Register new output channel for use with outvalue opcode
 */
 int csPvsOut(ClientData clientData, Tcl_Interp * interp,

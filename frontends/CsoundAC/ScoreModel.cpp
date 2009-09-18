@@ -41,7 +41,7 @@ namespace csound
   {
     if (children.size()) {
       score.clear();
-    } 
+    }
     traverse(getLocalCoordinates(), score);
     System::message("Generated %d events.\n", score.size());
   }

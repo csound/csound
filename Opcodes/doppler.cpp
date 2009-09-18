@@ -47,7 +47,7 @@ protected:
   MYFLT currentValue;
 };
 
-class DelayLine : public std::vector<MYFLT> 
+class DelayLine : public std::vector<MYFLT>
 {
 public:
   MYFLT sampleRate;
@@ -190,7 +190,7 @@ public:
           relativeIndex -= blockSize;
           currentIndex -= blockSize;
           targetIndex -= blockSize;
-	        delete audioBufferQueue->front();
+                delete audioBufferQueue->front();
           audioBufferQueue->pop_front();
           sourcePositionQueue->pop_front();
           currentBuffer = audioBufferQueue->front();
@@ -248,7 +248,7 @@ struct Doppler2 : public OpcodeBase<Doppler2>
     delayLine = new DelayLine;
     return OK;
   }
-  int kontrol(CSOUND *csound) 
+  int kontrol(CSOUND *csound)
   {
     MYFLT sourcePosition = *kSourcePosition;
     MYFLT micPosition = *kMicPosition;
@@ -268,7 +268,7 @@ struct Doppler2 : public OpcodeBase<Doppler2>
       log(csound, "Doppler::kontrol: smoothingFilterCutoff:  %10.3f\n", smoothingFilterCutoff);
       log(csound, "Doppler::kontrol: kMicPosition:             %10.3f\n", *kMicPosition);
       log(csound, "Doppler::kontrol: kSourcePosition:          %10.3f\n", *kSourcePosition);
-      delayLine->initialize(sampleRate, 10.0); 
+      delayLine->initialize(sampleRate, 10.0);
     }
     for (size_t frame = 0; frame < blockSize; frame++) {
       delayLine->write(audioInput[frame]);
@@ -341,19 +341,19 @@ extern "C"
       }
     return status;
   }
-  
+
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     //csound->Message(csound, "Deleting C++ objects from doppler...\n");
     for (std::list<RCLowpassFilter *>::iterator it = smoothingFilterInstances.begin();
-	 it != smoothingFilterInstances.end();
-	 ++it) {
+         it != smoothingFilterInstances.end();
+         ++it) {
       delete *it;
     }
     smoothingFilterInstances.clear();
     for (std::list<DelayLine *>::iterator it = delayLineInstances.begin();
-	 it != delayLineInstances.end();
-	 ++it) {
+         it != delayLineInstances.end();
+         ++it) {
       delete *it;
     }
     delayLineInstances.clear();

@@ -446,7 +446,7 @@ int pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
       }
       buf[pos] = sig[i]*scale;
     }
-    //if(p->cps) 
+    //if(p->cps)
     *p->freq = p->cps;
     //else *p->freq = p->prevf;
     //p->prevf = *p->freq;

@@ -34,7 +34,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     FILE *f;
     *allocp = NULL;
     f = fopen(filnam, "rb");
-    if (UNLIKELY(f == NULL))                              /* if cannot open the file */
+    if (UNLIKELY(f == NULL))                    /* if cannot open the file */
       return 1;                                 /*    return 1             */
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
@@ -44,7 +44,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     if (UNLIKELY(*len < 1L))
       goto err_return;
     *allocp = mmalloc(csound, (size_t) (*len)); /*   alloc as reqd     */
-    if (UNLIKELY(fread(*allocp, (size_t) 1,              /*   read file in      */
+    if (UNLIKELY(fread(*allocp, (size_t) 1,     /*   read file in      */
                        (size_t) (*len), f) != (size_t) (*len)))
       goto err_return;
     fclose(f);                                  /*   and close it      */
@@ -67,7 +67,7 @@ MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 }
 
 /* Takes an additional parameter specifying the type of the file being opened.
-   The type constants are defined in the enumeration CSOUND_FILETYPES. 
+   The type constants are defined in the enumeration CSOUND_FILETYPES.
    Use ldmemfile2() to load file without additional processing.  */
 MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
 {
@@ -78,7 +78,7 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
    to process the file's data after it is loaded.  This method ensures that
    your procedure is only called once even if the file is "loaded" multiple
    times by several opcodes.  callback can be NULL.
-   
+
    Callback signature:     int myfunc(CSOUND* csound, MEMFIL* mfp)
    Callback return value:  OK (0) or NOTOK (-1)
  */

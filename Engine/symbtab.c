@@ -72,7 +72,7 @@ void init_symbtab(CSOUND *csound)
     /* Now we need to populate with basic words */
     /* Add token types for opcodes to symbtab.  If a polymorphic opcode
      * definition is found (dsblksiz >= 0xfffb), look for implementations
-     * of that opcode to correctly mark the type of opcode it is (T_OPCODE, 
+     * of that opcode to correctly mark the type of opcode it is (T_OPCODE,
      * T_OPCODE0, or T_OPCODE00)
      */
 
@@ -80,7 +80,8 @@ void init_symbtab(CSOUND *csound)
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
           /* if (PARSER_DEBUG) */
-          /*   csound->Message(csound, "Found PolyMorphic Opcode %s\n",ep->opname); */
+          /*   csound->Message(csound, */
+          /*           "Found PolyMorphic Opcode %s\n",ep->opname); */
 
           len = strlen(ep->opname) + 1;
           polyName = mcalloc(csound, len + 1);
@@ -104,9 +105,10 @@ void init_symbtab(CSOUND *csound)
 
           mfree(csound, polyName);
 
-//            if(strchr(ep->opname, '.') != NULL) {
-//                csound->Message(csound, "Found PolyMorphic Opcode Definition %s\n",ep->opname);
-//            }
+//        if(strchr(ep->opname, '.') != NULL) {
+//           csound->Message(csound,
+//                   "Found PolyMorphic Opcode Definition %s\n",ep->opname);
+//        }
 
         }
         else {
@@ -306,8 +308,8 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
     //ans->next = symbtab[h];
 
     if (PARSER_DEBUG)
-      csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag); 
-    
+      csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag);
+
     if(udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }

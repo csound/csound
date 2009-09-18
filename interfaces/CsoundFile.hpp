@@ -123,8 +123,8 @@ public:
    * then imports the indicated file,
    * which can be a Csound unified file (.csd),
    * Csound orchestra (.orc), Csound score (.sco),
-   * standard MIDI file (.mid), or MusicXML v2 (.xml) 
-   * file. 
+   * standard MIDI file (.mid), or MusicXML v2 (.xml)
+   * file.
    *
    * The MusicXML notes become instrument number + 1,
    * time in seconds, duration in seconds, MIDI key
@@ -138,7 +138,7 @@ public:
    * Imports the indicated file,
    * which can be a Csound unified file (.csd),
    * Csound orchestra (.orc), Csound score (.sco),
-   * standard MIDI file (.mid), or MusicXML v2 (.xml) 
+   * standard MIDI file (.mid), or MusicXML v2 (.xml)
    * file. The data that is read replaces existing
    * data of that type, but leaves other types of data
    * untouched.

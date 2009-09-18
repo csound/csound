@@ -189,7 +189,7 @@ void CsoundPerformanceSettingsPanel::setPerformanceSettingsWindow(int action)
 #ifdef WIN32
         rtMidiModules.push_back("MME");
 #endif
-        rtMidiModules.push_back("null"); 
+        rtMidiModules.push_back("null");
         rtMidiModulesChoice->clear();
         for (int i = 0; i < (int) rtMidiModules.size(); i++)
           rtMidiModulesChoice->add(rtMidiModules[i].c_str());

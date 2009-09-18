@@ -49,7 +49,6 @@ int phsset(CSOUND *csound, PHSOR *p)
       }
       p->curphs = phs - (MYFLT)longphs;
     }
-   
     return OK;
 }
 

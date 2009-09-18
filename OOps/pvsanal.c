@@ -245,7 +245,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->nI = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
-    p->Ii = 0; 
+    p->Ii = 0;
     p->IOi = 0;
     p->buflen = buflen;
     p->nextIn = (MYFLT *) p->input.auxp;
@@ -480,15 +480,15 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
       /* Rectang :Fw_t =     F_t                          */
       /* Hamming :Fw_t = 0.54F_t - 0.23[ F_{t-1}+F_{t+1}] */
       /* Hamming :Fw_t = 0.5 F_t - 0.25[ F_{t-1}+F_{t+1}] */
-      /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}] + 0.04 [F_{t-2}+F_{t+2}] */
-      /* Blackman_exact:Fw_t = 0.42659071367153912296F_t 
-         - 0.24828030954428202923 [F_{t-1}+F_{t+1}] 
+      /* Blackman:Fw_t = 0.42F_t - 0.25[ F_{t-1}+F_{t+1}] + 0.04[F_{t-2}+F_{t+2}] */
+      /* Blackman_exact:Fw_t = 0.42659071367153912296F_t
+         - 0.24828030954428202923 [F_{t-1}+F_{t+1}]
          + 0.038424333619948409286 [F_{t-2}+F_{t+2}]      */
-      /* Nuttall_C3:Fw_t = 0.375  F_t - 0.25[ F_{t-1}+F_{t+1}] + 
+      /* Nuttall_C3:Fw_t = 0.375  F_t - 0.25[ F_{t-1}+F_{t+1}] +
                                       0.0625 [F_{t-2}+F_{t+2}] */
-      /* BHarris_3:Fw_t = 0.44959 F_t - 0.24682[ F_{t-1}+F_{t+1}] + 
+      /* BHarris_3:Fw_t = 0.44959 F_t - 0.24682[ F_{t-1}+F_{t+1}] +
                                       0.02838 [F_{t-2}+F_{t+2}] */
-      /* BHarris_min:Fw_t = 0.42323 F_t - 0.2486703 [ F_{t-1}+F_{t+1}] + 
+      /* BHarris_min:Fw_t = 0.42323 F_t - 0.2486703 [ F_{t-1}+F_{t+1}] +
                                       0.0391396 [F_{t-2}+F_{t+2}] */
       switch (wintype) {
       case PVS_WIN_HAMMING:

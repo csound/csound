@@ -192,7 +192,7 @@ void Compile(globals *g)
       if (*tmp[i] != '-' && isCsoundFile(tmp[i])) {
         int     siz = strlen(dir) + strlen(tmp[i]);
         char   *tmpstr = tmp[i];
-        
+
         tmp[i] = (char *) malloc(siz);
         sprintf(tmp[i], "%s%s", dir, tmpstr);
         free(tmpstr);

@@ -72,7 +72,7 @@ namespace csound
    * <li>[     = Push the current state of the turtle state onto a stack.</li>
    * <li>]     = Pop the current state of the turtle from the stack.</li>
    * </ul>
-   * The abbreviations for the dimensions are: 
+   * The abbreviations for the dimensions are:
    * <ol>
    * <li>i = instrument</li>
    * <li>t = time</li>

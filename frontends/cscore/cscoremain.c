@@ -28,11 +28,11 @@ extern void cscore(CSOUND*);
 
 /* Cscore stub to run a user program standalone */
 
-/* To create a standalone cscore program, compile this file with your own 
-   file (e.g. mycscore.c) containing a cscore() control function.  An 
+/* To create a standalone cscore program, compile this file with your own
+   file (e.g. mycscore.c) containing a cscore() control function.  An
    example is given in the file cscore.c in this directory.  More examples
    may be found in the examples/cscore/ directory of the csound5 source tree.
-   
+
    Use this command (or your system's equivalent) to compile:
 
      gcc mycscore.c cscoremain.c -o cscore -lcsound -L/usr/local/lib -I/usr/local/include/csound
@@ -45,7 +45,7 @@ extern void cscore(CSOUND*);
 
      ./cscore scorein > scoreout
                 OR
-     ./cscore scorein scoreout  
+     ./cscore scorein scoreout
 
  */
 

@@ -239,7 +239,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     nvoice = (int)*p->ivoice;
 
-    if (UNLIKELY(*p->ilength < (20 * *p->kgsize))) 
+    if (UNLIKELY(*p->ilength < (20 * *p->kgsize)))
       csound->Warning(csound, Str("granule_set: "
                                   "WARNING * ilength may be too short * \n"
                                   "            ilength should be "

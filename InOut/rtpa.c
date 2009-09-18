@@ -613,7 +613,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
                                 (double) parm->sampleRate,
                                 (unsigned long) parm->bufSamp_SW,
                                 (csound->dither_output?
-                                 paNoFlag:paDitherOff), 
+                                 paNoFlag:paDitherOff),
                                 NULL, NULL);
     }
     else {
