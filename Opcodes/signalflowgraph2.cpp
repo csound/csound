@@ -69,7 +69,7 @@
  * so it is valid to use the same inlet name in more than one instrument
  * (but not to use the same inlet name twice in the same instrument).
  *
- * connect Source1, Soutlet1, Sink1, Sinlet1 [[, Source2, Soutlet2, Sink1, Sinlet2] ...]]
+ * connect Source1, Soutlet1, Sink1, Sinlet1
  *
  * The connect opcode, valid only in orchestra headers, sends the signals
  * from the indicated outlets in all instances of the indicated source
@@ -89,7 +89,7 @@
  * When the instrument is activated, p1 is the insno, p2 is 0, and p3 is -1.
  * The optional pfields are sent to the instrument following p3.
  *
- * ifno ftgentmp ip1, ip2dummy, isize, igen, iarga, iargb [, ...]
+ * ifno ftgenonce ip1, ip2dummy, isize, igen, iarga, iargb [, ...]
  *
  * Enables the creation of function tables 
  * entirely inside instrument definitions,
