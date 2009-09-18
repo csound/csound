@@ -138,7 +138,7 @@ namespace csound
     static void *getUserdata();
 
     /**
-     * Set a stream for printing messages to 
+     * Set a stream for printing messages to
      * (in addition to callback, stderr, etc.).
      */
     static void setLogfile(FILE *logfile);

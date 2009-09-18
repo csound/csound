@@ -50,7 +50,7 @@
 #include <ctype.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
-/* #define MYFLOOR(x) 
+/* #define MYFLOOR(x)
   (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999)) */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */

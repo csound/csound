@@ -123,7 +123,6 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 }
 #endif
 
- 
 /* PVSPITCH opcode by Ala OCinneide */
 
 typedef struct _pvspitch

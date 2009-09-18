@@ -86,22 +86,22 @@ int CsoundGUIMain::runCmd(string& cmdLine)
     c = cmdLine[i];
     if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && mode != 2) {
       if (mode != 0) {
-	mode = 0;
-	args.push_back(curToken);
-	argv.push_back(const_cast<char *>(args[nTokens].c_str()));
-	nTokens++;
-	curToken = "";
+        mode = 0;
+        args.push_back(curToken);
+        argv.push_back(const_cast<char *>(args[nTokens].c_str()));
+        nTokens++;
+        curToken = "";
       }
     }
     else if (c == '"') {
       if (mode == 2)
-	mode = 1;
+        mode = 1;
       else
-	mode = 2;
+        mode = 2;
     }
     else {
       if (mode == 0)
-	mode = 1;
+        mode = 1;
       curToken += c;
     }
   }
@@ -145,12 +145,12 @@ void CsoundGUIMain::stripString(string& dst, const char *src)
     for (pos0 = 0; pos0 < len; pos0++) {
       char  c = src[pos0];
       if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
-	break;
+        break;
     }
     for (pos1 = len - 1; pos1 >= 0; pos1--) {
       char  c = src[pos1];
       if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
-	break;
+        break;
     }
     for (i = pos0; i <= pos1; i++)
       tmp += src[i];
@@ -197,7 +197,7 @@ bool CsoundGUIMain::isRtAudioDevice(string& fileName, bool isOutput)
     s += 8;
   }
   else if ((isOutput && strncmp(s, "dac", 3) == 0) ||
-	   (!isOutput && strncmp(s, "adc", 3) == 0)) {
+           (!isOutput && strncmp(s, "adc", 3) == 0)) {
     s += 3;
   }
   else {
@@ -209,10 +209,10 @@ bool CsoundGUIMain::isRtAudioDevice(string& fileName, bool isOutput)
     int   devNum = 0;
     do {
       if (*s < (char) '0' || *s > (char) '9')
-	return false;
+        return false;
       devNum = (devNum * 10) + (int) (*s - (char) '0');
       if (devNum > 1023)
-	return false;
+        return false;
     } while (*(++s) != '\0');
   }
   return true;
@@ -254,7 +254,7 @@ bool CsoundGUIMain::browseFile(string& fileName, const char *title,
   fdlg->filter(fileNameFilters[fileType]);
   fdlg->preset_file(fileName.c_str());
   // Do not activate preview for binary files or directory browsing
-  if (fileType != 3 || fileType != 5 || fileType != 6 || 
+  if (fileType != 3 || fileType != 5 || fileType != 6 ||
       fileType != CSOUND5GUI_FILETYPE_DIRECTORY)
     fdlg->options(Fl_Native_File_Chooser::PREVIEW & Fl_Native_File_Chooser::NEW_FOLDER);
   //       fdlg->preview(1);
@@ -274,7 +274,7 @@ bool CsoundGUIMain::browseFile(string& fileName, const char *title,
 
 void CsoundGUIMain::updateGUIState_orcName()
 {
-  if (isCSDFile(currentPerformanceSettings.orcName) || 
+  if (isCSDFile(currentPerformanceSettings.orcName) ||
       currentPerformanceSettings.orcName.size() == 0) {
     scoreNameInput->value("");
     scoreNameInput->deactivate();
@@ -356,7 +356,7 @@ void CsoundGUIMain::updateGUIValues()
   scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
   if (performing && csPerf != (CsoundPerformance*) 0) {
     csPerf->SetScoreOffsetSeconds(
-				  currentPerformanceSettings.scoreOffsetSeconds, false);
+                                  currentPerformanceSettings.scoreOffsetSeconds, false);
     setTimeDisplay(csPerf->GetScoreTime());
   }
   else
@@ -378,12 +378,12 @@ void CsoundGUIMain::run(int argc, char **argv)
   if (!csound)
     return;
   csoundSetMessageCallback(csound,
-			   &CsoundGUIConsole::messageCallback_Thread);
+                           &CsoundGUIConsole::messageCallback_Thread);
   updateGUIValues();
   consoleWindow.window->resize(currentGlobalSettings.consolePosX,
-			       currentGlobalSettings.consolePosY,
-			       currentGlobalSettings.consoleWidth,
-			       currentGlobalSettings.consoleHeight);
+                               currentGlobalSettings.consolePosY,
+                               currentGlobalSettings.consoleWidth,
+                               currentGlobalSettings.consoleHeight);
   consoleWindow.window->show();
   if (currentGlobalSettings.guiPosX > 0 && currentGlobalSettings.guiPosY > 0)
     window->position(currentGlobalSettings.guiPosX, currentGlobalSettings.guiPosY);
@@ -392,41 +392,41 @@ void CsoundGUIMain::run(int argc, char **argv)
   do {
     if (csPerf != (CsoundPerformance*) 0) {
       if (!performing) {
-	bool usingThreads = csPerf->UsingThreads();
-	paused = true;
-	csPerf->Stop();
-	delete csPerf;
-	csPerf = (CsoundPerformance*) 0;
-	updateGUIState();
-	if (!usingThreads) {
-	  consoleWindow.updateDisplay(true);
-	  Fl::wait(0.0);
-	}
+        bool usingThreads = csPerf->UsingThreads();
+        paused = true;
+        csPerf->Stop();
+        delete csPerf;
+        csPerf = (CsoundPerformance*) 0;
+        updateGUIState();
+        if (!usingThreads) {
+          consoleWindow.updateDisplay(true);
+          Fl::wait(0.0);
+        }
       }
       else {
-	// Fl::unlock();
-	int status = csPerf->Perform();
-	// Fl::lock();
-	setTimeDisplay(csPerf->GetScoreTime());
-	if (status != 0) {
-	  performing = false;
-	  paused = true;
-	  csoundSetMessageCallback(csound,
-				   &CsoundGUIConsole::messageCallback_Thread);
-	  if (currentGlobalSettings.editSoundFileAfterPerformance &&
-	      status > 0)
-	    editSoundFile(csoundGetOutputFileName(csound));
-	  delete csPerf;
-	  csPerf = (CsoundPerformance*) 0;
-	  updateGUIState();
-	}
-	else if (!csPerf->UsingThreads()) {
-	  consoleWindow.updateDisplay(true);
-	  Fl::wait(0.0);
-	}
-	else {
-	  Fl::wait(0.02);
-	}
+        // Fl::unlock();
+        int status = csPerf->Perform();
+        // Fl::lock();
+        setTimeDisplay(csPerf->GetScoreTime());
+        if (status != 0) {
+          performing = false;
+          paused = true;
+          csoundSetMessageCallback(csound,
+                                   &CsoundGUIConsole::messageCallback_Thread);
+          if (currentGlobalSettings.editSoundFileAfterPerformance &&
+              status > 0)
+            editSoundFile(csoundGetOutputFileName(csound));
+          delete csPerf;
+          csPerf = (CsoundPerformance*) 0;
+          updateGUIState();
+        }
+        else if (!csPerf->UsingThreads()) {
+          consoleWindow.updateDisplay(true);
+          Fl::wait(0.0);
+        }
+        else {
+          Fl::wait(0.02);
+        }
       }
     }
     if (!performing) {
@@ -467,14 +467,14 @@ void CsoundGUIMain::startPerformance()
   consoleWindow.Clear();
   csoundSetHostData(csound, (void*) &consoleWindow);
   csoundSetMessageCallback(csound,
-			   &CsoundGUIConsole::messageCallback_Thread);
+                           &CsoundGUIConsole::messageCallback_Thread);
   csoundSetYieldCallback(csound, &CsoundGUIMain::yieldCallback);
   if (csoundPreCompile(csound) != 0) {
     csoundReset(csound);
     return;
   }
   csPerf = CreateCsoundPerformance(csound,
-				   currentPerformanceSettings.useThreads);
+                                   currentPerformanceSettings.useThreads);
   if (!csPerf) {
     csoundReset(csound);
     return;
@@ -482,7 +482,7 @@ void CsoundGUIMain::startPerformance()
   {
     vector<string>  args;
     currentPerformanceSettings.buildCommandLine(
-						args, currentGlobalSettings.forcePerformanceSettings);
+                                                args, currentGlobalSettings.forcePerformanceSettings);
     for (unsigned int i = 0 ; i < args.size(); i++)  {
       fprintf(stdout, "%s ", args[i].c_str());
     }
@@ -502,7 +502,7 @@ void CsoundGUIMain::startPerformance()
   }
   if (!csPerf->UsingThreads()) {
     csoundSetMessageCallback(csound,
-			     &CsoundGUIConsole::messageCallback_NoThread);
+                             &CsoundGUIConsole::messageCallback_NoThread);
     consoleWindow.flushMessages();
   }
   performing = true;
@@ -518,7 +518,7 @@ void CsoundGUIMain::editOrcFile()
   else  {
     string cmd;
     if (isEmptyString(currentPerformanceSettings.orcName) ||
-	isEmptyString(currentGlobalSettings.textEditorProgram))
+        isEmptyString(currentGlobalSettings.textEditorProgram))
       return;
     stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
     cmd = cmd.insert(0, "\"");
@@ -537,7 +537,7 @@ void CsoundGUIMain::editScoreFile()
   else  {
     string cmd;
     if (isEmptyString(currentPerformanceSettings.scoName) ||
-	isEmptyString(currentGlobalSettings.textEditorProgram))
+        isEmptyString(currentGlobalSettings.textEditorProgram))
       return;
     stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
     cmd = cmd.insert(0, "\"");
@@ -602,7 +602,7 @@ void CsoundGUIMain::setRealtimeCheckbox(int checked)
       if (performanceSettingsWindow)
         performanceSettingsWindow->performanceSettings.runRealtime = false;
       if (isRtAudioDevice(currentPerformanceSettings.outputFileName, true) &&
-	  isEmptyString(oldOutFilename))
+          isEmptyString(oldOutFilename))
         oldOutFilename = "test";
       outfileNameInput->value(oldOutFilename.c_str());
       currentPerformanceSettings.outputFileName = oldOutFilename;
@@ -712,7 +712,7 @@ void CsoundGUIMain::startListOpcodes()
   if (utility_listOpcodes)
     return;
   utility_listOpcodes = CreateUtility_ListOpcodes(&consoleWindow,
-						  currentUtilitySettings);
+                                                  currentUtilitySettings);
   if (utility_listOpcodes) {
     utilityState |= CSOUND5GUI_LISTOPCODES_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -738,7 +738,7 @@ void CsoundGUIMain::startCvanal()
   if (utility_cvanal)
     return;
   utility_cvanal = CreateUtility_Cvanal(&consoleWindow,
-					currentUtilitySettings);
+                                        currentUtilitySettings);
   if (utility_cvanal) {
     utilityState |= CSOUND5GUI_CVANAL_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -764,7 +764,7 @@ void CsoundGUIMain::startPvanal()
   if (utility_pvanal)
     return;
   utility_pvanal = CreateUtility_Pvanal(&consoleWindow,
-					currentUtilitySettings);
+                                        currentUtilitySettings);
   if (utility_pvanal) {
     utilityState |= CSOUND5GUI_PVANAL_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -790,7 +790,7 @@ void CsoundGUIMain::startHetro()
   if (utility_hetro)
     return;
   utility_hetro = CreateUtility_Hetro(&consoleWindow,
-				      currentUtilitySettings);
+                                      currentUtilitySettings);
   if (utility_hetro) {
     utilityState |= CSOUND5GUI_HETRO_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -816,7 +816,7 @@ void CsoundGUIMain::startLpanal()
   if (utility_lpanal)
     return;
   utility_lpanal = CreateUtility_Lpanal(&consoleWindow,
-					currentUtilitySettings);
+                                        currentUtilitySettings);
   if (utility_lpanal) {
     utilityState |= CSOUND5GUI_LPANAL_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -842,7 +842,7 @@ void CsoundGUIMain::startSndinfo()
   if (utility_sndinfo)
     return;
   utility_sndinfo = CreateUtility_Sndinfo(&consoleWindow,
-					  currentUtilitySettings);
+                                          currentUtilitySettings);
   if (utility_sndinfo) {
     utilityState |= CSOUND5GUI_SNDINFO_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -868,7 +868,7 @@ void CsoundGUIMain::startSrconv()
   if (utility_srconv)
     return;
   utility_srconv = CreateUtility_Srconv(&consoleWindow,
-					currentUtilitySettings);
+                                        currentUtilitySettings);
   if (utility_srconv) {
     utilityState |= CSOUND5GUI_SRCONV_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -894,7 +894,7 @@ void CsoundGUIMain::startDnoise()
   if (utility_dnoise)
     return;
   utility_dnoise = CreateUtility_Dnoise(&consoleWindow,
-					currentUtilitySettings);
+                                        currentUtilitySettings);
   if (utility_dnoise) {
     utilityState |= CSOUND5GUI_DNOISE_RUNNING;
     if (utilitiesWindow && utilitiesWindow->window->shown())
@@ -928,7 +928,7 @@ void CsoundGUIMain::openPerformanceSettingsWindow(int tab)
     if (performanceSettingsWindow) {
       utilityState |= CSOUND5GUI_PCFGWIN_OPEN;
       if (tab == 2) //Realtime Audio Tab
-	performanceSettingsWindow->tabs->value(performanceSettingsWindow->RTaudioTab);
+        performanceSettingsWindow->tabs->value(performanceSettingsWindow->RTaudioTab);
       performanceSettingsWindow->window->show();
     }
   }
@@ -939,10 +939,10 @@ void CsoundGUIMain::closePerformanceSettingsWindow()
   if (performanceSettingsWindow) {
     if (performanceSettingsWindow->status > 0)  {
       currentPerformanceSettings =
-	performanceSettingsWindow->performanceSettings;
+        performanceSettingsWindow->performanceSettings;
       if (currentPerformanceSettings.runRealtime)
-	currentPerformanceSettings.outputFileName =
-	  performanceSettingsWindow->rtAudioOutputDeviceInput->value();
+        currentPerformanceSettings.outputFileName =
+          performanceSettingsWindow->rtAudioOutputDeviceInput->value();
     }
     delete performanceSettingsWindow;
     performanceSettingsWindow = (CsoundPerformanceSettingsPanel*) 0;
@@ -1048,9 +1048,9 @@ void CsoundGUIMain::openOrcEditor(string file)
     if (orcEditorWindow) {
       utilityState |= CSOUND5GUI_ORCEDITORWIN_OPEN;
       orcEditorWindow->resize(currentGlobalSettings.orcEditorPosX,
-			      currentGlobalSettings.orcEditorPosY,
-			      currentGlobalSettings.orcEditorWidth,
-			      currentGlobalSettings.orcEditorHeight);
+                              currentGlobalSettings.orcEditorPosY,
+                              currentGlobalSettings.orcEditorWidth,
+                              currentGlobalSettings.orcEditorHeight);
       orcEditorWindow->parent = this;
       orcEditorWindow->show();
     }
@@ -1084,9 +1084,9 @@ void CsoundGUIMain::openScoEditor(string file)
   if (scoEditorWindow) {
     utilityState |= CSOUND5GUI_SCOEDITORWIN_OPEN;
     scoEditorWindow->resize(currentGlobalSettings.scoEditorPosX,
-			    currentGlobalSettings.scoEditorPosY,
-			    currentGlobalSettings.scoEditorWidth,
-			    currentGlobalSettings.scoEditorHeight);
+                            currentGlobalSettings.scoEditorPosY,
+                            currentGlobalSettings.scoEditorWidth,
+                            currentGlobalSettings.scoEditorHeight);
     scoEditorWindow->parent = this;
     scoEditorWindow->show();
   }
@@ -1124,9 +1124,9 @@ void CsoundGUIMain::checkUtilities()
 
   if ((utilityState
        & (CSOUND5GUI_LISTOPCODES_RUNNING | CSOUND5GUI_CVANAL_RUNNING
-	  | CSOUND5GUI_PVANAL_RUNNING | CSOUND5GUI_HETRO_RUNNING
-	  | CSOUND5GUI_LPANAL_RUNNING | CSOUND5GUI_SNDINFO_RUNNING
-	  | CSOUND5GUI_SRCONV_RUNNING | CSOUND5GUI_DNOISE_RUNNING)) != 0) {
+          | CSOUND5GUI_PVANAL_RUNNING | CSOUND5GUI_HETRO_RUNNING
+          | CSOUND5GUI_LPANAL_RUNNING | CSOUND5GUI_SNDINFO_RUNNING
+          | CSOUND5GUI_SRCONV_RUNNING | CSOUND5GUI_DNOISE_RUNNING)) != 0) {
     if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0)
       stopListOpcodes();
     if (utility_cvanal && utility_cvanal->GetStatus() != 0)
@@ -1181,14 +1181,14 @@ void CsoundGUIMain::pushOpenOrcButton()
 {
   CsoundGUIMain::browseFile(currentPerformanceSettings.orcName,
                             "Select orchestra or CSD file",
-                            CSOUND5GUI_FILETYPE_ORC_CSD, 
+                            CSOUND5GUI_FILETYPE_ORC_CSD,
                             false);
   orcNameInput->value(currentPerformanceSettings.orcName.c_str());
   if (orcEditorWindow) {
     if (orcEditorWindow->openFile(currentPerformanceSettings.orcName.c_str()) == 0)
       {
-	stripString(currentPerformanceSettings.orcName, orcNameInput->value());
-	return;
+        stripString(currentPerformanceSettings.orcName, orcNameInput->value());
+        return;
       }
   }
   closeScoEditor();
@@ -1198,11 +1198,11 @@ void CsoundGUIMain::pushOpenOrcButton()
     {
       tempScoName.replace(pos, 4, ".sco");
       if (FILE * file = fopen(tempScoName.c_str(), "r")) //Check if file exists
-	{
-	  fclose(file);
-	  currentPerformanceSettings.scoName = tempScoName;
-	  scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
-	}
+        {
+          fclose(file);
+          currentPerformanceSettings.scoName = tempScoName;
+          scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
+        }
     }
   updateGUIState_orcName();
 }
@@ -1217,8 +1217,8 @@ void CsoundGUIMain::pushOpenScoButton()
   if (scoEditorWindow) {
     if (scoEditorWindow->openFile(currentPerformanceSettings.scoName.c_str()) == 0)
       {
-	stripString(currentPerformanceSettings.scoName, scoreNameInput->value());
-	return;
+        stripString(currentPerformanceSettings.scoName, scoreNameInput->value());
+        return;
       }
     updateGUIState_scoName();
   }

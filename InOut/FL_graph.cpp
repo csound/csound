@@ -214,8 +214,8 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
       ST(menu)[m].text = (const char*) malloc(strlen(n->caption) + 1);
       strcpy((char*) ST(menu)[m].text, n->caption);
     }
-    
-    /* 
+
+    /*
       graph->curr = m;
       ST(choice)->value(m);
     */

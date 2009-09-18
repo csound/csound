@@ -228,11 +228,11 @@ namespace csound
     }
   }
 
-  void Soundfile::cosineGrain(double centerTimeSeconds, 
-                              double durationSeconds, 
-                              double frequencyHz, 
-                              double amplitude, 
-                              double phaseOffsetRadians, 
+  void Soundfile::cosineGrain(double centerTimeSeconds,
+                              double durationSeconds,
+                              double frequencyHz,
+                              double amplitude,
+                              double phaseOffsetRadians,
                               double pan,
                               bool synchronousPhase,
                               bool buffer)
@@ -251,7 +251,7 @@ namespace csound
     double leftGain = Conversions::leftPan(pan);
     double rightGain = Conversions::rightPan(pan);
     // The signal is a cosine sinusoid.
-    double framesPerSecond = double(getFramesPerSecond()); 
+    double framesPerSecond = double(getFramesPerSecond());
     double sinusoidRadiansPerFrame = Conversions::get2PI() * frequencyHz / framesPerSecond;
     double sinusoidCoefficient = 2.0 * std::cos(sinusoidRadiansPerFrame);
     // The initial frame.

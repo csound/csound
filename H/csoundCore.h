@@ -898,7 +898,7 @@ extern const uint32_t csPlayScoMask;
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                            int (*func)(CSOUND *, void *));
     void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
-    /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */ 
+    /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */
     void *(*FileOpen)(CSOUND *,
                       void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
@@ -973,7 +973,7 @@ extern const uint32_t csPlayScoMask;
     void *(*CreateBarrier)(unsigned int max);
     int (*DestroyBarrier)(void *);
     int (*WaitBarrier)(void *);
-    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *, 
+    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
                       const char *, int, int);
     int (*type2csfiletype)(int type, int encoding);
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);

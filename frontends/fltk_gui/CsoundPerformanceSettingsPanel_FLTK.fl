@@ -1,15 +1,15 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
-do_not_include_H_from_C 
-header_name {.hpp} 
+version 1.0107
+do_not_include_H_from_C
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include <vector>} {public
-} 
+}
 
 decl {\#include <string>} {public
-} 
+}
 
-decl {\#include "CsoundGUI.hpp"} {} 
+decl {\#include "CsoundGUI.hpp"} {}
 
 class CsoundPerformanceSettingsPanel {open
 } {
@@ -836,6 +836,6 @@ queryMidiDevices();
   decl {int getNumber(std::string module, std::vector<std::string> list)} {}
   decl {void querySoundDevices();} {}
   decl {void queryMidiDevices();} {}
-} 
+}
 
-decl {\#include "CsoundPerformanceSettingsPanel.cpp"} {} 
+decl {\#include "CsoundPerformanceSettingsPanel.cpp"} {}

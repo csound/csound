@@ -133,7 +133,7 @@ int tree_arg_list_count(TREE * root)
 static OPTXT * last_optxt(OPTXT *optxt)
 {
     OPTXT *current = optxt;
-    
+
     while(current->nxtop != NULL) {
       current = current->nxtop;
     }
@@ -318,7 +318,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
  * Create an Opcode (OPTXT) from the AST node given. Called from
  * create_udo and create_instrument.
  */
-OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip) 
+OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 {
     TEXT *tp;
     TREE *inargs, *outargs;
@@ -402,7 +402,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
         }
 
         /* update_lclcount(csound, ip, root->right); */
-        
+
         argcount = 0;
 
         /* OUTARGS */
@@ -418,12 +418,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
           } else {
             lgbuild(csound, arg);
           }
-          
+
         }
       }
       /* update_lclcount(csound, ip, root->left); */
 
-      
+
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
 
       {
@@ -477,7 +477,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
  * Create a UDO (INSTRTXT) from the AST node given. Called from
  * csound_orc_compile.
  */
-INSTRTXT *create_udo(CSOUND *csound, TREE *root) 
+INSTRTXT *create_udo(CSOUND *csound, TREE *root)
 {
     INSTRTXT *ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
     return ip;
@@ -563,7 +563,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
             /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
           }
           /* TODO - Implement 0dbfs constant */
-          /*else if (strcmp(s, "0dbfs") == 0) {*/ 
+          /*else if (strcmp(s, "0dbfs") == 0) {*/
           /* we have set this as reserved in rdorch.c */
           /*csound->tran_0dbfs = constval;
             }*/
@@ -1036,7 +1036,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                     p = p->right;
                   }
                 }
-                
+
                 break;
             case T_UDO:
                 /* csound->Message(csound, "UDO found\n"); */

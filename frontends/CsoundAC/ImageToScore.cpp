@@ -134,10 +134,10 @@ namespace csound
         * the vertical (y) dimension is pitch (MIDI key),
         * the value (brightness or v) of the pixel is loudness (MIDI velocity),
         * and the hue (color or h) of the pixel is instrument number.
-        * The translation algorithm is: 
+        * The translation algorithm is:
         * for each column of pixels,
-        * compare the value of the pixel in each row 
-        * to the value in the previous column 
+        * compare the value of the pixel in each row
+        * to the value in the previous column
         * and the value in the next column.
         * If the current value is greater than the previous value or some minimum value V,
         * begin an event for the pitch of that row;
@@ -220,8 +220,8 @@ namespace csound
                 }
                 // Insert starting events into the pending event list, in order of decreasing loudness,
                 // until the pending event list has no more than maximumCount events.
-                for (std::map<int, Event>::reverse_iterator startingEventsIterator = startingEvents.rbegin(); 
-                    startingEventsIterator != startingEvents.rend(); 
+                for (std::map<int, Event>::reverse_iterator startingEventsIterator = startingEvents.rbegin();
+                    startingEventsIterator != startingEvents.rend();
                     ++startingEventsIterator) {
                     if (pendingEvents.size() < maximumVoiceCount) {
                         int pendingEventIndex = startingEventsIterator->second.getKeyNumber();

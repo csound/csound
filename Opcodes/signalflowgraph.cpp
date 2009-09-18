@@ -57,10 +57,10 @@ struct Outlet : public OpcodeBase<Outlet>
   int init(CSOUND *csound)
   {
     std::string name = csound->strarg2name(csound,
-					   (char*) NULL,
-					   iName,
-					   (char *)"",
-					   (int) csound->GetInputArgSMask(this));
+                                           (char*) NULL,
+                                           iName,
+                                           (char *)"",
+                                           (int) csound->GetInputArgSMask(this));
     outlets[size_t(h.insdshead->p1)][name].push_back(this);
     return OK;
   }
@@ -97,10 +97,10 @@ struct Inlet : public OpcodeBase<Inlet>
   {
     // Get a pointer to the vector of outlets feeding this inlet.
     std::string sourceOutlet = csound->strarg2name(csound,
-						   (char*) NULL,
-						   iSourceOutlet,
-						   (char *)"",
-						   (int) csound->GetInputArgSMask(this));
+                                                   (char*) NULL,
+                                                   iSourceOutlet,
+                                                   (char *)"",
+                                                   (int) csound->GetInputArgSMask(this));
     sourceOutlets = &outlets[size_t(*iSourceInstrument)][sourceOutlet];
     ksmps = csound->GetKsmps(csound);
     return OK;
@@ -114,7 +114,7 @@ struct Inlet : public OpcodeBase<Inlet>
     for (size_t i = 0, n = sourceOutlets->size(); i < n; i++) {
       Outlet *sourceOutlet = (*sourceOutlets)[i];
       if (sourceOutlet->h.insdshead->actflg) {
-	*xOutput += *sourceOutlet->xInput;
+        *xOutput += *sourceOutlet->xInput;
       }
     }
     return OK;
@@ -130,9 +130,9 @@ struct Inlet : public OpcodeBase<Inlet>
     for (size_t i = 0, n = sourceOutlets->size(); i < n; i++) {
       Outlet *sourceOutlet = (*sourceOutlets)[i];
       if (sourceOutlet->h.insdshead->actflg) {
-	for (size_t j = 0; j < ksmps; j++) {
-	  xOutput[j] += sourceOutlet->xInput[j];
-	}
+        for (size_t j = 0; j < ksmps; j++) {
+          xOutput[j] += sourceOutlet->xInput[j];
+        }
       }
     }
     return OK;

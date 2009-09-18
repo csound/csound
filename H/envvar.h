@@ -74,38 +74,39 @@ extern "C" {
 
   /** Check if file name is valid, and copy with converting pathname delimiters */
   char *csoundConvertPathname(CSOUND *csound, const char *filename);
-  
+
   /**  Check if name is a full pathname for the platform we are running on. */
   int csoundIsNameFullpath(const char *name);
-  
-  /** Check if name is a relative pathname for this platform.  Bare 
+
+  /** Check if name is a relative pathname for this platform.  Bare
    *  filenames with no path information are not counted.
    */
   int csoundIsNameRelativePath(const char *name);
-  
+
   /** Check if name is a "leaf" (bare) filename for this platform. */
   int csoundIsNameJustFilename(const char *name);
-  
-  /** Properly concatenates the full or relative pathname in path1 with 
+
+  /** Properly concatenates the full or relative pathname in path1 with
    *  the relative pathname or filename in path2 according to the rules
    *  for the platform we are running on.  path1 is assumed to be
    *  a directory whether it ends with DIRSEP or not.  Relative paths must
    *  conform to the conventions for the current platform (begin with ':'
    *  on MacOS 9 and not begin with DIRSEP on others).
    */
-  char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path2);
-  
+  char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+                                               const char *path2);
+
   /** Converts a pathname to native format and returns just the part of
-   *  the path that specifies the directory.  Does not return the final 
+   *  the path that specifies the directory.  Does not return the final
    *  DIRSEP.  Returns an empty string if no path components occur before
-   *  the filename.  Returns NULL if unable to carry out the operation 
+   *  the filename.  Returns NULL if unable to carry out the operation
    *  for some reason.
    */
   char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path);
 
   /** Return just the final component of a full path */
   char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path);
-  
+
   /**
    * Search for input file 'filename'.
    * If the file name specifies full path (it begins with '.', the pathname
@@ -199,7 +200,7 @@ extern "C" {
    *
    * Same as csoundFileOpen() with two additional parameters describing the
    * type of file being opened and whether it is a temporary file.  This
-   * function replaces csoundFileOpen().  This additional information is 
+   * function replaces csoundFileOpen().  This additional information is
    * used as metadata to be passed to the host application's FileOpenCallback.
    *
    * int csFileType:

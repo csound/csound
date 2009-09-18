@@ -31,7 +31,7 @@
         #include "csPerfThread.hpp"
         #include "CsoundFile.hpp"
         #include "CppSound.hpp"
-	#include "Soundfile.hpp"
+        #include "Soundfile.hpp"
 %}
 
 %apply int { size_t };

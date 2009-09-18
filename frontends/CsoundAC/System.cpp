@@ -242,7 +242,7 @@ namespace csound
       vfprintf(stderr, format, valist);
     }
   }
-  
+
   void System::message(CSOUND *csound, int attribute, const char *format, va_list valist)
   {
     if (logfile) {

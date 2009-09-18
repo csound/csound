@@ -199,7 +199,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p)
       if (((mode & 8) && ip->offtim >= 0.0) ||
           ((mode & 4) && ip->p1 != p1) ||
           (allow_release && ip->relesing)) {
-	ip = nip;
+        ip = nip;
         continue;
       }
       if (!(mode & 3)) {

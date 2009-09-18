@@ -72,14 +72,14 @@ void style_parse(const char *text, char *style,int length)
   const char *temp;
 
 //  Style letters:
-// 
+//
 //       A - Plain
 //       B - Line comments
 //       C - Block comments
 //       D - Strings
 //       E - Directives
 //       F - Types
-//       G - Keywords  
+//       G - Keywords
 
   for (current = *style, col = 0, last = 0; length > 0; length --, text ++) {
     if (current == 'B' || current == 'F' || current == 'G')current = 'A';
@@ -207,7 +207,7 @@ void
 style_unfinished_cb(int, void*) {
 }
 
-// 'style_update()' - Update the style buffer... 
+// 'style_update()' - Update the style buffer...
 
 void style_update(int pos, int nInserted, int nDeleted,  int nRestyle, const char *deletedText, void *cbArg)
 {
@@ -421,7 +421,7 @@ void delete_cb(Fl_Widget*, void *v) {
 void find_cb(Fl_Widget* w, void* v) {
   CsoundEditorWindow* e = (CsoundEditorWindow*)v;
   const char *val;
-  
+
   val = fl_input("Search String:", e->search);
   if (val != NULL) {
    // User entered a string - go find it!
@@ -581,10 +581,10 @@ void quit_cb(Fl_Widget*, void *v)
 
 // Keywords::Keywords()
 // {
-//   
+//
 // };
 
-CsoundEditorWindow::CsoundEditorWindow(int w, int h, const char* t, const char *file, bool isOrc_) : 
+CsoundEditorWindow::CsoundEditorWindow(int w, int h, const char* t, const char *file, bool isOrc_) :
 Fl_Double_Window(w, h, t), isOrc(isOrc_)
 {
   Fl_Menu_Bar* m = new Fl_Menu_Bar(0, 0, 660, 30);

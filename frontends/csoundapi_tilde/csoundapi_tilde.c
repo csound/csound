@@ -172,7 +172,7 @@ int isCsoundFile(char *in)
 {
   int     len;
   int     i;
-  const char *extensions[6] = {".csd", ".orc", ".sco",".CSD",".ORC",".SCO"}; 
+  const char *extensions[6] = {".csd", ".orc", ".sco",".CSD",".ORC",".SCO"};
 
   len = strlen(in);
   for (i = 0; i < len; i++, in++) {
@@ -180,11 +180,11 @@ int isCsoundFile(char *in)
       break;
   }
   if (*in == '.') {
-    for(i=0; i<6;i++) 
+    for(i=0; i<6;i++)
       if (strcmp(in,extensions[i])==0);
     return 1;
   }
-  return 0; 
+  return 0;
 }
 
 static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
@@ -220,11 +220,11 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
       cmdl[i] = (char *) malloc(64);
       atom_string(&argv[i - 1], cmdl[i], 64);
       if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])) {
-#ifndef WIN32      
+#ifndef WIN32
         if(*cmdl[i] != '/')
 #else
         if(cmdl[i][1] != ':')
-#endif 
+#endif
         {
           char *tmp = cmdl[i];
           cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
@@ -268,7 +268,7 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
     }
     else
       post("csoundapi~ warning: could not compile");
-  }  
+  }
   x->ctlout = outlet_new(&x->x_obj, gensym("list"));
   x->bangout = outlet_new(&x->x_obj, gensym("bang"));
   return (void *) x;
@@ -281,7 +281,7 @@ static void csoundapi_destroy(t_csoundapi *x)
     destroy_channels(x->iochannels);
   csoundDestroy(x->csound);
   free(x->csmess);
-    
+
 }
 
 static void csoundapi_dsp(t_csoundapi *x, t_signal **sp)
@@ -438,11 +438,11 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     cmdl[i] = (char *) malloc(64);
     atom_string(&argv[i - 1], cmdl[i], 64);
     if (*cmdl[i] != '-' && isCsoundFile(cmdl[i])) {
-#ifndef WIN32      
+#ifndef WIN32
       if(*cmdl[i] != '/')
 #else
       if(cmdl[i][1] != ':')
-#endif 
+#endif
       {
         char *tmp = cmdl[i];
         cmdl[i] = (char *)  malloc(strlen(tmp) + strlen(x->curdir->s_name) + 2);
@@ -596,7 +596,7 @@ static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
   int i;
   char chn[64];
   int len = csoundGetStrVarMaxLen(p);
-  
+
   for(i=0; i < argc; i+=2){
     atom_string(&argv[i],chn,64);
     if(i+1 < argc){
@@ -624,7 +624,7 @@ static void message_callback(CSOUND *csound,
            int attr, const char *format,va_list valist){
   int i;
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
-  
+
   if(x->csmess != NULL)
     vsnprintf(x->csmess, MAXMESSTRING, format, valist);
   for(i=0;i<MAXMESSTRING;i++)

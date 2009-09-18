@@ -349,20 +349,20 @@ int CsoundFile::importFile(std::string filename)
       // Try to read an SXMLFile out of the MusicXML file.
       SXMLFile sxmlFile = xmlReader.read(filename.c_str());
       if (sxmlFile) {
-	// Get the document tree of XML elements from the SXMLFile.
-	sxmlElement = sxmlFile->elements();
+        // Get the document tree of XML elements from the SXMLFile.
+        sxmlElement = sxmlFile->elements();
       }
       if (sxmlElement) {
-	// Create a CsoundFileMidiWriter that is attached to this Score.
-	CsoundFileMidiWriter csoundFileMidiWriter(this);
-	// Create a midicontextvisitor, which calls into an abstract midiwriter interface,
-	// which is attached to our CsoundFileMidiWriter, which implements that midiwriter interface.
-	midicontextvisitor midicontextvisitor_(csoundFileMidiWriter.tpq, &csoundFileMidiWriter);
-	// Create an xml_tree_browser that is attached to our midicontextvisitor.
-	xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
-	// The xml_tree_browser will carry the midicontextvisitor to all the elements
-	// of the document tree, in the proper order, calling newNote as appropriate.
-	xmlTreeBrowser.browse(*sxmlElement);
+        // Create a CsoundFileMidiWriter that is attached to this Score.
+        CsoundFileMidiWriter csoundFileMidiWriter(this);
+        // Create a midicontextvisitor, which calls into an abstract midiwriter interface,
+        // which is attached to our CsoundFileMidiWriter, which implements that midiwriter interface.
+        midicontextvisitor midicontextvisitor_(csoundFileMidiWriter.tpq, &csoundFileMidiWriter);
+        // Create an xml_tree_browser that is attached to our midicontextvisitor.
+        xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
+        // The xml_tree_browser will carry the midicontextvisitor to all the elements
+        // of the document tree, in the proper order, calling newNote as appropriate.
+        xmlTreeBrowser.browse(*sxmlElement);
       }
     }
 #endif

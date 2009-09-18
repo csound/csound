@@ -103,10 +103,11 @@ static const unsigned char dataBytes[16] = {
 int set_scheduler_priority(CSOUND *csound, int priority)
 {
     struct sched_param p;
- 
+
     memset(&p, 0, sizeof(struct sched_param));
     if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
-      csound->Message(csound, "--scheduler: invalid priority value; the allowed range is:");
+      csound->Message(csound,
+                      "--scheduler: invalid priority value; the allowed range is:");
       csound->Message(csound,"  -20 to -1: set nice level");
       csound->Message(csound,"          0: normal scheduling, but lock memory");
       csound->Message(csound,"    1 to %d: SCHED_RR with the specified priority "
@@ -119,7 +120,8 @@ int set_scheduler_priority(CSOUND *csound, int priority)
       if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
         csound->Message(csound,"csound: cannot set scheduling policy to SCHED_RR");
       }
-      else   csound->Message(csound,"csound: setting scheduling policy to SCHED_RR\n");
+      else   csound->Message(csound,
+                             "csound: setting scheduling policy to SCHED_RR\n");
     }
     else {
       /* nice requested */
@@ -177,7 +179,8 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     }
 }
 
-static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
+                                     int16_t *outBuf, int *seed)
 {
     MYFLT tmp_f;
     int   tmp_i;
@@ -479,7 +482,8 @@ static void list_devices(CSOUND *csound)
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
-   /* name contains spaces at the beginning and the end. And line return at the end*/
+   /* name contains spaces at the beginning and the end.
+      And line return at the end*/
         csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
       }
     }
@@ -563,7 +567,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       n, m, err;
-   
+
 
     dev = (DEVPARAMS*) csound->rtRecord_userdata;
     if (dev->handle == NULL) {
@@ -610,7 +614,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int     n, err;
-    
+
     dev = (DEVPARAMS*) csound->rtPlay_userdata;
     if (dev->handle == NULL)
       return;
@@ -686,7 +690,8 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     memset(dev, 0, sizeof(alsaMidiInputDevice));
     err = snd_rawmidi_open(&(dev->dev), NULL, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
-      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI input device: '%s'"), s);
+      csound->ErrorMsg(csound,
+                       Str("ALSA: error opening MIDI input device: '%s'"), s);
       free(dev);
       return NULL;
     }
@@ -733,11 +738,11 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
                 olddev = newdev;
                 newdev = NULL;
               }
-	      else { /* Device couldn't be opened */
-		csound->Message(csound,
-				Str("ALSA midi: Error opening device: %s\n"),
-				name);
-	      }
+              else { /* Device couldn't be opened */
+                csound->Message(csound,
+                                Str("ALSA midi: Error opening device: %s\n"),
+                                name);
+              }
             }
           }
           if (snd_card_next(&card) < 0)
@@ -827,8 +832,8 @@ static int midi_in_close(CSOUND *csound, void *userData)
     dev = (alsaMidiInputDevice*) userData;
     while (dev != NULL) {
       if (dev->dev) {
-        ret = snd_rawmidi_close(dev->dev); 
-      }     
+        ret = snd_rawmidi_close(dev->dev);
+      }
       olddev = dev;
       dev = dev->next;
       free(olddev);
@@ -1085,9 +1090,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     if (priority == NULL)
       csound->Message(csound, "warning... could not create global var\n");
     minsched = -20;
-    maxsched = (int) sched_get_priority_max(SCHED_RR); 
-    csound->CreateConfigurationVariable(csound, "rtscheduler", priority, CSOUNDCFG_INTEGER, 0, &minsched, &maxsched,                      
-                   "RT scheduler priority, alsa module", NULL);
+    maxsched = (int) sched_get_priority_max(SCHED_RR);
+    csound->CreateConfigurationVariable(csound, "rtscheduler", priority,
+                                        CSOUNDCFG_INTEGER, 0, &minsched, &maxsched,
+                                        Str("RT scheduler priority, alsa module"),
+                                        NULL);
 
     /* nothing to do, report success */
     if (csound->oparms->msglevel & 0x400)
@@ -1107,10 +1114,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csCfgVariable_t *cfg;
     int priority;
     cfg = csound->QueryConfigurationVariable(csound, "rtscheduler");
-    priority = *(cfg->i.p);  
+    priority = *(cfg->i.p);
 
     if(priority != 0) set_scheduler_priority(csound, priority);
-  
+
     csound->DeleteConfigurationVariable(csound, "rtscheduler");
     csound->DestroyGlobalVariable(csound, "::priority");
 

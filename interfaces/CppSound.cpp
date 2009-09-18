@@ -1,5 +1,5 @@
 /*
- * C S O U N D   
+ * C S O U N D
  *
  * L I C E N S E
  *

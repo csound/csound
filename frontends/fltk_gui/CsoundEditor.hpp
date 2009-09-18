@@ -55,7 +55,7 @@ class Keywords
   public:
     Keywords();
     ~Keywords();
-    
+
   private:
     vector<string> opcodesAlpha;
     vector<int> opcodesAlphaIndex;
@@ -65,7 +65,7 @@ class Keywords
     vector<string> opcodesOutargs;
     vector<string> opcodesCategory;
     vector<syntaxCategory> opcodesSyntax;
-  
+
 };
 
 /*

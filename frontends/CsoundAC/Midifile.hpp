@@ -94,7 +94,7 @@ namespace csound
     int ticks;
     double time;
     MidiEvent();
-    MidiEvent(const MidiEvent &a); 
+    MidiEvent(const MidiEvent &a);
     virtual ~MidiEvent();
     MidiEvent &operator = (const MidiEvent &a);
     virtual void read(std::istream &stream, MidiFile &midiFile);
@@ -236,30 +236,30 @@ namespace csound
   };
 
   bool operator < (const MidiEvent &a, const MidiEvent &b);
-  
+
   struct MidiEventComparator
   {
     bool operator()(const MidiEvent &a, const MidiEvent &b)
     {
       if (a.ticks < b.ticks) {
-	return true;
+        return true;
       }
       if (a.size() <= 0 && b.size() <= 0) {
-	return false;
+        return false;
       }
       size_t n = std::min(a.size(), b.size());
       for (size_t i = 0; i < n; i++) {
-	if (a[i] < b[i]) {
-	  return true;
-	}
+        if (a[i] < b[i]) {
+          return true;
+        }
       }
       if (a.size() < b.size()) {
-	return true;
+        return true;
       }
       return false;
     }
   };
-  
+
 
 }
 #endif

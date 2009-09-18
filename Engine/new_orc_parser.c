@@ -78,7 +78,7 @@ void new_orc_parser(CSOUND *csound)
 
     verify_tree(csound, astTree);
     astTree = csound_orc_expand_expressions(csound, astTree);
-    
+
     if (PARSER_DEBUG) {
       csound->Message(csound, "AST - AFTER EXPANSION\n");
       print_tree(csound, astTree);

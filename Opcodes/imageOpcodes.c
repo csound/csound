@@ -141,7 +141,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 
     png_read_info(png_ptr, info_ptr);
     {
-      
+
       png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,
                    &color_type, NULL, NULL, NULL);
     }
@@ -272,9 +272,9 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     unsigned rowbytes;
     int i;
 
-    FILE *fp; 
+    FILE *fp;
     void *fd;
-    
+
     fd = csound->FileOpen2(csound, &fp, CSFILE_STD, filename, "wb",
                            "", CSFTYPE_IMAGE_PNG, 0);
     if (UNLIKELY(fd == NULL)) {

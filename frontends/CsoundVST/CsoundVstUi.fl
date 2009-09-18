@@ -1,6 +1,6 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
-header_name {.h} 
+version 1.0108
+header_name {.h}
 code_name {.cpp}
 Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
 } {
@@ -130,4 +130,4 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
       }
     }
   }
-} 
+}

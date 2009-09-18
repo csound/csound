@@ -62,7 +62,7 @@ typedef struct {
 #define P5G_RELSED_C    20
 #define P5G_FINGER_INDEX 32
 #define P5G_FINGER_MIDDLE 33
-#define P5G_FINGER_RING	 34
+#define P5G_FINGER_RING  34
 #define P5G_FINGER_PINKY 35
 #define P5G_FINGER_THUMB 36
 #define P5G_DELTA_X     37

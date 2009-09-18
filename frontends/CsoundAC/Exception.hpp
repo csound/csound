@@ -38,7 +38,7 @@ namespace csound
   {
     std::string message;
   public:
-    Exception(std::string message_) : 
+    Exception(std::string message_) :
       message(message_)
       {
       }

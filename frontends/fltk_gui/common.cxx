@@ -17,14 +17,14 @@ static char *strfree(char *val) {
 }
 
 // 'DYNAMICALLY' APPEND ONE STRING TO ANOTHER
-//    Returns newly allocated string, or NULL 
+//    Returns newly allocated string, or NULL
 //    if s && val == NULL.
 //    's' can be NULL; returns a strnew(val).
 //    'val' can be NULL; s is returned unmodified.
 //
 //    Usage:
-//	char *s = strnew("foo");	// s = "foo"
-//      s = strapp(s, "bar");		// s = "foobar"
+//      char *s = strnew("foo");        // s = "foo"
+//      s = strapp(s, "bar");           // s = "foobar"
 //
 static char *strapp(char *s, const char *val) {
     if ( ! val ) {
@@ -36,8 +36,8 @@ static char *strapp(char *s, const char *val) {
     char *news = new char[strlen(s)+strlen(val)+1];
     strcpy(news, s);
     strcat(news, val);
-    delete [] s;		// delete old string
-    return(news);		// return new copy
+    delete [] s;                // delete old string
+    return(news);               // return new copy
 }
 
 // APPEND A CHARACTER TO A STRING

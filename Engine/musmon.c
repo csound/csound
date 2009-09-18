@@ -1186,7 +1186,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
 int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
 {
     return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
-} 
+}
 
 /* called by csoundRewindScore() to reset performance to time zero */
 

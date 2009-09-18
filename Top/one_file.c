@@ -441,7 +441,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
-} 
+}
 
 static int createMIDI(CSOUND *csound, FILE *unf)
 {

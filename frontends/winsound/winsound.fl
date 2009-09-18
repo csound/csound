@@ -1,69 +1,69 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0106 
-header_name {.h} 
+version 1.0106
+header_name {.h}
 code_name {.cxx}
 decl {\#include <FL/Fl_Double_Window.H>} {public
-} 
+}
 
-decl {\#include <FL/Fl_File_Chooser.H>} {} 
+decl {\#include <FL/Fl_File_Chooser.H>} {}
 
 decl {\#include <FL/Fl_Text_Display.H>} {public
-} 
+}
 
 decl {int do_exit;} {public
-} 
+}
 
 decl {int do_perf, do_util;} {public
-} 
+}
 
 decl {int do_load;} {public
-} 
+}
 
 decl {Fl_Double_Window *ew;} {public
-} 
+}
 
 decl {Fl_Double_Window *xw;} {public
-} 
+}
 
 decl {Fl_Double_Window *uw;} {public
-} 
+}
 
 decl {Fl_Double_Window *textw;} {public
-} 
+}
 
 decl {Fl_Text_Buffer *text_buffer;} {public
-} 
+}
 
-decl {\#include <FL/Fl_Pixmap.H>} {} 
+decl {\#include <FL/Fl_Pixmap.H>} {}
 
 decl {\#include <FL/Fl_Preferences.H>} {public
-} 
+}
 
-decl {\#include "winsound.xpm"} {} 
+decl {\#include "winsound.xpm"} {}
 
 decl {\#include "csound.h"} {public
-} 
+}
 
 decl {void savetext(Fl_Text_Buffer*,int);} {public
-} 
+}
 
 decl {char *getopcodedir(void);} {public
-} 
+}
 
 decl {extern Fl_Preferences app;} {public
-} 
+}
 
 decl {extern Fl_Preferences prof;} {public
-} 
+}
 
 decl {extern Fl_Preferences prof_h,prof_l,prof_p,prof_c,prof_k,prof_n;} {public
-} 
+}
 
 decl {void cs_util_sndinfo(void);} {public
-} 
+}
 
 decl {void cs_util_opc(int full), cs_util_het(void), cs_util_lpc(void),cs_util_dnoise(void),cs_util_pinfo(void), cs_util_cvl(void), cs_util_pvc(void)} {public
-} 
+}
 
 Function {make_mainwindow()} {open
 } {
@@ -261,7 +261,7 @@ size_f->value(1);}
       code1 {icon->image(pixmap);}
     }
   }
-} 
+}
 
 Function {make_utils()} {open
 } {
@@ -400,7 +400,7 @@ else if (util_dnoise->value()) cs_util_dnoise();}
       xywh {130 260 55 25} color 1
     }
   }
-} 
+}
 
 Function {make_extras()} {open
 } {
@@ -515,7 +515,7 @@ prof.set("b",mb->value());prof.set("M",mM->value());prof.set("i",mi->value());}
       xywh {350 220 20 20}
     }
   }
-} 
+}
 
 Function {make_environ()} {open
 } {
@@ -583,7 +583,7 @@ ew->hide();}
       xywh {290 145 25 25} color 222
     }
   }
-} 
+}
 
 Function {make_info()} {open
 } {
@@ -611,7 +611,7 @@ Function {make_info()} {open
       xywh {205 40 50 25}
     }
   }
-} 
+}
 
 Function {make_anal()} {open
 } {
@@ -644,7 +644,7 @@ Function {make_anal()} {open
       xywh {330 35 25 25} color 5
     }
   }
-} 
+}
 
 Function {make_textwindow()} {open
 } {
@@ -679,7 +679,7 @@ Function {make_textwindow()} {open
       xywh {240 535 104 25}
     }
   }
-} 
+}
 
 Function {make_saver()} {open
 } {
@@ -706,7 +706,7 @@ Function {make_saver()} {open
       xywh {325 47 50 25} color 1
     }
   }
-} 
+}
 
 Function {make_hetanal()} {open
 } {
@@ -714,7 +714,7 @@ Function {make_hetanal()} {open
     label {Hetrodyne Analysis}
     callback {do_util = 0;} open
     xywh {540 387 360 380} type Double
-    code0 {int ct; prof_h.get("c",ct,0); 
+    code0 {int ct; prof_h.get("c",ct,0);
 het_ac->value(ct==0);het_c1->value(ct==1);het_c2->value(ct==2);het_c3->value(ct==3);het_c4->value(ct==4);} visible
   } {
     Fl_File_Input het_analin {
@@ -837,7 +837,7 @@ het_c3->value(0);}
       code0 {int t; prof_h.get("m",t,64); o->value(t);}
     }
   }
-} 
+}
 
 Function {make_lpcanal()} {open
 } {
@@ -845,7 +845,7 @@ Function {make_lpcanal()} {open
     label {LPC Analysis}
     callback {do_util = 0;} open
     xywh {613 447 410 320} type Double
-    code0 {int ct; prof_l.get("c",ct,1); 
+    code0 {int ct; prof_l.get("c",ct,1);
 lpc_c1->value(ct==1);lpc_c2->value(ct==2);lpc_c3->value(ct==3);lpc_c4->value(ct==4);} visible
   } {
     Fl_File_Input lpc_analin {
@@ -954,7 +954,7 @@ lpc_c3->value(0);}
       xywh {230 165 95 20} down_box DOWN_BOX deactivate
     }
   }
-} 
+}
 
 Function {make_pvanal()} {open
 } {
@@ -962,7 +962,7 @@ Function {make_pvanal()} {open
     label {Phase Vocoding Analysis}
     callback {do_util = 0;} open
     xywh {454 457 450 310} type Double
-    code0 {int ct; prof_p.get("c",ct,1); 
+    code0 {int ct; prof_p.get("c",ct,1);
 pvc_c1->value(ct==1);pvc_c2->value(ct==2);pvc_c3->value(ct==3);pvc_c4->value(ct==4);} visible
   } {
     Fl_File_Input pvc_analin {
@@ -1087,7 +1087,7 @@ pvc_H->value(0);}
       }
     }
   }
-} 
+}
 
 Function {make_cvlanal()} {open
 } {
@@ -1095,7 +1095,7 @@ Function {make_cvlanal()} {open
     label {Convolution Analysis}
     callback {do_util = 0;} open
     xywh {484 353 360 245} type Double
-    code0 {int ct; prof_c.get("c",ct,0); 
+    code0 {int ct; prof_c.get("c",ct,0);
 cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
   } {
     Fl_File_Input cvl_analin {
@@ -1188,7 +1188,7 @@ cvl_c3->value(0);}
       code0 {int t; prof_c.get("d",t,0); o->value(t);}
     }
   }
-} 
+}
 
 Function {make_pvlook()} {open
 } {
@@ -1243,7 +1243,7 @@ Function {make_pvlook()} {open
       code0 {int t; prof_k.get("i",t,0); o->value(t);}
     }
   }
-} 
+}
 
 Function {make_dnoise()} {open
 } {
@@ -1362,4 +1362,4 @@ Function {make_dnoise()} {open
       xywh {35 350 125 30} down_box DOWN_BOX
     }
   }
-} 
+}
