@@ -1372,13 +1372,13 @@ extern "C" {
       /* setup jmp for return after an exit() */
       if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
-        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+        csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
-          csoundMessage(csound, "Score finished in csoundPerformKsmps().\n");
+          csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
           return done;
         }
       } while (kperf(csound));
@@ -1392,7 +1392,7 @@ extern "C" {
       /* setup jmp for return after an exit() */
       if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
-        csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+        csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
@@ -1411,7 +1411,7 @@ extern "C" {
       /* Setup jmp for return after an exit(). */
       if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
-        csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
+        csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
@@ -1436,19 +1436,19 @@ extern "C" {
       /* setup jmp for return after an exit() */
       if ((returnValue = setjmp(csound->exitjmp))) {
 #ifndef MACOSX
-        csoundMessage(csound, "Early return from csoundPerform().\n");
+        csoundMessage(csound, Str("Early return from csoundPerform().\n"));
 #endif
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
       }
       do {
         do {
           if ((done = sensevents(csound))) {
-            csoundMessage(csound, "Score finished in csoundPerform().\n");
+            csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
             return done;
           }
         } while (kperf(csound));
       } while ((unsigned char) csound->performState == (unsigned char) 0);
-      csoundMessage(csound, "csoundPerform(): stopped.\n");
+      csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
       csound->performState = 0;
       return 0;
   }

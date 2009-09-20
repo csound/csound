@@ -369,12 +369,12 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
                                 p->XSTRCODE);
     IRfile.sr = 0;
     if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {
-      return csound->InitError(csound, "channel request %d illegal", channel);
+      return csound->InitError(csound, Str("channel request %d illegal"), channel);
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
     if (UNLIKELY((infd = csound->sndgetset(csound, &IRfile)) == NULL)) {
-      return csound->InitError(csound, "pconvolve: error while impulse file");
+      return csound->InitError(csound, Str("pconvolve: error while impulse file"));
     }
 
     if (UNLIKELY(IRfile.framesrem < 0)) {
@@ -392,8 +392,8 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (UNLIKELY(p->nchanls != p->OUTOCOUNT)) {
-      return csound->InitError(csound, "PCONVOLVE: number of output channels "
-                                       "not equal to input channels");
+      return csound->InitError(csound, Str("PCONVOLVE: number of output channels "
+                                           "not equal to input channels"));
     }
 
     if (UNLIKELY(IRfile.sr != csound->esr)) {
@@ -429,7 +429,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
          handles finding the right channel */
       if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
-        csound->Die(csound, "PCONVOLVE: less sound than expected!");
+        csound->Die(csound, Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
       scaleFac = csound->dbfs_to_float

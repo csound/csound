@@ -40,7 +40,7 @@
 
 void lpc_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, "usage: lpc_export lpc_file cstext-file\n");
+    csound->Message(csound, Str("usage: lpc_export lpc_file cstext-file\n"));
 }
 
 static int lpc_export(CSOUND *csound, int argc, char **argv)

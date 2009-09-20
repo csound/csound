@@ -323,7 +323,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
         else {
          csound->Message(csound, "%d: Looking for (%d) %s Found %.12s\n",
                                  i, (int32) MATLENLF, MATRIXLF, pp);
-         return csound->InitError(csound, "Not a valid matrix");
+         return csound->InitError(csound, Str("Not a valid matrix"));
        }
 #ifdef USING_CHAR
         csound->AuxAlloc(csound, len*len * sizeof(char), &p->aux_f);
@@ -346,7 +346,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
             p->f[wd] |= (1<<bt);
           }
           else {
-            csound->Message(csound, "(%d,%d) is out of range\n", i, j);
+            csound->Message(csound, Str("(%d,%d) is out of range\n"), i, j);
           }
 #endif
           while (*pp++ != '\n') ;

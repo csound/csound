@@ -107,11 +107,11 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     memset(&p, 0, sizeof(struct sched_param));
     if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
       csound->Message(csound,
-                      "--scheduler: invalid priority value; the allowed range is:");
-      csound->Message(csound,"  -20 to -1: set nice level");
-      csound->Message(csound,"          0: normal scheduling, but lock memory");
-      csound->Message(csound,"    1 to %d: SCHED_RR with the specified priority "
-                    "(DANGEROUS)", sched_get_priority_max(SCHED_RR));
+                      Str("--scheduler: invalid priority value; the allowed range is:"));
+      csound->Message(csound,Str("  -20 to -1: set nice level"));
+      csound->Message(csound,Str("          0: normal scheduling, but lock memory"));
+      csound->Message(csound,Str("    1 to %d: SCHED_RR with the specified priority "
+                                 "(DANGEROUS)"), sched_get_priority_max(SCHED_RR));
             return -1;
        }
     /* set scheduling policy and priority */
@@ -1088,7 +1088,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     csound->CreateGlobalVariable(csound, "::priority", sizeof(int));
     priority = (int *) (csound->QueryGlobalVariable(csound, "::priority"));
     if (priority == NULL)
-      csound->Message(csound, "warning... could not create global var\n");
+      csound->Message(csound, Str("warning... could not create global var\n"));
     minsched = -20;
     maxsched = (int) sched_get_priority_max(SCHED_RR);
     csound->CreateConfigurationVariable(csound, "rtscheduler", priority,
@@ -1098,8 +1098,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     /* nothing to do, report success */
     if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "ALSA real-time audio and MIDI module "
-                      "for Csound by Istvan Varga\n");
+      csound->Message(csound, Str("ALSA real-time audio and MIDI module "
+                                  "for Csound by Istvan Varga\n"));
 
     return 0;
 }
@@ -1129,7 +1129,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, "rtaudio: ALSA module enabled\n");
+      csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);
@@ -1144,7 +1144,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, "rtmidi: ALSA module enabled\n");
+      csound->Message(csound, Str("rtmidi: ALSA module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
@@ -1153,7 +1153,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      csound->Message(csound, "rtmidi: devfile module enabled\n");
+      csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
       csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);

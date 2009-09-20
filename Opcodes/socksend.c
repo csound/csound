@@ -64,15 +64,15 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 
     p->bsize = bsize = (int) *p->buffersize;
     if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
-      return csound->InitError(csound, "The buffersize must be <= %d samples "
-                               "to fit in a udp-packet.",
+      return csound->InitError(csound, Str("The buffersize must be <= %d samples "
+                                           "to fit in a udp-packet."),
                                (int) (MTU / sizeof(MYFLT)));
     }
     p->wp = 0;
 
     p->sock = socket(PF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -104,7 +104,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
                             sizeof(p->server_addr)) < 0)) {
-          return csound->PerfError(csound, "sendto failed");
+          return csound->PerfError(csound, Str("sendto failed"));
         }
         wp = 0;
       }
@@ -122,15 +122,15 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 
     p->bsize = bsize = (int) *p->buffersize;
     if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
-      return csound->InitError(csound, "The buffersize must be <= %d samples "
-                               "to fit in a udp-packet.",
+      return csound->InitError(csound, Str("The buffersize must be <= %d samples "
+                                           "to fit in a udp-packet."),
                                (int) (MTU / sizeof(MYFLT)));
     }
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -166,7 +166,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
                             sizeof(p->server_addr)) < 0)) {
-          return csound->PerfError(csound, "sendto failed");
+          return csound->PerfError(csound, Str("sendto failed"));
         }
         wp = 0;
       }
@@ -187,7 +187,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError(csound, Str("creating socket"));
     }
 
     /* create server address: where we want to connect to */
@@ -208,18 +208,18 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     if (UNLIKELY(bind
         (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
                  < 0)) {
-      return csound->InitError(csound, "bind failed");
+      return csound->InitError(csound, Str("bind failed"));
     }
 
     /* start the socket listening for new connections -- may wait */
     if (UNLIKELY(listen(p->sock, 5) < 0)) {
-      return csound->InitError(csound, "listen failed");
+      return csound->InitError(csound, Str("listen failed"));
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
 
     if (UNLIKELY(p->conn < 0)) {
-      return csound->InitError(csound, "accept failed");
+      return csound->InitError(csound, Str("accept failed"));
     }
     return OK;
 }
@@ -229,7 +229,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
     int     n = sizeof(MYFLT) * csound->ksmps;
 
     if (UNLIKELY(n != write(p->conn, p->asig, sizeof(MYFLT) * csound->ksmps))) {
-      return csound->PerfError(csound, "write to socket failed");
+      return csound->PerfError(csound, Str("write to socket failed"));
     }
     return OK;
 }

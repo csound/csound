@@ -331,7 +331,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
       else if (s[1]=='w') type = T_IDENT_GW;
       else if (s[1]=='S') type = T_IDENT_GS;
       else {
-        csound->Message(csound, "Unknown word type for %s on line %d\n", s, yyline);
+        csound->Message(csound, Str("Unknown word type for %s on line %d\n"), s, yyline);
         exit(1);
       }
     }
@@ -390,12 +390,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         S_incnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid input type for opcode %s", inm->name);
+        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;
       if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
-        synterr(csound, "too many input args for opcode %s", inm->name);
+        synterr(csound, Str("too many input args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
     }
@@ -410,7 +410,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       types++;                  /* no output args */
     while (*types) {
       if (UNLIKELY(i >= OPCODENUMOUTS_MAX)) {
-        synterr(csound, "too many output args for opcode %s", inm->name);
+        synterr(csound, Str("too many output args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
       switch (*types) {
@@ -429,7 +429,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         S_outcnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid output type for opcode %s", inm->name);
+        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;

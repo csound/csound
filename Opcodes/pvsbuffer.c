@@ -185,7 +185,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, "Invalid buffer handle");
+    return csound->PerfError(csound, Str("Invalid buffer handle"));
   }
 
 #define S(x)    sizeof(x)

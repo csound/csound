@@ -165,7 +165,7 @@ static inline void ungetorchar(CSOUND *csound, int c)
     if (LIKELY(ST(str)->unget_cnt < 128))
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
     else
-      csoundDie(csound, "ungetorchar(): buffer overflow");
+      csoundDie(csound, Str("ungetorchar(): buffer overflow"));
 }
 
 static int skiporccomment(CSOUND *csound)

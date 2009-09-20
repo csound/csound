@@ -43,7 +43,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     int     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
 #ifndef OLPC
     if (p->fin->sliding) {
