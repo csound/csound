@@ -198,7 +198,6 @@ int musmon(CSOUND *csound)
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
-
     if (LIKELY(csound->musmonGlobals == NULL))
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
     /* initialise search path cache */
@@ -484,7 +483,7 @@ int turnon(CSOUND *csound, TURNON *p)
       evt.p[1] = *p->insno;
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
-
+    evt.c.extra = NULL;
     return insert_score_event_at_sample(csound, &evt, csound->icurTime);
 }
 
@@ -886,7 +885,7 @@ int sensevents(CSOUND *csound)
         switch (e->opcod) {
         case 'w':
           if (!O->Beatmode)                   /* Not beatmode: read 'w' */
-            settempo(csound, e->p2orig);           /*   to init the tempo    */
+            settempo(csound, e->p2orig);      /*   to init the tempo    */
           continue;                           /*   for this section     */
         case 'q':
         case 'i':
@@ -1187,7 +1186,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
 int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
 {
     return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
-} 
+}
 
 /* called by csoundRewindScore() to reset performance to time zero */
 

@@ -36,7 +36,7 @@
 
 void lpc_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, "Usage: lpc_import cstext_file lpc_file\n");
+    csound->Message(csound, Str("Usage: lpc_import cstext_file lpc_file\n"));
 }
 
 static int lpc_import(CSOUND *csound, int argc, char **argv)

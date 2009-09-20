@@ -46,14 +46,12 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
     int nsmps = csound->ksmps;
     int i,j;
 
-    
     vbap_EIGHT_control(csound,p);
     for (i=0;i< EIGHT; i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
       }
-    
-   
+
     /* write audio to result audio streams weighted
        with gain factors*/
     invfloatn =  csound->onedksmps;
@@ -90,7 +88,7 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
     ANG_VEC atmp;
     int32 i,j, spreaddirnum;
     MYFLT tmp_gains[EIGHT],sum=FL(0.0);
-    
+
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
@@ -108,7 +106,7 @@ int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT *p)
 
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                   p->updated_gains, EIGHT, p->cart_dir);
-    
+
     /* Calculated gain factors of a spreaded virtual source*/
     if (*p->spread > FL(0.0)) {
       if (p->dim == 3) {
@@ -196,16 +194,16 @@ int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT *p)
     int     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
- 
+
     ls_table = get_ls_table(csound);
     p->dim       = (int) ls_table[0];   /* reading in loudspeaker info */
     p->ls_am     = (int) ls_table[1];
     p->ls_set_am = (int) ls_table[2];
-    ptr = &(ls_table[3]);  
+    ptr = &(ls_table[3]);
     if(!p->ls_set_am)
       return csound->InitError(csound, Str("vbap system NOT configured. \
            \nMissing vbaplsinit opcode in orchestra?"));
-   
+
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp==NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -244,7 +242,8 @@ int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT *p)
     return OK;
 }
 
-int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING *p) /* during note performance:   */
+int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING *p)
+/* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -323,7 +322,8 @@ int vbap_EIGHT_moving_control(CSOUND *csound, VBAP_EIGHT_MOVING *p)
       if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
         csound->Die(csound, Str("Missing fields in vbap8move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
-        if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0))
+        if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] -
+                               *p->fld[p->curr_fld]) - 180.0) < 1.0))
           csound->Message(csound,
                           Str("Warning: Ambiguous transition 180 degrees.\n"));
     }

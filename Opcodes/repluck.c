@@ -252,7 +252,7 @@ static int streson(CSOUND *csound, STRES *p)
     MYFLT *out = p->result;
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
-    MYFLT freq; 
+    MYFLT freq;
     double a, s, w, sample, tdelay, fracdelay;
     int delay, n, nsmps = csound->ksmps;
     int rp = p->rpointer, wp = p->wpointer;

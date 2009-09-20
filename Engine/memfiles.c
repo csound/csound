@@ -32,10 +32,9 @@ static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
     FILE *f;
-
     *allocp = NULL;
     f = fopen(filnam, "rb");
-    if (UNLIKELY(f == NULL))                              /* if cannot open the file */
+    if (UNLIKELY(f == NULL))                    /* if cannot open the file */
       return 1;                                 /*    return 1             */
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, filnam, csFileType, 0, 0);
@@ -45,7 +44,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     if (UNLIKELY(*len < 1L))
       goto err_return;
     *allocp = mmalloc(csound, (size_t) (*len)); /*   alloc as reqd     */
-    if (UNLIKELY(fread(*allocp, (size_t) 1,              /*   read file in      */
+    if (UNLIKELY(fread(*allocp, (size_t) 1,     /*   read file in      */
                        (size_t) (*len), f) != (size_t) (*len)))
       goto err_return;
     fclose(f);                                  /*   and close it      */
@@ -61,15 +60,30 @@ static int Load_File_(CSOUND *csound, const char *filnam,
 }
 
 /* Backwards-compatible wrapper for ldmemfile2().
-   Please use ldmemfile2() in all new code instead. */
+   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead. */
 MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 {
-        return ldmemfile2(csound, filnam, CSFTYPE_UNKNOWN);
+    return ldmemfile2withCB(csound, filnam, CSFTYPE_UNKNOWN, NULL);
 }
 
 /* Takes an additional parameter specifying the type of the file being opened.
-   The type constants are defined in the enumeration CSOUND_FILETYPES. */
+   The type constants are defined in the enumeration CSOUND_FILETYPES.
+   Use ldmemfile2() to load file without additional processing.  */
 MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
+{
+    return ldmemfile2withCB(csound, filnam, csFileType, NULL);
+}
+
+/* This version of ldmemfile2 allows you to specify a callback procedure
+   to process the file's data after it is loaded.  This method ensures that
+   your procedure is only called once even if the file is "loaded" multiple
+   times by several opcodes.  callback can be NULL.
+
+   Callback signature:     int myfunc(CSOUND* csound, MEMFIL* mfp)
+   Callback return value:  OK (0) or NOTOK (-1)
+ */
+MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
+                         int (*callback)(CSOUND*, MEMFIL*))
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
     char    *allocp;            /* if not fullpath, look in current directory,*/
@@ -90,7 +104,7 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
     else
       csound->memfiles = mfp;
     mfp->next = NULL;
-    strcpy(mfp->filename, filnam);
+    strcpy(mfp->filename, filnam); /* FIXME: will crash if filnam > 255 chars? */
 
     pathnam = csoundFindInputFile(csound, filnam, "SADIR");
     if (UNLIKELY(pathnam == NULL)) {
@@ -110,6 +124,14 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int csFileType)
     mfp->beginp = allocp;
     mfp->endp = allocp + len;
     mfp->length = len;
+    if (callback != NULL) {
+      if (callback(csound, mfp) != OK) {
+        csoundMessage(csound, Str("error processing file %s\n"), filnam);
+        mfree(csound, pathnam);
+        delete_memfile(csound, filnam);
+        return NULL;
+      }
+    }
     csoundMessage(csound, Str("file %s (%ld bytes) loaded into memory\n"),
                           pathnam, len);
     mfree(csound, pathnam);

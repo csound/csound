@@ -126,7 +126,7 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     float *fin = p->fin->frame.auxp;
 
     if (p->lastframe < p->fin->framecount) {
-      int32 framesize = p->fin->N + 2, i;
+      int32 framesize = p->fin->N+2, i;
       MYFLT scale = csound->e0dbfs;
       for(i=0;i < framesize; i+=2) {
         fout[i] = fin[i]/scale;
@@ -269,7 +269,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -291,7 +291,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
             p->freez.size < sizeof(MYFLT) * (N + 2) * nsmps)
           csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * nsmps, &p->freez);
     }
-    else 
+    else
 #endif
       {
         if (p->fout->frame.auxp == NULL ||
@@ -314,7 +314,7 @@ static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     int i, n, k, nsmps = csound->ksmps;
     int NB = p->fin->NB;
     MYFLT freeza = *p->kfra, freezf = *p->kfrf;
-    
+
     for (n=0, k=nsmps-1; n<nsmps; n++, k=(k+1)%nsmps) {
       CMPLX *fz = (CMPLX*)p->freez.auxp;
       CMPLX *fo = (CMPLX*)p->fout->frame.auxp + n*NB;
@@ -380,7 +380,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     if (p->fout->overlap<csound->ksmps || p->fout->overlap<=10) {
       CMPLX *bframe;
       int NB = 1+N/2, n;
-      return csound->InitError(csound, "pvsosc does not work while sliding");
+      return csound->InitError(csound, Str("pvsosc does not work while sliding"));
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
@@ -525,7 +525,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
         *p->kfreq = (MYFLT)fin[pos].im;
       }
     }
-    else 
+    else
 #endif
       {
         float   *fin;
@@ -582,7 +582,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 #ifndef OLPC
     p->fout->NB = (N/2)+1;
     p->fout->sliding = p->fin->sliding;
@@ -627,7 +627,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 
     ffa = (double) *p->kfra;
     ffr = (double) *p->kfrf;
- 
+
 
     framesize = p->fin->N + 2;
 
@@ -703,7 +703,7 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
     int32    N = p->fa->N;
 
     if (UNLIKELY(p->fa == p->fout || p->fb == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 #ifndef OLPC
     p->fout->sliding = 0;
     if (p->fa->sliding) {
@@ -789,7 +789,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
     if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
                  (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvsfilter: signal format "
@@ -882,7 +882,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 #ifndef OLPC
     p->fout->NB = p->fin->NB;
     p->fout->sliding = p->fin->sliding;
@@ -892,7 +892,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
       csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT) * (N + 2),
                        &p->fout->frame);
     }
-    else 
+    else
 #endif
       {
         if (p->fout->frame.auxp == NULL ||
@@ -937,13 +937,13 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
         if (XINARG2) {
           pscal = FABS(p->kscal[n]);
         }
-        if (keepform) 
+        if (keepform)
           for (i = 1; i < NB-1; i++) {
             max = max < fin[i].re ? fin[i].re : max;
           }
 
         for (i = 1; i < NB-1; i++) {
-          if (keepform == 0 || keepform == 1 || !max) 
+          if (keepform == 0 || keepform == 1 || !max)
             fout[i].re = fin[i].re;
           else
             fout[i].re = fin[i].re * (fin[i].re / max);
@@ -974,7 +974,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
 
-        int newchan = ((int) (chan * pscal)) << 1;
+        int newchan;
+        newchan  = ((int) ((chan * pscal) + 0.5)) << 1;
 
         if (newchan < N && newchan > 0) {
           fout[newchan] += keepform ?
@@ -987,7 +988,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       for (i = 2; i < N; i += 2) {
         if (fout[i + 1] == -1.0f)
-          fout[i] = 0.0f;
+        fout[i] = 0.0f;
         else
           fout[i] *= g;
       }
@@ -1006,7 +1007,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     int    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 #ifndef OLPC
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
@@ -1014,7 +1015,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
         csound->AuxAlloc(csound, csound->ksmps*(N+2)*sizeof(MYFLT),&p->fout->frame);
       else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
     }
-    else 
+    else
 #endif
       {
         if (p->fout->frame.auxp == NULL ||
@@ -1146,10 +1147,10 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
     int     olap = p->fin->overlap;
     int     delayframes, framesize = N + 2;
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "Unsafe to have same fsig as in and out");
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 #ifndef OLPC
     if (p->fin->sliding) {
-      csound->InitError(csound, "pvsblur does not work sliding yet");
+      csound->InitError(csound, Str("pvsblur does not work sliding yet"));
       delayframes = (int) (FL(0.5) + *p->maxdel * csound->esr);
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
@@ -1177,13 +1178,13 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
                            &p->delframes);
       }
     delay = (float *) p->delframes.auxp;
-    
+
     for (j = 0; j < framesize * delayframes; j += framesize)
       for (i = 0; i < N + 2; i += 2) {
         delay[i + j] = 0.0f;
         delay[i + j + 1] = i * csound->esr / N;
       }
-    
+
     p->fout->N = N;
     p->fout->overlap = olap;
     p->fout->winsize = p->fin->winsize;
@@ -1312,7 +1313,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
                                  &p->fout->frame);
       p->fout->sliding = 1;
     }
-    else 
+    else
 #endif
     {
       if (p->fout->frame.auxp == NULL ||
@@ -1391,7 +1392,7 @@ static int pvstencil(CSOUND *csound, PVSTENCIL *p)
               fout[i] = fin[i];
             else
               fout[i] = fin[i] * g;
-            
+
             fout[i + 1] = fin[i + 1];
           }
           p->fout->framecount = p->lastframe = p->fin->framecount;

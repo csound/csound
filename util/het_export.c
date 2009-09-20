@@ -36,7 +36,7 @@
 
 void het_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, "Usage: het_export het_file cstext_file\n");
+    csound->Message(csound, Str("Usage: het_export het_file cstext_file\n"));
 }
 
 static int het_export(CSOUND *csound, int argc, char **argv)
@@ -64,8 +64,7 @@ static int het_export(CSOUND *csound, int argc, char **argv)
     adp = (int16 *) inf->beginp;
     endata = (int16 *) inf->endp;
     cc = 0;
-    
-    
+
     for (; adp<endata; adp++) {
       if (*adp == END) fputc('\n',outf), cc = 0;
       else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;

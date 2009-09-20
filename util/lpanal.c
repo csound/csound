@@ -590,7 +590,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
       /* Analyze current frame */
 #ifdef TRACE_POLES
-      csound->Message(csound, "Starting new frame...\n");
+      csound->Message
+        (csound, Str("Starting new frame...\n"));
 #endif
       counter++;
       alpol(csound, &lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
@@ -839,7 +840,7 @@ static void gauss(CSOUND *csound, LPC* thislp,
         }
       }
       if (amax < 1.0e-20) {
-        csound->Message(csound,"Row %d or %d have maximum of %g\n",
+        csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
                         i, thislp->poleCount, amax);
         csound->Die(csound, Str("gauss: ill-conditioned"));
       }

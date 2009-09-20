@@ -76,16 +76,17 @@ INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
-INCLUDE		"#include"
+INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
+CONT            \\[[ \t]*\n
 %x incl
 %x macro
 %x umacro
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-"\\\n"          { yyline++; }
+{CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
 "\n"            { yyline++; return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }

@@ -1,4 +1,4 @@
-/*
+*
   rtpulse.c:
 
   Copyright (C) 2008 Victor Lazzarini
@@ -44,7 +44,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   int siz = 64;
 
   if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "PulseAudio client RT IO module for Csound"
+    csound->Message(csound, Str("PulseAudio client RT IO module for Csound")
                               "by Victor Lazzarini\n");
 
   if (csound->CreateGlobalVariable(csound, "_pulse_globals",
@@ -134,7 +134,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                              ) ;
 
   if(pulse->ps){
-    csound->Message(csound, "pulseaudio output open\n");
+    csound->Message(csound, Str("pulseaudio output open\n"));
      return 0;
   }
     else {
@@ -142,7 +142,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                       pa_strerror(pulserror));
      return -1;
     }
- 
+
 }
 
 static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
@@ -157,7 +157,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
   if(pa_simple_write(pulse->ps, buf, bufsiz*sizeof(float), &pulserror) < 0)
     csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                      pa_strerror(pulserror));
-  
+
 }
 
 
@@ -243,7 +243,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
     buf = pulse->buf;
 
     if(pa_simple_read(pulse->ps, buf, nbytes, &pulserror) < 0){
-      csound->ErrorMsg(csound,"Pulse audio module error: %s\n",
+      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -251,7 +251,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes){
       for(i=0;i<bufsiz;i++) inbuf[i] = buf[i];
       return nbytes;
     }
-    
+
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)

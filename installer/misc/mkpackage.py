@@ -59,6 +59,9 @@ buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
 buildOpts += ['buildJavaWrapper=1', 'pythonVersion=%s' % pyVersion]
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
 buildOpts += ['buildCsoundVST=0', 'buildLoris=0', 'buildStkOpcodes=0']
+buildOpts += ['useJack=1', 'usePortMIDI=1', 'useALSA=1', 'useOSC=1']
+buildOpts += ['useUDP=1', 'buildNewParser=1', 'useGettext=1'] 
+buildOpts += ['includeMP3=1', 'includeWii=1', 'includeP5Glove=1'] 
 buildOpts += ['buildCsound5GUI=0', 'prefix=%s' % instPrefix]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h']
@@ -69,7 +72,8 @@ headerFiles += ['H/version.h']
 headerFiles += ['interfaces/CppSound.hpp', 'interfaces/filebuilding.h']
 headerFiles += ['interfaces/CsoundFile.hpp']
 
-utils1 = ['csound', 'csound5gui', 'winsound', 'cstclsh', 'cswish',
+## removed 'csound5gui',
+utils1 = ['csound', 'winsound', 'cstclsh', 'cswish',
           'atsa', 'cvanal', 'dnoise', 'envext', 'extractor',
           'het_export', 'het_import', 'hetro', 'lpanal',
           'lpc_export', 'lpc_import', 'mixer', 'pvanal',
@@ -117,7 +121,8 @@ def makeFrontEnd(utilName, is64bit):
     if is64bit != 0 and utilName != 'CsoundVST':
         precisionSuffix = '64'
     fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, precisionSuffix)
-    if utilName in ['csound', 'csound5gui', 'CsoundVST', 'winsound',
+## Removed 'csound5gui', 
+    if utilName in ['csound', 'CsoundVST', 'winsound',
                     'cstclsh', 'cswish', 'pvlook']:
         cmd = '"%s/%s%s"' % (binDir2, utilName, precisionSuffix)
     else:
@@ -209,13 +214,13 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'useGettext=1',
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
                'buildLoris=1', 'buildStkOpcodes=1', 'buildWinsound=1',
-               'buildCsound5GUI=1', 'buildUtilities=1'],
+               'buildCsound5GUI=0', 'buildUtilities=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'useGettext=1',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'useGettext=1',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
                'buildCsoundVST=0', 'buildLoris=1', 'buildStkOpcodes=1',
-               'buildWinsound=1', 'buildCsound5GUI=1', 'buildUtilities=1']]
+               'buildWinsound=1', 'buildCsound5GUI=0', 'buildUtilities=1']]
 
 for i in range(4):
     cleanup()
@@ -248,7 +253,8 @@ for i in range(4):
         runCmd(['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
         installFile('csoundapi~.pd_linux', pdDir)
         # executables
-        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish', 'pvlook']:
+## removed 'csound5gui',
+        for j in ['winsound', 'cstclsh', 'cswish', 'pvlook']:
             installXFile('--strip-unneeded', j, binDir2)
         # TclCsound
         installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
@@ -274,7 +280,8 @@ for i in range(4):
             installXFile('--strip-unneeded', j, binDir)
         # executables
         installXFile('--strip-unneeded', 'CsoundVST', binDir2)
-        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish', 'pvlook']:
+## removed 'csound5gui', 
+        for j in ['winsound', 'cstclsh', 'cswish', 'pvlook']:
             os.rename(j, j + '64')
             installXFile('--strip-unneeded', j + '64', binDir2)
         # TclCsound

@@ -134,7 +134,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     fco     = (double)*fcoptr;
     res     = (double)*resptr;
 
-    if ((p->rezcod==0) && (p->fcocod==0)) {   /* Only need to calculate once */
+  /* Only need to calculate once */
+    if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       double fcon;
       fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
@@ -223,7 +224,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
     if (*p->mode == FL(0.0)) {    /* Low Pass */
-      if ((p->rezcod==0) && (p->fcocod==0)) {/* Only need to calculate once */
+      if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {/* Only need to calculate once */
         double c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
         double rez2 = rez/(1.0 + exp(fco/11000.0));
         double b;
@@ -263,7 +264,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     }
     else { /* High Pass Rezzy */
       double c=0.0, rez2=0.0;
-      if (p->fcocod==0 && p->rezcod==0) {/* Only need to calculate once */
+      if (UNLIKELY(p->fcocod==0 && p->rezcod==0)) {/* Only need to calculate once */
         double b;
         c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
         rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
@@ -366,11 +367,11 @@ static int vcoset(CSOUND *csound, VCO *p)
     MYFLT ndsave;
 
     ndsave = (MYFLT) ndel;
-    if ((ftp = csound->FTFind(csound, p->sine)) == NULL)
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->sine)) == NULL))
       return NOTOK;
 
     p->ftp = ftp;
-    if (*p->iphs >= FL(0.0))
+    if (LIKELY(*p->iphs >= FL(0.0)))
       p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
     /* Does it need this? */
     else {
@@ -428,9 +429,9 @@ static int vco(CSOUND *csound, VCO *p)
     leaky = p->leaky;
 
     ftp = p->ftp;
-    if (buf==NULL || ftp==NULL) goto err1;            /* RWD fix */
+    if (UNLIKELY(buf==NULL || ftp==NULL)) goto err1;            /* RWD fix */
     maxd = (uint32) (*p->maxd * csound->esr);
-    if (maxd == 0) maxd = 1;    /* Degenerate case */
+    if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     /* End of VDelay insert */
 
@@ -443,7 +444,7 @@ static int vco(CSOUND *csound, VCO *p)
     fqc = *cpsp;
     rtfqc = SQRT(fqc);
     knh = (int)(csound->esr*p->nyq/fqc);
-    if ((n = (int)knh) <= 0) {
+    if (UNLIKELY((n = (int)knh) <= 0)) {
       csound->Message(csound, "knh=%x nyq=%f fqc=%f\n", knh, p->nyq, fqc);
                                 /* Line apparently missing here */
       csound->Message(csound, Str("vco knh (%d) <= 0; taken as 1\n"), n);
@@ -1038,7 +1039,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
 {
     int32 n, nsmps = csound->ksmps;
     MYFLT *out, *in;
-    MYFLT x;
+    double x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
     double fco, res, dist, asym;
     double y = p->y, y1 = p->y1, y2 = p->y2;
@@ -1083,7 +1084,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
         q  = q1*fco1*fco1*0.0005;
         fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
       }
-      x  = in[n];
+      x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
       y1  = y1 + ih*((x - y1)*fc - fdbk);
       d  = -0.1*y*20.0;

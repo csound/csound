@@ -322,7 +322,7 @@ static int Xsynthset(CSOUND *csound, CON *p)
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
       csound->AuxAlloc(csound, bufsize, &p->mem);
-    else 
+    else
       memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
 
     b = (MYFLT*)p->mem.auxp;

@@ -75,6 +75,7 @@ static int space(CSOUND *csound, SPACE *p)
     FUNC    *ftp;
     int32    indx, length, halflen;
     MYFLT   v1, v2, fract, ndx;
+    int nsmps = csound->ksmps;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -128,13 +129,13 @@ static int space(CSOUND *csound, SPACE *p)
     distr=(FL(1.0) / distance);
     distrsq = FL(1.0)/SQRT(distance);
 
-    xndx = (xndx+1)*FL(0.5);
-    yndx = (yndx+1)*FL(0.5);
+    xndx = (xndx+FL(1.0))*FL(0.5);
+    yndx = (yndx+FL(1.0))*FL(0.5);
 
     ch2 = SIN(half_pi * xndx) * SIN(half_pi * yndx) * sqrt2;
     ch4 = SIN(half_pi * xndx) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
-    ch1 = SIN(half_pi * (FL(1.0) - xndx)) * SIN(half_pi * yndx) * sqrt2;
-    ch3 = SIN(half_pi * (FL(1.0) - xndx)) * SIN(half_pi * (FL(1.0) - yndx)) * sqrt2;
+    ch1 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * yndx) * sqrt2;
+    ch3 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
 
     r1 = p->r1;
     r2 = p->r2;
@@ -145,7 +146,7 @@ static int space(CSOUND *csound, SPACE *p)
     rrev3 = p->rrev3;
     rrev4 = p->rrev4;
     sigp = p->asig;
-    for (n=0; n<csound->ksmps; n++) {
+    for (n=0; n<nsmps; n++) {
       direct = sigp[n] * distr;
       torev = sigp[n] * distrsq * *p->reverbamount;
       globalrev = torev * distr;
@@ -199,10 +200,10 @@ static int spdistset(CSOUND *csound, SPDIST *p)
 
 static int spdist(CSOUND *csound, SPDIST *p)
 {
-    MYFLT *r;
-    MYFLT distance, xndx, yndx;
-    FUNC *ftp;
-    int32        indx, length, halflen;
+    MYFLT      *r;
+    MYFLT       distance, xndx, yndx;
+    FUNC       *ftp;
+    int32       indx, length, halflen;
     MYFLT       v1, v2, fract, ndx;
 
     r = p->r;
@@ -225,12 +226,12 @@ static int spdist(CSOUND *csound, SPDIST *p)
         fract = FL(0.0);
       }
 
-      v1 = *(ftp->ftable + (indx*2));
-      v2 = *(ftp->ftable + (indx*2) + 2);
+      v1 = *(ftp->ftable + (indx+indx));
+      v2 = *(ftp->ftable + (indx+indx) + 2);
       xndx = v1 + (v2 - v1) * fract;
 
-      v1 = *(ftp->ftable + (indx*2) + 1);
-      v2 = *(ftp->ftable + (indx*2) + 3);
+      v1 = *(ftp->ftable + (indx+indx) + 1);
+      v2 = *(ftp->ftable + (indx+indx) + 3);
       yndx = v1 + (v2 - v1) * fract;
     }
     else { /* get xy vals from input arguments */

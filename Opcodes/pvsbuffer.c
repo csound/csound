@@ -156,7 +156,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       end /= (sr/N);
       strt = (int)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
       end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
-      frames = handle->frames;
+      frames = handle->frames-1;
       pos = *p->ktime*(sr/overlap) - 1;
 
       while(pos >= frames) pos -= frames;
@@ -185,7 +185,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, "Invalid buffer handle");
+    return csound->PerfError(csound, Str("Invalid buffer handle"));
   }
 
 #define S(x)    sizeof(x)

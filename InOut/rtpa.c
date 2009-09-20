@@ -613,7 +613,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
                                 (double) parm->sampleRate,
                                 (unsigned long) parm->bufSamp_SW,
                                 (csound->dither_output?
-                                 paNoFlag:paDitherOff), 
+                                 paNoFlag:paDitherOff),
                                 NULL, NULL);
     }
     else {
@@ -779,7 +779,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "PORTAUDIO") == 0 || strcmp(drv, "PA") == 0 ||
           strcmp(drv, "PA_BL") == 0 || strcmp(drv, "PA_CB") == 0))
       return 0;
-    csound->Message(csound, "rtaudio: PortAudio module enabled ... ");
+    csound->Message(csound, Str("rtaudio: PortAudio module enabled ... "));
     /* set function pointers */
 #ifdef LINUX
     if (strcmp(drv, "PA_CB") != 0)
@@ -787,7 +787,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (strcmp(drv, "PA_BL") == 0)
 #endif
     {
-      csound->Message(csound, "using blocking interface\n");
+      csound->Message(csound, Str("using blocking interface\n"));
       csound->SetPlayopenCallback(csound, playopen_blocking);
       csound->SetRecopenCallback(csound, recopen_blocking);
       csound->SetRtplayCallback(csound, rtplay_blocking);
@@ -795,7 +795,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtcloseCallback(csound, rtclose_blocking);
     }
     else {
-      csound->Message(csound, "using callback interface\n");
+      csound->Message(csound, Str("using callback interface\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);

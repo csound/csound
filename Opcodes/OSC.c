@@ -555,7 +555,7 @@ static int OSC_deinit(CSOUND *csound, OSCINIT *p)
     lo_server_thread_stop(ports[n].thread);
     lo_server_thread_free(ports[n].thread);
     ports[n].thread =  NULL;
-    csound->Message(csound, "OSC deinitiatised\n");
+    csound->Message(csound, Str("OSC deinitiatised\n"));
     return OK;
 }
 #endif
@@ -580,7 +580,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
-    csound->Message(csound, "OSC listener #%d started on port %s\n", n, buff);
+    csound->Message(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
     *(p->ihandle) = (MYFLT) n;
 #ifdef BETA
     csound->RegisterDeinitCallback(csound, p,
@@ -643,10 +643,10 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
     if (UNLIKELY(n < 1 || n > 28))
-      return csound->InitError(csound, "invalid number of arguments");
+      return csound->InitError(csound, Str("invalid number of arguments"));
     if (UNLIKELY((int) strlen((char*) p->type) != n))
       return csound->InitError(csound,
-                               "argument list inconsistent with format string");
+                               Str("argument list inconsistent with format string"));
     strcpy(p->saved_types, (char*) p->type);
     for (i = 0; i < n; i++) {
       const char *s;
@@ -660,16 +660,16 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'h':
       case 'i':
         if (UNLIKELY(*s != 'k'))
-          return csound->InitError(csound, "argument list inconsistent "
-                                           "with format string");
+          return csound->InitError(csound, Str("argument list inconsistent "
+                                   "with format string"));
         break;
       case 's':
         if (UNLIKELY(*s != 'S'))
-          return csound->InitError(csound, "argument list inconsistent "
-                                           "with format string");
+          return csound->InitError(csound, Str("argument list inconsistent "
+                                               "with format string"));
         break;
       default:
-        return csound->InitError(csound, "invalid type");
+        return csound->InitError(csound, Str("invalid type"));
       }
     }
     csound->LockMutex(p->port->mutex_);

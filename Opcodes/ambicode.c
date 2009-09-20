@@ -332,7 +332,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
               p->o[i] = 0.0;
               p->p[i] = 0.0;
               p->q[i] = 0.0;
-            } 
+            }
           }
           break;
         }
@@ -378,7 +378,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
               p->o[i] = 0.0;
               p->p[i] = 0.0;
               p->q[i] = 0.0;
-            } 
+            }
           }
           break;
         }
@@ -426,7 +426,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
             p->o[i] = 0.0;
             p->p[i] = 0.0;
             p->q[i] = 0.0;
-          } 
+          }
         }
         break;
       }
@@ -476,7 +476,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
               p->o[i] = 0.0;
               p->p[i] = 0.0;
               p->q[i] = 0.0;
-            } 
+            }
           }
           break;
         }
@@ -526,7 +526,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
               p->o[i] = 0.0;
               p->p[i] = 0.0;
               p->q[i] = 0.0;
-            } 
+            }
           }
          break;
         }
@@ -566,13 +566,13 @@ static int iambideco(CSOUND *csound, AMBID *p)
             p->o[i] = 0.0;
             p->p[i] = 0.0;
             p->q[i] = 0.0;
-          } 
+          }
         }
         break;
       }
 
       default:
-          return csound->InitError(csound, "Not supported setup number!");
+        return csound->InitError(csound, Str("Not supported setup number!"));
     }
     return OK;
 }
@@ -674,10 +674,10 @@ static int aambideco(CSOUND *csound, AMBID *p)
         for (i = 0; i < p->OUTOCOUNT; i++) {
           /* calculate output for every used loudspeaker */
           *rsltp[i]++ = *inptp_w * p->w[i] + *inptp_x * p->x[i] +
-                        *inptp_y * p->y[i] + *inptp_z * p->z[i] + 
+                        *inptp_y * p->y[i] + *inptp_z * p->z[i] +
                         *inptp_r * p->r[i] + *inptp_s * p->s[i] +
                         *inptp_t * p->t[i] + *inptp_u * p->u[i] +
-                        *inptp_v * p->v[i] + *inptp_k * p->k[i] + 
+                        *inptp_v * p->v[i] + *inptp_k * p->k[i] +
                         *inptp_l * p->l[i] + *inptp_m * p->m[i] +
                         *inptp_n * p->n[i] + *inptp_o * p->o[i] +
                         *inptp_p * p->p[i] + *inptp_q * p->q[i];

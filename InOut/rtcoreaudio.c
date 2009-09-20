@@ -78,7 +78,7 @@ int csoundModuleCreate(CSOUND *csound)
                                    NULL);
 
     if (csound->oparms->msglevel & 0x400)
-      p->Message(csound, "CoreAudio real-time audio module for Csound\n"
+      p->Message(csound, Str("CoreAudio real-time audio module for Csound\n")
                  "by Victor Lazzarini\n");
     return 0;
 }
@@ -211,7 +211,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     p->DestroyGlobalVariable(csound, "::cabuffnos");
 
     vpt = (int *) (p->QueryGlobalVariable(csound, "::cainterleaved"));
-    
+
     /*
      if (vpt != NULL)
       dev->isNInterleaved = *vpt;
@@ -306,7 +306,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     psize = sizeof(AudioStreamBasicDescription);
     AudioDeviceGetProperty(dev->dev, 0, false,
                            kAudioDevicePropertyStreamFormat, &psize, &format);
-     
+
     dev->isNInterleaved = 0;
 
     dev->format.mSampleRate = dev->srate;
@@ -349,8 +349,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
 
       p->Message(csound,
                  Str("CoreAudio module: sr set to %d with %d audio channels \n"),
-                 (int) dev->srate, (int) dev->nchns);      
-    }    
+                 (int) dev->srate, (int) dev->nchns);
+    }
 
     dev->outbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
     dev->inbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
@@ -368,7 +368,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
         free(dev->outused);
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
+        p->Message(csound,
+                   Str(" *** CoreAudio: open: memory allocation failure\n"));
         return -1;
       }
       memset(dev->inbuffs[i], 0, buffbytes);
@@ -380,7 +381,8 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
         free(dev->outused);
         free(dev);
         csound->rtRecord_userdata = NULL;
-        p->Message(csound, Str(" *** CoreAudio: open: memory allocation failure\n"));
+        p->Message(csound,
+                   Str(" *** CoreAudio: open: memory allocation failure\n"));
         return -1;
       }
       memset(dev->outbuffs[i], 0, buffbytes);

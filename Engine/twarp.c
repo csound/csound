@@ -23,7 +23,8 @@
 
 #include "csoundCore.h"                               /*    TWARP.C  */
 
-#define TSEGMAX (PMAX/2)
+/* #define TSEGMAX (PMAX/2) */
+#define TSEGMAX (100)
 
 typedef struct {
     MYFLT   betbas;
@@ -41,10 +42,10 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
     MYFLT   absp3, endtime;
     int     negp3;
 
-    if ((bp = csound->frstbp) == NULL)      /* if null file,         */
+    if (UNLIKELY((bp = csound->frstbp) == NULL))      /* if null file,         */
       return;
     while (bp->text[0] != 't')              /*  or cannot find a t,  */
-      if ((bp = bp->nxtblk) == NULL)
+      if (UNLIKELY((bp = bp->nxtblk) == NULL))
         return;                             /*      we are done      */
     bp->text[0] = 'w';                      /* else mark the t used  */
     if (!realtset(csound, bp))              /*  and init the t-array */

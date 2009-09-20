@@ -119,7 +119,8 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError
+        (csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -129,7 +130,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
-      return csound->InitError(csound, "bind failed");
+      return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
       /* allocate space for the buffer */
@@ -209,7 +210,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -219,7 +220,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
-      return csound->InitError(csound, "bind failed");
+      return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
       /* allocate space for the buffer */
@@ -296,7 +297,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "creating socket");
+      return csound->InitError(csound, Str("creating socket"));
     }
 
     /* create server address: where we want to connect to */
@@ -318,7 +319,7 @@ again:
                 sizeof(p->server_addr)) < 0) {
       if (errno == ECONNREFUSED)
         goto again;
-      return csound->InitError(csound, "connect failed");
+      return csound->InitError(csound, Str("connect failed"));
     }
 
     return OK;
@@ -331,7 +332,7 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
     if (n != read(p->sock, p->asig, n)) {
       csound->Message(csound, "Expected %d got %d\n",
                       (int) (sizeof(MYFLT) * csound->ksmps), n);
-      return csound->PerfError(csound, "read from socket failed");
+      return csound->PerfError(csound, Str("read from socket failed"));
     }
 
     return OK;

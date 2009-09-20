@@ -29,6 +29,18 @@
 #include <sys/stat.h>
 #include <csound.h>
 
+#if defined(HAVE_MUSICXML2)
+#include "elements.h"
+#include "factory.h"
+#include "xml.h"
+#include "xmlfile.h"
+#include "xml_tree_browser.h"
+#include "xmlreader.h"
+#include "midicontextvisitor.h"
+
+using namespace MusicXML2;
+#endif
+
 void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
 {
   for(int i = 0; i < argc; i++)
@@ -256,6 +268,57 @@ int CsoundFile::save(std::ostream &stream) const
   return returnValue;
 }
 
+#if defined(HAVE_MUSICXML2)
+
+  class CsoundFileMidiWriter : public midiwriter
+  {
+  public:
+    long tpq;
+    double tempo;
+    CsoundFileMidiWriter(CsoundFile *csoundFile_) : csoundFile(*csoundFile_), tpq(1000), tempo(1.0)
+    {
+      csoundFile.removeScore();
+    }
+    virtual void startPart (int instrCount)
+    {
+    }
+    virtual void newInstrument (std::string instrName, int chan=-1)
+    {
+    }
+    virtual void endPart (long date)
+    {
+    }
+    virtual void newNote (long start_, int insno_, float key_, int velocity_, int duration_)
+    {
+      double insno = double(insno_ + 1.0);
+      double start = double(start_) / double(tpq) * tempo;
+      double duration = double(duration_) / double(tpq) * tempo;
+      double key = key_;
+      double velocity = velocity_;
+      csoundFile.addNote(insno, start, duration, key, velocity);
+    }
+    virtual void tempoChange (long date, int bpm)
+    {
+      tempo = 60.0 / double(bpm);
+    }
+    virtual void pedalChange (long date, pedalType t, int value)
+    {
+    }
+    virtual void volChange (long date, int chan, int vol)
+    {
+    }
+    virtual void bankChange (long date, int chan, int bank)
+    {
+    }
+    virtual void progChange (long date, int chan, int prog)
+    {
+    }
+  protected:
+    CsoundFile &csoundFile;
+  };
+
+#endif
+
 int CsoundFile::importFile(std::string filename)
 {
   struct stat statbuffer;
@@ -277,6 +340,32 @@ int CsoundFile::importFile(std::string filename)
     {
       returnValue += importMidifile(stream);
     }
+#if defined(HAVE_MUSICXML2)
+  else if((filename.find(".xml") != filename.npos) || (filename.find(".XML") != filename.npos))
+    {
+      score.erase();
+      xmlreader xmlReader;
+      Sxmlelement sxmlElement;
+      // Try to read an SXMLFile out of the MusicXML file.
+      SXMLFile sxmlFile = xmlReader.read(filename.c_str());
+      if (sxmlFile) {
+        // Get the document tree of XML elements from the SXMLFile.
+        sxmlElement = sxmlFile->elements();
+      }
+      if (sxmlElement) {
+        // Create a CsoundFileMidiWriter that is attached to this Score.
+        CsoundFileMidiWriter csoundFileMidiWriter(this);
+        // Create a midicontextvisitor, which calls into an abstract midiwriter interface,
+        // which is attached to our CsoundFileMidiWriter, which implements that midiwriter interface.
+        midicontextvisitor midicontextvisitor_(csoundFileMidiWriter.tpq, &csoundFileMidiWriter);
+        // Create an xml_tree_browser that is attached to our midicontextvisitor.
+        xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
+        // The xml_tree_browser will carry the midicontextvisitor to all the elements
+        // of the document tree, in the proper order, calling newNote as appropriate.
+        xmlTreeBrowser.browse(*sxmlElement);
+      }
+    }
+#endif
   else
     {
       returnValue += importFile(stream);

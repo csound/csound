@@ -192,7 +192,7 @@ rootstatement     : rootstatement topstatement
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-intlist   : intlist S_COM T_INTGR 
+intlist   : intlist S_COM T_INTGR
                 { $$ = make_node(csound, T_INTLIST, $1,
                                  make_leaf(csound, T_INTGR, (ORCTOKEN *)$3)); }
           | T_INTGR { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)$1); }
@@ -551,7 +551,7 @@ ifac      : ident               { $$ = $1; }
           | ifac S_NEQV ifac   { $$ = make_node(csound, S_NEQV, $1, $3); }
           | ifac S_BITSHL ifac   { $$ = make_node(csound, S_BITSHL, $1, $3); }
           | ifac S_BITSHR ifac   { $$ = make_node(csound, S_BITSHR, $1, $3); }
-          | S_BITNOT ifac %prec S_UMINUS 
+          | S_BITNOT ifac %prec S_UMINUS
             { $$ = make_node(csound, S_BITNOT, NULL, $2);}
           | S_MINUS error
           | S_LB expr S_RB      { $$ = $2; }

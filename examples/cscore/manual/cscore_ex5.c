@@ -21,34 +21,34 @@
     02111-1307 USA
 */
 
-#include  "cscore.h" 
+#include  "cscore.h"
 
-int cue[3] = {0,10,17};                        /* declare an array of 3 integers */ 
+int cue[3] = {0,10,17};                        /* declare an array of 3 integers */
 
-void cscore(CSOUND *cs) 
+void cscore(CSOUND *cs)
 {
       EVENT  *e, *f;
       EVLIST *a, *b;
       int n, dim, cuecount;                    /* declare new variable cuecount */
-      
+
       a = cscoreListGetSection(cs);
       b = cscoreListSeparateF(cs, a);
       cscoreListPut(cs, b);
       cscoreListFreeEvents(cs, b);
       e = cscoreDefineEvent(cs, "t 0 120");
       cscorePutEvent(cs, e);
-      dim = 0; 
+      dim = 0;
       for (cuecount = 0; cuecount <= 2; cuecount++) /* elements of cue are numbered 0, 1, 2 */
       {
           for (n = 1; n <= a->nevents; n++)
-          { 
-              f = a->e[n]; 
-              f->p[6] -= dim; 
-              f->p[2] += cue[cuecount];        /* add values of cue */ 
-          } 
-          printf("; diagnostic:  cue = %d\n", cue[cuecount]); 
-          dim += 2000; 
+          {
+              f = a->e[n];
+              f->p[6] -= dim;
+              f->p[2] += cue[cuecount];        /* add values of cue */
+          }
+          printf("; diagnostic:  cue = %d\n", cue[cuecount]);
+          dim += 2000;
           cscoreListPut(cs, a);
-      } 
+      }
       cscorePutString(cs, "e");
 }

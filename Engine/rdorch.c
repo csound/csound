@@ -165,7 +165,7 @@ static inline void ungetorchar(CSOUND *csound, int c)
     if (LIKELY(ST(str)->unget_cnt < 128))
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
     else
-      csoundDie(csound, "ungetorchar(): buffer overflow");
+      csoundDie(csound, Str("ungetorchar(): buffer overflow"));
 }
 
 static int skiporccomment(CSOUND *csound)
@@ -340,7 +340,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
 {
     void *fd;
     int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
-    
+
                                 /* First try to open name given */
     fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", NULL,
                                              csftype, 0);
@@ -612,43 +612,51 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       else if (c == '#' && ST(linepos) == 0 && !heredoc) {
         /* Start Macro definition */
         /* also deal with #include here */
-        char  mname[100], *preprocName;
+        char  *mname, *preprocName;
+        int mlen = 40;
         int   i, cnt;
+        mname = (char  *)malloc(mlen);
         cp--;
  parsePreproc:
         preprocName = NULL;
         i = 0;
         cnt = 0;
         mname[cnt++] = '#';
+        if (cnt==mlen)
+          mname = (char *)realloc(mname, mlen+=40);
         do {
           c = getorchar(csound);
           if (UNLIKELY(c == EOF))
             break;
           mname[cnt++] = c;
-        } while ((c == ' ' || c == '\t') && cnt < 99);
+          if (cnt==mlen)
+            mname = (char *)realloc(mname, mlen+=40);
+        } while ((c == ' ' || c == '\t'));
         mname[cnt] = '\0';
-        if (c == EOF || c == '\n' || cnt >= 99)
+        if (c == EOF || c == '\n')
           goto unknownPreproc;
         preprocName = &(mname[cnt - 1]);
-        do {
+        while (1) {
           c = getorchar(csound);
           if (c == EOF || !(isalnum(c) || c == '_'))
             break;
           mname[cnt++] = c;
-        } while (cnt < 99);
+          if (cnt==mlen)
+            mname = (char *)realloc(mname, mlen+=40);
+        }
         mname[cnt] = '\0';
-        if (cnt >= 99)
-          goto unknownPreproc;
         if (strcmp(preprocName, "define") == 0 &&
             !(ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)) {
           MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
           int   arg = 0;
-          int   size = 100;
+          int   size = 40;
           mm->margs = MARGS;    /* Initial size */
           while (isspace((c = getorchar(csound))))
             ;
           while (isNameChar(c, i)) {
             mname[i++] = c;
+            if (i==mlen)
+              mname = (char *)realloc(mname, mlen+=40);
             c = getorchar(csound);
           }
           mname[i] = '\0';
@@ -666,6 +674,8 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
               i = 0;
               while (isNameChar(c, i)) {
                 mname[i++] = c;
+                if (i==mlen)
+                  mname = (char *)realloc(mname, mlen+=40);
                 c = getorchar(csound);
               }
               mname[i] = '\0';
@@ -718,9 +728,12 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
             c = getorchar(csound);
           delim = c;
           i = 0;
-          while ((c = getorchar_noeof(csound)) != delim)
+          while ((c = getorchar_noeof(csound)) != delim) {
             mname[i++] = c;
-          mname[i] = '\0';
+            if (i==mlen)
+              mname = (char *)realloc(mname, mlen+=40);
+          }
+           mname[i] = '\0';
           do {
             c = getorchar(csound);
           } while (c != EOF && c != '\n');
@@ -762,6 +775,8 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
             ;
           while (isNameChar(c, i)) {
             mname[i++] = c;
+            if (i==mlen)
+              mname = (char *)realloc(mname, mlen+=40);
             c = getorchar(csound);
           }
           mname[i] = '\0';
@@ -828,6 +843,8 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
             ;
           while (isNameChar(c, i)) {
             mname[i++] = c;
+            if (i==mlen)
+              mname = (char *)realloc(mname, mlen+=40);
             c = getorchar(csound);
           }
           mname[i] = '\0';
@@ -866,6 +883,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           else
             lexerr(csound, Str("Unknown # option: '%s'"), preprocName);
         }
+        free(mname);
       }
       else if (c == '$' && !heredoc) {
         char      name[100];
@@ -1811,7 +1829,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             synterr(csound, Str("missing or extra arg"));
         }       /* IV - Sep 1 2002: added 'M' */
         else if (UNLIKELY(treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-                          treqd != 'Z' && treqd != 'M' && treqd != 'N')) /* else any no */
+                          treqd != 'Z' && treqd != 'M' &&
+                          treqd != 'N')) /* else any no */
           synterr(csound, Str("too many input args"));
       }
       else if (incnt < nreqd) {         /*  or set defaults: */
@@ -1880,7 +1899,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         tfound = argtyp(csound, s);     /* else get arg type */
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
-        if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"')) {
+        if (UNLIKELY(!(tfound_m & (ARGTYP_c|ARGTYP_p)) &&
+                     !ST(lgprevdef) && *s != '"')) {
           synterr(csound, Str("input arg '%s' used before defined"), s);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
@@ -1968,7 +1988,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       }
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->outypes);
-      if (UNLIKELY((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
+      if (UNLIKELY((n != nreqd) &&      /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
              types[n] == (char) 'X' || types[n] == (char) 'N')))) {

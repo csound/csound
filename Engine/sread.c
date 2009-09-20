@@ -319,7 +319,7 @@ static inline void ungetscochar(CSOUND *csound, int c)
     if (LIKELY(ST(str)->unget_cnt < 128))
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
     else
-      csoundDie(csound, "ungetscochar(): buffer overflow");
+      csoundDie(csound, Str("ungetscochar(): buffer overflow"));
 }
 
 static int getscochar(CSOUND *csound, int expand)
@@ -908,7 +908,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                 10 * ST(repeat_cnt_n)[ST(repeat_index)] + c - '0';
               c = getscochar(csound, 1);
             }
-            if (UNLIKELY(ST(repeat_cnt_n)[ST(repeat_index)] <= 0 
+            if (UNLIKELY(ST(repeat_cnt_n)[ST(repeat_index)] <= 0
                          || (c != ' ' && c != '\t' && c != '\n')))
               scorerr(csound, Str("{: invalid repeat count"));
             if (ST(repeat_index) > 1) {
@@ -1215,12 +1215,13 @@ static void ifa(CSOUND *csound)
     ST(bp)->pcnt = 0;
     while (getpfld(csound)) {   /* while there's another pfield,  */
       nocarry = 0;
-      if (UNLIKELY(++ST(bp)->pcnt == PMAX)) {
-        sreaderr(csound, Str("instr pcount exceeds PMAX"));
-        csound->Message(csound, Str("      remainder of line flushed\n"));
-        flushlin(csound);
-        continue;
-      }
+      ++ST(bp)->pcnt;
+      /* if (UNLIKELY(++ST(bp)->pcnt == PMAX)) { */
+      /*   sreaderr(csound, Str("instr pcount exceeds PMAX")); */
+      /*   csound->Message(csound, Str("      remainder of line flushed\n")); */
+      /*   flushlin(csound); */
+      /*   continue; */
+      /* } */
       if (*ST(sp) == '^' && ST(op) == 'i' && ST(bp)->pcnt == 2) {
         int foundplus = 0;
         if (*(ST(sp)+1)=='+') { ST(sp)++; foundplus = 1; }
@@ -1282,7 +1283,7 @@ static void ifa(CSOUND *csound)
         if (getmore) continue; /* not the best, but not easy to delete event */
                                /* since ifa() doesn't return anything */
         else break;
-      } 
+      }
       else switch (ST(bp)->pcnt) {      /*  watch for p1,p2,p3, */
       case 1:                           /*   & MYFLT, setinsno..*/
         if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"')
@@ -1529,7 +1530,8 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       }
     }
     if (c == '#') {
-      char  mname[100];         /* Start Macro definition */
+      int mlen = 40;
+      char  *mname = malloc(40);         /* Start Macro definition */
       int   i = 0;
       while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
@@ -1539,13 +1541,15 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         mm->margs = MARGS;
         if (UNLIKELY(!check_preproc_name(csound, "define"))) {
           csound->Message(csound, Str("Not #define"));
-          mfree(csound, mm);
+          mfree(csound, mm); free(mname);
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';
@@ -1559,6 +1563,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
             i = 0;
             while (isNameChar(c, i)) {
               mname[i++] = c;
+              if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
               c = getscochar(csound, 1);
             }
             mname[i] = '\0';
@@ -1574,6 +1579,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           if (UNLIKELY(c!=')')) {
             csound->Message(csound, Str("macro error\n"));
             flushlin(csound);
+            free(mname);
             goto srch;
           }
         }
@@ -1601,6 +1607,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 #endif
         c = ' ';
         flushlin(csound);
+        free(mname);
         goto srch;
       }
       else if (c == 'i') {
@@ -1608,12 +1615,16 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "include"))) {
           csound->Message(csound, Str("Not #include"));
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         delim = c;
         i = 0;
-        while ((c=getscochar(csound, 1))!=delim) mname[i++] = c;
+        while ((c=getscochar(csound, 1))!=delim) {
+          mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
+        }
         mname[i]='\0';
         while ((c=getscochar(csound, 1))!='\n');
         ST(input_cnt)++;
@@ -1638,6 +1649,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         else {
           ST(str)->body = csound->GetFileName(ST(str)->fd);
           ST(str)->line = 1; ST(str)->unget_cnt = 0;
+          free(mname);
           goto srch;
         }
       }
@@ -1645,11 +1657,13 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "undef"))) {
           csound->Message(csound, Str("Not #undef"));
           flushlin(csound);
+          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
+          if (i==mlen) mname = (char *)realloc(mname, mlen+=40);
           c = getscochar(csound, 1);
         }
         mname[i] = '\0';
@@ -1663,6 +1677,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         sreaderr(csound, Str("unknown # option"));
         flushlin(csound);
       }
+      free(mname);
       goto srch;
     }
 

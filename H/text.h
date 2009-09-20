@@ -125,7 +125,7 @@ extern "C" {
 
 /* Deal with localisation of mesages */
 
-#define Str(x)  csoundLocalizeString(x)
+#define Str(x)  (x)
 
 /* NOTE: function prototypes are in csound.h */
 

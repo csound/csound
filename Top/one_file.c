@@ -70,6 +70,21 @@ typedef struct {
 
 #define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 
+#if !defined(WIN32)
+char *mytmpnam(char *name)
+{
+    int fd;
+    char *tmpdir = getenv("TMPDIR");
+    sprintf(name, "%s/csound-XXXXXX",  (tmpdir!=NULL ? tmpdir :"/tmp"));
+    umask(0077); /* ensure exclusive access on buggy implementations of mkstemp */
+    fd = mkstemp(name);
+    close(fd);
+    unlink(name);
+    return (fd<0 ? NULL : name);
+}
+#endif
+
+
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 {
     size_t  nBytes = L_tmpnam+4;
@@ -88,7 +103,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
       do {
 #endif
 #ifndef WIN32
-        if (tmpnam(buf) == NULL)
+        if (mytmpnam(buf) == NULL)
           csound->Die(csound, Str(" *** cannot create temporary file"));
 #else
         {
@@ -366,6 +381,59 @@ static int createScore(CSOUND *csound, FILE *unf)
       while (*p == ' ' || *p == '\t') p++;
      if (strstr(p, "</CsScore>") == p) {
         csoundFileClose(csound, fd);
+        add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
+        return TRUE;
+      }
+      else fputs(ST(buffer), scof);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    return FALSE;
+}
+
+static int createExScore(CSOUND *csound, char *p, FILE *unf)
+{
+    char    extname[L_tmpnam + 4];
+    char *q;
+    char prog[L_tmpnam + 4];
+    void *fd;
+    FILE  *scof;
+
+    p = strstr(p, "bin=\"");
+    if (p==NULL) {
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    q = strchr(p+5, '"');
+    if (q==NULL) {              /* No program given */
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    *q = '\0';
+    strcpy(prog, p+5); /* after "<CsExScore " */
+    /* Generate score name */
+    csoundTmpFileName(csound, ST(sconame), ".sco");
+    csoundTmpFileName(csound, extname, ".ext");
+    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
+                                CSFTYPE_SCORE, 1);
+    csound->tempStatus |= csScoInMask;
+/* #ifdef _DEBUG */
+    csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
+/* #endif */
+    if (fd == NULL)
+      return FALSE;
+
+    csound->scoLineOffset = ST(csdlinecount);
+    while (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = ST(buffer);
+      if (strstr(p, "</CsScore>") == p) {
+        char sys[1024];
+        csoundFileClose(csound, fd);
+        sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
+        if (system(sys) != 0) {
+          csoundErrorMsg(csound, Str("External generation failed"));
+          return FALSE;
+        }
+        remove(extname);
         add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
       }
@@ -720,9 +788,12 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         r = createOrchestra(csound, unf);
         result = r && result;
       }
-      else if (strstr(p, "<CsScore>") == p) {
+      else if (strstr(p, "<CsScore") == p) {
         csoundMessage(csound, Str("Creating score\n"));
-        r = createScore(csound, unf);
+        if (strstr(p, "<CsScore>") == p)
+          r = createScore(csound, unf);
+        else
+          r = createExScore(csound, p, unf);
         result = r && result;
       }
       else if (strstr(p, "<CsMidifile>") == p) {

@@ -43,7 +43,8 @@
 \begin{sloppypar}
 
 \lstset{language=c++,basicstyle=\ttfamily\tiny,commentstyle=\ttfamily\tiny,tabsize=2,breaklines,backgroundcolor=\color{LstColor},fontadjust=true,keepspaces=false,fancyvrb=true,showstringspaces=false,moredelim=[is][\textbf]{\\emph\{}{\}}}.
-\title{Csound Windows Build}
+\title{Csound Windows Build \\ 5.10.0}
+
 \author{Michael Gogins \\ \texttt{gogins@pipeline.com}}
 \maketitle
 
@@ -54,7 +55,7 @@ This file should be updated in reasonable detail with each release of the Window
 
 Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization.  
 
-These optimizations preclude debugging. A separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
+These optimizations may preclude debugging. In that case, a separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
 
 All third party libraries will be updated from the most recent version that seems to be used by a majority of their users --- whatever that is (trunk, most recent tag, stable release, whatever). If pre-built binaries are available, use them. Otherwise, build third party libraries with the same version of the compiler that is used to build Csound itself. If the library does not come with a functional build system for MinGW/MSys, create an SConstruct file for it.
 
@@ -64,28 +65,65 @@ All third party libraries will be updated from the most recent version that seem
 \begin{enumerate}
 	\item (Done) Update the documentation tools.
 		\begin{enumerate}
-	    \item (No need) Update the Docbook toolchain.
-	    \item (Done) Update LaTeX to the current version (2.2-071608) from proTeXt at \url{http://www.tug.org/protext}.
-	    \item (Done) Update Doxygen to the current version (1.5.6) from \url{http://www.stack.nl/~dimitri/doxygen}.
-	    \item (Done) Update ATT Graphviz to version 2.8 from \url{http://www.graphviz.org}. Later versions of Graphviz \texttt{dot} do not work with current Doxygen.
+	    \item (Done) Update the docbook toolchain:
+				\begin{enumerate}
+					\item (Done) Install the current Windows build of \texttt{xsltproc} from \url{http://www.zlatkovic.com/libxml.en.html}. This may involve also installing libraries upon which \texttt{xsltproc} depends.
+					\item (Done) Install the current Docbook XML DTDs from \url{http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip}, and set the \verb|XML_CATALOG_FILES| environment variable to point to the installation directory.
+					\item (Done) Install the current Docbook XSL stylesheets from \url{http://sourceforge.net/project/downloading.php?group_id=21935&filename=docbook-xsl-1.75.1.zip}, and set the \verb|XSL_BASE_PATH| environment variable to point to the installation directory. Then fill in the \texttt{rewritePrefix} attributes to make the \url{catalog.xml} file be something like:
+					\begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <!-- XML Catalog file for DocBook XSL Stylesheets v1.75.1 -->
+  <rewriteURI uriStartString="http://docbook.sourceforge.net/release/xsl/current/" rewritePrefix="file:///D:/utah/opt/docbook-xsl-1.75.1/"/>
+  <rewriteSystem systemIdStartString="http://docbook.sourceforge.net/release/xsl/current/" rewritePrefix="file:///D:/utah/opt/docbook-xsl-1.75.1/"/>
+  <rewriteURI uriStartString="http://docbook.sourceforge.net/release/xsl/1.75.1/" rewritePrefix="file:///D:/utah/opt/docbook-xsl-1.75.1/"/>
+  <rewriteSystem systemIdStartString="http://docbook.sourceforge.net/release/xsl/1.75.1/" rewritePrefix="file:///D:/utah/opt/docbook-xsl-1.75.1/"/>
+  <rewriteURI uriStartString="http://www.oasis-open.org/docbook/xml/4.2/" rewritePrefix="file:///D:/utah/opt/docbook-xml-4.5/"/>
+  <rewriteSystem systemIdStartString="http://www.oasis-open.org/docbook/xml/4.2/" rewritePrefix="file:///D:/utah/opt/docbook-xml-4.5/"/>
+</catalog>
+					\end{lstlisting}
+					\item Edit the \texttt{Makefile} for the manual, and delete the \texttt{--nonet} option from all makefile rule commands.
+				\end{enumerate}
+
+	    \item (Done) Update LaTeX to MikTex version 2.7 from \url{http://miktex.org}.
+	    \item (Done) Update TeXniCenter to version 1 Stable RC1 from \url{http://www.texniccenter.org}. 
+	    \item (Done) Update Doxygen to the current version (1.5.9) from \url{http://www.stack.nl/~dimitri/doxygen}.
+	    \item (Done) Update ATT Graphviz to version 2.22.2 from \url{http://www.graphviz.org}.
 		\end{enumerate}
 	\item (Done) Update the build tools.   
 		\begin{enumerate}
-  		\item (Done) Update Python from \url{www.python.org} to the most recent ``standard'' version (currently 2.5.2).
-	    \item (Done) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.1.0).
-			\item (Done) Update MinGW/MSys from \url{www.mingw.org} to gcc version 4.2.1-sjlj (mingw32-2) from \url{http://sourceforge.net/projects/mingw}. Then add the latest MSys base and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}. Also, add pkg.m4 from \url{http://johnnypops.demon.co.uk/mingw/msys-pkg-config-win32.zip}. The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhatfaster code, because the dw2 compiler generates buggy code for DLL relocations.
+  		\item (Done) Update Python.
+				\begin{enumerate}
+					\item (Done) Install the most recent ``standard'' version (currently 2.6.2) \emph{that works with all the other stuff we need for Csound} (see other Python packages below) from \url{www.python.org}.
+	    		\item (Done) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.2.0).
+	    	  \item (Done) update the Psyco just in time compiler with Subversion using \verb|svn co http://codespeak.net/svn/psyco/dist/ psyco-dist|  to the most recent version (currently 1.6) and install from sources in the MSys shell using \verb|python setup.py install|.
+	    		\item (Done) Update NumPy (currently version 1.3.0) and SciPy (currently version 0.7.1rc3) from \url{http://www.scipy.org}.
+	    		\item (Done) Update VPython from \url{http://vpython.org/index.html} to the most recent version (currently Visual 5).
+	    		\item (Done) Update wxPython from \url{http://www.wxpython.org} to the most recent version (currently 2.8.10.1).
+	    		\item (Done) Update wxGlade from \url{http://wxglade.sourceforge.net} to the most recent version (currently 0.6.3).
+				\end{enumerate}
+			\item (Done) Update MSys base (current version 1.0.11-rc-1) and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}. 
+			\item (Done -- no longer available) Update MSYS with pkg.m4 from \url{http://johnnypops.demon.co.uk/mingw/msys-pkg-config-win32.zip}. 
+			\item (Done) Install the Twilight Dragon Media build of MinGW from \url{http://www.tdragon.net}. The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhat faster code, because the dw2 compiler generates buggy code for DLL relocations.
 			\item (Done) Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
-	    \item (Done) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 1.3.36).
-	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 10 RC).
+	    \item (Done) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 1.3.39).
+	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 14).
 		\end{enumerate}    
 	\item (Done) Update third-party libraries.   
 		\begin{enumerate}
     	\item (Done) Install the VST SDK 2.4 from \url{http://www.steinberg.net/en/company/3rd_party_developer.html}.
-   		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.36.0).
-    	\item (Done) Update the Synthesis Toolkit in C++ (STK) from \url{http://ccrma.stanford.edu/software/stk} to the most recent version (currently 4.3.1). Apply any patches from the web site and mailing list. Copy all contents of the STK directory into the Csound \texttt{Opcodes} directory.
-			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile}. Try the most recent pre-release version first (currently 1.0.18pre22a); if that doesn't work, use the latest stable release (currently 1.0.17). Do not build from sources. 
+    	\item (Done) Install Pure Data sources using Subversion from \url{https://pure-data.svn.sourceforge.net/svnroot/pure-data}.
+   		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.39.0).
+  		\item (Done) Update Gmm++ from \url{http://home.gna.org/getfem/download.html} to the most recent stable version (currently 3.1), and build it by running the \texttt{configure} script and \texttt{make}.
+    	\item (Done) Update the Synthesis Toolkit in C++ (STK).
+				\begin{enumerate}
+					\item (Done) Update from \url{http://ccrma.stanford.edu/software/stk} to the most recent version (currently 4.4.1). 
+					\item (Done) Copy all contents of the STK directory into the Csound \texttt{Opcodes/stk} directory.
+					\item (Done -- I didn't see any.) Apply any patches from the web site and mailing list. 
+				\end{enumerate}   	
+			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile} to the most recent version that works, which may be pre-release or release; currently it the latest stable release (1.0.20). Do not build from sources. 
     	\item (Done) Update FLTK from \url{www.fltk.org} to \texttt{branch-1.3 HEAD} from SVN and build it with MinGW using \verb|./configure --enable-threads --enable-shared|. Make sure that \texttt{custom-mingw.py} searches FLTK's \texttt{src} directory for import libraries before it searches FLTK's \texttt{lib} directory for static libraries (both are required).
-     	\item (Done) Update liblo version 0.24 (later versions call \verb|inet_aton| which doesn't exist on Windows) from \url{http://liblo.sourceforge.net} SVN and build with this SConstruct:
+     	\item (Done) Update liblo tag 0.26 from the tarball at \url{http://liblo.sourceforge.net} (\emph{not} SVN!), and build with this SConstruct:
     	
 \begin{lstlisting}
 # S C O N S T R U C T   F O R   L I B L O . D L L
@@ -135,22 +173,36 @@ liblo = environment.SharedLibrary('lo', Split(sources))
 \end{lstlisting}
 
    		\item (Done) Update the pthread library from \url{http://sources.redhat.com/pthreads-win32} to the most recent stable version (currently 2.8.0). Build in \url{pthread2.2} using \verb|make -f GNUmakefile clean GC|. Copy the DLL and lib into the pre-built directory. Copy those files and rename them \texttt{pthread.dll} and \texttt{libpthread.a}.
-			\item (Done) Update the PortAudio library (\url{http://portmedia.sourceforge.net}) from SVN and build it. Try the trunk version first, if that doesn't work use the most recent tag. Patch PortAudio as follows. Add to \verb|pa_win_wdmks_utils.c| after all \verb|#include| directives these lines:
-
+			\item (Done) Update the PortAudio library (\url{http://portmedia.sourceforge.net}) from SVN and build it. Try the trunk version first, if that doesn't work use the most recent tag. At this time, I can't figure out how to build the kernel streaming driver, so omit it. 
+			Check the \verb|pa_win_hostapis.c| file and make sure that it is configured like this to build the DirectSound, WMME, and ASIO drivers:
+			
 \begin{lstlisting}
-#if defined(__GNUC__)
-
-#define STATIC_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT\
-    DEFINE_WAVEFORMATEX_GUID(WAVE_FORMAT_IEEE_FLOAT)
-DEFINE_GUIDSTRUCT("00000003-0000-0010-8000-00aa00389b71", KSDATAFORMAT_SUBTYPE_IEEE_FLOAT);
-#define KSDATAFORMAT_SUBTYPE_IEEE_FLOAT DEFINE_GUIDNAMED(KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
-
-#define CTL_CODE(      DeviceType, Function, Method, Access) (((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
-
+PaUtilHostApiInitializer *paHostApiInitializers[] =
+    {
+#ifndef PA_NO_WMME
+        PaWinMme_Initialize,
 #endif
+#ifndef PA_NO_DS
+        PaWinDs_Initialize,
+#endif
+#ifndef PA_NO_ASIO
+        PaAsio_Initialize,
+#endif
+/*
+#ifndef PA_NO_WASAPI
+		PaWinWasapi_Initialize,
+#endif
+
+#ifndef PA_NO_WDMKS
+       PaWinWdm_Initialize,
+#endif
+*/
+        PaSkeleton_Initialize, /* just for testing */
+        0   /* NULL terminated array */
+    };
 \end{lstlisting}
 			
-			Build with this SConstruct (includes tell you which DirectX SDKs to use -- two!):
+			Build with this SConstruct:
 			
 \begin{lstlisting}
 '''
@@ -168,15 +220,14 @@ import traceback
 commonEnvironment = Environment(ENV = os.environ, tools = ['mingw', 'swig', 'javac', 'jar'])
 commonEnvironment.Append(CFLAGS = Split('-O2 -g'))
 commonEnvironment.Append(CPPFLAGS = Split('''
--DPAWIN_USE_WDMKS_DEVICE_INFO 
 -DWIN32 
 -D_WIN32 
 -DWINDOWS 
 -DKSAUDIO_SPEAKER_DIRECTOUT=0 
--DFILE_DEVICE_KS=0x0000002f
 -DMETHOD_NEITHER=3
 -DFILE_ANY_ACCESS=0
 '''))
+
 commonEnvironment.Append(CPPPATH = Split('''
 . 
 src/common 
@@ -187,9 +238,9 @@ include
 U:/portaudio/src/hostapi/asio/ASIOSDK/host
 U:/portaudio/src/hostapi/asio/ASIOSDK/host/pc
 U:/portaudio/src/hostapi/asio/ASIOSDK/common
-C:/utah/opt/dxsdk_2008_08/Include 
 D:/utah/opt/Directx8/Includes
 '''))
+
 commonEnvironment.Append(LIBS=Split('''
 setupapi
 kernel32
@@ -208,8 +259,6 @@ winmm
 strmiids 
 '''))
 
-# src/hostapi/asio/ASIOSDK/common/dllentry.cpp
-
 portAudioSources = Split('''
 src/common/pa_allocation.c
 src/common/pa_converters.c
@@ -224,12 +273,10 @@ src/common/pa_stream.c
 src/common/pa_trace.c
 src/hostapi/dsound/pa_win_ds.c
 src/hostapi/dsound/pa_win_ds_dynlink.c
-src/hostapi/wdmks/pa_win_wdmks.c
 src/hostapi/wmme/pa_win_wmme.c
 src/os/win/pa_win_hostapis.c
 src/os/win/pa_win_util.c
 src/os/win/pa_win_waveformat.c
-src/os/win/pa_win_wdmks_utils.c
 src/hostapi/asio/ASIOSDK/common/asio.cpp
 src/hostapi/asio/ASIOSDK/common/combase.cpp
 src/hostapi/asio/ASIOSDK/common/debugmessage.cpp
@@ -331,30 +378,44 @@ Depends(test, portmidi)
 make mingw clean; make mingw all
 \end{lstlisting}
 
+			\item (Done) Update the MusicXML library using Subversion from \url{https://libmusicxml.svn.sourceforge.net/svnroot/libmusicxml}, and build it using the CodeBlocks project.
+
+			\item (Done) Install the LGPL/Free license version of the Qt 4.5 software development kit for Windows from \url{http://www.qtsoftware.com/downloads}.
+			
+			\item (Done) Use Subversion to install the current QuteCsound source code from \url{https://qutecsound.svn.sourceforge.net/svnroot/qutecsound/trunk/qutecsound}. Rebuild QuteCsound in its src directory using the following commands, possibly with INCLUDEPATH and LIBPATH modified for your system:
+			
+			\begin{lstlisting}
+qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csound-mingw-release LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
+mingw32-make release
+			\end{lstlisting}
+			
+			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for csnd, libcsound64, and libsndfile, add the required libraries and library paths, and re-run the edited link line, something like this:
+			
+			\begin(lstlisting}
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Release -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind release\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4		
+strip bin/*	
+			\end(lstlisting}
+			
  		\end{enumerate}
-	\item (Done) Build   
+	\item (Not done) Build   
 		\begin{enumerate}				
-			\item (Done) Double precision sample build.
+			\item (Done) Double precision sample build -- the only target at this time.
 				\begin{enumerate}
 		    	\item (Done) Update \texttt{custom-mingw.py} and \texttt{custom-msvc.py} to reflect the locations of third-party header files and libraries.
 					\item (Done) Update Csound from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{csound5}..
-					\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}.
+					\item (Done) Update \emph{The Canonical Csound Reference Manual} from CVS at \verb|csound.cvs.sourceforge.net:/cvsroot/csound|, module \texttt{manual}. Build the \texttt{html-dist} target.
 					\item (Done) Run \texttt{./cleanup.sh} to make everything really clean.
-			    \item (Done) Build Csound using \texttt{build-mingw-release-double.bat}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
+			    \item (Done) Build Csound using \texttt{build-mingw-release-double.sh}. You will have to make some additional patches to the STK sources for the updated MinGW compiler. The patches should be obvious from context. Mostly you need to \verb|#include <some_std_header>|.
 			    \item (Done) Build again as above, to ensure \texttt{csnd.jar} is built properly.
-			    \item (Done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
-			    \item (Done) Build the manual.
-			    \item (Done) Build the API reference by executing \texttt{doxygen}.
-			    \item (Done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
-			    \item (Done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
-			    \item (Done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{csound5gui} running to verify that all DLLs required have been installed, or are already part of Windows.
-			    \item (Done) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
+			    \item (Not done) Change to \texttt{examples/java} and execute \texttt{make} to build example jars.
+			    \item (Done) Build the manual using a command line such as \verb|make html-dist XSL_BASE_PATH=D:/utah/opt/docbook-xsl-1.75.1|
+			    \item (Not done) Build the API reference by executing \texttt{doxygen}.
+			    \item (Not done) Execute \texttt{strip.sh} to strip debugging information out of the binaries.
+			    \item (Not done) Build the installer using NSIS from \url{http://nsis.sourceforge.net/Main_Page} \emph{with} the \verb|NONFREE| (VST) stuff.  
+			    \item (Not done) Uninstall Csound, and install it again using the installer. Use the Microsoft Dependency Walker and profile \texttt{QuteCsound} running to verify that all DLLs required have been installed, or are already part of Windows.
+			    \item (Not done) Build the installer \texttt{without} the \verb|NONFREE| stuff.   
 				\end{enumerate}
-			\item (Done) Single precision sample build.			
-				\begin{enumerate}
-					\item (Done) Repeat all procedures above, omitting the \verb|NONFREE| stuff, in a separate directory using \texttt{build-mingw-release-float.bat}. 
-				\end{enumerate}
-	    \item (Done) Update this document to reflect any changes in procedure or dependencies. 
+	    \item (Not done) Update this document to reflect any changes in procedure or dependencies. 
 	    \item Upload the installers to SourceForge and update the release package.
 		\end{enumerate}
  \end{enumerate}
@@ -363,36 +424,36 @@ make mingw clean; make mingw all
 \label{sec:BugFixes}
 
 \begin{enumerate}
-	\item (Done) Move \texttt{spoutlock} and \texttt{spinlock} to dummy slots in CSOUND structure to preserve Csound API compatibility.
-	\item (Done) Change \texttt{SConstruct} to define \verb|FL_DLL| for linking with the FLTK DLL.
-	\item (Done) Change \texttt{SConstruct} to define \verb|_SCL_SECURE_NO_DEPRECATE| for compiling Gmm++.
-	\item (Done) Fix score editing bug in \texttt{csound5gui}.
-	\item (Done) Fix up installers for correct third party DLLs.
-	\item (Done) Fix up installers for correct Csound examples.
-	\item (Done) Make sure installers link to the frames version of the manual and include the quick reference.
-	\item (Done) Fix a bug with real-time notes not ending in CsoundVST, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
-	\item (Done) Fix up installers for correct third party DLLs.
-	\item (Done) Fix up installers for correct Csound examples.
+	\item (Not done) Move \texttt{spoutlock} and \texttt{spinlock} to dummy slots in CSOUND structure to preserve Csound API compatibility.
+	\item (Not done) Change \texttt{SConstruct} to define \verb|FL_DLL| for linking with the FLTK DLL.
+	\item (Not done) Change \texttt{SConstruct} to define \verb|_SCL_SECURE_NO_DEPRECATE| for compiling Gmm++.
+	\item (Not done) Fix score editing bug in \texttt{csound5gui}.
+	\item (Not done) Fix up installers for correct third party DLLs.
+	\item (Not done) Fix up installers for correct Csound examples.
+	\item (Not done) Make sure installers link to the frames version of the manual and include the quick reference.
+	\item (Not done) Fix a bug with real-time notes not ending in CsoundVST, by restoring \texttt{relesing} flag. This needs to be tested for file rendering.
+	\item (Not done) Fix up installers for correct third party DLLs.
+	\item (Not done) Fix up installers for correct Csound examples.
 \end{enumerate}
 
 \section{Functional Tests}
 \label{sec:FunctionalTests}
 
 \begin{enumerate}
-	\item (Done) Ensure \texttt{csound /examples/trapped.csd} works.
-	\item (Done) Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
-	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
-	\item (Done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
-	\item (Done) Ensure FLTK widgets work. 	
-	\item (Done) Ensure Python works with \texttt{python examples/koch.py}, which uses SoundFonts in FluidSynth opcodes, and \texttt{python examples/Lindenmayer.py}, which uses \texttt{CsoundAC}. 
-	\item (Done) Ensure Lua works with \verb|luajit examples/lua_example.lua|.
-	\item (Done) Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
-	\item (Done) Ensure Java works with \verb|java -jar examples/java/CsoundEditor.jar|.
-	\item (Done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC-midi.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, a VST plugin instrument, and an STK instrument.
-	\item (Done) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
-	\item (Done) Ensure OSC works using example files.
-	\item (Done) Make sure installers link to the frames version of the manual and include the quick reference.
-	\item (Done) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
+	\item (Not done) Ensure \texttt{csound /examples/trapped.csd} works.
+	\item (Not done) Ensure \texttt{csound /examples/trapped.csd -otrapped.wav} works.
+	\item (Not done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to audio, and can be stopped and restarted.
+	\item (Not done) Ensure \texttt{csound5gui} renders \texttt{trapped.csd} to soundfile, and can be stopped and restarted. 	
+	\item (Not done) Ensure FLTK widgets work. 	
+	\item (Not done) Ensure Python works with \texttt{python examples/koch.py}, which uses SoundFonts in FluidSynth opcodes, and \texttt{python examples/Lindenmayer.py}, which uses \texttt{CsoundAC}. 
+	\item (Not done) Ensure Lua works with \verb|luajit examples/lua_example.lua|.
+	\item (Not done) Ensure Lisp works with \verb|clisp interfaces/test.lisp|.
+	\item (Not done) Ensure Java works with \verb|java -jar examples/java/CsoundEditor.jar|.
+	\item (Not done) Ensure \texttt{CsoundVstShell} can load \texttt{examples/CsoundAC-midi.csd} and perform as a live MIDI instrument using a SoundFont in a FluidSynth instrument, a VST plugin instrument, and an STK instrument.
+	\item (Not done) Ensure the Python opcodes work with some of the files in \url{Opcodes/py/examples}.
+	\item (Not done) Ensure OSC works using example files.
+	\item (Not done) Make sure installers link to the frames version of the manual and include the quick reference.
+	\item (Not done) Ensure \texttt{CsoundVST} plugin works with \texttt{CsoundVST.csd} in VSTHost from \url{http://www.hermannseib.com/english/vsthost.htm}.
 \end{enumerate}
 
 \end{sloppypar}

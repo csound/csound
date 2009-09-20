@@ -1,16 +1,16 @@
-######################################################################
+#######################################################################
 # C S O U N D   5   N U L L S O F T   I N S T A L L E R   S C R I P T
-# By Michael Gogins <gogins@pipeline.com>
+# By Michael Gogins <michael.gogins@gmail.com>
 #
 # If this script is compiled with the /DFLOAT option,
 # the installer will install the 'float samples' version of Csound;
 # by default, the installer will install the 'double samples' version.
 # If this script is compiled with the /DNONFREE option,
-# the installer will install non-free software (stk.dll and CsoundVST);
+# the installer will install non-free software (CsoundVST and vst4cs);
 # by default, the installer will omit all non-free software.
 #######################################################################
 
-!include MUI.nsh
+!include MUI2.nsh
 !include WinMessages.nsh
 
 #######################################################################
@@ -18,7 +18,7 @@
 #######################################################################
 
 !define PRODUCT "Csound"
-!define PROGRAM "Csound5.10.0"
+!define PROGRAM "Csound5.11.rc1"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
 !ifdef NONFREE
@@ -52,9 +52,10 @@
 !define WriteEnvStr_RegKey 'HKCU "Environment"'
 !endif
 
-!define PYTHON_VERSION 2.5
+!define PYTHON_VERSION 2.6
 
 !define MUI_ABORTWARNING
+!define MUI_COMPONENTSPAGE_NODESC
 
 #######################################################################
 # GENERAL
@@ -72,37 +73,10 @@ InstallDirRegKey HKCU "Software\${PRODUCT}" ""
 
 Var MUI_TEMP
 Var STARTMENU_FOLDER
-Var PYTHON_OUTPUT_PATH
 
 #######################################################################
 # FUNCTIONS
 #######################################################################
-
-# Check to see if the required version of Python is installed;
-# if not, ask the user if he or she wants to install it;
-# if so, try to install it.
-# if Python is installed, enable the Python features of Csound.
-# If Python is available, or not available, then
-# a Python backup output path is not defined, or defined, respectively.
-
-Function GetPython
-	ClearErrors
-	StrCpy $3 "Software\Python\PythonCore\${PYTHON_VERSION}\InstallPath"
-	ReadRegStr $1 HKLM $3 ""
-  	IfErrors tryToInstallPython enablePython
-tryToInstallPython:
-	MessageBox MB_OKCANCEL "You don't have Python ${PYTHON_VERSION} installed. Continue installing Csound without Python features (OK), or quit installing Csound so you can install Python first (Cancel)?" IDOK disablePython IDCANCEL installPython
-installPython:
-   	Abort 
-enablePython:
-	DetailPrint "Python ${PYTHON_VERSION} is available, enabling Python features..."
-	StrCpy $PYTHON_OUTPUT_PATH ""
-	Goto done
-disablePython:
-	DetailPrint "Python ${PYTHON_VERSION} is not available. Python modules will be installed in the 'python_backup' directory."
-	StrCpy $PYTHON_OUTPUT_PATH "\python_backup"
-done:
-FunctionEnd
 
 # WriteEnvStr - Write an environment variable
 # Note: Win9x systems requires reboot
@@ -202,8 +176,7 @@ FunctionEnd
 ;====================================================
 !macro select_NT_profile UN
 Function ${UN}select_NT_profile
-   MessageBox MB_YESNO|MB_ICONQUESTION "Change the environment for all users?$\r$\nSaying no here will change the envrironment for the current user only.$\r$\n(Administrator permissions required for all users)" \
-      IDNO environment_single
+   MessageBox MB_YESNO|MB_ICONQUESTION "Change the environment for all users?$\r$\nSaying no here will change the envrironment for the current user only.$\r$\n(Administrator permissions required for all users,$\r$\ndefaults to Yes on silent installations)" /SD IDYES IDNO environment_single 
       DetailPrint "Selected environment for all users"
       Push "all"
       Return
@@ -459,6 +432,7 @@ FunctionEnd
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   
 !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -480,179 +454,12 @@ LangString DESC_SecCopyUI ${LANG_ENGLISH} "Copy ${PRODUCT} to the application fo
 # INSTALLER SECTIONS
 #######################################################################
 
-Section "${PRODUCT}" SecCopyUI
-	# If Python is not available, ask the user if they want to install it.
-	Call GetPython
-	# First we do output paths for non-Python stuff.
+InstType "Core"
+InstType "Complete"
 
-	# Outputs to root installation directory.
-
-  	SetOutPath $INSTDIR
-	# Exclude junk soundfiles.
-	File /nonfatal /x test x
-	File /nonfatal /x ..\..\test x
-	# Exclude all Python stuff. We will install it later.
-	File /nonfatal /x ..\..\*.pyd x
-	File /nonfatal /x ..\..\csnd.dll x
-	File /nonfatal /x ..\..\csnd.py x
-	File /nonfatal /x ..\..\CsoundAC.dll x
-	File /nonfatal /x ..\..\CsoundAC.py  x
-	File /nonfatal /x ..\..\py.dll x
-!ifdef NONFREE
-	File ..\..\readme-csound5-complete.txt
-!else
-	File ..\..\readme-csound5.txt
-!endif
-	File ..\..\csound-build.pdf
-	File ..\..\etc\.csoundrc
-  	File ..\..\INSTALL
-
-	# Outputs to bin directory.
-
-  	SetOutPath $INSTDIR\bin
-!ifdef FLOAT
-	File ..\..\csound32.dll.5.1
-!else
-	File ..\..\csound64.dll.5.1
-!endif
-	File C:\windows\system32\MSVCRT.DLL
-	File ..\..\csnd.dll
-  	File ..\..\_jcsound.dll
-!ifdef NONFREE
-	File ..\..\CsoundVST.dll
-	File ..\..\*.exe
-!else
-	File /x CsoundVSTShell.exe ..\..\*.exe
-!endif
-	File ..\..\tclcsound.dll
-  	File ..\..\csoundapi~.dll
-
-        # Third party libraries:
-
-	# libsndfile
-	File U:\Mega-Nerd\libsndfile\libsndfile-1.dll
-	# FLTK
-	File U:\fltk-mingw\src\mgwfltknox-1.3.dll
-	File U:\fltk-mingw\src\mgwfltknox_images-1.3.dll
-	# PortAudio
-	File U:\portaudio\portaudio.dll
-	# PortMIDI
-	File U:\portmidi\portmidi.dll
-	File U:\portmidi\porttime.dll
-	# Fluidsynth
-	File U:\fluidsynth.patched\src\.libs\libfluidsynth-1.dll
-	# Image opcodes
-	File U:\zlib-1.2.3.win32\bin\zlib1.dll
-	File U:\libpng-1.2.24\.libs\libpng-3.dll
-	# Lua
-	File U:\Lua5.1\src\lua51.dll
-	File U:\Lua5.1\src\luajit.exe
-	# OSC
-	File U:\liblo\lo.dll
-	File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
-
-!ifdef FLOAT
-  	File ..\..\csound32.def
-!else
-  	File ..\..\csound64.def
-!endif
-  	File ..\..\_csnd.def
-  	File ..\..\_jcsound.def
-#ifdef NONFREE
-	File ..\..\frontends\CsoundVST\_CsoundVST.def
-#endif
-	SetOutPath $INSTDIR\pluginSDK
-  	File ..\..\pluginSDK\SConstruct
-  	File ..\..\pluginSDK\examplePlugin.c
-  	File ..\..\pluginSDK\custom.py
-  	SetOutPath $INSTDIR\doc
-  	File ..\..\*.txt
-  	File ..\..\ChangeLog
-  	File ..\..\COPYING
-  	File ..\..\LICENSE.PortMidi
-  	File ..\..\LICENSE.FLTK
-  	File ..\..\LICENSE.PortAudio
-  	SetOutPath $INSTDIR\doc\manual
-  	File /r ..\..\..\manual\html\*
-	SetOutPath $INSTDIR\doc\api
-	File ..\..\doc\html\*
-  	SetOutPath $INSTDIR\tutorial
-  	File ..\..\..\tutorial\tutorial.pdf
-  	File ..\..\..\tutorial\*.csd
-  	File ..\..\..\tutorial\*.py
-  	File ..\..\..\tutorial\tutorial3.cpr
-  	SetOutPath $INSTDIR\examples
-  	File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\*.*
-  	SetOutPath $INSTDIR\examples\csoundapi_tilde
-  	File /x *.wav /x *.orc /x *.sco ..\..\examples\csoundapi_tilde\*.*
-  	SetOutPath $INSTDIR\examples\java
-  	File /x *.wav /x *.orc /x *.sco ..\..\examples\java\*.*
-  	SetOutPath $INSTDIR\examples\tclcsound
-  	File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
-  	SetOutPath $INSTDIR\examples\gab
-  	File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
-  	SetOutPath $INSTDIR\examples\py
-  	File /x *.wav  ..\..\Opcodes\py\examples\*.*
-  	SetOutPath $INSTDIR\include
-  	File ..\..\H\*.h
-  	File ..\..\H\*.hpp
-  	File ..\..\interfaces\*.hpp
-!ifdef NONFREE
-        File ..\..\frontends\CsoundVST\*.h
-       	File ..\..\frontends\CsoundVST\*.hpp
-!endif
-	File ..\..\frontends\CsoundAC\*.h
-	File ..\..\frontends\CsoundAC\*.hpp
-  	SetOutPath $INSTDIR\interfaces\java
-  	File ..\..\csnd.jar
-  	SetOutPath $INSTDIR\interfaces\lisp
-  	File ..\..\interfaces\*.lisp
-  	SetOutPath $INSTDIR\samples
-  	File /r ..\..\samples\*
-	File /r ..\..\Opcodes\stk\rawwaves\*.raw
-	File ..\..\CompositionBase.py
-
-	# Then we do opcodes, which are a special case with respect to Python and non-free software.
-
-	SetOutPath $INSTDIR\${OPCODEDIR_VAL}
-	File ..\..\rtpa.dll
-	File ..\..\rtpa.dll
-!ifdef NONFREE
-	DetailPrint "Free and non-free software."
-	File /x csound*.dll* \
-	/x *.pyd \       
-	/x libsndfile-1.dll \
-	/x portaudio*.dll* \
-	/x tclcsound.dll \
-	/x csoundapi~.dll \
-	/x py.dll \
-	/x pm_midi.dll \
-	..\..\*.dll \
-	..\..\frontends\csladspa\csladspa.dll
-!else
-	DetailPrint "Only free software."
-	File /x csound*.dll* \
-	/x vst4cs.dll \
-	/x *.pyd \       
-	/x libsndfile-1.dll \
-	/x portaudio.dll* \
-	/x tclcsound.dll \
-	/x csoundapi~.dll \
-	/x py.dll \
-	/x pm_midi.dll \
-	..\..\*.dll \
-	..\..\frontends\csladspa\csladspa.dll
-!endif
-	DetailPrint "Python executables."
-	
-  	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\bin
-	File ..\..\_CsoundAC.pyd  ..\..\CsoundAC.py  ..\..\_csnd.pyd  ..\..\csnd.py
-
-	DetailPrint "Python opcodes."
-
-	SetOutPath $INSTDIR$PYTHON_OUTPUT_PATH\${OPCODEDIR_VAL}
-	File ..\..\py.dll \
-
+SectionGroup /e "Csound"
+  Section "Csound engine, opcodes, and drivers"
+    SectionIn 1 2 RO
 	# Store the installation folder.
 	WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
 	# Back up any old value of .csd.
@@ -688,41 +495,374 @@ skipAssoc:
 	Push "WAV"
 	Call WriteEnvStr
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
+    SetOutPath $INSTDIR\examples
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 	# Create shortcuts. The format of these lines is:
 	# link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 	CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\csound.exe" "" "" "" "" "" "Command-line Csound"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csound5gui.lnk" "$INSTDIR\bin\csound5gui.exe" "" "" "" "" "" " Varga Csound GUI"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cseditor.lnk" "$INSTDIR\bin\cseditor.exe" "" "" "" "" "" "Csound editor"
-!ifdef NONFREE
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVSTShell.exe" "" "" "" "" "" "CsoundVST GUI"
-!endif
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Csound.lnk" "cmd" "/K $INSTDIR\bin\csound.exe" "" "" "" "" "Csound"
+	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\readme-csound5-complete.txt" "" "" "" "" "" "Csound README"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
-	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\api\index.html" "" "" "" "" "" "API reference"
 	CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
 	!insertmacro MUI_STARTMENU_WRITE_END
-SectionEnd
+    SetOutPath $INSTDIR
+!ifdef NONFREE
+      File ..\..\readme-csound5-complete.txt
+!else
+      File ..\..\readme-csound5.txt
+!endif
+      File ..\..\etc\.csoundrc
+    SetOutPath $INSTDIR\doc
+      File ..\..\ChangeLog
+      File ..\..\COPYING
+      File ..\..\LICENSE.PortMidi
+      File ..\..\LICENSE.FLTK
+      File ..\..\LICENSE.PortAudio
+      File ..\..\csound-build.pdf
+    SetOutPath $INSTDIR\bin
+      # Csound itself.
+      File ..\..\csound.exe
+      File ..\..\cs.exe
+!ifdef FLOAT
+      File ..\..\csound32.dll.5.2
+!else
+      File ..\..\csound64.dll.5.2
+!endif
+      # Third party libraries:
+      # libsndfile
+      File U:\Mega-Nerd\libsndfile\libsndfile-1.dll
+      # FLTK
+      File U:\fltk-mingw\src\mgwfltknox-1.3.dll
+      File U:\fltk-mingw\src\mgwfltknox_images-1.3.dll
+      # PortAudio
+      File U:\portaudio\portaudio.dll
+      # PortMIDI
+      File U:\portmidi\portmidi.dll
+      File U:\portmidi\porttime.dll
+      # Fluidsynth
+      File U:\fluidsynth-1.0.9\src\.libs\libfluidsynth-1.dll
+      # Image opcodes
+      File U:\zlib-1.2.3.win32\bin\zlib1.dll
+      File U:\libpng-1.2.24\.libs\libpng-3.dll
+      # OSC
+      File U:\liblo-0.26\lo.dll
+      # MusicXML
+      File C:\utah\opt\libmusicxml-2.00-src\win32\codeblocks\libmusicxml2.dll
+      # pthreads
+      File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
+      # C runtime library
+      File C:\windows\system32\MSVCRT.DLL
+    # Opcodes, drivers, and other modules:
+    SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+      File ..\..\ambicode1.dll
+      File ..\..\ampmidid.dll
+      File ..\..\babo.dll
+      File ..\..\barmodel.dll
+      File ..\..\chua.dll
+      File ..\..\compress.dll
+      File ..\..\cs_date.dll
+      File ..\..\cs_pan2.dll
+      File ..\..\cs_pvs_ops.dll
+      File ..\..\doppler.dll
+      File ..\..\eqfil.dll
+      File ..\..\fluidOpcodes.dll
+      File ..\..\ftest.dll
+      File ..\..\gabnew.dll
+      File ..\..\grain4.dll
+      File ..\..\harmon.dll
+      File ..\..\hrtferX.dll
+      File ..\..\hrtfnew.dll
+      File ..\..\image.dll
+      File ..\..\linear_algebra.dll
+      File ..\..\loscilx.dll
+      File ..\..\minmax.dll
+      File ..\..\mixer.dll
+      File ..\..\modal4.dll
+      File ..\..\mutexops.dll
+      File ..\..\osc.dll
+      File ..\..\partikkel.dll
+      File ..\..\phisem.dll
+      File ..\..\physmod.dll
+      File ..\..\pitch.dll
+      File ..\..\pmidi.dll
+      File ..\..\ptrack.dll
+      File ..\..\pvoc.dll
+      File ..\..\pvsbuffer.dll
+      File ..\..\rtpa.dll
+      File ..\..\rtwinmm.dll
+      File ..\..\scansyn.dll
+      File ..\..\scoreline.dll
+      File ..\..\sfont.dll
+      File ..\..\shape.dll
+      File ..\..\stackops.dll
+      File ..\..\stdopcod.dll
+      File ..\..\stdutil.dll
+      File ..\..\stk.dll
+      File ..\..\system_call.dll
+      File ..\..\ugakbari.dll
+      File ..\..\vaops.dll
+      File ..\..\vbap.dll
+      File ..\..\virtual.dll
+      File ..\..\vosim.dll
+!ifdef NONFREE
+      File ..\..\vst4cs.dll
+!endif
+      File ..\..\widgets.dll
+    # Samples:
+    SetOutPath $INSTDIR\samples
+      File /r ..\..\samples\*
+      File /r ..\..\Opcodes\stk\rawwaves\*.raw
+    SetOutPath $INSTDIR\examples
+      File ..\..\examples\CsoundAC.csd
+      File ..\..\examples\CsoundVST.csd
+      File ..\..\examples\trapped.csd
+      File ..\..\examples\trapped-high-resolution.csd
+      File ..\..\examples\xanadu.csd
+      File ..\..\examples\xanadu-high-resolution.csd
+      File ..\..\examples\tpscaler.csd
+    SetOutPath $INSTDIR\examples\cscore
+      File /r /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\cscore\*.*
+    SetOutPath $INSTDIR\examples\opcode_demos
+      File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
+      File /x *.wav /x *.orc /x *.sco ..\..\examples\opcode_demos\*.*
+  SectionEnd
+  Section /o "Utilities"
+    SectionIn 2
+    SetOutPath $INSTDIR\bin
+       File ..\..\atsa.exe
+       File ..\..\csb64enc.exe
+       File ..\..\cvanal.exe
+       File ..\..\dnoise.exe
+       File ..\..\envext.exe
+       File ..\..\extract.exe
+       File ..\..\extractor.exe
+       File ..\..\het_export.exe
+       File ..\..\het_import.exe
+       File ..\..\hetro.exe
+       File ..\..\lpanal.exe
+       File ..\..\lpc_export.exe
+       File ..\..\lpc_import.exe
+       File ..\..\makecsd.exe
+       File ..\..\mixer.exe
+       File ..\..\pv_export.exe
+       File ..\..\pv_import.exe
+       File ..\..\pvanal.exe
+       File ..\..\pvlook.exe
+       File ..\..\scale.exe
+       File ..\..\scot.exe
+       File ..\..\scsort.exe
+       File ..\..\sdif2ad.exe
+       File ..\..\sndinfo.exe
+       File ..\..\srconv.exe
+  SectionEnd
+  SectionGroup "Documentation"
+    Section "Csound Reference Manual"
+      SectionIn 1 2
+      SetOutPath $INSTDIR\doc\manual
+  	File /r ..\..\..\manual\html\*
+    SectionEnd
+    Section /o "A Csound Tutorial"
+      SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "A Csound Tutorial"
+      SetOutPath $INSTDIR\tutorial
+  	File ..\..\..\tutorial\tutorial.pdf
+  	File ..\..\..\tutorial\*.csd
+  	File ..\..\..\tutorial\*.py
+  	File ..\..\..\tutorial\tutorial3.cpr
+    SectionEnd
+    Section /o "A Csound Algorithmic Composition Tutorial"
+      SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundAcTutorial.lnk" "$INSTDIR\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf" "" "" "" "" "" "A Csound Algorithmic Composition Tutorial"
+      SetOutPath $INSTDIR\tutorial
+  	File ..\..\..\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf
+  	File /r ..\..\..\tutorial\code\*.csd
+  	File /r ..\..\..\tutorial\code\*.py
+  	File /r ..\..\..\tutorial\code\*.mid
+    SectionEnd
+  SectionGroupEnd
+SectionGroupEnd
+SectionGroup "Front ends"
+  Section /o "QuteCsound (user-defined widgets)"
+    SectionIn 2
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound.exe" "" "" "" "" "" " QuteCsound"
+    SetOutPath $INSTDIR\bin
+      File ..\..\csnd.dll
+      # QuteCsound
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtCore4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtGui4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
+      File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
+!ifdef FLOAT
+      File D:\utah\opt\qutecsound\src\bin\qutecsound-f.exe
+!else
+      File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
+!endif
+  SectionEnd
+!ifdef NONFREE
+  Section /o "CsoundVST (requires VST host)"
+    SectionIn 2
+    SetOutPath $INSTDIR\bin
+      File ..\..\csnd.dll
+      File ..\..\CsoundVST.dll
+    SetOutPath $INSTDIR\include
+      File ..\..\frontends\CsoundVST\*.h
+      File ..\..\frontends\CsoundVST\*.hpp
+      File ..\..\frontends\CsoundVST\*.def
+  SectionEnd
+!endif
+  Section /o "tclcsound (requires TCL/Tk)"
+    SectionIn 2
+    SetOutPath $INSTDIR\bin
+      File ..\..\cswish.exe
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cswish.lnk" "$INSTDIR\bin\cswish.exe" "" "" "" "" "" "Csound wish (tcl/tk)"
+      File ..\..\cstclsh.exe
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cstclsh.lnk" "$INSTDIR\bin\cstclsh.exe" "" "" "" "" "" "Csound tcl shell"
+      File ..\..\tclcsound.dll
+    SetOutPath $INSTDIR\examples\tclcsound
+      File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
+  SectionEnd
+  Section /o "csoundapi~ (requires Pure Data)"
+    SectionIn 2
+    SetOutPath $INSTDIR\bin
+      File ..\..\csoundapi~.dll
+    SetOutPath $INSTDIR\examples\csoundapi_tilde
+      File /x *.wav /x *.orc /x *.sco ..\..\examples\csoundapi_tilde\*.*
+  SectionEnd
+SectionGroupEnd
+SectionGroup "Csound interfaces"
+  SectionGroup "C/C++"
+    Section /o "cnsd: C/C++ interface to Csound"
+      SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\api\index.html" "" "" "" "" "" "API reference"
+      SetOutPath $INSTDIR\bin
+        File ..\..\csnd.dll
+      SetOutPath $INSTDIR\include
+  	File ..\..\H\*.h
+  	File ..\..\H\*.hpp
+  	File ..\..\interfaces\*.hpp
+!ifdef FLOAT
+  	File ..\..\csound32.def
+!else
+  	File ..\..\csound64.def
+!endif
+      SetOutPath $INSTDIR\doc\api
+        File ..\..\doc\html\*
+      SetOutPath $INSTDIR\examples\c
+        File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\c\*.*
+    SectionEnd
+    Section /o "CsoundAC: C++ interface to Csound algorithmic composition"
+      SectionIn 2
+      SetOutPath $INSTDIR\bin
+        File ..\..\csnd.dll
+        File ..\..\libCsoundAC.a
+      SetOutPath $INSTDIR\include
+  	File ..\..\H\*.h
+  	File ..\..\H\*.hpp
+  	File ..\..\interfaces\*.hpp
+!ifdef FLOAT
+  	File ..\..\csound32.def
+!else
+  	File ..\..\csound64.def
+!endif
+	File ..\..\frontends\CsoundAC\*.h
+	File ..\..\frontends\CsoundAC\*.hpp
+      SetOutPath $INSTDIR\doc\api
+        File ..\..\doc\html\*
+      SetOutPath $INSTDIR\examples\cplusplus
+        File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\cplusplus\*.*
+    SectionEnd
+    Section /o "Plugin opcode SDK"
+      SectionIn 2
+      SetOutPath $INSTDIR\pluginSDK
+        File ..\..\pluginSDK\SConstruct
+        File ..\..\pluginSDK\examplePlugin.c
+        File ..\..\pluginSDK\custom.py
+    SectionEnd
+  SectionGroupEnd
+  SectionGroup "Lua (luajit included)"
+    Section /o "luaCsnd: Lua interface to Csound"
+      SectionIn 2
+      SetOutPath $INSTDIR\bin
+        File U:\Lua5.1\src\lua51.dll
+        File U:\Lua5.1\src\luajit.exe
+        File ..\..\csnd.dll
+        File ..\..\luaCsnd.dll
+      SetOutPath $INSTDIR\examples\lua
+        File ..\..\examples\lua\lua_example.lua
+    SectionEnd
+    Section /o "luaCsoundAC: Lua interface to CsoundAC"
+      SectionIn 2
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
+      SetOutPath $INSTDIR\bin
+        File U:\Lua5.1\src\lua51.dll
+        File U:\Lua5.1\src\luajit.exe
+        File ..\..\csnd.dll
+        File ..\..\luaCsnd.dll
+        File ..\..\luaCsoundAC.dll
+      SetOutPath $INSTDIR\examples\lua
+        File ..\..\examples\lua\Lindenmayer.lua
+    SectionEnd
+  SectionGroupEnd
+  SectionGroup "Python (requires Python 2.6)"
+    Section /o "Python opcodes"
+      SectionIn 2
+      SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+        File ..\..\py.dll
+      SetOutPath $INSTDIR\examples\opcode_demos
+        File /x *.wav  ..\..\Opcodes\py\examples\*.*
+    SectionEnd
+    Section /o "csnd: Python interface to Csound"
+      SectionIn 2
+      SetOutPath $INSTDIR\examples\python
+        File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\python\*.*
+      SetOutPath $INSTDIR\bin
+        File ..\..\csnd.dll
+	File ..\..\_csnd.pyd  
+        File ..\..\csnd.py
+      SetOutPath $INSTDIR\examples\python
+    SectionEnd
+    Section /o "CsoundAC: Python interface to Csound algorithmic comnposition"
+      SectionIn 2
+      SetOutPath $INSTDIR\bin
+        File ..\..\csnd.dll
+	File ..\..\_csnd.pyd  
+        File ..\..\csnd.py
+	File ..\..\_CsoundAC.pyd  
+        File ..\..\CsoundAC.py
+    SectionEnd
+  SectionGroupEnd 
+  SectionGroup "Java (requires Java)"
+    Section /o "csnd: Java interface to Csound"
+      SectionIn 2
+      SetOutPath $INSTDIR\bin
+        File ..\..\csnd.dll
+        File ..\..\_jcsound.dll
+        File ..\..\csnd.jar
+      SetOutPath $INSTDIR\examples\java
+  	File /x *.wav /x *.orc /x *.sco ..\..\examples\java\*.*
+    SectionEnd
+  SectionGroupEnd
+  Section /o "Lisp interface to Csound (requires Lisp with CFFI)"
+    SectionIn 2
+    SetOutPath $INSTDIR\bin
+       File ..\..\csnd.dll
+       File ..\..\interfaces\csound.lisp
+       File ..\..\interfaces\filebuilding.lisp
+    SetOutPath $INSTDIR\examples\lisp
+       File ..\..\interfaces\test.lisp
+  SectionEnd
+SectionGroupEnd
 
 Section "Uninstall"
   	RMDir /r $INSTDIR
   	!insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-  	Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
-  	Delete "$SMPROGRAMS\$MUI_TEMP\cseditor.lnk"
-!ifdef NONFREE
-	Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
-!endif
+  	Delete "$SMPROGRAMS\$MUI_TEMP\Csound.lnk"
 	Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
-	# Delete empty start menu parent dircetories.
+	# Delete empty start menu parent directories.
   	StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
 startMenuDeleteLoop:
 	RMDir $MUI_TEMP

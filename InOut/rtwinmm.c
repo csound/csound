@@ -327,11 +327,11 @@ static int open_device(CSOUND *csound,
         return err_msg(csound, Str("failed to open device"));
       }
       switch (conv_idx) {
-        case 0: 
-          if (csound->dither_output==1) 
+        case 0:
+          if (csound->dither_output==1)
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;
-          else if (csound->dither_output==2) 
+          else if (csound->dither_output==2)
             dev->playconv =
                   (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short_u;
           else
@@ -758,7 +758,7 @@ static CS_NOINLINE int check_name(const char *s)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
-      csound->Message(csound, "rtaudio: WinMM module enabled\n");
+      csound->Message(csound, Str("rtaudio: WinMM module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);

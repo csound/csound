@@ -19,7 +19,7 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
- 
+
 #ifndef MACOSX
 %module(directors="1") csnd
 %feature("director") CsoundCallbackWrapper;
@@ -91,7 +91,7 @@ typedef unsigned int uint32_t;
 %ignore  csoundSetCscoreCallback(CSOUND *,void (*cscoreCallback_)(CSOUND *));
 
 // typemap for callbacks
-%typemap(in) PyObject 
+%typemap(in) PyObject
 
 *pyfunc {
   if(!PyCallable_Check($input)){
@@ -108,16 +108,16 @@ static void PythonMessageCallback(CSOUND *in, int attr,
                                      const char *format, va_list valist){
 
     PyObject *res;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->mfunc, *arg;    
+    PyObject *pyfunc = pydata->mfunc, *arg;
     char *mbuf = new char[strlen(format)*10], *ch;
     vsprintf(mbuf, format, valist);
     //if(ch = strrchr(mbuf, '\n')) *ch = '\0';
     if (strlen(mbuf) > 1){
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
-    arg = Py_BuildValue("(s)", mbuf); 
+    arg = Py_BuildValue("(s)", mbuf);
     res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
@@ -130,12 +130,12 @@ static void PythonMessageCallback(CSOUND *in, int attr,
 static void PythonInValueCallback(CSOUND *in, const char *chan, MYFLT *val){
 
     PyObject *res;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->invalfunc, *arg;    
+    PyObject *pyfunc = pydata->invalfunc, *arg;
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
-    arg = Py_BuildValue("(s)", chan); 
+    arg = Py_BuildValue("(s)", chan);
     res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
@@ -145,36 +145,36 @@ static void PythonInValueCallback(CSOUND *in, const char *chan, MYFLT *val){
      Py_DECREF(res);
     }
    PyGILState_Release(gst);
-    
+
 
 }
 
 static void PythonOutValueCallback(CSOUND *in, const char *chan, MYFLT val) {
 
     PyObject *res;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->outvalfunc, *arg;    
+    PyObject *pyfunc = pydata->outvalfunc, *arg;
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
-    arg = Py_BuildValue("(s,d)", chan, (double) val); 
+    arg = Py_BuildValue("(s,d)", chan, (double) val);
     res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
     }else Py_DECREF(res);
    PyGILState_Release(gst);
-    
+
 }
 
 static int PythonMidiInOpen(CSOUND *in, void **udata, const char *name){
 
     PyObject *res;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->midiinopenfunc, *arg;    
+    PyObject *pyfunc = pydata->midiinopenfunc, *arg;
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
-    arg = Py_BuildValue("(s)", name); 
+    arg = Py_BuildValue("(s)", name);
     res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
@@ -187,9 +187,9 @@ static int PythonMidiInOpen(CSOUND *in, void **udata, const char *name){
 
 static int PythonMidiInClose(CSOUND *in, void *udata){
     PyObject *res;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->midiinclosefunc, *arg;    
+    PyObject *pyfunc = pydata->midiinclosefunc, *arg;
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
     arg = Py_BuildValue("(O)", (PyObject *) udata);
@@ -201,14 +201,14 @@ static int PythonMidiInClose(CSOUND *in, void *udata){
     PyGILState_Release(gst);
     return 0;
 }
-      
+
 static int PythonMidiRead(CSOUND *in, void *udata,
                                   unsigned char *buf, int nBytes){
     PyObject *res;
     int i;
-    Csound *p = (Csound *) csoundGetHostData(in); 
+    Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
-    PyObject *pyfunc = pydata->midireadfunc, *arg;    
+    PyObject *pyfunc = pydata->midireadfunc, *arg;
     PyGILState_STATE gst;
     gst = PyGILState_Ensure();
     arg = Py_BuildValue("(O,i)", (PyObject *) udata, nBytes);
@@ -216,7 +216,7 @@ static int PythonMidiRead(CSOUND *in, void *udata,
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
     }else {
-    if(PyList_Check(res)) 
+    if(PyList_Check(res))
        for(i=0; i < nBytes; i++)
           buf[i] = (char) PyInt_AsLong(PyList_GetItem(res,i));
      else for(i=0; i < nBytes; i++)  buf[i] = 0;
@@ -257,72 +257,72 @@ static int PythonMidiRead(CSOUND *in, void *udata,
   PyObject *GetHostData() {
    return ((pycbdata *)self->pydata)->hostdata;
 }
-#ifndef MACOSX
+#ifndef PYTHON_23_or_older
   void SetMessageCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->mfunc == NULL)   
+    if(pydata->mfunc == NULL)
         if(!PyEval_ThreadsInitialized())  PyEval_InitThreads();
     else Py_XDECREF(pydata->mfunc);
         pydata->mfunc = pyfunc;
         self->SetMessageCallback(PythonMessageCallback);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 
   void SetInputValueCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->invalfunc == NULL)  
+    if(pydata->invalfunc == NULL)
        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
     else Py_XDECREF(pydata->invalfunc);
         pydata->invalfunc = pyfunc;
         self->SetInputValueCallback(PythonInValueCallback);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 
   void SetOutputValueCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->outvalfunc == NULL)  
+    if(pydata->outvalfunc == NULL)
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
     else Py_XDECREF(pydata->outvalfunc);
         pydata->outvalfunc = pyfunc;
         self->SetOutputValueCallback(PythonOutValueCallback);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 
   void SetExternalMidiInOpenCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midiinopenfunc == NULL)  
+    if(pydata->midiinopenfunc == NULL)
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
     else Py_XDECREF(pydata->midiinopenfunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiInOpenCallback(PythonMidiInOpen);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 
 void SetExternalMidiInCloseCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midiinclosefunc == NULL)  
+    if(pydata->midiinclosefunc == NULL)
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
     else Py_XDECREF(pydata->midiinclosefunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiInCloseCallback(PythonMidiInClose);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 
 
 void SetExternalMidiReadCallback(PyObject *pyfunc){
-     // thread safety mechanism 
+     // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->midireadfunc == NULL)  
+    if(pydata->midireadfunc == NULL)
         if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
     else Py_XDECREF(pydata->midireadfunc);
         pydata->midiinopenfunc = pyfunc;
         self->SetExternalMidiReadCallback(PythonMidiRead);
-        Py_XINCREF(pyfunc); 
+        Py_XINCREF(pyfunc);
 }
 #endif
 }
@@ -340,14 +340,14 @@ static void PythonCallback(void *p){
 
     PyObject *res;
     CsoundPerformanceThread *t = (CsoundPerformanceThread *) p;
-    PyGILState_STATE stat = PyGILState_Ensure();    
+    PyGILState_STATE stat = PyGILState_Ensure();
     res = PyEval_CallObject(t->pydata.func, t->pydata.data);
     if (res == NULL){
     PyErr_SetString(PyExc_TypeError, "Exception in callback");
      }
-    else Py_DECREF(res);    
+    else Py_DECREF(res);
     PyGILState_Release(stat);
-   
+
 }
 %}
 
@@ -361,20 +361,20 @@ static void PythonCallback(void *p){
    // Set the Python callback
    void SetProcessCallback(PyObject *pyfunc, PyObject *p){
     if(self->GetProcessCallback() == NULL) {
-#ifndef MACOSX
-       if(!PyEval_ThreadsInitialized()) 
-#endif                      
+#ifndef PYTHON_23_or_older
+       if(!PyEval_ThreadsInitialized())
+#endif
                           PyEval_InitThreads();
      }
-     else Py_XDECREF(self->pydata.func);  
+     else Py_XDECREF(self->pydata.func);
     self->pydata.func = pyfunc;
     self->pydata.data = Py_BuildValue("(O)", p);
     self->SetProcessCallback(PythonCallback, (void *)self);
     Py_XINCREF(pyfunc);
 
   }
- 
- 
+
+
 }
 
 //#ifndef MACOSX
@@ -385,3 +385,43 @@ static void PythonCallback(void *p){
 %include "filebuilding.h"
 %include "Soundfile.hpp"
 */
+
+%extend CppSound {
+static void pythonMessageCallback(CSOUND *csound,
+                                  int attr, const char *format, va_list valist)
+{
+  char          buffer[8192];
+  static std::string  lineBuffer = "print '''";     // FIXME
+  unsigned int  i, len;
+#ifdef HAVE_C99
+  len = (unsigned int) vsnprintf(&(buffer[0]), (size_t) 8192, format, valist);
+  if (len >= 8192U)
+    {
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      return;
+    }
+#else
+  len = (unsigned int) vsprintf(&(buffer[0]), format, valist);
+  if (len >= 8192U)
+    {
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      exit(-1);
+    }
+#endif
+  for (i = 0; i < len; i++) {
+    if (buffer[i] == '\n') {
+      lineBuffer += "'''";
+      PyRun_SimpleString(lineBuffer.c_str());
+      lineBuffer = "print '''";
+      continue;
+    }
+    if (buffer[i] == '\'' || buffer[i] == '\\')
+      lineBuffer += '\\';
+    lineBuffer += buffer[i];
+  }
+}
+  void setPythonMessageCallback()
+  {
+    self->SetMessageCallback(CppSound_pythonMessageCallback);
+  }
+};

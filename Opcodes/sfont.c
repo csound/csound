@@ -2540,7 +2540,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   csound->CreateGlobalVariable(csound, "::sfontg",
                                sizeof(sfontg));
   globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-  if (globals == NULL) 
+  if (globals == NULL)
     return csound->InitError(csound,
                              Str("error... could not create sfont globals\n"));
 

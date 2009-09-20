@@ -94,7 +94,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
+    if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
@@ -389,7 +389,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
     LPHEADER *lph;
     MEMFIL   *mfp;
     int32     magic;
-    int32     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(int32) !! */
+    int32     totvals;
     char      lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
@@ -419,13 +419,13 @@ int lprdset(CSOUND *csound, LPREAD *p)
     lph = (LPHEADER *) mfp->beginp;
 
     magic=lph->lpmagic;
-    if ((magic==LP_MAGIC)||(magic==LP_MAGIC2)) {
+    if (LIKELY((magic==LP_MAGIC)||(magic==LP_MAGIC2))) {
       p->storePoles = (magic==LP_MAGIC2);
 
       csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
-      p->headlongs = lph->headersize/sizeof(int32);
+      p->headlen = lph->headersize;
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
         csound->Warning(csound, Str("lpheader overriding inputs"));
@@ -444,7 +444,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
                                        lpfilname);
     }
     else {                                    /* No Header on file:*/
-      p->headlongs = 0;
+      p->headlen = 0;
       p->npoles = (int32)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
@@ -458,7 +458,7 @@ int lprdset(CSOUND *csound, LPREAD *p)
       return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
-    totvals = (mfp->length/sizeof(MYFLT)) - p->headlongs;   /* see NB above!! */
+    totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (UNLIKELY(csound->oparms->odebug))
@@ -664,9 +664,10 @@ int lpread(CSOUND *csound, LPREAD *p)
       }
     }
     /* Locate frames bounding current time */
-    nn = (framphase >> 16) * p->nvals + p->headlongs;   /* see NB above!! */
-    bp = (MYFLT *)p->mfp->beginp + nn;          /* locate begin this frame */
-    np = bp + p->nvals;                         /* & interp betw adj frams */
+    bp = (MYFLT *)(p->mfp->beginp + p->headlen); /* locate begin frame data */
+    nn = (framphase >> 16) * p->nvals;
+    bp = bp + nn;                                /* locate begin this frame */
+    np = bp + p->nvals;                          /* & interp betw adj frams */
     fract = (framphase & 0x0FFFFL) / FL(65536.0);
     /* Interpolate freq/amplpitude and store in opcode */
     *p->krmr = *bp + (*np - *bp) * fract;   bp++;   np++; /* for 4 rslts */
@@ -702,8 +703,9 @@ int lpread(CSOUND *csound, LPREAD *p)
       }
     }
 /*  if (csound->oparms->odebug) {
-      csound->Message(csound, "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
-             framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
+      csound->Message(csound,
+          "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
+          framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
       cp = p->kcoefs;
       nn = p->npoles;
       do {
@@ -713,6 +715,54 @@ int lpread(CSOUND *csound, LPREAD *p)
     }  */
     return OK;
 }
+
+
+int lpformantset(CSOUND *csound, LPFORM *p)
+{
+    LPREAD *q;
+
+   /* connect to previously loaded lpc analysis */
+   /* get adr lpread struct */
+    p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+    return OK;
+}
+
+int lpformant(CSOUND *csound, LPFORM *p)
+{
+    LPREAD *q = p->lpread;
+    MYFLT   *coefp, sr = csound->esr;
+    MYFLT   cfs[MAXPOLES/2], bws[MAXPOLES/2];
+    int     i, j, ndx = *p->kfor;
+    double  pm,pp;
+
+    if (q->storePoles) {
+      coefp = q->kcoefs;
+      for (i=2,j=0; i<q->npoles*2; i+=4, j++) {
+        pm = coefp[i];
+        pp = coefp[i+1];
+        cfs[j] = pp*sr/TWOPI;
+        /* if(pm > 1.0) csound->Message(csound,
+                                        Str("warning unstable pole %f\n"), pm); */
+        bws[j] = -log(pm)*sr/PI;
+      }
+    }
+    else {
+      csound->PerfError(csound, Str("this opcode only works with LPC "
+                                    "pole analysis type (-a)\n"));
+      return NOTOK;
+    }
+
+    j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
+    if(bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
+    if(bws[j] < 1.0) bws[j] = 1.0;
+    if(cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
+    if(cfs[j] < 0) cfs[j] = -cfs[j];
+    *p->kcf = cfs[j];
+    *p->kbw = bws[j];
+
+    return OK;
+}
+
 
 /*
  *
@@ -760,6 +810,9 @@ int lpreson(CSOUND *csound, LPRESON *p)
       for (i=0; i<q->npoles; i++) {
         pm = *coefp++;
         pp = *coefp++;
+        /*       csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
+                        pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
+        */
         if (fabs(pm)>0.999999)
           pm = 1/pm;
         poleReal[i] = pm*cos(pp);
@@ -770,13 +823,8 @@ int lpreson(CSOUND *csound, LPRESON *p)
       synthetize(q->npoles,poleReal,poleImag,polyReal,polyImag);
       coefp = q->kcoefs;
       for (i=0; i<q->npoles; i++) {
-        coefp[i] = -(MYFLT)polyReal[q->npoles-i]; /* MR_WHY - somthing with the atan2 ? */
-#ifdef _DEBUG
-/*                      if (polyImag[i]>1.0e-10) */
-/*                      { */
-/*                              printf ("bad polymag: %f\n",polyImag[i]); */
-/*                      } */
-#endif
+        /* MR_WHY - somthing with the atan2 ? */
+        coefp[i] = -(MYFLT)polyReal[q->npoles-i];
       }
     }
 

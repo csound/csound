@@ -2,24 +2,58 @@
 #include <map>
 #include <vector>
 
+// Define ENABLE_MIXER_IDEBUG to enable i-rate debug messages.
+//#define ENABLE_MIXER_IDEBUG
+
+// Define ENABLE_MIXER_KDEBUG to enable -rate and a-rate debug messages.
+//#define ENABLE_MIXER_KDEBUG
+
 /**
- * The busses are laid out:
+ * The mixer busses are laid out:
  * busses[csound][bus][channel][frame].
  */
 static std::map<CSOUND *, std::map<size_t,
                                    std::vector< std::vector<MYFLT> > > > busses;
 
 /**
- * The mixer matrix is laid out:
+ * The mixer send matrix is laid out:
  * matrix[csound][send][bus].
  */
 static std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > matrix;
 
 /**
+ * Creates the buss if it does not already exist.
+ */
+static void createBuss(CSOUND *csound, size_t buss)
+{
+#ifdef ENABLE_MIXER_IDEBUG
+  csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
+#endif
+  if(busses[csound].find(buss) == busses[csound].end())
+    {
+      size_t channels = csound->nchnls;
+      size_t frames = csound->ksmps;
+      busses[csound][buss].resize(channels);
+      for(size_t channel = 0; channel < channels; channel++)
+        {
+          busses[csound][buss][channel].resize(frames);
+        }
+#ifdef ENABLE_MIXER_IDEBUG
+      csound->Message(csound, "createBuss: created buss.\n");
+#endif
+    }
+  else
+    {
+#ifdef ENABLE_MIXER_IDEBUG
+      csound->Message(csound, "createBuss: buss already exists.\n");
+#endif
+    }
+}
+
+/**
  * MixerSetLevel isend, ibuss, kgain
  *
- * Controls the gain of any signal route from a send to a bus.
- * Also creates the bus if it does not exist.
+ * Controls the gain of any signal route from a send to a bus
  */
 struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
 {
@@ -33,32 +67,25 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
   size_t buss;
   int init(CSOUND *csound)
   {
-    //warn(csound, "MixerSetLevel::init...\n");
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerSetLevel::init...\n");
+#endif
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    if(busses[csound].find(buss) == busses[csound].end())
-      {
-        size_t channels = csound->nchnls;
-        size_t frames = csound->ksmps;
-        busses[csound][buss].resize(channels);
-        for(size_t channel = 0; channel < channels; channel++)
-          {
-            busses[csound][buss][channel].resize(frames);
-          }
-        //warn(csound, "MixerSetLevel::init: initialized instance %d buss "
-        //"%d channels %d frames %d\n", csound, buss, channels, frames);
-      }
+    createBuss(csound, buss);
     matrix[csound][send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss "
-    //"%d gain %f\n", csound, send, buss, gain);
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n", csound, send, buss, matrix[csound][send][buss]);
+#endif
     return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    //warn(csound, "MixerSetLevel::kontrol...\n");
     matrix[csound][send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss "
-    //"%d gain %f\n", csound, send, buss, gain);
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerSetLevel::kontrol: csound %p send %d buss "
+         "%d gain %f\n", csound, send, buss, matrix[csound][send][buss]);
+#endif
     return OK;
   }
 };
@@ -83,7 +110,7 @@ extern "C" {
  */
 struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
 {
-  // Outputs.
+  //.
   MYFLT *kgain;
   // Inputs.
   MYFLT *isend;
@@ -93,8 +120,12 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
   size_t buss;
   int init(CSOUND *csound)
   {
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerGetLevel::init...\n");
+#endif
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
+    createBuss(csound, buss);
     return OK;
   }
   int noteoff(CSOUND *)
@@ -103,6 +134,9 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
   }
   int kontrol(CSOUND *csound)
   {
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerGetLevel::kontrol...\n");
+#endif
     *kgain = matrix[csound][send][buss];
     return OK;
   }
@@ -129,15 +163,20 @@ struct MixerSend : public OpcodeBase<MixerSend>
   MYFLT *busspointer;
   int init(CSOUND *csound)
   {
-    //warn(csound, "MixerSend::init...\n");
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerSend::init...\n");
+#endif
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
+    createBuss(csound, buss);
     channel = static_cast<size_t>(*ichannel);
     frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
-    //warn(csound, "MixerSend::init: instance %d send %d buss "
-    //"%d channel %d frames %d busspointer 0x%p\n", 
-    //csound, send, buss, channel, frames, busspointer);
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerSend::init: instance %p send %d buss "
+         "%d channel %d frames %d busspointer %p\n",
+         csound, send, buss, channel, frames, busspointer);
+#endif
     return OK;
   }
   int noteoff(CSOUND *)
@@ -146,14 +185,18 @@ struct MixerSend : public OpcodeBase<MixerSend>
   }
   int audio(CSOUND *csound)
   {
-    //warn(csound, "MixerSend::audio...\n");
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerSend::audio...\n");
+#endif
     MYFLT gain = matrix[csound][send][buss];
     for(size_t i = 0; i < frames; i++)
       {
         busspointer[i] += (ainput[i] * gain);
       }
-    //warn(csound, "MixerSend::audio: instance %d send %d buss "
-    //"%d gain %f busspointer 0x%p\n", csound, send, buss, gain, busspointer);
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerSend::audio: instance %d send %d buss "
+         "%d gain %f busspointer %p\n", csound, send, buss, gain, busspointer);
+#endif
     return OK;
   }
 };
@@ -179,14 +222,19 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
   MYFLT *busspointer;
   int init(CSOUND *csound)
   {
-    //warn(csound, "MixerReceive::init...\n");
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
     frames = csound->ksmps;
+    createBuss(csound, buss);
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerReceive::init...\n");
+#endif
     busspointer = &busses[csound][buss][channel].front();
-    //warn(csound, "MixerReceive::init instance %d buss %d channel "
-    //"%d frames %d busspointer 0x%p\n", instance, buss, channel, 
-    //frames, busspointer);
+#ifdef ENABLE_MIXER_IDEBUG
+    warn(csound, "MixerReceive::init csound %p buss %d channel "
+         "%d frames %d busspointer %p\n", csound, buss, channel,
+         frames, busspointer);
+#endif
     return OK;
   }
   int noteoff(CSOUND *)
@@ -195,13 +243,17 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
   }
   int audio(CSOUND *csound)
   {
-    //warn(csound, "MixerReceive::audio...\n");
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerReceive::audio...\n");
+#endif
     for(size_t i = 0; i < frames; i++)
       {
         aoutput[i] = busspointer[i];
       }
-    //warn(csound, "MixerReceive::audio aoutput 0x%p busspointer 0x%p\n", 
-    //aoutput, busspointer);
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n",
+         aoutput, buss);
+#endif
     return OK;
   }
 };
@@ -220,25 +272,29 @@ struct MixerClear : public OpcodeBase<MixerClear>
   // No state.
   int audio(CSOUND *csound)
   {
-    //warn(csound, "MixerClear::audio...\n")
-    for(std::map<size_t, 
-          std::vector< std::vector<MYFLT> > >::iterator
-          busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
-      {
-        for(std::vector< std::vector<MYFLT> >::iterator 
-              channeli = busi->second.begin(); 
-            channeli != busi->second.end(); ++channeli)
-          {
-            for(std::vector<MYFLT>::iterator
-                  framei = (*channeli).begin(); 
-                framei != (*channeli).end(); ++framei)
-              {
-                *framei = 0;
-              }
-          }
-      }
-    //warn(csound, "MixerClear::audio\n")
-    return OK;
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerClear::audio...\n")
+#endif
+      for(std::map<size_t,
+            std::vector< std::vector<MYFLT> > >::iterator
+            busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
+        {
+          for(std::vector< std::vector<MYFLT> >::iterator
+                channeli = busi->second.begin();
+              channeli != busi->second.end(); ++channeli)
+            {
+              for(std::vector<MYFLT>::iterator
+                    framei = (*channeli).begin();
+                  framei != (*channeli).end(); ++framei)
+                {
+                  *framei = 0;
+                }
+            }
+        }
+#ifdef ENABLE_MIXER_KDEBUG
+    warn(csound, "MixerClear::audio\n")
+#endif
+      return OK;
   }
 };
 
@@ -254,6 +310,16 @@ extern "C"
       (char*)"iik",
       (SUBR)&MixerSetLevel::init_,
       (SUBR)&MixerSetLevel::kontrol_,
+      0
+    },
+    {
+      (char*)"MixerSetLevel_i",
+      sizeof(MixerSetLevel),
+      1,
+      (char*)"",
+      (char*)"iii",
+      (SUBR)&MixerSetLevel::init_,
+      0,
       0
     },
     {

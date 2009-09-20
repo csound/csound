@@ -1,3 +1,251 @@
+2009-09-14  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen32): And allow extended here as well, via aux
+	function
+
+2009-09-10  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen52, gen51): Added extended arg support
+
+2009-08-27  jpff  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h (PMAX): Reduced by 2
+	(EVTBLK): Added c.extra field to EVTBLK
+
+	* Engine/fgens.c: LOTS of changes to allow extension of arguments uses.
+
+	* Engine/sread.c (ifa): removed limit of PMAX arguments to events
+
+	* Engine/rdscor.c (rdscor): Allow reading of more than PMAX fields
+
+	* Engine/fgens.c (gen23): Total rewrite
+
+2009-08-19  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (hfgens): Correct error string to 1, 23 or 28 for
+	deferred size.
+
+2009-08-12  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (hfgens): Do not extend table of ftables
+	unnecessarily; it used to always extend even if spare slots
+	existed.
+
+2009-08-10  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/tabsum.c (tabsum): Fixed silly error that made it all
+	wrong.
+
+2009-07-25  Michael Gogins  <michael.gogins@gmail.com>
+
+	* The Windows installer now provides the user with options for
+	core, custom, or complete installation. Custom options include
+	independent installation of C/C++, Lua, Python, Java, and Lisp
+	interfaces;  independent installation of csnd and
+	CsoundAC; and independent intstallation of front ends and
+	various other options.
+
+2009-07-21    <jpff@codemist.co.uk>
+
+	* OOps/cmath.c (seedrand): if positive would still seed from time
+
+2009-07-20  jpff  <jpff@codemist.co.uk>
+
+	* OOps/ugrw1.c (printsset): Set string[0] to null as otherwise
+	sprints does wrong thing on empty string
+
+2009-07-18  Michael Gogins  <michael.gogins@gmail.com>
+
+	* SConstruct now builds completely independent shared libraries
+	for Python, Lua, and Java wrappers.
+
+	* Reorganized examples directory to put all examples for C, C++,
+	Python, Lua, Java, and Lisp wrappers in separate subdirectories.
+	Opcode demos also go into a separate subdirectory. The root examples
+	directory should now contain only complete pieces or tutorial pieces.
+
+2009-07-05  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/spectra.c (mute opcode): Should be type T to acceept
+	string or number.
+
+	* SConstruct (cf): Check that libintl.h exists in the GETTEXT version
+
+2009-06-10  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.l: Corrected continuation line pattern
+
+2009-06-05  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y (ident): Added unary +
+
+	* H/version.h: Marked as 5.10.90 and 5.11rc1
+
+2009-06-04  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_expressions.c (create_goto_token)
+	(get_boolean_arg, create_boolean_expression)
+	(create_synthetic_ident, csound_orc_expand_expressions):
+	Create and use Boolean variables with either k or i type as required
+
+2009-05-05  jpff  <jpff@cs.bath.ac.uk>
+
+	* Engine/csound_orc.l: Deal with \+NL
+
+2009-05-01  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y (if, ifthen, elsif): Removed requirement for
+	brackets round condition.
+
+2009-04-30  jpff  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y: Remove two globals to teh CSOUND structure
+	and start numbered instruments.
+
+2009-04-29 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* InOut/FL_graph.cpp: fixed the redrawing of graphs so that only
+	selected ones get redrawn.
+
+2009-04-28  jpff  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h ("C"): Declare
+	* Top/csound.c ("C"): Initialise floatsize
+
+	* Engine/musmon.c (musmon): Set csound->floatsize
+
+2009-04-27 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* Opcodes/pvsbasic.c: added rounding bin code to pvsscale
+	* Opcodes/ftgen.c: added NP2 support for ftload and ftsave
+	* Engine/fgen.c: moved a PerfError to a Warning when tables are
+	resized to enable ftload to resize deferred-allocation tables.
+	* OOps/ugens5.c: experimental LPC read opcode
+	* H/ugens.h: as above
+	* Engine/oentry1.c: as above
+
+2009-04-24  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* SConstruct: Define WORDS_BIGENDIAN for hrtfnew opcodes when appropriate.
+
+	* H/prototyp.h:
+	* H/csoundCore.h:
+	* Top/csound.c:
+	* Engine/memfiles.c: New API function pointer ldmemfile2withCB() which is
+	a version of ldmemfile() allowing a callback to be set and called exactly
+	once to process the MEMFIL buffer after it is loaded.
+
+	* H/version.h: Increased API version to 2.1.
+
+	* Engine/memfiles.c (Load_File_):
+	* Opcodes/hrtfopcodes.c: Moved byteswapping code for HRTF opcodes to
+	hrtfnew module utilizing ldmemfile2withCB().
+
+	* H/csound.h: Removed file type CSFTYPE_FLOATS_BINARY_SW
+
+2009-04-19  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/p5glove.c: New code to controlP5 Glove directly
+
+	* Engine/csound_orc_semantics.c (handle_polymorphic_opcode): Added
+	polymorphic type 0xfffd
+
+2009-04-17  jpff  <jpff@codemist.co.uk>
+
+	* Engine/memfiles.c (Load_File_): Add option for byteswap from
+	LITTLE- to BIG-ENDIAN if necessary (CSFTYPE_FLOATS_BINARY_SW)
+
+	* H/csound.h: New file type CSFTYPE_FLOATS_BINARY_SW
+
+2009-04-08  Michael Gogins <michael.gogins@gmail.com>
+
+	* Opcodes/mixer.cpp:
+	Added MixerSetLevel_i, an init-time only version of MixerSetLevel,
+	so that it is possible to set the levels of mixer sends in the
+	orchestra header.
+
+2009-03-30  jpff  <jpff@codemist.co.uk>
+
+	* OOps/diskin.c (diskin_read_buffer): Typo corrected
+
+2009-03-24  Michael Gogins <michael.gogins@gmail.com>
+
+	* frontends/CsoundAC/Score.cpp:
+	* interfaces/CsoundFile.cpp:
+	Implemented importation of MusicXML v2 files into the CsoundAC Score class
+	and the csnd CsoundFile class, using the Grame MusicXML library.
+
+2009-03-22  jpff  <jpff@codemist.co.uk>
+
+	* OOps/oscils.c (tablexkt): Line adding to ar removed as wrong
+
+2009-03-18  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* SConstruct:
+	* Opcodes/syncgrain.c: Added config test for values.h.
+
+	* frontends/cscore/cscoremain.c:
+	* frontends/cscore/cscoremain_MacOS9.c:
+	* util1/scot/scot_main.c:  Changed Scot and Cscore to take an optional
+	second commandline argument specifying the output file.
+
+2009-03-16  jpff  <jpff@codemist.co.uk>
+
+	* InOut/rtalsa.c (set_device_params): Change to
+	snd_pcm_hw_params_set_rate_near rather than exact samplerate from "Pete G."
+
+2009-03-15  jpff  <jpff@codemist.co.uk>
+
+	* Top/one_file.c (createExScore): Added new facility to have score
+	generatd by external code
+	(read_unified_file): and call it
+
+2009-03-14  jpff  <jpff@codemist.co.uk>
+
+	* util/lpc_export.c (lpc_export): Fix from Martin Rocamora on line 83
+	* util/lpcx_main.c (main): Fix from Martin Rocamora on line 82
+
+2009-03-04  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/wiimote.c: New code (still experimental) to ue wiimote
+	in Csound (Linux only at present)
+
+2009-03-01  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/mp3in.c: New code to read MP3 files (still experimental)
+
+2009-02-28  Anthony Kozar  <akozar@users.sourceforge.net>
+
+	* H/ugens5.h:
+	* OOps/ugens5.c (lprdset, lpread): Fixed bad assumptions in doubles
+	build when skipping over the LPC file header.
+
+2009-02-23  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen49): New gen to read MP3 files using mpadec
+	library
+
+2009-02-07  jpff  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (rdorchfile):
+	* Engine/sread.c (sget1): Mane mname grow rather than being fixed size
+
+2009-02-06  jpff  <jpff@codemist.co.uk>
+
+	* H/csoundCore.h ("C"): Added GetChannelLock to API
+
+	* OOps/bus.c (csoundGetChannelLock): New function, deployed as
+	well all over this file
+
+	* H/csound.h ("C"): Added csoundGetChannelLock
+
+2008-12-19  jpff  <jpff@codemist.co.uk>
+
+	* H/version.h: VERSION 5.10.1
+
+2008-12-18  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (hsboscset): Bug whereby two internal variables may
+	be unititialised fixed.
+
 2008-12-17  Anthony Kozar  <akozar@users.sourceforge.net>
 
 	* SConstruct:  Add libintl on OS X when useGettext=1.  Commented out
@@ -89,13 +337,19 @@
 
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
-	* H/csound.h: Added Doxygen "mainpage" introductory section at top 
+	* H/csound.h: Added Doxygen "mainpage" introductory section at top
 	of file; switched to HTML format for API documentation (replacing
 	LaTeX/PDF format).
 
 2008-09-17  jpff  <jpff@codemist.co.uk>
 
 	* RELEASE VERSION 5.09
+
+2008-09-13 Michael Gogins  <michael.gogins@gmail.com>
+
+	* frontends/CsoundAC/Score.cpp: Implemented importation of
+	MusicXML v2 files into the CsoundAC Score class, using the
+	Grame MusicXML library.
 
 2008-09-13 Michael Gogins  <gogins@pipeline.com>
 
@@ -618,7 +872,7 @@
 2007-09-09  jpff  <jpff@codemist.co.uk>
 
 	* Made SDFT dependent of SDFT macro and adjust SConstruct to set
-	it 
+	it
 
 	* Opcodes/pvsbasic.c (pvsshift, pvsscale): Added SDFT support
 
@@ -629,7 +883,7 @@
 2007-08-28  Steven Yi   <stevenyi@gmail.com>
 
 	* InOut/rtwinmm.c: midi_in_close had incorrect check causing
-	device not to be closed properly 
+	device not to be closed properly
 
 2007-09-06  jpff  <jpff@codemist.co.uk>
 

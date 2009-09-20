@@ -52,19 +52,21 @@ public:
   KAMPMIDID() {}
   int init(CSOUND *csound)
   {
-    // Convert RMS power to amplitude (assuming a sinusoidal signal).
-    onedrms = MYFLT(1.0) / MYFLT(0.707);
-    // Convert dynamic range in decibels to RMS dynamic range.
-    ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
-    // Solve for coefficients of the linear conversion function given RMS dynamic range.
-    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) - MYFLT(1.0) / MYFLT(126.0);
-    im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
-    return OK;
+      // Convert RMS power to amplitude (assuming a sinusoidal signal).
+      onedrms = MYFLT(1.0) / MYFLT(0.707);
+      // Convert dynamic range in decibels to RMS dynamic range.
+      ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
+      // Solve for coefficients of the linear conversion function given
+      // RMS dynamic range.
+      ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) -
+        MYFLT(1.0) / MYFLT(126.0);
+      im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
+      return OK;
   }
   int kontrol(CSOUND *csound)
   {
-    *kamplitude = std::pow( (im * (*kvelocity + ib) ), MYFLT(2.0) ) * onedrms;
-    return OK;
+      *kamplitude = std::pow( (im * (*kvelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      return OK;
   }
 };
 
@@ -84,15 +86,17 @@ public:
   IAMPMIDID() {}
   int init(CSOUND *csound)
   {
-    // Convert RMS power to amplitude (assuming a sinusoidal signal).
-    onedrms = MYFLT(1.0) / MYFLT(0.707);
-    // Convert dynamic range in decibels to RMS dynamic range.
-    ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
-    // Solve for coefficients of the linear conversion function given RMS dynamic range.
-    ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) - MYFLT(1.0) / MYFLT(126.0);
-    im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
-    *iamplitude = std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
-    return OK;
+      // Convert RMS power to amplitude (assuming a sinusoidal signal).
+      onedrms = MYFLT(1.0) / MYFLT(0.707);
+      // Convert dynamic range in decibels to RMS dynamic range.
+      ir = std::pow( MYFLT(10.0), *irdb / MYFLT(20.0) );
+      // Solve for coefficients of the linear conversion function given
+      // RMS dynamic range.
+      ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) -
+        MYFLT(1.0) / MYFLT(126.0);
+      im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
+      *iamplitude = std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      return OK;
   }
   int noteoff(CSOUND *)
   {
@@ -104,36 +108,36 @@ extern "C" {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
-    return 0;
+      return 0;
   }
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-    int status = csound->AppendOpcode(csound,
-                                      (char*)"kampmidid",
-                                      sizeof(KAMPMIDID),
-                                      3,
-                                      (char*)"k",
-                                      (char*)"ki",
-                                      (int (*)(CSOUND*,void*)) KAMPMIDID::init_,
-                                      (int (*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
-                                      (int (*)(CSOUND*,void*)) 0);
+      int status = csound->AppendOpcode(csound,
+                                        (char*)"kampmidid",
+                                        sizeof(KAMPMIDID),
+                                        3,
+                                        (char*)"k",
+                                        (char*)"ki",
+                                        (int(*)(CSOUND*,void*)) KAMPMIDID::init_,
+                                        (int(*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
+                                        (int (*)(CSOUND*,void*)) 0);
 
-     status |= csound->AppendOpcode(csound,
-                                      (char*)"iampmidid",
-                                      sizeof(IAMPMIDID),
-                                      1,
-                                      (char*)"i",
-                                      (char*)"ii",
-                                      (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
-                                      (int (*)(CSOUND*,void*)) 0,
-                                      (int (*)(CSOUND*,void*)) 0);
-    return status;
+      status |= csound->AppendOpcode(csound,
+                                     (char*)"iampmidid",
+                                     sizeof(IAMPMIDID),
+                                     1,
+                                     (char*)"i",
+                                     (char*)"ii",
+                                     (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
+                                     (int (*)(CSOUND*,void*)) 0,
+                                     (int (*)(CSOUND*,void*)) 0);
+      return status;
   }
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    return 0;
+      return 0;
   }
 }
 

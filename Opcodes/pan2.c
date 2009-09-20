@@ -34,12 +34,13 @@ typedef struct {
     MYFLT *itype;                /* type of panning */
     int   type;
 } PAN2;
+#define SQRT2 FL(1.41421356237309504880)
 
 static int pan2set(CSOUND *csound, PAN2 *p)
 {
     int type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 2))
-      return csound->InitError(csound, "Unknown panning type");
+      return csound->InitError(csound, Str("Unknown panning type"));
     return OK;
 }
 
@@ -77,11 +78,23 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       }
       break;
     }
+    case 3: {
+      MYFLT kangl = *p->pan, cc, ss, l, r;
+      for (n=0; n<nsmps; n++) {
+        if (XINARG2) kangl = p->pan[n];
+        cc = COS(PI*kangl*FL(0.5));
+        cc = SIN(PI*kangl*FL(0.5));
+        l = SQRT2*(cc+ss)*0.5;
+        r = SQRT2*(cc-ss)*0.5;
+        al[n] = ain[n] * l;
+        ar[n] = ain[n] * r;
+      }
+    }
     }
     return OK;
 }
 
-static OENTRY localops[] = 
+static OENTRY localops[] =
 {
   { "pan2", sizeof(PAN2), 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
 };

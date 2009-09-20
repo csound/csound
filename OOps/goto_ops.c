@@ -198,8 +198,10 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p)
       nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||
           ((mode & 4) && ip->p1 != p1) ||
-          (allow_release && ip->relesing))
+          (allow_release && ip->relesing)) {
+        ip = nip;
         continue;
+      }
       if (!(mode & 3)) {
         if (allow_release) {
           xturnoff(csound, ip);

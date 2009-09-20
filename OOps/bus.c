@@ -387,6 +387,7 @@ typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelInfo_t  *info;
     MYFLT   *data;
+    int     lock;               /* Multi-thread protection */
     int     type;
     char    name[1];
 } channelEntry_t;
@@ -398,8 +399,9 @@ static int delete_channel_db(CSOUND *csound, void *p)
 
     (void) p;
     db = (channelEntry_t**) csound->chn_db;
-    if (db == NULL)
+    if (db == NULL) {
       return 0;
+    }
     for (i = 0; i < 256; i++) {
       while (db[i] != NULL) {
         pp = db[i];
@@ -560,6 +562,17 @@ PUBLIC int csoundGetChannelPtr(CSOUND *csound,
       return CSOUND_SUCCESS;
     }
     return create_new_channel(csound, p, name, type);
+}
+
+PUBLIC int *csoundGetChannelLock(CSOUND *csound,
+                                const char *name, int type)
+{
+    channelEntry_t  *pp;
+
+    if (UNLIKELY(name == NULL))
+      return NULL;
+    pp = find_channel(csound, name);
+    return &pp->lock;
 }
 
 static int cmp_func(const void *p1, const void *p2)
@@ -870,7 +883,10 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
+    int *lock = p->lock;        /* Need lock for the channel */
+    csoundSpinLock(lock);
     memcpy(p->fp, p->arg, sizeof(MYFLT)*csound->ksmps);
+    csoundSpinUnLock(lock);
     return OK;
 }
 
@@ -880,9 +896,12 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     int   i = 0;
     int n = csound->ksmps;
+    int *lock = p->lock;        /* Need lock for the channel */
+    csoundSpinLock(lock);
     for (i=0; i<n; i++) {
       p->fp[i] += p->arg[i];
     }
+    csoundSpinUnLock(lock);
     return OK;
 }
 
@@ -890,7 +909,10 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
+    int *lock = p->lock;        /* Need lock for the channel */
+    csoundSpinLock(lock);
     memset(p->fp, 0, csound->ksmps*sizeof(MYFLT));
+    csoundSpinUnLock(lock);
     return OK;
 }
 
@@ -899,12 +921,17 @@ static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
+    int *lock;        /* Need lock for the channel */
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+    p->lock = lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    csoundSpinLock(lock);
     *(p->fp) = *(p->arg);
+    csoundSpinUnLock(lock);
 
     return OK;
 }
@@ -918,6 +945,8 @@ int chnset_opcode_init_k(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       p->h.opadr = (SUBR) chnset_opcode_perf_k;
       return OK;
     }
@@ -933,6 +962,8 @@ int chnset_opcode_init_a(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (!err) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       p->h.opadr = (SUBR) chnset_opcode_perf_a;
       return OK;
     }
@@ -948,6 +979,8 @@ int chnmix_opcode_init(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+                                CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       p->h.opadr = (SUBR) chnmix_opcode_perf;
       return OK;
     }
@@ -975,7 +1008,7 @@ int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
+    int  *lock;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
@@ -984,7 +1017,12 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
       /* can only happen with constants */
       return csound->InitError(csound, Str("string is too long"));
     }
+    p->lock = lock =
+      csoundGetChannelLock(csound, (char*) p->iname,
+                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    csoundSpinLock(lock);
     strcpy((char*) p->fp, (char*) p->arg);
+    csoundSpinLock(lock);
 
     return OK;
 }
@@ -1010,8 +1048,10 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     type = (int)MYFLT2LRND(*(p->itype));
     err = csoundSetControlChannelParams(csound, (char*) p->iname, type,
                                         *(p->idflt), *(p->imin), *(p->imax));
-    if (LIKELY(!err))
+    if (LIKELY(!err)) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname, type);
       return OK;
+    }
     if (err == CSOUND_MEMORY)
       return print_chn_err(p, err);
     return csound->InitError(csound, Str("invalid channel parameters"));
@@ -1056,6 +1096,7 @@ int chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
     err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname, type);
     return OK;
 }
 
@@ -1066,6 +1107,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     MYFLT       *dummy;
     const char  *argName;
     int         type = CSOUND_CONTROL_CHANNEL, mode, err;
+    int         *lock;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
     if (UNLIKELY(csound->GetOutputArgCnt(p) != 1))
@@ -1102,7 +1144,11 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
       return csound->InitError(csound, Str("channel already exists"));
     /* now create new channel, using output variable for data storage */
     dummy = p->arg;
+    /* THIS NEEDS A LOCK BUT DOES NOT EXIST YET */
+    /* lock = csoundGetChannelLock(csound, (char*) p->iname, 0); */
+    /* csoundSpinLock(lock); */
     err = create_new_channel(csound, &dummy, (char*) p->iname, type);
+    /* csoundSpinLock(lock); */
     if (err)
       return print_chn_err(p, err);
     /* if control channel, set additional parameters */

@@ -63,24 +63,24 @@ static void usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,"Usage:\textractor [-flags] soundfile\n");
+    csound->Message(csound,Str("Usage:\textractor [-flags] soundfile\n"));
     csound->Message(csound, "Legal flags are:\n");
-    csound->Message(csound,"-o fname\tsound output filename\n");
-    csound->Message(csound,"-N\t\tnotify (ring the bell) when done\n");
-    csound->Message(csound,"-S integer\tsample number at which to start file\n");
-    csound->Message(csound,"-Z integer\tsample number at which to end file\n");
-    csound->Message(csound,"-Q integer\tnumber of samples to read\n");
+    csound->Message(csound,Str("-o fname\tsound output filename\n"));
+    csound->Message(csound,Str("-N\t\tnotify (ring the bell) when done\n"));
+    csound->Message(csound,Str("-S integer\tsample number at which to start file\n"));
+    csound->Message(csound,Str("-Z integer\tsample number at which to end file\n"));
+    csound->Message(csound,Str("-Q integer\tnumber of samples to read\n"));
 
-    csound->Message(csound,"-T fpnum\ttime in secs at which to start file\n");
-    csound->Message(csound,"-E fpnum\ttime in secs at which to end file\n");
-    csound->Message(csound,"-D fpnum\tduration in secs of extract\n");
+    csound->Message(csound,Str("-T fpnum\ttime in secs at which to start file\n"));
+    csound->Message(csound,Str("-E fpnum\ttime in secs at which to end file\n"));
+    csound->Message(csound,Str("-D fpnum\tduration in secs of extract\n"));
 #ifndef OLPC
-    csound->Message(csound,"-R\tRewrite header\n");
-    csound->Message(csound,"-H\t\tHeartbeat\n");
+    csound->Message(csound,Str("-R\tRewrite header\n"));
+    csound->Message(csound,Str("-H\t\tHeartbeat\n"));
 #endif
-    csound->Message(csound,"-v\t\tverbose mode for debugging\n");
-    csound->Message(csound,"-- fname\tLog output to file\n");
-    csound->Message(csound,"flag defaults: extractor -otest -S 0\n");
+    csound->Message(csound,Str("-v\t\tverbose mode for debugging\n"));
+    csound->Message(csound,Str("-- fname\tLog output to file\n"));
+    csound->Message(csound,Str("flag defaults: extractor -otest -S 0\n"));
 
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("extractor: error: "), mesg, args);
@@ -106,7 +106,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     xtrc.stop  = -1; xtrc.endtime = -FL(1.0);
     xtrc.numsamps = -1; xtrc.dur = -FL(1.0);
     if (!(--argc)) {
-      usage(csound,"Insufficient arguments");
+      usage(csound,Str("Insufficient arguments"));
       return 1;
     }
     do {

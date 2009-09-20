@@ -76,7 +76,7 @@ static int partials_init(CSOUND * csound, _PARTS * p)
 
     if (p->mags.auxp == NULL && p->mags.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->mags);
-    else 
+    else
       memset(p->mags.auxp, 0,sizeof(MYFLT) * numbins );
     if (p->lmags.auxp == NULL && p->lmags.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->lmags);

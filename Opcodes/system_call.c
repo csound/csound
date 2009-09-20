@@ -71,7 +71,7 @@ static int call_system(CSOUND *csound, SYSTEM *p)
     else {
       *p->res = (MYFLT)system((char*)p->commandLine);
       return OK;
-    } 
+    }
 }
 
 #endif

@@ -109,7 +109,7 @@ PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
    /* Copy all arguments to the new event */
     for (i = 0; i < numargs; i++)
       evt.p[i] = *args[i];
-    
+
     if (evt.p[2] < FL(0.0)) {
       evt.p[2] = FL(0.0);
     }
@@ -125,7 +125,7 @@ typedef struct { /* GAB 11/Jan/2001 */
 } SCHEDK;
 
 
-static int schedk(CSOUND *csound, SCHEDK *p) 
+static int schedk(CSOUND *csound, SCHEDK *p)
 { /* based on code by rasmus */
     if (*p->trigger) /* Only do something if triggered */
       Sched(csound, p->args, p->INOCOUNT-1);
@@ -235,7 +235,7 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
     int nelems = (int) *p->inumElems;
     if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
       return csound->InitError(csound, "copyTabElems: incorrect destination table number");
-    
+
     p->dLen = ftp->flen;
     if (nelems > p->dLen)
       return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
@@ -243,13 +243,13 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
     p->dTable = ftp->ftable;
     if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
       return csound->InitError(csound, "copyTabElems: incorrect source table number");
-    
+
     p->sLen = ftp->flen;
     if (nelems > p->sLen)
       return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
-    
+
     p->sTable = ftp->ftable;
-    
+
     return OK;
 }
 
@@ -263,7 +263,7 @@ static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
         return csound->PerfError(csound, "copyTabElems: source table too short");
       if (dNdx + nelems > p->dLen)
         return csound->PerfError(csound, "copyTabElems: destination table too short");
-      
+
       for (j = 0; j< nelems; j++)
         p->dTable[dNdx+j] = p->sTable[sNdx+j];
     }
@@ -292,7 +292,7 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
     if (nelems > sLen)
       return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
     sTable = ftp->ftable;
-    
+
     {
       int j, sNdx = (int) *p->isourceIndex * nelems, dNdx = (int) *p->idestIndex * nelems;
       if (sNdx + nelems > sLen)
@@ -337,15 +337,15 @@ static int inRange(CSOUND *csound, INRANGE *p)
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spin + startChan;
     int narg = p->narg, numchans = p->numChans;
-    
+
     if (startChan < 0)
       return csound->PerfError(csound,
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
-    
+
     for (j = 0; j < narg; j++)
       ara[j] = p->argums[j];
-    
+
     nsmps = csound->ksmps;
     do  {
       int i;
@@ -392,7 +392,7 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     if (!csound->spoutactive) {
       MYFLT *sptemp = sp;
       for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; /* clear all channels */
-      
+
       do        {
         int i;
         MYFLT *sptemp = sp;
@@ -452,19 +452,19 @@ static int lposcint(CSOUND *csound, LPOSC *p)
 {
     double  *phs= &p->phs;
     double  si= *p->freq * (p->fsr/ csound->esr);
-    
+
     MYFLT   *out = p->out;
     short   *ft = (short *) p->ftp->ftable, *curr_samp;
     MYFLT   fract;
     long     n = csound->ksmps;
     long     loop, end, looplength; /* = p->looplength ; */
-      
+
     if ((loop = (long) *p->kloop) < 0) loop=0;// gab
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
-     
+
     looplength = end - loop;
 
     do {
@@ -572,10 +572,10 @@ static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    
+
     if (*p->iphs >= 0)
       p->phs_int = (long) (p->phs = *p->iphs);
-    
+
     while (p->phs >= end)
       p->phs_int = (long) (p->phs -= looplength);
     return OK;

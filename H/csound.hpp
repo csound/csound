@@ -400,7 +400,7 @@ public:
   {
     csoundInputMessage(csound, message);
   }
-  virtual void KeyPress(char c)
+  virtual void KeyPressed(char c)
   {
     csoundKeyPress(csound, c);
   }
@@ -795,7 +795,7 @@ public:
     ((pycbdata *)pydata)->mfunc = NULL;
     delete (pycbdata *)pydata;
     #endif
-    
+
   }
   // Functions for embedding.
 //#ifdef __BUILDING_CSOUND_INTERFACES

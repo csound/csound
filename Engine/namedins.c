@@ -263,14 +263,15 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
-        csound->InitError(csound, "instr %s not found", (char*) p);
+        csound->InitError(csound, Str("instr %s not found"), (char*) p);
         return -1;
       }
     }
     else {      /* numbered instrument */
       insno = (int32) *((MYFLT*) p);
-      if (UNLIKELY(insno < 1 || insno > csound->maxinsno || !csound->instrtxtp[insno])) {
-        csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+      if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
+                   !csound->instrtxtp[insno])) {
+        csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
         return -1;
       }
     }
@@ -286,7 +287,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
     int32    insno;
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
-      csound->PerfError(csound, "instr %s not found", s);
+      csound->PerfError(csound, Str("instr %s not found"), s);
       return -1;
     }
     return insno;
@@ -310,7 +311,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
         insno = (int32) *((MYFLT*) p);
         if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
                      !csound->instrtxtp[insno])) {
-          csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+          csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
           return -1;
         }
       }
@@ -465,14 +466,14 @@ int find_opcode(CSOUND *csound, char *opname)
     return 0;
 }
 
-/* ----------------------------------------------------------------------- */
-/* These functions replace the functionality of strsav() in rdorch.c.      */
+/* -------------------------------------------------------------------- */
+/* These functions replace the functionality of strsav() in rdorch.c.   */
 
-#define STRSPACE    (8000)      /* number of bytes in a buffer  */
+#define STRSPACE    (8000)              /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
-        struct strsav_t *nxt;   /* pointer to next structure    */
-        char    s[1];           /* the string stored            */
+        struct strsav_t *nxt;           /* pointer to next structure    */
+        char    s[1];                   /* the string stored            */
 } STRSAV;
 
 typedef struct strsav_space_t {
@@ -1074,7 +1075,7 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 }
 
 /* static CS_NOINLINE int csoundLoadOpcodeDB_AddFile(CSOUND *csound, */
-/*                                                   CsoundOpcodePluginFile_t *fp) */
+/*                                     CsoundOpcodePluginFile_t *fp) */
 /* { */
 /*     CsoundOpcodePluginFile_t    **pp, *p; */
 /*     unsigned char               h; */
@@ -1095,7 +1096,7 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
 /* } */
 
 /* static CS_NOINLINE int csoundLoadOpcodeDB_AddOpcode(CSOUND *csound, */
-/*                                                     CsoundPluginOpcode_t *op) */
+/*                                           CsoundPluginOpcode_t *op) */
 /* { */
 /*     CsoundPluginOpcode_t    **pp, *p; */
 /*     unsigned char           h; */

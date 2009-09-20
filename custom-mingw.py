@@ -70,15 +70,16 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
-	customCPPPATH.append(r'U:\zlib')
-	customLIBPATH.append(r'U:\zlib')
+	customCPPPATH.append(r'U:\zlib-1.2.3.win32\include')
+	customLIBPATH.append(r'U:\zlib-1.2.3.win32\lib')
+	customLIBPATH.append(r'U:\zlib-1.2.3.win32\bin')
 	customCPPPATH.append(r'U:\libpng-1.2.24')
 	customLIBPATH.append(r'U:\libpng-1.2.24\.libs')
 	################################################################
 	# If you want to build the Python opcodes, the Python interfaces
 	# to Csound, or CsoundAC, Python 2.5 is required.
-	customCPPPATH.append(r'U:\Python25\include')
-	customLIBPATH.append(r'U:\Python25\libs')
+	customCPPPATH.append(r'U:\Python26\include')
+	customLIBPATH.append(r'U:\Python26\libs')
 	################################################################
 	# If you want to build CsoundVST, you need the 
 	# Steinberg VST SDK version 2.4.
@@ -104,35 +105,35 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'U:\fluidsynth.patched\src\.libs')
-	customCPPPATH.append(r'U:\fluidsynth.patched\include')
+	customLIBPATH.append(r'U:\fluidsynth-1.0.9\src\.libs')
+	customCPPPATH.append(r'U:\fluidsynth-1.0.9\include')
 	# And the dsound library from the Microsoft DirectX SDK.
 	customLIBPATH.append(r'U:\dxsdk\Lib\x86')
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'U:\Java\jdk1.6.0_10\include')
-	customCPPPATH.append(r'U:\Java\jdk1.6.0_10\include\win32')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_14\include')
+	customCPPPATH.append(r'U:\Java\jdk1.6.0_14\include\win32')
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
-	customCPPPATH.append(r'U:\liblo')
-	customCPPPATH.append(r'U:\liblo\lo')
-	customCPPPATH.append(r'U:\liblo\src')
-	customLIBPATH.append(r'U:\liblo')
+	customCPPPATH.append(r'U:\liblo-0.26')
+	customCPPPATH.append(r'U:\liblo-0.26\lo')
+	customCPPPATH.append(r'U:\liblo-0.26\src')
+	customLIBPATH.append(r'U:\liblo-0.26')
 	# For OSC on Windows, you will also need a Windows pthread library.
 	customCPPPATH.append(r'U:\pthreads\Pre-built.2\include')
 	customLIBPATH.append(r'U:\pthreads\Pre-built.2\lib')
 	################################################################
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
-	# add it here (you do NOT need to build it first):
+	# Add it here (you do NOT need to build it first):
 	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
 	# If you want to build the linear algebra opcodes, 
 	# you need Gmm++ (headers only).
-	customCPPPATH.append(r'U:\gmm-3.0\include')
+	customCPPPATH.append(r'U:\gmm-3.1\include')
 	################################################################
 	# If you want to build the Loris opcodes,
 	# then copy Loris to csound5\Opcodes\Loris. Loris also
@@ -141,7 +142,16 @@ if sys.platform[:3] == 'win':
 	#customCPPPATH.append(r'U:\fftw-3.0.1\api')
 	#customLIBPATH.append(r'U:\fftw-3.0.1\.libs')
 	################################################################
-	# print "Adding custom path"
+	# If you want to build MusicXML import and export, 
+	# you need the MusicXML library.
+        # Add it here (the CodeBlocks build seems to work).
+	customCPPPATH.append(r'U:\musicxml-v2\src\elements') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\files') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\visitors') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\lib') 
+	customCPPPATH.append(r'U:\musicxml-v2\src\parser') 
+	customLIBPATH.append(r'U:\musicxml-v2\win32\codeblocks')
+	# print "Adding custom path."
 else:
 	platform = 'unsupported platform'
 

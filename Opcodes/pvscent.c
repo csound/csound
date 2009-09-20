@@ -123,7 +123,6 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
 }
 #endif
 
- 
 /* PVSPITCH opcode by Ala OCinneide */
 
 typedef struct _pvspitch
@@ -154,6 +153,7 @@ typedef struct _pvspitch
 
 #define RoundNum(Number)  (int)MYFLT2LRND(Number)
 
+/* Should one use remainder or drem ?? */
 #define Remainder(Numerator, Denominator)  \
   Numerator/Denominator - (int) (Numerator/Denominator)
 
@@ -221,7 +221,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
       Amp += Frame[2*numBins];
       Amp *= FL(0.5);
 
-      if (numPeaks==0) {
+      if (UNLIKELY(numPeaks==0)) {
         /* If no peaks found return 0. */
         Partial = 0;
       }
@@ -275,7 +275,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
       }
 
       /* Output the appropriate frequency values. */
-      if (Partial!=0) {
+      if (LIKELY(Partial!=0)) {
         f0Cand = PeakFreq[0]/Partial;
         /* Average frequency between partials */
         for (i=0; i<numPeaks; i++) {
@@ -298,7 +298,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-#ifndef SDFT
+#ifdef OLPC
   { "pvscent", sizeof(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
 #else
   { "pvscent", sizeof(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },

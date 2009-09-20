@@ -152,9 +152,9 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       FILE    *f;
       void    *fd;
       char    *filemode = (char*)fileParams;
-      
+
       /* akozar: csFileType cannot be as specific as I'd like since it is not
-         possible to know the real file type until this handle is used */ 
+         possible to know the real file type until this handle is used */
       if ((strcmp(filemode, "rb") == 0 || (strcmp(filemode, "wb") == 0)))
             csFileType = CSFTYPE_OTHER_BINARY;
       else  csFileType = CSFTYPE_OTHER_TEXT;

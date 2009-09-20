@@ -50,8 +50,8 @@ extern "C" {
 #define CSFILE_SND_W    5
 
 #define MAXINSNO  (200)
-#define PMAX      (1000)
-#define VARGMAX   (1001)
+#define PMAX      (1998)
+#define VARGMAX   (1999)
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
@@ -441,6 +441,10 @@ extern "C" {
     MYFLT   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
     MYFLT   p[PMAX + 1];
+    union {                   /* To ensure size is same as earlier */
+      MYFLT   *extra;
+      MYFLT   p[2];
+    } c;
   } EVTBLK;
 
   typedef struct {
@@ -739,7 +743,7 @@ extern const uint32_t csPlayScoMask;
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*InputMessage)(CSOUND *, const char *message__);
-    void (*KeyPress)(CSOUND *, char c__);
+    void (*KeyPressed)(CSOUND *, char c__);
     void (*SetInputValueCallback)(CSOUND *,
                 void (*inputValueCalback)(CSOUND *, const char *channelName,
                                                     MYFLT *value));
@@ -895,7 +899,7 @@ extern const uint32_t csPlayScoMask;
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                            int (*func)(CSOUND *, void *));
     void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
-    /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */ 
+    /* Do not use FileOpen in new code; it has been replaced by FileOpen2 */
     void *(*FileOpen)(CSOUND *,
                       void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
@@ -970,7 +974,7 @@ extern const uint32_t csPlayScoMask;
     void *(*CreateBarrier)(unsigned int max);
     int (*DestroyBarrier)(void *);
     int (*WaitBarrier)(void *);
-    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *, 
+    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
                       const char *, int, int);
     int (*type2csfiletype)(int type, int encoding);
     MEMFIL *(*ldmemfile2)(CSOUND *, const char *, int);

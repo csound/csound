@@ -167,6 +167,26 @@ int filesr(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
+int filebit(CSOUND *csound, SNDINFO *p)
+{
+    SF_INFO hdr;
+    int bits, format;
+
+    getsndinfo(csound, p, &hdr);
+    format = hdr.format &  SF_FORMAT_SUBMASK;
+    if(format < 5)
+      bits = format*8 ;
+    else if(format == 5) bits = 8;
+    else if(format == 6) bits = -1;
+    else if(format == 7) bits = -2;
+    else bits = -format; /* non-PCM data */
+
+    *(p->r1) = (MYFLT) bits;
+
+    return OK;
+}
+
+
 /* RWD 8:2001: now supports all relevant files, */
 /* and scans overall peak properly */
 
