@@ -139,12 +139,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         S_incnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid input type for opcode %s", inm->name);
+        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;
       if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
-        synterr(csound, "too many input args for opcode %s", inm->name);
+        synterr(csound, Str("too many input args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
     }
@@ -159,7 +159,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       types++;                  /* no output args */
     while (*types) {
       if (UNLIKELY(i >= OPCODENUMOUTS_MAX)) {
-        synterr(csound, "too many output args for opcode %s", inm->name);
+        synterr(csound, Str("too many output args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
       switch (*types) {
@@ -178,7 +178,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         S_outcnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid output type for opcode %s", inm->name);
+        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;
@@ -342,7 +342,7 @@ void otran(CSOUND *csound)
                   }
                   /* IV - Oct 31 2002: store the name */
                   if (UNLIKELY(!named_instr_alloc(csound, c, ip, insno_priority))) {
-                    synterr(csound, "instr %s redefined", c);
+                    synterr(csound, Str("instr %s redefined"), c);
                     err++; continue;
                   }
                   ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */

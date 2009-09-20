@@ -912,8 +912,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     /* allocate and initialise globals */
     if (csound->oparms->msglevel & 0x400)
-      csound->Message(csound, "JACK real-time audio module for Csound "
-                              "by Istvan Varga\n");
+      csound->Message(csound, Str("JACK real-time audio module for Csound "
+                                  "by Istvan Varga\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                      sizeof(RtJackGlobals)) != 0) {
       csound->ErrorMsg(csound, Str(" *** rtjack: error allocating globals"));

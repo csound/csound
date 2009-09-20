@@ -319,7 +319,7 @@ static inline void ungetscochar(CSOUND *csound, int c)
     if (LIKELY(ST(str)->unget_cnt < 128))
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
     else
-      csoundDie(csound, "ungetscochar(): buffer overflow");
+      csoundDie(csound, Str("ungetscochar(): buffer overflow"));
 }
 
 static int getscochar(CSOUND *csound, int expand)

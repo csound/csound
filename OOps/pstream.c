@@ -90,7 +90,7 @@ int pvadsynset(CSOUND *csound, PVADS *p)
 
 #ifndef OLPC
     if (UNLIKELY(p->fsig->sliding))
-      csound->InitError(csound, "Sliding version not yet available");
+      csound->InitError(csound, Str("Sliding version not yet available"));
 #endif
     p->overlap = p->fsig->overlap;
     /* a moot question, whether window params are relevant for adsyn?*/
@@ -348,7 +348,7 @@ int pvsfreadset(CSOUND *csound, PVSFREAD *p)
 
 #ifndef OLPC
     if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
-      csound->InitError(csound, "Sliding version not yet available");
+      csound->InitError(csound, Str("Sliding version not yet available"));
 #endif
     if (UNLIKELY(p->nframes <= 0))
       csound->Die(csound, Str("pvsfread: file is empty!\n"));
@@ -602,7 +602,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
       return NOTOK;
 #ifndef OLPC
     if (UNLIKELY(p->fsrc->sliding))
-      csound->InitError(csound, "Sliding version not yet available");
+      csound->InitError(csound, Str("Sliding version not yet available"));
 #endif
     fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
     /* init table, one presumes with zero amps */
@@ -716,7 +716,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
     }
 #ifndef OLPC
     if (UNLIKELY(p->overlap < csound->ksmps || p->overlap < 10))
-      csound->InitError(csound, "Sliding version not yet available");
+      csound->InitError(csound, Str("Sliding version not yet available"));
 #endif
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 

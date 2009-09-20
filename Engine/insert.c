@@ -78,7 +78,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (csound->advanceCnt)
       return 0;
     if (UNLIKELY(O->odebug))
-      csound->Message(csound, "activating instr %d at %d\n", insno, csound->icurTime);
+      csound->Message(csound, Str("activating instr %d at %d\n"), insno, csound->icurTime);
     csound->inerrcnt = 0;
     tp = csound->instrtxtp[insno];
     if (UNLIKELY(tp->muted == 0)) {
@@ -219,7 +219,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offtim = -1.0;                        /*   else mark indef     */
     }
     if (O->odebug) {
-      csound->Message(csound, "instr %d now active:\n", insno);
+      csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
     return 0;
@@ -257,7 +257,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     tp->active++;
     if (UNLIKELY(O->odebug))
-      csound->Message(csound, "activating instr %d\n", insno);
+      csound->Message(csound, Str("activating instr %d\n"), insno);
     csound->inerrcnt = 0;
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
@@ -416,7 +416,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       return csound->inerrcnt;
     }
     if (UNLIKELY(O->odebug)) {
-      csound->Message(csound, "instr %d now active:\n", insno);
+      csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
     return 0;
@@ -1785,7 +1785,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     while (active != NULL) {    /* Check there are no active instances */
       INSDS   *nxt = active->nxtinstance;
       if (active->actflg)       /* Can only remove non-active instruments */
-        return csound->InitError(csound, "Instrument %d is still active", n);
+        return csound->InitError(csound, Str("Instrument %d is still active"), n);
 #if 0
       if (active->opcod_iobufs && active->insno > csound->maxinsno)
         mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */

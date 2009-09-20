@@ -770,7 +770,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
       if (m->fn.p.InitFunc != NULL) {
         i = m->fn.p.InitFunc(csound);
         if (UNLIKELY(i != 0)) {
-          print_module_error(csound, "Error starting module '%s'",
+          print_module_error(csound, Str("Error starting module '%s'"),
                                      &(m->name[0]), m, i);
           return CSOUND_ERROR;
         }
@@ -866,7 +866,7 @@ int csoundDestroyModules(CSOUND *csound)
       if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
         i = m->fn.p.DestFunc(csound);
         if (UNLIKELY(i != 0)) {
-          print_module_error(csound, "Error de-initialising module '%s'",
+          print_module_error(csound, Str("Error de-initialising module '%s'"),
                                      &(m->name[0]), m, i);
           retval = CSOUND_ERROR;
         }

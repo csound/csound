@@ -803,12 +803,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_incnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid input type for opcode %s", inm->name);
+        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;
       if (i > OPCODENUMOUTS_MAX) {
-        synterr(csound, "too many input args for opcode %s", inm->name);
+        synterr(csound, Str("too many input args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
     }
@@ -823,7 +823,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       types++;                  /* no output args */
     while (*types) {
       if (i >= OPCODENUMOUTS_MAX) {
-        synterr(csound, "too many output args for opcode %s", inm->name);
+        synterr(csound, Str("too many output args for opcode %s"), inm->name);
         csound->LongJmp(csound, 1);
       }
       switch (*types) {
@@ -839,7 +839,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_outcnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid output type for opcode %s", inm->name);
+        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
         err++; i--;
       }
       i++; types++;
@@ -934,7 +934,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum) {
 OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
     OPCODINFO *opinfo = csound->opcodeInfo;
     if(opinfo == NULL) {
-        csound->Message(csound, "!!! csound->opcodeInfo is NULL !!!\n");
+      csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
         return NULL;
     }
 
@@ -1073,7 +1073,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
                 break;
             default:
-                csound->Message(csound, "Unknown TREE node of type %d found in root.\n", current->type);
+              csound->Message(csound, Str("Unknown TREE node of type %d found in root.\n"), current->type);
                 if (PARSER_DEBUG) print_tree(csound, current);
         }
 

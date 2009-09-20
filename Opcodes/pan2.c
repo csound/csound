@@ -40,7 +40,7 @@ static int pan2set(CSOUND *csound, PAN2 *p)
 {
     int type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 2))
-      return csound->InitError(csound, "Unknown panning type");
+      return csound->InitError(csound, Str("Unknown panning type"));
     return OK;
 }
 
