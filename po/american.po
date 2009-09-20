@@ -1280,7 +1280,7 @@ msgstr "instr %s redefined"
 #: Engine/namedins.c:274 Engine/namedins.c:314
 #, c-format
 msgid "Cannot Find Instrument %d"
-msgstr ""
+msgstr "Can't Find Instrument %d"
 
 #: Engine/namedins.c:326
 msgid "cannot find the specified instrument or opcode"
@@ -1815,7 +1815,7 @@ msgstr ""
 
 #: Engine/sread.c:894
 msgid "Loop cannot start inside of a macro"
-msgstr ""
+msgstr "Loop can't start inside of a macro"
 
 #: Engine/sread.c:913
 msgid "{: invalid repeat count"
@@ -1833,7 +1833,7 @@ msgstr ""
 
 #: Engine/sread.c:997
 msgid "Repeat cannot start inside of a macro (ignored)"
-msgstr ""
+msgstr "Repeat can't start inside of a macro (ignored)"
 
 #: Engine/sread.c:1012
 msgid "r: invalid repeat count"
@@ -6529,7 +6529,7 @@ msgid ""
 "\n"
 "cannot load left data file, exiting\n"
 "\n"
-msgstr ""
+msgstr "\n\n\ncan't load left data file, exiting\n\n"
 
 #: Opcodes/hrtfopcodes.c:260 Opcodes/hrtfopcodes.c:284
 #: Opcodes/hrtfopcodes.c:307 Opcodes/hrtfopcodes.c:1235
@@ -6542,7 +6542,7 @@ msgid ""
 "\n"
 "cannot load right data file, exiting\n"
 "\n"
-msgstr ""
+msgstr "\n\n\ncan't load right data file, exiting\n\n"
 
 #: Opcodes/hrtfopcodes.c:314 Opcodes/hrtfopcodes.c:1845
 msgid ""
@@ -6598,7 +6598,7 @@ msgstr "imageload: can't open image %s for writing.\n"
 
 #: Opcodes/imageOpcodes.c:392
 msgid "Cannot allocate memory.\n"
-msgstr ""
+msgstr "Can't allocate memory.\n"
 
 #: Opcodes/jackTransport.c:58
 msgid "Cannot find Jack client.\n"
@@ -9536,7 +9536,7 @@ msgstr ""
 
 #: Top/csound.c:2575
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
-msgstr ""
+msgstr "Can't open /proc/cpuinfo. Support for RDTSC is not available.\n"
 
 #: Top/csound.c:2605
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
@@ -11862,7 +11862,7 @@ msgstr ""
 
 #: util1/scot/scot.c:325
 msgid "Syntax error: cannot back up"
-msgstr ""
+msgstr "Syntax error: can't back up"
 
 #: util1/scot/scot.c:496
 msgid "Improper tie"

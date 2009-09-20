@@ -660,13 +660,13 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'h':
       case 'i':
         if (UNLIKELY(*s != 'k'))
-          return csound->InitError(csound, Str("argument list inconsistent ")
-                                           "with format string");
+          return csound->InitError(csound, Str("argument list inconsistent "
+                                               "with format string"));
         break;
       case 's':
         if (UNLIKELY(*s != 'S'))
-          return csound->InitError(csound, Str("argument list inconsistent ")
-                                           "with format string");
+          return csound->InitError(csound, Str("argument list inconsistent "
+                                               "with format string"));
         break;
       default:
         return csound->InitError(csound, Str("invalid type"));
