@@ -199,12 +199,12 @@ static int ocontrol(CSOUND *csound, SCNTRL *p)
       {
         char buffer[100];
         csound->strarg2name(csound, buffer, p->val, "Control ", p->XSTRCODE);
-        csound->Message(csound, "Slider %d set to %s\n", slider, buffer);
+        csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
         fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
       }
     default:
-      return csound->InitError(csound, "Unknown control %d", c);
+      return csound->InitError(csound, Str("Unknown control %d"), c);
     }
     return OK;
 }

@@ -263,7 +263,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
-        csound->InitError(csound, "instr %s not found", (char*) p);
+        csound->InitError(csound, Str("instr %s not found"), (char*) p);
         return -1;
       }
     }
@@ -271,7 +271,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
       insno = (int32) *((MYFLT*) p);
       if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
                    !csound->instrtxtp[insno])) {
-        csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+        csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
         return -1;
       }
     }
@@ -287,7 +287,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
     int32    insno;
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
-      csound->PerfError(csound, "instr %s not found", s);
+      csound->PerfError(csound, Str("instr %s not found"), s);
       return -1;
     }
     return insno;
@@ -311,7 +311,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
         insno = (int32) *((MYFLT*) p);
         if (UNLIKELY(insno < 1 || insno > csound->maxinsno ||
                      !csound->instrtxtp[insno])) {
-          csound->InitError(csound, "Cannot Find Instrument %d", (int) insno);
+          csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
           return -1;
         }
       }

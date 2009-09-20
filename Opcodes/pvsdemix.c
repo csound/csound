@@ -47,7 +47,7 @@ static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 
 #ifndef OLPC
     if (UNLIKELY(p->finleft->sliding))
-      return csound->InitError(csound, "SDFT case not implemented yet");
+      return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
    M = (N+2)*sizeof(float);
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<M)
@@ -177,9 +177,9 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     return OK;
  err1:
-      return csound->PerfError(csound, "pvsdemix : formats are different.\n");
+    return csound->PerfError(csound, Str("pvsdemix : formats are different.\n"));
  err2:
-      return csound->PerfError(csound, "pvsdemix : not initialised \n");
+    return csound->PerfError(csound, Str("pvsdemix : not initialised \n"));
 }
 
 static OENTRY localops[] =

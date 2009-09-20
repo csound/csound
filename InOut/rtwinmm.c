@@ -758,7 +758,7 @@ static CS_NOINLINE int check_name(const char *s)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
-      csound->Message(csound, "rtaudio: WinMM module enabled\n");
+      csound->Message(csound, Str("rtaudio: WinMM module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);

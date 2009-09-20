@@ -98,7 +98,7 @@ int p5glove_poll(CSOUND *csound, P5GLOVE *p)
     res = p5glove_sample(*glove, -1);
     if (res < 0 && errno == EAGAIN) return OK;//res = p5glove_sample(*glove, -1);
     if (UNLIKELY(res < 0))
-      return csound->PerfError(csound, "P5Glove failure");
+      return csound->PerfError(csound, Str("P5Glove failure"));
     return OK;
 }
 

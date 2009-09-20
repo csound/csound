@@ -572,7 +572,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
       }
 
       default:
-          return csound->InitError(csound, "Not supported setup number!");
+        return csound->InitError(csound, Str("Not supported setup number!"));
     }
     return OK;
 }

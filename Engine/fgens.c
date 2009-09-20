@@ -2800,7 +2800,8 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     int indp;
 
     if (ff->e.pcnt>=PMAX) {
-      csound->Warning(csound, "using extended arguments\n");
+      csound->Warning
+        (csound, Str("using extended arguments\n"));
     }
     nvals       = ff->flen;
     pp          = &(ff->e.p[5]);
@@ -2843,7 +2844,7 @@ static int gen52(FGDATA *ff, FUNC *ftp)
     int     nargs = (int) ff->e.pcnt - 4;
 
     if (ff->e.pcnt>=PMAX) {
-      csound->Warning(csound, "using extended arguments\n");
+      csound->Warning(csound, Str("using extended arguments\n"));
     }
     if (UNLIKELY(nargs < 4)) {
       return fterror(ff, Str("insufficient gen arguments"));

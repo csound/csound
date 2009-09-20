@@ -336,7 +336,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 
     /* Read sound files */
     if (n == 0) {
-      csound->ErrorMsg(csound, "No mixin");
+      csound->ErrorMsg(csound, Str("No mixin"));
       return -1;
     }
     for (i = 0; i < n; i++) {

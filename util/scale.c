@@ -176,7 +176,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
             O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
-              csound->Die(csound, "-o cannot be stdin");
+              csound->Die(csound, Str("-o cannot be stdin"));
 #if defined(mac_classic) || defined(WIN32)
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->Die(csound, Str("stdout audio not supported"));
@@ -404,7 +404,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound, "scaling %ld sample frames (%3.1f secs)\n",
+    csound->Message(csound, Str("scaling %ld sample frames (%3.1f secs)\n"),
                             (long) p->getframes, dur);
     return(infile);
 }
@@ -447,15 +447,15 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
     }
-    csound->Message(csound, "Max val %.3f at index %ld (time %.4f, chan %d) "
-                            "%d times\n", max, (long) mxpos / (long) chans,
+    csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
+                                "%d times\n"), max, (long) mxpos / (long) chans,
                             tpersample * (double) mxpos / (double) chans,
                             ((int) mxpos % chans) + 1, (int) maxtimes);
-    csound->Message(csound, "Min val %.3f at index %ld (time %.4f, chan %d) "
-                            "%d times\n", min, (long) minpos / (long) chans,
+    csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
+                                "%d times\n"), min, (long) minpos / (long) chans,
                             tpersample * (double) minpos / (double) chans,
                             ((int) minpos % chans) + 1, (int) mintimes);
-    csound->Message(csound, "Max scale factor = %.3f\n",
+    csound->Message(csound, Str("Max scale factor = %.3f\n"),
                             (double) csound->e0dbfs / (max > -min ? max:-min));
 }
 
@@ -491,15 +491,15 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile)
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
     }
-    csound->Message(csound, "Max val %.3f at index %ld (time %.4f, chan %d) "
-                            "%d times\n", max, (long) mxpos / (long) chans,
+    csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
+                                "%d times\n"), max, (long) mxpos / (long) chans,
                             tpersample * (double) mxpos / (double) chans,
                             ((int) mxpos % chans) + 1, (int) maxtimes);
-    csound->Message(csound, "Min val %.3f at index %ld (time %.4f, chan %d) "
-                            "%d times\n", min, (long) minpos / (long) chans,
+    csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
+                                "%d times\n"), min, (long) minpos / (long) chans,
                             tpersample * (double) minpos / (double) chans,
                             ((int) minpos % chans) + 1, (int) mintimes);
-    csound->Message(csound, "Max scale factor = %.3f\n",
+    csound->Message(csound, Str("Max scale factor = %.3f\n"),
                             (double) csound->e0dbfs / (max > -min ? max:-min));
     return (float) (max > -min ? max : -min);
 }
