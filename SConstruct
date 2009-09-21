@@ -1,6 +1,6 @@
 #J vim:syntax=python
 print '''
-C S O U N D 5
+      C S O U N D 5
 
 SCons build file for Csound 5:
 API library, plugin opcodes, utilities, and front ends.
@@ -2385,7 +2385,7 @@ else:
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
         #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
     elif getPlatform() == 'darwin':
-        acEnvironment.Append(LIBS = ['dl', 'm'])
+        acEnvironment.Append(LIBS = ['dl', 'm', 'fltk_images', 'fltk_png', 'fltk_jpeg'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         acEnvironment['SHLIBSUFFIX'] = '.dylib'
@@ -2444,6 +2444,7 @@ else:
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['fltk_images'])
     else:
         pythonCsoundACWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         pythonCsoundACWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
