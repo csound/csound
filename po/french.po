@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2009-07-01 10:07+0100\n"
+"PO-Revision-Date: 2009-09-21 20:49+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -56,7 +56,7 @@ msgstr "type de variable non valide"
 
 #: Engine/cfgvar.c:60
 msgid "invalid flags specified"
-msgstr "des options non valides ont été spécifiées"
+msgstr "options non valides spécifiées"
 
 #: Engine/cfgvar.c:61
 msgid "NULL pointer argument"
@@ -93,17 +93,17 @@ msgstr "(erreur inconnue)"
 #: Engine/csound_orc_compile.c:459
 #, c-format
 msgid "create_opcode: No rule to handle statemnent of type %d\n"
-msgstr ""
+msgstr "create_opcode: aucune règle pour traiter une instruction de type %d\n"
 
 #: Engine/csound_orc_compile.c:645
 #, c-format
 msgid "create_instrument: instr num %ld\n"
-msgstr "create_instrument: le numéro d'instrument %ld\n"
+msgstr "create_instrument: numéro d'instrument %ld\n"
 
 #: Engine/csound_orc_compile.c:654
-#, fuzzy, c-format
+#, c-format
 msgid "create_instrument: instr name %s\n"
-msgstr "create_instrument: Lancement de l'instrument %s\n"
+msgstr "create_instrument: nom de l'instrument %s\n"
 
 #: Engine/csound_orc_compile.c:661 Engine/otran.c:340
 msgid "invalid name for instrument"
@@ -115,24 +115,24 @@ msgid "instr %s redefined"
 msgstr "instr %s redéfini"
 
 #: Engine/csound_orc_compile.c:806 Engine/otran.c:142 Engine/symbtab.c:393
-#, fuzzy, c-format
+#, c-format
 msgid "invalid input type for opcode %s"
-msgstr "nom d'opcode non valide"
+msgstr "type d'entrée non valide pour l'opcode %s"
 
 #: Engine/csound_orc_compile.c:811 Engine/otran.c:147 Engine/symbtab.c:398
-#, fuzzy, c-format
+#, c-format
 msgid "too many input args for opcode %s"
-msgstr "trop d'arguments en entrée"
+msgstr "trop d'arguments en entrée pour l'opcode %s"
 
 #: Engine/csound_orc_compile.c:826 Engine/otran.c:162 Engine/symbtab.c:413
-#, fuzzy, c-format
+#, c-format
 msgid "too many output args for opcode %s"
-msgstr "trop d'arguments en entrée"
+msgstr "trop d'arguments en sortie pour l'opcode %s"
 
 #: Engine/csound_orc_compile.c:842 Engine/otran.c:181 Engine/symbtab.c:432
-#, fuzzy, c-format
+#, c-format
 msgid "invalid output type for opcode %s"
-msgstr "nom d'opcode non valide"
+msgstr "type de sortie non valide pour l'opcode %s"
 
 #: Engine/csound_orc_compile.c:927 Engine/otran.c:328
 #, c-format
@@ -141,12 +141,12 @@ msgstr "instr %ld redéfini"
 
 #: Engine/csound_orc_compile.c:937
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
-msgstr ""
+msgstr "!!! csound->opcodeInfo est NULL !!!\n"
 
 #: Engine/csound_orc_compile.c:1076
 #, c-format
 msgid "Unknown TREE node of type %d found in root.\n"
-msgstr ""
+msgstr "Noeud inconnu de type %d trouvé à la racine.\n"
 
 #: Engine/csound_orc_compile.c:1132 Engine/otran.c:552 Engine/otran.c:1396
 #, c-format
@@ -268,7 +268,7 @@ msgstr "Libération de la macro non définie"
 
 #: Engine/csound_orc.y:220
 msgid "No number following instr\n"
-msgstr ""
+msgstr "Aucun numéro ne suit instr\n"
 
 #: Engine/envvar.c:264 Engine/jpff_envvar.c:261
 #, c-format
@@ -401,9 +401,8 @@ msgstr ""
 #: Engine/fgens.c:1403 Engine/fgens.c:1465 Engine/fgens.c:1687
 #: Engine/fgens.c:1766 Engine/fgens.c:2119 Engine/fgens.c:2804
 #: Engine/fgens.c:2847
-#, fuzzy
 msgid "using extended arguments\n"
-msgstr "pas d'argument t"
+msgstr "utilisation d'arguments étendus\n"
 
 #: Engine/fgens.c:379
 msgid "no coefs present"
@@ -495,7 +494,7 @@ msgstr "%ld éléments dans %s\n"
 
 #: Engine/fgens.c:1344
 msgid "Numbers after table full in GEN23"
-msgstr ""
+msgstr "Encore des nombres à lire alors que la table est pleine dans GEN23"
 
 #: Engine/fgens.c:1373
 msgid "table size must be the same of source table"
@@ -589,7 +588,7 @@ msgstr ""
 #: Engine/fgens.c:2407
 #, c-format
 msgid "non-deferred ftable %d needs size %d\n"
-msgstr "la table non différée %d nécessite une taille %ld\n"
+msgstr "la table non différée %d nécessite une taille %d\n"
 
 #: Engine/fgens.c:2454 Opcodes/loscilx.c:62
 #, c-format
@@ -655,7 +654,7 @@ msgstr "taille de ftable trop petite"
 
 #: Engine/fgens.c:2726 Opcodes/mp3in.c:74
 msgid "Not enough memory\n"
-msgstr ""
+msgstr "Pas assez de mémoire\n"
 
 #: Engine/fgens.c:2814
 msgid "gen51: invalid number of p-fields (too few grades)"
@@ -718,9 +717,9 @@ msgstr ""
 "INCDIR, SSDIR ou SFDIR"
 
 #: Engine/insert.c:81
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %d at %d\n"
-msgstr "Lancement de l'instrument %d %s\n"
+msgstr "activation de l'instrument %d à %d\n"
 
 #: Engine/insert.c:85
 #, c-format
@@ -758,12 +757,12 @@ msgstr "l'instr %d utilise %d p-champs alors qu'il n'en a reçu que %d"
 #: Engine/insert.c:222 Engine/insert.c:419
 #, c-format
 msgid "instr %d now active:\n"
-msgstr ""
+msgstr "instr %d activé : \n"
 
 #: Engine/insert.c:260
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %d\n"
-msgstr "Lancement de l'instrument %d %s\n"
+msgstr "activation de l'instrument %d\n"
 
 #: Engine/insert.c:278
 #, c-format
@@ -908,9 +907,9 @@ msgid "inconsistent opds total"
 msgstr "total d'opds non cohérent"
 
 #: Engine/insert.c:1788
-#, fuzzy, c-format
+#, c-format
 msgid "Instrument %d is still active"
-msgstr "Instrument %d muet\n"
+msgstr "L'instrument %d est toujours actif"
 
 #: Engine/linevent.c:89
 msgid "-L stdin fcntl failed"
@@ -939,7 +938,7 @@ msgstr "opcode %c inconnu"
 
 #: Engine/linevent.c:266
 msgid "multiple string p-fields"
-msgstr "p-champs chaînes de caractères"
+msgstr "plusieurs p-champs chaînes de caractères"
 
 #: Engine/linevent.c:272 Engine/rdorch.c:1152
 msgid "unmatched quotes"
@@ -1018,7 +1017,7 @@ msgstr "impossible de charger %s, ou SADIR n'est pas défini\n"
 #: Engine/memfiles.c:129
 #, c-format
 msgid "error processing file %s\n"
-msgstr ""
+msgstr "erreur en traitant le fichier %s\n"
 
 #: Engine/memfiles.c:135 Engine/memfiles.c:318
 #, c-format
@@ -1308,14 +1307,14 @@ msgid "instr %s uses instrument number %d\n"
 msgstr "l'instr %s utilise le numéro d'instrument %d\n"
 
 #: Engine/namedins.c:266 Engine/namedins.c:290
-#, fuzzy, c-format
+#, c-format
 msgid "instr %s not found"
-msgstr "Nom %s non trouvé"
+msgstr "instr %s non trouvé"
 
 #: Engine/namedins.c:274 Engine/namedins.c:314
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot Find Instrument %d"
-msgstr "Lancement de l'instrument %d %s\n"
+msgstr "Impossible de trouver l'instrument %d"
 
 #: Engine/namedins.c:326
 msgid "cannot find the specified instrument or opcode"
@@ -1413,9 +1412,8 @@ msgid "header init errors"
 msgstr "Erreurs dans l'initialisation de l'en-tête"
 
 #: Engine/rdorch.c:168
-#, fuzzy
 msgid "ungetorchar(): buffer overflow"
-msgstr "getcfg : dépassement de tampon"
+msgstr "ungetorchar(): dépassement de tampon"
 
 #: Engine/rdorch.c:332
 msgid "Unexpected end of orchestra file"
@@ -1780,9 +1778,8 @@ msgid "Internal error op=%c"
 msgstr "Erreur interne op=%c"
 
 #: Engine/sread.c:322
-#, fuzzy
 msgid "ungetscochar(): buffer overflow"
-msgstr "getcfg : dépassement de tampon"
+msgstr "ungetscochar(): dépassement de tampon"
 
 #: Engine/sread.c:479
 msgid "illegal placement of number in [] expression"
@@ -2090,7 +2087,7 @@ msgstr "    Chaîne tronquée\n"
 #: Engine/symbtab.c:334
 #, c-format
 msgid "Unknown word type for %s on line %d\n"
-msgstr ""
+msgstr "Type de mot inconnu pour %s à la ligne %d\n"
 
 #: Engine/twarp.c:88
 msgid "twarp: illegal opcode\n"
@@ -2613,16 +2610,15 @@ msgstr "Les périphériques d'entrée MIDI disponibles sont :\n"
 
 #: InOut/pmidi.c:174
 msgid " *** error initialising PortMIDI"
-msgstr ""
+msgstr " *** erreur à l'initialisation de PortMIDI"
 
 #: InOut/pmidi.c:176
 msgid " *** error initialising PortTime"
-msgstr ""
+msgstr " *** erreur à l'initialisation de PortTime"
 
 #: InOut/pmidi.c:210
-#, fuzzy
 msgid "error: must specify a device number (>=0) or 'a' for all, not a name"
-msgstr "erreur : il faut spécifier un numéro de périphérique (>=0), pas un nom"
+msgstr "erreur : il faut un numéro de périphérique (>=0) ou 'a' pour all (tous), pas un nom"
 
 #: InOut/pmidi.c:217 InOut/pmidi.c:299
 msgid "error: device number is out of range"
@@ -2718,20 +2714,20 @@ msgstr "rtmidi : module PortMIDI activé\n"
 
 #: InOut/rtalsa.c:110
 msgid "--scheduler: invalid priority value; the allowed range is:"
-msgstr ""
+msgstr "--scheduler: valeur de priorité non valide ; l'intervalle autorisé est :"
 
 #: InOut/rtalsa.c:111
 msgid "  -20 to -1: set nice level"
-msgstr ""
+msgstr "  -20 à -1 : fixe le 'nice level'"
 
 #: InOut/rtalsa.c:112
 msgid "          0: normal scheduling, but lock memory"
-msgstr ""
+msgstr "          0 : ordonnancement normal, mais verrouillage mémoire"
 
 #: InOut/rtalsa.c:113
 #, c-format
 msgid "    1 to %d: SCHED_RR with the specified priority (DANGEROUS)"
-msgstr ""
+msgstr "    1 to %d : SCHED_RR avec la priorité spécifiée (DANGEREUX)"
 
 #: InOut/rtalsa.c:330
 #, c-format
@@ -2796,12 +2792,12 @@ msgstr "ALSA : périphérique d'entrée MIDI '%s' ouvert\n"
 
 #: InOut/rtalsa.c:716
 msgid "ALSA midi: Using all devices.\n"
-msgstr ""
+msgstr "ALSA midi : utilisation de tous les périphériques.\n"
 
 #: InOut/rtalsa.c:743
-#, fuzzy, c-format
+#, c-format
 msgid "ALSA midi: Error opening device: %s\n"
-msgstr "ALSA : erreur en ouvrant le périphérique d'entrée MIDI : '%s'"
+msgstr "ALSA midi : erreur en ouvrant le périphérique : %s\n"
 
 #: InOut/rtalsa.c:857
 #, c-format
@@ -2855,39 +2851,33 @@ msgid "Opened MIDI output device file '%s'\n"
 msgstr "Le fichier '%s' est ouvert comme destination de la sortie MIDI\n"
 
 #: InOut/rtalsa.c:1091 InOut/rtcoreaudio.c:62 InOut/rtcoreaudio.c:72
-#, fuzzy
 msgid "warning... could not create global var\n"
-msgstr "impossible d'allouer la structure globale"
+msgstr "avertissement... impossible de créer une variable globale\n"
 
 #: InOut/rtalsa.c:1096
 msgid "RT scheduler priority, alsa module"
-msgstr ""
+msgstr "priorité de l'organisation TR, module alsa"
 
 #: InOut/rtalsa.c:1101
-#, fuzzy
 msgid "ALSA real-time audio and MIDI module for Csound by Istvan Varga\n"
 msgstr ""
-"Module Windows MME audio en temps réel et MIDI pour Csound par Istvan Varga\n"
+"Modules ALSA audio en temps réel et MIDI pour Csound par Istvan Varga\n"
 
 #: InOut/rtalsa.c:1132
-#, fuzzy
 msgid "rtaudio: ALSA module enabled\n"
-msgstr "rtaudio : module JACK activé\n"
+msgstr "rtaudio : module ALSA activé\n"
 
 #: InOut/rtalsa.c:1147
-#, fuzzy
 msgid "rtmidi: ALSA module enabled\n"
-msgstr "rtaudio : module JACK activé\n"
+msgstr "rtmiDi : module ALSA activé\n"
 
 #: InOut/rtalsa.c:1156
-#, fuzzy
 msgid "rtmidi: devfile module enabled\n"
-msgstr "rtmidi : module PortMIDI activé\n"
+msgstr "rtmidi : module devfile activé\n"
 
 #: InOut/rtcoreaudio.c:81
-#, fuzzy
 msgid "CoreAudio real-time audio module for Csound\n"
-msgstr "Module audio en temps réel PortAudio pour Csound\n"
+msgstr "Module audio en temps réel CoreAudio pour Csound\n"
 
 #: InOut/rtcoreaudio.c:103
 msgid "rtaudio: CoreAudio module enabled\n"
@@ -2905,12 +2895,12 @@ msgstr "module CoreAudio : erreur en ouvrant %s\n"
 
 #: InOut/rtcoreaudio.c:295
 msgid " *** CoreAudio: open: could not set buffer size\n"
-msgstr ""
+msgstr " *** CoreAudio : open : impossible de fixer la taille du tampon\n"
 
 #: InOut/rtcoreaudio.c:340
 #, c-format
 msgid " *** CoreAudio: open: could not set device parameter sr: %d \n"
-msgstr ""
+msgstr " *** CoreAudio : open : impossible de fixer le paramètre de périphérique sr : %d\n"
 
 #: InOut/rtcoreaudio.c:342
 #, c-format
@@ -2918,11 +2908,13 @@ msgid ""
 " *** CoreAudio: current device sampling rate is:%d \n"
 "     try setting the above value in your csound orchestra \n"
 msgstr ""
+" *** CoreAudio : le taux d'échantillonnage du périphérique actuel est : %d\n"
+"     essayez de mettre la valeur ci-dessus dans votre orchestre csound\n"
 
 #: InOut/rtcoreaudio.c:351
 #, c-format
 msgid "CoreAudio module: sr set to %d with %d audio channels \n"
-msgstr ""
+msgstr "Module CoreAudio : sr réglé à %d avec %d canaux audio\n"
 
 #: InOut/rtcoreaudio.c:372 InOut/rtcoreaudio.c:385 InOut/rtcoreaudio.c:422
 #: InOut/rtcoreaudio.c:442
@@ -2935,18 +2927,20 @@ msgid ""
 "CoreAudio module: device open with %d buffers of %d frames\n"
 "==========================================================\n"
 msgstr ""
+"Module CoreAudio : périphérique ouvert avec %d tampons de %d trames\n"
+"===================================================================\n"
 
 #: InOut/rtcoreaudio.c:542
 msgid "coreaudio module: closing device...\n"
-msgstr ""
+msgstr "Module CoreAudio : fermeture du périphérique...\n"
 
 #: InOut/rtcoreaudio.c:551
 msgid "coreaudio module: device closed\n"
-msgstr ""
+msgstr "Module CoreAudio : périphérique fermé\n"
 
 #: InOut/rtjack.c:144
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
-msgstr ""
+msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 
 #: InOut/rtjack.c:187
 #, c-format
@@ -2980,15 +2974,15 @@ msgstr "échec de l'allocation mémoire"
 
 #: InOut/rtjack.c:380
 msgid "error registering input ports"
-msgstr ""
+msgstr "erreur à l'enregistrement des ports d'entrée"
 
 #: InOut/rtjack.c:391
 msgid "error registering output ports"
-msgstr ""
+msgstr "erreur à l'enregistrement des ports de sortie"
 
 #: InOut/rtjack.c:408
 msgid "could not connect to JACK server"
-msgstr ""
+msgstr "impossible de se connecter au serveur JACK"
 
 #: InOut/rtjack.c:412
 msgid "invalid number of channels"
@@ -3001,51 +2995,51 @@ msgstr "taux d'échantillonnage non valide"
 #: InOut/rtjack.c:416
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
-msgstr ""
+msgstr "taux d'échantillonnage %d pas conforme à celui de JACK %d"
 
 #: InOut/rtjack.c:422
 msgid "invalid period size (-b)"
-msgstr ""
+msgstr "taille de période non valide (-b)"
 
 #: InOut/rtjack.c:426
 msgid "invalid buffer size (-B)"
-msgstr ""
+msgstr "taille de tampon non valide (-B)"
 
 #: InOut/rtjack.c:429
 msgid "buffer size (-B) is too small"
-msgstr ""
+msgstr "taille de tampon (-B) trop petite"
 
 #: InOut/rtjack.c:465
 msgid "error setting sample rate callback"
-msgstr ""
+msgstr "erreur en fixant le callback du taux d'échantillonnage"
 
 #: InOut/rtjack.c:468
 msgid "error setting buffer size callback"
-msgstr ""
+msgstr "erreur en fixant le callback de la taille du tampon"
 
 #: InOut/rtjack.c:472
 msgid "error setting freewheel callback"
-msgstr ""
+msgstr "erreur en fixant le callback du freewheel"
 
 #: InOut/rtjack.c:475
 msgid "error setting xrun callback"
-msgstr ""
+msgstr "erreur en fixant le callback de xrun"
 
 #: InOut/rtjack.c:478
 msgid "error setting process callback"
-msgstr ""
+msgstr "erreur en fixant le callback de xrun"
 
 #: InOut/rtjack.c:482
 msgid "error activating JACK client"
-msgstr ""
+msgstr "erreur à l'activation du client JACK"
 
 #: InOut/rtjack.c:492
 msgid "error connecting input ports"
-msgstr ""
+msgstr "erreur à  la connexion des ports d'entrée"
 
 #: InOut/rtjack.c:504
 msgid "error connecting output ports"
-msgstr ""
+msgstr "erreur à la connexion des ports de sortie"
 
 #: InOut/rtjack.c:543
 msgid "must specify a device name, not a number"
@@ -3053,27 +3047,27 @@ msgstr "Il faut spécifier un nom de périphérique, pas un numéro"
 
 #: InOut/rtjack.c:549
 msgid "device name is too long"
-msgstr "le nom du périphérique est hors limites"
+msgstr "le nom du périphérique est trop long"
 
 #: InOut/rtjack.c:560
 msgid "input and output parameters are not consistent"
-msgstr ""
+msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
 
 #: InOut/rtjack.c:564
 msgid "period size (-b) must be an integer multiple of ksmps"
-msgstr ""
+msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 
 #: InOut/rtjack.c:568
 msgid "sample rate must be an integer"
-msgstr ""
+msgstr "le taux d'échantillonnage doit être entier"
 
 #: InOut/rtjack.c:702
 msgid "JACK sample rate changed"
-msgstr ""
+msgstr "le taux d'échantillonnage de JACK a changé"
 
 #: InOut/rtjack.c:705
 msgid "no connection to JACK server"
-msgstr ""
+msgstr "pas de connexion au serveur JACK"
 
 #: InOut/rtjack.c:713
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
@@ -3085,14 +3079,12 @@ msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
 #: InOut/rtjack.c:915
-#, fuzzy
 msgid "JACK real-time audio module for Csound by Istvan Varga\n"
-msgstr ""
-"Module Windows MME audio en temps réel et MIDI pour Csound par Istvan Varga\n"
+msgstr "Module audio JACK en temps réel pour Csound par Istvan Varga\n"
 
 #: InOut/rtjack.c:919
 msgid " *** rtjack: error allocating globals"
-msgstr " *** rtjack : erreur lors de l'allocation des variables globales"
+msgstr " *** rtjack : erreur d'allocation des variables globales"
 
 #: InOut/rtjack.c:983
 msgid "rtaudio: JACK module enabled\n"
@@ -3172,54 +3164,52 @@ msgid "PortAudio real-time audio module for Csound\n"
 msgstr "Module audio en temps réel PortAudio pour Csound\n"
 
 #: InOut/rtpa.c:782
-#, fuzzy
 msgid "rtaudio: PortAudio module enabled ... "
-msgstr "rtaudio : module CoreAudio activé\n"
+msgstr "rtaudio : module PortAudio activé ..."
 
 #: InOut/rtpa.c:790
 msgid "using blocking interface\n"
-msgstr ""
+msgstr "utilisation de l'interface bloquante\n"
 
 #: InOut/rtpa.c:798
 msgid "using callback interface\n"
-msgstr ""
+msgstr "utilisation de l'interface de callback\n"
 
 #: InOut/rtpulse.c:47
-#, fuzzy
 msgid "PulseAudio client RT IO module for Csound"
-msgstr "Module audio en temps réel PortAudio pour Csound\n"
+msgstr "Module client PulseAudio d'E/S TR pour Csound"
 
 #: InOut/rtpulse.c:52
 msgid " *** rtpulse: error allocating globals"
-msgstr " *** rtpulse : erreur lors de l'allocation des variables globales"
+msgstr " *** rtpulse : erreur d'allocation des variables globales"
 
 #: InOut/rtpulse.c:118
 msgid "PulseAudio output server: default\n"
-msgstr ""
+msgstr "Serveur PulseAudio de sortie : par défaut\n"
 
 #: InOut/rtpulse.c:122
 #, c-format
 msgid "PulseAudio output server %s\n"
-msgstr ""
+msgstr "Serveur PulseAudio de sortie %s\n"
 
 #: InOut/rtpulse.c:137
 msgid "pulseaudio output open\n"
-msgstr ""
+msgstr "Sortie PulseAudio ouverte\n"
 
 #: InOut/rtpulse.c:141 InOut/rtpulse.c:158 InOut/rtpulse.c:229
 #: InOut/rtpulse.c:246
 #, c-format
 msgid "Pulse audio module error: %s\n"
-msgstr ""
+msgstr "Erreur du module PulseAudio : %s\n"
 
 #: InOut/rtpulse.c:210
 msgid "PulseAudio input server: default\n"
-msgstr ""
+msgstr "Serveur PulseAudio en entrée : par défaut\n"
 
 #: InOut/rtpulse.c:214
 #, c-format
 msgid "PulseAudio input server %s\n"
-msgstr ""
+msgstr "Serveur PulseAudio en entrée %s\n"
 
 #: InOut/rtpulse.c:271
 msgid "rtaudio: pulseaudio module enabled\n"
@@ -3345,9 +3335,8 @@ msgid "could not allocate global structure"
 msgstr "impossible d'allouer la structure globale"
 
 #: InOut/rtwinmm.c:761
-#, fuzzy
 msgid "rtaudio: WinMM module enabled\n"
-msgstr "rtaudio : module JACK activé\n"
+msgstr "rtaudio : module WinMM activé\n"
 
 #: InOut/virtual_keyboard/virtual_keyboard.cpp:435
 msgid "virtual_keyboard.cpp: error allocating FLTK flags"
@@ -4135,9 +4124,8 @@ msgid "fsig = : formats are different.\n"
 msgstr "fsig = : les formats sont différents.\n"
 
 #: OOps/pstream.c:93 OOps/pstream.c:351 OOps/pstream.c:605 OOps/pstream.c:719
-#, fuzzy
 msgid "Sliding version not yet available"
-msgstr "la durée totale demandée n'est pas disponible"
+msgstr "La version glissante n'est pas encore disponible"
 
 #: OOps/pstream.c:104
 msgid "pvadsyn: bad value for inoscs\n"
@@ -5278,7 +5266,7 @@ msgstr "L'interpolation a échoué"
 
 #: OOps/ugens5.c:750
 msgid "this opcode only works with LPC pole analysis type (-a)\n"
-msgstr ""
+msgstr "cet opcode ne fonctionne qu'avec le type d'analyse de pôle par CPL (-a)\n"
 
 #: OOps/ugens5.c:877
 msgid "Pole file not supported for this opcode !"
@@ -5580,7 +5568,7 @@ msgstr "zacl : first > last. Pas d'effacement."
 
 #: OOps/ugrw1.c:2819
 msgid "printk not initialised"
-msgstr ""
+msgstr "printk n'est pas initialisé"
 
 #: OOps/ugrw1.c:2837
 #, c-format
@@ -5707,14 +5695,13 @@ msgid "OSCrecv is already running"
 msgstr "OSCrecv s'exécute déjà"
 
 #: Opcodes/OSC.c:558
-#, fuzzy
 msgid "OSC deinitiatised\n"
-msgstr "delay : non initialisé"
+msgstr "OSC dé-initialisé\n"
 
 #: Opcodes/OSC.c:583
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
-msgstr ""
+msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
 
 #: Opcodes/OSC.c:635
 msgid "OSC not running"
@@ -5725,19 +5712,16 @@ msgid "invalid handle"
 msgstr "descripteur non valide"
 
 #: Opcodes/OSC.c:646
-#, fuzzy
 msgid "invalid number of arguments"
-msgstr "GEN53 : nombre d'arguments de GEN non valide"
+msgstr "nombre d'arguments non valide"
 
 #: Opcodes/OSC.c:663 Opcodes/OSC.c:668
-#, fuzzy
 msgid "argument list inconsistent "
-msgstr "revlpsiz incohérent\n"
+msgstr "liste d'arguments incohérente "
 
 #: Opcodes/OSC.c:672
-#, fuzzy
 msgid "invalid type"
-msgstr "type de fenêtre non valide"
+msgstr "type non valide"
 
 #: Opcodes/Vosim.c:49
 msgid "vosim: pulse table not found"
@@ -5745,12 +5729,12 @@ msgstr "vosim : table d'impulsion non trouvée !"
 
 #: Opcodes/Vosim.c:72
 msgid "vosim: zero kfund. 'Infinite' length event generated."
-msgstr ""
+msgstr "vosim: kfund à zéro. Evènement de longueur 'infinie' généré."
 
 #: Opcodes/Vosim.c:80
 #, c-format
 msgid "vosim: kfund (%f) > sr. Generating ksmps silence."
-msgstr ""
+msgstr "vosim: kfund (%f) > sr. Génération d'un silence de ksmps."
 
 #: Opcodes/Vosim.c:158
 msgid "vosim: not initialised"
@@ -5790,7 +5774,7 @@ msgstr "Nombre incorrect de cellules de sortie ! Il en faut 8."
 
 #: Opcodes/ambicode.c:575
 msgid "Not supported setup number!"
-msgstr ""
+msgstr "Valeur de setup non supportée !"
 
 #: Opcodes/ambicode1.c:80
 msgid "The numbers of input and output arguments are not valid."
@@ -5914,14 +5898,13 @@ msgid "Closing down wish(%d)\n"
 msgstr "Fermeture de wish(%d)\n"
 
 #: Opcodes/control.c:202
-#, fuzzy, c-format
 msgid "Slider %d set to %s\n"
-msgstr "Infile fixé à %s\n"
+msgstr "Réglette %d fixé à %s\n"
 
 #: Opcodes/control.c:207
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown control %d"
-msgstr "pas de taux de contrôle"
+msgstr "Contrôle %d inconnu"
 
 #: Opcodes/date.c:64
 msgid "dates: buffer overflow"
@@ -5981,7 +5964,7 @@ msgstr ""
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:195
 #: Opcodes/fluidOpcodes/fluidOpcodes.cpp:144
 msgid "error allocating fluid engine\n"
-msgstr ""
+msgstr "erreur à l'allocation du moteur fluid\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:203
 #, c-format
@@ -5989,18 +5972,20 @@ msgid ""
 "Created fluidEngine %d with sampling rate = %f, chorus %s, reverb %s, "
 "channels %d, polyphony %d.\n"
 msgstr ""
+"fluidEngine %d a été crée avec un taux d'échantillonnage = %f, chorus %s, reverb %s, "
+"canaux %d, polyphonie %d.\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:229
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:390
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:551
 #, c-format
 msgid "Illegal Engine Number: %i.\n"
-msgstr ""
+msgstr "Numéro de moteur illégal : %i.\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:237
 #, c-format
 msgid "Loading SoundFont : %s.\n"
-msgstr ""
+msgstr "Chargement de SoundFont : %s.\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:243
 #: Opcodes/fluidOpcodes/fluidOpcodes.cpp:198
@@ -6011,7 +5996,7 @@ msgstr "fluid : impossible d'ouvrir le fichier %s"
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:260
 #, c-format
 msgid "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n"
-msgstr ""
+msgstr "SoundFont : %3d  Banque : %3d  Preset : %3d  %s\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:482
 #, c-format
@@ -6019,6 +6004,8 @@ msgid ""
 "result: %d \n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
+"résultat : %d \n"
+" Note off : c:%3d k:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:490
 #, c-format
@@ -6026,36 +6013,38 @@ msgid ""
 "result: %d \n"
 "Note on: c:%3d k:%3d v:%3d\n"
 msgstr ""
+"résultat : %d \n"
+" Note on : c:%3d k:%3d v:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:495
 #, c-format
 msgid "Key pressure (not handled): c:%3d k:%3d v:%3d\n"
-msgstr ""
+msgstr "Pression de touche (non traitée) : c:%3d k:%3d v:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:503
 #, c-format
 msgid "Result: %d Control change: c:%3d c:%3d v:%3d\n"
-msgstr ""
+msgstr "Résultat : %d Changement de contrôle : c:%3d c:%3d v:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:509
 #, c-format
 msgid "Result: %d Program change: c:%3d p:%3d\n"
-msgstr ""
+msgstr "Résultat : %d Changement de programme : c:%3d p:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:522
 #, c-format
 msgid "Result: %d, Pitch bend:     c:%d b:%d\n"
-msgstr ""
+msgstr "Résultat : %d, Pitch bend :     c:%d b:%d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:528
 #, c-format
 msgid "System exclusive (not handled): c:%3d v1:%3d v2:%3d\n"
-msgstr ""
+msgstr "Système exclusif (non traité) : c:%3d v1:%3d v2:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:560
 #: Opcodes/fluidOpcodes/fluidOpcodes.cpp:535
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
-msgstr ""
+msgstr "Méthode d'interpolation illégale : doit valoir 0, 1, 4 ou 7.\n"
 
 #: Opcodes/fm4op.c:165
 msgid "No table for VibWaveato"
@@ -7041,18 +7030,17 @@ msgstr ""
 "mp3in : avertissement : taux d'échantillonnage du fichier (%d) != sr de "
 "l'orchestre (%d)\n"
 
+#: OOps/remote.c:278
 #: Opcodes/mysocksend.c:51 Opcodes/mysocksend.c:89 Opcodes/sockrecv.c:123
 #: Opcodes/sockrecv.c:213 Opcodes/sockrecv.c:300 Opcodes/socksend.c:75
 #: Opcodes/socksend.c:133 Opcodes/socksend.c:190
-#, fuzzy
 msgid "creating socket"
-msgstr "création du socket\n"
+msgstr "création du socket"
 
 #: Opcodes/mysocksend.c:70 Opcodes/mysocksend.c:76 Opcodes/socksend.c:107
 #: Opcodes/socksend.c:169
-#, fuzzy
 msgid "sendto failed"
-msgstr "CLsend a échoué"
+msgstr "sendto a échoué"
 
 #: Opcodes/nlfilt.c:117
 msgid "nlfilt: not initialised"
@@ -7150,42 +7138,39 @@ msgstr "oggplay : avertissement, trou dans les données\n"
 
 #: Opcodes/osc-sock.c:258
 msgid "you should only call OSCinit once, globally"
-msgstr ""
+msgstr "il ne faut appeler OSCinit qu'une seule fois, globalement"
 
 #: Opcodes/osc-sock.c:277
-#, fuzzy
 msgid "network initialization failed"
-msgstr "échec de l'allocation mémoire"
+msgstr "échec de l'initialisation réseau"
 
 #: Opcodes/osc-sock.c:280
 msgid "OSC library initialization failed (oscInitOSC)"
-msgstr ""
+msgstr "L'initialisation de la bibliothèque OSC a échoué (oscInitOSC)"
 
 #: Opcodes/osc-sock.c:303
-#, fuzzy
 msgid "OSCrecv: OSC has not been initialised"
-msgstr "reverbx : non initialisé"
+msgstr "OSCrecv : OSC n'a pas été initialisé"
 
 #: Opcodes/osc-sock.c:309
 msgid "OSCrecv: no space left for service string (osc_sock_set)"
-msgstr ""
+msgstr "OSCrecv : il n'y a plus d'espace pour une chaîne de service (osc_sock_set)"
 
 #: Opcodes/osc-sock.c:927
 msgid "OSCsend: no space left for address string"
-msgstr ""
+msgstr "OSCsend : il n'y a plus d'espace une chaîne d'addresse"
 
 #: Opcodes/osc-sock.c:936
 msgid "OSCsend: need an address string, not a number (osc_send_set)"
-msgstr ""
+msgstr "OSCsend : il faut une chaîne d'adresse, pas un nombre (osc_send_set)"
 
 #: Opcodes/osc-sock.c:944 Opcodes/osc-sock.c:953
 msgid "OSCsend: no space left for host string"
-msgstr ""
+msgstr "OSCsend : il n'y a plus d'espace pour une chaîne d'hôte"
 
 #: Opcodes/osc-sock.c:972
-#, fuzzy
 msgid "OSC buffer allocation failed "
-msgstr "échec de l'allocation mémoire"
+msgstr "Echec de l'allocation du tampon OSC"
 
 #: Opcodes/oscbnk.c:544
 msgid "oscbnk: not initialised"
@@ -7302,24 +7287,23 @@ msgstr "rbjeq : type de filtre non valide"
 
 #: Opcodes/p5glove.c:87
 msgid "unable to open p5glove\n"
-msgstr ""
+msgstr "impossible d'ouvrir p5glove\n"
 
 #: Opcodes/p5glove.c:97
 msgid "No glove open"
-msgstr ""
+msgstr "Aucun gant n'est ouvert"
 
 #: Opcodes/p5glove.c:101
 msgid "P5Glove failure"
-msgstr ""
+msgstr "Echec de p5glove"
 
 #: Opcodes/p5glove.c:130
 msgid "No open glove"
-msgstr ""
+msgstr "Pas de gant ouvert"
 
 #: Opcodes/pan2.c:43
-#, fuzzy
 msgid "Unknown panning type"
-msgstr "type nommé inconnu"
+msgstr "Type de panoramique inconnu"
 
 #: Opcodes/partikkel.c:25 Opcodes/partikkel.c:26 Opcodes/partikkel.c:27
 msgid "partikkel: "
@@ -7701,7 +7685,7 @@ msgstr "PVREAD ne peut pas charger %s"
 #: Opcodes/pvsbasic.c:706 Opcodes/pvsbasic.c:792 Opcodes/pvsbasic.c:885
 #: Opcodes/pvsbasic.c:1010 Opcodes/pvsbasic.c:1150
 msgid "Unsafe to have same fsig as in and out"
-msgstr ""
+msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
 #: Opcodes/pvsband.c:180 Opcodes/pvsband.c:284
 msgid "pvsband: not initialised"
@@ -7731,7 +7715,7 @@ msgstr "pvsfreeze : le format de signal doit être amp-phase ou amp-fréq."
 
 #: Opcodes/pvsbasic.c:383
 msgid "pvsosc does not work while sliding"
-msgstr ""
+msgstr "pvsosc ne travaille pas lors du glissement"
 
 #: Opcodes/pvsbasic.c:617
 msgid "pvsmooth: signal format must be amp-phase or amp-freq."
@@ -7767,7 +7751,7 @@ msgstr "pvshift : non initialisé"
 
 #: Opcodes/pvsbasic.c:1153
 msgid "pvsblur does not work sliding yet"
-msgstr ""
+msgstr "pvsblur ne traite pas encore le glissement"
 
 #: Opcodes/pvsbasic.c:1288
 msgid "pvsblur: not initialised"
@@ -7790,23 +7774,20 @@ msgid "SDFT case not implemented yet"
 msgstr "SDFT pas encore implémentée"
 
 #: Opcodes/pvsbuffer.c:188
-#, fuzzy
 msgid "Invalid buffer handle"
-msgstr "descripteur de fichier non valide"
+msgstr "Descripteur de tampon non valide"
 
 #: Opcodes/pvscent.c:42
 msgid "pvscent: format must be amp-phase or amp-freq.\n"
 msgstr "pvscent : le format doit être amp-phase ou amp-fréq.\n"
 
 #: Opcodes/pvsdemix.c:180
-#, fuzzy
 msgid "pvsdemix : formats are different.\n"
-msgstr "pvsmix : les formats sont différents"
+msgstr "pvsdemix : les formats sont différents\n"
 
 #: Opcodes/pvsdemix.c:182
-#, fuzzy
 msgid "pvsdemix : not initialised \n"
-msgstr "pvsmaska : non initialisé\n"
+msgstr "pvsdemix : non initialisé\n"
 
 #: Opcodes/repluck.c:164
 #, c-format
@@ -7950,12 +7931,12 @@ msgstr "SCANU ne peut pas charger %s"
 
 #: Opcodes/scansynx.c:326
 msgid "Not a valid matrix"
-msgstr ""
+msgstr "Matrice non valide"
 
 #: Opcodes/scansynx.c:349
-#, fuzzy, c-format
+#, c-format
 msgid "(%d,%d) is out of range\n"
-msgstr "%d échantillons %s hors limites\n"
+msgstr "(%d, %d) est hors limites\n"
 
 #: Opcodes/scansynx.c:400
 msgid "scanux: Could not find ifnvel table"
@@ -8091,7 +8072,7 @@ msgstr "Sfont : format non compatible"
 
 #: Opcodes/sfont.c:2545
 msgid "error... could not create sfont globals\n"
-msgstr ""
+msgstr "erreur... impossible de créer les globales de sfont\n"
 
 #: Opcodes/singwave.c:85
 msgid "No table for Modulatr"
@@ -8169,19 +8150,17 @@ msgid "sndwarpst: not initialised"
 msgstr "sndwarpst : non initialisé"
 
 #: Opcodes/sockrecv.c:322
-#, fuzzy
 msgid "connect failed"
-msgstr "l'acceptation a échoué"
+msgstr "la connexion a échoué"
 
 #: Opcodes/sockrecv.c:335
-#, fuzzy
 msgid "read from socket failed"
-msgstr "l'écriture sur le socket a échoué"
+msgstr "la lecture depuis le socket a échoué"
 
 #: Opcodes/socksend.c:67 Opcodes/socksend.c:125
 #, c-format
 msgid "The buffersize must be <= %d samples to fit in a udp-packet."
-msgstr ""
+msgstr "La taille du tampon doit être <= %d échantillons pour entrer dans un paquet udp."
 
 #: Opcodes/space.c:165
 msgid "space: not initialised"
@@ -8416,7 +8395,7 @@ msgstr ""
 #: Opcodes/stk/stkOpcodes.cpp:599
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
-msgstr ""
+msgstr "RAWWAVE_PATH : %s\n"
 
 #: Opcodes/syncgrain.c:175 Opcodes/syncgrain.c:338 Opcodes/syncgrain.c:683
 msgid "grain size smaller than 1 sample\n"
@@ -8443,10 +8422,9 @@ msgstr "diskgrain : impossible de lire le fichier\n"
 
 #: Opcodes/tabsum.c:39
 msgid "tabsum: No table"
-msgstr ""
+msgstr "tabsum : pas de table"
 
 #: Opcodes/tabsum.c:54
-#, fuzzy
 msgid "tabsum: Not initialised"
 msgstr "tabsum : non initialisé"
 
@@ -8467,9 +8445,8 @@ msgid "Minimum frequency too low"
 msgstr "Fréquence minimale trop basse"
 
 #: Opcodes/ugens7.c:399
-#, fuzzy
 msgid "Period zero\n"
-msgstr "durée < zéro\n"
+msgstr "Période zéro\n"
 
 #: Opcodes/ugens7.c:502
 msgid "harmon out of range...\n"
@@ -8518,13 +8495,13 @@ msgid "convolve: not initialised"
 msgstr "convolve : non initialisé"
 
 #: Opcodes/ugens9.c:372
-#, fuzzy, c-format
+#, c-format
 msgid "channel request %d illegal"
-msgstr "demande de canal %d illégale\n"
+msgstr "demande de canal %d illégale"
 
 #: Opcodes/ugens9.c:377
 msgid "pconvolve: error while impulse file"
-msgstr ""
+msgstr "pconvolve : erreur du fichier de réponse impulsionnelle"
 
 #: Opcodes/ugens9.c:390
 #, c-format
@@ -8532,15 +8509,12 @@ msgid "analyzing %ld sample frames (%3.1f secs)\n"
 msgstr "analyse de %ld trames d'échantillons (%3.1f secs)\n"
 
 #: Opcodes/ugens9.c:395
-#, fuzzy
 msgid "PCONVOLVE: number of output channels not equal to input channels"
-msgstr ""
-"CONVOLVE : canaux de sortie différents du nombre de canaux dans la source"
+msgstr "PCONVOLVE : le nombre de canaux de sortie est différent de celui des canaux d'entrée"
 
 #: Opcodes/ugens9.c:432
-#, fuzzy
 msgid "PCONVOLVE: less sound than expected!"
-msgstr "moins de son que ce qui était attendu"
+msgstr "PCONVOLVE: moins de son que ce qui était attendu !"
 
 #: Opcodes/uggab.c:165
 msgid " bad imode value"
@@ -9019,40 +8993,39 @@ msgstr "Les longueurs des tables ne concordent pas !!"
 
 #: Opcodes/wiimote.c:116
 msgid "unable to open wiimote\n"
-msgstr ""
+msgstr "impossible d'ouvrir la wiimote\n"
 
 #: Opcodes/wiimote.c:161
 #, c-format
 msgid "wiimote %i disconnected\n"
-msgstr ""
+msgstr "la wiimote %i est déconnectée\n"
 
 #: Opcodes/wiimote.c:174
 msgid "Nunchuk inserted.\n"
-msgstr ""
+msgstr "Nunchuk inséré.\n"
 
 #: Opcodes/wiimote.c:178
 #, c-format
 msgid "Nunchuk for wiimote %i was removed.\n"
-msgstr ""
+msgstr "Le nunchuk de la wiimote %i a été enlevé.\n"
 
 #: Opcodes/wiimote.c:195 Opcodes/wiimote.c:198 Opcodes/wiimote.c:323
 #: Opcodes/wiimote.c:326
 msgid "No wii open"
-msgstr ""
+msgstr "Pas de wii ouverte"
 
 #: Opcodes/wiimote.c:210
 #, c-format
 msgid "wiimote %d does not exist"
-msgstr ""
+msgstr "La wiimote %d n'existe pas"
 
 #: Opcodes/wiimote.c:336
-#, fuzzy
 msgid "Not open"
-msgstr "Impossible d'ouvrir %s"
+msgstr "Pas ouvert"
 
 #: Opcodes/wiimote.c:359
 msgid "No wii range"
-msgstr ""
+msgstr "Pas d'intervalle wii"
 
 #: Top/argdecode.c:63
 msgid "--help\tprint long usage options"
@@ -9305,7 +9278,7 @@ msgstr "--nopeaks\t\tNe pas écrire d'information de crête"
 
 #: Top/argdecode.c:154
 msgid "--nodisplays\t\tsUppress all displays"
-msgstr ""
+msgstr "--nodisplays\t\tsuppression de tout affichage"
 
 #: Top/argdecode.c:155
 msgid "--asciidisplay\t\tSuppress graphics, use ascii displays"
@@ -9530,11 +9503,11 @@ msgstr "--dither\t\tSortie avec dithering"
 
 #: Top/argdecode.c:213
 msgid "--dither-triangular\t\tDither output with triangular distribution"
-msgstr ""
+msgstr "--dither-triangular\t\tDithering en sortie avec une distribution triangulaire"
 
 #: Top/argdecode.c:214
 msgid "--dither-uniform\t\tDither output with rectanular distribution"
-msgstr ""
+msgstr "--dither-uniform\t\tDithering en sortie avec une distribution rectangulaire"
 
 #: Top/argdecode.c:215
 msgid "--sched\t\t\tSet real-time scheduling priority and lock memory"
@@ -9612,11 +9585,11 @@ msgstr "--no-default-paths\tdésactiver les chemins relatifs depuis CSD/ORC/SCO"
 
 #: Top/argdecode.c:234
 msgid "--new-parser\t\tUse new Bisob-based parser"
-msgstr ""
+msgstr "--new-parser\t\tUtiliser le nouveau parseur basé sur Bison"
 
 #: Top/argdecode.c:235
 msgid "--old-parser\t\tUse new Bisob-based parser"
-msgstr ""
+msgstr "--old-parser\t\tUtiliser l'ancien parseur"
 
 #: Top/argdecode.c:238
 msgid "--help\t\t\tLong help"
@@ -9931,39 +9904,38 @@ msgid " *** error loading '%s'"
 msgstr " *** erreur en chargeant '%s'"
 
 #: Top/csmodule.c:773
-#, fuzzy, c-format
+#, c-format
 msgid "Error starting module '%s'"
-msgstr "Erreur en enregistrant l'opcode '%s'"
+msgstr "Erreur au démarrage du module '%s'"
 
 #: Top/csmodule.c:869
-#, fuzzy, c-format
+#, c-format
 msgid "Error de-initialising module '%s'"
-msgstr "Erreur dans le fonction de pré-initialisation du module '%s'"
+msgstr "Erreur de dé-initialisation du module '%s'"
 
 #: Top/csound.c:1375 Top/csound.c:1395
 msgid "Early return from csoundPerformKsmps().\n"
-msgstr ""
+msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
 #: Top/csound.c:1381
 msgid "Score finished in csoundPerformKsmps().\n"
-msgstr ""
+msgstr "La partition est finie dans csoundPerformKsmps().\n"
 
 #: Top/csound.c:1414
 msgid "Early return from csoundPerformBuffer().\n"
-msgstr ""
+msgstr "Retour prématuré de csoundPerformBuffer().\n"
 
 #: Top/csound.c:1439
 msgid "Early return from csoundPerform().\n"
-msgstr ""
+msgstr "Retour prématuré de csoundPerform().\n"
 
 #: Top/csound.c:1446
 msgid "Score finished in csoundPerform().\n"
-msgstr ""
+msgstr "La partition est finie dans csoundPerform().\n"
 
 #: Top/csound.c:1451
-#, fuzzy
 msgid "csoundPerform(): stopped.\n"
-msgstr "jacktransport : arrêté.\n"
+msgstr "csoundPerform() : arrêté.\n"
 
 #: Top/csound.c:1711
 msgid "WARNING: "
@@ -10123,11 +10095,11 @@ msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csoundrc %s\n"
 #: Top/main.c:146
 #, c-format
 msgid "Reading options from $CSOUNDRC: %s \n"
-msgstr ""
+msgstr "Lecture des options depuis $CSOUNDRC : %s \n"
 
 #: Top/main.c:155
 msgid "Reading options from $HOME/.csoundrc\n"
-msgstr ""
+msgstr "Lecture des options depuis $HOME/.csoundrc\n"
 
 #: Top/main.c:184
 msgid "no orchestra name"
@@ -10337,7 +10309,7 @@ msgstr "La balise fermante </CsScore> est absente"
 
 #: Top/one_file.c:433
 msgid "External generation failed"
-msgstr ""
+msgstr "La génération externe a échoué"
 
 #: Top/one_file.c:458 Top/one_file.c:554
 #, c-format
@@ -10929,7 +10901,7 @@ msgstr "Aucun partiel à pister -- arrêt\n"
 
 #: util/atsa.c:2813
 msgid "Soundfile analysis for ATS opcodes"
-msgstr ""
+msgstr "Analyse du fichier son pour les opcodes ATS"
 
 #: util/cvanal.c:141
 msgid "cvanal finished\n"
@@ -10941,7 +10913,7 @@ msgstr "moins de son que ce qui était attendu !\n"
 
 #: util/cvanal.c:242
 msgid "Soundfile analysis for convolve"
-msgstr ""
+msgstr "Analyse du fichier son pour convolve"
 
 #: util/dnoise.c:285
 msgid "-o cannot be stdin\n"
@@ -11199,7 +11171,7 @@ msgstr ""
 
 #: util/dnoise.c:1263
 msgid "Removes noise from a sound file"
-msgstr ""
+msgstr "Nettoie le bruit d'un fichier son"
 
 #: util/envext.c:52
 msgid "Usage:\tenvext [-flags] soundfile\n"
@@ -11241,16 +11213,15 @@ msgstr "mise en enveloppe de %ld trames d'échantillon (%3.1f secs)\n"
 
 #: util/envext.c:179
 msgid "Create a text file of envelope"
-msgstr ""
+msgstr "Création d'un fichier texte d'une enveloppe"
 
 #: util/het_export.c:39
-#, fuzzy
 msgid "Usage: het_export het_file cstext_file\n"
-msgstr "Utilisation : pv_export fichier_pv fichier_textcsv\n"
+msgstr "Utilisation : het_export fichier_het fichier_cstext\n"
 
 #: util/het_export.c:84
 msgid "translate hetro analysis file to text form"
-msgstr ""
+msgstr "traduction du fichier d'analyse hetro au format texte"
 
 #: util/het_import.c:45
 msgid "Usage: het_import csvtext_file het_file\n"
@@ -11268,7 +11239,7 @@ msgstr "Impossible d'ouvrir le fichier hetro de sortie %s\n"
 
 #: util/het_import.c:108
 msgid "translate text form to hetro analysis file"
-msgstr ""
+msgstr "traduction du format texte en fichier d'analyse hetro"
 
 #: util/hetro.c:149
 msgid "no arguments"
@@ -11410,7 +11381,7 @@ msgstr "%ld trames 1TRC on été écrites vers %s\n"
 
 #: util/hetro.c:858
 msgid "Soundfile analysis for adsyn"
-msgstr ""
+msgstr "Analyse du fichier son pour adsyn"
 
 #: util/lpanal.c:423
 msgid "no poles"
@@ -11497,9 +11468,8 @@ msgstr ""
 "erreur de lecture du fichier son, impossible de remplir la première trame"
 
 #: util/lpanal.c:594
-#, fuzzy
 msgid "Starting new frame...\n"
-msgstr "tri de la partition ...\n"
+msgstr "Démarrage d'une nouvelle trame ...\n"
 
 #: util/lpanal.c:637
 #, c-format
@@ -11509,7 +11479,7 @@ msgstr "Seulement %d pôles ont été trouvés... désolé\n"
 #: util/lpanal.c:639
 #, c-format
 msgid "wanted %d poles\n"
-msgstr ""
+msgstr "%d poles sont demandés\n"
 
 #: util/lpanal.c:660
 #, c-format
@@ -11532,7 +11502,7 @@ msgstr "analyse interrompue"
 #: util/lpanal.c:843
 #, c-format
 msgid "Row %d or %d have maximum of %g\n"
-msgstr ""
+msgstr "Les lignes %d ou %d ont un maximum de %g\n"
 
 #: util/lpanal.c:845 util/lpanal.c:878
 msgid "gauss: ill-conditioned"
@@ -11632,12 +11602,11 @@ msgstr "LPTRKFNS : appelé avec un Windsiz trop grand"
 
 #: util/lpanal.c:1212
 msgid "Linear predictive analysis for lpread"
-msgstr ""
+msgstr "Analyse par prédiction linéaire pour lpread"
 
 #: util/lpc_export.c:43
-#, fuzzy
 msgid "usage: lpc_export lpc_file cstext-file\n"
-msgstr "Utilisation : pv_export fichier_pv fichier_textcsv\n"
+msgstr "Utilisation : lpc_export fichier_lpc fichier_cstext\n"
 
 #: util/lpc_export.c:71 util/lpc_import.c:67
 msgid "Failed to read LPC header\n"
@@ -11645,16 +11614,15 @@ msgstr "La lecture de l'en-tête LPC a échoué\n"
 
 #: util/lpc_export.c:102
 msgid "translate linear predictive coding file to text file"
-msgstr ""
+msgstr "traduction du fichier de codage de prédiction linéaire en fichier texte"
 
 #: util/lpc_import.c:39
-#, fuzzy
 msgid "Usage: lpc_import cstext_file lpc_file\n"
-msgstr "Utilisation : pv_import fichier_textcsv fichier_pv\n"
+msgstr "Utilisation : lpc_import fichier_cstext fichier_lpc\n"
 
 #: util/lpc_import.c:98
 msgid "translate text file to linear predictive coding file"
-msgstr ""
+msgstr "traduction du fichier texte en fichier de codage de prédiction linéaire"
 
 #: util/mixer.c:48
 #, c-format
@@ -11762,9 +11730,8 @@ msgid "Too many mixin"
 msgstr "Trop d'entrées à mélanger"
 
 #: util/mixer.c:339
-#, fuzzy
 msgid "No mixin"
-msgstr "Pas de maximum"
+msgstr "Pas d'entrée à mixer"
 
 #: util/mixer.c:351
 msgid "Input formats not the same"
@@ -11813,7 +11780,7 @@ msgstr "Facteur d'échelle max = %.3f\n"
 #: util/mixer.c:669
 #, c-format
 msgid "Mixes sound files (max. %d)"
-msgstr ""
+msgstr "Mélange des fichiers son (max. %d)"
 
 #: util/mypvlook.c:96 util/pvlook.c:122
 #, c-format
@@ -11825,39 +11792,39 @@ msgstr ""
 " Existe-t-il ?"
 
 #: util/mypvlook.c:108
-#, fuzzy, c-format
+#, c-format
 msgid "'%s' is not a pvoc file\n"
-msgstr "%s : n'est pas un fichier son\n"
+msgstr "'%s' n'est pas un fichier pvoc\n"
 
 #: util/mypvlook.c:142
 #, c-format
 msgid "; Bins in Analysis: %d\n"
-msgstr ""
+msgstr " ; bins dans l'analyse : %d\n"
 
 #: util/mypvlook.c:143
 #, c-format
 msgid "; First Bin Shown: %d\n"
-msgstr ""
+msgstr " ; premier bin montré : %d\n"
 
 #: util/mypvlook.c:144
 #, c-format
 msgid "; Number of Bins Shown: %d\n"
-msgstr ""
+msgstr " ; nombre de bins montrés : %d\n"
 
 #: util/mypvlook.c:145
 #, c-format
 msgid "; Frames in Analysis: %ld\n"
-msgstr ""
+msgstr " ; trames dans l'analyse : %ld\n"
 
 #: util/mypvlook.c:147
 #, c-format
 msgid "; First Frame Shown: %d\n"
-msgstr ""
+msgstr " ; première trame montrée : %d\n"
 
 #: util/mypvlook.c:148
 #, c-format
 msgid "; Number of Data Frames Shown: %d\n"
-msgstr ""
+msgstr " ; nombre de trames de données montrées : %d\n"
 
 #: util/mypvlook.c:154 util/mypvlook.c:178
 #, c-format
@@ -11865,6 +11832,8 @@ msgid ""
 "\n"
 "Bin %d Freqs."
 msgstr ""
+"\n"
+"Bin %d Fréqs."
 
 #: util/mypvlook.c:164 util/mypvlook.c:189
 #, c-format
@@ -11872,10 +11841,12 @@ msgid ""
 "\n"
 "Bin %d Amps. "
 msgstr ""
+"\n"
+"Bin %d Amps. "
 
 #: util/mypvlook.c:218
 msgid "Prints information about PVOC analysis files"
-msgstr ""
+msgstr "Affiche de l'information sur les fichiers d'analyse de PVOC"
 
 #: util/pv_export.c:40
 msgid "Usage: pv_export pv_file cstext_file\n"
@@ -11883,7 +11854,7 @@ msgstr "Utilisation : pv_export fichier_pv fichier_textcsv\n"
 
 #: util/pv_export.c:124
 msgid "translate PVOC analysis file to text form"
-msgstr ""
+msgstr "traduction du fichier d'analyse PVOC en format texte"
 
 #: util/pv_import.c:40
 msgid "Usage: pv_import cstext_file pv_file \n"
@@ -11895,7 +11866,7 @@ msgstr "Erreur de syncro\n"
 
 #: util/pv_import.c:148
 msgid "translate text form to PVOC analysis file"
-msgstr ""
+msgstr "traduction d'un format texte en un fichier d'analyse PVOC"
 
 #: util/pvanal.c:206
 msgid "no beta given"
@@ -11968,7 +11939,7 @@ msgstr "    -B <beta> : paramètre pour la fenêtre de Kaiser"
 
 #: util/pvanal.c:345
 msgid "Soundfile analysis for pvoc"
-msgstr ""
+msgstr "Analyse du fichier son pour pvoc"
 
 #: util/pvlook.c:76
 msgid "pvlook is a program which reads a Csound pvanal's pvoc"
@@ -12064,23 +12035,23 @@ msgid "Failed to open %s"
 msgstr "L'ouverture de %s a échoué"
 
 #: util/scale.c:407
-#, fuzzy, c-format
+#, c-format
 msgid "scaling %ld sample frames (%3.1f secs)\n"
-msgstr "analyse de %ld trames d'échantillons (%3.1f secs)\n"
+msgstr "mise à l'échelle de %ld trames d'échantillons (%3.1f secs)\n"
 
 #: util/scale.c:450 util/scale.c:494
-#, fuzzy, c-format
+#, c-format
 msgid "Max val %.3f at index %ld (time %.4f, chan %d) %d times\n"
-msgstr "Val max %d à l'index %ld (temps %.4f, canal %d) %d fois\n"
+msgstr "Val max %.3f à l'index %ld (temps %.4f, canal %d) %d fois\n"
 
 #: util/scale.c:454 util/scale.c:498
-#, fuzzy, c-format
+#, c-format
 msgid "Min val %.3f at index %ld (time %.4f, chan %d) %d times\n"
-msgstr "Val min %d à l'index %ld (temps %.4f, canal %d) %d fois\n"
+msgstr "Val min %.3f à l'index %ld (temps %.4f, canal %d) %d fois\n"
 
 #: util/scale.c:516
 msgid "Reports and/or adjusts maximum gain"
-msgstr ""
+msgstr "Rapporte et/ou ajuste le gain maximum"
 
 #: util/sndinfo.c:112
 #, c-format
@@ -12159,7 +12130,7 @@ msgstr "Histoire du codage : %.*s\n"
 
 #: util/sndinfo.c:195
 msgid "Prints information about sound files"
-msgstr ""
+msgstr "Affichage de l'information sur des fichiers son"
 
 #: util/srconv.c:98
 #, c-format
@@ -12250,76 +12221,63 @@ msgstr "r num\ttaux d'échantillonnage en sortie (doit être spécifié)"
 
 #: util/srconv.c:825
 msgid "Sample rate conversion"
-msgstr ""
+msgstr "Conversion du taux d'échantillonnage"
 
 #: util/xtrct.c:66
-#, fuzzy
 msgid "Usage:\textractor [-flags] soundfile\n"
-msgstr "Utilisation : \tenvext [-options] fichierson\n"
+msgstr "Utilisation : \textractor [-options] fichierson\n"
 
 #: util/xtrct.c:68
-#, fuzzy
 msgid "-o fname\tsound output filename\n"
 msgstr "-o nomfic\tnom du fichier son de sortie\n"
 
 #: util/xtrct.c:69
-#, fuzzy
 msgid "-N\t\tnotify (ring the bell) when done\n"
-msgstr ""
-"-N\tavertir (par un beep) quand la partition ou la piste MIDI est terminée"
+msgstr "-N\tavertir (par un beep) à la fin\n"
 
 #: util/xtrct.c:70
-#, fuzzy
 msgid "-S integer\tsample number at which to start file\n"
-msgstr "-S entier\tnuméro de l'échantillon à partir duquel insérer un fichier"
+msgstr "-S entier\tnuméro de l'échantillon à partir duquel démarrer le fichier\n"
 
 #: util/xtrct.c:71
-#, fuzzy
 msgid "-Z integer\tsample number at which to end file\n"
-msgstr "-S entier\tnuméro de l'échantillon à partir duquel insérer un fichier"
+msgstr "-S entier\tnuméro de l'échantillon auquel terminer le fichier\n"
 
 #: util/xtrct.c:72
-#, fuzzy
 msgid "-Q integer\tnumber of samples to read\n"
-msgstr "\t nombre d'échantillons hors limites :"
+msgstr "-Q entier\t nombre d'échantillons à lire\n"
 
 #: util/xtrct.c:74
-#, fuzzy
 msgid "-T fpnum\ttime in secs at which to start file\n"
-msgstr "-T fpnum\tmoment auquel insérer un fichier"
+msgstr "-T fpnum\tdate en sec du démarrage du fichier\n"
 
 #: util/xtrct.c:75
-#, fuzzy
 msgid "-E fpnum\ttime in secs at which to end file\n"
-msgstr "-T fpnum\tmoment auquel insérer un fichier"
+msgstr "-E fpnum\tdate en sec de la fin du fichier\n"
 
 #: util/xtrct.c:76
 msgid "-D fpnum\tduration in secs of extract\n"
-msgstr ""
+msgstr "-D fpnum\tdurée en sec de l'extraction\n"
 
 #: util/xtrct.c:78
-#, fuzzy
 msgid "-R\tRewrite header\n"
-msgstr "impossible d'écrire l'en-tête"
+msgstr "-R\tRéécrire l'en-tête\n"
 
 #: util/xtrct.c:79
 msgid "-H\t\tHeartbeat\n"
-msgstr ""
+msgstr "-H\t\tPulsation\n"
 
 #: util/xtrct.c:81
-#, fuzzy
 msgid "-v\t\tverbose mode for debugging\n"
-msgstr "-v\tmode verbeux pour le déboguage"
+msgstr "-v\t\tmode verbeux pour le déboguage\n"
 
 #: util/xtrct.c:82
-#, fuzzy
 msgid "-- fname\tLog output to file\n"
-msgstr "-- nomfic\tCompte-rendu en sortie dans le fichier"
+msgstr "-- nomfic\tCompte-rendu dans un fichier\n"
 
 #: util/xtrct.c:83
-#, fuzzy
 msgid "flag defaults: extractor -otest -S 0\n"
-msgstr "options par défaut : mixer -s -otest -F 1.0 -S 0"
+msgstr "options par défaut : extractor -otest -S 0\n"
 
 #: util/xtrct.c:86
 msgid "extractor: error: "
@@ -12410,7 +12368,7 @@ msgstr "extraction depuis la trame d'échantillon %ld (%3.1f secs)\n"
 
 #: util/xtrct.c:375
 msgid "Extract part of a sound file"
-msgstr ""
+msgstr "Extraction d'une partie d'un fichier son"
 
 #: util1/scot/scot.c:51
 msgid "Score must start with orchestra section"
@@ -12546,9 +12504,8 @@ msgstr "traitement scot terminé\n"
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
 
-#, fuzzy
 #~ msgid "not using extended arguments\n"
-#~ msgstr "pas d'argument t"
+#~ msgstr "pas d'utilisation d'arguments étendus\n"
 
 #~ msgid "instr pcount exceeds PMAX"
 #~ msgstr "sread : le nombre (pcount) d'instr dépasse PMAX"
@@ -12584,13 +12541,12 @@ msgstr "scot : %d erreurs.\n"
 #~ "AVERTISSEMENT : déficit de remplissage du tampon sur la sortie audio en "
 #~ "temps réel\n"
 
-#, fuzzy
 #~ msgid ""
 #~ "\n"
 #~ "Error: linseg not initialised (krate)\n"
 #~ msgstr ""
 #~ "\n"
-#~ "Erreur : transeg non initialisé (taux-k)"
+#~ "Erreur : linseg non initialisé (taux-k)"
 
 #~ msgid "csoundCreateBarrier() is not implemented on this platform.\n"
 #~ msgstr "csoundCreateBarrier() n'est pas implémenté sur cette plateforme.\n"
@@ -12668,23 +12624,22 @@ msgstr "scot : %d erreurs.\n"
 #~ msgid "jacktransport rewinded.\n"
 #~ msgstr "jacktransport rembobiné.\n"
 
-#, fuzzy
 #~ msgid ""
 #~ "\n"
 #~ "\n"
 #~ "Minimum Phase Processing\n"
 #~ "\n"
-#~ msgstr "utilisation du traitement Cscore\n"
-
-#, fuzzy
-#~ msgid "could not find indefinitely playing instr %d\n"
-#~ msgstr "impossible de trouver l'instrument indéfiniment actif %f\n"
-
-#, fuzzy
-#~ msgid "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"
 #~ msgstr ""
-#~ "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps "
-#~ "= %d\n"
+#~ "\n"
+#~ "\n"
+#~ "Traitement du Minimum de la Phase\n"
+#~ "\n"
+
+#~ msgid "could not find indefinitely playing instr %d\n"
+#~ msgstr "impossible de trouver l'instrument indéfiniment actif %d\n"
+
+#~ msgid "sample rate overrides: esr = %7.1f, ekr = %7.1f, ksmps = %d\n"
+#~ msgstr "redéfinition des taux d'échantillonnage : esr = %7.1f, ekr = %7.1f, ksmps = %d\n"
 
 #~ msgid "Number not allowed in context []"
 #~ msgstr "Nombre interdit dans le contexte []"
