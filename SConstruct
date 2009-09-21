@@ -2620,8 +2620,11 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         csTclEnvironment.Command('cswish_resources', 'cswish',
                                  "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
         if commonEnvironment['dynamicCsoundLibrary'] == '1':
-           csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
-                                    'mkdir /Library/Frameworks/CsoundLib.framework/Resources/TclTk; cp -R tclcsound.dylib /Library/Frameworks/CsoundLib.framework/Resources/TclTk/')
+          if commonEnvironment['useDouble'] == '0': tcloc = '/Library/Frameworks/CsoundLib.framework/Resources/TclTk/'
+          else: tcloc = '/Library/Frameworks/CsoundLib64.framework/Resources/TclTk/'
+          csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
+                                     'cp -R tclcsound.dylib ' + tcloc)
+
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
     Depends(Tclcsoundlib, csoundLibrary)
