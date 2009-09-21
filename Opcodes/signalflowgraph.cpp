@@ -690,7 +690,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     // Default output.
     *ifno = FL(0.0);
     EVTBLK evtblk;
-    std::memset(&evtblk, sizeof(EVTBLK), 0);
+    std::memset(&evtblk, 0, sizeof(EVTBLK));
     // No need to compare this one, always has the same value.
     evtblk.opcod = 'f';
     evtblk.strarg = 0;
@@ -721,10 +721,9 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     else {
       evtblk.p[5] = *p5;                                  
     }
-    n = csound->GetInputArgCnt(this);
-    evtblk.pcnt = (int16) n;
-    for (size_t fpI = 6, argumsI = 0; argumsI < n; fpI++, argumsI++) {
-      evtblk.p[fpI] = *argums[argumsI];
+    evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
+    for (size_t pfieldI = 6; pfieldI < evtblk.pcnt; pfieldI++) {
+      evtblk.p[pfieldI] = *argums[pfieldI - 5];
     }
     // If the arguments have not been used before for this instance of Csound,
     // create a new function table and store the arguments and table number.
@@ -738,7 +737,11 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
 	*ifno = (MYFLT) func->fno;                     
 	functionTablesForCsoundsForEvtblks[csound][evtblk] = func->fno;
       }
-    } 
+      csound->Message(csound, "ftgenonce: created new func: %d\n", func->fno);
+    } else {
+      *ifno = functionTablesForCsoundsForEvtblks[csound][evtblk];
+      csound->Message(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+    }
     return OK;
   }
 };
