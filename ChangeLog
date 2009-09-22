@@ -1,5 +1,7 @@
 2009-09-22  jpff  <jpff@codemist.co.uk>
 
+	* H/version.h:  VERSION 5.11.1
+
 	* Opcodes/bilbar.c (bar_run): Fix typo in right end type 1
 	(bar_run): Loop needs to be one more for right end
 
