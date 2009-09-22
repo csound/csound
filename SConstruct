@@ -1492,7 +1492,9 @@ else:
             'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
         Depends(jcsndJar, jcsnd)
         libs.append(jcsndJar)
-
+    # Please do not remove these two variables, needed to get things to build on Windows...
+    pythonWrapper = None
+    luaWrapper = None
     if not (pythonFound and commonEnvironment['buildPythonWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Python wrapper to Csound C++ interface library.'
     else:
@@ -2441,6 +2443,8 @@ else:
         csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
     libs.append(csoundac)
     Depends(csoundac, csnd)
+    pythonWrapperEnvironment = csoundWrapperEnvironment.Clone()
+    pythonWrapperEnvironment.Prepend(LIBS = Split('csnd'))
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
