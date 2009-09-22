@@ -456,10 +456,11 @@ LangString DESC_SecCopyUI ${LANG_ENGLISH} "Copy ${PRODUCT} to the application fo
 
 InstType "Core"
 InstType "Complete"
+InstType "Default"
 
 SectionGroup /e "Csound"
   Section "Csound engine, opcodes, and drivers"
-    SectionIn 1 2 RO
+    SectionIn 1 2 3 RO
 	# Store the installation folder.
 	WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
 	# Back up any old value of .csd.
@@ -626,8 +627,8 @@ skipAssoc:
       File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
       File /x *.wav /x *.orc /x *.sco ..\..\examples\opcode_demos\*.*
   SectionEnd
-  Section /o "Utilities"
-    SectionIn 2
+  Section "Utilities"
+    SectionIn 2 3
     SetOutPath $INSTDIR\bin
        File ..\..\atsa.exe
        File ..\..\csb64enc.exe
@@ -657,12 +658,12 @@ skipAssoc:
   SectionEnd
   SectionGroup "Documentation"
     Section "Csound Reference Manual"
-      SectionIn 1 2
+      SectionIn 1 2 3
       SetOutPath $INSTDIR\doc\manual
   	File /r ..\..\..\manual\html\*
     SectionEnd
-    Section /o "A Csound Tutorial"
-      SectionIn 2
+    Section "A Csound Tutorial"
+      SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "A Csound Tutorial"
       SetOutPath $INSTDIR\tutorial
   	File ..\..\..\tutorial\tutorial.pdf
@@ -670,8 +671,8 @@ skipAssoc:
   	File ..\..\..\tutorial\*.py
   	File ..\..\..\tutorial\tutorial3.cpr
     SectionEnd
-    Section /o "A Csound Algorithmic Composition Tutorial"
-      SectionIn 2
+    Section "A Csound Algorithmic Composition Tutorial"
+      SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundAcTutorial.lnk" "$INSTDIR\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf" "" "" "" "" "" "A Csound Algorithmic Composition Tutorial"
       SetOutPath $INSTDIR\tutorial
   	File ..\..\..\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf
@@ -682,8 +683,8 @@ skipAssoc:
   SectionGroupEnd
 SectionGroupEnd
 SectionGroup "Front ends"
-  Section /o "QuteCsound (user-defined widgets)"
-    SectionIn 2
+  Section "QuteCsound (user-defined widgets)"
+    SectionIn 2 3
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound.exe" "" "" "" "" "" " QuteCsound"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
@@ -699,8 +700,8 @@ SectionGroup "Front ends"
 !endif
   SectionEnd
 !ifdef NONFREE
-  Section /o "CsoundVST (requires VST host)"
-    SectionIn 2
+  Section "CsoundVST (requires VST host)"
+    SectionIn 2 3
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       File ..\..\CsoundVST.dll
@@ -731,8 +732,8 @@ SectionGroup "Front ends"
 SectionGroupEnd
 SectionGroup "Csound interfaces"
   SectionGroup "C/C++"
-    Section /o "cnsd: C/C++ interface to Csound"
-      SectionIn 2
+    Section "cnsd: C/C++ interface to Csound"
+      SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\api\index.html" "" "" "" "" "" "API reference"
       SetOutPath $INSTDIR\bin
         File ..\..\csnd.dll
@@ -750,8 +751,8 @@ SectionGroup "Csound interfaces"
       SetOutPath $INSTDIR\examples\c
         File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\c\*.*
     SectionEnd
-    Section /o "CsoundAC: C++ interface to Csound algorithmic composition"
-      SectionIn 2
+    Section "CsoundAC: C++ interface to Csound algorithmic composition"
+      SectionIn 2 3
       SetOutPath $INSTDIR\bin
         File ..\..\csnd.dll
         File ..\..\libCsoundAC.a
@@ -771,8 +772,8 @@ SectionGroup "Csound interfaces"
       SetOutPath $INSTDIR\examples\cplusplus
         File /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\cplusplus\*.*
     SectionEnd
-    Section /o "Plugin opcode SDK"
-      SectionIn 2
+    Section "Plugin opcode SDK"
+      SectionIn 2 3
       SetOutPath $INSTDIR\pluginSDK
         File ..\..\pluginSDK\SConstruct
         File ..\..\pluginSDK\examplePlugin.c
@@ -780,8 +781,8 @@ SectionGroup "Csound interfaces"
     SectionEnd
   SectionGroupEnd
   SectionGroup "Lua (luajit included)"
-    Section /o "luaCsnd: Lua interface to Csound"
-      SectionIn 2
+    Section "luaCsnd: Lua interface to Csound"
+      SectionIn 2 3
       SetOutPath $INSTDIR\bin
         File U:\Lua5.1\src\lua51.dll
         File U:\Lua5.1\src\luajit.exe
@@ -790,8 +791,8 @@ SectionGroup "Csound interfaces"
       SetOutPath $INSTDIR\examples\lua
         File ..\..\examples\lua\lua_example.lua
     SectionEnd
-    Section /o "luaCsoundAC: Lua interface to CsoundAC"
-      SectionIn 2
+    Section "luaCsoundAC: Lua interface to CsoundAC"
+      SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
       SetOutPath $INSTDIR\bin
         File U:\Lua5.1\src\lua51.dll
@@ -832,8 +833,8 @@ SectionGroup "Csound interfaces"
     SectionEnd
   SectionGroupEnd 
   SectionGroup "Java (requires Java)"
-    Section /o "csnd: Java interface to Csound"
-      SectionIn 2
+    Section "csnd: Java interface to Csound"
+      SectionIn 2 3
       SetOutPath $INSTDIR\bin
         File ..\..\csnd.dll
         File ..\..\_jcsound.dll
@@ -842,8 +843,8 @@ SectionGroup "Csound interfaces"
   	File /x *.wav /x *.orc /x *.sco ..\..\examples\java\*.*
     SectionEnd
   SectionGroupEnd
-  Section /o "Lisp interface to Csound (requires Lisp with CFFI)"
-    SectionIn 2
+  Section "Lisp interface to Csound (requires Lisp with CFFI)"
+    SectionIn 2 3
     SetOutPath $INSTDIR\bin
        File ..\..\csnd.dll
        File ..\..\interfaces\csound.lisp
