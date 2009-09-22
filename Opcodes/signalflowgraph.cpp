@@ -1,10 +1,3 @@
-#include "OpcodeBase.hpp"
-#include <pstream.h>
-#include <algorithm>
-#include <cstring>
-#include <map>
-#include <string>
-#include <vector>
 /**
  * T H E   S I G N A L   F L O W   G R A P H   O P C O D E S
  *
@@ -101,6 +94,14 @@
  * function table data. Every change in the value of any ftgenonce argument
  * causes the creation of a new function table.
  */
+
+#include "OpcodeBase.hpp"
+#include <pstream.h>
+#include <algorithm>
+#include <cstring>
+#include <map>
+#include <string>
+#include <vector>
 
 struct SignalFlowGraph;
 struct Outleta;
@@ -691,13 +692,12 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     *ifno = FL(0.0);
     EVTBLK evtblk;
     std::memset(&evtblk, 0, sizeof(EVTBLK));
-    // No need to compare this one, always has the same value.
     evtblk.opcod = 'f';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = *p1;                                     
+    evtblk.p[1] = FL(0.0);                                     
     evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
-    evtblk.p[3] = evtblk.p3orig = -1.0;
+    evtblk.p[3] = evtblk.p3orig = *p3;
     evtblk.p[4] = *p4;
     int n = 0;
     if (csound->GetInputArgSMask(this)) {  
@@ -712,7 +712,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
       case 23:
       case 28:
       case 43:
-	evtblk.strarg = (char *) p5;
+	evtblk.strarg = (char *)p5;
 	break;
       default:
 	return csound->InitError(csound, Str("ftgen string arg not allowed"));
@@ -723,7 +723,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     }
     evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
     for (size_t pfieldI = 6; pfieldI < evtblk.pcnt; pfieldI++) {
-      evtblk.p[pfieldI] = *argums[pfieldI - 5];
+      evtblk.p[pfieldI] = *argums[pfieldI - 6];
     }
     // If the arguments have not been used before for this instance of Csound,
     // create a new function table and store the arguments and table number.
@@ -731,7 +731,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
       FUNC *func = 0;
       n = csound->hfgens(csound, &func, &evtblk, 1);       
       if (UNLIKELY(n != 0)) {
-	return csound->InitError(csound, Str("ftgen error"));
+	return csound->InitError(csound, Str("ftgenonce error"));
       }
       if (func) {
 	*ifno = (MYFLT) func->fno;                     

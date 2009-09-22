@@ -16,7 +16,7 @@ print ftlen(p4)
 endin
 
 instr 3
-ifno  ftgenonce  0, 0, 1024, 10, 1, p4, p5
+ifno  ftgenonce  0, 0, 1024, 10, 1, p4, p5, p6
 print ftlen(ifno)
 print ifno, p4
 endin
