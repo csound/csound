@@ -5,10 +5,13 @@ sr = 44100
 ksmps = 128
 nchnls = 2
 0dbfs = 1
-
+ 
 instr 1
 ifno  ftgentmp   0, 0, 512, 10, 1
 print ifno
+asignal poscil3 1000, 440, ifno
+adummy = 0
+outs adummy, asignal
 endin
 
 instr 2
@@ -16,9 +19,12 @@ print ftlen(p4)
 endin
 
 instr 3
-ifno  ftgenonce  0, 0, 1024, 10, 1, p4, p5, p6
+ifno  ftgenonce  0, 0, 512, 10, 1, p4, p5
 print ftlen(ifno)
 print ifno, p4
+asignal poscil3 1000, 440, ifno
+adummy = 0
+outs asignal, adummy
 endin
 
 </CsInstruments>
