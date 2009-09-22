@@ -7,7 +7,7 @@ nchnls = 2
 0dbfs = 1
 
 instr 1
-ifno  ftgentmp  0, 0, 512, 10, 1
+ifno  ftgentmp   0, 0, 512, 10, 1
 print ifno
 endin
 
@@ -16,8 +16,9 @@ print ftlen(p4)
 endin
 
 instr 3
-ifno  ftgenonce  0, 0, 512, 10, 1, p4
-print ifno
+ifno  ftgenonce  0, 0, 1024, 10, 1, p4, p5
+print ftlen(ifno)
+print ifno, p4
 endin
 
 </CsInstruments>
@@ -29,10 +30,10 @@ i 2 7 1 102
 i 2 12 1 101 
 i 2 17 1 102 
 
-i 3 20 10 1
-i 3 21 10 2
-i 3 22 10 1
-i 3 23 10 1
+i 3 20 10 1 1
+i 3 21 10 2 1
+i 3 22 10 1 2
+i 3 23 10 1 1
 e
 </CsScore>
 </CsoundSynthesizer>
