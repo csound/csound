@@ -126,10 +126,10 @@ static int bar_run(CSOUND *csound, BAR *p)
       if (bcR == 3) {
         w1[N+3] = 2.0*w1[N+2]-w1[N+1];
         w1[N+4] = 3.0*w1[N+3]-3.0*w1[N+2]+w1[N+1];
-   }
+      }
       else if (bcR == 1) {
         w1[N+1] = 0.0;
-        w1[N+1] = 0.0;
+        w1[N+2] = 0.0;
       }
       else if (bcR == 2) {
         w1[N+2] = 0.0;
