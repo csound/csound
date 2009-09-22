@@ -116,35 +116,43 @@ struct FtGenOnce;
 
 bool operator < (const EVTBLK &a, const EVTBLK &b)
 {
+  size_t n = 0;
+  std::fprintf(stderr, "comparing...");
   if (a.opcod < b.opcod) {
-    return true;
+    goto TRUE_RETURN;
   }
-  size_t n = std::min(a.pcnt, b.pcnt);
+  n = std::min(a.pcnt, b.pcnt);
   for (size_t i = 0; i < n; i++) {
     if (a.p[i] == SSTRCOD && b.p[i] == SSTRCOD) {
       int comparison = std::strcmp(a.strarg, b.strarg);
       if (comparison < 0) {
-	return true;
+	goto TRUE_RETURN;
       } else if (comparison > 0) {
-	return false;
+    goto FALSE_RETURN;
       }
     } else if (a.p[i] == SSTRCOD) {
-      return true;
+      goto TRUE_RETURN;
     } else if (b.p[i] == SSTRCOD) {
-      return false;
+    goto FALSE_RETURN;
     } else {
       if (a.p[i] < b.p[i]) {
-	return true;
+	goto TRUE_RETURN;
       }
     }
   }
   if (a.pcnt < b.pcnt) {
-    return true;
+    goto TRUE_RETURN;
   } else if (a.pcnt > b.pcnt) {
-    return false;
+    goto FALSE_RETURN;
   }
   // Equal...
+  std::fprintf(stderr, "equal\n");
+ FALSE_RETURN:
+  std::fprintf(stderr, "not less\n");
   return false;
+ TRUE_RETURN:
+  std::fprintf(stderr, "less\n");
+  return true;
 }
   
 // Identifiers are always "sourcename:outletname" or "sinkname:inletname".
@@ -695,7 +703,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     evtblk.opcod = 'f';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = FL(0.0);                                     
+    evtblk.p[1] = *p1;                                     
     evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
     evtblk.p[3] = evtblk.p3orig = *p3;
     evtblk.p[4] = *p4;
