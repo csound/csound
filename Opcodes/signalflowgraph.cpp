@@ -46,8 +46,8 @@
  *
  * asignal inleta Sname
  * ksignal inletk Sname
- * fsignal inletf Snameo
- *s
+ * fsignal inletf Sname
+ *
  * Inlets receive a, k, or f-rate signals from outlets in other instruments.
  * The signals from all the source outlet instances are summed 
  * in each sink inlet instance.
@@ -98,6 +98,7 @@
 #include "OpcodeBase.hpp"
 #include <pstream.h>
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <map>
 #include <string>
