@@ -842,7 +842,7 @@ extern "C"
       (char *)"alwayson", 
       sizeof(AlwaysOn),     
       1,  
-      (char *)"i",  
+      (char *)"",  
       (char *)"Tm", 
       (SUBR)&AlwaysOn::init_, 
       0, 
