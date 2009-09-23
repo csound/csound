@@ -771,7 +771,6 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
     int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
-    MYFLT *medi;
 
     p->inerr = 0;
 

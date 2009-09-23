@@ -138,7 +138,7 @@ static int schedk_i(CSOUND *csound, SCHEDK *p)
 
     O->RTevents = 1;     /* Make sure kperf() looks for RT events */
     /*   O->ksensing = 1; */
-    /*   O->OrcEvts  = 1;     /* - of the appropriate type */
+    /*   O->OrcEvts  = 1; */    /* - of the appropriate type */
     if (csound->kcounter > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
       schedk(csound,p);
     return OK;
@@ -323,7 +323,7 @@ typedef struct {
 static int inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
-    /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; /*gab */
+    /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
     if (!csound->oparms->sfread)
       return csound->InitError(csound, "inrg: audio input is not enabled");
     p->numChans = csound->nchnls;
@@ -349,7 +349,6 @@ static int inRange(CSOUND *csound, INRANGE *p)
     nsmps = csound->ksmps;
     do  {
       int i;
-      MYFLT *sptemp = sp;
       for (i=0; i<narg; i++)
         *ara[i]++ = sp[i];
       sp += numchans;

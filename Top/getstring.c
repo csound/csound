@@ -56,8 +56,6 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 #else
 void init_getstring(void)
 {
-    const char  *s;
-
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
 /*       setlocale (LC_MESSAGES, ""); */

@@ -66,17 +66,12 @@ static int gen49(FGDATA *, FUNC *);
 #else
 #define gen49 GENUL
 #endif
-#ifdef BETA
-static int gen26(FGDATA *, FUNC *);
-#else
-#define gen26 GENUL
-#endif
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
     gen01, gen02, gen03, gen04, gen05, gen06, gen07, gen08, gen09, gen10,
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
-    gen21, GENUL, gen23, gen24, gen25, gen26, gen27, gen28, GENUL, gen30,
+    gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
     gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, gen49, GENUL,
     gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
@@ -408,7 +403,6 @@ static int gen04(FGDATA *ff, FUNC *ftp)
     FUNC    *srcftp;
     MYFLT   val, max, maxinv;
     int     srcno, srcpts, ptratio;
-    int nsw = 1;
 
     if (UNLIKELY(ff->e.pcnt < 6)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -483,18 +477,18 @@ static int gen05(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(*valp == 0)) goto gn5er2;
     do {
       amp1 = *valp++;
-      if (UNLIKELY(nsw & valp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
         valp = &(ff->e.c.extra[1]);
         nsw  = 0;
       }
       if (!(seglen = (int)*valp++)) {
-        if (UNLIKELY(nsw & valp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
           valp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
         continue;
       }
-      if (UNLIKELY(nsw & valp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
         valp = &(ff->e.c.extra[1]);
         nsw  = 0;
       }
@@ -567,17 +561,17 @@ static int gen06(FGDATA *ff, FUNC *ftp)
     pntinc = 1;
     for (segp = &ff->e.p[3], segptsp = &ff->e.p[4]; nsegs > 0; nsegs--) {
       segp += 1;
-      if (UNLIKELY(nsw & segp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
           segp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
       segp += 1;
-      if (UNLIKELY(nsw & segp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
           segp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
       segptsp = segp + 1;
-      if (UNLIKELY(nsw & segptsp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segptsp>&ff->e.p[PMAX])){
           segptsp = &(ff->e.c.extra[1]);
         }
       if (UNLIKELY((npts = (int)*segptsp) < 0)) {
@@ -586,11 +580,11 @@ static int gen06(FGDATA *ff, FUNC *ftp)
       if (pntinc > 0) {
         pntno   = 0;
         inflexp = segp + 1;
-        if (UNLIKELY(nsw & inflexp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])){
           inflexp = &(ff->e.c.extra[1]);
         }
         inflexp++;
-        if (UNLIKELY(nsw & inflexp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])){
           inflexp = &(ff->e.c.extra[1]);
         }
         extremp = segp;
@@ -599,11 +593,11 @@ static int gen06(FGDATA *ff, FUNC *ftp)
         pntno   = npts;
         inflexp = segp;
         extremp = segp + 1;
-        if (UNLIKELY(nsw & extremp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])){
           extremp = &(ff->e.c.extra[1]);
         }
         extremp++;
-        if (UNLIKELY(nsw & extremp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])){
           extremp = &(ff->e.c.extra[1]);
         }
       }
@@ -615,12 +609,12 @@ static int gen06(FGDATA *ff, FUNC *ftp)
       pntinc = -pntinc;
     }
     segp += 1;
-    if (UNLIKELY(nsw & segp>&ff->e.p[PMAX])){
+    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
       segp = &(ff->e.c.extra[1]);
       nsw  = 0;
     }
     segp += 1;
-    if (UNLIKELY(nsw & segp>&ff->e.p[PMAX])){
+    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
       segp = &(ff->e.c.extra[1]);
       nsw  = 0;
     }
@@ -761,7 +755,6 @@ static int gen10(FGDATA *ff, FUNC *ftp)
     int32   flen = ff->flen;
     double  tpdlen = TWOPI / (double) flen;
     CSOUND  *csound = ff->csound;
-    int nsw = 1;
 
     if (ff->e.pcnt>=PMAX)
       csound->Warning(csound, Str("using extended arguments\n"));
@@ -1290,7 +1283,7 @@ static MYFLT nextval(FILE *f)
  top:
     if (feof(f)) return FL(0.0); /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-      double d,e;               /* A number starts */
+      double d;                 /* A number starts */
       char buff[128];
       int j = 0;
       do {                      /* Fill buffer */
@@ -1760,7 +1753,6 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     double  d_re, d_im, p_re, p_im, ptmp;
     int     i, j, k, n, l1, l2, ntabl, *pnum, ft;
     int     nargs = ff->e.pcnt - 4;
-    int nsw = 1;
 
     if (ff->e.pcnt>=PMAX) {
       csound->Warning(csound, Str("using extended arguments\n"));
@@ -2107,7 +2099,7 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 
 static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
 {
-    MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5], inc;
+    MYFLT   *fp = ftp->ftable, inc;
     int     j, k, width;
     int32    tot_prob = 0;
     int     nargs = ff->e.pcnt - 4;
@@ -2670,22 +2662,19 @@ static int gen49(FGDATA *ff, FUNC *ftp)
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
-    int     truncmsg          = 0;
-    int32   inlocs            = 0;
     int     skip              = 0, chan = 0, r, fd;
     int p                     = 0;
     char    sfname[1024];
     mpadec_info_t mpainfo;
     uint32_t bufsize, bufused = 0;
     uint64_t maxsize;
-    char *s;
     uint8_t *buffer;
     int size = 0x10000;
 
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
     }
-    /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); /* Is this necessary? */
+    /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); */ /* Is this necessary? */
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       if (filno == (int32) SSTRCOD) {
@@ -2797,7 +2786,6 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     MYFLT   basefreq, factor, interval;
     MYFLT   *fp = ftp->ftable, *pp;
     CSOUND  *csound = ff->csound;
-    int indp;
 
     if (ff->e.pcnt>=PMAX) {
       csound->Warning
@@ -3088,25 +3076,3 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
     return csound->genmax-1;
 }
 
-#ifdef BETA
-static int gen26(FGDATA *ff, FUNC *ftp)
-{
-    MYFLT   *valp, *fp, *finp;
-    MYFLT   val;
-    int     nargs = ff->e.pcnt - 4;
-
-    if (ff->e.pcnt >= PMAX) printf("WARNING: Large arg case\n");
-    valp = &ff->e.p[5];
-    fp = ftp->ftable;
-    finp = fp + ff->flen;
-    while (--nargs) {
-      printf("%p: ", valp);
-      val = *valp++;
-      printf("%f\n", val);
-      if (valp>&ff->e.p[PMAX]) valp = &(ff->e.c.extra[1]);
-    }
-    while (fp <= finp)                    /* include 2**n + 1 guardpt */
-      *fp++ = val;
-    return OK;
-}
-#endif
