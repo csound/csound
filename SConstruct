@@ -2449,6 +2449,10 @@ else:
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['fltk_images'])
+        pythonCsoundACWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = pythonLibs)
+        pythonCsoundACWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
     else:
         pythonCsoundACWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         pythonCsoundACWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
