@@ -92,13 +92,14 @@ void init_symbtab(CSOUND *csound)
             if(ep != temp && strncmp(polyName, temp->opname, len) == 0) {
               add_token(csound, ep->opname, get_opcode_type(temp));
 
-              if (PARSER_DEBUG)
+              if (PARSER_DEBUG) {
                 if(get_opcode_type(temp) == T_OPCODE) {
                   csound->Message(csound, "Using Type T_OPCODE\n");
                 }
                 else {
                   csound->Message(csound, "Using Type T_OPCODE0\n");
                 }
+              }
               break;
             }
           }
