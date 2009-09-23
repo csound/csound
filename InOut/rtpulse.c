@@ -1,4 +1,4 @@
-*
+/*
   rtpulse.c:
 
   Copyright (C) 2008 Victor Lazzarini
@@ -44,8 +44,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   int siz = 64;
 
   if (csound->oparms->msglevel & 0x400)
-    csound->Message(csound, Str("PulseAudio client RT IO module for Csound")
-                              "by Victor Lazzarini\n");
+    csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
+                                "by Victor Lazzarini\n"));
 
   if (csound->CreateGlobalVariable(csound, "_pulse_globals",
                                    sizeof(pulse_globals)) != 0) {
