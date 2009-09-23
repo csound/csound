@@ -495,7 +495,6 @@ skipAssoc:
 	Push "SFOUTYP"
 	Push "WAV"
 	Call WriteEnvStr
-	WriteUninstaller "$INSTDIR\Uninstall.exe"
     SetOutPath $INSTDIR\examples
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 	# Create shortcuts. The format of these lines is:
@@ -626,6 +625,7 @@ skipAssoc:
     SetOutPath $INSTDIR\examples\opcode_demos
       File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
       File /x *.wav /x *.orc /x *.sco ..\..\examples\opcode_demos\*.*
+    WriteUninstaller "$INSTDIR\Uninstall.exe"
   SectionEnd
   Section "Utilities"
     SectionIn 2 3
@@ -853,6 +853,7 @@ SectionGroup "Csound interfaces"
        File ..\..\interfaces\test.lisp
   SectionEnd
 SectionGroupEnd
+
 
 Section "Uninstall"
   	RMDir /r $INSTDIR
