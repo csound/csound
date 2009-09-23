@@ -23,9 +23,9 @@
 
 /* Resonant Lowpass filters by G.Maldonado */
 
-#include <math.h>
 #include "csdl.h"
 #include "lowpassr.h"
+#include <math.h>
 
 static int lowpr_set(CSOUND *csound, LOWPR *p)
 {

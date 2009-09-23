@@ -209,7 +209,7 @@ int wii_data(CSOUND *csound, WIIMOTE *p)
     if (UNLIKELY(n>=MAX_WIIMOTES || !(wii[n]->state & WIIMOTE_STATE_CONNECTED)))
       return csound->PerfError(csound, Str("wiimote %d does not exist"), n);
     if (kontrol<0) {
-      printf("%d -- %.4x: "
+      printf("%f -- %.4x: "
              "tilt=[%f %f];\nforce=(%f %f %f)\n",
              100.0*wii[n]->battery_level, wii[n]->btns,
              wiir[n].pitch_min+wiir[n].pitch_scale*(FL(90.0)+(MYFLT)wii[n]->orient.pitch),
