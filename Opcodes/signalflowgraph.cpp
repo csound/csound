@@ -118,7 +118,7 @@ struct FtGenOnce;
 bool operator < (const EVTBLK &a, const EVTBLK &b)
 {
   size_t n = 0;
-  std::fprintf(stderr, "comparing...");
+  //std::fprintf(stderr, "comparing...");
   if (a.opcod < b.opcod) {
     goto TRUE_RETURN;
   }
@@ -147,12 +147,12 @@ bool operator < (const EVTBLK &a, const EVTBLK &b)
     goto FALSE_RETURN;
   }
   // Equal...
-  std::fprintf(stderr, "equal\n");
+  //std::fprintf(stderr, "equal\n");
  FALSE_RETURN:
-  std::fprintf(stderr, "not less\n");
+  //std::fprintf(stderr, "not less\n");
   return false;
  TRUE_RETURN:
-  std::fprintf(stderr, "less\n");
+  //std::fprintf(stderr, "less\n");
   return true;
 }
   
@@ -528,10 +528,6 @@ struct Inletf : public OpcodeBase<Inletf>
 	const Outletf *sourceOutlet = instances->at(instanceI);
 	// Skip inactive instances.
 	if (sourceOutlet->h.insdshead->actflg) {
-	  int     i;
-	  int32    framesize;
-	  int     test;
-	  float   *fout, *fa, *fb;
 	  if (!fsignalInitialized) {
 	    int32 N = sourceOutlet->fsignal->N;  
 	    if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
@@ -571,7 +567,7 @@ struct Inletf : public OpcodeBase<Inletf>
 	    for (size_t frameI = 0; frameI < ksmps; frameI++) {
 	      sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
 	      sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
-	      for (size_t binI = 0, binN = fsignal->NB; binI < binN; i++) {
+	      for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
 		if (sourceFrame[binI].re > sinkFrame[binI].re) 
 		  sinkFrame[binI] = sourceFrame[binI];
 		}
@@ -660,17 +656,21 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn>
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = h.insdshead->p1;           
+    evtblk.p[1] = *Sinstrument;           
     evtblk.p[2] = evtblk.p2orig = FL(0.0);                   
-    evtblk.p[3] = evtblk.p3orig = -1.0;
+    evtblk.p[3] = evtblk.p3orig = FL(-1.0);
     if (csound->GetInputArgSMask(this)) {  
       evtblk.p[1] = SSTRCOD;
-      evtblk.strarg = (char *) Sinstrument;
+      evtblk.strarg = (char *)Sinstrument;
     }
-    int n = csound->GetInputArgCnt(this);
-    evtblk.pcnt = (int16) n;
-    for (size_t fpI = 4, argumsI = 0; argumsI < n; fpI++, argumsI++) {
-      evtblk.p[fpI] = *argums[argumsI];
+    size_t inArgCount = csound->GetInputArgCnt(this);
+    // Add 2, for hard-coded p2 and p3.
+    evtblk.pcnt = (int16) inArgCount + 2;
+    // Subtract 1, for only required inarg p1.
+    size_t argumN = inArgCount - 1;
+    // Start evtblk at 4, argums at 0.
+    for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
+      evtblk.p[pfieldI] = *argums[argumI];
     }
     csound->insert_score_event(csound, &evtblk, FL(0.0));	
     return OK;
@@ -773,7 +773,7 @@ extern "C"
       sizeof(Outleta),
       5,
       (char *)"",
-      (char *)"Sa",
+      (char *)"Ta",
       (SUBR)&Outleta::init_,
       0,
       (SUBR)&Outleta::audio_
@@ -783,7 +783,7 @@ extern "C"
       sizeof(Inleta),
       5,
       (char *)"a",
-      (char *)"S",
+      (char *)"T",
       (SUBR)&Inleta::init_,
       0,
       (SUBR)&Inleta::audio_
@@ -793,7 +793,7 @@ extern "C"
       sizeof(Outletk),
       3,
       (char *)"",
-      (char *)"Sk",
+      (char *)"Tk",
       (SUBR)&Outletk::init_,
       (SUBR)&Outletk::kontrol_,
       0
@@ -803,7 +803,7 @@ extern "C"
       sizeof(Inletk),
       3,
       (char *)"k",
-      (char *)"S",
+      (char *)"T",
       (SUBR)&Inletk::init_,
       (SUBR)&Inletk::kontrol_,
       0
@@ -813,7 +813,7 @@ extern "C"
       sizeof(Outletf),
       5,
       (char *)"",
-      (char *)"Sf",
+      (char *)"Tf",
       (SUBR)&Outletf::init_,
       0,
       (SUBR)&Outletf::audio_
@@ -823,7 +823,7 @@ extern "C"
       sizeof(Inletf),
       5,
       (char *)"f",
-      (char *)"S",
+      (char *)"T",
       (SUBR)&Inletf::init_,
       0,
       (SUBR)&Inletf::audio_
@@ -833,7 +833,7 @@ extern "C"
       sizeof(Connect),     
       1,  
       (char *)"",  
-      (char *)"SSSS", 
+      (char *)"TSTS", 
       (SUBR)&Connect::init_, 
       0, 
       0 

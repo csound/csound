@@ -9,7 +9,7 @@ ksmps = 128
 nchnls = 2
 0dbfs = 1
 
-alwayson "baz"
+alwayson 4
 
 instr 1
 ifno  ftgentmp   0, 0, 512, 10, 1
@@ -32,10 +32,10 @@ adummy = 0
 outs asignal, adummy
 endin
 
-instr baz
+instr baz 
 ifno  ftgenonce  0, 0, 512, 10, 4, 3, 2, 1
 print ftlen(ifno)
-print ifno, p4
+print ifno
 asignal poscil3 .25, 60, ifno
 outs asignal, asignal
 endin
