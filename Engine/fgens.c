@@ -1739,7 +1739,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
 
 /* gen32: transpose, phase shift, and mix source tables */
 
-static inline paccess(FGDATA *ff, int i)
+static inline MYFLT paccess(FGDATA *ff, int i)
 {
     if (LIKELY(i<PMAX)) return ff->e.p[i];
     else return ff->e.c.extra[i-PMAX+1];
