@@ -21,10 +21,11 @@
  * to how they are connected. Connections are defined in the orchestra header. 
  * It is this separation that enables plug-in instruments.
  *
- * Instruments must be named, and each source instrument must be defined 
- * in the orchestra before any of its sinks. The reason instruments must be 
- * named is so that outlets and inlets in any higher-level orchestra can
- * be connected to inlets and outlets in any lower-level #included orchestra. 
+ * Inlets must be named. Instruments may be named or numbered, but in 
+ * either case each source instrument must be defined 
+ * in the orchestra before any of its sinks. Naming instruments makes 
+ * it easier to connect outlets and inlets in any higher-level orchestra 
+ * to inlets and outlets in any lower-level #included orchestra. 
  *
  * O P C O D E S
  * 
@@ -40,9 +41,9 @@
  *
  * Outlets send a, k, or f-rate signals out from an instrument.
  *
- * The name of the outlet is implicitly qualified by the instrument name,
- * so it is valid to use the same outlet name in more than one instrument
- * (but not to use the same outlet name twice in the same instrument).
+ * The name of the outlet is implicitly qualified by the instrument name 
+ * or number,`so it is valid to use the same outlet name in more than one 
+ * instrument (but not to use the same outlet name twice in one instrument).
  *
  * asignal inleta Sname
  * ksignal inletk Sname
@@ -53,17 +54,17 @@
  * in each sink inlet instance.
  *
  * The name of the inlet is implicitly qualified by the instrument name,
- * so it is valid to use the same inlet name in more than one instrument
- * (but not to use the same inlet name twice in the same instrument).
+ * or number, so it is valid to use the same inlet name in more than one 
+ * instrument (but not to use the same inlet name twice in one instrument).
  *
- * connect Source1, Soutlet1, Sink1, Sinlet1
+ * connect Tsource1, Soutlet1, Tsink1, Sinlet1
  *
  * The connect opcode, valid only in orchestra headers, sends the signals
  * from the indicated outlets in all instances of the indicated source
  * instrument to the indicated inlets in all instances of the indicated sink
  * instrument. 
  * 
- * alwayson Sinstrumentname [p4, ..., pn]
+ * alwayson Tinstrument [p4, ..., pn]
  *
  * Activates the indicated instrument in the orchestra header,
  * without need for an i statement. Instruments must be 
@@ -773,7 +774,7 @@ extern "C"
       sizeof(Outleta),
       5,
       (char *)"",
-      (char *)"Ta",
+      (char *)"Sa",
       (SUBR)&Outleta::init_,
       0,
       (SUBR)&Outleta::audio_
@@ -783,7 +784,7 @@ extern "C"
       sizeof(Inleta),
       5,
       (char *)"a",
-      (char *)"T",
+      (char *)"S",
       (SUBR)&Inleta::init_,
       0,
       (SUBR)&Inleta::audio_
@@ -793,7 +794,7 @@ extern "C"
       sizeof(Outletk),
       3,
       (char *)"",
-      (char *)"Tk",
+      (char *)"Sk",
       (SUBR)&Outletk::init_,
       (SUBR)&Outletk::kontrol_,
       0
@@ -803,7 +804,7 @@ extern "C"
       sizeof(Inletk),
       3,
       (char *)"k",
-      (char *)"T",
+      (char *)"S",
       (SUBR)&Inletk::init_,
       (SUBR)&Inletk::kontrol_,
       0
@@ -813,7 +814,7 @@ extern "C"
       sizeof(Outletf),
       5,
       (char *)"",
-      (char *)"Tf",
+      (char *)"Sf",
       (SUBR)&Outletf::init_,
       0,
       (SUBR)&Outletf::audio_
@@ -823,7 +824,7 @@ extern "C"
       sizeof(Inletf),
       5,
       (char *)"f",
-      (char *)"T",
+      (char *)"S",
       (SUBR)&Inletf::init_,
       0,
       (SUBR)&Inletf::audio_

@@ -9,7 +9,11 @@ ksmps = 128
 nchnls = 2
 0dbfs = 1
 
-alwayson 4
+alwayson "baz"
+alwayson "masterout"
+
+connect "baz", "left", "masterout", "left"
+connect "baz", "right", "masterout", "right"
 
 instr 1
 ifno  ftgentmp   0, 0, 512, 10, 1
@@ -32,14 +36,20 @@ adummy = 0
 outs asignal, adummy
 endin
 
-instr baz 
+instr baz
 ifno  ftgenonce  0, 0, 512, 10, 4, 3, 2, 1
 print ftlen(ifno)
 print ifno
 asignal poscil3 .25, 60, ifno
-outs asignal, asignal
+outleta "left", asignal
+outleta "right", asignal
 endin
 
+instr masterout
+aleft inleta "left"
+aright inleta "right"
+outs aleft, aright
+endin
 
 </CsInstruments>
 <CsScore>
