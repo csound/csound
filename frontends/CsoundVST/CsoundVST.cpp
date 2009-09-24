@@ -21,7 +21,6 @@
  */
 #include "CsoundVST.hpp"
 #include "CsoundVstFltk.hpp"
-#include <Python.h>
 #include <cstring>
 #include <cstdlib>
 
