@@ -7,9 +7,9 @@ require "luaCsoundAC"
 filename = 'Lindenmayer.lua'
 model = luaCsoundAC.MusicModel()
 lindenmayer = luaCsoundAC.Lindenmayer()
-lindenmayer:setAxiom("b")
+lindenmayer:setAxiom("Ts=425 b")
 lindenmayer:setAngle(2.0 * math.pi / 0.5)
-lindenmayer:addRule("b", " b [ Ti-1 a N b ] Tt+1 Tk-3.01 a N b Tt+3 N Tt+1.5 Tk+2.5 b [ Ti+1 a b ] N")
+lindenmayer:addRule("b", " b [ Ts*16 Ti-1 a N b ] Tt+1 Tk-3.01 a N b Tt+3 N Tt+1.5 Tk+2.5 b [ Ti+1 a b ] N")
 lindenmayer:addRule("a", " N Tt+1.251 Tk+1 N [ Tk+2 b ] Tk+4.1 N Tk-3 Tt-1 [ Tt+1 Tk-4 [ a ] N ] N ")
 lindenmayer:setIterationCount(5)
 lindenmayer:generate()
@@ -23,10 +23,13 @@ rescale:setRescale( 3, true, true,  2,       8)
 rescale:setRescale( 4, true, true,  36,      60)
 rescale:setRescale( 5, true, true,  20,      10)
 rescale:setRescale( 7, true, true,  -0.9875,    1.875)
-scale = 'Dm11'
-scalenumber = luaCsoundAC.Conversions_nameToM(scale)
-print(scale .. "="  .. scalenumber)
-rescale:setRescale(10, true, true,  scalenumber,    0)
+scales =  {'Dm', 'Fm', 'AM', 'G7', 'Em', 'FM'}
+pcsForScales = {}
+for i,scale in ipairs(scales) do
+    scalenumber = luaCsoundAC.Conversions_nameToM(scale)
+    pcsForScales[scale] = scalenumber
+    print(scale .. "="  .. scalenumber)
+end
 random:addChild(lindenmayer)
 rescale:addChild(random)
 model:addChild(rescale)

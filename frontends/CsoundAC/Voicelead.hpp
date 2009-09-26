@@ -24,9 +24,8 @@
 #ifdef SWIG
 %module CsoundAC
 %{
-#ifndef TEST
 #include "Event.hpp"
-#endif
+#include "CppSound.hpp"
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -34,9 +33,7 @@
 %include "std_vector.i"
 %template(ChordVector) std::vector< std::vector<double> >;
 #else
-#ifndef TEST
 #include "Event.hpp"
-#endif
 #include <vector>
 #endif
 

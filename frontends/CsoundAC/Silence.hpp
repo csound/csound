@@ -40,6 +40,7 @@
 %module CsoundAC
 %feature("autodoc", "1");
 %include "typemaps.i"
+%include "std_vector.i"
 %{
     #include <csound.h>
     #include <string>
