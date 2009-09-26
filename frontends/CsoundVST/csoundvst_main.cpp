@@ -26,17 +26,19 @@
 
 int main(int argc, char **argv)
 {
+  const char *filename = 0;
+  if (argc > 1) {
+    filename = argv[1];
+  }
 #if defined(WIN32)
   HINSTANCE lib = LoadLibrary("CsoundVST.dll");
   if(!lib) {
     DWORD lastError = GetLastError();
   }
   void (*RunCsoundVST_)(const char *) =  (void (*)(const char *)) GetProcAddress(lib, "RunCsoundVST");
-#endif
-  const char *filename = 0;
-  if (argc > 1) {
-    filename = argv[1];
-  }
   RunCsoundVST_(filename);
+#else
+  RunCsoundVST(filename);
+#endif
 }
 

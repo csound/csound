@@ -33,6 +33,7 @@
 %module csnd
 %include "std_string.i"
 %include "std_vector.i"
+%apply std::vector<double> *INPUT { std::vector<double> const & };
 %{
 #include "csound.hpp"
 #include "CsoundFile.hpp"

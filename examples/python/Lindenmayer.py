@@ -6,6 +6,7 @@ import sys
 import math
 import os.path
 import CsoundAC
+import psyco
 gc.disable()
 model = CsoundAC.MusicModel()
 model.setCppSound(csound)
