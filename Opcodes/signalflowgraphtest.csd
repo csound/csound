@@ -14,8 +14,8 @@ alwayson "masterout"
 
 connect "1", "left", "masterout", "left"
 connect "1", "right", "masterout", "right"
-connect "2", "left", "masterout", "left"
-connect "2", "right", "masterout", "right"
+connect "3", "left", "masterout", "left"
+connect "3", "right", "masterout", "right"
 connect "baz", "left", "masterout", "left"
 connect "baz", "right", "masterout", "right"
 
