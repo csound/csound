@@ -1428,7 +1428,7 @@ else:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
-
+    luaWrapper = None
     if not (luaFound and commonEnvironment['buildLuaWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Lua wrapper to Csound C++ interface library.'
     else:
@@ -1438,12 +1438,13 @@ else:
             csoundWrapperEnvironment.Append(CPPPATH=['/usr/include/lua5.1'])
         csoundLuaInterface = luaWrapperEnvironment.SharedObject(
             'interfaces/lua_interface.i',
-            SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
+            SWIGFLAGS = [swigflags, '-module', 'luaCsnd', '-lua', '-outdir', '.'])
         if getPlatform() == 'win32':
             luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua51'])
         else:
             luaWrapperEnvironment.Prepend(LIBS = ['csnd','lua'])
        	luaWrapper = makeLuaModule(luaWrapperEnvironment, 'luaCsnd', [csoundLuaInterface])
+	Depends(luaWrapper, csoundLuaInterface)
 
     if not (javaFound and commonEnvironment['buildJavaWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Java wrapper to Csound C++ interface library.'
@@ -1494,7 +1495,6 @@ else:
         libs.append(jcsndJar)
     # Please do not remove these two variables, needed to get things to build on Windows...
     pythonWrapper = None
-    luaWrapper = None
     if not (pythonFound and commonEnvironment['buildPythonWrapper'] != '0'):
         print 'CONFIGURATION DECISION: Not building Python wrapper to Csound C++ interface library.'
     else:
@@ -2481,6 +2481,7 @@ else:
        	 'frontends/CsoundAC/luaCsoundAC.i', SWIGFLAGS = [swigflags, Split('-lua ')])
        luaCsoundACWrapperEnvironment.Clean('.', 'frontends/CsoundAC/luaCsoundAC_wrap.h')
        CsoundAclModule = makeLuaModule(luaCsoundACWrapperEnvironment, 'luaCsoundAC', [luaCsoundACWrapper])
+       Depends(CsoundAclModule, luaCsoundACWrapper)
        Depends(CsoundAclModule, luaWrapper)
        Depends(CsoundAclModule, csoundac)
        Depends(CsoundAclModule, csnd)

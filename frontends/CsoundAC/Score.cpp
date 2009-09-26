@@ -1228,4 +1228,9 @@ namespace csound
       event.setDuration(duration * factor);
     }
   }
+  
+  void Score::remove(size_t index)
+  {
+    erase(begin() + index);
+  }
 }

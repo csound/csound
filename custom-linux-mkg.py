@@ -27,6 +27,8 @@ if sys.platform[:5] == 'linux':
     customLIBPATH.append('/usr/share/musicxml-v2')
     customCPPPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
     customLIBPATH.append('/home/mkg/share/LuaJIT-1.1.5/src')
+    customCPPPATH.append('/home/mkg/csound5/frontends/CsoundVST')    
+    customCPPPATH.append('/home/mkg/csound5/frontends/CsoundVST/vstsdk2.4')    
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
