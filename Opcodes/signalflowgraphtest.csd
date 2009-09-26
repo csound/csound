@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWfo signalflowgraphtest.wav
+csound -m255 -RWfo signalflowgraphtest.wav
 </CsOptions>
 <CsInstruments>
 
@@ -12,6 +12,10 @@ nchnls = 2
 alwayson "baz"
 alwayson "masterout"
 
+connect "1", "left", "masterout", "left"
+connect "1", "right", "masterout", "right"
+connect "2", "left", "masterout", "left"
+connect "2", "right", "masterout", "right"
 connect "baz", "left", "masterout", "left"
 connect "baz", "right", "masterout", "right"
 
@@ -20,7 +24,8 @@ ifno  ftgentmp   0, 0, 512, 10, 1
 print ifno
 asignal poscil3 .25, 440, ifno
 adummy = 0
-outs adummy, asignal
+outleta "left", adummy
+outleta "right", asignal
 endin
 
 instr 2
@@ -33,7 +38,8 @@ print ftlen(ifno)
 print ifno, p4
 asignal poscil3 .25, 440, ifno
 adummy = 0
-outs asignal, adummy
+outleta "left", asignal
+outleta "right", adummy
 endin
 
 instr baz
@@ -64,6 +70,8 @@ i 3 20 10 1 1
 i 3 21 10 2 1
 i 3 22 10 1 2
 i 3 23 10 1 1
+
+i "baz" 40 5 1 1
 e
 </CsScore>
 </CsoundSynthesizer>
