@@ -132,15 +132,16 @@ class CsoundComposition(object):
         self.ended = time.clock()
         self.elapsed = self.ended - self.began
         print 'Finished generating at               %s' % time.strftime('%Y-%b-%d %A %H:%M:%S')
-        print 'Elapsed time:                        %-9.2f seconds.' % self.elapsed
+        print 'Elapsed time:                        %-9.2f seconds' % self.elapsed
+        self.began = time.clock()
         self.csound.perform()
         print
         self.ended = time.clock()
         self.elapsed = self.ended - self.began
-        print 'Finished rendering at                %s' % time.strftime('%Y-%b-%d %A %H:%M:%S')
-        print 'Elapsed time:                        %-9.2f seconds.' % self.elapsed
-        print 'Score time:                          %-9.2f seconds.' % self.scoreTime
-        print 'Score time / elapsed time:           %-9.2f.        ' % (self.scoreTime / self.elapsed)
+        print 'Finished rendering at                %s'            % time.strftime('%Y-%b-%d %A %H:%M:%S')
+        print 'Elapsed time:                        %9.2f seconds' % self.elapsed
+        print 'Score time:                          %9.2f seconds' % self.scoreTime
+        print 'Score time / elapsed time:           %9.2f'         % (self.scoreTime / self.elapsed)
         print
         if self.renderingMode == 'audio':
             exit(0)
@@ -237,7 +238,7 @@ csound -f -h -M0 -d -m99 --midi-key=4 --midi-velocity=5 -odac4 temp.orc temp.sco
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 sr                      =                       44100
-ksmps			        =                       16
+ksmps			=                       16
 nchnls                  =                       2
 0dbfs                   =                       1.0
 giseed                  =                       0
@@ -2072,61 +2073,7 @@ p3, aleft, aright	    Declick			        0.003, p3, .05, aleft, aright
                         SendOut			        p1, aleft, aright
                         endin
 
-                        instr 57                ; Perry Cook Slide Flute, Mikelson
-                        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        ; p1  p2     p3   p4         p5     p6        p7      p8       p9
-                        ;     Start  Dur  Amplitude  Pitch  Pressure  Breath  Feedbk1  Feedbk2
-                        ; i3  80     16   6000       8.00   0.9       0.036   0.4      0.4
-                        ; i3  +      4    .          8.01   0.95      .       .        .
-                        ; i3  .      4    .          8.03   0.97      .       .        .
-                        ; i3  .      4    .          8.04   0.98      .       .        .
-                        ; i3  .      4    .          8.05   0.99      .       .        .
-                        ; i3  .      16   .          9.00   1.0       .       .        .
-                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-iHz,kHz,iamplitude,idB  NoteOn                  p4, p5, -3
-aflute1                 init                    0
-ifqc                    =                       iHz ; cpspch(p5)
-ip4                     =                       iamplitude
-ip6                     =                       0.99
-ip7                     =                       0.036
-ip8                     =                       0.4
-ip9                     =                       0.4
-ipress                  =                       ip6
-ibreath                 =                       ip7
-ifeedbk1                =                       ip8
-ifeedbk2                =                       ip9
-                        ; Flow setup
-kenv1                   linseg                  0, .06, 1.1 * ipress, .2, ipress, p3 - .16, ipress, .02, 0 
-kenv2                   linseg                  0, .01, 1, p3 - .02, 1, .01, 0
-kenvibr                 linseg                  0, .5, 0, .5, 1, p3 - 1, 1  ; Vibrato envelope
-                        ; The values must be approximately -1 to 1 or the cubic will blow up.
-aflow1                  rand                    kenv1
-kvibr                   oscili                  0.02 * kenvibr, 5.3, gisine ; 3
-                        ; ibreath can be used to adjust the noise level.
-asum1                   =                       ibreath * aflow1 + kenv1 + kvibr
-asum2                   =                       asum1 + aflute1 * ifeedbk1
-afqc                    =                       1 / ifqc - asum1 / 20000 -9 / sr + ifqc / 12000000
-                        ; Embouchure delay should be 1/2 the bore delay
-                        ; ax delay asum2, (1/ifqc-10/sr)/2
-atemp1                  delayr                  1 / ifqc/2
-ax                      deltapi                 afqc / 2 ; - asum1/ifqc/10 + 1/1000
-                        delayw                  asum2
-apoly                   =                       ax - ax * ax * ax
-asum3                   =                       apoly + aflute1 * ifeedbk2
-avalue                  tone                    asum3, 2000
-                        ; Bore, the bore length determines pitch.  Shorter is higher pitch.
-atemp2                  delayr                  1 / ifqc
-aflute1                 deltapi                 afqc
-                        delayw                  avalue
-                        ; out                     avalue * p4 * kenv2
-asignal                 =                       avalue * ip4 * kenv2
-aleft, aright		    Pan			            p7, asignal
-p3, aleft, aright	    Declick			        0.003, p3, 0.05, aleft, aright
-                        AssignSend		        p1, 0.2, 0.0, 0.2, 1
-                        SendOut			        p1, aleft, aright
-                        endin
-
-                        instr 58                ; Perry Cook Clarinet, Mikelson
+                        instr 57, 58                ; Perry Cook Clarinet, Mikelson
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ; p1   p2     p3    p4       p5          p6     p7         p8          p9
                         ;      Start  Dur   Amp      Pitch       Press  Filter     Embouchure  Reed Table
@@ -2400,16 +2347,6 @@ i 1 0 0 200 210 0.05
 i 1 0 0 200 220 0.05
 ; Reverb to Output
 i 1 0 0 210 220 0.125
-
-; SOUNDFONTS OUTPUT
-
-; Insno     Start   Dur     Key 	Amplitude
-i 190 	    0       -1      0	    73.
-
-; PIANOTEQ OUTPUT
-
-; Insno     Start   Dur     Key 	Amplitude
-i 191 	    0       -1      0	    1.
 
 ; MASTER EFFECT CONTROLS
 
