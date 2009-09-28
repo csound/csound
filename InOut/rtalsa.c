@@ -708,6 +708,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     int device;
     snd_ctl_t *ctl;
     char* name;
+    int numdevs = 0;
     name = (char *) calloc(32, sizeof(char));
 
     (*userData) = NULL;
@@ -724,11 +725,13 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               if (snd_ctl_rawmidi_next_device(ctl, &device) < 0) {
                 break;
               }
-              if (device < 0)
+              if (device < 0) {
                 break;
+	      }
               sprintf(name, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
               if (newdev != NULL) {   /* Device opened successfully */
+		numdevs++;
                 if (olddev != NULL) {
                   olddev->next = newdev;
                 }
@@ -759,8 +762,14 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         return -1;
       }
     }
-    *userData = (void*) dev;
     free(name);
+    if (numdevs == 0) {
+      csound->ErrorMsg(csound, Str("ALSA midi: No devices found.\n"));
+      *userData = NULL;
+    }
+    else {
+      *userData = (void*) dev;
+    }
     return 0;
 }
 
