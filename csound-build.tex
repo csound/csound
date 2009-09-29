@@ -392,7 +392,7 @@ mingw32-make release
 			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for csnd, libcsound64, and libsndfile, add the required libraries and library paths, and re-run the edited link line, something like this:
 			
 			\begin(lstlisting}
-g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Release -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind release\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4		
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Debug -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
 			\end(lstlisting}
 			
