@@ -98,6 +98,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -112,47 +113,76 @@ struct Inletf;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
+std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
+{
+  stream << a.opcod;
+  for (size_t i = 0; i < a.pcnt; i++) {
+    stream << " " << a.p[i];
+  }
+  return stream;
+}
+/*
 
 bool operator < (const EVTBLK &a, const EVTBLK &b)
 {
-  size_t n = 0;
-  //std::fprintf(stderr, "comparing...");
+  //std::cerr << "comparing: " << a << " to: " << b << std::endl;
   if (a.opcod < b.opcod) {
-    goto TRUE_RETURN;
+    return true;
   }
-  n = std::min(a.pcnt, b.pcnt);
+  size_t n = std::min(a.pcnt, b.pcnt);
   for (size_t i = 0; i < n; i++) {
-    if (a.p[i] == SSTRCOD && b.p[i] == SSTRCOD) {
-      int comparison = std::strcmp(a.strarg, b.strarg);
-      if (comparison < 0) {
-	goto TRUE_RETURN;
-      } else if (comparison > 0) {
-	goto FALSE_RETURN;
-      }
-    } else if (a.p[i] == SSTRCOD) {
-      goto TRUE_RETURN;
-    } else if (b.p[i] == SSTRCOD) {
-      goto FALSE_RETURN;
-    } else {
-      if (a.p[i] < b.p[i]) {
-	goto TRUE_RETURN;
-      }
+    if (a.p[i] < b.p[i]) {
+      return true;
     }
   }
   if (a.pcnt < b.pcnt) {
-    goto TRUE_RETURN;
-  } else if (a.pcnt > b.pcnt) {
-    goto FALSE_RETURN;
+    return true;
   }
-  // Equal...
-  //std::fprintf(stderr, "equal\n");
- FALSE_RETURN:
-  //std::fprintf(stderr, "not less\n");
   return false;
- TRUE_RETURN:
-  //std::fprintf(stderr, "less\n");
-  return true;
 }
+*/
+/**
+ * A wrapper to get proper C++ value
+ * semantics for a map key.
+ */
+struct EventBlock
+{
+  EVTBLK evtblk;
+  EventBlock()
+  {
+    std::memset(&evtblk, 0, sizeof(EVTBLK));
+  }
+  EventBlock(const EVTBLK &other)
+  {
+    *this = other;
+  }
+  EventBlock(const EventBlock &other)
+  {
+    *this = other;
+  }
+  virtual ~EventBlock()
+  {
+  }
+  EventBlock &operator = (const EVTBLK &other)
+  {
+    std::memcpy(&evtblk, &other, sizeof(EVTBLK));
+    return *this;
+  }
+  EventBlock &operator = (const EventBlock &other)
+  {
+    std::memcpy(&evtblk, &other.evtblk, sizeof(EVTBLK));
+    return *this;
+  }
+  bool operator < (const EventBlock &other) const
+  {
+    int comparison = std::memcmp(&evtblk, &other.evtblk, sizeof(EVTBLK));
+    if (comparison < 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
 
 // Identifiers are always "sourcename:outletname" or "sinkname:inletname".
 
@@ -165,7 +195,7 @@ std::map<CSOUND *, std::map< std::string, std::vector< Inleta * > > > ainletsFor
 std::map<CSOUND *, std::map< std::string, std::vector< Inletk * > > > kinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletf * > > > finletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< std::string > > > connectionsForCsounds;
-std::map<CSOUND *, std::map< EVTBLK, int > > functionTablesForCsoundsForEvtblks;
+std::map<CSOUND *, std::map< EventBlock, int > > functionTablesForCsoundsForEvtblks;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outleta *> *> * > > aoutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletk *> *> * > > koutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletf *> *> * > > foutletVectorsForCsounds;
@@ -684,14 +714,12 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
   MYFLT *p4; 
   MYFLT *p5;
   MYFLT *argums[VARGMAX];
-  /** 
-   * State is external and global.
-   */
+  EventBlock eventBlock;
   int init(CSOUND *csound)
   {
     // Default output.
     *ifno = FL(0.0);
-    EVTBLK evtblk;
+    EVTBLK &evtblk = eventBlock.evtblk;
     std::memset(&evtblk, 0, sizeof(EVTBLK));
     evtblk.opcod = 'f';
     evtblk.strarg = 0;
@@ -720,28 +748,31 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
       }
     }
     else {
-      evtblk.p[5] = *p5;                                  
+      evtblk.p[5] = *p5;
     }
     evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
     for (size_t pfieldI = 6; pfieldI < evtblk.pcnt; pfieldI++) {
       evtblk.p[pfieldI] = *argums[pfieldI - 6];
     }
     // If the arguments have not been used before for this instance of Csound,
-    // create a new function table and store the arguments and table number.
-    if(functionTablesForCsoundsForEvtblks[csound].find(evtblk) == functionTablesForCsoundsForEvtblks[csound].end()) {
+    // create a new function table and store the arguments and table number;
+    // otherwise, look up and return the already created function table's number.
+    if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
+      *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
+      warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+      std::cerr << evtblk << std::endl;
+    } else {
       FUNC *func = 0;
       n = csound->hfgens(csound, &func, &evtblk, 1);       
       if (UNLIKELY(n != 0)) {
 	return csound->InitError(csound, Str("ftgenonce error"));
       }
       if (func) {
+	functionTablesForCsoundsForEvtblks[csound][eventBlock] = func->fno;
 	*ifno = (MYFLT) func->fno;                     
-	functionTablesForCsoundsForEvtblks[csound][evtblk] = func->fno;
       }
       warn(csound, "ftgenonce: created new func: %d\n", func->fno);
-    } else {
-      *ifno = functionTablesForCsoundsForEvtblks[csound][evtblk];
-      warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+      std::cerr << evtblk << std::endl;
     }
     return OK;
   }
