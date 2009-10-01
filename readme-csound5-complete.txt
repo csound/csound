@@ -23,16 +23,29 @@ License along with this software; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA
 
-INSTALLATION
+GETTING STARTED
 
-See the Csound documentation in the doc directory,
-or go to http://csounds.com or http://sourceforge.net/projects/csound.
+The tutorial/tutorial.pdf file is an illustrated tutorial of how to 
+find, install, configure, and use Csound. To get started with 
+real-time MIDI performance, for example, see Section 2.1.3.
 
-HELP
+The tutorial/Csound_Algorithmic_Composition_Tutorial.pdf is an illutrated
+tutorial of how to use CsoundAC to do algorithmic composition (score
+generation). This tutorial includes several complete pieces.
 
-This version of Csound is programmable in Python, Java, and LISP, and scores
-can be generated in these languages. See the Csound documentation for more
-information.
+The examples directory contains numerous working Csound orchestras and 
+even complete pieces. The examples/Boulanger_Examples directory contains
+hundreds of working Csound orchestras.
+
+The doc/manual/html/indexframes.html file is the front page to the 
+Csound Reference Manual.
+
+This version of Csound is programmable in Python, Java, Lua, and LISP, 
+and scores can be generated in these languages. 
+
+The doc/manual/api/index.html file is the front page to the C/C++ 
+Csound and Csound API application programming interfaces reference,
+but it is also helpful when programming Csound in other languages.
 
 CONTRIBUTORS
 
@@ -74,4 +87,6 @@ Steven Yi
 Tom Erbe
 Victor Lazzarini
 Ville Pulkki
-
+Andres Cabrera
+Felipe Sataler
+Ian McCurdy
