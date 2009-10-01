@@ -912,7 +912,7 @@ extern "C"
   {
 #pragma omp critical
     {
-      csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
+      //csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
       aoutletsForCsoundsForSourceOutletIds[csound].clear();
       koutletsForCsoundsForSourceOutletIds[csound].clear();
       foutletsForCsoundsForSourceOutletIds[csound].clear();
