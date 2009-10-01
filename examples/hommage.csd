@@ -377,14 +377,13 @@ Render: Real
 Ask: Yes
 Functions: ioObject
 Listing: Window
-WindowBounds: 634 268 400 140
+WindowBounds: 1040 71 400 535
 CurrentView: io
 IOViewEdit: On
 Options:
 </MacOptions>
-
 <MacGUI>
-ioView nobackground {65535, 65535, 65535}
+ioView nobackground {54484, 53456, 51400}
 ioSlider {5, 5} {20, 100} 0.000000 1.000000 0.000000 slider1
 ioSlider {45, 5} {20, 100} 0.000000 1.000000 0.000000 slider2
 ioSlider {85, 5} {20, 100} 0.000000 1.000000 0.000000 slider3
