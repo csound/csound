@@ -51,15 +51,15 @@
  * The Csound Application Programming Interface (API) reference is contained herein.
  * The Csound API actually consists of several APIs:
  *
- * - The basic Csound C API. Include csound.h and link withlibcsound.a.
+ * - The basic Csound C API. Include csound.h and link with libcsound.a.
  *   This also includes the Cscore API (see below).
  * - The basic Csound C++ API. Include csound.hpp and link with libcsound.a.
  * - The extended Csound C++ API. Include CppSound.hpp and link with
- *   libcsound.a and lib_csnd.a,
+ *   libcsound.a and libcsnd.a,
  *   which adds to the Csound C++ API a CsoundFile class for loading, saving,
  *   and editing Csound orchestra and score files.
  * - The CsoundAC C++ API. Include CsoundAC.hpp and link with libcsound.a,
- *   lib_csnd.a, and libCsoundAC.a.
+ *   libcsnd.a, and libCsoundAC.a.
  *   The CsoundAC class contains an instance of the CppSound class,
  *   and provides a class hierarchy for doing algorithmic composition using
  *   Michael Gogins' concept of music graphs (previously known as Silence).
@@ -124,7 +124,7 @@
  * Before you can use any of the Cscore API functions, you must create a CSOUND
  * instance and initialize Cscore by calling csoundInitializeCscore() -- see
  * csound.h for an explanation.  An example main program that does all of this
- * Top/cscormai.c.  You should add a function called \cscore() with your own
+ * Top/cscormai.c.  You should add a function called cscore() with your own
  * score-processing code.  An example that does nothing except write the score
  * back out unchanged can be found in the file Top/cscore_internal.c.
  *
@@ -147,7 +147,7 @@
  *
  * \li Declare a stable public application programming interface (API)
  *     for Csound in csound.h. This is the only header file that needs
- *     to be #included by users of the Csound API.
+ *     to be \#included by users of the Csound API.
  *
  * \li Hide the internal implementation details of Csound from users of
  *     the API, so that development of Csound can proceed without affecting
@@ -163,8 +163,8 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *
- * Hosts using the Csound API must #include <csound.h>, and link with the
- * Csound API library. Plugin libraries should #include <csdl.h> to get
+ * Hosts using the Csound API must \#include <csound.h>, and link with the
+ * Csound API library. Plugin libraries should \#include <csdl.h> to get
  * access to the API function pointers in the CSOUND structure, and do not
  * need to link with the Csound API library.
  * Only one of csound.h and csdl.h may be included by a compilation unit.
