@@ -1770,7 +1770,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->Die(csound, Str("\nError: transeg not initialised (krate)"));
+      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -1818,6 +1818,162 @@ int trnseg(CSOUND *csound, TRANSEG *p)
         }
         p->cursegp = ++segp;              /*   else find the next */
         if (!(p->curcnt = segp->cnt)) {
+          val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
+          goto chk1;
+        }                                 /*   poslen = new slope */
+        p->curinc = segp->c1;
+        p->alpha = segp->alpha;
+        p->curx = FL(0.0);
+        p->curval = val;
+      }
+      if (p->alpha == FL(0.0)) {
+        do {
+          *rs++ = val;
+          val += p->curinc;
+        } while (--nsmps);
+      }
+      else {
+        do {
+          *rs++ = val;
+          p->curx += p->alpha;
+          val = segp->val + p->curinc *
+            (FL(1.0) - EXP(p->curx));
+        } while (--nsmps);
+      }
+      p->curval = val;
+      return OK;
+putk:
+      do {
+        *rs++ = val;
+      } while (--nsmps);
+    }
+    return OK;
+}
+
+/* MIDI aware version of transeg */
+int trnsetr(CSOUND *csound, TRANSEG *p)
+{
+    int         relestim;
+    NSEG        *segp;
+    int         nsegs;
+    MYFLT       **argp, val;
+
+    nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
+    if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
+        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
+      p->cursegp = segp = (NSEG *) p->auxch.auxp;
+    }
+    segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    argp = p->argums;
+    val = **argp++;
+    if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
+    p->curval = val;
+    p->curcnt = 0;
+    p->cursegp = segp - 1;            /* else setup null seg0 */
+    p->segsrem = nsegs + 1;
+    p->curx = FL(0.0);
+    do {                              /* init each seg ..  */
+      MYFLT dur = **argp++;
+      MYFLT alpha = **argp++;
+      MYFLT nxtval = **argp++;
+      MYFLT d = dur * csound->esr;
+      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
+        segp->cnt = 0;
+      else
+        segp->cnt = (int32)(dur * csound->ekr);
+        segp->nxtpt = nxtval;
+      segp->val = val;
+      if (alpha == FL(0.0)) {
+        segp->c1 = (nxtval-val)/d;
+      }
+      else {
+        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
+      }
+      segp->alpha = alpha/d;
+      val = nxtval;
+      segp++;
+    } while (--nsegs);
+    p->xtra = -1;
+    p->alpha = ((NSEG*)p->auxch.auxp)[0].alpha;
+    p->curinc = ((NSEG*)p->auxch.auxp)[0].c1;
+    relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
+    if (relestim > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = relestim;
+    return OK;
+}
+
+int ktrnsegr(CSOUND *csound, TRANSEG *p)
+{
+    NSEG        *segp = p->cursegp;
+    *p->rslt = p->curval;               /* put the cur value    */
+    if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
+      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
+    }
+    if (p->segsrem) {                   /* done if no more segs */
+      if (p->h.insdshead->relesing && p->segsrem > 1) {
+        while (p->segsrem > 1) {        /* reles flag new:      */
+          segp = ++p->cursegp;          /*   go to last segment */
+          p->segsrem--;
+        }                               /*   get univ relestim  */
+        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        goto newm;                      /*   and set new curmlt */
+      }
+      if (--p->curcnt <= 0) {           /* if done cur segment  */
+        NSEG *segp = p->cursegp;
+      chk1:
+        if (!(--p->segsrem))  {
+          p->curval = segp->nxtpt;      /* advance the cur val  */
+          return OK;
+        }
+        p->cursegp = ++segp;            /*   find the next      */
+      newm:
+        if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
+          p->curval = segp->nxtpt;      /*   poslen = new slope */
+          goto chk1;
+        }
+        p->curinc = segp->c1;
+        p->alpha = segp->alpha;
+        p->curx = FL(0.0);
+      }
+      if (p->alpha == FL(0.0))
+        p->curval += p->curinc*csound->ksmps;   /* advance the cur val  */
+      else
+        p->curval = p->cursegp->val + p->curinc *
+          (FL(1.0) - EXP(p->curx));
+      p->curx += (MYFLT)csound->ksmps*p->alpha;
+    }
+    return OK;
+}
+
+int trnsegr(CSOUND *csound, TRANSEG *p)
+{
+    MYFLT  val, *rs = p->rslt;
+    int         nsmps = csound->ksmps;
+    NSEG        *segp = p->cursegp;
+    if (UNLIKELY(p->auxch.auxp==NULL)) {
+      return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
+    }
+    val = p->curval;                      /* sav the cur value    */
+    if (p->segsrem) {                     /* if no more segs putk */
+      if (p->h.insdshead->relesing && p->segsrem > 1) {
+        while (p->segsrem > 1) {        /* if reles flag new    */
+          segp = ++p->cursegp;          /*   go to last segment */
+          p->segsrem--;
+        }                               /*   get univ relestim  */
+        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        goto newm;                      /*   and set new curmlt */
+      }
+      if (--p->curcnt <= 0) {             /*  if done cur segment */
+        segp = p->cursegp;
+      chk1:
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
+          val = p->curval = segp->nxtpt;
+          goto putk;                      /*      put endval      */
+        }
+        p->cursegp = ++segp;              /*   else find the next */
+      newm:
+       if (!(p->curcnt = segp->cnt)) {
           val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
