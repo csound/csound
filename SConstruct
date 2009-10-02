@@ -1410,6 +1410,7 @@ else:
     else:
         csnd = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources)
     Depends(csnd, csoundLibrary)
+    libs.append(csnd)
 
     # Common stuff for SWIG for all wrappers.
 
