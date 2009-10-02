@@ -226,6 +226,39 @@ static int PythonMidiRead(CSOUND *in, void *udata,
     return 0;
 }
 
+static void pythonMessageCallback(CSOUND *csound,
+                                  int attr, const char *format, va_list valist)
+{
+  char          buffer[8192];
+  static std::string  lineBuffer = "print '''";     // FIXME
+  unsigned int  i, len;
+#ifdef HAVE_C99
+  len = (unsigned int) vsnprintf(&(buffer[0]), (size_t) 8192, format, valist);
+  if (len >= 8192U)
+    {
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      return;
+    }
+#else
+  len = (unsigned int) vsprintf(&(buffer[0]), format, valist);
+  if (len >= 8192U)
+    {
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      exit(-1);
+    }
+#endif
+  for (i = 0; i < len; i++) {
+    if (buffer[i] == '\n') {
+      lineBuffer += "'''";
+      PyRun_SimpleString(lineBuffer.c_str());
+      lineBuffer = "print '''";
+      continue;
+    }
+    if (buffer[i] == '\'' || buffer[i] == '\\')
+      lineBuffer += '\\';
+    lineBuffer += buffer[i];
+  }
+}
 
 %}
 
@@ -387,41 +420,8 @@ static void PythonCallback(void *p){
 */
 
 %extend CppSound {
-static void pythonMessageCallback(CSOUND *csound,
-                                  int attr, const char *format, va_list valist)
-{
-  char          buffer[8192];
-  static std::string  lineBuffer = "print '''";     // FIXME
-  unsigned int  i, len;
-#ifdef HAVE_C99
-  len = (unsigned int) vsnprintf(&(buffer[0]), (size_t) 8192, format, valist);
-  if (len >= 8192U)
-    {
-      PyRun_SimpleString("print '''Error: message buffer overflow'''");
-      return;
-    }
-#else
-  len = (unsigned int) vsprintf(&(buffer[0]), format, valist);
-  if (len >= 8192U)
-    {
-      PyRun_SimpleString("print '''Error: message buffer overflow'''");
-      exit(-1);
-    }
-#endif
-  for (i = 0; i < len; i++) {
-    if (buffer[i] == '\n') {
-      lineBuffer += "'''";
-      PyRun_SimpleString(lineBuffer.c_str());
-      lineBuffer = "print '''";
-      continue;
-    }
-    if (buffer[i] == '\'' || buffer[i] == '\\')
-      lineBuffer += '\\';
-    lineBuffer += buffer[i];
-  }
-}
   void setPythonMessageCallback()
   {
-    self->SetMessageCallback(CppSound_pythonMessageCallback);
+    self->SetMessageCallback(pythonMessageCallback);
   }
 };
