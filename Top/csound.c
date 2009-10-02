@@ -857,7 +857,9 @@ extern "C" {
     if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER))
       install_signal_handler();
     if (!(flags & CSOUNDINIT_NO_ATEXIT))
+#if !defined(WIN32)
       atexit(destroy_all_instances);
+#endif
     aops_init_tables();
     csoundLock(); init_done = 1; csoundUnLock();
     return 0;
