@@ -612,9 +612,12 @@ skipAssoc:
     SetOutPath $INSTDIR\samples
       File /r ..\..\samples\*
       File /r ..\..\Opcodes\stk\rawwaves\*.raw
+    SetOutPath $INSTDIR\examples\Boulanger_Examples
+      File /r D:\utah\home\mkg\orc\4examples\4-ExamplesCsound511\examples\a_little_something_from_DoctorB.B\*
     SetOutPath $INSTDIR\examples
       File ..\..\examples\CsoundAC.csd
       File ..\..\examples\CsoundVST.csd
+      File ..\..\examples\hommage.csd
       File ..\..\examples\trapped.csd
       File ..\..\examples\trapped-high-resolution.csd
       File ..\..\examples\xanadu.csd
@@ -694,7 +697,7 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
       File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
 !ifdef FLOAT
-      File D:\utah\opt\qutecsound\src\bin\qutecsound-f.exe
+      File D:\utah\opt\qutecsoundf\src\bin\qutecsound-f.exe
 !else
       File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
