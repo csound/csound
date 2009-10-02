@@ -1,3 +1,9 @@
+2009-10-02  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (trnsetr, ktrnsegr, trnsegr): New code
+
+	* Opcodes/spectra.c: declare transegr
+
 2009-09-22  jpff  <jpff@codemist.co.uk>
 
 	* H/version.h:  VERSION 5.11.1
