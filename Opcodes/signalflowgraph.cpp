@@ -241,9 +241,9 @@ struct Outleta : public OpcodeBase<Outleta>
     sourceOutletId[0] = 0;
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sourceOutletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sourceOutletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
     std::vector<Outleta *> &aoutlets = aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
     if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
@@ -286,9 +286,9 @@ struct Inleta : public OpcodeBase<Inleta>
     sinkInletId[0] = 0;
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sinkInletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sinkInletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
     std::vector<Inleta *> &ainlets = ainletsForCsoundsForSinkInletIds[csound][sinkInletId];
     if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
@@ -360,11 +360,10 @@ struct Outletk : public OpcodeBase<Outletk>
   {
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sourceOutletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sourceOutletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
-    std::snprintf(sourceOutletId, 0xff, "%s:%s", insname, (char *)Sname);
     std::vector<Outletk *> &koutlets = koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
     if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
       koutlets.push_back(this);
@@ -399,9 +398,9 @@ struct Inletk : public OpcodeBase<Inletk>
     sinkInletId[0] = 0;
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sinkInletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sinkInletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
     std::vector<Inletk *> &kinlets = kinletsForCsoundsForSinkInletIds[csound][sinkInletId];
     if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
@@ -463,11 +462,10 @@ struct Outletf : public OpcodeBase<Outletf>
   {
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sourceOutletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sourceOutletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
-    std::snprintf(sourceOutletId, 0xff, "%s:%s", insname, (char *)Sname);
     std::vector<Outletf *> &foutlets = foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
     if (std::find(foutlets.begin(), foutlets.end(), this) == foutlets.end()) {
       foutlets.push_back(this);
@@ -506,9 +504,9 @@ struct Inletf : public OpcodeBase<Inletf>
     sinkInletId[0] = 0;
     const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
     if (insname) {
-      std::snprintf(sinkInletId, 0xff, "%s:%s", insname, (char *)Sname);
+      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
     } else {
-      std::snprintf(sinkInletId, 0xff, "%d:%s", h.insdshead->insno, (char *)Sname);
+      std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
     }
     std::vector<Inletf *> &finlets = finletsForCsoundsForSinkInletIds[csound][sinkInletId];
     if (std::find(finlets.begin(), finlets.end(), this) == finlets.end()) {
