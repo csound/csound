@@ -1240,6 +1240,7 @@ static OENTRY localops[] = {
 { "pinkish", S(PINKISH),  5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
 { "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
 { "transeg", S(TRANSEG), 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
+{ "transegr", S(TRANSEG), 7, "s", "iiim", (SUBR)trnsetr,(SUBR)ktrnsegr,(SUBR)trnsegr},
 { "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip  },
 { "cpuprc", S(CPU_PERC), 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
 { "maxalloc", S(CPU_PERC), 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
