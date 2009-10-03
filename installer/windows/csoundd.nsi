@@ -573,7 +573,9 @@ skipAssoc:
       File ..\..\hrtferX.dll
       File ..\..\hrtfnew.dll
       File ..\..\image.dll
+!ifndef FLOAT
       File ..\..\linear_algebra.dll
+!endif
       File ..\..\loscilx.dll
       File ..\..\minmax.dll
       File ..\..\mixer.dll
@@ -697,7 +699,7 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
       File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
 !ifdef FLOAT
-      File D:\utah\opt\qutecsoundf\src\bin\qutecsound-f.exe
+      File D:\utah\opt\qutecsoundf\src\bin\qutecsound.exe
 !else
       File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
