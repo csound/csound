@@ -1152,6 +1152,7 @@ static int jitters(CSOUND *csound, JITTERS *p)
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
       p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
+      if (p->si == 0) p->si = 1; /* Is this necessary? */
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0 = p->num0 = p->num1;
@@ -1189,6 +1190,7 @@ static int jittersa(CSOUND *csound, JITTERS *p)
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
         si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
         f0 = p->num0 = p->num1;
