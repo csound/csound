@@ -437,7 +437,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                                  (snd_pcm_uframes_t) n) < 0
         || snd_pcm_sw_params_set_avail_min(dev->handle, sw_params,
                                            dev->period_smps) < 0
-        || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0
+        /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
       sprintf(msg, "Error setting software parameters for real-time audio");
       goto err_return_msg;

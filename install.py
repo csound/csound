@@ -76,6 +76,8 @@ if sys.argv.__len__() > 1:
             print 'Error: unknown option: %s' % sys.argv[i]
             raise SystemExit(1)
 
+print prefix
+
 # concatenates a list of directory names,
 # and returns full path without a trailing '/'
 
