@@ -12764,4 +12764,3 @@ msgstr "scot: %d errori.\n"
 #~ msgstr ""
 #~ "\n"
 #~ "Error: transeg non inizializzato (krate)"
-
