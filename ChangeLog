@@ -1,3 +1,7 @@
+2009-10-16  jpff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/pvsbasic.c (pvsshiftset): Change MYFLT to float in memset
+
 2009-10-02  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (trnsetr, ktrnsegr, trnsegr): New code
