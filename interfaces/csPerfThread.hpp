@@ -39,6 +39,40 @@ class CsPerfThread_PerformScore;
  * performance thread. Once the playback is stopped for one of the above
  * mentioned reasons, the performance thread calls csoundCleanup() and
  * returns.
+
+  An example program using the CsoundPerformanceThread class
+
+#include <stdio.h>
+#include "csound.hpp"
+#include "csPerfThread.hpp"
+
+int main(int argc, char *argv[])
+{
+ int result=0;
+ Csound cs;
+ csoundInitialize(NULL,NULL,NULL);
+ result = cs.Compile(argc,argv);
+
+ if(!result)
+ {
+   CsoundPerformanceThread perfThread(cs.GetCsound());
+   perfThread.Play(); // Starts performance
+   while(perfThread.GetStatus() == 0); // nothing to do here...
+                                       // but you could process input events, graphics etc
+   perfThread.Stop();  // Stops performance. In fact, performance should have already been
+                       // finished, so this is just an example of how to stop if you need
+   perfThread.Join();  // always call Join() after Stop() as a rule of thumb.
+ }
+ else{
+   printf("csoundCompile returned an error\n");
+   return 1;
+ }
+ 
+ return 0;
+}
+
+
+
  */
 
 #ifdef SWIGPYTHON
