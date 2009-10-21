@@ -154,7 +154,7 @@ class Application(Frame):
         self.master.bind("<space>", self.record)
         self.master.bind("<Return>", self.playstop)
         self.master.protocol("WM_DELETE_WINDOW", self.quit)
-        master.title("Keysplay")
+        master.title("Keysplay vocoder")
 
 app = Application(Tk())
 app.mainloop()

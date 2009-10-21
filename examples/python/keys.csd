@@ -13,11 +13,11 @@ gks chnexport "meter",3
 
 
 instr 1
-ain in
+ain diskin2 "ah.wav", 1,0,1
 k1 linenr 1, 0.1,0.1, 0.1
 kf linsegr 500, 0.1, 4000, 1.5, 1000, 0.1, 100
 fam pvsanal ain*k1, 1024,256,1024,1
-fex pvsosc p4, p5, 1, 1024,256,1024,1
+fex pvsosc p4, p5/2, 1, 1024,256,1024,1
 fvo pvsvoc  fam,fex,1,1
 a1 pvsynth fvo
 ks rms a1
