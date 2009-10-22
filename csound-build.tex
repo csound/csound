@@ -384,33 +384,33 @@ make mingw clean; make mingw all
 			
 			\item (Done) Use Subversion to install the current QuteCsound source code from \url{https://qutecsound.svn.sourceforge.net/svnroot/qutecsound/trunk/qutecsound}. Make a second copy of the source tree for the float sample build of QuteCsound.
 			
-			Rebuild QuteCsound in its src directory using the following commands, possibly with INCLUDEPATH and LIBPATH modified for your system:
+			Rebuild QuteCsound using the following commands, possibly with INCLUDEPATH and LIBPATH modified for your system:
 			
 			\begin{lstlisting}
-qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csound-mingw-release LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
-mingw32-make release
+qmake "CONFIG += build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include INCLUDEPATH+=C:\utah\opt\Qt\2009.03\qt\include\QtXml LIBPATH+=D:\utah\home\mkg\csound-mingw-release LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
+mingw32-make debug
 			\end{lstlisting}
 			
 			\noindent Or, for float samples, something like:
 			
 			\begin{lstlisting}
-qmake "CONFIG += build32" INCLUDEPATH+=D:\utah\home\mkg\csoundf\H INCLUDEPATH+=D:\utah\home\mkg\csoundf\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include LIBPATH+=D:\utah\home\mkg\csoundf LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
-mingw32-make release
+qmake "CONFIG += build32" INCLUDEPATH+=D:\utah\home\mkg\csoundf\H INCLUDEPATH+=D:\utah\home\mkg\csoundf\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include INCLUDEPATH+=C:\utah\opt\Qt\2009.03\qt\include\QtXml LIBPATH+=D:\utah\home\mkg\csoundf LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
+mingw32-make debug
 			\end{lstlisting}
 			
-			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for csnd, libcsound64, and libsndfile, add the required libraries and library paths, and re-run the edited link line, something like this:
+			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for \texttt{csnd}, \texttt{libcsound64}, and \texttt{libsndfile}, change to the \texttt{src} directory, add the required libraries and library paths, and re-run the edited link line, something like this:
 			
-			\begin(lstlisting}
+			\begin{lstlisting}
 g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Debug -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
-			\end(lstlisting}
+			\end{lstlisting}
 			
 			\noindent Or, for float samples, something like:
 			
-			\begin(lstlisting}
+			\begin{lstlisting}
 g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Debug -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound32 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
-			\end(lstlisting}
+			\end{lstlisting}
 			
 			
  		\end{enumerate}
