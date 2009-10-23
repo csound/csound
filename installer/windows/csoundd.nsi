@@ -596,11 +596,13 @@ skipAssoc:
       File ..\..\scoreline.dll
       File ..\..\sfont.dll
       File ..\..\shape.dll
+      File ..\..\signalflowgraph.dll
       File ..\..\stackops.dll
       File ..\..\stdopcod.dll
       File ..\..\stdutil.dll
       File ..\..\stk.dll
       File ..\..\system_call.dll
+      File ..\..\tabsum.dll
       File ..\..\ugakbari.dll
       File ..\..\vaops.dll
       File ..\..\vbap.dll
@@ -690,7 +692,11 @@ SectionGroupEnd
 SectionGroup "Front ends"
   Section "QuteCsound (user-defined widgets)"
     SectionIn 2 3
+!ifdef FLOAT
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsoundf.exe" "" "" "" "" "" " QuteCsound"
+!else
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound.exe" "" "" "" "" "" " QuteCsound"
+!endif
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
@@ -699,7 +705,7 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
       File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
 !ifdef FLOAT
-      File D:\utah\opt\qutecsoundf\src\bin\qutecsound.exe
+      File D:\utah\opt\qutecsoundf\debug\qutecsoundf.exe
 !else
       File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
