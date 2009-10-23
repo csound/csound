@@ -705,7 +705,7 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
       File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
 !ifdef FLOAT
-      File D:\utah\opt\qutecsoundf\debug\qutecsoundf.exe
+      File D:\utah\opt\qutecsoundf\release\qutecsoundf.exe
 !else
       File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
 !endif
