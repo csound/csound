@@ -210,13 +210,13 @@ commandOptions.Add('buildInterfaces',
     "Build C++ interface library.",
     '0')
 commandOptions.Add('buildLuaWrapper',
-    'Set to 1 to build Lua wrapper for the C++ interface library.',
+    'Set to 1 to build Lua wrapper for the C++ interface library (needs buildInterfaces).',
     '0')
 commandOptions.Add('buildPythonWrapper',
-    'Set to 1 to build Python wrapper for the C++ interface library.',
+    'Set to 1 to build Python wrapper for the C++ interface library (needs buildInterfaces).',
     '0')
 commandOptions.Add('buildJavaWrapper',
-    'Set to 1 to build Java wrapper for the C++ interface library.',
+    'Set to 1 to build Java wrapper for the C++ interface library (needs buildInterfaces).',
     '0')
 commandOptions.Add('buildOSXGUI',
     'On OSX, set to 1 to build the basic GUI frontend',
