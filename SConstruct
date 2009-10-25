@@ -15,7 +15,7 @@ For Linux, run in the standard shell
 For MinGW, run in the MSys shell
     and use www.python.org WIN32 Python to run scons.
 For Microsoft Visual C++, run in the Platform SDK
-    command shell, and use www.python.rg WIN32 Python to run scons.
+    command shell, and use www.python.org WIN32 Python to run scons.
 '''
 
 import time
