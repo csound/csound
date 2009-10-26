@@ -1382,9 +1382,9 @@ else:
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
                 '''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
             tmp = '''-install_name
-                /Library/Frameworks/CsoundLib.framework/Versions/%s/%s'''
+                /Library/Frameworks/%s/%s''' 
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
-                 tmp % (ilibVersion, ilibName)))
+                 tmp % (OSXFrameworkCurrentVersion,ilibName)))
             csnd = csoundInterfacesEnvironment.SharedLibrary(
                 '_csnd', csoundInterfacesSources)
             try: os.symlink('lib_csnd.dylib', 'libcsnd.dylib')

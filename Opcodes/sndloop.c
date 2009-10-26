@@ -151,13 +151,14 @@ typedef struct _flooper2 {
   OPDS h;
   MYFLT *out;  /* output */
   MYFLT *amp, *pitch, *loop_start, *loop_end,
-    *crossfade, *ifn, *start, *imode, *ifn2, *iskip;
+    *crossfade, *ifn, *start, *imode, *ifn2, *iskip, *ijump;
   FUNC  *sfunc;  /* function table */
   FUNC *efunc;
   MYFLT count;
   int lstart, lend,cfade, mode;
   double  ndx[2];    /* table lookup ndx */
   int firsttime, init;
+  MYFLT ostart, oend;
 } flooper2;
 
 
@@ -389,6 +390,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
   p->init = 1;
   p->firsttime = 1;
   }
+  
   return OK;
 }
 
@@ -403,7 +405,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     int loop_end = p->lend, loop_start = p->lstart,
         crossfade = p->cfade, len = p->sfunc->flen;
     MYFLT count = p->count,fadein, fadeout;
-    int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
+    int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1;
 
     if (p->efunc != NULL) {
@@ -427,6 +429,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         (loop_end < loop_start ? loop_start : loop_end);
       loopsize = loop_end - loop_start;
       crossfade = (int) (*p->crossfade*sr);
+      p->ostart = *p->loop_start; p->oend = *p->loop_end;
 
       if (mode == 1) {
         ndx[0] = (double) loop_end;
@@ -444,6 +447,18 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       }
       *firsttime = 0;
     }
+    else {
+      if(*p->ijump && (mode == 0) && 
+         (p->ostart != *p->loop_start || 
+	  p->oend != *p->loop_end)) {
+	if(*p->ijump > 1) 
+          loop_end = (int)(ndx[0] + crossfade);
+           loop_start = *p->loop_start*sr;
+	   p->ostart = *p->loop_start;
+           p->oend = *p->loop_end;
+      }
+    }
+
     for (i=0; i < n; i++) {
       if (mode == 1){ /* backwards */
         tndx0 = (int) ndx[0];
@@ -482,6 +497,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           ndx[0] = ndx[1];
           ndx[1] =  (double)loop_end;
           count=(MYFLT)crossfade;
+          p->oend = *p->loop_end;
+	  p->ostart = *p->loop_start;
         }
       }
       else if (mode==2) { /* back and forth */
@@ -560,6 +577,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             crossfade = (int) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize/2 ?
               loopsize/2-1 : crossfade;
+              p->oend = *p->loop_end;
+	      p->ostart = *p->loop_start;
           }
         }
       }
@@ -567,8 +586,10 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         out[i] = 0;
         tndx0 = (uint32) ndx[0];
         frac0 = ndx[0] - tndx0;
-        if (ndx[0] < loop_end-crossfade)
+        if (ndx[0] < loop_end-crossfade) {
           out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          if(ijump) ndx[1] = loop_start;
+        }
         else {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
@@ -601,6 +622,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
           ndx[0] = ndx[1];
           ndx[1] = (double)loop_start;
+          p->oend = *p->loop_end;
+          p->ostart = *p->loop_start;
           count=0;
         }
       }
@@ -1023,7 +1046,7 @@ static OENTRY localops[] = {
   {"pvsvoc", sizeof(pvsvoc), 3,
    "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), 5,
-   "a", "kkkkkioooo", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
+   "a", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
  {"flooper3", sizeof(flooper3), 5,
   "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},
  {"pvsmorph", sizeof(pvsvoc), 3,
