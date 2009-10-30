@@ -388,27 +388,27 @@ make mingw clean; make mingw all
 			
 			\begin{lstlisting}
 qmake "CONFIG+=build64" INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\H INCLUDEPATH+=D:\utah\home\mkg\csound-mingw-release\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include INCLUDEPATH+=C:\utah\opt\Qt\2009.03\qt\include\QtXml LIBPATH+=D:\utah\home\mkg\csound-mingw-release LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
-mingw32-make debug
+mingw32-make release
 			\end{lstlisting}
 			
 			\noindent Or, for float samples, something like:
 			
 			\begin{lstlisting}
 qmake "CONFIG+=build32" INCLUDEPATH+=D:\utah\home\mkg\csoundf\H INCLUDEPATH+=D:\utah\home\mkg\csoundf\interfaces INCLUDEPATH+=D:\utah\opt\Mega-Nerd\libsndfile\include INCLUDEPATH+=C:\utah\opt\Qt\2009.03\qt\include\QtXml LIBPATH+=D:\utah\home\mkg\csoundf LIBPATH+=D:\utah\opt\Mega-Nerd\libsndfile
-mingw32-make debug
+mingw32-make release
 			\end{lstlisting}
 			
 			\noindent This make will fail, because the QuteCsound \texttt{.pro} files were not written in a portable style. Copy the link line, omit the hard-coded libraries for \texttt{csnd}, \texttt{libcsound64}, and \texttt{libsndfile}, change to the \texttt{src} directory, add the required libraries and library paths, and re-run the edited link line, something like this:
 			
 			\begin{lstlisting}
-g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Debug -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o bin\qutecsound.exe object_script.qutecsound.Release -L"d:\utah\home\mkg\csound-mingw-release" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind debug\qutecsound_res.o -lcsnd -lcsound64 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
 			\end{lstlisting}
 			
 			\noindent Or, for float samples, something like:
 			
 			\begin{lstlisting}
-g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o debug\qutecsoundf.exe object_script.qutecsoundf.Debug  -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind -lcsnd -lcsound32 -lsndfile-1 -lQtXml4 -lQtGuid4 -lQtCored4
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o release\qutecsoundf.exe object_script.qutecsoundf.Release  -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind -lcsnd -lcsound32 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
 			\end{lstlisting}	
 			
