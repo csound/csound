@@ -408,7 +408,7 @@ strip bin/*
 			\noindent Or, for float samples, something like:
 			
 			\begin{lstlisting}
-g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o release\qutecsoundf.exe object_script.qutecsoundf.Release  -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmaind -lcsnd -lcsound32 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
+g++ -enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl -Wl,-subsystem,windows -o release\qutecsoundf.exe object_script.qutecsoundf.Release  -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"d:\utah\home\mkg\csoundf" -L"d:\utah\opt\Mega-Nerd\libsndfile" -L"c:\utah\opt\Qt\2009.03\qt\lib" -lmingw32 -lqtmain -lcsnd -lcsound32 -lsndfile-1 -lQtXml4 -lQtGui4 -lQtCore4
 strip bin/*	
 			\end{lstlisting}	
 			
