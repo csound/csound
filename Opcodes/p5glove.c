@@ -29,6 +29,8 @@
 typedef struct {
     OPDS      h;
  /* ------------------------------------- */
+    void      *thread;
+    int       on;
 } P5GLOVEINIT;
 
 typedef struct {
@@ -75,6 +77,21 @@ typedef struct {
 
 //P5Glove myGlove;
 
+uintptr_t runp5thread(void *g)
+{
+    P5Glove    *glove = (P5Glove *)g;
+    while (*glove) {
+      p5glove_sample(*glove, 0.2);
+    }
+    return 0;
+}
+
+int p5g_deinit(CSOUND *csound, P5GLOVEINIT *p)
+{
+    p->on = 0;
+    return pthread_cancel(p->thread);
+}
+
 int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 {
     P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
@@ -86,19 +103,23 @@ int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
     if (UNLIKELY(*glove==NULL)) {
       return csound->InitError(csound, Str("unable to open p5glove\n"));
     }
+    p->on = 1;
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND *, void *)) p5g_deinit);
+    p->thread = csound->CreateThread(runp5thread, glove);
     return OK;
 }
 
 int p5glove_poll(CSOUND *csound, P5GLOVE *p)
 {
-    P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
-    int res;
-    if (glove == NULL)
-      return csound->PerfError(csound, Str("No glove open"));
-    res = p5glove_sample(*glove, -1);
-    if (res < 0 && errno == EAGAIN) return OK;//res = p5glove_sample(*glove, -1);
-    if (UNLIKELY(res < 0))
-      return csound->PerfError(csound, Str("P5Glove failure"));
+    /* P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove"); */
+    /* int res; */
+    /* if (glove == NULL) */
+    /*   return csound->PerfError(csound, Str("No glove open")); */
+    /* res = p5glove_sample(*glove, -1); */
+    /* if (res < 0 && errno == EAGAIN) return OK;//res = p5glove_sample(*glove, -1); */
+    /* if (UNLIKELY(res < 0)) */
+    /*   return csound->PerfError(csound, Str("P5Glove failure")); */
     return OK;
 }
 
@@ -108,6 +129,7 @@ int p5glove_closer(CSOUND *csound, P5GLOVE *p)
     if (glove==NULL) return NOTOK;
     printf("Closer called\n");
     p5glove_close(*glove);
+    *glove = NULL;
     csound->DestroyGlobalVariable(csound, "p5glove");
     return OK;
 }

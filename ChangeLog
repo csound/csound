@@ -1,3 +1,7 @@
+2009-11-03  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/p5glove.c (p5glove_find): Use thread to read the USB glove.
+
 2009-10-16  jpff  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/pvsbasic.c (pvsshiftset): Change MYFLT to float in memset
