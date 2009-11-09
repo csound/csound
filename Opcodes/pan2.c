@@ -83,7 +83,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       for (n=0; n<nsmps; n++) {
         if (XINARG2) kangl = p->pan[n];
         cc = COS(PI*kangl*FL(0.5));
-        cc = SIN(PI*kangl*FL(0.5));
+        ss = SIN(PI*kangl*FL(0.5));
         l = SQRT2*(cc+ss)*0.5;
         r = SQRT2*(cc-ss)*0.5;
         al[n] = ain[n] * l;

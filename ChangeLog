@@ -1,3 +1,8 @@
+2009-11-09  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pan2.c (pan2run): Fixed editing error in type 3 (thanks
+	to Sigurd Saue)
+
 2009-11-03  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/p5glove.c (p5glove_find): Use thread to read the USB glove.
