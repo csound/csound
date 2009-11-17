@@ -1,6 +1,6 @@
 /*
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2008 Øyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2009 Øyvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -143,8 +143,7 @@ typedef struct {
     unsigned channelmaskindex;
     FUNC *wavgaintab;
     unsigned wavgainindex;
-    double grainphase, prevphase, graininc;
-    double nextgrainphase;
+    double grainphase, graininc;
 } PARTIKKEL;
 
 typedef struct {
