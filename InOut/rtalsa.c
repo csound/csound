@@ -390,11 +390,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
       if (err < 0 || (int) nn != dev->buffer_smps) {
-        if (err >= 0)
+        if (err >= 0)  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
-                            "use %d instead\n"), dev->buffer_smps, (int) nn);
-        sprintf(msg, "Failed while trying to set soundcard DMA buffer size");
-        goto err_return_msg;
+                            "using %d instead\n"), dev->buffer_smps, (int) nn);
+          dev->buffer_smps=nn;
+        }
       }
     }
     /* and period size */
@@ -413,11 +413,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
       if (err < 0 || (int) nn != dev->period_smps) {
-        if (err >= 0)
+        if (err >= 0) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
-                            "use %d instead\n"), dev->period_smps, (int) nn);
-        sprintf(msg, "Error setting period time for real-time audio");
-        goto err_return_msg;
+                            "using %d instead\n"), dev->period_smps, (int) nn);
+          dev->period_smps=nn;
+        }
       }
     }
     /* set up device according to the above parameters */
