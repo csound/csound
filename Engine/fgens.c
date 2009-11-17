@@ -1292,13 +1292,13 @@ static MYFLT nextval(FILE *f)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';') {             /* If exended with comment clear it now */
+      if (c==';' || c=='#') {   /* If exended with comment clear it now */
         while ((c = getc(f)) != '\n');
       }
       return (MYFLT)d;
     }
     while (isspace(c)) c = getc(f); /* Whitespace */
-    if (c==';') {                   /* Comment */
+    if (c==';' || c=='#') {     /* Comment */
       while ((c = getc(f)) != '\n');
     }
     goto top;
