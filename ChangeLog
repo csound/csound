@@ -1,3 +1,7 @@
+2009-11-24  jpff  <jpff@cs.bath.ac.uk>
+
+	* Engine/musmon.c (gettempo): Fixed stupid error
+
 2009-11-09  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/pan2.c (pan2run): Fixed editing error in type 3 (thanks
