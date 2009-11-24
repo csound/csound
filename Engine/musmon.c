@@ -95,8 +95,9 @@ static void settempo(CSOUND *csound, MYFLT tempo)
 
 int gettempo(CSOUND *csound, GTEMPO *p)
 {
-    if (csound->oparms->Beatmode)
-      *p->ans = (MYFLT) (60.0 / (csound->ibeatTime * csound->esr));
+    if (csound->oparms->Beatmode) {
+      *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
+    }
     else
       *p->ans = FL(60.0);
     return OK;
