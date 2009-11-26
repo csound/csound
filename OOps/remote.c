@@ -25,6 +25,7 @@
 #include "remote.h"
 
 #ifdef HAVE_SOCKETS
+#include <sys/socket.h>
 #ifndef WIN32
 #include <sys/ioctl.h>
 #ifdef LINUX
