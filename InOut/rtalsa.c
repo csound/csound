@@ -319,7 +319,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     snd_pcm_sw_params_alloca(&sw_params);
     /* open the device */
     if (dev->device == NULL || dev->device[0] == '\0')
-      devName = "plughw";
+      devName = "default";
     else
       devName = dev->device;
     err = snd_pcm_open(&(dev->handle), devName,
