@@ -527,7 +527,7 @@ int clockon(CSOUND *csound, CLOCK *p)
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (LIKELY(!clk->running[p->c])) {
       clk->running[p->c] = 1;
-      clk->counters[p->c] = csound->GetCPUTime(&(clk->r));
+      clk->counters[p->c] -= csound->GetCPUTime(&(clk->r));
     }
     return OK;
 }
@@ -537,7 +537,7 @@ int clockoff(CSOUND *csound, CLOCK *p)
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (LIKELY(clk->running[p->c])) {
       clk->running[p->c] = 0;
-      clk->counters[p->c] = csound->GetCPUTime(&(clk->r)) - clk->counters[p->c];
+      clk->counters[p->c] += csound->GetCPUTime(&(clk->r));
     }
     return OK;
 }
