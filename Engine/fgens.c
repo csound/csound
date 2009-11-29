@@ -1283,22 +1283,22 @@ static MYFLT nextval(FILE *f)
  top:
     if (feof(f)) return FL(0.0); /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-      double d;                 /* A number starts */
+      double d;                           /* A number starts */
       char buff[128];
       int j = 0;
-      do {                      /* Fill buffer */
+      do {                                /* Fill buffer */
         buff[j++] = c;
         c = getc(f);
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';' || c=='#') {   /* If exended with comment clear it now */
+      if (c==';' || c=='#') {             /* If exended with comment clear it now */
         while ((c = getc(f)) != '\n');
       }
       return (MYFLT)d;
     }
-    while (isspace(c)) c = getc(f); /* Whitespace */
-    if (c==';' || c=='#') {     /* Comment */
+    while (isspace(c)) c = getc(f);       /* Whitespace */
+    if (c==';' || c=='#') {               /* Comment */
       while ((c = getc(f)) != '\n');
     }
     goto top;

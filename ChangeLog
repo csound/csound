@@ -1,3 +1,12 @@
+2009-11-29  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/cross2.c (getmag): If magnitude is zero do not scale!
+
+2009-11-28  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (clockon, clockoff): Reading the clock should be
+	incremental. (correcting bug introduced by Istvan)
+
 2009-11-24  jpff  <jpff@cs.bath.ac.uk>
 
 	* Engine/musmon.c (gettempo): Fixed stupid error
