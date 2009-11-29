@@ -58,10 +58,12 @@ static void getmag(MYFLT *x, int32 size)
       j--;
     } while (--n);
 
-    n = size/2 + 1;
-    do {
-      *x++ /= max;
-    } while ( --n);
+    if (LIKELY(max!=FL(0.0))) {
+      int NN = size/2 + 1;
+      for (n=0; n<NN; n++) {
+        x[n] /= max;
+      }
+    }
 }
 
 static void mult(MYFLT *x, MYFLT *y, int32 size, MYFLT w)
@@ -362,17 +364,17 @@ static int Xsynth(CSOUND *csound, CON *p)
     n = p->count;
     m = n % div;
     for (samps = 0; samps < csound->ksmps; samps++) {
-      buf1[n] = *s++;
-      buf2[n] = *f++;
+      buf1[n] = s[samps];
+      buf2[n] = f[samps];
 
-      *out++ = *(outbuf + n);
-      n++; m++; if (m==div) m = 0;
-
-      if (m == 0) {
+      out[samps] = outbuf[n];
+      n++; m++;
+      if (n == size) n = 0;     /* Moved to here from inside loop */
+      if (m == div) {           /* wrap */
         int32           i, mask, index;
         MYFLT           window;
         MYFLT           *x, *y, *win;
-
+        m = 0;
         mask = size - 1;
         win = p->win->ftable;
         x = p->in1;
