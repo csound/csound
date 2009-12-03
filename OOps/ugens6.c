@@ -291,7 +291,7 @@ static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
     DELAYR  *d = (DELAYR*) csound->first_delayr;
     int     n = (int)MYFLT2LRND(*ndx);
 
-    if (d == NULL) {
+    if (UNLIKELY(d == NULL)) {
       csound->InitError(csound, Str("deltap: associated delayr not found"));
       return NULL;
     }
@@ -414,7 +414,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     int32       idelsmps;
     MYFLT       delsmps, delfrac;
 
-    if (q->auxch.auxp==NULL) goto err1;
+    if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
@@ -425,9 +425,9 @@ int deltapi(CSOUND *csound, DELTAP *p)
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=0; n<nsmps; n++) {
-        if (tap >= endp)
+        if (UNLIKELY(tap >= endp))
           tap -= q->npts;
-        if ((prv = tap - 1) < begp)
+        if (UNLIKELY((prv = tap - 1) < begp))
           prv += q->npts;
         ar[n] = *tap + (*prv - *tap) * delfrac;
         tap++;
@@ -440,10 +440,10 @@ int deltapi(CSOUND *csound, DELTAP *p)
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
-        if (tap < begp) tap += q->npts;
-        else if (tap >= endp)
+        if (UNLIKELY(tap < begp)) tap += q->npts;
+        else if (UNLIKELY(tap >= endp))
           tap -= q->npts;
-        if ((prv = tap - 1) < begp)
+        if (UNLIKELY((prv = tap - 1) < begp))
           prv += q->npts;
         ar[n] = *tap + (*prv - *tap) * delfrac;
       }
@@ -553,12 +553,12 @@ int deltap3(CSOUND *csound, DELTAP *p)
           tap += q->npts;
         else if (UNLIKELY(tap >= endp))
           tap -= q->npts;
-        if ((prv = tap - 1) < begp)
+        if (UNLIKELY((prv = tap - 1) < begp))
           prv += q->npts;
-        if (prv - 1 < begp) y2 = *(prv-1+q->npts);
-        else                y2 = *(prv-1);
-        if (tap + 1 >= endp) ym1 = *(tap+1-q->npts);
-        else                ym1 = *(tap+1);
+        if (UNLIKELY(prv - 1 < begp)) y2 = *(prv-1+q->npts);
+        else                          y2 = *(prv-1);
+        if (UNLIKELY(tap + 1 >= endp)) ym1 = *(tap+1-q->npts);
+        else                           ym1 = *(tap+1);
         y0 = *tap; y1 = *prv;
         {
           MYFLT w, x, y, z;
@@ -584,8 +584,8 @@ int tapxset(CSOUND *csound, DELTAPX *p)
       return NOTOK;
     p->wsize = (int)(*(p->iwsize) + FL(0.5));          /* window size */
     p->wsize = ((p->wsize + 2) >> 2) << 2;
-    if (p->wsize < 4) p->wsize = 4;
-    if (p->wsize > 1024) p->wsize = 1024;
+    if (UNLIKELY(p->wsize < 4)) p->wsize = 4;
+    if (UNLIKELY(p->wsize > 1024)) p->wsize = 1024;
     /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
     p->d2x = 1.0 - pow((double)p->wsize * 0.85172, -0.89624);
     p->d2x /= (double)((p->wsize * p->wsize) >> 2);
@@ -711,16 +711,16 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
           i = i2;
           do {
             w = 1.0 - d * d * d2x;
-            if (++bufp >= bufend) bufp = buf1;
+            if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
             *bufp = (MYFLT)((double)*bufp + w * w * n1 / d); d++;
             w = 1.0 - d * d * d2x;
-            if (++bufp >= bufend) bufp = buf1;
+            if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
             *bufp = (MYFLT)((double)*bufp - w * w * n1 / d); d++;
           } while (--i);
         }
         else {                                          /* integer sample */
           xpos = (int32) ((double)xpos + x1 + 0.5);     /* position */
-          if (xpos >= maxd) xpos -= maxd;
+          if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
           buf1[xpos] += *in1;
         }
         in1++; indx++;
@@ -741,9 +741,9 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
         x = (double)*(in1++);
         bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
         while (bufp >= bufend) bufp -= maxd;
-        *bufp += (MYFLT)(am1 * x); if (++bufp >= bufend) bufp = buf1;
-        *bufp += (MYFLT)(a0 * x);  if (++bufp >= bufend) bufp = buf1;
-        *bufp += (MYFLT)(a1 * x);  if (++bufp >= bufend) bufp = buf1;
+        *bufp += (MYFLT)(am1 * x); if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        *bufp += (MYFLT)(a0 * x);  if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        *bufp += (MYFLT)(a1 * x);  if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
         *bufp += (MYFLT)(a2 * x);
 
         indx++;
@@ -782,11 +782,11 @@ int cmbset(CSOUND *csound, COMB *p)
     int32       lpsiz, nbytes;
 
     if (*p->insmps != 0) {
-      if ((lpsiz = (int32)(FL(0.5)+*p->ilpt)) <= 0) {
+      if (UNLIKELY((lpsiz = (int32)(FL(0.5)+*p->ilpt))) <= 0) {
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if ((lpsiz = (int32)(FL(0.5) + *p->ilpt * csound->esr)) <= 0) {
+    else if (UNLIKELY((lpsiz = (int32)(FL(0.5) + *p->ilpt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -812,7 +812,7 @@ int comb(CSOUND *csound, COMB *p)
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
 #ifdef __alpha__
@@ -823,7 +823,7 @@ int comb(CSOUND *csound, COMB *p)
        * just say it's zero and don't call exp().  heh 981101
        */
       double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
-      if (exp_arg < -36.8413615)    /* ln(1.0e-16) */
+      if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
         coef = p->coef = (MYFLT)exp(exp_arg);
@@ -839,7 +839,7 @@ int comb(CSOUND *csound, COMB *p)
       ar[n] = *xp;
       *xp *= coef;
       *xp += asig[n];
-      if (++xp >= endp)
+      if (UNLIKELY(++xp >= endp))
         xp = (MYFLT *) p->auxch.auxp;
     }
     p->pntr = xp;
@@ -855,7 +855,7 @@ int alpass(CSOUND *csound, COMB *p)
     MYFLT       y, z;
     MYFLT       coef = p->coef;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
       coef = p->coef = EXP(log001 * *p->ilpt / p->prvt);
@@ -868,7 +868,7 @@ int alpass(CSOUND *csound, COMB *p)
       y = *xp;
       *xp++ = z = coef * y + asig[n];
       ar[n] = y - coef * z;
-      if (xp >= endp)
+      if (UNLIKELY(xp >= endp))
         xp = (MYFLT *) p->auxch.auxp;
     }
     p->pntr = xp;
@@ -906,7 +906,7 @@ int rvbset(CSOUND *csound, REVERB *p)
       p->adr4 = p->p4 = p->adr3 + *sizp++;
       p->adr5 = p->p5 = p->adr4 + *sizp++;
       p->adr6 = p->p6 = p->adr5 + *sizp++;
-      if (p->adr6 + *sizp != (MYFLT *) p->auxch.endp) {
+      if (UNLIKELY(p->adr6 + *sizp != (MYFLT *) p->auxch.endp)) {
         csound->Die(csound, Str("revlpsiz inconsistent\n"));
       }
       p->prvt = FL(0.0);
@@ -930,7 +930,7 @@ int reverb(CSOUND *csound, REVERB *p)
     MYFLT       c1,c2,c3,c4,c5,c6;
     int n, nsmps = csound->ksmps;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       const MYFLT *lptimp = revlptimes;
       MYFLT       logdrvt = log001 / *p->krvt;
@@ -975,12 +975,12 @@ int reverb(CSOUND *csound, REVERB *p)
       y2 = *p6;
       *p6++ = z = c6 * y2 + y1;
       ar[n] = y2 - c6 * z;
-      if (p1 >= p->adr2) p1 = p->adr1;
-      if (p2 >= p->adr3) p2 = p->adr2;
-      if (p3 >= p->adr4) p3 = p->adr3;
-      if (p4 >= p->adr5) p4 = p->adr4;
-      if (p5 >= p->adr6) p5 = p->adr5;
-      if (p6 >= endp)    p6 = p->adr6;
+      if (UNLIKELY(p1 >= p->adr2)) p1 = p->adr1;
+      if (UNLIKELY(p2 >= p->adr3)) p2 = p->adr2;
+      if (UNLIKELY(p3 >= p->adr4)) p3 = p->adr3;
+      if (UNLIKELY(p4 >= p->adr5)) p4 = p->adr4;
+      if (UNLIKELY(p5 >= p->adr6)) p5 = p->adr5;
+      if (UNLIKELY(p6 >= endp))    p6 = p->adr6;
     }
     p->p1 = p1;
     p->p2 = p2;
@@ -997,7 +997,7 @@ int panset(CSOUND *csound, PAN *p)
 {
     FUNC  *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftp = ftp;
     p->xmul = (*p->imode == FL(0.0) ? FL(1.0) : (MYFLT)ftp->flen);
@@ -1014,7 +1014,7 @@ int pan(CSOUND *csound, PAN *p)
     FUNC    *ftp;
 
     ftp = p->ftp;
-    if (ftp == NULL) goto err1;          /* RWD fix */
+    if (UNLIKELY(ftp == NULL)) goto err1;          /* RWD fix */
     xndx_f = (*p->kx * p->xmul) - p->xoff;
     yndx_f = (*p->ky * p->xmul) - p->xoff;
     flen = ftp->flen;
