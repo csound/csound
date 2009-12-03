@@ -36,7 +36,7 @@ int porset(CSOUND *csound, PORT *p)
 {
     p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
     p->c1 = 1.0 - p->c2;
-    if (*p->isig >= FL(0.0))
+    if (LIKELY(*p->isig >= FL(0.0)))
       p->yt1 = (double)(*p->isig);
     return OK;
 }
@@ -56,7 +56,7 @@ int tonset(CSOUND *csound, TONE *p)
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
 
-    if (!(*p->istor))
+    if (LIKELY(!(*p->istor)))
       p->yt1 = 0.0;
     return OK;
 }
@@ -99,7 +99,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
                        (int)(p->loop*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
-    if (!(*p->istor)) {
+    if (LIKELY(!(*p->istor))) {
       memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
     }
     return OK;
@@ -406,11 +406,11 @@ int lprdset(CSOUND *csound, LPREAD *p)
     csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XSTRCODE);
 
     /* Do not reload existing file ? */
-    if ((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0)
+    if (UNLIKELY((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0))
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     /* else read file  */
-    if ((mfp = ldmemfile2(csound, lpfilname, CSFTYPE_LPC)) == NULL) {
+    if (UNLIKELY((mfp = ldmemfile2(csound, lpfilname, CSFTYPE_LPC)) == NULL)) {
       return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
     }
     /* Store memory file location in opcode */
@@ -618,7 +618,7 @@ static inline void
         polyReal[k] = -(cr*pr-ci*pi);
         polyImag[k] = -(ci*pr+cr*pi);
 
-        if (k>0) {
+        if (LIKELY(k>0)) {
             polyReal[k] += polyReal[k-1];
             polyImag[k] += polyImag[k-1];
         }
