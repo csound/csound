@@ -693,6 +693,8 @@ extern const uint32_t csPlayScoMask;
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
+  /* Eventually this will be changed to inchnls -- JPff */
+#define nchnls_i nchnls
   struct CSOUND_ {
     /* Csound API function pointers (320 total) */
     int (*GetVersion)(void);
@@ -1047,7 +1049,8 @@ extern const uint32_t csPlayScoMask;
     int           randSeed2;
     int           memlock;
     int           floatsize;
-    int   dummyint[8];
+    int           inchnls;      /* Not used yet -- JPff */
+    int   dummyint[7];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
