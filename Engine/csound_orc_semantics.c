@@ -242,6 +242,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"T_KSMPS:\n"); break;
     case T_NCHNLS:
       csound->Message(csound,"T_NCHNLS:\n"); break;
+    case T_NCHNLSI:
+      csound->Message(csound,"T_NCHNLSI:\n"); break;
     case T_INSTR:
       csound->Message(csound,"T_INSTR:\n"); break;
     case T_STRCONST:

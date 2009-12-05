@@ -37,14 +37,14 @@
 #define CS_PACKAGE_VERSION  "5.11"
 #define CS_VERSION          (5)
 #define CS_SUBVER           (11)
-#define CS_PATCHLEVEL       (2)
+#define CS_PATCHLEVEL       (3)
 
 #define CS_APIVERSION       2   /* should be increased anytime a new version
                                    contains changes that an older host will
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        2   /* for minor changes that will still allow
+#define CS_APISUBVER        3   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
 #endif /* CSOUND_VERSION_H */

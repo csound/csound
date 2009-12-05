@@ -110,6 +110,7 @@
 %token T_ELSEIF
 %token T_ELSE
 %token T_ENDIF
+%token T_NCHNLSI
 
 %token T_INTLIST
 
@@ -566,6 +567,7 @@ rident    : T_SRATE     { $$ = make_leaf(csound, T_SRATE, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_KRATE, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_KSMPS, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NCHNLS, (ORCTOKEN *)yylval); }
+          | T_NCHNLSI   { $$ = make_leaf(csound, T_NCHNLSI, (ORCTOKEN *)yylval); }
           | T_0DBFS     { $$ = make_leaf(csound, T_0DBFS, (ORCTOKEN *)yylval); }
           ;
 
@@ -594,6 +596,7 @@ constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
           | T_KRATE     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_KSMPS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_NCHNLS    { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
+          | T_NCHNLSI   { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           | T_0DBFS     { $$ = make_leaf(csound, T_NUMBER, (ORCTOKEN *)yylval); }
           ;
 

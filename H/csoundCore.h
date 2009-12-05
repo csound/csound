@@ -1277,6 +1277,7 @@ extern const uint32_t csPlayScoMask;
     char*         csdname;       /* original CSD name; do not free() */
     int           parserUdoflag;
     int           parserNamedInstrFlag;
+    int           tran_nchnlsi;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

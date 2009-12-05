@@ -127,14 +127,10 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;   /* load once */
       for (n=0; n<nsmps; n++)   /* for loops compile better */
         tab[(int)(ndx[n]*xbmul)] = rslt[n];
-/*       do *(tab + (long) (*ndx++ * p->xbmul)) = *rslt++; */
-/*       while(--nsmps); */
     }
     else {
       for (n=0; n<nsmps; n++)
         tab[(int)ndx[n]] = rslt[n];
-/*       do *(tab + (long) *ndx++) = *rslt++; */
-/*       while(--nsmps); */
     }
     return OK;
 }
@@ -162,13 +158,19 @@ static int fastabi(CSOUND *csound, FASTAB *p)
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
 
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
       *p->rslt =  *(ftp->ftable + (int) (*p->xndx * ftp->flen));
-    else
+    else {
+      if ((int) *p->xndx >= ftp->flen) {
+        printf("Table %d: index=%d length=%d\n",
+               ftp->fno, (int) *p->xndx, ftp->flen);
+        return csound->PerfError(csound, "tab_i off end");
+      }
       *p->rslt =  *(ftp->ftable + (int) *p->xndx);
+    }
     return OK;
 }
 
@@ -193,14 +195,14 @@ static int fastab(CSOUND *csound, FASTAB *p)
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
-      do {
+      for (i=0; i<nsmps; i++) {
         rslt[i] = tab[(int) (ndx[i] * xbmul)];
-      } while (++i < nsmps);
+      }
     }
     else {
-      do {
+      for (i=0; i<nsmps; i++) {
         rslt[i] = tab[(int) ndx[i]];
-      } while (++i < nsmps);
+      }
     }
     return OK;
 }
@@ -209,7 +211,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 {
     MYFLT             *ft;
     STDOPCOD_GLOBALS  *pp;
-    if (csound->GetTable(csound, &ft, (int) *(p->ifn)) < 0)
+    if (UNLIKELY(csound->GetTable(csound, &ft, (int) *(p->ifn)) < 0))
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->tb_ptrs[ndx] = ft;
