@@ -30,7 +30,7 @@
 
 int downset(CSOUND *csound, DOWNSAMP *p)
 {
-    if ((p->len = (int)*p->ilen) > csound->ksmps)
+    if (UNLIKELY((p->len = (int)*p->ilen) > csound->ksmps))
       return csound->InitError(csound, "ilen > ksmps");
     return OK;
 }
@@ -207,7 +207,7 @@ int delset(CSOUND *csound, DELAY *p)
     int32      npts;
     char        *auxp;
 
-    if (*p->istor && p->auxch.auxp != NULL)
+    if (UNLIKELY(*p->istor && p->auxch.auxp != NULL))
       return OK;
     /* Round not truncate */
     if (UNLIKELY((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0)) {
@@ -249,7 +249,7 @@ int delrset(CSOUND *csound, DELAYR *p)
       *(p->indx) = (MYFLT)-(csound->delayr_stack_depth);
     }
 
-    if (*p->istor != FL(0.0) && p->auxch.auxp != NULL)
+    if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       return OK;
     /* ksmps is min dely */
     if (UNLIKELY((npts=(int32)(FL(0.5) + *p->idlt*csound->esr)) < csound->ksmps)) {

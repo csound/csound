@@ -268,6 +268,7 @@ void otran(CSOUND *csound)
     gblnamset(csound, "kr");
     gblnamset(csound, "ksmps");
     gblnamset(csound, "nchnls");
+    gblnamset(csound, "nchnls_i");
     gblnamset(csound, "0dbfs"); /* no commandline override for that! */
     gblnamset(csound, "$sr");   /* incl command-line overrides */
     gblnamset(csound, "$kr");
@@ -494,6 +495,8 @@ void otran(CSOUND *csound)
                   csound->tran_ksmps = constval;
                 else if (strcmp(s, "nchnls") == 0)
                   csound->tran_nchnls = (int) constval;
+                else if (strcmp(s, "nchnls_i") == 0)
+                  csound->tran_nchnlsi = (int) constval;
                 /* we have set this as reserved in rdorch.c */
                 else if (strcmp(s, "0dbfs") == 0)
                   csound->tran_0dbfs = constval;
@@ -1212,6 +1215,7 @@ void oload(CSOUND *p)
             case 2:  p->ekr = conval;   break;  /*  to set params now */
             case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
             case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
+            case 5:  p->inchnls = (int) (conval + FL(0.5));  break;
             default: p->e0dbfs = conval; break;
           }
         }

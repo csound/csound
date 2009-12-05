@@ -149,6 +149,9 @@ CONT            \\[[ \t]*\n
 "nchnls"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_NCHNLS;
                   return T_NCHNLS; }
+"nchnls_i"      { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_NCHNLSI;
+                  return T_NCHNLSI; }
 "instr"         {
                 namedInstrFlag = 1;
                 return T_INSTR;
