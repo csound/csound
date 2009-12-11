@@ -1,3 +1,9 @@
+2009-12-11  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (splitline): Allow \" in strings
+
+	* Top/one_file.c (readOptions): Reset linecount after reading .csoundrc
+
 2009-11-29  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/cross2.c (getmag): If magnitude is zero do not scale!
