@@ -47,8 +47,11 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         char *sstrp;
         if ((sstrp = csound->sstrbuf) == NULL)
             sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-        while ((c = getc(xx)) != '"')
-            *sstrp++ = c;                       /*   copy the characters    */
+        do {
+          c = getc(xx);
+          if (c=='\\') c = getc(xx);
+          *sstrp++ = c;                       /*   copy the characters    */
+        } while (c!='"');
         *sstrp++ = '\0';
         *pfld = SSTRCOD;                        /*   flag with hifloat      */
         csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */

@@ -2986,6 +2986,10 @@ int printksset(CSOUND *csound, PRINTKS *p)
             *sdest++ = ';';
             sarg++;
             break;
+          /* case '%':             /\* Should we do this? %% *\/ */
+          /*   *sdest++ = '%'; */
+          /*   sarg++; */
+          /*   break; */
           default:
             *sdest++ = temp;
             break;
