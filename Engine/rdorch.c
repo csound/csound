@@ -1147,7 +1147,13 @@ static int splitline(CSOUND *csound)
           extend_group(csound);
         grpp = ST(group)[grpcnt++] = cp;
         *cp++ = c;                          /*  cpy to nxt quote */
-        while ((*cp++ = c = *lp++) != '"' && c != '\n');
+       do {
+          c = *lp++;
+          if (c=='\\') {                    /* Deal with \" case */
+            c = *lp++;
+          }
+          *cp++ = c;
+       } while (c != '"' && c != '\n');
         if (c == '\n')
           synterrp(csound, lp - 1, Str("unmatched quotes"));
         collecting = 1;                     /*   & resume chking */
