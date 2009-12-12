@@ -39,6 +39,11 @@ typedef struct {
         MYFLT   *index;
 } PFIELD;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *inits[PMAX];
+} PINIT;
+
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -142,11 +147,23 @@ int pvalue(CSOUND *csound, PFIELD *p)
     return OK;
 }
 
+int pinit(CSOUND *csound, PINIT *p)
+{
+    int n;
+    int    nargs = p->INOCOUNT;
+    int    pargs = csound->currevent->pcnt;
+    /* Should check that inits exist> */
+    for (n=0; n<nargs && n<pargs; n++)
+      *p->inits[n] = csound->currevent->p[n];
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),   1,  "i", "",     (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),   1,  "i", "i",    (SUBR)pvalue,    NULL, NULL },
+{ "pcount", S(PFIELD),  1, "i", "",     (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  1, "i", "i",    (SUBR)pvalue,    NULL, NULL },
+{ "pinit", S(PINIT),    1,  "", "m",    (SUBR)pinit,     NULL, NULL },
 { "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 
