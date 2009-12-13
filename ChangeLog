@@ -1,3 +1,7 @@
+2009-12-13  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/nlfilt.c (pinit): New code to implement passign opcpode
+
 2009-12-11  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/rdorch.c (splitline): Allow \" in strings

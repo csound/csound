@@ -153,17 +153,19 @@ int pinit(CSOUND *csound, PINIT *p)
     int    nargs = p->INOCOUNT;
     int    pargs = csound->currevent->pcnt;
     /* Should check that inits exist> */
-    for (n=0; n<nargs && n<pargs; n++)
-      *p->inits[n] = csound->currevent->p[n];
+    if (nargs>pargs)
+      csound->Warning(csound, Str("More arguments than p fields"));
+    for (n=1; n<=nargs && n<=pargs; n++)
+      *p->inits[n-1] = csound->currevent->p[n];
     return OK;
 }
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),  1, "i", "",     (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),  1, "i", "i",    (SUBR)pvalue,    NULL, NULL },
-{ "pinit", S(PINIT),    1,  "", "m",    (SUBR)pinit,     NULL, NULL },
+{ "pcount", S(PFIELD),  1, "i", "",       (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "passign", S(PINIT),  1,  "", "m",      (SUBR)pinit,     NULL, NULL },
 { "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 
