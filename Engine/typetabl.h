@@ -79,11 +79,15 @@ static const int32 typetabl2[/*41*/] = {
 
 /* output types */
 
-static const int32 typetabl3[/*15*/] = {
-    's',    (ARGTYP_a | ARGTYP_k),      'i',    (ARGTYP_i | ARGTYP_p),
-    'B',    (ARGTYP_B | ARGTYP_b),      'm',    ARGTYP_a,
-    'z',    ARGTYP_k,   'X',    (ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
+static const int32 typetabl3[/*17*/] = {
+    's',    (ARGTYP_a | ARGTYP_k),      
+    'i',    (ARGTYP_i | ARGTYP_p),
+    'B',    (ARGTYP_B | ARGTYP_b),      
+    'm',    ARGTYP_a,
+    'z',    ARGTYP_k,   
+    'X',    (ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
     'N',    (ARGTYP_S | ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
+    'I',    (ARGTYP_S | ARGTYP_i),
     0L
 };
 

@@ -41,7 +41,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *inits[PMAX];
+        MYFLT   *inits[24];
+        MYFLT   *start;
 } PINIT;
 
 #define MAX_DELAY   (1024)
@@ -150,13 +151,17 @@ int pvalue(CSOUND *csound, PFIELD *p)
 int pinit(CSOUND *csound, PINIT *p)
 {
     int n;
-    int    nargs = p->INOCOUNT;
+    int    nargs = p->OUTOCOUNT;
     int    pargs = csound->currevent->pcnt;
+    int    start = (int)(*p->start);
     /* Should check that inits exist> */
     if (nargs>pargs)
       csound->Warning(csound, Str("More arguments than p fields"));
-    for (n=1; n<=nargs && n<=pargs; n++)
-      *p->inits[n-1] = csound->currevent->p[n];
+    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+      /* printf("n=%d: nargs=%d pargs=%d start=%d pargs-start=%d n+start=%d\n", */
+      /*        n, nargs, pargs, start, pargs-start, n+start); */
+      *p->inits[n] = csound->currevent->p[n+start];
+    }
     return OK;
 }
 
@@ -165,7 +170,7 @@ int pinit(CSOUND *csound, PINIT *p)
 static OENTRY localops[] = {
 { "pcount", S(PFIELD),  1, "i", "",       (SUBR)pcount,    NULL, NULL },
 { "pindex", S(PFIELD),  1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "passign", S(PINIT),  1,  "", "m",      (SUBR)pinit,     NULL, NULL },
+{ "passign", S(PINIT),  1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",      (SUBR)pinit,     NULL, NULL },
 { "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 
