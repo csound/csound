@@ -66,6 +66,7 @@
 /* outarg types include:
                 m       multiple out aargs
                 z       multiple out kargs
+                I       multiple out irate (not implemented yet)
                 s       arate or krate scalar
                 X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
                 N       multiple args (a, k, i, or S-rate)
