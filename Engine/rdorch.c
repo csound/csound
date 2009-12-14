@@ -1919,6 +1919,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
           /* check for exceptional types */
           switch (treqd) {
+          case 'I':
+            treqd_m = ARGTYP_i;
+            break;
           case 'Z':                             /* indef kakaka ... */
             if (UNLIKELY(!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk))))
               intyperr(csound, n, tfound, treqd);
@@ -1996,8 +1999,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         nreqd = strlen(types = ep->outypes);
       if (UNLIKELY((n != nreqd) &&      /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
-            (types[n] == (char) 'm' || types[n] == (char) 'z' ||
-             types[n] == (char) 'X' || types[n] == (char) 'N')))) {
+            (types[n] == 'm' || types[n] == 'z' || types[n] == 'I' ||
+             types[n] == 'X' || types[n] ==  'N')))) {
         synterr(csound, Str("illegal no of output args"));
         if (n > nreqd)
           n = nreqd;
@@ -2106,7 +2109,7 @@ char argtyp(CSOUND *csound, char *s)
       return('S');                              /* quoted String */
     ST(lgprevdef) = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
-        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") || 
+        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 || 
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
       return('r');                              /* rsvd */
     if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */
