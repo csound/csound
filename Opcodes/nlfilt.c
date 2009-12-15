@@ -151,6 +151,7 @@ int pvalue(CSOUND *csound, PFIELD *p)
 int pinit(CSOUND *csound, PINIT *p)
 {
     int n;
+    int x = 1;
     int    nargs = p->OUTOCOUNT;
     int    pargs = csound->currevent->pcnt;
     int    start = (int)(*p->start);
@@ -160,7 +161,18 @@ int pinit(CSOUND *csound, PINIT *p)
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       /* printf("n=%d: nargs=%d pargs=%d start=%d pargs-start=%d n+start=%d\n", */
       /*        n, nargs, pargs, start, pargs-start, n+start); */
-      *p->inits[n] = csound->currevent->p[n+start];
+      if (p->XOUTSTRCODE & x) {
+        /* printf("A string: n=%d x=%d\n", n, x); */
+        if (UNLIKELY((int)strlen((char*)csound->currevent->strarg) >=
+                     csound->strVarMaxLen))
+          return csound->InitError(csound, Str("buffer overflow in passign"));
+        strcpy((char*) p->inits[n], (char*)csound->currevent->strarg);
+        x = 0;                  /* Only one string */
+      }
+      else {
+        *p->inits[n] = csound->currevent->p[n+start];
+      }
+      x <<= 1;
     }
     return OK;
 }
