@@ -54,7 +54,7 @@ int csound_orcwrap()
 /* BISON PARSER FUNCTION */
 void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 {
-    csound->Message(csound, "csound_orcerror: %s\n", str);
+    csound->Message(csound, Str("csound_orcerror: %s\n"), str);
 }
 
 /**
@@ -526,40 +526,47 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     int incnt = tree_arg_list_count(l->right);
     TREE * temp;
 
-    if (PARSER_DEBUG)
+    if (PARSER_DEBUG) {
       csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
                       ep->opname, incnt, nreqd);
-
+      //      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
+    }
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
         switch (ep->intypes[incnt]) {
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
-          appendToTree(csound, l->right, temp);
+          f (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "1"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
 
         case 'V':
         case 'v':
           temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "127"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'j':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'M':
         case 'N':
