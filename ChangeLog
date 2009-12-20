@@ -1,3 +1,8 @@
+2009-12-20  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_semantics.c (handle_optional_args): If there
+	are no arguments yet we still need to add optionals
+
 2009-12-13  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/nlfilt.c (pinit): New code to implement passign opcpode
