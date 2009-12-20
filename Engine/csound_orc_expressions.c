@@ -707,7 +707,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         }
         break;
       default:
-        if (current->right != NULL) {
+        /* if (current->right != NULL) */ {
           TREE* previousArg = NULL;
           TREE* currentArg = current->right;
           if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");

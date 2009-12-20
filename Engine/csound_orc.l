@@ -153,8 +153,8 @@ CONT            \\[[ \t]*\n
                   (*lvalp)->type = T_NCHNLSI;
                   return T_NCHNLSI; }
 "instr"         {
-                namedInstrFlag = 1;
-                return T_INSTR;
+                  namedInstrFlag = 1;
+                  return T_INSTR;
                 }
 "endin"         { return T_ENDIN; }
 "opcode"        { return T_UDOSTART; }
@@ -167,7 +167,7 @@ CONT            \\[[ \t]*\n
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
                   csound->Message(csound,"%d\n", (*lvalp)->type);
-                 return T_0DBFS; }
+                  return T_0DBFS; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
