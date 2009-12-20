@@ -537,7 +537,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
-          f (l->right==NULL) l->right = temp;
+          if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
         case 'P':
