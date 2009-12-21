@@ -220,6 +220,10 @@
 #  define PUBLIC
 #endif
 
+#if defined(MSVC)
+#  include <intrin.h> /* for _InterlockedExchange */
+#endif
+
   /**
    * Enables Python interface.
    */
@@ -1337,8 +1341,6 @@ CSOUND_FILETYPES;
    */
 
 #if defined(MSVC)
-
-#include <intrin.h>
 
 #pragma intrinsic(_InterlockedExchange)
 
