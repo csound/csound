@@ -1726,6 +1726,8 @@ int trnset(CSOUND *csound, TRANSEG *p)
     int         nsegs;
     MYFLT       **argp, val;
 
+    if (UNLIKELY(p->INOCOUNT%3!=1))
+      csoundInitError(csound, Str("Incorrect argument count in transeg"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1860,6 +1862,8 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
     int         nsegs;
     MYFLT       **argp, val;
 
+    if (UNLIKELY(p->INOCOUNT%3!=1))
+      csoundInitError(csound, Str("Incorrect argument count in transegr"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
