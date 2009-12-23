@@ -179,7 +179,8 @@ static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handl
     sf = &globals->sfArray[globals->currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
           (int (*)(const void *, const void * )) compare);
-    globals->currSFndx++;
+    if (UNLIKELY(++globals->currSFndx>=MAX_SFONT))
+      csound->InitError(csound, Str("Too many soundfonts"));
     csound->Free(csound,fname);
     return OK;
 }
