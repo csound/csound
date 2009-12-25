@@ -1,3 +1,15 @@
+2009-12-23  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/sfont.c: Set pitches on module creation rather than on
+	every load.
+
+2009-12-22  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/sfont.c (SfLoad): Added check to see if too many sound
+	fonts are loaded.
+
+	* Opcodes/pitch.c (trnsetr, trnset): Check argument count is 1mod3
+
 2009-12-20  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_semantics.c (handle_optional_args): If there
