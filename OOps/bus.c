@@ -332,13 +332,13 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     PVSDAT *fout = p->r;
     int     n = (int)MYFLT2LRND(*(p->a)), size;
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, Str("chani: invalid index"));
+      return csound->PerfError(csound, Str("pvsin: invalid index"));
     if (((unsigned int)n >= (unsigned int)csound->nchanif)){
       int err = chan_realloc_f(csound, (void *)&(csound->chanif),
                                &(csound->nchanif), n + 1,
                                (void *) &(p->init));
       if (UNLIKELY(err)) {
-        return csound->PerfError(csound, Str("chani: memory allocation failure"));
+        return csound->PerfError(csound, Str("pvsin: memory allocation failure"));
       }
       else {
         fin = (PVSDATEXT *)csound->chanif;
@@ -357,14 +357,14 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     PVSDATEXT *fout = (PVSDATEXT *)csound->chanof;
     PVSDAT *fin = p->r;
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound,Str("chano: invalid index"));
+      return csound->PerfError(csound,Str("pvsout: invalid index"));
 
     if ((unsigned int)n >= (unsigned int)csound->nchanof) {
       if (UNLIKELY(chan_realloc_f(csound, (void *)&(csound->chanof),
                                   &(csound->nchanof), n + 1,
                                   (void *) fin) != 0))
         return csound->PerfError(csound,
-                                 Str("chano: memory allocation failure"));
+                                 Str("pvsout: memory allocation failure"));
       else fout = (PVSDATEXT *)csound->chanof;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
