@@ -202,7 +202,8 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
     memcpy(&fout[n], fin, sizeof(PVSDATEXT)-sizeof(float *));
-    memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
+    if (size > 0)
+       memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
 
@@ -229,7 +230,8 @@ PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
     }
     size = fout->N < fin[n].N ? fout->N : fin[n].N;
     memcpy(fout, &fin[n], sizeof(PVSDATEXT)-sizeof(float *));
-    memcpy(fout->frame, fin[n].frame, sizeof(float)*(size+2));
+    if (size > 0)
+      memcpy(fout->frame, fin[n].frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
 
