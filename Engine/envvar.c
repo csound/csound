@@ -119,7 +119,7 @@ static inline envVarEntry_t **getEnvVarChain(CSOUND *csound, const char *name)
 {
     unsigned char h;
     /* check for trivial cases */
-    if (ENV_DB == NULL || name == NULL || name[0] == '\0')
+    if (UNLIKELY(ENV_DB == NULL || name == NULL || name[0] == '\0'))
       return NULL;
     /* calculate hash value */
     h = name_hash_2(csound, name);
@@ -131,13 +131,13 @@ static int is_valid_envvar_name(const char *name)
 {
     char *s;
 
-    if (name == NULL || name[0] == '\0')
+    if (UNLIKELY(name == NULL || name[0] == '\0'))
       return 0;
     s = (char*) &(name[0]);
-    if (!(isalpha(*s) || *s == '_'))
+    if (UNLIKELY(!(isalpha(*s) || *s == '_')))
       return 0;
     while (*(++s) != '\0') {
-      if (!(isalpha(*s) || isdigit(*s) || *s == '_'))
+      if (UNLIKELY(!(isalpha(*s) || isdigit(*s) || *s == '_')))
         return 0;
     }
     return 1;

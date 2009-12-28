@@ -124,7 +124,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     }
     argp = p->argums;
     val = **argp++;
-    if (**argp <= FL(0.0))  return OK;    /* if idur1 <= 0, skip init  */
+    if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
     p->cursegp = segp - 1;          /* else setup null seg0 */
@@ -137,18 +137,13 @@ int lsgset(CSOUND *csound, LINSEG *p)
       segp++;
     } while (--nsegs);
     p->xtra = -1;
-/*     { */
-/*       int i; */
-/*       for (i=0; i<p->segsrem-1; i++) */
-/*       counter = 0; */
-/*     } */
     return OK;
 }
 
 int klnseg(CSOUND *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
-    if (p->auxch.auxp==NULL) goto err1;          /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
@@ -180,21 +175,21 @@ int klnseg(CSOUND *csound, LINSEG *p)
 int linseg(CSOUND *csound, LINSEG *p)
 {
     MYFLT  val, ainc, *rs = p->rslt;
-    int         n, nsmps=csound->ksmps;
+    int    n, nsmps=csound->ksmps;
 
-    if (p->auxch.auxp==NULL) goto err1;  /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
 
     val = p->curval;                      /* sav the cur value    */
-    if (p->segsrem) {                     /* if no more segs putk */
+    if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         SEG *segp = p->cursegp;
       chk1:
-        if (!--p->segsrem) {              /*   if none left       */
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
           val = p->curval = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
         p->cursegp = ++segp;              /*   else find the next */
-        if (!(p->curcnt = segp->cnt)) {
+        if (UNLIKELY(!(p->curcnt = segp->cnt))) {
           val = p->curval = segp->nxtpt;  /* nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
@@ -202,7 +197,7 @@ int linseg(CSOUND *csound, LINSEG *p)
         p->curainc = p->curinc * csound->onedksmps;
       }
       p->curval = val + p->curinc;        /* advance the cur val  */
-      if ((ainc = p->curainc) == FL(0.0))
+      if (UNLIKELY((ainc = p->curainc) == FL(0.0)))
         goto putk;
       for (n=0; n<nsmps; n++) {
         rs[n] = val;
@@ -358,7 +353,7 @@ int linsegr(CSOUND *csound, LINSEG *p)
     int    n, nsmps=csound->ksmps;
 
     val = p->curval;                        /* sav the cur value    */
-    if (p->segsrem) {                       /* if no more segs putk */
+    if (LIKELY(p->segsrem)) {               /* if no more segs putk */
       SEG *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
         while (p->segsrem > 1) {            /* reles flag new:      */
@@ -420,15 +415,12 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       val = nxtval;
       dur = **argp++;
       nxtval = **argp++;
-/*       if (dur > FL(0.0)) { */
-        if (val * nxtval <= FL(0.0))
-          goto experr;
-        d = dur * csound->ekr;
-        segp->val = val;
-        segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-        segp->cnt = (int32) (d + FL(0.5));
-/*       } */
-/*       else break;               /\*  .. til 0 dur or done *\/ */
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
+        goto experr;
+      d = dur * csound->ekr;
+      segp->val = val;
+      segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+      segp->cnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
@@ -467,7 +459,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
       dur = **argp++;
       nxtval = **argp++;
 /*       if (dur > FL(0.0)) { */
-        if (val * nxtval <= FL(0.0))
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
           goto experr;
         d = dur * csound->esr;
         segp->val = val;
