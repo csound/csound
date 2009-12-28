@@ -95,7 +95,7 @@ static void settempo(CSOUND *csound, MYFLT tempo)
 
 int gettempo(CSOUND *csound, GTEMPO *p)
 {
-    if (csound->oparms->Beatmode) {
+    if (LIKELY(csound->oparms->Beatmode)) {
       *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
     }
     else
@@ -132,7 +132,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->oparms->msglevel & 0x100) {
         MYFLT y = x / csound->e0dbfs;     /* relative level */
-        if (y >= FL(1.0))                               /* >= 0 dB: red */
+        if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x200) {
           if (y >= FL(0.5))                            /* -6..0 dB: yellow */
@@ -163,7 +163,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
       }
       y = FL(20.0) * (MYFLT) log10((double) y);
       if (csound->oparms->msglevel & 0x40) {
-        if (y >= FL(0.0))                               /* >= 0 dB: red */
+        if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x20) {
           if (y >= FL(-6.0))                            /* -6..0 dB: yellow */
@@ -821,7 +821,7 @@ int sensevents(CSOUND *csound)
       return 1;                         /* abort with perf incomplete */
     }
     /* if turnoffs pending, remove any expired instrs */
-    if (csound->frstoff != NULL) {
+    if (UNLIKELY(csound->frstoff != NULL)) {
       double  tval;
       /* the following comparisons must match those in schedofftim() */
       if (O->Beatmode) {
@@ -927,7 +927,7 @@ int sensevents(CSOUND *csound)
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
 
-    if (O->RTevents || getRemoteSocksIn(csound)) {
+    if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
       int nrecvd;
       /* run all registered callback functions */
       if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
@@ -1092,7 +1092,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
     /* check for required p-fields */
     switch (evt->opcod) {
       case 'f':
-        if (UNLIKELY(evt->pcnt < 4))
+        if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
           goto pfld_err;
       case 'i':
       case 'q':

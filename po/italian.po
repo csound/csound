@@ -5804,6 +5804,11 @@ msgstr ""
 msgid "Unknown control %d"
 msgstr ""
 
+#: Opcodes/crossfm.c:33
+#, fuzzy
+msgid "crossfm: ftable not found"
+msgstr "GEN30: source ftable non trovata"
+
 #: Opcodes/date.c:64
 msgid "dates: buffer overflow"
 msgstr ""
@@ -7716,49 +7721,49 @@ msgstr ""
 msgid "seqtim: incorrect table number"
 msgstr ""
 
-#: Opcodes/sfont.c:135
+#: Opcodes/sfont.c:118
 #, c-format
 msgid "sfload: cannot open SoundFont file \"%s\" (error %s)"
 msgstr ""
 
-#: Opcodes/sfont.c:139
+#: Opcodes/sfont.c:123
 msgid "Sfload: cannot use globals"
 msgstr ""
 
-#: Opcodes/sfont.c:170
+#: Opcodes/sfont.c:153
 msgid "sfload: could not open globals\n"
 msgstr ""
 
-#: Opcodes/sfont.c:183
+#: Opcodes/sfont.c:170
 #, fuzzy
-msgid "Too many soundfonts"
+msgid "Extending soundfonts"
 msgstr "troppi buffers"
 
-#: Opcodes/sfont.c:214
+#: Opcodes/sfont.c:201
 #, c-format
 msgid ""
 "\n"
 "Preset list of \"%s\"\n"
 msgstr ""
 
-#: Opcodes/sfont.c:217
+#: Opcodes/sfont.c:204
 #, c-format
 msgid "%3d) %-20s\tprog:%-3d bank:%d\n"
 msgstr ""
 
-#: Opcodes/sfont.c:239
+#: Opcodes/sfont.c:226
 #, c-format
 msgid ""
 "\n"
 "Assigning all Presets of \"%s\" starting from %d (preset handle number)\n"
 msgstr ""
 
-#: Opcodes/sfont.c:244
+#: Opcodes/sfont.c:231
 #, c-format
 msgid "%3d<--%-20s\t(prog:%-3d bank:%d)\n"
 msgstr ""
 
-#: Opcodes/sfont.c:251
+#: Opcodes/sfont.c:238
 #, c-format
 msgid ""
 "\n"
@@ -7766,38 +7771,38 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/sfont.c:264
+#: Opcodes/sfont.c:251
 #, c-format
 msgid ""
 "\n"
 "Instrument list of \"%s\"\n"
 msgstr ""
 
-#: Opcodes/sfont.c:281
+#: Opcodes/sfont.c:268
 #, c-format
 msgid "sfpreset: preset handle too big (%d), max: %d"
 msgstr ""
 
-#: Opcodes/sfont.c:297
+#: Opcodes/sfont.c:284
 #, c-format
 msgid ""
 "sfpreset: cannot find any preset having prog number %d and bank number %d in "
 "SoundFont file \"%s\""
 msgstr ""
 
-#: Opcodes/sfont.c:319 Opcodes/sfont.c:2202
+#: Opcodes/sfont.c:306 Opcodes/sfont.c:2189
 msgid "sfplay: invalid or out-of-range preset number"
 msgstr ""
 
-#: Opcodes/sfont.c:646
+#: Opcodes/sfont.c:633
 msgid "sfplaym: invalid or out-of-range preset number"
 msgstr ""
 
-#: Opcodes/sfont.c:901 Opcodes/sfont.c:1163
+#: Opcodes/sfont.c:888 Opcodes/sfont.c:1150
 msgid "sfinstr: instrument out of range"
 msgstr ""
 
-#: Opcodes/sfont.c:1611 Opcodes/sfont.c:1848
+#: Opcodes/sfont.c:1598 Opcodes/sfont.c:1835
 #, c-format
 msgid ""
 "SoundFont file \"%s\" contains ROM samples !\n"
@@ -7805,15 +7810,15 @@ msgid ""
 "Session aborted !"
 msgstr ""
 
-#: Opcodes/sfont.c:2000 Opcodes/sfont.c:2006
+#: Opcodes/sfont.c:1987 Opcodes/sfont.c:1993
 msgid "Sfont: cannot use globals/"
 msgstr ""
 
-#: Opcodes/sfont.c:2009
+#: Opcodes/sfont.c:1996
 msgid "Sfont format not compatible"
 msgstr ""
 
-#: Opcodes/sfont.c:2546
+#: Opcodes/sfont.c:2534
 msgid "error... could not create sfont globals\n"
 msgstr ""
 

@@ -102,17 +102,17 @@ void fdclose(CSOUND *csound, FDCH *fdchp)
 
 void auxchfree(CSOUND *csound, INSDS *ip)
 {
-  if (csound->oparms->odebug)
-    auxchprint(csound, ip);
-  while (ip->auxchp != NULL) {                /* for all auxp's in chain: */
-    void  *auxp = (void*) ip->auxchp->auxp;
-    AUXCH *nxt = ip->auxchp->nxtchp;
-    memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-    mfree(csound, auxp);                          /*  & free the space    */
-    ip->auxchp = nxt;
-  }
-  if (csound->oparms->odebug)
-    auxchprint(csound, ip);
+    if (UNLIKELY(csound->oparms->odebug))
+      auxchprint(csound, ip);
+    while (ip->auxchp != NULL) {                /* for all auxp's in chain: */
+      void  *auxp = (void*) ip->auxchp->auxp;
+      AUXCH *nxt = ip->auxchp->nxtchp;
+      memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
+      mfree(csound, auxp);                          /*  & free the space    */
+      ip->auxchp = nxt;
+    }
+    if (UNLIKELY(csound->oparms->odebug))
+      auxchprint(csound, ip);
 }
 
 /* close all files in instr fd chain        */
@@ -121,18 +121,18 @@ void auxchfree(CSOUND *csound, INSDS *ip)
 
 void fdchclose(CSOUND *csound, INSDS *ip)
 {
-  if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
     fdchprint(csound, ip);
   /* for all fd's in chain: */
-  for ( ; ip->fdchp != NULL; ip->fdchp = ip->fdchp->nxtchp) {
-    void  *fd = ip->fdchp->fd;
-    if (fd) {
-      ip->fdchp->fd = NULL;           /*    delete the fd     */
-      csoundFileClose(csound, fd);    /*    & close the file  */
+    for ( ; ip->fdchp != NULL; ip->fdchp = ip->fdchp->nxtchp) {
+      void  *fd = ip->fdchp->fd;
+      if (fd) {
+        ip->fdchp->fd = NULL;           /*    delete the fd     */
+        csoundFileClose(csound, fd);    /*    & close the file  */
+      }
     }
-  }
-  if (UNLIKELY(csound->oparms->odebug))
-    fdchprint(csound, ip);
+    if (UNLIKELY(csound->oparms->odebug))
+      fdchprint(csound, ip);
 }
 
 /* print the xp chain for this insds blk */

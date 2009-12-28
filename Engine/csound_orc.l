@@ -278,7 +278,8 @@ void do_comment(void)              /* Skip until * and / chars */
 {
     char c;
     for (;;) {
-      while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
+      while ((c=input()) != '*')
+          if (UNLIKELY(c=='\n')) yyline++; /* skip */
       if ((c=input())=='/') return;
       if (UNLIKELY(c=='\n')) yyline++;
     }
@@ -342,7 +343,7 @@ void do_macro(CSOUND *csound, char *name0)
 void do_umacro(CSOUND *csound, char *name0)
 {
     int i,c;
-    if (csound->oparms->msglevel)
+    if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     if (strcmp(name0, macros->name)==0) {
       MACRO *mm=macros->next;
@@ -356,7 +357,7 @@ void do_umacro(CSOUND *csound, char *name0)
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
-        if (nn == NULL) {
+        if (UNLIKELY(nn == NULL)) {
           csound->Message(csound, Str("Undefining undefined macro"));
           csound->LongJmp(csound, 1);
         }

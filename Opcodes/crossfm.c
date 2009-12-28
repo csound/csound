@@ -29,7 +29,7 @@ int xfmset(CSOUND *csound, CROSSFM *p)
 {
   FUNC *ftp1 = csound->FTFind(csound, p->ifn1);
   FUNC *ftp2 = csound->FTFind(csound, p->ifn2);
-  if (ftp1 == NULL  ||  ftp2 == NULL) {
+  if (UNLIKELY(ftp1 == NULL  ||  ftp2 == NULL)) {
     return csound->InitError(csound, Str("crossfm: ftable not found"));
   }
   p->siz1 = (MYFLT)ftp1->flen;
@@ -62,6 +62,7 @@ int xfm(CSOUND *csound, CROSSFM *p)
   MYFLT phase1, phase2;
   MYFLT sig1, sig2;
   int i, n1, n2;
+  int nsmps = csound->ksmps;
   
   out1 = p->aout1;
   out2 = p->aout2;
@@ -81,17 +82,17 @@ int xfm(CSOUND *csound, CROSSFM *p)
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
     si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
     si2 = (frq2 + *xndx1 * frq1 * sig1) * k;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     phase1 += si1;
-    phase1 -= (MYFLT)floor(phase1);
+    phase1 -= FLOOR(phase1);
     phase2 += si2;
-    phase2 -= (MYFLT)floor(phase2);
+    phase2 -= FLOOR(phase2);
     n1 = (int)(phase1 * siz1);
     n2 = (int)(phase2 * siz2);
     sig1 = tbl1[n1];
@@ -121,6 +122,7 @@ int xfmi(CSOUND *csound, CROSSFM *p)
   MYFLT sig1, sig2;
   MYFLT x, y1, y2;
   int i, n1, n2;
+  int nsmps = csound->ksmps;
   
   out1 = p->aout1;
   out2 = p->aout2;
@@ -140,25 +142,25 @@ int xfmi(CSOUND *csound, CROSSFM *p)
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
     si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
     si2 = (frq2 + *xndx1 * frq1 * sig1) * k;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     phase1 += si1;
-    phase1 -= (MYFLT)floor(phase1);
+    phase1 -= FLOOR(phase1);
     phase2 += si2;
-    phase2 -= (MYFLT)floor(phase2);
+    phase2 -= FLOOR(phase2);
     x = phase1 * siz1;
     n1 = (int)x;
     y1 = tbl1[n1];
-    sig1 = (tbl1[n1+1]-y1) * (x - (MYFLT)floor(x)) + y1;
+    sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
     x = phase2 * siz2;
     n2 = (int)x;
     y2 = tbl2[n2];
-    sig2 = (tbl2[n2+1]-y2) * (x - (MYFLT)floor(x)) + y2;
+    sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
     xfrq1 += p->frq1adv;
     xfrq2 += p->frq2adv;
     xndx1 += p->ndx1adv;
@@ -183,6 +185,7 @@ int xpm(CSOUND *csound, CROSSFM *p)
   MYFLT phase1, phase2;
   MYFLT sig1, sig2;
   int i, n1, n2;
+  int nsmps = csound->ksmps;
   
   out1 = p->aout1;
   out2 = p->aout2;
@@ -195,24 +198,24 @@ int xpm(CSOUND *csound, CROSSFM *p)
   tbl1 = p->ftp1->ftable;
   tbl2 = p->ftp2->ftable;
   cps = *p->kcps;
-  k = FL(1.0) / csound->esr;
+  k = csound->onedsr;
   
   phase1 = p->phase1;
   phase2 = p->phase2;
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     phase1 += (frq1 * k);
     si1 = phase1 + *xndx2 * sig2 / TWOPI_F;
-    si1 -= (MYFLT)floor(si1);
+    si1 -= FLOOR(si1);
     phase2 += (frq2 * k);
     si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-    si2 -= (MYFLT)floor(si2);
+    si2 -= FLOOR(si2);
     n1 = (int)(si1 * siz1);
     n2 = (int)(si2 * siz2);
     sig1 = tbl1[n1];
@@ -223,8 +226,8 @@ int xpm(CSOUND *csound, CROSSFM *p)
     xndx2 += p->ndx2adv;
   }
   
-  p->phase1 = phase1 - (MYFLT)floor(phase1);
-  p->phase2 = phase2 - (MYFLT)floor(phase2);
+  p->phase1 = phase1 - FLOOR(phase1);
+  p->phase2 = phase2 - FLOOR(phase2);
   p->sig1 = sig1;
   p->sig2 = sig2;
   return OK;
@@ -242,6 +245,7 @@ int xpmi(CSOUND *csound, CROSSFM *p)
   MYFLT sig1, sig2;
   MYFLT x, y1, y2;
   int i, n1, n2;
+  int nsmps = csound->ksmps;
   
   out1 = p->aout1;
   out2 = p->aout2;
@@ -254,40 +258,40 @@ int xpmi(CSOUND *csound, CROSSFM *p)
   tbl1 = p->ftp1->ftable;
   tbl2 = p->ftp2->ftable;
   cps = *p->kcps;
-  k = FL(1.0) / csound->esr;
+  k = csound->onedsr;
   
   phase1 = p->phase1;
   phase2 = p->phase2;
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     phase1 += (frq1 * k);
     si1 = phase1 + *xndx2 * sig2 / TWOPI_F;
-    si1 -= (MYFLT)floor(si1);
+    si1 -= FLOOR(si1);
     phase2 += (frq2 * k);
     si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-    si2 -= (MYFLT)floor(si2);
+    si2 -= FLOOR(si2);
     x = si1 * siz1;
     n1 = (int)x;
     y1 = tbl1[n1];
-    sig1 = (tbl1[n1+1]-y1) * (x - (MYFLT)floor(x)) + y1;
+    sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
     x = si2 * siz2;
     n2 = (int)x;
     y2 = tbl2[n2];
-    sig2 = (tbl2[n2+1]-y2) * (x - (MYFLT)floor(x)) + y2;
+    sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
     xfrq1 += p->frq1adv;
     xfrq2 += p->frq2adv;
     xndx1 += p->ndx1adv;
     xndx2 += p->ndx2adv;
   }
   
-  p->phase1 = phase1 - (MYFLT)floor(phase1);
-  p->phase2 = phase2 - (MYFLT)floor(phase2);
+  p->phase1 = phase1 - FLOOR(phase1);
+  p->phase2 = phase2 - FLOOR(phase2);
   p->sig1 = sig1;
   p->sig2 = sig2;
   return OK;
@@ -304,7 +308,8 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
   MYFLT phase1, phase2;
   MYFLT sig1, sig2;
   int i, n1, n2;
-  
+  int nsmps = csound->ksmps;
+
   out1 = p->aout1;
   out2 = p->aout2;
   xfrq1 = p->xfrq1;
@@ -316,24 +321,24 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
   tbl1 = p->ftp1->ftable;
   tbl2 = p->ftp2->ftable;
   cps = *p->kcps;
-  k = FL(1.0) / csound->esr;
+  k = csound->onedsr;
   
   phase1 = p->phase1;
   phase2 = p->phase2;
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
     phase1 += si1;
-    phase1 -= (MYFLT)floor(phase1);
+    phase1 -= FLOOR(phase1);
     phase2 += (frq2 * k);
     si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-    si2 -= (MYFLT)floor(si2);
+    si2 -= FLOOR(si2);
     n1 = (int)(phase1 * siz1);
     n2 = (int)(si2 * siz2);
     sig1 = tbl1[n1];
@@ -345,7 +350,7 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
   }
   
   p->phase1 = phase1;
-  p->phase2 = phase2 - (MYFLT)floor(phase2);
+  p->phase2 = phase2 - FLOOR(phase2);
   p->sig1 = sig1;
   p->sig2 = sig2;
   return OK;
@@ -363,6 +368,7 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
   MYFLT sig1, sig2;
   MYFLT x, y1, y2;
   int i, n1, n2;
+  int nsmps = csound->ksmps;
   
   out1 = p->aout1;
   out2 = p->aout2;
@@ -375,32 +381,32 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
   tbl1 = p->ftp1->ftable;
   tbl2 = p->ftp2->ftable;
   cps = *p->kcps;
-  k = FL(1.0) / csound->esr;
+  k = csound->onedsr;
   
   phase1 = p->phase1;
   phase2 = p->phase2;
   sig1 = p->sig1;
   sig2 = p->sig2;
   
-  for (i = 0; i < csound->ksmps; i++) {
+  for (i = 0; i < nsmps; i++) {
     frq1 = *xfrq1 * cps;
     frq2 = *xfrq2 * cps;
-    *out1++ = sig1;
-    *out2++ = sig2;
+    out1[i] = sig1;
+    out2[i] = sig2;
     si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
     phase1 += si1;
-    phase1 -= (MYFLT)floor(phase1);
+    phase1 -= FLOOR(phase1);
     phase2 += (frq2 * k);
     si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-    si2 -= (MYFLT)floor(si2);
+    si2 -= FLOOR(si2);
     x = phase1 * siz1;
     n1 = (int)x;
     y1 = tbl1[n1];
-    sig1 = (tbl1[n1+1]-y1) * (x - (MYFLT)floor(x)) + y1;
+    sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
     x = si2 * siz2;
     n2 = (int)x;
     y2 = tbl2[n2];
-    sig2 = (tbl2[n2+1]-y2) * (x - (MYFLT)floor(x)) + y2;
+    sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
     xfrq1 += p->frq1adv;
     xfrq2 += p->frq2adv;
     xndx1 += p->ndx1adv;
@@ -408,7 +414,7 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
   }
   
   p->phase1 = phase1;
-  p->phase2 = phase2 - (MYFLT)floor(phase2);
+  p->phase2 = phase2 - FLOOR(phase2);
   p->sig1 = sig1;
   p->sig2 = sig2;
   return OK;

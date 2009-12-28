@@ -302,10 +302,12 @@ static void sensLine(CSOUND *csound, void *userData)
           e.p[pcnt] = (MYFLT) strtod(cp, &newcp);
           cp = newcp - 1;
         } while (pcnt < PMAX);
-        if (UNLIKELY(pcnt < 3 && e.opcod != 'e')) {       /* check sufficient pfields */
-          csound->ErrorMsg(csound, Str("too few pfields"));
-          goto Lerr;
-        }
+        if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
+        else        /* check sufficient pfields */
+          if (UNLIKELY(pcnt < 3 && e.opcod != 'e')) {
+            csound->ErrorMsg(csound, Str("too few pfields"));
+            goto Lerr;
+          }
         if (UNLIKELY(pcnt > 1 && e.p[2] < FL(0.0))) {
           csound->ErrorMsg(csound, Str("-L with negative p2 illegal"));
           goto Lerr;
