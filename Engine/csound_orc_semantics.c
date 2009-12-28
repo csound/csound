@@ -63,7 +63,7 @@ void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
  * appropriate nodes
  */
 TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
-
+    TREE *current;
     if(first == NULL) {
         return newlast;
     }
@@ -82,9 +82,9 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
         return newlast;
     }
 
-    TREE *current = first;
+    current = first;
 
-    while(current->next != NULL) {
+    while (current->next != NULL) {
         current = current->next;
     }
 
@@ -97,26 +97,26 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
 /* USED BY PARSER TO ASSEMBLE TREE NODES */
 TREE* make_node(CSOUND *csound, int type, TREE* left, TREE* right)
 {
-  TREE *ans;
-  ans = (TREE*)mmalloc(csound, sizeof(TREE));
-  if (ans==NULL) {
-    /* fprintf(stderr, "Out of memory\n"); */
-    exit(1);
-  }
-  ans->type = type;
-  ans->left = left;
-  ans->right = right;
-  ans->next = NULL;
-  ans->len = 2;
-  ans->rate = -1;
-  return ans;
+    TREE *ans;
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans==NULL)) {
+      /* fprintf(stderr, "Out of memory\n"); */
+      exit(1);
+    }
+    ans->type = type;
+    ans->left = left;
+    ans->right = right;
+    ans->next = NULL;
+    ans->len = 2;
+    ans->rate = -1;
+    return ans;
 }
 
 TREE* make_leaf(CSOUND *csound, int type, ORCTOKEN *v)
 {
   TREE *ans;
   ans = (TREE*)mmalloc(csound, sizeof(TREE));
-  if (ans==NULL) {
+  if (UNLIKELY(ans==NULL)) {
     /* fprintf(stderr, "Out of memory\n"); */
     exit(1);
   }
@@ -164,7 +164,7 @@ char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
 void print_tree_i(CSOUND *csound, TREE *l, int n)
 {
     int i;
-    if (l==NULL) {
+    if (UNLIKELY(l==NULL)) {
         return;
     }
     for (i=0; i<n; i++) {
