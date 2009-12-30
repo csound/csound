@@ -1094,11 +1094,13 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
       case 'f':
         if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
           goto pfld_err;
+        goto cont;
       case 'i':
       case 'q':
       case 'a':
         if (UNLIKELY(evt->pcnt < 3))
           goto pfld_err;
+    cont:
         /* calculate actual start time in seconds and k-periods */
         start_time = (double) p[2] + (double)time_ofs/csound->esr;
         start_kcnt = time2kcnt(csound, start_time);
