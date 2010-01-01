@@ -232,7 +232,7 @@ static const char *longUsageList[] = {
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
 #if ENABLE_NEW_PARSER
   Str_noop("--new-parser\t\tUse new Bison-based parser"),
-  Str_noop("--old-parser\t\tUse new Bison-based parser"),
+  Str_noop("--old-parser\t\tUse old parser"),
 #endif
   " ",
   Str_noop("--help\t\t\tLong help"),
