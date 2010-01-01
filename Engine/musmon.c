@@ -88,7 +88,6 @@ static void settempo(CSOUND *csound, MYFLT tempo)
 {
     if (tempo <= FL(0.0)) return;
     if (csound->oparms->Beatmode==0)
-
       csound->ibeatTime = (int)(csound->esr*60.0 / (double) tempo);
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
@@ -156,7 +155,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
     }
     else {                              /* dB values */
       MYFLT y = x / csound->e0dbfs;     /* relative level */
-      if (y < FL(1.0e-10)) {
+      if (UNLIKELY(y < FL(1.0e-10))) {
         /* less than -200 dB: print zero */
         csound->Message(csound, "      0  ");
         return;
@@ -304,10 +303,12 @@ int musmon(CSOUND *csound)
       if (ST(lplayed))
         return 0;
 
-      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) /*  rd from cscore.out */
+      /*  read from cscore.out */
+      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r"))))
         csoundDie(csound, Str("cannot reopen cscore.out"));
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
-      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w")))) /* writ to cscore.srt */
+      /* write to cscore.srt */ 
+     if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
