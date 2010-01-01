@@ -247,7 +247,7 @@ msgstr ""
 msgid "Undefined macro: '%s'"
 msgstr ""
 
-#: Engine/csound_orc.l:188 Engine/csound_orc.l:209 Engine/csound_orc.l:300
+#: Engine/csound_orc.l:188 Engine/csound_orc.l:209 Engine/csound_orc.l:301
 msgid "Includes nested too deeply"
 msgstr ""
 
@@ -256,17 +256,17 @@ msgstr ""
 msgid "Line %d: Unknown character: '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc.l:307
+#: Engine/csound_orc.l:308
 #, c-format
 msgid "Cannot open file \"%s\"\n"
 msgstr ""
 
-#: Engine/csound_orc.l:347 Engine/rdorch.c:852 Engine/sread.c:1671
+#: Engine/csound_orc.l:348 Engine/rdorch.c:852 Engine/sread.c:1671
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/csound_orc.l:361 Engine/rdorch.c:866 Engine/sread.c:294
+#: Engine/csound_orc.l:362 Engine/rdorch.c:866 Engine/sread.c:294
 msgid "Undefining undefined macro"
 msgstr ""
 
@@ -562,8 +562,8 @@ msgstr ""
 
 #: Engine/fgens.c:2247 Engine/fgens.c:2334 Engine/fgens.c:2358
 #: Opcodes/gab/gab.c:549 Opcodes/gab/gab.c:603 Opcodes/midiops2.c:218
-#: Opcodes/midiops2.c:370 Opcodes/midiops2.c:452 Opcodes/uggab.c:1225
-#: Opcodes/uggab.c:1252 Opcodes/uggab.c:1272 Opcodes/uggab.c:1315
+#: Opcodes/midiops2.c:370 Opcodes/midiops2.c:452 Opcodes/uggab.c:1268
+#: Opcodes/uggab.c:1295 Opcodes/uggab.c:1315 Opcodes/uggab.c:1358
 #, c-format
 msgid "Invalid ftable no. %f"
 msgstr ""
@@ -720,21 +720,21 @@ msgstr ""
 msgid "Instrument %d muted\n"
 msgstr ""
 
-#: Engine/insert.c:89 Engine/insert.c:1177
+#: Engine/insert.c:89 Engine/insert.c:1180
 #, c-format
 msgid "instr %d expects midi event data, cannot run from score\n"
 msgstr ""
 
-#: Engine/insert.c:98 Engine/insert.c:248 Engine/insert.c:1164
+#: Engine/insert.c:98 Engine/insert.c:249 Engine/insert.c:1167
 #, c-format
 msgid "cannot allocate last note because it exceeds 100%% of cpu time"
 msgstr ""
 
-#: Engine/insert.c:104 Engine/insert.c:254 Engine/insert.c:1169
+#: Engine/insert.c:104 Engine/insert.c:255 Engine/insert.c:1172
 msgid "cannot allocate last note because it exceeds instr maxalloc"
 msgstr ""
 
-#: Engine/insert.c:118 Engine/insert.c:266 Engine/insert.c:1193
+#: Engine/insert.c:118 Engine/insert.c:267 Engine/insert.c:1196
 #, c-format
 msgid "new alloc for instr %d:\n"
 msgstr ""
@@ -744,153 +744,153 @@ msgstr ""
 msgid "instr %d uses %d p-fields but is given %d"
 msgstr ""
 
-#: Engine/insert.c:222 Engine/insert.c:419
+#: Engine/insert.c:223 Engine/insert.c:420
 #, c-format
 msgid "instr %d now active:\n"
 msgstr ""
 
-#: Engine/insert.c:260
+#: Engine/insert.c:261
 #, c-format
 msgid "activating instr %d\n"
 msgstr ""
 
-#: Engine/insert.c:278
+#: Engine/insert.c:279
 #, c-format
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr ""
 
-#: Engine/insert.c:517
+#: Engine/insert.c:519
 #, c-format
 msgid "removed instance of instr %d\n"
 msgstr ""
 
-#: Engine/insert.c:639
+#: Engine/insert.c:641
 msgid "inactive allocs returned to freespace\n"
 msgstr ""
 
-#: Engine/insert.c:663
+#: Engine/insert.c:665
 #, c-format
 msgid "could not find indefinitely playing instr %f\n"
 msgstr ""
 
-#: Engine/insert.c:676
+#: Engine/insert.c:678
 msgid ""
 "\n"
 "INIT ERROR: "
 msgstr ""
 
-#: Engine/insert.c:689
+#: Engine/insert.c:691
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
 msgstr ""
 
-#: Engine/insert.c:692
+#: Engine/insert.c:694
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
 msgstr ""
 
-#: Engine/insert.c:696
+#: Engine/insert.c:698
 #, c-format
 msgid "INIT ERROR in instr %d: "
 msgstr ""
 
-#: Engine/insert.c:714
+#: Engine/insert.c:716
 msgid ""
 "\n"
 "PERF ERROR: "
 msgstr ""
 
-#: Engine/insert.c:727
+#: Engine/insert.c:729
 #, c-format
 msgid "PERF ERROR in instr %d (opcode %s): "
 msgstr ""
 
-#: Engine/insert.c:730
+#: Engine/insert.c:732
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
 msgstr ""
 
-#: Engine/insert.c:734
+#: Engine/insert.c:736
 #, c-format
 msgid "PERF ERROR in instr %d: "
 msgstr ""
 
-#: Engine/insert.c:739
+#: Engine/insert.c:741
 msgid "   note aborted\n"
 msgstr ""
 
-#: Engine/insert.c:766
+#: Engine/insert.c:769
 msgid "subinstr: number of output args greater than nchnls"
 msgstr ""
 
-#: Engine/insert.c:806
+#: Engine/insert.c:809
 msgid "subinstr: too many p-fields"
 msgstr ""
 
-#: Engine/insert.c:865
+#: Engine/insert.c:868
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr ""
 
-#: Engine/insert.c:984 OOps/bus.c:776 Opcodes/stackops.c:293
+#: Engine/insert.c:987 OOps/bus.c:778 Opcodes/stackops.c:293
 #, c-format
 msgid "%s: not initialised"
 msgstr ""
 
-#: Engine/insert.c:1099
+#: Engine/insert.c:1102
 #, c-format
 msgid "setksmps: invalid ksmps value: %d"
 msgstr ""
 
-#: Engine/insert.c:1155
+#: Engine/insert.c:1158
 #, c-format
 msgid "schedule event ignored. instr %d undefined\n"
 msgstr ""
 
-#: Engine/insert.c:1220
+#: Engine/insert.c:1223
 #, c-format
 msgid "instr %d pmax = %d, note pcnt = %d"
 msgstr ""
 
-#: Engine/insert.c:1227
+#: Engine/insert.c:1231
 #, c-format
 msgid "psave beg at %p\n"
 msgstr ""
 
-#: Engine/insert.c:1234
+#: Engine/insert.c:1239
 #, c-format
 msgid "   ending at %p\n"
 msgstr ""
 
-#: Engine/insert.c:1378
+#: Engine/insert.c:1383
 msgid "subinstr: not initialised"
 msgstr ""
 
-#: Engine/insert.c:1635
+#: Engine/insert.c:1640
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
 "\tlclbas %p, opds %p\n"
 msgstr ""
 
-#: Engine/insert.c:1652
+#: Engine/insert.c:1657
 #, c-format
 msgid "op %d (%s) allocated at %p\n"
 msgstr ""
 
-#: Engine/insert.c:1678
+#: Engine/insert.c:1683
 msgid "null iopadr"
 msgstr ""
 
-#: Engine/insert.c:1689
+#: Engine/insert.c:1694
 msgid "null opadr"
 msgstr ""
 
-#: Engine/insert.c:1746
+#: Engine/insert.c:1751
 msgid "inconsistent opds total"
 msgstr ""
 
-#: Engine/insert.c:1788
+#: Engine/insert.c:1793
 #, c-format
 msgid "Instrument %d is still active"
 msgstr ""
@@ -940,19 +940,19 @@ msgstr ""
 msgid "cannot carry string p-field"
 msgstr ""
 
-#: Engine/linevent.c:306
+#: Engine/linevent.c:308
 msgid "too few pfields"
 msgstr ""
 
-#: Engine/linevent.c:310
+#: Engine/linevent.c:312
 msgid "-L with negative p2 illegal"
 msgstr ""
 
-#: Engine/linevent.c:321
+#: Engine/linevent.c:323
 msgid "too many pfields"
 msgstr ""
 
-#: Engine/linevent.c:333
+#: Engine/linevent.c:335
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -960,20 +960,20 @@ msgid ""
 "%*s"
 msgstr ""
 
-#: Engine/linevent.c:355
+#: Engine/linevent.c:357
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\""
 msgstr ""
 
-#: Engine/linevent.c:357
+#: Engine/linevent.c:359
 msgid "event: string name is allowed only for \"i\" and \"q\" events"
 msgstr ""
 
-#: Engine/linevent.c:388
+#: Engine/linevent.c:390
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr ""
 
-#: Engine/linevent.c:430
+#: Engine/linevent.c:432
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr ""
@@ -1070,57 +1070,57 @@ msgstr ""
 msgid "Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"
 msgstr ""
 
-#: Engine/musmon.c:111
+#: Engine/musmon.c:110
 msgid "illegal istartempo value"
 msgstr ""
 
-#: Engine/musmon.c:114
+#: Engine/musmon.c:113
 msgid "Beat mode not in force"
 msgstr ""
 
-#: Engine/musmon.c:187 Top/main.c:104
+#: Engine/musmon.c:186 Top/main.c:104
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:190 Top/main.c:107
+#: Engine/musmon.c:189 Top/main.c:107
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:195 Top/main.c:96
+#: Engine/musmon.c:194 Top/main.c:96
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:198 Top/main.c:99
+#: Engine/musmon.c:197 Top/main.c:99
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr ""
 
-#: Engine/musmon.c:223
+#: Engine/musmon.c:222
 msgid "orch now loaded\n"
 msgstr ""
 
-#: Engine/musmon.c:248
+#: Engine/musmon.c:247
 msgid "k-period aligned audio buffering\n"
 msgstr ""
 
-#: Engine/musmon.c:264
+#: Engine/musmon.c:263
 #, c-format
 msgid "audio buffered in %d sample-frame blocks\n"
 msgstr ""
 
-#: Engine/musmon.c:281 Top/main.c:374
+#: Engine/musmon.c:280 Top/main.c:374
 #, c-format
 msgid "cannot reopen %s"
 msgstr ""
 
-#: Engine/musmon.c:293
+#: Engine/musmon.c:292
 msgid "using Cscore processing\n"
 msgstr ""
 
-#: Engine/musmon.c:296
+#: Engine/musmon.c:295
 msgid "cannot create cscore.out"
 msgstr ""
 
@@ -1128,147 +1128,147 @@ msgstr ""
 msgid "cannot reopen cscore.out"
 msgstr ""
 
-#: Engine/musmon.c:311 Engine/musmon.c:319
+#: Engine/musmon.c:312 Engine/musmon.c:320
 msgid "cannot reopen cscore.srt"
 msgstr ""
 
-#: Engine/musmon.c:313
+#: Engine/musmon.c:314
 msgid "sorting cscore.out ..\n"
 msgstr ""
 
-#: Engine/musmon.c:317 Top/main.c:388
+#: Engine/musmon.c:318 Top/main.c:388
 msgid "\t... done\n"
 msgstr ""
 
-#: Engine/musmon.c:321
+#: Engine/musmon.c:322
 msgid "playing from cscore.srt\n"
 msgstr ""
 
-#: Engine/musmon.c:326 Engine/musmon.c:456 Engine/musmon.c:1021
-#: Engine/musmon.c:1223
+#: Engine/musmon.c:327 Engine/musmon.c:457 Engine/musmon.c:1022
+#: Engine/musmon.c:1226
 #, c-format
 msgid "SECTION %d:\n"
 msgstr ""
 
-#: Engine/musmon.c:402
+#: Engine/musmon.c:403
 msgid "end of score.\t\t   overall amps:"
 msgstr ""
 
-#: Engine/musmon.c:413
+#: Engine/musmon.c:414
 msgid ""
 "\n"
 "\t   overall samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:417
+#: Engine/musmon.c:418
 #, c-format
 msgid ""
 "\n"
 "%d errors in performance\n"
 msgstr ""
 
-#: Engine/musmon.c:419
+#: Engine/musmon.c:420
 msgid "end of performance"
 msgstr ""
 
-#: Engine/musmon.c:431
+#: Engine/musmon.c:432
 msgid "no sound written to disk\n"
 msgstr ""
 
-#: Engine/musmon.c:445
+#: Engine/musmon.c:446
 #, c-format
 msgid "%c\tbeep!\n"
 msgstr ""
 
-#: Engine/musmon.c:513 Engine/musmon.c:559
+#: Engine/musmon.c:514 Engine/musmon.c:560
 msgid "\t number of samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:552
+#: Engine/musmon.c:553
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:554
+#: Engine/musmon.c:555
 msgid "end of lplay event list\t      peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:618 Engine/musmon.c:643
+#: Engine/musmon.c:619 Engine/musmon.c:644
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr ""
 
-#: Engine/musmon.c:622
+#: Engine/musmon.c:623
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr ""
 
-#: Engine/musmon.c:623 Engine/musmon.c:636
+#: Engine/musmon.c:624 Engine/musmon.c:637
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:206
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:207
 msgid "off"
 msgstr ""
 
-#: Engine/musmon.c:623 Engine/musmon.c:636
+#: Engine/musmon.c:624 Engine/musmon.c:637
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:206
 #: Opcodes/fluidOpcodes/fluidOpcodes.c:207
 msgid "on"
 msgstr ""
 
-#: Engine/musmon.c:631 Engine/musmon.c:670
+#: Engine/musmon.c:632 Engine/musmon.c:671
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr ""
 
-#: Engine/musmon.c:635
+#: Engine/musmon.c:636
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr ""
 
-#: Engine/musmon.c:661
+#: Engine/musmon.c:662
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:691
+#: Engine/musmon.c:692
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:712
+#: Engine/musmon.c:713
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr ""
 
-#: Engine/musmon.c:729
+#: Engine/musmon.c:730
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr ""
 
-#: Engine/musmon.c:730
+#: Engine/musmon.c:731
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:820
+#: Engine/musmon.c:821
 msgid "terminating.\n"
 msgstr ""
 
-#: Engine/musmon.c:908
+#: Engine/musmon.c:909
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr ""
 
-#: Engine/musmon.c:1133
+#: Engine/musmon.c:1136
 msgid "insert_score_event(): invalid instrument number or name\n"
 msgstr ""
 
-#: Engine/musmon.c:1153
+#: Engine/musmon.c:1156
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr ""
 
-#: Engine/musmon.c:1176
+#: Engine/musmon.c:1179
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr ""
 
@@ -2899,7 +2899,7 @@ msgid "output"
 msgstr ""
 
 #: InOut/rtjack.c:229 InOut/rtpa.c:116 InOut/rtpa.c:122 InOut/rtpa.c:154
-#: InOut/rtpa.c:171 OOps/bus.c:1231
+#: InOut/rtpa.c:171 OOps/bus.c:1233
 msgid "input"
 msgstr ""
 
@@ -3619,53 +3619,69 @@ msgstr ""
 msgid "k-rate invalue ChannelName cannot start with $"
 msgstr ""
 
-#: OOps/bus.c:254 OOps/bus.c:286 OOps/bus.c:335
+#: OOps/bus.c:256 OOps/bus.c:288
 msgid "chani: invalid index"
 msgstr ""
 
-#: OOps/bus.c:259 OOps/bus.c:291 OOps/bus.c:341
+#: OOps/bus.c:261 OOps/bus.c:293
 msgid "chani: memory allocation failure"
 msgstr ""
 
-#: OOps/bus.c:270 OOps/bus.c:302 OOps/bus.c:360
+#: OOps/bus.c:272 OOps/bus.c:304
 msgid "chano: invalid index"
 msgstr ""
 
-#: OOps/bus.c:275 OOps/bus.c:307 OOps/bus.c:367
+#: OOps/bus.c:277 OOps/bus.c:309
 msgid "chano: memory allocation failure"
 msgstr ""
 
-#: OOps/bus.c:1018
+#: OOps/bus.c:337
+msgid "pvsin: invalid index"
+msgstr ""
+
+#: OOps/bus.c:343
+msgid "pvsin: memory allocation failure"
+msgstr ""
+
+#: OOps/bus.c:362
+msgid "pvsout: invalid index"
+msgstr ""
+
+#: OOps/bus.c:369
+msgid "pvsout: memory allocation failure"
+msgstr ""
+
+#: OOps/bus.c:1020
 msgid "string is too long"
 msgstr ""
 
-#: OOps/bus.c:1039 OOps/bus.c:1069 OOps/bus.c:1090 OOps/bus.c:1136
+#: OOps/bus.c:1041 OOps/bus.c:1071 OOps/bus.c:1092 OOps/bus.c:1138
 msgid "invalid mode parameter"
 msgstr ""
 
-#: OOps/bus.c:1057 OOps/bus.c:1164
+#: OOps/bus.c:1059 OOps/bus.c:1166
 msgid "invalid channel parameters"
 msgstr ""
 
-#: OOps/bus.c:1144
+#: OOps/bus.c:1146
 msgid "channel already exists"
 msgstr ""
 
-#: OOps/bus.c:1167
+#: OOps/bus.c:1169
 msgid "invalid export variable"
 msgstr ""
 
-#: OOps/bus.c:1224
+#: OOps/bus.c:1226
 #, c-format
 msgid "channel '%s' does not exist"
 msgstr ""
 
-#: OOps/bus.c:1229
+#: OOps/bus.c:1231
 #, c-format
 msgid "channel '%s' is not an %s channel"
 msgstr ""
 
-#: OOps/bus.c:1244
+#: OOps/bus.c:1246
 #, c-format
 msgid "invalid mode parameter: %d"
 msgstr ""
@@ -4755,50 +4771,50 @@ msgstr ""
 msgid "unlike signs"
 msgstr ""
 
-#: OOps/ugens1.c:177
+#: OOps/ugens1.c:172
 msgid "linseg not initialised (krate)\n"
 msgstr ""
 
-#: OOps/ugens1.c:220
+#: OOps/ugens1.c:215
 msgid "linseg: not initialised (arate)\n"
 msgstr ""
 
-#: OOps/ugens1.c:439 OOps/ugens1.c:441 OOps/ugens1.c:485 OOps/ugens1.c:487
-#: OOps/ugens1.c:648 OOps/ugens1.c:650
+#: OOps/ugens1.c:431 OOps/ugens1.c:433 OOps/ugens1.c:477 OOps/ugens1.c:479
+#: OOps/ugens1.c:640 OOps/ugens1.c:642
 #, c-format
 msgid "ival%d is zero"
 msgstr ""
 
-#: OOps/ugens1.c:442 OOps/ugens1.c:488 OOps/ugens1.c:651
+#: OOps/ugens1.c:434 OOps/ugens1.c:480 OOps/ugens1.c:643
 #, c-format
 msgid "ival%d sign conflict"
 msgstr ""
 
-#: OOps/ugens1.c:580
+#: OOps/ugens1.c:572
 msgid "expseg (krate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:606
+#: OOps/ugens1.c:598
 msgid "expseg (arate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:887 OOps/ugens1.c:1023 OOps/ugens1.c:1185
+#: OOps/ugens1.c:879 OOps/ugens1.c:1015 OOps/ugens1.c:1177
 msgid "non-positive iatdec"
 msgstr ""
 
-#: OOps/ugens1.c:980 OOps/ugens1.c:1147
+#: OOps/ugens1.c:972 OOps/ugens1.c:1139
 msgid "ixmod out of range."
 msgstr ""
 
-#: OOps/ugens1.c:1008 OOps/ugens1.c:1175
+#: OOps/ugens1.c:1000 OOps/ugens1.c:1167
 msgid "rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1052 OOps/ugens1.c:1131
+#: OOps/ugens1.c:1044 OOps/ugens1.c:1123
 msgid "envlpx rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1073 OOps/ugens1.c:1128
+#: OOps/ugens1.c:1065 OOps/ugens1.c:1120
 msgid "envlpx(krate): not initialised"
 msgstr ""
 
@@ -8146,16 +8162,24 @@ msgstr ""
 msgid " bad imode value"
 msgstr ""
 
-#: Opcodes/uggab.c:419
+#: Opcodes/uggab.c:185
+msgid "Min and max the same"
+msgstr ""
+
+#: Opcodes/uggab.c:424
 msgid "losc: no sample rate stored in function assuming=sr\n"
 msgstr ""
 
-#: Opcodes/uggab.c:557
+#: Opcodes/uggab.c:556
 #, c-format
 msgid "illegal reson iscl value: %f"
 msgstr ""
 
-#: Opcodes/uggab.c:964 Opcodes/uggab.c:1006
+#: Opcodes/uggab.c:579
+msgid "loop cannot be zero"
+msgstr ""
+
+#: Opcodes/uggab.c:1007 Opcodes/uggab.c:1049
 msgid "vibrato(krate): not initialised"
 msgstr ""
 
