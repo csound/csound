@@ -707,9 +707,9 @@ static int loopseg(CSOUND *csound, LOOPSEG *p)
     return OK;
 }
 
-#ifdef BETA
 static int loopxseg(CSOUND *csound, LOOPSEG *p)
 {
+    MYFLT exp1 = FL(1.0)/(FL(1.0)-EXP(FL(1.0)));
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
     double   phs, si=*p->freq*csound->onedkr;
@@ -736,7 +736,7 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
         MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
         MYFLT v1 = argp[j+1];
         MYFLT v2 = argp[j+3];
-        *p->out = v1*POWER(v2/v1, fract);
+        *p->out = v1 + (v2 - v1) * (1 - EXP(fract)) * exp1;
         printf("%f/%f %f -> %f\n", v1, v2, fract, *p->out);
         break;
       }
@@ -749,7 +749,6 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
     p->phs = phs;
     return OK;
 }
-#endif
 
 static int lpshold(CSOUND *csound, LOOPSEG *p)
 {
@@ -1585,9 +1584,7 @@ static OENTRY localops[] = {
 { "jspline",  S(JITTERS), 7, "s", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
 { "loopseg",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
-#ifdef BETA
 { "loopxseg", S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopxseg, NULL },
-#endif
 { "lpshold",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
 { "loopsegp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
 { "lpsholdp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
