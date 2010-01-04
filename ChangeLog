@@ -1,3 +1,7 @@
+2010-01-02  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/uggab.c (loopxseg): Fixed bug on shape
+
 2009-12-28  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/linevent.c (sensLine): 
