@@ -737,7 +737,6 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
         MYFLT v1 = argp[j+1];
         MYFLT v2 = argp[j+3];
         *p->out = v1 + (v2 - v1) * (1 - EXP(fract)) * exp1;
-        printf("%f/%f %f -> %f\n", v1, v2, fract, *p->out);
         break;
       }
     }
@@ -745,6 +744,53 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
     while (phs >= 1.0)
       phs -= 1.0;
     while (phs < 0.0 )
+      phs += 1.0;
+    p->phs = phs;
+    return OK;
+}
+
+static int looptseg_set(CSOUND *csound, LOOPTSEG *p)
+{
+    p->nsegs   = (p->INOCOUNT-2)/3;
+    p->phs     = *p->iphase;
+    return OK;
+}
+
+static int looptseg(CSOUND *csound, LOOPTSEG *p)
+{
+    MYFLT beg_seg=FL(0.0), end_seg=FL(0.0), durtot=FL(0.0);
+    double   phs, si=*p->freq*csound->onedkr;
+    int nsegs=p->nsegs;
+    int j;
+
+    if (*p->retrig)
+      phs=p->phs=*p->iphase;
+    else
+      phs=p->phs;
+
+    for ( j=0; j<nsegs; j++)
+      durtot += *(p->argums[j].time);
+    for ( j=0; j < nsegs; j++) {
+      beg_seg = end_seg;
+      end_seg = beg_seg + *(p->argums[j].time) / durtot;
+      if (beg_seg <= phs && end_seg > phs) {
+        MYFLT alpha = *(p->argums[j].type);
+        MYFLT diff = end_seg - beg_seg;
+        MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
+        MYFLT v1 = *(p->argums[j].start);
+        MYFLT v2 = *(p->argums[j+1].start);
+        if (alpha==FL(0.0)) 
+          *p->out = v1 + (v2 - v1) * fract;
+        else
+          *p->out = v1 +
+            (v2 - v1) * (FL(1.0)-EXP(alpha*fract))/(FL(1.0)-EXP(alpha));
+        break;
+      }
+    }
+    phs    += si;
+    while (UNLIKELY(phs >= 1.0))
+      phs -= 1.0;
+    while (UNLIKELY(phs < 0.0 ))
       phs += 1.0;
     p->phs = phs;
     return OK;
@@ -1585,6 +1631,7 @@ static OENTRY localops[] = {
                                 (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
 { "loopseg",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
 { "loopxseg", S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopxseg, NULL },
+{ "looptseg", S(LOOPSEG), 3, "k", "kkiz", (SUBR)looptseg_set, (SUBR)looptseg, NULL},
 { "lpshold",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
 { "loopsegp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
 { "lpsholdp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},

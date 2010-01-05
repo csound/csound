@@ -92,6 +92,21 @@ typedef struct {
         int     nsegs;
 } LOOPSEG;
 
+/* Complexity of args leads to confusion */
+typedef struct {
+  MYFLT *start;
+  MYFLT *type;
+  MYFLT *time;
+} T3SEG;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *out, *freq, *retrig, *iphase;
+        T3SEG   argums[VARGMAX/3];
+        double  phs;
+        int     nsegs;
+} LOOPTSEG;
+
 typedef struct {
         OPDS    h;
         MYFLT   *out, *kphase, *argums[VARGMAX];
