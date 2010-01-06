@@ -985,8 +985,14 @@ extern const uint32_t csPlayScoMask;
     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
+    void (*AddSpinSample)(CSOUND *, int, int, MYFLT);
+    MYFLT (*GetSpoutSample)(CSOUND *, int, int);
+    int (*ChanIKSetValue)(CSOUND *, int channel, MYFLT value);
+    MYFLT (*ChanOKGetValue)(CSOUND *, int channel);
+    int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
+    MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[84];
+    SUBR dummyfn_2[78];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;

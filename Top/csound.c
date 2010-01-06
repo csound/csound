@@ -312,6 +312,12 @@ extern "C" {
     insert_score_event_at_sample,
     csoundGetChannelLock,
     ldmemfile2withCB,
+    csoundAddSpinSample,
+    csoundGetSpoutSample,
+    csoundChanIKSetValue,
+    csoundChanOKGetValue,
+    csoundChanIASetSample,
+    csoundChanOAGetSample,
     /* NULL, */
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -320,8 +326,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL},
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
@@ -1524,9 +1529,22 @@ extern "C" {
       return csound->spin;
   }
 
+  PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample)
+  {
+   
+    int index = (frame * csound->nchnls) + channel;
+    csound->spin[index] += sample;
+  }
+
   PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
   {
       return csound->spout;
+  }
+
+  PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
+  {
+    int index = (frame * csound->nchnls) + channel;
+    return csound->spout[index];
   }
 
   PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)

@@ -737,11 +737,25 @@ CSOUND_FILETYPES;
   PUBLIC MYFLT *csoundGetSpin(CSOUND *);
 
   /**
+   * Adds the indicated sample into the audio input woriing buffer (spin);
+   * this only ever makes sense before calling csoundPerformKsmps(). 
+   * The frame and channel must be in bounds relative to ksmps and nchnls.
+   */
+  PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample);
+
+  /**
    * Returns the address of the Csound audio output working buffer (spout).
    * Enables external software to read audio from Csound after calling
    * csoundPerformKsmps.
    */
-  PUBLIC MYFLT *csoundGetSpout(CSOUND *);
+  PUBLIC MYFLT *csoundGetSpout(CSOUND *csound);
+
+  /**
+   * Returns the indicated sample from the Csound audio output working buffer (spout);
+   * only ever makes sense after calling csoundPerformKsmps().
+   * The frame and channel must be in bounds relative to ksmps and nchnls.
+   */
+  PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel);
 
   /**
    * Returns the output sound file name (-o).
@@ -1720,24 +1734,62 @@ CSOUND_FILETYPES;
    * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
+  
+  /**
+   * Sets the chani opcode MYFLT k-rate value for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
 
- /**
- * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
- * The bus is automatically extended if 'n' exceeds any previously used
- * index value, clearing new locations to zero.
- * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * fsig framesizes are incompatible
- * CSOUND_MEMORY if there is not enough memory to extend the bus.
- */
+  /**
+   * Returns the chani opcode MYFLT k-rate value for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus
+   */
+  PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
+
+  /**
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame
+   * of the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
+
+  /**
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame 
+   * for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+
+  /**
+   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * fsig framesizes are incompatible
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
   PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
-
- /**
- * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
- * The bus is extended if 'n' exceeds any previous value.
- * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * if fsig framesizes are incompatible
- * CSOUND_MEMORY if there is not enough memory to extend the bus
- */
+  
+  /**
+   * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
+   * The bus is extended if 'n' exceeds any previous value.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * if fsig framesizes are incompatible
+   * CSOUND_MEMORY if there is not enough memory to extend the bus
+   */
   PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
 
   /**
