@@ -165,6 +165,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         csound->Free(csound, name);
         return -1;
       }
+      /*      setvbuf(f, (char *) NULL, _IOLBF, 0); /* Ensure line buffering */
       pp->file_opened[idx].raw = f;
       pp->file_opened[idx].fd = fd;
     }
@@ -819,7 +820,7 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
                          p->fname, p->XSTRCODE & 1, "w");
     if (UNLIKELY(n < 0))
       return NOTOK;
-
+    setvbuf(p->f.f, (char*)NULL, _IOLBF, 0); /* Seems a good option */
     /* Copy the string to the storage place in PRINTKS.
      *
      * We will look out for certain special codes and write special
@@ -1028,7 +1029,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
       return NOTOK;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, string);
-
+    /* fflush(p->f.f); */
     return OK;
 }
 
