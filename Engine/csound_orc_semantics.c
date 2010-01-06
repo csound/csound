@@ -591,9 +591,15 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
 
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     if (tree->type == S_ASSIGN) {
-      tree->value->lexeme = get_assignment_type(csound,
-                                                tree->left->value->lexeme,
-                                                tree->right->value->lexeme);
+      /* BUG: tree->right->value may be NULL */
+      if (tree->right->value)
+        tree->value->lexeme = get_assignment_type(csound,
+                                                  tree->left->value->lexeme,
+                                                  tree->right->value->lexeme);
+      else {
+        printf("Odd case\n");
+        print_tree(csound, tree);
+      }
       return;
     }
     else {
