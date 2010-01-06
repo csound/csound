@@ -89,7 +89,6 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-
 /**
 * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
 * The bus is automatically extended if 'n' exceeds any previously used
@@ -175,6 +174,64 @@ PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
     memcpy(value, &(csound->chanoa[n]), sizeof(MYFLT) * csound->ksmps);
     return CSOUND_SUCCESS;
 }
+
+PUBLIC int csoundChanIKSetValue(CSOUND *csound, int n, MYFLT value)
+{
+    if (n < 0)
+      return CSOUND_ERROR;
+    if ((unsigned int)n >= (unsigned int)csound->nchanik) {
+      int   err = chan_realloc(csound,
+                               &(csound->chanik), &(csound->nchanik), n + 1);
+      if (UNLIKELY(err))
+        return err;
+    }
+    csound->chanik[n] = value;
+    return CSOUND_SUCCESS;
+}
+
+PUBLIC MYFLT csoundChanOKGetValue(CSOUND *csound, int n)
+{
+  if (n < 0)
+    return CSOUND_ERROR;
+  if ((unsigned int)n >= (unsigned int)csound->nchanok) {
+    int   err = chan_realloc(csound,
+			     &(csound->chanok), &(csound->nchanok), n + 1);
+    if (UNLIKELY(err))
+      return err;
+  }
+  return csound->chanok[n];
+}
+
+PUBLIC int csoundChanIASetSample(CSOUND *csound, int n, int i, MYFLT sample)
+{
+  if (n < 0)
+    return CSOUND_ERROR;
+  n *= csound->ksmps;
+  if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+    int   err = chan_realloc(csound, &(csound->chanoa),
+			     &(csound->nchanoa), n + csound->ksmps);
+    if (UNLIKELY(err))
+      return err;
+  }
+  csound->chanoa[n + i] = sample;
+  return CSOUND_SUCCESS;
+}
+
+
+PUBLIC MYFLT csoundChanOAGetSample(CSOUND *csound, int n, int i)
+{
+  if (n < 0)
+    return CSOUND_ERROR;
+  n *= csound->ksmps;
+  if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+    int   err = chan_realloc(csound, &(csound->chanoa),
+			     &(csound->nchanoa), n + csound->ksmps);
+    if (UNLIKELY(err))
+      return err;
+  }
+  return csound->chanoa[n + i];
+}
+
 
 /**
 * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.

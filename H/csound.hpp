@@ -798,7 +798,6 @@ public:
 
   }
   // Functions for embedding.
-//#ifdef __BUILDING_CSOUND_INTERFACES
   virtual void EnableMessageBuffer(int toStdOut)
   {
     csoundEnableMessageBuffer(csound, toStdOut);
@@ -823,7 +822,14 @@ public:
   {
     csoundDestroyMessageBuffer(csound);
   }
-//#endif
+  virtual void AddSpinSample(int frame, int channel, MYFLT sample)
+  {
+    csoundAddSpinSample(csound, frame, channel, sample);
+  }
+  virtual MYFLT GetSpoutSample(int frame, int channel) const
+  {
+    return csoundGetSpoutSample(csound, frame, channel);
+  }
 };
 
 // thread locks
