@@ -116,7 +116,6 @@
 
 %start orcfile
 %left S_AND S_OR
-%nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %nonassoc T_THEN T_ITHEN T_KTHEN T_ELSE /* NOT SURE IF THIS IS NECESSARY */
 %left S_PLUS S_MINUS
 %left S_STAR S_SLASH
@@ -128,6 +127,8 @@
 %right S_BITNOT
 %right S_UNOT
 %right S_UMINUS
+%left S_Q
+%nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %token S_GOTO
 %token T_HIGHEST
 %pure_parser
