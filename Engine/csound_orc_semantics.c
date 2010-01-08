@@ -133,16 +133,16 @@ TREE* make_leaf(CSOUND *csound, int type, ORCTOKEN *v)
 /** Utility function to create assignment statements
  *  Replaces = with correct version for args
  */
-char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
+char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
     char c = argtyp2(csound, ans);
-    char* str = (char*)csound->Calloc(csound, 65);
+    char* str = (char*)mcalloc(csound, 65);
 
     switch (c) {
           case 'S':
                   strcpy(str, "strcpy");
                   break;
           case 'a':
-                  c = argtyp2(csound, arg1);
+                c = argtyp2(csound, arg1->value->lexeme);
                 strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
                 /* strcpy(str, "=.a"); */
                 break;
@@ -592,14 +592,14 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     if (tree->type == S_ASSIGN) {
       /* BUG: tree->right->value may be NULL */
-      if (tree->right->value)
+      /* if (tree->right->value) */
         tree->value->lexeme = get_assignment_type(csound,
                                                   tree->left->value->lexeme,
-                                                  tree->right->value->lexeme);
-      else {
-        printf("Odd case\n");
-        print_tree(csound, tree);
-      }
+                                                  tree->right/*->value->lexeme*/);
+      /* else {                    /\* Conditional expression so broken  *\/ */
+      /*   printf("Odd case\n"); */
+      /*   print_tree(csound, tree); */
+      /* } */
       return;
     }
     else {
