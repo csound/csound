@@ -86,7 +86,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt = (EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
+    ftevt = (EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
@@ -126,7 +126,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
       } while (--n);
     }
     n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
-    csound->Free(csound, ftevt);
+    free(ftevt);
     if (UNLIKELY(n != 0))
       return csound->InitError(csound, Str("ftgen error"));
     if (ftp != NULL)

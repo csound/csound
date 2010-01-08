@@ -852,7 +852,7 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
 
     /* initialise IR */
 
-    ir = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT) * (int32) p->bs);
+    ir = (MYFLT *) malloc(sizeof(MYFLT) * (int32) p->bs);
     ir[0] = FL(1.0);
     wmax = 0; while (++wmax < (int32) p->bs)
       ir[wmax] = (sizeof(MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
@@ -865,7 +865,7 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
 
     spat3dt_wall_perf(p, ir, (SPAT3D_WALL *) p->ws.auxp);
 
-    csound->Free(csound, ir);               /* free tmp memory */
+    free(ir);               /* free tmp memory */
     return OK;
 }
 
