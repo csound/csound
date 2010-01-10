@@ -70,7 +70,7 @@ def runTest():
         ["test31.csd", "i-rate conditional test"],
         ["test32.csd", "continuation lines test"],
         ["test33.csd", "using named instrument from score (testing score strings)"],
-        ["test34.csd", "conditional expressions",
+        ["test34.csd", "tertiary conditional expressions"],
     ]
 
 
