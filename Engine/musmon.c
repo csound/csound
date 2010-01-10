@@ -262,7 +262,7 @@ int musmon(CSOUND *csound)
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
-    O->inbufsamps *= csound->nchnls;    /* now adjusted for n channels -- should be inchnls  */
+    O->inbufsamps *= csound->nchnls_i;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
       /* open audio file or device for input first, and then for output */
