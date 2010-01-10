@@ -651,7 +651,7 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
       do {
         if (ip->insno == insno          /* if find the insno */
             && ip->actflg               /*      active       */
-            && ip->offtim < 0.0         /*      but indef,   */
+           /* && ip->offtim < 0.0 */         /*      but indef,   */
             && ip->p1 == p1) {
           if (UNLIKELY(csound->oparms->odebug))
             csound->Message(csound, "turning off inf copy of instr %d\n",
@@ -662,7 +662,7 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
       } while ((ip = ip->nxtinstance) != NULL);
     }
     csound->Message(csound,
-                    Str("could not find indefinitely playing instr %f\n"),
+                    Str("could not find playing instr %f\n"),
                     p1);
 }
 
