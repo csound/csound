@@ -731,7 +731,7 @@ int csoundLoadExternals(CSOUND *csound)
       if (s[i] == ',')
         cnt++;
     } while (s[++i] != '\0');
-    lst = (char**) mmalloc(csound, sizeof(char*) * cnt);
+    lst = (char**) malloc(sizeof(char*) * cnt);
     i = cnt = 0;
     lst[cnt++] = s;
     do {
@@ -753,7 +753,7 @@ int csoundLoadExternals(CSOUND *csound)
       }
     } while (++i < cnt);
     /* file list is no longer needed */
-    mfree(csound, lst);
+    free(lst);
     mfree(csound, s);
     return 0;
 }
