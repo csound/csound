@@ -1,3 +1,7 @@
+2010-01-08  mantaraya36  <mantaraya36@gmail.com>
+
+	*  Engine/insert.c: Allow turning off non-indefinite instruments from negative score events. By John ffitch.
+	
 2010-01-08  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (musmon): Corrected csound->inchnls to csound->nchnls
