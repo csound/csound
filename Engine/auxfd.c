@@ -75,10 +75,10 @@ void fdclose(CSOUND *csound, FDCH *fdchp)
   FDCH    *prvchp = NULL, *nxtchp;
 
   nxtchp = csound->curip->fdchp;              /* from current insds,  */
-  while (nxtchp != NULL) {                    /* chain through fdlocs */
-    if (nxtchp == fdchp) {                    /*   till find this one */
+  while (LIKELY(nxtchp != NULL)) {            /* chain through fdlocs */
+    if (UNLIKELY(nxtchp == fdchp)) {          /*   till find this one */
       void  *fd = fdchp->fd;
-      if (fd) {
+      if (LIKELY(fd)) {
         fdchp->fd = NULL;                     /* then delete the fd   */
         csoundFileClose(csound, fd);          /*   close the file &   */
       }
@@ -86,7 +86,7 @@ void fdclose(CSOUND *csound, FDCH *fdchp)
         prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
       else
         csound->curip->fdchp = fdchp->nxtchp;
-      if (csound->oparms->odebug)
+      if (UNLIKELY(csound->oparms->odebug))
         fdchprint(csound, csound->curip);
       return;
     }
@@ -122,11 +122,11 @@ void auxchfree(CSOUND *csound, INSDS *ip)
 void fdchclose(CSOUND *csound, INSDS *ip)
 {
     if (UNLIKELY(csound->oparms->odebug))
-    fdchprint(csound, ip);
+      fdchprint(csound, ip);
   /* for all fd's in chain: */
     for ( ; ip->fdchp != NULL; ip->fdchp = ip->fdchp->nxtchp) {
       void  *fd = ip->fdchp->fd;
-      if (fd) {
+      if (LIKELY(fd)) {
         ip->fdchp->fd = NULL;           /*    delete the fd     */
         csoundFileClose(csound, fd);    /*    & close the file  */
       }
