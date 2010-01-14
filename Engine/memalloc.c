@@ -24,11 +24,16 @@
 
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
 
+/* This code wraps malloc etc with maintaining a list of allocated memory
+   so it can be freed on a reset.  It would not be necessary with a zoned
+   allocator.
+*/
 #if defined(BETA) && !defined(MEMDEBUG)
 #define MEMDEBUG  1
 #endif
 
 #define MEMALLOC_MAGIC  0x6D426C6B
+/* The memory list must be controlled by mutex */
 #define CSOUND_MEM_SPINLOCK csoundSpinLock(&csound->memlock);
 #define CSOUND_MEM_SPINUNLOCK csoundSpinUnLock(&csound->memlock);
 
@@ -121,7 +126,7 @@ void mfree(CSOUND *csound, void *p)
 {
     memAllocBlock_t *pp;
 
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
 #ifdef MEMDEBUG
@@ -155,9 +160,9 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     memAllocBlock_t *pp;
     void            *p;
 
-    if (oldp == NULL)
+    if (UNLIKELY(oldp == NULL))
       return mmalloc(csound, size);
-    if (size == (size_t) 0) {
+    if (UNLIKELY(size == (size_t) 0)) {
       mfree(csound, oldp);
       return NULL;
     }
@@ -178,9 +183,11 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     p = realloc((void*) pp, ALLOC_BYTES(size));
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
+      CSOUND_MEM_SPINLOCK
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
+      CSOUND_MEM_SPINUNLOCK
 #endif
       memdie(csound, size);
       return NULL;

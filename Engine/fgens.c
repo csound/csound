@@ -891,7 +891,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     ff->e.p[5] = -xintvl;
     ff->e.p[6] = xintvl;
     nn = nh * sizeof(MYFLT) / 2;              /* alloc spc for terms 3,5,7,..*/
-    mp = mspace = (MYFLT *)mcalloc(csound, nn); /* of 1st row of matrix, and */
+    mp = mspace = (MYFLT *)calloc(1, nn);       /* of 1st row of matrix, and */
     for (nn = (nh + 1) >>1; --nn; )             /* form array of non-0 terms */
       *mp++ = mxval = -mxval;                   /*  -val, val, -val, val ... */
     scalfac = 2 / xamp;
@@ -940,7 +940,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
         *mp = prvm = *mp - prvm;
       mxscal *= scalfac;
     } while (--nh);                             /* loop til all h's replaced */
-    mfree(csound, (char *)mspace);
+    free(mspace);
     return gen03(ff, ftp);                      /* then call gen03 to write */
 }
 
@@ -1521,9 +1521,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
 
-    x = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
-    y = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
-    z = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
+    x = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
+    y = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
+    z = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF) {
 #else
@@ -1532,9 +1532,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
       i++;
       if (i>=arraysize) {
         arraysize += 1000;
-        x = (MYFLT*)mrealloc(csound, x, arraysize*sizeof(MYFLT));
-        y = (MYFLT*)mrealloc(csound, y, arraysize*sizeof(MYFLT));
-        z = (MYFLT*)mrealloc(csound, z, arraysize*sizeof(MYFLT));
+        x = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
+        y = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
+        z = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
       }
     }
     --i;
@@ -1571,7 +1571,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
       *fp++ = y[j+1];
     } while (fp < finp);
 
-    mfree(csound, x); mfree(csound, y); mfree(csound, z);
+    free(x); free(y); free(z);
     csound->FileClose(csound, fd);
 
     return OK;
@@ -1632,7 +1632,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     if (minh > maxh)
       return OK;
     i = (l1 > l2 ? l1 : l2) + 2;
-    x = (MYFLT*) mmalloc(csound, sizeof(MYFLT) * i);
+    x = (MYFLT*) malloc(sizeof(MYFLT) * i);
     /* read src table with amplitude scale */
     xsr = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1658,7 +1658,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l1; i++)
       f1[i] = x[i];
     f1[l1] = f1[0];     /* write guard point */
-    mfree(csound, x);
+    free(x);
 
     return OK;
 }
@@ -1688,8 +1688,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     f1 = &(ftp->ftable[0]);
     l1 = (int) ftp->flen;
 
-    x = (MYFLT*) mcalloc(csound, sizeof(MYFLT) * (l2 + 2));
-    y = (MYFLT*) mcalloc(csound, sizeof(MYFLT) * (l1 + 2));
+    x = (MYFLT*) calloc(l2 + 2, sizeof(MYFLT));
+    y = (MYFLT*) calloc(l1 + 2, sizeof(MYFLT));
     /* read and analyze src table, apply amplitude scale */
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1731,8 +1731,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
 
-    mfree(csound, x);
-    mfree(csound, y);
+    free(x);
+    free(y);
 
     return OK;
 }
@@ -1762,7 +1762,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     }
 
     ntabl = nargs >> 2;         /* number of waves to mix */
-    pnum  = (int*) mmalloc(csound, sizeof(int) * ntabl);
+    pnum  = (int*) malloc(sizeof(int) * ntabl);
     for (i = 0; i < ntabl; i++)
       pnum[i] = (i << 2) + 5;   /* p-field numbers */
     do {
@@ -1792,9 +1792,9 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       l2 = csound->GetTable(csound, &f2, abs(i));
       if (UNLIKELY(l2 < 0)) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
-        mfree(csound, pnum);
-        if (x != NULL) mfree(csound, x);
-        if (y != NULL) mfree(csound, x);
+        if (x != NULL) free(x);
+        if (y != NULL) free(x);
+        free(pnum);
         return NOTOK;
       }
       if (i < 0) {              /* use linear interpolation */
@@ -1819,9 +1819,9 @@ static int gen32(FGDATA *ff, FUNC *ftp)
         if (i != ft) {
           ft = i;               /* new table */
           if (y == NULL)
-            y = (MYFLT*) mcalloc(csound, sizeof (MYFLT) * (l1 + 2));
-          if (x != NULL) mfree(csound, x);
-          x = (MYFLT*) mcalloc(csound, sizeof (MYFLT) * (l2 + 2));
+            y = (MYFLT*) calloc(l1 + 2, sizeof (MYFLT));
+          if (x != NULL) free(x);
+          x = (MYFLT*) calloc(l2 + 2, sizeof (MYFLT));
           /* read and analyze src table */
           for (i = 0; i < l2; i++)
             x[i] = f2[i];
@@ -1855,10 +1855,10 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       for (i = 0; i < l1; i++)
         f1[i] += y[i];
       f1[l1] += y[0];           /* write guard point */
-      mfree(csound, x);         /* free tmp memory */
-      mfree(csound, y);
+      free(x);         /* free tmp memory */
+      free(y);
     }
-    mfree(csound, pnum);
+    free(pnum);
 
     return OK;
 }
@@ -1906,7 +1906,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     }
 
     /* allocate memory for tmp data */
-    x = (MYFLT*) mcalloc(csound, sizeof(MYFLT) * (flen + 2));
+    x = (MYFLT*) calloc(flen + 2, sizeof(MYFLT));
 
     maxp = flen >> 1;           /* max. partial number */
     i = nh;
@@ -1938,7 +1938,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     ft[flen] = x[0];            /* write guard point */
 
     /* free tmp memory */
-    mfree(csound, x);
+    free(x);
 
     return OK;
 }
@@ -1987,10 +1987,10 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* use blocks of 256 samples (2048 bytes) for speed */
     bs = 256L;
     /* allocate memory for tmp data */
-    tmp = (double*) mmalloc(csound, sizeof (double) * bs);
-    xn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
-    cn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
-    vn  = (double*) mmalloc(csound, sizeof (double) * (nh + 1L));
+    tmp = (double*) malloc(sizeof (double) * bs);
+    xn  = (double*) malloc(sizeof (double) * (nh + 1L));
+    cn  = (double*) malloc(sizeof (double) * (nh + 1L));
+    vn  = (double*) malloc(sizeof (double) * (nh + 1L));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
@@ -2037,7 +2037,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     } while (j);
 
     /* free tmp buffers */
-    mfree(csound, tmp); mfree(csound, xn); mfree(csound, cn); mfree(csound, vn);
+    free(tmp); free(xn); free(cn); free(vn);
 
     return OK;
 }
