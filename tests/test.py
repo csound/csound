@@ -71,7 +71,8 @@ def runTest():
         ["test32.csd", "continuation lines test"],
         ["test33.csd", "using named instrument from score (testing score strings)"],
         ["test34.csd", "tertiary conditional expressions"],
-        ["test35.csd", "opcode with all input args optional (passign)"],
+        ["test35.csd", "*** UNKNOWN ***"],
+        ["test36.csd", "opcode with all input args optional (passign)"],
     ]
 
 
