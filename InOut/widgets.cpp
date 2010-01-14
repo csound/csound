@@ -2135,6 +2135,7 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
           v[i++] = tok;
         }
         v[i] = NULL;
+        csound->Free(csound, command); // Otherwise will lose space
         if (UNLIKELY(csound->RunCommand(v, 1)<0))
           p->csound->Message(p->csound, Str("Error: Unable to fork process\n"));
       }

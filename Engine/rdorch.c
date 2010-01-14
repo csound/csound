@@ -570,8 +570,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         if (c == '\n') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
-/*        ST(srclin)[++lincnt] = 0;     unused  */
-/*        ST(linadr)[lincnt] = cp; */
+          lincnt++;
         }
         else {
           *cp++ = c;
