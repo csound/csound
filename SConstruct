@@ -982,7 +982,7 @@ pthread
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if compilerGNU():
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
-elif getPlatform() == 'linux' or getPlatform() == 'sunos':
+elif getPlatform() == 'linux' or getPlatform() == 'sunos' or getPlatform() == 'darwin':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
     if mpafound :
         csoundDynamicLibraryEnvironment.Append(LIBS = ['mpadec'])
@@ -1277,6 +1277,8 @@ libs.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Clone()
 pluginEnvironment.Append(LIBS = Split('sndfile'))
+if mpafound:
+  pluginEnvironment.Append(LIBS = ['mpadec'])
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
@@ -1382,7 +1384,7 @@ else:
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
                 '''-Xlinker -current_version -Xlinker %s''' % ilibVersion))
             tmp = '''-install_name
-                /Library/Frameworks/%s/%s''' 
+                /Library/Frameworks/%s/%s'''
             csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split(
                  tmp % (OSXFrameworkCurrentVersion,ilibName)))
             csnd = csoundInterfacesEnvironment.SharedLibrary(
@@ -1756,6 +1758,7 @@ else:
     guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     if getPlatform() == 'darwin':
         csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMidi'''))
+
 if buildOLPC or (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
