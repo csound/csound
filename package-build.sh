@@ -1,6 +1,6 @@
 cd ../csound5_install
-for i in CsoundLib CsoundApps SupportLibs Csound5; do
-/Developer/usr/bin/packagemaker --doc $i.pmdoc $i.mpkg
+for i in CsoundLib64 CsoundApps64 SupportLibs Csound5-doubles; do
+/Developer/tools/packagemaker -build -proj $i.pmproj -v -p $i.pkg
 done
-sh mkdistro.sh $1
+sh mkdistro64.sh $1
 
