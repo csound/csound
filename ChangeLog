@@ -1,3 +1,8 @@
+2010-01-16  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/otran.c (oload): Need to checl the first 6 vsriables, up
+	from 5 due to input channel code
+
 2010-01-11  john ffitch  <jpff@codemist.co.uk>
 
  	* Engine/fgens.c (gen28, gen31, gen32, gen33, gen34): Used
