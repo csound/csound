@@ -1208,7 +1208,7 @@ void oload(CSOUND *p)
       inoffp = ttp->inoffs;             /* to find sr.. assigns */
       if (outoffp->count == 1 && inoffp->count == 1) {
         int rindex = (int) outoffp->indx[0] - (int) p->poolcount;
-        if (rindex > 0 && rindex <= 5) {
+        if (rindex > 0 && rindex <= 6) {
           MYFLT conval = p->pool[inoffp->indx[0] - 1];
           switch (rindex) {
             case 1:  p->esr = conval;   break;  /* & use those values */
@@ -1216,6 +1216,7 @@ void oload(CSOUND *p)
             case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
             case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
             case 5:  p->inchnls = (int) (conval + FL(0.5));  break;
+            case 6:
             default: p->e0dbfs = conval; break;
           }
         }
