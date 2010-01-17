@@ -1,6 +1,6 @@
 2010-01-16  john ffitch  <jpff@codemist.co.uk>
 
-	* Engine/otran.c (oload): Need to checl the first 6 vsriables, up
+	* Engine/otran.c (oload): Need to check the first 6 variables, up
 	from 5 due to input channel code
 
 2010-01-11  john ffitch  <jpff@codemist.co.uk>

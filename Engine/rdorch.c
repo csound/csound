@@ -88,9 +88,6 @@ typedef struct {
     int32    lenmax /* = LENMAX */;  /* Length of input line buffer  */
     char    *ortext;
     char    **linadr;               /* adr of each line in text     */
-#if 0   /* unused */
-    int     *srclin;                /* text no. of expanded lines   */
-#endif
     int     curline;                /* current line being examined  */
     char    *collectbuf;            /* splitline collect buffer     */
     char    **group;                /* splitline local storage      */
@@ -504,10 +501,6 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
     ST(str)->unget_cnt = 0;
     ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
     ST(linadr) = (char **) mmalloc(csound, (LINMAX + 1) * sizeof(char *));
-#if 0   /* unused */
-    ST(srclin) = (int *) mmalloc(csound, (LINMAX + 1) * sizeof(int));
-    ST(srclin)[1] = 1;
-#endif
     strsav_create(csound);
     lincnt = srccnt = 1;
     cp = ST(linadr)[1] = ortext;
@@ -600,10 +593,6 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           linmax += 100;
           ST(linadr) = (char**) mrealloc(csound, ST(linadr), (linmax + 1)
                                                              * sizeof(char*));
-#if 0   /* unused */
-          ST(srclin) = (int*) mrealloc(csound, ST(srclin), (linmax + 1)
-                                                           * sizeof(int));
-#endif
         }
   /*    ST(srclin)[lincnt] = srccnt;    unused  */
         ST(linadr)[lincnt] = cp;            /* record the adrs */
@@ -986,7 +975,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       *cp++ = '\n';                         /*    add one           */
     else --lincnt;
     ST(linadr)[lincnt+1] = NULL;            /* terminate the adrs list */
-    csound->Message(csound,Str("%d lines read\n"),lincnt);
+#ifdef BETA
+    csound->Message(csound,Str("%d (%d) lines read\n"),lincnt, srccnt);
+#endif
     if (ST(fd) != NULL) {
       csound->FileClose(csound, ST(fd));    /* close the file       */
       ST(fd) = NULL;
@@ -1481,9 +1472,6 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       if (!(ST(grpcnt) = splitline(csound))) {  /*    attack next line    */
         /* end of orchestra, clean up */
         mfree(csound, ST(linadr));      ST(linadr) = NULL;
-#if 0   /* unused */
-        mfree(csound, ST(srclin));      ST(srclin) = NULL;
-#endif
         mfree(csound, ST(ortext));      ST(ortext) = NULL;
         mfree(csound, ST(collectbuf));  ST(collectbuf) = NULL;
         mfree(csound, ST(group));       ST(group) = NULL;
