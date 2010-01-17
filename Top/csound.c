@@ -626,7 +626,7 @@ extern "C" {
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
 #ifdef ENABLE_NEW_PARSER
-      1,            /*    newParser   */
+      0,            /*    newParser   */
 #endif
     },
     0L, 0L,         /*  instxtcount, optxtsize  */
