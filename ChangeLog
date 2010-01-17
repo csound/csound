@@ -1,4 +1,8 @@
-2010-01-16  john ffitch  <jpff@codemist.co.uk>
+2010-01-17  john ffitch  <jpff@codemist.co.uk>
+
+	* VERSION 5.12
+
+a2010-01-16  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/otran.c (oload): Need to check the first 6 variables, up
 	from 5 due to input channel code
