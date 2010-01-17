@@ -18,7 +18,7 @@
 #######################################################################
 
 !define PRODUCT "Csound"
-!define PROGRAM "Csound5.11.1"
+!define PROGRAM "Csound5.12.1"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
 !ifdef NONFREE
@@ -617,7 +617,7 @@ skipAssoc:
       File /r ..\..\samples\*
       File /r ..\..\Opcodes\stk\rawwaves\*.raw
     SetOutPath $INSTDIR\examples\Boulanger_Examples
-      File /r D:\utah\home\mkg\orc\4examples\4-ExamplesCsound511\examples\a_little_something_from_DoctorB.B\*
+      File /r D:\utah\home\mkg\orc\4examples\4-ExamplesCsound512\examples\a_little_something_from_DoctorB.B\*
     SetOutPath $INSTDIR\examples
       File ..\..\examples\CsoundAC.csd
       File ..\..\examples\CsoundVST.csd
