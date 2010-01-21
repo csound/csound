@@ -162,10 +162,11 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
 
 static void pulse_close(CSOUND *csound){
-
+  int error;
   pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
 
   if(pulse != NULL){
+    pa_simple_drain(pulse->ps, &error);
     pa_simple_free(pulse->ps);
     free(pulse->buf);
   }
