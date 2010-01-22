@@ -44,6 +44,7 @@ typedef struct devparams_ {
     float   srate;
     int     nchns;
     int     isNInterleaved;
+    AudioDeviceIOProcID     procID;
 } DEVPARAMS;
 
 /* module interface functions */
@@ -392,7 +393,12 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
     dev->incurbuff = dev->outcurbuff = dev->iocurbuff = 0;
     dev->incount = dev->outcount = 0;
 
+    // 
+#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+    AudioDeviceCreateIOProcID(dev->dev,Csound_IOProcEntry,dev,&dev->procID);
+#else
     AudioDeviceAddIOProc(dev->dev, Csound_IOProcEntry, dev);
+#endif
     AudioDeviceStart(dev->dev, Csound_IOProcEntry);
 
     if (isInput)
@@ -540,8 +546,13 @@ static void rtclose_(CSOUND *csound)
     dev = (DEVPARAMS *) (csound->rtRecord_userdata);
     if (dev != NULL) {
       p->Message(csound, Str("coreaudio module: closing device...\n"));
+      sleep(1);
       AudioDeviceStop(dev->dev, Csound_IOProcEntry);
+#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+      AudioDeviceDestroyIOProcID(dev->dev, dev->procID);
+#else
       AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);
+#endif
       csound->rtRecord_userdata = NULL;
       free(dev->outbuffs);
       free(dev->inbuffs);
