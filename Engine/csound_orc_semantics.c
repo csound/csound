@@ -520,6 +520,8 @@ void print_tree(CSOUND * csound, TREE *l)
 
 void handle_optional_args(CSOUND *csound, TREE *l)
 {
+	if (l == NULL || l->type == T_LABEL) return;
+
     int opnum = find_opcode(csound, l->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
     int nreqd = 0;
