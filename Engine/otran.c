@@ -1195,6 +1195,7 @@ void oload(CSOUND *p)
     MYFLT   ensmps;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
+    p->e0dbfs = p->tran_0dbfs;
     p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
