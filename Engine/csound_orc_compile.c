@@ -569,7 +569,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
           } else if (current->left->type == T_NCHNLSI) {
             csound->tran_nchnlsi = current->right->value->value;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
+          } else if (current->left->type == T_0DBFS) {
+        	csound->tran_0dbfs = val;
           }
+
           /* TODO - Implement 0dbfs constant */
           /*else if (strcmp(s, "0dbfs") == 0) {*/
           /* we have set this as reserved in rdorch.c */
