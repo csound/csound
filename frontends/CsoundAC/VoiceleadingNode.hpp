@@ -67,17 +67,28 @@ namespace csound
      * to match the duration of the score.
      */
     double rescaledEndTime;
+    /**
+     * Prime chord, or DBL_MAX if no operation.
+     */
     double P;
     /**
-     * Prime chord, or NAN if no operation.
+     * Transposition, or DBL_MAX if no operation.
      */
     double T;
     /**
-     * Transposition, or NAN if no operation.
+     * Pitch-set class, or DBL_MAX if no operation.
      */
     double C;
     /**
-     * Voicing, or NAN if no operation.
+     * Inversion by interchange.
+     */
+    double K;
+    /**
+     * Contextual transposition.
+     */
+    double Q;
+    /**
+     * Voicing, or DBL_MAX if no operation.
      */
     double V;
     /**
@@ -101,11 +112,14 @@ namespace csound
    * This node class imposes
    * a sequence of one or more
    * "voice-leading" operations upon
-   * the pitches of notes produced by children of this node.
+   * the pitches of notes produced by children of this node,
+   * within a segment of the notes.
    * These operations comprise:
    * prime chord (P),
    * transpose (T),
    * unordered pitch-class set (C, equivalent to PT),
+   * contextual inversion (K), 
+   * contextual transposition (Q),
    * voicing (V) within a specified range of pitches,
    * and voice-lead (L).
    * The values of P, T, C, and V
@@ -120,8 +134,9 @@ namespace csound
    * PT cannot be used with C.
    * V cannot be used with L.
    * If neither PT nor C is specified, the existing C of the notes is used.
+   * K and Q require a previous section, and cannot be used with P, T, or C.
    * The consistent combinations of operations are thus:
-   * PT, PTV, PTL, C, CV, CL, V, and L.
+   * PT, PTV, PTL, C, CV, CL, K, KV, KL, Q, QV, QL, V, and L.
    */
   class VoiceleadingNode :
     public Node
@@ -142,6 +157,11 @@ namespace csound
      * pitch, as a MIDI key number (default = 60).
      */
     double range;
+    /**
+     * Context for the K and Q operations; must have the
+     * same cardinality as the pitch-classes in use.
+     */
+    std::vector<double> modality;
     /**
      * If true (the default), rescale times of voice-leading operations
      * in proportion to the duration of the notes produced
@@ -214,7 +234,8 @@ namespace csound
      * or the end of the score, whichever comes first,
      * conform notes produced by this node or its children
      * to the specified prime chord and transposition.
-     * Note that PT specifies what musicians normally call a chord.
+     * Note that C (equivalent to PT) specifies what musicians normally 
+     * call a chord.
      */
     virtual void C(double time, double C_);
     /**
@@ -223,8 +244,8 @@ namespace csound
      */
     virtual void C(double time, std::string C_);
     /**
-     * Same as PT, except the chord can be specified by
-     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     * Same as C, except the chord can be specified by
+     * jazz-type name (e.g. EbM7) instead of C number.
      */
     virtual void CV(double time, double C_, double V_);
     /**
@@ -233,8 +254,8 @@ namespace csound
      */
     virtual void CV(double time, std::string C_, double V_);
     /**
-     * Same as PTV, except the chord is specified by
-     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     * Same as CV, except the chord is specified by
+     * jazz-type name (e.g. EbM7) instead of C number.
      */
     virtual void CL(double time, double C_, bool avoidParallels = true);
     /**
@@ -243,10 +264,47 @@ namespace csound
      */
     virtual void CL(double time, std::string C_, bool avoidParallels = true);
     /**
-     * Same as PTL, except the chord is specified by
-     * jazz-type name (e.g. EbM7) instead of P and T numbers.
+     * Find the C of the previous segment, and contextually invert it; apply
+     * the resulting C to the current segment. Contextual inversion is 
+     * that inversion of C in which the first two pitch-classes are exchanged.
      */
-    virtual void V(double time, double V_);
+    virtual void K(double time);
+    /**
+     * Find the C of the previous segment, and contextually invert it; apply
+     * the resulting C to the current segment with voicing V. Contextual 
+     * inversion is that inversion of C in which the first two pitch-classes 
+     * are exchanged.
+     */
+    virtual void KV(double time, double V_);
+    /**
+     * Find the C of the previous segment, and contextually invert it; apply
+     * the resulting C to the current segment, using the closest voiceleading
+     * from the pitches of the previous segment.
+     * Contextual inversion is that inversion of C in which the first two 
+     * pitch-classes are exchanged.
+     */
+    virtual void KL(double time, bool avoidParallels = true);
+    /**
+     * Find the C of the previous segment, and contextually transpose it; 
+     * apply the resulting C to the current segment. Contextual transposition 
+     * transposes C up by Q if C is an I-form, and down by Q if C is a T-form.
+     */
+    virtual void Q(double time, double Q_);
+    /**
+     * Find the C of the previous segment, and contextually transpose it; 
+     * apply the resulting C to the current segment with voicing V. 
+     * Contextual transposition transposes C up by Q if C is an I-form, 
+     * and down by Q if C is a T-form.
+     */
+    virtual void QV(double time, double Q_, double V_);
+    /**
+     * Find the C of the previous segment, and contextually transpose it; 
+     * apply the resulting C to the current segment, using the closest 
+     * voiceleading from the pitches of the previous segment.
+     * Contextual transposition transposes C up by Q if C is an I-form, 
+     * and down by Q if C is a T-form.
+     */
+    virtual void QL(double time, double Q_, bool avoidParallels = true);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -255,6 +313,18 @@ namespace csound
      * to the specified voicing of the chord.
      * Note that V specifies what musicians normally call
      * the voicing or inversion of the chord.
+     */
+    virtual void V(double time, double V_);
+    /**
+     * Beginning at the specified time and continuing
+     * to the beginning of the next operation
+     * or the end of the score, whichever comes first,
+     * conform notes produced by this node or its children
+     * to the smoothest voice-leading from the pitches 
+     * of the previous segment.
+     * Optionally, parallel fifths can be avoided.
+     * Note that L specifies what musicians normally call
+     * voice-leading.
      */
     virtual void L(double time, bool avoidParallels = true);
     /**
