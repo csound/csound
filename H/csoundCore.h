@@ -123,6 +123,7 @@ extern "C" {
 #define TWOPI   (6.283185307179586476925286766559005768394)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
+#define INF     (2147483647.0)
 
 #define AMPLMSG 01
 #define RNGEMSG 02

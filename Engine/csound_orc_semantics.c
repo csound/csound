@@ -404,6 +404,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"T_KSMPS\""); break;
     case T_NCHNLS:
       csound->Message(csound,"name=\"T_NCHNLS\""); break;
+    case T_NCHNLSI:
+      csound->Message(csound,"name=\"T_NCHNLSI\""); break;
     case T_INSTR:
       csound->Message(csound,"name=\"T_INSTR\""); break;
     case T_STRCONST:
