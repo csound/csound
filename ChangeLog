@@ -1,3 +1,11 @@
+2010-01-24  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sread.c (init_smacros): Define INF macro in scores as well
+	(getscochar): Read 'z' as infinity
+
+	* Engine/rdorch.c (init_math_constants_macros): Added INF macro
+	for infinity in orchestra
+
 2010-01-17  john ffitch  <jpff@codemist.co.uk>
 
 	* VERSION 5.12
