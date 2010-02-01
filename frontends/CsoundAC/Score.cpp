@@ -297,7 +297,7 @@ namespace csound
     for (std::map<int, std::vector<Event *> >::iterator it = parts.begin(); it != parts.end(); ++it) {
       const std::vector<const Event *> part = it->second;
       score->push(makePart(part));
-     }
+    }
     return score;
   }
 #endif
@@ -1150,6 +1150,85 @@ namespace csound
     std::vector<double> resultTones = Voicelead::uniquePcs(result, divisionsPerOctave_);
     printChord("  as pitch-class set:  ", resultTones);
     System::inform("ENDED Score::voicelead.\n");
+  }
+
+  void Score::setK(size_t priorBegin, size_t begin, size_t end, double base, double range)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> kpcs = Voicelead::K(pcs);
+    std::vector<double> pt = Voicelead::pitchClassSetToPandT(kpcs);
+    setPT(begin, end, pt[0], pt[1], base, range);
+  }
+  
+  void Score::setKV(size_t priorBegin, size_t begin, size_t end, double V, double base, double range)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> kpcs = Voicelead::K(pcs);
+    std::vector<double> pt = Voicelead::pitchClassSetToPandT(kpcs);
+    setPTV(begin, end, pt[0], pt[1], V, base, range);
+  }
+  
+  void Score::setKL(size_t priorBegin, size_t begin, size_t end, double base, double range, bool avoidParallels)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> kpcs = Voicelead::K(pcs);
+    voicelead(priorBegin,
+	      begin,
+	      begin,
+	      end,
+	      kpcs,
+	      base,
+	      range,
+	      avoidParallels);
+  }
+  static std::vector<double> getLocalContext(const std::vector<double> context, int localSize)
+  {
+    std::vector<double> localContext = context;
+    localContext.resize(localSize);
+    // If the local context is larger than the global context,
+    // double pcs in the global context to fill the local context out.
+    for (size_t i = context.size(), j = 0; i < localSize; ++i, ++j) {
+      localContext[i] = context[j % context.size()];
+    }
+    return localContext;
+  }
+  void Score::setQ(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> localContext = getLocalContext(context, pcs.size());
+    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    std::vector<double> pt = Voicelead::pitchClassSetToPandT(qpcs);
+    setPT(begin, end, pt[0], pt[1], base, range);
+  }
+
+  void Score::setQV(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double V, double base, double range)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> localContext = getLocalContext(context, pcs.size());
+    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    std::vector<double> pt = Voicelead::pitchClassSetToPandT(qpcs);
+    setPTV(begin, end, pt[0], pt[1], V, base, range);
+  }
+
+  void Score::setQL(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range, bool avoidParallels)
+  {
+    std::vector<double> pitches = getPitches(priorBegin, begin);
+    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> localContext = getLocalContext(context, pcs.size());
+    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    voicelead(priorBegin,
+	      begin,
+	      begin,
+	      end,
+	      qpcs,
+	      base,
+	      range,
+	      avoidParallels);
   }
 
   struct TimeAtComparator

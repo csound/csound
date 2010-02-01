@@ -282,7 +282,7 @@ namespace csound
      * in order from lowest to highest in pitch;
      * this has the effect of returning the "inversion" or "voicing",
      * in the musician's informal sense, of the pitches in that segment of the score.
-      */
+     */
     virtual std::vector<double> getVoicing(size_t begin, size_t end, size_t divisionsPerOctave = 12) const;
     /**
      * Move the pitches in the segment as little as possible
@@ -292,6 +292,50 @@ namespace csound
      * pitches in that segment of the score.
      */
     virtual void setVoicing(size_t begin, size_t end, const std::vector<double> &voicing, double range, size_t divisionsPerOctave = 12);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; 
+     * invert the set such that the inversion's first two pitch-classes 
+     * are exchanged from the origina; conform the pitches of the
+     * current segment to that inversion.
+     */
+    virtual void setK(size_t priorBegin, size_t begin, size_t end, double base, double range);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; 
+     * invert the set such that the inversion's first two pitch-classes 
+     * are exchanged from the original; conform the pitches of the 
+     * current segment to that inversion, with voicing V.
+     */
+    virtual void setKV(size_t priorBegin, size_t begin, size_t end, double V, double base, double range);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; 
+     * invert the set such that the inversion's first two pitch-classes 
+     * are exchanged from the original; conform the pitches of the 
+     * current segment to that inversion, using the closest voice-leading 
+     * from the pitches of the prior segment, optionally avoiding parallel fifths.
+     */
+    virtual void setKL(size_t priorBegin, size_t begin, size_t end, double base, double range, bool avoidParallels = true);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; transpose the set up by Q
+     * if the set is a T-form of the context, or down by Q if the set is an I-form of the context;
+     * then conform the pitches of the current segment to that set.
+     * The context will be reduced or doubled as required to match the cardinality of the set.
+     */
+    virtual void setQ(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; transpose the set up by Q
+     * if the set is a T-form of the context, or down by Q if the set is an I-form of the context;
+     * then conform the pitches of the current segment to that set, with the voicing V.
+     * The context will be reduced or doubled as required to match the cardinality of the set.
+     */
+    virtual void setQV(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double V, double base, double range);
+    /**
+     * Find the non-unique pitch-class set of the prior segment; transpose the set up by Q
+     * if the set is a T-form of the context, or down by Q if the set is an I-form of the context;
+     * then conform the pitches of the segment to that set, using the closest voice-leading 
+     * from the pitches of the prior segment, optionally avoiding parallel fifths.
+     * The context will be reduced or doubled as required to match the cardinality of the set.
+     */
+    virtual void setQL(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range, bool avoidParallels = true);
     /**
      * Multiply existing times and durations by (targetDuration / getDuration()), i.e.
      * stretch or shrink musical time.

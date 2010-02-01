@@ -409,6 +409,49 @@ namespace csound
     static std::vector<double> transpose(const std::vector<double> &chord, double semitones);
 
     /**
+     * Return the pitch-class transposition of pitch p by n semitones.
+     */
+    static double T(double p, double n);
+
+    /**
+     * Return the pitch-class transposition of chord c by n semitones.
+     */
+    static std::vector<double> T(const std::vector<double> &c, double n);
+
+    /**
+     * Return the pitch-class inversion of pitch p by n semitones.
+     */
+    static double I(double p, double n);
+
+    /**
+     * Return the pitch-class inversion of chord c by n semitones.
+     */
+    static std::vector<double> I(const std::vector<double> &c, double n);
+
+    /**
+     * Invert chord c by exchange.
+     */
+    static std::vector<double> K(const std::vector<double> &c);
+
+    /**
+     * Return whether chord Y is a transposed form of chord X; g is the generator of 
+     * transpositions.
+     */
+    static bool Tform(const std::vector<double> &X, const std::vector<double> &Y, double g=1.0);
+
+    /**
+     * Return whether chord Y is an inverted form of chord X; g is the generator of 
+     * inversions.
+     */
+    static bool Iform(const std::vector<double> &X, const std::vector<double> &Y, double g=1.0);
+
+    /**
+     * Contextually transpose chord c with respect to chord s by n semitones; g is the generator of 
+     * transpositions.
+     */
+    static std::vector<double> Q(const std::vector<double> &c, double n, const std::vector<double> &s, double g=1.0);
+
+    /**
      * Size of the octave in semitones.
      */
     static const double semitonesPerOctave;
