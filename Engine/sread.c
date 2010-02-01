@@ -729,11 +729,11 @@ static int do_repeat(CSOUND *csound)
 
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
+    MACRO *mm;
     while (nn) {
       char  *s = nn->mac;
       char  *p = strchr(s, '=');
       char  *mname;
-      MACRO *mm;
 
       if (p == NULL)
         p = s + strlen(s);
@@ -766,6 +766,13 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
       strcpy(mm->body, p);
       nn = nn->next;
     }
+    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+    mm->name = (char*)mmalloc(csound,4);
+    strcpy(mm->name, "INF");
+    mm->body = (char*)mmalloc(csound,14);
+    strcpy(mm->body, "2147483647.0");
+    mm->next = ST(macros);
+    ST(macros) = mm;
 }
 
 void sread_init(CSOUND *csound)
@@ -1731,7 +1738,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
     if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
         && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
-        && c!='"' && c!='~' && c!='!') {
+        && c!='"' && c!='~' && c!='!' && c!='z') {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (UNLIKELY(ST(linpos))) {
         sreaderr(csound, Str("unexpected char %c"), c);
@@ -1773,7 +1780,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
       /*      if (strchr("0123456789.+-eEnp<>()~", c) != NULL) { */
       if (isdigit(c) || c=='.' || c=='+' || c=='-' || c=='e' ||
           c=='E' || c=='n' || c=='p' || c=='<' || c=='>' || c=='(' ||
-          c==')' || c=='~') {
+          c==')' || c=='~' || c=='z') {
         *p++ = c;
         /* **** CHECK **** */
         if (p >= ST(memend))
@@ -1797,6 +1804,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     char    *p;
     MYFLT   x = (MYFLT) strtod(s, &p);
 
+    if (*p=='z') return FL(INF); /* Infinity or 7 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));
       p = s;
