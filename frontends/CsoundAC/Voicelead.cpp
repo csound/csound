@@ -944,4 +944,81 @@ namespace csound
     }
     return voicings;
   }
+
+  
+  double Voicelead::T(double p, double n)
+  {
+    return pc(p + n);
+  }
+
+  std::vector<double> Voicelead::T(const std::vector<double> &c, double n)
+  {
+    std::vector<double> returnValue(c.size());
+    for (size_t i = 0, n = c.size(); i < n; ++i) {
+      returnValue[i] = pc(c[i] + n);
+    }
+    return returnValue;
+  }
+
+  double Voicelead::I(double p, double n)
+  {
+    return pc(-p + n);
+  }
+
+  std::vector<double> Voicelead::I(const std::vector<double> &c, double n)
+  {
+    std::vector<double> returnValue(c.size());
+    for (size_t i = 0, n = c.size(); i < n; ++i) {
+      returnValue[i] = pc(-c[i] + n);
+    }
+    return returnValue;
+  }
+
+  std::vector<double> Voicelead::K(const std::vector<double> &c)
+  {
+    double n = c[0] + c[1];
+    return I(c, n);
+  }
+
+  bool Voicelead::Tform(const std::vector<double> &X, const std::vector<double> &Y, double g)
+  {
+    double i = 0.0;
+    std::vector<double> pcsx = pcs(X);
+    while (i < 12.0) {
+      std::vector<double> ty = T(Y, i);
+      std::vector<double> pcsty = pcs(ty);
+      if (pcsx == pcsty) {
+	return true;
+      }
+      i = i + g;
+    }
+    return false;
+  }
+
+  bool Voicelead::Iform(const std::vector<double> &X, const std::vector<double> &Y, double g)
+  {
+    double i = 0.0;
+    std::vector<double> pcsx = pcs(X);
+    while (i < 12.0) {
+      std::vector<double> iy = I(Y, i);
+      std::vector<double> pcsiy = pcs(iy);
+      if (pcsx == pcsiy) {
+	return true;
+      }
+      i = i + g;
+    }
+    return false;
+  }
+
+  std::vector<double> Voicelead::Q(const std::vector<double> &c, double n, const std::vector<double> &s, double g)
+  {
+    if (Tform(c, s, g)) {
+      return T(c, n);
+    } else if (Iform(c, s, g)) {
+      return T(c, -n);
+    } else {
+      return c;
+    }
+  }
+
 }

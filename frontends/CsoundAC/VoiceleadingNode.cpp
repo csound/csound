@@ -43,6 +43,8 @@ namespace csound
     P(DBL_MAX),
     T(DBL_MAX),
     C(DBL_MAX),
+    K(DBL_MAX),
+    Q(DBL_MAX),
     V(DBL_MAX),
     L(false),
     begin(0),
@@ -85,6 +87,12 @@ namespace csound
     if (!(operation.C == DBL_MAX)) {
       stream << "  C:                 " << operation.C << std::endl;
     }
+    if (!(operation.K == DBL_MAX)) {
+      stream << "  K:                 " << operation.K << std::endl;
+    }
+    if (!(operation.Q == DBL_MAX)) {
+      stream << "  Q:                 " << operation.Q << std::endl;
+    }
     if (!(operation.V == DBL_MAX)) {
       stream << "  V:                 " << operation.V << std::endl;
     }
@@ -104,13 +112,64 @@ namespace csound
       stream << "Events in operation: " << (operation.end - operation.begin) << std::endl;
       stream << "priorOperation:      " << std::endl << priorOperation;
       stream << "currrentOperation:   " << std::endl << operation;
+      ///stream << "modality:            " << modality << std::endl;
       stream << std::endl;
       System::inform(stream.str().c_str());
     }
     if (operation.begin == operation.end) {
       return;
     }
-    if (!(operation.P == DBL_MAX) && !(operation.T == DBL_MAX)) {
+    if (!(operation.K == DBL_MAX)) {
+      if ((operation.V == DBL_MAX) && (operation.L == DBL_MAX)) {
+	score.setK(priorOperation.begin,
+		   operation.begin,
+		   operation.end,
+		   base,
+		   range);
+      } else if ((operation.V != DBL_MAX) && (operation.L == DBL_MAX)) {
+	score.setKV(priorOperation.begin,
+		    operation.begin,
+		    operation.end,
+		    operation.V,
+		    base,
+		    range);
+      } else if ((operation.V == DBL_MAX) && (operation.L != DBL_MAX)) {
+	score.setKL(priorOperation.begin,
+		    operation.begin,
+		    operation.end,
+		    base,
+		    range,
+		    operation.avoidParallels);
+      }
+    } else if (!(operation.Q == DBL_MAX)) {
+      if ((operation.V == DBL_MAX) && (operation.L == DBL_MAX)) {
+	score.setQ(priorOperation.begin,
+		   operation.begin,
+		   operation.end,
+		   operation.Q,
+		   modality,
+		   base,
+		   range);
+      } else if ((operation.V != DBL_MAX) && (operation.L == DBL_MAX)) {
+	score.setQV(priorOperation.begin,
+		    operation.begin,
+		    operation.end,
+		    operation.Q,
+		    modality,
+		    operation.V,
+		    base,
+		    range);
+      } else if ((operation.V == DBL_MAX) && (operation.L != DBL_MAX)) {
+	score.setQL(priorOperation.begin,
+		    operation.begin,
+		    operation.end,
+		    operation.Q,
+		    modality,
+		    base,
+		    range,
+		    operation.avoidParallels);
+      }
+    } else if (!(operation.P == DBL_MAX) && !(operation.T == DBL_MAX)) {
       if (!(operation.V == DBL_MAX)) {
         score.setPTV(operation.begin,
                      operation.end,
@@ -265,6 +324,48 @@ namespace csound
   void VoiceleadingNode::CL(double time, std::string C, bool avoidParallels)
   {
     CL(time, Voicelead::nameToC(C, divisionsPerOctave), avoidParallels);
+  }
+
+  void VoiceleadingNode::K(double time)
+  {
+    operations[time].beginTime = time;
+    operations[time].K = 1.0;
+  }
+
+  void VoiceleadingNode::KV(double time, double V)
+  {
+    operations[time].beginTime = time;
+    operations[time].K = 1.0;
+    operations[time].V = V;
+  }
+
+  void VoiceleadingNode::KL(double time, bool avoidParallels)
+  {
+    operations[time].beginTime = time;
+    operations[time].K = 1.0;
+    operations[time].L = true;
+    operations[time].avoidParallels = avoidParallels;
+  }
+
+  void VoiceleadingNode::Q(double time, double Q)
+  {
+    operations[time].beginTime = time;
+    operations[time].Q = Q;
+  }
+
+  void VoiceleadingNode::QV(double time, double Q, double V)
+  {
+    operations[time].beginTime = time;
+    operations[time].Q = Q;
+    operations[time].V = V;
+  }
+
+  void VoiceleadingNode::QL(double time, double Q, bool avoidParallels)
+  {
+    operations[time].beginTime = time;
+    operations[time].Q = Q;
+    operations[time].L = true;
+    operations[time].avoidParallels = avoidParallels;
   }
 
   void VoiceleadingNode::V(double time, double V_)
