@@ -951,11 +951,11 @@ namespace csound
     return pc(p + n);
   }
 
-  std::vector<double> Voicelead::T(const std::vector<double> &c, double n)
+  std::vector<double> Voicelead::T(const std::vector<double> &c, double t)
   {
     std::vector<double> returnValue(c.size());
     for (size_t i = 0, n = c.size(); i < n; ++i) {
-      returnValue[i] = pc(c[i] + n);
+      returnValue[i] = pc(c[i] + t);
     }
     return returnValue;
   }
@@ -965,11 +965,11 @@ namespace csound
     return pc(-p + n);
   }
 
-  std::vector<double> Voicelead::I(const std::vector<double> &c, double n)
+  std::vector<double> Voicelead::I(const std::vector<double> &c, double ii)
   {
     std::vector<double> returnValue(c.size());
     for (size_t i = 0, n = c.size(); i < n; ++i) {
-      returnValue[i] = pc(-c[i] + n);
+      returnValue[i] = pc(-c[i] + ii);
     }
     return returnValue;
   }

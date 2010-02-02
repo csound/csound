@@ -48,6 +48,7 @@ score = model.getScore()
 CsoundAC.System_setMessageLevel(1+2+4+8)
 
 def addVoiceleadingTest(sequence, voiceleadingNode, duration):
+	print 'ADDING TEST...'
 	random = CsoundAC.Random()
 	random.thisown=0
 	random.createDistribution("uniform_01")
