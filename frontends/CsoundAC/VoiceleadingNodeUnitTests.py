@@ -184,7 +184,7 @@ model.generate()
 score = model.getScore()
 for i in xrange(12):
 	score.arrange(i, 56, 1.0)
-csound.load('d:\\utah\\home\\mkg\\projects\\music\\library\\CsoundAC.csd')
+csound.load('../../examples/CsoundAC.csd')
 csound.setCommand("csound -m3 -RWfo " + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setCommand("csound -m3 -r 88200 -k 882 -RWZfo " + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setFilename(filename)
