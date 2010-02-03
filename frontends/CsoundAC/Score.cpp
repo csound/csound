@@ -1154,17 +1154,20 @@ namespace csound
 
   void Score::setK(size_t priorBegin, size_t begin, size_t end, double base, double range)
   {
+    System::inform("BEGAN Score::setK.\n");
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
+    printChord("  before K:            ", pcs);
     std::vector<double> kpcs = Voicelead::K(pcs);
-    std::vector<double> pt = Voicelead::pitchClassSetToPandT(kpcs);
-    setPT(begin, end, pt[0], pt[1], base, range);
+    printChord("  after K:             ", kpcs);
+    setPitchClassSet(begin, end, kpcs);
+    System::inform("ENDED Score::setK.\n");
   }
   
   void Score::setKV(size_t priorBegin, size_t begin, size_t end, double V, double base, double range)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> kpcs = Voicelead::K(pcs);
     std::vector<double> pt = Voicelead::pitchClassSetToPandT(kpcs);
     setPTV(begin, end, pt[0], pt[1], V, base, range);
@@ -1173,7 +1176,7 @@ namespace csound
   void Score::setKL(size_t priorBegin, size_t begin, size_t end, double base, double range, bool avoidParallels)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> kpcs = Voicelead::K(pcs);
     voicelead(priorBegin,
 	      begin,
@@ -1198,17 +1201,16 @@ namespace csound
   void Score::setQ(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> localContext = getLocalContext(context, pcs.size());
     std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
-    std::vector<double> pt = Voicelead::pitchClassSetToPandT(qpcs);
-    setPT(begin, end, pt[0], pt[1], base, range);
+    setPitchClassSet(begin, end, qpcs);
   }
 
   void Score::setQV(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double V, double base, double range)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> localContext = getLocalContext(context, pcs.size());
     std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
     std::vector<double> pt = Voicelead::pitchClassSetToPandT(qpcs);
@@ -1218,7 +1220,7 @@ namespace csound
   void Score::setQL(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range, bool avoidParallels)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
-    std::vector<double> pcs = Voicelead::pcs(pitches);
+    std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> localContext = getLocalContext(context, pcs.size());
     std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
     voicelead(priorBegin,
