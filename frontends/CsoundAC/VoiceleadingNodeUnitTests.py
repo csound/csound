@@ -180,6 +180,11 @@ addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 
 # if L works in combination, it should work by itself; no test.
 
+voiceleading = CsoundAC.VoiceleadingNode()
+voiceleading.C(0.0,"C7")
+voiceleading.K(1.0)
+voiceleading.K(2.0)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 model.generate()
 score = model.getScore()
 for i in xrange(12):
@@ -232,9 +237,9 @@ csound.exportForPerformance()
 for key,value in csound.getInstrumentNames().items():
 	print 'Instrument %3d: %s' % (key, value)
 index = 1
-for note in score:
-	print '%4d: %s' % (index, note.toString())
-	index = index + 1
+#for note in score:
+#	print '%4d: %s' % (index, note.toString())
+#	index = index + 1
 model.getScore().save(filename + ".mid")
 csound.perform()
 
