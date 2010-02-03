@@ -144,7 +144,7 @@ namespace csound
 		    operation.avoidParallels);
       }
     } else if (!(operation.Q == DBL_MAX)) {
-      if ((operation.V == DBL_MAX) && (operation.L == DBL_MAX)) {
+      if ((operation.V == DBL_MAX) && (!operation.L)) {
 	System::inform("Operation: Q\n");
 	score.setQ(priorOperation.begin,
 		   operation.begin,
@@ -153,7 +153,7 @@ namespace csound
 		   modality,
 		   base,
 		   range);
-      } else if ((operation.V != DBL_MAX) && (operation.L == DBL_MAX)) {	
+      } else if ((operation.V != DBL_MAX) && (!operation.L)) {	
 	System::inform("Operation: QV\n");
 	score.setQV(priorOperation.begin,
 		    operation.begin,
@@ -163,7 +163,7 @@ namespace csound
 		    operation.V,
 		    base,
 		    range);
-      } else if ((operation.V == DBL_MAX) && (operation.L != DBL_MAX)) {
+      } else if ((operation.V == DBL_MAX) && (operation.L)) {
 	System::inform("Operation: QL\n");
 	score.setQL(priorOperation.begin,
 		    operation.begin,
