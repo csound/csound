@@ -1154,14 +1154,12 @@ namespace csound
 
   void Score::setK(size_t priorBegin, size_t begin, size_t end, double base, double range)
   {
-    System::inform("BEGAN Score::setK.\n");
     std::vector<double> pitches = getPitches(priorBegin, begin);
     std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     printChord("  before K:            ", pcs);
     std::vector<double> kpcs = Voicelead::K(pcs);
     printChord("  after K:             ", kpcs);
     setPitchClassSet(begin, end, kpcs);
-    System::inform("ENDED Score::setK.\n");
   }
   
   void Score::setKV(size_t priorBegin, size_t begin, size_t end, double V, double base, double range)
@@ -1187,32 +1185,43 @@ namespace csound
 	      range,
 	      avoidParallels);
   }
-  static std::vector<double> getLocalContext(const std::vector<double> context, int localSize)
+  static std::vector<double> matchContextSize(const std::vector<double> context, const std::vector<double> pcs)
   {
-    std::vector<double> localContext = context;
-    localContext.resize(localSize);
-    // If the local context is larger than the global context,
-    // double pcs in the global context to fill the local context out.
-    for (size_t i = context.size(), j = 0; i < localSize; ++i, ++j) {
-      localContext[i] = context[j % context.size()];
+    std::vector<double> localPcs = pcs;
+    localPcs.resize(context.size());
+    for (size_t i = pcs.size(), j = 0; i < context.size(); ++i, ++j) {
+      localPcs[i] = pcs[j % pcs.size()];
     }
-    return localContext;
+    return localPcs;
   }
   void Score::setQ(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double base, double range)
   {
+    System::inform("BEGAN Score::setQ(%f)...\n", Q);
     std::vector<double> pitches = getPitches(priorBegin, begin);
     std::vector<double> pcs = Voicelead::uniquePcs(pitches);
-    std::vector<double> localContext = getLocalContext(context, pcs.size());
-    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    printChord("  prior pcs:     ", pcs);
+    printChord("  context:       ", context);
+    std::vector<double> localPcs = matchContextSize(context, pcs);
+    printChord("  localPcs:  ", localPcs);
+    std::vector<double> qpcs = Voicelead::Q(localPcs, Q, context);
+    printChord("  effect of Q:   ", qpcs);
     setPitchClassSet(begin, end, qpcs);
+    pitches = getPitches(begin, end);
+    pcs = Voicelead::uniquePcs(pitches);
+    printChord("  posterior pcs: ", pcs);
+    System::inform("ENDED Score::setQ.\n");
   }
 
   void Score::setQV(size_t priorBegin, size_t begin, size_t end, double Q, const std::vector<double> &context, double V, double base, double range)
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
     std::vector<double> pcs = Voicelead::uniquePcs(pitches);
-    std::vector<double> localContext = getLocalContext(context, pcs.size());
-    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    printChord("  prior pcs:     ", pcs);
+    printChord("  context:       ", context);
+    std::vector<double> localPcs = matchContextSize(context, pcs);
+    printChord("  localPcs:  ", localPcs);
+    std::vector<double> qpcs = Voicelead::Q(localPcs, Q, context);
+    printChord("  effect of Q:   ", qpcs);
     std::vector<double> pt = Voicelead::pitchClassSetToPandT(qpcs);
     setPTV(begin, end, pt[0], pt[1], V, base, range);
   }
@@ -1221,8 +1230,12 @@ namespace csound
   {
     std::vector<double> pitches = getPitches(priorBegin, begin);
     std::vector<double> pcs = Voicelead::uniquePcs(pitches);
-    std::vector<double> localContext = getLocalContext(context, pcs.size());
-    std::vector<double> qpcs = Voicelead::Q(pcs, Q, localContext);
+    printChord("  prior pcs:     ", pcs);
+    printChord("  context:       ", context);
+    std::vector<double> localPcs = matchContextSize(context, pcs);
+    printChord("  localPcs:  ", localPcs);
+    std::vector<double> qpcs = Voicelead::Q(localPcs, Q, context);
+    printChord("  effect of Q:   ", qpcs);
     voicelead(priorBegin,
 	      begin,
 	      begin,

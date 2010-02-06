@@ -462,4 +462,13 @@ namespace csound
     System::inform("ENDED VoiceleadingNode::produceOrTransform.\n");
   }
 
+  void VoiceleadingNode::setModality(const std::vector<double> &pcs)
+  {
+    modality = pcs;
+  }
+
+  std::vector<double> VoiceleadingNode::getModality() const
+  {
+    return modality;
+  }
 }

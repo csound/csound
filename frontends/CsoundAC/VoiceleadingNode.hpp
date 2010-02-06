@@ -333,6 +333,8 @@ namespace csound
      * outside the context of a music graph.
      */
     virtual void transform(Score &score, bool rescaleTime = false);
+    virtual void setModality(const std::vector<double> &pcs);
+    virtual std::vector<double> getModality() const;
   };
 }
 #endif

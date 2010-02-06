@@ -84,6 +84,7 @@ namespace csound
     }
     return transposed;
   }
+
   double round(double x)
   {
     return std::floor(x + 0.5);
@@ -99,7 +100,7 @@ namespace csound
   double Voicelead::pc(double pitchSemitones, size_t divisionsPerOctave)
   {
     double absolutePitchSemitones = std::abs(pitchSemitones);
-    double pitchClass = std::fmod(absolutePitchSemitones, semitonesPerOctave);
+    double pitchClass = std::fmod(absolutePitchSemitones, 12.0);
     return pitchClass;
   }
 
@@ -146,7 +147,6 @@ namespace csound
     result[1] = normalChord_[0];
     return result;
   }
-
 
   std::vector<double> Voicelead::voiceleading(const std::vector<double> &a,
                                               const std::vector<double> &b)
@@ -294,21 +294,15 @@ namespace csound
 
   std::vector<double> Voicelead::uniquePcs(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
-    std::vector<double> pcs_;
-    std::set<double> pcsSet;
-    for (size_t i = 0, n = chord.size(); i < n; i++) {
-      double pc_ = pc(chord[i], divisionsPerOctave);
-      if (pcsSet.find(pc_) == pcsSet.end()) {
-        pcsSet.insert(pc_);
-        pcs_.push_back(pc_);
-      }
+    std::vector<double> uniquepcs;
+    for (size_t i = 0, n = chord.size(); i < n; ++i) {
+      double pc_ = pc(chord[i]);
+      if (std::find(uniquepcs.begin(), uniquepcs.end(), pc_) == uniquepcs.end()) {
+	uniquepcs.push_back(pc_);
+      } 
     }
-    std::sort(pcs_.begin(), pcs_.end());
-    if (debug > 2) {
-      std::cerr << "chord: " << chord << std::endl;
-      std::cerr << "pcs: " << pcs_ << std::endl;
-    }
-    return pcs_;
+    sort(uniquepcs);
+    return uniquepcs;
   }
 
   const std::vector<double> Voicelead::closest(const std::vector<double> &source,
@@ -945,7 +939,6 @@ namespace csound
     return voicings;
   }
 
-  
   double Voicelead::T(double p, double n)
   {
     return pc(p + n);
@@ -957,25 +950,30 @@ namespace csound
     for (size_t i = 0, n = c.size(); i < n; ++i) {
       returnValue[i] = pc(c[i] + t);
     }
+    sort(returnValue);
     return returnValue;
   }
 
   double Voicelead::I(double p, double n)
   {
-    return pc(-p + n);
+    return pc((12.0 - pc(p)) + n);
   }
 
   std::vector<double> Voicelead::I(const std::vector<double> &c, double ii)
   {
     std::vector<double> returnValue(c.size());
     for (size_t i = 0, n = c.size(); i < n; ++i) {
-      returnValue[i] = pc(-c[i] + ii);
+      returnValue[i] = I(c[i], ii);
     }
+    sort(returnValue);
     return returnValue;
   }
 
   std::vector<double> Voicelead::K(const std::vector<double> &c)
   {
+    if (c.size() < 2) {
+      return c;
+    }
     double n = c[0] + c[1];
     return I(c, n);
   }
@@ -1014,7 +1012,8 @@ namespace csound
   {
     if (Tform(c, s, g)) {
       return T(c, n);
-    } else if (Iform(c, s, g)) {
+    }
+    if (Iform(c, s, g)) {
       return T(c, -n);
     } else {
       return c;
