@@ -73,6 +73,12 @@ Test('''print CsoundAC.Voicelead_K([13, 17, 20, 24])''')
 Test('''print CsoundAC.Voicelead_Q([13, 17, 20, 24],  0, [13, 17, 20, 24])''')
 Test('''print CsoundAC.Voicelead_Q([13, 17, 20, 24],  1, [13, 17, 20, 24])''')
 Test('''print CsoundAC.Voicelead_Q([13, 17, 20, 24], -1, [13, 17, 20, 24])''')
+Test('''print CsoundAC.Voicelead_Tform([0, 2, 4, 5], [0, 2, 4, 5])''')
+Test('''print CsoundAC.Voicelead_Iform([0, 2, 4, 5], [0, 2, 4, 5])''')
+Test('''print CsoundAC.Voicelead_Tform([0, 2, 4, 5], [1, 3, 5, 6])''')
+Test('''print CsoundAC.Voicelead_Iform([0, 2, 4, 5], [1, 3, 5, 6])''')
+Test('''print CsoundAC.Voicelead_Tform([0, 2, 4, 5], [0, 4, 4, 5])''')
+Test('''print CsoundAC.Voicelead_Iform([0, 2, 4, 5], [0, 4, 4, 5])''')
 
 
 quit()

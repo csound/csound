@@ -18,22 +18,9 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-This script tests the following Score methods:
-
-    virtual void PT(double time, double P, double T);
-    virtual void PTV(double time, double P, double T, double V);
-    virtual void PTL(double time, double P, double T, bool avoidParallels = true);
-    virtual void C(double time, double C_);
-    virtual void C(double time, std::string C_);
-    virtual void CV(double time, double C, double V);
-    virtual void CV(double time, std::string C, double V);
-    virtual void CL(double time, double C, bool avoidParallels = true);
-    virtual void CL(double time, std::string C, bool avoidParallels = true);
-    virtual void V(double time, double V_);
-    virtual void L(double time, bool avoidParallels = true);
-
-Most of these methods are tested, in the order listed above,
-in separate segments of notes. Most methods have more than one test segment.
+This script tests various Score voice-leading methods.
+Most of these methods are tested in separate segments of notes. 
+Most methods have more than one test segment.
 
 Run the script, then examine the generated VoiceleadingNodeUnitTests.py.mid MIDI
 sequence file in a notation program and verify the correctness of each section.
@@ -185,6 +172,15 @@ voiceleading.C(0.0,"C7")
 voiceleading.K(1.0)
 voiceleading.K(2.0)
 addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
+voiceleading = CsoundAC.VoiceleadingNode()
+cmajor = CsoundAC.Conversions_nameToPitches('C7')
+voiceleading.setModality(cmajor)
+voiceleading.C(0.0,"C7")
+voiceleading.Q(1.0, 1.0)
+voiceleading.Q(2.0, 1.0)
+voiceleading.Q(3.0, 1.0)
+voiceleading.Q(4.0, 1.0)
+addVoiceleadingTest(sequence, voiceleading, sequenceDuration)
 model.generate()
 score = model.getScore()
 for i in xrange(12):
@@ -242,110 +238,3 @@ index = 1
 #	index = index + 1
 model.getScore().save(filename + ".mid")
 csound.perform()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
