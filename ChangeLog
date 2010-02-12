@@ -1,3 +1,9 @@
+2010-02-12  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/aops.c (minit, mainit): new code for multiple init
+
+	* Engine/entry1.c: Changed init to multiple version
+
 2010-01-24  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sread.c (init_smacros): Define INF macro in scores as well

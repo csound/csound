@@ -62,6 +62,7 @@ int     ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int     assign(CSOUND *, void *), rassign(CSOUND *, void *);
 int     aassign(CSOUND *, void *);
 int     init(CSOUND *, void *), ainit(CSOUND *, void *);
+int     minit(CSOUND *, void *), mainit(CSOUND *, void *);
 int     gt(CSOUND *, void *), ge(CSOUND *, void *);
 int     lt(CSOUND *, void *), le(CSOUND *, void *);
 int     eq(CSOUND *, void *), ne(CSOUND *, void *);
