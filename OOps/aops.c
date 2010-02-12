@@ -91,6 +91,34 @@ int ainit(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+int minit(CSOUND *csound, ASSIGNM *p)
+{
+    int nargs = p->OUTOCOUNT;
+    if (nargs != p->INCOUNT)
+      return csound->InitError(csound,
+                               Str("In and out argument count must be the "
+                                   "same in minit (%d,%d)"), p->INCOUNT, nargs);
+    return OK;
+}
+
+int mainit(CSOUND *csound, ASSIGNM *p)
+{
+    int nargs = p->OUTOCOUNT;
+    int   i, n, nsmps = csound->ksmps;
+
+    if (nargs != p->INCOUNT)
+      return csound->InitError(csound,
+                               Str("In and out argument count must be the "
+                                   "same in minit (%d,%d)"), p->INCOUNT, nargs);
+    for (i=0; i<nargs; i++) {
+      MYFLT aa = *p->a[i];
+      MYFLT *r =p->r[i]; 
+      for (n = 0; n < nsmps; n++)
+        r[n] = aa;
+    }
+    return OK;
+}
+
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
   { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }

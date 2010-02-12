@@ -33,6 +33,12 @@ typedef struct {
     MYFLT   *r, *a;
 } ASSIGN;
 
+#define ASSIGNM_MAX (24)
+typedef struct {
+    OPDS    h;
+    MYFLT   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
+} ASSIGNM;
+
 typedef struct {
     OPDS    h;
     int     *rbool;
