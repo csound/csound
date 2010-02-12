@@ -75,6 +75,7 @@ int aassign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+#if 0
 int init(CSOUND *csound, ASSIGN *p)
 {
     *p->r = *p->a;
@@ -90,6 +91,7 @@ int ainit(CSOUND *csound, ASSIGN *p)
       p->r[n] = aa;
     return OK;
 }
+#endif
 
 int minit(CSOUND *csound, ASSIGNM *p)
 {
