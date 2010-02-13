@@ -67,7 +67,7 @@ int assign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-int aassign(CSOUND *csound, ASSIGN *p)
+int aassign(CSOUND *csound, ASSIGNM *p)
 {
     /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
     /* and skips the opcode if outarg == inarg */
@@ -76,11 +76,13 @@ int aassign(CSOUND *csound, ASSIGN *p)
 }
 
 #if 0
+/* Taken out as identical to assign above */
 int init(CSOUND *csound, ASSIGN *p)
 {
     *p->r = *p->a;
     return OK;
 }
+#endif
 
 int ainit(CSOUND *csound, ASSIGN *p)
 {
@@ -91,33 +93,44 @@ int ainit(CSOUND *csound, ASSIGN *p)
       p->r[n] = aa;
     return OK;
 }
-#endif
 
 int minit(CSOUND *csound, ASSIGNM *p)
 {
-    int nargs = p->OUTOCOUNT;
-    if (nargs != p->INCOUNT)
+    int nargs = p->INCOUNT;
+    int i;
+    if (nargs > p->OUTOCOUNT)
       return csound->InitError(csound,
-                               Str("In and out argument count must be the "
-                                   "same in minit (%d,%d)"), p->INCOUNT, nargs);
+                               Str("Cannot be more In arguments than Out in "
+                                   "init (%d,%d)"),p->OUTOCOUNT, nargs);
+    for (i=0; i<nargs; i++)
+     *p->r[i] =  *p->a[i];
+    for (; i<p->OUTOCOUNT; i++)
+      *p->r[i] =  *p->a[nargs-1];
     return OK;
 }
 
 int mainit(CSOUND *csound, ASSIGNM *p)
 {
-    int nargs = p->OUTOCOUNT;
+    int nargs = p->INCOUNT;
     int   i, n, nsmps = csound->ksmps;
+    MYFLT aa;
 
-    if (nargs != p->INCOUNT)
+    if (nargs > p->OUTOCOUNT)
       return csound->InitError(csound,
-                               Str("In and out argument count must be the "
-                                   "same in minit (%d,%d)"), p->INCOUNT, nargs);
+                               Str("Cannot be more In arguments than Out in "
+                                   "init (%d,%d)"),p->OUTOCOUNT, nargs);
     for (i=0; i<nargs; i++) {
-      MYFLT aa = *p->a[i];
+      aa = *p->a[i];
       MYFLT *r =p->r[i]; 
       for (n = 0; n < nsmps; n++)
         r[n] = aa;
     }
+    for (; i<p->OUTOCOUNT; i++) {
+      MYFLT *r =p->r[i]; 
+      for (n = 0; n < nsmps; n++)
+        r[n] = aa;
+    }
+    
     return OK;
 }
 
