@@ -1,3 +1,7 @@
+2010-02-13  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/aops.c (minit): Ensure a,b=b,a works
+
 2010-02-12  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/aops.c (minit, mainit): new code for multiple init

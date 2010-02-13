@@ -98,14 +98,23 @@ int minit(CSOUND *csound, ASSIGNM *p)
 {
     int nargs = p->INCOUNT;
     int i;
+    MYFLT *tmp;
     if (nargs > p->OUTOCOUNT)
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
+    if (p->OUTOCOUNT==1) {
+      *p->r[0] =  *p->a[0];
+      return OK;
+    }
+    tmp = (MYFLT*)malloc(sizeof(MYFLT)*p->OUTOCOUNT);
     for (i=0; i<nargs; i++)
-     *p->r[i] =  *p->a[i];
+      tmp[i] =  *p->a[i];
     for (; i<p->OUTOCOUNT; i++)
-      *p->r[i] =  *p->a[nargs-1];
+      tmp[i] =  *p->a[nargs-1];
+    for (i=0; i<p->OUTOCOUNT; i++)
+      *p->r[i] = tmp[i];
+    free(tmp);
     return OK;
 }
 
