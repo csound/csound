@@ -22,7 +22,7 @@ static int sinit(CSOUND *csound, DATASPACE *p){
   } else N = 2048;
   if(decim == 0) decim = 4;
 
-  csound->Message(csound,"%d: %d\n", N, decim);
+  
    
    p->hsize = N/decim;
    p->cnt = p->hsize;
@@ -59,7 +59,7 @@ static int sinit(CSOUND *csound, DATASPACE *p){
 
 static int sprocess(CSOUND *csound, DATASPACE *p) {
 
-  MYFLT pitch = *p->kpitch, time = *p->ktime, lock = *p->klock, *out = p->out, amp =*p->kamp;
+  MYFLT pitch = *p->kpitch, *time = p->ktime, lock = *p->klock, *out = p->out, amp =*p->kamp;
   MYFLT *tab, frac,scale;
   FUNC *ft;
   int N = p->N, hsize = p->hsize, cnt = p->cnt, ksmps = csound->GetKsmps(csound), n;
@@ -76,7 +76,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
       ft = csound->FTnp2Find(csound,p->knum);
       tab = ft->ftable;
       size = ft->flen;
-      spos  = hsize*(int)(time*csound->esr/hsize);
+      spos  = hsize*(int)(time[n]*csound->esr/hsize);
       while(spos > size) spos -= size;
       while(spos <= 0)  spos += size;
       pos = spos; 
@@ -174,7 +174,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 }
 
 static OENTRY localops[] = {
-{"mincer", sizeof(DATASPACE), 5, "a", "kkkkkoo", (SUBR)sinit, NULL,(SUBR)sprocess },
+{"mincer", sizeof(DATASPACE), 5, "a", "akkkkoo", (SUBR)sinit, NULL,(SUBR)sprocess },
 };
 
 LINKAGE
