@@ -1427,6 +1427,7 @@ typedef struct _pvslock {
     uint32  lastframe;
 } PVSLOCK;
 
+/*
 static int pvslockset(CSOUND *csound, PVSLOCK *p)
 {
     int32    N = p->fin->N;
@@ -1467,7 +1468,7 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
      for (i = 0; i < framesize; i += 2) {
 
        mag += fin[i];
-       /*  if(i == 0) {
+         if(i == 0) {
          fout[i] = fin[i];
          fout[i+1] = fin[i+1];
        } else if (i < N) {
@@ -1488,7 +1489,7 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
        } else {
            fout[i] = fin[i];
            fout[i+1] = fin[i+1];
-	   } */
+	   } 
        fout[i] =fin[i]; fout[i+1] = fin[i+1];
    
      }
@@ -1501,7 +1502,7 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
    }
    return OK;
 }
-
+*/
 
 
 static OENTRY localops[] = {
@@ -1555,9 +1556,9 @@ static OENTRY localops[] = {
     {"pvsosc", sizeof(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
      (SUBR) pvsoscprocess, NULL},
     {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
-     (SUBR) pvsdiskinproc, NULL},
-    {"pvslock", sizeof(PVSLOCK), 3, "f", "fk", (SUBR) pvslockset,
-         (SUBR) pvslockprocess, NULL}
+     (SUBR) pvsdiskinproc, NULL}
+    /*, {"pvslock", sizeof(PVSLOCK), 3, "f", "fk", (SUBR) pvslockset,
+      (SUBR) pvslockprocess, NULL}*/
 };
 
 int pvsbasic_init_(CSOUND *csound)
