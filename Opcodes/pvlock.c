@@ -111,7 +111,9 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 	tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
         bwin[i] = tmp_real;
         bwin[i+1] = tmp_im;
+       }
 
+       for(i=0; i < N + 2; i+=2) {
 	if(lock) {
 	  if(i > 0) {
 	    if(i < N){
@@ -133,8 +135,8 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 	}
 
 	tmp_real += 1e-15;  
-	tmp_im += 1e-15;  
-	div =  1./(sqrt(tmp_real*tmp_real + tmp_im*tmp_im ) + 1e-20); 
+	//tmp_im += 1e-15;  
+	div =  1./(sqrt(tmp_real*tmp_real + tmp_im*tmp_im )); 
 
 	ph_real = tmp_real*div;
 	ph_im = tmp_im*div;
@@ -161,7 +163,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
       out[n] += outframe[framecnt[i]];
       framecnt[i]++;
     }
-    out[n] *= amp;
+    out[n] *= amp*(2./3.);
     cnt++;
   }
 
