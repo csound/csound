@@ -202,14 +202,17 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
       ft = csound->FTnp2Find(csound,p->knum);
       tab = ft->ftable;
       size = ft->flen;
-      if(p->tscale) {
+      if(time < 0) {
+	spos += hsize*time;
+      }
+      else if(p->tscale) {
 	spos += hsize*time;
         //if(p->accum)p->accum-=time;
-      }
-      else {
-       spos += hsize;
+       }
+      else  {
+	spos += hsize;
        //p->accum+=time;
-      }
+	}
       while(spos > size) spos -= size;
       while(spos <= 0)  spos += size;
       pos = spos; 
