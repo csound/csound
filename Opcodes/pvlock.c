@@ -3,9 +3,10 @@
 
 typedef struct dats{
   OPDS h;
-  MYFLT *out, *ktime, *kamp, *kpitch, *knum, *klock, *iN, *idecim;
-  int cnt, hsize, curframe, N, decim, pos;
-  AUXCH outframe, win, bwin, fwin, prev, framecount;
+  MYFLT *out, *time, *kamp, *kpitch, *knum, *klock, *iN, *idecim, *dbthresh;
+  int cnt, hsize, curframe, N, decim, pos, tscale;
+  MYFLT accum;
+  AUXCH outframe, win, bwin, fwin, nwin, prev, framecount;
 } DATASPACE;
 
 
@@ -22,8 +23,6 @@ static int sinit(CSOUND *csound, DATASPACE *p){
   } else N = 2048;
   if(decim == 0) decim = 4;
 
-  
-   
    p->hsize = N/decim;
    p->cnt = p->hsize;
    p->curframe = 0;
@@ -52,14 +51,13 @@ static int sinit(CSOUND *csound, DATASPACE *p){
 
   p->N = N;
   p->decim = decim;
-  p->pos =0;
   return OK;
 }
 
 
 static int sprocess(CSOUND *csound, DATASPACE *p) {
 
-  MYFLT pitch = *p->kpitch, *time = p->ktime, lock = *p->klock, *out = p->out, amp =*p->kamp;
+  MYFLT pitch = *p->kpitch, *time = p->time, lock = *p->klock, *out = p->out, amp =*p->kamp;
   MYFLT *tab, frac,scale;
   FUNC *ft;
   int N = p->N, hsize = p->hsize, cnt = p->cnt, ksmps = csound->GetKsmps(csound), n;
@@ -86,7 +84,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 	if(post >= 0 && post < size) in = tab[post] + frac*(tab[post+1] - tab[post]);
 	else in =  (MYFLT) 0;
 	fwin[i] = in * win[i];
-	post = (int) pos - hsize*pitch;
+	post = (int) (pos - hsize*pitch);
 	if(post >= 0 && post < size) in =  tab[post] + frac*(tab[post+1] - tab[post]);
 	else in =  (MYFLT) 0;
 	bwin[i] = in * win[i]; 
@@ -134,9 +132,157 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 	  tmp_im = bwin[i+1];
 	}
 
-	tmp_real += 1e-15;  
-	//tmp_im += 1e-15;  
-	div =  1./(sqrt(tmp_real*tmp_real + tmp_im*tmp_im )); 
+	tmp_real += 1e-15;    
+	div =  1./(sqrt(tmp_real*tmp_real + tmp_im*tmp_im)); 
+
+	ph_real = tmp_real*div;
+	ph_im = tmp_im*div;
+
+	tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+	tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+	prev[i] = fwin[i] = tmp_real;
+	prev[i+1] = fwin[i+1] = tmp_im;
+      }
+      
+      fwin[1] = fwin[N];
+      csound->InverseRealFFT(csound, fwin, N);
+      
+      framecnt[curframe] = curframe*N;
+      
+      for(i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+      cnt=0;
+      curframe++;
+      if(curframe == decim) curframe = 0; 
+    }
+    out[n] = (MYFLT)0;
+    for(i = 0; i < decim; i++){
+      out[n] += outframe[framecnt[i]];
+      framecnt[i]++;
+    }
+    out[n] *= amp*(2./3.);
+    cnt++;
+  }
+
+  p->cnt = cnt;
+  p->curframe = curframe;
+  return OK;
+
+}
+
+static int sinit2(CSOUND *csound, DATASPACE *p){
+   
+  int size;
+  sinit(csound, p);
+  size = p->N*sizeof(MYFLT);
+  if (p->nwin.auxp == NULL || p->nwin.size < size)
+      csound->AuxAlloc(csound, size, &p->nwin); 
+  p->pos = 0;
+  p->tscale  = 0;
+  p->accum = 0;
+  return OK;
+}
+
+static int sprocess2(CSOUND *csound, DATASPACE *p) {
+
+  MYFLT pitch = *p->kpitch, time = *p->time, lock = *p->klock, *out = p->out, amp =*p->kamp;
+  MYFLT *tab,frac,scale,  dbtresh = *p->dbthresh;
+  FUNC *ft;
+  int N = p->N, hsize = p->hsize, cnt = p->cnt, ksmps = csound->GetKsmps(csound), n;
+  int size, post, i, j, spos = p->pos;
+  double pos;
+  MYFLT *fwin = (MYFLT *)p->fwin.auxp, *bwin = (MYFLT *)p->bwin.auxp, in, *nwin = (MYFLT *)p->nwin.auxp,
+    *prev = (MYFLT *)p->prev.auxp, *win = (MYFLT *) p->win.auxp, *outframe= (MYFLT *) p->outframe.auxp, powrat;
+  MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
+  int *framecnt  = (int *)p->framecount.auxp, curframe = p->curframe, decim = p->decim;
+
+  for(n=0; n < ksmps; n++) {
+
+    if(cnt == hsize){
+      ft = csound->FTnp2Find(csound,p->knum);
+      tab = ft->ftable;
+      size = ft->flen;
+      if(p->tscale) {
+	spos += hsize*time;
+        //if(p->accum)p->accum-=time;
+      }
+      else {
+       spos += hsize;
+       //p->accum+=time;
+      }
+      while(spos > size) spos -= size;
+      while(spos <= 0)  spos += size;
+      pos = spos; 
+      for(i=0; i < N; i++) {
+	post = (int) pos; 
+	frac = pos  - post;
+	if(post >= 0 && post < size) in = tab[post] + frac*(tab[post+1] - tab[post]);
+	else in =  (MYFLT) 0;
+	fwin[i] = in * win[i];
+	post = (int) (pos - hsize*pitch);
+	if(post >= 0 && post < size) in =  tab[post] + frac*(tab[post+1] - tab[post]);
+	else in =  (MYFLT) 0;
+	bwin[i] = in * win[i]; 
+	post = (int) pos + hsize;
+	if(post >= 0 && post < size) in =  tab[post];
+	else in =  (MYFLT) 0;
+	nwin[i] = in * win[i]; 
+	pos += pitch;
+      }
+      
+      csound->RealFFT(csound, bwin, N);
+      bwin[N] = bwin[1];
+      bwin[N+1] = 0.; 
+      csound->RealFFT(csound, fwin, N);
+      csound->RealFFT(csound, nwin, N);
+
+      tmp_real = tmp_im = (MYFLT) 1e-20;
+      for(i=2; i < N; i++){
+	tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
+	tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
+      }
+      powrat = 20*log10(tmp_real/tmp_im);
+      if(powrat > dbtresh) p->tscale=0;
+      else p->tscale=1;
+         
+      fwin[N] = fwin[1];
+      fwin[N+1] = 0.; 
+      
+       for(i=0; i < N + 2; i+=2) {
+
+	div =  1./(sqrt(prev[i]*prev[i] + prev[i+1]*prev[i+1]) + 1e-20); 
+	ph_real  =    prev[i]*div;
+	ph_im =       prev[i+1]*div;
+
+	tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+	tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+        bwin[i] = tmp_real;
+        bwin[i+1] = tmp_im;
+       }
+
+       for(i=0; i < N + 2; i+=2) {
+	if(lock) {
+	  if(i > 0) {
+	    if(i < N){
+	      tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+	      tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+	    }
+	    else {
+	      tmp_real = bwin[i] + bwin[i-2];
+	      tmp_im = (MYFLT) 0;
+	    }
+	  }    
+	  else {
+	    tmp_real = bwin[i] + bwin[i+2];
+	    tmp_im = (MYFLT) 0;
+	  }
+	} else {
+	  tmp_real = bwin[i];
+	  tmp_im = bwin[i+1];
+	}
+
+	tmp_real += 1e-15;    
+	div =  1./(sqrt(tmp_real*tmp_real + tmp_im*tmp_im)); 
 
 	ph_real = tmp_real*div;
 	ph_im = tmp_im*div;
@@ -177,6 +323,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 
 static OENTRY localops[] = {
 {"mincer", sizeof(DATASPACE), 5, "a", "akkkkoo", (SUBR)sinit, NULL,(SUBR)sprocess },
+{"tpscal", sizeof(DATASPACE), 5, "a", "kkkkkoop", (SUBR)sinit2, NULL,(SUBR)sprocess2 },
 };
 
 LINKAGE
