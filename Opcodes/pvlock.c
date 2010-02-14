@@ -86,7 +86,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 	if(post >= 0 && post < size) in = tab[post] + frac*(tab[post+1] - tab[post]);
 	else in =  (MYFLT) 0;
 	fwin[i] = in * win[i];
-	post = (int) pos - hsize;
+	post = (int) pos - hsize*pitch;
 	if(post >= 0 && post < size) in =  tab[post] + frac*(tab[post+1] - tab[post]);
 	else in =  (MYFLT) 0;
 	bwin[i] = in * win[i]; 
