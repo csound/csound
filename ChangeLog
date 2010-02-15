@@ -1,5 +1,7 @@
 2010-02-15  jpff  <jpff@cs.bath.ac.uk>
 
+	* Engine/typetabl.h (]): Need to add p to I case
+
 	* Engine/rdorch.c (rdorchfile): Do not increment lincnt in line
 	continuation mode
 
