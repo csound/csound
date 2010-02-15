@@ -564,7 +564,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         if (c == '\n') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
-          lincnt++;
+          /* lincnt++; Thsi is wrong */
         }
         else {
           *cp++ = c;
@@ -584,6 +584,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       }
       else if (c == '\n') {                          /* at each new line */
         char *lp = ST(linadr)[lincnt];
+        /* printf("lincnt=%d; lp=%p, ST(linadr)=%p\n", lincnt, lp, ST(linadr)); */
         while ((c = *lp) == ' ' || c == '\t')
           lp++;
         if (*lp != '\n' && *lp != ';') {
