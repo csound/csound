@@ -29,6 +29,8 @@
 %token S_MINUS
 %token S_TIMES
 %token S_DIV
+%token S_MOD
+%token S_POW
 %token S_NL
 %token S_LB
 %token S_RB
@@ -118,7 +120,8 @@
 %left S_AND S_OR
 %nonassoc T_THEN T_ITHEN T_KTHEN T_ELSE /* NOT SURE IF THIS IS NECESSARY */
 %left S_PLUS S_MINUS
-%left S_STAR S_SLASH
+%left S_STAR S_SLASH S_MOD
+%left S_POW
 %left S_BITOR
 %left S_BITAND
 %left S_NEQV
@@ -474,6 +477,11 @@ exprlist  : exprlist S_COM expr
                     /* $$ = make_node(S_COM, $1, $3); */
                     $$ = appendToTree(csound, $1, $3);
                 }
+          | exprlist S_COM label
+                {
+                    /* $$ = make_node(S_COM, $1, $3); */
+                    $$ = appendToTree(csound, $1, $3);
+                }
           | exprlist S_COM error
           | expr { $$ = $1;     }
           | /* null */          { $$ = NULL; }
@@ -515,8 +523,10 @@ iexp      : iexp S_PLUS iterm   { $$ = make_node(csound, S_PLUS, $1, $3); }
 
 iterm     : iterm S_TIMES ifac  { $$ = make_node(csound, S_TIMES, $1, $3); }
           | iterm S_TIMES error
-          | iterm S_DIV ifac    { $$ = make_node(csound, S_DIV, $1, $3); }
+          | iterm S_DIV ifac    { $$ = make_node(csound, S_MOD, $1, $3); }
           | iterm S_DIV error
+          | iterm S_MOD ifac    { $$ = make_node(csound, S_MOD, $1, $3); }
+          | iterm S_MOD error
           | ifac                { $$ = $1; }
           ;
 
@@ -530,6 +540,7 @@ ifac      : ident               { $$ = $1; }
             {
                 $$ = $2;
             }
+          | ifac S_POW ifac   { $$ = make_node(csound, S_POW, $1, $3); }
           | ifac S_BITOR ifac   { $$ = make_node(csound, S_BITOR, $1, $3); }
           | ifac S_BITAND ifac   { $$ = make_node(csound, S_BITAND, $1, $3); }
           | ifac S_NEQV ifac   { $$ = make_node(csound, S_NEQV, $1, $3); }
