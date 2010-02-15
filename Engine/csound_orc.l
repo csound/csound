@@ -97,6 +97,8 @@ CONT            \\[[ \t]*\n
 "-"             { return S_MINUS; }
 "*"             { return S_TIMES; }
 "/"             { return S_DIV; }
+"%"             { return S_MOD; }
+"\^"            { return S_POW; }
 "?"             { return S_Q; }
 ":"             { return S_COL; }
 ","             { return S_COM; }
@@ -118,6 +120,7 @@ CONT            \\[[ \t]*\n
 "&"             { return S_BITAND; }
 "#"             { return S_NEQV; }
 "¬"             { return S_BITNOT; }
+"~"             { return S_BITNOT; }
 
 "if"            { return T_IF; }
 "then"          { return T_THEN; }
