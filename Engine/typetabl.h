@@ -87,7 +87,7 @@ static const int32 typetabl3[/*17*/] = {
     'z',    ARGTYP_k,   
     'X',    (ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
     'N',    (ARGTYP_S | ARGTYP_a | ARGTYP_k | ARGTYP_i | ARGTYP_p),
-    'I',    (ARGTYP_S | ARGTYP_i),
+    'I',    (ARGTYP_S | ARGTYP_i | ARGTYP_p),
     0L
 };
 
