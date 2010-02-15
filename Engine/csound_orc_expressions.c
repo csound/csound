@@ -237,6 +237,8 @@ int is_expression_node(TREE *node)
     case S_MINUS:
     case S_TIMES:
     case S_DIV:
+    case S_MOD:
+    case S_POW:
     case T_FUNCTION:
     case S_UMINUS:
     case S_BITOR:
@@ -339,8 +341,16 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
+    case S_MOD:
+      strncpy(op, "mod", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
     case S_DIV:
       strncpy(op, "div", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_POW:
+      strncpy(op, "pow", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case T_FUNCTION: /* assumes on single arg input */
