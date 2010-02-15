@@ -2014,9 +2014,6 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           }
         /* IV - Oct 31 2002: simplified code */
         if (UNLIKELY(!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd]))) {
-          printf("tfound=%x tfound_m=%x treqd=%x  typemask_tabl_out[]=%x\n",
-                 tfound, tfound_m, treqd,
-                 ST(typemask_tabl_out)[(unsigned char) treqd]);
           synterr(csound, Str("output arg '%s' illegal type"), s);
         }
       }
