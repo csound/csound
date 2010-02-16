@@ -761,6 +761,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         free(name);
         return -1;
       }
+      numdevs = 1;
     }
     free(name);
     if (numdevs == 0) {
