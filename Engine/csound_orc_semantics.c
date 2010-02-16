@@ -190,6 +190,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_TIMES:\n"); break;
     case S_DIV:
       csound->Message(csound,"S_DIV:\n"); break;
+    case S_MOD:
+      csound->Message(csound,"S_MOD:\n"); break;
+    case S_POW:
+      csound->Message(csound,"S_POW:\n"); break;
     case S_NL:
       csound->Message(csound,"S_NL:\n"); break;
     case S_LB:
