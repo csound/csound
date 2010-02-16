@@ -954,6 +954,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname) {
         if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
             return opinfo;
         }
+        opinfo = opinfo->prv;   /* Move on: JPff suggestion */
     }
 
     return NULL;
