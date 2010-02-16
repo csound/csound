@@ -343,6 +343,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"S_TIMES\""); break;
     case S_DIV:
       csound->Message(csound,"name=\"S_DIV\""); break;
+    case S_MOD:
+      csound->Message(csound,"name=\"S_MOD\""); break;
+    case S_POW:
+      csound->Message(csound,"name=\"S_POW\""); break;
     case S_NL:
       csound->Message(csound,"name=\"S_NL\""); break;
     case S_LB:
