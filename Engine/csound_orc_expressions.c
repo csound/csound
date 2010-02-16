@@ -350,8 +350,20 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
     case S_POW:
-      strncpy(op, "pow", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
+      { int outype = 'i';
+        strncpy(op, "pow.", 80);
+        if (arg1 == 'a') {
+          strncat(op, "a", 80);
+          outype = arg1;
+        }
+        else if(arg1 == 'k') {
+          strncat(op, "k", 80);
+          outype = arg1;
+        }
+        else 
+          strncat(op, "i", 80);
+        outarg = create_out_arg(csound, outype);
+      }
       break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;

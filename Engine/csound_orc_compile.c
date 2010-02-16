@@ -201,7 +201,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     char      tfound = '\0', treqd;
 
     if (nreqd < 0)    /* for other opcodes */
-      nreqd = strlen(types = ep->intypes);
+      nreqd = strlen(types);
 
     /*if (n > nreqd) {*/                  /* IV - Oct 24 2002: end of new code */
     /*if ((treqd = types[nreqd-1]) == 'n') {*/  /* indef args: */
