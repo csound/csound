@@ -1442,15 +1442,15 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
     p->mag = 0.000001;
-   if (p->fout->frame.auxp == NULL ||
-            p->fout->frame.size < sizeof(float) * (N + 2))
-          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
   
 
-   if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-                     (p->fout->format == PVS_AMP_PHASE)))
-          return csound->InitError(csound, Str("pvslock: signal format "
-                                               "must be amp-phase or amp-freq."));
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                  (p->fout->format == PVS_AMP_PHASE)))
+      return csound->InitError(csound, Str("pvslock: signal format "
+                                           "must be amp-phase or amp-freq."));
       
     return OK;
 }
@@ -1462,39 +1462,39 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
     float   *fout, *fin, cmag = p->mag, mag=0.f, diff;
     fout = (float *) p->fout->frame.auxp;
     fin = (float *) p->fin->frame.auxp;
-    framesize = p->fin->N + 2;
-   if (p->lastframe < p->fin->framecount) {
+    framesize = N + 2;
+    if (p->lastframe < p->fin->framecount) {
     
-     for (i = 0; i < framesize; i += 2) {
+    for (i = 0; i < framesize; i += 2) {
 
-       mag += fin[i];
-         if(i == 0) {
-         fout[i] = fin[i];
-         fout[i+1] = fin[i+1];
-       } else if (i < N) {
-	 amp1 = fin[i - 2];
-         amp2 = fin[i];
-         amp3 = fin[i + 2];
-         freq1 = fin[i - 1];
-         freq2 = fin[i + 1];
-         freq3 = fin[i + 3];
-         div = amp1+amp2+amp3;
-         if(div) {
-           fout[i+1] = (freq1*amp1+freq2*amp2+freq3*amp3)/div;
-           fout[i] = amp2;
-	 } else {
-	   fout[i] = amp2;
-           fout[i+1] = freq2;
-	 }
-       } else {
-           fout[i] = fin[i];
-           fout[i+1] = fin[i+1];
-	   } 
-       fout[i] =fin[i]; fout[i+1] = fin[i+1];
+      mag += fin[i];
+      if(i == 0) {
+        fout[i] = fin[i];
+        fout[i+1] = fin[i+1];
+      } else if (i < N) {
+        amp1 = fin[i - 2];
+        amp2 = fin[i];
+        amp3 = fin[i + 2];
+        freq1 = fin[i - 1];
+        freq2 = fin[i + 1];
+        freq3 = fin[i + 3];
+        div = amp1+amp2+amp3;
+        if(div) {
+          fout[i+1] = (freq1*amp1+freq2*amp2+freq3*amp3)/div;
+          fout[i] = amp2;
+        } else {
+          fout[i] = amp2;
+          fout[i+1] = freq2;
+        }
+      } else {
+        fout[i] = fin[i];
+        fout[i+1] = fin[i+1];
+      } 
+      fout[i] =fin[i]; fout[i+1] = fin[i+1];
    
      }
      mag /= N;
-     diff = 20*log10(mag/cmag);
+     diff = 20.0f*log10f(mag/cmag);
      if(diff > *p->delta)
        csound->Message(csound, "att= %f %f\n", diff, mag);
      p->mag = mag;
