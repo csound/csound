@@ -438,7 +438,7 @@ if commonEnvironment['gcc4opt'] == 'atom':
     commonEnvironment.Prepend(CCFLAGS = Split('-mtune=prescott -O2 -fomit-frame-pointer'))
 elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     if not buildOLPC:
-     commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
+        commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
     if commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = commonEnvironment['gcc4opt']

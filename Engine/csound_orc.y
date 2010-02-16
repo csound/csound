@@ -480,7 +480,8 @@ exprlist  : exprlist S_COM expr
           | exprlist S_COM label
                 {
                     /* $$ = make_node(S_COM, $1, $3); */
-                    $$ = appendToTree(csound, $1, $3);
+                    $$ = appendToTree(csound, $1,
+                                      make_leaf(csound, T_LABEL, (ORCTOKEN *)$3));
                 }
           | exprlist S_COM error
           | expr { $$ = $1;     }
