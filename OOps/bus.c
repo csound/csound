@@ -1081,7 +1081,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     csoundSpinLock(lock);
     strcpy((char*) p->fp, (char*) p->arg);
-    csoundSpinLock(lock);
+    csoundSpinUnLock(lock);
 
     return OK;
 }
