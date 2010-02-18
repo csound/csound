@@ -516,26 +516,28 @@ namespace csound
   {
     std::vector<Event>::clear();
     for(std::vector<MidiTrack>::iterator trackI = midiFile.midiTracks.begin(); trackI != midiFile.midiTracks.end(); ++trackI) {
-      std::set<MidiEvent> usedNoteOffEvents;
+      ///std::set<const MidiEvent *> usedNoteOffEvents;
       for(std::vector<MidiEvent>::iterator onEventI = trackI->begin(); onEventI != trackI->end(); ++onEventI) {
         const MidiEvent &noteOnEvent = *onEventI;
+	std::cerr << "At:       " << std::hex << &noteOnEvent << " " << noteOnEvent.toString();
         if(noteOnEvent.isNoteOn()) {
           for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != trackI->end(); ++offEventI) {
             const MidiEvent &noteOffEvent = *offEventI;
-            if (usedNoteOffEvents.find(noteOffEvent) == usedNoteOffEvents.end()) {
-              if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
-                double status = noteOnEvent.getStatusNybble();
-                double instrument = noteOnEvent.getChannelNybble();
-                double time_ = noteOnEvent.time;
-                double duration = noteOffEvent.time - noteOnEvent.time;
-                double key = noteOnEvent.getKey();
-                double velocity = noteOnEvent.getVelocity();
-                append(time_, duration, status, instrument, key, velocity);
-                fprintf(stderr, "Score::load append(%9.3f %9.3f %9.3f %9.3f %9.3f %9.3f)\n", time_, duration, status, instrument, key, velocity);
-                usedNoteOffEvents.insert(noteOffEvent);
-                break;
-              }
-            }
+            ///if (usedNoteOffEvents.find(&noteOffEvent) == usedNoteOffEvents.end()) {
+	    if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
+	std::cerr << " matches: " << std::hex << &noteOffEvent << " " << noteOffEvent.toString();
+	      double status = noteOnEvent.getStatusNybble();
+	      double instrument = noteOnEvent.getChannelNybble();
+	      double time_ = noteOnEvent.time;
+	      double duration = noteOffEvent.time - noteOnEvent.time;
+	      double key = noteOnEvent.getKey();
+	      double velocity = noteOnEvent.getVelocity();
+	      append(time_, duration, status, instrument, key, velocity);
+	      std::cerr << "  producing: " << back().toString().c_str() << std::endl;
+	      ///usedNoteOffEvents.insert(&noteOffEvent);
+	      break;
+	    }
+	    ///}
           }
         }
       }
