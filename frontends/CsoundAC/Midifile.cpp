@@ -25,6 +25,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 #include <cstring>
 
@@ -353,70 +354,79 @@ namespace csound
     char c;
     stream.get(c);
     push_back((unsigned char) c);
-#ifdef _DEBUG
-    //          fprintf(stderr, " pos %x val %x\n", (int) stream.tellg(), (unsigned char) c);
-#endif
     return (unsigned char) c;
   }
 
   bool MidiEvent::isChannelVoiceMessage() const
   {
-    if(getStatusNybble() < MidiFile::CHANNEL_NOTE_OFF)
-      {
-        return false;
-      }
-    if(getStatusNybble() > MidiFile::CHANNEL_PITCH_BEND)
-      {
-        return false;
-      }
+    if(getStatusNybble() < MidiFile::CHANNEL_NOTE_OFF) {
+      return false;
+    }
+    if(getStatusNybble() > MidiFile::CHANNEL_PITCH_BEND) {
+      return false;
+    }
     return true;
   }
 
   bool MidiEvent::isNoteOn() const
   {
-    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON && (*this)[2] > 0)
-      {
-        return true;
+    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON) {
+      if (getVelocity() > 0) {
+	return true;
+      } else {
+	return false;
       }
+    }
     return false;
   }
-
+  
   bool MidiEvent::isNoteOff() const
   {
-    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_OFF)
-      {
-        return true;
+    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_OFF) {
+      return true;
+    }
+    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON) {
+      if (getVelocity() == 0) {
+	return true;
+      } else {
+	return false;
       }
-    if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON && (*this)[2] == 0)
-      {
-        return true;
-      }
+    }
     return false;
   }
-
+  
   bool MidiEvent::matchesNoteOffEvent(const MidiEvent &offEvent) const
   {
-    if(getChannelNybble() != offEvent.getChannelNybble())
-      {
-        return false;
-      }
-    if(!isNoteOn())
-      {
-        return false;
-      }
-    if(!offEvent.isNoteOff())
-      {
-        return false;
-      }
-    if(!(offEvent.ticks >= ticks))
-      {
-        return false;
-      }
-    if(getKey() != offEvent.getKey())
-      {
-        return false;
-      }
+    if(!isNoteOn()) {
+      return false;
+    }
+    if(!offEvent.isNoteOff()) {
+      return false;
+    }
+    if(getChannelNybble() != offEvent.getChannelNybble()) {
+      return false;
+    }
+    if(getKey() != offEvent.getKey()) {
+      return false;
+    }
+    if(!(offEvent.time >= time)) {
+      return false;
+    }
     return true;
+  }
+
+  std::string MidiEvent::toString() const
+  {
+    std::ostringstream stream;
+    char buffer[0x100];
+    std::sprintf(buffer, "MidiEvent:  tick: %5d  sec: %8.4f  status: %3d", ticks, time, getStatus());
+    stream << buffer;
+    for (size_t i = 1, n = size(); i < n; ++i) {
+      std::sprintf(buffer, " %3d", at(i));
+      stream << buffer;
+    }
+    stream << std::endl;
+    return stream.str();
   }
 
   MidiTrack::MidiTrack() : Chunk("MTrk")
@@ -470,11 +480,11 @@ namespace csound
       {
         secondsPerTick = midiFile.currentSecondsPerTick;
       }
-    this->time = midiFile.currentTime = (midiFile.currentTime + (secondsPerTick * ticks));
+    this->time = midiFile.currentTime = (midiFile.currentTime + (secondsPerTick * double(ticks)));
     int peeked = stream.peek();
     if(stream.eof())
       {
-        std::cout << "MIDI file incorrectly read EOF." << std::endl;
+        std::cerr << "MIDI file incorrectly read EOF." << std::endl;
         return;
       }
     if(peeked < 0x80)
@@ -575,6 +585,7 @@ namespace csound
         }
         break;
       }
+    std::cerr << toString();
   }
 
   void MidiTrack::write(std::ostream &stream, MidiFile &midiFile)

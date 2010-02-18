@@ -112,6 +112,7 @@ namespace csound
     virtual bool isNoteOn() const;
     virtual bool isNoteOff() const;
     virtual bool matchesNoteOffEvent(const MidiEvent &offEvent) const;
+    virtual std::string toString() const;
     friend bool operator < (const MidiEvent &a, const MidiEvent &b);
   };
 
