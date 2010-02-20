@@ -128,7 +128,7 @@ if sys.platform[:3] == 'win':
 	# If you want to build the Pure Data external csoundapi~,
 	# you need Pure Data. 
 	# Add it here (you do NOT need to build it first):
-	customCPPPATH.append(r'U:\pure-data\trunk\pd\src')
+	customCPPPATH.append(r'U:\Pd-0.41.4-extended\pd\src')
 	customLIBPATH.append(r'U:\pd\bin')
 	################################################################
 	# If you want to build the linear algebra opcodes, 
