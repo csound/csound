@@ -830,6 +830,22 @@ public:
   {
     return csoundGetSpoutSample(csound, frame, channel);
   }
+  virtual int ChanIKSetValue(int channel, MYFLT value)
+  {
+    return csoundChanIKSetValue(csound, channel, value);
+  }
+  virtual MYFLT ChanOKGetValue(int channel)
+  {
+    return  csoundChanOKGetValue(csound, channel);
+  }
+  virtual int ChanIASetSample(int channel, int frame, MYFLT sample)
+  {
+    return csoundChanIASetSample(csound, channel, frame, sample);
+  }
+  virtual MYFLT ChanOAGetSample(int channel, int frame)
+  {
+    return csoundChanOAGetSample(csound, channel, frame);
+  }
 };
 
 // thread locks
