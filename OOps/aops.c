@@ -67,7 +67,7 @@ int assign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-int aassign(CSOUND *csound, ASSIGNM *p)
+int aassign(CSOUND *csound, ASSIGN *p)
 {
     /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
     /* and skips the opcode if outarg == inarg */
