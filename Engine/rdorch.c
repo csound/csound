@@ -547,14 +547,14 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         else
           ungetorchar(csound, c2);
       }
-      if (c == ';' && !heredoc && !openquote) {
+      if (c == ';' && !heredoc) {
         skiporchar(csound);
         *(cp - 1) = (char) (c = '\n');
       }
       if (c == '"' && !heredoc) {
         openquote = !openquote;
       }
-      if (c == '\\' && !heredoc) {                   /* Continuation ?       */
+      if (c == '\\' && !heredoc & !openquote) {      /* Continuation ?       */
         while ((c = getorchar(csound)) == ' ' || c == '\t')
           ;                                          /* Ignore spaces        */
         if (c == ';') {                              /* Comments get skipped */
@@ -1140,11 +1140,15 @@ static int splitline(CSOUND *csound)
         grpp = ST(group)[grpcnt++] = cp;
         *cp++ = c;                          /*  cpy to nxt quote */
        do {
-          c = *lp++;
-          if (c=='\\') {                    /* Deal with \" case */
-            c = *lp++;
-          }
-          *cp++ = c;
+       loop:
+         c = *lp++;
+         if (c=='\\' && *lp=='"') {        /* Deal with \" case */
+           *cp++ = '\\';
+           *cp++ = '"';
+           lp++;
+           goto loop;
+         }
+         *cp++ = c;
        } while (c != '"' && c != '\n');
         if (c == '\n')
           synterrp(csound, lp - 1, Str("unmatched quotes"));
