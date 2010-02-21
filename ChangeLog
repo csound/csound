@@ -1,5 +1,7 @@
 2010-02-21  john ffitch  <jpff@codemist.co.uk>
 
+	* OOps/aops.c (aassign): Correct typo in arguments
+
 	* Engine/rdorch.c (splitline): Rework \ inside strings
 
 2010-02-15  jpff  <jpff@cs.bath.ac.uk>
