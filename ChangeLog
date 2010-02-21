@@ -1,3 +1,7 @@
+2010-02-21  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/rdorch.c (splitline): Rework \ inside strings
+
 2010-02-15  jpff  <jpff@cs.bath.ac.uk>
 
 	* Engine/typetabl.h (]): Need to add p to I case
