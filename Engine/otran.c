@@ -1261,7 +1261,8 @@ void oload(CSOUND *p)
     gblspace[1] = p->ekr;           /*   rsvd word      */
     gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
     gblspace[3] = (MYFLT) p->nchnls;
-    gblspace[4] = p->e0dbfs;
+    gblspace[4] = (MYFLT) p->inchnls;
+    gblspace[5] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
     /* string constants: unquote, convert escape sequences, and copy to pool */
     convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (int32) gblscbeg);
