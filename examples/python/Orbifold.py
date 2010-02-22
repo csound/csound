@@ -95,7 +95,7 @@ class Tonnetz(object):
         else:
             return self.R
     def sort(self, chord):
-        c = array(chord, Float).copy()
+        c = array(chord, 'd').copy()
         d = c[0:self.N]
         d.sort()
         c[0:self.N] = d
@@ -170,12 +170,12 @@ class Tonnetz(object):
         chord = tuple(self.keepInside(chord))
         return chord
     def tones(self, chord):
-        c = array(chord, Float).copy()
+        c = array(chord, 'd').copy()
         for i in xrange(self.N):
            c[i] = c[i] % self.tonesPerOctave
         return self.sort(c)
     def zeroFormModulus(self, chord):
-        c = array(chord, Float).copy()
+        c = array(chord, 'd').copy()
         for i in xrange(self.N):
            c[i] = c[i] % self.tonesPerOctave
         m = min(c)
@@ -324,7 +324,7 @@ class Tonnetz(object):
         for i in xrange(n):
             tail = l.pop(self.N - 1)
             l.insert(0, tail)
-        return array(l, Float)
+        return array(l, 'd')
     def invert(self, chord):
         chord = array(chord)
         c = chord[1:self.N].tolist()
@@ -458,7 +458,7 @@ class Tonnetz(object):
                 print chord,'keeps inside as',c
             return c
     def pitchclasses(self, chord):
-        c = array(chord, Float).copy()
+        c = array(chord, 'd').copy()
         for i in xrange(self.N):
             c[i] = self.pitchclass(chord[i])
         return c
@@ -526,7 +526,7 @@ class TonnetzModel(Tonnetz):
             for x in xrange(-self.R, self.R+1):
                 for y in xrange(x, x + self.R+1):
                     for z in xrange(x, x + self.R+1):
-                        trichord = array((x,y,z), Float)
+                        trichord = array((x,y,z), 'd')
                         trichord = tuple(self.sort(trichord))
                         if self.isPrism and self.isInsidePrism(trichord, self.R):
                             if trichord not in self.trichords:
