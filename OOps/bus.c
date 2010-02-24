@@ -1056,6 +1056,8 @@ int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
+      p->lock = csoundGetChannelLock(csound, (char*) p->iname,
+    	                      CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       p->h.opadr = (SUBR) chnclear_opcode_perf;
       return OK;
     }
