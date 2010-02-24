@@ -32,10 +32,8 @@
 #define CSD_MAX_LINE_LEN    4096
 #define CSD_MAX_ARGS        100
 
-#ifdef WIN32
 #  undef L_tmpnam
 #  define L_tmpnam (200)
-#endif
 
 #ifndef TRUE
 #  define TRUE  (1)
