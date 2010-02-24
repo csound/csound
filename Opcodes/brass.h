@@ -36,8 +36,8 @@
 /*                MOD_WHEEL= vibAmt       */
 /******************************************/
 
-#if !defined(__Brass_h)
-#define __Brass_h
+#if !defined(__brass_h)
+#define __brass_h
 
 #include "physutil.h"
 #include "csdl.h"
