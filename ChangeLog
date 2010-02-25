@@ -1,3 +1,7 @@
+2010-02-25  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/gab/gab.c: Added range checks to the fast table opcodes
+
 2010-02-21  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/aops.c (aassign): Correct typo in arguments
