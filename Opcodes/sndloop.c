@@ -203,6 +203,12 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
 {
     p->durs = (int32) (*(p->dur)*csound->esr); /* dur in samps */
     p->cfds = (int32) (*(p->cfd)*csound->esr); /* fade in samps */
+    if(p->durs < p->cfds){
+      csound->InitError(csound, "crossfade cannot be longer than loop\n");
+      return NOTOK;
+    }  
+      
+
     p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
     p->a    = FL(0.0);
     p->wp   = 0;   /* intialise write pointer */
