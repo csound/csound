@@ -110,6 +110,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, Str("fastab: incorrect table number"));
     }
     p->table = ftp->ftable;
+    p->tablen = ftp->flen;
     p->xmode = (int) *p->ixmode;
     if (p->xmode)
       p->xbmul = (MYFLT) ftp->flen;
@@ -125,66 +126,89 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
-      for (n=0; n<nsmps; n++)   /* for loops compile better */
-        tab[(int)(ndx[n]*xbmul)] = rslt[n];
+      for (n=0; n<nsmps; n++)  { /* for loops compile better */
+        int i = (int)(ndx[n]*xbmul);
+        if (UNLIKELY(i >= p->tablen)) {
+          return csound->PerfError(csound, Str("tabw off end"));
+        }
+        tab[i] = rslt[n];
+      }
     }
     else {
-      for (n=0; n<nsmps; n++)
-        tab[(int)ndx[n]] = rslt[n];
+      for (n=0; n<nsmps; n++) {
+        int i = ndx[n];
+        if (UNLIKELY(i >= p->tablen)) {
+          return csound->PerfError(csound, Str("tabw off end"));
+        }
+        tab[i] = rslt[n];
+      }
     }
     return OK;
 }
 
 static int fastabk(CSOUND *csound, FASTAB *p)
 {
+    int i;
     if (p->xmode)
-      *p->rslt =  *(p->table + (int) (*p->xndx * p->xbmul));
+      i = (int) (*p->xndx * p->xbmul);
     else
-      *p->rslt =  *(p->table + (int) *p->xndx);
+      i = (int) *p->xndx;
+    if (UNLIKELY(i >= p->tablen)) {
+      return csound->PerfError(csound, Str("tab off end"));
+    }
+    *p->rslt =  p->table[i];
     return OK;
 }
 
 static int fastabkw(CSOUND *csound, FASTAB *p)
 {
+    int i;
     if (p->xmode)
-      *(p->table + (int) (*p->xndx * p->xbmul)) = *p->rslt;
+      i = (int) (*p->xndx * p->xbmul);
     else
-      *(p->table + (int) *p->xndx) = *p->rslt;
+      i = (int) *p->xndx;
+    if (UNLIKELY(i >= p->tablen)) {
+      return csound->PerfError(csound, Str("tabw off end"));
+    }
+    p->table[i] = *p->rslt;
     return OK;
 }
 
 static int fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    /*ftp = csound->FTFind(p->xfn); */
+    int i;
 
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
-      *p->rslt =  *(ftp->ftable + (int) (*p->xndx * ftp->flen));
-    else {
-      if ((int) *p->xndx >= ftp->flen) {
-        printf("Table %d: index=%d length=%d\n",
-               ftp->fno, (int) *p->xndx, ftp->flen);
-        return csound->PerfError(csound, "tab_i off end");
-      }
-      *p->rslt =  *(ftp->ftable + (int) *p->xndx);
+      i = (int) (*p->xndx * ftp->flen);
+    else
+      i = (int) *p->xndx;
+    if (UNLIKELY(i >= ftp->flen)) {
+        return csound->PerfError(csound, Str("tab_i off end"));
     }
+    *p->rslt =  ftp->ftable[i];
     return OK;
 }
 
 static int fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
+    int i;
     /*ftp = csound->FTFind(p->xfn); */
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
-      *(ftp->ftable + (int) (*p->xndx * ftp->flen)) = *p->rslt;
+      i = (int) (*p->xndx * ftp->flen);
     else
-      *(ftp->ftable + (int) *p->xndx) = *p->rslt;
+      i = (int) *p->xndx;
+    if (UNLIKELY(i >= ftp->flen)) {
+        return csound->PerfError(csound, Str("tabw_i off end"));
+    }
+    ftp->ftable[i] = *p->rslt;
     return OK;
 }
 
@@ -196,12 +220,20 @@ static int fastab(CSOUND *csound, FASTAB *p)
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
       for (i=0; i<nsmps; i++) {
-        rslt[i] = tab[(int) (ndx[i] * xbmul)];
+        int n = (int) (ndx[i] * xbmul);
+        if (UNLIKELY(i >= p->tablen)) {
+          return csound->PerfError(csound, Str("tab off end"));
+        }
+        rslt[i] = tab[i];
       }
     }
     else {
       for (i=0; i<nsmps; i++) {
-        rslt[i] = tab[(int) ndx[i]];
+        int n = (int) ndx[i];
+        if (UNLIKELY(i >= p->tablen)) {
+          return csound->PerfError(csound, Str("tab off end"));
+        }
+        rslt[i] = tab[i];
       }
     }
     return OK;
