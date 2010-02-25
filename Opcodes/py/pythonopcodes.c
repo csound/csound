@@ -97,7 +97,7 @@ static PyObject *
     exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
 {
     FILE      *file;
-    PyObject  *result, *module, *public;
+    PyObject  *result=1, *module, *public;
     void      *fd;
 
     module = PyImport_AddModule("__main__");
@@ -114,7 +114,7 @@ static PyObject *
       return NULL;
     }
     result = PyRun_File(file, filename, Py_file_input,
-                        public, private ? private : public);
+                    public, private ? private : public);
     cs->FileClose(cs, fd);
     return result;
 }
