@@ -394,9 +394,18 @@ namespace csound
     operations[time].avoidParallels = avoidParallels;
   }
 
-  void VoiceleadingNode::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates)
+  void VoiceleadingNode::produceOrTransform(Score &score, 
+					    size_t beginAt, 
+					    size_t endAt, 
+					    const ublas::matrix<double> &compositeCoordinates)
   {
     transform(score, rescaleTimes);
+    // Apply the global transformation of coordinate system 
+    // to all child events produced by this node.
+    size_t finalEndAt = score.size();
+    for (size_t i = endAt; i < finalEndAt; i++) {
+      score[i] = ublas::prod(compositeCoordinates, score[i]);
+    }
   }
 
   void VoiceleadingNode::transform(Score &score, bool rescaleTimes_)

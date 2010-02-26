@@ -117,16 +117,19 @@ namespace csound
     if(generator_ == &lognormal_distribution_generator) return (*lognormal_distribution_generator)();
     return 0;
   }
-  ublas::matrix<double> Random::getLocalCoordinates() const
+  ublas::matrix<double> Random::getRandomCoordinates() const
   {
-    ublas::matrix<double> transformation = localCoordinates;
+    ublas::matrix<double> transformation = getLocalCoordinates();
     for(int i = 0; i < Event::HOMOGENEITY; i++)
       {
-        transformation(i,Event::HOMOGENEITY) *= sample();
+        transformation(i, Event::HOMOGENEITY) *= sample();
       }
     return transformation;
   }
-  void Random::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
+  void Random::produceOrTransform(Score &score, 
+				  size_t beginAt, 
+				  size_t endAt, 
+				  const ublas::matrix<double> &compositeCoordinates)
   {
     createDistribution(distribution);
     if(eventCount > 0)
@@ -135,11 +138,9 @@ namespace csound
         for (int i = 0; i < eventCount; i++)
           {
             //  Resample for every generated note.
-            ublas::matrix<double> localCoordinates = getLocalCoordinates();
-            ublas::matrix<double> compositeCoordinates = ublas::prod(localCoordinates, globalCoordinates);
             Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             Event transformedEvent;
-            ublas::axpy_prod(compositeCoordinates, event, transformedEvent);
+            ublas::axpy_prod(getRandomCoordinates(), event, transformedEvent);
             if (incrementTime)
               {
                 double buffer = fabs(transformedEvent.getTime());
@@ -148,14 +149,18 @@ namespace csound
               }
             score.push_back(transformedEvent);
           }
+	// Apply the global transformation of coordinate system 
+	// to all child events produced by this node.
+	size_t finalEndAt = score.size();
+	for (size_t i = endAt; i < finalEndAt; i++) {
+	  score[i] = ublas::prod(compositeCoordinates, score[i]);
+	}
       }
     else
       {
         for (size_t i = beginAt; i < endAt; i++)
           {
-            ublas::matrix<double> local = getLocalCoordinates();
-            ublas::matrix<double> compositeCoordinates = ublas::prod(local, globalCoordinates);
-            score[i] = ublas::prod(compositeCoordinates, score[i]);
+            score[i] = ublas::prod(getRandomCoordinates(), score[i]);
           }
       }
   }
