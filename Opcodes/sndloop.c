@@ -204,7 +204,7 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
     p->durs = (int32) (*(p->dur)*csound->esr); /* dur in samps */
     p->cfds = (int32) (*(p->cfd)*csound->esr); /* fade in samps */
     if(p->durs < p->cfds){
-      csound->InitError(csound, "crossfade cannot be longer than loop\n");
+      csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
       return NOTOK;
     }  
       
