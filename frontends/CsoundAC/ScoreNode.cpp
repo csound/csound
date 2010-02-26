@@ -29,7 +29,10 @@ namespace csound
   {
   }
 
-  void ScoreNode::produceOrTransform(Score &score_, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
+  void ScoreNode::produceOrTransform(Score &score_, 
+				     size_t beginAt, 
+				     size_t endAt, 
+				     const ublas::matrix<double> &compositeCoordinates)
   {
     if(importFilename.length() > 0)
       {
@@ -41,6 +44,12 @@ namespace csound
         const Event &event = *it;
         score_.push_back(event);
       }
+    // Apply the global transformation of coordinate system 
+    // to all child events produced by this node.
+    size_t finalEndAt = score_.size();
+    for (size_t i = endAt; i < finalEndAt; i++) {
+      score_[i] = ublas::prod(compositeCoordinates, score_[i]);
+    }
   }
 
   Score &ScoreNode::getScore()
