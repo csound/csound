@@ -69,11 +69,14 @@ namespace csound
                                            Score &score);
     /**
      * The default implementation does nothing.
+     * Derived nodes that produce notes from scratch should 
+     * transform them using the composite transformation of 
+     * coordinate system, which is passed in from the traverse() function.
      */
     virtual void produceOrTransform(Score &score,
                                     size_t beginAt,
                                     size_t endAt,
-                                    const ublas::matrix<double> &coordinates);
+                                    const ublas::matrix<double> &compositeCordinates);
     virtual ublas::matrix<double> createTransform();
     virtual void clear();
     virtual double &element(size_t row, size_t column);
