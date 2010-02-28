@@ -3018,6 +3018,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (*fmt == '%') {
         /* if already a segment waiting, then lets print it */
         if (segwaiting) {
+          MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
           strseg[i] = '\0';
 
           switch (*segwaiting) {
@@ -3028,17 +3029,17 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           case 'X':
           case 'u':
           case 'c':
-            sprintf(outstring, strseg, (int)(*kvals[j]+.5));
+            sprintf(outstring, strseg, (int)(xx+.5));
             break;
           case 'h':
-            sprintf(outstring, strseg, (int16)(*kvals[j]+.5));
+            sprintf(outstring, strseg, (int16)(xx+.5));
             break;
           case 'l':
-            sprintf(outstring, strseg, (int32)(*kvals[j]+.5));
+            sprintf(outstring, strseg, (int32)(xx+.5));
             break;
 
           default:
-            sprintf(outstring, strseg, *kvals[j]);
+            sprintf(outstring, strseg, xx);
             break;
           }
           outstring += strlen(outstring);
@@ -3066,6 +3067,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
     if (i) {
       strseg[i] = '\0';
       if (segwaiting) {
+        MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
         switch (*segwaiting) {
         case 'd':
         case 'i':
@@ -3074,17 +3076,17 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int)(*kvals[j]+FL(0.5)));
+          sprintf(outstring, strseg, (int)(xx+FL(0.5)));
           break;
         case 'h':
-          sprintf(outstring, strseg, (int16)(*kvals[j]+FL(0.5)));
+          sprintf(outstring, strseg, (int16)(xx+FL(0.5)));
           break;
         case 'l':
-          sprintf(outstring, strseg, (int32)(*kvals[j]+FL(0.5)));
+          sprintf(outstring, strseg, (int32)(xx+FL(0.5)));
           break;
 
         default:
-          sprintf(outstring, strseg, *kvals[j]);
+          sprintf(outstring, strseg, xx);
           break;
         }
       }

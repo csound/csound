@@ -1,3 +1,8 @@
+2010-02-28  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugrw1.c (sprints): A format with a % but no arg would cause
+	a crash
+
 2010-02-25  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/gab/gab.c: Added range checks to the fast table opcodes
