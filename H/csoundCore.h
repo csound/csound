@@ -695,7 +695,7 @@ extern const uint32_t csPlayScoMask;
    * to run one instance of Csound.
    */
   /* Eventually this will be changed to inchnls -- JPff */
-#define nchnls_i nchnls
+#define nchnls_i inchnls
   struct CSOUND_ {
     /* Csound API function pointers (320 total) */
     int (*GetVersion)(void);
