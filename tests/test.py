@@ -9,6 +9,9 @@ import sys
 from testUI import TestApplication
 from Tkinter import *
 
+parserType = "--new-parser"
+showUIatClose = False
+
 class Test:
     def __init__(self, fileName, description, expected=True):
         self.fileName = fileName
@@ -29,12 +32,24 @@ def showHelp():
     are written to results.txt file.  To show the results using a UI, pass
     in the command "--show-ui" like so:
 
-    ./test.py --show-ui"""
+    ./test.py --show-ui
+    
+    The test suite defaults to using the new parser.  To use the old parser for 
+    the tests, use "--old-parser" in the command like so:
+    
+    ./test.py --show-ui --old-parser
+    
+    """
 
     print message
 
 def runTest():
     runArgs = "-Wdo test.wav"
+
+    if (parserType == "--old-parser"):
+        print "Testing with old parser"
+    else:
+        print "Testing with new parser"
 
     tests = [
         ["test1.csd", "Simple Test, Single Channel"],
@@ -90,10 +105,10 @@ def runTest():
         desc = t[1]
 
         if(os.sep == '\\'):
-            command = "..\\csound.exe --new-parser %s %s 2> %s"%(runArgs, filename, tempfile)
+            command = "..\\csound.exe %s %s %s 2> %s"%(parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
         else:
-            command = "../csound --new-parser %s %s &> %s"%(runArgs, filename, tempfile)
+            command = "../csound %s %s %s &> %s"%(parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
 
         print "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
@@ -138,10 +153,14 @@ def runTest():
 
 if __name__ == "__main__":
     if(len(sys.argv) > 1):
-        if sys.argv[1] == "--help":
-            showHelp()
-        elif sys.argv[1] == "--show-ui":
-            results = runTest()
-            showUI(results)
-    else:
-        runTest()
+        for arg in sys.argv:
+            if (arg == "--help"):
+                showHelp()
+                sys.exit(0)
+            elif arg == "--show-ui":
+                showUIatClose = True
+            elif arg == "--old-parser":
+                parserType = "--old-parser"
+    results = runTest()
+    if (showUIatClose):
+        showUI(results)
