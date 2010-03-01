@@ -413,9 +413,8 @@ msgid "illegal x interval"
 msgstr ""
 
 #: Engine/fgens.c:408 Engine/fgens.c:557 Engine/fgens.c:638 Engine/fgens.c:883
-#: Engine/fgens.c:1353 Engine/fgens.c:2375 Engine/fgens.c:2675 Top/cvanal.c:69
-#: Top/main.c:124 Top/pvanal.c:104 util/cvanal.c:66 util/lpanal.c:398
-#: util/pvanal.c:170
+#: Engine/fgens.c:1353 Engine/fgens.c:2375 Engine/fgens.c:2675 Top/main.c:124
+#: util/cvanal.c:66 util/lpanal.c:398 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr ""
 
@@ -2150,23 +2149,23 @@ msgstr ""
 msgid "audio sr = %d, "
 msgstr ""
 
-#: InOut/libsnd_u.c:173 Top/sndinfo.c:60 util/sndinfo.c:93
+#: InOut/libsnd_u.c:173 util/sndinfo.c:93
 msgid "monaural"
 msgstr ""
 
-#: InOut/libsnd_u.c:174 Top/sndinfo.c:63 util/sndinfo.c:96
+#: InOut/libsnd_u.c:174 util/sndinfo.c:96
 msgid "stereo"
 msgstr ""
 
-#: InOut/libsnd_u.c:175 Top/sndinfo.c:66 util/sndinfo.c:99
+#: InOut/libsnd_u.c:175 util/sndinfo.c:99
 msgid "quad"
 msgstr ""
 
-#: InOut/libsnd_u.c:176 Top/sndinfo.c:69 util/sndinfo.c:102
+#: InOut/libsnd_u.c:176 util/sndinfo.c:102
 msgid "hex"
 msgstr ""
 
-#: InOut/libsnd_u.c:177 Top/sndinfo.c:72 util/sndinfo.c:105
+#: InOut/libsnd_u.c:177 util/sndinfo.c:105
 msgid "oct"
 msgstr ""
 
@@ -4453,32 +4452,6 @@ msgstr ""
 msgid "pvsynth: Not Initialised.\n"
 msgstr "pvsynth: Not Initialized.\n"
 
-#: OOps/pvxanal.c:86
-msgid "pvxanal: outfile name must use extension .pvx\n"
-msgstr ""
-
-#: OOps/pvxanal.c:90 Top/pvanal.c:220 util/pvanal.c:291
-#, c-format
-msgid "pvxanal - source has too many channels: Maxchans = %d.\n"
-msgstr ""
-
-#: OOps/pvxanal.c:139 util/pvanal.c:469
-#, c-format
-msgid "pvxanal: unable to create analysis file: %s"
-msgstr ""
-
-#: OOps/pvxanal.c:162 OOps/pvxanal.c:187 util/pvanal.c:499 util/pvanal.c:530
-#, c-format
-msgid "pvxanal: error writing analysis frames: %s\n"
-msgstr ""
-
-#: OOps/pvxanal.c:195 util/pvanal.c:540
-#, c-format
-msgid ""
-"\n"
-"%ld %d-chan blocks written to %s\n"
-msgstr ""
-
 #: OOps/remote.c:100
 msgid "insufficient memory to initialise remote globals."
 msgstr ""
@@ -5330,23 +5303,23 @@ msgstr ""
 msgid "printks param 1 was not a \"quoted string\""
 msgstr ""
 
-#: OOps/ugrw1.c:3110
+#: OOps/ugrw1.c:3112
 msgid "printks not initialised"
 msgstr "printks: not initialized"
 
-#: OOps/ugrw1.c:3241
+#: OOps/ugrw1.c:3243
 msgid "inz index > isizea. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:3243
+#: OOps/ugrw1.c:3245
 msgid "inz index < 0. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:3276 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
+#: OOps/ugrw1.c:3278 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
 msgid "outz index > isizea. No output"
 msgstr ""
 
-#: OOps/ugrw1.c:3278 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
+#: OOps/ugrw1.c:3280 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
 msgid "outz index < 0. No output."
 msgstr ""
 
@@ -5871,29 +5844,38 @@ msgstr ""
 msgid "Invalid table number: %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:295
+#: Opcodes/ftgen.c:323
 msgid "ftload: error allocating ftable"
 msgstr ""
 
-#: Opcodes/ftgen.c:297
+#: Opcodes/ftgen.c:325
 msgid "ftload: no table numbers"
 msgstr ""
 
-#: Opcodes/ftgen.c:299
+#: Opcodes/ftgen.c:327
 msgid "ftload: unable to open file"
 msgstr ""
 
-#: Opcodes/ftgen.c:409
+#: Opcodes/ftgen.c:330
+msgid "ftload: incorrect file"
+msgstr ""
+
+#: Opcodes/ftgen.c:443
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
 
-#: Opcodes/ftgen.c:412
+#: Opcodes/ftgen.c:446
 msgid "ftsave: no table numbers"
 msgstr ""
 
-#: Opcodes/ftgen.c:414
+#: Opcodes/ftgen.c:448
 msgid "ftsave: unable to open file"
 msgstr ""
+
+#: Opcodes/ftgen.c:450
+#, fuzzy
+msgid "ftsave: failed to write file"
+msgstr "oggplay: couldn't open file"
 
 #: Opcodes/gab/gab.c:110
 msgid "fastab: incorrect table number"
@@ -9520,83 +9502,6 @@ msgstr "Can't open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/cvanal.c:76 Top/pvanal.c:109 util/cvanal.c:73 util/hetro.c:156
-#: util/lpanal.c:403 util/pvanal.c:175
-msgid "no sampling rate"
-msgstr ""
-
-#: Top/cvanal.c:84 Top/pvanal.c:116 util/cvanal.c:81 util/hetro.c:164
-#: util/lpanal.c:409 util/pvanal.c:182
-msgid "no channel"
-msgstr ""
-
-#: Top/cvanal.c:87 util/cvanal.c:84
-msgid "channel must be in the range 1 to 4"
-msgstr ""
-
-#: Top/cvanal.c:90 Top/pvanal.c:119 util/cvanal.c:87 util/hetro.c:168
-#: util/lpanal.c:411 util/pvanal.c:185
-msgid "no begin time"
-msgstr ""
-
-#: Top/cvanal.c:98 Top/pvanal.c:126 util/cvanal.c:95 util/hetro.c:176
-#: util/lpanal.c:417 util/pvanal.c:192
-msgid "no duration time"
-msgstr ""
-
-#: Top/cvanal.c:105 Top/pvanal.c:170 util/cvanal.c:102 util/pvanal.c:243
-msgid "unrecognised switch option"
-msgstr ""
-
-#: Top/cvanal.c:110 Top/pvanal.c:175 util/cvanal.c:107 util/pvanal.c:249
-msgid "illegal number of filenames"
-msgstr ""
-
-#: Top/cvanal.c:116 Top/pvanal.c:185 util/cvanal.c:113 util/dnoise.c:460
-#: util/lpanal.c:520 util/pvanal.c:258 util/srconv.c:353
-#, c-format
-msgid "error while opening %s"
-msgstr ""
-
-#: Top/cvanal.c:132 util/cvanal.c:129
-msgid "cvanal: Error allocating header\n"
-msgstr ""
-
-#: Top/cvanal.c:137 Top/pvanal.c:241 util/cvanal.c:135 util/lpanal.c:527
-msgid "cannot create output file"
-msgstr "can't create output file"
-
-#: Top/cvanal.c:140 Top/pvanal.c:244 util/cvanal.c:138 util/lpanal.c:549
-msgid "cannot write header"
-msgstr "can't write header"
-
-#: Top/cvanal.c:154 util/cvanal.c:147
-#, c-format
-msgid "cvanal error: %s\n"
-msgstr ""
-
-#: Top/cvanal.c:155 util/cvanal.c:148
-msgid ""
-"Usage: cvanal [-d<duration>] [-c<channel>] [-b<begin time>] <input "
-"soundfile> <output impulse response FFT file> \n"
-msgstr ""
-
-#: Top/cvanal.c:179
-msgid "less sound than expected!"
-msgstr ""
-
-#: Top/exphet.c:46 util/het_export.c:56 util/lpc_export.c:61
-#: util/lpc_import.c:57 util/pv_export.c:57 util/pv_import.c:67
-#, c-format
-msgid "Cannot open input file %s\n"
-msgstr "Can't open input file %s\n"
-
-#: Top/exphet.c:51 util/het_export.c:61 util/lpc_export.c:66
-#: util/lpc_import.c:62 util/pv_export.c:64 util/pv_import.c:111
-#, c-format
-msgid "Cannot open output file %s\n"
-msgstr "Can't open output file %s\n"
-
 #: Top/main.c:61
 msgid "Error allocating opcode list"
 msgstr ""
@@ -9942,118 +9847,6 @@ msgstr ""
 msgid "%d opcodes\n"
 msgstr ""
 
-#: Top/pvanal.c:139 util/pvanal.c:209
-msgid "no framesize"
-msgstr ""
-
-#: Top/pvanal.c:142
-#, c-format
-msgid "frameSize must be between %d & %d\n"
-msgstr ""
-
-#: Top/pvanal.c:147
-msgid "pvanal: frameSize must be 2^r"
-msgstr ""
-
-#: Top/pvanal.c:151 util/pvanal.c:219
-msgid "no windfact"
-msgstr ""
-
-#: Top/pvanal.c:154 util/lpanal.c:425 util/pvanal.c:222
-msgid "no hopsize"
-msgstr ""
-
-#: Top/pvanal.c:159 util/pvanal.c:227
-msgid "no latch"
-msgstr ""
-
-#: Top/pvanal.c:163 util/pvanal.c:231
-msgid "no output file for trace"
-msgstr ""
-
-#: Top/pvanal.c:165 util/pvanal.c:236
-msgid "Failed to open text file"
-msgstr ""
-
-#: Top/pvanal.c:166 util/pvanal.c:237
-#, c-format
-msgid "Writing text form to file %s\n"
-msgstr ""
-
-#: Top/pvanal.c:180 util/pvanal.c:254
-msgid "pvanal cannot have both -w and -h"
-msgstr "pvanal can't have both -w and -h"
-
-#: Top/pvanal.c:206 util/pvanal.c:279
-#, c-format
-msgid "pvanal: %d is a bad window overlap index\n"
-msgstr ""
-
-#: Top/pvanal.c:212 util/pvanal.c:286
-#, c-format
-msgid "%ld output frames estimated\n"
-msgstr ""
-
-#: Top/pvanal.c:224 util/pvanal.c:295
-msgid "pvanal: creating pvocex file\n"
-msgstr ""
-
-#: Top/pvanal.c:228 util/pvanal.c:303
-msgid "error generating pvocex file.\n"
-msgstr ""
-
-#: Top/pvanal.c:257
-#, c-format
-msgid "%ld output frames written\n"
-msgstr ""
-
-#: Top/pvanal.c:271
-msgid ""
-"Usage: pvanal [-n<frmsiz>] [-w<windfact> | -h<hopsize>] [-g | -G<latch>] [-v "
-"| -V txtfile] inputSoundfile outputFFTfile\n"
-msgstr ""
-
-#: Top/pvanal.c:322
-msgid "insufficient sound for analysis"
-msgstr ""
-
-#: Top/pvanal.c:327
-msgid "frame: "
-msgstr ""
-
-#: Top/pvanal.c:352
-#, c-format
-msgid "Frame %ld"
-msgstr ""
-
-#: Top/pvanal.c:377
-msgid "\tearly end of file\n"
-msgstr ""
-
-#: Top/sndinfo.c:49 util/sndinfo.c:74
-#, c-format
-msgid ""
-"%s:\n"
-"\tcould not find\n"
-msgstr ""
-"%s:\n"
-"\tcouldn't find\n"
-
-#: Top/sndinfo.c:53 util/sndinfo.c:81
-#, c-format
-msgid "%s: Not a sound file\n"
-msgstr ""
-
-#: Top/sndinfo.c:79
-#, c-format
-msgid "\tsrate %ld, %s, %ld bit %s, %4.2f seconds\n"
-msgstr ""
-
-#: Top/sndinfo.c:84 util/sndinfo.c:117
-#, c-format
-msgid "\t(%ld sample frames)\n"
-msgstr ""
-
 #: Top/threads.c:38
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
@@ -10379,8 +10172,65 @@ msgstr ""
 msgid "Soundfile analysis for ATS opcodes"
 msgstr ""
 
+#: util/cvanal.c:73 util/hetro.c:156 util/lpanal.c:403 util/pvanal.c:175
+msgid "no sampling rate"
+msgstr ""
+
+#: util/cvanal.c:81 util/hetro.c:164 util/lpanal.c:409 util/pvanal.c:182
+msgid "no channel"
+msgstr ""
+
+#: util/cvanal.c:84
+msgid "channel must be in the range 1 to 4"
+msgstr ""
+
+#: util/cvanal.c:87 util/hetro.c:168 util/lpanal.c:411 util/pvanal.c:185
+msgid "no begin time"
+msgstr ""
+
+#: util/cvanal.c:95 util/hetro.c:176 util/lpanal.c:417 util/pvanal.c:192
+msgid "no duration time"
+msgstr ""
+
+#: util/cvanal.c:102 util/pvanal.c:243
+msgid "unrecognised switch option"
+msgstr ""
+
+#: util/cvanal.c:107 util/pvanal.c:249
+msgid "illegal number of filenames"
+msgstr ""
+
+#: util/cvanal.c:113 util/dnoise.c:460 util/lpanal.c:520 util/pvanal.c:258
+#: util/srconv.c:353
+#, c-format
+msgid "error while opening %s"
+msgstr ""
+
+#: util/cvanal.c:129
+msgid "cvanal: Error allocating header\n"
+msgstr ""
+
+#: util/cvanal.c:135 util/lpanal.c:527
+msgid "cannot create output file"
+msgstr "can't create output file"
+
+#: util/cvanal.c:138 util/lpanal.c:549
+msgid "cannot write header"
+msgstr "can't write header"
+
 #: util/cvanal.c:141
 msgid "cvanal finished\n"
+msgstr ""
+
+#: util/cvanal.c:147
+#, c-format
+msgid "cvanal error: %s\n"
+msgstr ""
+
+#: util/cvanal.c:148
+msgid ""
+"Usage: cvanal [-d<duration>] [-c<channel>] [-b<begin time>] <input "
+"soundfile> <output impulse response FFT file> \n"
 msgstr ""
 
 #: util/cvanal.c:167
@@ -10690,6 +10540,18 @@ msgstr ""
 msgid "Usage: het_export het_file cstext_file\n"
 msgstr ""
 
+#: util/het_export.c:56 util/lpc_export.c:61 util/lpc_import.c:57
+#: util/pv_export.c:57 util/pv_import.c:67
+#, c-format
+msgid "Cannot open input file %s\n"
+msgstr "Can't open input file %s\n"
+
+#: util/het_export.c:61 util/lpc_export.c:66 util/lpc_import.c:62
+#: util/pv_export.c:64 util/pv_import.c:111
+#, c-format
+msgid "Cannot open output file %s\n"
+msgstr "Can't open output file %s\n"
+
 #: util/het_export.c:84
 msgid "translate hetro analysis file to text form"
 msgstr ""
@@ -10853,6 +10715,10 @@ msgstr ""
 
 #: util/lpanal.c:423
 msgid "no poles"
+msgstr ""
+
+#: util/lpanal.c:425 util/pvanal.c:222
+msgid "no hopsize"
 msgstr ""
 
 #: util/lpanal.c:427
@@ -11231,10 +11097,6 @@ msgstr ""
 msgid "Mixes sound files (max. %d)"
 msgstr ""
 
-#: util/mypvlook.c:218
-msgid "Prints information about PVOC analysis files"
-msgstr ""
-
 #: util/pv_export.c:40
 msgid "Usage: pv_export pv_file cstext_file\n"
 msgstr ""
@@ -11259,6 +11121,10 @@ msgstr ""
 msgid "no beta given"
 msgstr ""
 
+#: util/pvanal.c:209
+msgid "no framesize"
+msgstr ""
+
 #: util/pvanal.c:212
 #, c-format
 msgid "frameSize must be between %d and %d"
@@ -11268,9 +11134,57 @@ msgstr ""
 msgid "pvanal: frameSize must be even"
 msgstr ""
 
+#: util/pvanal.c:219
+msgid "no windfact"
+msgstr ""
+
+#: util/pvanal.c:227
+msgid "no latch"
+msgstr ""
+
+#: util/pvanal.c:231
+msgid "no output file for trace"
+msgstr ""
+
+#: util/pvanal.c:236
+msgid "Failed to open text file"
+msgstr ""
+
+#: util/pvanal.c:237
+#, c-format
+msgid "Writing text form to file %s\n"
+msgstr ""
+
+#: util/pvanal.c:254
+msgid "pvanal cannot have both -w and -h"
+msgstr "pvanal can't have both -w and -h"
+
+#: util/pvanal.c:279
+#, c-format
+msgid "pvanal: %d is a bad window overlap index\n"
+msgstr ""
+
 #: util/pvanal.c:284
 #, c-format
 msgid "%ld infrsize, %ld infrInc\n"
+msgstr ""
+
+#: util/pvanal.c:286
+#, c-format
+msgid "%ld output frames estimated\n"
+msgstr ""
+
+#: util/pvanal.c:291
+#, c-format
+msgid "pvxanal - source has too many channels: Maxchans = %d.\n"
+msgstr ""
+
+#: util/pvanal.c:295
+msgid "pvanal: creating pvocex file\n"
+msgstr ""
+
+#: util/pvanal.c:303
+msgid "error generating pvocex file.\n"
 msgstr ""
 
 #: util/pvanal.c:313
@@ -11328,6 +11242,23 @@ msgstr ""
 
 #: util/pvanal.c:345
 msgid "Soundfile analysis for pvoc"
+msgstr ""
+
+#: util/pvanal.c:469
+#, c-format
+msgid "pvxanal: unable to create analysis file: %s"
+msgstr ""
+
+#: util/pvanal.c:499 util/pvanal.c:530
+#, c-format
+msgid "pvxanal: error writing analysis frames: %s\n"
+msgstr ""
+
+#: util/pvanal.c:540
+#, c-format
+msgid ""
+"\n"
+"%ld %d-chan blocks written to %s\n"
 msgstr ""
 
 #: util/pvlook.c:76
@@ -11443,9 +11374,28 @@ msgstr ""
 msgid "Reports and/or adjusts maximum gain"
 msgstr ""
 
+#: util/sndinfo.c:74
+#, c-format
+msgid ""
+"%s:\n"
+"\tcould not find\n"
+msgstr ""
+"%s:\n"
+"\tcouldn't find\n"
+
+#: util/sndinfo.c:81
+#, c-format
+msgid "%s: Not a sound file\n"
+msgstr ""
+
 #: util/sndinfo.c:112
 #, c-format
 msgid "\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"
+msgstr ""
+
+#: util/sndinfo.c:117
+#, c-format
+msgid "\t(%ld sample frames)\n"
 msgstr ""
 
 #: util/sndinfo.c:125
