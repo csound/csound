@@ -4,7 +4,7 @@
 ;
 sr=44100
 ksmps=1
-nchnls=2
+nchnls=1
 
 	instr 1	;untitled
   ; Capture the highest amplitude in the "beats.wav" file.
