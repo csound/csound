@@ -1700,6 +1700,7 @@ if jackFound:
     else:
         jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
     makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
+    makePlugin(jpluginEnvironment, 'jacko', 'Opcodes/jacko.cpp')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
 if (not buildOLPC) and gmmFound and commonEnvironment['useDouble'] != '0':

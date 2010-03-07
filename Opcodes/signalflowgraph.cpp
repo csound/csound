@@ -113,6 +113,7 @@ struct Inletf;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
+
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
   stream << a.opcod;
