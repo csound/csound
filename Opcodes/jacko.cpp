@@ -129,6 +129,7 @@
  */
 #include <OpcodeBase.hpp>
 #include <cstdlib>
+#include <cstdio>
 #include <errno.h>
 #include <jack/jack.h>
 #include <jack/midiport.h>
