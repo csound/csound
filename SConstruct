@@ -1691,7 +1691,7 @@ hrtfnewEnvironment = pluginEnvironment.Clone()
 if sys.byteorder == 'big':
     hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
-if jackFound:
+if (commonEnvironment['useJack']=='1' and jackFound):
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':
         jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
