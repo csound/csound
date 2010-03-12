@@ -31,29 +31,29 @@ static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
 
 void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 {
-  if (auxchp->auxp != NULL) {
-    /* if allocd with same size, just clear to zero */
-    if (nbytes == (int32)auxchp->size) {
-      memset(auxchp->auxp, 0, nbytes);
-      return;
+    if (auxchp->auxp != NULL) {
+      /* if allocd with same size, just clear to zero */
+      if (nbytes == (int32)auxchp->size) {
+        memset(auxchp->auxp, 0, nbytes);
+        return;
+      }
+      else {
+        void  *tmp = auxchp->auxp;
+        /* if size change only, free the old space and re-allocate */
+        auxchp->auxp = NULL;
+        mfree(csound, tmp);
+      }
     }
-    else {
-      void  *tmp = auxchp->auxp;
-      /* if size change only, free the old space and re-allocate */
-      auxchp->auxp = NULL;
-      mfree(csound, tmp);
+    else {                                  /* else linkin new auxch blk */
+      auxchp->nxtchp = csound->curip->auxchp;
+      csound->curip->auxchp = auxchp;
     }
-  }
-  else {                                  /* else linkin new auxch blk */
-    auxchp->nxtchp = csound->curip->auxchp;
-    csound->curip->auxchp = auxchp;
-  }
-  /* now alloc the space and update the internal data */
-  auxchp->size = nbytes;
-  auxchp->auxp = mcalloc(csound, nbytes);
-  auxchp->endp = (char*)auxchp->auxp + nbytes;
-  if (UNLIKELY(csound->oparms->odebug))
-    auxchprint(csound, csound->curip);
+    /* now alloc the space and update the internal data */
+    auxchp->size = nbytes;
+    auxchp->auxp = mcalloc(csound, nbytes);
+    auxchp->endp = (char*)auxchp->auxp + nbytes;
+    if (UNLIKELY(csound->oparms->odebug))
+      auxchprint(csound, csound->curip);
 }
 
 /* put fdchp into chain of fd's for this instr */
@@ -61,10 +61,10 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 
 void fdrecord(CSOUND *csound, FDCH *fdchp)
 {
-  fdchp->nxtchp = csound->curip->fdchp;
-  csound->curip->fdchp = fdchp;
-  if (UNLIKELY(csound->oparms->odebug))
-    fdchprint(csound, csound->curip);
+    fdchp->nxtchp = csound->curip->fdchp;
+    csound->curip->fdchp = fdchp;
+    if (UNLIKELY(csound->oparms->odebug))
+      fdchprint(csound, csound->curip);
 }
 
 /* close a file and remove from fd chain */
@@ -72,29 +72,29 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 
 void fdclose(CSOUND *csound, FDCH *fdchp)
 {
-  FDCH    *prvchp = NULL, *nxtchp;
+    FDCH    *prvchp = NULL, *nxtchp;
 
-  nxtchp = csound->curip->fdchp;              /* from current insds,  */
-  while (LIKELY(nxtchp != NULL)) {            /* chain through fdlocs */
-    if (UNLIKELY(nxtchp == fdchp)) {          /*   till find this one */
-      void  *fd = fdchp->fd;
-      if (LIKELY(fd)) {
-        fdchp->fd = NULL;                     /* then delete the fd   */
-        csoundFileClose(csound, fd);          /*   close the file &   */
+    nxtchp = csound->curip->fdchp;              /* from current insds,  */
+    while (LIKELY(nxtchp != NULL)) {            /* chain through fdlocs */
+      if (UNLIKELY(nxtchp == fdchp)) {          /*   till find this one */
+        void  *fd = fdchp->fd;
+        if (LIKELY(fd)) {
+          fdchp->fd = NULL;                     /* then delete the fd   */
+          csoundFileClose(csound, fd);          /*   close the file &   */
+        }
+        if (prvchp)
+          prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
+        else
+          csound->curip->fdchp = fdchp->nxtchp;
+        if (UNLIKELY(csound->oparms->odebug))
+          fdchprint(csound, csound->curip);
+        return;
       }
-      if (prvchp)
-        prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
-      else
-        csound->curip->fdchp = fdchp->nxtchp;
-      if (UNLIKELY(csound->oparms->odebug))
-        fdchprint(csound, csound->curip);
-      return;
+      prvchp = nxtchp;
+      nxtchp = nxtchp->nxtchp;
     }
-    prvchp = nxtchp;
-    nxtchp = nxtchp->nxtchp;
-  }
-  fdchprint(csound, csound->curip);
-  csound->Die(csound, Str("fdclose: no record of fd %p"), fdchp->fd);
+    fdchprint(csound, csound->curip);
+    csound->Die(csound, Str("fdclose: no record of fd %p"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */
@@ -123,7 +123,7 @@ void fdchclose(CSOUND *csound, INSDS *ip)
 {
     if (UNLIKELY(csound->oparms->odebug))
       fdchprint(csound, ip);
-  /* for all fd's in chain: */
+    /* for all fd's in chain: */
     for ( ; ip->fdchp != NULL; ip->fdchp = ip->fdchp->nxtchp) {
       void  *fd = ip->fdchp->fd;
       if (LIKELY(fd)) {
@@ -139,26 +139,26 @@ void fdchclose(CSOUND *csound, INSDS *ip)
 
 static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 {
-  AUXCH   *curchp;
+    AUXCH   *curchp;
 
-  csound->Message(csound, Str("auxlist for instr %d (%p):\n"), ip->insno, ip);
-  /* chain through auxlocs */
-  for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
-    csound->Message(csound,
-                    Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
-                    curchp, curchp->size, curchp->auxp, curchp->endp);
+    csound->Message(csound, Str("auxlist for instr %d (%p):\n"), ip->insno, ip);
+    /* chain through auxlocs */
+    for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
+      csound->Message(csound,
+                      Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
+                      curchp, curchp->size, curchp->auxp, curchp->endp);
 }
 
 /* print the fd chain for this insds blk */
 
 static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
 {
-  FDCH    *curchp;
+    FDCH    *curchp;
 
-  csound->Message(csound, Str("fdlist for instr %d (%p):"), ip->insno, ip);
-  /* chain through fdlocs */
-  for (curchp = ip->fdchp; curchp != NULL; curchp = curchp->nxtchp)
-    csound->Message(csound, Str("  fd %p in %p"), curchp->fd, curchp);
-  csound->Message(csound, "\n");
+    csound->Message(csound, Str("fdlist for instr %d (%p):"), ip->insno, ip);
+    /* chain through fdlocs */
+    for (curchp = ip->fdchp; curchp != NULL; curchp = curchp->nxtchp)
+      csound->Message(csound, Str("  fd %p in %p"), curchp->fd, curchp);
+    csound->Message(csound, "\n");
 }
 
