@@ -29,9 +29,8 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
  
 #include "csoundCore.h"                         /*   SMOOTHSORT.C  */
 
-/* This ordering function is not yet correct; think I know what to fix */
 inline int ordering(SRTBLK *a, SRTBLK *b)
-{                               /* Returns 0 is no change, 1 if not right */
+{
     char cb = b->text[0], ca = a->text[0];
     MYFLT diff;
     int prdiff, indiff;
@@ -55,11 +54,11 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
 #define DOWN(IA,IB) {temp=IB; IB=(IA)-(IB)-1; IA=temp;}
 
 /* These need to be encapsulated */ 
-#define q (data[0])
-#define r (data[1])
-#define p (data[2])
-#define b (data[3])
-#define c (data[4])
+#define q  (data[0])
+#define r  (data[1])
+#define p  (data[2])
+#define b  (data[3])
+#define c  (data[4])
 #define r1 (data[5])
 #define b1 (data[6])
 #define c1 (data[7])
@@ -202,7 +201,7 @@ void sort(CSOUND *csound)
     if ((bp = csound->frstbp) == NULL)
       return;
     do {
-      n++;
+      n++;                      /* Need to count to alloc the array */
       switch (bp->text[0]) {
       case 'i':
         if (bp->insno < 0)
