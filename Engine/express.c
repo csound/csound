@@ -125,6 +125,7 @@ int express(CSOUND *csound, char *s)
         *(t - 1) = (char) (c == '<' ? BITSHL : BITSHR);
         s++; open = 1;
       }
+      /* Would it be better to use strchr("(+-*%/><=&|?:#~\254",c)!=NULL ? */
       else if (c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
                c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
                c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
