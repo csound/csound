@@ -1,3 +1,10 @@
+2010-03-12  jpff  <jpff@cs.bath.ac.uk>
+
+	* SConstruct: Added smoothSort option to control building
+
+	* Engine/smoothsort.c: New drop-in replacement for sort.c using a
+	fancier sort algorithm
+
 2010-02-28  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugrw1.c (sprints): A format with a % but no arg would cause
