@@ -269,6 +269,9 @@ commandOptions.Add('includeWii',
 commandOptions.Add('includeP5Glove',
      'Set to 1 if using P5 Glove', 
      '0')
+commandOptions.Add('smoothSort',
+     'Set to 1 if using smoothsort code',
+     '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1062,7 +1065,6 @@ Engine/rdorch.c
 Engine/rdscor.c
 Engine/scsort.c
 Engine/scxtract.c
-Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
 Engine/twarp.c
@@ -1137,7 +1139,6 @@ Engine/rdorch.c
 Engine/rdscor.c
 Engine/scsort.c
 Engine/scxtract.c
-Engine/sort.c
 Engine/sread.c
 Engine/swrite.c
 Engine/twarp.c
@@ -1204,6 +1205,15 @@ Engine/csound_orc_optimize.c
 Engine/csound_orc_compile.c
 Engine/new_orc_parser.c
 Engine/symbtab.c
+''')
+
+if commonEnvironment['smoothSort'] != '0':
+     libCsoundSources += Split('''
+Engine/smoothsort.c
+''')
+else:
+     libCsoundSources += Split('''
+Engine/sort.c
 ''')
 
 if commonEnvironment['buildNewParser'] != '0':
