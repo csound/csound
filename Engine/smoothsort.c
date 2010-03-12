@@ -31,35 +31,40 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 
 /* This ordering function is not yet correct; think I know what to fix */
 inline int ordering(SRTBLK *a, SRTBLK *b)
-{                               /* Returns 0 is no change, 1 is not right */
-    char c, pc;
+{                               /* Returns 0 is no change, 1 if not right */
+    char cb = b->text[0], ca = a->text[0];
     MYFLT diff;
     int prdiff, indiff;
-    int ans = (a != NULL
-               && (pc = a->text[0]) != 'w'
-               && (c == 'w' ||
-                   (pc != 't' &&
-                    (c == 't' ||
-                     ((diff = b->newp2 - a->newp2) < 0 ||
-                      (!diff &&
-                       ((prdiff = b->preced - a->preced) < 0 ||
-                        (!prdiff && c == 'i' &&
-                         ((indiff = b->insno - a->insno) < 0 ||
-                          (!indiff && b->newp3 < a->newp3) )
-                         ))))))));
-    /* fprintf(stderr, "(%p,%p) -> %d\n", a, b, ans); */
+    int ans;
+    ans = (ca != 'w'
+           && (cb == 'w' ||
+               (ca != 't' &&
+                (cb == 't' ||
+                 ((diff = b->newp2 - a->newp2) < 0 ||
+                  (!diff &&
+                   ((prdiff = b->preced - a->preced) < 0 ||
+                    (!prdiff && cb == 'i' &&
+                     ((indiff = b->insno - a->insno) < 0 ||
+                      (!indiff && b->newp3 < a->newp3) )
+                     ))))))));
+    /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
     return !ans;
 }
  
-#define UP(IA,IB)   temp=IA; IA+=IB+1;   IB=temp;
-#define DOWN(IA,IB) temp=IB; IB=IA-IB-1; IA=temp;
+#define UP(IA,IB)   {temp=IA; IA+=(IB)+1;     IB=temp;}
+#define DOWN(IA,IB) {temp=IB; IB=(IA)-(IB)-1; IA=temp;}
 
 /* These need to be encapsulated */ 
-static int q,r,
-    p,b,c,
-    r1,b1,c1;
+#define q (data[0])
+#define r (data[1])
+#define p (data[2])
+#define b (data[3])
+#define c (data[4])
+#define r1 (data[5])
+#define b1 (data[6])
+#define c1 (data[7])
 
-void inline sift(SRTBLK *A[])
+void inline sift(SRTBLK *A[], int data[])
 {
     int r0, r2, temp;
     SRTBLK * T;
@@ -81,7 +86,7 @@ void inline sift(SRTBLK *A[])
     if (r1 - r0) A[r1] = T;
 }
  
-void inline trinkle(SRTBLK *A[])
+void inline trinkle(SRTBLK *A[], int data[])
 {
     int p1,r2,r3, r0, temp;
     SRTBLK * T;
@@ -121,37 +126,37 @@ void inline trinkle(SRTBLK *A[])
       }
     }
     if (r0-r1) A[r1] = T;
-    sift(A);
+    sift(A, data);
 }
  
-void inline semitrinkle(SRTBLK *A[])
+void inline semitrinkle(SRTBLK *A[], int data[])
 {
     SRTBLK * T;
     r1 = r-c;
     if (! ordering(A[r1],A[r])) {
       T = A[r]; A[r] = A[r1]; A[r1] = T;
-      trinkle(A);
+      trinkle(A, data);
     }
 }
  
 void smoothsort(SRTBLK *A[], const int N)
 {
     int temp;
-    q = 1; r = 0; p = 1; b = 1; c = 1;
+    int data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
  
     /* building tree */
     while (q < N) {
       r1 = r;
       if ((p & 7)==3) {
-        b1 = b; c1 = c; sift(A);
+        b1 = b; c1 = c; sift(A, data);
         p = (p+1) >> 2;
         UP(b,c) UP(b,c)
       }
       else if ((p & 3)==1) {
         if (q + c < N) {
-          b1 = b; c1 = c; sift(A);
+          b1 = b; c1 = c; sift(A, data);
         }
-        else trinkle(A);
+        else trinkle(A, data);
         DOWN(b,c);
         p <<= 1;
         while (b > 1) {
@@ -162,7 +167,7 @@ void smoothsort(SRTBLK *A[], const int N)
       }
       q++; r++;
     }
-    r1 = r; trinkle(A);
+    r1 = r; trinkle(A, data);
  
     /* building sorted array */
     while (q > 1) {
@@ -177,10 +182,10 @@ void smoothsort(SRTBLK *A[], const int N)
       else
       if (b >= 3) {
         p--; r = r-b+c;
-        if (p > 0) semitrinkle(A);
+        if (p > 0) semitrinkle(A, data);
         DOWN(b,c)
         p = (p << 1) + 1;
-        r = r+c;  semitrinkle(A);
+        r = r+c;  semitrinkle(A, data);
         DOWN(b,c)
         p = (p << 1) + 1;
       }
@@ -228,7 +233,7 @@ void sort(CSOUND *csound)
     bp = csound->frstbp;
     for (i=0; i<n; i++,bp = bp->nxtblk )
       A[i] = bp;
-    smoothsort(A, n);
+    smoothsort(A, n-1);         /* As lst is e/s */
     /* Relink list in order; first and last different */
     csound->frstbp = bp = A[0]; bp->prvblk = NULL; bp->nxtblk = A[1];
     for (i=1; i<n-1; i++ ) {
