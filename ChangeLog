@@ -1,3 +1,7 @@
+2010-03-13  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/smoothsort.c (sort): Deal with case of no e event
+
 2010-03-12  jpff  <jpff@cs.bath.ac.uk>
 
 	* SConstruct: Added smoothSort option to control building
