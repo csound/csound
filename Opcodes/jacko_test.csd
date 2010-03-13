@@ -9,13 +9,18 @@ ksmps = 128
 nchnls = 2
 0dbfs = 1
 
-jackinit "default", "csound"
-;jackfreewheel 0
-jackaudioinconnect "aeolus:out.L", "leftin"
-jackaudioinconnect "aeolus:out.R", "rightin"
-jackmidioutconnect "midiout", "aeolus:Midi/in"
-jackinfo
-jackon
+JackInit "default", "csound"
+JackAudioInConnect "aeolus:out.L", "leftin"
+JackAudioInConnect "aeolus:out.R", "rightin"
+JackMidiOutConnect "midiout", "aeolus:Midi/in"
+; Note that Jack enables audio to be output to a regular
+; Csound soundfile and, at the same time, to a sound 
+; card in real time via the system client. 
+JackAudioOutConnect "leftout", "system:playback_1"
+JackAudioOutConnect "rightout", "system:playback_2"
+JackInfo
+JackFreewheel 1
+JackOn
 
 alwayson "jackin"
 
@@ -25,13 +30,15 @@ itime = p2
 iduration = p3
 ikey = p4
 ivelocity = p5
-jacknoteout "midiout", ichannel, ikey, ivelocity
+JackNoteOut "midiout", ichannel, ikey, ivelocity
 print itime, iduration, ichannel, ikey, ivelocity
 endin
 
 instr jackin
-aright jackaudioin "leftin"
-aleft jackaudioin "rightin"
+aleft JackAudioIn "leftin"
+aright JackAudioIn "rightin"
+;JackAudioOut "leftout", aleft
+;JackAudioOut "rightout", aright
 outs  aright, aleft
 endin
 
