@@ -232,7 +232,8 @@ void sort(CSOUND *csound)
     bp = csound->frstbp;
     for (i=0; i<n; i++,bp = bp->nxtblk )
       A[i] = bp;
-    smoothsort(A, n-1);         /* As lst is e/s */
+    if (A[n-1]->text[0]!='e') smoothsort(A, n);
+    else smoothsort(A, n-1);         /* As lst is e/s */
     /* Relink list in order; first and last different */
     csound->frstbp = bp = A[0]; bp->prvblk = NULL; bp->nxtblk = A[1];
     for (i=1; i<n-1; i++ ) {
