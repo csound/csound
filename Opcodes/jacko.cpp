@@ -21,7 +21,7 @@
  * O P C O D E S
  *
  *
- * jackinit -- Initializes Csound as a Jack client.
+ * JackInit -- Initializes Csound as a Jack client.
  *
  * Description
  *
@@ -33,6 +33,14 @@
  * Csound's ksmps must be equal to the Jack daemon's 
  * frames per period.
  *
+ * Frames per period must not only (a) be a power of 2,
+ * but also (b) go evenly into the frames per second,
+ * e.g. 128 frames per period goes into 48000 
+ * frames per second 375 times, for a latency or 
+ * MIDI time granularity of about 2.7 milliseconds
+ * (as good as or better than the absolute best 
+ * human performers). 
+ *
  * The order of processing of all signals that pass 
  * from Jack input ports, through Csound processing, 
  * and to Jack output ports, must be properly
@@ -41,7 +49,7 @@
  *
  * Syntax
  *
- * jackinit SclientName, ServerName
+ * JackInit SclientName, ServerName
  *
  * Initialization
  *
@@ -51,21 +59,22 @@
  * ServerName -- The name of the Jack daemon; 
  * normally, will be "default".
  * 
- * This opcode must be called once in the 
+ * This opcode must be called once and only once in the 
  * orchestra header, and before any other Jack opcodes. 
  *
  *
- * jackinfo -- Prints information about the Jack system.
+ * JackInfo -- Prints information about the Jack system.
  *
  * Description
  *
- * Prints the Jack daemon sampling rate, 
- * frames per period, and all active Jack port names, 
+ * Prints the Jack daemon and client names, the
+ * sampling rate and frames per period, 
+ * and all active Jack port names, 
  * types, states, and connections.
  *
  * Syntax
  *
- * jackinfo
+ * JackInfo
  *
  * Initialization
  *
@@ -74,7 +83,7 @@
  * in the Csound orchestra header.
  *
  *
- * jackfreewheel -- Turns freewheeling mode on or off.
+ * JackFreewheel -- Turns freewheeling mode on or off.
  *
  * Description
  *
@@ -84,19 +93,20 @@
  * of the Jack system, Csound will run as fast as possible, 
  * which may be either faster or slower than real time.
  *
- * This can be essential to enable rendering complex scores
- * to a soundfile.
+ * This is essential for rendering scores that are too
+ * dense for real-time performance to a soundfile, 
+ * without xruns or dropouts.
  *
  * Syntax  
  *
- * jackfreewheel [ienabled]
+ * JackFreewheel [ienabled]
  *
  * Initialization
  *
  * ienabled -- Turns freewheeling on (the default) or off. 
  *
  *
- * jackaudioinconnect -- Creates an audio connection
+ * JackAudioInConnect -- Creates an audio connection
  *                       from a Jack port to Csound.
  *
  * Description
@@ -107,7 +117,7 @@
  *
  * Syntax
  *
- * jackaudioinconnect SexternalPortName, ScsoundPortName
+ * JackAudioInConnect SexternalPortName, ScsoundPortName
  *
  * Initialization
  *
@@ -119,10 +129,10 @@
  *
  * Performance
  *
- * The actual audio must be read with the jackaudioin opcode.
+ * The actual audio must be read with the JackAudioIn opcode.
  *
  *
- * jackaudiooutconnect -- Creates an audio connection 
+ * JackAudioOutConnect-- Creates an audio connection 
  *                        from Csound to a Jack port.
  *
  * Description
@@ -133,7 +143,7 @@
  *
  * Syntax
  * 
- * jackaudiooutconnect ScsoundPortName, SexternalPortName
+ * JackAudioOutConnect ScsoundPortName, SexternalPortName
  *
  * Initialization
  *
@@ -145,21 +155,21 @@
  *
  * Performance
  * 
- * The actual audio must be written with the jackaudioout 
+ * The actual audio must be written with the JackAudioOut 
  * opcode.
  *
  *
- * jackmidiinconnect -- Creates a MIDI connection from
+ * JackMidiInConnect -- Creates a MIDI connection from
  *                      Jack to Csound.
  *
  * Description
  *
- * Creates a MIDI connection from an eternal Jack MIDI 
+ * Creates a MIDI connection from an external Jack MIDI 
  * output port to this instance of Csound.
  *
  * Syntax
  *
- * jackmidiinconnect SexternalPortName, ScsoundPortName
+ * JackMidiInConnect SexternalPortName, ScsoundPortName
  *
  * Initialization
  *
@@ -170,8 +180,8 @@
  * of the internal Jack MIDI input port.
  *
  * Must be used in conjunction with the 
- * -+rtmidi=null Csound command-line option. Can be 
- * used in conjunction with the MIDI inter-operability
+ * -+rtmidi=null Csound command-line option. 
+ * Can be used in with the MIDI inter-operability
  * command-line options and/or opcodes to enable the 
  * use of ordinary Csound instrument definitions to 
  * render external scores or MIDI sequences.
@@ -180,13 +190,13 @@
  *
  * The actual  MIDI events will be received in the 
  * regular Csound way, i.e. through a MIDI driver 
- * and the sensevents mechanism, than through a Jack input
- * port opcode. 
+ * and the sensevents mechanism, rather than through 
+ * a Jack input port opcode. 
  *
  * The granularity of timing is Csound's kperiod.
  *
  *
- * jackmidioutconnect -- Creates a MIDI connection from
+ * JackMidiOutConnect -- Creates a MIDI connection from
  *                       csound to Jack.
  * 
  * Description
@@ -197,7 +207,7 @@
  *
  * Syntax
  *
- * jackmidioutconnect ScsoundPortName, SexternalPortName
+ * JackMidiOutConnect ScsoundPortName, SexternalPortName
  *
  * Initialization
  * 
@@ -209,11 +219,11 @@
  *
  * Performance
  * 
- * The actual MIDI data must be written with the jackmidiout 
- * or jacknoteout opcodes.
+ * The actual MIDI data must be written with the JackMidiOut 
+ * or JackNoteOut opcodes.
  *
  *
- * jackon -- Enables or disables Jack opcodes.
+ * JackOn -- Enables or disables all Jack opcodes.
  *
  * Description
  *
@@ -223,7 +233,7 @@
  *
  * Syntax
  *
- * jackon [iactive]
+ * JackOn [iactive]
  *
  * Initialization
  *
@@ -231,7 +241,7 @@
  * or off.
  *
  * 
- * jackaudioin -- Receives an audio signal from a Jack port.
+ * JackAudioIn -- Receives an audio signal from a Jack port.
  *
  * Description
  *
@@ -242,7 +252,7 @@
  *
  * Syntax
  *
- * asignal jackaudioin ScsoundPortName
+ * asignal JackAudioIn ScsoundPortName
  *
  * Initialization
  *
@@ -255,7 +265,7 @@
  * output port to which ScsoundPortName is connected.
  *
  *
- * jackaudioout -- Sends an audio signal to a Jack port.
+ * JackAudioOut -- Sends an audio signal to a Jack port.
  *
  * Description
  * 
@@ -263,9 +273,13 @@
  * output port, and in turn to its connected external 
  * Jack audio input port.
  *
+ * Note that it is possible to send audio out via Jack
+ * to the system audio interface, while at the same time 
+ * rendering to a regular Csound output soundfile.
+ *
  * Syntax
  *
- * jackaudioout ScsoundPortName, asignal
+ * JackAudioOut ScsoundPortName, asignal
  *
  * Initialization
  *
@@ -281,7 +295,7 @@
  * to the same Jack port is summed before sending.
  *
  *
- * jackmidiout -- Sends a MIDI channel message to a 
+ * JackMidiOut -- Sends a MIDI channel message to a 
  *                Jack port.
  *
  * Description
@@ -292,7 +306,7 @@
  *
  * Syntax
  *
- * jackmidiout ScsoundPortName, kstatus, kchannel, kdata1[, kdata2]
+ * JackMidiOut ScsoundPortName, kstatus, kchannel, kdata1[, kdata2]
  *
  * Initialization
  *
@@ -321,7 +335,7 @@
  * The granularity of timing is Csound's kperiod.
  *
  *
- * jacknoteout -- Send one note to a Jack MIDI port.
+ * JackNoteOut -- Send one note to a Jack MIDI port.
  *
  * Description
  *
@@ -340,7 +354,7 @@
  *
  * Syntax
  *
- * jacknoteout ScsoundPortName, ichannel, ikey, ivelocity
+ * JackNoteOut ScsoundPortName, ichannel, ikey, ivelocity
  *
  * Initialization
  *
@@ -362,28 +376,29 @@
  * Processing is done according to the callback model:
  *
  * 1. The jackinit opcode: 
- *    1.1  Creates a Jack client, 
+ *    1.1. Creates a Jack client, 
  *         which is associated with the 
  *         running instance of Csound.
- *    1.2  Registers a JackProcessCallback with Jack. 
- *    1.3  Registers a SenseEventCallback with Csound.
- *    1.4  Installs a MIDI driver callback to consume
+ *    1.2. Registers a JackProcessCallback with Jack. 
+ *    1.3. Registers a SenseEventCallback with Csound.
+ *    1.4. Installs a MIDI driver callback to consume
  *         MIDI events coming from Jack input ports.
- *    1.5  Puts the Csound processing thread to sleep.
- *    1.6  Activates the client.
+ *    1.5. Puts the Csound processing thread to sleep.
+ *    1.6. Activates the client.
  * 2. The ports are created and connected in the orchestra header.
  * 3. After all ports are connected, they are turned on in the 
  *    orchestra header.
  * 4. Every time the Jack callback fires:
- *    4.1  Any MIDI events pending in the input ports are enqueued
- *         for dispatch via the MIDI driver callack by Csound's 
- *         normal sensevents mechanism.
- *    4.2  csoundPerformKsmps is called.
- *    4.3  When the Csound performance is finished, 
- *         Jack resets the activated flag, and wakes up the Csound 
- *         processing thread.
+ *    4.1. Any MIDI events pending in the input ports are enqueued
+ *         for dispatch via the MIDI driver callack through 
+ *         Csound's normal sensevents mechanism.
+ *    4.2. csoundPerformKsmps is called.
+ *    4.3. When the Csound performance is finished:
+ *         4.3.1. The Csound processing thread is re-awakened.
+ *         4.3.2. The Jack processing callback is deactivated.
+ *         4.3.2. The Jack client is closed.
  * 5. At the end of processing, the module deinitialization
- *    function closes the client and erases all state.
+ *    function erases all Jack-related state.
  */
 #include <csound.h>
 #include <cstdlib>
@@ -437,6 +452,7 @@ static std::map<CSOUND *, JackState *> jackStatesForCsoundInstances;
 struct JackState
 {
   CSOUND *csound;
+  const char *serverName;
   const char *clientName;
   jack_client_t *jackClient;
   void *csoundThreadLock;
@@ -452,8 +468,9 @@ struct JackState
   std::map<std::string, jack_port_t *> midiInPorts;
   std::map<std::string, jack_port_t *> midiOutPorts;
   std::list<unsigned char> midiInputQueue;
-  JackState(CSOUND *csound_, const char *serverName, const char *clientName_) : 
+  JackState(CSOUND *csound_, const char *serverName_, const char *clientName_) : 
     csound(csound_), 
+    serverName(serverName_),
     clientName(clientName_),
     jackActive(false),
     csoundActive(true)
@@ -521,6 +538,7 @@ struct JackState
   {
     int result = OK;
     csound->Message(csound, "BEGAN JackState::close()...\n");
+    // Try not to do thread related operations more than once...
     if (jackActive) {
       jackActive = false;
       result = jack_deactivate(jackClient);
@@ -535,11 +553,11 @@ struct JackState
   }
   int processJack(jack_nframes_t frames)
   {
-    // We must call PerformKsmps here only after the original
+    // We must call PerformKsmps here ONLY after the original
     // Csound performance thread has been put to sleep.
     int result = 0;
     if (jackActive && !csoundActive) {
-      // Read any pending MIDI messages from input ports.
+      // Enqueue any MIDI messages pending in input ports.
       midiInputQueue.clear();
       for (std::map<std::string, jack_port_t *>::iterator it = midiInPorts.begin();
 	   it != midiInPorts.end();
@@ -560,8 +578,8 @@ struct JackState
 	}
       }
       result = csound->PerformKsmps(csound);
+      // We break here when Csound has finished performing.
       if (result) {
-	///jackActive = 0;
 	csound->NotifyThreadLock(csoundThreadLock);
 	csound->Message(csound, "Notified Csound thread lock.\n");
 	csoundStop(csound);
@@ -572,12 +590,12 @@ struct JackState
     }
     return result;
   }
-  /// I think the problem is that the Jack thread tries to finish but there is no return from its function.
   int processCsound()
   {
     // Here we must wait once and only once, in order to put
     // the original Csound processing thread to sleep -- 
-    // but not  the Jack processing thread when it comes here!
+    // but we must NOT put the Jack processing callback 
+    // to sleep when it comes here!
     if (jackActive && csoundActive) {
       csoundActive = false;
       csound->Message(csound, 
@@ -667,24 +685,32 @@ struct JackInfo : public OpcodeBase<JackInfo>
   int init(CSOUND *csound)
   {
     jackState = getJackState(csound);
-    log(csound, "Jack frames per second: %d\n", jackState->jackFramesPerSecond);
-    log(csound, "Jack frames per period: %d\n", jackState->jackFramesPerTick);
+    log(csound, "Jack information for client: %s\n", jackState->clientName);
+    log(csound, "  Daemon name:               %s\n", jackState->serverName);
+    log(csound, "  Frames per second:         %d\n", jackState->jackFramesPerSecond);
+    log(csound, "  Frames per period:         %d\n", jackState->jackFramesPerTick);
     const char **ports = jack_get_ports(jackState->jackClient, 0, 0, 0);
     if (ports) {
-      log(csound, "Current Jack ports and their connections:\n");
+      log(csound, "  Ports and connections:\n");
       for (size_t i = 0; ports[i]; ++i) {
 	const char *PortName = ports[i];
 	jack_port_t *port = jack_port_by_name(jackState->jackClient, PortName);
 	int flags = jack_port_flags(port);
 	const char *type = jack_port_type(port);
-	log(csound, "%3d:  Flags: %3d  Type: %-25s  Name: %s\n", (i+1), flags, type, (PortName ? PortName : "(no name)"));
+	const char *portType = "      ";
+	if ((flags & JackPortIsOutput) == JackPortIsOutput) {
+	  portType = "Output";
+	} else if ((flags & JackPortIsInput) == JackPortIsInput) {
+	  portType = "Input ";
+	}
+	log(csound, "    %3d:   %s   %-25s  %s\n", (i+1), portType, type, (PortName ? PortName : "(no name)"));
 	const char **connections = jack_port_get_all_connections(jackState->jackClient, port);
 	if (connections) {
 	  for (size_t j = 0; connections[j]; ++j) {
 	    if ((jack_port_flags(port) & JackPortIsOutput) == JackPortIsOutput) {
-	      log(csound, "      Sends to:                                          --> %s\n", connections[j]);
+	      log(csound, "           Sends to:                           >> %s\n", connections[j]);
 	    } else {
-	      log(csound, "      Receives from:                                     <-- %s\n", connections[j]);
+	      log(csound, "           Receives from:                      << %s\n", connections[j]);
 	    }
 	  }
 	}
@@ -1202,7 +1228,7 @@ extern "C"
 {
   static OENTRY oentries[] = {
     {
-      (char *)"jackinit",
+      (char *)"JackInit",
       sizeof(JackInit),
       1,
       (char *)"",
@@ -1212,7 +1238,7 @@ extern "C"
       0
     },
     {
-      (char *)"jackinfo",
+      (char *)"JackInfo",
       sizeof(JackInfo),
       1,
       (char *)"",
@@ -1222,7 +1248,7 @@ extern "C"
       0
     },
     {
-      (char *)"jackfreewheel",
+      (char *)"JackFreewheel",
       sizeof(JackFreewheel),
       1,
       (char *)"",
@@ -1232,7 +1258,7 @@ extern "C"
       0
     },
     {
-      (char *)"jackon",
+      (char *)"JackOn",
       sizeof(JackOn),
       1,
       (char *)"",
@@ -1242,7 +1268,7 @@ extern "C"
       0
     },
     {
-      (char *)"jackaudioinconnect",
+      (char *)"JackAudioInConnect",
       sizeof(JackAudioInConnect),
       1,
       (char *)"",
@@ -1252,7 +1278,7 @@ extern "C"
       0,
     },
     {
-      (char *)"jackaudioin",
+      (char *)"JackAudioIn",
       sizeof(JackAudioIn),
       5,
       (char *)"a",
@@ -1262,7 +1288,7 @@ extern "C"
       (SUBR)&JackAudioIn::audio_,
     },
     {
-      (char *)"jackaudiooutconnect",
+      (char *)"JackAudioOutConnect",
       sizeof(JackAudioOutConnect),
       1,
       (char *)"",
@@ -1272,7 +1298,7 @@ extern "C"
       0,
     },
     {
-      (char *)"jackaudioout",
+      (char *)"JackAudioOut",
       sizeof(JackAudioOut),
       5,
       (char *)"",
@@ -1282,7 +1308,7 @@ extern "C"
       (SUBR)&JackAudioOut::audio_,
     },
     {
-      (char *)"jackmidiinconnect",
+      (char *)"JackMidiInConnect",
       sizeof(JackMidiInConnect),
       1,
       (char *)"",
@@ -1292,7 +1318,7 @@ extern "C"
       0,
     },
     {
-      (char *)"jackmidioutconnect",
+      (char *)"JackMidiOutConnect",
       sizeof(JackMidiOutConnect),
       1,
       (char *)"",
@@ -1302,7 +1328,7 @@ extern "C"
       0,
     },
     {
-      (char *)"jackmidiout",
+      (char *)"JackMidiOut",
       sizeof(JackMidiOut),
       3,
       (char *)"",
@@ -1312,7 +1338,7 @@ extern "C"
       0,
     },
     {
-      (char *)"jacknoteout",
+      (char *)"JackNoteOut",
       sizeof(JackNoteOut),
       3,
       (char *)"",
