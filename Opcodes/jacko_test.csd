@@ -28,8 +28,8 @@ nchnls 	   = 2
  	   ; Csound soundfile and, at the same time, to a sound 
 	   ; card in real time to the system client via Jack. 
 
-       	   JackoAudioOutConnect 	"leftout", "system:playback_1"
-	   JackoAudioOutConnect 	"rightout", "system:playback_2"
+       	   JackoAudioOutConnect "leftout", "system:playback_1"
+	   JackoAudioOutConnect "rightout", "system:playback_2"
 	   JackoInfo
 
 	   ; Turning freewheeling on seems automatically 
@@ -47,7 +47,7 @@ itime 	   = 			p2
 iduration  = 			p3
 ikey 	   = 			p4
 ivelocity  = 			p5
-	   JackoNoteOut 		"midiout", ichannel, ikey, ivelocity
+	   JackoNoteOut 	"midiout", ichannel, ikey, ivelocity
 	   print 		itime, iduration, ichannel, ikey, ivelocity
 	   endin
 
