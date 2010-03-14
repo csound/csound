@@ -1130,7 +1130,6 @@ struct JackMidiOut : public OpcodeBase<JackMidiOut>
     int result = OK;
     status = *kstatus;
     channel = *kchannel;
-    channel--;
     data1 = *kdata1;
     data2 = *kdata2;
     if (status != priorstatus ||
@@ -1148,10 +1147,13 @@ struct JackMidiOut : public OpcodeBase<JackMidiOut>
 	jack_midi_clear_buffer(buffer);
       }
       jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, dataSize);
-      data[0] = (status || channel);
+      data[0] = (status + channel);
       data[1] = data1;
       if (data2 != -1) {
 	data[2] = data2;
+	log(csound, "MIDI:  %3d %3d %3d\n", data[0], data[1], data[2]);
+     } else {
+	log(csound, "MIDI:  %3d %3d\n", data[0], data[1]);
       }
     }
     priorstatus = status;
@@ -1194,7 +1196,6 @@ struct JackNoteOut : public OpcodeNoteoffBase<JackNoteOut>
     jackState->opcodesForMidiOutPorts[csoundPort].push_back(this);
     status = 144;
     channel = (char) *ichannel;
-    channel--;
     key = (char) *ikey;
     velocity = (char) *ivelocity;
     buffer = (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
