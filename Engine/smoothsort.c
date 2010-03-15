@@ -82,7 +82,7 @@ void inline sift(SRTBLK *A[], int data[])
         DOWN(b1,c1)
       }
     }
-    if (r1 - r0) A[r1] = T;
+    if (UNLIKELY(r1 != r0)) A[r1] = T;
 }
  
 void inline trinkle(SRTBLK *A[], int data[])
@@ -198,7 +198,7 @@ void sort(CSOUND *csound)
     SRTBLK *bp;
     SRTBLK **A;
     int i, n = 0;
-    if ((bp = csound->frstbp) == NULL)
+    if (UNLIKELY((bp = csound->frstbp) == NULL))
       return;
     do {
       n++;                      /* Need to count to alloc the array */
@@ -230,10 +230,12 @@ void sort(CSOUND *csound)
     /* Get a temporary array and populate it */
     A = (SRTBLK**) malloc(n*sizeof(SRTBLK*));
     bp = csound->frstbp;
-    for (i=0; i<n; i++,bp = bp->nxtblk )
+    for (i=0; i<n; i++,bp = bp->nxtblk)
       A[i] = bp;
-    if (A[n-1]->text[0]!='e') smoothsort(A, n);
-    else smoothsort(A, n-1);         /* As lst is e/s */
+    if (LIKELY(A[n-1]->text[0]=='e' || A[n-1]->text[0]=='s'))
+      smoothsort(A, n-1);
+    else
+      smoothsort(A, n);
     /* Relink list in order; first and last different */
     csound->frstbp = bp = A[0]; bp->prvblk = NULL; bp->nxtblk = A[1];
     for (i=1; i<n-1; i++ ) {
