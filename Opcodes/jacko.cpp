@@ -478,6 +478,11 @@ static std::map<CSOUND *, JackoState *> jackoStatesForCsoundInstances;
  * and writing of data is done by the input and output
  * opcodes.
  */
+
+/// Right now there is a problem with MIDI output buffer sizes.
+/// Jack uses an audio buffer for MIDI (very bad).
+/// Each MIDI channel message consists of 12 bytes header and 3 bytes data
+/// so 128
 struct JackoState
 {
   CSOUND *csound;
@@ -491,7 +496,7 @@ struct JackoState
   jack_nframes_t jackFramesPerTick;
   jack_nframes_t csoundFramesPerSecond;
   jack_nframes_t jackFramesPerSecond;
-  std::map<jack_port_t *, std::vector<void *> > opcodesForMidiOutPorts;
+  jack_nframes_t jackFrameTime;
   std::map<std::string, jack_port_t *> audioInPorts;
   std::map<std::string, jack_port_t *> audioOutPorts;
   std::map<std::string, jack_port_t *> midiInPorts;
@@ -611,9 +616,9 @@ struct JackoState
     // We must call PerformKsmps here ONLY after the original
     // Csound performance thread has been put to sleep.
     int result = 0;
+    jackFrameTime = jack_last_frame_time(jackClient);
     if (jackActive && !csoundActive) {
       // Enqueue any MIDI messages pending in input ports.
-      /// midiInputQueue.clear();
       for (std::map<std::string, jack_port_t *>::iterator it = midiInPorts.begin();
 	   it != midiInPorts.end();
 	   ++it) {
@@ -635,12 +640,18 @@ struct JackoState
 	  }
 	}
       }
+      // Clear MIDI output buffers.
+      for (std::map<std::string, jack_port_t *>::iterator it = midiOutPorts.begin();
+	   it != midiOutPorts.end();
+	   ++it) {
+	void *buffer = jack_port_get_buffer(it->second, jackFramesPerTick);
+	jack_midi_clear_buffer(buffer);
+      }
       result = csound->PerformKsmps(csound);
       // We break here when Csound has finished performing.
       if (result) {
 	csound->NotifyThreadLock(csoundThreadLock);
 	csound->Message(csound, "Notified Csound thread lock.\n");
-	csoundStop(csound);
 	if (jackActive) {
 	  close();
 	}
@@ -684,6 +695,15 @@ struct JackoState
     midiInputQueue.clear();
     result = jack_transport_reposition(jackClient, &jack_position);
     return result;
+  }
+  /**
+   * Return a MIDI output buffer, 
+   * clearing it if not yet cleared for this tick.
+   */
+  jack_midi_data_t *getMidiOutBuffer(jack_port_t *csoundPort) 
+  {
+    jack_midi_data_t *buffer = (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
+    return buffer;
   }
 };
 
@@ -1205,7 +1225,6 @@ struct JackoMidiOut : public OpcodeBase<JackoMidiOut>
 					 (char *)"",
 					 (int) csound->GetInputArgSMask(this));
     csoundPort = jackoState->midiOutPorts[csoundPortName];
-    jackoState->opcodesForMidiOutPorts[csoundPort].push_back(this);
     priorstatus = -1;
     priorchannel = -1;
     priordata1 = -1;
@@ -1229,10 +1248,7 @@ struct JackoMidiOut : public OpcodeBase<JackoMidiOut>
       } else {
 	dataSize = 3;
       }
-      buffer = (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
-      if (this == jackoState->opcodesForMidiOutPorts[csoundPort].front()) {
-	jack_midi_clear_buffer(buffer);
-      }
+      buffer = jackoState->getMidiOutBuffer(csoundPort);
       jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, dataSize);
       data[0] = (status + channel);
       data[1] = data1;
@@ -1280,15 +1296,11 @@ struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
 					 (char *)"",
 					 (int) csound->GetInputArgSMask(this));
     csoundPort = jackoState->midiOutPorts[csoundPortName];
-    jackoState->opcodesForMidiOutPorts[csoundPort].push_back(this);
     status = 144;
     channel = (char) *ichannel;
     key = (char) *ikey;
     velocity = (char) *ivelocity;
-    buffer = (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
-    if (this == jackoState->opcodesForMidiOutPorts[csoundPort].front()) {
-      jack_midi_clear_buffer(buffer);
-    }
+    buffer = jackoState->getMidiOutBuffer(csoundPort);
     jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
     data[0] = (status + channel);
     data[1] = key;
@@ -1299,10 +1311,7 @@ struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
   int noteoff(CSOUND *csound)
   {
     int result = OK;
-    buffer = (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
-    if (this == jackoState->opcodesForMidiOutPorts[csoundPort].front()) {
-      jack_midi_clear_buffer(buffer);
-    }
+    buffer = jackoState->getMidiOutBuffer(csoundPort);
     jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
     data[0] = (status + channel);
     data[1] = key;
