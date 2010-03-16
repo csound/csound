@@ -1,3 +1,7 @@
+2010-03-16  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sort.c: Code replaced with smoothsort code
+
 2010-03-13  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/smoothsort.c (sort): Deal with case of no e event
