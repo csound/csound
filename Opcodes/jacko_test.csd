@@ -16,10 +16,11 @@ nchnls 	   = 2
 	   JackoInit		"default", "csound"
 
 	   ; To use ALSA midi ports, use "jackd -Xseq"
-	   ; and use "jack_lsp -A -c" or aliases from JackInfo
+	   ; and use "jack_lsp -A -c" or aliases from JackInfo,
+	   ; probably together with information from the sequencer,
 	   ; to figure out the damn port names.
 
-	   JackoMidiInConnect   "alsa_pcm:in-134-0-Master", "midiin"
+	   ; JackoMidiInConnect   "alsa_pcm:in-131-0-Master", "midiin"
 	   JackoAudioInConnect 	"aeolus:out.L", "leftin"
 	   JackoAudioInConnect 	"aeolus:out.R", "rightin"
 	   JackoMidiOutConnect 	"midiout", "aeolus:Midi/in"
@@ -90,12 +91,11 @@ aright 	   JackoAudioIn 	"rightin"
 
 </CsInstruments>
 <CsScore>
-
+f 0 30
 i 1 1 30 60 60
 i 1 2 30 64 60
 i 1 3 30 71 60
 e 2
-
 </CsScore>
 </CsoundSynthesizer>
 
