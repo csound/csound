@@ -111,7 +111,7 @@ extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 static void sread_alloc_globals(CSOUND *csound)
 {
-    if (csound->sreadGlobals != NULL)
+    if (LIKELY(csound->sreadGlobals != NULL))
       return;
     csound->sreadGlobals = (SREAD_GLOBALS*)
                                 csound->Calloc(csound, sizeof(SREAD_GLOBALS));

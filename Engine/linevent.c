@@ -91,7 +91,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 #endif
     }
 #ifdef PIPES
-    else if (O->Linename[0] == '|') {
+    else if (UNLIKELY(O->Linename[0] == '|')) {
       csound->Linepipe = _popen(&(O->Linename[1]), "r");
       if (LIKELY(csound->Linepipe != NULL)) {
         csound->Linefd = fileno(csound->Linepipe);
@@ -107,10 +107,11 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 #if defined(MSVC)
 #define O_RDONLY _O_RDONLY
 #endif
-    else if (UNLIKELY((csound->Linefd = open(O->Linename, O_RDONLY|O_NDELAY  MODE)) < 0))
-      csoundDie(csound, Str("Cannot open %s"), O->Linename);
+    else
+      if (UNLIKELY((csound->Linefd = open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
+        csoundDie(csound, Str("Cannot open %s"), O->Linename);
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
-                            ST(stdmode), csound->Linefd);
+                    ST(stdmode), csound->Linefd);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 }
 
@@ -153,7 +154,7 @@ void RTclose(CSOUND *csound)
 static inline int containsLF(char *cp, char *endp)
 {
     while (cp < endp) {
-      if (*cp++ == LF)
+      if (UNLIKELY(*cp++ == LF))
         return 1;
     }
     return 0;
