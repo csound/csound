@@ -653,6 +653,8 @@ struct JackoState
 	csound->NotifyThreadLock(csoundThreadLock);
 	csound->Message(csound, "Notified Csound thread lock.\n");
 	if (jackActive) {
+	  // Prevent the Jack processing callback from hanging.
+	  csound->Stop(csound);
 	  close();
 	}
       }
