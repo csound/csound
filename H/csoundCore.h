@@ -992,8 +992,9 @@ extern const uint32_t csPlayScoMask;
     MYFLT (*ChanOKGetValue)(CSOUND *, int channel);
     int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
+    void (*Stop)(CSOUND *);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[78];
+    SUBR dummyfn_2[77];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
