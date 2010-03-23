@@ -1793,7 +1793,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       if (UNLIKELY(l2 < 0)) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
         if (x != NULL) free(x);
-        if (y != NULL) free(x);
+        if (y != NULL) free(y);
         free(pnum);
         return NOTOK;
       }
