@@ -1,3 +1,7 @@
+2010-03-22  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen28): Typo -- freed x rather than y
+
 2010-03-16  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sort.c: Code replaced with smoothsort code

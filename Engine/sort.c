@@ -35,7 +35,7 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
     MYFLT diff;
     int prdiff, indiff;
     int ans;
-    ans = (ca != 'w'
+    ans = !(ca != 'w'
            && (cb == 'w' ||
                (ca != 't' &&
                 (cb == 't' ||
@@ -47,7 +47,7 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
                       (!indiff && b->newp3 < a->newp3) )
                      ))))))));
     /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
-    return !ans;
+    return ans;
 }
  
 #define UP(IA,IB)   {temp=IA; IA+=(IB)+1;     IB=temp;}
