@@ -1550,7 +1550,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           csound->Message(csound, Str("Not #define"));
           mfree(csound, mm); free(mname);
           flushlin(csound);
-          free(mname);
+          //          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));

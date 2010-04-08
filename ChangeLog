@@ -7,6 +7,10 @@
 
 	* Top/main.c (csoundCompile): Removed spurious BETA check
 
+2010-03-23  jpff  <jpff@cs.bath.ac.uk>
+
+	* Engine/sread.c (sget1): Remove repeats free
+
 2010-03-22  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen28): Typo -- freed x rather than y
