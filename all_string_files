@@ -353,6 +353,7 @@
 ./Opcodes/ifd.c
 ./Opcodes/imageOpcodes.c
 ./Opcodes/imageOpcodes.h
+./Opcodes/jacko.cpp
 ./Opcodes/jackTransport.c
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/locsig.c
