@@ -304,49 +304,49 @@ msgstr ""
 msgid "unary mult or divide"
 msgstr ""
 
-#: Engine/express.c:252
+#: Engine/express.c:253
 msgid "within parens"
 msgstr "entre paréntesis"
 
-#: Engine/express.c:293 Engine/express.c:336 Engine/express.c:366
-#: Engine/express.c:402
+#: Engine/express.c:294 Engine/express.c:337 Engine/express.c:367
+#: Engine/express.c:403
 msgid "misplaced relational op"
 msgstr ""
 
-#: Engine/express.c:302
+#: Engine/express.c:303
 msgid "i() with expression argument not allowed with --expression-opt"
 msgstr ""
 "i() con argumento de expresión no se permite junto con --expression-opt"
 
-#: Engine/express.c:307
+#: Engine/express.c:308
 msgid "WARNING: i() should not be used with expression argument\n"
 msgstr "ATENCION: i() no debe ser usado con argumento de expresión\n"
 
-#: Engine/express.c:326 Engine/express.c:346 Engine/express.c:357
+#: Engine/express.c:327 Engine/express.c:347 Engine/express.c:358
 msgid "Expression got lost\n"
 msgstr "Se perdió la expresión\n"
 
-#: Engine/express.c:400
+#: Engine/express.c:401
 msgid "audio relational"
 msgstr ""
 
-#: Engine/express.c:419
+#: Engine/express.c:420
 msgid "incorrect logical arguments"
 msgstr "argumentos lógicos incorrectos"
 
-#: Engine/express.c:433
+#: Engine/express.c:434
 msgid "incorrect cond value format"
 msgstr "formato incorrecto de valor condicional"
 
-#: Engine/express.c:441
+#: Engine/express.c:442
 msgid "insufficient terms"
 msgstr "términos insuficientes"
 
-#: Engine/express.c:519
+#: Engine/express.c:520
 msgid "term count"
 msgstr "número de términos"
 
-#: Engine/express.c:522
+#: Engine/express.c:523
 msgid "expression syntax"
 msgstr "syntaxis de expresión"
 
@@ -884,60 +884,60 @@ msgstr ""
 msgid "-L stdin fcntl failed"
 msgstr ""
 
-#: Engine/linevent.c:99 Engine/linevent.c:111 OOps/dumpf.c:57 OOps/dumpf.c:82
+#: Engine/linevent.c:99 Engine/linevent.c:112 OOps/dumpf.c:57 OOps/dumpf.c:82
 #: OOps/dumpf.c:107 OOps/dumpf.c:132 OOps/dumpf.c:274 OOps/dumpf.c:301
 #: OOps/dumpf.c:328 OOps/dumpf.c:355 util/hetro.c:249
 #, c-format
 msgid "Cannot open %s"
 msgstr "No es posible abrir %s"
 
-#: Engine/linevent.c:112 Engine/linevent.c:126
+#: Engine/linevent.c:113 Engine/linevent.c:127
 #, c-format
 msgid "stdmode = %.8x Linefd = %d\n"
 msgstr ""
 
-#: Engine/linevent.c:199
+#: Engine/linevent.c:200
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr "LineBuffer Overflow - se han perdido datos de entrada"
 
-#: Engine/linevent.c:252
+#: Engine/linevent.c:253
 #, c-format
 msgid "unknown opcode %c"
 msgstr "opcode desconocido '%c'"
 
-#: Engine/linevent.c:266
+#: Engine/linevent.c:267
 msgid "multiple string p-fields"
 msgstr "multiples campos-p (pfields) con cadenas"
 
-#: Engine/linevent.c:272 Engine/rdorch.c:1154
+#: Engine/linevent.c:273 Engine/rdorch.c:1154
 msgid "unmatched quotes"
 msgstr "comillas sin cerrar"
 
-#: Engine/linevent.c:277
+#: Engine/linevent.c:278
 msgid "string p-field is too long"
 msgstr "campo-p (pfield) con cadena es demasiado largo"
 
-#: Engine/linevent.c:292
+#: Engine/linevent.c:293
 msgid "dot carry has no reference"
 msgstr ""
 
-#: Engine/linevent.c:297
+#: Engine/linevent.c:298
 msgid "cannot carry string p-field"
 msgstr ""
 
-#: Engine/linevent.c:308
+#: Engine/linevent.c:309
 msgid "too few pfields"
 msgstr "faltan campos-p (pfields)"
 
-#: Engine/linevent.c:312
+#: Engine/linevent.c:313
 msgid "-L with negative p2 illegal"
 msgstr "-L con p2 negativo es ilegal"
 
-#: Engine/linevent.c:323
+#: Engine/linevent.c:324
 msgid "too many pfields"
 msgstr "demasiados campos-p (pfields)"
 
-#: Engine/linevent.c:335
+#: Engine/linevent.c:336
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -948,20 +948,20 @@ msgstr ""
 "%s\n"
 "%*s"
 
-#: Engine/linevent.c:357
+#: Engine/linevent.c:358
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\""
 msgstr ""
 
-#: Engine/linevent.c:359
+#: Engine/linevent.c:360
 msgid "event: string name is allowed only for \"i\" and \"q\" events"
 msgstr ""
 
-#: Engine/linevent.c:390
+#: Engine/linevent.c:391
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr "event: error creando el evento '%c'"
 
-#: Engine/linevent.c:432
+#: Engine/linevent.c:433
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr "event_i: error creando el evento '%c'"
@@ -1102,7 +1102,7 @@ msgstr ""
 msgid "audio buffered in %d sample-frame blocks\n"
 msgstr ""
 
-#: Engine/musmon.c:280 Top/main.c:374
+#: Engine/musmon.c:280 Top/main.c:372
 #, c-format
 msgid "cannot reopen %s"
 msgstr "No fue posible reabrir %s"
@@ -1127,7 +1127,7 @@ msgstr "no es posible reabrir cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "ordenando cscore.out ...\n"
 
-#: Engine/musmon.c:318 Top/main.c:388
+#: Engine/musmon.c:318 Top/main.c:386
 msgid "\t... done\n"
 msgstr "\t... listo\n"
 
@@ -1680,7 +1680,7 @@ msgstr ""
 msgid "ERROR: too many pfields: "
 msgstr "ERROR: demasidados campos-p (pfields): "
 
-#: Engine/sort.c:95
+#: Engine/sort.c:225
 #, c-format
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr "sort: opcode ilegal %c(%.2x)\n"
@@ -5881,7 +5881,7 @@ msgstr "ftconv: no ha sido inicializado"
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:112 Opcodes/signalflowgraph.cpp:745
+#: Opcodes/ftgen.c:112 Opcodes/signalflowgraph.cpp:746
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -6613,6 +6613,101 @@ msgstr ""
 
 #: Opcodes/imageOpcodes.c:392
 msgid "Cannot allocate memory.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:524
+#, c-format
+msgid ""
+"Could not create Jack client \"%s\" -- is Jack server \"%s\" running? "
+"Status: %d\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:530
+#, c-format
+msgid "Created Jack client \"%s\" for Jack server \"%s\".\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:535
+#, c-format
+msgid "Jack buffer size %d != Csound ksmps %d, exiting...\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:543
+#, c-format
+msgid "Jack sampling rate %d != Csound sr %d, exiting...\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:555
+#, c-format
+msgid "Activated Jack client \"%s\".\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:559
+#, c-format
+msgid "Failed to activate Jack client \"%s\": status %d.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:576
+msgid "BEGAN JackoState::close()...\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:605
+#, c-format
+msgid "Deactivated Jack with result: %d.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:607
+#, c-format
+msgid "Closed Jack client with result: %d\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:609
+msgid "Destroyed Csound thread lock.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:611
+msgid "ENDED JackoState::close().\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:654
+msgid "Notified Csound thread lock.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:673
+#, c-format
+msgid "Put to sleep Csound performance thread %p at frame %d.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:678
+#, c-format
+msgid "Woke up Csound performance thread %p at frame %d.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:844
+#, c-format
+msgid "Failed to set Jack freewheeling mode to \"%s\": error %d.\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:846
+#, c-format
+msgid "Set Jack freewheeling mode to \"%s\".\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:861
+#, c-format
+msgid "Turned Jack connections \"%s\".\n"
+msgstr ""
+
+#: Opcodes/jacko.cpp:902 Opcodes/jacko.cpp:1002 Opcodes/jacko.cpp:1102
+#: Opcodes/jacko.cpp:1168
+#, fuzzy, c-format
+msgid "Could not create port \"%s\".\n"
+msgstr "No es posible abrir el puerto remoto"
+
+#: Opcodes/jacko.cpp:913 Opcodes/jacko.cpp:1013 Opcodes/jacko.cpp:1113
+#: Opcodes/jacko.cpp:1179
+#, c-format
+msgid "Could not create connection from \"%s\" to \"%s\": status %d.\n"
 msgstr ""
 
 #: Opcodes/jackTransport.c:58
@@ -7706,11 +7801,11 @@ msgstr ""
 msgid "error... could not create sfont globals\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:580
+#: Opcodes/signalflowgraph.cpp:581
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:766
+#: Opcodes/signalflowgraph.cpp:767
 msgid "ftgenonce error"
 msgstr ""
 
@@ -7777,19 +7872,19 @@ msgstr "pvsvoc: no ha sido inicializado\n"
 msgid "pvsmorph: not initialised\n"
 msgstr "pvsmorph: no ha sido inicializado\n"
 
-#: Opcodes/sndwarp.c:151 Opcodes/sndwarp.c:311
+#: Opcodes/sndwarp.c:149 Opcodes/sndwarp.c:309
 msgid "SNDWARP at last sample frame"
 msgstr ""
 
-#: Opcodes/sndwarp.c:185
+#: Opcodes/sndwarp.c:183
 msgid "sndwarp: not initialised"
 msgstr "sndwarp: no ha sido inicializado"
 
-#: Opcodes/sndwarp.c:202
+#: Opcodes/sndwarp.c:200
 msgid "Wrong number of outputs in sndwarpst; must be 2 or 4"
 msgstr ""
 
-#: Opcodes/sndwarp.c:354
+#: Opcodes/sndwarp.c:352
 msgid "sndwarpst: not initialised"
 msgstr "sndwarpst: no ha sido inicializado"
 
@@ -9455,90 +9550,90 @@ msgstr ""
 msgid "Error de-initialising module '%s'"
 msgstr ""
 
-#: Top/csound.c:1383 Top/csound.c:1403
+#: Top/csound.c:1384 Top/csound.c:1404
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1389
+#: Top/csound.c:1390
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1422
+#: Top/csound.c:1423
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1447
+#: Top/csound.c:1448
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1454
+#: Top/csound.c:1455
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1459
+#: Top/csound.c:1460
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:1732
+#: Top/csound.c:1733
 msgid "WARNING: "
 msgstr "ATENCION: "
 
-#: Top/csound.c:1851
+#: Top/csound.c:1852
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:1852
+#: Top/csound.c:1853
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:1881 Top/csound.c:1917
+#: Top/csound.c:1882 Top/csound.c:1918
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:1885 Top/csound.c:1921
+#: Top/csound.c:1886 Top/csound.c:1922
 #, c-format
 msgid " *** error: unknown rtaudio module: '%s'"
 msgstr ""
 
-#: Top/csound.c:2002
+#: Top/csound.c:2003
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2007 Top/csound.c:2038
+#: Top/csound.c:2008 Top/csound.c:2039
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2010 Top/csound.c:2041
+#: Top/csound.c:2011 Top/csound.c:2042
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2033
+#: Top/csound.c:2034
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2053
+#: Top/csound.c:2054
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2169
+#: Top/csound.c:2170
 msgid "xyin not supported. use invalue opcode instead."
 msgstr ""
 
-#: Top/csound.c:2274
+#: Top/csound.c:2275
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2297
+#: Top/csound.c:2298
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:2596
+#: Top/csound.c:2597
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:2626
+#: Top/csound.c:2627
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
@@ -9560,87 +9655,87 @@ msgstr ""
 msgid "Reading options from $HOME/.csoundrc\n"
 msgstr ""
 
-#: Top/main.c:184
+#: Top/main.c:182
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:209
+#: Top/main.c:207
 msgid "Reading CSD failed ... stopping"
 msgstr "Falla de lectura del archivo csd... deteniendo"
 
-#: Top/main.c:223
+#: Top/main.c:221
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:227
+#: Top/main.c:225
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:244 util/dnoise.c:268
+#: Top/main.c:242 util/dnoise.c:268
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
 
-#: Top/main.c:263
+#: Top/main.c:261
 msgid "srate and krate overrides must occur jointly"
 msgstr ""
 
-#: Top/main.c:275
+#: Top/main.c:273
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:304
+#: Top/main.c:302
 #, c-format
 msgid "orchname:  %s\n"
 msgstr "nombre de la orquesta:  %s\n"
 
-#: Top/main.c:306
+#: Top/main.c:304
 #, c-format
 msgid "scorename: %s\n"
 msgstr "nombre del score: %s\n"
 
-#: Top/main.c:332
+#: Top/main.c:330
 msgid "end of orchestra compile"
 msgstr "fin de compilación de la orquesta"
 
-#: Top/main.c:339
+#: Top/main.c:337
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:352
+#: Top/main.c:350
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr "no es posible abrir el archivo de score %s"
 
-#: Top/main.c:357 Top/main.c:378
+#: Top/main.c:355 Top/main.c:376
 #, c-format
 msgid "cannot open %s for writing"
 msgstr "no es posible abrir para escritura el archivo %s"
 
-#: Top/main.c:360
+#: Top/main.c:358
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:367
+#: Top/main.c:365
 #, c-format
 msgid "cannot extract %s, name conflict"
 msgstr ""
 
-#: Top/main.c:370
+#: Top/main.c:368
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:380
+#: Top/main.c:378
 msgid "  ... extracting ...\n"
 msgstr "  ... extrayendo ...\n"
 
-#: Top/main.c:393
+#: Top/main.c:391
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:395
+#: Top/main.c:393
 msgid "Syntax check completed.\n"
 msgstr "Revisión de sintaxis completa.\n"
 
