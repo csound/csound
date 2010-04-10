@@ -2084,6 +2084,8 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
     int     nargs = ff->e.pcnt - 4;
 
     for (j=0; j < nargs; j+=2) {
+      if (pp[j+1]<0)
+        return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += (int32) pp[j+1];
     }
     for (j=0; j< nargs; j+=2) {
