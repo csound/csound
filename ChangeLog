@@ -1,3 +1,7 @@
+2010-04-10  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen41): Added check for positive propability
+
 2010-04-05  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/sndwarp.c (sndwarp): The attempt to give only one
