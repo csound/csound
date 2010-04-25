@@ -6187,7 +6187,7 @@ msgstr ""
 "adsynt2 : le nombre de partiels est supérieur à la taille de la table d'amp !"
 
 #: Opcodes/gab/gab.c:494
-msgid "adsynt2: not initialized"
+msgid "adsynt2: not initialised"
 msgstr "adsynt2 : non initialisé"
 
 #: Opcodes/gab/gab.c:744

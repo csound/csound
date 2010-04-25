@@ -1,6 +1,13 @@
+2010-04-25  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/gab/gab.c (adsynt2_set): Brought into line with
+	adsynt_set, and revised
+	(adsynt2_set): Initialisation of amp and frequency tabl; ewas
+	totally wrong
+
 2010-04-10  john ffitch  <jpff@codemist.co.uk>
 
-	* Engine/fgens.c (gen41): Added check for positive propability
+	* Engine/fgens.c (gen41): Added check for positive probability
 
 2010-04-05  john ffitch  <jpff@codemist.co.uk>
 
@@ -125,7 +132,7 @@ a2010-01-16  john ffitch  <jpff@codemist.co.uk>
 
 2009-12-25  john ffitch  <jpff@codemist.co.uk> for Francois Pinot
 
-	* Opcodes/crossfm.h: 
+	* Opcodes/crossfm.h:
 	* Opcodes/crossfm.c: New code
 
 2009-12-23  john ffitch  <jpff@codemist.co.uk>
