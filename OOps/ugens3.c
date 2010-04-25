@@ -841,11 +841,11 @@ int adsyn(CSOUND *csound, ADSYN *p)
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
     int16   curtim, diff, ktogo;
-    int32    phs, sinc, *sp, amp;
+    int32   phs, sinc, *sp, amp;
     int     n, nsmps;
-    MYFLT   *ar;
+    MYFLT   *ar = p->rslt;
     MYFLT   ampscale, frqscale;
-    int32    timkincr, nxtim;
+    int32   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
       return csound->PerfError(csound, Str("adsyn: not initialised"));
@@ -855,12 +855,8 @@ int adsyn(CSOUND *csound, ADSYN *p)
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
     timkincr = (int32)(*p->ksmod*FL(1024000.0)*csound->onedkr);
-    sp = (int32 *) p->rslt;                      /* use out array for sums */
     nsmps = csound->ksmps;
-    memset(p->rslt,0,sizeof(int32)*nsmps);
-    /* do { */
-    /*   *sp++ = 0L;                               /\* cleared first to zero *\/ */
-    /* } while (--nsmps); */
+    memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
@@ -873,13 +869,12 @@ int adsyn(CSOUND *csound, ADSYN *p)
       if ((amp = curp->amp)) {            /* for non-zero amp   */
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
-        sp = (int32 *) p->rslt;
         nsmps = csound->ksmps;            /*   addin a sinusoid */
-        do {
-          *sp++ += csound->isintab[phs] * amp;
+        for (n=0; n<nsmps; n++) {
+          ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;
           phs &= ADMASK;
-        } while (--nsmps);
+        }
         curp->phs = phs;
       }
       if ((nxtim = (ap+1)->tim) == 32767) {   /* if last amp this partial */
@@ -899,13 +894,13 @@ int adsyn(CSOUND *csound, ADSYN *p)
       }
     }
     p->mksecs += timkincr;                  /* advance the time */
-    ar = p->rslt;
-    sp = (int32 *) ar;           /* Seems to make assumptions about int32/MYFLT */
-    nsmps = csound->ksmps;
-      /* a quick-hack fix: should change adsyn to use floats table and
-         buffers and should replace hetro format anyway.... */
-    for (n=0; n<nsmps; n++)
-      ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG);
+    /* ar = p->rslt; */
+    /* sp = (int32 *) ar;           /\* Seems to make assumptions about int32/MYFLT *\/ */
+    /* nsmps = csound->ksmps; */
+    /*   /\* a quick-hack fix: should change adsyn to use floats table and */
+    /*      buffers and should replace hetro format anyway.... *\/ */
+    /* for (n=0; n<nsmps; n++) */
+    /*   ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG); */
     return OK;
 }
 
