@@ -933,12 +933,16 @@ static int lineto(CSOUND *csound, LINETO *p)
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
     }
+    /* printf("lineto: ktime=%lf ksig=%lf\n " */
+    /*        "old_time=%lf val_inc=%lf incr=%lf val=%lf\n", */
+    /*        *p->ktime, *p->ksig, p->old_time, p->val_incremented, p->incr, */
+    /*        p->current_val); */
     if (*p->ksig != p->current_val && p->current_time > p->old_time) {
       p->old_time = *p->ktime;
       p->val_incremented = p->current_val;
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->ekr * p->old_time) + 1);
+                / ((int32) (csound->ekr * p->old_time) -1); /* by experiment */
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
