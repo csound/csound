@@ -565,7 +565,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
     int     count;
-    int32    *lphs;
+    int32   *lphs;
 
     p->inerr = 0;
 

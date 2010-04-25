@@ -86,7 +86,7 @@ typedef struct {
     int     count;
     int     inerr;
     AUXCH   lphs;
-    MYFLT   *previousAmp;
+    AUXCH   pamp;
 } ADSYNT2;
 
 typedef struct {

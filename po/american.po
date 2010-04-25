@@ -5934,7 +5934,7 @@ msgid "adsynt2: partial count is greater than amptable size!"
 msgstr ""
 
 #: Opcodes/gab/gab.c:494
-msgid "adsynt2: not initialized"
+msgid "adsynt2: not initialised"
 msgstr ""
 
 #: Opcodes/gab/gab.c:744
