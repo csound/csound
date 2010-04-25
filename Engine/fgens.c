@@ -2477,7 +2477,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       ff->flen     -= 1;
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
-      ftp->nchanls  = p->nchanls;
+      if(!p->channel) ftp->nchanls  = p->nchanls;
+      else ftp->nchanls  = 1;
       ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
       def           = 1;
     }
