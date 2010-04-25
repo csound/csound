@@ -559,7 +559,7 @@ static void output(HET *thishet, int32 smpl, int hno, int pnt)
 }
 
 /* If this function worthwhile?  Need to coinsider recalculation */
-static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
+inline static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
 {
     return (num * num);
 }

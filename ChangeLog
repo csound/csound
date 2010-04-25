@@ -1,5 +1,7 @@
 2010-04-25  john ffitch  <jpff@codemist.co.uk>
 
+	* OOps/ugens3.c (adsyn): Sorted out confusion over int32 and MYFLT
+
 	* OOps/ugens5.c (atonex): Fix bug; it was repeating the filter to
 	th einput rather than cascading
 	(resonx):
