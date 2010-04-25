@@ -409,13 +409,12 @@ static int nlalp(CSOUND *csound,NLALP *p)
 static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp;
-    MYFLT fmaxlen = (MYFLT)MAXLEN;
     int     count;
-    long    *lphs;
-    MYFLT       *pAmp;
+    int32   *lphs;
+
     p->inerr = 0;
 
-    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
@@ -424,25 +423,24 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
 
     count = (int)*p->icnt;
-    if (count < 1)
-      count = 1;
+    if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
-    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifreqtbl)) != NULL)) {
       p->freqtp = ftp;
     }
     else {
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt2: freqtable not found!"));
     }
-    if (ftp->flen < count) {
+    if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
       return csound->InitError(csound,
                                Str("adsynt2: partial count is greater "
                                    "than freqtable size!"));
     }
 
-    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iamptbl)) != NULL)) {
       p->amptp = ftp;
     }
     else {
@@ -457,41 +455,45 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
 
     if (p->lphs.auxp==NULL ||
-        p->lphs.size < (long)(sizeof(long)+sizeof(MYFLT))*count)
-      csound->AuxAlloc(csound, (sizeof(long)+sizeof(MYFLT))*count, &p->lphs);
+        p->lphs.size < (int32)(sizeof(int32)*count))
+      csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
+    lphs = (int32*)p->lphs.auxp;
 
-    lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
-        *lphs++ = ((long)
+        *lphs++ = ((int32)
                    ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
-                             / 2147483645.0) * fmaxlen)) & PHMASK;
+                             / 2147483645.0) * FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {
       do {
-        *lphs++ = ((long)(*p->iphs * fmaxlen)) & PHMASK;
+        *lphs++ = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
       } while (--count);
     }
-    pAmp = p->previousAmp = (MYFLT *) lphs + sizeof(MYFLT)*count;
-    count = (int)*p->icnt;
-    do {
-      *pAmp++ = FL(0.0);
-    } while (--count);
+    if (p->pamp.auxp==NULL ||
+        p->pamp.size < (int32)(sizeof(MYFLT)*p->count))
+      csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
+
+    memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
+    /* count = (int)*p->icnt; */
+    /* do { */
+    /*   *pAmp++ = FL(0.0); */
+    /* } while (--count); */
     return OK;
 }
 
 static int adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
-    MYFLT   *ar, *ar0, *ftbl, *freqtbl, *amptbl, *prevAmp;
-    MYFLT   amp0, amp, cps0, cps, ampIncr,amp2;
-    long    phs, inc, lobits;
-    long    *lphs;
-    int     nsmps, count;
+    MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
+    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2;
+    int32   phs, inc, lobits;
+    int32   *lphs;
+    int     c, n, nsmps= csound->ksmps, count;
 
-    if (p->inerr) {
-      return csound->InitError(csound, Str("adsynt2: not initialized"));
+    if (UNLIKELY(p->inerr)) {
+      return csound->InitError(csound, Str("adsynt2: not initialised"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -500,40 +502,32 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     freqtbl = freqtp->ftable;
     amptp = p->amptp;
     amptbl = amptp->ftable;
-    lphs = (long*)p->lphs.auxp;
-    prevAmp = p->previousAmp;
+    lphs = (int32*)p->lphs.auxp;
+    prevAmp = (MYFLT*)p->pamp.auxp;
 
     cps0 = *p->kcps;
     amp0 = *p->kamp;
     count = p->count;
 
-    ar0 = p->sr;
-    ar = ar0;
-    nsmps = csound->ksmps;
-    do {
-      *ar++ = FL(0.0);
-    } while (--nsmps);
+    ar = p->sr;
+    memset(ar, 0, nsmps*sizeof(MYFLT));
 
-    do {
-      ar = ar0;
-      nsmps = csound->ksmps;
-      amp2 = *prevAmp;
-      amp = *amptbl++ * amp0;
-      cps = *freqtbl++ * cps0;
-      inc = (long) (cps * csound->sicvt);
+    for (c=0; c<count; c++) {
+      amp2 = prevAmp[c];
+      amp = amptbl[c] * amp0;
+      cps = freqtbl[c] * cps0;
+      inc = (int32) (cps * csound->sicvt);
       phs = *lphs;
-      ampIncr = (amp - *prevAmp) * csound->onedksmps;
-      do {
-        *ar++ += *(ftbl + (phs >> lobits)) * amp2;
+      ampIncr = (amp - amp2) * csound->onedksmps;
+      for (n=0; n<nsmps; n++) {
+        ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
         phs &= PHMASK;
         amp2 += ampIncr;
       }
-      while (--nsmps);
-      *prevAmp++ = amp;
-      *lphs++ = phs;
+      prevAmp[c] = amp;
+      lphs[c] = phs;
     }
-    while (--count);
     return OK;
 }
 
@@ -850,9 +844,9 @@ static OENTRY localops[] = {
   { "tb13.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab13_i_tmp   },
   { "tb14.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab14_i_tmp   },
   { "tb15.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab15_i_tmp   },
-  { "nlalp", S(NLALP),      5,    "a",    "akkoo",
+  { "nlalp",      S(NLALP), 5,    "a",     "akkoo",
                             (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
-  { "adsynt2",S(ADSYNT2),   5,    "a",  "kkiiiio",
+  { "adsynt2",S(ADSYNT2),   5,    "a",     "kkiiiio",
                             (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   1,    "",  "", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
