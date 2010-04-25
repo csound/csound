@@ -164,9 +164,10 @@ int atone(CSOUND *csound, TONE *p)
 
 int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
-    MYFLT       *ar = p->ar, *asig;
-    double      c2, *yt1;
+    MYFLT       *ar = p->ar, *asig = p->asig;
+    double      c2 = p->c2, *yt1 = p->yt1;
     int         n, nsmps=csound->ksmps, j;
+    int lp = p->loop;
 
     if (*p->khp != p->prvhp) {
       double b;
@@ -176,12 +177,10 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       /*p->c1 = 1. - p->c2;*/
     }
 
-    c2 = p->c2;
-    yt1=p->yt1;
-    asig = p->asig;
-    for (j=0; j< p->loop; j++) {
+    memmove(ar,asig,sizeof(MYFLT)*nsmps);
+    for (j=1; j<lp; j++) {
       for (n=0; n<nsmps; n++) {
-        double sig = asig[n];
+        double sig = (double)ar[n];
         double x = c2 * (yt1[j] + sig);
         yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
         ar[n] = (MYFLT)x;

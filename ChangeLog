@@ -1,5 +1,8 @@
 2010-04-25  john ffitch  <jpff@codemist.co.uk>
 
+	* OOps/ugens5.c (atonex): Fix bug; it was repeating the filter to
+	th einput rather than cascading
+
 	* Opcodes/gab/gab.c (adsynt2_set): Brought into line with
 	adsynt_set, and revised
 	(adsynt2_set): Initialisation of amp and frequency tabl; ewas
