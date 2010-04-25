@@ -2,6 +2,8 @@
 
 	* OOps/ugens5.c (atonex): Fix bug; it was repeating the filter to
 	th einput rather than cascading
+	(resonx):
+	(tonex): Same error as atonex
 
 	* Opcodes/gab/gab.c (adsynt2_set): Brought into line with
 	adsynt_set, and revised

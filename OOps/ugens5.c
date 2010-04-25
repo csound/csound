@@ -121,13 +121,14 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     c1 = p->c1;
     c2 = p->c2;
     yt1= p->yt1;
-    asig = p->asig;
     nsmps = csound->ksmps;
     ar = p->ar;
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+
     for (j=0; j< p->loop; j++) {
       int n;
       for (n=0; n<nsmps; n++) {
-        double x = c1 * asig[n] + c2 * *yt1;
+        double x = c1 * ar[n] + c2 * *yt1;
         *yt1 = x;
         ar[n] = (MYFLT)x;
       }
@@ -164,7 +165,7 @@ int atone(CSOUND *csound, TONE *p)
 
 int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
-    MYFLT       *ar = p->ar, *asig = p->asig;
+    MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1;
     int         n, nsmps=csound->ksmps, j;
     int lp = p->loop;
@@ -177,7 +178,7 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       /*p->c1 = 1. - p->c2;*/
     }
 
-    memmove(ar,asig,sizeof(MYFLT)*nsmps);
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     for (j=1; j<lp; j++) {
       for (n=0; n<nsmps; n++) {
         double sig = (double)ar[n];
@@ -305,12 +306,12 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     yt1  = p->yt1;
     yt2  = p->yt2;
     ar = p->ar;
-    asig = p->asig;
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     for (j=0; j< p->loop; j++) {
       int n;
       for (n=0; n<nsmps; n++) {
         double x =
-          c1 * ((double)asig[n]) + c2 * yt1[j] - c3 * yt2[j];
+          c1 * ((double)ar[n]) + c2 * yt1[j] - c3 * yt2[j];
         yt2[j] = yt1[j];
         ar[n] = (MYFLT)x;
         yt1[j] = x;
