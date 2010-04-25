@@ -750,8 +750,13 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
       evtblk.p[5] = *p5;
     }
     evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
-    for (size_t pfieldI = 6; pfieldI < evtblk.pcnt; pfieldI++) {
-      evtblk.p[pfieldI] = *argums[pfieldI - 6];
+    n = evtblk.pcnt - 5;
+    if (n > 0) {
+      MYFLT **argp = argums;
+      MYFLT *fp = &evtblk.p[0] + 6;
+      do {
+	*fp++ = **argp++;
+      } while (--n);
     }
     // If the arguments have not been used before for this instance of Csound,
     // create a new function table and store the arguments and table number;
