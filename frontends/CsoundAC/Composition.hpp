@@ -30,6 +30,12 @@
 #include "Score.hpp"
 #endif
 
+/**
+ * Contains classes for algorithmic composition, and supporting classes
+ * for rendering audio from algorithmically generated scores, especially
+ * using Csound. All of these classes are designed for wrapping in 
+ * dynamic languges such as Python or Lua.
+ */
 namespace csound
 {
   /**
