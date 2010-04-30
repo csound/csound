@@ -31,7 +31,7 @@ PROJECT_NAME           = "Csound and CsoundAC API"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 5.09
+PROJECT_NUMBER         = 5.12
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -216,7 +216,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # .inc files as Fortran files (default is PHP), and .f files as C (default is Fortran), 
 # use: inc=Fortran f=C
 
-EXTENSION_MAPPING      = 
+EXTENSION_MAPPING      = YES
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want 
 # to include (a tag file for) the STL sources as input, then you should 
@@ -808,7 +808,7 @@ HTML_STYLESHEET        =
 # files or namespaces will be aligned in HTML using tables. If set to 
 # NO a bullet list will be used.
 
-HTML_ALIGN_MEMBERS     = NO
+HTML_ALIGN_MEMBERS     = YES
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML 
 # documentation will contain sections that can be hidden and shown after the 
@@ -816,7 +816,7 @@ HTML_ALIGN_MEMBERS     = NO
 # JavaScript and DHTML is required (for instance Mozilla 1.0+, Firefox 
 # Netscape 6.0+, Internet explorer 5.0+, Konqueror, or Safari).
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # If the GENERATE_DOCSET tag is set to YES, additional index files 
 # will be generated that can be used as input for Apple's Xcode 3 
