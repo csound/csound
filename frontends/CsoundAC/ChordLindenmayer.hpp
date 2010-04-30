@@ -53,15 +53,12 @@ namespace csound
    * 
    * The turtle consists of:
    * <ul>
-   * <li> N, a note, i.e. a vector in score space.</li>
+   * <li> N, a note, i.e. a vector of real numbers in score space.</li>
    * <li> S, a step, i.e. an increment by which to move N 
    *      (also a vector in score space).</li>
-   * <li> O, an orientation, i.e. a direction to move a note 
+   * <li> O, an orientation, i.e. a direction to move N 
    *      (also a  vector).</li>
-   * <li> C, a chord, i.e. a vector of voices in chord space;
-   *      if the turtle writes a chord into the score, 
-   *      the note is duplicated with each of the pitch-classes
-   *      in the chord.</li>
+   * <li> C, a chord, i.e. a vector of voices in chord space.</li>
    * <li> M, a modality used as a reference for neo-Riemannian 
    *      operations upon chords (also a vector).</li>
    * <li> V, a chord voicing, i.e. the index of the octavewise
@@ -87,51 +84,66 @@ namespace csound
    * <li>O = the operation proper (e.g. sum or product).</li> 
    * <li>T = the target, or part of the turtle to which the
    *         operation applies, and which has an implicit rank 
-   *         (e.g. note or chord).</li>
+   *         (e.g. scalar, vector, tensor).</li>
    * <li>E = its equivalence class (e.g. octave or range).</li> 
    * <li>D = the individual dimension of the operation 
    *         (e.g. pitch or time).</li>
-   * <li>X = its operand (which defaults to 1).</li>
+   * <li>X = the operand (which defaults to 1).</li>
    * </ul>
    *
    * Of course, some operations apply in all ranks, dimensions, and 
-   * equivalence classes; other operations, only to one class.
-   *
-   * The turtle may write either notes, chords, or voicings into the score.
-   * When a chord is written, it is voiced by first transposing it to the pitch
-   * of the turtle state, and then permuting it octavewise by the voicing number
-   * modulo the range; or, it is voice-led from its predecessor.
-   * When a voicing is written, that means that all notes in the score beginning
-   * at that time, until the next voicing, are conformed to its pitch-class set,
-   * or to its pitch-class set and voicing.
+   * equivalence classes; other operations, only to one dimension 
+   * or one class.
    *
    * Commands are as follows (if ommitted, x defaults to 1; x is a real scalar; 
-   * for chords, v is a real vector x1,..,xn or a jazz-style chord name):
+   * for chords, v is a real vector "(x1,..,xn)" or a jazz-style chord name ("F#7b9")):
    * <ul> 
-   * <li> [    = Push the active turtle onto a stack (start a branch).</li>
-   * <li> ]    = Pop the active turtle from the stack (return to the branching point).</li>
-   * <li> Fx   = Move the turtle "forward" x steps along its current orientation:
-   *             N := N + (S * O) * x.</li>
-   * <li> oNdx = Apply algebraic operation o to turtle note dimension d with operand x:
-   *             N[d] := N[d] + S[d] o x.</li>
-   * <li> oSdx = Apply algebraic operation o to turtle step dimension d with operand x:
-   *             S[d] := S[d] o x.</li>
-   * <li> Rdex = Rotate the turtle orientation from dimension d to dimension e by angle x.</li>
-   * <li> Mx   = Set the modality of the turtle to x (e.g. "C Major").
-   * <li> oCx  = Set the turtle chord to x (e.g. "0,4,7").
-   * <li> ICx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
-   * <li> KC   = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
-   * <li> QCx  = Apply Neo-Riemannian contextual transposition by x pitch-classes 
-   *             (with reference to the turtle's modality) to the turtle chord.</li>
-   * <li> VC+  = Add a voice (doubling the root) to the turtle chord.</li>
-   * <li> VC-  = Remove a voice from the turtle chord.</li>
-   * <li> WN   = Write the turtle note to the score.</li>
-   * <li> WC   = Write the turtle chord to the score, voiced from there within the range.</li>
-   * <li> WCN  = Write the turtle chord to the score, transposed to the turtle note and voiced from there
-   *             within the range.</li>
+   * <li> [     = Push the active turtle onto a stack (start a branch).</li>
+   * <li> ]     = Pop the active turtle from the stack (return to the branching point).</li>
+   * <li> Fx    = Move the turtle "forward" x steps along its current orientation:
+   *              N := N + (S * O) * x.</li>
+   * <li> oNdEx = Apply algebraic operation o to turtle note dimension d with operand x:
+   *              N[d] := N[d] + S[d] o x.</li>
+   * <li> oSdEx = Apply algebraic operation o to turtle step dimension d with operand x:
+   *              S[d] := S[d] o x.</li>
+   * <li> Rdex  = Rotate the turtle orientation from dimension d to dimension e by angle x:</li>
+   *              R = makeRotation(d, e, x); O := R * O.</li>
+   * <li> Mx    = Set the modality of the turtle to x (e.g. "C Major").
+   * <li> oCEv  = Apply algebraic operation o to the turtle chord with operand x:
+   *              C := C o x (x may be a vector or chord name).</li>
+   * <li> oCEix = Apply algebraic operation o to voice i of the turtle chord with operand x:
+   *              C[i] := C[i] o x.</li>
+   * <li> ICOx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
+   * <li> KCO    = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
+   * <li> QCOx  = Apply Neo-Riemannian contextual transposition by x pitch-classes 
+   *              (with reference to the turtle's modality) to the turtle chord.</li>
+   * <li> VC+   = Add a voice (doubling the root) to the turtle chord.</li>
+   * <li> VC-   = Remove a voice from the turtle chord.</li>
+   * <li> WN    = Write the current turtle note to the score.</li>
+   * <li> WCV   = Write the current turtle chord with voicing V to the score.</li>
+   * <li> WCNV  = Write the current turtle chord with voicing V to the score, 
+   *              after first applying the turtle note to each voice in the chord.</li>
+   * <li> WCL   = Write the current turtle chord to the score, using the closest voice-leading
+   *              from the previous chord (if any).</li>
+   * <li> WCNL  = Write the current turtle chord to the score, after first applying the turtle
+   *              note to each voice in the chord, using the closest voice-leading from the
+   *              previous chord (if any).</li>
+   * <li> ACV   = Apply the current turtle chord with voicing V to the score, starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> ACNV  = Apply the current turtle chord with voicing V to the score, 
+   *              after first applying the turtle note to each voice in the chord, starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> ACL   = Apply the current turtle chord to the score, using the closest voice-leading
+   *              from the previous chord (if any), starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> ACNL  = Apply the current turtle chord to the score, after first applying the turtle
+   *              note to each voice in the chord, using the closest voice-leading from the
+   *              previous chord (if any), starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> A0    = End application of the previous A command.</li>
    * </ul>
    * Dimensions of notes:
-   * <ul>
+   * <ol>
    * <li>i = instrument.</li>
    * <li>t = time.</li>
    * <li>d = duration.</li>
@@ -142,7 +154,7 @@ namespace csound
    * <li>y = height.</li>
    * <li>z = depth.</li>
    * <li>s = pitch-class set as Mason number (deprecated here).</li>
-   * </ul>
+   * </ol>
    * Algebraic operations:
    * <ul>
    * <li>= = Assign.</li>
@@ -150,6 +162,12 @@ namespace csound
    * <li>- = Subtract.</li>
    * <li>* = Multiply.</li>
    * <li>/ = Divide.</li>
+   * </ul>
+   * Equivalence classes:
+   * <ul>
+   * <li>Blank = None.</li>
+   * <li>O = The octave (12).</li>
+   * <li>R = The range of the turtle.</li>
    * </ul>
    */
   class ChordLindenmayer :
