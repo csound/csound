@@ -49,14 +49,53 @@ namespace csound
 {
   /**
    * This class implements a Lindenmayer system that generates a score 
-   * by moving a turtle around in various implicit music spaces. 
+   * by moving a turtle around in various implicit music spaces.
+   * 
+   * The turtle consists of:
+   * <ul>
+   * <li> N, a note, i.e. a vector in score space.</li>
+   * <li> S, a step, i.e. an increment by which to move N 
+   *      (also a vector in score space).</li>
+   * <li> O, an orientation, i.e. a direction to move a note 
+   *      (also a  vector).</li>
+   * <li> C, a chord, i.e. a vector of voices in chord space;
+   *      if the turtle writes a chord into the score, 
+   *      the note is duplicated with each of the pitch-classes
+   *      in the chord.</li>
+   * <li> M, a modality used as a reference for neo-Riemannian 
+   *      operations upon chords (also a vector).</li>
+   * <li> V, a chord voicing, i.e. the index of the octavewise
+   *      permutation of C within a range.</li>
+   * <li> B, the bass of the range.</li>
+   * <li> R, the size of the range.</li>
+   * </ul>
    *
-   * The turtle consists of a note (a vector representing a point in score space); 
-   * a step (a vector representing an increment in score space); 
-   * an orientation (a vector representing a direction in score space); 
-   * a modality (a vector of pitch-class sets in chord space);
-   * a chord (a vector of pitch-class sets in chord space); a voicing number;
-   * and a range (bass and size).
+   * In accordance with both mathematical music theory and the practice 
+   * of composers, operations on elements of music take place in spaces
+   * whose geometry changes fluidly depending upon the musical context.
+   * A paradigmatic example is transposition, which may apply
+   * to individual notes, or to chords, or to larger parts of scores; 
+   * as an even more indicative example, transposition may apply 
+   * to pitch under octave equivalence (pitch-classes), to pitch under 
+   * range equivalence (transposition on a staff), or simply to pitch 
+   * as a real number.
+   *
+   * Consequently, the independent parts of an operation in this 
+   * Lindenmayer system are specified by commands in the format 
+   * OTEDX, where:
+   * <ul>
+   * <li>O = the operation proper (e.g. sum or product).</li> 
+   * <li>T = the target, or part of the turtle to which the
+   *         operation applies, and which has an implicit rank 
+   *         (e.g. note or chord).</li>
+   * <li>E = its equivalence class (e.g. octave or range).</li> 
+   * <li>D = the individual dimension of the operation 
+   *         (e.g. pitch or time).</li>
+   * <li>X = its operand (which defaults to 1).</li>
+   * </ul>
+   *
+   * Of course, some operations apply in all ranks, dimensions, and 
+   * equivalence classes; other operations, only to one class.
    *
    * The turtle may write either notes, chords, or voicings into the score.
    * When a chord is written, it is voiced by first transposing it to the pitch
@@ -66,20 +105,20 @@ namespace csound
    * at that time, until the next voicing, are conformed to its pitch-class set,
    * or to its pitch-class set and voicing.
    *
-   * Domains of operations: reals, octave equivalence, range equivalence.
-   * 
-   * Commands (if ommitted, x defaults to 1; x is a real scalar; 
-   * for chords, x may also be a real vector x1,..,xn or a jazz-style chord name):
+   * Commands are as follows (if ommitted, x defaults to 1; x is a real scalar; 
+   * for chords, v is a real vector x1,..,xn or a jazz-style chord name):
    * <ul> 
-   * <li> [    = Push the turtle state onto a stack (start a branch).</li>
-   * <li> ]    = Pop the turtle state from the stack (return to the branching point).</li>
-   * <li> Fx   = Move the turtle "forward" x steps along its current orientation.</li>
-   * <li> Tdox = Apply operation o to turtle note dimension d with operand x.</li>
-   * <li> Sdox = Apply operation o to turtle step dimension d with operand x.</li>
-   * <li> Vvox = Apply operation o to turtle chord voice v with operand x.</li>
+   * <li> [    = Push the active turtle onto a stack (start a branch).</li>
+   * <li> ]    = Pop the active turtle from the stack (return to the branching point).</li>
+   * <li> Fx   = Move the turtle "forward" x steps along its current orientation:
+   *             N := N + (S * O) * x.</li>
+   * <li> oNdx = Apply algebraic operation o to turtle note dimension d with operand x:
+   *             N[d] := N[d] + S[d] o x.</li>
+   * <li> oSdx = Apply algebraic operation o to turtle step dimension d with operand x:
+   *             S[d] := S[d] o x.</li>
    * <li> Rdex = Rotate the turtle orientation from dimension d to dimension e by angle x.</li>
-   * <li> MCx  = Set the modality of the turtle to x (e.g. "C Major").
-   * <li> CCx  = Set the turtle chord to x (e.g. "0,4,7").
+   * <li> Mx   = Set the modality of the turtle to x (e.g. "C Major").
+   * <li> oCx  = Set the turtle chord to x (e.g. "0,4,7").
    * <li> ICx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
    * <li> KC   = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
    * <li> QCx  = Apply Neo-Riemannian contextual transposition by x pitch-classes 
@@ -91,8 +130,8 @@ namespace csound
    * <li> WCN  = Write the turtle chord to the score, transposed to the turtle note and voiced from there
    *             within the range.</li>
    * </ul>
-   * Dimensions of score space (rotatable):
-   * <ol>
+   * Dimensions of notes:
+   * <ul>
    * <li>i = instrument.</li>
    * <li>t = time.</li>
    * <li>d = duration.</li>
@@ -103,20 +142,14 @@ namespace csound
    * <li>y = height.</li>
    * <li>z = depth.</li>
    * <li>s = pitch-class set as Mason number (deprecated here).</li>
-   * </ol>
-   * Additional "dimensions" for operations (not rotatable):
-   * <ol>
-   * <li>V = voicing (octavewise permutation of a chord modulo its range).</li>
-   * <li>B = base of range.</li>
-   * <li>R = size of range.</li>
-   * </ol>
-   * Operations:
+   * </ul>
+   * Algebraic operations:
    * <ul>
-   * <li> = Assign x to the dimension.</li>
-   * <li> + Add x to the value of the dimension.</li>
-   * <li> - Subtract x from the value of the dimension.</li>
-   * <li> * Multiply the value of the dimension by x.</li>
-   * <li> / Divide the value of the dimension by x.</li>
+   * <li>= = Assign.</li>
+   * <li>+ = Add.</li>
+   * <li>- = Subtract.</li>
+   * <li>* = Multiply.</li>
+   * <li>/ = Divide.</li>
    * </ul>
    */
   class ChordLindenmayer :
