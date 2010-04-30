@@ -20,21 +20,24 @@
 #ifndef SILENCE_H
 #define SILENCE_H
 
-/**
-* These are the declarations for the Silence framework,
-* in other words all the classes defined in the Silence library itself.
-* There must be one header file and one source file for each framework class.
-* <p>
-* SWIG is run on this file to generate wrappers for all Silence framework classes
-* in other languages, especially scripting languages such as Python,
-* Therefore, all framework headers must be included in this header,
-* and all framework headers must use #ifdef SWIG to declare
-* the module and make other SWIG declarations (see Node.h for an extensive example).
-* The order of declaration is important to SWIG!
-* <p>
-* It is also expected that doxygen will be used to generate documentation
-* from comments in the framework header files.
-*/
+/** \namespace csound
+ * The csound namespace contains classes for doing algorithmic composition, 
+ * and for rendering audio from algorithmically generated scores, 
+ * especially using Csound. 
+ *
+ * There should be one header file for each class declared in CsoundAC,
+ * and that header file should be #included in Silence.hpp.
+ * 
+ * SWIG is run on Silence.hpp to generate wrappers for all CsoundAC classes
+ * in other languages, especially scripting languages such as Python,
+ * Therefore, all framework headers must be included in this header,
+ * and all framework headers must use #ifdef SWIG to declare
+ * the module and make other SWIG declarations (see Node.h for an extensive example).
+ * The order of declaration is important to SWIG!
+ * 
+ * It is also expected that doxygen will be used to generate documentation
+ * from comments in the framework header files.
+ */
 #include "Platform.hpp"
 #ifdef SWIG
 %module CsoundAC
