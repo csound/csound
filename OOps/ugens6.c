@@ -360,7 +360,7 @@ int delayr(CSOUND *csound, DELAYR *p)
     }
     return OK;
  err1:
-      return csound->PerfError(csound, Str("delayr: not initialised"));
+    return csound->PerfError(csound, Str("delayr: not initialised"));
 }
 
 int delayw(CSOUND *csound, DELAYW *p)
@@ -767,13 +767,14 @@ int delay1(CSOUND *csound, DELAY1 *p)
     int         n, nsmps = csound->ksmps;
 
     ar = p->ar;
-    asig = p->asig - 1;
+    /* asig = p->asig - 1; */
+    asig = p->asig;
     ar[0] = p->sav1;
-    /* memmove(&ar[1], asig, sizeof(MYFLT)*(nsmps-1)); */
-    for (n = 1; n < nsmps; n++) {
-      ar[n] = asig[n];
-    }
-    p->sav1 = asig[n];
+    memmove(&ar[1], asig, sizeof(MYFLT)*(nsmps-1));
+    /* for (n = 1; n < nsmps; n++) { */
+    /*   ar[n] = asig[n]; */
+    /* } */
+    p->sav1 = asig[nsmps-1];
     return OK;
 }
 
@@ -815,7 +816,6 @@ int comb(CSOUND *csound, COMB *p)
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
-#ifdef __alpha__
       /*
        * The argument to exp() in the following is sometimes a small
        * enough negative number to result in a denormal (or worse)
@@ -827,9 +827,6 @@ int comb(CSOUND *csound, COMB *p)
         coef = p->coef = FL(0.0);
       else
         coef = p->coef = (MYFLT)exp(exp_arg);
-#else
-      coef = p->coef = (MYFLT)exp((double)(log001 * *p->ilpt / p->prvt));
-#endif
     }
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
@@ -1019,8 +1016,8 @@ int pan(CSOUND *csound, PAN *p)
     yndx_f = (*p->ky * p->xmul) - p->xoff;
     flen = ftp->flen;
     flend2 = (MYFLT)flen * FL(0.5);
-    xt = (MYFLT)fabs(xndx_f);
-    yt = (MYFLT)fabs(yndx_f);
+    xt = FABS(xndx_f);
+    yt = FABS(yndx_f);
     if (xt > flend2 || yt > flend2) {
       if (xt > yt)
         yndx_f *= (flend2 / xt);

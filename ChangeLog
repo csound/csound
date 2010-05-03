@@ -1,3 +1,7 @@
+2010-05-03  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens6.c (delay1): use memmove rather than a loop
+
 2010-04-25  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/uggab.c (lineto): Some changes -- seems better
