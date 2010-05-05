@@ -64,11 +64,11 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     irPtr = IR_Data;
     outBufPtr = outBuf;
     /* clear output buffer to zero */
-    /* memset(outBuf, 0, sizeof(MYFLT)*(partSize - 2)); */
-    do {
-      *(outBufPtr++) = FL(0.0);
-      *(outBufPtr++) = FL(0.0);
-    } while (outBufPtr <= outBufEndPm2);
+    memset(outBuf, 0, sizeof(MYFLT)*(partSize - 2));
+    /* do { */
+    /*   *(outBufPtr++) = FL(0.0); */
+    /*   *(outBufPtr++) = FL(0.0); */
+    /* } while (outBufPtr <= outBufEndPm2); */
     /* multiply FFTs for each partition, and mix to output buffer */
     /* note: IRs are stored in reverse partition order */
     do {
@@ -200,9 +200,9 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
     /* clear ring buffer to zero */
     n = (p->partSize << 1) * p->nPartitions;
-    /* memset(p->ringBuf, 0, n*sizeof(MYFLT)); */
-    for (i = 0; i < n; i++)
-      p->ringBuf[i] = FL(0.0);
+    memset(p->ringBuf, 0, n*sizeof(MYFLT));
+    /* for (i = 0; i < n; i++) */
+    /*   p->ringBuf[i] = FL(0.0); */
     /* initialise buffer index */
     p->cnt = 0;
     p->rbCnt = 0;
