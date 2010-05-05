@@ -56,7 +56,6 @@ void make_TwoZero(TwoZero *p)
 
 void TwoZero_setZeroCoeffs(TwoZero* p, MYFLT *coeffs)
 {
-    /* memcpy(p->zeroCoeffs, coeffs, 2*sizeof(MYFLT)); */
     p->zeroCoeffs[0] = coeffs[0];
     p->zeroCoeffs[1] = coeffs[1];
 }
