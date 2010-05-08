@@ -254,6 +254,7 @@ namespace csound
 	rangeSize = other.rangeSize;
 	voicing = other.voicing;
 	modality = other.modality;
+	return *this;
       }
       bool operator < (const Turtle &other) const
       {
