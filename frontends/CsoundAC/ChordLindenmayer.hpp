@@ -95,42 +95,50 @@ namespace csound
    * equivalence classes; other operations, only to one dimension 
    * or one class.
    *
-   * Commands are as follows (if ommitted, x defaults to 1; x is a real scalar; 
+   * Commands are as follows (if omitted, x defaults to 1; x is a real scalar; 
    * for chords, v is a real vector "(x1,..,xn)" or a jazz-style chord name ("F#7b9")):
    * <ul> 
    * <li> [     = Push the active turtle onto a stack (start a branch).</li>
    * <li> ]     = Pop the active turtle from the stack (return to the branching point).</li>
    * <li> Fx    = Move the turtle "forward" x steps along its current orientation:
    *              N := N + (S * O) * x.</li>
-   * <li> oNdEx = Apply algebraic operation o to turtle note dimension d with operand x:
-   *              N[d] := N[d] + S[d] o x.</li>
-   * <li> oSdEx = Apply algebraic operation o to turtle step dimension d with operand x:
-   *              S[d] := S[d] o x.</li>
-   * <li> Rdex  = Rotate the turtle orientation from dimension d to dimension e by angle x:</li>
+   * <li> ROdex = Rotate the turtle orientation from dimension d to dimension e by angle x:</li>
    *              R = makeRotation(d, e, x); O := R * O.</li>
-   * <li> Mx    = Set the modality of the turtle to x (e.g. "C Major").
-   * <li> oCEv  = Apply algebraic operation o to the turtle chord with operand x:
-   *              C := C o x (x may be a vector or chord name).</li>
+   * <li> oNEdx = Apply algebraic operation o to turtle note dimension d with operand x:
+   *              N[d] := N[d] + S[d] o x.</li>
+   * <li> oSEdx = Apply algebraic operation o to turtle step dimension d with operand x:
+   *              S[d] := S[d] o x.</li>
    * <li> oCEix = Apply algebraic operation o to voice i of the turtle chord with operand x:
    *              C[i] := C[i] o x.</li>
+   * <li> oCEv  = Apply algebraic operation o to the turtle chord with operand x:
+   *              C := C o x (x may be a vector or chord name).</li>
+   * <li> oMEv  = Apply algebraic operation o to the turtle chord with operand x:
+   *              C := C o x (x may be a vector or chord name).</li>
+   * <li> oVx =   Apply algebraic operation o to the voicing index of the turtle chord with operand x:
+   *              V := V o x. Of necessity the equivalence class is the range of the score.</li>
    * <li> ICOx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
-   * <li> KCO    = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
+   * <li> KCO   = Apply Neo-Riemannian inversion by exchange to the turtle chord.</li>
    * <li> QCOx  = Apply Neo-Riemannian contextual transposition by x pitch-classes 
    *              (with reference to the turtle's modality) to the turtle chord.</li>
    * <li> VC+   = Add a voice (doubling the root) to the turtle chord.</li>
    * <li> VC-   = Remove a voice from the turtle chord.</li>
    * <li> WN    = Write the current turtle note to the score.</li>
-   * <li> WCV   = Write the current turtle chord with voicing V to the score.</li>
-   * <li> WCNV  = Write the current turtle chord with voicing V to the score, 
+   * <li> WCV   = Write the current turtle chord and voicing to the score.</li>
+   * <li> WCNV  = Write the current turtle chord and voicing to the score, 
    *              after first applying the turtle note to each voice in the chord.</li>
    * <li> WCL   = Write the current turtle chord to the score, using the closest voice-leading
-   *              from the previous chord (if any).</li>
+   *              from the previous chord and voicing (if any).</li>
    * <li> WCNL  = Write the current turtle chord to the score, after first applying the turtle
    *              note to each voice in the chord, using the closest voice-leading from the
-   *              previous chord (if any).</li>
-   * <li> ACV   = Apply the current turtle chord with voicing V to the score, starting 
+   *              previous chord and voicing (if any).</li>
+   * <li> AC    = Apply the current turtle chord to the score, starting 
    *              at the current time and continuing to the next A command.</li>
-   * <li> ACNV  = Apply the current turtle chord with voicing V to the score, 
+   * <li> ACV   = Apply the current turtle chord and voicing to the score, starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> ACN   = Apply the current turtle chord to the score, 
+   *              after first applying the turtle note to each voice in the chord, starting 
+   *              at the current time and continuing to the next A command.</li>
+   * <li> ACNV  = Apply the current turtle chord and voicing to the score, 
    *              after first applying the turtle note to each voice in the chord, starting 
    *              at the current time and continuing to the next A command.</li>
    * <li> ACL   = Apply the current turtle chord to the score, using the closest voice-leading
@@ -165,7 +173,7 @@ namespace csound
    * </ul>
    * Equivalence classes:
    * <ul>
-   * <li>Blank = None.</li>
+   * <li>0 = None.</li>
    * <li>O = The octave (12).</li>
    * <li>R = The range of the turtle.</li>
    * </ul>
@@ -173,33 +181,6 @@ namespace csound
   class ChordLindenmayer :
     public ScoreNode
   {
-  protected:
-    struct Turtle
-    {
-      Event note;
-      Event step;
-      Event orientation;
-      std::vector<double> modality;
-      std::vector<double> chord;
-      int voicing;
-      double rangeBase;
-      double rangeSize;
-    };
-    int iterationCount;
-    double angle;
-    std::string axiom;
-    Turtle turtle;
-    std::map<std::string, std::string> rules;
-    std::stack<Turtle> turtleStack;
-    clock_t beganAt;
-    clock_t endedAt;
-    clock_t elapsed;
-    virtual void interpret(std::string command, bool render);
-    virtual int getDimension (char dimension) const;
-    virtual void rewrite();
-    virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
-    virtual void updateActual(Event &event);
-    virtual void initialize();
   public:
     ChordLindenmayer();
     virtual ~ChordLindenmayer();
@@ -211,8 +192,152 @@ namespace csound
     virtual void setAxiom(std::string axiom);
     virtual void addRule(std::string command, std::string replacement);
     virtual std::string getReplacement(std::string command);
+    /**
+     * Scores are generated as follows:
+     * <ol>
+     * <li> The initial value of the turtle is set by the Lindenmayer system.<\li>
+     * <li> The Lindenmayer system is rewritten by taking the axiom, parsing it into words,
+     *      and replacing each word with the product of a rewriting rule, if one exists, or itself,
+     *      if there is no rule. This procedure is iterated for a specified number of times.</li>
+     * <li> The finished, rewritten Lindenmayer system is interpreted as a series of commands for 
+     *      moving a turtle around in various music spaces to write a score.</li><ol>
+     * <li> Notes (N operations) are written directly into the score.</li>
+     * <li> Chords (C operations) are written into the score as notes.</li>
+     * <li> L and A operations are written into the score as voice-leading operations, 
+     *      to be applied after all notes have been generated.</li></ol>
+     * <li> Overlapping and directly abutting notes in the score are joined.</li>
+     * <li> The L and A operations are actually applied to the score.
+     * <li> Overlapping and abutting notes in the score are again joined.</li>
+     * </ol>
+     */
     virtual void generate();
     virtual void clear();
+  protected:
+    struct Turtle
+    {
+      Event note;
+      Event step;
+      Event orientation;
+      std::vector<double> chord;
+      double rangeBass;
+      double rangeSize;
+      double voicing;
+      std::vector<double> modality;
+      Turtle(){}
+      Turtle(const Turtle &other)
+      {
+	(*this) = other;
+      }
+      void initialize()
+      {
+	note = csound::Event();
+	step = csound::Event();
+	for(size_t i = 0; i < Event::HOMOGENEITY; i++)
+	  {
+	    step[i] = 1.0;
+	  }
+	orientation = csound::Event();
+	orientation[Event::TIME] = 1.0;
+	chord = Conversions::nameToPitches("CM9");
+	rangeBass = 36;
+	rangeSize = 60;
+	voicing = 0;
+	modality = Conversions::nameToPitches("C Major");
+      }
+      Turtle &operator = (const Turtle &other)
+      {
+	note = other.note;
+	step = other.step;
+	orientation = other.orientation;
+	chord = other.chord;
+	rangeBass = other.rangeBass;
+	rangeSize = other.rangeSize;
+	voicing = other.voicing;
+	modality = other.modality;
+      }
+      bool operator < (const Turtle &other) const
+      {
+	if (note < other.note) {
+	  return true;
+	} else if (other.note < note) {
+	  return false;
+	}
+	if (step < other.step) {
+	  return true;
+	} else if (other.step < step) {
+	  return false;
+	}
+	if (orientation < other.orientation) {
+	  return true;
+	} else if (other.orientation < orientation) {
+	  return false;
+	}
+	if (chord < other.chord) {
+	  return true;
+	} else if (other.chord < chord) {
+	  return false;
+	}
+	if (rangeBass < other.rangeBass) {
+	  return false;
+	} else if (other.rangeBass < rangeBass) {
+	  return true;
+	}
+	if (rangeSize < other.rangeSize) {
+	  return true;
+	} else if (other.rangeSize < rangeSize) {
+	  return false;
+	}
+	if (voicing < other.voicing) {
+	  return true;
+	} else if (other.voicing < voicing) {
+	  return false;
+	}
+	if (modality < other.modality) {
+	  return true;
+	}
+	return false;
+      }
+    };
+    struct Command
+    {
+      char operation;
+      char target;
+      char equivalence;
+      int dimension;
+      double x;
+      std::vector<double> v;
+    };
+    int iterationCount;
+    double angle;
+    std::string axiom;
+    std::string production;
+    Turtle turtle;
+    std::map<std::string, std::string> rules;
+    std::stack<Turtle> turtleStack;
+    clock_t beganAt;
+    clock_t endedAt;
+    clock_t elapsed;
+    virtual void initialize();
+    virtual void generateLindenmayerSystem();
+    virtual void writeScore();
+    virtual void tieOverlappingNotes();
+    virtual void applyVoiceleadingOperations();
+    virtual void interpret(std::string command);
+    virtual int getDimension (char dimension) const;
+    virtual char parseCommand(const std::string &command, 
+			      std::string &operation, 
+			      char &target, 
+			      char &equivalenceClass, 
+			      size_t dimension,
+			      size_t dimension1,
+			      double &scalar,
+			      std::vector<double> &vector);
+    virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
+    /**
+     * Returns the result of applying the equivalence class to the value,
+     * both in the argument and as the return value; there may be no effect.
+     */
+    virtual double equivalence(double &value, char equivalenceClass) const;
   };
 }
 #endif
