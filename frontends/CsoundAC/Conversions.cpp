@@ -391,8 +391,11 @@ namespace csound
     returnValue +=(((int) Source & 0xff00) >> 8);
     return (short) returnValue;
   }
-  bool Conversions::stringToBool(std::string value)
+  bool Conversions::stringToBool(std::string value, bool default_)
   {
+    if (value.empty()) {
+      return default_;
+    }
     switch(value[0])
       {
       case '1':
@@ -413,8 +416,11 @@ namespace csound
         return "False";
       }
   }
-  int Conversions::stringToInt(std::string value)
+  int Conversions::stringToInt(std::string value, int default_)
   {
+    if (value.empty()) {
+      return default_;
+    }
     return atoi(value.c_str());
   }
   std::string Conversions::intToString(int value)
@@ -423,8 +429,11 @@ namespace csound
     sprintf(buffer, "%d", value);
     return buffer;
   }
-  double Conversions::stringToDouble(std::string value)
+  double Conversions::stringToDouble(std::string value, double default_)
   {
+    if (value.empty()) {
+      return default_;
+    }
     return atof(value.c_str());
   }
   std::string Conversions::doubleToString(double value)
@@ -605,5 +614,18 @@ namespace csound
       factor = -1.0;
     }
     return std::exp( factor * std::log( 10.0 ) * gain / 20.0 ) * inputDb;
+  }
+  void Conversions::stringToVector(const std::string &text, std::vector<double> &vector)
+  {
+    vector.clear();
+    size_t index = 0;
+    for(;;) {
+      size_t nextIndex = text.find(",");
+      if (nextIndex == text.npos) {
+	break;
+      }
+      vector.push_back(std::atof(text.substr(index, nextIndex - index).c_str()));
+      index = nextIndex + 1;
+    }
   }
 }

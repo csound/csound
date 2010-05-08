@@ -114,12 +114,28 @@ namespace csound
     static double rightPan(double x);
     static int swapInt(int Source);
     static short swapShort(short Source);
-    static bool stringToBool(std::string value);
+    /**
+     * Translate the string value to a boolean value, 
+     * returning the default if the string value is empty.
+     */
+    static bool stringToBool(std::string value, bool default_=false);
     static std::string boolToString(bool value);
-    static int stringToInt(std::string value);
+    /**
+     * Translate the string value to an integer value, 
+     * returning the default if the string value is empty.
+     */
+    static int stringToInt(std::string value, int default_=0);
     static std::string intToString(int value);
-    static double stringToDouble(std::string value);
+    /**
+     * Translate the string value to a double-precision value, 
+     * returning the default if the string value is empty.
+     */
+    static double stringToDouble(std::string value, double default_=0.0);
     static std::string doubleToString(double value);
+    /**
+     * Parses text in the format "n,..,n" to a vector of doubles.
+     */
+    static void stringToVector(const std::string &text, std::vector<double> &vector);
     static double midiToPitchClass(double midiKey);
     static double pitchClassSetToMidi(double pitchClassSet);
     static double midiToPitchClassSet(double midiKey);
