@@ -779,7 +779,7 @@ static int looptseg(CSOUND *csound, LOOPTSEG *p)
         MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
         MYFLT v1 = *(p->argums[j].start);
         MYFLT v2 = *(p->argums[j+1].start);
-        if (alpha==FL(0.0)) 
+        if (alpha==FL(0.0))
           *p->out = v1 + (v2 - v1) * fract;
         else
           *p->out = v1 +

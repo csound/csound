@@ -2102,7 +2102,7 @@ char argtyp(CSOUND *csound, char *s)
       return('S');                              /* quoted String */
     ST(lgprevdef) = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
-        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 || 
+        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
       return('r');                              /* rsvd */
     if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */
