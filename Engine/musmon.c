@@ -307,7 +307,7 @@ int musmon(CSOUND *csound)
       if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r"))))
         csoundDie(csound, Str("cannot reopen cscore.out"));
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
-      /* write to cscore.srt */ 
+      /* write to cscore.srt */
      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);

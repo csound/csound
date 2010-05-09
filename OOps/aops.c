@@ -130,16 +130,16 @@ int mainit(CSOUND *csound, ASSIGNM *p)
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
     for (i=0; i<nargs; i++) {
       aa = *p->a[i];
-      MYFLT *r =p->r[i]; 
+      MYFLT *r =p->r[i];
       for (n = 0; n < nsmps; n++)
         r[n] = aa;
     }
     for (; i<p->OUTOCOUNT; i++) {
-      MYFLT *r =p->r[i]; 
+      MYFLT *r =p->r[i];
       for (n = 0; n < nsmps; n++)
         r[n] = aa;
     }
-    
+
     return OK;
 }
 

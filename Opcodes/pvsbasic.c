@@ -1445,13 +1445,13 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-  
+
 
     if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
                   (p->fout->format == PVS_AMP_PHASE)))
       return csound->InitError(csound, Str("pvslock: signal format "
                                            "must be amp-phase or amp-freq."));
-      
+
     return OK;
 }
 
@@ -1464,7 +1464,7 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
     fin = (float *) p->fin->frame.auxp;
     framesize = N + 2;
     if (p->lastframe < p->fin->framecount) {
-    
+
     for (i = 0; i < framesize; i += 2) {
 
       mag += fin[i];
@@ -1489,9 +1489,9 @@ static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
       } else {
         fout[i] = fin[i];
         fout[i+1] = fin[i+1];
-      } 
+      }
       fout[i] =fin[i]; fout[i+1] = fin[i+1];
-   
+
      }
      mag /= N;
      diff = 20.0f*log10f(mag/cmag);

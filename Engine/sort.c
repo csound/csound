@@ -21,12 +21,12 @@
     02111-1307 USA
 */
 
-/* the smoothsort is from the Web 
+/* the smoothsort is from the Web
 http://en.wikibooks.org/wiki/Algorithm_Implementation/Sorting/Smoothsort
 recovered march 2010
 Adapted from Delphi implementation of Dijkstra's algorithm.
 */
- 
+
 #include "csoundCore.h"                         /*   SORT.C  */
 
 inline int ordering(SRTBLK *a, SRTBLK *b)
@@ -49,11 +49,11 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
     /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
     return ans;
 }
- 
+
 #define UP(IA,IB)   {temp=IA; IA+=(IB)+1;     IB=temp;}
 #define DOWN(IA,IB) {temp=IB; IB=(IA)-(IB)-1; IA=temp;}
 
-/* These need to be encapsulated */ 
+/* These need to be encapsulated */
 #define q  (data[0])
 #define r  (data[1])
 #define p  (data[2])
@@ -84,7 +84,7 @@ void inline sift(SRTBLK *A[], int data[])
     }
     if (UNLIKELY(r1 != r0)) A[r1] = T;
 }
- 
+
 void inline trinkle(SRTBLK *A[], int data[])
 {
     int p1,r2,r3, r0, temp;
@@ -127,7 +127,7 @@ void inline trinkle(SRTBLK *A[], int data[])
     if (r0-r1) A[r1] = T;
     sift(A, data);
 }
- 
+
 void inline semitrinkle(SRTBLK *A[], int data[])
 {
     SRTBLK * T;
@@ -137,12 +137,12 @@ void inline semitrinkle(SRTBLK *A[], int data[])
       trinkle(A, data);
     }
 }
- 
+
 void smoothsort(SRTBLK *A[], const int N)
 {
     int temp;
     int data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
- 
+
     /* building tree */
     while (q < N) {
       r1 = r;
@@ -167,7 +167,7 @@ void smoothsort(SRTBLK *A[], const int N)
       q++; r++;
     }
     r1 = r; trinkle(A, data);
- 
+
     /* building sorted array */
     while (q > 1) {
       q--;
@@ -244,4 +244,4 @@ void sort(CSOUND *csound)
     bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
     /* and return temporary space */
     free(A);
-} 
+}

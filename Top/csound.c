@@ -1532,7 +1532,7 @@ extern "C" {
 
   PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample)
   {
-   
+
     int index = (frame * csound->nchnls) + channel;
     csound->spin[index] += sample;
   }
