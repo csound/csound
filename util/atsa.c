@@ -751,7 +751,7 @@ static double frq2bark(double frq, double *edges)
     band = find_band(frq, edges);
     lo_frq = edges[band];
     hi_frq = edges[band + 1];
-    return (1 + band + fabs(log10(frq / lo_frq) / log10(lo_frq / hi_frq)));
+    return (1.0 + band + fabs(log10(frq / lo_frq) / log10(lo_frq / hi_frq)));
 }
 
 /* find_band
