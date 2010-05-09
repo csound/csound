@@ -97,7 +97,7 @@ int             closedir(DIR*);
 #if defined(WIN32)
 #  include <io.h>
 #  include <direct.h>
-#elif defined (OLD_MACH_CODE) 
+#elif defined (OLD_MACH_CODE)
 #  define ERR_STR_LEN 255
 #  include <mach-o/dyld.h>
 #endif
@@ -926,7 +926,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) dlsym(library, procedureName);
 }
 
-#elif defined (OLD_MACH_CODE) 
+#elif defined (OLD_MACH_CODE)
 
 /* Set and get the error string for use by dlerror */
 static const char *error(int setget, const char *str, ...)

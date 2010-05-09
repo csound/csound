@@ -166,7 +166,7 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
       p1 = (p1 == del1size-1 ? 0 : p1 + 1);
       p2 = (p2 == iirdelsize-1 ? 0 : p2 + 1);
     }
-   
+
     p->dp1 = p1; p->dp2 = p2;
      return OK;
 }

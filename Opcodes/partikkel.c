@@ -576,7 +576,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         if (p->grainphase >= 1.0) {
             double offset;
 
-            do 
+            do
                 p->grainphase -= 1.0;
             while (p->grainphase >= 1.0);
             /* schedule new synchronous or synced grain */
@@ -597,11 +597,11 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
              * avoid accidentally filling grain pool with grains which will
              * spawn in half a day */
             if (grainfreq < FL(0.001))
-                offset = 0; 
+                offset = 0;
             else if ((offset - p->grainphase)/grainfreq > 10.)
                 offset = 10.;
             else
-                offset = (offset - p->grainphase)/grainfreq; 
+                offset = (offset - p->grainphase)/grainfreq;
             /* prepare actual grain creation */
             /* check if there are any grains left in the pool */
             if (!p->gpool.free_nodes) {
