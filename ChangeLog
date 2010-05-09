@@ -1,3 +1,7 @@
+2010-05-09  john ffitch  <jpff@codemist.co.uk>
+
+	* install.py: Added atsa to binaries
+
 2010-05-03  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens6.c (delay1): use memmove rather than a loop
