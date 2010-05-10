@@ -27,6 +27,7 @@
 */
 
 #include "csdl.h"
+#include <math.h>
 
 const int MAX_PFACTOR = 16;
 const int MAX_PRIMES = 1229;
@@ -252,9 +253,10 @@ int tablefilter (CSOUND *csound, TABFILT *p)
        * csoundFTFindP() for perf time. csoundFTFind() for init time.
        */
       if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
-        return csound->PerfError(csound,
-                                 Str("Farey: Destination dft table %.2f not found."),
-                                 *p->dft);
+        return
+          csound->PerfError(csound,
+                            Str("Farey: Destination dft table %.2f not found."),
+                            *p->dft);
       }
       /* Table number is valid.
        * Save the integer version of the table number for future reference.*/
