@@ -1,3 +1,10 @@
+2010-05-10  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/fareygen.c:
+	* Opcodes/fareyseq.c: New code
+
+	* SConstruct: Added farey sequence GEN and opcodes
+
 2010-05-09  john ffitch  <jpff@codemist.co.uk>
 
 	* install.py: Added atsa to binaries

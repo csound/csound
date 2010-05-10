@@ -1602,6 +1602,7 @@ makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 if not buildOLPC:
   makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+  makePlugin(pluginEnvironment, 'fareytab', ['Opcodes/fareygen.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
 makePlugin(pluginEnvironment, 'modal4',
@@ -1634,11 +1635,11 @@ if sys.byteorder == 'big':
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 if not buildOLPC:
   makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
+  makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
+  makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
 makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
-if not buildOLPC:
-  makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])

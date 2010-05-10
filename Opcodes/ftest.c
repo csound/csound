@@ -1,5 +1,5 @@
 /*
-    sndwarp.c:
+    ftest.c:
 
     Copyright (C) 2004,2008 John ffitch, Victor Lazzarini
 
