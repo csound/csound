@@ -22,6 +22,7 @@
 */
 
 #include "csdl.h"
+#include <math.h>
 
 static const int MAX_PFACTOR = 16;
 static const int MAX_PRIMES = 168; /* 168 primes < 1000 */
@@ -108,17 +109,19 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     MYFLT   *fp = ftp->ftable, *pp, *pp2; 
     CSOUND  *csound = ff->csound;
     RATIO *flist;
+
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
       return fterror(ff, Str("insufficient arguments for fareytable"));
     }
+    ff->e.p[4] = -1;
     pp = &(ff->e.p[5]);
     fareyseq = (int) *pp;
     pp2 = &(ff->e.p[6]);
     mode = (int) *pp2;
     farey_length = FareyLength (fareyseq);
-    flist = (RATIO*) csound->Calloc(csound, farey_length*sizeof(RATIO)); 
+    flist = (RATIO*) calloc(farey_length, sizeof(RATIO)); 
     
     GenerateFarey (fareyseq, flist, farey_length);
 
@@ -132,7 +135,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       break;
     case 1: /* output delta values of successive elements of F_n */
       {
-        MYFLT last = 0.;
+        MYFLT last = FL(0.0);
         int i = 1;
         for (j = 0; j < nvals; j++, i++) {
           if (i < farey_length) {
@@ -143,7 +146,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
         }
         break;
       }
-    case 2: /* output only the denominators of the integer ratios*/
+    case 2: /* output only the denominators of the integer ratios */
       for (j = 0; j < nvals; j++) {
         if (j < farey_length) 
           fp[j] = (MYFLT) flist[j].q;
@@ -160,37 +163,40 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       }
     case 4: /* output float elements of F_n + 1 for tuning tables*/
       for (j = 0; j < nvals; j++) {
-        if (link && j < farey_length) 
+        if (/* link && */ j < farey_length) 
           fp[j] = FL(1.0) + (MYFLT) flist[j].p / (MYFLT) flist[j].q;
       }
       break;
     }
-    csound->Free(csound, flist);
+    free(flist);
     return OK;
 }
 
-/* utility functions for GEN54. See the comments above. */
+/* utility functions. See the comments above. */
 static int EulerPhi (int n)
 {
     int i;
     PFACTOR p[MAX_PFACTOR];
-    for (i=0; i < MAX_PFACTOR; i++) {
-	p[i].expon = 0; 
-	p[i].base = 0;
-    }
+    int pcount;
+    MYFLT result;
 
     if (n == 1)
 	return 1;
     if (n == 0)
 	return 0;
-    int pcount = PrimeFactors (n, p);
+    memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
+    /* for (i=0; i < MAX_PFACTOR; i++) { */
+    /*     p[i].expon = 0;  */
+    /*     p[i].base = 0; */
+    /* } */
+    pcount = PrimeFactors (n, p);
     
-    MYFLT result = (MYFLT) n;
+    result = (MYFLT) n;
     for (i = 0; i < MAX_PFACTOR; i++) {
 	int q = p[i].base;
 	if (!q) 
 	    break;
-	result *= ((MYFLT) 1 - (MYFLT) 1 / (MYFLT) q);
+	result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
     }
     return (int) result;
 }
