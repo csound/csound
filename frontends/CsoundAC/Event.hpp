@@ -122,6 +122,7 @@ namespace csound
     virtual double getDuration() const;
     virtual void setDuration(double duration);
     virtual double getOffTime() const;
+    virtual void setOffTime(double offTime);
     virtual int getKeyNumber() const;
     virtual double getKey() const;
     virtual double getKey(double tonesPerOctave) const;

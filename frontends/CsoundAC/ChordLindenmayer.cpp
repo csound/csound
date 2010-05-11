@@ -20,6 +20,7 @@
 #include "CppSound.hpp"
 #include "ChordLindenmayer.hpp"
 #include "Event.hpp"
+#include "Score.hpp"
 #include "Voicelead.hpp"
 #include <cstring>
 #include <iostream>
@@ -71,6 +72,7 @@ namespace csound
     while(!turtleStack.empty()) {
       turtleStack.pop();
     }
+    score.clear();
   }
   
   void ChordLindenmayer::generateLindenmayerSystem()
@@ -114,10 +116,35 @@ namespace csound
   
   void ChordLindenmayer::tieOverlappingNotes()
   {
+    // If the score contains two notes of the same pitch
+    // and loudness greater than 0 that overlap in time,
+    // extend the earlier note and discard the later note.
+    // Retain the instrument number of the earlier note.
+    score.sort();
+    for (size_t laterI = score.size() - 1; laterI >= 0; --laterI) {
+      Event &laterEvent = score[laterI];
+      for (size_t earlierI = laterI - 1; earlierI >= 0; --earlierI) {
+	Event &earlierEvent = score[earlierI];
+	if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
+	  continue;
+	}
+	if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
+	  continue;
+	}
+	if (earlierEvent.getOffTime() < laterEvent.getTime()) {
+	  continue;
+	}
+	// Ok, must be tied.
+	earlierEvent.setOffTime(laterEvent.getOffTime());
+	score.erase(score.begin() + laterI);
+      }
+      laterI = score.size() - 1;
+    }
   }
   
   void ChordLindenmayer::applyVoiceleadingOperations()
   {
+    transform(score, false);
   }
 
   double ChordLindenmayer::equivalence(double &value, char equivalenceClass) const
@@ -159,8 +186,6 @@ namespace csound
    * WN  
    * WCV 
    * WCNV 
-   * WCL 
-   * WCNL
    * AC   
    * ACV  
    * ACN  
@@ -623,22 +648,64 @@ namespace csound
 	  } else if (operation == "WN") {
 	    score.append(turtle.note);
 	  } else if (operation == "WCV") {
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
+						 ptv[1], 
+						 turtle.voicing,
+						 turtle.rangeBass,
+						 turtle.rangeBass + turtle.rangeSize);
+	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
+	      Event event = turtle.note;
+	      event.setKey(turtle.chord[i]);
+	      score.append(event);
+	    }
 	  } else if (operation == "WCNV") {
-	  } else if (operation == "WCL") {
-	    // Work back in time from the chord to be written,
-	    // until enough distinct pitches have been found to match its arity;
-	    // then write the closest voice-leading of the chord to the score.
-	  } else if (operation == "WCNL") {
-	    // Work back in time from the chord to be written,
-	    // until enough distinct pitches have been found to match its arity;
-	    // then write the closest voice-leading of the chord to the score.
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
+						 ptv[1], 
+						 turtle.voicing,
+						 turtle.rangeBass,
+						 turtle.rangeBass + turtle.rangeSize);
+	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
+	      Event event = turtle.note;
+	      event.setKey(turtle.chord[i]);
+	      score.append(event);
+	    }
+	    //	  } else if (operation == "WCL") {
+	    //    } else if (operation == "WCNL") {
 	  } else if (operation == "AC") {
-	  } else if (operation == "ACV") {
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
+	    //    } else if (operation == "ACV") {
 	  } else if (operation == "ACN") {
-	  } else if (operation == "ACNV") {
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
+	    //    } else if (operation == "ACNV") {
 	  } else if (operation == "ACL") {
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
 	  } else if (operation == "ACNL") {
+	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
+							    turtle.rangeBass, 
+							    turtle.rangeBass + turtle.rangeSize);
+	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
 	  } else if (operation == "A0") {
+	    // Creates an uninitialized operation, which does nothing, 
+	    // thus ending the prior operation.
+	    operations[turtle.note.getTime()].beginTime = turtle.note.getTime();
 	  }
 	}
       }
@@ -712,6 +779,24 @@ namespace csound
     rules.clear();
     while(!turtleStack.empty()) {
       turtleStack.pop();
+    }
+    score.clear();
+  }
+
+  void ChordLindenmayer::produceOrTransform(Score &collectingScore, 
+					    size_t beginAt, 
+					    size_t endAt, 
+					    const boost::numeric::ublas::matrix<double> &compositeCoordinates)
+  {
+    // Begin at the end of the score generated so far.
+    size_t collectingScoreI = collectingScore.size();
+    // Allocate all new notes at once.
+    collectingScore.resize(collectingScore.size() + score.size());
+    for (size_t scoreI = 0, collectingScoreN = collectingScore.size(); 
+	 collectingScoreI < collectingScoreN; 
+	 ++scoreI, ++collectingScoreI) {
+      collectingScore[collectingScoreI] = boost::numeric::ublas::prod(compositeCoordinates, 
+								      score[scoreI]);
     }
   }
 }
