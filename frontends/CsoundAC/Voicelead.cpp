@@ -770,10 +770,14 @@ namespace csound
     return result;
   }
 
-  bool Voicelead::addOctave(const std::vector<double> &lowestVoicing, std::vector<double> &newVoicing, size_t maximumPitch, size_t divisionsPerOctave)
+  bool Voicelead::addOctave(const std::vector<double> 
+			    &lowestVoicing, 
+			    std::vector<double> &newVoicing, 
+			    size_t maximumPitch, 
+			    size_t divisionsPerOctave)
   {
     for (size_t voice = 0, voices = lowestVoicing.size(); voice < voices; voice++) {
-      double newPitch = newVoicing[voice] + double(divisionsPerOctave);
+      double newPitch = newVoicing[voice] + 12.0;
       if (newPitch >= maximumPitch) {
         newVoicing[voice] = lowestVoicing[voice];
       } else {
@@ -813,22 +817,22 @@ namespace csound
     std::vector<double> zeroVoicing = normalChord(pAndTtoPitchClassSet(P, T, divisionsPerOctave));
     while (zeroVoicing[0] < lowestPitch) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
-        zeroVoicing[i] += double(divisionsPerOctave);
+        zeroVoicing[i] += 12.0;
       }
     }
     while (zeroVoicing[0] >= (lowestPitch + double(divisionsPerOctave))) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
-        zeroVoicing[i] -= double(divisionsPerOctave);
+        zeroVoicing[i] -= 12.0;
       }
     }
     std::vector<double> zeroVoicing_ = sort(zeroVoicing);
     std::vector<double> zeroIterator = pcs(zeroVoicing, divisionsPerOctave);
     for(size_t i = 0, n = zeroIterator.size(); i < n; i++) {
       while (zeroIterator[i] < lowestPitch) {
-        zeroIterator[i] += double(divisionsPerOctave);
+        zeroIterator[i] += 12.0;
       }
       while (zeroIterator[i] >= (lowestPitch + double(divisionsPerOctave))) {
-        zeroIterator[i] -= double(divisionsPerOctave);
+        zeroIterator[i] -= 12.0;
       }
     }
     size_t zeroVoicingEnumeration = 0;
@@ -870,22 +874,22 @@ namespace csound
     std::vector<double> zeroVoicing = normalChord(chord_);
     while (zeroVoicing[0] < lowestPitch) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
-        zeroVoicing[i] += double(divisionsPerOctave);
+        zeroVoicing[i] += 12.0;
       }
     }
     while (zeroVoicing[0] >= (lowestPitch + double(divisionsPerOctave))) {
       for (size_t i = 0, n = zeroVoicing.size(); i < n; i++) {
-        zeroVoicing[i] -= double(divisionsPerOctave);
+        zeroVoicing[i] -= 12.0;
       }
     }
     std::vector<double> zeroVoicing_ = sort(zeroVoicing);
     std::vector<double> zeroIterator = pcs(zeroVoicing, divisionsPerOctave);
     for(size_t i = 0, n = zeroIterator.size(); i < n; i++) {
       while (zeroIterator[i] < lowestPitch) {
-        zeroIterator[i] += double(divisionsPerOctave);
+        zeroIterator[i] += 12.0;
       }
       while (zeroIterator[i] >= (lowestPitch + double(divisionsPerOctave))) {
-        zeroIterator[i] -= double(divisionsPerOctave);
+        zeroIterator[i] -= 12.0;
       }
     }
     size_t zeroVoicingEnumeration = 0;
