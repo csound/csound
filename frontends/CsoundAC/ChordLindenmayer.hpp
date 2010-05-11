@@ -126,19 +126,9 @@ namespace csound
    * <li> WCV   = Write the current turtle chord and voicing to the score.</li>
    * <li> WCNV  = Write the current turtle chord and voicing to the score, 
    *              after first applying the turtle note to each voice in the chord.</li>
-   * <li> WCL   = Write the current turtle chord to the score, using the closest voice-leading
-   *              from the previous chord and voicing (if any).</li>
-   * <li> WCNL  = Write the current turtle chord to the score, after first applying the turtle
-   *              note to each voice in the chord, using the closest voice-leading from the
-   *              previous chord and voicing (if any).</li>
    * <li> AC    = Apply the current turtle chord to the score, starting 
    *              at the current time and continuing to the next A command.</li>
-   * <li> ACV   = Apply the current turtle chord and voicing to the score, starting 
-   *              at the current time and continuing to the next A command.</li>
    * <li> ACN   = Apply the current turtle chord to the score, 
-   *              after first applying the turtle note to each voice in the chord, starting 
-   *              at the current time and continuing to the next A command.</li>
-   * <li> ACNV  = Apply the current turtle chord and voicing to the score, 
    *              after first applying the turtle note to each voice in the chord, starting 
    *              at the current time and continuing to the next A command.</li>
    * <li> ACL   = Apply the current turtle chord to the score, using the closest voice-leading
@@ -179,7 +169,7 @@ namespace csound
    * </ul>
    */
   class ChordLindenmayer :
-    public ScoreNode
+    public VoiceleadingNode
   {
   public:
     ChordLindenmayer();
@@ -308,6 +298,7 @@ namespace csound
       double x;
       std::vector<double> v;
     };
+    Score score;
     int iterationCount;
     double angle;
     std::string axiom;
@@ -339,6 +330,11 @@ namespace csound
      * both in the argument and as the return value; there may be no effect.
      */
     virtual double equivalence(double &value, char equivalenceClass) const;
+    virtual void produceOrTransform(Score &score,
+                                    size_t beginAt,
+                                    size_t endAt,
+                                    const ublas::matrix<double> &compositeCordinates);
+    
   };
 }
 #endif

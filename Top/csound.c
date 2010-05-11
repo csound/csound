@@ -2382,6 +2382,7 @@ extern "C" {
       /* delete temporary files created by this Csound instance */
       remove_tmpfiles(csound);
       rlsmemfiles(csound);
+      memRESET(csound);
       /**
        * Copy everything EXCEPT the function pointers.
        * We do it by saving them and copying them back again...
@@ -2403,7 +2404,6 @@ extern "C" {
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
 
-      memRESET(csound);       /* this one should be called last */
   }
 
   PUBLIC int csoundGetDebug(CSOUND *csound)

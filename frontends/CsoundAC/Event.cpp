@@ -248,6 +248,11 @@ namespace csound
         return (*this)[TIME] + (*this)[DURATION];
       }
   }
+  
+  void Event::setOffTime(double offTime) 
+  {
+    setDuration(offTime - getTime());
+  }
 
   int Event::getKeyNumber() const
   {
