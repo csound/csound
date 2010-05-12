@@ -61,6 +61,30 @@ static int FareyLength (int n);
 static int PrimeFactors (int n, PFACTOR p[]);
 static void GenerateFarey (int n, RATIO flist[], int size);
 
+static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
+{
+    CSOUND  *csound = ff->csound;
+    char    buf[64];
+    va_list args;
+
+    sprintf(buf, Str("ftable %d: "), ff->fno);
+    va_start(args, s);
+    csound->ErrMsgV(csound, buf, s, args);
+    va_end(args);
+    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
+                            ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
+    if (ff->e.p[4] == SSTRCOD)
+      csound->Message(csound, "%s", ff->e.strarg);
+    else
+      csound->Message(csound, "%8.2f", ff->e.p[4]);
+    if (ff->e.p[5] == SSTRCOD)
+      csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
+    else
+      csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
+
+    return -1;
+}
+
 static int fareytable (FGDATA *ff, FUNC *ftp)
 {
     /*
@@ -163,7 +187,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       }
     case 4: /* output float elements of F_n + 1 for tuning tables*/
       for (j = 0; j < nvals; j++) {
-        if (/* link && */ j < farey_length) 
+        if (j < farey_length) 
           fp[j] = FL(1.0) + (MYFLT) flist[j].p / (MYFLT) flist[j].q;
       }
       break;
