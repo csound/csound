@@ -84,6 +84,7 @@
 #include "Soundfile.hpp"
 #include "Voicelead.hpp"
 #include "VoiceleadingNode.hpp"
+#include "ChordLindenmayer.hpp"
 
 #endif
 
