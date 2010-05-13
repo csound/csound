@@ -158,9 +158,8 @@ namespace csound
 	break;
       case 'R':
 	{
-	  value -= turtle.rangeBass;
+	  // the rangeBass will be applied only at the final stage.
 	  value = Conversions::modulus(value, turtle.rangeSize);
-	  value += turtle.rangeBass;
 	}
 	break;
       }
@@ -198,8 +197,8 @@ namespace csound
 				      std::string &operation, 
 				      char &target, 
 				      char &equivalenceClass, 
-				      size_t dimension,
-				      size_t dimension1,
+				      size_t &dimension,
+				      size_t &dimension1,
 				      double &scalar,
 				      std::vector<double> &vector)
   {
@@ -218,18 +217,20 @@ namespace csound
     if (o == ']') {
       operation = o;
     } else 
-    if (std::strpbrk(command_, "FM") == command) {
+    if (std::strpbrk(command_, "FM") == command_) {
       operation = o;
-      scalar = Conversions::stringToDouble(command.substr(1));
+      scalar = Conversions::stringToDouble(command.substr(2));
     } else 
     if (o == 'R') {
       operation = o;
       target = command[1];
       dimension = getDimension(command[2]);
       dimension1 = getDimension(command[3]);
-      scalar = Conversions::stringToDouble(command.substr(4));
+      if (command.length() > 4) {
+	scalar =  Conversions::stringToDouble(command.substr(4));
+      }
     } else
-    if (std::strpbrk(command_, "=+*/") == command) {
+    if (std::strpbrk(command_, "=+*/") == command_) {
       operation = o;
       target = command[1];
       if (target == 'V') {
@@ -241,18 +242,22 @@ namespace csound
 	// or on any individual voice of the chord.
 	equivalenceClass = command[2];
 	if (command[3] == '(') {
-	  Conversions::stringToVector(command.substr(4),vector);
+	  Conversions::stringToVector(command.substr(4), vector);
 	} else if (command[3] == '"') {
 	  std::string temp = command.substr(3);
 	  vector = Conversions::nameToPitches(Conversions::trimQuotes(temp));
 	} else {
 	  dimension = getDimension(command[3]);
-	  scalar = Conversions::stringToDouble(command.substr(4));
+	  if (command.length() > 4) {
+	    scalar =  Conversions::stringToDouble(command.substr(4));
+	  }
 	}
       } else {
 	equivalenceClass = command[2];
 	dimension = getDimension(command[3]);
-	scalar =  Conversions::stringToDouble(command.substr(4));		     
+	if (command.length() > 4) {
+	  scalar =  Conversions::stringToDouble(command.substr(4));
+	}
       }
     } else
     if (o == 'I') {
@@ -642,9 +647,15 @@ namespace csound
 	  if        (operation == "VC+") {
 	    std::vector<double> temp = turtle.chord;
 	    std::sort(temp.begin(), temp.end());
-	    turtle.chord.push_back(temp.front());
+	    if (turtle.chord.size()){
+	      turtle.chord.push_back(temp.front());
+	    } else {
+	      turtle.chord.push_back(0.0);
+	    }
 	  } else if (operation == "VC-") {
-	    turtle.chord.resize(turtle.chord.size() - 1);
+	    if (turtle.chord.size() > 0) {
+	      turtle.chord.resize(turtle.chord.size() - 1);
+	    }
 	  } else if (operation == "WN") {
 	    score.append(turtle.note);
 	  } else if (operation == "WCV") {
