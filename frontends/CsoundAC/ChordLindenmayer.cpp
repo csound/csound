@@ -265,6 +265,11 @@ namespace csound
       target = command[1];
       scalar = Conversions::stringToDouble(command.substr(2));
     } else
+    if (o == 'T') {
+      operation = o;
+      target = command[1];
+      scalar = Conversions::stringToDouble(command.substr(2));
+    } else
     if (o == 'K') {
       operation = o;
       target = command[1];
@@ -625,6 +630,11 @@ namespace csound
 	{
 	  boost::numeric::ublas::matrix<double> rotation = createRotation(dimension, dimension1, scalar);
 	  turtle.orientation = boost::numeric::ublas::prod(rotation, turtle.orientation);
+	}
+	break;
+      case 'T':
+	{
+	  turtle.chord = Voicelead::T(turtle.chord, scalar);
 	}
 	break;
       case 'I':
