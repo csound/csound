@@ -26,7 +26,14 @@
 %include "std_string.i"
 %include "std_vector.i"
 %{
-#include "Silence.hpp"
+#include "Conversions.hpp"
+#include "Event.hpp"
+#include "Score.hpp"
+#include "Node.hpp"
+#include "Voicelead.hpp"
+#include "VoiceleadingNode.hpp"
+#include "System.hpp"
+#include <sstream>
 #include <stack>
 #include <string>
 #include <map>
@@ -35,7 +42,14 @@
 #include <boost/numeric/ublas/matrix.hpp>
   %}
 #else
-#include "Silence.hpp"
+#include "Conversions.hpp"
+#include "Event.hpp"
+#include "Score.hpp"
+#include "Node.hpp"
+#include "Voicelead.hpp"
+#include "VoiceleadingNode.hpp"
+#include "System.hpp"
+#include <sstream>
 #include <stack>
 #include <string>
 #include <map>
@@ -47,6 +61,123 @@ using namespace boost::numeric;
 
 namespace csound
 {
+  extern void printChord(std::ostream &stream, std::string label, const std::vector<double> &chord);
+
+  struct Turtle
+  {
+    Event note;
+    Event step;
+    Event orientation;
+    std::vector<double> chord;
+    double rangeBass;
+    double rangeSize;
+    double voicing;
+    std::vector<double> modality;
+    Turtle()
+    {
+      initialize();
+    }
+    Turtle(const Turtle &other)
+    {
+      *this = other;
+    }
+    void initialize()
+    {
+      note = csound::Event();
+      step = csound::Event();
+      for(size_t i = 0; i < Event::HOMOGENEITY; i++)
+	{
+	  step[i] = 1.0;
+	}
+      orientation = csound::Event();
+      orientation[Event::TIME] = 1.0;
+      chord.clear();
+      modality.clear();
+      rangeBass = 36;
+      rangeSize = 60;
+      voicing = 0;
+      modality = Conversions::nameToPitches("C Major");
+    }
+    Turtle &operator = (const Turtle &other)
+    {
+      note = other.note;
+      step = other.step;
+      orientation = other.orientation;
+      chord = other.chord;
+      rangeBass = other.rangeBass;
+      rangeSize = other.rangeSize;
+      voicing = other.voicing;
+      modality = other.modality;
+      return *this;
+    }
+    bool operator < (const Turtle &other) const
+    {
+      if (note < other.note) {
+	return true;
+      } else if (other.note < note) {
+	return false;
+      }
+      if (step < other.step) {
+	return true;
+      } else if (other.step < step) {
+	return false;
+      }
+      if (orientation < other.orientation) {
+	return true;
+      } else if (other.orientation < orientation) {
+	return false;
+      }
+      if (chord < other.chord) {
+	return true;
+      } else if (other.chord < chord) {
+	return false;
+      }
+      if (rangeBass < other.rangeBass) {
+	return false;
+      } else if (other.rangeBass < rangeBass) {
+	return true;
+      }
+      if (rangeSize < other.rangeSize) {
+	return true;
+      } else if (other.rangeSize < rangeSize) {
+	return false;
+      }
+      if (voicing < other.voicing) {
+	return true;
+      } else if (other.voicing < voicing) {
+	return false;
+      }
+      if (modality < other.modality) {
+	return true;
+      }
+      return false;
+    }
+    virtual std::string __str__() const
+    {
+      std::stringstream stream;
+      stream << "Turtle:       " << std::endl;
+      stream << " note:        " << note.toString() << std::endl;
+      stream << " step:        " << step.toString() << std::endl;
+      stream << " orientation: " << orientation.toString() << std::endl;
+      printChord(stream, " chord:       ", chord);
+      stream << " rangeBass:   " << rangeBass << std::endl;
+      stream << " rangeSize:   " << rangeSize << std::endl;
+      stream << " voicing:     " << voicing << std::endl;
+      printChord(stream, " modality:    ", modality);
+      return stream.str();
+    }
+  };
+
+  struct Command
+  {
+    char operation;
+    char target;
+    char equivalence;
+    int dimension;
+    double x;
+    std::vector<double> v;
+  };
+
   /**
    * This class implements a Lindenmayer system that generates a score 
    * by moving a turtle around in various implicit music spaces.
@@ -88,14 +219,14 @@ namespace csound
    * <li>E = its equivalence class (e.g. octave or range).</li> 
    * <li>D = the individual dimension of the operation 
    *         (e.g. pitch or time).</li>
-   * <li>X = the operand (which defaults to 1).</li>
+   * <li>X = the operand.</li>
    * </ul>
    *
    * Of course, some operations apply in all ranks, dimensions, and 
    * equivalence classes; other operations, only to one dimension 
    * or one class.
    *
-   * Commands are as follows (if omitted, x defaults to 1; x is a real scalar; 
+   * Commands are as follows (x is a real scalar; 
    * for chords, v is a real vector "(x1,..,xn)" or a jazz-style chord name ("F#7b9")):
    * <ul> 
    * <li> [     = Push the active turtle onto a stack (start a branch).</li>
@@ -168,6 +299,7 @@ namespace csound
    * <li>R = The range of the turtle.</li>
    * </ul>
    */
+
   class ChordLindenmayer :
     public VoiceleadingNode
   {
@@ -202,102 +334,6 @@ namespace csound
      */
     virtual void generate();
     virtual void clear();
-  protected:
-    struct Turtle
-    {
-      Event note;
-      Event step;
-      Event orientation;
-      std::vector<double> chord;
-      double rangeBass;
-      double rangeSize;
-      double voicing;
-      std::vector<double> modality;
-      Turtle(){}
-      Turtle(const Turtle &other)
-      {
-	(*this) = other;
-      }
-      void initialize()
-      {
-	note = csound::Event();
-	step = csound::Event();
-	for(size_t i = 0; i < Event::HOMOGENEITY; i++)
-	  {
-	    step[i] = 1.0;
-	  }
-	orientation = csound::Event();
-	orientation[Event::TIME] = 1.0;
-	chord = Conversions::nameToPitches("CM9");
-	rangeBass = 36;
-	rangeSize = 60;
-	voicing = 0;
-	modality = Conversions::nameToPitches("C Major");
-      }
-      Turtle &operator = (const Turtle &other)
-      {
-	note = other.note;
-	step = other.step;
-	orientation = other.orientation;
-	chord = other.chord;
-	rangeBass = other.rangeBass;
-	rangeSize = other.rangeSize;
-	voicing = other.voicing;
-	modality = other.modality;
-	return *this;
-      }
-      bool operator < (const Turtle &other) const
-      {
-	if (note < other.note) {
-	  return true;
-	} else if (other.note < note) {
-	  return false;
-	}
-	if (step < other.step) {
-	  return true;
-	} else if (other.step < step) {
-	  return false;
-	}
-	if (orientation < other.orientation) {
-	  return true;
-	} else if (other.orientation < orientation) {
-	  return false;
-	}
-	if (chord < other.chord) {
-	  return true;
-	} else if (other.chord < chord) {
-	  return false;
-	}
-	if (rangeBass < other.rangeBass) {
-	  return false;
-	} else if (other.rangeBass < rangeBass) {
-	  return true;
-	}
-	if (rangeSize < other.rangeSize) {
-	  return true;
-	} else if (other.rangeSize < rangeSize) {
-	  return false;
-	}
-	if (voicing < other.voicing) {
-	  return true;
-	} else if (other.voicing < voicing) {
-	  return false;
-	}
-	if (modality < other.modality) {
-	  return true;
-	}
-	return false;
-      }
-    };
-    struct Command
-    {
-      char operation;
-      char target;
-      char equivalence;
-      int dimension;
-      double x;
-      std::vector<double> v;
-    };
     Score score;
     int iterationCount;
     double angle;
@@ -320,8 +356,8 @@ namespace csound
 			      std::string &operation, 
 			      char &target, 
 			      char &equivalenceClass, 
-			      size_t dimension,
-			      size_t dimension1,
+			      size_t &dimension,
+			      size_t &dimension1,
 			      double &scalar,
 			      std::vector<double> &vector);
     virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
