@@ -62,6 +62,7 @@ namespace csound
     generateLindenmayerSystem();
     writeScore();
     tieOverlappingNotes();
+    fixStatus();
     applyVoiceleadingOperations();
     tieOverlappingNotes();
   }
@@ -113,6 +114,15 @@ namespace csound
       interpret(command);
     }
   }
+
+  void ChordLindenmayer::fixStatus()
+  {
+    for(std::vector<Event>::iterator it = score.begin(); it != score.end(); ++it) {
+      if (it->getStatusNumber() == 0.0) {
+	it->setStatus(144.0);
+      }
+    }
+  }
   
   void ChordLindenmayer::tieOverlappingNotes()
   {
@@ -121,7 +131,7 @@ namespace csound
     // extend the earlier note and discard the later note.
     // Retain the instrument number of the earlier note.
     score.sort();
-    for (size_t laterI = score.size() - 1; laterI >= 0; --laterI) {
+    for (size_t laterI = score.size() - 1; laterI >= 1; --laterI) {
       Event &laterEvent = score[laterI];
       for (size_t earlierI = laterI - 1; earlierI >= 0; --earlierI) {
 	Event &earlierEvent = score[earlierI];
@@ -236,7 +246,7 @@ namespace csound
       if (target == 'V') {
 	scalar = Conversions::stringToDouble(command.substr(2));
       } else 
-      if (target == 'C') {
+	if ((target == 'C') || (target == 'M')) {
 	// Operations on chords can operate on vectors of pitches; 
 	// on Jazz-style chord names; 
 	// or on any individual voice of the chord.
