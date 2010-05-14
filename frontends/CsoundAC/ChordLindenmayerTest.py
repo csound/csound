@@ -447,10 +447,24 @@ aright 	   JackoAudioIn 	"rightin"
         self.testCommand('VC-', False)
         self.testCommand('VC-')
         self.testCommand('=CO"CM"')
-        self.testCommand('T2', False)
-        self.testCommand('I6', False)
-        self.testCommand('K', False)
-        self.testCommand('Q1', False)
+        self.testCommand('=MO"CM"', False)
+        self.testCommand('QN2', False)
+        self.testCommand('TN2', False)
+        self.testCommand('IN6', False)
+        self.testCommand('KN', False)
+        self.testCommand('=CO"CM9"')
+        self.testCommand('=MO"CM9"', False)
+        self.testCommand('=NNd2')
+        self.testCommand('WN', False)
+        self.testCommand('=NNk3', False)
+        print self.lindenmayer.score.toString()
+        self.testCommand('+NNt1', False)
+        self.testCommand('WN', False)
+        self.lindenmayer.fixStatus()
+        print self.lindenmayer.score.toString()
+        self.lindenmayer.tieOverlappingNotes()
+        print self.lindenmayer.score.toString()
+        
         print
         print 'TESTING NOTE TIEING...'
         print
