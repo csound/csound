@@ -243,8 +243,8 @@ namespace csound
    *              C[i] := C[i] o x.</li>
    * <li> oCEv  = Apply algebraic operation o to the turtle chord with operand x:
    *              C := C o x (x may be a vector or chord name).</li>
-   * <li> oMEv  = Apply algebraic operation o to the turtle chord with operand x:
-   *              C := C o x (x may be a vector or chord name).</li>
+   * <li> oMEv  = Apply algebraic operation o to the turtle modality with operand x:
+   *              M := M o x (x may be a vector or chord name).</li>
    * <li> oVx =   Apply algebraic operation o to the voicing index of the turtle chord with operand x:
    *              V := V o x. Of necessity the equivalence class is the range of the score.</li>
    * <li> ICOx  = Invert the turtle chord by reflecting it around pitch-class x.</li>
@@ -348,6 +348,7 @@ namespace csound
     virtual void initialize();
     virtual void generateLindenmayerSystem();
     virtual void writeScore();
+    virtual void fixStatus();
     virtual void tieOverlappingNotes();
     virtual void applyVoiceleadingOperations();
     virtual void interpret(std::string command);
