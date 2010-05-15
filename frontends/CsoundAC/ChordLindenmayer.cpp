@@ -62,9 +62,9 @@ namespace csound
     generateLindenmayerSystem();
     writeScore();
     tieOverlappingNotes();
-    fixStatus();
     applyVoiceleadingOperations();
     tieOverlappingNotes();
+    fixStatus();
   }
   
   void ChordLindenmayer::initialize()
@@ -78,15 +78,20 @@ namespace csound
   
   void ChordLindenmayer::generateLindenmayerSystem()
   {
-    System::inform("BEGAN ChordLindenmayer::generateLindenmayerSystem()...");
+    System::inform("BEGAN ChordLindenmayer::generateLindenmayerSystem()...\n");
     std::stringstream source;
-    std::stringstream target(axiom);
+    std::stringstream target;
     std::string word;
     std::string rewrittenWord;
+    target.str(axiom);
     for (int i = 0; i < iterationCount; i++)
       {
         source.str(target.str());
+	source.clear();
+	source.seekg(0);
         target.str("");
+	target.clear();
+	target.seekp(0);
         while (!source.eof())
           {
             source >> word;
@@ -98,11 +103,11 @@ namespace csound
               {
                 rewrittenWord = rules[word];
               }
-            target << rewrittenWord;
+            target << rewrittenWord << " ";
           }
       }
     production = target.str();
-    System::inform("ENDED ChordLindenmayer::generateLindenmayerSystem().");
+    System::inform("ENDED ChordLindenmayer::generateLindenmayerSystem().\n");
   }
   
   void ChordLindenmayer::writeScore()
@@ -111,6 +116,7 @@ namespace csound
     std::stringstream stream(production);
     while (!stream.eof()) {
       stream >> command;
+      //std::cerr << command << std::endl;
       interpret(command);
     }
   }
@@ -131,9 +137,9 @@ namespace csound
     // extend the earlier note and discard the later note.
     // Retain the instrument number of the earlier note.
     score.sort();
-    for (size_t laterI = score.size() - 1; laterI > 1; --laterI) {
+    for (int laterI = score.size() - 1; laterI > 1; --laterI) {
       Event &laterEvent = score[laterI];
-      for (size_t earlierI = laterI - 1; earlierI > 0; --earlierI) {
+      for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
 	Event &earlierEvent = score[earlierI];
 	if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
 	  continue;
@@ -223,15 +229,12 @@ namespace csound
     vector.clear();
     if (o == '[') {
       operation = o;
-    } else
-    if (o == ']') {
+    } else if (o == ']') {
       operation = o;
-    } else 
-    if (std::strpbrk(command_, "FM") == command_) {
+    } else if (std::strpbrk(command_, "FM") == command_) {
       operation = o;
       scalar = Conversions::stringToDouble(command.substr(1));
-    } else 
-    if (o == 'R') {
+    } else if (o == 'R') {
       operation = o;
       target = command[1];
       dimension = getDimension(command[2]);
@@ -239,14 +242,12 @@ namespace csound
       if (command.length() > 4) {
 	scalar =  Conversions::stringToDouble(command.substr(4));
       }
-    } else
-    if (std::strpbrk(command_, "=+*/") == command_) {
+    } else if (std::strpbrk(command_, "=+-*/") == command_) {
       operation = o;
       target = command[1];
       if (target == 'V') {
 	scalar = Conversions::stringToDouble(command.substr(2));
-      } else 
-	if ((target == 'C') || (target == 'M')) {
+      } else if ((target == 'C') || (target == 'M')) {
 	// Operations on chords can operate on vectors of pitches; 
 	// on Jazz-style chord names; 
 	// or on any individual voice of the chord.
@@ -262,29 +263,25 @@ namespace csound
 	    scalar =  Conversions::stringToDouble(command.substr(4));
 	  }
 	}
-      } else {
+      } else if (target == 'N') {
 	equivalenceClass = command[2];
 	dimension = getDimension(command[3]);
 	if (command.length() > 4) {
 	  scalar =  Conversions::stringToDouble(command.substr(4));
 	}
       }
-    } else
-    if (o == 'I') {
+    } else if (o == 'I') {
       operation = o;
       target = command[1];
       scalar = Conversions::stringToDouble(command.substr(2));
-    } else
-    if (o == 'T') {
+    } else if (o == 'T') {
       operation = o;
       target = command[1];
       scalar = Conversions::stringToDouble(command.substr(2));
-    } else
-    if (o == 'K') {
+    } else if (o == 'K') {
       operation = o;
       target = command[1];
-    } else
-    if (o == 'Q') {
+    } else if (o == 'Q') {
       operation = o;
       target = command[1];
       scalar = Conversions::stringToDouble(command.substr(2));
@@ -294,7 +291,7 @@ namespace csound
     }
     return o;
   }
-
+  
   void ChordLindenmayer::interpret(std::string command)
   {
     /* <ul>

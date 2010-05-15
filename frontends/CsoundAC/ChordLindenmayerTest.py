@@ -422,6 +422,7 @@ aright 	   JackoAudioIn 	"rightin"
         print 'TESTING EACH TURTLE COMMAND...'
         print
         self.testCommand('=CO"CM9"')
+        self.testCommand('=NNv60')
         #self.testCommand('=CO(1,2,3,4)')
         self.testCommand('=NNt')
         self.testCommand('=NNt1')
@@ -431,7 +432,8 @@ aright 	   JackoAudioIn 	"rightin"
         self.testCommand('=NOk6')
         self.testCommand('=NRk13')
         self.testCommand('=NRk61')
-        self.testCommand('=NOk5')
+        self.testCommand('=NNk5')
+        self.testCommand('-NNk5', False)
         self.testCommand('+NOk13', False)
         self.testCommand('+NOk6', False)
         self.testCommand('+NRk13', False)
@@ -542,6 +544,11 @@ aright 	   JackoAudioIn 	"rightin"
         print
         print 'TESTING SCORE GENERATION...'
         print
+        self.lindenmayer.axiom = '=NNd2 =NNv60 =NNd2 a'
+        self.lindenmayer.rules['a'] = 'WN a +NNt1 +NNk1 WN a +NNt1 -NNk1 +NNt1 WN a'
+        self.lindenmayer.iterationCount = 4
+        self.lindenmayer.generate()
+        print self.lindenmayer.score.toString()
         if True:
             exit(0)
         print

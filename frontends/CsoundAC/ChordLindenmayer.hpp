@@ -25,6 +25,7 @@
 %module CsoundAC
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_map.i"
 %{
 #include "Conversions.hpp"
 #include "Event.hpp"
@@ -40,7 +41,8 @@
 #include <vector>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-  %}
+%}
+%template(StringMap) std::map<std::string, std::string>;
 #else
 #include "Conversions.hpp"
 #include "Event.hpp"
