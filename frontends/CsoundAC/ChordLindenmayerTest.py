@@ -403,7 +403,7 @@ aright 	   JackoAudioIn 	"rightin"
     def createCsoundArrangement(self):
         print 'CREATING CSOUND ARRANGEMENT...'
         #~ #                 CsoundAC,   Csound,                                                       level (+-dB),  pan (-1.0 through +1.0)
-        #self.score.setDuration(3 * 60)        
+        self.score.setDuration(3 * 60)        
         print
     def testCommand(self, command, reinitialize = True):
         print 'Testing command: %s' % command
@@ -544,19 +544,18 @@ aright 	   JackoAudioIn 	"rightin"
         print
         print 'TESTING SCORE GENERATION...'
         print
-        self.lindenmayer.axiom = '=NNd2 =NNv60 =NNd2 a'
-        self.lindenmayer.rules['a'] = 'WN a +NNt1 +NNk1 WN a +NNt1 -NNk1 +NNt1 WN a'
-        self.lindenmayer.iterationCount = 4
+        self.lindenmayer.axiom = '=NNd1 =NNv60 =CO"CM7" =MO"CM7" [ a ] +NNt1.5 +NNk7 b'
+        self.lindenmayer.rules['a'] = 'WN a +NNt1 +NNk1 WN [ +NNk5 a ] a +NNt1 -NNk1 +NNt1 WN a'
+        self.lindenmayer.rules['b'] = 'AC K Q2 WN b +NNt1 +NNk1 WN [ +NNk5 b ] b +NNt1 -NNk1 +NNt1 WN b'
+        self.lindenmayer.iterationCount = 5
         self.lindenmayer.generate()
         print self.lindenmayer.score.toString()
-        if True:
-            exit(0)
         print
         self.aeolus = subprocess.Popen(string.split('aeolus -t'))
         time.sleep(1.0)
         self.rescale = CsoundAC.Rescale()
         #self.rescale.setRescale( CsoundAC.Event.TIME,       True, False, (1.0 / 40.0), 120     )
-        #self.rescale.setRescale( CsoundAC.Event.INSTRUMENT, True, True,  1,              0     )
+        self.rescale.setRescale( CsoundAC.Event.INSTRUMENT, True, True,  1,              0     )
         self.rescale.setRescale( CsoundAC.Event.KEY,        True, False, 36,            36     )
         self.rescale.setRescale( CsoundAC.Event.VELOCITY,   True, True,  80,            40     )
         self.rescale.setRescale( CsoundAC.Event.PAN,        True, True,  -0.9,           1.8   )
