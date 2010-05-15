@@ -131,9 +131,9 @@ namespace csound
     // extend the earlier note and discard the later note.
     // Retain the instrument number of the earlier note.
     score.sort();
-    for (size_t laterI = score.size() - 1; laterI >= 1; --laterI) {
+    for (size_t laterI = score.size() - 1; laterI > 1; --laterI) {
       Event &laterEvent = score[laterI];
-      for (size_t earlierI = laterI - 1; earlierI >= 0; --earlierI) {
+      for (size_t earlierI = laterI - 1; earlierI > 0; --earlierI) {
 	Event &earlierEvent = score[earlierI];
 	if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
 	  continue;
@@ -147,8 +147,8 @@ namespace csound
 	// Ok, must be tied.
 	earlierEvent.setOffTime(laterEvent.getOffTime());
 	score.erase(score.begin() + laterI);
+	laterI = score.size();
       }
-      laterI = score.size() - 1;
     }
   }
   
@@ -229,7 +229,7 @@ namespace csound
     } else 
     if (std::strpbrk(command_, "FM") == command_) {
       operation = o;
-      scalar = Conversions::stringToDouble(command.substr(2));
+      scalar = Conversions::stringToDouble(command.substr(1));
     } else 
     if (o == 'R') {
       operation = o;
@@ -338,10 +338,10 @@ namespace csound
 	break;
       case 'F':
 	{
-	  boost::numeric::ublas::vector<double> orientedStep = boost::numeric::ublas::element_prod(turtle.step, 
-												   turtle.orientation);
-	  boost::numeric::ublas::vector<double> scaledOrientedStep = orientedStep * scalar;
-	  turtle.note = turtle.note + scaledOrientedStep;
+	  Event orientedStep;
+	  for (size_t i = 0, n = turtle.note.size(); i < n; ++i) {
+	    turtle.note[i] = turtle.note[i] + ((turtle.step[i] * turtle.orientation[i]) * scalar);
+	  }
 	}
 	break;
       case '=':
@@ -680,13 +680,13 @@ namespace csound
 	    score.append(turtle.note);
 	  } else if (operation == "WCV") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
 						 ptv[1], 
 						 turtle.voicing,
-						 turtle.rangeBass,
-						 turtle.rangeBass + turtle.rangeSize);
+						 0,
+						 turtle.rangeSize);
 	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
 	      Event event = turtle.note;
 	      event.setKey(turtle.chord[i]);
@@ -694,14 +694,14 @@ namespace csound
 	    }
 	  } else if (operation == "WCNV") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
 	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
 						 ptv[1], 
 						 turtle.voicing,
-						 turtle.rangeBass,
-						 turtle.rangeBass + turtle.rangeSize);
+						 0,
+						 turtle.rangeSize);
 	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
 	      Event event = turtle.note;
 	      event.setKey(turtle.chord[i]);
@@ -711,26 +711,26 @@ namespace csound
 	    //    } else if (operation == "WCNL") {
 	  } else if (operation == "AC") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
 	    //    } else if (operation == "ACV") {
 	  } else if (operation == "ACN") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
 	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
 	    //    } else if (operation == "ACNV") {
 	  } else if (operation == "ACL") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
 	  } else if (operation == "ACNL") {
 	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    turtle.rangeBass, 
-							    turtle.rangeBass + turtle.rangeSize);
+							    0, 
+							    turtle.rangeSize);
 	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
 	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
 	  } else if (operation == "A0") {

@@ -452,28 +452,98 @@ aright 	   JackoAudioIn 	"rightin"
         self.testCommand('TN2', False)
         self.testCommand('IN6', False)
         self.testCommand('KN', False)
+        print
+        print 'TESTING NOTE TIEING...'
+        print
         self.testCommand('=CO"CM9"')
         self.testCommand('=MO"CM9"', False)
-        self.testCommand('=NNd2')
+        self.testCommand('=NNd2', False)
+        self.testCommand('=NNv60', False)
         self.testCommand('WN', False)
         self.testCommand('=NNk3', False)
         print self.lindenmayer.score.toString()
         self.testCommand('+NNt1', False)
         self.testCommand('WN', False)
+        self.testCommand('+NNt1', False)
+        self.testCommand('WN', False)
+        print self.lindenmayer.score.toString()
+        self.lindenmayer.tieOverlappingNotes()
+        self.lindenmayer.fixStatus()
+        print self.lindenmayer.score.toString()
+        print
+        print 'TESTING CHORD WRITING...'
+        print
+        self.testCommand('=CO"CM9"')
+        self.testCommand('=MO"CM9"', False)
+        self.testCommand('=NNd2', False)
+        self.testCommand('=NNv60', False)
+        self.testCommand('WN', False)
+        self.testCommand('=NNk3', False)
+        print self.lindenmayer.score.toString()
+        self.testCommand('+NNt1', False)
+        self.testCommand('WN', False)
+        self.testCommand('+NNt1', False)
+        self.testCommand('WCV', False)
+        self.testCommand('+NNt1', False)
+        self.testCommand('WCNV', False)
+        print self.lindenmayer.score.toString()
+        self.testCommand('+NNt1', False)
+        self.testCommand('WCV', False)
+        self.lindenmayer.tieOverlappingNotes()
+        self.lindenmayer.fixStatus()
+        print self.lindenmayer.score.toString()
+        print
+        print 'TESTING CHORD VOICING...'
+        print
+        self.testCommand('=CO"CM9"')
+        for i in xrange(20):
+            self.testCommand('+NNt2', False)
+            self.testCommand('+V1', False)
+            self.testCommand('WCV', False)
         self.lindenmayer.fixStatus()
         print self.lindenmayer.score.toString()
         self.lindenmayer.tieOverlappingNotes()
         print self.lindenmayer.score.toString()
-        
         print
-        print 'TESTING NOTE TIEING...'
+        print 'TESTING APPLICATION OPERATIONS...'
+        print
+        self.testCommand('=CO"CM9"')
+        for i in xrange(20):
+            self.testCommand('+NNt2', False)
+            self.testCommand('+V1', False)
+            self.testCommand('WCV', False)
+        self.testCommand('AC', False)
+        for i in xrange(20):
+            self.testCommand('+NNt2', False)
+            self.testCommand('+V1', False)
+            self.testCommand('WCV', False)
+        self.testCommand('A0', False)
+        for i in xrange(20):
+            self.testCommand('+NNt2', False)
+            self.testCommand('+V1', False)
+            self.testCommand('WCV', False)
+        self.lindenmayer.fixStatus()
+        print self.lindenmayer.score.toString()
+        self.lindenmayer.tieOverlappingNotes()
+        self.lindenmayer.applyVoiceleadingOperations()
+        self.lindenmayer.tieOverlappingNotes()
+        print self.lindenmayer.score.toString()
+        print
+        print 'TESTING STEP AND ORIENTATION...'
+        print
+        self.testCommand('ROtk0.5')
+        self.testCommand('F1', False)
+        self.testCommand('F1', False)
+        self.testCommand('F2', False)
+        self.testCommand('ROkt0.5', False)
+        self.testCommand('F1', False)
+        self.testCommand('F1', False)
+        self.testCommand('F2', False)
         print
         print 'TESTING SCORE GENERATION...'
         print
         if True:
             exit(0)
-        print
-        print 'CREATING MUSIC MODEL...'
         print
         self.aeolus = subprocess.Popen(string.split('aeolus -t'))
         time.sleep(1.0)
