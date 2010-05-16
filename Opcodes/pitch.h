@@ -230,6 +230,18 @@ typedef struct {
         MYFLT   *pnum;
 } PFUN;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *ans;
+        MYFLT   *asig;
+        MYFLT   *iwind;
+        AUXCH   b;
+        MYFLT   *buff;
+        MYFLT   *med;
+        int     ind;
+        int     wind;
+} MEDFILT;
+
 int Foscaa(CSOUND *, XOSC *p);
 int Foscak(CSOUND *, XOSC *p);
 int Foscka(CSOUND *, XOSC *p);
@@ -278,5 +290,7 @@ int varicol(CSOUND *, VARI *p);
 int varicolset(CSOUND *, VARI *p);
 int waveset(CSOUND *, BARRI *p);
 int wavesetset(CSOUND *, BARRI *p);
+int medfiltset(CSOUND *, MEDFILT *p);
+int medfilt(CSOUND *, MEDFILT *p);
 #endif /* PITCH_H */
 
