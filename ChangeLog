@@ -1,3 +1,8 @@
+2010-05-16  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch.c (medfiltset):
+	(medfilt):  New code
+
 2010-05-10  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/fareygen.c:

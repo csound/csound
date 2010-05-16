@@ -362,7 +362,7 @@ msgstr ""
 
 #: Engine/fgens.c:157 Engine/fgens.c:1596 Engine/fgens.c:1682
 #: Engine/fgens.c:1761 Engine/fgens.c:1877 Engine/fgens.c:1958
-#: Engine/fgens.c:2838
+#: Engine/fgens.c:2841
 msgid "insufficient gen arguments"
 msgstr ""
 
@@ -388,7 +388,7 @@ msgstr ""
 msgid "illegal table length"
 msgstr ""
 
-#: Engine/fgens.c:292 Engine/fgens.c:2216
+#: Engine/fgens.c:292 Engine/fgens.c:2218
 #, c-format
 msgid ""
 "ftable %d relocating due to size change\n"
@@ -399,8 +399,8 @@ msgstr ""
 #: Engine/fgens.c:711 Engine/fgens.c:760 Engine/fgens.c:881 Engine/fgens.c:958
 #: Engine/fgens.c:1053 Engine/fgens.c:1097 Engine/fgens.c:1144
 #: Engine/fgens.c:1396 Engine/fgens.c:1458 Engine/fgens.c:1680
-#: Engine/fgens.c:1758 Engine/fgens.c:2111 Engine/fgens.c:2792
-#: Engine/fgens.c:2835
+#: Engine/fgens.c:1758 Engine/fgens.c:2113 Engine/fgens.c:2795
+#: Engine/fgens.c:2838
 msgid "using extended arguments\n"
 msgstr ""
 
@@ -413,7 +413,7 @@ msgid "illegal x interval"
 msgstr ""
 
 #: Engine/fgens.c:408 Engine/fgens.c:557 Engine/fgens.c:638 Engine/fgens.c:883
-#: Engine/fgens.c:1353 Engine/fgens.c:2375 Engine/fgens.c:2675 Top/main.c:124
+#: Engine/fgens.c:1353 Engine/fgens.c:2377 Engine/fgens.c:2678 Top/main.c:124
 #: util/cvanal.c:66 util/lpanal.c:398 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr ""
@@ -544,144 +544,148 @@ msgstr ""
 msgid "unknown source table number"
 msgstr ""
 
-#: Engine/fgens.c:2152
+#: Engine/fgens.c:2088
+msgid "Gen41: negative probability not allowed"
+msgstr ""
+
+#: Engine/fgens.c:2154 Opcodes/fareygen.c:70
 #, c-format
 msgid "ftable %d: "
 msgstr ""
 
-#: Engine/fgens.c:2196
+#: Engine/fgens.c:2198
 #, c-format
 msgid "ftable %d:"
 msgstr ""
 
-#: Engine/fgens.c:2211
+#: Engine/fgens.c:2213
 #, c-format
 msgid "replacing previous ftable %d"
 msgstr ""
 
-#: Engine/fgens.c:2247 Engine/fgens.c:2334 Engine/fgens.c:2358
-#: Opcodes/gab/gab.c:581 Opcodes/gab/gab.c:635 Opcodes/midiops2.c:218
-#: Opcodes/midiops2.c:370 Opcodes/midiops2.c:452 Opcodes/uggab.c:1313
-#: Opcodes/uggab.c:1340 Opcodes/uggab.c:1360 Opcodes/uggab.c:1403
+#: Engine/fgens.c:2249 Engine/fgens.c:2336 Engine/fgens.c:2360
+#: Opcodes/gab/gab.c:575 Opcodes/gab/gab.c:629 Opcodes/midiops2.c:218
+#: Opcodes/midiops2.c:370 Opcodes/midiops2.c:452 Opcodes/uggab.c:1317
+#: Opcodes/uggab.c:1344 Opcodes/uggab.c:1364 Opcodes/uggab.c:1407
 #, c-format
 msgid "Invalid ftable no. %f"
 msgstr ""
 
-#: Engine/fgens.c:2252
+#: Engine/fgens.c:2254
 #, c-format
 msgid "deferred-size ftable %f illegal here"
 msgstr ""
 
-#: Engine/fgens.c:2278
+#: Engine/fgens.c:2280
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr ""
 
-#: Engine/fgens.c:2340
+#: Engine/fgens.c:2342
 #, c-format
 msgid "Deferred-size ftable %f load not available at perf time."
 msgstr ""
 
-#: Engine/fgens.c:2399
+#: Engine/fgens.c:2401
 #, c-format
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2446 Opcodes/loscilx.c:62
+#: Engine/fgens.c:2448 Opcodes/loscilx.c:62
 #, c-format
 msgid "invalid sample format: %d"
 msgstr ""
 
-#: Engine/fgens.c:2454 Engine/fgens.c:2699
+#: Engine/fgens.c:2456 Engine/fgens.c:2702
 #, c-format
 msgid "channel %d illegal"
 msgstr ""
 
-#: Engine/fgens.c:2460
+#: Engine/fgens.c:2462
 msgid "deferred alloc\n"
 msgstr ""
 
-#: Engine/fgens.c:2468
+#: Engine/fgens.c:2470
 msgid "deferred size, but filesize unknown"
 msgstr ""
 
-#: Engine/fgens.c:2471
+#: Engine/fgens.c:2473
 #, c-format
 msgid "  defer length %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2531
+#: Engine/fgens.c:2534
 msgid "GEN1: input file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2535
+#: Engine/fgens.c:2538
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2556
+#: Engine/fgens.c:2559
 msgid "GEN1 read error"
 msgstr ""
 
-#: Engine/fgens.c:2560
+#: Engine/fgens.c:2563
 msgid "GEN1: aiff file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2561
+#: Engine/fgens.c:2564
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr ""
 
-#: Engine/fgens.c:2601
+#: Engine/fgens.c:2604
 msgid "wrong number of ftable arguments"
 msgstr ""
 
-#: Engine/fgens.c:2611 OOps/pstream.c:336
+#: Engine/fgens.c:2614 OOps/pstream.c:336
 msgid "Failed to load PVOC-EX file"
 msgstr ""
 
-#: Engine/fgens.c:2622 InOut/midirecv.c:416 OOps/midiops.c:377
+#: Engine/fgens.c:2625 InOut/midirecv.c:416 OOps/midiops.c:377
 #: OOps/midiops.c:419 OOps/midiops.c:431
 msgid "illegal channel number"
 msgstr ""
 
-#: Engine/fgens.c:2640
+#: Engine/fgens.c:2643
 msgid "ftable size too small"
 msgstr ""
 
-#: Engine/fgens.c:2715 Opcodes/mp3in.c:74
+#: Engine/fgens.c:2718 Opcodes/mp3in.c:74
 msgid "Not enough memory\n"
 msgstr ""
 
-#: Engine/fgens.c:2802
+#: Engine/fgens.c:2805
 msgid "gen51: invalid number of p-fields (too few grades)"
 msgstr ""
 
-#: Engine/fgens.c:2842
+#: Engine/fgens.c:2845
 msgid "number of channels inconsistent with number of args"
 msgstr ""
 
-#: Engine/fgens.c:3001
+#: Engine/fgens.c:3004
 msgid "GEN53: invalid number of gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:3011
+#: Engine/fgens.c:3014
 msgid "GEN53: invalid table length"
 msgstr ""
 
-#: Engine/fgens.c:3015
+#: Engine/fgens.c:3018
 msgid "GEN53: invalid source table number"
 msgstr ""
 
-#: Engine/fgens.c:3018
+#: Engine/fgens.c:3021
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr ""
 
-#: Engine/fgens.c:3022
+#: Engine/fgens.c:3025
 msgid "GEN53: invalid source table length"
 msgstr ""
 
-#: Engine/fgens.c:3027
+#: Engine/fgens.c:3030
 msgid "GEN53: invalid window table"
 msgstr ""
 
@@ -5071,28 +5075,28 @@ msgstr ""
 msgid "deltap3: not initialised"
 msgstr ""
 
-#: OOps/ugens6.c:786 OOps/ugens6.c:790 Opcodes/ugmoss.c:368
+#: OOps/ugens6.c:787 OOps/ugens6.c:791 Opcodes/ugmoss.c:368
 #: Opcodes/ugmoss.c:372
 msgid "illegal loop time"
 msgstr ""
 
-#: OOps/ugens6.c:848
+#: OOps/ugens6.c:845
 msgid "comb: not initialised"
 msgstr ""
 
-#: OOps/ugens6.c:877
+#: OOps/ugens6.c:874
 msgid "alpass: not initialised"
 msgstr ""
 
-#: OOps/ugens6.c:910
+#: OOps/ugens6.c:907
 msgid "revlpsiz inconsistent\n"
 msgstr ""
 
-#: OOps/ugens6.c:993
+#: OOps/ugens6.c:990
 msgid "reverb: not intialised"
 msgstr ""
 
-#: OOps/ugens6.c:1050
+#: OOps/ugens6.c:1047
 msgid "pan: not initialised"
 msgstr ""
 
@@ -5651,6 +5655,34 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
+#: Opcodes/fareygen.c:140
+msgid "insufficient arguments for fareytable"
+msgstr ""
+
+#: Opcodes/fareyseq.c:238 Opcodes/fareyseq.c:288
+#, c-format
+msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
+msgstr ""
+
+#: Opcodes/fareyseq.c:243
+#, c-format
+msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
+msgstr ""
+
+#: Opcodes/fareyseq.c:258 Opcodes/fareyseq.c:306
+#, c-format
+msgid "Farey: Destination dft table %.2f not found."
+msgstr ""
+
+#: Opcodes/fareyseq.c:269 Opcodes/fareyseq.c:317
+#, c-format
+msgid "Farey: Source sft table %.2f not found."
+msgstr ""
+
+#: Opcodes/fareyseq.c:293
+msgid "Farey: Filter type < 1"
+msgstr ""
+
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
 msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
 msgstr ""
@@ -5742,11 +5774,11 @@ msgstr ""
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
-#: Opcodes/fm4op.c:165
+#: Opcodes/fm4op.c:164
 msgid "No table for VibWaveato"
 msgstr ""
 
-#: Opcodes/fm4op.c:184
+#: Opcodes/fm4op.c:183
 msgid "No table for FM4Op"
 msgstr ""
 
@@ -5908,31 +5940,31 @@ msgstr ""
 msgid "printi parameter was not a \"quoted string\""
 msgstr ""
 
-#: Opcodes/gab/gab.c:423
+#: Opcodes/gab/gab.c:422
 msgid "adsynt2: wavetable not found!"
 msgstr ""
 
-#: Opcodes/gab/gab.c:436
+#: Opcodes/gab/gab.c:434
 msgid "adsynt2: freqtable not found!"
 msgstr ""
 
-#: Opcodes/gab/gab.c:441
+#: Opcodes/gab/gab.c:439
 msgid "adsynt2: partial count is greater than freqtable size!"
 msgstr ""
 
-#: Opcodes/gab/gab.c:450
+#: Opcodes/gab/gab.c:448
 msgid "adsynt2: amptable not found!"
 msgstr ""
 
-#: Opcodes/gab/gab.c:455
+#: Opcodes/gab/gab.c:453
 msgid "adsynt2: partial count is greater than amptable size!"
 msgstr ""
 
-#: Opcodes/gab/gab.c:494
-msgid "adsynt2: not initialized"
+#: Opcodes/gab/gab.c:496
+msgid "adsynt2: not initialised"
 msgstr ""
 
-#: Opcodes/gab/gab.c:744
+#: Opcodes/gab/gab.c:738
 msgid "max_k: invalid imaxflag value"
 msgstr ""
 
@@ -6560,97 +6592,61 @@ msgstr ""
 msgid "Cannot allocate memory.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:524
+#: Opcodes/jacko.cpp:526
 #, c-format
 msgid ""
 "Could not create Jack client \"%s\" -- is Jack server \"%s\" running? "
 "Status: %d\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:530
+#: Opcodes/jacko.cpp:532
 #, c-format
 msgid "Created Jack client \"%s\" for Jack server \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:535
+#: Opcodes/jacko.cpp:537
 #, c-format
 msgid "Jack buffer size %d != Csound ksmps %d, exiting...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:543
+#: Opcodes/jacko.cpp:545
 #, c-format
 msgid "Jack sampling rate %d != Csound sr %d, exiting...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:555
+#: Opcodes/jacko.cpp:557
 #, c-format
 msgid "Activated Jack client \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:559
+#: Opcodes/jacko.cpp:561
 #, c-format
 msgid "Failed to activate Jack client \"%s\": status %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:576
-msgid "BEGAN JackoState::close()...\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:605
-#, c-format
-msgid "Deactivated Jack with result: %d.\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:607
-#, c-format
-msgid "Closed Jack client with result: %d\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:609
-msgid "Destroyed Csound thread lock.\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:611
-msgid "ENDED JackoState::close().\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:654
-msgid "Notified Csound thread lock.\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:673
-#, c-format
-msgid "Put to sleep Csound performance thread %p at frame %d.\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:678
-#, c-format
-msgid "Woke up Csound performance thread %p at frame %d.\n"
-msgstr ""
-
-#: Opcodes/jacko.cpp:844
+#: Opcodes/jacko.cpp:813
 #, c-format
 msgid "Failed to set Jack freewheeling mode to \"%s\": error %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:846
+#: Opcodes/jacko.cpp:815
 #, c-format
 msgid "Set Jack freewheeling mode to \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:861
+#: Opcodes/jacko.cpp:830
 #, c-format
 msgid "Turned Jack connections \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:902 Opcodes/jacko.cpp:1002 Opcodes/jacko.cpp:1102
-#: Opcodes/jacko.cpp:1168
+#: Opcodes/jacko.cpp:871 Opcodes/jacko.cpp:971 Opcodes/jacko.cpp:1071
+#: Opcodes/jacko.cpp:1137
 #, c-format
 msgid "Could not create port \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:913 Opcodes/jacko.cpp:1013 Opcodes/jacko.cpp:1113
-#: Opcodes/jacko.cpp:1179
+#: Opcodes/jacko.cpp:882 Opcodes/jacko.cpp:982 Opcodes/jacko.cpp:1082
+#: Opcodes/jacko.cpp:1148
 #, c-format
 msgid "Could not create connection from \"%s\" to \"%s\": status %d.\n"
 msgstr ""
@@ -7748,7 +7744,7 @@ msgstr ""
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:767
+#: Opcodes/signalflowgraph.cpp:772
 msgid "ftgenonce error"
 msgstr ""
 
@@ -7783,7 +7779,7 @@ msgstr ""
 msgid "crossfade longer than loop duration\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:295 Opcodes/sndloop.c:382 Opcodes/sndloop.c:653
+#: Opcodes/sndloop.c:295 Opcodes/sndloop.c:382 Opcodes/sndloop.c:654
 msgid "function table not found\n"
 msgstr ""
 
@@ -7795,23 +7791,23 @@ msgstr ""
 msgid "table not long enough for loop\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:936
+#: Opcodes/sndloop.c:937
 msgid "pvsarp: signal format must be amp-phase or amp-freq.\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:966
+#: Opcodes/sndloop.c:967
 msgid "pvsarp: not initialised\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:985
+#: Opcodes/sndloop.c:986
 msgid "signal format must be amp-phase or amp-freq.\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:1015
+#: Opcodes/sndloop.c:1016
 msgid "pvsvoc: not initialised\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:1042
+#: Opcodes/sndloop.c:1043
 msgid "pvsmorph: not initialised\n"
 msgstr ""
 
@@ -8212,7 +8208,7 @@ msgstr ""
 msgid "loop cannot be zero"
 msgstr ""
 
-#: Opcodes/uggab.c:1052 Opcodes/uggab.c:1094
+#: Opcodes/uggab.c:1056 Opcodes/uggab.c:1098
 msgid "vibrato(krate): not initialised"
 msgstr ""
 

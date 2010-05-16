@@ -2216,7 +2216,9 @@ int medfilt(CSOUND *csound, MEDFILT *p)
       if (index>wind) index = 0;
       memcpy(med, buffer, wind*sizeof(MYFLT));
       aout[n] = medianvalue(wind, med);
-      printf("%d/$%d: %f -> %f: %f %f %f %f %f: %f %f %f %f %f\n", n, index, x, aout[n], buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], med[0], med[1], med[2], med[3], med[4]);
+      /* printf("%d/$%d: %f -> %f: %f %f %f %f %f: %f %f %f %f %f\n", 
+                 n, index, x, aout[n], buffer[0], buffer[1], buffer[2],
+                 buffer[3], buffer[4], med[0], med[1], med[2], med[3], med[4]); */
     }
     p->ind = index;
     return OK;
