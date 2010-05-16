@@ -403,7 +403,7 @@ aright 	   JackoAudioIn 	"rightin"
     def createCsoundArrangement(self):
         print 'CREATING CSOUND ARRANGEMENT...'
         #~ #                 CsoundAC,   Csound,                                                       level (+-dB),  pan (-1.0 through +1.0)
-        self.score.setDuration(3 * 60)        
+        self.score.setDuration(5 * 60)        
         print
     def testCommand(self, command, reinitialize = True):
         print 'Testing command: %s' % command
@@ -541,13 +541,15 @@ aright 	   JackoAudioIn 	"rightin"
         self.testCommand('F1', False)
         self.testCommand('F1', False)
         self.testCommand('F2', False)
+        exit(0)
         print
         print 'TESTING SCORE GENERATION...'
         print
-        self.lindenmayer.axiom = '=NNd1 =NNv60 =CO"CM7" =MO"CM7" [ a ] +NNt1.5 +NNk7 b'
-        self.lindenmayer.rules['a'] = 'WN a +NNt1 +NNk1 WN [ +NNk5 a ] a +NNt1 -NNk1 +NNt1 WN a'
-        self.lindenmayer.rules['b'] = 'AC K Q2 WN b +NNt1 +NNk1 WN [ +NNk5 b ] b +NNt1 -NNk1 +NNt1 WN b'
-        self.lindenmayer.iterationCount = 5
+        self.lindenmayer.axiom = '=NNd1 =NNv60 =CO"CM7" =MO"CM7" [ a ] +NNt1.5 +NRk7 b'
+        self.lindenmayer.rules['a'] = 'WN a +NNt1 +NRk1 WN [ +NRk5 c ] a +NNt1 -NRk1 +NNt1 WN [ +NRk12 c ] a'
+        self.lindenmayer.rules['b'] = 'AC K Q5 WN b +NNt1 +NRk1 WN [ +NRk5 c ] b +NNt1 -NRk1 +NNt1 WN [ +NRk12 c ] b'
+        self.lindenmayer.rules['c'] = '*SNt.95 *SNd.95 *SRk1.02 +NNt0.5 WN c +NNt1 +NRk1 WN [ +NRk5 c ] c +NNt1 -NRk1 +NNt1 WN c'
+        self.lindenmayer.iterationCount = 6
         self.lindenmayer.generate()
         print self.lindenmayer.score.toString()
         print
