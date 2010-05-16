@@ -2185,3 +2185,39 @@ int waveset(CSOUND *csound, BARRI *p)
     return OK;
 }
 
+int medfiltset(CSOUND *csound, MEDFILT *p)
+{
+    int wind = (int)(*p->iwind+FL(0.5));
+    int auxsize = 2*sizeof(MYFLT)*wind;
+    p->ind = 0;
+    p->wind = wind;
+    if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
+      csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
+    else
+      memset(p->b.auxp, 0, auxsize);
+    p->buff = (MYFLT*)p->b.auxp;
+    p->med = &(p->buff[wind]);
+    return OK;
+}
+
+int medfilt(CSOUND *csound, MEDFILT *p)
+{
+    MYFLT *aout = p->ans;
+    MYFLT *asig = p->asig;
+    MYFLT *buffer = p->buff;
+    MYFLT *med = p->med;
+    int wind = p->wind;
+    int index = p->ind;
+    int n, nsmps=csound->ksmps;
+    for (n=0; n<nsmps; n++) {
+      MYFLT x = asig[n];
+      buffer[index++] = x;
+
+      if (index>wind) index = 0;
+      memcpy(med, buffer, wind*sizeof(MYFLT));
+      aout[n] = medianvalue(wind, med);
+      printf("%d/$%d: %f -> %f: %f %f %f %f %f: %f %f %f %f %f\n", n, index, x, aout[n], buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], med[0], med[1], med[2], med[3], med[4]);
+    }
+    p->ind = index;
+    return OK;
+}
