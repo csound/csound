@@ -58,13 +58,23 @@ namespace csound
 
   void ChordLindenmayer::generate()
   {
+    System::inform("BEGAN ChordLindenmayer::generate()...\n");
+    System::inform("      ChordLindenmayer::initialize()...\n");
     initialize();
+    System::inform("      ChordLindenmayer::generateLindenmayerSystem()...\n");
     generateLindenmayerSystem();
+    System::inform("      ChordLindenmayer::writeScore()...\n");
     writeScore();
+    System::inform("      ChordLindenmayer::writeScore(): %d events.\n", score.size());
+    System::inform("      ChordLindenmayer::tieOverlappingNotes()...\n");
     tieOverlappingNotes();
+    System::inform("      ChordLindenmayer::applyVoiceleadingOperationse()...\n");
     applyVoiceleadingOperations();
+    System::inform("      ChordLindenmayer::tieOverlappingNotes()...\n");
     tieOverlappingNotes();
+    System::inform("      ChordLindenmayer::fixStatus()...\n");
     fixStatus();
+    System::inform("ENDED ChordLindenmayer::generate(): %d events.\n", score.size());
   }
   
   void ChordLindenmayer::initialize()
@@ -78,7 +88,6 @@ namespace csound
   
   void ChordLindenmayer::generateLindenmayerSystem()
   {
-    System::inform("BEGAN ChordLindenmayer::generateLindenmayerSystem()...\n");
     std::stringstream source;
     std::stringstream target;
     std::string word;
@@ -107,7 +116,6 @@ namespace csound
           }
       }
     production = target.str();
-    System::inform("ENDED ChordLindenmayer::generateLindenmayerSystem().\n");
   }
   
   void ChordLindenmayer::writeScore()
@@ -153,7 +161,7 @@ namespace csound
 	// Ok, must be tied.
 	earlierEvent.setOffTime(laterEvent.getOffTime());
 	score.erase(score.begin() + laterI);
-	laterI = score.size();
+	break;
       }
     }
   }
