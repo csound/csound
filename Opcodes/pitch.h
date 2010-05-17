@@ -235,6 +235,7 @@ typedef struct {
         MYFLT   *ans;
         MYFLT   *asig;
         MYFLT   *iwind;
+        MYFLT   *iskip;
         AUXCH   b;
         MYFLT   *buff;
         MYFLT   *med;
