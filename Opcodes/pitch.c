@@ -1,3 +1,4 @@
+
 /*
     pitch.c:
 
@@ -2191,10 +2192,12 @@ int medfiltset(CSOUND *csound, MEDFILT *p)
     int auxsize = 2*sizeof(MYFLT)*wind;
     p->ind = 0;
     p->wind = wind;
+
     if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
       csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
     else
-      memset(p->b.auxp, 0, auxsize);
+      if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
+    }
     p->buff = (MYFLT*)p->b.auxp;
     p->med = &(p->buff[wind]);
     return OK;
@@ -2215,7 +2218,7 @@ int medfilt(CSOUND *csound, MEDFILT *p)
 
       if (index>wind) index = 0;
       memcpy(med, buffer, wind*sizeof(MYFLT));
-      aout[n] = medianvalue(wind, med);
+      aout[n] = medianvalue(wind, med-1); /* -1 as should point below data */
       /* printf("%d/$%d: %f -> %f: %f %f %f %f %f: %f %f %f %f %f\n", 
                  n, index, x, aout[n], buffer[0], buffer[1], buffer[2],
                  buffer[3], buffer[4], med[0], med[1], med[2], med[3], med[4]); */
