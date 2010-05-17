@@ -2197,7 +2197,6 @@ int medfiltset(CSOUND *csound, MEDFILT *p)
       csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
     else
       if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
-    }
     p->buff = (MYFLT*)p->b.auxp;
     p->med = &(p->buff[wind]);
     return OK;
