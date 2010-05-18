@@ -845,7 +845,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->imedi < 1)
       p->medisize = 0;
     else
-      p->medisize = (int)(*p->imedi+FL(0.5))*2+1;
+      p->medisize = (int)MYFLT2LONG(*p->imedi)*2+1;
     p->mediptr = 0;
 
     if (p->medisize) {
@@ -1096,7 +1096,7 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
     int    n, count;
     double  *curphs;
 
-    count = (int)(*p->icnt + FL(0.5));
+    count = (int)MYFLT2LONG(*p->icnt);
     if (UNLIKELY(count < 2))
       count = 2;
 
@@ -1464,7 +1464,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 double tanh(double);
 int clip_set(CSOUND *csound, CLIP *p)
 {
-    int meth = (int)(*p->imethod + FL(0.5));
+    int meth = (int)MYFLT2LONG(*p->imethod);
     p->meth = meth;
     p->arg = *p->iarg;
     p->lim = *p->limit;
@@ -1684,7 +1684,7 @@ int Foscaa(CSOUND *csound, XOSC *p)
 
 int impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (int)(FL(0.5) + *p->offset * csound->esr);
+    p->next = (int)MYFLT2LONG(*p->offset * csound->esr);
     return OK;
 }
 
@@ -1749,7 +1749,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
       MYFLT d = dur * csound->esr;
-      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
+      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * csound->ekr);
@@ -2188,17 +2188,17 @@ int waveset(CSOUND *csound, BARRI *p)
 
 int medfiltset(CSOUND *csound, MEDFILT *p)
 {
-    int wind = (int)(*p->iwind+FL(0.5));
-    int auxsize = 2*sizeof(MYFLT)*wind;
+    int maxwind = (int)MYFLT2LONG(*p->imaxsize);
+    int auxsize = 2*sizeof(MYFLT)*maxwind;
     p->ind = 0;
-    p->wind = wind;
+    p->maxwind = maxwind;
 
     if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
       csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
     else
       if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
     p->buff = (MYFLT*)p->b.auxp;
-    p->med = &(p->buff[wind]);
+    p->med = &(p->buff[maxwind]);
     return OK;
 }
 
@@ -2208,19 +2208,40 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     MYFLT *asig = p->asig;
     MYFLT *buffer = p->buff;
     MYFLT *med = p->med;
-    int wind = p->wind;
+    int maxwind = p->maxwind;
+    int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
     int n, nsmps=csound->ksmps;
+    if (kwind > maxwind) {
+      csound->Warning(csound,
+                      Str("median: window (%d)larger than maximum(%d); truncated"),
+                      kwind, maxwind);
+      kwind = maxwind;
+    }
     for (n=0; n<nsmps; n++) {
       MYFLT x = asig[n];
       buffer[index++] = x;
 
-      if (index>wind) index = 0;
-      memcpy(med, buffer, wind*sizeof(MYFLT));
-      aout[n] = medianvalue(wind, med-1); /* -1 as should point below data */
-      /* printf("%d/$%d: %f -> %f: %f %f %f %f %f: %f %f %f %f %f\n", 
-                 n, index, x, aout[n], buffer[0], buffer[1], buffer[2],
-                 buffer[3], buffer[4], med[0], med[1], med[2], med[3], med[4]); */
+      if (kwind<=index) {        /* all in centre */
+        memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
+        /* printf("memcpy: 0 <- %d (%d)\n", index-kwind, kwind); */
+      }
+      else {                    /* or in two parts */
+        memcpy(&med[0], &buffer[0], index*sizeof(MYFLT));
+        /* printf("memcpy: 0 <- 0 (%d)\n", index); */
+        memcpy(&med[index], &buffer[maxwind+index-kwind],
+               (kwind-index)*sizeof(MYFLT));
+        /* printf("memcpy: %d <- %d (%d)\n", index, maxwind+index-kwind, kwind-index); */
+      }
+      /* { int i; */
+      /*   for (i=0; i<8; i++) printf(" %f", buffer[i]); */
+      /*   printf("\n\t:"); */
+      /*   for (i=0; i<5; i++) printf(" %f", med[i]); */
+      /*   printf("\n"); */
+      /* } */
+      aout[n] = medianvalue(kwind, med-1); /* -1 as should point below data */
+      /* printf("%d/$%d: %f -> %f\n", n, index-1, x, aout[n]); */
+      if (index>=maxwind) index = 0;
     }
     p->ind = index;
     return OK;
