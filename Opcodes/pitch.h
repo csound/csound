@@ -234,13 +234,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *ans;
         MYFLT   *asig;
-        MYFLT   *iwind;
+        MYFLT   *kwind;
+        MYFLT   *imaxsize;
         MYFLT   *iskip;
         AUXCH   b;
         MYFLT   *buff;
         MYFLT   *med;
         int     ind;
-        int     wind;
+        int     maxwind;
 } MEDFILT;
 
 int Foscaa(CSOUND *, XOSC *p);
