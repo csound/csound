@@ -271,7 +271,7 @@ for i in libList:
             err = installLink(i, concatPath([libDir, 'libcsound.so']))
         elif i[:15] == 'libcsound64.so.':
             err = installLink(i, concatPath([libDir, 'libcsound64.so']))
-        elif i[:11] == 'libcsnd.so':
+        elif i[:11] == 'libcsnd.so.':
             err = installLink(i, concatPath([libDir, 'libcsnd.so']))
         elif i == 'lib_CsoundVST.so':
             err = installLink(concatPath([libDir, i]),
@@ -335,7 +335,7 @@ else:
   for i in xmgList:
     makeDir(concatPath([xmgDir, i, 'LC_MESSAGES']))
     src = 'po/' + i + '/LC_MESSAGES/csound5.mo'
-    fileName = concatPath([xmgDir, i, 'LC_MESSAGES/csound5.mo'])
+    fileName = concatPath([instDir, xmgDir, i, 'LC_MESSAGES/csound5.mo'])
     err = runCmd(['install', '-p', '-m', '0644', src, fileName])
     if err == 0:
         addMD5(fileName, fileName)
