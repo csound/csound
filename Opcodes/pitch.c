@@ -2246,3 +2246,35 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     p->ind = index;
     return OK;
 }
+
+int kmedfilt(CSOUND *csound, MEDFILT *p)
+{
+    MYFLT *buffer = p->buff;
+    MYFLT *med = p->med;
+    MYFLT x = *p->asig;
+    int maxwind = p->maxwind;
+    int kwind = MYFLT2LONG(*p->kwind);
+    int index = p->ind;
+    int n, nsmps=csound->ksmps;
+    if (kwind > maxwind) {
+      csound->Warning(csound,
+                      Str("median: window (%d)larger than maximum(%d); truncated"),
+                      kwind, maxwind);
+      kwind = maxwind;
+    }
+    buffer[index++] = x;
+    if (kwind<=index) {        /* all in centre */
+      memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
+      /* printf("memcpy: 0 <- %d (%d)\n", index-kwind, kwind); */
+    }
+    else {                    /* or in two parts */
+      memcpy(&med[0], &buffer[0], index*sizeof(MYFLT));
+      /* printf("memcpy: 0 <- 0 (%d)\n", index); */
+      memcpy(&med[index], &buffer[maxwind+index-kwind],
+             (kwind-index)*sizeof(MYFLT));
+    }
+    *p->ans = medianvalue(kwind, med-1); /* -1 as should point below data */
+    if (index>=maxwind) index = 0;
+    p->ind = index;
+    return OK;
+}
