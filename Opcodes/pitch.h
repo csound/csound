@@ -294,5 +294,6 @@ int waveset(CSOUND *, BARRI *p);
 int wavesetset(CSOUND *, BARRI *p);
 int medfiltset(CSOUND *, MEDFILT *p);
 int medfilt(CSOUND *, MEDFILT *p);
+int kmedfilt(CSOUND *, MEDFILT *p);
 #endif /* PITCH_H */
 
