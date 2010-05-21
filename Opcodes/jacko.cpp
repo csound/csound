@@ -45,7 +45,7 @@
  * from Jack input ports, through Csound processing, 
  * and to Jack output ports, must be properly
  * determined by sequence of instrument and 
- * opcode definition within Csound.
+ * opcode definition within the Csound orchestra.
  *
  * Syntax
  *
@@ -473,6 +473,9 @@ static int midiRead_(CSOUND *csound,
 		     unsigned char *midiData, 
 		     int nbytes);
 
+static void *closeRoutine(void *userdata);
+
+
 static std::map<CSOUND *, JackoState *> jackoStatesForCsoundInstances;
 
 /**
@@ -482,14 +485,12 @@ static std::map<CSOUND *, JackoState *> jackoStatesForCsoundInstances;
  * and writing of data is done by the input and output
  * opcodes.
  */
-
 struct JackoState
 {
   CSOUND *csound;
   const char *serverName;
   const char *clientName;
   jack_client_t *jackClient;
-  void *csoundThreadLock;
   char jackInitialized;
   char jackActive;
   char csoundActive;
@@ -504,6 +505,11 @@ struct JackoState
   std::map<std::string, jack_port_t *> midiOutPorts;
   std::list<unsigned char> midiInputQueue;
   jack_position_t jack_position;
+  pthread_t closeThread;
+  pthread_cond_t closeCondition;
+  pthread_mutex_t closeConditionMutex;
+  pthread_cond_t csoundCondition;
+  pthread_mutex_t csoundConditionMutex;
   JackoState(CSOUND *csound_, const char *serverName_, const char *clientName_) : 
     csound(csound_), 
     serverName(serverName_),
@@ -512,9 +518,16 @@ struct JackoState
     jackActive(false),
     csoundActive(true)
   {
+    int result = 0;
     csound = csound_;
     csoundFramesPerTick = csound->GetKsmps(csound);
     csoundFramesPerSecond = csound->GetSr(csound);
+    result = pthread_mutex_init(&csoundConditionMutex, 0);
+    result = pthread_cond_init(&csoundCondition, 0);
+    result = pthread_mutex_init(&closeConditionMutex, 0);
+    result = pthread_cond_init(&closeCondition, 0);
+    // Create a thread to run the close routine. It will immediately block until it is signaled.
+    result = pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
     std::memset(&jack_position, 0, sizeof(jack_position_t));
     jack_options_t jack_options = (jack_options_t) JackOpenOptions;
     jack_status_t status = jack_status_t(0);
@@ -548,9 +561,8 @@ struct JackoState
       csound->LongJmp(csound, 1);
     }
     jackoStatesForCsoundInstances[csound] = this;
-    csoundThreadLock = csound->CreateThreadLock();
     csound->RegisterSenseEventCallback(csound, SenseEventCallback_, this);
-    int result = jack_set_process_callback(jackClient, JackProcessCallback_, this);
+    result = jack_set_process_callback(jackClient, JackProcessCallback_, this);
     result = jack_activate(jackClient);
     if (!result) {
       csound->Message(csound, 
@@ -565,24 +577,48 @@ struct JackoState
     }
     csound->SetExternalMidiInOpenCallback(csound, midiDeviceOpen_);
     csound->SetExternalMidiReadCallback(csound, midiRead_);
-    csound->WaitThreadLockNoTimeout(csoundThreadLock);
     jackInitialized = true;
   }
   ~JackoState()
   {
-    close();
+    int result = 0;
   }
   int close()
   {
+    //csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
     int result = OK;
     // Try not to do thread related operations more than once...
     if (jackInitialized) {
       jackInitialized = false;
       jackActive = false;
       result = jack_deactivate(jackClient);
-      result = jack_client_close(jackClient);
-      audioInPorts.clear();
+      for (std::map<std::string, jack_port_t *>::iterator it = audioInPorts.begin();
+	   it != audioInPorts.end();
+	   ++it) {
+	result = jack_port_unregister(jackClient, it->second);
+      }
+      for (std::map<std::string, jack_port_t *>::iterator it = audioOutPorts.begin();
+	   it != audioOutPorts.end();
+	   ++it) {
+	result = jack_port_unregister(jackClient, it->second);
+      }
+      for (std::map<std::string, jack_port_t *>::iterator it = midiInPorts.begin();
+	   it != midiInPorts.end();
+	   ++it) {
+	result = jack_port_unregister(jackClient, it->second);
+      }
+      for (std::map<std::string, jack_port_t *>::iterator it = midiOutPorts.begin();
+	   it != midiOutPorts.end();
+	   ++it) {
+	result = jack_port_unregister(jackClient, it->second);
+      }
+      //      result = jack_client_close(jackClient);
+      //result = pthread_cond_destroy(&csoundCondition);
+      //result = pthread_mutex_destroy(&csoundConditionMutex);
+      //result = pthread_cond_destroy(&closeCondition);
+      //result = pthread_mutex_destroy(&closeConditionMutex);
       audioOutPorts.clear();
+      audioInPorts.clear();
       midiInPorts.clear();
       midiOutPorts.clear();
     }
@@ -592,7 +628,7 @@ struct JackoState
   int processJack(jack_nframes_t frames)
   {
     // We must call PerformKsmps here ONLY after the original
-    // Csound performance thread has been put to sleep.
+    // Csound performance thread is waiting on its condition.
     int result = 0;
     jackFrameTime = jack_last_frame_time(jackClient);
     if (jackActive && !csoundActive) {
@@ -623,11 +659,15 @@ struct JackoState
 	jack_midi_clear_buffer(buffer);
       }
       result = csound->PerformKsmps(csound);
-      // We break here when Csound has finished performing.
+      // We break here when the Csound performance is complete,
+      // and signal the original Csound performance thread to continue.
       if (result && jackActive) {
 	csoundActive = true;
 	jackActive = false;
-	csound->NotifyThreadLock(csoundThreadLock);
+	if (pthread_mutex_trylock(&csoundConditionMutex) == 0) {
+	  pthread_cond_signal(&csoundCondition);
+	  pthread_mutex_unlock(&csoundConditionMutex);
+	}
 	return result;
       }
     }
@@ -635,20 +675,48 @@ struct JackoState
   }
   int processCsound()
   {
+    int result = 0;
     // Here we must wait once and only once, in order to put
     // the original Csound processing thread to sleep -- 
     // but we must NOT put the Jack processing callback 
     // to sleep when it comes here!
     if (jackActive && csoundActive) {
       csoundActive = false;
-      csound->WaitThreadLockNoTimeout(csoundThreadLock);
-      csound->DestroyThreadLock(csoundThreadLock);
+      // While Jack is processing, wait here.
+      // The Jack process callback will then call csoundPerformKsmps 
+      // until the Csound performance is complete.
+      result = pthread_mutex_lock(&csoundConditionMutex);
+      result = pthread_cond_wait(&csoundCondition, &csoundConditionMutex);
+      result = pthread_mutex_unlock(&csoundConditionMutex);
     }
     if (jackActive) {
       return 1;
     } else {
-      return 0;
+      // Then, when the Csound performance is complete,
+      // we signal the close routine condition so that 
+      // Jack can be shut down and cleaned up in a separate
+      // thread. Doing this inside the Jack process callback
+      // takes too long and may cause other problems.
+      if (pthread_mutex_trylock(&closeConditionMutex) == 0) {
+	result = pthread_cond_signal(&closeCondition);
+	result = pthread_mutex_unlock(&closeConditionMutex);
+      }
+      return result;
     }
+  }
+  void *closeRoutine()
+  {
+    int result = 0;
+    // Wait until signaled to actually shut down the Jack client.
+    result = pthread_mutex_lock(&closeConditionMutex);
+    result = pthread_cond_wait(&closeCondition, &closeConditionMutex);
+    result = pthread_mutex_unlock(&closeConditionMutex);
+    close();
+    return (void *) result;
+  }
+  static void *closeRoutine_(void *userdata)
+  {
+    return ((JackoState *)userdata)->closeRoutine();
   }
   void startTransport()
   {
@@ -1515,12 +1583,12 @@ extern "C"
     int result = OK;
 #pragma omp critical
     {
-      //csound->Message(csound, "jacko: CsoundModuleDestroy(%p)\n", csound);
       std::map<CSOUND *, JackoState *>::iterator it = jackoStatesForCsoundInstances.find(csound);
       if (it != jackoStatesForCsoundInstances.end()) {
-	delete it->second;
+	//delete it->second;
 	jackoStatesForCsoundInstances.erase(it);
       }
+      //csound->Message(csound, "jacko: CsoundModuleDestroy(%p)\n", csound);
     }
     return result;
   }
