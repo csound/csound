@@ -2640,8 +2640,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         if commonEnvironment['dynamicCsoundLibrary'] == '1':
           if commonEnvironment['useDouble'] == '0': tcloc = '/Library/Frameworks/CsoundLib.framework/Resources/TclTk/'
           else: tcloc = '/Library/Frameworks/CsoundLib64.framework/Resources/TclTk/'
-          csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
-                                     'cp -R tclcsound.dylib ' + tcloc)
+          #csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
+           #                          'cp -R tclcsound.dylib ' + tcloc)
 
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)

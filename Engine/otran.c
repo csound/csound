@@ -494,7 +494,7 @@ void otran(CSOUND *csound)
                 else if (strcmp(s, "ksmps") == 0)
                   csound->tran_ksmps = constval;
                 else if (strcmp(s, "nchnls") == 0)
-                  csound->tran_nchnls = (int) constval;
+                 csound->tran_nchnlsi = csound->tran_nchnls = (int) constval;
                 else if (strcmp(s, "nchnls_i") == 0)
                   csound->tran_nchnlsi = (int) constval;
                 /* we have set this as reserved in rdorch.c */
