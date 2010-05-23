@@ -1,3 +1,7 @@
+2010-05-23  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/fareyseq.c (tableshuffle): New code for two opcodes
+
 2010-05-16  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/pitch.c (medfiltset):

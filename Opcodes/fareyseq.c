@@ -188,6 +188,15 @@ typedef struct {
 
 typedef struct {
     OPDS h;
+    MYFLT   *sft;           /* Source function table number */
+    /* Storage to remember what the table numbers were from a previous k
+       cycle, and to store pointers to their FUNC data structures. */
+    int     psft;           /* source function table numbers. */
+    FUNC    *funcs;
+} TABSHUFFLE;
+
+typedef struct {
+    OPDS h;
     MYFLT *kr, *kn;
 } FAREYLEN;
 
@@ -195,6 +204,9 @@ int tablefilter (CSOUND*,TABFILT *p);
 int tablefilterset (CSOUND*,TABFILT *p);
 int tableifilter (CSOUND*, TABFILT *p);
 int fareylen (CSOUND*, FAREYLEN *p);
+int tableshuffle (CSOUND*, TABSHUFFLE *p);
+int tableshuffleset (CSOUND*, TABSHUFFLE *p);
+int tableishuffle (CSOUND *, TABSHUFFLE *p);
 
 /* utility functions */
 int EulerPhi (int n);
@@ -417,6 +429,99 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
     return OK;
 }
 
+/***************************************
+functions for shuffling an f-table
+***************************************/
+static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p);
+
+int tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
+{
+    p->psft = 0;
+    return OK;
+}
+
+int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
+
+    if (UNLIKELY(*p->sft < 1)) {
+      return csound->PerfError(csound,
+                               Str("Table no. < 1 sft=%.2f"),
+			       *p->sft);
+    }
+
+    /* Source  */
+    if (p->psft != (int)*p->sft) {
+      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
+        return csound->PerfError(csound,
+                                 Str("Source sft table %.2f not found."),
+                                 *p->sft);
+      }
+      p->psft = (int)*p->sft;
+    }
+    dotableshuffle (csound, p);
+    return OK;
+}
+
+int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
+
+    if (UNLIKELY(*p->sft < 1)) {
+      return csound->PerfError(csound,
+                               Str("Table no. < 1 sft=%.2f"),
+			       *p->sft);
+    }
+
+
+    /* Source  */
+    if (p->psft != (int)*p->sft) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
+        return csound->InitError(csound,
+                                 Str("Source sft table %.2f not found."),
+                                 *p->sft);
+      }
+      p->psft = (int)*p->sft;
+    }
+
+    dotableshuffle (csound, p);
+    return OK;
+}
+
+/*-----------------------------------*/
+/* dotableshuffle()
+ * used to randomly shuffle the content of a csound f-table
+ */
+static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
+{
+    time_t now;
+    unsigned int seed = (unsigned int) time (&now);
+    srand (seed);
+
+    MYFLT *bases;       /* Base address of the source table.*/
+    int32 sourcelength;
+    int32 i = 0;
+
+    sourcelength = p->funcs->flen;
+
+    /* Now get the base address of the table. */
+    bases = p->funcs->ftable;
+
+    MYFLT* temp; 
+    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT)); 
+    memset (temp, 0, sizeof(MYFLT) * sourcelength);
+
+    for (i = 0; i < sourcelength; i++) {
+      int32 pos = rand() % sourcelength;
+      while (temp[pos]) {
+        pos--;
+        if (pos < 0)
+          pos = sourcelength - 1;
+      }
+      temp[pos] = bases[i];
+    }
+
+    memcpy (bases, temp, sizeof(MYFLT) * sourcelength);
+    free (temp);
+    return OK;
+}
+
 int fareylen (CSOUND *csound, FAREYLEN *p)
 {
     int n = (int) *p->kn;
@@ -633,7 +738,9 @@ static OENTRY localops[] = {
     {"tablefilter", S (TABFILT), 2, "k", "kkkk",
                          (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
     {"fareyleni", S (FAREYLEN), 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S (FAREYLEN), 2, "k", "k", NULL, (SUBR) fareylen, NULL}
+    {"fareylen", S (FAREYLEN), 2, "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"tableshufflei", S (TABSHUFFLE), 1, "", "i", (SUBR) tableshuffle, NULL, NULL},
+    {"tableshuffle", S (TABSHUFFLE), 2, "", "k", (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL}
 };
 
 LINKAGE
