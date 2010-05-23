@@ -35,7 +35,7 @@
 #define PLAYING   2
 #define LOGTWO    (0.69314718055994530942)
 
-static int32 MYFLOOR(MYFLT x) {
+static inline int32 MYFLOOR(MYFLT x) {
   if (x >= 0.0) {
     return (int32) x;
   } else {
@@ -73,10 +73,10 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
                                 /* Initialise spectrum */
     /* for mac roundoff */
     p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001));
-    nocts = (int)*p->iocts; if (nocts<=0) nocts = 6;
-    nfreqs = (int)*p->ifrqs; if (nfreqs<=0) nfreqs = 12;
+    nocts = (int)*p->iocts; if (UNLIKELY(nocts<=0)) nocts = 6;
+    nfreqs = (int)*p->ifrqs; if (UNLIKELY(nfreqs<=0)) nfreqs = 12;
     ncoefs = nocts * nfreqs;
-    Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
+    Q = *p->iq; if (UNLIKELY(Q<=FL(0.0))) Q = FL(15.0);
 
     if (UNLIKELY(p->timcount <= 0))
       return csound->InitError(csound, Str("illegal iprd"));
@@ -174,12 +174,12 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
     }
-    if (*p->inptls<=FL(0.0)) nptls = 4;
+    if (UNLIKELY(*p->inptls<=FL(0.0))) nptls = 4;
     else nptls = (int32)*p->inptls;
     if (UNLIKELY(nptls > MAXPTL)) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
-    if (*p->irolloff<=FL(0.0)) p->rolloff = FL(0.6);
+    if (UNLIKELY(*p->irolloff<=FL(0.0))) p->rolloff = FL(0.6);
     else p->rolloff = *p->irolloff;
     p->nptls = nptls;        /* number, whether all or odd */
     ptlmax = nptls;
@@ -214,7 +214,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     fundp = p->fundp;
     fendp = fundp + specp->npts;
     if (flop < fundp) flop = fundp;
-    if (fhip > fendp) fhip = fendp;
+    if (UNLIKELY(fhip > fendp)) fhip = fendp;
     if (UNLIKELY(flop >= fhip)) {                 /* chk hi-lo range valid */
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
@@ -289,7 +289,7 @@ int pitch(CSOUND *csound, PITCH *p)
     kvar = SQRT((MYFLT)q);       /* End of spectrum part */
 
     specp = &p->wsig;
-    if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
+    if (LIKELY((--p->scountdown))) goto nxt;  /* if not yet time for new spec  */
     p->scountdown = p->timcount;          /* else reset counter & proceed: */
     downp = &p->downsig;
     nocts = downp->nocts;
@@ -385,7 +385,7 @@ int pitch(CSOUND *csound, PITCH *p)
       }
       fp = flop;                               /* now srch fbins for peak */
       for (fmaxp = fp, fmax = *fp; ++fp<fhip; )
-        if (*fp > fmax) {
+        if (UNLIKELY(*fp > fmax)) {
           fmax = *fp;
           fmaxp = fp;
         }
@@ -422,7 +422,7 @@ int pitch(CSOUND *csound, PITCH *p)
         if ((absdiff = kval - p->kvalsav) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
-        if (p->jmpcount < confirms) {
+        if (UNLIKELY(p->jmpcount < confirms)) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           goto output;                    /*    must wait some more   */
         } else {
@@ -500,7 +500,7 @@ typedef struct {
 static void initClockStruct(CSOUND *csound, void **p)
 {
     *p = csound->QueryGlobalVariable(csound, "readClock::counters");
-    if (*p == NULL) {
+    if (UNLIKELY(*p == NULL)) {
       csound->CreateGlobalVariable(csound, "readClock::counters",
                                            sizeof(CPU_CLOCK));
       *p = csound->QueryGlobalVariable(csound, "readClock::counters");
@@ -510,7 +510,7 @@ static void initClockStruct(CSOUND *csound, void **p)
 
 static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 {
-    if (*p == NULL)
+    if (UNLIKELY(*p == NULL))
       initClockStruct(csound, p);
     return (CPU_CLOCK*) (*p);
 }
@@ -677,11 +677,11 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
 
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      if (*p->ioctcnt < 2)
+      if (UNLIKELY(*p->ioctcnt < 2))
         octcnt = 3;
       else
         octcnt = (int)*p->ioctcnt;
-      if (octcnt > 10)
+      if (UNLIKELY(octcnt > 10))
         octcnt = 10;
       p->octcnt = octcnt;
       if (*p->iphs >= 0) {
@@ -785,7 +785,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
     else {
       downsamp = (int)MYFLT2LONG(downs);
-      if (downsamp < 1)
+      if (UNLIKELY(downsamp < 1))
         downsamp = 1;
       srate = csound->esr / (MYFLT)downsamp;
       upsamp = 0;
@@ -1693,7 +1693,7 @@ int impulse(CSOUND *csound, IMPULSE *p)
     int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
-    if (next < csound->ksmps) {         /* Impulse in this frame */
+    if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
@@ -2212,6 +2212,9 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
     int n, nsmps=csound->ksmps;
+    if (UNLIKELY(p->b.auxp==NULL)) {
+      return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
+    }
     if (kwind > maxwind) {
       csound->Warning(csound,
                       Str("median: window (%d)larger than maximum(%d); truncated"),
@@ -2256,6 +2259,9 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     int kwind = MYFLT2LONG(*p->kwind);
     int index = p->ind;
     int n, nsmps=csound->ksmps;
+    if (UNLIKELY(p->b.auxp==NULL)) {
+      return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
+    }
     if (kwind > maxwind) {
       csound->Warning(csound,
                       Str("median: window (%d)larger than maximum(%d); truncated"),
@@ -2265,11 +2271,9 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     buffer[index++] = x;
     if (kwind<=index) {        /* all in centre */
       memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
-      /* printf("memcpy: 0 <- %d (%d)\n", index-kwind, kwind); */
     }
     else {                    /* or in two parts */
       memcpy(&med[0], &buffer[0], index*sizeof(MYFLT));
-      /* printf("memcpy: 0 <- 0 (%d)\n", index); */
       memcpy(&med[index], &buffer[maxwind+index-kwind],
              (kwind-index)*sizeof(MYFLT));
     }
