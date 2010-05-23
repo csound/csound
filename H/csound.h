@@ -645,6 +645,11 @@ CSOUND_FILETYPES;
   PUBLIC void csoundStop(CSOUND *);
 
   /**
+   * Finds th elist of named gens
+   */
+  PUBLIC void *csoundGetNamedGens(CSOUND *);
+
+  /**
    * Prints information about the end of a performance, and closes audio
    * and MIDI devices.
    * Note: after calling csoundCleanup(), the operation of the perform

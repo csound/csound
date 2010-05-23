@@ -319,6 +319,7 @@ extern "C" {
     csoundChanIASetSample,
     csoundChanOAGetSample,
     csoundStop,
+    csoundGetNamedGens,
     /* NULL, */
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -327,7 +328,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+      NULL, NULL, NULL, NULL, NULL, NULL},
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
@@ -1463,6 +1464,11 @@ extern "C" {
   }
 
   /* stop a csoundPerform() running in another thread */
+
+  PUBLIC void *csoundGetNamedGens(CSOUND *csound)
+  {
+      return csound->namedgen;
+  }
 
   PUBLIC void csoundStop(CSOUND *csound)
   {
