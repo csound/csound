@@ -56,6 +56,12 @@ typedef struct {
     int     fno;
 } FTDELETE;
 
+typedef struct namedgen {
+    char    *name;
+    int     genum;
+    struct namedgen *next;
+} NAMEDGEN;
+
 static int ftable_delete(CSOUND *csound, void *p)
 {
     int err = csound->FTDelete(csound, ((FTDELETE*) p)->fno);
@@ -95,23 +101,40 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     fp[2] = ftevt->p2orig = FL(0.0);                    /* force time 0 */
     fp[3] = ftevt->p3orig = *p->p3;
     fp[4] = *p->p4;
-    if (csound->GetInputArgSMask(p)) {  /* string argument: */
-      n = (int) fp[4];
-      fp[5] = SSTRCOD;
-      if (n < 0)
-        n = -n;
-      switch (n) {                      /*   must be Gen01, 23, 28, or 43 */
-      case 1:
-      case 23:
-      case 28:
-      case 43:
-        ftevt->strarg = (char*) p->p5;
-        break;
-      default:
-        csound->Free(csound, ftevt);
-        return csound->InitError(csound, Str("ftgen string arg not allowed"));
+    
+    if ((n = csound->GetInputArgSMask(p)))
+      if (n&0x8) {              /* Named gen */
+        NAMEDGEN *n = (NAMEDGEN*) csound->GetNamedGens(csound);
+        while (n) {
+          if (strcmp(n->name, (char *)p->p4) == 0) {    /* Look up by name */
+            break;
+          }
+          n = n->next;                            /*  and round again         */
+        }
+        if (UNLIKELY(n == NULL)) {
+          return csound->InitError(csound,
+                                   Str("Named gen \"%s\" not defined"),
+                                   (char *)p->p4);
+        }
+        else fp[4] = n->genum;
       }
-    }
+      else {  /* string argument: */
+        n = (int) fp[4];
+        fp[5] = SSTRCOD;
+        if (n < 0)
+          n = -n;
+        switch (n) {                      /*   must be Gen01, 23, 28, or 43 */
+        case 1:
+        case 23:
+        case 28:
+        case 43:
+          ftevt->strarg = (char*) p->p5;
+          break;
+        default:
+          csound->Free(csound, ftevt);
+          return csound->InitError(csound, Str("ftgen string arg not allowed"));
+        }
+      }
     else {
       fp[5] = *p->p5;                                   /* else no string */
     }
@@ -470,7 +493,7 @@ static int ftsave_k(CSOUND *csound, FTLOAD_K *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "ftgen",    S(FTGEN),     1,  "i",  "iiiiTm", (SUBR) ftgen, NULL, NULL    },
+  { "ftgen",    S(FTGEN),     1,  "i",  "iiiTTm", (SUBR) ftgen, NULL, NULL    },
   { "ftgentmp", S(FTGEN),     1,  "i",  "iiiiTm", (SUBR) ftgentmp, NULL, NULL },
   { "ftfree",   S(FTFREE),    1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
   { "ftsave",   S(FTLOAD),    1,  "",   "Tim",    (SUBR) ftsave, NULL, NULL   },
