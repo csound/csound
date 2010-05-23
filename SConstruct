@@ -2750,9 +2750,11 @@ if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and ge
 else:
     print "CONFIGURATION DECISION: Calling TAGS"
     allSources = string.join(glob.glob('*/*.h*'))
-    allSources = allSources + ' ' + string.join(glob.glob('*/*.c*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*.c'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*.cpp'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*.hpp'))
-    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c*'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.c'))
+    allSources = allSources + ' ' + string.join(glob.glob('*/*/*.cpp'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.h'))
     allSources = allSources + ' ' + string.join(glob.glob('*/*/*.hpp'))
     tags = commonEnvironment.Command('TAGS', Split(allSources), 'etags $SOURCES')

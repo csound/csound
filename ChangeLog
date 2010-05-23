@@ -1,5 +1,12 @@
 2010-05-23  john ffitch  <jpff@codemist.co.uk>
 
+	* Engine/fgens.c (hfgens): Check was against GENMAX rather than
+	csound->genmax 
+
+	* Opcodes/ftgen.c (ftgen): Allow for named GENs
+
+	* Top/csound.c (csoundGetNamedGens): New API function
+
 	* Opcodes/fareyseq.c (tableshuffle): New code for two opcodes
 
 2010-05-16  john ffitch  <jpff@codemist.co.uk>

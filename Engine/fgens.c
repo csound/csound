@@ -186,7 +186,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     else {
       if (genum < 0)
         genum = -genum;
-      if (UNLIKELY(!genum || genum > GENMAX)) { /*   & legal gen number     */
+      if (UNLIKELY(!genum || genum > csound->genmax)) { /*   & legal gen number x*/
         return fterror(&ff, Str("illegal gen number"));
       }
     }

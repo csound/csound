@@ -993,8 +993,9 @@ extern const uint32_t csPlayScoMask;
     int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
     MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
     void (*Stop)(CSOUND *);
+    void *(*GetNamedGens)(CSOUND *);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[77];
+    SUBR dummyfn_2[76];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
@@ -1057,7 +1058,7 @@ extern const uint32_t csPlayScoMask;
     int           randSeed2;
     int           memlock;
     int           floatsize;
-    int           inchnls;      /* Not used yet -- JPff */
+    int           inchnls;      /* Not fully used yet -- JPff */
     int   dummyint[7];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
