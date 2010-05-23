@@ -3559,7 +3559,7 @@ msgstr ""
 msgid "%s\t%ld points, scalemax %5.3f\n"
 msgstr ""
 
-#: InOut/windin.c:46 OOps/disprep.c:94 OOps/disprep.c:248 Opcodes/pitch.c:81
+#: InOut/windin.c:46 OOps/disprep.c:94 OOps/disprep.c:248 Opcodes/pitch.c:82
 #: Opcodes/spectra.c:77
 msgid "illegal iprd"
 msgstr ""
@@ -4796,8 +4796,8 @@ msgid "oscil(krate): not initialised"
 msgstr ""
 
 #: OOps/ugens2.c:1134 OOps/ugens2.c:1162 OOps/ugens2.c:1187 OOps/ugens2.c:1214
-#: Opcodes/pitch.c:1578 Opcodes/pitch.c:1605 Opcodes/pitch.c:1632
-#: Opcodes/pitch.c:1661
+#: Opcodes/pitch.c:1579 Opcodes/pitch.c:1606 Opcodes/pitch.c:1633
+#: Opcodes/pitch.c:1662
 msgid "oscil: not initialised"
 msgstr ""
 
@@ -5145,7 +5145,8 @@ msgstr ""
 msgid "Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr ""
 
-#: OOps/ugrw1.c:1781 OOps/ugrw1.c:1822
+#: OOps/ugrw1.c:1781 OOps/ugrw1.c:1822 Opcodes/fareyseq.c:455
+#: Opcodes/fareyseq.c:477
 #, c-format
 msgid "Source sft table %.2f not found."
 msgstr ""
@@ -5659,28 +5660,33 @@ msgstr ""
 msgid "insufficient arguments for fareytable"
 msgstr ""
 
-#: Opcodes/fareyseq.c:238 Opcodes/fareyseq.c:288
+#: Opcodes/fareyseq.c:250 Opcodes/fareyseq.c:300
 #, c-format
 msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr ""
 
-#: Opcodes/fareyseq.c:243
+#: Opcodes/fareyseq.c:255
 #, c-format
 msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
 msgstr ""
 
-#: Opcodes/fareyseq.c:258 Opcodes/fareyseq.c:306
+#: Opcodes/fareyseq.c:270 Opcodes/fareyseq.c:318
 #, c-format
 msgid "Farey: Destination dft table %.2f not found."
 msgstr ""
 
-#: Opcodes/fareyseq.c:269 Opcodes/fareyseq.c:317
+#: Opcodes/fareyseq.c:281 Opcodes/fareyseq.c:329
 #, c-format
 msgid "Farey: Source sft table %.2f not found."
 msgstr ""
 
-#: Opcodes/fareyseq.c:293
+#: Opcodes/fareyseq.c:305
 msgid "Farey: Filter type < 1"
+msgstr ""
+
+#: Opcodes/fareyseq.c:447 Opcodes/fareyseq.c:468
+#, c-format
+msgid "Table no. < 1 sft=%.2f"
 msgstr ""
 
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
@@ -7056,107 +7062,120 @@ msgstr ""
 msgid "negative times not allowed!!, correcting\n"
 msgstr ""
 
-#: Opcodes/pitch.c:83 Opcodes/spectra.c:79
+#: Opcodes/pitch.c:84 Opcodes/spectra.c:79
 msgid "illegal iocts"
 msgstr ""
 
-#: Opcodes/pitch.c:85 Opcodes/spectra.c:81
+#: Opcodes/pitch.c:86 Opcodes/spectra.c:81
 msgid "illegal ifrqs"
 msgstr ""
 
-#: Opcodes/pitch.c:179 Opcodes/spectra.c:587
+#: Opcodes/pitch.c:180 Opcodes/spectra.c:587
 msgid "illegal no of partials"
 msgstr ""
 
-#: Opcodes/pitch.c:204
+#: Opcodes/pitch.c:205
 msgid "per octave rolloff too steep"
 msgstr ""
 
-#: Opcodes/pitch.c:218 Opcodes/spectra.c:628
+#: Opcodes/pitch.c:219 Opcodes/spectra.c:628
 msgid "illegal lo-hi values"
 msgstr ""
 
-#: Opcodes/pitch.c:453
+#: Opcodes/pitch.c:454
 msgid "pitch: not initialised"
 msgstr ""
 
-#: Opcodes/pitch.c:462
+#: Opcodes/pitch.c:463
 msgid "Must have even number of arguments in mac\n"
 msgstr ""
 
-#: Opcodes/pitch.c:551
+#: Opcodes/pitch.c:552
 msgid "clockread: clock still running, call clockoff first"
 msgstr ""
 
-#: Opcodes/pitch.c:577
+#: Opcodes/pitch.c:578
 msgid "adsynt: wavetable not found!"
 msgstr ""
 
-#: Opcodes/pitch.c:590
+#: Opcodes/pitch.c:591
 msgid "adsynt: freqtable not found!"
 msgstr ""
 
-#: Opcodes/pitch.c:595
+#: Opcodes/pitch.c:596
 msgid "adsynt: partial count is greater than freqtable size!"
 msgstr ""
 
-#: Opcodes/pitch.c:603
+#: Opcodes/pitch.c:604
 msgid "adsynt: amptable not found!"
 msgstr ""
 
-#: Opcodes/pitch.c:608
+#: Opcodes/pitch.c:609
 msgid "adsynt: partial count is greater than amptable size!"
 msgstr ""
 
-#: Opcodes/pitch.c:639
+#: Opcodes/pitch.c:640
 msgid "adsynt: not initialised"
 msgstr ""
 
-#: Opcodes/pitch.c:715
+#: Opcodes/pitch.c:716
 msgid "hsboscil: not initialised"
 msgstr ""
 
-#: Opcodes/pitch.c:798
+#: Opcodes/pitch.c:799
 msgid "pitchamdf: maxcps must be > mincps !"
 msgstr ""
 
-#: Opcodes/pitch.c:944
+#: Opcodes/pitch.c:945
 msgid "pitchamdf: not initialised"
 msgstr ""
 
-#: Opcodes/pitch.c:1124 Opcodes/pitch.c:1151
+#: Opcodes/pitch.c:1125 Opcodes/pitch.c:1152
 msgid "phasorbnk: not initialised"
 msgstr ""
 
-#: Opcodes/pitch.c:1213
+#: Opcodes/pitch.c:1214
 msgid "pinkish: Invalid method code"
 msgstr ""
 
-#: Opcodes/pitch.c:1224
+#: Opcodes/pitch.c:1225
 msgid "pinkish: Filter method requires a-rate (noise) input"
 msgstr ""
 
-#: Opcodes/pitch.c:1347
+#: Opcodes/pitch.c:1348
 #, c-format
 msgid ""
 "pinkish: Gardner method requires 4-%d bands. Default %ld substituted for %"
 "d.\n"
 msgstr ""
 
-#: Opcodes/pitch.c:1730
+#: Opcodes/pitch.c:1731
 msgid "Incorrect argument count in transeg"
 msgstr ""
 
-#: Opcodes/pitch.c:1777 Opcodes/pitch.c:1917
+#: Opcodes/pitch.c:1778 Opcodes/pitch.c:1918
 msgid "Error: transeg not initialised (krate)\n"
 msgstr ""
 
-#: Opcodes/pitch.c:1812 Opcodes/pitch.c:1961
+#: Opcodes/pitch.c:1813 Opcodes/pitch.c:1962
 msgid "transeg: not initialised (arate)\n"
 msgstr ""
 
-#: Opcodes/pitch.c:1866
+#: Opcodes/pitch.c:1867
 msgid "Incorrect argument count in transegr"
+msgstr ""
+
+#: Opcodes/pitch.c:2216
+msgid "median: not initialised (arate)\n"
+msgstr ""
+
+#: Opcodes/pitch.c:2220 Opcodes/pitch.c:2267
+#, c-format
+msgid "median: window (%d)larger than maximum(%d); truncated"
+msgstr ""
+
+#: Opcodes/pitch.c:2263
+msgid "median: not initialised (krate)\n"
 msgstr ""
 
 #: Opcodes/pitch0.c:37
