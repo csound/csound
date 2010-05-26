@@ -528,7 +528,8 @@ static int sliderKawai(CSOUND *csound, SLIDERKAWAI *p)
     do {
       value = (MYFLT)  csound->m_chnbp[j]->ctl_val[7] * oneTOf7bit;
       if (*(++ftp))             /* if valid ftable,use value as index   */
-        value = *((*ftp)->ftable + (long)(value * (*ftp)->flen));  /* no interpolation */
+        /* no interpolation */
+        value = *((*ftp)->ftable + (long)(value * (*ftp)->flen));
       **result++ = value * (*max++ - *min) + *min;   /* scales the output */
       min++;;
     } while (++j < n);
@@ -562,11 +563,12 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
       return csound->InitError(csound, Str("illegal controller number"));
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
-   else p->ctlno = ctlno;
+    else p->ctlno = ctlno;
 
     if (*p->ifn > 0) {
-        if (((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)) p->flag = 0;  /* invalid ftable */
-        else p->flag= 1;
+      if (((p->ftp = csound->FTFind(csound, p->ifn)) == NULL))
+        p->flag = 0;  /* invalid ftable */
+      else p->flag= 1;
     }
     else p->flag= 0;
 
@@ -574,8 +576,8 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
     if (*p->icutoff <= 0) cutoff = 5;
     else cutoff = *p->icutoff;
 
-    b = FL(2.0) - (MYFLT)cos((double)(cutoff * csound->tpidsr * csound->ksmps));
-    p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
+    b = FL(2.0) - COS(cutoff * csound->tpidsr * csound->ksmps);
+    p->c2 = b - SQRT(b * b - 1.0);
     p->c1 = FL(1.0) - p->c2;
     p->prev = 0;
     return OK;
@@ -585,17 +587,21 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
 {
     MYFLT       *ar, val, incr;
     int nsmps = csound->ksmps;
-    MYFLT value = (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
+    MYFLT value =
+      (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
-        value = *(p->ftp->ftable + (long)(value*(p->ftp->flen-1))); /* no interpolation */
+                                /* no interpolation */
+      value = *(p->ftp->ftable + (long)(value*(p->ftp->flen-1)));
     }
-    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL;   /* scales the output */
+    /* scales the output */
+    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL; 
     value = p->yt1 = p->c1 * value + p->c2 * p->yt1;
     ar = p->r;
     val = p->prev;
     incr = (value - val) / (MYFLT) csound->ksmps;
-    do *ar++ = val += incr;
-    while (--nsmps);
+    do {
+      *ar++ = val += incr;
+    } while (--nsmps);
     p->prev = val;
     return OK;
 }

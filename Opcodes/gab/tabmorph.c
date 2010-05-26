@@ -61,7 +61,6 @@ static int tabmorph(CSOUND *csound, TABMORPH *p)
     int tabndx1int, tabndx2int;
     index_int = (int) *p->xindex % p->length;
 
-
     tabndx1 = *p->xtabndx1;
     tabndx1int = (int) tabndx1;
     tabndx1frac = tabndx1 - tabndx1int;
@@ -264,10 +263,14 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
 
 static OENTRY localops[] = {
 
-{ "tabmorph",  S(TABMORPH), 3,  "k", "kkkkm", (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
-{ "tabmorphi", S(TABMORPH), 3,  "k", "kkkkm", (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
-{ "tabmorpha", S(TABMORPH), 5,  "a", "aaaam", (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphia},
-{ "tabmorphak",S(TABMORPH), 5,  "a", "akkkm", (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphi }
+{ "tabmorph",  S(TABMORPH), 3,  "k", "kkkkm",
+               (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
+{ "tabmorphi", S(TABMORPH), 3,  "k", "kkkkm",
+               (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
+{ "tabmorpha", S(TABMORPH), 5,  "a", "aaaam",
+               (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphia},
+{ "tabmorphak",S(TABMORPH), 5,  "a", "akkkm",
+               (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphi }
 
 };
 
