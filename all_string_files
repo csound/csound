@@ -321,7 +321,6 @@
 ./Opcodes/filter.h
 ./Opcodes/flanger.c
 ./Opcodes/flanger.h
-./Opcodes/fluidOpcodes/fluidOpcodes.c
 ./Opcodes/fluidOpcodes/fluidOpcodes.cpp
 ./Opcodes/fluidOpcodes/fluidOpcodes.h
 ./Opcodes/flute.h

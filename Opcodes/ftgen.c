@@ -117,6 +117,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
                                    (char *)p->p4);
         }
         else fp[4] = n->genum;
+        fp[5] = *p->p5;
       }
       else {  /* string argument: */
         n = (int) fp[4];
