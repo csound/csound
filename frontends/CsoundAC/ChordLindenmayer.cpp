@@ -271,7 +271,7 @@ namespace csound
 	    scalar =  Conversions::stringToDouble(command.substr(4));
 	  }
 	}
-      } else if (target == 'N') {
+      } else if ((target == 'N') or (target == 'S')) {
 	equivalenceClass = command[2];
 	dimension = getDimension(command[3]);
 	if (command.length() > 4) {
