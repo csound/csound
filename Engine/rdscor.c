@@ -58,6 +58,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       }
       else {
         int n = csound->scnt0;
+        printf("***Entering dubious code; n=%d\n", n);
         if ((sstrp = csound->sstrbuf0[n]) == NULL)
           sstrp = csound->sstrbuf0[n] = mmalloc(csound, SSTRSIZ);
         while ((c = getc(xx)) != '"') {
