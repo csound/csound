@@ -654,8 +654,12 @@ extern "C" {
     0,              /* scoLineOffset */
     NULL,           /* csdname */
     -1,             /*  parserUdoflag */
-    0              /*  parserNamedInstrFlag */
- };
+    0,              /*  parserNamedInstrFlag */
+    0,              /*  tran_nchnlsi */
+    0,              /* Count of extra strings */
+    {NULL, NULL, NULL}, /* For extra strings in scores */
+    {0, 0, 0}       /* For extra strings in scores */
+};
 
   /* from threads.c */
   void csoundLock(void);

@@ -45,15 +45,30 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (c == '"') {                             /* if find a quoted string  */
       char *sstrp;
-      if ((sstrp = csound->sstrbuf) == NULL)
-        sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
-      while ((c = getc(xx)) != '"') {
-        if (c=='\\') c = getc(xx);
-        *sstrp++ = c;
+      if (csound->scnt0==0) {
+        if ((sstrp = csound->sstrbuf) == NULL)
+          sstrp = csound->sstrbuf = mmalloc(csound, SSTRSIZ);
+        while ((c = getc(xx)) != '"') {
+          if (c=='\\') c = getc(xx);
+          *sstrp++ = c;
+        }
+        *sstrp++ = '\0';
+        *pfld = SSTRCOD;                        /*   flag with hifloat      */
+        csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
       }
-      *sstrp++ = '\0';
-      *pfld = SSTRCOD;                        /*   flag with hifloat      */
-      csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      else {
+        int n = csound->scnt0;
+        if ((sstrp = csound->sstrbuf0[n]) == NULL)
+          sstrp = csound->sstrbuf0[n] = mmalloc(csound, SSTRSIZ);
+        while ((c = getc(xx)) != '"') {
+          if (c=='\\') c = getc(xx);
+          *sstrp++ = c;
+        }
+        *sstrp++ = '\0';
+        *pfld = ((int[4]){SSTRCOD,SSTRCOD1,SSTRCOD2,SSTRCOD3})[n]; /* flag with hifloat */
+        csound->sstrlen0[n] = sstrp - csound->sstrbuf0[n];  /* & overall length */
+      }
+      csound->scnt0++;
       return(1);
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
