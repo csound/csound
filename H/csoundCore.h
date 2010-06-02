@@ -92,6 +92,9 @@ extern "C" {
 #define LOMASK     1023
 
 #define SSTRCOD    3945467
+#define SSTRCOD1   3945466
+#define SSTRCOD2   3945465
+#define SSTRCOD3   3945464
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
 #ifdef OLPC
@@ -1287,6 +1290,10 @@ extern const uint32_t csPlayScoMask;
     int           parserUdoflag;
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
+    int           scnt0;        /* Count of extra strings */
+    char          *sstrbuf0[3]; /* For extra strings in scores */
+    int           *sstrlen0[3]; /* lengths for extra strings */
+
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

@@ -1293,8 +1293,13 @@ static void ifa(CSOUND *csound)
       }
       else switch (ST(bp)->pcnt) {      /*  watch for p1,p2,p3, */
       case 1:                           /*   & MYFLT, setinsno..*/
-        if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"')
-          ST(bp)->p1val = SSTRCOD;      /* allow string name */
+        if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"') {
+          ST(bp)->p1val = ((int[4]){SSTRCOD,SSTRCOD1,SSTRCOD2,SSTRCOD3})[csound->scnt0++];
+          if (csound->scnt0>3) {
+            csound->scnt0 = 3;
+          }
+          /* ST(bp)->p1val = SSTRCOD;      /\* allow string name *\/ */
+        }
         else
           ST(bp)->p1val = stof(csound, ST(sp));
         if (ST(op) == 'i')
