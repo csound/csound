@@ -126,10 +126,10 @@ static int bar_run(CSOUND *csound, BAR *p)
       if (bcR == 3) {
         w1[N+3] = 2.0*w1[N+2]-w1[N+1];
         w1[N+4] = 3.0*w1[N+3]-3.0*w1[N+2]+w1[N+1];
-   }
+      }
       else if (bcR == 1) {
         w1[N+1] = 0.0;
-        w1[N+1] = 0.0;
+        w1[N+2] = 0.0;
       }
       else if (bcR == 2) {
         w1[N+2] = 0.0;
@@ -137,7 +137,7 @@ static int bar_run(CSOUND *csound, BAR *p)
       }
 
       /* Iterate model */
-      for (rr = 0; rr < N; rr++) {
+      for (rr = 0; rr < N+1; rr++) { /* Is N+1 correct here?? */
         w[rr+2] = s0*w1[rr+2] + s1*(w1[rr+3]+w1[rr+1]) + s2*(w1[rr+4]+w1[rr]) +
                   t0*w2[rr+2] + t1*(w2[rr+3]+w2[rr+1]);
       }

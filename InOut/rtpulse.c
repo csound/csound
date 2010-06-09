@@ -44,8 +44,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
   int siz = 64;
 
   if (csound->oparms->msglevel & 0x400)
-    csound->Message(csound, Str("PulseAudio client RT IO module for Csound")
-                              "by Victor Lazzarini\n");
+    csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
+                                "by Victor Lazzarini\n"));
 
   if (csound->CreateGlobalVariable(csound, "_pulse_globals",
                                    sizeof(pulse_globals)) != 0) {
@@ -162,10 +162,11 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
 
 static void pulse_close(CSOUND *csound){
-
+  int error;
   pulse_params *pulse = (pulse_params*) csound->rtPlay_userdata;
 
   if(pulse != NULL){
+    pa_simple_drain(pulse->ps, &error);
     pa_simple_free(pulse->ps);
     free(pulse->buf);
   }

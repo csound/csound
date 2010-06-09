@@ -119,7 +119,7 @@ static inline envVarEntry_t **getEnvVarChain(CSOUND *csound, const char *name)
 {
     unsigned char h;
     /* check for trivial cases */
-    if (ENV_DB == NULL || name == NULL || name[0] == '\0')
+    if (UNLIKELY(ENV_DB == NULL || name == NULL || name[0] == '\0'))
       return NULL;
     /* calculate hash value */
     h = name_hash_2(csound, name);
@@ -131,13 +131,13 @@ static int is_valid_envvar_name(const char *name)
 {
     char *s;
 
-    if (name == NULL || name[0] == '\0')
+    if (UNLIKELY(name == NULL || name[0] == '\0'))
       return 0;
     s = (char*) &(name[0]);
-    if (!(isalpha(*s) || *s == '_'))
+    if (UNLIKELY(!(isalpha(*s) || *s == '_')))
       return 0;
     while (*(++s) != '\0') {
-      if (!(isalpha(*s) || isdigit(*s) || *s == '_'))
+      if (UNLIKELY(!(isalpha(*s) || isdigit(*s) || *s == '_')))
         return 0;
     }
     return 1;
@@ -296,7 +296,7 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
       return CSOUND_SUCCESS;
     /* allocate new value (+ 2 bytes for ';' and null character) */
     newval = (char*) mmalloc(csound, (size_t) strlen(oldval)
-                                     + (size_t) strlen(value) + (size_t) 2);
+                             + (size_t) strlen(value) + (size_t) 2);
     /* append to old value */
     strcpy(newval, oldval);     /* These are safe as space calculated above */
     strcat(newval, ";");
@@ -749,7 +749,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 #ifndef mac_classic
         /* check if root directory */
         if (lastIndex == tempPath) {
-            partialPath = (char *)mcalloc(csound, 2);
+            partialPath = (char *)mmalloc(csound, 2);
             partialPath[0] = DIRSEP;
             partialPath[1] = '\0';
 
@@ -761,7 +761,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 #  ifdef WIN32
         /* check if root directory of Windows drive */
         if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
-            partialPath = (char *)mcalloc(csound, 4);
+            partialPath = (char *)mmalloc(csound, 4);
             partialPath[0] = tempPath[0];
             partialPath[1] = tempPath[1];
             partialPath[2] = tempPath[2];
@@ -1116,7 +1116,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     }
     nbytes += (int) strlen(fullName);
     /* allocate file structure */
-    p = (CSFILE*) malloc((size_t) nbytes);
+    p = (CSFILE*) mmalloc(csound, (size_t) nbytes);
     if (UNLIKELY(p == NULL))
       goto err_return;
     p->nxt = (CSFILE*) csound->open_files;
@@ -1198,7 +1198,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
  err_return:
     /* clean up on error */
     if (p != NULL)
-      free(p);
+      mfree(csound, p);
     if (fullName != NULL && env != NULL)
       mfree(csound, fullName);
     if (tmp_fd >= 0)
@@ -1236,7 +1236,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       return NULL;
     nbytes += (int) strlen(fullName);
     /* allocate file structure */
-    p = (CSFILE*) malloc((size_t) nbytes);
+    p = (CSFILE*) mmalloc(csound, (size_t) nbytes);
     if (p == NULL)
       return NULL;
     p->nxt = (CSFILE*) csound->open_files;
@@ -1262,7 +1262,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       default:
         csoundErrorMsg(csound, Str("internal error: csoundCreateFileHandle(): "
                                    "invalid type: %d"), type);
-        free(p);
+        mfree(csound, p);
         return NULL;
     }
     /* link into chain of open files */
@@ -1315,7 +1315,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
     if (p->nxt != NULL)
       p->nxt->prv = p->prv;
     /* free allocated memory */
-    free(fd);
+    mfree(csound, fd);
     /* return with error value */
     return retval;
 }

@@ -51,15 +51,15 @@
  * The Csound Application Programming Interface (API) reference is contained herein.
  * The Csound API actually consists of several APIs:
  *
- * - The basic Csound C API. Include csound.h and link withlibcsound.a.
+ * - The basic Csound C API. Include csound.h and link with libcsound.a.
  *   This also includes the Cscore API (see below).
  * - The basic Csound C++ API. Include csound.hpp and link with libcsound.a.
  * - The extended Csound C++ API. Include CppSound.hpp and link with
- *   libcsound.a and lib_csnd.a,
+ *   libcsound.a and libcsnd.a,
  *   which adds to the Csound C++ API a CsoundFile class for loading, saving,
  *   and editing Csound orchestra and score files.
  * - The CsoundAC C++ API. Include CsoundAC.hpp and link with libcsound.a,
- *   lib_csnd.a, and libCsoundAC.a.
+ *   libcsnd.a, and libCsoundAC.a.
  *   The CsoundAC class contains an instance of the CppSound class,
  *   and provides a class hierarchy for doing algorithmic composition using
  *   Michael Gogins' concept of music graphs (previously known as Silence).
@@ -124,7 +124,7 @@
  * Before you can use any of the Cscore API functions, you must create a CSOUND
  * instance and initialize Cscore by calling csoundInitializeCscore() -- see
  * csound.h for an explanation.  An example main program that does all of this
- * Top/cscormai.c.  You should add a function called \cscore() with your own
+ * Top/cscormai.c.  You should add a function called cscore() with your own
  * score-processing code.  An example that does nothing except write the score
  * back out unchanged can be found in the file Top/cscore_internal.c.
  *
@@ -147,7 +147,7 @@
  *
  * \li Declare a stable public application programming interface (API)
  *     for Csound in csound.h. This is the only header file that needs
- *     to be #included by users of the Csound API.
+ *     to be \#included by users of the Csound API.
  *
  * \li Hide the internal implementation details of Csound from users of
  *     the API, so that development of Csound can proceed without affecting
@@ -163,8 +163,8 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *
- * Hosts using the Csound API must #include <csound.h>, and link with the
- * Csound API library. Plugin libraries should #include <csdl.h> to get
+ * Hosts using the Csound API must \#include <csound.h>, and link with the
+ * Csound API library. Plugin libraries should \#include <csdl.h> to get
  * access to the API function pointers in the CSOUND structure, and do not
  * need to link with the Csound API library.
  * Only one of csound.h and csdl.h may be included by a compilation unit.
@@ -218,6 +218,10 @@
 #  define PUBLIC        __attribute__ ( (visibility("default")) )
 #else
 #  define PUBLIC
+#endif
+
+#if defined(MSVC)
+#  include <intrin.h> /* for _InterlockedExchange */
 #endif
 
   /**
@@ -641,6 +645,11 @@ CSOUND_FILETYPES;
   PUBLIC void csoundStop(CSOUND *);
 
   /**
+   * Finds th elist of named gens
+   */
+  PUBLIC void *csoundGetNamedGens(CSOUND *);
+
+  /**
    * Prints information about the end of a performance, and closes audio
    * and MIDI devices.
    * Note: after calling csoundCleanup(), the operation of the perform
@@ -733,11 +742,25 @@ CSOUND_FILETYPES;
   PUBLIC MYFLT *csoundGetSpin(CSOUND *);
 
   /**
+   * Adds the indicated sample into the audio input woriing buffer (spin);
+   * this only ever makes sense before calling csoundPerformKsmps(). 
+   * The frame and channel must be in bounds relative to ksmps and nchnls.
+   */
+  PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample);
+
+  /**
    * Returns the address of the Csound audio output working buffer (spout).
    * Enables external software to read audio from Csound after calling
    * csoundPerformKsmps.
    */
-  PUBLIC MYFLT *csoundGetSpout(CSOUND *);
+  PUBLIC MYFLT *csoundGetSpout(CSOUND *csound);
+
+  /**
+   * Returns the indicated sample from the Csound audio output working buffer (spout);
+   * only ever makes sense after calling csoundPerformKsmps().
+   * The frame and channel must be in bounds relative to ksmps and nchnls.
+   */
+  PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel);
 
   /**
    * Returns the output sound file name (-o).
@@ -1338,8 +1361,6 @@ CSOUND_FILETYPES;
 
 #if defined(MSVC)
 
-#include <intrin.h>
-
 #pragma intrinsic(_InterlockedExchange)
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock)      */
@@ -1738,24 +1759,62 @@ CSOUND_FILETYPES;
    * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
+  
+  /**
+   * Sets the chani opcode MYFLT k-rate value for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC int csoundChanIKSetValue(CSOUND *, int channel, MYFLT value);
 
- /**
- * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
- * The bus is automatically extended if 'n' exceeds any previously used
- * index value, clearing new locations to zero.
- * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * fsig framesizes are incompatible
- * CSOUND_MEMORY if there is not enough memory to extend the bus.
- */
+  /**
+   * Returns the chani opcode MYFLT k-rate value for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus
+   */
+  PUBLIC MYFLT csoundChanOKGetValue(CSOUND *, int channel);
+
+  /**
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame
+   * of the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
+
+  /**
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame 
+   * for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+
+  /**
+   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * fsig framesizes are incompatible
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
   PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
-
- /**
- * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
- * The bus is extended if 'n' exceeds any previous value.
- * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * if fsig framesizes are incompatible
- * CSOUND_MEMORY if there is not enough memory to extend the bus
- */
+  
+  /**
+   * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
+   * The bus is extended if 'n' exceeds any previous value.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * if fsig framesizes are incompatible
+   * CSOUND_MEMORY if there is not enough memory to extend the bus
+   */
   PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
 
   /**

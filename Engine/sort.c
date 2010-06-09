@@ -1,7 +1,7 @@
 /*
     sort.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch
+    Copyright (C) 2010 John ffitch with some code from Barry Vercoe
 
     This file is part of Csound.
 
@@ -21,57 +21,187 @@
     02111-1307 USA
 */
 
+/* the smoothsort is from the Web
+http://en.wikibooks.org/wiki/Algorithm_Implementation/Sorting/Smoothsort
+recovered march 2010
+Adapted from Delphi implementation of Dijkstra's algorithm.
+*/
+
 #include "csoundCore.h"                         /*   SORT.C  */
 
-static void sorter(CSOUND *csound)              /* the main sorting routine */
+inline int ordering(SRTBLK *a, SRTBLK *b)
 {
-    SRTBLK *newbp, *prvbp;
-    SRTBLK *bp;
-    char c, pc;
+    char cb = b->text[0], ca = a->text[0];
     MYFLT diff;
     int prdiff, indiff;
+    int ans;
+    ans = !(ca != 'w'
+           && (cb == 'w' ||
+               (ca != 't' &&
+                (cb == 't' ||
+                 ((diff = b->newp2 - a->newp2) < 0 ||
+                  (!diff &&
+                   ((prdiff = b->preced - a->preced) < 0 ||
+                    (!prdiff && cb == 'i' &&
+                     ((indiff = b->insno - a->insno) < 0 ||
+                      (!indiff && b->newp3 < a->newp3) )
+                     ))))))));
+    /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
+    return ans;
+}
 
-    bp = csound->frstbp;
-    while ((newbp = bp->nxtblk) != NULL
-           && (c = newbp->text[0]) != 's' && c != 'e') {
-      prvbp = newbp;
-      while ((prvbp = prvbp->prvblk) != NULL
-             && (pc = prvbp->text[0]) != 'w'
-             && (c == 'w' ||
-                 (pc != 't' &&
-                  (c == 't' ||
-                   ((diff = newbp->newp2 - prvbp->newp2) < 0 ||
-                    (!diff &&
-                     ((prdiff = newbp->preced - prvbp->preced) < 0 ||
-                      (!prdiff && c == 'i' &&
-                       ((indiff = newbp->insno - prvbp->insno) < 0 ||
-                        (!indiff && newbp->newp3 < prvbp->newp3) )
-                       ))))))))
-        ;
+#define UP(IA,IB)   {temp=IA; IA+=(IB)+1;     IB=temp;}
+#define DOWN(IA,IB) {temp=IB; IB=(IA)-(IB)-1; IA=temp;}
 
-      if (prvbp != bp) {                      /*   if re-ordered,  */
-        if ((bp->nxtblk = newbp->nxtblk) != NULL)
-          newbp->nxtblk->prvblk = bp;       /* unlink, */
-        if ((newbp->prvblk = prvbp) != NULL) {    /*  relink */
-          newbp->nxtblk = prvbp->nxtblk;    /*  in mid */
-          prvbp->nxtblk = prvbp->nxtblk->prvblk = newbp;
+/* These need to be encapsulated */
+#define q  (data[0])
+#define r  (data[1])
+#define p  (data[2])
+#define b  (data[3])
+#define c  (data[4])
+#define r1 (data[5])
+#define b1 (data[6])
+#define c1 (data[7])
+
+void inline sift(SRTBLK *A[], int data[])
+{
+    int r0, r2, temp;
+    SRTBLK * T;
+    r0 = r1;
+    T = A[r0];
+    while (b1 >= 3) {
+      r2 = r1-b1+c1;
+      if (! ordering(A[r1-1],A[r2])) {
+        r2 = r1-1;
+        DOWN(b1,c1)
+      }
+      if (ordering(A[r2],T)) b1 = 1;
+      else {
+        A[r1] = A[r2];
+        r1 = r2;
+        DOWN(b1,c1)
+      }
+    }
+    if (UNLIKELY(r1 != r0)) A[r1] = T;
+}
+
+void inline trinkle(SRTBLK *A[], int data[])
+{
+    int p1,r2,r3, r0, temp;
+    SRTBLK * T;
+    p1 = p; b1 = b; c1 = c;
+    r0 = r1; T = A[r0];
+    while (p1 > 0) {
+      while ((p1 & 1)==0) {
+        p1 >>= 1;
+        UP(b1,c1)
+      }
+      r3 = r1-b1;
+      if ((p1==1) || ordering(A[r3], T)) p1 = 0;
+      else {
+        p1--;
+        if (b1==1) {
+          A[r1] = A[r3];
+          r1 = r3;
         }
-        else {
-          newbp->nxtblk = csound->frstbp;    /* or at top */
-          csound->frstbp = csound->frstbp->prvblk = newbp;
+        else
+          if (b1 >= 3) {
+            r2 = r1-b1+c1;
+            if (! ordering(A[r1-1],A[r2])) {
+              r2 = r1-1;
+              DOWN(b1,c1)
+              p1 <<= 1;
+            }
+            if (ordering(A[r2],A[r3])) {
+              A[r1] = A[r3]; r1 = r3;
+            }
+            else {
+              A[r1] = A[r2];
+              r1 = r2;
+              DOWN(b1,c1)
+              p1 = 0;
+            }
+          }
+      }
+    }
+    if (r0-r1) A[r1] = T;
+    sift(A, data);
+}
+
+void inline semitrinkle(SRTBLK *A[], int data[])
+{
+    SRTBLK * T;
+    r1 = r-c;
+    if (! ordering(A[r1],A[r])) {
+      T = A[r]; A[r] = A[r1]; A[r1] = T;
+      trinkle(A, data);
+    }
+}
+
+void smoothsort(SRTBLK *A[], const int N)
+{
+    int temp;
+    int data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
+
+    /* building tree */
+    while (q < N) {
+      r1 = r;
+      if ((p & 7)==3) {
+        b1 = b; c1 = c; sift(A, data);
+        p = (p+1) >> 2;
+        UP(b,c) UP(b,c)
+      }
+      else if ((p & 3)==1) {
+        if (q + c < N) {
+          b1 = b; c1 = c; sift(A, data);
+        }
+        else trinkle(A, data);
+        DOWN(b,c);
+        p <<= 1;
+        while (b > 1) {
+          DOWN(b,c)
+            p <<= 1;
+        }
+        p++;
+      }
+      q++; r++;
+    }
+    r1 = r; trinkle(A, data);
+
+    /* building sorted array */
+    while (q > 1) {
+      q--;
+      if (b==1) {
+        r--; p--;
+        while ((p & 1)==0) {
+          p >>= 1;
+          UP(b,c)
         }
       }
-      else bp = newbp;                        /*  else loop nxtblk */
+      else
+      if (b >= 3) {
+        p--; r = r-b+c;
+        if (p > 0) semitrinkle(A, data);
+        DOWN(b,c)
+        p = (p << 1) + 1;
+        r = r+c;  semitrinkle(A, data);
+        DOWN(b,c)
+        p = (p << 1) + 1;
+      }
+      /* element q processed */
     }
+    /* element 0 processed */
 }
 
 void sort(CSOUND *csound)
 {
     SRTBLK *bp;
-
-    if ((bp = csound->frstbp) == NULL)
+    SRTBLK **A;
+    int i, n = 0;
+    if (UNLIKELY((bp = csound->frstbp) == NULL))
       return;
     do {
+      n++;                      /* Need to count to alloc the array */
       switch (bp->text[0]) {
       case 'i':
         if (bp->insno < 0)
@@ -97,6 +227,21 @@ void sort(CSOUND *csound)
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
-    sorter(csound);
+    /* Get a temporary array and populate it */
+    A = (SRTBLK**) malloc(n*sizeof(SRTBLK*));
+    bp = csound->frstbp;
+    for (i=0; i<n; i++,bp = bp->nxtblk)
+      A[i] = bp;
+    if (LIKELY(A[n-1]->text[0]=='e' || A[n-1]->text[0]=='s'))
+      smoothsort(A, n-1);
+    else
+      smoothsort(A, n);
+    /* Relink list in order; first and last different */
+    csound->frstbp = bp = A[0]; bp->prvblk = NULL; bp->nxtblk = A[1];
+    for (i=1; i<n-1; i++ ) {
+      bp = A[i]; bp->prvblk = A[i-1]; bp->nxtblk = A[i+1];
+    }
+    bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
+    /* and return temporary space */
+    free(A);
 }
-

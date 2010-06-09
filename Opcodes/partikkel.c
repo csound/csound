@@ -1,6 +1,6 @@
 /*
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2008 Øyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2009 Øyvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -204,7 +204,7 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
 
     cos_beta = lrplookup(tab, fbeta, zscale, cosineshift);
     denominator = FL(1.0) - FL(2.0)*a*cos_beta + a*a;
-    if (denominator < FL(1e-4) && denominator > FL(-1e-4)) {
+    if (denominator < FL(1e-6) && denominator > FL(-1e-6)) {
         /* handle this special case to avoid divison by zero */
         result = N - FL(1.0);
     } else {
@@ -285,9 +285,9 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
         return INITERROR("unable to load wave gain table");
 
     p->disttabshift = sizeof(unsigned)*CHAR_BIT -
-                      (unsigned)(log((double)p->disttab->flen)/log(2.0));
+                      (unsigned)(log((double)p->disttab->flen)/log(2.0) + 0.5);
     p->cosineshift = sizeof(unsigned)*CHAR_BIT -
-                     (unsigned)(log((double)p->costab->flen)/log(2.0));
+                     (unsigned)(log((double)p->costab->flen)/log(2.0) + 0.5);
     p->zscale = FL(1.0)/FL(1 << p->cosineshift);
     p->wavfreqstartindex = p->wavfreqendindex = 0;
     p->gainmaskindex = p->channelmaskindex = 0;
@@ -303,7 +303,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
 
     /* allocate memory for the grain pool and initialize it*/
     if (UNLIKELY(*p->max_grains < FL(1.0)))
-        return INITERROR("maximum number of grains need to be non-zero "
+        return INITERROR("maximum number of grains needs to be non-zero "
                          "and positive");
     size = ((unsigned)*p->max_grains)*sizeof(NODE);
     if (p->aux2.auxp == NULL || p->aux2.size < size)
@@ -318,8 +318,10 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     return OK;
 }
 
-/* n is sample number for which the grain is to be scheduled */
-static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
+/* n is sample number for which the grain is to be scheduled
+ * offset is time offset for grain in seconds, passed separately for hints */
+static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
+                          double offset)
 {
     /* make a new grain */
     MYFLT startfreqscale, endfreqscale;
@@ -371,8 +373,9 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
     clip_index(p->wavgainindex, wavgains[0], wavgains[1]);
     wavgainsindex = 5*p->wavgainindex++;
 
+    graingain = *p->amplitude*maskgain;
     /* check if our mask gain is zero or if stochastic masking takes place */
-    if ((fabs(maskgain) < FL(1e-8)) || (frand() > 1.0 - *p->randommask)) {
+    if ((fabs(graingain) < FL(1e-8)) || (frand() > 1.0 - *p->randommask)) {
         /* grain is either masked out or has a zero amplitude, so we cancel it
          * and proceed with scheduling our next grain */
         return_grain(&p->gpool, node);
@@ -395,7 +398,6 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
     grain->chan1 = chan;
     grain->chan2 = p->num_outputs > chan + 1 ? chan + 1 : 0;
 
-    graingain = *p->amplitude*maskgain;
     /* duration in samples */
     samples = (int)((csound->esr*(*p->duration)/1000.0) + 0.5);
     /* if grainlength is below one sample, we'll just cancel it */
@@ -404,14 +406,13 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
         return OK;
     }
     rcp_samples = 1.0/(double)samples;
-    grain->start = n;
-    grain->stop = n + samples;
-    /* if grainphase is larger than graininc, the grain is not synchronous and
-     * we'll skip sub-sample grain placement. also check for divide by zero */
-    if (p->grainphase < p->graininc && p->graininc != 0.0)
-        phase_corr = p->graininc != 0.0 ? p->grainphase/p->graininc : 0.0;
+    grain->start = n + offset*csound->esr;
+    grain->stop = grain->start + samples;
+    /* implement sub-sample grain placement for synchronous grains */
+    if (offset == 0.0 && p->graininc > 1e-6)
+        phase_corr = p->grainphase/p->graininc;
     else
-        phase_corr = 0;
+        phase_corr = 0.0;
 
     /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
@@ -429,7 +430,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n)
 
         /* check if waveform gets zero volume. if so, let's mark it as unused
          * and move on to the next one */
-        if (fabs(curwav->gain) < FL(1e-10)) {
+        if (fabs(curwav->gain) < FL(1e-8)) {
             curwav->table = NULL;
             continue;
         }
@@ -547,7 +548,6 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
     /* start grain scheduling */
     for (n = 0; n < csound->ksmps; ++n) {
-        int phase_wrapped = 0;
         if (p->grainfreq_arate)
             grainfreq = p->grainfreq[n];
         p->graininc = fabs(grainfreq*csound->onedsr);
@@ -574,28 +574,35 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         }
 
         if (p->grainphase >= 1.0) {
-            /* phase has wrapped because we're at a period, so find out where
-             * to create the next grain */
+            double offset;
+
+            do
+                p->grainphase -= 1.0;
+            while (p->grainphase >= 1.0);
+            /* schedule new synchronous or synced grain */
+            /* first determine time offset for grain */
             if (*p->distribution >= FL(0.0)) {
                 /* positive distrib, choose random point in table */
                 unsigned rnd = csound->RandMT(&p->randstate);
-                MYFLT offset = p->disttab->ftable[rnd >> p->disttabshift];
-                p->nextgrainphase = *p->distribution*offset;
+                offset = p->disttab->ftable[rnd >> p->disttabshift];
+                offset *= *p->distribution;
             } else {
                 /* negative distrib, choose sequential point in table */
-                MYFLT offset = p->disttab->ftable[p->distindex++];
-                p->nextgrainphase = -*p->distribution*offset;
+                offset = p->disttab->ftable[p->distindex++];
+                offset *= -*p->distribution;
                 if (p->distindex >= p->disttab->flen)
                     p->distindex = 0;
             }
-            while (p->grainphase >= 1.0)
-                p->grainphase -= 1.0;
-            phase_wrapped = 1;
-        }
-
-        /* trigger when we have passed nextgrainphase */
-        if (p->grainphase >= p->nextgrainphase
-            && (p->prevphase < p->nextgrainphase || phase_wrapped)) {
+            /* convert offset to seconds, also limiting it to 10 seconds to
+             * avoid accidentally filling grain pool with grains which will
+             * spawn in half a day */
+            if (grainfreq < FL(0.001))
+                offset = 0;
+            else if ((offset - p->grainphase)/grainfreq > 10.)
+                offset = 10.;
+            else
+                offset = (offset - p->grainphase)/grainfreq;
+            /* prepare actual grain creation */
             /* check if there are any grains left in the pool */
             if (!p->gpool.free_nodes) {
                 if (!p->out_of_voices_warning) {
@@ -609,7 +616,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             /* check first, in case we'll change the above behaviour of
              * killing a grain */
             if (node) {
-                int ret = schedule_grain(csound, p, node, n);
+                int ret = schedule_grain(csound, p, node, n, offset);
 
                 if (ret != OK)
                     return ret;
@@ -618,10 +625,10 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             if (p->globals_entry)
                 p->globals_entry->synctab[n] = FL(1.0);
         }
+
         /* store away the scheduler phase for use in partikkelsync */
         if (p->globals_entry)
             p->globals_entry->synctab[csound->ksmps + n] = p->grainphase;
-        p->prevphase = p->grainphase;
         p->grainphase += p->graininc;
     }
     return OK;
@@ -638,6 +645,8 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
                     ? csound->ksmps : grain->stop;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
+    if (grain->start >= csound->ksmps)
+        return; /* grain starts at a later kperiod */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
         double fmenvphase = grain->envphase;
@@ -657,19 +666,19 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
                 MYFLT frac;
 
                 /* make sure phase accumulator stays within bounds */
-                while (curwav->phase >= tablen)
+                while (UNLIKELY(curwav->phase >= tablen))
                     curwav->phase -= tablen;
-                while (curwav->phase < 0.0)
+                while (UNLIKELY(curwav->phase < 0.0))
                     curwav->phase += tablen;
 
                 /* sample table lookup with linear interpolation */
                 x0 = (unsigned)curwav->phase;
-                frac = curwav->phase - x0;
+                frac = (MYFLT)(curwav->phase - x0);
                 buf[n] += lrp(curwav->table->ftable[x0],
                               curwav->table->ftable[x0 + 1],
                               frac)*curwav->gain;
 
-                fmenv = grain->fmenvtab->ftable[(unsigned)(fmenvphase*FMAXLEN)
+                fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
                                                 >> grain->fmenvtab->lobits];
                 fmenvphase += grain->envinc;
                 curwav->phase += curwav->delta
@@ -681,16 +690,16 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         } else {
             /* trainlet synthesis */
             for (n = grain->start; n < stop; ++n) {
-                while (curwav->phase >= 1.0)
+                while (UNLIKELY(curwav->phase >= 1.0))
                     curwav->phase -= 1.0;
-                while (curwav->phase < 0.0)
+                while (UNLIKELY(curwav->phase < 0.0))
                     curwav->phase += 1.0;
 
                 /* dsf/trainlet synthesis */
                 buf[n] += curwav->gain*dsf(p->costab, grain, curwav->phase,
                                            p->zscale, p->cosineshift);
 
-                fmenv = grain->fmenvtab->ftable[(unsigned)(fmenvphase*FMAXLEN)
+                fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
                                                 >> grain->fmenvtab->lobits];
                 fmenvphase += grain->envinc;
                 curwav->phase += curwav->delta
@@ -727,9 +736,9 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         }
 
         /* fetch envelope values */
-        env = envtable->ftable[(unsigned)(envphase*FMAXLEN)
+        env = envtable->ftable[(size_t)(envphase*FMAXLEN)
                                 >> envtable->lobits];
-        env2 = p->env2_tab->ftable[(unsigned)(grain->envphase*FMAXLEN)
+        env2 = p->env2_tab->ftable[(size_t)(grain->envphase*FMAXLEN)
                                    >> p->env2_tab->lobits];
         env2 = FL(1.0) - grain->env2amount + grain->env2amount*env2;
         grain->envphase += grain->envinc;
@@ -753,7 +762,6 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
     if (UNLIKELY(p->aux.auxp == NULL || p->aux2.auxp == NULL))
         return PERFERROR("not initialised");
 
-    /* schedule grains that'll happen this kperiod */
     if ((ret = schedule_grains(csound, p)) != OK)
         return ret;
 
@@ -761,7 +769,7 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
     for (n = 0; n < p->num_outputs; ++n)
         memset(outputs[n], 0, sizeof(MYFLT)*csound->ksmps);
 
-    /* prepare to traverse grain list, start at grain list root */
+    /* prepare to traverse grain list */
     nodeptr = &p->grainroot;
     while (*nodeptr) {
         GRAIN *grain = &((*nodeptr)->grain);
@@ -774,7 +782,10 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
             *nodeptr = return_grain(&p->gpool, *nodeptr);
         } else {
             /* extend grain lifetime with one k-period and find next grain */
-            grain->start = 0;
+            if (csound->ksmps > grain->start)
+                grain->start = 0; /* grain is active */
+            else
+                grain->start -= csound->ksmps; /* grain is not yet active */
             grain->stop -= csound->ksmps;
             nodeptr = &((*nodeptr)->next);
         }

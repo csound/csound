@@ -66,6 +66,7 @@
 /* outarg types include:
                 m       multiple out aargs
                 z       multiple out kargs
+                I       multiple out irate (not implemented yet)
                 s       arate or krate scalar
                 X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
                 N       multiple args (a, k, i, or S-rate)
@@ -132,12 +133,12 @@ OENTRY opcodlst_1[] = {
 { "ihold",  S(LINK),    1,      "",     "",     ihold                   },
 { "turnoff",S(LINK),    2,      "",     "",     NULL,   turnoff         },
 { "=.r",    S(ASSIGN),  1,      "r",    "i",    rassign                 },
-{ "=.i",    S(ASSIGN),  1,      "i",    "i",    assign                  },
-{ "=.k",    S(ASSIGN),  2,      "k",    "k",    NULL,   assign          },
+{ "=.i",    S(ASSIGNM), 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
+{ "=.k",    S(ASSIGNM), 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
 { "=.a",    S(ASSIGN),  4,      "a",    "x",    NULL,   NULL,   aassign },
-{ "init.i",  S(ASSIGN), 1,      "i",    "i",    init                    },
-{ "init.k",  S(ASSIGN), 1,      "k",    "i",    init                    },
-{ "init.a",  S(ASSIGN), 1,      "a",    "i",    ainit                   },
+{ "init.i", S(ASSIGNM), 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
+{ "init.k", S(ASSIGNM), 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
+{ "init.a", S(ASSIGNM), 1,      "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
 { ">",      S(RELAT),   0,      "B",    "kk",   gt,     gt              },
 { ">=",     S(RELAT),   0,      "B",    "kk",   ge,     ge              },
 { "<",      S(RELAT),   0,      "B",    "kk",   lt,     lt              },
@@ -260,8 +261,8 @@ OENTRY opcodlst_1[] = {
 { "ftsr.i",S(EVAL),     1,      "i",    "i",    ftsr                    },
 { "ftlptim.i",S(EVAL),  1,      "i",    "i",    ftlptim                 },
 { "ftchnls.i",S(EVAL),  1,      "i",    "i",    ftchnls                 },
-{ "i.k",   S(ASSIGN),   1,      "i",    "k",    init                    },
-{ "k.i",   S(ASSIGN),   1,      "k",    "i",    init                    },
+{ "i.k",   S(ASSIGN),   1,      "i",    "k",    assign                  },
+{ "k.i",   S(ASSIGN),   1,      "k",    "i",    assign                  },
 { "cpsoct.i",S(EVAL),   1,      "i",    "i",    cpsoct                  },
 { "octpch.i",S(EVAL),   1,      "i",    "i",    octpch                  },
 { "cpspch.i",S(EVAL),   1,      "i",    "i",    cpspch                  },

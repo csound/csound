@@ -111,7 +111,7 @@ extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 static void sread_alloc_globals(CSOUND *csound)
 {
-    if (csound->sreadGlobals != NULL)
+    if (LIKELY(csound->sreadGlobals != NULL))
       return;
     csound->sreadGlobals = (SREAD_GLOBALS*)
                                 csound->Calloc(csound, sizeof(SREAD_GLOBALS));
@@ -729,11 +729,11 @@ static int do_repeat(CSOUND *csound)
 
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
+    MACRO *mm;
     while (nn) {
       char  *s = nn->mac;
       char  *p = strchr(s, '=');
       char  *mname;
-      MACRO *mm;
 
       if (p == NULL)
         p = s + strlen(s);
@@ -766,6 +766,13 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
       strcpy(mm->body, p);
       nn = nn->next;
     }
+    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+    mm->name = (char*)mmalloc(csound,4);
+    strcpy(mm->name, "INF");
+    mm->body = (char*)mmalloc(csound,14);
+    strcpy(mm->body, "2147483647.0");
+    mm->next = ST(macros);
+    ST(macros) = mm;
 }
 
 void sread_init(CSOUND *csound)
@@ -1286,8 +1293,14 @@ static void ifa(CSOUND *csound)
       }
       else switch (ST(bp)->pcnt) {      /*  watch for p1,p2,p3, */
       case 1:                           /*   & MYFLT, setinsno..*/
-        if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"')
+        if ((ST(op) == 'i' || ST(op) == 'q') && *ST(sp) == '"') {
+        /*   printf("***Entering second dubious code scnt=%d\n", csound->scnt0); */
+        /*   ST(bp)->p1val = ((int[4]){SSTRCOD,SSTRCOD1,SSTRCOD2,SSTRCOD3})[csound->scnt0++]; */
+        /*   if (csound->scnt0>3) { */
+        /*     csound->scnt0 = 3; */
+        /*   } */
           ST(bp)->p1val = SSTRCOD;      /* allow string name */
+        }
         else
           ST(bp)->p1val = stof(csound, ST(sp));
         if (ST(op) == 'i')
@@ -1543,7 +1556,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           csound->Message(csound, Str("Not #define"));
           mfree(csound, mm); free(mname);
           flushlin(csound);
-          free(mname);
+          //          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
@@ -1731,7 +1744,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
     if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
         && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
-        && c!='"' && c!='~' && c!='!') {
+        && c!='"' && c!='~' && c!='!' && c!='z') {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (UNLIKELY(ST(linpos))) {
         sreaderr(csound, Str("unexpected char %c"), c);
@@ -1773,7 +1786,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
       /*      if (strchr("0123456789.+-eEnp<>()~", c) != NULL) { */
       if (isdigit(c) || c=='.' || c=='+' || c=='-' || c=='e' ||
           c=='E' || c=='n' || c=='p' || c=='<' || c=='>' || c=='(' ||
-          c==')' || c=='~') {
+          c==')' || c=='~' || c=='z') {
         *p++ = c;
         /* **** CHECK **** */
         if (p >= ST(memend))
@@ -1797,6 +1810,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     char    *p;
     MYFLT   x = (MYFLT) strtod(s, &p);
 
+    if (*p=='z') return FL(INF); /* Infinity or 7 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));
       p = s;

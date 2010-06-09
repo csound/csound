@@ -53,7 +53,7 @@ int foscil(CSOUND *csound, FOSC *p)
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp == NULL) goto err1;
+    if (UNLIKELY(ftp == NULL)) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     mphs = p->mphs;
@@ -123,7 +123,7 @@ int foscili(CSOUND *csound, FOSC *p)
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp == NULL) goto err1;        /* RWD fix */
+    if (UNLIKELY(ftp == NULL)) goto err1;        /* RWD fix */
     ft = ftp->ftable;
     lobits = ftp->lobits;
     mphs = p->mphs;
@@ -200,12 +200,12 @@ int losset(CSOUND *csound, LOSC *p)
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
-      else if ((p->cpscvt = ftp->cpscvt) == FL(0.0)) {
+      else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
         p->cpscvt = FL(261.62561); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
       if ((p->mod1 = (int16) *p->imod1) < 0) {
-        if ((p->mod1 = ftp->loopmode1) == 0) {
+        if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
           csound->Warning(csound, Str("loscil: sustain defers to "
                                       "non-looping source"));
         }
@@ -221,7 +221,9 @@ int losset(CSOUND *csound, LOSC *p)
           /* default to looping the whole sample */
           p->end1 = (p->mod1 ? maxphs : ((int32) ftp->flenfrms << LOBITS));
         }
-        else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1){
+        else if (UNLIKELY(p->beg1 < 0 ||
+                          p->end1 > maxphs ||
+                          p->beg1 >= p->end1)) {
           csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n",
                           p->beg1, p->end1, maxphs);
           goto lerr2;
@@ -242,14 +244,14 @@ int losset(CSOUND *csound, LOSC *p)
       }
       p->beg1 = (p->beg1 >= 0L ? p->beg1 : 0L);
       p->end1 = (p->end1 < maxphs ? p->end1 : maxphs);
-      if (p->beg1 >= p->end1) {
+      if (UNLIKELY(p->beg1 >= p->end1)) {
         p->mod1 = 0;
         p->beg1 = 0L;
         p->end1 = maxphs;
       }
       p->beg2 = (p->beg2 >= 0L ? p->beg2 : 0L);
       p->end2 = (p->end2 < maxphs ? p->end2 : maxphs);
-      if (p->beg2 >= p->end2) {
+      if (UNLIKELY(p->beg2 >= p->end2)) {
         p->mod2 = 0;
         p->beg2 = 0L;
       }
@@ -375,7 +377,7 @@ int loscil(CSOUND *csound, LOSC *p)
     if (p->seg1) {                      /* if still segment 1  */
       beg = p->beg1;
       end = p->end1;
-      if (p->h.insdshead->relesing)     /*    sense note_off   */
+      if (UNLIKELY(p->h.insdshead->relesing))     /*    sense note_off   */
         p->looping = 0;
     }
     else {
@@ -406,7 +408,7 @@ int loscil(CSOUND *csound, LOSC *p)
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
         }
@@ -433,7 +435,7 @@ int loscil(CSOUND *csound, LOSC *p)
         loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs -= inc) < beg) {
+        if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
           if (--nsmps) goto case2;
@@ -455,7 +457,7 @@ int loscil(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (--nsmps) goto phsout;
+      if (UNLIKELY(--nsmps)) goto phsout;
       break;
     }
     p->lphs = phs;
@@ -480,7 +482,7 @@ int loscil(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end)
+        if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
       } while (--nsmps);
       break;
@@ -490,7 +492,7 @@ int loscil(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
         }
@@ -503,7 +505,7 @@ int loscil(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= (phs - end) * 2;
           p->curmod = 3;
@@ -519,7 +521,7 @@ int loscil(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs -= inc) < beg) {
+        if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
           if (--nsmps) goto case2s;
@@ -541,7 +543,7 @@ int loscil(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (--nsmps) goto phsout2;
+      if (UNLIKELY(--nsmps)) goto phsout2;
       break;
     }
     p->lphs = phs;
@@ -590,7 +592,7 @@ int loscil3(CSOUND *csound, LOSC *p)
       goto phsck2;
     }
  phschk:
-    if (phs >= end && p->curmod != 3)
+    if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0;
     switch (p->curmod) {
     case 0:
@@ -598,7 +600,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end)
+        if (UNLIKELY((phs += inc) >= end))
           goto nxtseg;
       } while (--nsmps);
       break;
@@ -607,7 +609,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
         }
@@ -619,7 +621,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= (phs - end) * 2;
           p->curmod = 3;
@@ -634,7 +636,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
         *ar1++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs -= inc) < beg) {
+        if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
           if (--nsmps) goto case2;
@@ -656,7 +658,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (--nsmps) goto phsout;
+      if (UNLIKELY(--nsmps)) goto phsout;
       break;
     }
     p->lphs = phs;
@@ -672,7 +674,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     return OK;
 
  phsck2:
-    if (phs >= end && p->curmod != 3)
+    if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
     case 0:
@@ -681,7 +683,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end)
+        if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
       } while (--nsmps);
       break;
@@ -691,7 +693,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
         }
@@ -704,7 +706,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs += inc) >= end) {
+        if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= (phs - end) * 2;
           p->curmod = 3;
@@ -720,7 +722,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         *ar1++ *= *xamp;
         *ar2++ *= *xamp;
         if (aamp)  xamp++;
-        if ((phs -= inc) < beg) {
+        if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
           if (--nsmps) goto case2s;
@@ -742,7 +744,7 @@ int loscil3(CSOUND *csound, LOSC *p)
         }
         break;
       }
-      if (--nsmps) goto phsout2;
+      if (UNLIKELY(--nsmps)) goto phsout2;
       break;
     }
     p->lphs = phs;
@@ -782,7 +784,7 @@ int adset(CSOUND *csound, ADSYN *p)
     csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       /* readfile if reqd */
-      if ((mfp = ldmemfile2(csound, filnam, CSFTYPE_HETRO)) == NULL) {
+      if (UNLIKELY((mfp = ldmemfile2(csound, filnam, CSFTYPE_HETRO)) == NULL)) {
         csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
         return NOTOK;
       }
@@ -802,12 +804,12 @@ int adset(CSOUND *csound, ADSYN *p)
         switch (val) {
         case -1:
           ptlap->nxtp = ptlap + 1;       /* chain the ptl blks */
-          if ((ptlap = ptlap->nxtp) >= ptlim) goto adsful;
+          if (UNLIKELY((ptlap = ptlap->nxtp) >= ptlim)) goto adsful;
           ptlap->ap = (DUPLE *) adp;     /*  record start amp  */
           ptlap->amp = ptlap->ap->val;
           break;
         case -2:
-          if ((ptlfp += 1) >= ptlim) goto adsful;
+          if (UNLIKELY((ptlfp += 1) >= ptlim)) goto adsful;
           ptlfp->fp = (DUPLE *) adp;     /*  record start frq  */
           ptlfp->frq = ptlfp->fp->val;
           ptlfp->phs = 0;                /*  and clr the phase */
@@ -818,7 +820,7 @@ int adset(CSOUND *csound, ADSYN *p)
         }
       }
     } while (adp < endata);
-    if (ptlap != ptlfp) {
+    if (UNLIKELY(ptlap != ptlfp)) {
       return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
                                (int) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
                                (int) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
@@ -839,11 +841,11 @@ int adsyn(CSOUND *csound, ADSYN *p)
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
     int16   curtim, diff, ktogo;
-    int32    phs, sinc, *sp, amp;
+    int32   phs, sinc, *sp, amp;
     int     n, nsmps;
-    MYFLT   *ar;
+    MYFLT   *ar = p->rslt;
     MYFLT   ampscale, frqscale;
-    int32    timkincr, nxtim;
+    int32   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
       return csound->PerfError(csound, Str("adsyn: not initialised"));
@@ -853,12 +855,8 @@ int adsyn(CSOUND *csound, ADSYN *p)
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
     timkincr = (int32)(*p->ksmod*FL(1024000.0)*csound->onedkr);
-    sp = (int32 *) p->rslt;                      /* use out array for sums */
     nsmps = csound->ksmps;
-    memset(p->rslt,0,sizeof(int32)*nsmps);
-    /* do { */
-    /*   *sp++ = 0L;                               /\* cleared first to zero *\/ */
-    /* } while (--nsmps); */
+    memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     curtim = (int16)(p->mksecs >> 10);          /* cvt mksecs to msecs */
     curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
@@ -871,13 +869,12 @@ int adsyn(CSOUND *csound, ADSYN *p)
       if ((amp = curp->amp)) {            /* for non-zero amp   */
         sinc = (int32)(curp->frq * frqscale);
         phs = curp->phs;
-        sp = (int32 *) p->rslt;
         nsmps = csound->ksmps;            /*   addin a sinusoid */
-        do {
-          *sp++ += csound->isintab[phs] * amp;
+        for (n=0; n<nsmps; n++) {
+          ar[n] += (ampscale*(MYFLT)csound->isintab[phs]*(MYFLT)amp)/ADSYN_MAXLONG;
           phs += sinc;
           phs &= ADMASK;
-        } while (--nsmps);
+        }
         curp->phs = phs;
       }
       if ((nxtim = (ap+1)->tim) == 32767) {   /* if last amp this partial */
@@ -897,13 +894,13 @@ int adsyn(CSOUND *csound, ADSYN *p)
       }
     }
     p->mksecs += timkincr;                  /* advance the time */
-    ar = p->rslt;
-    sp = (int32 *) ar;           /* Seems to make assumptions about int32/MYFLT */
-    nsmps = csound->ksmps;
-      /* a quick-hack fix: should change adsyn to use floats table and
-         buffers and should replace hetro format anyway.... */
-    for (n=0; n<nsmps; n++)
-      ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG);
+    /* ar = p->rslt; */
+    /* sp = (int32 *) ar;           /\* Seems to make assumptions about int32/MYFLT *\/ */
+    /* nsmps = csound->ksmps; */
+    /*   /\* a quick-hack fix: should change adsyn to use floats table and */
+    /*      buffers and should replace hetro format anyway.... *\/ */
+    /* for (n=0; n<nsmps; n++) */
+    /*   ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG); */
     return OK;
 }
 

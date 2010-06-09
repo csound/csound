@@ -88,15 +88,15 @@ static void settempo(CSOUND *csound, MYFLT tempo)
 {
     if (tempo <= FL(0.0)) return;
     if (csound->oparms->Beatmode==0)
-
       csound->ibeatTime = (int)(csound->esr*60.0 / (double) tempo);
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
 {
-    if (csound->oparms->Beatmode)
-      *p->ans = (MYFLT) (60.0 / (csound->ibeatTime * csound->esr));
+    if (LIKELY(csound->oparms->Beatmode)) {
+      *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
+    }
     else
       *p->ans = FL(60.0);
     return OK;
@@ -131,7 +131,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->oparms->msglevel & 0x100) {
         MYFLT y = x / csound->e0dbfs;     /* relative level */
-        if (y >= FL(1.0))                               /* >= 0 dB: red */
+        if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x200) {
           if (y >= FL(0.5))                            /* -6..0 dB: yellow */
@@ -155,14 +155,14 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
     }
     else {                              /* dB values */
       MYFLT y = x / csound->e0dbfs;     /* relative level */
-      if (y < FL(1.0e-10)) {
+      if (UNLIKELY(y < FL(1.0e-10))) {
         /* less than -200 dB: print zero */
         csound->Message(csound, "      0  ");
         return;
       }
       y = FL(20.0) * (MYFLT) log10((double) y);
       if (csound->oparms->msglevel & 0x40) {
-        if (y >= FL(0.0))                               /* >= 0 dB: red */
+        if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x20) {
           if (y >= FL(-6.0))                            /* -6..0 dB: yellow */
@@ -262,7 +262,7 @@ int musmon(CSOUND *csound)
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
-    O->inbufsamps *= csound->nchnls;    /* now adjusted for n channels  */
+    O->inbufsamps *= csound->nchnls_i;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
       /* open audio file or device for input first, and then for output */
@@ -303,10 +303,12 @@ int musmon(CSOUND *csound)
       if (ST(lplayed))
         return 0;
 
-      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) /*  rd from cscore.out */
+      /*  read from cscore.out */
+      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r"))))
         csoundDie(csound, Str("cannot reopen cscore.out"));
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
-      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w")))) /* writ to cscore.srt */
+      /* write to cscore.srt */
+     if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
         csoundDie(csound, Str("cannot reopen cscore.srt"));
       csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
       csound->Message(csound, Str("sorting cscore.out ..\n"));
@@ -820,7 +822,7 @@ int sensevents(CSOUND *csound)
       return 1;                         /* abort with perf incomplete */
     }
     /* if turnoffs pending, remove any expired instrs */
-    if (csound->frstoff != NULL) {
+    if (UNLIKELY(csound->frstoff != NULL)) {
       double  tval;
       /* the following comparisons must match those in schedofftim() */
       if (O->Beatmode) {
@@ -926,7 +928,7 @@ int sensevents(CSOUND *csound)
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
 
-    if (O->RTevents || getRemoteSocksIn(csound)) {
+    if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
       int nrecvd;
       /* run all registered callback functions */
       if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
@@ -1091,13 +1093,15 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, long time_ofs)
     /* check for required p-fields */
     switch (evt->opcod) {
       case 'f':
-        if (UNLIKELY(evt->pcnt < 4))
+        if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
           goto pfld_err;
+        goto cont;
       case 'i':
       case 'q':
       case 'a':
         if (UNLIKELY(evt->pcnt < 3))
           goto pfld_err;
+    cont:
         /* calculate actual start time in seconds and k-periods */
         start_time = (double) p[2] + (double)time_ofs/csound->esr;
         start_kcnt = time2kcnt(csound, start_time);

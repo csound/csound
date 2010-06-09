@@ -64,7 +64,7 @@ static void format_call_statement(char *statement, char *callable,
 }
 
 static PyObject *
-    run_statement_in_given_context(char *string, PyObject *private)
+run_statement_in_given_context(char *string, PyObject *private)
 {
     PyObject  *module, *public;
 
@@ -79,7 +79,7 @@ static PyObject *
 }
 
 static PyObject *
-    eval_string_in_given_context(char *string, PyObject *private)
+eval_string_in_given_context(char *string, PyObject *private)
 {
     PyObject  *module, *public;
 
@@ -94,10 +94,10 @@ static PyObject *
 }
 
 static PyObject *
-    exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
+exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
 {
     FILE      *file;
-    PyObject  *result, *module, *public;
+    PyObject  *result=1, *module, *public;
     void      *fd;
 
     module = PyImport_AddModule("__main__");
@@ -107,14 +107,14 @@ static PyObject *
     }
     public = PyModule_GetDict(module);
     fd = cs->FileOpen2(cs, &file, CSFILE_STD, filename, "r",
-                           "", CSFTYPE_SCRIPT_TEXT, 0);
+                       "", CSFTYPE_SCRIPT_TEXT, 0);
     if (fd == NULL) {
       PyErr_Format(PyExc_RuntimeError,
                    "couldn't open script file %s", filename);
       return NULL;
     }
     result = PyRun_File(file, filename, Py_file_input,
-                        public, private ? private : public);
+                    public, private ? private : public);
     cs->FileClose(cs, fd);
     return result;
 }
@@ -254,21 +254,25 @@ static OENTRY localops[] = {
 
 { "pyrun",    sizeof(PYRUN),    2,  "",     "S",    NULL, (SUBR)pyrun_krate },
 { "pyruni",   sizeof(PYRUN),    1,  "",     "S",    (SUBR)pyruni_irate      },
-{ "pylrun",   sizeof(PYRUN),    3,  "",     "S",    (SUBR)pylrun_irate, (SUBR)pylrun_krate },
+{ "pylrun",   sizeof(PYRUN),    3,  "",     "S",
+              (SUBR)pylrun_irate, (SUBR)pylrun_krate },
 { "pylruni",  sizeof(PYRUN),    1,  "",     "S",    (SUBR)pylruni_irate     },
 
 { "pyrunt",   sizeof(PYRUNT),   2,  "",     "kS",   NULL, (SUBR)pyrunt_krate },
-{ "pylrunt",  sizeof(PYRUNT),   3,  "",     "kS",   (SUBR)pylrunt_irate, (SUBR)pylrunt_krate },
+{ "pylrunt",  sizeof(PYRUNT),   3,  "",     "kS",
+              (SUBR)pylrunt_irate, (SUBR)pylrunt_krate },
 
   /* EXEC GROUP */
 
 { "pyexec",   sizeof(PYEXEC),   2,  "",     "S",    NULL, (SUBR)pyexec_krate },
 { "pyexeci",  sizeof(PYEXEC),   1,  "",     "S",    (SUBR)pyexec_krate      },
-{ "pylexec",  sizeof(PYEXEC),   3,  "",     "S",    (SUBR)pylexec_irate, (SUBR)pylexec_krate },
+{ "pylexec",  sizeof(PYEXEC),   3,  "",     "S",
+              (SUBR)pylexec_irate, (SUBR)pylexec_krate },
 { "pylexeci", sizeof(PYEXEC),   1,  "",     "S",    (SUBR)pylexeci_irate    },
 
 { "pyexect",  sizeof(PYEXECT),  2,  "",     "kS",   NULL, (SUBR)pyexect_krate },
-{ "pylexect", sizeof(PYEXECT),  3,  "",     "kS",   (SUBR)pylexect_irate, (SUBR)pylexect_krate },
+{ "pylexect", sizeof(PYEXECT),  3,  "",     "kS",
+              (SUBR)pylexect_irate, (SUBR)pylexect_krate },
 
   /* CALL GROUP */
 
@@ -310,30 +314,50 @@ static OENTRY localops[] = {
 
 { "pycallni", sizeof(PYCALLN),  1,  "",         "Sim",  (SUBR)pycalln_krate },
 
-{ "pylcall",  sizeof(PYCALL0),  3,  "" ,        "Sz",   (SUBR)pylcall0_irate, (SUBR)pylcall0_krate },
-{ "pylcall1", sizeof(PYCALL1),  3,  "k",        "Sz",   (SUBR)pylcall1_irate, (SUBR)pylcall1_krate },
-{ "pylcall2", sizeof(PYCALL2),  3,  "kk",       "Sz",   (SUBR)pylcall2_irate, (SUBR)pylcall2_krate },
-{ "pylcall3", sizeof(PYCALL3),  3,  "kkk",      "Sz",   (SUBR)pylcall3_irate, (SUBR)pylcall3_krate },
-{ "pylcall4", sizeof(PYCALL4),  3,  "kkkk",     "Sz",   (SUBR)pylcall4_irate, (SUBR)pylcall4_krate },
-{ "pylcall5", sizeof(PYCALL5),  3,  "kkkkk",    "Sz",   (SUBR)pylcall5_irate, (SUBR)pylcall5_krate },
-{ "pylcall6", sizeof(PYCALL6),  3,  "kkkkkk",   "Sz",   (SUBR)pylcall6_irate, (SUBR)pylcall6_krate },
-{ "pylcall7", sizeof(PYCALL7),  3,  "kkkkkkk",  "Sz",   (SUBR)pylcall7_irate, (SUBR)pylcall7_krate },
-{ "pylcall8", sizeof(PYCALL8),  3,  "kkkkkkkk", "Sz",   (SUBR)pylcall8_irate, (SUBR)pylcall8_krate },
+{ "pylcall",  sizeof(PYCALL0),  3,  "" ,        "Sz",
+              (SUBR)pylcall0_irate, (SUBR)pylcall0_krate },
+{ "pylcall1", sizeof(PYCALL1),  3,  "k",        "Sz",
+              (SUBR)pylcall1_irate, (SUBR)pylcall1_krate },
+{ "pylcall2", sizeof(PYCALL2),  3,  "kk",       "Sz",
+              (SUBR)pylcall2_irate, (SUBR)pylcall2_krate },
+{ "pylcall3", sizeof(PYCALL3),  3,  "kkk",      "Sz",
+              (SUBR)pylcall3_irate, (SUBR)pylcall3_krate },
+{ "pylcall4", sizeof(PYCALL4),  3,  "kkkk",     "Sz",
+              (SUBR)pylcall4_irate, (SUBR)pylcall4_krate },
+{ "pylcall5", sizeof(PYCALL5),  3,  "kkkkk",    "Sz",
+              (SUBR)pylcall5_irate, (SUBR)pylcall5_krate },
+{ "pylcall6", sizeof(PYCALL6),  3,  "kkkkkk",   "Sz",
+              (SUBR)pylcall6_irate, (SUBR)pylcall6_krate },
+{ "pylcall7", sizeof(PYCALL7),  3,  "kkkkkkk",  "Sz",
+              (SUBR)pylcall7_irate, (SUBR)pylcall7_krate },
+{ "pylcall8", sizeof(PYCALL8),  3,  "kkkkkkkk", "Sz",
+              (SUBR)pylcall8_irate, (SUBR)pylcall8_krate },
 
-{ "pylcalln", sizeof(PYCALLN),  3,  "",         "Siz",  (SUBR)pylcalln_irate, (SUBR)pylcalln_krate },
+{ "pylcalln", sizeof(PYCALLN),  3,  "",         "Siz",
+              (SUBR)pylcalln_irate, (SUBR)pylcalln_krate },
 
-{ "pylcallt", sizeof(PYCALL0T), 3,  "" ,        "kSz",  (SUBR)pylcall0t_irate, (SUBR)pylcall0t_krate },
-{ "pylcall1t", sizeof(PYCALL1T), 3, "k",        "kSz",  (SUBR)pylcall1t_irate, (SUBR)pylcall1t_krate },
-{ "pylcall2t", sizeof(PYCALL2T), 3, "kk",       "kSz",  (SUBR)pylcall2t_irate, (SUBR)pylcall2t_krate },
-{ "pylcall3t", sizeof(PYCALL3T), 3, "kkk",      "kSz",  (SUBR)pylcall3t_irate, (SUBR)pylcall3t_krate },
-{ "pylcall4t", sizeof(PYCALL4T), 3, "kkkk",     "kSz",  (SUBR)pylcall4t_irate, (SUBR)pylcall4t_krate },
-{ "pylcall5t", sizeof(PYCALL5T), 3, "kkkkk",    "kSz",  (SUBR)pylcall5t_irate, (SUBR)pylcall5t_krate },
-{ "pylcall6t", sizeof(PYCALL6T), 3, "kkkkkk",   "kSz",  (SUBR)pylcall6t_irate, (SUBR)pylcall6t_krate },
-{ "pylcall7t", sizeof(PYCALL7T), 3, "kkkkkkk",  "kSz",  (SUBR)pylcall7t_irate, (SUBR)pylcall7t_krate },
-{ "pylcall8t", sizeof(PYCALL8T), 3, "kkkkkkkk", "kSz",  (SUBR)pylcall8t_irate, (SUBR)pylcall8t_krate },
+{ "pylcallt", sizeof(PYCALL0T), 3,  "" ,        "kSz",
+              (SUBR)pylcall0t_irate, (SUBR)pylcall0t_krate },
+{ "pylcall1t", sizeof(PYCALL1T), 3, "k",        "kSz",
+               (SUBR)pylcall1t_irate, (SUBR)pylcall1t_krate },
+{ "pylcall2t", sizeof(PYCALL2T), 3, "kk",       "kSz",
+               (SUBR)pylcall2t_irate, (SUBR)pylcall2t_krate },
+{ "pylcall3t", sizeof(PYCALL3T), 3, "kkk",      "kSz",
+               (SUBR)pylcall3t_irate, (SUBR)pylcall3t_krate },
+{ "pylcall4t", sizeof(PYCALL4T), 3, "kkkk",     "kSz",
+               (SUBR)pylcall4t_irate, (SUBR)pylcall4t_krate },
+{ "pylcall5t", sizeof(PYCALL5T), 3, "kkkkk",    "kSz",
+               (SUBR)pylcall5t_irate, (SUBR)pylcall5t_krate },
+{ "pylcall6t", sizeof(PYCALL6T), 3, "kkkkkk",   "kSz",
+               (SUBR)pylcall6t_irate, (SUBR)pylcall6t_krate },
+{ "pylcall7t", sizeof(PYCALL7T), 3, "kkkkkkk",  "kSz",
+               (SUBR)pylcall7t_irate, (SUBR)pylcall7t_krate },
+{ "pylcall8t", sizeof(PYCALL8T), 3, "kkkkkkkk", "kSz",
+               (SUBR)pylcall8t_irate, (SUBR)pylcall8t_krate },
 
 #if 0
-{ "pylcallnt", sizeof(PYCALLNT), 3, "",         "Siz",  (SUBR)pylcalln_irate, (SUBR)pylcallnt_krate },
+{ "pylcallnt", sizeof(PYCALLNT), 3, "",         "Siz",
+               (SUBR)pylcalln_irate, (SUBR)pylcallnt_krate },
 #endif
 
 { "pylcalli", sizeof(PYCALL0),  1,  "",         "Sm",   (SUBR)pylcall0i_irate },
@@ -352,21 +376,25 @@ static OENTRY localops[] = {
 
 { "pyeval",   sizeof(PYEVAL),   2,  "k",    "S",    NULL, (SUBR)pyeval_krate },
 { "pyevali",  sizeof(PYEVAL),   1,  "i",    "S",    (SUBR)pyeval_krate },
-{ "pyleval",  sizeof(PYEVAL),   3,  "k",    "S",    (SUBR)pyleval_irate, (SUBR)pyleval_krate },
+{ "pyleval",  sizeof(PYEVAL),   3,  "k",    "S",
+              (SUBR)pyleval_irate, (SUBR)pyleval_krate },
 { "pylevali", sizeof(PYEVAL),   1,  "i",    "S",    (SUBR)pylevali_irate },
 
 { "pyevalt",  sizeof(PYEVALT),  2,  "k",    "S",    NULL, (SUBR)pyevalt_krate },
-{ "pylevalt", sizeof(PYEVALT),  3,  "k",    "S",    (SUBR)pylevalt_irate, (SUBR)pylevalt_krate },
+{ "pylevalt", sizeof(PYEVALT),  3,  "k",    "S",
+              (SUBR)pylevalt_irate, (SUBR)pylevalt_krate },
 
   /* ASSIGN GROUP */
 
 { "pyassign", sizeof(PYASSIGN), 2,  "",     "Sz",   NULL, (SUBR)pyassign_krate },
 { "pyassigni", sizeof(PYASSIGN), 1, "",     "Sz",   (SUBR)pyassign_krate },
-{ "pylassign", sizeof(PYASSIGN), 3, "",     "Sz",   (SUBR)pylassign_irate, (SUBR)pylassign_krate },
+{ "pylassign", sizeof(PYASSIGN), 3, "",     "Sz",
+               (SUBR)pylassign_irate, (SUBR)pylassign_krate },
 { "pylassigni", sizeof(PYASSIGN), 1, "",    "Sz",   (SUBR)pylassigni_irate },
 
 { "pyassignt", sizeof(PYASSIGNT), 2, "",    "Sz",   NULL, (SUBR)pyassignt_krate },
-{ "pylassignt", sizeof(PYASSIGNT), 3, "",   "Sz",   (SUBR)pylassignt_irate, (SUBR)pylassignt_krate },
+{ "pylassignt", sizeof(PYASSIGNT), 3, "",   "Sz",
+                (SUBR)pylassignt_irate, (SUBR)pylassignt_krate },
 
 };
 

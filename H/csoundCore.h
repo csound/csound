@@ -92,6 +92,9 @@ extern "C" {
 #define LOMASK     1023
 
 #define SSTRCOD    3945467
+#define SSTRCOD1   3945466
+#define SSTRCOD2   3945465
+#define SSTRCOD3   3945464
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
 #ifdef OLPC
@@ -123,6 +126,7 @@ extern "C" {
 #define TWOPI   (6.283185307179586476925286766559005768394)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
+#define INF     (2147483647.0)
 
 #define AMPLMSG 01
 #define RNGEMSG 02
@@ -694,6 +698,8 @@ extern const uint32_t csPlayScoMask;
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
+  /* Eventually this will be changed to inchnls -- JPff */
+#define nchnls_i inchnls
   struct CSOUND_ {
     /* Csound API function pointers (320 total) */
     int (*GetVersion)(void);
@@ -984,8 +990,16 @@ extern const uint32_t csPlayScoMask;
     int *(*GetChannelLock)(CSOUND *, const char *name, int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
                                 int (*callback)(CSOUND *, MEMFIL *));
+    void (*AddSpinSample)(CSOUND *, int, int, MYFLT);
+    MYFLT (*GetSpoutSample)(CSOUND *, int, int);
+    int (*ChanIKSetValue)(CSOUND *, int channel, MYFLT value);
+    MYFLT (*ChanOKGetValue)(CSOUND *, int channel);
+    int (*ChanIASetSample)(CSOUND *, int channel, int frame, MYFLT sample);
+    MYFLT (*ChanOAGetSample)(CSOUND *, int channel, int frame);
+    void (*Stop)(CSOUND *);
+    void *(*GetNamedGens)(CSOUND *);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[84];
+    SUBR dummyfn_2[76];
     int           dither_output;
     void          *flgraphGlobals;
     char          *delayederrormessages;
@@ -1048,7 +1062,8 @@ extern const uint32_t csPlayScoMask;
     int           randSeed2;
     int           memlock;
     int           floatsize;
-    int   dummyint[8];
+    int           inchnls;      /* Not fully used yet -- JPff */
+    int   dummyint[7];
     long  dummyint32[10];
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
@@ -1283,6 +1298,11 @@ extern const uint32_t csPlayScoMask;
     char*         csdname;       /* original CSD name; do not free() */
     int           parserUdoflag;
     int           parserNamedInstrFlag;
+    int           tran_nchnlsi;
+    int           scnt0;        /* Count of extra strings */
+    char          *sstrbuf0[3]; /* For extra strings in scores */
+    int           *sstrlen0[3]; /* lengths for extra strings */
+
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

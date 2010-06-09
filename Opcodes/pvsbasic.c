@@ -1021,7 +1021,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(float));
       }
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
@@ -1418,6 +1418,93 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
     return 0;
 }
 
+typedef struct _pvslock {
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+  MYFLT *delta;
+  float mag;
+    uint32  lastframe;
+} PVSLOCK;
+
+/*
+static int pvslockset(CSOUND *csound, PVSLOCK *p)
+{
+    int32    N = p->fin->N;
+
+    if (UNLIKELY(p->fin == p->fout))
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+    p->fout->N = N;
+    p->fout->overlap = p->fin->overlap;
+    p->fout->winsize = p->fin->winsize;
+    p->fout->wintype = p->fin->wintype;
+    p->fout->format = p->fin->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+    p->mag = 0.000001;
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+
+
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                  (p->fout->format == PVS_AMP_PHASE)))
+      return csound->InitError(csound, Str("pvslock: signal format "
+                                           "must be amp-phase or amp-freq."));
+
+    return OK;
+}
+
+static int pvslockprocess(CSOUND *csound, PVSLOCK *p)
+{
+    int     i;
+    int32    framesize, N = p->fin->N;
+    float   *fout, *fin, cmag = p->mag, mag=0.f, diff;
+    fout = (float *) p->fout->frame.auxp;
+    fin = (float *) p->fin->frame.auxp;
+    framesize = N + 2;
+    if (p->lastframe < p->fin->framecount) {
+
+    for (i = 0; i < framesize; i += 2) {
+
+      mag += fin[i];
+      if(i == 0) {
+        fout[i] = fin[i];
+        fout[i+1] = fin[i+1];
+      } else if (i < N) {
+        amp1 = fin[i - 2];
+        amp2 = fin[i];
+        amp3 = fin[i + 2];
+        freq1 = fin[i - 1];
+        freq2 = fin[i + 1];
+        freq3 = fin[i + 3];
+        div = amp1+amp2+amp3;
+        if(div) {
+          fout[i+1] = (freq1*amp1+freq2*amp2+freq3*amp3)/div;
+          fout[i] = amp2;
+        } else {
+          fout[i] = amp2;
+          fout[i+1] = freq2;
+        }
+      } else {
+        fout[i] = fin[i];
+        fout[i+1] = fin[i+1];
+      }
+      fout[i] =fin[i]; fout[i+1] = fin[i+1];
+
+     }
+     mag /= N;
+     diff = 20.0f*log10f(mag/cmag);
+     if(diff > *p->delta)
+       csound->Message(csound, "att= %f %f\n", diff, mag);
+     p->mag = mag;
+     p->fout->framecount = p->lastframe = p->fin->framecount;
+   }
+   return OK;
+}
+*/
+
+
 static OENTRY localops[] = {
 
     {"pvsfwrite", sizeof(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
@@ -1470,7 +1557,8 @@ static OENTRY localops[] = {
      (SUBR) pvsoscprocess, NULL},
     {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "Skkop",(SUBR) pvsdiskinset,
      (SUBR) pvsdiskinproc, NULL}
-
+    /*, {"pvslock", sizeof(PVSLOCK), 3, "f", "fk", (SUBR) pvslockset,
+      (SUBR) pvslockprocess, NULL}*/
 };
 
 int pvsbasic_init_(CSOUND *csound)

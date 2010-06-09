@@ -50,26 +50,16 @@ static void splitDefaults(splitType *split);
 
 #define MAX_SFONT               (10)
 #define MAX_SFPRESET            (512)
-#define MAX_SFINSTR             (512)
 #define GLOBAL_ATTENUATION      (FL(0.3))
 
 #define ONETWELTH               (0.08333333333333333333333333333)
 #define TWOTOTWELTH             (1.05946309435929526456182529495)
 
-/*
-static SFBANK *soundFont;
-static SFBANK sfArray[MAX_SFONT];
-static int currSFndx = 0;
-static presetType *presetp[MAX_SFPRESET];
-static SHORT *sampleBase[MAX_SFPRESET];
-static instrType *instrp[MAX_SFINSTR];
-static SHORT *isampleBase[MAX_SFINSTR];
-static MYFLT pitches[128];
-*/
 typedef struct _sfontg {
   SFBANK *soundFont;
-  SFBANK sfArray[MAX_SFONT];
+  SFBANK *sfArray;
   int currSFndx;
+  int maxSFndx;
   presetType *presetp[MAX_SFPRESET];
   SHORT *sampleBase[MAX_SFPRESET];
   MYFLT pitches[128];
@@ -97,17 +87,10 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
       free(sfArray[j].instr);
       free(sfArray[j].chunk.main_chunk.ckDATA);
     }
+    free(sfArray);
     globals->currSFndx = 0;
     csound->DestroyGlobalVariable(csound, "::sfontg");
     return 0;
-}
-
-static void fill_pitches(sfontg *globals)
-{
-    int j;
-    for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (440.0 * pow (2.0,ONETWELTH * (j - 69.0)));
-    }
 }
 
 static void SoundFontLoad(CSOUND *csound, char *fname)
@@ -136,11 +119,11 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
                   fname, strerror(errno));
     }
     soundFont = &globals->sfArray[globals->currSFndx];
-    if (UNLIKELY(soundFont==NULL))  csound->Die(csound, Str("Sfload: cannot use globals"));
+    if (UNLIKELY(soundFont==NULL))
+      csound->Die(csound, Str("Sfload: cannot use globals"));
     strcpy(soundFont->name, csound->GetFileName(fd));
     chunk_read(fil, &soundFont->chunk.main_chunk);
     csound->FileClose(csound, fd);
-    fill_pitches(globals);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
     fill_SfStruct(csound);
@@ -174,13 +157,18 @@ static int SfLoad(CSOUND *csound, SFLOAD *p) /* open a file and return its handl
                                 (int) csound->GetInputArgSMask(p));
     /*    strcpy(fname, (char*) p->fname); */
     Gfname = fname;
-     SoundFontLoad(csound, fname);
+    SoundFontLoad(csound, fname);
     *p->ihandle = (float) globals->currSFndx;
     sf = &globals->sfArray[globals->currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
           (int (*)(const void *, const void * )) compare);
-    globals->currSFndx++;
     csound->Free(csound,fname);
+    if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
+      globals->maxSFndx += 5;
+      globals->sfArray = (SFBANK *)realloc(globals->sfArray,
+                                           globals->maxSFndx*sizeof(SFBANK));
+      csound->Warning(csound, Str("Extending soundfonts"));
+    }
     return OK;
 }
 
@@ -2013,7 +2001,7 @@ static void fill_SfPointers(CSOUND *csound)
 
       chkid = /* (DWORD *) chkp*/ dword(chkp);
 /* #ifdef BETA */
-      /*    csound->Message(csound, "Looking at %.4s\n", (char*) &chkid); */
+/*    csound->Message(csound, "Looking at %.4s\n", (char*) &chkid); */
 /* #endif */
       if (chkid == s2d("LIST")) {
 /* #ifdef BETA */
@@ -2536,17 +2524,23 @@ static OENTRY localops[] = {
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-  sfontg *globals;
-  csound->CreateGlobalVariable(csound, "::sfontg",
-                               sizeof(sfontg));
-  globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-  if (globals == NULL)
-    return csound->InitError(csound,
-                             Str("error... could not create sfont globals\n"));
+    int j;
+    sfontg *globals;
+    csound->CreateGlobalVariable(csound, "::sfontg",
+                                 sizeof(sfontg));
+    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (globals == NULL)
+      return csound->InitError(csound,
+                               Str("error... could not create sfont globals\n"));
 
-  globals->currSFndx = 0;
+    globals->sfArray = (SFBANK *)malloc(MAX_SFONT*sizeof(SFBANK));
+    globals->currSFndx = 0;
+    globals->maxSFndx = MAX_SFONT;
+    for (j=0; j<128; j++) {
+      globals->pitches[j] = (MYFLT) (440.0 * pow (2.0,(j - 69.0)/12.0));
+    }
 
-  return 0;
+    return OK;
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)

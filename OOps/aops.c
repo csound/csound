@@ -78,11 +78,14 @@ int aassign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+#if 0
+/* Taken out as identical to assign above */
 int init(CSOUND *csound, ASSIGN *p)
 {
     *p->r = *p->a;
     return OK;
 }
+#endif
 
 int ainit(CSOUND *csound, ASSIGN *p)
 {
@@ -91,6 +94,55 @@ int ainit(CSOUND *csound, ASSIGN *p)
 
     for (n = 0; n < nsmps; n++)
       p->r[n] = aa;
+    return OK;
+}
+
+int minit(CSOUND *csound, ASSIGNM *p)
+{
+    int nargs = p->INCOUNT;
+    int i;
+    MYFLT *tmp;
+    if (nargs > p->OUTOCOUNT)
+      return csound->InitError(csound,
+                               Str("Cannot be more In arguments than Out in "
+                                   "init (%d,%d)"),p->OUTOCOUNT, nargs);
+    if (p->OUTOCOUNT==1) {
+      *p->r[0] =  *p->a[0];
+      return OK;
+    }
+    tmp = (MYFLT*)malloc(sizeof(MYFLT)*p->OUTOCOUNT);
+    for (i=0; i<nargs; i++)
+      tmp[i] =  *p->a[i];
+    for (; i<p->OUTOCOUNT; i++)
+      tmp[i] =  *p->a[nargs-1];
+    for (i=0; i<p->OUTOCOUNT; i++)
+      *p->r[i] = tmp[i];
+    free(tmp);
+    return OK;
+}
+
+int mainit(CSOUND *csound, ASSIGNM *p)
+{
+    int nargs = p->INCOUNT;
+    int   i, n, nsmps = csound->ksmps;
+    MYFLT aa;
+
+    if (nargs > p->OUTOCOUNT)
+      return csound->InitError(csound,
+                               Str("Cannot be more In arguments than Out in "
+                                   "init (%d,%d)"),p->OUTOCOUNT, nargs);
+    for (i=0; i<nargs; i++) {
+      aa = *p->a[i];
+      MYFLT *r =p->r[i];
+      for (n = 0; n < nsmps; n++)
+        r[n] = aa;
+    }
+    for (; i<p->OUTOCOUNT; i++) {
+      MYFLT *r =p->r[i];
+      for (n = 0; n < nsmps; n++)
+        r[n] = aa;
+    }
+
     return OK;
 }
 
@@ -1068,13 +1120,13 @@ int inch_opcode(CSOUND *csound, INCH *p)
     MYFLT *sp = csound->spin + (ch - 1);
     MYFLT *ain = p->ar;
     CSOUND_SPIN_SPINLOCK
-    if (UNLIKELY(ch > csound->nchnls)) {
+    if (UNLIKELY(ch > csound->nchnls_i)) {
       CSOUND_SPIN_SPINUNLOCK
       return NOTOK;
     }
     for (n = 0; n < nsmps; n++) {
       ain[n] = *sp;
-      sp += csound->nchnls;
+      sp += csound->nchnls_i;
     }
     CSOUND_SPIN_SPINUNLOCK
     return OK;
@@ -1087,14 +1139,14 @@ int inall_opcode(CSOUND *csound, INALL *p)
     int   i, j = 0, k = 0, nsmps = csound->ksmps;
     MYFLT *spin = csound->spin;
     CSOUND_SPIN_SPINLOCK
-    m = (n < csound->nchnls ? n : csound->nchnls);
+    m = (n < csound->nchnls_i ? n : csound->nchnls_i);
     for (j=0; j<nsmps; j++) {
       for (i=0; i<m; i++) {
         p->ar[i][j] = spin[k + i];
       }
       for ( ; i < n; i++)
         p->ar[i][j] = FL(0.0);
-      k += csound->nchnls;
+      k += csound->nchnls_i;
     }
     CSOUND_SPIN_SPINUNLOCK
     return OK;

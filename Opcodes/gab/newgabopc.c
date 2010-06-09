@@ -138,7 +138,7 @@ static int schedk_i(CSOUND *csound, SCHEDK *p)
 
     O->RTevents = 1;     /* Make sure kperf() looks for RT events */
     /*   O->ksensing = 1; */
-    /*   O->OrcEvts  = 1;     /* - of the appropriate type */
+    /*   O->OrcEvts  = 1; */    /* - of the appropriate type */
     if (csound->kcounter > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
       schedk(csound,p);
     return OK;
@@ -223,7 +223,8 @@ static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
 
 typedef struct { /* GAB 11/Jan/2001 */
      OPDS   h;
-     MYFLT  *ktrigger, *idestTab, *kdestIndex, *isourceTab, *ksourceIndex, *inumElems;
+     MYFLT  *ktrigger, *idestTab, *kdestIndex, *isourceTab,
+            *ksourceIndex, *inumElems;
      MYFLT *dTable, *sTable;
      long sLen, dLen;
 } COPYTABELEMS;
@@ -234,19 +235,25 @@ static int copyTabElems_set(CSOUND *csound, COPYTABELEMS *p)
     FUNC *ftp;
     int nelems = (int) *p->inumElems;
     if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
-      return csound->InitError(csound, "copyTabElems: incorrect destination table number");
+      return csound->InitError(csound,
+                               "copyTabElems: incorrect destination table number");
 
     p->dLen = ftp->flen;
     if (nelems > p->dLen)
-      return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
+      return csound->InitError(csound,
+                               "copyTabElems: destination table too short "
+                               "or number of elements to copy too big");
 
     p->dTable = ftp->ftable;
     if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
-      return csound->InitError(csound, "copyTabElems: incorrect source table number");
+      return csound->InitError(csound,
+                               "copyTabElems: incorrect source table number");
 
     p->sLen = ftp->flen;
     if (nelems > p->sLen)
-      return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
+      return csound->InitError(csound,
+                               "copyTabElems: source table size less than "
+                               "the number of elements to copy");
 
     p->sTable = ftp->ftable;
 
@@ -258,12 +265,13 @@ static int copyTabElems(CSOUND *csound, COPYTABELEMS *p)
 {
     if(*p->ktrigger) {
       int nelems = (int) *p->inumElems;
-      int j, sNdx = (int) *p->ksourceIndex * nelems, dNdx = (int) *p->kdestIndex * nelems;
+      int j, sNdx = (int) *p->ksourceIndex * nelems,
+             dNdx = (int) *p->kdestIndex * nelems;
       if (sNdx + nelems > p->sLen)
         return csound->PerfError(csound, "copyTabElems: source table too short");
       if (dNdx + nelems > p->dLen)
-        return csound->PerfError(csound, "copyTabElems: destination table too short");
-
+        return csound->PerfError(csound,
+                                 "copyTabElems: destination table too short");
       for (j = 0; j< nelems; j++)
         p->dTable[dNdx+j] = p->sTable[sNdx+j];
     }
@@ -281,24 +289,32 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
     int nelems = (int) *p->inumElems, dLen, sLen;
     MYFLT *sTable, *dTable;
     if ((ftp = csound->FTFind(csound, p->idestTab)) == NULL)
-      return csound->InitError(csound, "copyTabElems: incorrect destination table number");
+      return csound->InitError(csound,
+                               "copyTabElems: incorrect destination table number");
     dLen = ftp->flen;
     if (nelems > dLen)
-      return csound->InitError(csound, "copyTabElems: destination table too short or number of elements to copy too big");
+      return csound->InitError(csound,
+                               "copyTabElems: destination table too short "
+                               "or number of elements to copy too big");
     dTable = ftp->ftable;
     if ((ftp = csound->FTFind(csound, p->isourceTab)) == NULL)
-      return csound->InitError(csound, "copyTabElems: incorrect source table number");
+      return csound->InitError(csound,
+                               "copyTabElems: incorrect source table number");
     sLen = ftp->flen;
     if (nelems > sLen)
-      return csound->InitError(csound, "copyTabElems: source table size less than the number of elements to copy");
+      return csound->InitError(csound,
+                               "copyTabElems: source table size less than "
+                               "the number of elements to copy");
     sTable = ftp->ftable;
 
     {
-      int j, sNdx = (int) *p->isourceIndex * nelems, dNdx = (int) *p->idestIndex * nelems;
+      int j, sNdx = (int) *p->isourceIndex * nelems,
+        dNdx = (int) *p->idestIndex * nelems;
       if (sNdx + nelems > sLen)
         return csound->PerfError(csound, "copyTabElems: source table too short");
       if (dNdx + nelems > dLen)
-        return csound->PerfError(csound, "copyTabElems: destination table too short");
+        return csound->PerfError(csound,
+                                 "copyTabElems: destination table too short");
       for (j = 0; j< nelems; j++) {
         dTable[dNdx+j] = sTable[sNdx+j];
       }
@@ -323,7 +339,7 @@ typedef struct {
 static int inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
-    /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; /*gab */
+/*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
     if (!csound->oparms->sfread)
       return csound->InitError(csound, "inrg: audio input is not enabled");
     p->numChans = csound->nchnls;
@@ -349,7 +365,6 @@ static int inRange(CSOUND *csound, INRANGE *p)
     nsmps = csound->ksmps;
     do  {
       int i;
-      MYFLT *sptemp = sp;
       for (i=0; i<narg; i++)
         *ara[i]++ = sp[i];
       sp += numchans;
@@ -558,7 +573,8 @@ static int lposcint_stereo_set(CSOUND *csound, LPOSCINT_ST *p)
     if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
       return csound->InitError(csound, "invalid function");
     if (!(fsr = ftp->gen01args.sample_rate)){
-      csound->Message(csound, "lposcil: no sample rate stored in function assuming=sr\n");
+      csound->Message(csound,
+                      "lposcil: no sample rate stored in function assuming=sr\n");
       p->fsr=csound->esr;
     }
     p->fsrUPsr = fsr/csound->esr;
@@ -608,30 +624,31 @@ static int lposcinta_stereo(CSOUND *csound, LPOSCINT_ST *p) // stereo lposcinta
     return OK;
 }
 
-static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p) /* trasposition is allowed only */
-{                                                                                    /*in integer values (twice, three times etc.) */
-                                                                                     /* so it is faster */
-     long *phs = &p->phs_int, si = (long) *p->freq;
+static int lposcinta_stereo_no_trasp(CSOUND *csound, LPOSCINT_ST *p)
+                            /* trasposition is allowed only */
+{                           /* in integer values (twice, three times etc.) */
+                            /* so it is faster */
+    long *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT    *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-     short   *ft =  p->ft;
-     long    n = csound->ksmps;
+    short   *ft =  p->ft;
+    long    n = csound->ksmps;
     long     loop, end, looplength /* = p->looplength ; */
       if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
-     else if (loop > p->tablen-3) loop = p->tablen-3;
-     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-     else if (end <= 2) end = 2;
-     if (end < loop+2) end = loop + 2;
-     looplength = end - loop;
+      else if (loop > p->tablen-3) loop = p->tablen-3;
+    if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+    else if (end <= 2) end = 2;
+    if (end < loop+2) end = loop + 2;
+    looplength = end - loop;
 
-     do {
-             short *curr_samp1 = ft + *phs * 2;
-         *out1++ = *amp   * (MYFLT) *curr_samp1 ;
-             *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
-          *phs += si;
-         while (*phs  >= end) *phs -= looplength;
-         while (*phs  < loop) *phs += looplength;
-     } while (--n);
-     return OK;
+    do {
+      short *curr_samp1 = ft + *phs * 2;
+      *out1++ = *amp   * (MYFLT) *curr_samp1 ;
+      *out2++ = *amp++ * (MYFLT) *(curr_samp1+1) ;
+      *phs += si;
+      while (*phs  >= end) *phs -= looplength;
+      while (*phs  < loop) *phs += looplength;
+    } while (--n);
+    return OK;
 }
 #endif
 
@@ -767,12 +784,12 @@ typedef struct
 
 static int dashow (CSOUND *csound, DSH *p)
 {
-        *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
-        *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
+    *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+    *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
 
-        if (*p->rmod <= 0.f) *p->rmod = (MYFLT) fabs (*p->rmod);
-        if (*p->rcar <= 0.f) *p->rcar = (MYFLT) fabs (*p->rcar);
-     return OK;
+    if (*p->rmod <= 0.f) *p->rmod = (MYFLT) fabs (*p->rmod);
+    if (*p->rcar <= 0.f) *p->rcar = (MYFLT) fabs (*p->rcar);
+    return OK;
 }
 #endif
 

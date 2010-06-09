@@ -177,14 +177,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csound->FileClose(csound, fd);
       }
     }
-#ifdef BETA
-      if (csound->delayederrormessages) {
-        if (O->msglevel>8)
-          csound->Warning(csound, csound->delayederrormessages);
-        free(csound->delayederrormessages);
-        csound->delayederrormessages = NULL;
-      }
-#endif
+    if (csound->delayederrormessages) {
+      if (O->msglevel>8)
+        csound->Warning(csound, csound->delayederrormessages);
+      free(csound->delayederrormessages);
+      csound->delayederrormessages = NULL;
+    }
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));

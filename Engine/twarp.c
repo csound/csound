@@ -55,7 +55,7 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
     do {
       switch (bp->text[0]) {                /* else warp all timvals */
       case 'i':
-        if ((absp3 = bp->newp3) < 0) {
+        if (UNLIKELY((absp3 = bp->newp3) < 0)) {
           absp3 = -absp3;
           negp3++;
         }

@@ -60,7 +60,7 @@ int buzz(CSOUND *csound, BUZZ *p)
     ampp = p->xamp;
     cpsp = p->xcps;
     if ((n = (int)*p->knh) < 0) n = -n;
-    if (n == 0) {     /* fix n = knh */
+    if (UNLIKELY(n == 0)) {     /* fix n = knh */
       n = 1;
     }
     tnp1 = (n<<1) + 1;          /* calc 2n + 1 */
@@ -148,7 +148,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     cpsp = p->xcps;
     k = (int32)*p->kk;                   /* fix k and n  */
     if ((n = (int32)*p->kn)<0) n = -n;
-    if (n == 0) {              /* n must be > 0 */
+    if (UNLIKELY(n == 0)) {              /* n must be > 0 */
       n = 1;
     }
     km1 = k - 1;
@@ -176,7 +176,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
         - r * ftbl[phs * km1 & lenmask]
         - p->rtn * ftbl[phs * kpn & lenmask]
         + p->rtnp1 * ftbl[phs * kpnm1 & lenmask];
-      if (denom > FL(0.0002) || denom < -FL(0.0002)) {
+      if (LIKELY(denom > FL(0.0002) || denom < -FL(0.0002))) {
         ar[n] = last = num / denom * scal;
       }
       else if (last<0)
@@ -289,7 +289,7 @@ int pluck(CSOUND *csound, PLUCK *p)
     int         n, nsmps = csound->ksmps;
     MYFLT       frac, diff;
 
-    if (p->auxch.auxp==NULL) goto err1; /* RWD FIX */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD FIX */
     ar = p->ar;
     phsinc = (int32)(*p->kcps * p->sicps);
     phs256 = p->phs256;

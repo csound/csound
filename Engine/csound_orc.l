@@ -97,6 +97,8 @@ CONT            \\[[ \t]*\n
 "-"             { printf("MINUS!!:\n"); return S_MINUS; }
 "*"             { return S_TIMES; }
 "/"             { return S_DIV; }
+"%"             { return S_MOD; }
+"\^"            { return S_POW; }
 "?"             { return S_Q; }
 ":"             { return S_COL; }
 ","             { return S_COM; }
@@ -118,6 +120,7 @@ CONT            \\[[ \t]*\n
 "&"             { return S_BITAND; }
 "#"             { return S_NEQV; }
 "¬"             { return S_BITNOT; }
+"~"             { return S_BITNOT; }
 
 "if"            { return T_IF; }
 "then"          { return T_THEN; }
@@ -149,9 +152,12 @@ CONT            \\[[ \t]*\n
 "nchnls"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_NCHNLS;
                   return T_NCHNLS; }
+"nchnls_i"      { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = T_NCHNLSI;
+                  return T_NCHNLSI; }
 "instr"         {
-                namedInstrFlag = 1;
-                return T_INSTR;
+                  namedInstrFlag = 1;
+                  return T_INSTR;
                 }
 "endin"         { return T_ENDIN; }
 "opcode"        { return T_UDOSTART; }
@@ -164,7 +170,7 @@ CONT            \\[[ \t]*\n
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
                   csound->Message(csound,"%d\n", (*lvalp)->type);
-                 return T_0DBFS; }
+                  return T_0DBFS; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
@@ -279,7 +285,8 @@ void do_comment(void)              /* Skip until * and / chars */
 {
     char c;
     for (;;) {
-      while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
+      while ((c=input()) != '*')
+          if (UNLIKELY(c=='\n')) yyline++; /* skip */
       if ((c=input())=='/') return;
       if (UNLIKELY(c=='\n')) yyline++;
     }
@@ -343,7 +350,7 @@ void do_macro(CSOUND *csound, char *name0)
 void do_umacro(CSOUND *csound, char *name0)
 {
     int i,c;
-    if (csound->oparms->msglevel)
+    if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     if (strcmp(name0, macros->name)==0) {
       MACRO *mm=macros->next;
@@ -357,7 +364,7 @@ void do_umacro(CSOUND *csound, char *name0)
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
-        if (nn == NULL) {
+        if (UNLIKELY(nn == NULL)) {
           csound->Message(csound, Str("Undefining undefined macro"));
           csound->LongJmp(csound, 1);
         }

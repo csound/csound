@@ -39,7 +39,7 @@ typedef struct {
     MYFLT   *table;
     MYFLT   xbmul;
     int     xmode;
- /* FUNC    *ftp; */
+    int     tablen;
 } FASTAB;
 
 typedef struct {
@@ -86,7 +86,7 @@ typedef struct {
     int     count;
     int     inerr;
     AUXCH   lphs;
-    MYFLT   *previousAmp;
+    AUXCH   pamp;
 } ADSYNT2;
 
 typedef struct {

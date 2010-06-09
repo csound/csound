@@ -78,7 +78,7 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 
-#if defined(LINUX)
+#if defined(LINUX) || defined(__MACH__)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
@@ -97,7 +97,7 @@ int             closedir(DIR*);
 #if defined(WIN32)
 #  include <io.h>
 #  include <direct.h>
-#elif defined(__MACH__)
+#elif defined (OLD_MACH_CODE)
 #  define ERR_STR_LEN 255
 #  include <mach-o/dyld.h>
 #endif
@@ -731,7 +731,7 @@ int csoundLoadExternals(CSOUND *csound)
       if (s[i] == ',')
         cnt++;
     } while (s[++i] != '\0');
-    lst = (char**) mmalloc(csound, sizeof(char*) * cnt);
+    lst = (char**) malloc(sizeof(char*) * cnt);
     i = cnt = 0;
     lst[cnt++] = s;
     do {
@@ -753,7 +753,7 @@ int csoundLoadExternals(CSOUND *csound)
       }
     } while (++i < cnt);
     /* file list is no longer needed */
-    mfree(csound, lst);
+    free(lst);
     mfree(csound, s);
     return 0;
 }
@@ -901,7 +901,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif defined(LINUX)
+#elif defined(LINUX) || defined (__MACH__)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -926,7 +926,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) dlsym(library, procedureName);
 }
 
-#elif defined(__MACH__)
+#elif defined (OLD_MACH_CODE)
 
 /* Set and get the error string for use by dlerror */
 static const char *error(int setget, const char *str, ...)
@@ -1019,6 +1019,7 @@ int csoundOpenLibrary(void **library, const char *libraryPath)
       return 0;
     }
     *library = NULL;
+
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
@@ -1034,7 +1035,7 @@ int csoundOpenLibrary(void **library, const char *libraryPath)
          make global. Silly, isn't it. */
       if (!make_private_module_public) {
         _dyld_func_lookup("__dyld_NSMakePrivateModulePublic",
-                          (unsigned long*) &make_private_module_public);
+                          (void **) &make_private_module_public);
       }
       make_private_module_public(*library);
       break;

@@ -53,16 +53,16 @@ static CS_NOINLINE char *extend_tokenstring(CSOUND *csound, size_t len)
     } while (newLen <= len);
     tt = (char*) mrealloc(csound, csound->tokenstring, newLen + (size_t) 128);
     /* Adjust all previous tokens */
-    if (csound->token) {
+    if (LIKELY(csound->token)) {
       for (ttt = csound->tokens; ttt <= csound->token; ttt++)
         ttt->str += (tt - csound->tokenstring);
     }
     csound->tokenstring = tt;               /* Reset string and length */
     csound->toklen = (int32) newLen;
     csound->stringend = csound->tokenstring + csound->toklen;
-    if (UNLIKELY(newLen != (size_t) 128))
-      csound->Message(csound, Str("Token length extended to %ld\n"),
-                              csound->toklen);
+    /* if (UNLIKELY(newLen != (size_t) 128)) */
+    /*   csound->Message(csound, Str("Token length extended to %ld\n"), */
+    /*                           csound->toklen); */
     return &(csound->tokenstring[len]);
 }
 
@@ -125,6 +125,7 @@ int express(CSOUND *csound, char *s)
         *(t - 1) = (char) (c == '<' ? BITSHL : BITSHR);
         s++; open = 1;
       }
+      /* Would it be better to use strchr("(+-*%/><=&|?:#~\254",c)!=NULL ? */
       else if (c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
                c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
                c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
@@ -233,7 +234,7 @@ int express(CSOUND *csound, char *s)
 #define TERMS   16
 
     csound->token = csound->tokens;
-    csound->revp = csound->tokenlist;
+    csound->revp  = csound->tokenlist;
     csound->pushp = csound->endlist = csound->tokenlist + csound->toklength;
                                                 /* using precedence vals,    */
     while (csound->token->str != NULL) {        /*  put tokens rev pol order */
@@ -334,7 +335,7 @@ int express(CSOUND *csound, char *s)
         e = argtyp(csound, pp->arg[1]);
         if (UNLIKELY(e == 'B' || e == 'b'))
           XERROR(Str("misplaced relational op"));
-        if (c == '\254' || c == '~') {
+        if (LIKELY(c == '\254' || c == '~')) {
           strcpy(op, "not");                /*   to complete optxt  */
           switch (e) {
           case 'a':   strncat(op, ".a", 12);   outype = 'a';   break;

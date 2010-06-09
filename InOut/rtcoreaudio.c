@@ -27,6 +27,7 @@
 #include "csdl.h"
 #include "soundio.h"
 
+
 typedef struct devparams_ {
     AudioDeviceID dev;
     float **inbuffs;
@@ -44,6 +45,7 @@ typedef struct devparams_ {
     float   srate;
     int     nchns;
     int     isNInterleaved;
+    AudioDeviceIOProcID     procID;
 } DEVPARAMS;
 
 /* module interface functions */
@@ -78,8 +80,8 @@ int csoundModuleCreate(CSOUND *csound)
                                    NULL);
 
     if (csound->oparms->msglevel & 0x400)
-      p->Message(csound, Str("CoreAudio real-time audio module for Csound\n")
-                 "by Victor Lazzarini\n");
+      p->Message(csound, Str("CoreAudio real-time audio module for Csound\n"
+                             "by Victor Lazzarini\n"));
     return 0;
 }
 
@@ -391,9 +393,17 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
 
     dev->incurbuff = dev->outcurbuff = dev->iocurbuff = 0;
     dev->incount = dev->outcount = 0;
+    dev->procID = 0;
 
+    //
+
+#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+    AudioDeviceCreateIOProcID(dev->dev,Csound_IOProcEntry,dev,&dev->procID);
+#else
     AudioDeviceAddIOProc(dev->dev, Csound_IOProcEntry, dev);
-    AudioDeviceStart(dev->dev, Csound_IOProcEntry);
+#endif
+      AudioDeviceStart(dev->dev,Csound_IOProcEntry);
+
 
     if (isInput)
       csound->rtPlay_userdata = (void *) dev;
@@ -540,8 +550,13 @@ static void rtclose_(CSOUND *csound)
     dev = (DEVPARAMS *) (csound->rtRecord_userdata);
     if (dev != NULL) {
       p->Message(csound, Str("coreaudio module: closing device...\n"));
-      AudioDeviceStop(dev->dev, Csound_IOProcEntry);
+      sleep(1);
+      AudioDeviceStop(dev->dev,Csound_IOProcEntry );
+#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
+      AudioDeviceDestroyIOProcID(dev->dev, dev->procID);
+#else
       AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);
+#endif
       csound->rtRecord_userdata = NULL;
       free(dev->outbuffs);
       free(dev->inbuffs);

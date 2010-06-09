@@ -237,6 +237,8 @@ int is_expression_node(TREE *node)
     case S_MINUS:
     case S_TIMES:
     case S_DIV:
+    case S_MOD:
+    case S_POW:
     case T_FUNCTION:
     case S_UMINUS:
     case S_BITOR:
@@ -339,9 +341,29 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
+    case S_MOD:
+      strncpy(op, "mod", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
     case S_DIV:
       strncpy(op, "div", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_POW:
+      { int outype = 'i';
+        strncpy(op, "pow.", 80);
+        if (arg1 == 'a') {
+          strncat(op, "a", 80);
+          outype = arg1;
+        }
+        else if(arg1 == 'k') {
+          strncat(op, "k", 80);
+          outype = arg1;
+        }
+        else 
+          strncat(op, "i", 80);
+        outarg = create_out_arg(csound, outype);
+      }
       break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
@@ -707,7 +729,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         }
         break;
       default:
-        if (current->right != NULL) {
+        { /* This is WRONG in optional argsq */
           TREE* previousArg = NULL;
           TREE* currentArg = current->right;
           if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");

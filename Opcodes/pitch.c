@@ -1,3 +1,4 @@
+
 /*
     pitch.c:
 
@@ -34,12 +35,12 @@
 #define PLAYING   2
 #define LOGTWO    (0.69314718055994530942)
 
-static int32 MYFLOOR(MYFLT x) {
+static inline int32 MYFLOOR(MYFLT x) {
   if (x >= 0.0) {
     return (int32) x;
   } else {
     return (int32) (x - FL(0.99999999));
-  } 
+  }
 }
 
 static const MYFLT bicoefs[] = {
@@ -72,10 +73,10 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
                                 /* Initialise spectrum */
     /* for mac roundoff */
     p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001));
-    nocts = (int)*p->iocts; if (nocts<=0) nocts = 6;
-    nfreqs = (int)*p->ifrqs; if (nfreqs<=0) nfreqs = 12;
+    nocts = (int)*p->iocts; if (UNLIKELY(nocts<=0)) nocts = 6;
+    nfreqs = (int)*p->ifrqs; if (UNLIKELY(nfreqs<=0)) nfreqs = 12;
     ncoefs = nocts * nfreqs;
-    Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
+    Q = *p->iq; if (UNLIKELY(Q<=FL(0.0))) Q = FL(15.0);
 
     if (UNLIKELY(p->timcount <= 0))
       return csound->InitError(csound, Str("illegal iprd"));
@@ -158,8 +159,6 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
       octp->curp = octp->begp;
-/*       for (fltp=octp->feedback,n=6; n--; ) */
-/*         *fltp++ = FL(0.0); */
       memset(octp->feedback, '\0', 6*sizeof(MYFLT));
       octp->scount = 0;
     }
@@ -175,21 +174,21 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
     }
-    if (*p->inptls<=FL(0.0)) nptls = 4;
+    if (UNLIKELY(*p->inptls<=FL(0.0))) nptls = 4;
     else nptls = (int32)*p->inptls;
     if (UNLIKELY(nptls > MAXPTL)) {
       return csound->InitError(csound, Str("illegal no of partials"));
     }
-    if (*p->irolloff<=FL(0.0)) p->rolloff = FL(0.6);
+    if (UNLIKELY(*p->irolloff<=FL(0.0))) p->rolloff = FL(0.6);
     else p->rolloff = *p->irolloff;
     p->nptls = nptls;        /* number, whether all or odd */
-      ptlmax = nptls;
+    ptlmax = nptls;
     dstp = p->pdist;
     fnfreqs = (MYFLT)specp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn++)
-      *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
-    if ((rolloff = p->rolloff) == FL(0.0) ||
-        rolloff == FL(1.0) || nptls == 1) {
+      *dstp++ = (int) ((LOG((MYFLT) nn) / (MYFLT)LOGTWO) * fnfreqs + FL(0.5));
+    if (UNLIKELY((rolloff = p->rolloff) == FL(0.0) ||
+                 rolloff == FL(1.0) || nptls == 1)) {
       p->rolloff = FL(0.0);
       weightsum = (MYFLT)nptls;
     }
@@ -215,7 +214,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     fundp = p->fundp;
     fendp = fundp + specp->npts;
     if (flop < fundp) flop = fundp;
-    if (fhip > fendp) fhip = fendp;
+    if (UNLIKELY(fhip > fendp)) fhip = fendp;
     if (UNLIKELY(flop >= fhip)) {                 /* chk hi-lo range valid */
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
@@ -270,10 +269,10 @@ int pitch(CSOUND *csound, PITCH *p)
         int   nfilt;
         curp = octp->curp;
         *curp++ = SIG;                      /*  write samp to cur buf  */
-        if (curp >= octp->endp)
+        if (UNLIKELY(curp >= octp->endp))
           curp = octp->begp;                /*    & modulo the pointer */
         octp->curp = curp;
-        if (!(--nocts))  break;             /*  if lastoct, break      */
+        if (UNLIKELY(!(--nocts)))  break;             /*  if lastoct, break      */
         coefp = bicoefs;  ytp = octp->feedback;
         for (nfilt = 3; nfilt--; ) {        /*  apply triple biquad:   */
           yt2    = *ytp++; yt1 = *ytp--;          /* get prev feedback */
@@ -290,7 +289,7 @@ int pitch(CSOUND *csound, PITCH *p)
     kvar = SQRT((MYFLT)q);       /* End of spectrum part */
 
     specp = &p->wsig;
-    if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
+    if (LIKELY((--p->scountdown))) goto nxt;  /* if not yet time for new spec  */
     p->scountdown = p->timcount;          /* else reset counter & proceed: */
     downp = &p->downsig;
     nocts = downp->nocts;
@@ -306,7 +305,7 @@ int pitch(CSOUND *csound, PITCH *p)
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
-      if ((len = endp - curp) >= winlen)      /*   if no wrap               */
+      if (UNLIKELY((len = endp - curp) >= winlen)) /*   if no wrap          */
         linbufp = curp;                       /*     use samples in circbuf */
       else {
         len2 = winlen - len;
@@ -386,7 +385,7 @@ int pitch(CSOUND *csound, PITCH *p)
       }
       fp = flop;                               /* now srch fbins for peak */
       for (fmaxp = fp, fmax = *fp; ++fp<fhip; )
-        if (*fp > fmax) {
+        if (UNLIKELY(*fp > fmax)) {
           fmax = *fp;
           fmaxp = fp;
         }
@@ -423,7 +422,7 @@ int pitch(CSOUND *csound, PITCH *p)
         if ((absdiff = kval - p->kvalsav) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
-        if (p->jmpcount < confirms) {
+        if (UNLIKELY(p->jmpcount < confirms)) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           goto output;                    /*    must wait some more   */
         } else {
@@ -501,7 +500,7 @@ typedef struct {
 static void initClockStruct(CSOUND *csound, void **p)
 {
     *p = csound->QueryGlobalVariable(csound, "readClock::counters");
-    if (*p == NULL) {
+    if (UNLIKELY(*p == NULL)) {
       csound->CreateGlobalVariable(csound, "readClock::counters",
                                            sizeof(CPU_CLOCK));
       *p = csound->QueryGlobalVariable(csound, "readClock::counters");
@@ -511,7 +510,7 @@ static void initClockStruct(CSOUND *csound, void **p)
 
 static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 {
-    if (*p == NULL)
+    if (UNLIKELY(*p == NULL))
       initClockStruct(csound, p);
     return (CPU_CLOCK*) (*p);
 }
@@ -519,7 +518,7 @@ static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 int clockset(CSOUND *csound, CLOCK *p)
 {
     p->c = (int)*p->cnt;
-    if (p->c < 0 || p->c > 31)
+    if (UNLIKELY(p->c < 0 || p->c > 31))
       p->c = 32;
     return OK;
 }
@@ -527,9 +526,9 @@ int clockset(CSOUND *csound, CLOCK *p)
 int clockon(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
-    if (!clk->running[p->c]) {
+    if (LIKELY(!clk->running[p->c])) {
       clk->running[p->c] = 1;
-      clk->counters[p->c] = csound->GetCPUTime(&(clk->r));
+      clk->counters[p->c] -= csound->GetCPUTime(&(clk->r));
     }
     return OK;
 }
@@ -537,9 +536,9 @@ int clockon(CSOUND *csound, CLOCK *p)
 int clockoff(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
-    if (clk->running[p->c]) {
+    if (LIKELY(clk->running[p->c])) {
       clk->running[p->c] = 0;
-      clk->counters[p->c] = csound->GetCPUTime(&(clk->r)) - clk->counters[p->c];
+      clk->counters[p->c] += csound->GetCPUTime(&(clk->r));
     }
     return OK;
 }
@@ -548,11 +547,13 @@ int clockread(CSOUND *csound, CLKRD *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     int cnt = (int) *p->a;
-    if (cnt < 0 || cnt > 32) cnt = 32;
+    if (UNLIKELY(cnt < 0 || cnt > 32)) cnt = 32;
     if (UNLIKELY(clk->running[cnt]))
       return csound->InitError(csound, Str("clockread: clock still running, "
                                            "call clockoff first"));
     /* result in ms */
+    printf("readclock%d: %g\n", cnt, clk->counters[cnt]);
+
     *p->r = (MYFLT) (clk->counters[cnt] * 1000.0);
     return OK;
 }
@@ -565,7 +566,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
     int     count;
-    int32    *lphs;
+    int32   *lphs;
 
     p->inerr = 0;
 
@@ -578,7 +579,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
     }
 
     count = (int)*p->icnt;
-    if (count < 1)
+    if (UNLIKELY(count < 1))
       count = 1;
     p->count = count;
 
@@ -653,9 +654,6 @@ int adsynt(CSOUND *csound, ADSYNT *p)
 
     ar = p->sr;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-/*     do */
-/*       *ar++ = FL(0.0); */
-/*     while (--nsmps); */
 
     do {
       amp = *amptbl++ * amp0;
@@ -677,13 +675,13 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
     FUNC        *ftp;
     int         octcnt, i;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      if (*p->ioctcnt < 2)
+      if (UNLIKELY(*p->ioctcnt < 2))
         octcnt = 3;
       else
         octcnt = (int)*p->ioctcnt;
-      if (octcnt > 10)
+      if (UNLIKELY(octcnt > 10))
         octcnt = 10;
       p->octcnt = octcnt;
       if (*p->iphs >= 0) {
@@ -691,9 +689,11 @@ int hsboscset(CSOUND *csound, HSBOSC *p)
           p->lphs[i] = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
       }
     }
-    if ((ftp = csound->FTFind(csound, p->imixtbl)) != NULL) {
+    else p->ftp = NULL;
+    if (LIKELY((ftp = csound->FTFind(csound, p->imixtbl)) != NULL)) {
       p->mixtp = ftp;
     }
+    else p->mixtp = NULL;
     return OK;
 }
 
@@ -751,7 +751,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     for (i=0; i<octcnt; i++) {
       phs = phases[i];
       amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
-      if (freq > hesr)
+      if (UNLIKELY(freq > hesr))
         amp = FL(0.0);
       inc = (int32)(freq * csound->sicvt);
       for (n=0; n<nsmps; n++) {
@@ -774,7 +774,6 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
     int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
-    MYFLT *medi;
 
     p->inerr = 0;
 
@@ -786,7 +785,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
     else {
       downsamp = (int)MYFLT2LONG(downs);
-      if (downsamp < 1)
+      if (UNLIKELY(downsamp < 1))
         downsamp = 1;
       srate = csound->esr / (MYFLT)downsamp;
       upsamp = 0;
@@ -846,7 +845,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->imedi < 1)
       p->medisize = 0;
     else
-      p->medisize = (int)(*p->imedi+FL(0.5))*2+1;
+      p->medisize = (int)MYFLT2LONG(*p->imedi)*2+1;
     p->mediptr = 0;
 
     if (p->medisize) {
@@ -901,7 +900,7 @@ MYFLT medianvalue(uint32 n, MYFLT *vals)
         while (1) {
           do i++; while (vals[i] < a);
           do j--; while (vals[j] > a);
-          if (j < i) break;
+          if (UNLIKELY(j < i)) break;
           SWAP(vals[i], vals[j]);
         }
         vals[l] = vals[j];
@@ -1057,9 +1056,9 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       val = buffer[i1];
       sum += (double)(val * val);
     }
-    if (peri==0)                /* How xould thus happen??? */
+    if (UNLIKELY(peri==0))      /* How xould thus happen??? */
       rms = FL(0.0);
-    else 
+    else
       rms = (MYFLT)sqrt(sum / (double)peri);
     if (rmsmedisize) {
       rmsmedian[rmsmediptr] = rms;
@@ -1075,10 +1074,10 @@ int pitchamdf(CSOUND *csound, PITCHAMDF *p)
       p->rmsmediptr = rmsmediptr;
     }
 
-    if (peri==0) {
+    if (UNLIKELY(peri==0)) {
       *p->kcps = FL(0.0);
     }
-    else 
+    else
       *p->kcps = srate / (MYFLT)peri;
     *p->krms = rms;
     p->index = index;
@@ -1097,8 +1096,8 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
     int    n, count;
     double  *curphs;
 
-    count = (int)(*p->icnt + FL(0.5));
-    if (count < 2)
+    count = (int)MYFLT2LONG(*p->icnt);
+    if (UNLIKELY(count < 2))
       count = 2;
 
     if (p->curphs.auxp==NULL || p->curphs.size < (size_t)sizeof(double)*count)
@@ -1106,7 +1105,7 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      for (n=0; n<count;n++) 
+      for (n=0; n<count;n++)
         curphs[n] = (double) rand_31(csound) / 2147483645.0;
     }
     else if ((phs = *p->iphs) >= 0) {
@@ -1132,9 +1131,9 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if ((phs += *p->xcps * csound->onedkr) >= 1.0)
+    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
       phs -= 1.0;
-    else if (phs < 1.0)
+    else if (UNLIKELY(phs < 1.0))
       phs += 1.0;
     curphs[index] = phs;
     return OK;
@@ -1166,9 +1165,9 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
         incr = (double)(cps[n] * csound->onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -1177,9 +1176,9 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
       for (n=0; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -1465,7 +1464,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 double tanh(double);
 int clip_set(CSOUND *csound, CLIP *p)
 {
-    int meth = (int)(*p->imethod + FL(0.5));
+    int meth = (int)MYFLT2LONG(*p->imethod);
     p->meth = meth;
     p->arg = *p->iarg;
     p->lim = *p->limit;
@@ -1503,12 +1502,12 @@ int clip(CSOUND *csound, CLIP *p)
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
         if (x>=FL(0.0)) {
-          if (x>limit) x = k2;
+          if (UNLIKELY(x>limit)) x = k2;
           else if (x>a)
             x = a + (x-a)/(FL(1.0)+(x-a)*(x-a)*k1);
         }
         else {
-          if (x<-limit)
+          if (UNLIKELY(x<-limit))
             x = -k2;
           else if (-x>a)
             x = -a + (x+a)/(FL(1.0)+(x+a)*(x+a)*k1);
@@ -1519,9 +1518,9 @@ int clip(CSOUND *csound, CLIP *p)
     case 1:
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
-        if (x>=limit)
+        if (UNLIKELY(x>=limit))
             x = limit;
-        else if (x<= -limit)
+        else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
             x = limit*SIN(k1*x);
@@ -1531,9 +1530,9 @@ int clip(CSOUND *csound, CLIP *p)
     case 2:
       for (n=0;n<nsmps;n++) {
         MYFLT x = ain[n];
-        if (x>=limit)
-            x = limit;
-        else if (x<= -limit)
+        if (UNLIKELY(x>=limit))
+          x = limit;
+        else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
           x = limit*k1*TANH(x*rlim);
@@ -1685,7 +1684,7 @@ int Foscaa(CSOUND *csound, XOSC *p)
 
 int impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (int)(FL(0.5) + *p->offset * csound->esr);
+    p->next = (int)MYFLT2LONG(*p->offset * csound->esr);
     return OK;
 }
 
@@ -1694,14 +1693,14 @@ int impulse(CSOUND *csound, IMPULSE *p)
     int n, nsmps = csound->ksmps;
     int next = p->next;
     MYFLT *ar = p->ar;
-    if (next < csound->ksmps) {         /* Impulse in this frame */
+    if (UNLIKELY(next < csound->ksmps)) {          /* Impulse in this frame */
       MYFLT frq = *p->freq;     /* Freq at k-rate */
       int sfreq;                /* Converted to samples */
       if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
       else if (frq < FL(0.0)) sfreq = -(int)frq; /* Negative cnts in sample */
       else sfreq = (int)(frq*csound->esr); /* Normal case */
       for (n=0;n<nsmps;n++) {
-        if (next-- == 0) {
+        if (UNLIKELY(next-- == 0)) {
           ar[n] = *p->amp;
           next = sfreq - 1;     /* Note can be less than k-rate */
         }
@@ -1728,6 +1727,8 @@ int trnset(CSOUND *csound, TRANSEG *p)
     int         nsegs;
     MYFLT       **argp, val;
 
+    if (UNLIKELY(p->INOCOUNT%3!=1))
+      csound->InitError(csound, Str("Incorrect argument count in transeg"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1748,7 +1749,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
       MYFLT d = dur * csound->esr;
-      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
+      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * csound->ekr);
@@ -1774,7 +1775,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->Die(csound, Str("\nError: transeg not initialised (krate)"));
+      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -1816,12 +1817,170 @@ int trnseg(CSOUND *csound, TRANSEG *p)
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         segp = p->cursegp;
       chk1:
-        if (!--p->segsrem) {              /*   if none left       */
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
           val = p->curval = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
         p->cursegp = ++segp;              /*   else find the next */
         if (!(p->curcnt = segp->cnt)) {
+          val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
+          goto chk1;
+        }                                 /*   poslen = new slope */
+        p->curinc = segp->c1;
+        p->alpha = segp->alpha;
+        p->curx = FL(0.0);
+        p->curval = val;
+      }
+      if (p->alpha == FL(0.0)) {
+        do {
+          *rs++ = val;
+          val += p->curinc;
+        } while (--nsmps);
+      }
+      else {
+        do {
+          *rs++ = val;
+          p->curx += p->alpha;
+          val = segp->val + p->curinc *
+            (FL(1.0) - EXP(p->curx));
+        } while (--nsmps);
+      }
+      p->curval = val;
+      return OK;
+putk:
+      do {
+        *rs++ = val;
+      } while (--nsmps);
+    }
+    return OK;
+}
+
+/* MIDI aware version of transeg */
+int trnsetr(CSOUND *csound, TRANSEG *p)
+{
+    int         relestim;
+    NSEG        *segp;
+    int         nsegs;
+    MYFLT       **argp, val;
+
+    if (UNLIKELY(p->INOCOUNT%3!=1))
+      csound->InitError(csound, Str("Incorrect argument count in transegr"));
+    nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
+    if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
+        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
+      p->cursegp = segp = (NSEG *) p->auxch.auxp;
+    }
+    segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    argp = p->argums;
+    val = **argp++;
+    if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
+    p->curval = val;
+    p->curcnt = 0;
+    p->cursegp = segp - 1;            /* else setup null seg0 */
+    p->segsrem = nsegs + 1;
+    p->curx = FL(0.0);
+    do {                              /* init each seg ..  */
+      MYFLT dur = **argp++;
+      MYFLT alpha = **argp++;
+      MYFLT nxtval = **argp++;
+      MYFLT d = dur * csound->esr;
+      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
+        segp->cnt = 0;
+      else
+        segp->cnt = (int32)(dur * csound->ekr);
+        segp->nxtpt = nxtval;
+      segp->val = val;
+      if (alpha == FL(0.0)) {
+        segp->c1 = (nxtval-val)/d;
+      }
+      else {
+        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
+      }
+      segp->alpha = alpha/d;
+      val = nxtval;
+      segp++;
+    } while (--nsegs);
+    p->xtra = -1;
+    p->alpha = ((NSEG*)p->auxch.auxp)[0].alpha;
+    p->curinc = ((NSEG*)p->auxch.auxp)[0].c1;
+    relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
+    if (relestim > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = relestim;
+    return OK;
+}
+
+int ktrnsegr(CSOUND *csound, TRANSEG *p)
+{
+    NSEG        *segp = p->cursegp;
+    *p->rslt = p->curval;               /* put the cur value    */
+    if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
+      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
+    }
+    if (p->segsrem) {                   /* done if no more segs */
+      if (p->h.insdshead->relesing && p->segsrem > 1) {
+        while (p->segsrem > 1) {        /* reles flag new:      */
+          segp = ++p->cursegp;          /*   go to last segment */
+          p->segsrem--;
+        }                               /*   get univ relestim  */
+        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        goto newm;                      /*   and set new curmlt */
+      }
+      if (--p->curcnt <= 0) {           /* if done cur segment  */
+        NSEG *segp = p->cursegp;
+      chk1:
+        if (!(--p->segsrem))  {
+          p->curval = segp->nxtpt;      /* advance the cur val  */
+          return OK;
+        }
+        p->cursegp = ++segp;            /*   find the next      */
+      newm:
+        if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
+          p->curval = segp->nxtpt;      /*   poslen = new slope */
+          goto chk1;
+        }
+        p->curinc = segp->c1;
+        p->alpha = segp->alpha;
+        p->curx = FL(0.0);
+      }
+      if (p->alpha == FL(0.0))
+        p->curval += p->curinc*csound->ksmps;   /* advance the cur val  */
+      else
+        p->curval = p->cursegp->val + p->curinc *
+          (FL(1.0) - EXP(p->curx));
+      p->curx += (MYFLT)csound->ksmps*p->alpha;
+    }
+    return OK;
+}
+
+int trnsegr(CSOUND *csound, TRANSEG *p)
+{
+    MYFLT  val, *rs = p->rslt;
+    int         nsmps = csound->ksmps;
+    NSEG        *segp = p->cursegp;
+    if (UNLIKELY(p->auxch.auxp==NULL)) {
+      return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
+    }
+    val = p->curval;                      /* sav the cur value    */
+    if (p->segsrem) {                     /* if no more segs putk */
+      if (p->h.insdshead->relesing && p->segsrem > 1) {
+        while (p->segsrem > 1) {        /* if reles flag new    */
+          segp = ++p->cursegp;          /*   go to last segment */
+          p->segsrem--;
+        }                               /*   get univ relestim  */
+        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        goto newm;                      /*   and set new curmlt */
+      }
+      if (--p->curcnt <= 0) {             /*  if done cur segment */
+        segp = p->cursegp;
+      chk1:
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
+          val = p->curval = segp->nxtpt;
+          goto putk;                      /*      put endval      */
+        }
+        p->cursegp = ++segp;              /*   else find the next */
+      newm:
+       if (!(p->curcnt = segp->cnt)) {
           val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
@@ -1962,7 +2121,7 @@ int wavesetset(CSOUND *csound, BARRI *p)
       p->length = 1 + (int)(p->h.insdshead->p3 * csound->esr * FL(0.5));
     else
       p->length = 1 + (int)*p->len;
-    if (p->length <= 1) p->length = (int)csound->esr;
+    if (UNLIKELY(p->length <= 1)) p->length = (int)csound->esr;
     csound->AuxAlloc(csound, (int32)p->length*sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;
@@ -2027,3 +2186,99 @@ int waveset(CSOUND *csound, BARRI *p)
     return OK;
 }
 
+int medfiltset(CSOUND *csound, MEDFILT *p)
+{
+    int maxwind = (int)MYFLT2LONG(*p->imaxsize);
+    int auxsize = 2*sizeof(MYFLT)*maxwind;
+    p->ind = 0;
+    p->maxwind = maxwind;
+
+    if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
+      csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
+    else
+      if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
+    p->buff = (MYFLT*)p->b.auxp;
+    p->med = &(p->buff[maxwind]);
+    return OK;
+}
+
+int medfilt(CSOUND *csound, MEDFILT *p)
+{
+    MYFLT *aout = p->ans;
+    MYFLT *asig = p->asig;
+    MYFLT *buffer = p->buff;
+    MYFLT *med = p->med;
+    int maxwind = p->maxwind;
+    int kwind = MYFLT2LONG(*p->kwind);
+    int index = p->ind;
+    int n, nsmps=csound->ksmps;
+    if (UNLIKELY(p->b.auxp==NULL)) {
+      return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
+    }
+    if (kwind > maxwind) {
+      csound->Warning(csound,
+                      Str("median: window (%d)larger than maximum(%d); truncated"),
+                      kwind, maxwind);
+      kwind = maxwind;
+    }
+    for (n=0; n<nsmps; n++) {
+      MYFLT x = asig[n];
+      buffer[index++] = x;
+
+      if (kwind<=index) {        /* all in centre */
+        memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
+        /* printf("memcpy: 0 <- %d (%d)\n", index-kwind, kwind); */
+      }
+      else {                    /* or in two parts */
+        memcpy(&med[0], &buffer[0], index*sizeof(MYFLT));
+        /* printf("memcpy: 0 <- 0 (%d)\n", index); */
+        memcpy(&med[index], &buffer[maxwind+index-kwind],
+               (kwind-index)*sizeof(MYFLT));
+        /* printf("memcpy: %d <- %d (%d)\n", index, maxwind+index-kwind, kwind-index); */
+      }
+      /* { int i; */
+      /*   for (i=0; i<8; i++) printf(" %f", buffer[i]); */
+      /*   printf("\n\t:"); */
+      /*   for (i=0; i<5; i++) printf(" %f", med[i]); */
+      /*   printf("\n"); */
+      /* } */
+      aout[n] = medianvalue(kwind, med-1); /* -1 as should point below data */
+      /* printf("%d/$%d: %f -> %f\n", n, index-1, x, aout[n]); */
+      if (index>=maxwind) index = 0;
+    }
+    p->ind = index;
+    return OK;
+}
+
+int kmedfilt(CSOUND *csound, MEDFILT *p)
+{
+    MYFLT *buffer = p->buff;
+    MYFLT *med = p->med;
+    MYFLT x = *p->asig;
+    int maxwind = p->maxwind;
+    int kwind = MYFLT2LONG(*p->kwind);
+    int index = p->ind;
+    int n, nsmps=csound->ksmps;
+    if (UNLIKELY(p->b.auxp==NULL)) {
+      return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
+    }
+    if (kwind > maxwind) {
+      csound->Warning(csound,
+                      Str("median: window (%d)larger than maximum(%d); truncated"),
+                      kwind, maxwind);
+      kwind = maxwind;
+    }
+    buffer[index++] = x;
+    if (kwind<=index) {        /* all in centre */
+      memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
+    }
+    else {                    /* or in two parts */
+      memcpy(&med[0], &buffer[0], index*sizeof(MYFLT));
+      memcpy(&med[index], &buffer[maxwind+index-kwind],
+             (kwind-index)*sizeof(MYFLT));
+    }
+    *p->ans = medianvalue(kwind, med-1); /* -1 as should point below data */
+    if (index>=maxwind) index = 0;
+    p->ind = index;
+    return OK;
+}

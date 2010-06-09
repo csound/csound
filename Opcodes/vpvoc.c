@@ -36,7 +36,6 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     MYFLT   **argp, dur;
     FUNC    *nxtfunc, *curfunc;
     int32    flength;
-    int     i;
 
     {
       PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
@@ -63,8 +62,6 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     p->outfunc->lomask = nxtfunc->lomask;
     p->outfunc->lodiv = nxtfunc->lodiv;
     memset(p->outfunc->ftable, 0, sizeof(MYFLT)*(flength+1));
-    /* for (i=0; i<= flength; i++) */
-    /*     *(p->outfunc->ftable + i) = FL(0.0); */
     if (**argp <= 0.0)  return OK;         /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                      /* else proceed from 1st seg */
     segp--;
@@ -252,9 +249,9 @@ int vpvset(CSOUND *csound, VPVOC *p)
     for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
       p->window[i] = (FL(0.5) - FL(0.5) * COS(TWOPI_F*(MYFLT)i/(MYFLT)OPWLEN));
     /* NB: HANNING */
-    /* memset(p->outBuf, 0, sizeof(MYFLT)*pvfrsiz(p))l */
-    for (i = 0; i < pvfrsiz(p); ++i)
-      p->outBuf[i] = FL(0.0);
+    memset(p->outBuf, 0, sizeof(MYFLT)*pvfrsiz(p));
+    /* for (i = 0; i < pvfrsiz(p); ++i) */
+    /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
     if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
@@ -263,7 +260,6 @@ int vpvset(CSOUND *csound, VPVOC *p)
 
 int vpvoc(CSOUND *csound, VPVOC *p)
 {
-    int       n;
     MYFLT     *ar = p->rslt;
     MYFLT     frIndx;
     MYFLT     *buf = p->fftBuf;

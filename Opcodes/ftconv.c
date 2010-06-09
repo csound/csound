@@ -64,11 +64,11 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     irPtr = IR_Data;
     outBufPtr = outBuf;
     /* clear output buffer to zero */
-    /* memset(outBuf, 0, sizeof(MYFLT)*(partSize - 2)); */
-    do {
-      *(outBufPtr++) = FL(0.0);
-      *(outBufPtr++) = FL(0.0);
-    } while (outBufPtr <= outBufEndPm2);
+    memset(outBuf, 0, sizeof(MYFLT)*(partSize - 2));
+    /* do { */
+    /*   *(outBufPtr++) = FL(0.0); */
+    /*   *(outBufPtr++) = FL(0.0); */
+    /* } while (outBufPtr <= outBufEndPm2); */
     /* multiply FFTs for each partition, and mix to output buffer */
     /* note: IRs are stored in reverse partition order */
     do {
@@ -188,7 +188,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       if (n > (int) ftp->flen)
         n = (int) ftp->flen;
       for (i = 0; i < n; i++) {
-        if (ftp->ftable[i] != FL(0.0)) {
+        if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
           csound->Message(csound,
                           Str("ftconv: warning: skipped non-zero samples, "
                               "impulse response may be truncated\n"));
@@ -200,8 +200,9 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
     /* clear ring buffer to zero */
     n = (p->partSize << 1) * p->nPartitions;
-    for (i = 0; i < n; i++)
-      p->ringBuf[i] = FL(0.0);
+    memset(p->ringBuf, 0, n*sizeof(MYFLT));
+    /* for (i = 0; i < n; i++) */
+    /*   p->ringBuf[i] = FL(0.0); */
     /* initialise buffer index */
     p->cnt = 0;
     p->rbCnt = 0;
@@ -228,6 +229,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       } while (n >= 0);
     }
     /* clear output buffers to zero */
+    /*memset(p->outBuffers, 0, p->nChannels*(p->partSize << 1)*sizeof(MYFLT));*/
     for (j = 0; j < p->nChannels; j++) {
       for (i = 0; i < (p->partSize << 1); i++)
         p->outBuffers[j][i] = FL(0.0);

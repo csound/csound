@@ -268,6 +268,7 @@ void otran(CSOUND *csound)
     gblnamset(csound, "kr");
     gblnamset(csound, "ksmps");
     gblnamset(csound, "nchnls");
+    gblnamset(csound, "nchnls_i");
     gblnamset(csound, "0dbfs"); /* no commandline override for that! */
     gblnamset(csound, "$sr");   /* incl command-line overrides */
     gblnamset(csound, "$kr");
@@ -493,7 +494,9 @@ void otran(CSOUND *csound)
                 else if (strcmp(s, "ksmps") == 0)
                   csound->tran_ksmps = constval;
                 else if (strcmp(s, "nchnls") == 0)
-                  csound->tran_nchnls = (int) constval;
+                 csound->tran_nchnlsi = csound->tran_nchnls = (int) constval;
+                else if (strcmp(s, "nchnls_i") == 0)
+                  csound->tran_nchnlsi = (int) constval;
                 /* we have set this as reserved in rdorch.c */
                 else if (strcmp(s, "0dbfs") == 0)
                   csound->tran_0dbfs = constval;
@@ -1192,6 +1195,7 @@ void oload(CSOUND *p)
     MYFLT   ensmps;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
+    p->e0dbfs = p->tran_0dbfs;
     p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
@@ -1205,13 +1209,15 @@ void oload(CSOUND *p)
       inoffp = ttp->inoffs;             /* to find sr.. assigns */
       if (outoffp->count == 1 && inoffp->count == 1) {
         int rindex = (int) outoffp->indx[0] - (int) p->poolcount;
-        if (rindex > 0 && rindex <= 5) {
+        if (rindex > 0 && rindex <= 6) {
           MYFLT conval = p->pool[inoffp->indx[0] - 1];
           switch (rindex) {
             case 1:  p->esr = conval;   break;  /* & use those values */
             case 2:  p->ekr = conval;   break;  /*  to set params now */
             case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
             case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
+            case 5:  p->inchnls = (int) (conval + FL(0.5));  break;
+            case 6:
             default: p->e0dbfs = conval; break;
           }
         }
@@ -1255,7 +1261,8 @@ void oload(CSOUND *p)
     gblspace[1] = p->ekr;           /*   rsvd word      */
     gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
     gblspace[3] = (MYFLT) p->nchnls;
-    gblspace[4] = p->e0dbfs;
+    gblspace[4] = (MYFLT) p->inchnls;
+    gblspace[5] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
     /* string constants: unquote, convert escape sequences, and copy to pool */
     convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (int32) gblscbeg);
@@ -1382,7 +1389,7 @@ void oload(CSOUND *p)
     reverbinit(p);
     dbfs_init(p, p->e0dbfs);
     p->nspout = p->ksmps * p->nchnls;  /* alloc spin & spout */
-    p->nspin = p->nspout;
+    p->nspin = p->ksmps * p->nchnls_i; /* JPff: in preparation */
     p->spin  = (MYFLT *) mcalloc(p, p->nspin * sizeof(MYFLT));
     p->spout = (MYFLT *) mcalloc(p, p->nspout * sizeof(MYFLT));
     /* chk consistency one more time (FIXME: needed ?) */

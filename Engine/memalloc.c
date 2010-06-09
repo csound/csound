@@ -24,11 +24,16 @@
 
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
 
+/* This code wraps malloc etc with maintaining a list of allocated memory
+   so it can be freed on a reset.  It would not be necessary with a zoned
+   allocator.
+*/
 #if defined(BETA) && !defined(MEMDEBUG)
 #define MEMDEBUG  1
 #endif
 
 #define MEMALLOC_MAGIC  0x6D426C6B
+/* The memory list must be controlled by mutex */
 #define CSOUND_MEM_SPINLOCK csoundSpinLock(&csound->memlock);
 #define CSOUND_MEM_SPINUNLOCK csoundSpinUnLock(&csound->memlock);
 
@@ -67,16 +72,15 @@ void *mmalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    CSOUND_MEM_SPINLOCK
-    if ((p = malloc(ALLOC_BYTES(size))) == NULL) {
-      memdie(csound, size);
-      return NULL;
+    if (UNLIKELY((p = malloc(ALLOC_BYTES(size))) == NULL)) {
+        memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
 #endif
+    CSOUND_MEM_SPINLOCK
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
     ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
     if (MEMALLOC_DB != NULL)
@@ -99,16 +103,15 @@ void *mcalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    CSOUND_MEM_SPINLOCK
     if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
-      memdie(csound, size);
-      return NULL;
+      memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
 #endif
+    CSOUND_MEM_SPINLOCK
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
     ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
     if (MEMALLOC_DB != NULL)
@@ -123,7 +126,7 @@ void mfree(CSOUND *csound, void *p)
 {
     memAllocBlock_t *pp;
 
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       return;
     pp = HDR_PTR(p);
 #ifdef MEMDEBUG
@@ -157,9 +160,9 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     memAllocBlock_t *pp;
     void            *p;
 
-    if (oldp == NULL)
+    if (UNLIKELY(oldp == NULL))
       return mmalloc(csound, size);
-    if (size == (size_t) 0) {
+    if (UNLIKELY(size == (size_t) 0)) {
       mfree(csound, oldp);
       return NULL;
     }
@@ -177,18 +180,19 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
-    CSOUND_MEM_SPINLOCK
     p = realloc((void*) pp, ALLOC_BYTES(size));
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
+      CSOUND_MEM_SPINLOCK
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
-#endif
       CSOUND_MEM_SPINUNLOCK
+#endif
       memdie(csound, size);
       return NULL;
     }
+    CSOUND_MEM_SPINLOCK
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
 #ifdef MEMDEBUG

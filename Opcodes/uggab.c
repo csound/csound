@@ -179,7 +179,10 @@ static int interpol(CSOUND *csound, INTERPOL *p)
 
 static int nterpol_init(CSOUND *csound, INTERPOL *p)
 {
-    p->point_factor = FL(1.0)/(*p->imax - *p->imin);
+    if (LIKELY(*p->imax != *p->imin))
+      p->point_factor = FL(1.0)/(*p->imax - *p->imin);
+    else
+      return csound->InitError(csound, Str("Min and max the same"));
     return OK;
 }
 
@@ -195,7 +198,7 @@ static int anterpol(CSOUND *csound, INTERPOL *p)
     MYFLT point_value = (*p->point - *p->imin ) * p->point_factor;
     MYFLT *out = p->r, *val1 = p->val1, *val2 = p->val2;
     int n, nsmps = csound->ksmps;
-    for (n=0;n<nsmps;n++) {
+    for (n=0; n<nsmps; n++) {
       MYFLT fv1 = val1[n];
       out[n] = point_value * (val2[n] - fv1) + fv1;
     }
@@ -230,9 +233,9 @@ static int posckk(CSOUND *csound, POSC *p)
       fract     = (MYFLT)(phs - (int32)phs);
       out[n]    = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
       phs      += si;
-      while (phs >= p->tablen)
+      while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
-      while (phs < 0 )
+      while (UNLIKELY(phs < 0.0 ))
         phs += p->tablen;
     }
     p->phs = phs;
@@ -257,9 +260,9 @@ static int poscaa(CSOUND *csound, POSC *p)
       out[n]    = amp[n] *
         (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);/* gab c3 */
       phs      += ff * p->tablenUPsr;/* gab c3 */
-      while (phs >= p->tablen)
+      while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
-      while (phs < 0 )
+      while (UNLIKELY(phs < 0.0) )
         phs += p->tablen;
     }
     p->phs = phs;
@@ -281,9 +284,9 @@ static int poscka(CSOUND *csound, POSC *p)
       fract     = (MYFLT)(phs - (int32)phs);
       out[n]    = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
       phs      += ff * p->tablenUPsr;/* gab c3 */
-      while (phs >= p->tablen)
+      while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
-      while (phs < 0 )
+      while (UNLIKELY(phs < 0.0 ))
         phs += p->tablen;
     }
     p->phs = phs;
@@ -305,9 +308,9 @@ static int poscak(CSOUND *csound, POSC *p)
       out[n]    = amp[n] *
         (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);/* gab c3 */
       phs      += si;
-      while (phs >= p->tablen)
+      while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
-      while (phs < 0 )
+      while (UNLIKELY(phs < 0.0) )
         phs += p->tablen;
     }
     p->phs = phs;
@@ -323,9 +326,9 @@ static int kposc(CSOUND *csound, POSC *p)
 
     *p->out = *p->amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
     phs    += si;
-    while (phs >= p->tablen)
+    while (UNLIKELY(phs >= p->tablen))
       phs -= p->tablen;
-    while (phs < 0 )
+    while (UNLIKELY(phs < 0.0))
       phs += p->tablen;
     p->phs = phs;
     return OK;
@@ -346,13 +349,14 @@ static int posc3(CSOUND *csound, POSC *p)
       x0    = (int32)phs;
       fract = (MYFLT)(phs - (double)x0);
       x0--;
-      if (x0<0) {
+      if (UNLIKELY(x0<0)) {
         ym1 = ftab[p->tablen-1]; x0 = 0;
       }
       else ym1 = ftab[x0++];
       y0    = ftab[x0++];
       y1    = ftab[x0++];
-      if (x0>p->tablen) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
+      else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
@@ -364,9 +368,9 @@ static int posc3(CSOUND *csound, POSC *p)
                             frsq*(FL(0.5)* y1 - y0));
       }
       phs += si;
-      while (phs >= p->tablen)
+      while (UNLIKELY(phs >= p->tablen))
         phs -= p->tablen;
-      while (phs < 0 )
+      while (UNLIKELY(phs < 0.0) )
         phs += p->tablen;
     }
     p->phs = phs;
@@ -383,13 +387,14 @@ static int kposc3(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     x0--;
-    if (x0<0) {
+    if (UNLIKELY(x0<0)) {
       ym1 = ftab[p->tablen-1]; x0 = 0;
     }
     else ym1 = ftab[x0++];
     y0 = ftab[x0++];
     y1 = ftab[x0++];
-    if (x0>p->tablen) y2 = ftab[1]; else y2 = ftab[x0];
+    if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
+    else y2 = ftab[x0];
     {
       MYFLT frsq = fract*fract;
       MYFLT frcu = frsq*ym1;
@@ -401,9 +406,9 @@ static int kposc3(CSOUND *csound, POSC *p)
                             frsq*(FL(0.5)* y1 - y0));
     }
     phs += si;
-    while (phs >= p->tablen)
+    while (UNLIKELY(phs >= p->tablen))
       phs -= p->tablen;
-    while (phs < 0 )
+    while (UNLIKELY(phs < 0.0))
       phs += p->tablen;
     p->phs = phs;
     return OK;
@@ -432,7 +437,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
 
      if (*p->iphs >= 0)
        p->phs = *p->iphs;
-     while (p->phs >= end)
+     while (UNLIKELY(p->phs >= end))
        p->phs -= looplength;
      return OK;
 }
@@ -511,9 +516,6 @@ static int sum(CSOUND *csound, SUM *p)
     MYFLT *ar = p->ar, **args = p->argums;
     MYFLT *ag = *args;
     memcpy(ar, ag, sizeof(MYFLT)*nsmps);
-    /* for (k=0; k<nsmps; k++) { */
-    /*   ar[k] = ag[k]; */
-    /* } */
     while (--count) {
       ag = *(++args);                   /* over all arguments */
       for (k=0; k<nsmps; k++) {
@@ -531,9 +533,6 @@ static int product(CSOUND *csound, SUM *p)
     MYFLT *ag = *args;
 
     memcpy(ar, ag, sizeof(MYFLT)*nsmps);
-    /* for (k=0; k<nsmps; k++) { */
-    /*   ar[k] = ag[k]; */
-    /* } */
     while (--count) {
       ag = *(++args);                   /* over all arguments */
       for (k=0; k<nsmps; k++) {
@@ -576,54 +575,54 @@ static int resony(CSOUND *csound, RESONY *p)
     MYFLT   *yt1, *yt2, c1, c2, c3, cosf;
     double  cf;
     int     loop = p->loop;
-    MYFLT   sep = (*p->sep / (MYFLT) loop);
-    int     flag = (int) *p->iflag;
-    MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
-    int     n;
+    if (UNLIKELY(loop==0))
+      csound->InitError(csound, Str("loop cannot be zero"));
+    {
+      MYFLT   sep = (*p->sep / (MYFLT) loop);
+      int     flag = (int) *p->iflag;
+      MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
+      int     n;
 
-    nsmps = csound->ksmps;
-    asig = p->asig;
+      nsmps = csound->ksmps;
+      asig = p->asig;
 
-    memset(buffer, 0, nsmps*sizeof(MYFLT));
-    /* for (n = 0; n < nsmps; n++) */
-    /*   buffer[n] = FL(0.0); */
+      memset(buffer, 0, nsmps*sizeof(MYFLT));
 
-    yt1 = p->yt1;
-    yt2 = p->yt2;
+      yt1 = p->yt1;
+      yt2 = p->yt2;
 
-    for (j = 0; j < loop; j++) {
-      if (flag)                     /* linear separation in hertz */
-        cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
-                           * (double) csound->tpidsr);
-      else                          /* logarithmic separation in octaves */
-        cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
-                           * (double) csound->tpidsr);
-      c3 = EXP(*p->kbw * (cf / *p->kcf) * csound->mtpdsr);
-      c3p1 = c3 + FL(1.0);
-      c3t4 = c3 * FL(4.0);
-      c2 = c3t4 * cosf / c3p1;
-      c2sqr = c2 * c2;
-      omc3 = FL(1.0) - c3;
-      if (p->scale == 1)
-        c1 = omc3 * SQRT(FL(1.0) - c2sqr / c3t4);
-      else if (p->scale == 2)
-        c1 = SQRT((c3p1*c3p1-c2sqr) * omc3/c3p1);
-      else
-        c1 = FL(1.0);
-      for (n = 0; n < nsmps; n++) {
-        MYFLT temp = c1 * asig[n] + c2 * *yt1 - c3 * *yt2;
-        buffer[n] += temp;
-        *yt2 = *yt1;
-        *yt1 = temp;
+      for (j = 0; j < loop; j++) {
+        if (flag)                     /* linear separation in hertz */
+          cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
+                             * (double) csound->tpidsr);
+        else                          /* logarithmic separation in octaves */
+          cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
+                             * (double) csound->tpidsr);
+        c3 = EXP(*p->kbw * (cf / *p->kcf) * csound->mtpdsr);
+        c3p1 = c3 + FL(1.0);
+        c3t4 = c3 * FL(4.0);
+        c2 = c3t4 * cosf / c3p1;
+        c2sqr = c2 * c2;
+        omc3 = FL(1.0) - c3;
+        if (p->scale == 1)
+          c1 = omc3 * SQRT(FL(1.0) - c2sqr / c3t4);
+        else if (p->scale == 2)
+          c1 = SQRT((c3p1*c3p1-c2sqr) * omc3/c3p1);
+        else
+          c1 = FL(1.0);
+        for (n = 0; n < nsmps; n++) {
+          MYFLT temp = c1 * asig[n] + c2 * *yt1 - c3 * *yt2;
+          buffer[n] += temp;
+          *yt2 = *yt1;
+          *yt1 = temp;
+        }
+        yt1++;
+        yt2++;
       }
-      yt1++;
-      yt2++;
+      ar = p->ar;
+      memcpy(ar, buffer, sizeof(MYFLT)*nsmps);
+      return OK;
     }
-    ar = p->ar;
-    memcpy(ar, buffer, sizeof(MYFLT)*nsmps);
-    /* for (n = 0; n < nsmps; n++)     /\* Copy local buffer to output *\/ */
-    /*   ar[n] = buffer[n]; */
-    return OK;
 }
 
 static int fold_set(CSOUND *csound, FOLD *p)
@@ -703,6 +702,95 @@ static int loopseg(CSOUND *csound, LOOPSEG *p)
     while (phs >= 1.0)
       phs -= 1.0;
     while (phs < 0.0 )
+      phs += 1.0;
+    p->phs = phs;
+    return OK;
+}
+
+static int loopxseg(CSOUND *csound, LOOPSEG *p)
+{
+    MYFLT exp1 = FL(1.0)/(FL(1.0)-EXP(FL(1.0)));
+    MYFLT *argp=p->args;
+    MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
+    double   phs, si=*p->freq*csound->onedkr;
+    int nsegs=p->nsegs+1;
+    int j;
+    if (*p->retrig)
+      phs=p->phs=*p->iphase;
+    else
+      phs=p->phs;
+
+    for (j=1; j<nsegs; j++)
+      argp[j] = *p->argums[j-1];
+
+    argp[nsegs] = *p->argums[0];
+
+    for ( j=0; j <nsegs; j+=2)
+      durtot += argp[j];
+    for ( j=0; j < nsegs; j+=2) {
+      beg_seg += argp[j] / durtot;
+      end_seg = beg_seg + argp[j+2] / durtot;
+
+      if (beg_seg <= phs && end_seg > phs) {
+        MYFLT diff = end_seg - beg_seg;
+        MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
+        MYFLT v1 = argp[j+1];
+        MYFLT v2 = argp[j+3];
+        *p->out = v1 + (v2 - v1) * (1 - EXP(fract)) * exp1;
+        break;
+      }
+    }
+    phs    += si;
+    while (phs >= 1.0)
+      phs -= 1.0;
+    while (phs < 0.0 )
+      phs += 1.0;
+    p->phs = phs;
+    return OK;
+}
+
+static int looptseg_set(CSOUND *csound, LOOPTSEG *p)
+{
+    p->nsegs   = (p->INOCOUNT-2)/3;
+    p->phs     = *p->iphase;
+    return OK;
+}
+
+static int looptseg(CSOUND *csound, LOOPTSEG *p)
+{
+    MYFLT beg_seg=FL(0.0), end_seg=FL(0.0), durtot=FL(0.0);
+    double   phs, si=*p->freq*csound->onedkr;
+    int nsegs=p->nsegs;
+    int j;
+
+    if (*p->retrig)
+      phs=p->phs=*p->iphase;
+    else
+      phs=p->phs;
+
+    for ( j=0; j<nsegs; j++)
+      durtot += *(p->argums[j].time);
+    for ( j=0; j < nsegs; j++) {
+      beg_seg = end_seg;
+      end_seg = beg_seg + *(p->argums[j].time) / durtot;
+      if (beg_seg <= phs && end_seg > phs) {
+        MYFLT alpha = *(p->argums[j].type);
+        MYFLT diff = end_seg - beg_seg;
+        MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
+        MYFLT v1 = *(p->argums[j].start);
+        MYFLT v2 = *(p->argums[j+1].start);
+        if (alpha==FL(0.0))
+          *p->out = v1 + (v2 - v1) * fract;
+        else
+          *p->out = v1 +
+            (v2 - v1) * (FL(1.0)-EXP(alpha*fract))/(FL(1.0)-EXP(alpha));
+        break;
+      }
+    }
+    phs    += si;
+    while (UNLIKELY(phs >= 1.0))
+      phs -= 1.0;
+    while (UNLIKELY(phs < 0.0 ))
       phs += 1.0;
     p->phs = phs;
     return OK;
@@ -845,12 +933,16 @@ static int lineto(CSOUND *csound, LINETO *p)
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
     }
+    /* printf("lineto: ktime=%lf ksig=%lf\n " */
+    /*        "old_time=%lf val_inc=%lf incr=%lf val=%lf\n", */
+    /*        *p->ktime, *p->ksig, p->old_time, p->val_incremented, p->incr, */
+    /*        p->current_val); */
     if (*p->ksig != p->current_val && p->current_time > p->old_time) {
       p->old_time = *p->ktime;
       p->val_incremented = p->current_val;
       p->current_time = FL(0.0);
       p->incr = (*p->ksig - p->current_val)
-                / ((int32) (csound->ekr * p->old_time) + 1);
+                / ((int32) (csound->ekr * p->old_time) -1); /* by experiment */
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
@@ -1152,6 +1244,7 @@ static int jitters(CSOUND *csound, JITTERS *p)
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
       p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
+      if (p->si == 0) p->si = 1; /* Is this necessary? */
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0 = p->num0 = p->num1;
@@ -1189,6 +1282,7 @@ static int jittersa(CSOUND *csound, JITTERS *p)
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
         si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
         f0 = p->num0 = p->num1;
@@ -1540,6 +1634,8 @@ static OENTRY localops[] = {
 { "jspline",  S(JITTERS), 7, "s", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
 { "loopseg",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
+{ "loopxseg", S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopxseg, NULL },
+{ "looptseg", S(LOOPSEG), 3, "k", "kkiz", (SUBR)looptseg_set, (SUBR)looptseg, NULL},
 { "lpshold",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
 { "loopsegp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
 { "lpsholdp", S(LOOPSEGP), 3,"k", "kz",   (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},

@@ -32,10 +32,8 @@
 #define CSD_MAX_LINE_LEN    4096
 #define CSD_MAX_ARGS        100
 
-#ifdef WIN32
 #  undef L_tmpnam
 #  define L_tmpnam (200)
-#endif
 
 #ifndef TRUE
 #  define TRUE  (1)
@@ -238,7 +236,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         p[len+1] = '\n'; p[len+2] = '\0';
       }
       while (*p == ' ' || *p == '\t') p++;
-      if (strstr(p, "</CsOptions>") == p) {
+      if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
         return TRUE;
       }
       /**
@@ -322,7 +320,9 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     }
     if (readingCsOptions)
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
-    return FALSE;
+    else
+      ST(csdlinecount) = 0;
+ return FALSE;
 }
 
 static int createOrchestra(CSOUND *csound, FILE *unf)

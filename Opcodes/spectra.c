@@ -1240,6 +1240,7 @@ static OENTRY localops[] = {
 { "pinkish", S(PINKISH),  5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
 { "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
 { "transeg", S(TRANSEG), 7,  "s", "iiim", (SUBR)trnset,(SUBR)ktrnseg,(SUBR)trnseg},
+{ "transegr", S(TRANSEG), 7, "s", "iiim", (SUBR)trnsetr,(SUBR)ktrnsegr,(SUBR)trnsegr},
 { "clip", S(CLIP),       5,  "a", "aiiv", (SUBR)clip_set, NULL, (SUBR)clip  },
 { "cpuprc", S(CPU_PERC), 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
 { "maxalloc", S(CPU_PERC), 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
@@ -1256,6 +1257,8 @@ static OENTRY localops[] = {
 { "oscilv.ak", S(XOSC),  5,     "a",   "akio", (SUBR)Foscset, NULL, (SUBR)Foscak },
 { "oscilv.aa", S(XOSC),  5,     "a",   "aaio", (SUBR)Foscset, NULL, (SUBR)Foscaa },
 #endif
+{ "median", S(MEDFILT),  5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
+{ "mediank", S(MEDFILT),  5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt}
 };
 
 LINKAGE

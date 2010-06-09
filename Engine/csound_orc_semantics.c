@@ -54,7 +54,7 @@ int csound_orcwrap()
 /* BISON PARSER FUNCTION */
 void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 {
-    csound->Message(csound, "csound_orcerror: %s\n", str);
+    csound->Message(csound, Str("csound_orcerror: %s\n"), str);
 }
 
 /**
@@ -63,7 +63,7 @@ void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
  * appropriate nodes
  */
 TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
-
+    TREE *current;
     if(first == NULL) {
         return newlast;
     }
@@ -82,9 +82,9 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
         return newlast;
     }
 
-    TREE *current = first;
+    current = first;
 
-    while(current->next != NULL) {
+    while (current->next != NULL) {
         current = current->next;
     }
 
@@ -97,26 +97,26 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
 /* USED BY PARSER TO ASSEMBLE TREE NODES */
 TREE* make_node(CSOUND *csound, int type, TREE* left, TREE* right)
 {
-  TREE *ans;
-  ans = (TREE*)mmalloc(csound, sizeof(TREE));
-  if (ans==NULL) {
-    /* fprintf(stderr, "Out of memory\n"); */
-    exit(1);
-  }
-  ans->type = type;
-  ans->left = left;
-  ans->right = right;
-  ans->next = NULL;
-  ans->len = 2;
-  ans->rate = -1;
-  return ans;
+    TREE *ans;
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans==NULL)) {
+      /* fprintf(stderr, "Out of memory\n"); */
+      exit(1);
+    }
+    ans->type = type;
+    ans->left = left;
+    ans->right = right;
+    ans->next = NULL;
+    ans->len = 2;
+    ans->rate = -1;
+    return ans;
 }
 
 TREE* make_leaf(CSOUND *csound, int type, ORCTOKEN *v)
 {
   TREE *ans;
   ans = (TREE*)mmalloc(csound, sizeof(TREE));
-  if (ans==NULL) {
+  if (UNLIKELY(ans==NULL)) {
     /* fprintf(stderr, "Out of memory\n"); */
     exit(1);
   }
@@ -133,16 +133,16 @@ TREE* make_leaf(CSOUND *csound, int type, ORCTOKEN *v)
 /** Utility function to create assignment statements
  *  Replaces = with correct version for args
  */
-char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
+char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
     char c = argtyp2(csound, ans);
-    char* str = (char*)csound->Calloc(csound, 65);
+    char* str = (char*)mcalloc(csound, 65);
 
     switch (c) {
           case 'S':
                   strcpy(str, "strcpy");
                   break;
           case 'a':
-                  c = argtyp2(csound, arg1);
+                c = argtyp2(csound, arg1->value->lexeme);
                 strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
                 /* strcpy(str, "=.a"); */
                 break;
@@ -152,7 +152,8 @@ char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
                   sprintf(str, "=.%c", c);
     }
 
-    csound->Message(csound, "Found Assignment type: %s\n", str);
+    if (PARSER_DEBUG)
+      csound->Message(csound, "Found Assignment type: %s\n", str);
 
     return str;
 }
@@ -163,7 +164,7 @@ char* get_assignment_type(CSOUND *csound, char * ans, char * arg1) {
 void print_tree_i(CSOUND *csound, TREE *l, int n)
 {
     int i;
-    if (l==NULL) {
+    if (UNLIKELY(l==NULL)) {
         return;
     }
     for (i=0; i<n; i++) {
@@ -189,6 +190,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_TIMES:\n"); break;
     case S_DIV:
       csound->Message(csound,"S_DIV:\n"); break;
+    case S_MOD:
+      csound->Message(csound,"S_MOD:\n"); break;
+    case S_POW:
+      csound->Message(csound,"S_POW:\n"); break;
     case S_NL:
       csound->Message(csound,"S_NL:\n"); break;
     case S_LB:
@@ -241,6 +246,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"T_KSMPS:\n"); break;
     case T_NCHNLS:
       csound->Message(csound,"T_NCHNLS:\n"); break;
+    case T_NCHNLSI:
+      csound->Message(csound,"T_NCHNLSI:\n"); break;
     case T_INSTR:
       csound->Message(csound,"T_INSTR:\n"); break;
     case T_STRCONST:
@@ -293,6 +300,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"T_FUNCTION: %s\n", l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"S_UMINUS:\n"); break;
+    case T_INTLIST:
+        csound->Message(csound,"T_INTLIST:\n"); break;
     default:
       csound->Message(csound,"t:%d\n", l->type);
     }
@@ -305,7 +314,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     }
 }
 
-void print_tree_xml(CSOUND *csound, TREE *l, int n)
+static void print_tree_xml(CSOUND *csound, TREE *l, int n)
 {
     int i;
     if (l==NULL) {
@@ -334,6 +343,10 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"S_TIMES\""); break;
     case S_DIV:
       csound->Message(csound,"name=\"S_DIV\""); break;
+    case S_MOD:
+      csound->Message(csound,"name=\"S_MOD\""); break;
+    case S_POW:
+      csound->Message(csound,"name=\"S_POW\""); break;
     case S_NL:
       csound->Message(csound,"name=\"S_NL\""); break;
     case S_LB:
@@ -358,8 +371,21 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
       csound->Message(csound,"name=\"S_GE\""); break;
+    case S_BITOR:
+      csound->Message(csound,"name=\"S_BITOR\""); break;
+    case S_BITAND:
+      csound->Message(csound,"name=\"S_BITAND\""); break;
+    case S_BITSHR:
+      csound->Message(csound,"name=\"S_BITSHR\""); break;
+    case S_BITSHL:
+      csound->Message(csound,"name=\"S_BITSHL\""); break;
+    case S_NEQV:
+      csound->Message(csound,"name=\"S_NEQV\""); break;
+    case S_BITNOT:
+      csound->Message(csound,"name=\"S_BITNOT\""); break;
     case T_LABEL:
-      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_LABEL\" label=\"%s\"",
+                      l->value->lexeme); break;
     case T_IF:
       csound->Message(csound,"name=\"T_IF\""); break;
     case T_THEN:
@@ -386,64 +412,92 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"T_KSMPS\""); break;
     case T_NCHNLS:
       csound->Message(csound,"name=\"T_NCHNLS\""); break;
+    case T_NCHNLSI:
+      csound->Message(csound,"name=\"T_NCHNLSI\""); break;
     case T_INSTR:
       csound->Message(csound,"name=\"T_INSTR\""); break;
     case T_STRCONST:
-      csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT:
-      csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_I:
-      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_I\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GI:
-      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GI\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_K:
-      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_K\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GK:
-      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GK\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_A:
-      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_A\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GA:
-      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_S:
-      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GS:
-      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_W:
-      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GW:
-      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GW\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_F:
-      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_F\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_GF:
-      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_P:
-      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_B:
-      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_B\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_IDENT_b:
-      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"IDENT_b\" varname=\"%s\"",
+                      l->value->lexeme); break;
     case T_INTGR:
-      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"", l->value->value); break;
+      csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"",
+                      l->value->value); break;
     case T_NUMBER:
-      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"", l->value->fvalue); break;
+      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"",
+                      l->value->fvalue); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
     case S_APPLY:
       csound->Message(csound,"name=\"S_APPLY\""); break;
     case T_OPCODE0:
-      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"",
+                      l->value->lexeme); break;
     case T_OPCODE:
-      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"",
+                      l->value->lexeme); break;
     case T_FUNCTION:
-      csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"", l->value->lexeme); break;
+      csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
+                      l->value->lexeme); break;
     case S_UMINUS:
         csound->Message(csound,"name=\"S_UMINUS\""); break;
+    case T_INTLIST:
+        csound->Message(csound,"name=\"T_INTLIST\""); break;
     case T_UDO:
         csound->Message(csound,"name=\"T_UDO\""); break;
     case T_UDO_ANS:
-        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"", l->value->lexeme); break;
+        csound->Message(csound,"name=\"T_UDO_ANS\" signature=\"%s\"",
+                        l->value->lexeme); break;
     case T_UDO_ARGS:
-        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"", l->value->lexeme); break;
+        csound->Message(csound,"name=\"T_UDO_ARGS\" signature=\"%s\"",
+                        l->value->lexeme); break;
     default:
       csound->Message(csound,"name=\"unknown\"");
     }
@@ -466,55 +520,69 @@ void print_tree_xml(CSOUND *csound, TREE *l, int n)
 
 void print_tree(CSOUND * csound, TREE *l)
 {
-    csound->Message(csound, "Printing Tree\n");
-    csound->Message(csound, "<ast>\n");
-    print_tree_xml(csound, l, 0);
-    csound->Message(csound, "</ast>\n");
+    /*if (PARSER_DEBUG)*/ {
+      csound->Message(csound, "Printing Tree\n");
+      csound->Message(csound, "<ast>\n");
+      print_tree_xml(csound, l, 0);
+      csound->Message(csound, "</ast>\n");
+    }
 }
 
+void handle_optional_args(CSOUND *csound, TREE *l)
+{
+	if (l == NULL || l->type == T_LABEL) return;
 
-
-void handle_optional_args(CSOUND *csound, TREE *l) {
     int opnum = find_opcode(csound, l->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
-    int nreqd = strlen(ep->intypes);
+    int nreqd = 0;
     int incnt = tree_arg_list_count(l->right);
-
     TREE * temp;
 
-    csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
-                    ep->opname, incnt, nreqd);
+    if(ep->intypes != NULL) {
+    	nreqd = strlen(ep->intypes);
+    }
 
+    if (PARSER_DEBUG) {
+      csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
+                      ep->opname, incnt, nreqd);
+      //      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
+    }
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
         switch (ep->intypes[incnt]) {
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "0"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "1"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "10"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
 
         case 'V':
         case 'v':
           temp = make_leaf(csound, T_NUMBER, make_num(csound, ".5"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "127"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'j':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
-          appendToTree(csound, l->right, temp);
+          if (l->right==NULL) l->right = temp;
+          else appendToTree(csound, l->right, temp);
           break;
         case 'M':
         case 'N':
@@ -539,9 +607,15 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
 
 void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
     if (tree->type == S_ASSIGN) {
-      tree->value->lexeme = get_assignment_type(csound,
-                                                tree->left->value->lexeme,
-                                                tree->right->value->lexeme);
+      /* BUG: tree->right->value may be NULL */
+      /* if (tree->right->value) */
+        tree->value->lexeme = get_assignment_type(csound,
+                                                  tree->left->value->lexeme,
+                                                  tree->right/*->value->lexeme*/);
+      /* else {                    /\* Conditional expression so broken  *\/ */
+      /*   printf("Odd case\n"); */
+      /*   print_tree(csound, tree); */
+      /* } */
       return;
     }
     else {
@@ -561,57 +635,81 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
 
         case 0xffff:
           /* use outype to modify some opcodes flagged as translating */
-          csound->Message(csound, "[%s]\n", tree->left->value->lexeme);
+          if (PARSER_DEBUG)
+            csound->Message(csound, "[%s]\n", tree->left->value->lexeme);
 
           c = tree_argtyp(csound, tree->left);
           if (c == 'p')   c = 'i';
           if (c == '?')   c = 'a';                   /* tmp */
           sprintf(str, "%s.%c", ep->opname, c);
 
-          csound->Message(csound, "New Value: %s\n", str);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
 
           /*if (find_opcode(csound, str) == 0) {*/
           /* synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
              str, ST(group)[ST(nxtest)]);*/    /* report syntax error     */
-          /*ST(nxtest) = 100; */                       /* step way over this line */
-          /*goto tstnxt;*/                            /* & go to next            */
+          /*ST(nxtest) = 100; */                    /* step way over this line */
+          /*goto tstnxt;*/                          /* & go to next            */
           /*break;*/
           /*}*/
-          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme, strlen(str) + 1);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
           csound->DebugMsg(csound, Str("modified opcod: %s"), str);
           break;
         case 0xfffe:                              /* Two tags for OSCIL's    */
-          csound->Message(csound, "POLYMORPHIC 0xfffe\n");
+          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffe\n");
           if (c != 'a') c = 'k';
           if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
           sprintf(str, "%s.%c%c", ep->opname, c, d);
-          csound->Message(csound, "New Value: %s\n", str);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
           tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
                                                  strlen(str) + 1);
           strcpy(tree->value->lexeme, str);
           break;
         case 0xfffd:                              /* For peak, etc.          */
-          /*if (c != 'a') c = 'k';
-            sprintf(str, "%s.%c", ST(linopcod), c);*/
+          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffd\n");
+          if (c != 'a') c = 'k';
+          sprintf(str, "%s.%c", ep->opname, c);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
           break;
         case 0xfffc:                              /* For divz types          */
-          /*d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
-            if ((c=='i' || c=='c') && (d=='i' || d=='c'))
+          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffc\n");
+          d = tree_argtyp(csound, tree->right->next);
+          if ((c=='i' || c=='c') && (d=='i' || d=='c'))
             c = 'i', d = 'i';
-            else {
+          else {
             if (c != 'a') c = 'k';
             if (d != 'a') d = 'k';
-            }
-            sprintf(str, "%s.%c%c", ST(linopcod), c, d);*/
+          }
+          sprintf(str, "%s.%c%c", ep->opname, c, d);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
           break;
         case 0xfffb:          /* determine opcode by type of first input arg */
+          if (PARSER_DEBUG)
+            csound->Message(csound, "POLYMORPHIC 0xfffb\n");
           /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
+          if (c=='p') c = 'i';
           /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
             c = 'i';
             sprintf(str, "%s.%c", ST(linopcod), c);*/
+          sprintf(str, "%s.%c", ep->opname, c);
+          if (PARSER_DEBUG) csound->Message(csound, "New Value: %s\n", str);
+          tree->value->lexeme = (char *)mrealloc(csound, tree->value->lexeme,
+                                                 strlen(str) + 1);
+          strcpy(tree->value->lexeme, str);
           break;
         default:
+          csound->Message(csound, "Impossible case\n");
           break;
           /*strcpy(str, ST(linopcod));*/  /* unknown code: use original opcode   */
         }

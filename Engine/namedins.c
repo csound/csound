@@ -171,7 +171,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno)
     INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
-    if (!inm_base)
+    if (UNLIKELY(!inm_base))
       /* no named instruments defined yet */
       inm_base = csound->instrumentNames =
                  (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
@@ -583,7 +583,7 @@ static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
 
     oldlimit = p->namedGlobalsCurrLimit;
     p->namedGlobalsCurrLimit += n;
-    if (p->namedGlobalsCurrLimit > p->namedGlobalsMaxLimit) {
+    if (UNLIKELY(p->namedGlobalsCurrLimit > p->namedGlobalsMaxLimit)) {
       p->namedGlobalsMaxLimit = p->namedGlobalsCurrLimit;
       p->namedGlobalsMaxLimit += (p->namedGlobalsMaxLimit >> 3);
       p->namedGlobalsMaxLimit = (p->namedGlobalsMaxLimit + 15) & (~15);
@@ -591,7 +591,7 @@ static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
       p->namedGlobals = (void**) realloc((void*) p->namedGlobals,
                                          sizeof(void*)
                                          * (size_t) p->namedGlobalsMaxLimit);
-      if (p->namedGlobals == NULL) {
+      if (UNLIKELY(p->namedGlobals == NULL)) {
         p->namedGlobalsCurrLimit = p->namedGlobalsMaxLimit = 0;
         return NULL;
       }
@@ -626,7 +626,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
     void    **p = NULL;
     int     i, j, k, len;
     /* create new empty database if it does not exist yet */
-    if (csnd->namedGlobals == NULL) {
+    if (UNLIKELY(csnd->namedGlobals == NULL)) {
       if (UNLIKELY(extendNamedGlobals(csnd, 16, -1) == (void**) NULL))
         return CSOUND_MEMORY;
     }

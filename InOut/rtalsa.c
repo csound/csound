@@ -319,7 +319,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     snd_pcm_sw_params_alloca(&sw_params);
     /* open the device */
     if (dev->device == NULL || dev->device[0] == '\0')
-      devName = "plughw";
+      devName = "default";
     else
       devName = dev->device;
     err = snd_pcm_open(&(dev->handle), devName,
@@ -390,11 +390,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
       if (err < 0 || (int) nn != dev->buffer_smps) {
-        if (err >= 0)
+        if (err >= 0)  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
-                            "use %d instead\n"), dev->buffer_smps, (int) nn);
-        sprintf(msg, "Failed while trying to set soundcard DMA buffer size");
-        goto err_return_msg;
+                            "using %d instead\n"), dev->buffer_smps, (int) nn);
+          dev->buffer_smps=nn;
+        }
       }
     }
     /* and period size */
@@ -413,11 +413,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
       if (err < 0 || (int) nn != dev->period_smps) {
-        if (err >= 0)
+        if (err >= 0) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
-                            "use %d instead\n"), dev->period_smps, (int) nn);
-        sprintf(msg, "Error setting period time for real-time audio");
-        goto err_return_msg;
+                            "using %d instead\n"), dev->period_smps, (int) nn);
+          dev->period_smps=nn;
+        }
       }
     }
     /* set up device according to the above parameters */
@@ -437,7 +437,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                                  (snd_pcm_uframes_t) n) < 0
         || snd_pcm_sw_params_set_avail_min(dev->handle, sw_params,
                                            dev->period_smps) < 0
-        || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0
+        /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
       sprintf(msg, "Error setting software parameters for real-time audio");
       goto err_return_msg;
@@ -708,6 +708,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     int device;
     snd_ctl_t *ctl;
     char* name;
+    int numdevs = 0;
     name = (char *) calloc(32, sizeof(char));
 
     (*userData) = NULL;
@@ -724,11 +725,13 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               if (snd_ctl_rawmidi_next_device(ctl, &device) < 0) {
                 break;
               }
-              if (device < 0)
+              if (device < 0) {
                 break;
+	      }
               sprintf(name, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
               if (newdev != NULL) {   /* Device opened successfully */
+		numdevs++;
                 if (olddev != NULL) {
                   olddev->next = newdev;
                 }
@@ -758,9 +761,16 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         free(name);
         return -1;
       }
+      numdevs = 1;
     }
-    *userData = (void*) dev;
     free(name);
+    if (numdevs == 0) {
+      csound->ErrorMsg(csound, Str("ALSA midi: No devices found.\n"));
+      *userData = NULL;
+    }
+    else {
+      *userData = (void*) dev;
+    }
     return 0;
 }
 

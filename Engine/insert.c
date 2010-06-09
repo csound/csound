@@ -85,7 +85,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       csound->Warning(csound, Str("Instrument %d muted\n"), insno);
       return 0;
     }
-    if (tp->mdepends & 04) {
+    if (UNLIKELY(tp->mdepends & 04)) {
       csound->Message(csound, Str("instr %d expects midi event data, "
                                   "cannot run from score\n"), insno);
       return(1);
@@ -161,12 +161,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         ip->offbet = -1.0;
       flp = &ip->p1;
       fep = &newevtp->p[1];
-      if (O->odebug)
+      if (UNLIKELY(O->odebug))
         csound->Message(csound, "psave beg at %p\n", (void*) flp);
       if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
       memcpy(flp, fep, n * sizeof(MYFLT)); flp += n;
       if (n < tp->pmax) memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
-      if (O->odebug)
+      if (UNLIKELY(O->odebug))
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
     if (O->Beatmode)
@@ -182,7 +182,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr */
     while ((csound->ids = csound->ids->nxti) != NULL) {
-      if (O->odebug)
+      if (UNLIKELY(O->odebug))
         csound->Message(csound, "init %s:\n",
                         csound->opcodlst[csound->ids->optext->t.opnum].opname);
       (*csound->ids->iopadr)(csound, csound->ids);
@@ -193,7 +193,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       return csound->inerrcnt;
     }
 #ifdef BETA
-    if (O->odebug)
+    if (UNLIKELY(O->odebug))
       csound->Message(csound, "In insert:  %d %lf %lf\n",
                       __LINE__, ip->p3, ip->offtim); /* *********** */
 #endif
@@ -204,13 +204,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
       /* csound->Message(csound, "%lf\n", ip->offtim); */
       if (O->Beatmode) {
-        p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime) + csound->curBeat;
+        p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime)
+          + csound->curBeat;
         ip->offbet = p2 + ((double) ip->p3*csound->esr / csound->ibeatTime);
       }
 #ifdef BETA
-      if (O->odebug)
+      if (UNLIKELY(O->odebug))
         csound->Message(csound, "Calling schedofftim line %d; offtime= %lf (%lf)\n",
-                        __LINE__, ip->offtim, ip->offtim*csound->ekr); /* *********** */
+                        __LINE__, ip->offtim, ip->offtim*csound->ekr);
 #endif
       schedofftim(csound, ip);                  /*   put in turnoff list */
     }
@@ -218,7 +219,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offbet = -1.0;
       ip->offtim = -1.0;                        /*   else mark indef     */
     }
-    if (O->odebug) {
+    if (UNLIKELY(O->odebug)) {
       csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
@@ -456,7 +457,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       /* IV - Feb 24 2006: check if this note already needs to be turned off */
       /* the following comparisons must match those in sensevents() */
 #ifdef BETA
-      if (csound->oparms->odebug)
+      if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound,"schedofftim: %lf %lf %f\n",
                         ip->offtim, csound->icurTime/csound->esr,
                         csound->curTime_inc);
@@ -470,10 +471,11 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
         if (ip->offtim <= tval) timexpire(csound, tval);
       }
 #ifdef BETA
-      if (csound->oparms->odebug)
+      if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound,"schedofftim: %lf %lf\n", ip->offtim,
                         (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
-                        csound->ekr*((csound->icurTime + (0.505 * csound->ksmps))/csound->esr));
+                        csound->ekr*((csound->icurTime +
+                                      (0.505 * csound->ksmps))/csound->esr));
 #endif
     }
     else {
@@ -572,7 +574,7 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     if (ip->xtratim > 0) {
       set_xtratim(csound, ip);
 #ifdef BETA
-      if (csound->oparms->odebug)
+      if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
       schedofftim(csound, ip);
@@ -645,13 +647,13 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
     int   insno;
 
     insno = (int) p1;
-    if ((ip = (csound->instrtxtp[insno])->instance) != NULL) {
+    if (LIKELY((ip = (csound->instrtxtp[insno])->instance) != NULL)) {
       do {
         if (ip->insno == insno          /* if find the insno */
             && ip->actflg               /*      active       */
-            && ip->offtim < 0.0         /*      but indef,   */
+           /* && ip->offtim < 0.0 */         /*      but indef,   */
             && ip->p1 == p1) {
-          if (csound->oparms->odebug)
+          if (UNLIKELY(csound->oparms->odebug))
             csound->Message(csound, "turning off inf copy of instr %d\n",
                                     insno);
           xturnoff(csound, ip);
@@ -660,7 +662,7 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
       } while ((ip = ip->nxtinstance) != NULL);
     }
     csound->Message(csound,
-                    Str("could not find indefinitely playing instr %f\n"),
+                    Str("could not find playing instr %f\n"),
                     p1);
 }
 
@@ -671,7 +673,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     char    buf[512];
 
     /* RWD: need this! */
-    if (csound->ids == NULL) {
+    if (UNLIKELY(csound->ids == NULL)) {
       va_start(args, s);
       csoundErrMsgV(csound, Str("\nINIT ERROR: "), s, args);
       va_end(args);
@@ -709,7 +711,7 @@ int csoundPerfError(CSOUND *csound, const char *s, ...)
     char    buf[512];
 
     /* RWD and probably this too... */
-    if (csound->pds == NULL) {
+    if (UNLIKELY(csound->pds == NULL)) {
       va_start(args, s);
       csoundErrMsgV(csound, Str("\nPERF ERROR: "), s, args);
       va_end(args);
@@ -758,7 +760,8 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     init_op = (p->h.opadr == NULL ? 1 : 0);
     inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
     /* IV - Oct 31 2002 */
-    if (UNLIKELY((instno = strarg2insno(csound, p->ar[inarg_ofs], (p->XSTRCODE & 1)))
+    if (UNLIKELY((instno = strarg2insno(csound, p->ar[inarg_ofs],
+                                        (p->XSTRCODE & 1)))
                  < 0))
       return NOTOK;
     /* IV - Oct 9 2002: need this check */
@@ -785,19 +788,19 @@ int subinstrset(CSOUND *csound, SUBINST *p)
       p->parent_ip = p->buf.parent_ip = saved_curip;
     }
     /* copy parameters from this instrument into our subinstrument */
-    p->ip->xtratim = saved_curip->xtratim;
-    p->ip->m_sust = 0;
+    p->ip->xtratim  = saved_curip->xtratim;
+    p->ip->m_sust   = 0;
     p->ip->relesing = saved_curip->relesing;
-    p->ip->offbet = saved_curip->offbet;
-    p->ip->offtim = saved_curip->offtim;
-    p->ip->nxtolap = NULL;
-    p->ip->p2 = saved_curip->p2;
-    p->ip->p3 = saved_curip->p3;
+    p->ip->offbet   = saved_curip->offbet;
+    p->ip->offtim   = saved_curip->offtim;
+    p->ip->nxtolap  = NULL;
+    p->ip->p2       = saved_curip->p2;
+    p->ip->p3       = saved_curip->p3;
 
     /* IV - Oct 31 2002 */
-    p->ip->m_chnbp = saved_curip->m_chnbp;
-    p->ip->m_pitch = saved_curip->m_pitch;
-    p->ip->m_veloc = saved_curip->m_veloc;
+    p->ip->m_chnbp  = saved_curip->m_chnbp;
+    p->ip->m_pitch  = saved_curip->m_pitch;
+    p->ip->m_veloc  = saved_curip->m_veloc;
 
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
@@ -1216,7 +1219,7 @@ INSDS *insert_event(CSOUND *csound,
       int i;
       int imax = tp->pmax - 3;
       MYFLT  *flp;
-      if ((int) tp->pmax != pcnt) {
+      if (UNLIKELY((int) tp->pmax != pcnt)) {
         csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
                               insno, (int) tp->pmax, pcnt);
       }
@@ -1224,14 +1227,16 @@ INSDS *insert_event(CSOUND *csound,
       ip->p2 = when;
       ip->p3 = dur;
       flp = &(ip->p1) + 3;
-      if (O->odebug) csound->Message(csound, Str("psave beg at %p\n"), flp);
+      if (UNLIKELY(O->odebug))
+        csound->Message(csound, Str("psave beg at %p\n"), flp);
       for (i = 0; i < imax; i++) {
         if (i < narg)
           *flp++ = *(args[i]);
         else
           *flp++ = FL(0.0);
       }
-      if (O->odebug) csound->Message(csound, Str("   ending at %p\n"), flp);
+      if (UNLIKELY(O->odebug))
+        csound->Message(csound, Str("   ending at %p\n"), flp);
     }
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
@@ -1312,7 +1317,7 @@ void beatexpire(CSOUND *csound, double beat)
           set_xtratim(csound, ip);      /* enter release stage */
           csound->frstoff = ip->nxtoff; /* update turnoff list */
 #ifdef BETA
-          if (csound->oparms->odebug)
+          if (UNLIKELY(csound->oparms->odebug))
             csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
           schedofftim(csound, ip);
@@ -1349,7 +1354,7 @@ void timexpire(CSOUND *csound, double time)
           set_xtratim(csound, ip);      /* enter release stage */
           csound->frstoff = ip->nxtoff; /* update turnoff list */
 #ifdef BETA
-          if (csound->oparms->odebug)
+          if (UNLIKELY(csound->oparms->odebug))
             csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
           schedofftim(csound, ip);
@@ -1374,7 +1379,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     MYFLT   *pbuf, *saved_spout = csound->spout;
     int32    frame, chan;
 
-    if (p->ip == NULL) {                /* IV - Oct 26 2002 */
+    if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, Str("subinstr: not initialised"));
     }
     /* copy current spout buffer and clear it */
@@ -1674,7 +1679,7 @@ static void instance(CSOUND *csound, int insno)
       if ((ep->thread & 01) != 0) {             /* thread 1:        */
         prvids = prvids->nxti = opds;           /* link into ichain */
         opds->iopadr = ep->iopadr;              /*   & set exec adr */
-        if (opds->iopadr == NULL)
+        if (UNLIKELY(opds->iopadr == NULL))
           csoundDie(csound, Str("null iopadr"));
       }
       if ((n = ep->thread & 06) != 0) {         /* thread 2 OR 4:   */
@@ -1784,7 +1789,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     active = ip->instance;
     while (active != NULL) {    /* Check there are no active instances */
       INSDS   *nxt = active->nxtinstance;
-      if (active->actflg)       /* Can only remove non-active instruments */
+      if (UNLIKELY(active->actflg))  /* Can only remove non-active instruments */
         return csound->InitError(csound, Str("Instrument %d is still active"), n);
 #if 0
       if (active->opcod_iobufs && active->insno > csound->maxinsno)

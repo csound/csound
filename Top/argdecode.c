@@ -230,9 +230,10 @@ static const char *longUsageList[] = {
   Str_noop("--midi-velocity-amp=N\tRoute MIDI note on message"),
   Str_noop("\t\t\tvelocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
+  Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
 #if ENABLE_NEW_PARSER
-  Str_noop("--new-parser\t\tUse new Bisob-based parser"),
-  Str_noop("--old-parser\t\tUse new Bisob-based parser"),
+  Str_noop("--new-parser\t\tUse new Bison-based parser"),
+  Str_noop("--old-parser\t\tUse old parser"),
 #endif
   " ",
   Str_noop("--help\t\t\tLong help"),
@@ -910,6 +911,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "compute-weights"))) {
       O->calculateWeights = 1;
+      return 1;
+    }
+    else if (!(strcmp(s, "old-parser"))) {
+      O->newParser = 0;             /* Use Old Parser */
       return 1;
     }
 

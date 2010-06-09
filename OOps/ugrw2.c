@@ -280,7 +280,7 @@ int krsnset(CSOUND *csound, KRESON *p)
     int scale;
 
     p->scale = scale = (int)*p->iscl;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("Illegal resonk iscl value, %f"),
                                        *p->iscl);
     }

@@ -230,6 +230,27 @@ typedef struct {
         MYFLT   *pnum;
 } PFUN;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *ans;
+        MYFLT   *asig;
+        MYFLT   *kwind;
+        MYFLT   *imaxsize;
+        MYFLT   *iskip;
+        AUXCH   b;
+        MYFLT   *buff;
+        MYFLT   *med;
+        int     ind;
+        int     maxwind;
+} MEDFILT;
+
+int Foscaa(CSOUND *, XOSC *p);
+int Foscak(CSOUND *, XOSC *p);
+int Foscka(CSOUND *, XOSC *p);
+int Fosckk(CSOUND *, XOSC *p);
+int Foscset(CSOUND *, XOSC *p);
+int GardnerPink_init(CSOUND *, PINKISH *p);
+int GardnerPink_perf(CSOUND *, PINKISH *p);
 int adsynt(CSOUND *, ADSYNT *p);
 int adsyntset(CSOUND *, ADSYNT *p);
 int clip(CSOUND *, CLIP *p);
@@ -239,13 +260,6 @@ int clockon(CSOUND *, CLOCK *p);
 int clockread(CSOUND *, CLKRD *p);
 int clockset(CSOUND *, CLOCK *p);
 int cpuperc(CSOUND *, CPU_PERC *p);
-int Foscaa(CSOUND *, XOSC *p);
-int Foscak(CSOUND *, XOSC *p);
-int Foscka(CSOUND *, XOSC *p);
-int Fosckk(CSOUND *, XOSC *p);
-int Foscset(CSOUND *, XOSC *p);
-int GardnerPink_init(CSOUND *, PINKISH *p);
-int GardnerPink_perf(CSOUND *, PINKISH *p);
 int hsboscil(CSOUND *, HSBOSC *p);
 int hsboscset(CSOUND *, HSBOSC *p);
 int impulse(CSOUND *, IMPULSE *p);
@@ -253,6 +267,7 @@ int impulse_set(CSOUND *, IMPULSE *p);
 int instcount(CSOUND *, INSTCNT *p);
 int kphsorbnk(CSOUND *, PHSORBNK *p);
 int ktrnseg(CSOUND *, TRANSEG *p);
+int ktrnsegr(CSOUND *csound, TRANSEG *p);
 int lpf18db(CSOUND *, LPF18 *p);
 int lpf18set(CSOUND *, LPF18 *p);
 int mac(CSOUND *, SUM *p);
@@ -270,11 +285,15 @@ int pitchamdf(CSOUND *, PITCHAMDF *p);
 int pitchamdfset(CSOUND *, PITCHAMDF *p);
 int pitchset(CSOUND *, PITCH *p);
 int trnseg(CSOUND *, TRANSEG *p);
+int trnsegr(CSOUND *csound, TRANSEG *p);
 int trnset(CSOUND *, TRANSEG *p);
+int trnsetr(CSOUND *csound, TRANSEG *p);
 int varicol(CSOUND *, VARI *p);
 int varicolset(CSOUND *, VARI *p);
 int waveset(CSOUND *, BARRI *p);
 int wavesetset(CSOUND *, BARRI *p);
-
+int medfiltset(CSOUND *, MEDFILT *p);
+int medfilt(CSOUND *, MEDFILT *p);
+int kmedfilt(CSOUND *, MEDFILT *p);
 #endif /* PITCH_H */
 

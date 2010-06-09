@@ -317,6 +317,14 @@ extern "C" {
     insert_score_event_at_sample,
     csoundGetChannelLock,
     ldmemfile2withCB,
+    csoundAddSpinSample,
+    csoundGetSpoutSample,
+    csoundChanIKSetValue,
+    csoundChanOKGetValue,
+    csoundChanIASetSample,
+    csoundChanOAGetSample,
+    csoundStop,
+    csoundGetNamedGens,
     /* NULL, */
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -325,8 +333,7 @@ extern "C" {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL},
+      NULL, NULL, NULL, NULL, NULL, NULL},
     0,                          /* dither_output */
     NULL,  /*  flgraphsGlobals */
     NULL, NULL,             /* Delayed messages */
@@ -394,7 +401,8 @@ extern "C" {
     0,              /*  randSeed2           */
     0,              /*  memlock             */
     sizeof(MYFLT),  /*  floatsize           */
-    {0, 0, 0, 0, 0, 0}, /* dummyint[8]; */
+    DFLT_NCHNLS,    /*  inchns              */
+    {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -658,8 +666,12 @@ extern "C" {
     0,              /* scoLineOffset */
     NULL,           /* csdname */
     -1,             /*  parserUdoflag */
-    0              /*  parserNamedInstrFlag */
- };
+    0,              /*  parserNamedInstrFlag */
+    0,              /*  tran_nchnlsi */
+    0,              /* Count of extra strings */
+    {NULL, NULL, NULL}, /* For extra strings in scores */
+    {0, 0, 0}       /* For extra strings in scores */
+};
 
   /* from threads.c */
   void csoundLock(void);
@@ -869,7 +881,9 @@ extern "C" {
     if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER))
       install_signal_handler();
     if (!(flags & CSOUNDINIT_NO_ATEXIT))
+#if !defined(WIN32)
       atexit(destroy_all_instances);
+#endif
     aops_init_tables();
     csoundLock(); init_done = 1; csoundUnLock();
     return 0;
@@ -1627,6 +1641,11 @@ extern "C" {
 
   /* stop a csoundPerform() running in another thread */
 
+  PUBLIC void *csoundGetNamedGens(CSOUND *csound)
+  {
+      return csound->namedgen;
+  }
+
   PUBLIC void csoundStop(CSOUND *csound)
   {
       csound->performState = -1;
@@ -1693,9 +1712,22 @@ extern "C" {
       return csound->spin;
   }
 
+  PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample)
+  {
+
+    int index = (frame * csound->nchnls) + channel;
+    csound->spin[index] += sample;
+  }
+
   PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
   {
       return csound->spout;
+  }
+
+  PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
+  {
+    int index = (frame * csound->nchnls) + channel;
+    return csound->spout[index];
   }
 
   PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
@@ -2532,6 +2564,7 @@ extern "C" {
       /* delete temporary files created by this Csound instance */
       remove_tmpfiles(csound);
       rlsmemfiles(csound);
+      memRESET(csound);
       /**
        * Copy everything EXCEPT the function pointers.
        * We do it by saving them and copying them back again...
@@ -2553,7 +2586,6 @@ extern "C" {
       csound->memalloc_db = saved_env->memalloc_db;
       free(saved_env);
 
-      memRESET(csound);       /* this one should be called last */
   }
 
   PUBLIC int csoundGetDebug(CSOUND *csound)
@@ -2817,7 +2849,7 @@ extern "C" {
       /* seems to have much worse resolution under Win95.                   */
       LARGE_INTEGER tmp;
       QueryPerformanceCounter(&tmp);
-      return ((int_least64_t) tmp.LowPart + ((int_least64_t) tmp.HighPart << 32));
+      return ((int_least64_t) tmp.LowPart + ((int_least64_t) tmp.HighPart <<32));
 #elif defined(HAVE_GETTIMEOFDAY)
       /* UNIX: use gettimeofday() - allows 1 us resolution */
       struct timeval tv;

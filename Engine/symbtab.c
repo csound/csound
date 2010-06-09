@@ -92,13 +92,14 @@ void init_symbtab(CSOUND *csound)
             if(ep != temp && strncmp(polyName, temp->opname, len) == 0) {
               add_token(csound, ep->opname, get_opcode_type(temp));
 
-              if (PARSER_DEBUG)
+              if (PARSER_DEBUG) {
                 if(get_opcode_type(temp) == T_OPCODE) {
                   csound->Message(csound, "Using Type T_OPCODE\n");
                 }
                 else {
                   csound->Message(csound, "Using Type T_OPCODE0\n");
                 }
+              }
               break;
             }
           }
@@ -227,7 +228,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkKop0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkKopS0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -241,7 +242,7 @@ int isUDOAnsList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aikK0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aikSK0", s[len]) == NULL)) {
         return 0;
       }
       len--;

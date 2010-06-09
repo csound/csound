@@ -39,6 +39,12 @@ typedef struct {
         MYFLT   *index;
 } PFIELD;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *inits[24];
+        MYFLT   *start;
+} PINIT;
+
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -142,11 +148,41 @@ int pvalue(CSOUND *csound, PFIELD *p)
     return OK;
 }
 
+int pinit(CSOUND *csound, PINIT *p)
+{
+    int n;
+    int x = 1;
+    int    nargs = p->OUTOCOUNT;
+    int    pargs = csound->currevent->pcnt;
+    int    start = (int)(*p->start);
+    /* Should check that inits exist> */
+    if (nargs>pargs)
+      csound->Warning(csound, Str("More arguments than p fields"));
+    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+      /* printf("n=%d: nargs=%d pargs=%d start=%d pargs-start=%d n+start=%d\n", */
+      /*        n, nargs, pargs, start, pargs-start, n+start); */
+      if (p->XOUTSTRCODE & x) {
+        /* printf("A string: n=%d x=%d\n", n, x); */
+        if (UNLIKELY((int)strlen((char*)csound->currevent->strarg) >=
+                     csound->strVarMaxLen))
+          return csound->InitError(csound, Str("buffer overflow in passign"));
+        strcpy((char*) p->inits[n], (char*)csound->currevent->strarg);
+        x = 0;                  /* Only one string */
+      }
+      else {
+        *p->inits[n] = csound->currevent->p[n+start];
+      }
+      x <<= 1;
+    }
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),   1,  "i", "",     (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),   1,  "i", "i",    (SUBR)pvalue,    NULL, NULL },
+{ "pcount", S(PFIELD),  1, "i", "",       (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "passign", S(PINIT),  1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",      (SUBR)pinit,     NULL, NULL },
 { "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 

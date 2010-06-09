@@ -88,9 +88,6 @@ typedef struct {
     int32    lenmax /* = LENMAX */;  /* Length of input line buffer  */
     char    *ortext;
     char    **linadr;               /* adr of each line in text     */
-#if 0   /* unused */
-    int     *srclin;                /* text no. of expanded lines   */
-#endif
     int     curline;                /* current line being examined  */
     char    *collectbuf;            /* splitline collect buffer     */
     char    **group;                /* splitline local storage      */
@@ -398,6 +395,7 @@ static void init_math_constants_macros(CSOUND *csound)
      add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
      add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
      add_math_const_macro(csound, "SQRT1_2", "0.70710678118654752440");
+     add_math_const_macro(csound, "INF", "2147483647.0"); /* ~7 years */
 }
 
 static void init_omacros(CSOUND *csound, NAMES *nn)
@@ -504,10 +502,6 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
     ST(str)->unget_cnt = 0;
     ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
     ST(linadr) = (char **) mmalloc(csound, (LINMAX + 1) * sizeof(char *));
-#if 0   /* unused */
-    ST(srclin) = (int *) mmalloc(csound, (LINMAX + 1) * sizeof(int));
-    ST(srclin)[1] = 1;
-#endif
     strsav_create(csound);
     lincnt = srccnt = 1;
     cp = ST(linadr)[1] = ortext;
@@ -553,14 +547,14 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         else
           ungetorchar(csound, c2);
       }
-      if (c == ';' && !heredoc && !openquote) {
+      if (c == ';' && !heredoc) {
         skiporchar(csound);
         *(cp - 1) = (char) (c = '\n');
       }
       if (c == '"' && !heredoc) {
         openquote = !openquote;
       }
-      if (c == '\\' && !heredoc) {                   /* Continuation ?       */
+      if (c == '\\' && !heredoc & !openquote) {      /* Continuation ?       */
         while ((c = getorchar(csound)) == ' ' || c == '\t')
           ;                                          /* Ignore spaces        */
         if (c == ';') {                              /* Comments get skipped */
@@ -570,8 +564,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         if (c == '\n') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
-/*        ST(srclin)[++lincnt] = 0;     unused  */
-/*        ST(linadr)[lincnt] = cp; */
+          /* lincnt++; Thsi is wrong */
         }
         else {
           *cp++ = c;
@@ -591,6 +584,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       }
       else if (c == '\n') {                          /* at each new line */
         char *lp = ST(linadr)[lincnt];
+        /* printf("lincnt=%d; lp=%p, ST(linadr)=%p\n", lincnt, lp, ST(linadr)); */
         while ((c = *lp) == ' ' || c == '\t')
           lp++;
         if (*lp != '\n' && *lp != ';') {
@@ -601,10 +595,6 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           linmax += 100;
           ST(linadr) = (char**) mrealloc(csound, ST(linadr), (linmax + 1)
                                                              * sizeof(char*));
-#if 0   /* unused */
-          ST(srclin) = (int*) mrealloc(csound, ST(srclin), (linmax + 1)
-                                                           * sizeof(int));
-#endif
         }
   /*    ST(srclin)[lincnt] = srccnt;    unused  */
         ST(linadr)[lincnt] = cp;            /* record the adrs */
@@ -987,7 +977,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       *cp++ = '\n';                         /*    add one           */
     else --lincnt;
     ST(linadr)[lincnt+1] = NULL;            /* terminate the adrs list */
-    csound->Message(csound,Str("%d lines read\n"),lincnt);
+#ifdef BETA
+    csound->Message(csound,Str("%d (%d) lines read\n"),lincnt, srccnt);
+#endif
     if (ST(fd) != NULL) {
       csound->FileClose(csound, ST(fd));    /* close the file       */
       ST(fd) = NULL;
@@ -1147,7 +1139,17 @@ static int splitline(CSOUND *csound)
           extend_group(csound);
         grpp = ST(group)[grpcnt++] = cp;
         *cp++ = c;                          /*  cpy to nxt quote */
-        while ((*cp++ = c = *lp++) != '"' && c != '\n');
+       do {
+       loop:
+         c = *lp++;
+         if (c=='\\' && *lp=='"') {        /* Deal with \" case */
+           *cp++ = '\\';
+           *cp++ = '"';
+           lp++;
+           goto loop;
+         }
+         *cp++ = c;
+       } while (c != '"' && c != '\n');
         if (c == '\n')
           synterrp(csound, lp - 1, Str("unmatched quotes"));
         collecting = 1;                     /*   & resume chking */
@@ -1476,9 +1478,6 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       if (!(ST(grpcnt) = splitline(csound))) {  /*    attack next line    */
         /* end of orchestra, clean up */
         mfree(csound, ST(linadr));      ST(linadr) = NULL;
-#if 0   /* unused */
-        mfree(csound, ST(srclin));      ST(srclin) = NULL;
-#endif
         mfree(csound, ST(ortext));      ST(ortext) = NULL;
         mfree(csound, ST(collectbuf));  ST(collectbuf) = NULL;
         mfree(csound, ST(group));       ST(group) = NULL;
@@ -1913,6 +1912,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         if (!(tfound_m & ST(typemask_tabl_in)[(unsigned char) treqd])) {
           /* check for exceptional types */
           switch (treqd) {
+          case 'I':
+            treqd_m = ARGTYP_i;
+            break;
           case 'Z':                             /* indef kakaka ... */
             if (UNLIKELY(!(tfound_m & (n & 1 ? ARGTYP_a : ARGTYP_ipcrk))))
               intyperr(csound, n, tfound, treqd);
@@ -1990,8 +1992,8 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         nreqd = strlen(types = ep->outypes);
       if (UNLIKELY((n != nreqd) &&      /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
-            (types[n] == (char) 'm' || types[n] == (char) 'z' ||
-             types[n] == (char) 'X' || types[n] == (char) 'N')))) {
+            (types[n] == 'm' || types[n] == 'z' || types[n] == 'I' ||
+             types[n] == 'X' || types[n] ==  'N')))) {
         synterr(csound, Str("illegal no of output args"));
         if (n > nreqd)
           n = nreqd;
@@ -2100,7 +2102,7 @@ char argtyp(CSOUND *csound, char *s)
       return('S');                              /* quoted String */
     ST(lgprevdef) = lgexist(csound, s);               /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
-        strcmp(s,"0dbfs") == 0 ||
+        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
       return('r');                              /* rsvd */
     if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */

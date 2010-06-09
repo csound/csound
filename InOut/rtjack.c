@@ -403,7 +403,7 @@ static void openJackStreams(RtJackGlobals *p)
     CSOUND *csound = p->csound;
 
     /* connect to JACK server */
-    p->client = jack_client_new(&(p->clientName[0]));
+    p->client = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
     if (p->client == NULL)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 

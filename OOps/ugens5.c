@@ -36,7 +36,7 @@ int porset(CSOUND *csound, PORT *p)
 {
     p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
     p->c1 = 1.0 - p->c2;
-    if (*p->isig >= FL(0.0))
+    if (LIKELY(*p->isig >= FL(0.0)))
       p->yt1 = (double)(*p->isig);
     return OK;
 }
@@ -56,7 +56,7 @@ int tonset(CSOUND *csound, TONE *p)
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
 
-    if (!(*p->istor))
+    if (LIKELY(!(*p->istor)))
       p->yt1 = 0.0;
     return OK;
 }
@@ -99,7 +99,7 @@ int tonsetx(CSOUND *csound, TONEX *p)
                        (int)(p->loop*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
-    if (!(*p->istor)) {
+    if (LIKELY(!(*p->istor))) {
       memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
     }
     return OK;
@@ -121,13 +121,14 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     c1 = p->c1;
     c2 = p->c2;
     yt1= p->yt1;
-    asig = p->asig;
     nsmps = csound->ksmps;
     ar = p->ar;
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+
     for (j=0; j< p->loop; j++) {
       int n;
       for (n=0; n<nsmps; n++) {
-        double x = c1 * asig[n] + c2 * *yt1;
+        double x = c1 * ar[n] + c2 * *yt1;
         *yt1 = x;
         ar[n] = (MYFLT)x;
       }
@@ -164,9 +165,10 @@ int atone(CSOUND *csound, TONE *p)
 
 int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
-    MYFLT       *ar = p->ar, *asig;
-    double      c2, *yt1;
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1;
     int         n, nsmps=csound->ksmps, j;
+    int lp = p->loop;
 
     if (*p->khp != p->prvhp) {
       double b;
@@ -176,12 +178,10 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       /*p->c1 = 1. - p->c2;*/
     }
 
-    c2 = p->c2;
-    yt1=p->yt1;
-    asig = p->asig;
-    for (j=0; j< p->loop; j++) {
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    for (j=1; j<lp; j++) {
       for (n=0; n<nsmps; n++) {
-        double sig = asig[n];
+        double sig = (double)ar[n];
         double x = c2 * (yt1[j] + sig);
         yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
         ar[n] = (MYFLT)x;
@@ -306,12 +306,12 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     yt1  = p->yt1;
     yt2  = p->yt2;
     ar = p->ar;
-    asig = p->asig;
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     for (j=0; j< p->loop; j++) {
       int n;
       for (n=0; n<nsmps; n++) {
         double x =
-          c1 * ((double)asig[n]) + c2 * yt1[j] - c3 * yt2[j];
+          c1 * ((double)ar[n]) + c2 * yt1[j] - c3 * yt2[j];
         yt2[j] = yt1[j];
         ar[n] = (MYFLT)x;
         yt1[j] = x;
@@ -406,11 +406,11 @@ int lprdset(CSOUND *csound, LPREAD *p)
     csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XSTRCODE);
 
     /* Do not reload existing file ? */
-    if ((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0)
+    if (UNLIKELY((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0))
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     /* else read file  */
-    if ((mfp = ldmemfile2(csound, lpfilname, CSFTYPE_LPC)) == NULL) {
+    if (UNLIKELY((mfp = ldmemfile2(csound, lpfilname, CSFTYPE_LPC)) == NULL)) {
       return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
     }
     /* Store memory file location in opcode */
@@ -618,7 +618,7 @@ static inline void
         polyReal[k] = -(cr*pr-ci*pi);
         polyImag[k] = -(ci*pr+cr*pi);
 
-        if (k>0) {
+        if (LIKELY(k>0)) {
             polyReal[k] += polyReal[k-1];
             polyImag[k] += polyImag[k-1];
         }
