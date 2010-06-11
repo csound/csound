@@ -124,6 +124,11 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     char *tlim = t + CAPSIZE - 1;
 
     if (!csound->oparms->displays) return;    /* return if displays disabled */
+    wdptr->fdata    = fdata;            /* init remainder of data structure   */
+    wdptr->npts     = npts;
+    while (*s != '\0' && t < tlim)
+      *t++ = *s++;                      /*  (copy the caption) */
+    *t = '\0';
     if (!wdptr->windid) {   /* if no window defined for this str, create one */
       csound->csoundMakeGraphCallback_(csound, wdptr, label);
 #ifndef OLPC
@@ -131,11 +136,6 @@ void dispset(CSOUND *csound,            /* setup a new window       */
         PS_MakeGraph(csound, wdptr, label); /* open PS file + write header    */
 #endif
     }
-    wdptr->fdata    = fdata;            /* init remainder of data structure   */
-    wdptr->npts     = npts;
-    while (*s != '\0' && t < tlim)
-      *t++ = *s++;                      /*  (copy the caption) */
-    *t = '\0';
     wdptr->waitflg  = waitflg;
     wdptr->polarity = (int16)NOPOL;
     wdptr->max      = FL(0.0);
