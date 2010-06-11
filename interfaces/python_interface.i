@@ -94,6 +94,7 @@ typedef unsigned int uint32_t;
 %typemap(in) PyObject
 
 *pyfunc {
+  if($input != Py_None)
   if(!PyCallable_Check($input)){
     PyErr_SetString(PyExc_TypeError, "Not a callable object!");
     return NULL;
@@ -111,21 +112,29 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     Csound *p = (Csound *) csoundGetHostData(in);
     pycbdata *pydata = (pycbdata *)p->pydata;
     PyObject *pyfunc = pydata->mfunc, *arg;
-    char *mbuf = new char[strlen(format)*10], *ch;
+    char *mbuf = new char[sizeof(format)*10 + 256], *ch;
     vsprintf(mbuf, format, valist);
     //if(ch = strrchr(mbuf, '\n')) *ch = '\0';
-    if (strlen(mbuf) > 1){
+   if (strlen(mbuf) > 1){
     PyGILState_STATE gst;
+    // printf("MESS BEFORE \n");
     gst = PyGILState_Ensure();
     arg = Py_BuildValue("(s)", mbuf);
     res =  PyEval_CallObject(pyfunc, arg);
     if (res == NULL){
        PyErr_SetString(PyExc_TypeError, "Exception in callback");
     }else Py_DECREF(res);
+   // printf("Mes: %s \n", mbuf);
    PyGILState_Release(gst);
-    }
-   delete[] mbuf;
+   // printf("MESS OVER \n");
 }
+    delete[] mbuf;
+}
+static void VoidMessageCallback(CSOUND *in, int attr,
+                                     const char *format, va_list valist){
+//printf("void message callback\n");
+}
+
 
 static void PythonInValueCallback(CSOUND *in, const char *chan, MYFLT *val){
 
@@ -293,6 +302,12 @@ static void pythonMessageCallback(CSOUND *csound,
 #ifndef PYTHON_23_or_older
   void SetMessageCallback(PyObject *pyfunc){
      // thread safety mechanism
+    if (pyfunc == Py_None){
+       Py_XINCREF(pyfunc);
+       self->SetMessageCallback(VoidMessageCallback);
+       return;
+      }
+
     pycbdata *pydata = (pycbdata *) self->pydata;
     if(pydata->mfunc == NULL)
         if(!PyEval_ThreadsInitialized())  PyEval_InitThreads();
