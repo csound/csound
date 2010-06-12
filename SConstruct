@@ -445,7 +445,13 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     else:
         cpuType = commonEnvironment['gcc3opt']
     if getPlatform() == 'darwin':
-        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mcpu=%s -mtune=%s' % (cpuType, cpuType)))
+      if cpuType == 'universal':
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch ppc ')) 
+        commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch ppc '))
+        commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch ppc '))
+      else:
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
+        commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
      
@@ -606,7 +612,7 @@ elif getPlatform() == 'darwin':
     # ex. 4:3 maps OS X 10.4 to Python 2.3
     # Note that OS X 10.2 did not ship with a Python framework
     # and 10.0 and 10.1 shipped with no Python at all
-    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5 }
+    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5, 6:6 }
     sysPyVers = OSXSystemPythonVersions[OSXvers]
     if OSXvers >= 2:
         print "Apple Python version is 2.%d" % sysPyVers
@@ -747,10 +753,10 @@ if syncLockTestAndSetFound:
    print  'found sync lock'
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
 if not buildOLPC:
-   portaudioFound = configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C")
-   #portmidiFound = configure.CheckLibWithHeader("portmidi", "portmidi.h", language = "C")
+   portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
+   #portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
    portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
-   fltkFound = configure.CheckLibWithHeader("fltk", "FL/Fl.H", language = "C++")
+   fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 if fltkFound:
     fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
 else:
@@ -1282,7 +1288,7 @@ if mpafound:
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
-        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
+        -framework CoreMidi -framework CoreFoundation -framework CoreServices -framework CoreAudio
     '''))
     # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
@@ -1320,8 +1326,9 @@ def fixCFlagsForSwig(env):
         env['CXXFLAGS'].remove('-pedantic')
     if compilerGNU():
         # work around non-ANSI type punning in SWIG generated wrapper files
-        env['CCFLAGS'].append('-fno-strict-aliasing')
-        env['CXXFLAGS'].append('-fno-strict-aliasing')
+        if(getPlatform != 'darwin'):
+         env['CCFLAGS'].append('-fno-strict-aliasing')
+         env['CXXFLAGS'].append('-fno-strict-aliasing')
 
 def makePythonModule(env, targetName, sources):
     if getPlatform() == 'darwin':
@@ -1597,12 +1604,12 @@ else:
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
 makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 if not buildOLPC:
   makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
-  makePlugin(pluginEnvironment, 'fareytab', ['Opcodes/fareygen.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
 makePlugin(pluginEnvironment, 'modal4',
@@ -1635,11 +1642,11 @@ if sys.byteorder == 'big':
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 if not buildOLPC:
   makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
-  makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
-  makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
 makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
+if not buildOLPC:
+  makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
@@ -1692,16 +1699,16 @@ hrtfnewEnvironment = pluginEnvironment.Clone()
 if sys.byteorder == 'big':
     hrtfnewEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
-if (commonEnvironment['useJack']=='1' and jackFound):
+if jackFound and commonEnvironment['useJack'] == '1':
     jpluginEnvironment = pluginEnvironment.Clone()
     if getPlatform() == 'linux':
         jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     elif getPlatform() == 'win32':
         jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
-    else:
-        jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
+    elif getPlatform() == 'darwin':
+        jpluginEnvironment.Append(LIBS = ['pthread'])
+	jpluginEnvironment.Append(LINKFLAGS = ['-framework', 'Jackmp'])
     makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
-    makePlugin(jpluginEnvironment, 'jacko', 'Opcodes/jacko.cpp')
 if (not buildOLPC) and boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
 if (not buildOLPC) and gmmFound and commonEnvironment['useDouble'] != '0':
@@ -2395,6 +2402,7 @@ else:
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundAC.so'])
         #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
     elif getPlatform() == 'darwin':
+        acEnvironment.Append(LIBS = ['fltk'])
         acEnvironment.Append(LIBS = ['dl', 'm', 'fltk_images', 'fltk_png', 'fltk_jpeg'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
@@ -2417,7 +2425,6 @@ else:
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
     frontends/CsoundAC/Cell.cpp
-    frontends/CsoundAC/ChordLindenmayer.cpp
     frontends/CsoundAC/Composition.cpp
     frontends/CsoundAC/Conversions.cpp
     frontends/CsoundAC/Counterpoint.cpp
@@ -2457,7 +2464,7 @@ else:
     pythonCsoundACWrapperEnvironment = pythonWrapperEnvironment.Clone()
     if getPlatform() == 'darwin':
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['CsoundAC'])
-        pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['fltk_images'])
+        pythonCsoundACWrapperEnvironment.Prepend(LIBS = ['fltk_images', 'fltk'])
         pythonCsoundACWrapperEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         pythonCsoundACWrapperEnvironment.Prepend(LIBPATH = pythonLibraryPath)
         pythonCsoundACWrapperEnvironment.Prepend(LIBS = pythonLibs)
@@ -2640,8 +2647,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         if commonEnvironment['dynamicCsoundLibrary'] == '1':
           if commonEnvironment['useDouble'] == '0': tcloc = '/Library/Frameworks/CsoundLib.framework/Resources/TclTk/'
           else: tcloc = '/Library/Frameworks/CsoundLib64.framework/Resources/TclTk/'
-          #csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
-           #                          'cp -R tclcsound.dylib ' + tcloc)
+          csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
+                                     'cp -R tclcsound.dylib ' + tcloc)
 
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
