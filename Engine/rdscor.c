@@ -175,14 +175,14 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       e->c.extra = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
                       e->c.extra[0] = PMAX-2;
                       q = e->c.extra;
-                      while (getc(xx) != '\n' && scanflt(csound, &q[c++])) {
-                        if (c > e->c.extra[0]) {
+                      while ((getc(xx) != '\n') && (scanflt(csound, &q[c++]))) {
+                        if (c > (int) e->c.extra[0]) {
                           fprintf(stderr, "and more extra p-fields [%d](%d)%d\n",
-                                  c, (int)e->c.extra[0],
+                                  c, (int) e->c.extra[0],
                                   sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
                           q = e->c.extra =
-                           (MYFLT*)realloc(e->c.extra,
-                                           sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+			    (MYFLT *)realloc(e->c.extra,
+					    sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
                           e->c.extra[0] = e->c.extra[0]+PMAX-1;
                         }
                       }
@@ -208,4 +208,5 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       }
     return 0;
 }
+
 
