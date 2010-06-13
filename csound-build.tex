@@ -51,7 +51,7 @@
 \section{Introduction}
 \label{sec:Introduction}
 
-This file should be updated in reasonable detail with each release of the Windows installers for Csound, in order to provide instructions for building Csound on Windows.
+This file should be updated in reasonable detail with each release of the Windows installers for Csound, in order to provide instructions for building Csound on Windows. Please note the last date each package was updated and, if relevant, its current version number. Do this, of course, \emph{only} if your build succeeds \emph{and} the package version is more recent than the one previously recorded in this document.
 
 Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization.  
 
@@ -95,7 +95,7 @@ All third party libraries will be updated from the most recent version that seem
   		\item (Done) Update Python.
 				\begin{enumerate}
 					\item (Done) Install the most recent ``standard'' version (currently 2.6.2) \emph{that works with all the other stuff we need for Csound} (see other Python packages below) from \url{www.python.org}.
-	    		\item (Done) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.2.0).
+	    		\item (13 June 2010) Update SCons from \url{www.scons.org} to the most recent ``standard'' version (currenty 1.3.0).
 	    	  \item (Done) update the Psyco just in time compiler with Subversion using \verb|svn co http://codespeak.net/svn/psyco/dist/ psyco-dist|  to the most recent version (currently 1.6) and install from sources in the MSys shell using \verb|python setup.py install|.
 	    		\item (Done) Update NumPy (currently version 1.3.0) and SciPy (currently version 0.7.1rc3) from \url{http://www.scipy.org}.
 	    		\item (Done) Update VPython from \url{http://vpython.org/index.html} to the most recent version (currently Visual 5).
@@ -104,9 +104,9 @@ All third party libraries will be updated from the most recent version that seem
 				\end{enumerate}
 			\item (Done) Update MSys base (current version 1.0.11-rc-1) and MSys supplementary tools from \url{http://sourceforge.net/projects/mingw}. 
 			\item (Done -- no longer available) Update MSYS with pkg.m4 from \url{http://johnnypops.demon.co.uk/mingw/msys-pkg-config-win32.zip}. 
-			\item (Done) Install the Twilight Dragon Media build of MinGW from \url{http://www.tdragon.net}. The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhat faster code, because the dw2 compiler generates buggy code for DLL relocations.
+			\item (13 June 2010) Install the latest version of the Twilight Dragon Media build of MinGW from \url{http://www.tdragon.net} (currently 4.5.0). The sjlj version of the compiler must be used instead of the dw2 version, even though the dw2 compiler builds somewhat faster code, because the dw2 compiler generates buggy code for DLL relocations.
 			\item (Done) Also install \texttt{dirent.h} from \url{http://www.softagalleria.net/dirent.php} and \texttt{bufferoverflowu.lib}  from Microsoft.
-	    \item (Done) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 1.3.39).
+	    \item (13 June 2010) Update SWIG from \url{www.swig.org} to the most recent ``standard'' version (currently 2.0.0).
 	    \item (Done) Update the Java Development Kit from \url{http://java.sun.com/javase/downloads/index.jsp} to the most recent ``standard'' version (currently Java SE 6 Update 14).
 		\end{enumerate}    
 	\item (Done) Update third-party libraries.   
