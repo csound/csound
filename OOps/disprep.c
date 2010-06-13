@@ -53,11 +53,12 @@ int printv(CSOUND *csound, PRINTV *p)
 int fdspset(CSOUND *csound, FSIGDISP *p){
     char strmsg[256];
     p->size = p->fin->N/2 + 1;
-    if (*p->points && (p->size > *p->points)) p->size = *p->points;
-
-  if (p->fdata.auxp == NULL || p->fdata.size < p->size*sizeof(MYFLT))
+    if ((*p->points != (MYFLT) 0) && (p->size > (int) *p->points)) {
+      p->size = *p->points;
+    }
+    if ((p->fdata.auxp == NULL) || (p->fdata.size < (int) (p->size*sizeof(MYFLT)))) {
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
-
+    }
     sprintf(strmsg, Str("instr %d, pvs-signal %s:"),
       (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
