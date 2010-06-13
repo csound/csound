@@ -135,7 +135,7 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 #  ifndef CS_DEFAULT_PLUGINDIR
 #    ifndef USE_DOUBLE
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins"
-#    Else
+#    else
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
 #    endif
 #  endif
