@@ -632,7 +632,7 @@ CsoundArgVList::~CsoundArgVList()
 
 extern "C" {
 
-  static void MessageCallback_wrapper(CSOUND *csound,
+  static CS_NOINLINE void MessageCallback_wrapper(CSOUND *csound,
                                       int attr, const char *fmt, va_list args)
   {
     CsoundCallbackWrapper *p;
@@ -669,7 +669,7 @@ extern "C" {
 #endif
   }
 
-  static void InputValueCallback_wrapper(CSOUND *csound,
+  static CS_NOINLINE void InputValueCallback_wrapper(CSOUND *csound,
                                          const char *chnName, MYFLT *value)
   {
     CsoundCallbackWrapper *p;
@@ -677,7 +677,7 @@ extern "C" {
     *value = (MYFLT) p->InputValueCallback(chnName);
   }
 
-  static void OutputValueCallback_wrapper(CSOUND *csound,
+  static CS_NOINLINE void OutputValueCallback_wrapper(CSOUND *csound,
                                           const char *chnName, MYFLT value)
   {
     CsoundCallbackWrapper *p;
@@ -685,14 +685,14 @@ extern "C" {
     p->OutputValueCallback(chnName, (double) value);
   }
 
-  static int YieldCallback_wrapper(CSOUND *csound)
+  static CS_NOINLINE int YieldCallback_wrapper(CSOUND *csound)
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
     return p->YieldCallback();
   }
 
-  static void ChannelIOCallback_wrapper(CSOUND *csound, const char *chnName,
+  static CS_NOINLINE void ChannelIOCallback_wrapper(CSOUND *csound, const char *chnName,
                                         MYFLT *value, int chnType)
   {
     CsoundCallbackWrapper *p;
