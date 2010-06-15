@@ -2425,6 +2425,7 @@ else:
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundAcSources = Split('''
     frontends/CsoundAC/Cell.cpp
+    frontends/CsoundAC/ChordLindenmayer.cpp
     frontends/CsoundAC/Composition.cpp
     frontends/CsoundAC/Conversions.cpp
     frontends/CsoundAC/Counterpoint.cpp
