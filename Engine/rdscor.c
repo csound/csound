@@ -114,7 +114,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->pcnt = 2;
       return(1);
     }
-    while ((c = getc(xx)) != EOF)   /* else read the real score */
+    while ((c = getc(xx)) != EOF) {  /* else read the real score */
+      csound->scnt0 = 0;
       switch (c) {
       case ' ':
       case '\t':
@@ -206,6 +207,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         }
         return 1;
       }
+    }
     return 0;
 }
 
