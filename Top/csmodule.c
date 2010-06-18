@@ -78,11 +78,20 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 
-#if defined(LINUX) || defined(__MACH__)
+#if defined(__MACH__)
+#if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
+#define NEW_MACH_CODE
+#else
+#define OLD_MACH_CODE
+#endif
+#endif
+
+#if defined(LINUX) || defined(NEW_MACH_CODE)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
 #endif
+
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -901,7 +910,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif defined(LINUX) || defined (__MACH__)
+#elif defined(LINUX) || defined (NEW_MACH_CODE)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {

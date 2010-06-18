@@ -7,7 +7,7 @@
 
 // package csnd;
 
-import csnd.CppSound;
+import csnd.Csound;
 import csnd.CsoundFile;
 import csnd.CsoundPerformanceThread;
 
@@ -50,7 +50,7 @@ public class CsoundEditor extends JFrame {
     static FileFilter csoundFileFilter;
     private JTextArea scoreTextArea = null;
     static {
-        System.loadLibrary("_jcsound");
+	 System.loadLibrary("_jcsound");
         fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(true);
         csoundFileFilter = new CsoundFileFilter();
@@ -58,7 +58,7 @@ public class CsoundEditor extends JFrame {
     }
     public Properties properties = new Properties(System.getProperties());
     private String soundfilePlayer = "";
-    public CppSound csound = null;
+    public Csound csound = null;
     public CsoundFile csoundFile = null;
 	public CsoundPerformanceThread csoundPerformanceThread = null;
     private JButton jButton4 = null;
@@ -202,8 +202,8 @@ public class CsoundEditor extends JFrame {
         updateModel();
         try {
             csoundFile.exportForPerformance();
-            csound.compile();
-			csoundPerformanceThread = new CsoundPerformanceThread(csound);
+            csound.Compile("tmp.orc", "tmp.sco", "-odac");
+	    csoundPerformanceThread = new CsoundPerformanceThread(csound);
             csoundPerformanceThread.Play();
         } catch (Exception x) {
             x.printStackTrace();
@@ -236,7 +236,7 @@ public class CsoundEditor extends JFrame {
             jButton3.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     try {
-                        String soundfile = csound.getOutputSoundfileName();
+                        String soundfile = null;//csound.getOutputSoundfileName();
                         File file = new File(soundfile);
                         Runtime.getRuntime().exec(
                                 soundfilePlayer + " " + file.getAbsolutePath());
@@ -334,7 +334,7 @@ public class CsoundEditor extends JFrame {
                 public void actionPerformed(java.awt.event.ActionEvent e) {
                     csoundPerformanceThread.Stop();
 					csoundPerformanceThread.Join();
-					csound.cleanup();
+					csound.Cleanup();
                 }
             });
         }
@@ -353,23 +353,23 @@ public class CsoundEditor extends JFrame {
      */
     public CsoundEditor() {
         super();
-        try {
-            properties.load(new java.io.FileInputStream(
-                    "CsoundEditor.properties"));
-        } catch (Exception x) {
-            x.printStackTrace();
+	try {
+	 properties.load(new java.io.FileInputStream(
+	          "CsoundEditor.properties"));
+	} catch (Exception x) {
+	x.printStackTrace();
         }
-		csound = new CppSound();
-		csoundPerformanceThread = new CsoundPerformanceThread(csound);
-        csoundFile = csound.getCsoundFile();
-        soundfilePlayer = properties.getProperty("SoundfilePlayer",
-                soundfilePlayer);
+        csound = new Csound();
+	csoundPerformanceThread = new CsoundPerformanceThread(csound);
+        csoundFile = new CsoundFile();
+       soundfilePlayer = properties.getProperty("SoundfilePlayer",
+         soundfilePlayer);
         initialize();
-		String orchestra = properties.getProperty("DefaultOrchestra");
+	String orchestra = properties.getProperty("DefaultOrchestra");
 		if (orchestra != null) {
 			csoundFile.load(orchestra);
-            csoundFile.setFilename(orchestra);
-            updateView();
+	    csoundFile.setFilename(orchestra);
+	    updateView();
 		}
     }
 
