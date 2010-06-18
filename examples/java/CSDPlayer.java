@@ -157,12 +157,14 @@ public class CSDPlayer extends javax.swing.JFrame {
         boolean on;
         boolean pause;
         String  csd;
+        CsoundPerformanceThread perf;
 
         public csperf(String s) {
             csd = s;
             on = false;
             pause = false;
             csp = new Csound();
+            // perf = new CsoundPerformanceThread(csp);
         }
 
         public void run() {
@@ -170,19 +172,21 @@ public class CSDPlayer extends javax.swing.JFrame {
                 int res = csp.Compile(csd, "-m0", "-d");
                 if (res == 0) {
                     on = true;
+	            // perf.Play();
                     while (on) {
-                        if (pause)
-                            csnd.csoundSleep(30);
-                        else if (csp.PerformBuffer() != 0)
-                            on = false;
-                    }
+			if (pause) // perf.Pause();
+			  csnd.csoundSleep(30);
+                        else if (csp.PerformBuffer() != 0) on = false;
+			}
+		    // perf.Stop();
+                    // perf.Join();
                 }
             }
             catch (Exception e) {
                 java.lang.System.err.println("Could not Perform...\n");
                 java.lang.System.exit(1);
             }
-            csp.Reset();
+           csp.Reset();
             ready = false;
         }
         public void stop() {
