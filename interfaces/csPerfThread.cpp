@@ -512,6 +512,8 @@ void CsoundPerformanceThread::SetScoreOffsetSeconds(double timeVal)
     QueueMessage(new CsPerfThreadMsg_SetScoreOffsetSeconds(this, timeVal));
 }
 
+
+
 /**
  * Waits until the performance is finished or fails, and returns a
  * positive value if the end of score was reached or Stop() was called,
@@ -523,10 +525,12 @@ int CsoundPerformanceThread::Join()
 {
     int retval;
     retval = status;
+ 
     if (perfThread) {
       retval = csoundJoinThread(perfThread);
       perfThread = (void*) 0;
     }
+    
     // delete any pending messages
     {
       CsoundPerformanceThreadMessage *msg;
@@ -554,6 +558,7 @@ int CsoundPerformanceThread::Join()
       csoundDestroyThreadLock(flushLock);
       flushLock = (void*) 0;
     }
+
     return retval;
 }
 
