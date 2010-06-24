@@ -45,7 +45,8 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
                     (!prdiff && cb == 'i' &&
                      ((indiff = b->insno - a->insno) < 0 ||
                       (!indiff && b->newp3 < a->newp3) )
-                     ))))))));
+                     )))))) ||
+               (b->lineno < a->lineno) ));
     /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
     return ans;
 }
@@ -63,7 +64,7 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
 #define b1 (data[6])
 #define c1 (data[7])
 
-void inline sift(SRTBLK *A[], int data[])
+static void inline sift(SRTBLK *A[], int data[])
 {
     int r0, r2, temp;
     SRTBLK * T;
@@ -85,7 +86,7 @@ void inline sift(SRTBLK *A[], int data[])
     if (UNLIKELY(r1 != r0)) A[r1] = T;
 }
 
-void inline trinkle(SRTBLK *A[], int data[])
+static void inline trinkle(SRTBLK *A[], int data[])
 {
     int p1,r2,r3, r0, temp;
     SRTBLK * T;
@@ -128,7 +129,7 @@ void inline trinkle(SRTBLK *A[], int data[])
     sift(A, data);
 }
 
-void inline semitrinkle(SRTBLK *A[], int data[])
+static void inline semitrinkle(SRTBLK *A[], int data[])
 {
     SRTBLK * T;
     r1 = r-c;
@@ -138,7 +139,7 @@ void inline semitrinkle(SRTBLK *A[], int data[])
     }
 }
 
-void smoothsort(SRTBLK *A[], const int N)
+static void smoothsort(SRTBLK *A[], const int N)
 {
     int temp;
     int data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
