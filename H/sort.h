@@ -40,5 +40,6 @@ typedef struct srtblk {
         MYFLT   newp3;
         char    preced;
         char    text[9];
+        int16   lineno;
 } SRTBLK;
 

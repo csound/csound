@@ -67,6 +67,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         }
         *sstrp++ = '\0';
         *pfld = ((int[4]){SSTRCOD,SSTRCOD1,SSTRCOD2,SSTRCOD3})[n]; /* flag with hifloat */
+                                                          /* Net  line is wrong*/
         csound->sstrlen0[n] = sstrp - csound->sstrbuf0[n];  /* & overall length */
       }
       csound->scnt0++;
@@ -112,6 +113,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->p[2] = FL(3600.0);
       e->p2orig = FL(3600.0);
       e->pcnt = 2;
+      e->lineno = 0;
       return(1);
     }
     while ((c = getc(xx)) != EOF) {  /* else read the real score */
