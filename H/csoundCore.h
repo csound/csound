@@ -448,6 +448,7 @@ extern "C" {
       MYFLT   *extra;
       MYFLT   p[2];
     } c;
+    char    estrarg[3];         /* Extra strings */
   } EVTBLK;
 
   typedef struct {

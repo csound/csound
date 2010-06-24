@@ -1,3 +1,11 @@
+2010-06-24  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sort.c (ordering): Added ordering on line number if all
+	else fails
+
+	* H/csoundCore.h (EVTBLK): Added array of chars for strings and
+	line number
+
 2010-05-26  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/ftgen.c (ftgen): Need to deal with fp[5] in named gen case
@@ -5,7 +13,7 @@
 2010-05-23  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (hfgens): Check was against GENMAX rather than
-	csound->genmax 
+	csound->genmax
 
 	* Opcodes/ftgen.c (ftgen): Allow for named GENs
 

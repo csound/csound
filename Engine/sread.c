@@ -1455,6 +1455,7 @@ static void salcblk(CSOUND *csound)
     ST(bp)->prvblk = prvbp;
     ST(bp)->insno = 0;
     ST(bp)->pcnt = 0;
+    ST(bp)->lineno = ST(lincnt);
     ST(nxp) = &(ST(bp)->text[0]);
     *ST(nxp)++ = ST(op);                /* place op, blank into text    */
     *ST(nxp)++ = SP;

@@ -117,7 +117,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
     for (i=0;i<nsmps;i++) {
-      if ((p->unitsdone+FL(0.000001))>=p->totalunits) { /* a new phrase of cuts */
+      if (UNLIKELY((p->unitsdone+FL(0.000001))>=p->totalunits)) {
+        /* a new phrase of cuts */
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
@@ -133,8 +134,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
         p->repeatsdone = 0;
 
         /* STUTTER- only within half a bar of the end */
-        if ((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
-            (p->unitsleft<(p->Subdiv/2))) {
+        if (UNLIKELY((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
+                     (p->unitsleft<(p->Subdiv/2)))) {
           /* stutterspeed must be an integer greater than zero */
 
           p->repeats = roundoffint(p->unitsleft*p->Stutterspeed);
@@ -249,7 +250,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
       ++(p->repeatsampdone);
 
       /* if finished a cut, do accounting  */
-      if (p->repeatsampdone>=p->repeatlengthsamp) {
+      if (UNLIKELY(p->repeatsampdone>=p->repeatlengthsamp)) {
         ++(p->repeatsdone);
         p->repeatsampdone = 0;
 
@@ -259,7 +260,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 
         /* to account for floating point errors in unitblock when  */
         /* stuttering with stutterspeed > 1 */
-        if (p->stutteron && (p->repeatsdone==(p->repeats-1))) {
+        if (UNLIKELY(p->stutteron && (p->repeatsdone==(p->repeats-1)))) {
           p->unitblock = p->unitsleft;
         }
       }
@@ -346,7 +347,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
     for (i=0;i<nsmps;i++) {
-      if ((p->unitsdone+FL(0.000001))>=p->totalunits) {/* a new phrase of cuts */
+      if (UNLIKELY((p->unitsdone+FL(0.000001))>=p->totalunits)) {/* a new phrase of cuts */
         p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
@@ -357,13 +358,13 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         p->stutteron   = 0;
       }
 
-      if (p->repeatsdone>=p->repeats) {
+      if (UNLIKELY(p->repeatsdone>=p->repeats)) {
         /* a new subphrase- a cut + some repeats of it */
         p->repeatsdone = 0;
 
         /* STUTTER- only within half a bar of the end */
-        if ((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
-            (p->unitsleft<(p->Subdiv/2))) {
+        if (UNLIKELY((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
+                     (p->unitsleft<(p->Subdiv/2)))) {
           /* stutterspeed must be an integer greater than zero */
 
           p->repeats   = roundoffint(p->unitsleft*p->Stutterspeed);
