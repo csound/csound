@@ -113,7 +113,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->p[2] = FL(3600.0);
       e->p2orig = FL(3600.0);
       e->pcnt = 2;
-      e->lineno = 0;
       return(1);
     }
     while ((c = getc(xx)) != EOF) {  /* else read the real score */
