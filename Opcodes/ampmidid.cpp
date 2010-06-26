@@ -114,7 +114,7 @@ extern "C" {
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       int status = csound->AppendOpcode(csound,
-                                        (char*)"kampmidid",
+                                        (char*)"ampmidid.k",
                                         sizeof(KAMPMIDID),
                                         3,
                                         (char*)"k",
@@ -122,9 +122,8 @@ extern "C" {
                                         (int(*)(CSOUND*,void*)) KAMPMIDID::init_,
                                         (int(*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
                                         (int (*)(CSOUND*,void*)) 0);
-
       status |= csound->AppendOpcode(csound,
-                                     (char*)"iampmidid",
+                                     (char*)"ampmidid.i",
                                      sizeof(IAMPMIDID),
                                      1,
                                      (char*)"i",
@@ -132,6 +131,15 @@ extern "C" {
                                      (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
+      status |= csound->AppendOpcode(csound,
+                                        (char*)"ampmidid",
+                                        0xffff,
+                                        0,
+                                        0,
+                                        0,
+                                        0,
+                                        0,
+                                        0);
       return status;
   }
 
