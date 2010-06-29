@@ -57,7 +57,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
 
 int cpuperc(CSOUND *csound, CPU_PERC *p)
 {
-    int n = (int) *p->instrnum;
+    int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
     if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
       /* If instrument exists */
       csound->instrtxtp[n]->cpuload = *p->ipercent;
@@ -66,7 +66,7 @@ int cpuperc(CSOUND *csound, CPU_PERC *p)
 
 int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
-    int n = (int) *p->instrnum;
+    int n = (int) csound->strarg2insno(csound, p->instrnum, p->XSTRCODE);
     if (n > 0 && n <= csound->maxinsno && csound->instrtxtp[n] != NULL)
       /* If instrument exists */
       csound->instrtxtp[n]->maxalloc = (int)*p->ipercent;
