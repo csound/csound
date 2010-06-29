@@ -1,10 +1,14 @@
+2010-06-28  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/pitch0.c  (maxalloc, cpuperc, instcount) Allow named
+	instruments
+
 2010-06-24  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sort.c (ordering): Added ordering on line number if all
 	else fails
 
-	* H/csoundCore.h (EVTBLK): Added array of chars for strings and
-	line number
+	* H/csoundCore.h (EVTBLK): Added array of chars for strings 
 
 2010-05-26  john ffitch  <jpff@codemist.co.uk>
 
