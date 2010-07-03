@@ -29,26 +29,51 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 
 #include "csoundCore.h"                         /*   SORT.C  */
 
+/* inline int ordering(SRTBLK *a, SRTBLK *b) */
+/* { */
+/*     char cb = b->text[0], ca = a->text[0]; */
+/*     MYFLT diff; */
+/*     int prdiff, indiff; */
+/*     int ans; */
+/*     ans = !(ca != 'w' */
+/*            && (cb == 'w' || */
+/*                (ca != 't' && */
+/*                 (cb == 't' || */
+/*                  ((diff = b->newp2 - a->newp2) < 0 || */
+/*                   (!diff && */
+/*                    ((prdiff = b->preced - a->preced) < 0 || */
+/*                     (!prdiff && cb == 'i' && */
+/*                      ((indiff = b->insno - a->insno) < 0 || */
+/*                       (!indiff && b->newp3 < a->newp3) ) */
+/*                      )))))) || */
+/*                (b->lineno < a->lineno) )); */
+/*     /\* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); *\/ */
+/*     return ans; */
+/* } */
+#define TRUE (1)
+#define FALSE (0)
 inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
-    MYFLT diff;
-    int prdiff, indiff;
-    int ans;
-    ans = !(ca != 'w'
-           && (cb == 'w' ||
-               (ca != 't' &&
-                (cb == 't' ||
-                 ((diff = b->newp2 - a->newp2) < 0 ||
-                  (!diff &&
-                   ((prdiff = b->preced - a->preced) < 0 ||
-                    (!prdiff && cb == 'i' &&
-                     ((indiff = b->insno - a->insno) < 0 ||
-                      (!indiff && b->newp3 < a->newp3) )
-                     )))))) ||
-               (b->lineno < a->lineno) ));
-    /* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); */
-    return ans;
+    int tmp;
+    if (ca=='w') return TRUE;
+    if (cb=='w') return FALSE;
+    if (cb=='t') return FALSE;
+    tmp = b->newp2 - a->newp2;
+    if (tmp < 0) return FALSE;
+    if (tmp > 0) return TRUE;
+    tmp = b->preced - a->preced;
+    if (tmp < 0) return FALSE;
+    if (tmp > 0) return TRUE;
+    if ((cb == 'i') && (ca=='i')) {
+      tmp = b->insno - a->insno;
+      if (tmp < 0) return FALSE;
+      if (tmp > 0) return TRUE;
+      tmp = b->newp3 - a->newp3;
+      if (tmp < 0) return FALSE;
+      if (tmp > 0) return FALSE;
+    }
+    return (b->lineno > a->lineno);
 }
 
 #define UP(IA,IB)   {temp=IA; IA+=(IB)+1;     IB=temp;}
