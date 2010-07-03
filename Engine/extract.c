@@ -47,17 +47,17 @@ typedef struct {
 
 static  const   SRTBLK a0 = {
     NULL, NULL, 0, 3, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
-    SP, "a 0 0 0\n"
+    0, SP, "a 0 0 0\n"
 };
 
 static  const   SRTBLK f0 = {
     NULL, NULL, 0, 2, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
-    SP, "f 0 0\n"
+    0, SP, "f 0 0\n"
 };
 
 static  const   SRTBLK e = {
     NULL, NULL, 0, 0, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
-    SP, "e\n"
+    0, SP, "e\n"
 };
 
 static void alloc_globals(CSOUND *csound)

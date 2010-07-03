@@ -38,8 +38,8 @@ typedef struct srtblk {
         MYFLT   p3val;
         MYFLT   newp2;
         MYFLT   newp3;
+        int16   lineno;
         char    preced;
         char    text[9];
-        int16   lineno;
 } SRTBLK;
 
