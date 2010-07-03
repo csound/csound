@@ -73,6 +73,8 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
       if (tmp < 0) return FALSE;
       if (tmp > 0) return FALSE;
     }
+    /* fprintf(stderr, "(%p,%p)[%c,%c]{%d,%d} -> %d\n", */
+    /*         a, b, ca, cb, a->lineno, b->lineno,  b->lineno > a->lineno); */
     return (b->lineno > a->lineno);
 }
 

@@ -1424,6 +1424,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
         break;
       default:break;
       }
+      ST(bp)->lineno = prvbp->lineno;
       pfno++;
     }
     ST(nxp) = p;                                /* adjust globl nxp pntr */
