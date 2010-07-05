@@ -77,15 +77,31 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
     if (csound->advanceCnt)
       return 0;
-    if (UNLIKELY(O->odebug))
-      csound->Message(csound, Str("activating instr %d at %d\n"), insno, csound->icurTime);
+    if (UNLIKELY(O->odebug)) {
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("activating instr %s at %d\n"),
+                        name, csound->icurTime);
+      else
+        csound->Message(csound, Str("activating instr %d at %d\n"),
+                        insno, csound->icurTime);
+    }
     csound->inerrcnt = 0;
     tp = csound->instrtxtp[insno];
     if (UNLIKELY(tp->muted == 0)) {
-      csound->Warning(csound, Str("Instrument %d muted\n"), insno);
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Warning(csound, Str("Instrument %s muted\n"), name);
+      else
+        csound->Warning(csound, Str("Instrument %d muted\n"), insno);
       return 0;
     }
     if (UNLIKELY(tp->mdepends & 04)) {
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("instr %s expects midi event data, "
+                                    "cannot run from score\n"), name);
+      else
       csound->Message(csound, Str("instr %d expects midi event data, "
                                   "cannot run from score\n"), insno);
       return(1);
@@ -114,8 +130,13 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & RNGEMSG)
-        csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      if (O->msglevel & RNGEMSG) {
+        char *name = csound->instrtxtp[insno]->insname;
+        if (name)
+          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+        else
+          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      }
       instance(csound, insno);
     }
     /* pop from free instance chain */
@@ -151,8 +172,13 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         } while (--nn);
       }
       if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
-        csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d"),
-                              insno, n, newevtp->pcnt);
+        char *name = csound->instrtxtp[insno]->insname;
+        if (name)
+          csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
+                        name, n, newevtp->pcnt);
+        else
+          csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d"),
+                        insno, n, newevtp->pcnt);
       }
       if (newevtp->p3orig >= FL(0.0))
         ip->offbet = csound->beatOffs
@@ -220,7 +246,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offtim = -1.0;                        /*   else mark indef     */
     }
     if (UNLIKELY(O->odebug)) {
-      csound->Message(csound, Str("instr %d now active:\n"), insno);
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("instr %s now active:\n"), name);
+      else
+        csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
     return 0;
@@ -257,14 +287,24 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       return(0);
     }
     tp->active++;
-    if (UNLIKELY(O->odebug))
-      csound->Message(csound, Str("activating instr %d\n"), insno);
+    if (UNLIKELY(O->odebug)) {
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("activating instr %name\n"), name);
+      else
+        csound->Message(csound, Str("activating instr %d\n"), insno);
+    }
     csound->inerrcnt = 0;
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & RNGEMSG)
-        csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      if (O->msglevel & RNGEMSG) {
+        char *name = csound->instrtxtp[insno]->insname;
+        if (name)
+          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+        else
+          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      }
       instance(csound, insno);
     }
     /* pop from free instance chain */
@@ -417,7 +457,11 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       return csound->inerrcnt;
     }
     if (UNLIKELY(O->odebug)) {
-      csound->Message(csound, Str("instr %d now active:\n"), insno);
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("instr %s now active:\n"), name);
+      else
+        csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
     return 0;
@@ -515,8 +559,13 @@ static void deact(CSOUND *csound, INSDS *ip)
       ((SUBINST*) ip->subins_deact)->ip = NULL;
       ip->subins_deact = NULL;
     }
-    if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
+    if (UNLIKELY(csound->oparms->odebug)) {
+      char *name = csound->instrtxtp[ip->insno]->insname;
+      if (name)
+        csound->Message(csound, Str("removed instance of instr %s\n"), name);
+      else
+        csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
+    }
     /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
     if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
       nxtp->prvact = ip->prvact;
@@ -687,12 +736,12 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
       do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
-      if (op)
+      if (op) 
         sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
-                     ip->insno, op->name);
+                ip->insno, op->name);
       else
         sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
-                     ip->insno, csound->ids->insdshead->insno);
+                ip->insno, csound->ids->insdshead->insno);
     }
     else
       sprintf(buf, Str("INIT ERROR in instr %d: "), ip->insno);
@@ -1177,8 +1226,13 @@ INSDS *insert_event(CSOUND *csound,
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "activating instr %d\n", insno);
     if (UNLIKELY((tp->mdepends & 4) && !midi)) {
-      csound->Message(csound, Str("instr %d expects midi event data, "
-                                  "cannot run from score\n"), insno);
+      char *name = csound->instrtxtp[ip->insno]->insname;
+      if (name)
+        csound->Message(csound, Str("instr %s expects midi event data, "
+                                    "cannot run from score\n"), name);
+      else 
+        csound->Message(csound, Str("instr %d expects midi event data, "
+                                    "cannot run from score\n"), insno);
       csound->perferrcnt++;
       goto endsched;
     }
@@ -1192,8 +1246,13 @@ INSDS *insert_event(CSOUND *csound,
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL) {
-      if (O->msglevel & RNGEMSG)
+      if (O->msglevel & RNGEMSG) {
+      char *name = csound->instrtxtp[insno]->insname;
+      if (name)
+        csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+      else
         csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+      }
       instance(csound, insno);
     }
     /* pop from free instance chain */
@@ -1220,8 +1279,13 @@ INSDS *insert_event(CSOUND *csound,
       int imax = tp->pmax - 3;
       MYFLT  *flp;
       if (UNLIKELY((int) tp->pmax != pcnt)) {
-        csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
-                              insno, (int) tp->pmax, pcnt);
+        char *name = csound->instrtxtp[insno]->insname;
+        if (name)
+          csoundWarning(csound, Str("instr %s pmax = %d, note pcnt = %d"),
+                      name, (int) tp->pmax, pcnt);
+        else
+          csoundWarning(csound, Str("instr %d pmax = %d, note pcnt = %d"),
+                        insno, (int) tp->pmax, pcnt);
       }
       ip->p1 = instr;
       ip->p2 = when;
@@ -1789,8 +1853,15 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     active = ip->instance;
     while (active != NULL) {    /* Check there are no active instances */
       INSDS   *nxt = active->nxtinstance;
-      if (UNLIKELY(active->actflg))  /* Can only remove non-active instruments */
-        return csound->InitError(csound, Str("Instrument %d is still active"), n);
+      if (UNLIKELY(active->actflg)) { /* Can only remove non-active instruments */
+        char *name = csound->instrtxtp[n]->insname;
+        if (name)
+          return csound->InitError(csound,
+                                   Str("Instrument %sd is still active"), name);
+        else
+          return csound->InitError(csound,
+                                   Str("Instrument %d is still active"), n);
+      }
 #if 0
       if (active->opcod_iobufs && active->insno > csound->maxinsno)
         mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */

@@ -1,3 +1,12 @@
+2010-07-04  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/musmon.c (process_midi_event): 
+
+	* Engine/insert.c (insert, MIDIinsert, insert_event): 
+
+	* Engine/auxfd.c (auxchprint): Print name of instrument if available
+	(fdchprint): ditto
+
 2010-07-03  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sort.c (ordering): Rewrote to make clearer and complete

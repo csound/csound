@@ -140,8 +140,13 @@ void fdchclose(CSOUND *csound, INSDS *ip)
 static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 {
     AUXCH   *curchp;
+    char *name;
 
-    csound->Message(csound, Str("auxlist for instr %d (%p):\n"), ip->insno, ip);
+    if (name = csound->instrtxtp[ip->insno])
+      csound->Message(csound, Str("auxlist for instr %s [%d] (%p):\n"),
+                      name, ip->insno, ip);
+    else
+      csound->Message(csound, Str("auxlist for instr %d (%p):\n"), ip->insno, ip);
     /* chain through auxlocs */
     for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
       csound->Message(csound,
@@ -154,8 +159,13 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
 {
     FDCH    *curchp;
+    char *name;
 
-    csound->Message(csound, Str("fdlist for instr %d (%p):"), ip->insno, ip);
+    if (name = csound->instrtxtp[ip->insno])
+      csound->Message(csound, Str("fdlist for instr %s [%d] (%p):"),
+                      name, ip->insno, ip);
+    else
+      csound->Message(csound, Str("fdlist for instr %d (%p):"), ip->insno, ip);
     /* chain through fdlocs */
     for (curchp = ip->fdchp; curchp != NULL; curchp = curchp->nxtchp)
       csound->Message(csound, Str("  fd %p in %p"), curchp->fd, curchp);
