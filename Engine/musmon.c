@@ -728,7 +728,13 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) {     /* alloc,init,activ */
         csound->Message(csound,
                         Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
-        csound->Message(csound, Str("instr %d had %d init errors\n"), insno, n);
+        {
+          char *name = csound->instrtxtp[insno]->insname;
+          if (name)
+            csound->Message(csound, Str("instr %s had %d init errors\n"), name, n);
+          else
+            csound->Message(csound, Str("instr %d had %d init errors\n"), insno, n);
+        }
         csound->perferrcnt++;
       }
     }
