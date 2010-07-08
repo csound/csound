@@ -1,3 +1,11 @@
+2010-07-08  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/sndinfUG.c (filevalid): 
+	* Engine/entry1.c: 
+	* H/entry1.h: Added filevalid opcode
+
+	* H/sndinfUG.h (struct): Added FILEVALID structure
+
 2010-07-04  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (process_midi_event): 
