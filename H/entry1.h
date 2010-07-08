@@ -291,6 +291,7 @@ int     nestedapset(CSOUND *, void *), nestedap(CSOUND *, void *);
 int     lorenzset(CSOUND *, void *), lorenz(CSOUND *, void *);
 int     filelen(CSOUND *, void *), filenchnls(CSOUND *, void *);
 int     filesr(CSOUND *, void *), filepeak(CSOUND *, void *);
+int     filevalid(CSOUND *, void *);
 int     ilogbasetwo(CSOUND *, void *), logbasetwo_set(CSOUND *, void *);
 int     powoftwo(CSOUND *, void *), powoftwoa(CSOUND *, void *);
 int     logbasetwo(CSOUND *, void *), logbasetwoa(CSOUND *, void *);

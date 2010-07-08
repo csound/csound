@@ -31,3 +31,7 @@ typedef struct {
     MYFLT   *r1, *ifilno, *channel;
 } SNDINFOPEAK;
 
+typedef struct {
+    OPDS  h;
+    MYFLT *r1, *ifilno;
+} FILEVALID;
