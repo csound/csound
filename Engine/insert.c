@@ -290,7 +290,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
       if (name)
-        csound->Message(csound, Str("activating instr %name\n"), name);
+        csound->Message(csound, Str("activating instr %s\n"), name);
       else
         csound->Message(csound, Str("activating instr %d\n"), insno);
     }
@@ -1857,7 +1857,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         char *name = csound->instrtxtp[n]->insname;
         if (name)
           return csound->InitError(csound,
-                                   Str("Instrument %sd is still active"), name);
+                                   Str("Instrument %s is still active"), name);
         else
           return csound->InitError(csound,
                                    Str("Instrument %d is still active"), n);
