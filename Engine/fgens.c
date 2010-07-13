@@ -1333,7 +1333,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     j = 0;
     while (!feof(infile) && j < ff->flen) fp[j++] = nextval(infile);
-    if (!feof(infile))
+    if (UNLIKELY(!feof(infile)))
       csound->Warning(csound, Str("Numbers after table full in GEN23"));
     csound->FileClose(csound, fd);
 
