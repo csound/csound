@@ -1,3 +1,7 @@
+2010-07-13  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen23): Typo in check for extra numbers removed
+
 2010-07-08  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/sndinfUG.c (filevalid): 

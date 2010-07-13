@@ -272,11 +272,11 @@ int filevalid(CSOUND *csound, FILEVALID *p)
     *p->r1 = 0;
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
                         p->XSTRCODE);
-    if (strcmp(soundiname, "-i") == 0) {    /* get info on the -i    */
+    if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
     }
-    if (csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR"))
+    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
       *p->r1 = 1;
     return OK;
 }
