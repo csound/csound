@@ -1,3 +1,7 @@
+2010-07-14  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/mp3in.c (mp3in): Deal with case of end of data
+
 2010-07-13  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen23): Typo in check for extra numbers removed
