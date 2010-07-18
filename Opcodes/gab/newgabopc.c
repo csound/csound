@@ -218,8 +218,8 @@ static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
 
 /* -------------------------------------------------------------------- */
 
-/* These opocdes were not implemented because the functionality of CopyTabElements */
-/* has already been included in vcopy and vcopy_i */
+/* These opocdes were not implemented because the functionality of      */
+/* CopyTabElements has already been included in vcopy and vcopy_i       */ 
 
 typedef struct { /* GAB 11/Jan/2001 */
      OPDS   h;
@@ -390,7 +390,7 @@ static int outRange_i(CSOUND *csound, OUTRANGE *p)
 
 static int outRange(CSOUND *csound, OUTRANGE *p)
 {
-    int j, nsmps;
+    int j, n, nsmps;
     int ksmps = csound->ksmps, nchnls = csound->nchnls;
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
@@ -407,25 +407,25 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     nsmps = ksmps;
     if (!csound->spoutactive) {
       MYFLT *sptemp = sp;
-      for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; /* clear all channels */
-
-      do        {
+      memset(sp, 0, ksmps * nchnls * sizeof(MYFLT));
+      /* for (j=0; j< ksmps * nchnls; j++) *sptemp++ = 0; /\* clear all channels *\/ */
+      for (n=0; n<nsmps; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
           sptemp[i] = *ara[i]++;
         sp += nchnls;
-      } while (--nsmps);
+      }
       csound->spoutactive = 1;
     }
     else {
-      do {
+      for (n=0; n<nsmps; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
           sptemp[i] += *ara[i]++;
         sp += nchnls;
-      } while (--nsmps);
+      }
     }
     return OK;
 }
@@ -502,7 +502,7 @@ static int lposcinta(CSOUND *csound, LPOSC *p)
     MYFLT    *out = p->out,  *amp=p->amp;
     short   *ft = (short *) p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    long     n = csound->ksmps;
+    long     n, nsmps = csound->ksmps;
     long     loop, end, looplength; /* = p->looplength ; */
 
     if ((loop = (long) *p->kloop) < 0) loop=0;// gab
@@ -512,14 +512,14 @@ static int lposcinta(CSOUND *csound, LPOSC *p)
     if (end < loop+2) end = loop + 2;
 
     looplength = end - loop;
-    do {
+    for (n=0; n<nsmps; n++) {
       curr_samp= ft + (long)*phs;
       fract= (MYFLT)(*phs - (long)*phs);
-      *out++ = *amp++ * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
+      out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
-    } while (--n);
+    }
     return OK;
 }
 #endif
@@ -532,7 +532,7 @@ static int lposca(CSOUND *csound, LPOSC *p)
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    long    n = csound->ksmps;
+    long    n, nsmps = csound->ksmps;
     long    loop, end, looplength /* = p->looplength */ ;
 
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
@@ -541,14 +541,14 @@ static int lposca(CSOUND *csound, LPOSC *p)
     else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
-    do {
+    for (n=0; n<nsmps; n++) {
       curr_samp= ft + (long)*phs;
       fract= (MYFLT)(*phs - (long)*phs);
-      *out++ = *amp++ * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
+      out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
       *phs += si;
       while (*phs  >= end) *phs -= looplength;
       while (*phs  < loop) *phs += looplength;
-    } while (--n);
+    }
     return OK;
 }
 

@@ -97,6 +97,10 @@
 #    define TYP_WVE   (SF_FORMAT_WVE >> 16)
 #    define TYP_OGG   (SF_FORMAT_OFF >> 16)
 #  endif
+#  if HAVE_LIBSNDFILE >= 1019
+#    define TYP_MPC2K (SF_FORMAT_MPC2K >> 16)
+#    define TYP_RF64  (SF_FORMAT_RF64 >> 16)
+#  endif
 #endif
 
 #define FORMAT2SF(x) ((int) (x))

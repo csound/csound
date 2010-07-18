@@ -177,14 +177,14 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     OPARMS  *O = csound->oparms;
     int     n;
 
-    if (ST(outfile) == NULL)
+    if (UNLIKELY(ST(outfile) == NULL))
       return;
     n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
-    if (O->rewrt_hdr)
+    if (UNLIKELY(O->rewrt_hdr))
       rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
@@ -220,7 +220,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (ST(outfile) == NULL)
+    if (UNLIKELY(ST(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
@@ -274,7 +274,7 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (ST(outfile) == NULL)
+    if (UNLIKELY(ST(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
@@ -328,7 +328,7 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (ST(outfile) == NULL)
+    if (UNLIKELY(ST(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
@@ -380,7 +380,7 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
 
-    if (ST(outfile) == NULL)
+    if (UNLIKELY(ST(outfile) == NULL))
       return;
 
     for (n=0; n<m; n++) {
@@ -432,8 +432,8 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
     (void) csound;
     n = inbufsize / (int) sizeof(MYFLT);
     i = (int) sf_read_MYFLT(ST(infile), inbuf, n);
-    if (i < 0)
-      i = 0;
+    if (UNLIKELY(i < 0))
+      return inbufsize;
     memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
     /* while (i < n) */
     /*   inbuf[i++] = FL(0.0); */

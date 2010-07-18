@@ -43,7 +43,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
     *ap = p = (SOUNDIN*) csound->Calloc(csound, sizeof(SOUNDIN));
     strcpy(p->sfname, infilnam);
-    if (channel < 1 && channel != ALLCHNLS) {
+    if (UNLIKELY(channel < 1 && channel != ALLCHNLS)) {
       csound->Message(csound, Str("channel request %d illegal\n"), channel);
       csound->Free(csound, p);
       *ap = NULL;
@@ -55,7 +55,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     p->skiptime = *abeg_time;
     if ((infile = sndgetset(csound, p)) == NULL)  /* open sndfil, do skiptime */
       return(NULL);
-    if (p->framesrem < (int64_t) 0) {
+    if (UNLIKELY(p->framesrem < (int64_t) 0)) {
       csound->Warning(csound, Str("undetermined file length, "
                                   "will attempt requested duration"));
     }
@@ -67,7 +67,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
       /* else chk that input dur is within filetime rem */
       else {
         p->getframes = (int64_t) ((double) p->sr * (double) *ainput_dur + 0.5);
-        if (p->getframes > p->framesrem) {
+        if (UNLIKELY(p->getframes > p->framesrem)) {
           p->getframes = p->framesrem;
           csound->Warning(csound, Str("full requested duration not available"));
         }
@@ -94,7 +94,7 @@ static int sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
     int   n, ntot = 0;
     do {
       n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
-      if (n < 0)
+      if (UNLIKELY(n < 0))
         csound->Die(csound, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > (int64_t) 0) {
@@ -227,7 +227,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     }
     else {                                      /* for greater skiptime: */
       /* else seek to bndry */
-      if (sf_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0) {
+      if (UNLIKELY(sf_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0)) {
         csound->ErrorMsg(csound, Str("soundin seek error"));
         goto err_return;
       }
@@ -301,8 +301,9 @@ int getsndin(CSOUND *csound, void *fd_, MYFLT *fp, int nlocs, void *p_)
     }
 
     n = i;
-    for ( ; i < nlocs; i++)     /* if incomplete */
-      fp[i] = FL(0.0);          /*  pad with 0's */
+    memset(&(fp[i]), 0, (nlocs-i)*sizeof(MYFLT)); /* if incomplete PAD */
+    /* for ( ; i < nlocs; i++)     /\* if incomplete *\/ */
+    /*   fp[i] = FL(0.0);          /\*  pad with 0's *\/ */
     return n;
 }
 
@@ -344,6 +345,10 @@ char *type2string(int x)
 #  if HAVE_LIBSNDFILE >= 1018
       case TYP_WVE:   return "WVE";
       case TYP_OGG:   return "OGG";
+#  endif
+#  if HAVE_LIBSNDFILE >= 1019
+      case TYP_MPC2K:  return "MPC";
+      case TYP_RF64:   return "W64";
 #  endif
 #endif
       default:        return Str("unknown");
@@ -419,6 +424,10 @@ int type2csfiletype(int type, int encoding)
 #  if HAVE_LIBSNDFILE >= 1018
       case TYP_WVE:    return CSFTYPE_WVE;
       case TYP_OGG:    return CSFTYPE_OGG;
+#  endif
+#  if HAVE_LIBSNDFILE >= 1019
+      case TYP_MPC2K:  return "CSFTYPE_MPC";
+      case TYP_RF64:   return "CSFTYPE_W64";
 #  endif
 #endif
       default:         return CSFTYPE_UNKNOWN_AUDIO;
