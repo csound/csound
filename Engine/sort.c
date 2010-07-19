@@ -56,9 +56,11 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
     int tmp;
+    /* printf("SORT: ca=%c, cb=%c\n", ca, cb); */
     if (ca=='w') return TRUE;
     if (cb=='w') return FALSE;
     if (cb=='t') return FALSE;
+    /* printf("SORT: ap2=%f, bp2=%f\n", a->newp2, b->newp2); */
     tmp = b->newp2 - a->newp2;
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
@@ -66,10 +68,12 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
     if ((cb == 'i') && (ca=='i')) {
+      /* printf("SORT: ain=%f, bin=%f\n", a->insno, b->insno); */
       tmp = b->insno - a->insno;
       if (tmp < 0) return FALSE;
       if (tmp > 0) return TRUE;
-      tmp = b->newp3 - a->newp3;
+      /* printf("SORT: ap3=%f, bp3=%f\n", a->newp3, b->newp3); */
+      tmp = abs(b->newp3) - abs(a->newp3);
       if (tmp < 0) return FALSE;
       if (tmp > 0) return FALSE;
     }
