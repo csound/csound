@@ -1,3 +1,7 @@
+2010-07-19  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sort.c (ordering): take account of negative p3
+
 2010-07-14  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/mp3in.c (mp3in): Deal with case of end of data
