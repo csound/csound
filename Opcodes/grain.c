@@ -88,6 +88,8 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
+    if (UNLIKELY(kglen<=FL(0.0)))
+      return csound->PerfError(csound, Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
 
