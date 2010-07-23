@@ -118,7 +118,7 @@ TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)mmalloc(csound, sizeof(TREE));
-    if (ans==NULL) {
+    if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
     }
@@ -136,7 +136,7 @@ TREE *create_minus_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)mmalloc(csound, sizeof(TREE));
-    if (ans==NULL) {
+    if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
     }
@@ -700,28 +700,28 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               }
             }
 
-                    if (endLabelCounter > 0) {
-                          TREE *endLabel = create_synthetic_label(csound,
-                                                                                                        endLabelCounter);
-                          endLabel->next = ifBlockLast->next;
-                          ifBlockLast->next = endLabel;
-                          ifBlockLast = endLabel;
-                    }
-                    ifBlockLast->next = current->next;
-
-                    /* Connect in all of the TREE nodes that were flattened from
-                     * the if-else-else block
-                     */
+            if (endLabelCounter > 0) {
+              TREE *endLabel = create_synthetic_label(csound,
+                                                      endLabelCounter);
+              endLabel->next = ifBlockLast->next;
+              ifBlockLast->next = endLabel;
+              ifBlockLast = endLabel;
+            }
+            ifBlockLast->next = current->next;
+            
+            /* Connect in all of the TREE nodes that were flattened from
+             * the if-else-else block
+             */
             /* Set as anchor if necessary */
-                    if (anchor == NULL) {
-                          anchor = ifBlockStart;
-                    }
+            if (anchor == NULL) {
+              anchor = ifBlockStart;
+            }
 
-                    /* reconnect into chain */
-                    if (previous != NULL) {
-                          previous->next = ifBlockStart;
-                    }
-                    current = ifBlockStart;
+            /* reconnect into chain */
+            if (previous != NULL) {
+              previous->next = ifBlockStart;
+            }
+            current = ifBlockStart;
           }
           else {
             csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
