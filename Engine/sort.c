@@ -55,16 +55,17 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
-    int tmp;
+    MYFLT tmp;
+    int itmp;
     /* printf("SORT: ca=%c, cb=%c\n", ca, cb); */
     if (ca=='w') return TRUE;
     if (cb=='w') return FALSE;
     if (cb=='t') return FALSE;
-    /* printf("SORT: ap2=%f, bp2=%f\n", a->newp2, b->newp2); */
+    /* printf("SORT: ap2=%f, bp2=%f tmp=%f\n", a->newp2, b->newp2); */
     tmp = b->newp2 - a->newp2;
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
-    tmp = b->preced - a->preced;
+    itmp = b->preced - a->preced;
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
     if ((cb == 'i') && (ca=='i')) {
@@ -73,11 +74,12 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
       if (tmp < 0) return FALSE;
       if (tmp > 0) return TRUE;
       /* printf("SORT: ap3=%f, bp3=%f\n", a->newp3, b->newp3); */
-      tmp = abs(b->newp3) - abs(a->newp3);
+      /*      tmp = fabs(b->newp3) - fabs(a->newp3); */
+      tmp = b->newp3 - a->newp3;
       if (tmp < 0) return FALSE;
       if (tmp > 0) return FALSE;
     }
-    /* fprintf(stderr, "(%p,%p)[%c,%c]{%d,%d} -> %d\n", */
+    /* printf("(%p,%p)[%c,%c]{%d,%d} -> %d\n", */
     /*         a, b, ca, cb, a->lineno, b->lineno,  b->lineno > a->lineno); */
     return (b->lineno > a->lineno);
 }

@@ -39,17 +39,13 @@ static inline unsigned char name_hash_(const char *s)
     unsigned int  h = 0U;
     do {
       h = strhash_tabl_8[h ^ *c];
-    } while (*(++c) != (unsigned char) 0);
+    } while (*(++c) != (unsigned char) '\0');
     return (unsigned char) h;
 }
 
 #define local_cfg_db    (((CSOUND*) csound)->cfgVariableDB)
 
 /* the global database */
-
-#if 0
-static  void    **global_cfg_db = NULL;
-#endif
 
 /* list of error messages */
 
@@ -354,7 +350,7 @@ PUBLIC int
     /* allocate structure */
     retval =  cfg_alloc_structure(&pp, name, p, type, flags, min, max,
                                   shortDesc, longDesc);
-    if (retval != CSOUNDCFG_SUCCESS)
+    if (UNLIKELY(retval != CSOUNDCFG_SUCCESS))
       return retval;
     /* link into database */
     h = name_hash_(name);
@@ -825,15 +821,15 @@ static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
     csCfgVariable_t *pp;
     unsigned char   h;
     /* check for trivial errors */
-    if (db == NULL || name == NULL)
+    if (UNLIKELY(db == NULL || name == NULL))
       return (csCfgVariable_t*) NULL;
-    if (name[0] == '\0')
+    if (UNLIKELY(name[0] == '\0'))
       return (csCfgVariable_t*) NULL;
     /* calculate hash value */
     h = name_hash_(name);
     /* find entry in database */
     pp = (csCfgVariable_t*) (db[(int) h]);
-    while (pp!=NULL) {
+    while (UNLIKELY(pp!=NULL)) {
       if (sCmp((char*) pp->h.name, name) == 0)
         return pp;                          /* found */
       pp = (csCfgVariable_t*) (pp->h.nxt);
