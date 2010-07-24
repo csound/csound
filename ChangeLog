@@ -1,5 +1,8 @@
 2010-07-20  john ffitch  <jpff@codemist.co.uk>
 
+	* Engine/sort.c (ordering): Fixed stupidity of using int where
+	MYFLT was needed
+
 	* Opcodes/grain.c (ags): Added check that kglen is strictly positive
 
 2010-07-19  john ffitch  <jpff@codemist.co.uk>
