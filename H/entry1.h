@@ -107,7 +107,7 @@ int     dbamp(CSOUND *, void *), ampdb(CSOUND *, void *);
 int     aampdb(CSOUND *, void *), dbfsamp(CSOUND *, void *);
 int     ampdbfs(CSOUND *, void *), aampdbfs(CSOUND *, void *);
 int     ftlen(CSOUND *, void *), ftlptim(CSOUND *, void *);
-int     ftchnls(CSOUND *, void *), rtclock(CSOUND *, void *);
+int     ftchnls(CSOUND *, void *), ftcps(CSOUND *, void *), rtclock(CSOUND *, void *);
 int     cpsoct(CSOUND *, void *), octpch(CSOUND *, void *);
 int     cpspch(CSOUND *, void *), pchoct(CSOUND *, void *);
 int     octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);

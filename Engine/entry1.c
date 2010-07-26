@@ -261,6 +261,7 @@ OENTRY opcodlst_1[] = {
 { "ftsr.i",S(EVAL),     1,      "i",    "i",    ftsr                    },
 { "ftlptim.i",S(EVAL),  1,      "i",    "i",    ftlptim                 },
 { "ftchnls.i",S(EVAL),  1,      "i",    "i",    ftchnls                 },
+{ "ftcps.i",S(EVAL),    1,      "i",    "i",    ftcps                   },
 { "i.k",   S(ASSIGN),   1,      "i",    "k",    assign                  },
 { "k.i",   S(ASSIGN),   1,      "k",    "i",    assign                  },
 { "cpsoct.i",S(EVAL),   1,      "i",    "i",    cpsoct                  },
