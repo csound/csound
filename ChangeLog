@@ -1,3 +1,12 @@
+2010-07-26  john ffitch  <jpff@codemist.co.uk>
+
+	* Top/argdecode.c (decode_long): Add --opcode-omit option
+
+	* H/csoundCore.h ("C"): New field in CSOUND for deny list
+
+	* Top/csmodule.c (csoundCheckOpcodeDeny): New function (INCOMPLETE)
+	(csoundLoadModules): Check to see if library denied
+
 2010-07-20  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sort.c (ordering): Fixed stupidity of using int where
