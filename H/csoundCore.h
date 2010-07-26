@@ -1294,7 +1294,8 @@ extern const uint32_t csPlayScoMask;
     int           scnt0;        /* Count of extra strings */
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           *sstrlen0[3]; /* lengths for extra strings */
-
+    char          *dl_opcodes_noplibs;
+ 
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

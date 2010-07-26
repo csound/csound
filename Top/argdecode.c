@@ -215,6 +215,7 @@ static const char *longUsageList[] = {
   Str_noop("--sched\t\t\tSet real-time scheduling priority and lock memory"),
   Str_noop("--sched=N\t\tSet priority to N and lock memory"),
   Str_noop("--opcode-lib=NAMES\tDynamic libraries to load"),
+  Str_noop("--opcode-omit=NAMES\tDynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY"),
   Str_noop("--smacro:XXX=YYY\tSet score macro XXX to value YYY"),
   Str_noop("--midi-key=N\t\tRoute MIDI note on message"),
@@ -361,6 +362,9 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
 #  endif
 #  if HAVE_LIBSNDFILE >= 1018
     { "WVE",    TYP_WVE   },  { "ogg",    TYP_OGG   },
+#  endif
+#  if HAVE_LIBSNDFILE >= 1019
+    { "MPC",    TYPE_MPC2K }, { "W64",    TYP_RF64  },
 #  endif
 #endif
     { NULL , -1 }
@@ -862,6 +866,26 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
                                                      (size_t) nbytes);
         strcat(csound->dl_opcodes_oplibs, ",");
         strcat(csound->dl_opcodes_oplibs, s);
+      }
+      return 1;
+    }
+    else if (!(strncmp (s, "opcode-omit=", 12))) {
+      int   nbytes;
+      s += 12;
+      nbytes = (int) strlen(s) + 1;
+      if (csound->dl_opcodes_noplibs == NULL) {
+        /* start new library list */
+        csound->dl_opcodes_noplibs = (char*) mmalloc(csound, (size_t) nbytes);
+        strcpy(csound->dl_opcodes_noplibs, s);
+      }
+      else {
+        /* append to existing list */
+        nbytes += ((int) strlen(csound->dl_opcodes_noplibs) + 1);
+        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
+                                                     csound->dl_opcodes_noplibs,
+                                                     (size_t) nbytes);
+        strcat(csound->dl_opcodes_noplibs, ",");
+        strcat(csound->dl_opcodes_noplibs, s);
       }
       return 1;
     }
