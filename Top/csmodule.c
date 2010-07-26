@@ -346,6 +346,13 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+static int csoundCheckOpcodeDeny(CSOUND *csound, char *fname)
+{
+    /* Check to see if the fname is on the do-not-load list */
+    if (csound->dl_opcodes_noplibs==NULL) return 0;
+    printf("DEBUG %s(%d): deny list=%s\n", __FILE__, __LINE__, csound->dl_opcodes_noplibs);
+    return 0;
+}
 #ifdef mac_classic
 /* The following code implements scanning of "OPCODEDIR"
    and auto-loading of plugins for MacOS 9 */
@@ -698,6 +705,10 @@ int csoundLoadModules(CSOUND *csound)
       if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'"),
                                 fname);
+        continue;
+      }
+      if (csoundCheckOpcodeDeny(csound, fname)) {
+        csound->Warning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
       if (csoundCheckOpcodePluginFile(csound, fname) != 0)

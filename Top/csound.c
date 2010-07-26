@@ -658,7 +658,8 @@ extern "C" {
     0,              /*  tran_nchnlsi */
     0,              /* Count of extra strings */
     {NULL, NULL, NULL}, /* For extra strings in scores */
-    {0, 0, 0}       /* For extra strings in scores */
+    {0, 0, 0},      /* For extra strings in scores */
+    (char*) NULL    /*  dl_opcodes_noplibs   */
 };
 
   /* from threads.c */
