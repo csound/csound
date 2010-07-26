@@ -603,6 +603,21 @@ int ftchnls(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+int ftcps(CSOUND *csound, EVAL *p)
+{
+    FUNC    *ftp;
+
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
+      *p->r = -FL(1.0);       /* Return something */
+      return NOTOK;
+    }
+    *p->r = (MYFLT)(ftp->cvtbas/ftp->cpscvt);
+
+    return OK;
+}
+
+
+
 int ftlptim(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
