@@ -607,7 +607,8 @@ int ftcps(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->a)) == NULL)
+        || ftp->cpscvt == FL(0.0)) {
       *p->r = -FL(1.0);       /* Return something */
       return NOTOK;
     }
