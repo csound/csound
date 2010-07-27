@@ -869,28 +869,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       return 1;
     }
-    else if (!(strncmp (s, "opcode-omit=", 12))) {
-      int   nbytes;
-      s += 12;
-      nbytes = (int) strlen(s) + 1;
-      printf("DEBUG %s(%d): omit %s\n", __FILE__, __LINE__, s);
-      if (csound->dl_opcodes_noplibs == NULL) {
-        /* start new library list */
-        csound->dl_opcodes_noplibs = (char*) mmalloc(csound, (size_t) nbytes);
-        strcpy(csound->dl_opcodes_noplibs, s);
-      }
-      else {
-        /* append to existing list */
-        nbytes += ((int) strlen(csound->dl_opcodes_noplibs) + 1);
-        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
-                                                     csound->dl_opcodes_noplibs,
-                                                     (size_t) nbytes);
-        strcat(csound->dl_opcodes_noplibs, ",");
-        strcat(csound->dl_opcodes_noplibs, s);
-      }
-      printf("DEBUG %s(%d): omit %s\n", __FILE__, __LINE__, csound->dl_opcodes_noplibs);
-      return 1;
-    }
     else if (!(strcmp(s, "default-paths"))) {
       O->noDefaultPaths = 0;
       return 1;

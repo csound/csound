@@ -346,11 +346,31 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-static int csoundCheckOpcodeDeny(CSOUND *csound, char *fname)
+static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname)
 {
     /* Check to see if the fname is on the do-not-load list */
-    if (csound->dl_opcodes_noplibs==NULL) return 0;
-    printf("DEBUG %s(%d): deny list=%s\n", __FILE__, __LINE__, csound->dl_opcodes_noplibs);
+    char buff[256];
+    char *p, *deny;
+    char *list = getenv("CS_OMIT_LIBS");
+    /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
+    /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
+    if (list==NULL) return 0;
+    strcpy(buff, fname);
+    strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
+    p = strdup(list);
+    deny = strtok(p, ",");
+    /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
+    while (deny) {
+      /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
+      if (strcmp(deny, buff)==0) {
+        free(p);
+        /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
+        return 1;
+      }
+      deny = strtok(NULL, ",");
+    }
+    free(p);
+    /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
     return 0;
 }
 #ifdef mac_classic
@@ -707,6 +727,7 @@ int csoundLoadModules(CSOUND *csound)
                                 fname);
         continue;
       }
+      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
       if (csoundCheckOpcodeDeny(csound, fname)) {
         csound->Warning(csound, Str("Library %s omitted\n"), fname);
         continue;
