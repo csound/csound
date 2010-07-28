@@ -1,3 +1,8 @@
+2010-07-28  John ff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/urandom.c (urand_run, urand_init, urand_deinit): New
+	code (LINUX ONLY)
+
 2010-07-27  john ffitch  <jpff@codemist.co.uk>
 
 	* Top/csmodule.c (csoundCheckOpcodeDeny): Complete function vis
