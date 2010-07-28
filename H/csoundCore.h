@@ -32,9 +32,30 @@
 
 #include <stdarg.h>
 #include <setjmp.h>
+
+/*
 #include <sndfile.h>
+VL: moved to allow opcodes to be built without libsndfile headers
+The libsndfile header is now place only where it is used:
+Engine/envvar.c
+Engine/memfiles.c
+Engine/libsnd_u.c
+OOps/sndinfUG.c
+Opcodes/fout.c
+util/atsa.c
+Opcodes/stdopcode.h
+H/diskin2.h
+H/soundio.h
+util/pvanal.c
+util/sndinfo.c
+util/xtrct.c
+*/
+struct SF_INFO;
+struct SNDFILE;
+
 
 #include "csound.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -828,7 +849,7 @@ extern const uint32_t csPlayScoMask;
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
     int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
-    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, SF_INFO *);
+    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, struct SF_INFO *);
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);
     char *(*type2string)(int type);
@@ -836,7 +857,7 @@ extern const uint32_t csPlayScoMask;
                          char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
     void *(*sndgetset)(CSOUND *, void *);
     int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
-    void (*rewriteheader)(SNDFILE *ofd);
+    void (*rewriteheader)(struct SNDFILE *ofd);
     int (*Rand31)(int *seedVal);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
