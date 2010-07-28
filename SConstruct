@@ -1604,6 +1604,8 @@ else:
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+if getPlatform() == 'linux':
+    makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
 makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
 makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
