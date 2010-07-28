@@ -69,7 +69,7 @@ static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
       tmp = (int) MYFLT2LRND(*(p->iSampleRate));
       sfinfo.samplerate = (tmp > 0 ? tmp : (int) MYFLT2LRND(csound->esr));
     }
-    sf = csound->LoadSoundFile(csound, fname, &sfinfo);
+    sf = csound->LoadSoundFile(csound, fname,  &sfinfo);
     if (UNLIKELY(sf == NULL)) {
       int xx = csound->InitError(csound, Str("could not load '%s'"), fname);
       csound->Free(csound, fname);
@@ -173,7 +173,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
-      sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SF_INFO*) NULL);
+      sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SNDFILE *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);

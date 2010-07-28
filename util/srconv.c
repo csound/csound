@@ -70,7 +70,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     sf_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (csound->oparms->rewrt_hdr)
-       csound->rewriteheader(outfd);
+      csound->rewriteheader(outfd);
     switch (csound->oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -501,7 +501,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
  /* calculate increment: if decimating, then window is impulse response of low-
     pass filter with cutoff frequency at half of Rout; if interpolating,
-    then window is impulse response of lowpass filter with cutoff frequency
+    then window is ipulse response of lowpass filter with cutoff frequency
     at half of Rin. */
 
     fdel = ((MYFLT) (L * Rin) / Rout);

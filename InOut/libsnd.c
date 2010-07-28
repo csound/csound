@@ -185,7 +185,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       sndwrterr(csound, n, nbytes);
 #ifndef OLPC
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(ST(outfile));
+      rewriteheader((void *)ST(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
