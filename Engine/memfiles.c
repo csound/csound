@@ -27,6 +27,7 @@
 #include "pvfileio.h"
 #include "pstream.h"
 #include "namedins.h"
+#include <sndfile.h>
 
 static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
@@ -347,6 +348,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     SNDMEMFILE    *p = NULL;
     SF_INFO       tmp;
     unsigned char h;
+  
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
       return NULL;
@@ -369,9 +371,9 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
       if (sfinfo != NULL) {
         memset(sfinfo, 0, sizeof(SF_INFO));
         sfinfo->frames = (sf_count_t) p->nFrames;
-        sfinfo->samplerate = ((int) p->sampleRate + 0.5);
-        sfinfo->channels = p->nChannels;
-        sfinfo->format = FORMAT2SF(p->sampleFormat) | TYPE2SF(p->fileType);
+         sfinfo->samplerate = ((int) p->sampleRate + 0.5);
+         sfinfo->channels = p->nChannels;
+         sfinfo->format = FORMAT2SF(p->sampleFormat) | TYPE2SF(p->fileType);
       }
       return p;
     }
@@ -390,7 +392,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     }
     p = (SNDMEMFILE*)
             csound->Malloc(csound, sizeof(SNDMEMFILE)
-                                   + (size_t) sfinfo->frames * sizeof(float));
+			   + (size_t)  sfinfo->frames * sizeof(float));
     /* set parameters */
     p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
     strcpy(p->name, fileName);
