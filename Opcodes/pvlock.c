@@ -75,65 +75,84 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
     for(n=0; n < ksmps; n++) {
 
       if(cnt == hsize){
+        /* audio samples are stored in a function table */
         ft = csound->FTnp2Find(csound,p->knum);
         tab = ft->ftable;
         size = ft->flen;
+        /* spos is the reading position in samples, hsize is hopsize, 
+           time[n] is current read position in secs
+           esr is sampling rate
+        */
         spos  = hsize*(int)(time[n]*csound->esr/hsize);
         while(spos > size) spos -= size;
         while(spos <= 0)  spos += size;
         pos = spos;
+        /* this loop fills two frames/windows with samples from table,
+           reading is linearly-interpolated,
+           frames are separated by 1 hopsize
+	*/
         for(i=0; i < N; i++) {
+          /* front window, fwin */
           post = (int) pos;
           frac = pos  - post;
           if(post >= 0 && post < size)
             in = tab[post] + frac*(tab[post+1] - tab[post]);
           else in =  (MYFLT) 0;
-          fwin[i] = in * win[i];
+          fwin[i] = in * win[i]; /* window it */
+          /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           if(post >= 0 && post < size)
             in =  tab[post] + frac*(tab[post+1] - tab[post]);
           else in =  (MYFLT) 0;
-          bwin[i] = in * win[i];
-          pos += pitch;
+          bwin[i] = in * win[i];  /* window it */
+          /* increment read pos according to pitch transposition */
+          pos += pitch; 
         }
-
+  
+        /* take the FFT of both frames 
+           re-order Nyquist bin from pos 1 to N
+	*/
         csound->RealFFT(csound, bwin, N);
         bwin[N] = bwin[1];
         bwin[N+1] = 0.0;
-        csound->RealFFT(csound, fwin, N);
-
+        csound->RealFFT(csound, fwin, N)
         fwin[N] = fwin[1];
         fwin[N+1] = 0.0;
+        
+        /* phase vocoder processing */
 
         for(i=0; i < N + 2; i+=2) {
-
+          /* phases of previous output frame in exponential format, 
+             obtained by dividing by magnitude */
           div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
           ph_real  =    prev[i]*div;
           ph_im =       prev[i+1]*div;
-
+                    
+	  /* back window magnitudes, phase differences between
+             prev and back windows */
           tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
           tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
           bwin[i] = tmp_real;
           bwin[i+1] = tmp_im;
        }
-
+       
         for(i=0; i < N + 2; i+=2) {
-          if(lock) {
+          if(lock) {  /* phase-locking */
             if(i > 0) {
               if(i < N){
                 tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
                 tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
               }
-              else {
+              else { /* Nyquist */
                 tmp_real = bwin[i] + bwin[i-2];
                 tmp_im = (MYFLT) 0;
               }
             }
-            else {
+            else { /* 0 Hz */
               tmp_real = bwin[i] + bwin[i+2];
               tmp_im = (MYFLT) 0;
             }
-          } else {
+          } else { /* no locking */
             tmp_real = bwin[i];
             tmp_im = bwin[i+1];
           }
@@ -141,31 +160,37 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
           tmp_real += 1e-15;
           div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
+          /* phases of tmp frame */
           ph_real = tmp_real*div;
           ph_im = tmp_im*div;
-
+        
+          /* front window mags, phase sum of
+             tmp and front windows */
           tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
           tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
 
+          /* phase vocoder output */
           prev[i] = fwin[i] = tmp_real;
           prev[i+1] = fwin[i+1] = tmp_im;
         }
-
+        /* re-order bins and take inverse FFT */
         fwin[1] = fwin[N];
         csound->InverseRealFFT(csound, fwin, N);
-
+        /* frame counter */
         framecnt[curframe] = curframe*N;
-
+        /* write to overlapped output frames */
         for(i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
         cnt=0;
         curframe++;
         if(curframe == decim) curframe = 0;
       }
       out[n] = (MYFLT)0;
+      /* write output */
       for(i = 0; i < decim; i++){
         out[n] += outframe[framecnt[i]];
         framecnt[i]++;
       }
+      /* scale output */
       out[n] *= amp*(2./3.);
       cnt++;
     }
@@ -339,7 +364,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
 
 static OENTRY localops[] = {
 {"mincer", sizeof(DATASPACE), 5, "a", "akkkkoo", (SUBR)sinit, NULL,(SUBR)sprocess },
-{"tpscal", sizeof(DATASPACE), 5, "a", "kkkkkoop",
+{"temposcal", sizeof(DATASPACE), 5, "a", "kkkkkoop",
                                                (SUBR)sinit2, NULL,(SUBR)sprocess2 },
 };
 
