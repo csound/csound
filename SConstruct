@@ -38,7 +38,7 @@ executables = []
 headers = Split('''
     H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csound.hpp H/csoundCore.h
     H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h H/pvfileio.h
-    H/soundio.h H/sysdep.h H/text.h H/version.h
+    H/soundio.h H/sysdep.h H/text.h H/version.h H/float-version.h
     interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h
 ''')
 libs = []
@@ -1030,7 +1030,11 @@ def MacOSX_InstallHeader(headerName):
         return
     baseName = headerName[(headerName.rfind('/') + 1):]
     targetName = '%s/Headers/%s' % (OSXFrameworkCurrentVersion, baseName)
+    # to set USE_DOUBLE in installed headers
     cmd = 'cp -f %s %s' % (headerName, targetName)
+    if commonEnvironment['useDouble'] != '0':
+      if baseName == 'float-version.h': 
+        cmd = 'cp -f %s %s' % ('H/float-version-double.h', targetName)
     csoundFrameworkEnvironment.Command(targetName, headerName, cmd)
 
 def MacOSX_InstallPlugin(fileName):
