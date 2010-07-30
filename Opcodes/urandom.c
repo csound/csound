@@ -32,7 +32,11 @@
 typedef struct {
     OPDS    h;
     MYFLT   *ar;                /* Output */
+    MYFLT   *imin;
+    MYFLT   *imax;
     int     ur;
+    MYFLT   mul;
+    MYFLT   add;
 } URANDOM;
 
 static int urand_deinit(CSOUND *csound, URANDOM *p)
@@ -48,6 +52,8 @@ static int urand_init(CSOUND *csound, URANDOM *p)
     p->ur = ur;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) urand_deinit);
+    p->mul = FL(0.5)*(*p->imax - *p->imin);
+    p->add = FL(0.5)*(*p->imax + *p->imin);
     return OK;
 }
 
@@ -61,7 +67,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     /* x.ieee.exponent = x.ieee.exponent& 0x377; */
     /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
     /*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
-    *p->ar = (MYFLT)x/(MYFLT)0x7fffffffffffffff;
+    *p->ar = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
     return OK;
 }
 
@@ -69,7 +75,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"urandom", S(URANDOM), 3, "k", "", (SUBR) urand_init, (SUBR) urand_run}
+    {"urandom", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run}
 };
 
 LINKAGE
