@@ -79,9 +79,11 @@
 #include "csmodule.h"
 
 #if defined(__MACH__)
-#if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
+#include <AvailabilityMacros.h>
+#if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_10_6 >= MAC_OS_X_VERSION_MIN_REQUIRED)
 #define NEW_MACH_CODE
 #else
+#warning "USING OLD_MACH_CODE"
 #define OLD_MACH_CODE
 #endif
 #endif
