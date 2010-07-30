@@ -115,7 +115,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
         csound->RealFFT(csound, bwin, N);
         bwin[N] = bwin[1];
         bwin[N+1] = 0.0;
-        csound->RealFFT(csound, fwin, N)
+        csound->RealFFT(csound, fwin, N);
         fwin[N] = fwin[1];
         fwin[N+1] = 0.0;
         
