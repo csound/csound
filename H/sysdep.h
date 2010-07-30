@@ -62,6 +62,10 @@ typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
 #endif
 
+#ifdef __MACH__
+#include <AvailabilityMacros.h>
+#endif
+
 #include "float-version.h"
 
 #ifdef USE_DOUBLE
