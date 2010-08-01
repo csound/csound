@@ -1,3 +1,8 @@
+2010-07-31  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_semantics.c (handle_optional_args): 
+	* Engine/rdorch.c (getoptxt): Added J arg type
+
 2010-07-28  John ff  <jpff@cs.bath.ac.uk>
 
 	* Opcodes/urandom.c (urand_run, urand_init, urand_deinit): New

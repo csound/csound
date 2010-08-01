@@ -579,6 +579,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           if (l->right==NULL) l->right = temp;
           else appendToTree(csound, l->right, temp);
           break;
+        case 'J':
         case 'j':
           temp = make_leaf(csound, T_INTGR, make_int(csound, "-1"));
           if (l->right==NULL) l->right = temp;
