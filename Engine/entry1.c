@@ -57,6 +57,7 @@
                 j              "             "         -1
                 h              "             "        127
                 O       optional k-rate, defaulting to  0
+                J              "             "         -1
                 V              "             "          .5
                 P              "             "          1
                 y       begins indef list of aargs (any count)
