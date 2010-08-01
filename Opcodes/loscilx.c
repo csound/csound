@@ -173,7 +173,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
-      sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SNDFILE *) NULL);
+      sf = csound->LoadSoundFile(csound, (char*) p->ifn, (SF_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);
