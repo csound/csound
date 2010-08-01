@@ -71,11 +71,34 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     return OK;
 }
 
+static int urand_irate(CSOUND *csound, URANDOM *p)
+{
+    if (LIKELY(urand_init(csound,p)==OK)) return urand_run(csound,p);
+    else return NOTOK;
+}
+
+static int urand_arun(CSOUND *csound, URANDOM *p)
+{
+    int ur = p->ur;
+    /* union ieee754_double x; */
+    int64_t x;
+    MYFLT *ar = p->ar;
+    int n, nsmps = csound->ksmps;
+    for (n=0; n<nsmps; n++) {
+      read(p->ur, &x, sizeof(int64_t));
+      ar[n] = p->mul *((MYFLT)x/(MYFLT)0x7fffffffffffffff) + p->add;
+    }
+    return OK;
+}
+
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"urandom", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run}
+  { "urandom",      0xFFFF,             0,      NULL,   NULL, NULL},
+  { "urandom.i", S(URANDOM), 1, "k", "jp", (SUBR) urand_irate },
+  { "urandom.k", S(URANDOM), 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},
+  { "urandom.a", S(URANDOM), 5, "k", "jp", (SUBR) urand_init, NULL, (SUBR) urand_arun}
 };
 
 LINKAGE

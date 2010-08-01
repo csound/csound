@@ -1848,6 +1848,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
             break;
           case 'h': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "127");
             break;
+          case 'J':
           case 'j': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "-1");
             break;
           case 'M':
