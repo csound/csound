@@ -1132,14 +1132,14 @@ int inch_opcode(CSOUND *csound, INCH *p)
     int   nsmps = csound->ksmps;
     MYFLT *sp = csound->spin + (ch - 1);
     MYFLT *ain = p->ar;
-    CSOUND_SPIN_SPINLOCK
-    if (UNLIKELY(ch > csound->nchnls_i)) {
-      CSOUND_SPIN_SPINUNLOCK
+    if (UNLIKELY(ch > csound->inchnls)) {
       return NOTOK;
     }
+    /* Are APINLOCKS really necessary for reading?? */
+    CSOUND_SPIN_SPINLOCK
     for (n = 0; n < nsmps; n++) {
       ain[n] = *sp;
-      sp += csound->nchnls_i;
+      sp += csound->inchnls;
     }
     CSOUND_SPIN_SPINUNLOCK
     return OK;
@@ -1152,14 +1152,14 @@ int inall_opcode(CSOUND *csound, INALL *p)
     int   i, j = 0, k = 0, nsmps = csound->ksmps;
     MYFLT *spin = csound->spin;
     CSOUND_SPIN_SPINLOCK
-    m = (n < csound->nchnls_i ? n : csound->nchnls_i);
+    m = (n < csound->inchnls ? n : csound->inchnls);
     for (j=0; j<nsmps; j++) {
       for (i=0; i<m; i++) {
         p->ar[i][j] = spin[k + i];
       }
       for ( ; i < n; i++)
         p->ar[i][j] = FL(0.0);
-      k += csound->nchnls_i;
+      k += csound->inchnls;
     }
     CSOUND_SPIN_SPINUNLOCK
     return OK;
