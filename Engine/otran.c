@@ -1389,7 +1389,7 @@ void oload(CSOUND *p)
     reverbinit(p);
     dbfs_init(p, p->e0dbfs);
     p->nspout = p->ksmps * p->nchnls;  /* alloc spin & spout */
-    p->nspin = p->ksmps * p->nchnls_i; /* JPff: in preparation */
+    p->nspin = p->ksmps * p->inchnls; /* JPff: in preparation */
     p->spin  = (MYFLT *) mcalloc(p, p->nspin * sizeof(MYFLT));
     p->spout = (MYFLT *) mcalloc(p, p->nspout * sizeof(MYFLT));
     /* chk consistency one more time (FIXME: needed ?) */
