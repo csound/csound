@@ -70,7 +70,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     sf_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (csound->oparms->rewrt_hdr)
-      csound->rewriteheader(outfd);
+      csound->rewriteheader((struct SNDFILE *)outfd);
     switch (csound->oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
