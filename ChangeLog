@@ -1,3 +1,7 @@
+2010-08-03  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y (ifac): Typo -- used S_MOD rather than S_DIV
+
 2010-08-01  john ffitch  <jpff@codemist.co.uk>
 
 	* Top/csound.c (csoundAddSpinSample): Needs to use nchnls_i 
