@@ -524,7 +524,7 @@ iexp      : iexp S_PLUS iterm   { $$ = make_node(csound, S_PLUS, $1, $3); }
 
 iterm     : iterm S_TIMES ifac  { $$ = make_node(csound, S_TIMES, $1, $3); }
           | iterm S_TIMES error
-          | iterm S_DIV ifac    { $$ = make_node(csound, S_MOD, $1, $3); }
+          | iterm S_DIV ifac    { $$ = make_node(csound, S_DIV, $1, $3); }
           | iterm S_DIV error
           | iterm S_MOD ifac    { $$ = make_node(csound, S_MOD, $1, $3); }
           | iterm S_MOD error
