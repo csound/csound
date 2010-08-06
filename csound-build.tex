@@ -55,11 +55,11 @@ This file should be updated in reasonable detail with each release of the Window
 
 Hyperlinks to repositories are provided to speed downloading and installing third-party dependencies.
 
-Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization.  
+Csound on Windows is built using MinGW/MSys from (\url{www.mingw.org}). Code is built for release, with full optimizations including intrinsics and vectorization. These optimizations may preclude debugging. In that case, a separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
 
-These optimizations may preclude debugging. In that case, a separate debug build must be made in order to debug. However, the only differences between the debug build and the release build must be the presence or absence of optimizations and the generation or not of debugging information. Code generation for both builds must be for ``release versions'' of the runtime libraries and third party libraries. This code generation standard also applies, of course, to actually building the third party libraries.
+All third party libraries will be updated from the most recent version that seems to be used by a majority of their users --- whatever that is (trunk, most recent tag, stable release, whatever). If pre-built binaries are available, use them. Otherwise, build third party libraries with the same version of the compiler that is used to build Csound itself. If the library does not come with a functional build system for MinGW/MSys, create an SConstruct file for it. However, some libraries have to be built with Microsoft Visual C++, of which fortunately there is a free Express Edition.
 
-All third party libraries will be updated from the most recent version that seems to be used by a majority of their users --- whatever that is (trunk, most recent tag, stable release, whatever). If pre-built binaries are available, use them. Otherwise, build third party libraries with the same version of the compiler that is used to build Csound itself. If the library does not come with a functional build system for MinGW/MSys, create an SConstruct file for it.
+The conceit of this build system is that Csound is built in a standard Linux environment, which is simulated using MSys, using the standard GNU compiler, which is MinGW. To assist us in this delusion, the Linux root directory is simulated by \url{C:/utah}, which contains a more or less standard Linux filesystem (at least, it does when in the MSys shell). Third party libraries are therefore located in \url{/c/utah/opt}.
 
 \section{Build Steps}
 \label{sec:BuildSteps}
@@ -125,7 +125,8 @@ All third party libraries will be updated from the most recent version that seem
 	\item (Done) Update third-party libraries.   
 		\begin{enumerate}
     	\item (Done) Install the VST SDK 2.4 from \url{http://www.steinberg.net/en/company/3rd_party_developer.html}.
-    	\item (Done) Install Pure Data sources using Subversion from \url{https://pure-data.svn.sourceforge.net/svnroot/pure-data}.
+    	\item (Done) Install Pure Data sources using Subversion from \url{https://pure-data.svn.sourceforge.net/svnroot/pure-data}.4
+    	\item (Done) Instsll Tcl (current version 8.5.8.2) from \url{http://www.activestate.com/activetcl/downloads}.
    		\item (Done) Update boost from \url{www.boost.org} to the most recent stable version (currently 1.43.0).
   		\item (Done) Update Gmm++ from \url{http://home.gna.org/getfem/download.html} to the most recent stable version (currently 4.1), and build it by running the \texttt{configure} script and \texttt{make}.
     	\item (Done) Update the Synthesis Toolkit in C++ (STK) and build with \texttt{configure}.
@@ -134,7 +135,7 @@ All third party libraries will be updated from the most recent version that seem
 					\item (Done) Copy all contents of the STK directory into the Csound \texttt{Opcodes/stk} directory.
 					\item (Done -- I didn't see any.) Apply any patches from the web site and mailing list. 
 				\end{enumerate}   	
-			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile} to the most recent version that works, which may be pre-release or release; currently it is 1.0.22pre3. Do not build from sources. 
+			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile} to the most recent version that works, which may be pre-release or release; currently it is 1.0.21. Do not build from sources. 
     	\item (Done) Update FLTK from \url{www.fltk.org} to \texttt{branch-1.3 HEAD} from SVN and build it with MinGW using \verb|./configure --enable-threads --enable-shared|. I had to change one MinGW header file and some FLTK source files and edit \texttt{config.h} to get it to build.
      	\item (Done) Update liblo tag 0.26 from the tarball at \url{http://liblo.sourceforge.net} (\emph{not} SVN!), and build with this SConstruct:
     	

@@ -1,26 +1,25 @@
 #!/bin/sh
-
-export PATH=/u/Mega-Nerd/libsndfile:${PATH}
-export PATH=/u/fltk-mingw/src:${PATH}
-export PATH=/u/portaudio:${PATH}
-export PATH=/u/portmidi:${PATH}
-export PATH=/u/Tcl/bin:${PATH}
-export PATH=/u/swigwin-2.0.0:${PATH}
-export PATH=/u/pd/bin:${PATH}
-export PATH=/u/liblo:${PATH}
-export PATH=/u/Java/jdk1.6.0_14/bin:${PATH}
-export PATH=/u/fluidsynth.patched/src/.libs:${PATH}
-export PATH=/u/Lua5.1:${PATH}
-export PATH=/d/utah/home/mkg/csound-mingw-release:${PATH}
-export PATH=${PATH}:/d/utah/usr/bin
-export PATH=${PATH}:/u/Graphviz/bin
-export PATH=${PATH}:/u/MiKTeX-2.5/miktex/bin
-export PATH=${PATH}:/u/doxygen/bin
-export PATH=${PATH}:/u/ImageMagick-6.0.5-Q16
-export PATH=${PATH}:/u/Python26
-export PATH=${PATH}:/u/Python26/Scripts
-export RAWWAVE_PATH=/d/utah/home/mkg/csound-mingw-release/Opcodes/stk/rawwaves
-export OPCODEDIR64=/d/utah/home/mkg/csound-mingw-release
-export PYTHONPATH=/d/utah/home/mkg/csound-mingw-release
+echo Setting up environment to run Csound from build area.
+export PATH=/c/utah/opt/Mega-Nerd/libsndfile:${PATH}
+export PATH=/c/utah/opt/fltk/branch-1.3/src:${PATH}
+export PATH=/c/utah/opt/portaudio:${PATH}
+export PATH=/c/utah/opt/portmidi:${PATH}
+export PATH=/c/utah/opt/Tcl/bin:${PATH}
+export PATH=/c/utah/opt/swigwin-2.0.0:${PATH}
+export PATH=/c/utah/opt/pd/bin:${PATH}
+export PATH=/c/utah/opt/liblo:${PATH}
+export PATH=/c/utah/opt/Java/jdk1.6.0_21/bin:${PATH}
+export PATH=/c/utah/opt/fluidsynth/src/release:${PATH}
+export PATH=/c/utah/opt/luajit-2.0/src:${PATH}
+export PATH=/d/utah/home/mkg/csound5:${PATH}
+export PATH=${PATH}:/c/utah/opt/Graphviz/bin
+export PATH=${PATH}:/c/utah/opt/MiKTeX-2.8/miktex/bin
+export PATH=${PATH}:/c/utah/opt/doxygen/bin
+export PATH=${PATH}:/c/utah/opt/ImageMagick-6.6.3-Q16
+export PATH=${PATH}:/c/utah/opt/Python26
+export PATH=${PATH}:/c/utah/opt/Python26/Scripts
+export RAWWAVE_PATH=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
+export OPCODEDIR64=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
+export PYTHONPATH=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
 
 
