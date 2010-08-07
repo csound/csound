@@ -57,11 +57,11 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FLTK widgets, csound5gui, cseditor,
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
-	customCPPPATH.append(r'C:\utah\opt\fltk-mingw')
+	customCPPPATH.append(r'C:\utah\opt\fltk\branch-1.3')
         # Import libraries MUST come first.
-        customLIBPATH.append(r'C:\utah\opt\fltk-mingw\src')
+        customLIBPATH.append(r'C:\utah\opt\fltk-mingw\branch-1.3\src')
         # Then static libraries.
-	customLIBPATH.append(r'C:\utah\opt\fltk-mingw\lib')
+	customLIBPATH.append(r'C:\utah\opt\fltk-mingw\branch-1.3\lib')
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.
@@ -82,15 +82,15 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build CsoundAC, you need the 
 	# boost C++ libraries.
-	customCPPPATH.append(r'C:\utah\opt\boost')
+	customCPPPATH.append(r'C:\utah\opt\boost_1_43_0')
 	################################################################
 	# If you want to build scoregen, you need the include
 	# path to VST MIDI plugin SDK header files. 
 	customCPPPATH.append(r'C:\utah\opt\VSTModuleArchitectureSDK\pluginterfaces\base')    
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
-	customCPPPATH.append(r'C:\utah\opt\Lua5.1')
-	customLIBPATH.append(r'C:\utah\opt\Lua5.1')
+	customCPPPATH.append(r'C:\utah\opt\luajit-2.0\src')
+	customLIBPATH.append(r'C:\utah\opt\luajit-2.0\lib')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
@@ -100,15 +100,15 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
-	customLIBPATH.append(r'C:\utah\opt\fluidsynth-1.0.9\src\.libs')
-	customCPPPATH.append(r'C:\utah\opt\fluidsynth-1.0.9\include')
+	customLIBPATH.append(r'C:\utah\opt\fluidsynth\src\Release')
+	customCPPPATH.append(r'C:\utah\opt\fluidsynth\include')
 	# And the dsound library from the Microsoft DirectX SDK.
-	customLIBPATH.append(r'C:\utah\opt\dxsdk\Lib\x86')
+	customLIBPATH.append(r'C:\utah\opt\directx-sdk-2010-06\Lib\x86')
 	################################################################
 	# If you want to build the Java wrapper for CsoundVST
 	# you need Java. 
-	customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_14\include')
-	customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_14\include\win32')
+	customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_21\include')
+	customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_21\include\win32')
 	################################################################
 	# If you want to build the OSC opcodes,
 	# you need liblo.
