@@ -1383,7 +1383,7 @@ else:
         csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
     elif getPlatform() == 'linux':
         csoundInterfacesEnvironment.Prepend(LIBS = ['util'])
-    if compilerGNU():
+    if compilerGNU() and getPlatform() != 'win32':
         csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
     if getPlatform() == 'darwin':
         if commonEnvironment['dynamicCsoundLibrary'] == '1':
@@ -1752,8 +1752,8 @@ if getPlatform() == 'win32':
     if compilerGNU():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        #vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        #guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
     else:
         csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
     csoundProgramEnvironment.Append(LIBS = csoundWindowsLibraries)

@@ -90,13 +90,14 @@ if sys.platform[:3] == 'win':
 	################################################################
 	# If you want to build Lua interfaces, you need Lua.
 	customCPPPATH.append(r'C:\utah\opt\luajit-2.0\src')
-	customLIBPATH.append(r'C:\utah\opt\luajit-2.0\lib')
+	customLIBPATH.append(r'C:\utah\opt\luajit-2.0\src')
 	################################################################
 	# If you want to build Tcl\Tk interfaces
 	# or Tclcsound, you need Tcl\Tk.
 	# Add it here:
 	customCPPPATH.append(r'C:\utah\opt\Tcl\include')
 	customLIBPATH.append(r'C:\utah\opt\Tcl\lib')
+	customLIBPATH.append(r'C:\utah\opt\Tcl\bin')
 	################################################################
 	# If you want to build the FluidSynth opcodes,
 	# you need the FluidSynth DLL (not .lib).
