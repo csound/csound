@@ -1,7 +1,8 @@
 #!/bin/sh
-echo Setting up environment to run Csound from build area.
+echo Setting up environment to run Csound from build area...
 export PATH=/c/utah/opt/Mega-Nerd/libsndfile:${PATH}
 export PATH=/c/utah/opt/fltk/branch-1.3/bin:${PATH}
+export PATH=/c/utah/opt/fltk/branch-1.3/lib:${PATH}
 export PATH=/c/utah/opt/portaudio:${PATH}
 export PATH=/c/utah/opt/portmidi:${PATH}
 export PATH=/c/utah/opt/Tcl/bin:${PATH}
@@ -18,7 +19,7 @@ export PATH=${PATH}:/c/utah/opt/doxygen/bin
 export PATH=${PATH}:/c/utah/opt/ImageMagick-6.6.3-Q16
 export PATH=${PATH}:/c/utah/opt/Python26
 export PATH=${PATH}:/c/utah/opt/Python26/Scripts
-export RAWWAVE_PATH=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
-export OPCODEDIR64=/d/utah/home/mkg/csound5
-export PYTHONPATH=/d/utah/home/mkg/csound5
+export RAWWAVE_PATH=D:/utah/home/mkg/csound5/Opcodes/stk/rawwaves
+export OPCODEDIR64=D:/utah/home/mkg/csound5
+export PYTHONPATH=D:/utah/home/mkg/csound5
 
