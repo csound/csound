@@ -1793,7 +1793,7 @@ else:
         widgetsEnvironment.Append(LIBS = ['pthread', 'm'])         
     elif getPlatform() == 'win32':
         if compilerGNU():
-            widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            #widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
                 LINKFLAGS = ['-Wl'])#,'--enable-runtime-pseudo-reloc'])
             widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
@@ -1969,7 +1969,8 @@ else:
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         if compilerGNU():
             vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-            vst4Environment.Append(LIBS = ['stdc++'])
+	    if not getPlatform() == 'win32':
+		vst4Environment.Append(LIBS = ['stdc++'])
         else:
             vst4Environment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         if getPlatform() == 'win32':
@@ -2021,7 +2022,8 @@ else:
     if getPlatform() == 'win32':
         lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
     if compilerGNU():
-        lorisEnvironment.Prepend(LIBS = ['stdc++'])
+	if getPlatform() != 'win32':
+		lorisEnvironment.Prepend(LIBS = ['stdc++'])
         lorisEnvironment.Append(CCFLAGS = Split('''
             -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
         '''))
@@ -2111,7 +2113,7 @@ else:
         stkLibrarySources += stkEnvironment.SharedObject(i)
     stkLibrary = stkEnvironment.StaticLibrary('stk_base', stkLibrarySources)
     stkEnvironment.Prepend(LIBS = ['stk_base'])
-    if compilerGNU():
+    if compilerGNU() and getPlatform() != 'win32':
         stkEnvironment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
         stkEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -2273,7 +2275,7 @@ else:
         csound5GUIEnvironment.Append(LIBS = ['pthread', 'm'])    
     elif getPlatform() == 'win32':
         if compilerGNU():
-            csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            #csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc
             '''))
@@ -2345,7 +2347,7 @@ else:
         executables.append(csEditor)
     elif getPlatform() == 'win32':
         if compilerGNU():
-            csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            #csEditorEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csEditorEnvironment.Prepend(LINKFLAGS = Split('''-mwindows -Wl,--enable-runtime-pseudo-reloc'''))
             csEditorEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
         else:
@@ -2699,7 +2701,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     elif getPlatform() == 'win32':
         if compilerGNU():
             csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-            csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            #csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csWinEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc
             '''))
