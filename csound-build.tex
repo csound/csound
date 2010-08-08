@@ -136,7 +136,7 @@ The conceit of this build system is that Csound is built in a standard Linux env
 					\item (Done -- I didn't see any.) Apply any patches from the web site and mailing list. 
 				\end{enumerate}   	
 			\item (Done) Update libsndfile from \url{http://www.mega-nerd.com/libsndfile} to the most recent version that works, which may be pre-release or release; currently it is 1.0.21. Do not build from sources. 
-    	\item (Done) Update FLTK from \url{www.fltk.org} to \texttt{branch-1.3 HEAD} from SVN and build it with MinGW using \verb|./configure --enable-threads --enable-shared --enable-localzlib --enable-localpng --enable-local --enable-localjpeg|. I had to change some FLTK source files and edit \texttt{config.h} to get it to build.
+    	\item (Done) Update FLTK from \url{www.fltk.org} to \texttt{branch-1.3 HEAD} from SVN and build it with MinGW using Cmake, with threads enabled, shared libraries enabled, and local FLTK builds of the \texttt{jpeg}, \texttt{png}, and \texttt{	} libraries. 
      	\item (Done) Update liblo tag 0.26 from the tarball at \url{http://liblo.sourceforge.net} (\emph{not} SVN!), and build with this SConstruct:
     	
 \begin{lstlisting}
