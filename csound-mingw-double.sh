@@ -9,7 +9,7 @@ export PATH=/c/utah/opt/swigwin-2.0.0:${PATH}
 export PATH=/c/utah/opt/pd/bin:${PATH}
 export PATH=/c/utah/opt/liblo:${PATH}
 export PATH=/c/utah/opt/Java/jdk1.6.0_21/bin:${PATH}
-export PATH=/c/utah/opt/fluidsynth/src/release:${PATH}
+export PATH=/c/utah/opt/fluidsynth/src/Release:${PATH}
 export PATH=/c/utah/opt/luajit-2.0/src:${PATH}
 export PATH=/d/utah/home/mkg/csound5:${PATH}
 export PATH=${PATH}:/c/utah/opt/Graphviz/bin
@@ -19,7 +19,6 @@ export PATH=${PATH}:/c/utah/opt/ImageMagick-6.6.3-Q16
 export PATH=${PATH}:/c/utah/opt/Python26
 export PATH=${PATH}:/c/utah/opt/Python26/Scripts
 export RAWWAVE_PATH=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
-export OPCODEDIR64=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
-export PYTHONPATH=/d/utah/home/mkg/csound5/Opcodes/stk/rawwaves
-
+export OPCODEDIR64=/d/utah/home/mkg/csound5
+export PYTHONPATH=/d/utah/home/mkg/csound5
 
