@@ -59,9 +59,9 @@ if sys.platform[:3] == 'win':
 	# CsoundAC, or CsoundVST, FLTK 1.1x is required.
 	customCPPPATH.append(r'C:\utah\opt\fltk\branch-1.3')
         # Import libraries MUST come first.
-        customLIBPATH.append(r'C:\utah\opt\fltk-mingw\branch-1.3\src')
+        customLIBPATH.append(r'C:\utah\opt\fltk\branch-1.3\lib')
         # Then static libraries.
-	customLIBPATH.append(r'C:\utah\opt\fltk-mingw\branch-1.3\lib')
+	customLIBPATH.append(r'C:\utah\opt\fltk\branch-1.3\bin')
 	################################################################
 	# If you want to build the image opcodes,
 	# libpng and libz are required.

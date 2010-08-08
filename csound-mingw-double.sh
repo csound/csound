@@ -1,7 +1,7 @@
 #!/bin/sh
 echo Setting up environment to run Csound from build area.
 export PATH=/c/utah/opt/Mega-Nerd/libsndfile:${PATH}
-export PATH=/c/utah/opt/fltk/branch-1.3/src:${PATH}
+export PATH=/c/utah/opt/fltk/branch-1.3/bin:${PATH}
 export PATH=/c/utah/opt/portaudio:${PATH}
 export PATH=/c/utah/opt/portmidi:${PATH}
 export PATH=/c/utah/opt/Tcl/bin:${PATH}
