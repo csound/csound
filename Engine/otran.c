@@ -1261,6 +1261,7 @@ void oload(CSOUND *p)
     gblspace[1] = p->ekr;           /*   rsvd word      */
     gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
     gblspace[3] = (MYFLT) p->nchnls;
+    if (p->inchnls<0) p->inchnls = p->nchnls;
     gblspace[4] = (MYFLT) p->inchnls;
     gblspace[5] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
