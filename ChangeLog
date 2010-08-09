@@ -1,3 +1,11 @@
+2010-08-09  john ffitch  <jpff@codemist.co.uk>
+
+	* InOut/libsnd.c (sfopenin): Correct warning message
+
+	* Top/csound.c ("C"): Default value of inchnls is now -1
+
+	* Engine/otran.c (oload): Set inchnls to nchnls if not explicit
+
 2010-08-03  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc.y (ifac): Typo -- used S_MOD rather than S_DIV
