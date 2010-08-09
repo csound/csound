@@ -66,8 +66,8 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
     if (tmp < 0) return FALSE;
     if (tmp > 0) return TRUE;
     itmp = b->preced - a->preced;
-    if (tmp < 0) return FALSE;
-    if (tmp > 0) return TRUE;
+    if (itmp < 0) return FALSE;
+    if (itmp > 0) return TRUE;
     if ((cb == 'i') && (ca=='i')) {
       /* printf("SORT: ain=%f, bin=%f\n", a->insno, b->insno); */
       tmp = b->insno - a->insno;
@@ -77,7 +77,7 @@ inline int ordering(SRTBLK *a, SRTBLK *b)
       /*      tmp = fabs(b->newp3) - fabs(a->newp3); */
       tmp = b->newp3 - a->newp3;
       if (tmp < 0) return FALSE;
-      if (tmp > 0) return FALSE;
+      if (tmp > 0) return TRUE;
     }
     /* printf("(%p,%p)[%c,%c]{%d,%d} -> %d\n", */
     /*         a, b, ca, cb, a->lineno, b->lineno,  b->lineno > a->lineno); */
