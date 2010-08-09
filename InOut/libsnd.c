@@ -561,9 +561,9 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                               sfname, (int) sfinfo.samplerate,
                               (int) (csound->esr + FL(0.5)));
     }
-    if (sfinfo.channels != csound->nchnls) {
-      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls"),
-                              sfname, (int) sfinfo.channels, csound->nchnls);
+    if (sfinfo.channels != csound->inchnls) {
+      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
+                              sfname, (int) sfinfo.channels, csound->inchnls);
     }
     /* Do we care about the format?  Can assume float?? */
     O->informat = SF2FORMAT(sfinfo.format);

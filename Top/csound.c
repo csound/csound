@@ -396,7 +396,7 @@ extern "C" {
     0,              /*  randSeed2           */
     0,              /*  memlock             */
     sizeof(MYFLT),  /*  floatsize           */
-    DFLT_NCHNLS,    /*  inchns              */
+    -1,             /*  inchns              */
     {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, /* dummyint32[10]; */
     /* ------- private data (not to be used by hosts or externals) ------- */
