@@ -530,26 +530,26 @@ skipAssoc:
 !endif
       # Third party libraries:
       # libsndfile
-      File U:\Mega-Nerd\libsndfile\libsndfile-1.dll
+      File C:\utah\opt\Mega-Nerd\libsndfile\libsndfile-1.dll
       # FLTK
-      File U:\fltk-mingw\src\mgwfltknox-1.3.dll
-      File U:\fltk-mingw\src\mgwfltknox_images-1.3.dll
+      File C:\utah\opt\fltk\branch-1.3\lib\libfltk.dll
+      File C:\utah\opt\fltk\branch-1.3\lib\libfltk_images.dll
       # PortAudio
-      File U:\portaudio\portaudio.dll
+      File C:\utah\opt\portaudio\portaudio.dll
       # PortMIDI
-      File U:\portmidi\portmidi.dll
-      File U:\portmidi\porttime.dll
+      File C:\utah\opt\portmidi\portmidi.dll
+      File C:\utah\opt\portmidi\porttime.dll
       # Fluidsynth
-      File U:\fluidsynth-1.0.9\src\.libs\libfluidsynth-1.dll
+      File C:\utah\opt\fluidsynth\src\Release\libfluidsynth.dll
       # Image opcodes
-      File U:\zlib-1.2.3.win32\bin\zlib1.dll
-      File U:\libpng-1.2.24\.libs\libpng-3.dll
+      #File C:\utah\mingw\bin\zlib1.dll
+      #File C:\utah\mingw\bin\libpng.dll
       # OSC
-      File U:\liblo-0.26\lo.dll
+      File C:\utah\opt\liblo\lo.dll
       # MusicXML
-      File C:\utah\opt\libmusicxml-2.00-src\win32\codeblocks\libmusicxml2.dll
+      File C:\utah\opt\musicxml-v2\win32\codeblocks\libmusicxml2.dll
       # pthreads
-      File U:\pthreads\Pre-built.2\lib\pthreadGC2.dll
+      File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
     # Opcodes, drivers, and other modules:
@@ -695,19 +695,20 @@ SectionGroup "Front ends"
 !ifdef FLOAT
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsoundf.exe" "" "" "" "" "" " QuteCsound"
 !else
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound-d.exe" "" "" "" "" "" " QuteCsound"
 !endif
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
-      File C:\utah\opt\Qt\2009.03\qt\bin\QtCore4.dll
-      File C:\utah\opt\Qt\2009.03\qt\bin\QtGui4.dll
-      File C:\utah\opt\Qt\2009.03\qt\bin\QtXml4.dll
-      File C:\utah\opt\Qt\2009.03\qt\bin\mingwm10.dll
+      File C:\utah\opt\QuteCsound-d\QtCore4.dll
+      File C:\utah\opt\QuteCsound-d\QtGui4.dll
+      File C:\utah\opt\QuteCsound-d\QtXml4.dll
+      File C:\utah\opt\QuteCsound-d\mingwm10.dll
+      File C:\utah\opt\QuteCsound-d\libgcc_s_dw2-1.dll
 !ifdef FLOAT
       File D:\utah\opt\qutecsoundf\release\qutecsoundf.exe
 !else
-      File D:\utah\opt\qutecsound\src\bin\qutecsound.exe
+      File C:\utah\opt\QuteCsound-d\qutecsound-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -719,8 +720,7 @@ SectionGroup "Front ends"
     SetOutPath $INSTDIR\include
       File ..\..\frontends\CsoundVST\*.h
       File ..\..\frontends\CsoundVST\*.hpp
-      File ..\..\frontends\CsoundVST\*.def
-  SectionEnd
+   SectionEnd
 !endif
   Section /o "tclcsound (requires TCL/Tk)"
     SectionIn 2
@@ -752,11 +752,6 @@ SectionGroup "Csound interfaces"
   	File ..\..\H\*.h
   	File ..\..\H\*.hpp
   	File ..\..\interfaces\*.hpp
-!ifdef FLOAT
-  	File ..\..\csound32.def
-!else
-  	File ..\..\csound64.def
-!endif
       SetOutPath $INSTDIR\doc\api
         File ..\..\doc\html\*
       SetOutPath $INSTDIR\examples\c
@@ -771,11 +766,6 @@ SectionGroup "Csound interfaces"
   	File ..\..\H\*.h
   	File ..\..\H\*.hpp
   	File ..\..\interfaces\*.hpp
-!ifdef FLOAT
-  	File ..\..\csound32.def
-!else
-  	File ..\..\csound64.def
-!endif
 	File ..\..\frontends\CsoundAC\*.h
 	File ..\..\frontends\CsoundAC\*.hpp
       SetOutPath $INSTDIR\doc\api
@@ -795,8 +785,8 @@ SectionGroup "Csound interfaces"
     Section "luaCsnd: Lua interface to Csound"
       SectionIn 2 3
       SetOutPath $INSTDIR\bin
-        File U:\Lua5.1\src\lua51.dll
-        File U:\Lua5.1\src\luajit.exe
+        File C:\utah\opt\luajit-2.0\src\lua51.dll
+        File C:\utah\opt\luajit-2.0\src\luajit.exe
         File ..\..\csnd.dll
         File ..\..\luaCsnd.dll
       SetOutPath $INSTDIR\examples\lua
@@ -806,8 +796,8 @@ SectionGroup "Csound interfaces"
       SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
       SetOutPath $INSTDIR\bin
-        File U:\Lua5.1\src\lua51.dll
-        File U:\Lua5.1\src\luajit.exe
+        File C:\utah\opt\luajit-2.0\src\lua51.dll
+        File C:\utah\opt\luajit-2.0\src\luajit.exe
         File ..\..\csnd.dll
         File ..\..\luaCsnd.dll
         File ..\..\luaCsoundAC.dll
