@@ -1,3 +1,14 @@
+2010-08-10  Michael Gogins <michael.gogins@gmail.com>
+
+	* Engine/typetabl.h: Supplied missing type mask for 'J' type code,
+	i.e. k-rate scalar defaulting to -1, used in "STK" opcodes and others.
+	
+	* Opcodes/stk/STKOpcodes.cpp: Changed threading from 5 to 3,
+	changed MIDI controller number and value parameters to 'J' type.
+	
+	* Updated evironment, build, and installer scripts for new Windows
+	version built on new Core i7, Windows 7 computer.
+
 2010-08-09  john ffitch  <jpff@codemist.co.uk>
 
 	* InOut/libsnd.c (sfopenin): Correct warning message
