@@ -65,7 +65,7 @@ static const int32 typetabl1[/*25*/] = {
 
 /* input types */
 
-static const int32 typetabl2[/*41*/] = {
+static const int32 typetabl2[/*42*/] = {
     'z',    ARGTYP_ipcrk,               'y',    ARGTYP_a,
     'T',    (ARGTYP_S | ARGTYP_ipcr),   'U',    (ARGTYP_S | ARGTYP_ipcrk),
     'M',    ARGTYP_aipcrk,              'N',    (ARGTYP_S | ARGTYP_aipcrk),
@@ -74,6 +74,7 @@ static const int32 typetabl2[/*41*/] = {
     'm',    ARGTYP_ipcr,    'n',    ARGTYP_ipcr,    'o',    ARGTYP_ipcr,
     'p',    ARGTYP_ipcr,    'q',    ARGTYP_ipcr,    'v',    ARGTYP_ipcr,
     'O',    ARGTYP_ipcrk,   'V',    ARGTYP_ipcrk,   'P',    ARGTYP_ipcrk,
+    'J',    ARGTYP_ipcrk,
     0L
 };
 
