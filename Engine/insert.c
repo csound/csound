@@ -146,6 +146,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
     /* Add an active instrument */
     tp->active++;
+    tp->instcnt++;
     nxtp = &(csound->actanchor);    /* now splice into activ lst */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
       if (nxtp->insno > insno ||
@@ -287,6 +288,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       return(0);
     }
     tp->active++;
+    tp->instcnt++;
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
       if (name)
@@ -828,6 +830,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
       p->ip->insno = (int16) instno;
       p->ip->actflg++;                  /*    and mark the instr active */
       csound->instrtxtp[instno]->active++;
+      csound->instrtxtp[instno]->instcnt++;
       p->ip->p1 = (MYFLT) instno;
       p->ip->opcod_iobufs = (void*) &p->buf;
       /* link into deact chain */
@@ -947,6 +950,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       tp->act_instance = lcurip->nxtact;    /* remove from chain      */
       lcurip->actflg++;                     /*    and mark the instr active */
       tp->active++;
+      tp->instcnt++;
       /* link into deact chain */
       lcurip->opcod_deact = parent_ip->opcod_deact;
       lcurip->subins_deact = NULL;
@@ -1262,6 +1266,7 @@ INSDS *insert_event(CSOUND *csound,
 
     /* Add an active instrument */
     tp->active++;
+    tp->instcnt++;
     nxtp = &(csound->actanchor);    /* now splice into active list */
     while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL)
       if (nxtp->insno > insno    ||
