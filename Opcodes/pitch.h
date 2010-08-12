@@ -75,6 +75,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *cnt;
         MYFLT   *ins;
+        MYFLT   *opt;
 } INSTCNT;
 
 typedef struct {

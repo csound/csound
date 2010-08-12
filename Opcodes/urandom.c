@@ -24,11 +24,6 @@
 #include "csdl.h"
 #include <ieee754.h>
 
-/* %% bar sound synthesis translated from Mathlab and much changed */
-
-/*  Note: position of strike along bar (0 - 1), normalized strike
-    velocity, and spatial width of strike.  */
-
 typedef struct {
     OPDS    h;
     MYFLT   *ar;                /* Output */
@@ -48,7 +43,7 @@ static int urand_deinit(CSOUND *csound, URANDOM *p)
 static int urand_init(CSOUND *csound, URANDOM *p)
 {
     int ur = open("/dev/urandom", O_RDONLY);
-    if (ur<0) return NOTOK;
+    if (UNLIKELY(ur<0)) return NOTOK;
     p->ur = ur;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) urand_deinit);
@@ -63,7 +58,7 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     /* union ieee754_double x; */
     int64_t x;
     read(p->ur, &x, sizeof(int64_t));
-    
+
     /* x.ieee.exponent = x.ieee.exponent& 0x377; */
     /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
     /*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
