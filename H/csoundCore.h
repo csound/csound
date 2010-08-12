@@ -248,6 +248,7 @@ extern "C" {
     MYFLT   cpuload;                /* % load this instrumemnt makes */
     struct opcodinfo *opcode_info;  /* IV - Nov 10 2002 */
     char    *insname;               /* instrument name */
+    int     instcnt;                /* Count number of instances ever */
   } INSTRTXT;
 
   /**

@@ -265,6 +265,7 @@ int hsboscset(CSOUND *, HSBOSC *p);
 int impulse(CSOUND *, IMPULSE *p);
 int impulse_set(CSOUND *, IMPULSE *p);
 int instcount(CSOUND *, INSTCNT *p);
+int totalcount(CSOUND *, INSTCNT *p);
 int kphsorbnk(CSOUND *, PHSORBNK *p);
 int ktrnseg(CSOUND *, TRANSEG *p);
 int ktrnsegr(CSOUND *csound, TRANSEG *p);
