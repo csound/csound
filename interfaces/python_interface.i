@@ -395,7 +395,6 @@ static void PythonCallback(void *p){
      }
     else Py_DECREF(res);
     PyGILState_Release(stat);
-
 }
 %}
 
