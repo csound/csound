@@ -58,7 +58,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
-    else
+    /*else*/
       memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
 
     p->handle.header.frame.auxp = p->buffer.auxp;
@@ -100,6 +100,8 @@ typedef struct {
   MYFLT *hptr;
   MYFLT *strt;
   MYFLT *end;
+  MYFLT *clear;
+  MYFLT iclear;
   int scnt;
 } PVSBUFFERREAD;
 
@@ -132,6 +134,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     p->fout->sliding = 0;
 #endif
     p->scnt = p->fout->overlap;
+    p->iclear = *p->clear;
     return OK;
 }
 
@@ -159,6 +162,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       frames = handle->frames-1;
       pos = *p->ktime*(sr/overlap) - 1;
 
+      if(p->iclear) memset(fout, 0, sizeof(float)*(N+2)); 
       while(pos >= frames) pos -= frames;
       while(pos < 0) pos += frames;
       posi = (int) pos;
@@ -192,7 +196,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
 static OENTRY localops[] = {
   {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi", (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
-  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOO", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL}
+  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL}
 };
 
 LINKAGE

@@ -11,7 +11,7 @@ import array
 
 # window size, refresh interval and norm factor
 window_size = 300
-time_interval = 0.2
+time_interval = .2
 norm = 32768.0
 
 # display callback
@@ -26,7 +26,7 @@ class Disp:
     for i in range(0,cs.GetKsmps()):
       sig.append(chn[i]/norm)
     disp.draw(sig,time_interval*cs.GetSr())
-
+   
  def __init__(self,data):
       self.data = data
 
