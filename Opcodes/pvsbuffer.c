@@ -58,7 +58,6 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle->header.wintype = p->fin->wintype;
     p->handle->header.format  = p->fin->format;
     p->handle->header.framecount = p->fin->framecount;
-    csound->Message(csound,"N: %d\n", p->handle->header.N);
     p->nframes = p->handle->frames = (*p->len) * csound->esr/hop;
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
@@ -131,7 +130,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       p->fout->format  = PVS_AMP_FREQ;
       p->fout->framecount = 1;
     }
-    csound->Message(csound,"handle-read: %d\n", handle->header.N);
+
        
     if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
