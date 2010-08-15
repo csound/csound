@@ -36,7 +36,8 @@ typedef struct {
   MYFLT  *len;
   uint32 nframes;
   uint32 cframes;
-  FSIG_HANDLE handle;
+  AUXCH handmem;
+  FSIG_HANDLE *handle;
   AUXCH  buffer;
   uint32 lastframe;
 } PVSBUFFER;
@@ -48,23 +49,27 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
-    p->handle.header.N = N = p->fin->N;
-    p->handle.header.overlap = hop = p->fin->overlap;
-    p->handle.header.winsize = p->fin->winsize;
-    p->handle.header.wintype = p->fin->wintype;
-    p->handle.header.format  = p->fin->format;
-    p->handle.header.framecount = p->fin->framecount;
-    p->nframes = p->handle.frames = (*p->len) * csound->esr/hop;
+    if (p->handmem.auxp == NULL)
+      csound->AuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
+    p->handle = (FSIG_HANDLE *) p->handmem.auxp;
+    p->handle->header.N = N = p->fin->N;
+    p->handle->header.overlap = hop = p->fin->overlap;
+    p->handle->header.winsize = p->fin->winsize;
+    p->handle->header.wintype = p->fin->wintype;
+    p->handle->header.format  = p->fin->format;
+    p->handle->header.framecount = p->fin->framecount;
+    csound->Message(csound,"N: %d\n", p->handle->header.N);
+    p->nframes = p->handle->frames = (*p->len) * csound->esr/hop;
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
     /*else*/
       memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
 
-    p->handle.header.frame.auxp = p->buffer.auxp;
-    p->handle.header.frame.size = p->buffer.size;
-    p->handle.data = (float *)  p->buffer.auxp;
-    *p->hptr = (MYFLT) ((long)&p->handle);
+    p->handle->header.frame.auxp = p->buffer.auxp;
+    p->handle->header.frame.size = p->buffer.size;
+    p->handle->data = (float *)  p->buffer.auxp;
+    *p->hptr = (MYFLT) ((long)p->handle);
     p->lastframe = 0;
     p->cframes = 0;
     *p->ktime = FL(0.0);
@@ -83,7 +88,7 @@ static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
         fout[i] = fin[i];
         fout[i+1] = fin[i+1];
       }
-      p->handle.header.framecount = p->lastframe = p->fin->framecount;
+      p->handle->header.framecount = p->lastframe = p->fin->framecount;
       p->cframes++;
       if(p->cframes == p->nframes)p->cframes = 0;
     }
@@ -126,7 +131,8 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       p->fout->format  = PVS_AMP_FREQ;
       p->fout->framecount = 1;
     }
-
+    csound->Message(csound,"handle-read: %d\n", handle->header.N);
+       
     if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
@@ -162,7 +168,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       frames = handle->frames-1;
       pos = *p->ktime*(sr/overlap) - 1;
 
-      if(p->iclear) memset(fout, 0, sizeof(float)*(N+2)); 
+       if(p->iclear) memset(fout, 0, sizeof(float)*(N+2)); 
       while(pos >= frames) pos -= frames;
       while(pos < 0) pos += frames;
       posi = (int) pos;
