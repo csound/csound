@@ -702,7 +702,8 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
       do {
         if (ip->insno == insno          /* if find the insno */
             && ip->actflg               /*      active       */
-           /* && ip->offtim < 0.0 */         /*      but indef,   */
+            && ip->offtim < 0.0          /*  but indef, VL: currently this condition
+            cannot be removed, as it breaks turning off extratime instances */
             && ip->p1 == p1) {
           if (UNLIKELY(csound->oparms->odebug))
             csound->Message(csound, "turning off inf copy of instr %d\n",
