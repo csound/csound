@@ -44,7 +44,7 @@ int phsset(CSOUND *csound, PHSOR *p)
     MYFLT       phs;
     int32  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
-      if ((longphs = (int32)phs)) {
+      if (UNLIKELY((longphs = (int32)phs))) {
         csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
@@ -57,7 +57,7 @@ int ephsset(CSOUND *csound, EPHSOR *p)
     MYFLT       phs;
     int32  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
-      if ((longphs = (int32)phs)) {
+      if (UNLIKELY((longphs = (int32)phs))) {
         csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
@@ -85,11 +85,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         aphs[n] = (MYFLT) phase;
         phase += incr;
         b *= *p->kR;
-        if (phase >= 1.0) {
+        if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
           b = 1.0;
         }
-        else if (phase < 0.0) {
+        else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
           b = 1.0;
         }
@@ -102,11 +102,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         aphs[n] = (MYFLT) phase;
         phase += incr;
         b *= *p->kR;
-        if (phase >= 1.0) {
+        if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
           b = FL(1.0);
         }
-        else if (phase < 0.0) {
+        else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
           b = FL(1.0);
         }
@@ -121,9 +121,9 @@ int kphsor(CSOUND *csound, PHSOR *p)
 {
     double      phs;
     *p->sr = (MYFLT)(phs = p->curphs);
-    if ((phs += (double)*p->xcps * csound->onedkr) >= 1.0)
+    if (UNLIKELY((phs += (double)*p->xcps * csound->onedkr) >= 1.0))
       phs -= 1.0;
-    else if (phs < 0.0)
+    else if (UNLIKELY(phs < 0.0))
       phs += 1.0;
     p->curphs = phs;
     return OK;
@@ -144,9 +144,9 @@ int phsor(CSOUND *csound, PHSOR *p)
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -155,9 +155,9 @@ int phsor(CSOUND *csound, PHSOR *p)
       for (n=0; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (phase >= 1.0)
+        if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
-        else if (phase < 0.0)
+        else if (UNLIKELY(phase < 0.0))
           phase += 1.0;
       }
     }
@@ -268,7 +268,7 @@ int tblset(CSOUND *csound, TABLE *p)
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
-      if (csound->ksmps == 1)
+      if (UNLIKELY(csound->ksmps == 1))
         csound->Warning(csound, msg, opname);
       else {
         return csound->InitError(csound, msg, opname);
@@ -285,7 +285,7 @@ int tblsetkt(CSOUND *csound, TABLE *p)
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
-      if (csound->ksmps == 1)
+      if (UNLIKELY(csound->ksmps == 1))
         csound->Warning(csound, msg, opname);
       else {
         return csound->InitError(csound, msg, opname);
@@ -396,7 +396,7 @@ int ktable(CSOUND *csound, TABLE   *p)
     MYFLT       ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;            /* RWD fix */
+    if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor, and add in the offset
@@ -475,7 +475,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     int         wrap = p->wrap;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;            /* RWD fix */
+    if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
     rslt = p->rslt;
     length = ftp->flen;
     pxndx = p->xndx;
@@ -496,9 +496,9 @@ int tablefn(CSOUND *csound, TABLE *p)
       /* Limit = non-wrap.  Limits to 0 and (length - 1), or does the
        * wrap code.  See notes above in ktable().  */
       if (!wrap) {
-        if (indx > length - 1)
+        if (UNLIKELY(indx > length - 1))
           indx = length - 1;
-        else if (indx < (int32)0)
+        else if (UNLIKELY(indx < (int32)0))
           indx = 0L;
       }
       /* do the wrap code only if we are not doing the non-wrap code.  */
@@ -533,7 +533,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor.
@@ -582,11 +582,11 @@ int ktabli(CSOUND *csound, TABLE   *p)
      * Likewise, if the final index is negative, set both fract and
      * indx to 0.  */
     if (!p->wrap) {
-      if (ndx > length) {
+      if (UNLIKELY(ndx > length)) {
         indx  = length - 1;
         fract = FL(1.0);
       }
-      else if (ndx < 0) {
+      else if (UNLIKELY(ndx < 0)) {
         indx  = 0L;
         fract = FL(0.0);
       }
@@ -611,7 +611,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
     MYFLT       v1, v2, fract, ndx;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ndx = *p->xndx;
     length = ftp->flen;
     /* Multiply ndx by denormalisation factor.
@@ -660,11 +660,11 @@ int ktabl3(CSOUND *csound, TABLE   *p)
      * Likewise, if the final index is negative, set both fract and
      * indx to 0.  */
     if (!p->wrap) {
-      if (ndx > length) {
+      if (UNLIKELY(ndx > length)) {
         indx  = length - 1;
         fract = FL(1.0);
       }
-      else if (ndx < 0) {
+      else if (UNLIKELY(ndx < 0)) {
         indx  = 0L;
         fract = FL(0.0);
       }
@@ -673,7 +673,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
     else        indx &= ftp->lenmask;
 
     /* interpolate with cubic if we can, else linear */
-    if (indx<1 || indx==length-1 || length <4) {
+    if (UNLIKELY(indx<1 || indx==length-1 || length <4)) {
       v1 = *(ftp->ftable + indx);
       v2 = *(ftp->ftable + indx + 1);
       *p->rslt = v1 + (v2 - v1) * fract;
@@ -708,7 +708,7 @@ int tabli(CSOUND *csound, TABLE   *p)
     MYFLT       fract, v1, v2, ndx, xbmul, offset;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     rslt   = p->rslt;
     length = ftp->flen;
     pxndx  = p->xndx;
@@ -725,11 +725,11 @@ int tabli(CSOUND *csound, TABLE   *p)
          * the offset.  */
         ndx = (pxndx[n] * xbmul) + offset;
         indx = (int32) ndx;
-        if (ndx <= FL(0.0)) {
+        if (UNLIKELY(ndx <= FL(0.0))) {
           rslt[n] = tab[0];
           continue;
         }
-        if (indx >= length) {
+        if (UNLIKELY(indx >= length)) {
           rslt[n] = tab[length];
           continue;
         }
@@ -777,7 +777,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
     int         wrap = p->wrap;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     rslt = p->rslt;
     length = ftp->flen;
     pxndx = p->xndx;
@@ -799,11 +799,11 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
       fract = ndx - indx;
       /* As for ktabli() code to handle non wrap mode, and wrap mode.  */
       if (!wrap) {
-        if (ndx > length) {
+        if (UNLIKELY(ndx > length)) {
           indx  = length - 1;
           fract = FL(1.0);
         }
-        else if (ndx < 0) {
+        else if (UNLIKELY(ndx < 0)) {
           indx  = 0L;
           fract = FL(0.0);
         }
@@ -811,7 +811,8 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
       else
         indx &= mask;
       /* interpolate with cubic if we can */
-      if (indx <1 || indx == length-1 || length<4) {/* Too short or at ends */
+      if (UNLIKELY(indx <1 || indx == length-1 || length<4)) {
+        /* Too short or at ends */
         v1 = tab[indx];
         v2 = tab[indx + 1];
         rslt[n] = v1 + (v2 - v1)*fract;
@@ -900,8 +901,8 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
         /* Multiply the ixoff value by the xbmul denormalisation
          * factor and then check it is between 0 and the table length.  */
 
-      if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
-          p->offset > p->ftp->flen) goto err2;
+      if (UNLIKELY((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
+                   p->offset > p->ftp->flen)) goto err2;
     }
     return OK;
  err1:
@@ -973,14 +974,14 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
     int32  phs, dcnt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->phs;
     *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
     if ((dcnt = p->dcnt) > 0)
       dcnt--;
     else if (dcnt == 0) {
       phs += p->kinc;
-      if (phs >= MAXLEN) {
+      if (UNLIKELY(phs >= MAXLEN)) {
         phs = MAXLEN;
         dcnt--;
       }
@@ -999,7 +1000,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
     int32        phs, dcnt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->phs;
     fract = PFRAC(phs);
     ftab = ftp->ftable + (phs >> ftp->lobits);
@@ -1011,7 +1012,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
     }
     else if (dcnt == 0) {
       phs += p->kinc;
-      if (phs >= MAXLEN) {
+      if (UNLIKELY(phs >= MAXLEN)) {
         phs = MAXLEN;
         dcnt--;
         p->dcnt = dcnt;
@@ -1043,7 +1044,7 @@ int osciln(CSOUND *csound, OSCILN *p)
     MYFLT *rs = p->rslt;
     int32  n, nsmps=csound->ksmps;
 
-    if (p->ftp==NULL) goto err1;
+    if (UNLIKELY(p->ftp==NULL)) goto err1;
     if (p->ntimes) {
       MYFLT *ftbl = p->ftp->ftable;
       MYFLT amp = *p->kamp;
@@ -1052,10 +1053,10 @@ int osciln(CSOUND *csound, OSCILN *p)
       MYFLT maxndx = p->maxndx;
       for (n=0; n<nsmps; n++) {
         rs[n] = ftbl[(int32)ndx] * amp;
-        if ((ndx += inc) > maxndx) {
+        if (UNLIKELY((ndx += inc) > maxndx)) {
           if (--p->ntimes)
             ndx -= maxndx;
-          else if (n==nsmps)
+          else if (UNLIKELY(n==nsmps))
             return OK;
           else
             goto putz;
@@ -1095,7 +1096,7 @@ int koscil(CSOUND *csound, OSC *p)
     int32    phs, inc;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->lphs;
     inc = (int32) (*p->xcps * csound->kicvt);
     *p->sr = ftp->ftable[phs >> ftp->lobits] * *p->xamp;
@@ -1115,7 +1116,7 @@ int osckk(CSOUND *csound, OSC *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1143,7 +1144,7 @@ int oscka(CSOUND *csound, OSC *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     amp = *p->xamp;
@@ -1170,7 +1171,7 @@ int oscak(CSOUND *csound, OSC *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1196,7 +1197,7 @@ int oscaa(CSOUND *csound, OSC *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1222,7 +1223,7 @@ int koscli(CSOUND *csound, OSC   *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     fract = PFRAC(phs);
     ftab = ftp->ftable + (phs >> ftp->lobits);
     v1 = ftab[0];
@@ -1243,7 +1244,7 @@ int osckki(CSOUND *csound, OSC   *p)
     int32   phs, inc, lobits;
     int     n, nsmps=csound->ksmps;
 
-    if ((ftp = p->ftp)==NULL) goto err1;
+    if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1272,7 +1273,7 @@ int osckai(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     lobits = ftp->lobits;
     amp = *p->xamp;
     cpsp = p->xcps;
@@ -1303,7 +1304,7 @@ int oscaki(CSOUND *csound, OSC   *p)
     int     n, nsmps=csound->ksmps;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
@@ -1332,7 +1333,7 @@ int oscaai(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ft = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1364,18 +1365,18 @@ int koscl3(CSOUND *csound, OSC   *p)
 
     phs = p->lphs;
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftab = ftp->ftable;
     fract = PFRAC(phs);
     x0 = (phs >> ftp->lobits);
     x0--;
-    if (x0<0) {
+    if (UNLIKELY(x0<0)) {
       ym1 = ftab[ftp->flen-1]; x0 = 0;
     }
     else ym1 = ftab[x0++];
     y0 = ftab[x0++];
     y1 = ftab[x0++];
-    if (x0>ftp->flen) y2 = ftab[1]; else y2 = ftab[x0];
+    if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
     {
       MYFLT frsq = fract*fract;
       MYFLT frcu = frsq*ym1;
@@ -1404,24 +1405,24 @@ int osckk3(CSOUND *csound, OSC   *p)
     MYFLT   y0, y1, ym1, y2;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     amp = *p->xamp;
     ar = p->sr;
-    for(n=0;n<nsmps;n++) {
+    for (n=0;n<nsmps;n++) {
       fract = PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
-      if (x0<0) {
+      if (UNLIKELY(x0<0)) {
         ym1 = ftab[ftp->flen-1]; x0 = 0;
       }
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (x0>ftp->flen) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
 /*    printf("fract = %f; y = %f, %f, %f, %f\n", fract,ym1,y0,y1,y2); */
       {
         MYFLT frsq = fract*fract;
@@ -1456,26 +1457,26 @@ int oscka3(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     amp = *p->xamp;
     cpsp = p->xcps;
     phs = p->lphs;
     ar = p->sr;
-    for(n=0;n<nsmps;n++) {
+    for (n=0;n<nsmps;n++) {
       int32 inc;
       inc = MYFLT2LONG(cpsp[n] * sicvt);
       fract = PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
-      if (x0<0) {
+      if (UNLIKELY(x0<0)) {
         ym1 = ftab[ftp->flen-1]; x0 = 0;
       }
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (x0>ftp->flen) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
@@ -1503,7 +1504,7 @@ int oscak3(CSOUND *csound, OSC   *p)
     MYFLT   y0, y1, ym1, y2;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1514,13 +1515,13 @@ int oscak3(CSOUND *csound, OSC   *p)
       fract = (MYFLT) PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
-      if (x0<0) {
+      if (UNLIKELY(x0<0)) {
         ym1 = ftab[ftp->flen-1]; x0 = 0;
       }
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (x0>ftp->flen) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;
@@ -1549,7 +1550,7 @@ int oscaa3(CSOUND *csound, OSC   *p)
     MYFLT   sicvt = csound->sicvt;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;
+    if (UNLIKELY(ftp==NULL)) goto err1;
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1561,13 +1562,13 @@ int oscaa3(CSOUND *csound, OSC   *p)
       fract = (MYFLT) PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
-      if (x0<0) {
+      if (UNLIKELY(x0<0)) {
         ym1 = ftab[ftp->flen-1]; x0 = 0;
       }
       else ym1 = ftab[x0++];
       y0 = ftab[x0++];
       y1 = ftab[x0++];
-      if (x0>ftp->flen) y2 = ftab[1]; else y2 = ftab[x0];
+      if (UNLIKELY(x0>ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
       {
         MYFLT frsq = fract*fract;
         MYFLT frcu = frsq*ym1;

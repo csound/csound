@@ -132,7 +132,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     do {                                /* init each seg ..  */
       MYFLT dur = **argp++;
       segp->nxtpt = **argp++;
-      if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0)
+      if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0))
         segp->cnt = 0;
       segp++;
     } while (--nsegs);
@@ -147,12 +147,12 @@ int klnseg(CSOUND *csound, LINSEG *p)
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
-        if (!(--p->segsrem))  {
+        if (UNLIKELY(!(--p->segsrem)))  {
           p->curval = segp->nxtpt;      /* advance the cur val  */
           return OK;
         }
         p->cursegp = ++segp;            /*   find the next      */
-        if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
+        if (UNLIKELY(!(p->curcnt = segp->cnt))) { /*   nonlen = discontin */
           p->curval = segp->nxtpt;      /*   poslen = new slope */
           /*          p->curval += p->curinc;  ??????? */
           return OK;
@@ -248,7 +248,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     p->segsrem = nsegs;
                                 /* Delay */
     dur = *argp[4];
-    if (dur > len) dur = len;
+    if (UNLIKELY(dur > len)) dur = len;
     len -= dur;
     segp->nxtpt = FL(0.0);
     if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
@@ -259,7 +259,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (dur > len) dur = len;
     len -= dur;
     segp->nxtpt = FL(1.0);
-    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
+    if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0))
       segp->cnt = 0;
     segp++;
                                 /* Decay */
@@ -267,7 +267,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (dur > len) dur = len;
     len -= dur;
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
+    if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0))
       segp->cnt = 0;
     segp++;
                                 /* Sustain */
@@ -275,12 +275,12 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     dur = len;
 /*  dur = csound->curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
     segp->nxtpt = *argp[2];
-    if ((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0)
+    if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) == 0))
       segp->cnt = 0;
     segp++;
                                 /* Release */
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (int32)(release * csound->ekr + FL(0.5))) == 0)
+    if (UNLIKELY((segp->cnt = (int32)(release * csound->ekr + FL(0.5))) == 0))
       segp->cnt = 0;
     if (midip) {
       p->xtra = (int32)(*argp[5] * csound->ekr + FL(0.5));   /* Release time?? */
@@ -562,7 +562,7 @@ int kxpseg(CSOUND *csound, EXXPSEG *p)
     XSEG        *segp;
 
     segp = p->cursegp;
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
     *p->rslt = segp->val;
@@ -581,7 +581,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     MYFLT       nxtval;
 
     segp = p->cursegp;
-    if (p->auxch.auxp==NULL) goto err1; /* RWD fix */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
     val = segp->val;
@@ -1029,7 +1029,7 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
     MYFLT       fact, v1, fract, *ftab;
 
     ftp = p->ftp;
-    if (ftp==NULL) goto err1;        /* RWD fix */
+    if (UNLIKELY(ftp==NULL)) goto err1;        /* RWD fix */
 
     if ((phs = p->phs) >= 0) {
       fract = (MYFLT) PFRAC(phs);
@@ -1077,7 +1077,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
     val  = p->val;
     if ((phs = p->phs) >= 0L) {
       ftp = p->ftp;
-      if (ftp==NULL) goto err1; /* RWD fix */
+      if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> ftp->lobits);
       v1 = *ftab++;
@@ -1085,7 +1085,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       phs += p->ki;
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         nxtval = *(ftp->ftable + ftp->flen );
-        if (!nxtval) goto err2;
+        if (UNLIKELY(!nxtval)) goto err2;
         nxtval -= p->asym;
         phs = -1;
       }
