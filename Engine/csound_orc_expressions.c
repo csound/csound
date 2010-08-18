@@ -226,7 +226,7 @@ TREE *create_simple_goto_token(CSOUND *csound, TREE *label)
 }
 
 /* Returns true if passed in TREE node is a numerical expression */
-int is_expression_node(TREE *node)
+static int is_expression_node(TREE *node)
 {
     if (node == NULL) {
       return 0;
@@ -253,7 +253,7 @@ int is_expression_node(TREE *node)
 }
 
 /* Returns if passed in TREE node is a boolean expression */
-int is_boolean_expression_node(TREE *node)
+static int is_boolean_expression_node(TREE *node)
 {
     if (node == NULL) {
       return 0;
