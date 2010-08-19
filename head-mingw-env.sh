@@ -1,5 +1,5 @@
 #!/bin/sh
-echo Setting up environment to run Csound from build area...
+echo Setting up environment to run Csound head branch from build area...
 export PATH=/c/utah/opt/Mega-Nerd/libsndfile:${PATH}
 export PATH=/c/utah/opt/fltk/branch-1.3/bin:${PATH}
 export PATH=/c/utah/opt/fltk/branch-1.3/lib:${PATH}
