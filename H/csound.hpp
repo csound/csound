@@ -35,10 +35,16 @@
 %module csnd
 %{
 #include "csound.h"
+#if defined(USE_OPENMP)
+#include <pthread.h>
+#endif
   //#include "cs_glue.h"
 %}
 #else
 #include "csound.h"
+#if defined(USE_OPENMP)
+#include <pthread.h>
+#endif
 #ifdef __BUILDING_CSOUND_INTERFACES
 //#include "cs_glue.h"
 #endif
@@ -56,6 +62,42 @@ struct PUBLIC pycbdata {
 #endif
 
 #if defined(__cplusplus)
+
+#if defined(USE_OPENMP)
+struct Spinlock
+{
+    pthread_spinlock_t lock_;
+    Spinlock()
+    {
+        pthread_spin_init(&lock_, PTHREAD_PROCESS_PRIVATE);
+    }
+    ~Spinlock()
+    {
+        pthread_spin_destroy(&lock_);
+    }
+    void lock()
+    {
+        pthread_spin_lock(&lock_);
+    }
+    void unlock()
+    {
+        pthread_spin_unlock(&lock_);
+    }
+};
+
+struct Spinlocker
+{
+    Spinlock &spinlock;
+    Spinlocker(Spinlock &spinlock_) : spinlock(spinlock_)
+    {
+        spinlock.lock();
+    }
+    ~Spinlocker()
+    {
+        spinlock.unlock();
+    }
+};
+#endif
 
 
 /**
