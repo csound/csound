@@ -35,9 +35,6 @@
 %module csnd
 %{
 #include "csound.h"
-#if defined(USE_OPENMP)
-#include <pthread.h>
-#endif
   //#include "cs_glue.h"
 %}
 #else
@@ -63,7 +60,7 @@ struct PUBLIC pycbdata {
 
 #if defined(__cplusplus)
 
-#if defined(USE_OPENMP)
+#if defined(USE_OPENMP) && !defined(SWIG)
 struct Spinlock
 {
     pthread_spinlock_t lock_;
