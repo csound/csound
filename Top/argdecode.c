@@ -1211,6 +1211,11 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               csound->LongJmp(csound, 1);
             while (*(++s));
             break;
+          case 'j':
+            FIND(Str("no number of threads"));
+            sscanf(s, "%d%n", &(O->numThreads), &n);
+            s += n;
+            break;
           case '+':                                   /* IV - Feb 01 2005 */
             if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
               csound->LongJmp(csound, 1);
