@@ -297,8 +297,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }
-
-
+    
     csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
@@ -324,6 +323,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
 #else
     otran(csound);                  /* read orcfile, setup desblks & spaces */
+#endif
+#if defined(USE_OPENMP)
+    if (csound->oparms->numThreads > 1) {
+        omp_set_num_threads(csound->oparms->numThreads);
+        csound->Message(csound, "OpenMP enabled: requested %d threads.\n", csound->oparms->numThreads);
+    }
 #endif
 
     /* IV - Jan 28 2005 */
@@ -401,33 +406,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-
-    /* SYY - Mar 28, 2007 - Multithreaded Csound */
-
-    if (O->numThreads > 1) {
-        int i;
-        THREADINFO *current = NULL;
-
-        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads + 1);
-        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads + 1);
-        csound->multiThreadedComplete = 0;
-
-        for(i = 0; i < O->numThreads; i++) {
-            THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
-
-            t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
-            t->next = NULL;
-
-            if(current == NULL) {
-                csound->multiThreadedThreadInfo = t;
-            } else {
-                current->next = t;
-            }
-            current = t;
-        }
-
-    }
-
+    
     return musmon(csound);
 }
 

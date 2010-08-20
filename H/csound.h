@@ -1394,11 +1394,15 @@ CSOUND_FILETYPES;
   {                                             \
     __sync_lock_release(spinlock);              \
   }
-
+#if !defined(USE_OPENMP)
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
+#else
+/* If using OpenMP, spinlocks are pthread spinlocks. */
+#define CSOUND_SPIN_LOCK static pthread_spinlock_t spinlock = PTHREAD_SPINLOCK_INITIALIZER; pthread_spin_lock(&spinlock);
+#define CSOUND_SPIN_UNLOCK pthread_spin_unlock(&spinlock);
+#endif
 #else
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock) */

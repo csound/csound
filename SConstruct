@@ -253,6 +253,9 @@ else:
 commandOptions.Add('buildImageOpcodes',
     'Set to 0 to avoid building image opcodes',
     '1')
+commandOptions.Add('useOpenMP',
+    'Set to 1 to use OpenMP for parallel performance',
+    '0')
 ##### JPff for OLPC #####
 commandOptions.Add('buildOLPC',
     'Set to 1 to build OLPC version',
@@ -393,6 +396,7 @@ if commonEnvironment['buildOLPC'] == '1':
     commonEnvironment['buildvst4cs'] = '0'
     commonEnvironment['buildImageOpcodes'] = '1'
     commonEnvironment['dynamicCsoundLibrary'] = '1'
+    commonEnvironment['useOpenMP'] = '0'
 else:
     buildOLPC = False
 
@@ -744,6 +748,15 @@ else:
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
 if pthreadBarrierFound:
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
+openMpFound = configure.CheckLibWithHeader('gomp', 'omp.h', 'C++', 'int n = omp_get_num_threads();')
+if openMpFound and pthreadBarrierFound and commonEnvironment['useOpenMP'] == '1':
+    print 'CONFIGURATION DECISION: Using OpenMP.'
+    commonEnvironment.Append(CFLAGS = ['-fopenmp'])
+    commonEnvironment.Append(CXXFLAGS = ['-fopenmp'])
+    commonEnvironment.Append(CPPFLAGS = ['-DUSE_OPENMP'])
+    useOpenMP = True;
+else:
+    useOpenMP = False;
 if compilerMicrosoft():
    syncLockTestAndSetFound = False
 else:
