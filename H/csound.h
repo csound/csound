@@ -1380,6 +1380,22 @@ CSOUND_FILETYPES;
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_BARRIER_INIT)
+
+#define csoundSpinLock(spinlock)                        \
+  {                                                     \
+    pthread_spin_lock((pthread_spinlock_t *)spinlock);  \
+  }
+
+  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+#define csoundSpinUnLock(spinlock)                       \
+  {                                                      \
+    pthread_spin_unlock((pthread_spinlock_t *)spinlock); \
+  }
+
+#define CSOUND_SPIN_LOCK static pthread_spinlock_t spinlock = PTHREAD_SPINLOCK_INITIALIZER; pthread_spin_lock(&spinlock);
+#define CSOUND_SPIN_UNLOCK pthread_spin_unlock(&spinlock);
+
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
@@ -1394,15 +1410,31 @@ CSOUND_FILETYPES;
   {                                             \
     __sync_lock_release(spinlock);              \
   }
-#if !defined(USE_OPENMP)
+
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-#else
-/* If using OpenMP, spinlocks are pthread spinlocks. */
-#define CSOUND_SPIN_LOCK static pthread_spinlock_t spinlock = PTHREAD_SPINLOCK_INITIALIZER; pthread_spin_lock(&spinlock);
-#define CSOUND_SPIN_UNLOCK pthread_spin_unlock(&spinlock);
-#endif
+
+#elif defined(MACOSX)
+  
+#include <libkern/OSAtomic.h>
+  
+    /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
+#define csoundSpinLock(spinlock)                        \
+    {                                                     \
+      OSSpinLockLock(spinlock);                           \
+    }
+
+    /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+#define csoundSpinUnLock(spinlock)              \
+    {                                             \
+      OSSpinLockUnlock(spinlock);                 \
+    }
+
+#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
+
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+
 #else
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
@@ -1769,6 +1801,26 @@ CSOUND_FILETYPES;
    * previously used, clearing new locations to zero.
    * Returns zero on success, CSOUND_ERROR if the index is invalid,
    * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
+
+  /**
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame 
+   * for the indicated channel.
+   * The bus is automatically extended if the channel is greater than
+   * previously used, clearing new locations to zero.
+   * Returns the sample value on success, CSOUND_ERROR if the index is invalid,
+   * and CSOUND_MEMORY if there is not enough memory to estend the bus.
+   */
+  PUBLIC MYFLT csoundChanOAGetSample(CSOUND *, int channel, int frame);
+
+  /**
+   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * fsig framesizes are incompatible
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
 
