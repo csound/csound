@@ -62,6 +62,10 @@ typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
 #endif
 
+#if defined(HAVE_PTHREAD_BARRIER_INIT)
+#include <pthread.h>
+#endif
+
 #ifdef __MACH__
 #include <AvailabilityMacros.h>
 #endif
