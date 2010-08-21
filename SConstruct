@@ -1442,7 +1442,7 @@ else:
 
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Clone()
     #csoundWrapperEnvironment.Append(LIBS = [csnd])
-    csoundWrapperEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose'''))
+    csoundWrapperEnvironment.Append(SWIGFLAGS = Split('''-c++ -includeall -verbose '''))
     fixCFlagsForSwig(csoundWrapperEnvironment)
     csoundWrapperEnvironment.Append(CPPFLAGS = ['-D__BUILDING_CSOUND_INTERFACES'])
     for option in csoundWrapperEnvironment['CCFLAGS']:

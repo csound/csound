@@ -1416,25 +1416,26 @@ CSOUND_FILETYPES;
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
 #elif defined(MACOSX)
-  
+ 
+#ifndef SWIG   /* VL: for some reason SWIG can't find or deal with libkern */
 #include <libkern/OSAtomic.h>
   
     /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
 #define csoundSpinLock(spinlock)                        \
     {                                                     \
-      OSSpinLockLock(spinlock);                           \
+       OSSpinLockLock(spinlock);			  \
     }
 
     /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)              \
     {                                             \
-      OSSpinLockUnlock(spinlock);                 \
+       OSSpinLockUnlock(spinlock);		  \
     }
 
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
-#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock); 
+#endif
 #else
 
   /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
