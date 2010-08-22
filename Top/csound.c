@@ -370,8 +370,13 @@ extern "C" {
         0.0,            /*  curBeat             */
         0.0,            /*  curBeat_inc         */
         0.0,            /*  beatTime            */
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
+#else
         0,              /*  spoutlock           */
         0,              /*  spinlock            */
+#endif
         NULL,           /*  widgetGlobals       */
         NULL,           /*  stdOp_Env           */
         NULL,           /*  zkstart             */
@@ -400,7 +405,11 @@ extern "C" {
         NULL,           /*  csRandState         */
         0,              /*  randSeed1           */
         0,              /*  randSeed2           */
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
+#else
         0,              /*  memlock             */
+#endif
         sizeof(MYFLT),  /*  floatsize           */
         -1,             /*  inchns              */
         {0, 0, 0, 0, 0, 0, 0}, /* dummyint[7]; */

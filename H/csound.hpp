@@ -39,7 +39,7 @@
 %}
 #else
 #include "csound.h"
-#if defined(USE_OPENMP)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && !defined(SWIG)
 #include <pthread.h>
 #endif
 #ifdef __BUILDING_CSOUND_INTERFACES
@@ -60,7 +60,7 @@ struct PUBLIC pycbdata {
 
 #if defined(__cplusplus)
 
-#if defined(USE_OPENMP) && !defined(SWIG)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && !defined(SWIG)
 struct Spinlock
 {
     pthread_spinlock_t lock_;

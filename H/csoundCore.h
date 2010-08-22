@@ -61,6 +61,20 @@ struct SNDFILE;
 extern "C" {
 #endif
 
+#ifdef __MACH__
+#define BARRIER_SERIAL_THREAD (-1)
+typedef struct {
+  pthread_mutex_t mut;
+  pthread_cond_t cond;
+  unsigned int count, max, iteration;
+} barrier_t;
+
+#ifndef PTHREAD_BARRIER_SERIAL_THREAD
+#define pthread_barrier_t barrier_t
+#endif
+#endif
+
+
 #define OK        (0)
 #define NOTOK     (-1)
 
@@ -1048,7 +1062,11 @@ extern const uint32_t csPlayScoMask;
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     long          ibeatTime;   /* Beat time in samples */
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+    pthread_spinlock_t spoutlock, spinlock;
+#else
     int           spoutlock, spinlock;
+#endif
     /* Widgets */
     void          *widgetGlobals;
     /** reserved for std opcode library  */
@@ -1081,7 +1099,11 @@ extern const uint32_t csPlayScoMask;
     CsoundRandMTState *csRandState;
     int           randSeed1;
     int           randSeed2;
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+    pthread_spinlock_t memlock;
+#else
     int           memlock;
+#endif
     int           floatsize;
     int           inchnls;      /* Not fully used yet -- JPff */
     int   dummyint[7];
