@@ -313,8 +313,7 @@ extern "C" {
    * way. Conversion from Csound's TYP_XXX macros for audio formats to
    * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
    */
-typedef enum
-{
+    typedef enum {
     CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
     CSFTYPE_ORCHESTRA = 2,     /* the primary orc file (may be temporary) */
     CSFTYPE_SCORE = 3,         /* the primary sco file (may be temporary)
@@ -1359,18 +1358,17 @@ CSOUND_FILETYPES;
    * }
    */
 
+    /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
+    /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+
 #if defined(MSVC)
 
 #pragma intrinsic(_InterlockedExchange)
-
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock)      */
 #define csoundSpinLock(spinlock)                        \
   {                                                     \
     while (_InterlockedExchange(spinlock, 1) == 1) {    \
     }                                                   \
   }
-
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)              \
   {                                             \
     _InterlockedExchange(spinlock, 0);          \
@@ -1380,32 +1378,32 @@ CSOUND_FILETYPES;
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_BARRIER_INIT)
-
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+# if defined(SWIG)
 #define csoundSpinLock(spinlock)                        \
   {                                                     \
     pthread_spin_lock((pthread_spinlock_t *)spinlock);  \
   }
-
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)                       \
   {                                                      \
     pthread_spin_unlock((pthread_spinlock_t *)spinlock); \
   }
-
-#define CSOUND_SPIN_LOCK static pthread_spinlock_t spinlock = PTHREAD_SPINLOCK_INITIALIZER; pthread_spin_lock(&spinlock);
-#define CSOUND_SPIN_UNLOCK pthread_spin_unlock(&spinlock);
+#  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
+#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+# else
+#  define csoundSpinLock(spinlock)
+#  define csoundSpinUnLock(spinlock)
+#  define CSOUND_SPIN_LOCK
+#  define CSOUND_SPIN_UNLOCK
+#endif
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
 #define csoundSpinLock(spinlock)                        \
   {                                                             \
     while (__sync_lock_test_and_set(spinlock, 1) == 1) {        \
     }                                                           \
   }
-
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)              \
   {                                             \
     __sync_lock_release(spinlock);              \
@@ -1417,16 +1415,11 @@ CSOUND_FILETYPES;
 
 #elif defined(MACOSX)
  
-#ifndef SWIG   /* VL: for some reason SWIG can't find or deal with libkern */
 #include <libkern/OSAtomic.h>
-  
-    /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
 #define csoundSpinLock(spinlock)                        \
     {                                                     \
        OSSpinLockLock(spinlock);			  \
     }
-
-    /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)              \
     {                                             \
        OSSpinLockUnlock(spinlock);		  \
@@ -1435,12 +1428,12 @@ CSOUND_FILETYPES;
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock); 
-#endif
+
 #else
 
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock) */
+    /* We don't know the configuration,       */
+    /* so we define these symbols as nothing. */
 #define csoundSpinLock(spinlock)
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
 #define csoundSpinUnLock(spinlock)
 
 #define CSOUND_SPIN_LOCK
