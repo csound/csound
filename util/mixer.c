@@ -640,7 +640,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
       }
       sample += size;
     }
-    csound->rewriteheader(outfd);
+    csound->rewriteheader((struct SNFDILE*)outfd);
     min *= (DFLT_DBFS * csound->dbfs_to_float);
     max *= (DFLT_DBFS * csound->dbfs_to_float);
     csound->Message(csound, Str("Max val %d at index %ld (time %.4f, chan %d) "
