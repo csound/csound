@@ -142,7 +142,7 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
     AUXCH   *curchp;
     char *name;
 
-    if (name = csound->instrtxtp[ip->insno])
+    if (name = csound->instrtxtp[ip->insno]->insname)
       csound->Message(csound, Str("auxlist for instr %s [%d] (%p):\n"),
                       name, ip->insno, ip);
     else
@@ -161,7 +161,7 @@ static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
     FDCH    *curchp;
     char *name;
 
-    if (name = csound->instrtxtp[ip->insno])
+    if (name = csound->instrtxtp[ip->insno]->insname)
       csound->Message(csound, Str("fdlist for instr %s [%d] (%p):"),
                       name, ip->insno, ip);
     else
