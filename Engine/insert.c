@@ -61,7 +61,8 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
 {
     if (ip->relesing)
       return;
-    ip->offtim = (csound->icurTime + csound->ksmps * (double) ip->xtratim)/csound->esr;
+    ip->offtim = (csound->icurTime +
+                  csound->ksmps * (double) ip->xtratim)/csound->esr;
     ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
 }
@@ -79,7 +80,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       return 0;
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("activating instr %s at %d\n"),
                         name, csound->icurTime);
       else
@@ -90,7 +91,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     tp = csound->instrtxtp[insno];
     if (UNLIKELY(tp->muted == 0)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Warning(csound, Str("Instrument %s muted\n"), name);
       else
         csound->Warning(csound, Str("Instrument %d muted\n"), insno);
@@ -98,7 +99,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     if (UNLIKELY(tp->mdepends & 04)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("instr %s expects midi event data, "
                                     "cannot run from score\n"), name);
       else
@@ -109,14 +110,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (tp->cpuload > FL(0.0)) {
       csound->cpu_power_busy += tp->cpuload;
       /* if there is no more cpu processing time*/
-      if (csound->cpu_power_busy > FL(100.0)) {
+      if (UNLIKELY(csound->cpu_power_busy > FL(100.0))) {
         csound->cpu_power_busy -= tp->cpuload;
         csoundWarning(csound, Str("cannot allocate last note because "
                                   "it exceeds 100%% of cpu time"));
         return(0);
       }
     }
-    if (tp->maxalloc > 0 && tp->active >= tp->maxalloc) {
+    if (UNLIKELY(tp->maxalloc > 0 && tp->active >= tp->maxalloc)) {
       csoundWarning(csound, Str("cannot allocate last note because it exceeds "
                                 "instr maxalloc"));
       return(0);
@@ -132,7 +133,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (tp->act_instance == NULL) {
       if (O->msglevel & RNGEMSG) {
         char *name = csound->instrtxtp[insno]->insname;
-        if (name)
+        if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
         else
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
@@ -168,13 +169,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         MYFLT *pfld = &ip->p3;              /* if pset data present */
         MYFLT *pdat = tp->psetdata + 2;
         int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
-        do {
-          *pfld++ = *pdat++;
-        } while (--nn);
+        /* do { */
+        /*   *pfld++ = *pdat++; */
+        /* } while (--nn); */
+        memcpy(&ip->p3, pdat, sizeof(MYFLT)*nn);
       }
       if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
         char *name = csound->instrtxtp[insno]->insname;
-        if (name)
+        if (UNLIKELY(name))
           csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
                         name, n, newevtp->pcnt);
         else
@@ -248,7 +250,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("instr %s now active:\n"), name);
       else
         csound->Message(csound, Str("instr %d now active:\n"), insno);
@@ -274,7 +276,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     tp = csound->instrtxtp[insno];
     if (tp->cpuload > FL(0.0)) {
       csound->cpu_power_busy += tp->cpuload;
-      if (csound->cpu_power_busy > FL(100.0)) {
+      if (UNLIKELY(csound->cpu_power_busy > FL(100.0))) {
         /* if there is no more cpu time */
         csound->cpu_power_busy -= tp->cpuload;
         csoundWarning(csound, Str("cannot allocate last note because "
@@ -291,7 +293,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     tp->instcnt++;
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("activating instr %s\n"), name);
       else
         csound->Message(csound, Str("activating instr %d\n"), insno);
@@ -302,7 +304,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (tp->act_instance == NULL) {
       if (O->msglevel & RNGEMSG) {
         char *name = csound->instrtxtp[insno]->insname;
-        if (name)
+        if (UNLIKELY(name))
           csound->Message(csound, Str("new alloc for instr %s:\n"), name);
         else
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
@@ -316,7 +318,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
-    if ((prvp = *ipp) != NULL) {          /*   if key currently activ */
+    if (UNLIKELY((prvp = *ipp) != NULL)) {          /*   if key currently activ */
       csoundWarning(csound,
                     Str("MIDI note overlaps with key %d on same channel"),
                     (int) mep->dat1);
@@ -385,7 +387,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       value = value * OCTRES;
       value = (MYFLT) CPSOCTL((int32) value);
       pfields[index] = value;
-      if (O->msglevel & WARNMSG) {
+      if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                         pfield, (int) pfields[index]);
       }
@@ -425,7 +427,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_veloc;
       pfields[index] = value;
-      if (O->msglevel & WARNMSG) {
+      if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                         pfield, (int) pfields[index]);
       }
@@ -438,7 +440,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       value = value * value / FL(16239.0);
       value = value * csound->e0dbfs;
       pfields[index] = value;
-      if (O->msglevel & WARNMSG) {
+      if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
                         pfield, (int) pfields[index]);
       }
@@ -460,7 +462,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     if (UNLIKELY(O->odebug)) {
       char *name = csound->instrtxtp[insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("instr %s now active:\n"), name);
       else
         csound->Message(csound, Str("instr %d now active:\n"), insno);
@@ -563,7 +565,7 @@ static void deact(CSOUND *csound, INSDS *ip)
     }
     if (UNLIKELY(csound->oparms->odebug)) {
       char *name = csound->instrtxtp[ip->insno]->insname;
-      if (name)
+      if (UNLIKELY(name))
         csound->Message(csound, Str("removed instance of instr %s\n"), name);
       else
         csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
