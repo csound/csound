@@ -177,7 +177,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
                          TREE * gotoNode, int type)
 {
 /*     TREE *ans = create_empty_token(csound); */
-    char* op = (char *)csound->Malloc(csound, 7);
+    char* op = (char *)csound->Malloc(csound, 7); /* Unchecked */
     TREE *opTree, *bVar;
 
     switch(gotoNode->type) {
