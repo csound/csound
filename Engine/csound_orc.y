@@ -306,6 +306,7 @@ statement : ident S_ASSIGN expr S_NL
                     $2->right = $3;
 
                     $$ = $2;
+print_tree(csound, (TREE *)$$);
                 }
           | opcode0 exprlist S_NL
                 {
