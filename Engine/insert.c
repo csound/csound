@@ -193,10 +193,15 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "psave beg at %p\n", (void*) flp);
       if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
-      memcpy(flp, fep, n * sizeof(MYFLT)); flp += n;
-      if (n < tp->pmax) memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
-      if (UNLIKELY(O->odebug))
-        csound->Message(csound, "   ending at %p\n", (void*) flp);
+      if (UNLIKELY(tp->psetdata)) {
+        memcpy(flp, fep, 2 * sizeof(MYFLT));
+      }
+      else {
+        memcpy(flp, fep, n * sizeof(MYFLT)); flp += n;
+        if (n < tp->pmax) memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
+        if (UNLIKELY(O->odebug))
+          csound->Message(csound, "   ending at %p\n", (void*) flp);
+      }
     }
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);

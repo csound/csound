@@ -1,3 +1,7 @@
+2010-08-25  John ff  <jpff@cs.bath.ac.uk>
+
+	* Engine/insert.c (insert): In pset case only copy p1 and p2
+
 2010-08-10  Michael Gogins <michael.gogins@gmail.com>
 
 	* Engine/typetabl.h: Supplied missing type mask for 'J' type code,
