@@ -247,6 +247,7 @@ static int is_expression_node(TREE *node)
     case S_BITSHL:
     case S_NEQV:
     case S_BITNOT:
+    case S_Q:
       return 1;
     }
    return 0;
@@ -322,100 +323,135 @@ TREE * create_expression(CSOUND *csound, TREE *root)
 
     op = mcalloc(csound, 80);
 
-    arg1 = '\0';
-    if (root->left != NULL) {
-        arg1 = argtyp2(csound, root->left->value->lexeme);
-    }
-    arg2 = argtyp2(csound, root->right->value->lexeme);
-
-    switch(root->type) {
-    case S_PLUS:
-      strncpy(op, "add", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_MINUS:
-      strncpy(op, "sub", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_TIMES:
-      strncpy(op, "mul", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_MOD:
-      strncpy(op, "mod", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_DIV:
-      strncpy(op, "div", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_POW:
-      { int outype = 'i';
-        strncpy(op, "pow.", 80);
-        if (arg1 == 'a') {
-          strncat(op, "a", 80);
-          outype = arg1;
-        }
-        else if(arg1 == 'k') {
-          strncat(op, "k", 80);
-          outype = arg1;
-        }
-        else 
-          strncat(op, "i", 80);
-        outarg = create_out_arg(csound, outype);
+    if (root->type==S_Q) {
+      char outype, *s;
+      arg1 = argtyp2(csound, root->right->left->value->lexeme);
+      arg2 = argtyp2(csound, root->right->right->value->lexeme);
+      strncpy(op, ":", 80);
+      if (arg1 == 'a' || arg2 == 'a') {
+        strncat(op,"a",80);
+        outype = 'a';
       }
-      break;
-    case T_FUNCTION: /* assumes on single arg input */
-      c = arg2;
-      if (c == 'p' || c == 'c')   c = 'i';
-      sprintf(op, "%s.%c", root->value->lexeme, c);
-      if (PARSER_DEBUG) csound->Message(csound, "Found OP: %s\n", op);
-      outarg = create_out_arg(csound, c);
-      break;
-    case S_UMINUS:
-      if (PARSER_DEBUG) csound->Message(csound, "HANDLING UNARY MINUS!");
-      root->left = create_minus_token(csound);
-      arg1 = 'k';
-      strncpy(op, "mul", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_BITOR:
-      strncpy(op, "or", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_BITAND:
-      strncpy(op, "and", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_BITSHR:
-      strncpy(op, "shr", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_BITSHL:
-      strncpy(op, "shl", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_NEQV:
-      strncpy(op, "xor", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2);
-      break;
-    case S_BITNOT:
-      strncpy(op, "not", 80);
-      outarg = set_expression_type(csound, op, arg1, '\0');
-      break;
-    }
+      else if (arg1 == 'k' || arg2 == 'k') {
+        strncat(op,"k",80);
+        outype = 'k';
+      }
+      else {
+        strncat(op,"i",80);
+        outype = 'i';
+      }
+      printf("********\n");
+      print_tree(csound, root);
+      outarg = create_out_arg(csound, outype);
 
-    opTree = create_opcode_token(csound, op);
-    if (root->left != NULL) {
-      opTree->right = root->left;
-      opTree->right->next = root->right;
-      opTree->left = create_ans_token(csound, outarg);
+      if (PARSER_DEBUG)
+        csound->Message(csound, "SET_EXPRESSION_TYPE: %s : %s\n", op, outarg);
+
+      opTree = create_opcode_token(csound, op);
+      if (root->left != NULL) {
+        opTree->right = root->left;
+        opTree->right->next = root->right;
+        opTree->left = create_ans_token(csound, outarg);
+      }
+      else {
+        opTree->right = root->right;
+        opTree->left = create_ans_token(csound, outarg);
+      }
     }
     else {
-      opTree->right = root->right;
-      opTree->left = create_ans_token(csound, outarg);
-    }
+      arg1 = '\0';
+      if (root->left != NULL) {
+        arg1 = argtyp2(csound, root->left->value->lexeme);
+      }
+      arg2 = argtyp2(csound, root->right->value->lexeme);
 
+      switch(root->type) {
+      case S_PLUS:
+        strncpy(op, "add", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_MINUS:
+        strncpy(op, "sub", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_TIMES:
+        strncpy(op, "mul", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_MOD:
+        strncpy(op, "mod", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_DIV:
+        strncpy(op, "div", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_POW:
+        { int outype = 'i';
+          strncpy(op, "pow.", 80);
+          if (arg1 == 'a') {
+            strncat(op, "a", 80);
+            outype = arg1;
+          }
+          else if(arg1 == 'k') {
+            strncat(op, "k", 80);
+            outype = arg1;
+          }
+          else 
+            strncat(op, "i", 80);
+          outarg = create_out_arg(csound, outype);
+        }
+        break;
+      case T_FUNCTION: /* assumes on single arg input */
+        c = arg2;
+        if (c == 'p' || c == 'c')   c = 'i';
+        sprintf(op, "%s.%c", root->value->lexeme, c);
+        if (PARSER_DEBUG) csound->Message(csound, "Found OP: %s\n", op);
+        outarg = create_out_arg(csound, c);
+        break;
+      case S_UMINUS:
+        if (PARSER_DEBUG) csound->Message(csound, "HANDLING UNARY MINUS!");
+        root->left = create_minus_token(csound);
+        arg1 = 'k';
+        strncpy(op, "mul", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_BITOR:
+        strncpy(op, "or", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_BITAND:
+        strncpy(op, "and", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_BITSHR:
+        strncpy(op, "shr", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_BITSHL:
+        strncpy(op, "shl", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_NEQV:
+        strncpy(op, "xor", 80);
+        outarg = set_expression_type(csound, op, arg1, arg2);
+        break;
+      case S_BITNOT:
+        strncpy(op, "not", 80);
+        outarg = set_expression_type(csound, op, arg1, '\0');
+        break;
+      }
+      opTree = create_opcode_token(csound, op);
+      if (root->left != NULL) {
+        opTree->right = root->left;
+        opTree->right->next = root->right;
+        opTree->left = create_ans_token(csound, outarg);
+      }
+      else {
+        opTree->right = root->right;
+        opTree->left = create_ans_token(csound, outarg);
+      }
+    }
     if (anchor == NULL) {
       anchor = opTree;
     }

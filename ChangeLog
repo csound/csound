@@ -1,6 +1,6 @@
 2010-08-25  John ff  <jpff@cs.bath.ac.uk>
 
-	* Engine/insert.c (insert): In pset case only copy p1 and p2
+	* Engine/insert.c (insert): In pset case no not zero excess opcodes
 
 2010-08-10  Michael Gogins <michael.gogins@gmail.com>
 
