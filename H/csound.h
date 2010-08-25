@@ -1415,6 +1415,8 @@ CSOUND_FILETYPES;
 
 #elif defined(MACOSX)
  
+#ifndef SWIG
+
 #include <libkern/OSAtomic.h>
 #define csoundSpinLock(spinlock)                        \
     {                                                     \
@@ -1424,11 +1426,10 @@ CSOUND_FILETYPES;
     {                                             \
        OSSpinLockUnlock(spinlock);		  \
     }
-
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock); 
-
+#endif
 #else
 
     /* We don't know the configuration,       */

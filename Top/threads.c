@@ -181,6 +181,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #define BARRIER_SERIAL_THREAD (-1)
 
+/* VL: already defined in CsoundCore.h:70
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
 
 typedef struct barrier {
@@ -190,6 +191,7 @@ typedef struct barrier {
 } barrier_t;
 
 #endif
+*/
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
