@@ -550,6 +550,7 @@ skipAssoc:
       File C:\utah\opt\musicxml-v2\win32\codeblocks\libmusicxml2.dll
       # pthreads
       File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
+      File C:\utah\mingw\bin\libgomp-1.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
     # Opcodes, drivers, and other modules:
