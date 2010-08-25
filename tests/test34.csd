@@ -10,6 +10,7 @@ nchnls = 1
 0dbfs = 1
 
 instr 1
+i0 divz 1,2,3
 ii = (p3<10 ? 1 : 2)
 print ii
 endin
