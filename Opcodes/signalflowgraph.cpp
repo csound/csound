@@ -764,7 +764,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
     if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
       *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
       warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
-      # std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
+      // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
     } else {
       FUNC *func = 0;
       n = csound->hfgens(csound, &func, &evtblk, 1);       
@@ -776,7 +776,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce>
 	*ifno = (MYFLT) func->fno;                     
       }
       warn(csound, "ftgenonce: created new func: %d\n", func->fno);
-      # std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
+      // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
     }
     return OK;
   }
