@@ -32,6 +32,9 @@ extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
 extern ORCTOKEN *make_label(CSOUND *, char *);
 
+TREE* create_boolean_expression(CSOUND*, TREE*);
+TREE * create_expression(CSOUND *, TREE *);
+
 char *create_out_arg(CSOUND *csound, char outype)
 {
     char* s = (char *)csound->Malloc(csound, 8);
@@ -274,7 +277,66 @@ static int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
+TREE *create_cond_expression(CSOUND *csound, TREE *root)
+{
+    char *op = (char*)mmalloc(csound, 4), arg1, arg2, *outarg = NULL;
+    char outype, *s;
+    TREE *anchor = create_boolean_expression(csound, root->left), *last;
+    TREE * opTree;
+    TREE *b= create_ans_token(csound, anchor->left->value->lexeme);;
+    TREE *c = root->right->left, *d = root->right->right;
+    last = anchor;
+    while (last->next != NULL) {
+      last = last->next;
+    }
+    if (is_expression_node(c)) {
+      last->next = create_expression(csound, c);
+      /* TODO - Free memory of old left node
+         freetree */
+      last = last->next;
+      while (last->next != NULL) {
+        last = last->next;
+      }
+      c = create_ans_token(csound, last->left->value->lexeme);
+    }
+    if (is_expression_node(d)) {
+      last->next = create_expression(csound, d);
+      /* TODO - Free memory of old left node
+         freetree */
+      last = last->next;
+      while (last->next != NULL) {
+        last = last->next;
+      }
+      d = create_ans_token(csound, last->left->value->lexeme);
+    }
 
+    arg1 = argtyp2(csound, c->value->lexeme);
+    arg2 = argtyp2(csound, d->value->lexeme);
+    if (arg1 == 'a' || arg2 == 'a') {
+      strcpy(op,":a");
+      outype = 'a';
+    }
+    else if (arg1 == 'k' || arg2 == 'k') {
+      strcpy(op,":k");
+      outype = 'k';
+    }
+    else {
+      strcpy(op,":i");
+      outype = 'i';
+      }
+    printf("******** %s\n", op);
+    outarg = create_out_arg(csound, outype);
+    opTree = create_opcode_token(csound, op);
+    opTree->left = create_ans_token(csound, outarg);
+    opTree->right = b;
+    opTree->right->next = c;
+    opTree->right->next->next = d;
+    /* should recycle memory for root->right */
+    //mfree(csound, root->right); root->right = NULL;
+    last->next = opTree;
+    //    printf("Answer:\n"); print_tree(csound, anchor);
+    return anchor;
+}
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -285,6 +347,8 @@ TREE * create_expression(CSOUND *csound, TREE *root)
     TREE *anchor = NULL, *last;
     TREE * opTree;
     /* HANDLE SUB EXPRESSIONS */
+
+    if (root->type==S_Q) return create_cond_expression(csound, root);
 
     if (is_expression_node(root->left)) {
       anchor = create_expression(csound, root->left);
@@ -297,6 +361,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       }
       root->left = create_ans_token(csound, last->left->value->lexeme);
     }
+
 
     if (is_expression_node(root->right)) {
       TREE * newRight = create_expression(csound, root->right);
@@ -323,135 +388,99 @@ TREE * create_expression(CSOUND *csound, TREE *root)
 
     op = mcalloc(csound, 80);
 
-    if (root->type==S_Q) {
-      char outype, *s;
-      arg1 = argtyp2(csound, root->right->left->value->lexeme);
-      arg2 = argtyp2(csound, root->right->right->value->lexeme);
-      strncpy(op, ":", 80);
-      if (arg1 == 'a' || arg2 == 'a') {
-        strncat(op,"a",80);
-        outype = 'a';
+    arg1 = '\0';
+    if (root->left != NULL) {
+      arg1 = argtyp2(csound, root->left->value->lexeme);
+    }
+    arg2 = argtyp2(csound, root->right->value->lexeme);
+    
+    switch(root->type) {
+    case S_PLUS:
+      strncpy(op, "add", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_MINUS:
+      strncpy(op, "sub", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_TIMES:
+      strncpy(op, "mul", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_MOD:
+      strncpy(op, "mod", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_DIV:
+      strncpy(op, "div", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_POW:
+      { int outype = 'i';
+        strncpy(op, "pow.", 80);
+        if (arg1 == 'a') {
+          strncat(op, "a", 80);
+          outype = arg1;
+        }
+        else if (arg1 == 'k') {
+          strncat(op, "k", 80);
+          outype = arg1;
+        }
+        else 
+          strncat(op, "i", 80);
+        outarg = create_out_arg(csound, outype);
       }
-      else if (arg1 == 'k' || arg2 == 'k') {
-        strncat(op,"k",80);
-        outype = 'k';
-      }
-      else {
-        strncat(op,"i",80);
-        outype = 'i';
-      }
-      printf("********\n");
-      print_tree(csound, root);
-      outarg = create_out_arg(csound, outype);
-
-      if (PARSER_DEBUG)
-        csound->Message(csound, "SET_EXPRESSION_TYPE: %s : %s\n", op, outarg);
-
-      opTree = create_opcode_token(csound, op);
-      if (root->left != NULL) {
-        opTree->right = root->left;
-        opTree->right->next = root->right;
-        opTree->left = create_ans_token(csound, outarg);
-      }
-      else {
-        opTree->right = root->right;
-        opTree->left = create_ans_token(csound, outarg);
-      }
+      break;
+    case T_FUNCTION: /* assumes on single arg input */
+      c = arg2;
+      if (c == 'p' || c == 'c')   c = 'i';
+      sprintf(op, "%s.%c", root->value->lexeme, c);
+      if (PARSER_DEBUG) csound->Message(csound, "Found OP: %s\n", op);
+      outarg = create_out_arg(csound, c);
+      break;
+    case S_UMINUS:
+      if (PARSER_DEBUG) csound->Message(csound, "HANDLING UNARY MINUS!");
+      root->left = create_minus_token(csound);
+      arg1 = 'k';
+      strncpy(op, "mul", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITOR:
+      strncpy(op, "or", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITAND:
+      strncpy(op, "and", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITSHR:
+      strncpy(op, "shr", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITSHL:
+      strncpy(op, "shl", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_NEQV:
+      strncpy(op, "xor", 80);
+      outarg = set_expression_type(csound, op, arg1, arg2);
+      break;
+    case S_BITNOT:
+      strncpy(op, "not", 80);
+      outarg = set_expression_type(csound, op, arg1, '\0');
+      break;
+    }
+    opTree = create_opcode_token(csound, op);
+    if (root->left != NULL) {
+      opTree->right = root->left;
+      opTree->right->next = root->right;
+      opTree->left = create_ans_token(csound, outarg);
     }
     else {
-      arg1 = '\0';
-      if (root->left != NULL) {
-        arg1 = argtyp2(csound, root->left->value->lexeme);
-      }
-      arg2 = argtyp2(csound, root->right->value->lexeme);
-
-      switch(root->type) {
-      case S_PLUS:
-        strncpy(op, "add", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_MINUS:
-        strncpy(op, "sub", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_TIMES:
-        strncpy(op, "mul", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_MOD:
-        strncpy(op, "mod", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_DIV:
-        strncpy(op, "div", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_POW:
-        { int outype = 'i';
-          strncpy(op, "pow.", 80);
-          if (arg1 == 'a') {
-            strncat(op, "a", 80);
-            outype = arg1;
-          }
-          else if(arg1 == 'k') {
-            strncat(op, "k", 80);
-            outype = arg1;
-          }
-          else 
-            strncat(op, "i", 80);
-          outarg = create_out_arg(csound, outype);
-        }
-        break;
-      case T_FUNCTION: /* assumes on single arg input */
-        c = arg2;
-        if (c == 'p' || c == 'c')   c = 'i';
-        sprintf(op, "%s.%c", root->value->lexeme, c);
-        if (PARSER_DEBUG) csound->Message(csound, "Found OP: %s\n", op);
-        outarg = create_out_arg(csound, c);
-        break;
-      case S_UMINUS:
-        if (PARSER_DEBUG) csound->Message(csound, "HANDLING UNARY MINUS!");
-        root->left = create_minus_token(csound);
-        arg1 = 'k';
-        strncpy(op, "mul", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_BITOR:
-        strncpy(op, "or", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_BITAND:
-        strncpy(op, "and", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_BITSHR:
-        strncpy(op, "shr", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_BITSHL:
-        strncpy(op, "shl", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_NEQV:
-        strncpy(op, "xor", 80);
-        outarg = set_expression_type(csound, op, arg1, arg2);
-        break;
-      case S_BITNOT:
-        strncpy(op, "not", 80);
-        outarg = set_expression_type(csound, op, arg1, '\0');
-        break;
-      }
-      opTree = create_opcode_token(csound, op);
-      if (root->left != NULL) {
-        opTree->right = root->left;
-        opTree->right->next = root->right;
-        opTree->left = create_ans_token(csound, outarg);
-      }
-      else {
-        opTree->right = root->right;
-        opTree->left = create_ans_token(csound, outarg);
-      }
+      opTree->right = root->right;
+      opTree->left = create_ans_token(csound, outarg);
     }
+
     if (anchor == NULL) {
       anchor = opTree;
     }
