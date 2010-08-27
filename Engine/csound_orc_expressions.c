@@ -217,12 +217,12 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 }
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO TYPES LIKE IGOTO, ETC */
-TREE *create_simple_goto_token(CSOUND *csound, TREE *label)
+TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
 {
     char* op = (char *)csound->Calloc(csound, 6);
     TREE * opTree;
-
-    sprintf(op, "kgoto");
+    char *gt[3] = {"kgoto", "igoto", "goto"};
+    sprintf(op, gt[type]);       /* kgoto, igoto, goto ?? */
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
     opTree->right = label;
@@ -705,7 +705,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               tempLeft = ifBlockCurrent->left;
               tempRight = ifBlockCurrent->right;
               if (ifBlockCurrent->type == T_ELSE) {
-                ifBlockLast->next = ifBlockCurrent->right;
+                ifBlockLast->next =
+                  csound_orc_expand_expressions(csound, ifBlockCurrent->right);
                 while (ifBlockLast->next != NULL) {
                   ifBlockLast = ifBlockLast->next;
                 }
@@ -744,6 +745,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 label = create_synthetic_ident(csound, genlabs);
                 labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
+                printf("goto types %c %c %d\n",
+                       expressionNodes->left->type, tempRight->type,
+                       expressionNodes->left->type == 'k' || tempRight->type == 'k');
                 gotoToken = create_goto_token(csound,
                                               expressionNodes->left->value->lexeme,
                                               tempRight,
@@ -758,8 +762,10 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  TREE *gotoEndLabelToken = create_simple_goto_token(csound,
-                                        endLabel);
+                  int type = tempRight->type == 'k' ? 0 :
+                    tempRight->type == 'i' ? 1 : 0;
+                  TREE *gotoEndLabelToken =
+                    create_simple_goto_token(csound, endLabel, type);
                   if (PARSER_DEBUG)
                     csound->Message(csound, "Creating simple goto token\n");
 
