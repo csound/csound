@@ -35,6 +35,8 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 TREE* create_boolean_expression(CSOUND*, TREE*);
 TREE * create_expression(CSOUND *, TREE *);
 
+static int genlabs = 300;
+
 char *create_out_arg(CSOUND *csound, char outype)
 {
     char* s = (char *)csound->Malloc(csound, 8);
@@ -277,7 +279,7 @@ static int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
-TREE *create_cond_expression(CSOUND *csound, TREE *root)
+static TREE *create_cond_expression(CSOUND *csound, TREE *root)
 {
     char *op = (char*)mmalloc(csound, 4), arg1, arg2, *outarg = NULL;
     char outype, *s;
@@ -362,7 +364,6 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       root->left = create_ans_token(csound, last->left->value->lexeme);
     }
 
-
     if (is_expression_node(root->right)) {
       TREE * newRight = create_expression(csound, root->right);
       if (anchor == NULL) {
@@ -384,7 +385,6 @@ TREE * create_expression(CSOUND *csound, TREE *root)
            freetree */
       root->right = create_ans_token(csound, last->left->value->lexeme);
     }
-
 
     op = mcalloc(csound, 80);
 
@@ -629,7 +629,7 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
  * */
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
-    int32 labelCounter = 300L;
+    //    int32 labelCounter = 300L;
 
     TREE *anchor = NULL;
     TREE * expressionNodes = NULL;
@@ -698,7 +698,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
             if (PARSER_DEBUG) csound->Message(csound, "Found if-then\n");
             if (right->next != NULL) {
-              endLabelCounter = labelCounter++;
+              endLabelCounter = genlabs++;
             }
 
             while (ifBlockCurrent != NULL) {
@@ -706,6 +706,16 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               tempRight = ifBlockCurrent->right;
               if (ifBlockCurrent->type == T_ELSE) {
                 ifBlockLast->next = ifBlockCurrent->right;
+                while (ifBlockLast->next != NULL) {
+                  ifBlockLast = ifBlockLast->next;
+                }
+                break;
+              }
+              else if (ifBlockCurrent->type == T_ELSEIF) { /* JPff code */
+                printf("ELSEIF case\n");
+                ifBlockCurrent->type = T_IF;
+                  ifBlockLast->next =
+                    csound_orc_expand_expressions(csound, ifBlockCurrent);
                 while (ifBlockLast->next != NULL) {
                   ifBlockLast = ifBlockLast->next;
                 }
@@ -731,8 +741,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 }
 
                 statements = tempRight->right;
-                label = create_synthetic_ident(csound, labelCounter);
-                labelEnd = create_synthetic_label(csound, labelCounter++);
+                label = create_synthetic_ident(csound, genlabs);
+                labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
                 gotoToken = create_goto_token(csound,
                                               expressionNodes->left->value->lexeme,

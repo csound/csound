@@ -1,3 +1,10 @@
+2010-08-26  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_expressions.c (create_cond_expression): New
+	code to deal with (a?b:c) variant
+	(is_expression_node): Added S_Q to expression operators 
+	(create_expression): Call create_cond_expression
+
 2010-08-25  John ff  <jpff@cs.bath.ac.uk>
 
 	* Engine/insert.c (insert): In pset case no not zero excess opcodes

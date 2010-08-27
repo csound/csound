@@ -38,7 +38,8 @@ TREE* force_rate(TREE* a, char t)
 
 
 /** Verifies that opcodes and args are correct*/
-int verify_tree(CSOUND *csound, TREE *root) {
+int verify_tree(CSOUND *csound, TREE *root) 
+{
     csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     return 1;
 }
