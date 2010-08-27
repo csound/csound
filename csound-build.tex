@@ -70,8 +70,8 @@ The conceit of this build system is that Csound is built in a standard Linux env
 	    \item (Done) Update the docbook toolchain:
 				\begin{enumerate}
 					\item (Done) Install the current Windows build of \texttt{xsltproc} from \url{http://www.zlatkovic.com/libxml.en.html}. This may involve also installing libraries upon which \texttt{xsltproc} depends.
-					\item (Done) Install the current Docbook XML DTDs from \url{http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip}, and set the \verb|XML_CATALOG_FILES| environment variable to point to the installation directory.
-					\item (Done) Install the current Docbook XSL stylesheets from \url{http://sourceforge.net/project/downloading.php?group_id=21935&filename=docbook-xsl-1.75.1.zip}, and set the \verb|XSL_BASE_PATH| environment variable to point to the installation directory. Then fill in the \texttt{rewritePrefix} attributes to make the \url{catalog.xml} file be something like:
+					\item (Done) Install the current Docbook XML DTDs from \url{http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip}.
+					\item (Done) Install the current Docbook XSL stylesheets from \url{http://sourceforge.net/project/downloading.php?group_id=21935&filename=docbook-xsl-1.75.1.zip}Fill in the \texttt{rewritePrefix} attributes to make the \url{catalog.xml} file be something like:
 					\begin{lstlisting}
 <?xml version="1.0" encoding="utf-8"?>
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
