@@ -552,7 +552,8 @@ elif getPlatform() == 'win32':
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
         commonEnvironment.Append(CCFLAGS = '-mthreads')
-	commonEnvironment.Append(SHLINKFLAGS = Split('-mwindows -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
+        commonEnvironment.Append(CXXFLAGS = '-mthreads')
+        commonEnvironment.Append(SHLINKFLAGS = Split('-mwindows -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
     else:
         commonEnvironment.Append(CCFLAGS =  '/DMSVC')
         commonEnvironment.Append(CXXFLAGS = '/EHsc')

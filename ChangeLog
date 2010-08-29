@@ -1,3 +1,11 @@
+2010-08-28  Michael Gogins <michael.gogins@gmail.com>
+
+	* Replaced csound-build.tex with How_to_Build_Csound_on_Windows.doc,
+    in Microsoft Word format, which should be more accessible to users.
+    
+    * Changed multi-threading in the head branch to use OpenMP instead of
+    PThreads, for greater clarity and maintability.
+
 2010-08-26  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_expressions.c (create_cond_expression): New
