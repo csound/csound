@@ -110,7 +110,7 @@ nchnls                  =                       2
 0dbfs                   =                       3
 
 giFluidsynth            fluidEngine
-giFluidGM               fluidLoad               "../samples/VintageDreamsWaves-v2.sf2", giFluidsynth, 1
+giFluidGM               fluidLoad               "../samples/sf_GMbank.sf2", giFluidsynth, 1
                         fluidProgramSelect      giFluidsynth, 0, giFluidGM,      0, 119
                         fluidProgramSelect      giFluidsynth, 1, giFluidGM,      0,   8
                         fluidProgramSelect      giFluidsynth, 2, giFluidGM,      0,  12
