@@ -553,6 +553,9 @@ skipAssoc:
       File C:\utah\mingw\bin\libgomp-1.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
+      # GNU
+      File C:\utah\usr.backup\bin\libglib-2.0-0.dll
+      File C:\utah\usr.backup\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
     SetOutPath $INSTDIR\${OPCODEDIR_VAL}
       File ..\..\ambicode1.dll
@@ -627,6 +630,7 @@ skipAssoc:
       File ..\..\examples\trapped-high-resolution.csd
       File ..\..\examples\xanadu.csd
       File ..\..\examples\xanadu-high-resolution.csd
+      File ..\..\examples\CloudStrata.csd
       File ..\..\examples\tpscaler.csd
     SetOutPath $INSTDIR\examples\cscore
       File /r /x *.wav /x *.orc /x *.sco /x .#* /x *~ /x *.lindenmayer ..\..\examples\cscore\*.*
@@ -668,25 +672,25 @@ skipAssoc:
     Section "Csound Reference Manual"
       SectionIn 1 2 3
       SetOutPath $INSTDIR\doc\manual
-  	File /r ..\..\..\manual\html\*
+  	File /r ..\..\..\..\manual\html\*
     SectionEnd
     Section "A Csound Tutorial"
       SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "A Csound Tutorial"
       SetOutPath $INSTDIR\tutorial
-  	File ..\..\..\tutorial\tutorial.pdf
-  	File ..\..\..\tutorial\*.csd
-  	File ..\..\..\tutorial\*.py
-  	File ..\..\..\tutorial\tutorial3.cpr
+  	File ..\..\..\..\tutorial\tutorial.pdf
+  	File ..\..\..\..\tutorial\*.csd
+  	File ..\..\..\..\tutorial\*.py
+  	File ..\..\..\..\tutorial\tutorial3.cpr
     SectionEnd
     Section "A Csound Algorithmic Composition Tutorial"
       SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundAcTutorial.lnk" "$INSTDIR\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf" "" "" "" "" "" "A Csound Algorithmic Composition Tutorial"
       SetOutPath $INSTDIR\tutorial
-  	File ..\..\..\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf
-  	File /r ..\..\..\tutorial\code\*.csd
-  	File /r ..\..\..\tutorial\code\*.py
-  	File /r ..\..\..\tutorial\code\*.mid
+  	File ..\..\..\..\tutorial\Csound_Algorithmic_Composition_Tutorial.pdf
+  	File /r ..\..\..\..\tutorial\code\*.csd
+  	File /r ..\..\..\..\tutorial\code\*.py
+  	File /r ..\..\..\..\tutorial\code\*.mid
     SectionEnd
   SectionGroupEnd
 SectionGroupEnd
