@@ -224,7 +224,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
         if (UNLIKELY(i >= p->tablen)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
-        rslt[i] = tab[i];
+        rslt[i] = tab[n];
       }
     }
     else {
@@ -233,7 +233,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
         if (UNLIKELY(i >= p->tablen)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
-        rslt[i] = tab[i];
+        rslt[i] = tab[n];
       }
     }
     return OK;
