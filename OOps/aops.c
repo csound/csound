@@ -145,7 +145,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
 
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
-  { *p->rbool = (*p->a OP *p->b) ? 1 : 0; return OK; }
+  { *p->rbool = (*p->a OP *p->b) ? 1 : 0;  return OK; }
 
 RELATN(gt,>)
 RELATN(ge,>=)
