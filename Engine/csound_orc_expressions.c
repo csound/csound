@@ -562,8 +562,6 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
                       argtyp2(csound, root->left->value->lexeme),
                       argtyp2(csound, root->right->value->lexeme));
 
-    print_tree(csound, root->left);
-    print_tree(csound, root->right);
     outarg = get_boolean_arg(csound,
                              argtyp2(csound, root->left->value->lexeme)=='k' ||
                              argtyp2(csound, root->right->value->lexeme)=='k');
@@ -710,6 +708,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               tempLeft = ifBlockCurrent->left;
               tempRight = ifBlockCurrent->right;
               if (ifBlockCurrent->type == T_ELSE) {
+                //printf("ELSE case\n"); print_tree(csound, ifBlockCurrent->right);
                 ifBlockLast->next =
                   csound_orc_expand_expressions(csound, ifBlockCurrent->right);
                 while (ifBlockLast->next != NULL) {
@@ -769,8 +768,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  int type = tempRight->type == 'k' ? 0 :
-                    tempRight->type == 'i' ? 1 : 0;
+                  char nn = argtyp2(csound, tempRight->value->lexeme);
+                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2);
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
                   if (PARSER_DEBUG)

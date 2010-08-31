@@ -1,16 +1,21 @@
+2010-08-31  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_expressions.c: Many changes to make if_then
+	etc work
+
 2010-08-28  Michael Gogins <michael.gogins@gmail.com>
 
 	* Replaced csound-build.tex with How_to_Build_Csound_on_Windows.doc,
-    in Microsoft Word format, which should be more accessible to users.
-    
-    * Changed multi-threading in the head branch to use OpenMP instead of
-    PThreads, for greater clarity and maintability.
+        in Microsoft Word format, which should be more accessible to users.
+
+        * Changed multi-threading in the head branch to use OpenMP instead of
+        PT hreads, for greater clarity and maintability.
 
 2010-08-26  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_expressions.c (create_cond_expression): New
 	code to deal with (a?b:c) variant
-	(is_expression_node): Added S_Q to expression operators 
+	(is_expression_node): Added S_Q to expression operators
 	(create_expression): Call create_cond_expression
 
 2010-08-25  John ff  <jpff@cs.bath.ac.uk>
