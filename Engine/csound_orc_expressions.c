@@ -94,7 +94,7 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
 char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
-
+    //    type = 1;
     sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
 
     return s;
@@ -326,7 +326,6 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
       strcpy(op,":i");
       outype = 'i';
       }
-    printf("******** %s\n", op);
     outarg = create_out_arg(csound, outype);
     opTree = create_opcode_token(csound, op);
     opTree->left = create_ans_token(csound, outarg);
@@ -505,7 +504,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    if (PARSER_DEBUG) csound->Message(csound, "Creating boolean expression\n");
+    /*   if (PARSER_DEBUG) */csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
@@ -558,10 +557,16 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       break;
     }
 
-    if (PARSER_DEBUG) csound->Message(csound, "Operator Found: %s\n", op);
+    if (PARSER_DEBUG)
+      csound->Message(csound, "Operator Found: %s (%c %c)\n", op,
+                      argtyp2(csound, root->left->value->lexeme),
+                      argtyp2(csound, root->right->value->lexeme));
 
+    print_tree(csound, root->left);
+    print_tree(csound, root->right);
     outarg = get_boolean_arg(csound,
-                             root->left->type=='k' || root->right->type=='k');
+                             argtyp2(csound, root->left->value->lexeme)=='k' ||
+                             argtyp2(csound, root->right->value->lexeme)=='k');
 
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;
@@ -747,12 +752,14 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 tempRight->right = label;
                 printf("goto types %c %c %d\n",
                        expressionNodes->left->type, tempRight->type,
-                       expressionNodes->left->type == 'k' || tempRight->type == 'k');
-                gotoToken = create_goto_token(csound,
-                                              expressionNodes->left->value->lexeme,
-                                              tempRight,
-                                              expressionNodes->left->type == 'k' ||
-                                              tempRight->type == 'k');
+                       (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') ||
+                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+                gotoToken =
+                  create_goto_token(csound,
+                   expressionNodes->left->value->lexeme,
+                   tempRight,
+                   (argtyp2(csound,expressionNodes->left->value->lexeme)== 'k') ||
+                   (argtyp2(csound, tempRight->value->lexeme) == 'k'));
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
