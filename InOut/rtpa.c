@@ -25,7 +25,9 @@
 /*                                              RTPA.C for PortAudio    */
 
 #include "csdl.h"
+#if !defined(WIN32)
 #include "soundio.h"
+#endif
 #include <portaudio.h>
 
 #define NO_FULLDUPLEX_PA_LOCK   0
