@@ -2766,11 +2766,12 @@ else:
 # build csLADSPA
 print "CONFIGURATION DEFAULT:  Building csLadspa."
 csLadspaEnv = commonEnvironment.Clone()
+csLadspaEnv.Append(LINKFLAGS = libCsoundLinkFlags)
 csLadspaEnv.Append(LIBS=libCsoundLibs)
 csLadspaEnv.Append(CCFLAGS='-I./frontends/csladspa')
 if getPlatform() == "darwin":
  if commonEnvironment['dynamicCsoundLibrary'] != '0':
-  csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -flat_namespace -framework CsoundLib'''))
+  csLadspaEnv.Append(LINKFLAGS=Split('''-bundle -undefined suppress -flat_namespace'''))
  else:
   csLadspaEnv.Append(LINKFLAGS="-bundle")
  csladspa = csLadspaEnv.Program('csladspa.so', 'frontends/csladspa/csladspa.cpp' )
