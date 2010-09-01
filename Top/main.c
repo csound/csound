@@ -297,7 +297,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }
-    
+
     csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
@@ -406,7 +406,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-    
+
     return musmon(csound);
 }
 

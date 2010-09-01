@@ -141,7 +141,7 @@ static void portMidi_listDevices(CSOUND *csound, int output)
       if (info->interf != NULL)
         csound->Message(csound, " %3d: %s (%s)\n", i, info->name, info->interf);
       else
-        csound->Message(csound, " %3d: %s\n", i, info->name); 
+        csound->Message(csound, " %3d: %s\n", i, info->name);
 
     }
 }
@@ -252,8 +252,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           csound->Message(csound, Str("PortMIDI: Activated input device %d: '%s'\n"),
                                   i, info->name);
         retval = Pm_OpenInput(&next->midistream,
-	         (PmDeviceID) portMidi_getRealDeviceID(i, 0),
-	                 NULL, 512L, (PmTimeProcPtr) NULL, NULL);
+                 (PmDeviceID) portMidi_getRealDeviceID(i, 0),
+                         NULL, 512L, (PmTimeProcPtr) NULL, NULL);
         if (retval != pmNoError) {
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));

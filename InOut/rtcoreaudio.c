@@ -81,7 +81,7 @@ int csoundModuleCreate(CSOUND *csound)
 
     if (csound->oparms->msglevel & 0x400)
       p->Message(csound, Str("CoreAudio real-time audio module for Csound\n"
-			     "by Victor Lazzarini\n"));
+                             "by Victor Lazzarini\n"));
     return 0;
 }
 

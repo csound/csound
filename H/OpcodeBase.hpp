@@ -79,10 +79,10 @@ public:
     if(csound) {
       if(csound->GetMessageLevel(csound) & WARNMSG ||
          csound->GetDebug(csound)) {
-	va_list args;
-	va_start(args, format);
+        va_list args;
+        va_start(args, format);
         csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
-	va_end(args);
+        va_end(args);
       }
     }
     else {
@@ -143,10 +143,10 @@ public:
     if(csound) {
       if(csound->GetMessageLevel(csound) & WARNMSG ||
          csound->GetDebug(csound)) {
-	va_list args;
-	va_start(args, format);
+        va_list args;
+        va_start(args, format);
         csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
-	va_end(args);
+        va_end(args);
       }
     }
     else {

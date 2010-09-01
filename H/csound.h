@@ -742,7 +742,7 @@ CSOUND_FILETYPES;
 
   /**
    * Adds the indicated sample into the audio input woriing buffer (spin);
-   * this only ever makes sense before calling csoundPerformKsmps(). 
+   * this only ever makes sense before calling csoundPerformKsmps().
    * The frame and channel must be in bounds relative to ksmps and nchnls.
    */
   PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame, int channel, MYFLT sample);
@@ -1414,21 +1414,21 @@ CSOUND_FILETYPES;
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
 #elif defined(MACOSX)
- 
+
 #ifndef SWIG
 
 #include <libkern/OSAtomic.h>
 #define csoundSpinLock(spinlock)                        \
     {                                                     \
-       OSSpinLockLock(spinlock);			  \
+       OSSpinLockLock(spinlock);                          \
     }
 #define csoundSpinUnLock(spinlock)              \
     {                                             \
-       OSSpinLockUnlock(spinlock);		  \
+       OSSpinLockUnlock(spinlock);                \
     }
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
-#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock); 
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 #endif
 #else
 
@@ -1770,7 +1770,7 @@ CSOUND_FILETYPES;
    * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
-  
+
   /**
    * Sets the chani opcode MYFLT k-rate value for the indicated channel.
    * The bus is automatically extended if the channel is greater than
@@ -1800,7 +1800,7 @@ CSOUND_FILETYPES;
   PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
 
   /**
-   * Sets the chani opcode MYFLT a-rate value for the indicated frame 
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame
    * for the indicated channel.
    * The bus is automatically extended if the channel is greater than
    * previously used, clearing new locations to zero.
@@ -1820,7 +1820,7 @@ CSOUND_FILETYPES;
   PUBLIC int csoundChanIASetSample(CSOUND *, int channel, int frame, MYFLT sample);
 
   /**
-   * Sets the chani opcode MYFLT a-rate value for the indicated frame 
+   * Sets the chani opcode MYFLT a-rate value for the indicated frame
    * for the indicated channel.
    * The bus is automatically extended if the channel is greater than
    * previously used, clearing new locations to zero.
@@ -1838,7 +1838,7 @@ CSOUND_FILETYPES;
    * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
-  
+
   /**
    * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
    * The bus is extended if 'n' exceeds any previous value.

@@ -457,8 +457,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     else {
       if(*p->ijump && (mode == 0) &&
          (p->ostart != *p->loop_start ||
-	  p->oend != *p->loop_end)) {
-	if(*p->ijump > 1)
+          p->oend != *p->loop_end)) {
+        if(*p->ijump > 1)
           loop_end = (int)(ndx[0] + crossfade);
         loop_start = *p->loop_start*sr;
         p->ostart = *p->loop_start;
@@ -505,7 +505,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           ndx[1] =  (double)loop_end;
           count=(MYFLT)crossfade;
           p->oend = *p->loop_end;
-	  p->ostart = *p->loop_start;
+          p->ostart = *p->loop_start;
         }
       }
       else if (mode==2) { /* back and forth */

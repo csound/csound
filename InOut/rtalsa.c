@@ -727,11 +727,11 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               }
               if (device < 0) {
                 break;
-	      }
+              }
               sprintf(name, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
               if (newdev != NULL) {   /* Device opened successfully */
-		numdevs++;
+                numdevs++;
                 if (olddev != NULL) {
                   olddev->next = newdev;
                 }
