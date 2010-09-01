@@ -44,7 +44,7 @@ static const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
                              811, 821, 823, 827, 829, 839, 853, 857, 859,
                              863, 877, 881, 883, 887, 907, 911, 919, 929,
                              937, 941, 947, 953, 967, 971, 977, 983, 991,
-                             997}; 
+                             997};
 
 typedef struct pfactor_ {
     int expon;
@@ -91,7 +91,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       This Gen routine calculates a Farey Sequence F_n of the integer n.
       A Farey Sequence F_n of order n is a list of fractions in their lowest
       terms between 0 and 1 and in ascending order. Their denominators do not
-      exceed n. 
+      exceed n.
       This means a fraction a/b belongs to F_n if 0 <= a <= b <= n.
       In F_n, the numerator and denominator of each fraction is always coprime.
       0 and 1 are included in F_n as the fractions 0/1 and 1/1.
@@ -102,20 +102,20 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       c/d = (a+e) / (b+f)
       c/d is called the mediant fraction between a/b and e/f.
       3. If n > 1, then no two successive terms of F_n have the same denominator.
-      
+
       The length of any Farey Sequence F_n is determined by
       |F_n| = 1 + SUM (phi(m)) FOR m=1, m<=n, m++
       where phi(m) is Euler's totient function, which gives the number of
-      integers <= m that are coprime to m. 
-      
+      integers <= m that are coprime to m.
+
       References:
       Hardy, G.M. and Wright, E.M. (1960), An Introduction to the Theory of
                                Numbers, Oxford, 4th Edition, Chapter 3, p.23
       http://mathworld.wolfram.com/FareySequence.html
       http://en.wikipedia.org/wiki/Totient
-      
+
       Implementation Notes:
-  
+
       The size of the array of fractions for any F_n is calculated
       with the help Euler's function phi(n), also called totient
       function. For its implementation we included an array of prime
@@ -130,7 +130,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     */
 
     int j, fareyseq, nvals, nargs, farey_length, mode;
-    MYFLT   *fp = ftp->ftable, *pp, *pp2; 
+    MYFLT   *fp = ftp->ftable, *pp, *pp2;
     CSOUND  *csound = ff->csound;
     RATIO *flist;
 
@@ -145,15 +145,15 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     pp2 = &(ff->e.p[6]);
     mode = (int) *pp2;
     farey_length = FareyLength (fareyseq);
-    flist = (RATIO*) calloc(farey_length, sizeof(RATIO)); 
-    
+    flist = (RATIO*) calloc(farey_length, sizeof(RATIO));
+
     GenerateFarey (fareyseq, flist, farey_length);
 
     switch (mode) {
     default:
     case 0: /* output float elements of F_n */
       for (j = 0;  j < nvals; j++) {
-        if (j < farey_length) 
+        if (j < farey_length)
           fp[j] = (MYFLT) flist[j].p / (MYFLT) flist[j].q;
       }
       break;
@@ -172,7 +172,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       }
     case 2: /* output only the denominators of the integer ratios */
       for (j = 0; j < nvals; j++) {
-        if (j < farey_length) 
+        if (j < farey_length)
           fp[j] = (MYFLT) flist[j].q;
       }
       break;
@@ -187,7 +187,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       }
     case 4: /* output float elements of F_n + 1 for tuning tables*/
       for (j = 0; j < nvals; j++) {
-        if (j < farey_length) 
+        if (j < farey_length)
           fp[j] = FL(1.0) + (MYFLT) flist[j].p / (MYFLT) flist[j].q;
       }
       break;
@@ -205,22 +205,22 @@ static int EulerPhi (int n)
     MYFLT result;
 
     if (n == 1)
-	return 1;
+      return 1;
     if (n == 0)
-	return 0;
+      return 0;
     memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
     /* for (i=0; i < MAX_PFACTOR; i++) { */
     /*     p[i].expon = 0;  */
     /*     p[i].base = 0; */
     /* } */
     pcount = PrimeFactors (n, p);
-    
+
     result = (MYFLT) n;
     for (i = 0; i < MAX_PFACTOR; i++) {
-	int q = p[i].base;
-	if (!q) 
-	    break;
-	result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
+      int q = p[i].base;
+      if (!q)
+        break;
+      result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
     }
     return (int) result;
 }
@@ -230,46 +230,46 @@ static int FareyLength (int n)
     int i = 1;
     int result = 1;
     n++;
-    for (; i < n; i++) 
-	result += EulerPhi (i);
+    for (; i < n; i++)
+      result += EulerPhi (i);
     return result;
 }
 
- 
-static int PrimeFactors (int n, PFACTOR p[]) 
-{ 
-    int i = 0; int j = 0; 
-    int i_exp = 0; 
+
+static int PrimeFactors (int n, PFACTOR p[])
+{
+    int i = 0; int j = 0;
+    int i_exp = 0;
 
     if (!n)
-	return j; 
+      return j;
 
-    while (i < MAX_PRIMES) 
-    { 
-	int aprime = primes[i++]; 
-	if (j == MAX_PFACTOR || aprime > n) {
-	    return j; 
-	}
-	if (n == aprime) 
-	{ 
-	    p[j].expon = 1;
-	    p[j].base = n;
-	    return (++j);
-	}
-	i_exp = 0;
-	while (!(n % aprime)) 
-	{ 
-	    i_exp++; 
-	    n /= aprime; 
-	} 
-	if (i_exp) 
-	{ 
-	    p[j].expon = i_exp;
-	    p[j].base = aprime;
-	    ++j;
-	} 
-    } 
-} 
+    while (i < MAX_PRIMES)
+    {
+      int aprime = primes[i++];
+      if (j == MAX_PFACTOR || aprime > n) {
+        return j;
+      }
+      if (n == aprime)
+        {
+          p[j].expon = 1;
+          p[j].base = n;
+          return (++j);
+        }
+      i_exp = 0;
+      while (!(n % aprime))
+        {
+          i_exp++;
+          n /= aprime;
+        }
+      if (i_exp)
+        {
+          p[j].expon = i_exp;
+          p[j].base = aprime;
+          ++j;
+        }
+    }
+}
 
 static void GenerateFarey (int n, RATIO flist[], int size) {
     int a, b, c, d, k, i;
@@ -277,16 +277,16 @@ static void GenerateFarey (int n, RATIO flist[], int size) {
     flist[0].p = a;
     flist[0].q = b;
     while (c < n) {
-	k = (int) ((n + b) / d);
-	int tempa = a;
-	int tempb = b;
-	a = c; b = d;
-	c = k * c - tempa;
-	d = k * d - tempb;
-	flist[i].p = a;
-	flist[i].q = b;
-	if (i < size)
-	    i++;
+      k = (int) ((n + b) / d);
+      int tempa = a;
+      int tempb = b;
+      a = c; b = d;
+      c = k * c - tempa;
+      d = k * d - tempb;
+      flist[i].p = a;
+      flist[i].q = b;
+      if (i < size)
+        i++;
     }
 }
 

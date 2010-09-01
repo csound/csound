@@ -505,8 +505,8 @@ int pitchafproc(CSOUND *csound, PITCHAF *p){
     float max = 0.f;
     for(i=0; i < len; i++) {
       if (cor[i] > max) {
-	max = cor[i];
-        if(i) imax = i; 
+        max = cor[i];
+        if(i) imax = i;
       }
         buff1[i] = buff2[i];
         cor[i] = 0.f;

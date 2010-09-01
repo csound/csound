@@ -183,8 +183,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                   c, (int) e->c.extra[0],
                                   sizeof(MYFLT)*((int)e->c.extra[0]+PMAX) );
                           q = e->c.extra =
-			    (MYFLT *)realloc(e->c.extra,
-					    sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
+                            (MYFLT *)realloc(e->c.extra,
+                                            sizeof(MYFLT)*((int) e->c.extra[0]+PMAX));
                           e->c.extra[0] = e->c.extra[0]+PMAX-1;
                         }
                       }

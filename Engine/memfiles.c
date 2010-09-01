@@ -392,7 +392,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     }
     p = (SNDMEMFILE*)
             csound->Malloc(csound, sizeof(SNDMEMFILE)
-			   + (size_t)  sfinfo->frames * sizeof(float));
+                           + (size_t)  sfinfo->frames * sizeof(float));
     /* set parameters */
     p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
     strcpy(p->name, fileName);

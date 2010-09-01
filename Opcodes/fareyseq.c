@@ -445,7 +445,7 @@ int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound,
                                Str("Table no. < 1 sft=%.2f"),
-			       *p->sft);
+                               *p->sft);
     }
 
     /* Source  */
@@ -466,7 +466,7 @@ int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound,
                                Str("Table no. < 1 sft=%.2f"),
-			       *p->sft);
+                               *p->sft);
     }
 
 
@@ -540,17 +540,17 @@ int EulerPhi (int n)
     memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
 
     if (n == 1)
-	return 1;
+      return 1;
     if (n == 0)
-	return 0;
+      return 0;
     pcount = PrimeFactors (n, p);
 
     result = (MYFLT)n;
     for (i = 0; i < MAX_PFACTOR; i++) {
-	int q = p[i].base;
-	if (!q)
-	    break;
-	result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
+      int q = p[i].base;
+      if (!q)
+        break;
+      result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
     }
     return (int) result;
 }
@@ -561,7 +561,7 @@ int FareyLength (int n)
     int result = 1;
     n++;
     for (; i < n; i++)
-	result += EulerPhi (i);
+      result += EulerPhi (i);
     return result;
 }
 
@@ -573,33 +573,33 @@ int PrimeFactors (int n, PFACTOR p[])
     int pcount = 0;
 
     if (!n)
-	return pcount;
+      return pcount;
 
     while (i < MAX_PRIMES)
-    {
-	int aprime = primes[i++];
-	if (j == MAX_PFACTOR || aprime > n) {
-	    return pcount;
-	}
-	if (n == aprime)
-	{
-	    p[j].expon = 1;
-	    p[j].base = n;
-	    return (++pcount);
-	}
-	i_exp = 0;
-	while (!(n % aprime))
-	{
-	    i_exp++;
-	    n /= aprime;
-	}
-	if (i_exp)
-	{
-	    p[j].expon = i_exp;
-	    p[j].base = aprime;
-	    ++pcount; ++j;
-	}
-    }
+      {
+        int aprime = primes[i++];
+        if (j == MAX_PFACTOR || aprime > n) {
+          return pcount;
+        }
+        if (n == aprime)
+          {
+            p[j].expon = 1;
+            p[j].base = n;
+            return (++pcount);
+          }
+        i_exp = 0;
+        while (!(n % aprime))
+          {
+            i_exp++;
+            n /= aprime;
+          }
+        if (i_exp)
+          {
+            p[j].expon = i_exp;
+            p[j].base = aprime;
+            ++pcount; ++j;
+          }
+      }
 }
 
 /* ----------------------------------------------- *
@@ -618,7 +618,7 @@ int PrimeFactors (int n, PFACTOR p[])
 MYFLT Digest (int n)
 {
     if (!n)
-	return FL(0.0);
+      return FL(0.0);
 
     {
       MYFLT result = FL(0.0);

@@ -342,12 +342,14 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $$ = make_node(csound, T_IF, $2, $3);
+            print_tree(csound, $$);
           }
           | T_IF expr then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $3->next = make_node(csound, T_ELSE, NULL, $7);
             $$ = make_node(csound, T_IF, $2, $3);
+            print_tree(csound, $$);
 
           }
           | T_IF expr then S_NL statementlist elseiflist T_ENDIF S_NL
@@ -356,10 +358,11 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
             $3->right = $5;
             $3->next = $6;
             $$ = make_node(csound, T_IF, $2, $3);
+            print_tree(csound, $$);
           }
           | T_IF expr then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL
           {
-            if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");
+              /*if (PARSER_DEBUG)*/ csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n");
             TREE * tempLastNode;
 
             $3->right = $5;
@@ -374,6 +377,7 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
             }
 
             tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $8);
+            print_tree(csound, $$);
 
           }
           ;
