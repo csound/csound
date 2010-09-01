@@ -634,7 +634,7 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     MYFLT   amp0, amp, cps0, cps;
     int32    phs, inc, lobits;
     int32    *lphs;
-    int     n, nsmps = csound->ksmps, count;
+    int     n, nsmps = csound->ksmps, c, count;
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, Str("adsynt: not initialised"));
@@ -655,18 +655,18 @@ int adsynt(CSOUND *csound, ADSYNT *p)
     ar = p->sr;
     memset(ar, 0, nsmps*sizeof(MYFLT));
 
-    do {
-      amp = *amptbl++ * amp0;
-      cps = *freqtbl++ * cps0;
+    for (c=0; c<count; c++) {
+      amp = amptbl[c] * amp0;
+      cps = freqtbl[c] * cps0;
       inc = (int32) (cps * csound->sicvt);
-      phs = *lphs;
+      phs = lphs[c];
       for (n=0; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
         phs += inc;
         phs &= PHMASK;
       }
-      *lphs++ = phs;
-    } while (--count);
+      lphs[c] = phs;
+    }
     return OK;
 }
 
