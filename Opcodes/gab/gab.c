@@ -447,7 +447,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt2: amptable not found!"));
     }
-    if (ftp->flen < count) {
+    if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
       return csound->InitError(csound,
                                Str("adsynt2: partial count is greater "
@@ -517,7 +517,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
       inc = (int32) (cps * csound->sicvt);
-      phs = *lphs;
+      phs = lphs[c];
       ampIncr = (amp - amp2) * csound->onedksmps;
       for (n=0; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
