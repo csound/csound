@@ -195,7 +195,7 @@ PUBLIC MYFLT csoundChanOKGetValue(CSOUND *csound, int n)
     return CSOUND_ERROR;
   if ((unsigned int)n >= (unsigned int)csound->nchanok) {
     int   err = chan_realloc(csound,
-			     &(csound->chanok), &(csound->nchanok), n + 1);
+                             &(csound->chanok), &(csound->nchanok), n + 1);
     if (UNLIKELY(err))
       return err;
   }
@@ -209,7 +209,7 @@ PUBLIC int csoundChanIASetSample(CSOUND *csound, int n, int i, MYFLT sample)
   n *= csound->ksmps;
   if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
     int   err = chan_realloc(csound, &(csound->chanoa),
-			     &(csound->nchanoa), n + csound->ksmps);
+                             &(csound->nchanoa), n + csound->ksmps);
     if (UNLIKELY(err))
       return err;
   }
@@ -225,7 +225,7 @@ PUBLIC MYFLT csoundChanOAGetSample(CSOUND *csound, int n, int i)
   n *= csound->ksmps;
   if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
     int   err = chan_realloc(csound, &(csound->chanoa),
-			     &(csound->nchanoa), n + csound->ksmps);
+                             &(csound->nchanoa), n + csound->ksmps);
     if (UNLIKELY(err))
       return err;
   }
@@ -1057,7 +1057,7 @@ int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
       p->lock = csoundGetChannelLock(csound, (char*) p->iname,
-    	                      CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
       p->h.opadr = (SUBR) chnclear_opcode_perf;
       return OK;
     }

@@ -47,7 +47,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     int N, hop, i=0;
     char varname[32] = "::buffer0";
     FSIG_HANDLE **phandle = NULL;
-  
+
 #ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
@@ -72,15 +72,15 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle->header.frame.size = p->buffer.size;
     p->handle->data = (float *)  p->buffer.auxp;
 
-   
+
     while((phandle = (FSIG_HANDLE **)csound->QueryGlobalVariable(csound,varname)) != NULL)
         if(p->handle == *phandle) break;
-	else sprintf(varname, "::buffer%d", ++i);
- 
+        else sprintf(varname, "::buffer%d", ++i);
+
     if(phandle == NULL) {
      csound->CreateGlobalVariable(csound, varname, sizeof(FSIG_HANDLE *));
-     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname); 
-     /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */  
+     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
+     /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */
     if (phandle == NULL)
       csound->InitError(csound, Str("error... could not create global var for handle\n"));
     else
@@ -137,13 +137,13 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     sprintf(varname, "::buffer%d", (int)(*p->hptr));
     /* csound->Message(csound, "%s:\n", varname); */
-    phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);    
+    phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
       csound->InitError(csound, Str("error... could not read handle from global variable\n"));
     else
       handle = *phandle;
     p->optr = *p->hptr;
-    
+
     if (handle != NULL) {
       p->fout->N = N = handle->header.N;
       p->fout->overlap = handle->header.overlap;
@@ -164,7 +164,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-    
+
 #ifndef OLPC
     p->fout->sliding = 0;
 #endif
@@ -186,7 +186,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
    if(*p->hptr != p->optr){
       char varname[32];
       sprintf(varname, "::buffer%d", (int)(*p->hptr));
-      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);    
+      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
       csound->PerfError(csound, Str("error... could not read handle from global variable\n"));
     else
@@ -209,7 +209,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       frames = handle->frames-1;
       pos = *p->ktime*(sr/overlap) - 1;
 
-       if(p->iclear) memset(fout, 0, sizeof(float)*(N+2)); 
+       if(p->iclear) memset(fout, 0, sizeof(float)*(N+2));
       while(pos >= frames) pos -= frames;
       while(pos < 0) pos += frames;
       posi = (int) pos;
