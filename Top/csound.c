@@ -1707,7 +1707,12 @@ extern "C" {
                     const char *format,
                     va_list args))
     {
-        csound->csoundMessageCallback_ = csoundMessageCallback;
+        /* Protect against a null callback. */
+        if (csoundMessageCallback) {
+            csound->csoundMessageCallback_ = csoundMessageCallback;
+        } else {
+            csound->csoundMessageCallback_ = csoundDefaultMessageCallback;
+        }
     }
 
     PUBLIC void csoundMessageV(CSOUND *csound,
