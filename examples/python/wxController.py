@@ -1,29 +1,29 @@
 # Importing CsoundAC automatically creates a global 'csound' object.
 import csnd
-from wxPython.wx import *
+import wx
 # Csound MUST run in its own thread.
 import threading
 import traceback
 
 # Create a panel to hold widgets that will control a Csound performance.
-class ControlPanel(wxPanel):
+class ControlPanel(wx.Panel):
         # Override the base class constructor.
         def __init__(self, parent):
-            wxPanel.__init__(self, parent, -1)
+            wx.Panel.__init__(self, parent, -1)
             # Create a button to send a note to Csound.
             self.ID_BUTTON1 = 10
-            self.button1 = wxButton(self, self.ID_BUTTON1, "Send Note", (20, 20))
+            self.button1 = wx.Button(self, self.ID_BUTTON1, "Send Note", (20, 20))
             # Bind the button to its event handler.
-            EVT_BUTTON(self, self.ID_BUTTON1, self.OnClickButton1)
+            wx.EVT_BUTTON(self, self.ID_BUTTON1, self.OnClickButton1)
             # Create a slider to change the pitch of the note.
             self.ID_SLIDER1 = 20
-            self.slider1 = wxSlider(self, self.ID_SLIDER1, 63, 0, 127, (20, 50), (200,50),
-                                    wxSL_HORIZONTAL | wxSL_LABELS)
+            self.slider1 = wx.Slider(self, self.ID_SLIDER1, 63, 0, 127, (20, 50), (200,50),
+                                    wx.SL_HORIZONTAL | wx.SL_LABELS)
             self.slider1.SetTickFreq(5, 1)
             # Bind the slider to its event handler.
-            EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
+            wx.EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
             # Set up a 'close' event handler to cleanly shut down Csound.
-            EVT_CLOSE(parent, self.OnClose)
+            wx.EVT_CLOSE(parent, self.OnClose)
             # Default pitch.
             self.pitch = 60
             # Create an instance of CppSound.
@@ -63,7 +63,7 @@ class ControlPanel(wxPanel):
             ''')
             # Real-time audio output.
             # It is not necessary to enable line events.
-            self.csound.setCommand('''csound -h -m128 -d -odac8 -B512 -b400 temp.orc temp.sco''')
+            self.csound.setCommand('''csound -h -m128 -d -odac -B512 -b400 temp.orc temp.sco''')
             # Export the orc and sco.
             self.csound.exportForPerformance()
             # Start the performance.
@@ -98,14 +98,17 @@ class ControlPanel(wxPanel):
             except:
                 print traceback.print_exc()
 
-# Create a wx application.
-application = wxPySimpleApp()
-# Create a frame to hold the control panel.
-frame = wxFrame(None, -1, "Csound Controller")
-# Create the control panel as a child of the frame.
-controlPanel = ControlPanel(frame)
-# Display the frame.
-frame.Show(True)
-# Run the application.
-application.MainLoop()
-
+try:
+    # Create a wx application.
+    application = wx.PySimpleApp()
+    # Create a frame to hold the control panel.
+    frame = wx.Frame(None, -1, "Csound Controller")
+    # Create the control panel as a child of the frame.
+    controlPanel = ControlPanel(frame)
+    # Display the frame.
+    frame.Show(True)
+    # Run the application.
+    application.MainLoop()
+    print 'Done...'
+except:
+    traceback.print_exc()

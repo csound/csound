@@ -14,12 +14,11 @@ score.load("c:/WINDOWS/Media/town.mid")
 print("Score length = ", len(score))
 csound.setOrchestra('''
 sr = 44100
-kr = 441
 ksmps = 100
 nchnls = 2
 0dbfs = 1
 
-gSfont                  =                       "c:/MusicProgrammingBook/examples/63.3mg The Sound Site Album Bank V1.0.SF2"
+gSfont                  =                       "../../samples/sf_GMbank.sf2"
 
 giFluid                 fluidEngine
 giSFont                 fluidLoad               gSfont, giFluid, 1
@@ -53,7 +52,7 @@ endin
 ''')
 
 csound.setScore(score.getCsoundScore())
-csound.setCommand("csound -RWdfo ./town.wav ./temp.orc ./temp.sco")
+csound.setCommand("csound -RWdfo town.wav ./temp.orc ./temp.sco")
 csound.exportForPerformance()
 model.perform()
 
