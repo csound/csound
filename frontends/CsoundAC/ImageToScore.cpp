@@ -158,8 +158,8 @@ namespace csound
                 image = new Fl_PNG_Image(imageFilename.c_str());
             } else if (imageFilename.find(".gif") != std::string::npos || imageFilename.find(".GIF") != std::string::npos) {
                 image = new Fl_GIF_Image(imageFilename.c_str());
-            } else if(imageFilename.find(".xpm") != std::string::npos || imageFilename.find(".XPM") != std::string::npos) {
-                image = new Fl_XPM_Image(imageFilename.c_str());
+            //} else if(imageFilename.find(".xpm") != std::string::npos || imageFilename.find(".XPM") != std::string::npos) {
+            //    image = new Fl_XPM_Image(imageFilename.c_str());
             } else if(imageFilename.find(".pnm") != std::string::npos || imageFilename.find(".PNM") != std::string::npos) {
                 image = new Fl_PNM_Image(imageFilename.c_str());
             } else if(imageFilename.find(".bmp") != std::string::npos || imageFilename.find(".BMP") != std::string::npos) {
