@@ -1,3 +1,15 @@
+2010-09-02  Michael Gogins <michael.gogins@gmail.com>
+
+    * Migrated Windows compiler to MinGW GCC 4.4.0 from Qt for all third party 
+    and Csound executables. This compiler generates dw2 exception handling
+    code.
+    
+    * Fixed up examples to execute in their own directories.
+    
+    * Changed csoundSetMessageCallback to reset the callback to 
+    csoundDefaultMessageCallback if the user sets the callback to null,
+    in order to prevent segment faults.
+
 2010-09-01  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/gab/gab.c (adsynt2): Phase not handled correctly
@@ -9,12 +21,12 @@
 
 2010-08-28  Michael Gogins <michael.gogins@gmail.com>
 
-	* Replaced csound-build.tex with How_to_Build_Csound_on_Windows.doc,
-        in Microsoft Word format, which should be more accessible to users.
-
-        * Changed multi-threading in the head branch to use OpenMP instead of
-        PT hreads, for greater clarity and maintability.
-
+    * Replaced csound-build.tex with How_to_Build_Csound_on_Windows.doc,
+    in Microsoft Word format, which should be more accessible to users.
+    
+    * Changed multi-threading in the head branch to use OpenMP instead of
+    PThreads, for greater clarity and maintability.
+    
 2010-08-26  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_expressions.c (create_cond_expression): New

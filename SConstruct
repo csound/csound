@@ -482,8 +482,10 @@ elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
 if compilerGNU():
-    commonEnvironment.Prepend(CCFLAGS = ['-Wno-format'])
-    commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
+    commonEnvironment.Prepend(CCFLAGS = Split('-Wno-format -fexceptions -shared-libgcc'))
+    commonEnvironment.Prepend(CXXFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
+    commonEnvironment.Prepend(LINKFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
+    commonEnvironment.Prepend(SHLINKFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
 
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 
@@ -551,9 +553,8 @@ elif getPlatform() == 'win32':
         commonEnvironment.Prepend(CCFLAGS = "-Wall")
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
-        commonEnvironment.Append(CCFLAGS = '-mthreads')
-        commonEnvironment.Append(CXXFLAGS = '-mthreads')
-        commonEnvironment.Append(SHLINKFLAGS = Split('-mwindows -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
+        commonEnvironment.Append(SHLINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
+        commonEnvironment.Append(LINKFLAGS = Split(' -mno-cygwin -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc'))
     else:
         commonEnvironment.Append(CCFLAGS =  '/DMSVC')
         commonEnvironment.Append(CXXFLAGS = '/EHsc')
@@ -989,7 +990,6 @@ winmm
 winspool 
 ws2_32 
 wsock32
-pthread
         ''')
     else:
         csoundWindowsLibraries = Split('''
@@ -1707,10 +1707,17 @@ if buildOLPC :
    oggEnvironment.Append(LIBS=['vorbisfile'])
 makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
 
-if commonEnvironment['buildImageOpcodes'] == '1' and configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
-	print 'CONFIGURATION DECISION: Building image opcodes'
-	pluginEnvironment.Append(LIBS= Split(''' png z '''))
-	makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+if commonEnvironment['buildImageOpcodes'] == '1':
+    if getPlatform() == 'win32':
+        if configure.CheckLibWithHeader("fltk_png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' fltk_png fltk_z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
+    else:
+        if configure.CheckLibWithHeader("png", "png.h", language="C") and zlibhfound:
+            print 'CONFIGURATION DECISION: Building image opcodes'
+            pluginEnvironment.Append(LIBS= Split(''' png z '''))
+            makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
 if not buildOLPC:
@@ -1727,7 +1734,7 @@ if jackFound and commonEnvironment['useJack'] == '1':
     if getPlatform() == 'linux':
         jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     elif getPlatform() == 'win32':
-        jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
+        jpluginEnvironment.Append(LIBS = ['jackdmp'])
     elif getPlatform() == 'darwin':
         jpluginEnvironment.Append(LIBS = ['pthread'])
 	jpluginEnvironment.Append(LINKFLAGS = ['-framework', 'Jackmp'])
@@ -1764,7 +1771,7 @@ if ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
  except:
     print 'Exception when attempting to parse fltk-config.'
 if getPlatform() == 'darwin':
-    vstEnvironment.Append(LIBS = ['fltk', 'fltk_images']) # fltk_png z fltk_jpeg are not on OSX at the mo
+    vstEnvironment.Append(LIBS = ['fltk', 'fltk_images']) # png z jpeg are not on OSX at the mo
 if getPlatform() == 'win32':
     if compilerGNU():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
@@ -1813,7 +1820,7 @@ else:
             #widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
                 LINKFLAGS = ['-Wl'])#,'--enable-runtime-pseudo-reloc'])
-            widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+            widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
         else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -1888,7 +1895,9 @@ else:
     elif getPlatform() == 'win32':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
-    makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
+        makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.cpp'])
+    else:
+        makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
 
 if not (commonEnvironment['useJack'] == '1' and jackFound):
     print "CONFIGURATION DECISION: Not building JACK plugin."
@@ -1898,7 +1907,7 @@ else:
     if getPlatform() == 'linux':
         jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     elif getPlatform() == 'win32':
-        jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
+        jackEnvironment.Append(LIBS = ['jackdmp'])
     else:
         jackEnvironment.Append(LIBS = ['pthread', 'jack'])
     makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
@@ -1985,11 +1994,11 @@ else:
         vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
         vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
         if compilerGNU():
-            vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
-	    if not getPlatform() == 'win32':
-		vst4Environment.Append(LIBS = ['stdc++'])
-        else:
-            vst4Environment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
+            if getPlatform() == 'win32':
+                vst4Environment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
+            else:
+                vst4Environment.Append(LIBS = Split('fltk_images png z jpeg fltk'))
+                vst4Environment.Append(LIBS = ['stdc++'])
         if getPlatform() == 'win32':
             vst4Environment.Append(LIBS = csoundWindowsLibraries)
         makePlugin(vst4Environment, 'vst4cs', Split('''
@@ -2296,7 +2305,7 @@ else:
             csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc
             '''))
-            csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+            csound5GUIEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
         else:
             csound5GUIEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -2429,7 +2438,7 @@ else:
         #os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
     elif getPlatform() == 'darwin':
         acEnvironment.Append(LIBS = ['fltk'])
-        acEnvironment.Append(LIBS = ['dl', 'm', 'fltk_images', 'fltk_png', 'fltk_jpeg'])
+        acEnvironment.Append(LIBS = ['dl', 'm', 'fltk_images', 'png', 'jpeg'])
         acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         acEnvironment['SHLIBSUFFIX'] = '.dylib'
@@ -2717,7 +2726,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         if compilerGNU():
-            csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+            csWinEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
             #csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csWinEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc

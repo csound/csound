@@ -76,7 +76,9 @@ int main(int argc, char **argv)
 
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
+#if !defined(WIN32)
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
+#endif
     }
 
 #ifdef GNU_GETTEXT
