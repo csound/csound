@@ -532,15 +532,17 @@ skipAssoc:
       # libsndfile
       File C:\utah\opt\Mega-Nerd\libsndfile\libsndfile-1.dll
       # FLTK
-      File C:\utah\opt\fltk\branch-1.3\lib\libfltk.dll
-      File C:\utah\opt\fltk\branch-1.3\lib\libfltk_images.dll
+      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
+      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
+      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_gl-1.1.dll
+      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_images-1.1.dll
       # PortAudio
-      File C:\utah\opt\portaudio\portaudio.dll
+      #File C:\utah\opt\portaudio\portaudio.dll
       # PortMIDI
       File C:\utah\opt\portmidi\portmidi.dll
       File C:\utah\opt\portmidi\porttime.dll
       # Fluidsynth
-      File C:\utah\opt\fluidsynth\src\Release\libfluidsynth.dll
+      File C:\utah\opt\fluidsynth\src\libfluidsynth.dll
       # Image opcodes
       #File C:\utah\mingw\bin\zlib1.dll
       #File C:\utah\mingw\bin\libpng.dll
@@ -549,13 +551,13 @@ skipAssoc:
       # MusicXML
       File C:\utah\opt\musicxml-v2\win32\codeblocks\libmusicxml2.dll
       # pthreads
-      File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
-      File C:\utah\mingw\bin\libgomp-1.dll
+      # Now static. File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
+      File c:\utah\mingw_qt\bin\libgomp-1.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
       # GNU
-      File C:\utah\usr.backup\bin\libglib-2.0-0.dll
-      File C:\utah\usr.backup\bin\libgthread-2.0-0.dll
+      File C:\utah\msys\1.0\local\bin\libglib-2.0-0.dll
+      File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
     SetOutPath $INSTDIR\${OPCODEDIR_VAL}
       File ..\..\ambicode1.dll
@@ -705,15 +707,15 @@ SectionGroup "Front ends"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
-      File C:\utah\opt\QuteCsound-d\QtCore4.dll
-      File C:\utah\opt\QuteCsound-d\QtGui4.dll
-      File C:\utah\opt\QuteCsound-d\QtXml4.dll
-      File C:\utah\opt\QuteCsound-d\mingwm10.dll
-      File C:\utah\opt\QuteCsound-d\libgcc_s_dw2-1.dll
+      File C:\utah\opt\Qt\2010.04\qt\bin\QtCore4.dll
+      File C:\utah\opt\Qt\2010.04\qt\bin\QtGui4.dll
+      File C:\utah\opt\Qt\2010.04\qt\bin\QtXml4.dll
+      File C:\utah\mingw_qt\bin\mingwm10.dll
+      File C:\utah\mingw_qt\bin\libgcc_s_dw2-1.dll
 !ifdef FLOAT
-      File D:\utah\opt\qutecsoundf\release\qutecsoundf.exe
+      File C:\utah\opt\qutecsound\bin\qutecsoundf.exe
 !else
-      File C:\utah\opt\QuteCsound-d\qutecsound-d.exe
+      File C:\utah\opt\qutecsound\bin\qutecsound-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE

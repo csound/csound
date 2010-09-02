@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -R -W -s -o Xanadu.wav temp.orc temp.sco
+csound -R -W -f -d  -o Xanadu.wav temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr          =           44100
@@ -225,6 +225,7 @@ i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
 e
+
 
 </CsScore>
 </CsoundSynthesizer>

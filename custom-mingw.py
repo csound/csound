@@ -57,19 +57,16 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the FLTK widgets, csound5gui, cseditor,
     # CsoundAC, or CsoundVST, FLTK 1.1x is required.
-    customCPPPATH.append(r'C:\utah\opt\fltk\branch-1.3')
-    # Import libraries MUST come first.
-    customLIBPATH.append(r'C:\utah\opt\fltk\branch-1.3\lib')
-    # Then static libraries.
-    customLIBPATH.append(r'C:\utah\opt\fltk\branch-1.3\bin')
+    customCPPPATH.append(r'C:\utah\opt\fltk-1.1.10')
+    customLIBPATH.append(r'C:\utah\opt\fltk-1.1.10\src')
+    customLIBPATH.append(r'C:\utah\opt\fltk-1.1.10\lib')
+    customLIBPATH.append(r'C:\utah\opt\fltk-1.1.10\bin')
     ################################################################
     # If you want to build the image opcodes,
     # libpng and libz are required.
-    customCPPPATH.append(r'C:\utah\opt\zlib-1.2.3.win32\include')
-    customLIBPATH.append(r'C:\utah\opt\zlib-1.2.3.win32\lib')
-    customLIBPATH.append(r'C:\utah\opt\zlib-1.2.3.win32\bin')
-    customCPPPATH.append(r'C:\utah\opt\libpng-1.2.24')
-    customLIBPATH.append(r'C:\utah\opt\libpng-1.2.24\.libs')
+    customCPPPATH.append(r'C:\utah\msys\1.0\local\include')
+    customLIBPATH.append(r'C:\utah\msys\1.0\local\lib')
+    customLIBPATH.append(r'C:\utah\msys\1.0\local\bin')
     ################################################################
     # If you want to build the Python opcodes, the Python interfaces
     # to Csound, or CsoundAC, Python 2.5 is required.
@@ -82,7 +79,7 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundAC, you need the 
     # boost C++ libraries.
-    customCPPPATH.append(r'C:\utah\opt\boost_1_43_0')
+    customCPPPATH.append(r'C:\utah\opt\boost_1_44_0')
     ################################################################
     # If you want to build scoregen, you need the include
     # path to VST MIDI plugin SDK header files. 
@@ -101,7 +98,7 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the FluidSynth opcodes,
     # you need the FluidSynth DLL (not .lib).
-    customLIBPATH.append(r'C:\utah\opt\fluidsynth\src\Release')
+    customLIBPATH.append(r'C:\utah\opt\fluidsynth\src')
     customCPPPATH.append(r'C:\utah\opt\fluidsynth\include')
     # And the dsound library from the Microsoft DirectX SDK.
     customLIBPATH.append(r'C:\utah\opt\directx-sdk-2010-06\Lib\x86')
@@ -117,9 +114,6 @@ if sys.platform[:3] == 'win':
     customCPPPATH.append(r'C:\utah\opt\liblo\lo')
     customCPPPATH.append(r'C:\utah\opt\liblo\src')
     customLIBPATH.append(r'C:\utah\opt\liblo')
-    # For OSC on Windows, you will also need a Windows pthread library.
-    customCPPPATH.append(r'C:\utah\opt\pthreads\Pre-built.2\include')
-    customLIBPATH.append(r'C:\utah\opt\pthreads\Pre-built.2\lib')
     ################################################################
     # If you want to build the Pure Data external csoundapi~,
     # you need Pure Data. 
