@@ -107,15 +107,15 @@ csound.setOrchestra('''
 sr                      =                       44100
 ksmps                   =                       100
 nchnls                  =                       2
-0dbfs                   =                       3
+0dbfs                   =                       0.1
 
 giFluidsynth            fluidEngine
-giFluidGM               fluidLoad               "../samples/sf_GMbank.sf2", giFluidsynth, 1
-                        fluidProgramSelect      giFluidsynth, 0, giFluidGM,      0, 119
+giFluidGM               fluidLoad               "../../samples/sf_GMbank.sf2", giFluidsynth, 1
+                        fluidProgramSelect      giFluidsynth, 0, giFluidGM,      0,   4
                         fluidProgramSelect      giFluidsynth, 1, giFluidGM,      0,   8
-                        fluidProgramSelect      giFluidsynth, 2, giFluidGM,      0,  12
+                        fluidProgramSelect      giFluidsynth, 2, giFluidGM,      0,   6
                         fluidProgramSelect      giFluidsynth, 3, giFluidGM,      0,   0
-                        fluidProgramSelect      giFluidsynth, 4, giFluidGM,      0,  15
+                        fluidProgramSelect      giFluidsynth, 4, giFluidGM,      0,   1
                         fluidProgramSelect      giFluidsynth, 5, giFluidGM,      0,  15
                         fluidProgramSelect      giFluidsynth, 6, giFluidGM,      0,  15
 
@@ -153,6 +153,7 @@ csound.exportForPerformance()
 # Perform the generated score with the embedded orchestra.
 
 csound.perform()
+
 
 
 
