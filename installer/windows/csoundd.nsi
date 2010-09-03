@@ -566,6 +566,7 @@ skipAssoc:
       File ..\..\barmodel.dll
       File ..\..\chua.dll
       File ..\..\compress.dll
+      File ..\..\crossfm.dll
       File ..\..\cs_date.dll
       File ..\..\cs_pan2.dll
       File ..\..\cs_pvs_ops.dll
@@ -594,6 +595,7 @@ skipAssoc:
       File ..\..\pitch.dll
       File ..\..\pmidi.dll
       File ..\..\ptrack.dll
+      File ..\..\pvlock.dll
       File ..\..\pvoc.dll
       File ..\..\pvsbuffer.dll
       File ..\..\rtpa.dll
