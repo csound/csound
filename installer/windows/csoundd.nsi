@@ -587,6 +587,7 @@ skipAssoc:
       File ..\..\minmax.dll
       File ..\..\mixer.dll
       File ..\..\modal4.dll
+      File ..\..\modmatrix.dll
       File ..\..\mutexops.dll
       File ..\..\osc.dll
       File ..\..\partikkel.dll
