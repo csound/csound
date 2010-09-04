@@ -481,7 +481,7 @@ elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
         commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
-if compilerGNU():
+if getPlatform() == 'win32' and compilerGNU():
     commonEnvironment.Prepend(CCFLAGS = Split('-Wno-format -fexceptions -shared-libgcc'))
     commonEnvironment.Prepend(CXXFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
     commonEnvironment.Prepend(LINKFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
