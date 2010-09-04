@@ -518,7 +518,7 @@ skipAssoc:
       File ..\..\LICENSE.PortMidi
       File ..\..\LICENSE.FLTK
       File ..\..\LICENSE.PortAudio
-      File ..\..\csound-build.pdf
+      File ..\..\How_to_Build_Csound_on_Windows.doc
     SetOutPath $INSTDIR\bin
       # Csound itself.
       File ..\..\csound.exe
