@@ -531,6 +531,8 @@ skipAssoc:
       # Third party libraries:
       # libsndfile
       File C:\utah\opt\Mega-Nerd\libsndfile\libsndfile-1.dll
+      # Pthreads
+      File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
       # FLTK
       File c:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
       File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
