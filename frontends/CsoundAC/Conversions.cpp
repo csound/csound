@@ -622,7 +622,7 @@ namespace csound
     for(;;) {
       size_t nextIndex = text.find(",");
       if (nextIndex == text.npos) {
-	break;
+        break;
       }
       vector.push_back(std::atof(text.substr(index, nextIndex - index).c_str()));
       index = nextIndex + 1;

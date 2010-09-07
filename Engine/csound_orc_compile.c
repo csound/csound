@@ -570,7 +570,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
             csound->tran_nchnlsi = current->right->value->value;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
           } else if (current->left->type == T_0DBFS) {
-        	csound->tran_0dbfs = val;
+            csound->tran_0dbfs = val;
           }
 
           /* TODO - Implement 0dbfs constant */
