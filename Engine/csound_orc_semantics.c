@@ -531,7 +531,7 @@ void print_tree(CSOUND * csound, TREE *l)
 
 void handle_optional_args(CSOUND *csound, TREE *l)
 {
-	if (l == NULL || l->type == T_LABEL) return;
+    if (l == NULL || l->type == T_LABEL) return;
 
     int opnum = find_opcode(csound, l->value->lexeme);
     OENTRY *ep = csound->opcodlst + opnum;
@@ -539,8 +539,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     int incnt = tree_arg_list_count(l->right);
     TREE * temp;
 
-    if(ep->intypes != NULL) {
-    	nreqd = strlen(ep->intypes);
+    if (ep->intypes != NULL) {
+      nreqd = strlen(ep->intypes);
     }
 
     if (PARSER_DEBUG) {
