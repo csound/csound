@@ -201,7 +201,7 @@ std::map<CSOUND *, std::vector< std::vector< std::vector<Outletf *> *> * > > fou
  */
 struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             aoutletsForCsoundsForSourceOutletIds[csound].clear();
             ainletsForCsoundsForSinkInletIds[csound].clear();
@@ -231,7 +231,7 @@ struct Outleta : public OpcodeBase<Outleta> {
     char sourceOutletId[0x100];
     int init(CSOUND *csound) {
         //warn(csound, "BEGAN Outleta::init()...\n");
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             sourceOutletId[0] = 0;
             const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
@@ -267,7 +267,7 @@ struct Inleta : public OpcodeBase<Inleta> {
     std::vector< std::vector<Outleta *> *> *sourceOutlets;
     int sampleN;
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             warn(csound, "BEGAN Inleta::init()...\n");
             sampleN = csound->GetKsmps(csound);
@@ -310,7 +310,7 @@ struct Inleta : public OpcodeBase<Inleta> {
      * Sum arate values from active outlets feeding this inlet.
      */
     int audio(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
 
             //warn(csound, "BEGAN Inleta::audio()...\n");
@@ -356,7 +356,7 @@ struct Outletk : public OpcodeBase<Outletk> {
      */
     char sourceOutletId[0x100];
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
 
             const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
@@ -388,7 +388,7 @@ struct Inletk : public OpcodeBase<Inletk> {
     std::vector< std::vector<Outletk *> *> *sourceOutlets;
     int ksmps;
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
 
             ksmps = csound->GetKsmps(csound);
@@ -428,7 +428,7 @@ struct Inletk : public OpcodeBase<Inletk> {
      * Sum krate values from active outlets feeding this inlet.
      */
     int kontrol(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             // Zero the inlet buffer.
             *ksignal = FL(0.0);
@@ -464,7 +464,7 @@ struct Outletf : public OpcodeBase<Outletf> {
      */
     char sourceOutletId[0x100];
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
             if (insname) {
@@ -497,7 +497,7 @@ struct Inletf : public OpcodeBase<Inletf> {
     int lastframe;
     bool fsignalInitialized;
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             ksmps = csound->GetKsmps(csound);
             lastframe = 0;
@@ -539,7 +539,7 @@ struct Inletf : public OpcodeBase<Inletf> {
      */
     int audio(CSOUND *csound) {
         int result = OK;
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             float *sink = 0;
             float *source = 0;
@@ -636,7 +636,7 @@ struct Connect : public OpcodeBase<Connect> {
     MYFLT *Sink;
     MYFLT *Sinlet;
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             std::string sourceOutletId = csound->strarg2name(csound,
             (char *) 0,
@@ -724,7 +724,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
     EventBlock eventBlock;
     int init(CSOUND *csound) {
         int result = OK;
-#pragma omp critical (critical_section_ftables)
+#pragma omp critical (cs_ftables)
         {
             // Default output.
             *ifno = FL(0.0);
@@ -927,7 +927,7 @@ extern "C"
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
         //csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
-#pragma omp critical (critical_section_signal_flow_graph_ports)
+#pragma omp critical (cs_sfg_ports)
         {
             aoutletsForCsoundsForSourceOutletIds[csound].clear();
             ainletsForCsoundsForSinkInletIds[csound].clear();
