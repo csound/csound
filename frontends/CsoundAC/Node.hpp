@@ -84,6 +84,19 @@ namespace csound
     virtual void addChild(Node *node);
   };
   typedef Node* NodePtr;
+  
+  /**
+   * Removes all duplicate events produced by the child nodes of this.
+   */
+  class RemoveDuplicates : public Node
+  {
+    public:
+    virtual void produceOrTransform(Score &score,
+                                    size_t beginAt,
+                                    size_t endAt,
+                                    const ublas::matrix<double> &compositeCordinates);
+        
+  };
 }
 #endif
 
