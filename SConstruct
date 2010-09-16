@@ -783,7 +783,7 @@ boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 gmmFound = configure.CheckHeader("gmm/gmm.h", language = "C++")
 alsaFound = configure.CheckLibWithHeader("asound", "alsa/asoundlib.h", language = "C")
 oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
-musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();')
+musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();', autoadd=0)
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
 
