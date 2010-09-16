@@ -97,16 +97,17 @@ void Node::addChild(Node *node)
 
 void RemoveDuplicates::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
 {
-    std::set<Event> uniqueEvents;
-    Score nonduplicates;
+    std::set<std::string> uniqueEvents;
+    Score newScore;
     for (size_t i = 0, n = score.size(); i < n; ++i) {
         const Event &event = score[i];
-        if (uniqueEvents.count(event) == 0) {
-            nonduplicates.push_back(event);
-            uniqueEvents.insert(event);
+        std::string istatement = event.toCsoundIStatement();
+        if (uniqueEvents.find(istatement) == uniqueEvents.end()) {
+            newScore.push_back(event);
+            uniqueEvents.insert(istatement);
         }
     }
-    score = nonduplicates;
+    score = newScore;
 }
 
 }
