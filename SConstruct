@@ -786,9 +786,9 @@ oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();', autoadd=0)
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
-ompFound = configure.CheckHeader("omp.h", language = "C++")
-if ompFound:
-   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_OMP'])
+#ompFound = configure.CheckHeader("omp.h", language = "C++")
+#if ompFound:
+#   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_OMP'])
 #if not buildOLPC:
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 #if not buildOLPC:
