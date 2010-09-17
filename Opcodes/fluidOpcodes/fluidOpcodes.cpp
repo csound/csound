@@ -39,7 +39,7 @@
 #include "OpcodeBase.hpp"
 
 #include <map>
-#ifdef HAVE_OMP
+#ifdef USE_OPENMP
 #include <omp.h>
 #endif
 #include <vector>
