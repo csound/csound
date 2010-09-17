@@ -1388,6 +1388,8 @@ if not (commonEnvironment['buildInterfaces'] == '1'):
 else:
     print 'CONFIGURATION DECISION: Building Csound C++ interface library.'
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
+    if musicXmlFound:
+        csoundInterfacesEnvironment.Prepend(LIBS = 'musicxml2')
     csoundInterfacesSources = []
     headers += ['interfaces/csPerfThread.hpp']
     for i in Split('CppSound CsoundFile Soundfile csPerfThread cs_glue filebuilding'):
@@ -2410,12 +2412,12 @@ else:
     acEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         acEnvironment.Prepend(LIBS = pythonLibs)
-	if musicXmlFound:
-           acEnvironment.Prepend(LIBS = 'musicxml2')
+    if musicXmlFound:
+        acEnvironment.Prepend(LIBS = 'musicxml2')
         if getPlatform() != 'win32':
            acEnvironment.Prepend(LIBS = csnd)
         else:  
-	   acEnvironment.Prepend(LIBS = 'csnd')
+            acEnvironment.Prepend(LIBS = 'csnd')
     else: 
         acEnvironment.Prepend(LIBS = '_csnd')
     acEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
