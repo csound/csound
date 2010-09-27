@@ -2986,10 +2986,10 @@ int printksset(CSOUND *csound, PRINTKS *p)
             *sdest++ = ';';
             sarg++;
             break;
-          /* case '%':             /\* Should we do this? %% *\/ */
-          /*   *sdest++ = '%'; */
-          /*   sarg++; */
-          /*   break; */
+          case '%':             /* Should we do this? JPff */
+            *sdest++ = '%';
+            sarg++;
+            break;
           default:
             *sdest++ = temp;
             break;
@@ -3224,7 +3224,7 @@ int inz(CSOUND *csound, IOZ *p)
 {
     int32    indx, i;
     int     nsmps;
-
+    int     nchns = csound->nchnls;
     /* Check to see this index is within the limits of za space.     */
     indx = (int32) *p->ndx;
     if (UNLIKELY((indx + csound->nchnls) >= csound->zalast)) goto err1;
@@ -3233,8 +3233,8 @@ int inz(CSOUND *csound, IOZ *p)
       MYFLT *writeloc;
       int n = csound->ksmps;
       /* Now write to the array in za space pointed to by indx.    */
-      writeloc = csound->zastart + (indx * csound->ksmps);
-      for (i = 0; i < csound->nchnls; i++)
+      writeloc = csound->zastart + (indx * n);
+      for (i = 0; i < nchns; i++)
         for (nsmps = 0; nsmps < n; nsmps++)
           *writeloc++ = csound->spin[i * n + nsmps];
     }
@@ -3251,24 +3251,25 @@ int outz(CSOUND *csound, IOZ *p)
     int32    indx;
     int     i;
     int     nsmps;
+    int     nchns = csound->nchnls;
 
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY((indx + csound->nchnls) >= csound->zalast)) goto err1;
-    else if (indx < 0) goto err2;
+    else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *readloc;
       int n = csound->ksmps;
       /* Now read from the array in za space and write to the output. */
       readloc = csound->zastart + (indx * csound->ksmps);
       if (!csound->spoutactive) {
-        for (i = 0; i < csound->nchnls; i++)
+        for (i = 0; i < nchns; i++)
           for (nsmps = 0; nsmps < n; nsmps++)
             csound->spout[i * n + nsmps] = *readloc++;
         csound->spoutactive = 1;
       }
       else {
-        for (i = 0; i < csound->nchnls; i++)
+        for (i = 0; i < nchns; i++)
           for (nsmps = 0; nsmps < n; nsmps++)
             csound->spout[i * n + nsmps] += *readloc++;
       }

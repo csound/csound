@@ -26,7 +26,7 @@
 #include "csound_orc.h"
 
 extern char argtyp2(CSOUND *, char *);
-extern void print_tree(CSOUND *, TREE *);
+extern void print_tree(CSOUND *, char *, TREE *);
 extern void handle_polymorphic_opcode(CSOUND*, TREE *);
 extern void handle_optional_args(CSOUND *, TREE *);
 extern ORCTOKEN *make_token(CSOUND *, char *);
@@ -85,7 +85,7 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2)
 
     s = create_out_arg(csound, outype);
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "SET_EXPRESSION_TYPE: %s : %s\n", op, s);
 
     return s;
@@ -335,7 +335,7 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
     /* should recycle memory for root->right */
     //mfree(csound, root->right); root->right = NULL;
     last->next = opTree;
-    //    printf("Answer:\n"); print_tree(csound, anchor);
+    //    print_tree(csound, "Answer:\n", anchor);
     return anchor;
 }
 /**
@@ -384,16 +384,15 @@ TREE * create_expression(CSOUND *csound, TREE *root)
            freetree */
       root->right = create_ans_token(csound, last->left->value->lexeme);
     }
-
-    op = mcalloc(csound, 80);
-
     arg1 = '\0';
     if (root->left != NULL) {
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
     
-    switch(root->type) {
+    op = mcalloc(csound, 80);
+
+     switch(root->type) {
     case S_PLUS:
       strncpy(op, "add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
@@ -434,13 +433,13 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       c = arg2;
       if (c == 'p' || c == 'c')   c = 'i';
       sprintf(op, "%s.%c", root->value->lexeme, c);
-      if (PARSER_DEBUG) csound->Message(csound, "Found OP: %s\n", op);
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found OP: %s\n", op);
       outarg = create_out_arg(csound, c);
       break;
     case S_UMINUS:
-      if (PARSER_DEBUG) csound->Message(csound, "HANDLING UNARY MINUS!");
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "HANDLING UNARY MINUS!");
       root->left = create_minus_token(csound);
-      arg1 = 'k';
+      arg1 = 'i';
       strncpy(op, "mul", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
       break;
@@ -504,7 +503,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    /*   if (PARSER_DEBUG) */csound->Message(csound, "Creating boolean expression\n");
+    /*   if (UNLIKELY(PARSER_DEBUG)) */csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
@@ -557,7 +556,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       break;
     }
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Operator Found: %s (%c %c)\n", op,
                       argtyp2(csound, root->left->value->lexeme),
                       argtyp2(csound, root->right->value->lexeme));
@@ -592,7 +591,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     ORCTOKEN *token;
 
     sprintf(label, "__synthetic_%ld", count);
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
     token->type = T_IDENT;
@@ -604,10 +603,31 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
 
     sprintf(label, "__synthetic_%ld:", count);
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
+
+    /* double lval, rval; */
+    /* TREE* ans; */
+    /* print_tree(csound,  "Optimisel?\n", root->left); */
+    /* print_tree(csound,  "Optimiser?\n", root->right); */
+    /* lval = (root->left->type == T_INTGR ? */
+    /*         (double)root->left->value->value :root->left->value->fvalue); */
+    /* rval = (root->right->type == T_INTGR ? */
+    /*         (double)root->right->value->value :root->left->value->fvalue); */
+    /* printf("lval/rval = %f/%f\n", lval, rval); */
+    /* switch (root->type) { */
+    /* case S_PLUS: */
+    /*   ans = root->left; */
+    /*   ans->type = ans->value->type = T_NUMBER; */
+    /*   ans->value->fvalue = lval+rval; */
+    /*   mrealloc(csound, ans->value->lexeme, 24); */
+    /*   sprintf(ans->value->lexeme, "%f", ans->value->fvalue); */
+    /*   //Memory leak!! mfree(csound, root); mfree(csound, root->right); */
+    /*   print_tree(csound, "optimised\n", ans); */
+    /*   return ans; */
+    /* } */
 
 /* Expands expression nodes into opcode calls
  *
@@ -640,21 +660,21 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
     TREE *current = root;
     TREE *previous = NULL;
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "[Begin Expanding Expressions in AST]\n");
 
     while (current != NULL) {
       switch(current->type) {
       case T_INSTR:
-        if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
+        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Instrument found\n");
         current->right = csound_orc_expand_expressions(csound, current->right);
         break;
       case T_UDO:
-        if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
         current->right = csound_orc_expand_expressions(csound, current->right);
         break;
       case T_IF:
-        if (PARSER_DEBUG) csound->Message(csound, "Found IF statement\n");
+        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found IF statement\n");
         {
           TREE * left = current->left;
           TREE * right = current->right;
@@ -664,7 +684,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           if (right->type == T_IGOTO ||
               right->type == T_KGOTO ||
               right->type == T_GOTO) {
-            if (PARSER_DEBUG) csound->Message(csound, "Found if-goto\n");
+            if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found if-goto\n");
             expressionNodes = create_boolean_expression(csound, left);
             /* Set as anchor if necessary */
             if (anchor == NULL) {
@@ -699,7 +719,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             TREE *ifBlockCurrent = current;
             TREE *ifBlockLast = NULL;
 
-            if (PARSER_DEBUG) csound->Message(csound, "Found if-then\n");
+            if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found if-then\n");
             if (right->next != NULL) {
               endLabelCounter = genlabs++;
             }
@@ -708,7 +728,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               tempLeft = ifBlockCurrent->left;
               tempRight = ifBlockCurrent->right;
               if (ifBlockCurrent->type == T_ELSE) {
-                //printf("ELSE case\n"); print_tree(csound, ifBlockCurrent->right);
+                //print_tree(csound, "ELSE case\n", ifBlockCurrent->right);
                 ifBlockLast->next =
                   csound_orc_expand_expressions(csound, ifBlockCurrent->right);
                 while (ifBlockLast->next != NULL) {
@@ -728,7 +748,6 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               }
 
               expressionNodes = create_boolean_expression(csound, tempLeft);
-                            /* print_tree(csound, expressionNodes); */
                             /* Set as anchor if necessary */
               if (ifBlockStart == NULL) {
                 ifBlockStart = expressionNodes;
@@ -772,7 +791,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2);
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
-                  if (PARSER_DEBUG)
+                  if (UNLIKELY(PARSER_DEBUG))
                     csound->Message(csound, "Creating simple goto token\n");
 
                   statements->next = gotoEndLabelToken;
@@ -819,19 +838,18 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         { /* This is WRONG in optional argsq */
           TREE* previousArg = NULL;
           TREE* currentArg = current->right;
-          if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
+          if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found Statement.\n");
 
-          if (current->type == S_ASSIGN) {
-            // perhaps do optimization here?
-            //csound->Message(csound, "Assignment Statement.\n");
-          }
+          /* if (current->type == S_ASSIGN) { */
+          /*   //csound->Message(csound, "Assignment Statement.\n"); */
+          /* } */
           while (currentArg != NULL) {
             TREE* last;
             TREE *nextArg;
             TREE *newArgTree;
             if (is_expression_node(currentArg)) {
               char * newArg;
-              if (PARSER_DEBUG) csound->Message(csound, "Found Expression.\n");
+              if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found Expression.\n");
               expressionNodes = create_expression(csound, currentArg);
 
               /* Set as anchor if necessary */
@@ -855,14 +873,12 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
               newArg = last->left->value->lexeme;
 
-              if (PARSER_DEBUG)
+              if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "New Arg: %s\n", newArg);
 
               /* handle arg replacement of currentArg here */
               nextArg = currentArg->next;
               newArgTree = create_ans_token(csound, newArg);
-
-              /* print_tree(csound, newArgTree); */
 
               if (previousArg == NULL) {
                 current->right = newArgTree;
@@ -891,7 +907,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
       current = current->next;
     }
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "[End Expanding Expressions in AST]\n");
 
     return anchor;
