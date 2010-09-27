@@ -41,72 +41,72 @@ TREE* force_rate(TREE* a, char t)
 TREE * verify_tree(CSOUND *csound, TREE *root) 
 {
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
-    if (root==NULL) return NULL;
-   switch (root->type) {
-    case S_PLUS:
-      break;
-    case S_MINUS:
-      break;
-    case S_TIMES:
-      break;
-    case S_DIV:
-      break;
-    case S_NEQ:
-      break;
-    case S_AND:
-      break;
-    case S_OR:
-      break;
-    case S_LT:
-      break;
-    case S_LE:
-      break;
-    case S_EQ:
-      break;
-    case S_GT:
-      break;
-    case S_GE:
-      break;
-    case T_COS:
-      break;
-    case T_COSH:
-      break;
-    case T_COSINV:
-      break;
-    case T_CPS2PCH:
-      break;
-    case T_CPSOCT:
-      break;
-    case T_CPSPCH:
-      break;
-    case T_EXP:
-      break;
-    case T_INT:
-      break;
-    case T_LOG:
-      break;
-    case T_LOG10:
-      break;
-    case T_OCTCPS:
-      break;
-    case T_OCTPCH:
-      break;
-    case T_SIN:
-      break;
-    case T_SINH:
-      break;
-    case T_SININV:
-      break;
-    case T_SQRT:
-      break;
-    case T_TAN:
-      break;
-    case T_TANH:
-      break;
-    case T_TANINV:
-      break;
-   default: break;
-   }
+   /*  if (root==NULL) return NULL; */
+   /* switch (root->type) { */
+   /*  case S_PLUS: */
+   /*    break; */
+   /*  case S_MINUS: */
+   /*    break; */
+   /*  case S_TIMES: */
+   /*    break; */
+   /*  case S_DIV: */
+   /*    break; */
+   /*  case S_NEQ: */
+   /*    break; */
+   /*  case S_AND: */
+   /*    break; */
+   /*  case S_OR: */
+   /*    break; */
+   /*  case S_LT: */
+   /*    break; */
+   /*  case S_LE: */
+   /*    break; */
+   /*  case S_EQ: */
+   /*    break; */
+   /*  case S_GT: */
+   /*    break; */
+   /*  case S_GE: */
+   /*    break; */
+   /*  case T_COS: */
+   /*    break; */
+   /*  case T_COSH: */
+   /*    break; */
+   /*  case T_COSINV: */
+   /*    break; */
+   /*  case T_CPS2PCH: */
+   /*    break; */
+   /*  case T_CPSOCT: */
+   /*    break; */
+   /*  case T_CPSPCH: */
+   /*    break; */
+   /*  case T_EXP: */
+   /*    break; */
+   /*  case T_INT: */
+   /*    break; */
+   /*  case T_LOG: */
+   /*    break; */
+   /*  case T_LOG10: */
+   /*    break; */
+   /*  case T_OCTCPS: */
+   /*    break; */
+   /*  case T_OCTPCH: */
+   /*    break; */
+   /*  case T_SIN: */
+   /*    break; */
+   /*  case T_SINH: */
+   /*    break; */
+   /*  case T_SININV: */
+   /*    break; */
+   /*  case T_SQRT: */
+   /*    break; */
+   /*  case T_TAN: */
+   /*    break; */
+   /*  case T_TANH: */
+   /*    break; */
+   /*  case T_TANINV: */
+   /*    break; */
+   /* default: break; */
+   /* } */
    return root;
 }
 
