@@ -172,7 +172,7 @@ namespace csound
     }
 #endif
     else {
-      System::error("Unknown file format in Score::load().");
+      System::error("Unknown file format in Score::save().\n");
     }
     System::inform("ENDED Score::load().\n");
   }

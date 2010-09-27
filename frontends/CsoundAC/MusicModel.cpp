@@ -175,40 +175,6 @@ namespace csound
     return cppSound->getCommand();
   }
 
-  std::string MusicModel::getFilename() const
-  {
-    return filename;
-  }
-
-  void MusicModel::setFilename(std::string filename)
-  {
-    this->filename = filename;
-  }
-
-  std::string MusicModel::generateFilename()
-  {
-    time_t time_ = 0;
-    time(&time_);
-    struct tm* tm_ = gmtime(&time_);
-    char buffer[0x100];
-    strftime(buffer, 0x100, "silence.%Y-%m-%d.%H-%M-%S.py", tm_);
-    return buffer;
-  }
-
-  std::string MusicModel::getMidiFilename()
-  {
-    std::string name = getFilename();
-    name.append(".mid");
-    return name;
-  }
-
-  std::string MusicModel::getOutputSoundfileName()
-  {
-    std::string name = getFilename();
-    name.append(".wav");
-    return name;
-  }
-
   long MusicModel::getThis()
   {
     return (long) this;

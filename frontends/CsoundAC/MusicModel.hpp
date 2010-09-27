@@ -51,11 +51,6 @@ namespace csound
     virtual ~MusicModel();
     virtual void initialize();
     virtual void generate();
-    virtual std::string getFilename() const;
-    virtual void setFilename(std::string filename);
-    static std::string generateFilename();
-    virtual std::string getMidiFilename();
-    virtual std::string getOutputSoundfileName();
     virtual long getThis();
     virtual Node *getThisNode();
     /**
