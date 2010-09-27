@@ -27,7 +27,7 @@
 #include "Composition.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
-  %}
+%}
 #else
 #include "Composition.hpp"
 #include "Node.hpp"
@@ -35,72 +35,44 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound
-{
-  /**
-   * Base class for compositions
-   * that use the principle of a music graph to generate a score.
-   * A music graph is a directed acyclic graph of nodes
-   * including empty nodes, nodes that contain only child nodes,
-   * score nodes, event generator nodes, event transformer nodes,
-   * and others. Each node is associated with a local transformation
-   * of coordinate system in music space using a 12 x 12 homogeneous matrix.
-   * To generate the score, the music graph is traversed depth first, and
-   * each node postconcatenates its local transformation of coordinate system
-   * with the coordinate system of its parent to derive a new local coordinate system,
-   * which is applied to all child events.
-   */
-  class ScoreModel :
-    public Composition,
-    public Node
-  {
-  public:
-    ScoreModel();
-    virtual ~ScoreModel();
-    virtual void initialize();
-    /**
-     * Generates a score based on a music graph defined
-     * by the child nodes of this.
-     */
-    virtual void generate();
-    /**
-     * Clears the score.
-     */
-    virtual void clear();
-    /**
-     * Returns the filename of this, which is used as a base
-     * for derived filenames (soundfile, MIDI file, etc.).
-     */
-    virtual std::string getFilename() const;
-    /**
-     * Sets the filename of this -- basically, the
-     * title of the composition.
-     */
-    virtual void setFilename(std::string filename);
-    /**
-     * Generates a versioned filename.
-     */
-    static std::string generateFilename();
-    /**
-     * Returns a MIDI filename based on the filename
-     * of this, by appending ".mid" to the filename.
-     */
-    virtual std::string getMidiFilename();
-    /**
-     * Returns a soundfile name based on the filename
-     * of this, by appending ".wav" to the filename.
-     */
-    virtual std::string getOutputSoundfileName();
-    /**
-     * Returns the address of this as a long integer.
-     */
-    virtual long getThis();
-    /**
-     * Returns the address of this as a Node pointer.
-     */
-    virtual Node *getThisNode();
-  protected:
-    std::string filename;
-  };
+namespace csound {
+/**
+ * Base class for compositions
+ * that use the principle of a music graph to generate a score.
+ * A music graph is a directed acyclic graph of nodes
+ * including empty nodes, nodes that contain only child nodes,
+ * score nodes, event generator nodes, event transformer nodes,
+ * and others. Each node is associated with a local transformation
+ * of coordinate system in music space using a 12 x 12 homogeneous matrix.
+ * To generate the score, the music graph is traversed depth first, and
+ * each node postconcatenates its local transformation of coordinate system
+ * with the coordinate system of its parent to derive a new local coordinate system,
+ * which is applied to all child events.
+ */
+class ScoreModel :
+			public Composition,
+			public Node {
+public:
+	ScoreModel();
+	virtual ~ScoreModel();
+	virtual void initialize();
+	/**
+	 * Generates a score based on a music graph defined
+	 * by the child nodes of this.
+	 */
+	virtual void generate();
+	/**
+	 * Clears the score.
+	 */
+	virtual void clear();
+	/**
+	 * Returns the address of this as a long integer.
+	 */
+	virtual long getThis();
+	/**
+	 * Returns the address of this as a Node pointer.
+	 */
+	virtual Node *getThisNode();
+};
 }
 #endif

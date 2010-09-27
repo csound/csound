@@ -25,42 +25,117 @@
 %module CsoundAC
 %{
 #include "Score.hpp"
-  %}
+%}
 #else
 #include "Score.hpp"
 #endif
 
 namespace csound
 {
-  /**
-   * Base class for user-defined musical compositions.
-   * Contains a Score object for collecting generated Events
-   * such as notes and control messages.
-   */
-  class Composition
-  {
-  protected:
-    Score score;
-    double tonesPerOctave;
-    bool conformPitches;
-  public:
+/**
+ * Base class for user-defined musical compositions.
+ * Contains a Score object for collecting generated Events
+ * such as notes and control messages.
+ */
+class Composition
+{
+public:
     Composition();
     virtual ~Composition();
+    /**
+     * Returns the filename of this, which is used as a base
+     * for derived filenames (soundfile, MIDI file, etc.).
+     */
+    virtual std::string getFilename() const;
+    /**
+     * Sets the filename of this -- basically, the
+     * title of the composition.
+     */
+    virtual void setFilename(std::string filename);
+    /**
+     * Generates a versioned filename.
+     */
+    static std::string generateFilename();
+    /**
+     * Returns the current locale time as a string.
+     */
+    static std::string makeTimestamp();
+    /**
+     * Returns the time the score was generated.
+     */
+    virtual std::string getTimestamp() const;
+    /**
+     * Returns a soundfile name based on the filename
+     * of this, by appending ".wav" to the filename.
+     */
+    virtual std::string getOutputSoundfileName();
+    /**
+     * Returns a soundfile name based on the filename
+     * of this, by appending ".norm.wav" to the filename.
+     */
+    virtual std::string getNormalizedSoundfileName();
+    /**
+     * Returns a soundfile name for a CD audio track based on the filename
+     * of this, by appending ".cd.wav" to the filename.
+     */
+    virtual std::string getCdSoundfileName();
+    /**
+     * Returns a soundfile name for an MP3 file based on the filename
+     * of this, by appending ".mp3" to the filename.
+     */
+    virtual std::string getMp3SoundfileName();
+    /**
+     * Returns a MIDI filename based on the filename
+     * of this, by appending ".mid" to the filename.
+     */
+    virtual std::string getMidiFilename();
+    /**
+     * Returns a MusicXML filename based on the filename
+     * of this, by appending ".xml" to the filename.
+     */
+    virtual std::string getMusicXmlFilename();
     /**
      * Generate performance events and store them in the score.
      * Must be overidden in derived classes.
      */
     virtual void generate();
     /**
-     * Convenience function that erases the existing score,
-     * invokes generate(), and invokes perform().
+     * Convenience function that calls clear(), generate(), perform().
      */
     virtual void render();
     /**
-     * Performs the current score.
+     * Convenience function that calls clear(), generate(), performAll().
+     */
+    virtual void renderAll();
+    /**
+     * Performs the current score to create an output soundfile,
+     * which should be tagged with author, timestamp, copyright,
+     * title, and optionally album.
      * The default implementation does nothing.
+     * Must be overridden in derived classes.
      */
     virtual void perform();
+    /**
+     * Convenience function that calls perform(),
+     * rescaleOutputSoundfile(), translateToCdAudio(),
+     * and translateToMp3.
+     */
+    virtual void performAll();
+    /**
+     * Assuming the score has been rendered,
+     * uses sox to translate the output soundfile to a normalized soundfile.
+     */
+    virtual void normalizeOutputSoundfile(double levelDb = -3.0);
+    /**
+     * Assuming the score has been rendered,
+     * uses sox to translate the output soundfile to normalized CD-audio format.
+     */
+    virtual void translateToCdAudio(double levelDb = -3.0);
+    /**
+     * Assuming the score has been rendered,
+     * uses sox and LAME to translate the output soundfile to normalized MP3 format.
+     */
+    virtual void translateToMp3(double bitrate = 256.01, double levelDb = -3.0);
     /**
      * Clear all contents of this. Probably should be overridden
      * in derived classes.
@@ -98,7 +173,13 @@ namespace csound
      * tempered pitch.
      */
     virtual bool getConformPitches() const;
-  };
+protected:
+    Score score;
+    double tonesPerOctave;
+    bool conformPitches;
+    std::string filename;
+    std::string timestamp;
+};
 }
 #endif
 
