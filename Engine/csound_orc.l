@@ -169,7 +169,7 @@ CONT            \\[[ \t]*\n
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
-                  csound->Message(csound,"%d\n", (*lvalp)->type);
+                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return T_0DBFS; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext);
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */

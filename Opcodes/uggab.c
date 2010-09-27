@@ -1431,6 +1431,9 @@ static int randomi_set(CSOUND *csound, RANDOMI *p)
     p->cpscod = (XINARG2) ? 1 : 0;
     p->dfdmax = FL(0.0);
     return OK;
+/* Surely should initialise these */
+/*     p->phs = 0; */
+/*     p->num1 = p->num2 = FL(0.0); */
 }
 
 static int krandomi(CSOUND *csound, RANDOMI *p)

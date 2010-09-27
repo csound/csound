@@ -188,7 +188,7 @@ void init_symbtab(CSOUND *csound)
 
 }
 
-unsigned int hash(char *s)
+static unsigned int hash(char *s)
 {
     unsigned int h = 0;
     while (*s != '\0') {
@@ -199,7 +199,7 @@ unsigned int hash(char *s)
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 {
-    int h = hash(s);
+    unsigned int h = hash(s);
 
     //printf("Hash value for %s: %i\n", s, h);
 
@@ -252,7 +252,7 @@ int isUDOAnsList(char *s)
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s)
 {
-    int h = hash(s);
+    unsigned int h = hash(s);
     int type = T_IDENT;
     ORCTOKEN *a = symbtab[h];
     ORCTOKEN *ans;
