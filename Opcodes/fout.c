@@ -936,6 +936,10 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           strseg[i] = '\0';
 
           switch (*segwaiting) {
+          case '%':
+            sprintf(outstring, "%");
+            j--;
+            break;
           case 'd':
           case 'i':
           case 'o':
@@ -972,7 +976,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 
         /* find the format code */
         segwaiting = fmt;
-        while (*segwaiting && !isalpha(*segwaiting))
+        while (*segwaiting && !isalpha(*segwaiting) && !(*segwaiting=='%'))
           segwaiting++;
       }
       else
@@ -983,6 +987,10 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       strseg[i] = '\0';
       if (segwaiting) {
         switch (*segwaiting) {
+          case '%':
+            sprintf(outstring, "%");
+            j--;
+            break;
         case 'd':
         case 'i':
         case 'o':

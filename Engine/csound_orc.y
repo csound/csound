@@ -164,7 +164,7 @@
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern int csound_orclex (TREE*, CSOUND *);
-extern void print_tree(CSOUND *, TREE *);
+extern void print_tree(CSOUND *, char *msg, TREE *);
 extern void csound_orcerror(CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
 %}
@@ -194,9 +194,9 @@ rootstatement     : rootstatement topstatement
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-intlist   : intlist S_COM T_INTGR
-                { $$ = make_node(csound, T_INTLIST, $1,
-                                 make_leaf(csound, T_INTGR, (ORCTOKEN *)$3)); }
+intlist   :  T_INTGR S_COM intlist 
+                { $$ = make_node(csound, T_INTLIST,
+                                 make_leaf(csound, T_INTGR, (ORCTOKEN *)$1), $3); }
           | T_INTGR { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)$1); }
           ;
 
@@ -259,7 +259,7 @@ udodecl   : T_UDOSTART
 
                 $$ = udoTop;
 
-                if (PARSER_DEBUG) print_tree(csound, (TREE *)$$);
+                if (PARSER_DEBUG) print_tree(csound, "UDO\n", (TREE *)$$);
 
               }
 
@@ -342,14 +342,14 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $$ = make_node(csound, T_IF, $2, $3);
-            print_tree(csound, $$);
+            //print_tree(csound, "if-endif\N", $$);
           }
           | T_IF expr then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $3->next = make_node(csound, T_ELSE, NULL, $7);
             $$ = make_node(csound, T_IF, $2, $3);
-            print_tree(csound, $$);
+            //print_tree(csound, "if-else"$$);
 
           }
           | T_IF expr then S_NL statementlist elseiflist T_ENDIF S_NL
@@ -358,7 +358,7 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
             $3->right = $5;
             $3->next = $6;
             $$ = make_node(csound, T_IF, $2, $3);
-            print_tree(csound, $$);
+            //print_tree(csound, "if-elseif\n", $$);
           }
           | T_IF expr then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL
           {
@@ -377,8 +377,6 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
             }
 
             tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $8);
-            print_tree(csound, $$);
-
           }
           ;
 

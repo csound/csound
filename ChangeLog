@@ -1,3 +1,17 @@
+2010-09-23  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/fout.c (sprints): Attempt tp fix %%->% problem\
+
+2010-09-18  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_expressions.c (create_expression): Unary minus
+	should use i rate if it can
+
+2010-09-17  john ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct: 
+	* Top/csound.c: Make new parser default
+
 2010-09-02  Michael Gogins <michael.gogins@gmail.com>
 
 	* Migrated Windows compiler to MinGW GCC 4.4.0 from Qt for all

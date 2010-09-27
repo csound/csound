@@ -70,7 +70,7 @@ static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
 static  int     pnum(char *s) ;
 
-extern void     print_tree(CSOUND *, TREE *);
+extern void     print_tree(CSOUND *, char *, TREE *);
 
 void close_instrument(CSOUND *csound, INSTRTXT * ip);
 
@@ -161,36 +161,43 @@ static void append_optxt(OPTXT *op1, OPTXT *op2)
  * only once if used multiple times; to be removed or reused in context
  * of redoing namset functions (if even desirable)
  */
-/* void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
+
+/*
+void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
 {
     TREE * current = argslist;
 
     while(current != NULL) {
-        switch(current->type) {
-            case T_IDENT_S:
-                ip->lclscnt++;
-                csound->Message(csound, "S COUNT INCREASED: %d\n", ip->lclscnt);
-                break;
-            case T_IDENT_W:
-                ip->lclwcnt++;
-                csound->Message(csound, "W COUNT INCREASED: %d\n", ip->lclwcnt);
-                break;
-            case T_IDENT_A:
-                ip->lclacnt++;
-                csound->Message(csound, "A COUNT INCREASED: %d\n", ip->lclacnt);
-                break;
-            case T_IDENT_K:
-            case T_IDENT_F:
-            case T_IDENT_I:
-            case T_NUMBER:
-            case T_INTGR:
-            default:
-                ip->lclkcnt++;
-                csound->Message(csound, "K COUNT INCREASED: %d\n", ip->lclkcnt);
-        }
-        current = current->next;
+      switch(current->type) {
+      case T_IDENT_S:
+        ip->lclscnt++;
+        if (PARSER_DEBUG) 
+          csound->Message(csound, "S COUNT INCREASED: %d\n", ip->lclscnt);
+        break;
+      case T_IDENT_W:
+        ip->lclwcnt++;
+        if (PARSER_DEBUG) 
+          csound->Message(csound, "W COUNT INCREASED: %d\n", ip->lclwcnt);
+        break;
+      case T_IDENT_A:
+        ip->lclacnt++;
+        if (PARSER_DEBUG) 
+          csound->Message(csound, "A COUNT INCREASED: %d\n", ip->lclacnt);
+        break;
+      case T_IDENT_K:
+      case T_IDENT_F:
+      case T_IDENT_I:
+      case T_NUMBER:
+      case T_INTGR:
+      default:
+        ip->lclkcnt++;
+        if (PARSER_DEBUG) 
+          csound->Message(csound, "K COUNT INCREASED: %d\n", ip->lclkcnt);
+      }
+      current = current->next;
     }
-}*/
+}
+*/
 
 void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 {
@@ -464,7 +471,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
       csound->Message(csound,
                       Str("create_opcode: No rule to handle statemnent of "
                           "type %d\n"), root->type);
-      print_tree(csound, root);
+      print_tree(csound, NULL, root);
     }
 
     if (retOptxt == NULL) {
@@ -542,7 +549,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
       if (current->type != T_INSTR && current->type != T_UDO) {
 
-        /* csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme); */
+        if (PARSER_DEBUG) 
+          csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
         if (current->type == S_ASSIGN
            && strcmp(current->value->lexeme, "=.r") == 0) {
@@ -653,7 +661,9 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
       sprintf(c, "%ld", instrNum);
 
-      csound->Message(csound, Str("create_instrument: instr num %ld\n"), instrNum);
+      if (PARSER_DEBUG) 
+          csound->Message(csound,
+                          Str("create_instrument: instr num %ld\n"), instrNum);
 
       ip->t.inlist->arg[0] = strsav_string(csound, c);
 
@@ -662,7 +672,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       int32  insno_priority = -1L;
       c = root->left->value->lexeme;
 
-      csound->Message(csound, Str("create_instrument: instr name %s\n"), c);
+      if (PARSER_DEBUG) 
+          csound->Message(csound, Str("create_instrument: instr name %s\n"), c);
 
       if (UNLIKELY(*c == '+')) {
         insno_priority--; c++;
@@ -1027,7 +1038,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 /* Handle Inserting into CSOUND here by checking id's (name or
                  * numbered) and using new insert_instrtxt?
                  */
-                printf("Starting to install instruments\n");
+                if (PARSER_DEBUG) printf("Starting to install instruments\n");
                 /* Temporarily using the following code */
                 if (current->left->type == T_INTGR) { /* numbered instrument */
                   int32 instrNum = (int32)current->left->value->value;
@@ -1036,11 +1047,13 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 }
                 else if (current->left->type == T_INTLIST) {
                   TREE *p =  current->left;
-                  printf("intlist case:\n");
+                  printf("intlist case:\n"); /* This code is suspect */
                   while (p) {
-                    print_tree(csound, p);
-                    if (p->left)
-                    insert_instrtxt(csound, instrtxt, p->left->value->value);
+                    print_tree(csound, "Top of loop\n", p);
+                    if (p->left) {
+                      print_tree(csound, "Left\n", p->left);
+                      insert_instrtxt(csound, instrtxt, p->left->value->value);
+                    }
                     else {
                       insert_instrtxt(csound, instrtxt, p->value->value);
                       break;
@@ -1086,7 +1099,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                 break;
             default:
               csound->Message(csound, Str("Unknown TREE node of type %d found in root.\n"), current->type);
-                if (PARSER_DEBUG) print_tree(csound, current);
+              if (PARSER_DEBUG) print_tree(csound, NULL, current);
         }
 
         current = current->next;
@@ -1159,9 +1172,12 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
       int thread, opnum = bp->t.opnum;
       if (opnum == ENDIN) break;
       if (opnum == LABEL) continue;
+      if (PARSER_DEBUG) printf("Instr 0 check on opcode=%s\n", bp->t.opcod);
       if (UNLIKELY((thread = csound->opcodlst[opnum].thread) & 06 ||
-                   (!thread && bp->t.pftype != 'b')))
+                   (!thread && bp->t.pftype != 'b'))) {
+        printf("***opcode=%s thread=%d pftype=%c\n", bp->t.opcod, thread, bp->t.pftype);
         synterr(csound, Str("perf-pass statements illegal in header blk\n"));
+      }
     }
     if (UNLIKELY(csound->synterrcnt)) {
       print_opcodedir_warning(csound);

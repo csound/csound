@@ -235,7 +235,7 @@ commandOptions.Add('withSunStudio',
     '1')    
 commandOptions.Add('buildNewParser',
     'Enable building new parser (requires Flex/Bison)',
-    '0')
+    '1')
 commandOptions.Add('NewParserDebug',
     'Enable tracing of new parser',
     '0')

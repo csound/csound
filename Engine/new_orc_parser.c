@@ -35,8 +35,8 @@ extern int csound_orcdebug;
 
 extern int csound_orcparse(CSOUND*, TREE*);
 extern void init_symbtab(CSOUND*);
-extern void print_tree(CSOUND *, TREE *);
-extern int verify_tree(CSOUND *, TREE *);
+extern void print_tree(CSOUND *, char *, TREE *);
+extern TREE* verify_tree(CSOUND *, TREE *);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csound_orc_compile(CSOUND *, TREE *);
@@ -50,7 +50,7 @@ void new_orc_parser(CSOUND *csound)
 
     init_symbtab(csound);
 
-    if (PARSER_DEBUG) csound->Message(csound, "Testing...\n");
+    if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Testing...\n");
 
     if (UNLIKELY((t = csound->FileOpen2(csound, &csound_orcin, CSFILE_STD,
                                  csound->orchname, "rb", NULL,
@@ -71,17 +71,15 @@ void new_orc_parser(CSOUND *csound)
       csound->Message(csound, "Parsing failed due to memory exhaustion!\n");
     }
 
-    if (PARSER_DEBUG) {
-      csound->Message(csound, "AST - INITIAL\n");
-      print_tree(csound, astTree);
+    if (UNLIKELY(PARSER_DEBUG)) {
+      print_tree(csound, "AST - INITIAL\n", astTree);
     }
 
-    verify_tree(csound, astTree);
+    astTree = verify_tree(csound, astTree);
     astTree = csound_orc_expand_expressions(csound, astTree);
 
-    if (PARSER_DEBUG) {
-      csound->Message(csound, "AST - AFTER EXPANSION\n");
-      print_tree(csound, astTree);
+    if (UNLIKELY(PARSER_DEBUG)) {
+      print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
     }
 
     astTree = csound_orc_optimize(csound, astTree);

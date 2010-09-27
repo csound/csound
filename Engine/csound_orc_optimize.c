@@ -39,7 +39,6 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
       switch(current->type) {
       case T_INSTR:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
-
         current->right = csound_orc_optimize(csound, current->right);
 
         break;
@@ -51,6 +50,7 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
       case T_IF:
 
         break;
+
       default:
 
         if(current->right != NULL) {

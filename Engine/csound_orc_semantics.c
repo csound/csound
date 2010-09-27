@@ -37,11 +37,77 @@ TREE* force_rate(TREE* a, char t)
 }
 
 
-/** Verifies that opcodes and args are correct*/
-int verify_tree(CSOUND *csound, TREE *root) 
+/** Verifies and optimise; constant fold and opcodes and args are correct*/
+TREE * verify_tree(CSOUND *csound, TREE *root) 
 {
-    csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
-    return 1;
+    //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
+    if (root==NULL) return NULL;
+   switch (root->type) {
+    case S_PLUS:
+      break;
+    case S_MINUS:
+      break;
+    case S_TIMES:
+      break;
+    case S_DIV:
+      break;
+    case S_NEQ:
+      break;
+    case S_AND:
+      break;
+    case S_OR:
+      break;
+    case S_LT:
+      break;
+    case S_LE:
+      break;
+    case S_EQ:
+      break;
+    case S_GT:
+      break;
+    case S_GE:
+      break;
+    case T_COS:
+      break;
+    case T_COSH:
+      break;
+    case T_COSINV:
+      break;
+    case T_CPS2PCH:
+      break;
+    case T_CPSOCT:
+      break;
+    case T_CPSPCH:
+      break;
+    case T_EXP:
+      break;
+    case T_INT:
+      break;
+    case T_LOG:
+      break;
+    case T_LOG10:
+      break;
+    case T_OCTCPS:
+      break;
+    case T_OCTPCH:
+      break;
+    case T_SIN:
+      break;
+    case T_SINH:
+      break;
+    case T_SININV:
+      break;
+    case T_SQRT:
+      break;
+    case T_TAN:
+      break;
+    case T_TANH:
+      break;
+    case T_TANINV:
+      break;
+   default: break;
+   }
+   return root;
 }
 
 
@@ -519,10 +585,13 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
     }
 }
 
-void print_tree(CSOUND * csound, TREE *l)
+void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
     /*if (PARSER_DEBUG)*/ {
-      csound->Message(csound, "Printing Tree\n");
+      if (msg)
+        csound->Message(csound, msg);
+      else
+        csound->Message(csound, "Printing Tree\n");
       csound->Message(csound, "<ast>\n");
       print_tree_xml(csound, l, 0);
       csound->Message(csound, "</ast>\n");
@@ -615,8 +684,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
                                                   tree->left->value->lexeme,
                                                   tree->right/*->value->lexeme*/);
       /* else {                    /\* Conditional expression so broken  *\/ */
-      /*   printf("Odd case\n"); */
-      /*   print_tree(csound, tree); */
+      /*   print_tree(csound, "Odd case\n", tree); */
       /* } */
       return;
     }
