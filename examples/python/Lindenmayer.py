@@ -9,13 +9,13 @@ import CsoundAC
 import psyco
 gc.disable()
 model = CsoundAC.MusicModel()
-model.setCppSound(csound)
+csound = model.getCppSound()
 lindenmayer = CsoundAC.Lindenmayer()
 lindenmayer.setAxiom("b")
 lindenmayer.setAngle(2.0 * math.pi / 9.0)
 lindenmayer.addRule("b", " b [  Ti-1 a b ] Tt+1 Tk-3.1 a N b Tt+3 N Tt+1.3 Tk+2 b [ Ti+1 a b ] N")
 lindenmayer.addRule("a", " N Tt+1.1 Tk+1 N [ Tk+2 b ] Tk+3 N Tk-3 Tt-1 [ Tt+1 Tk-4 a ] N ")
-lindenmayer.setIterationCount(6)
+lindenmayer.setIterationCount(5)
 lindenmayer.generate()
 random = CsoundAC.Random()
 random.createDistribution("uniform_real")
@@ -39,7 +39,7 @@ filename = os.path.abspath('Lindenmayer.py')
 print 'Filename:', filename
 model.setConformPitches(True)
 csound.load('../CsoundAC.csd')
-csound.setCommand("csound -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
+csound.setCommand("csound -+id_artist=Michael_Gogins -+id_copyright=Copyright_2007_by_Michael_Gogins -+id_title=Lindenmayer -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setFilename(filename)
 score = model.getScore()
 print 'Events in generated score:', len(score)
@@ -85,53 +85,4 @@ i 220   0       %f      0.1     0.1
 ''' % (duration, duration, duration, duration))
 #print csound.getScore()
 print csound.getCommand()
-csound.perform()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+model.performAll()
