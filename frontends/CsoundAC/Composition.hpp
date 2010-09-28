@@ -173,12 +173,27 @@ public:
      * tempered pitch.
      */
     virtual bool getConformPitches() const;
-protected:
+    virtual std::string getArtist() const;
+    virtual void setArtist(std::string value);
+    virtual std::string getTitle() const;
+    virtual void setTitle(std::string value);
+    virtual std::string getCopyright() const;
+    virtual void setCopyright(std::string value);
+    virtual std::string getAlbum() const;
+    virtual void setAlbum(std::string value);
+    virtual std::string getLicense() const;
+    virtual void setLicense(std::string value);
+    protected:
     Score score;
     double tonesPerOctave;
     bool conformPitches;
     std::string filename;
+    std::string artist;
+    std::string title;
     std::string timestamp;
+    std::string copyright;
+    std::string album;
+    std::string license;
 };
 }
 #endif
