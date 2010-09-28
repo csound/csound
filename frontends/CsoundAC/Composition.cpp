@@ -26,188 +26,270 @@
 
 namespace csound
 {
-Composition::Composition() :
+  Composition::Composition() :
     tonesPerOctave(12.0),
     conformPitches(false)
-{
-}
+  {
+  }
 
-Composition::~Composition()
-{
-}
+  Composition::~Composition()
+  {
+  }
 
-void Composition::render()
-{
+  void Composition::render()
+  {
     clear();
     generate();
     timestamp = makeTimestamp();
     perform();
-}
+  }
 
-void Composition::renderAll()
-{
+  void Composition::renderAll()
+  {
     clear();
     generate();
     timestamp = makeTimestamp();
     performAll();
-}
+  }
 
-void Composition::perform()
-{
-}
+  void Composition::perform()
+  {
+  }
 
-void Composition::generate()
-{
-}
+  void Composition::generate()
+  {
+  }
 
-void Composition::clear()
-{
+  void Composition::clear()
+  {
     score.clear();
-}
+  }
 
-Score &Composition::getScore()
-{
+  Score &Composition::getScore()
+  {
     return score;
-}
+  }
 
-void Composition::write(const char *text)
-{
+  void Composition::write(const char *text)
+  {
     System::message(text);
-}
+  }
 
-void Composition::setTonesPerOctave(double tonesPerOctave)
-{
+  void Composition::setTonesPerOctave(double tonesPerOctave)
+  {
     this->tonesPerOctave = tonesPerOctave;
-}
+  }
 
-double Composition::getTonesPerOctave() const
-{
+  double Composition::getTonesPerOctave() const
+  {
     return tonesPerOctave;
-}
+  }
 
-void Composition::setConformPitches(bool conformPitches)
-{
+  void Composition::setConformPitches(bool conformPitches)
+  {
     this->conformPitches = conformPitches;
-}
+  }
 
-bool Composition::getConformPitches() const
-{
+  bool Composition::getConformPitches() const
+  {
     return conformPitches;
-}
+  }
 
-std::string Composition::getFilename() const
-{
+  std::string Composition::getFilename() const
+  {
     return filename;
-}
+  }
 
-void Composition::setFilename(std::string filename)
-{
+  void Composition::setFilename(std::string filename)
+  {
     this->filename = filename;
-}
+  }
 
-std::string Composition::generateFilename()
-{
+  std::string Composition::generateFilename()
+  {
     char buffer[0x100];
     snprintf(buffer, 0x100, "silence.%s.py", makeTimestamp().c_str());
     return buffer;
-}
+  }
 
-std::string Composition::getMidiFilename()
-{
+  std::string Composition::getMidiFilename()
+  {
     std::string name = getFilename();
     name.append(".mid");
     return name;
-}
+  }
 
-std::string Composition::getOutputSoundfileName()
-{
+  std::string Composition::getOutputSoundfileName()
+  {
     std::string name = getFilename();
     name.append(".wav");
     return name;
-}
+  }
 
-std::string Composition::getNormalizedSoundfileName()
-{
+  std::string Composition::getNormalizedSoundfileName()
+  {
     std::string name = getFilename();
     name.append(".norm.wav");
     return name;
-}
+  }
 
-std::string Composition::getCdSoundfileName()
-{
+  std::string Composition::getCdSoundfileName()
+  {
     std::string name = getFilename();
     name.append(".cd.wav");
     return name;
-}
+  }
 
-std::string Composition::getMp3SoundfileName()
-{
+  std::string Composition::getMp3SoundfileName()
+  {
     std::string name = getFilename();
     name.append(".mp3");
     return name;
-}
+  }
 
-std::string Composition::getMusicXmlFilename()
-{
+  std::string Composition::getMusicXmlFilename()
+  {
     std::string name = getFilename();
     name.append(".xml");
     return name;
-}
+  }
 
-std::string Composition::makeTimestamp()
-{
+  std::string Composition::makeTimestamp()
+  {
     time_t time_ = 0;
     time(&time_);
     struct tm* tm_ = gmtime(&time_);
     char buffer[0x100];
     strftime(buffer, 0x100, "%Y-%m-%d.%H-%M-%S", tm_);
     return buffer;
-}
+  }
 
-std::string Composition::getTimestamp() const
-{
+  std::string Composition::getTimestamp() const
+  {
     return timestamp;
-}
+  }
 
-void Composition::performAll()
-{
+  void Composition::performAll()
+  {
+    System::inform("BEGAN Composition::performAll()...\n");
     score.save(getMidiFilename());
     score.save(getMusicXmlFilename());
     perform();
     normalizeOutputSoundfile();
     translateToCdAudio();
     translateToMp3();
-}
+    System::inform("ENDED Composition::performAll().\n");
+  }
 
-void Composition::normalizeOutputSoundfile(double levelDb)
-{
+  void Composition::normalizeOutputSoundfile(double levelDb)
+  {
     char buffer[0x100];
-    std::snprintf(buffer, 0x100, "sox %s -V3 -b 32 -e floating-point %s gain %f\n",
-            getOutputSoundfileName().c_str(),
-            getNormalizedSoundfileName().c_str(),
-            levelDb);
+    std::snprintf(buffer, 
+		  0x100, 
+		  "sox %s -V3 -b 32 -e floating-point %s gain %f\n",
+		  getOutputSoundfileName().c_str(),
+		  getNormalizedSoundfileName().c_str(),
+		  levelDb);
     int result = std::system(buffer);
-}
+    System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
+    std::snprintf(buffer, 
+		  0x100, 
+		  "sndfile-metadata-set --str-artist %s --str-title %s --str-copyright %s --str-license %s --str-album %s %s\n",
+		  getArtist().c_str(),
+		  getTitle().c_str(),
+		  getCopyright().c_str(),
+		  getLicense().c_str(),
+		  getAlbum().c_str(),
+		  getNormalizedSoundfileName().c_str());
+    System::inform("Composition::normalizeOutputSound(): %s", buffer);
+    result = std::system(buffer);
+  }
 
-void Composition::translateToCdAudio(double levelDb)
-{
+  void Composition::translateToCdAudio(double levelDb)
+  {
     char buffer[0x100];
     std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain %f rate 44100\n",
-            getOutputSoundfileName().c_str(),
-            getCdSoundfileName().c_str(),
-            levelDb);
+		  getOutputSoundfileName().c_str(),
+		  getCdSoundfileName().c_str(),
+		  levelDb);
+    System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
-}
+    std::snprintf(buffer, 
+		  0x100, 
+		  "sndfile-metadata-set --str-artist %s --str-title %s --str-copyright %s --str-license %s --str-album %s %s\n",
+		  getArtist().c_str(),
+		  getTitle().c_str(),
+		  getCopyright().c_str(),
+		  getLicense().c_str(),
+		  getAlbum().c_str(),
+		  getCdSoundfileName().c_str());
+    System::inform("Composition::translateToCdAudio(): %s", buffer);
+    result = std::system(buffer);
+  }
 
-void Composition::translateToMp3(double bitrate, double levelDb)
-{
+  void Composition::translateToMp3(double bitrate, double levelDb)
+  {
     char buffer[0x100];
-    std::snprintf(buffer, 0x100, "sox %s -V3 -C %f %s rate 44100 gain %f\n",
-            getOutputSoundfileName().c_str(),
-            bitrate,
-            getMp3SoundfileName().c_str(),
-            levelDb);
+    std::snprintf(buffer, 
+		  0x100, 
+		  "lame -V3 --preset cd --tt %s --ta %s --tl %s --tc %s %s\n",
+		  getTitle().c_str(),
+		  getArtist().c_str(),
+		  getAlbum().c_str(),
+		  getCopyright().c_str(),
+		  getCdSoundfileName().c_str(),
+		  getMp3SoundfileName().c_str());
+    System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
-}
+  }
 
+  std::string Composition::getArtist() const
+  {
+    return artist;
+  }
+
+  void Composition::setArtist(std::string value)
+  {
+    artist = value;
+  }
+
+  std::string Composition::getTitle() const
+  {
+    return title;
+  }
+
+  void Composition::setTitle(std::string value)
+  {
+    title = value;
+  }
+
+  std::string Composition::getCopyright() const
+  {
+    return copyright;
+  }
+
+  void Composition::setCopyright(std::string value)
+  {
+    copyright = value;
+  }
+
+  std::string Composition::getAlbum() const
+  {
+    return album;
+  }
+
+  void Composition::setAlbum(std::string value)
+  {
+    album = value;
+  }
+
+  std::string Composition::getLicense() const
+  {
+    return license;
+  }
+
+  void Composition::setLicense(std::string value)
+  {
+    license = value;
+  }
 }
