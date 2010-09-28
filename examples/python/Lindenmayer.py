@@ -9,6 +9,12 @@ import CsoundAC
 import psyco
 gc.disable()
 model = CsoundAC.MusicModel()
+model.setFilename('Lindenmayer.py')
+model.setArtist('Michael_Gogins')
+model.setTitle('Lindenmayer')
+model.setCopyright('Copyright_2010_by_Michael_Gogins')
+model.setLicense('Creative_Commons')
+model.setAlbum('Csound_Examples')
 csound = model.getCppSound()
 lindenmayer = CsoundAC.Lindenmayer()
 lindenmayer.setAxiom("b")
