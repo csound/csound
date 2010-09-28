@@ -608,27 +608,6 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
 
-    /* double lval, rval; */
-    /* TREE* ans; */
-    /* print_tree(csound,  "Optimisel?\n", root->left); */
-    /* print_tree(csound,  "Optimiser?\n", root->right); */
-    /* lval = (root->left->type == T_INTGR ? */
-    /*         (double)root->left->value->value :root->left->value->fvalue); */
-    /* rval = (root->right->type == T_INTGR ? */
-    /*         (double)root->right->value->value :root->left->value->fvalue); */
-    /* printf("lval/rval = %f/%f\n", lval, rval); */
-    /* switch (root->type) { */
-    /* case S_PLUS: */
-    /*   ans = root->left; */
-    /*   ans->type = ans->value->type = T_NUMBER; */
-    /*   ans->value->fvalue = lval+rval; */
-    /*   mrealloc(csound, ans->value->lexeme, 24); */
-    /*   sprintf(ans->value->lexeme, "%f", ans->value->fvalue); */
-    /*   //Memory leak!! mfree(csound, root); mfree(csound, root->right); */
-    /*   print_tree(csound, "optimised\n", ans); */
-    /*   return ans; */
-    /* } */
-
 /* Expands expression nodes into opcode calls
  *
  *
