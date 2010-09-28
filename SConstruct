@@ -57,7 +57,7 @@ def getPlatform():
     elif sys.platform[:6] == 'darwin':
         return 'darwin'
     elif sys.platform[:5] == 'sunos':
-        return 'sunos'    
+        return 'sunos'
     else:
         return 'unsupported'
 
@@ -232,7 +232,7 @@ commandOptions.Add('withMSVC',
     '0')
 commandOptions.Add('withSunStudio',
     'On Solaris, set to 1 to build with Sun Studio, or set to 0 to build with gcc',
-    '1')    
+    '1')
 commandOptions.Add('buildNewParser',
     'Enable building new parser (requires Flex/Bison)',
     '1')
@@ -264,13 +264,16 @@ commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
     '8.4')
 commandOptions.Add('includeMP3',
-     'Set to 1 if using mpadec', 
+     'Set to 1 if using mpadec',
      '0')
 commandOptions.Add('includeWii',
-     'Set to 1 if using libwiimote', 
+     'Set to 1 if using libwiimote',
      '0')
 commandOptions.Add('includeP5Glove',
-     'Set to 1 if using P5 Glove', 
+     'Set to 1 if using P5 Glove',
+     '0')
+commandOptions.Add('buildBeats',
+     'Set to 1 if building beats score language',
      '0')
 
 # Define the common part of the build environment.
@@ -291,12 +294,12 @@ def compilerMicrosoft():
         return True
     else:
         return False
-        
+
 def compilerSun():
     if getPlatform() == 'sunos' and commonEnvironment['withSunStudio'] == '1':
         return True
     else:
-        return False        
+        return False
 
 def compilerGNU():
     if not compilerIntel() and not compilerMicrosoft() and not compilerSun():
@@ -407,7 +410,7 @@ elif getPlatform() == 'sunos':
     if compilerSun():
         print "Build platform is Sun Studio."
     elif compilerGNU():
-        print "Build platform is '" + getPlatform() + "'."        
+        print "Build platform is '" + getPlatform() + "'."
 else:
     if compilerMicrosoft():
         print "Build platform is Microsoft Visual C++ (MSVC)."
@@ -432,7 +435,7 @@ if commonEnvironment['useGettext'] == '1':
     if getPlatform() == "darwin":
         commonEnvironment.Append(LIBS=['intl'])
     if getPlatform() == "sunos":
-        commonEnvironment.Append(LIBS=['intl'])    
+        commonEnvironment.Append(LIBS=['intl'])
 else:
     print "CONFIGURATION DECISION: No localisation"
 
@@ -450,7 +453,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         cpuType = commonEnvironment['gcc3opt']
     if getPlatform() == 'darwin':
       if cpuType == 'universal':
-        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch ppc ')) 
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch ppc '))
       else:
@@ -458,18 +461,18 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
     else:
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -mtune=%s' % (cpuType)))
-     
+
 
 if commonEnvironment['buildRelease'] != '0':
     if compilerMicrosoft():
         commonEnvironment.Append(CCFLAGS = Split('/O2'))
     elif compilerIntel():
         commonEnvironment.Append(CCFLAGS = Split('/O3'))
- 
+
 if commonEnvironment['noDebug'] == '0':
     if compilerGNU() :
         commonEnvironment.Append(CCFLAGS = ['-g'])
-         
+
 if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(CCFLAGS = ['-pg'])
     commonEnvironment.Append(CXXFLAGS = ['-pg'])
@@ -483,9 +486,9 @@ elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
 
 if getPlatform() == 'win32' and compilerGNU():
     commonEnvironment.Prepend(CCFLAGS = Split('-Wno-format -fexceptions -shared-libgcc'))
-    commonEnvironment.Prepend(CXXFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
-    commonEnvironment.Prepend(LINKFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
-    commonEnvironment.Prepend(SHLINKFLAGS = Split('-fexceptions -mthreads -shared-libgcc'))
+    commonEnvironment.Prepend(CXXFLAGS = Split('-fexceptions -shared-libgcc'))
+    commonEnvironment.Prepend(LINKFLAGS = Split('-fexceptions -shared-libgcc'))
+    commonEnvironment.Prepend(SHLINKFLAGS = Split('-fexceptions -shared-libgcc'))
 
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 
@@ -495,7 +498,7 @@ if commonEnvironment['buildRelease'] == '0':
 if commonEnvironment['Lib64'] == '1':
     if getPlatform() == 'sunos':
         commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/lib/64', '/usr/lib/64'])
-    else:    
+    else:
         commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
 else:
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
@@ -503,7 +506,7 @@ else:
 if commonEnvironment['Word64'] == '1':
     if compilerSun():
         commonEnvironment.Append(CCFLAGS = ['-xcode=pic32'])
-    else:    
+    else:
         commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 
 
@@ -531,7 +534,7 @@ elif getPlatform() == 'sunos':
     commonEnvironment.Append(CPPPATH = '/usr/jdk/instances/jdk1.5.0/include')
     if compilerGNU():
         commonEnvironment.Append(CCFLAGS = "-DPIPES")
-        commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])  
+        commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
@@ -959,45 +962,45 @@ if getPlatform() == 'win32':
     # These are the Windows system call libraries.
     if compilerGNU():
         csoundWindowsLibraries = Split('''
-advapi32 
-comctl32 
-comdlg32 
-glu32 
-kernel32 
+advapi32
+comctl32
+comdlg32
+glu32
+kernel32
 msvcrt
-odbc32 
-odbccp32 
-ole32 
-oleaut32 
-shell32             
-user32 
-uuid             
-winmm 
-winspool 
-ws2_32 
-wsock32 
-advapi32 
-comctl32 
-comdlg32 
-glu32 
-kernel32 
-odbc32 
-odbccp32 
-ole32 
-oleaut32 
-shell32             
-user32 
-uuid             
-winmm 
-winspool 
-ws2_32 
+odbc32
+odbccp32
+ole32
+oleaut32
+shell32
+user32
+uuid
+winmm
+winspool
+ws2_32
+wsock32
+advapi32
+comctl32
+comdlg32
+glu32
+kernel32
+odbc32
+odbccp32
+ole32
+oleaut32
+shell32
+user32
+uuid
+winmm
+winspool
+ws2_32
 wsock32
         ''')
     else:
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
-            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib 
+            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
             kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
             advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
             odbc32.lib odbccp32.lib pthread.lib
@@ -1052,7 +1055,7 @@ def MacOSX_InstallHeader(headerName):
     # to set USE_DOUBLE in installed headers
     cmd = 'cp -f %s %s' % (headerName, targetName)
     if commonEnvironment['useDouble'] != '0':
-      if baseName == 'float-version.h': 
+      if baseName == 'float-version.h':
         cmd = 'cp -f %s %s' % ('H/float-version-double.h', targetName)
     csoundFrameworkEnvironment.Command(targetName, headerName, cmd)
 
@@ -1250,7 +1253,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
         if compilerSun():
             tmp = tmp + ['-soname=%s' % libName2]
         else:
-            tmp = tmp + ['-Wl,-soname=%s' % libName2]        
+            tmp = tmp + ['-Wl,-soname=%s' % libName2]
         cflags = csoundDynamicLibraryEnvironment['CCFLAGS']
         if configure.CheckGcc4():
             cflags   += ['-fvisibility=hidden']
@@ -1438,7 +1441,7 @@ else:
         soflag = [ '-Wl,-soname=%s' % soname ]
         extraflag = ['-L.']
         csnd = csoundInterfacesEnvironment.SharedLibrary(
-            soname, csoundInterfacesSources, 
+            soname, csoundInterfacesSources,
             SHLINKFLAGS = linkflags+soflag+extraflag,
             SHLIBPREFIX = '', SHLIBSUFFIX = '')
     else:
@@ -1624,7 +1627,7 @@ else:
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c      
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
     '''))
 
 if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
@@ -1818,7 +1821,7 @@ else:
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif compilerSun():
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        widgetsEnvironment.Append(LIBS = ['pthread', 'm'])         
+        widgetsEnvironment.Append(LIBS = ['pthread', 'm'])
     elif getPlatform() == 'win32':
         if compilerGNU():
             #widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -2302,7 +2305,7 @@ else:
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif compilerSun():
         csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        csound5GUIEnvironment.Append(LIBS = ['pthread', 'm'])    
+        csound5GUIEnvironment.Append(LIBS = ['pthread', 'm'])
     elif getPlatform() == 'win32':
         if compilerGNU():
             #csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -2541,7 +2544,7 @@ else:
        Depends(CsoundAclModule, luaWrapper)
        Depends(CsoundAclModule, csoundac)
        Depends(CsoundAclModule, csnd)
-  
+
 
 # Build CsoundVST
 
@@ -2792,6 +2795,27 @@ else:
  csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
 Depends(csladspa, csoundLibrary)
 libs.append(csladspa)
+
+# Build beats (score generator)
+
+if not (commonEnvironment['buildBeats'] != '0'):
+    print 'CONFIGURATION DECISION: Not building beats score frontend.'
+else:
+    print "CONFIGURATION DECISION: Building beats score frontend"
+    csBeatsEnvironment = Environment(ENV = os.environ)
+    csBeatsEnvironment.Append(LINKFLAGS = ['-lm'])
+    csBeatsEnvironment.Append(YACCFLAGS = ['-d'])
+    #csBeatsEnvironment.Append(LEXFLAGS = ['-Pbeats'])
+    byb = csBeatsEnvironment.CFile(target = 'frontends/beats/beats.tab.c',
+                               source = 'frontends/beats/beats.y')
+    blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
+                               source = 'frontends/beats/beats.l')
+    bb = csBeatsEnvironment.Program('beats',
+                                    ['frontends/beats/main.c', 
+                                     'frontends/beats/lex.yy.c', 
+                                     'frontends/beats/beats.tab.c'])
+
+
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
