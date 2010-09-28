@@ -40,74 +40,69 @@ TREE* force_rate(TREE* a, char t)
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
 TREE * verify_tree(CSOUND *csound, TREE *root) 
 {
+    TREE* ans;
+    double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
-   /*  if (root==NULL) return NULL; */
-   /* switch (root->type) { */
-   /*  case S_PLUS: */
-   /*    break; */
-   /*  case S_MINUS: */
-   /*    break; */
-   /*  case S_TIMES: */
-   /*    break; */
-   /*  case S_DIV: */
-   /*    break; */
-   /*  case S_NEQ: */
-   /*    break; */
-   /*  case S_AND: */
-   /*    break; */
-   /*  case S_OR: */
-   /*    break; */
-   /*  case S_LT: */
-   /*    break; */
-   /*  case S_LE: */
-   /*    break; */
-   /*  case S_EQ: */
-   /*    break; */
-   /*  case S_GT: */
-   /*    break; */
-   /*  case S_GE: */
-   /*    break; */
-   /*  case T_COS: */
-   /*    break; */
-   /*  case T_COSH: */
-   /*    break; */
-   /*  case T_COSINV: */
-   /*    break; */
-   /*  case T_CPS2PCH: */
-   /*    break; */
-   /*  case T_CPSOCT: */
-   /*    break; */
-   /*  case T_CPSPCH: */
-   /*    break; */
-   /*  case T_EXP: */
-   /*    break; */
-   /*  case T_INT: */
-   /*    break; */
-   /*  case T_LOG: */
-   /*    break; */
-   /*  case T_LOG10: */
-   /*    break; */
-   /*  case T_OCTCPS: */
-   /*    break; */
-   /*  case T_OCTPCH: */
-   /*    break; */
-   /*  case T_SIN: */
-   /*    break; */
-   /*  case T_SINH: */
-   /*    break; */
-   /*  case T_SININV: */
-   /*    break; */
-   /*  case T_SQRT: */
-   /*    break; */
-   /*  case T_TAN: */
-   /*    break; */
-   /*  case T_TANH: */
-   /*    break; */
-   /*  case T_TANINV: */
-   /*    break; */
-   /* default: break; */
-   /* } */
-   return root;
+    if (root==NULL) return NULL;
+    if (root->left)  {
+      root->left = verify_tree(csound, root->left);
+      if (root->right) {
+        root->right= verify_tree(csound, root->right);
+        if ((root->left->type  == T_INTGR || root->left->type  == T_NUMBER) &&
+            (root->right->type == T_INTGR || root->right->type == T_NUMBER)) {
+          lval = (root->left->type == T_INTGR ?
+                  (double)root->left->value->value :root->left->value->fvalue);
+          rval = (root->right->type == T_INTGR ?
+                  (double)root->right->value->value :root->left->value->fvalue);
+            ans = root->left;
+            ans->type = ans->value->type = T_NUMBER;
+          switch (root->type) {
+          case S_PLUS:
+            ans->value->fvalue = lval+rval;
+            mrealloc(csound, ans->value->lexeme, 24);
+            sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            return ans;
+          case S_MINUS:
+            ans->value->fvalue = lval-rval;
+            mrealloc(csound, ans->value->lexeme, 24);
+            sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            return ans;
+          case S_TIMES:
+            ans->value->fvalue = lval*rval;
+            mrealloc(csound, ans->value->lexeme, 24);
+            sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            return ans;
+          case S_DIV:
+            ans->value->fvalue = lval/rval;
+            mrealloc(csound, ans->value->lexeme, 24);
+            sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
+            //Memory leak!! mfree(csound, root); mfree(csound, root->right);
+            return ans;
+          /* case S_NEQ: */
+          /*   break; */
+          /* case S_AND: */
+          /*   break; */
+          /* case S_OR: */
+          /*   break; */
+          /* case S_LT: */
+          /*   break; */
+          /* case S_LE: */
+          /*   break; */
+          /* case S_EQ: */
+          /*   break; */
+          /* case S_GT: */
+          /*   break; */
+          /* case S_GE: */
+          /*   break; */
+          default: break;
+          }
+        }
+      }
+    }
+    return root;
 }
 
 
