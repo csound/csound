@@ -115,6 +115,14 @@ public:
   MYFLT *kvalue2;
   MYFLT *kcontroller3;
   MYFLT *kvalue3;
+  MYFLT *kcontroller4;
+  MYFLT *kvalue4;
+  MYFLT *kcontroller5;
+  MYFLT *kvalue5;
+  MYFLT *kcontroller6;
+  MYFLT *kvalue6;
+  MYFLT *kcontroller7;
+  MYFLT *kvalue7;
   // State.
   T *instrument;
   size_t ksmps;
@@ -127,6 +135,14 @@ public:
   MYFLT oldkvalue2;
   MYFLT oldkcontroller3;
   MYFLT oldkvalue3;
+  MYFLT oldkcontroller4;
+  MYFLT oldkvalue4;
+  MYFLT oldkcontroller5;
+  MYFLT oldkvalue5;
+  MYFLT oldkcontroller6;
+  MYFLT oldkvalue6;
+  MYFLT oldkcontroller7;
+  MYFLT oldkvalue7;
   STKInstrumentAdapter() : instrument(0) {}
   int init(CSOUND *csound)
   {
@@ -147,6 +163,14 @@ public:
       oldkvalue2 = -1.0;
       oldkcontroller3 = -1.0;
       oldkvalue3 = -1.0;
+      oldkcontroller4 = -1.0;
+      oldkvalue4 = -1.0;
+      oldkcontroller5 = -1.0;
+      oldkvalue5 = -1.0;
+      oldkcontroller6 = -1.0;
+      oldkvalue6 = -1.0;
+      oldkcontroller7 = -1.0;
+      oldkvalue7 = -1.0;
       return OK;
   }
   int kontrol(CSOUND *csound)
@@ -176,6 +200,30 @@ public:
               instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
               oldkcontroller3 = *kcontroller3;
               oldkvalue3 = *kvalue3;
+            }
+          if(*kcontroller4 != oldkcontroller4 || *kvalue4 != oldkvalue4)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller4), *kvalue4);
+              oldkcontroller4 = *kcontroller4;
+              oldkvalue4 = *kvalue4;
+            }
+          if(*kcontroller5 != oldkcontroller5 || *kvalue5 != oldkvalue5)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller5), *kvalue5);
+              oldkcontroller5 = *kcontroller5;
+              oldkvalue5 = *kvalue5;
+            }
+          if(*kcontroller6 != oldkcontroller6 || *kvalue6 != oldkvalue6)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller6), *kvalue6);
+              oldkcontroller6 = *kcontroller6;
+              oldkvalue6 = *kvalue6;
+            }
+          if(*kcontroller7 != oldkcontroller7 || *kvalue7 != oldkvalue7)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller7), *kvalue7);
+              oldkcontroller7 = *kcontroller7;
+              oldkvalue7 = *kvalue7;
             }
           for(size_t i = 0; i < ksmps; i++)
             {
@@ -211,6 +259,14 @@ public:
   MYFLT *kvalue2;
   MYFLT *kcontroller3;
   MYFLT *kvalue3;
+  MYFLT *kcontroller4;
+  MYFLT *kvalue4;
+  MYFLT *kcontroller5;
+  MYFLT *kvalue5;
+  MYFLT *kcontroller6;
+  MYFLT *kvalue6;
+  MYFLT *kcontroller7;
+  MYFLT *kvalue7;
   // State.
   T *instrument;
   size_t ksmps;
@@ -223,6 +279,14 @@ public:
   MYFLT oldkvalue2;
   MYFLT oldkcontroller3;
   MYFLT oldkvalue3;
+  MYFLT oldkcontroller4;
+  MYFLT oldkvalue4;
+  MYFLT oldkcontroller5;
+  MYFLT oldkvalue5;
+  MYFLT oldkcontroller6;
+  MYFLT oldkvalue6;
+  MYFLT oldkcontroller7;
+  MYFLT oldkvalue7;
   STKInstrumentAdapter1() : instrument(0) {}
   int init(CSOUND *csound)
   {
@@ -242,6 +306,14 @@ public:
       oldkvalue2 = -1.0;
       oldkcontroller3 = -1.0;
       oldkvalue3 = -1.0;
+      oldkcontroller4 = -1.0;
+      oldkvalue4 = -1.0;
+      oldkcontroller5 = -1.0;
+      oldkvalue5 = -1.0;
+      oldkcontroller6 = -1.0;
+      oldkvalue6 = -1.0;
+      oldkcontroller7 = -1.0;
+      oldkvalue7 = -1.0;
       return OK;
   }
   int kontrol(CSOUND *csound)
@@ -272,6 +344,30 @@ public:
               oldkcontroller3 = *kcontroller3;
               oldkvalue3 = *kvalue3;
             }
+          if(*kcontroller4 != oldkcontroller4 || *kvalue4 != oldkvalue4)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller4), *kvalue4);
+              oldkcontroller4 = *kcontroller4;
+              oldkvalue4 = *kvalue4;
+            }
+          if(*kcontroller5 != oldkcontroller5 || *kvalue5 != oldkvalue5)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller5), *kvalue5);
+              oldkcontroller5 = *kcontroller5;
+              oldkvalue5 = *kvalue5;
+            }
+          if(*kcontroller6 != oldkcontroller6 || *kvalue6 != oldkvalue6)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller6), *kvalue6);
+              oldkcontroller6 = *kcontroller6;
+              oldkvalue6 = *kvalue6;
+            }
+          if(*kcontroller7 != oldkcontroller7 || *kvalue7 != oldkvalue7)
+            {
+              instrument->controlChange(static_cast<int>(*kcontroller7), *kvalue7);
+              oldkcontroller7 = *kcontroller7;
+              oldkvalue7 = *kvalue7;
+            }
           for(size_t i = 0; i < ksmps; i++)
             {
               aoutput[i] = instrument->tick();
@@ -298,7 +394,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<BandedWG>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<BandedWG>::init_,
         (SUBR) STKInstrumentAdapter<BandedWG>::kontrol_,
         0,
@@ -308,7 +404,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<BeeThree>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<BeeThree>::init_,
         (SUBR) STKInstrumentAdapter<BeeThree>::kontrol_,
         0,
@@ -318,7 +414,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<BlowBotl>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<BlowBotl>::init_,
         (SUBR) STKInstrumentAdapter<BlowBotl>::kontrol_,
         0,
@@ -328,7 +424,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<BlowHole>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<BlowHole>::init_,
         (SUBR) STKInstrumentAdapter1<BlowHole>::kontrol_,
         0,
@@ -338,7 +434,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Bowed>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Bowed>::init_,
         (SUBR) STKInstrumentAdapter1<Bowed>::kontrol_,
         0,
@@ -348,7 +444,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Brass>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Brass>::init_,
         (SUBR) STKInstrumentAdapter1<Brass>::kontrol_,
         0,
@@ -358,7 +454,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Clarinet>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Clarinet>::init_,
         (SUBR) STKInstrumentAdapter1<Clarinet>::kontrol_,
         0,
@@ -368,7 +464,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Drummer>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Drummer>::init_,
         (SUBR) STKInstrumentAdapter<Drummer>::kontrol_,
         0,
@@ -378,7 +474,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Flute>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Flute>::init_,
         (SUBR) STKInstrumentAdapter1<Flute>::kontrol_,
         0,
@@ -388,7 +484,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<FMVoices>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<FMVoices>::init_,
         (SUBR) STKInstrumentAdapter<FMVoices>::kontrol_,
         0,
@@ -398,7 +494,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<HevyMetl>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<HevyMetl>::init_,
         (SUBR) STKInstrumentAdapter<HevyMetl>::kontrol_,
         0,
@@ -408,7 +504,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Mandolin>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Mandolin>::init_,
         (SUBR) STKInstrumentAdapter1<Mandolin>::kontrol_,
         0,
@@ -418,7 +514,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<ModalBar>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<ModalBar>::init_,
         (SUBR) STKInstrumentAdapter<ModalBar>::kontrol_,
         0,
@@ -428,7 +524,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Moog>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Moog>::init_,
         (SUBR) STKInstrumentAdapter<Moog>::kontrol_,
         0,
@@ -438,7 +534,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<PercFlut>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<PercFlut>::init_,
         (SUBR) STKInstrumentAdapter<PercFlut>::kontrol_,
         0,
@@ -448,7 +544,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Plucked>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Plucked>::init_,
         (SUBR) STKInstrumentAdapter1<Plucked>::kontrol_,
         0,
@@ -458,7 +554,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Resonate>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Resonate>::init_,
         (SUBR) STKInstrumentAdapter<Resonate>::kontrol_,
         0,
@@ -468,7 +564,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Rhodey>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Rhodey>::init_,
         (SUBR) STKInstrumentAdapter<Rhodey>::kontrol_,
         0,
@@ -478,7 +574,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<Saxofony>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<Saxofony>::init_,
         (SUBR) STKInstrumentAdapter1<Saxofony>::kontrol_,
         0,
@@ -488,7 +584,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Shakers>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Shakers>::init_,
         (SUBR) STKInstrumentAdapter<Shakers>::kontrol_,
         0,
@@ -498,7 +594,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Simple>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Simple>::init_,
         (SUBR) STKInstrumentAdapter<Simple>::kontrol_,
         0,
@@ -508,7 +604,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Sitar>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Sitar>::init_,
         (SUBR) STKInstrumentAdapter<Sitar>::kontrol_,
         0,
@@ -518,7 +614,7 @@ extern "C"
         sizeof(STKInstrumentAdapter1<StifKarp>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter1<StifKarp>::init_,
         (SUBR) STKInstrumentAdapter1<StifKarp>::kontrol_,
         0,
@@ -528,7 +624,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<TubeBell>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<TubeBell>::init_,
         (SUBR) STKInstrumentAdapter<TubeBell>::kontrol_,
         0,
@@ -538,7 +634,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<VoicForm>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<VoicForm>::init_,
         (SUBR) STKInstrumentAdapter<VoicForm>::kontrol_,
         0,
@@ -548,7 +644,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Whistle>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Whistle>::init_,
         (SUBR) STKInstrumentAdapter<Whistle>::kontrol_,
         0,
@@ -558,7 +654,7 @@ extern "C"
         sizeof(STKInstrumentAdapter<Wurley>),
         3,
         (char*)"a",
-        (char*)"iiJJJJJJJJ",
+        (char*)"iiJJJJJJJJJJJJJJJJ",
         (SUBR) STKInstrumentAdapter<Wurley>::init_,
         (SUBR) STKInstrumentAdapter<Wurley>::kontrol_,
         0,
