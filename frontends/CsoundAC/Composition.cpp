@@ -168,6 +168,29 @@ namespace csound
   {
     return timestamp;
   }
+  
+  void tagFile(Composition &composition, std::string filename)
+  {
+    std::string command = "sndfile-metadata-set --str-auto-date";
+    if (composition.getTitle().length() > 1) {
+        command = command + " --str-title " + composition.getTitle();
+    }
+    if (composition.getCopyright().length() > 1) {
+        command = command + " --str-copyright " + composition.getCopyright();
+    }
+    if (composition.getArtist().length() > 1) {
+        command = command + " --str-artist " + composition.getArtist();
+    }
+    if (composition.getAlbum().length() > 1) {
+        command = command + " --str-album " + composition.getAlbum();
+    }
+    if (composition.getLicense().length() > 1) {
+        command = command + " --str-license " + composition.getLicense();
+    }    
+    command = command + " " + filename.c_str();
+    System::inform("tagFile(): %s\n", command.c_str());
+    int result = std::system(command.c_str());
+  }
 
   void Composition::performAll()
   {
@@ -175,12 +198,13 @@ namespace csound
     score.save(getMidiFilename());
     score.save(getMusicXmlFilename());
     perform();
+    tagFile(*this, getOutputSoundfileName());
     normalizeOutputSoundfile();
     translateToCdAudio();
     translateToMp3();
     System::inform("ENDED Composition::performAll().\n");
   }
-
+  
   void Composition::normalizeOutputSoundfile(double levelDb)
   {
     char buffer[0x100];
@@ -192,17 +216,7 @@ namespace csound
 		  levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
-    std::snprintf(buffer, 
-		  0x100, 
-		  "sndfile-metadata-set --str-artist %s --str-title %s --str-copyright %s --str-license %s --str-album %s %s\n",
-		  getArtist().c_str(),
-		  getTitle().c_str(),
-		  getCopyright().c_str(),
-		  getLicense().c_str(),
-		  getAlbum().c_str(),
-		  getNormalizedSoundfileName().c_str());
-    System::inform("Composition::normalizeOutputSound(): %s", buffer);
-    result = std::system(buffer);
+    tagFile(*this, getNormalizedSoundfileName());
   }
 
   void Composition::translateToCdAudio(double levelDb)
@@ -214,17 +228,7 @@ namespace csound
 		  levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
-    std::snprintf(buffer, 
-		  0x100, 
-		  "sndfile-metadata-set --str-artist %s --str-title %s --str-copyright %s --str-license %s --str-album %s %s\n",
-		  getArtist().c_str(),
-		  getTitle().c_str(),
-		  getCopyright().c_str(),
-		  getLicense().c_str(),
-		  getAlbum().c_str(),
-		  getCdSoundfileName().c_str());
-    System::inform("Composition::translateToCdAudio(): %s", buffer);
-    result = std::system(buffer);
+    tagFile(*this, getCdSoundfileName());
   }
 
   void Composition::translateToMp3(double bitrate, double levelDb)
@@ -239,7 +243,7 @@ namespace csound
 		  getCopyright().c_str(),
 		  getCdSoundfileName().c_str(),
 		  getMp3SoundfileName().c_str());
-    System::inform("Composition::translateToCdAudio(): %s", buffer);
+    System::inform("Composition::translateToMp3(): %s", buffer);
     int result = std::system(buffer);
   }
 
