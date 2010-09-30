@@ -48,7 +48,6 @@ namespace csound
   {
     clear();
     generate();
-    timestamp = makeTimestamp();
     performAll();
   }
 
@@ -171,24 +170,26 @@ namespace csound
   
   void tagFile(Composition &composition, std::string filename)
   {
-    std::string command = "sndfile-metadata-set --str-auto-date";
+    std::string command = "bwfmetaedit";
+    command = command + " --OriginationDate=" + composition.getTimestamp().substr(0, 10);
+    command = command + " --ICRD=" + composition.getTimestamp().substr(0, 10);
     if (composition.getTitle().length() > 1) {
-        command = command + " --str-title " + composition.getTitle();
+        command = command + " --Description=" + composition.getTitle();
+        command = command + " --INAM=" + composition.getTitle();
     }
-// Buggy...
-//    if (composition.getCopyright().length() > 1) {
-//        command = command + " --str-copyright " + composition.getCopyright();
-//    }
+    if (composition.getCopyright().length() > 1) {
+        command = command + " --ICOP=" + composition.getCopyright();
+    }
     if (composition.getArtist().length() > 1) {
-        command = command + " --str-artist " + composition.getArtist();
+        command = command + " --Originator=" + composition.getArtist();
+        command = command + " --IART=" + composition.getArtist();
     }
-// Buggy...
-//    if (composition.getAlbum().length() > 1) {
-//        command = command + " --str-album " + composition.getAlbum();
-//    }
-//    if (composition.getLicense().length() > 1) {
-//        command = command + " --str-license " + composition.getLicense();
-//    }    
+    if (composition.getAlbum().length() > 1) {
+        command = command + " --IPRD=" + composition.getAlbum();
+    }
+    if (composition.getLicense().length() > 1) {
+        command = command + " --ICMT=" + composition.getLicense();
+    }    
     command = command + " " + filename.c_str();
     System::inform("tagFile(): %s\n", command.c_str());
     int result = std::system(command.c_str());
@@ -197,6 +198,7 @@ namespace csound
   void Composition::performAll()
   {
     System::inform("BEGAN Composition::performAll()...\n");
+    timestamp = makeTimestamp();
     score.save(getMidiFilename());
     score.save(getMusicXmlFilename());
     perform();
@@ -218,7 +220,7 @@ namespace csound
 		  levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
-    //tagFile(*this, getNormalizedSoundfileName());
+    tagFile(*this, getNormalizedSoundfileName());
   }
 
   void Composition::translateToCdAudio(double levelDb)
@@ -230,7 +232,7 @@ namespace csound
 		  levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
-    //tagFile(*this, getCdSoundfileName());
+    tagFile(*this, getCdSoundfileName());
   }
 
   void Composition::translateToMp3(double bitrate, double levelDb)
