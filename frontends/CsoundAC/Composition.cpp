@@ -175,18 +175,20 @@ namespace csound
     if (composition.getTitle().length() > 1) {
         command = command + " --str-title " + composition.getTitle();
     }
-    if (composition.getCopyright().length() > 1) {
-        command = command + " --str-copyright " + composition.getCopyright();
-    }
+// Buggy...
+//    if (composition.getCopyright().length() > 1) {
+//        command = command + " --str-copyright " + composition.getCopyright();
+//    }
     if (composition.getArtist().length() > 1) {
         command = command + " --str-artist " + composition.getArtist();
     }
-    if (composition.getAlbum().length() > 1) {
-        command = command + " --str-album " + composition.getAlbum();
-    }
-    if (composition.getLicense().length() > 1) {
-        command = command + " --str-license " + composition.getLicense();
-    }    
+// Buggy...
+//    if (composition.getAlbum().length() > 1) {
+//        command = command + " --str-album " + composition.getAlbum();
+//    }
+//    if (composition.getLicense().length() > 1) {
+//        command = command + " --str-license " + composition.getLicense();
+//    }    
     command = command + " " + filename.c_str();
     System::inform("tagFile(): %s\n", command.c_str());
     int result = std::system(command.c_str());
@@ -216,7 +218,7 @@ namespace csound
 		  levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
-    tagFile(*this, getNormalizedSoundfileName());
+    //tagFile(*this, getNormalizedSoundfileName());
   }
 
   void Composition::translateToCdAudio(double levelDb)
@@ -228,7 +230,7 @@ namespace csound
 		  levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
-    tagFile(*this, getCdSoundfileName());
+    //tagFile(*this, getCdSoundfileName());
   }
 
   void Composition::translateToMp3(double bitrate, double levelDb)
@@ -236,7 +238,7 @@ namespace csound
     char buffer[0x100];
     std::snprintf(buffer, 
 		  0x100, 
-		  "lame -V3 --preset cd --tt %s --ta %s --tl %s --tc %s %s\n",
+		  "lame -V3 --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
 		  getTitle().c_str(),
 		  getArtist().c_str(),
 		  getAlbum().c_str(),
