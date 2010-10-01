@@ -228,7 +228,7 @@ namespace csound
     char buffer[0x100];
     std::snprintf(buffer, 
 		  0x100, 
-		  "sox %s -V3 -b 32 -e floating-point %s gain %f\n",
+		  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
 		  getOutputSoundfileName().c_str(),
 		  getNormalizedSoundfileName().c_str(),
 		  levelDb);
@@ -240,7 +240,7 @@ namespace csound
   void Composition::translateToCdAudio(double levelDb)
   {
     char buffer[0x100];
-    std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain %f rate 44100\n",
+    std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain -n %f rate 44100\n",
 		  getOutputSoundfileName().c_str(),
 		  getCdSoundfileName().c_str(),
 		  levelDb);
