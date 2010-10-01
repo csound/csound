@@ -116,9 +116,17 @@ public:
      */
     virtual void perform();
     /**
-     * Convenience function that calls perform(),
-     * rescaleOutputSoundfile(), translateToCdAudio(),
-     * and translateToMp3.
+     * Convenience function that calls saveMidi(), saveMusicXML(), and perform().
+     */
+    virtual void performMaster();
+    /**
+     * Convenience function that calls rescaleOutputSoundfile(), 
+     * translateToCdAudio(), and translateToMp3().
+     */
+    virtual void translateMaster();
+    /**
+     * Convenience function that calls performMaster(),
+     * and translateMaster().
      */
     virtual void performAll();
     /**

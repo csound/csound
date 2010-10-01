@@ -195,20 +195,34 @@ namespace csound
     int result = std::system(command.c_str());
   }
 
-  void Composition::performAll()
+  void Composition::performMaster()
   {
-    System::inform("BEGAN Composition::performAll()...\n");
+    System::inform("BEGAN Composition::performMaster()...\n");
     timestamp = makeTimestamp();
     score.save(getMidiFilename());
     score.save(getMusicXmlFilename());
     perform();
+    System::inform("ENDED Composition::performMaster().\n");
+  }
+
+  void Composition::performAll()
+  {
+    System::inform("BEGAN Composition::performAll()...\n");
+    performMaster();
+    translateMaster();
+    System::inform("ENDED Composition::performAll().\n");
+  }
+
+  void Composition::translateMaster()
+  {
+    System::inform("ENDED Composition::translateMaster().\n");
     tagFile(*this, getOutputSoundfileName());
     normalizeOutputSoundfile();
     translateToCdAudio();
     translateToMp3();
-    System::inform("ENDED Composition::performAll().\n");
+    System::inform("ENDED Composition::translateMaster().\n");
   }
-  
+
   void Composition::normalizeOutputSoundfile(double levelDb)
   {
     char buffer[0x100];
