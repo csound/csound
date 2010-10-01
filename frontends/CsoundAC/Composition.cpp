@@ -254,7 +254,7 @@ namespace csound
     char buffer[0x100];
     std::snprintf(buffer, 
 		  0x100, 
-		  "lame -V3 --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
+		  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
 		  getTitle().c_str(),
 		  getArtist().c_str(),
 		  getAlbum().c_str(),
