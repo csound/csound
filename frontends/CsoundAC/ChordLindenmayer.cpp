@@ -76,7 +76,7 @@ namespace csound
     fixStatus();
     System::inform("ENDED ChordLindenmayer::generate(): %d events.\n", score.size());
   }
-  
+
   void ChordLindenmayer::initialize()
   {
     turtle.initialize();
@@ -85,7 +85,7 @@ namespace csound
     }
     score.clear();
   }
-  
+
   void ChordLindenmayer::generateLindenmayerSystem()
   {
     std::stringstream source;
@@ -96,11 +96,11 @@ namespace csound
     for (int i = 0; i < iterationCount; i++)
       {
         source.str(target.str());
-	source.clear();
-	source.seekg(0);
+        source.clear();
+        source.seekg(0);
         target.str("");
-	target.clear();
-	target.seekp(0);
+        target.clear();
+        target.seekp(0);
         while (!source.eof())
           {
             source >> word;
@@ -117,7 +117,7 @@ namespace csound
       }
     production = target.str();
   }
-  
+
   void ChordLindenmayer::writeScore()
   {
     std::string command;
@@ -133,11 +133,11 @@ namespace csound
   {
     for(std::vector<Event>::iterator it = score.begin(); it != score.end(); ++it) {
       if (it->getStatusNumber() == 0.0) {
-	it->setStatus(144.0);
+        it->setStatus(144.0);
       }
     }
   }
-  
+
   void ChordLindenmayer::tieOverlappingNotes()
   {
     // If the score contains two notes of the same pitch
@@ -148,24 +148,24 @@ namespace csound
     for (int laterI = score.size() - 1; laterI > 1; --laterI) {
       Event &laterEvent = score[laterI];
       for (int earlierI = laterI - 1; earlierI > 0; --earlierI) {
-	Event &earlierEvent = score[earlierI];
-	if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
-	  continue;
-	}
-	if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
-	  continue;
-	}
-	if (earlierEvent.getOffTime() < laterEvent.getTime()) {
-	  continue;
-	}
-	// Ok, must be tied.
-	earlierEvent.setOffTime(laterEvent.getOffTime());
-	score.erase(score.begin() + laterI);
-	break;
+        Event &earlierEvent = score[earlierI];
+        if (earlierEvent.getKeyNumber() != laterEvent.getKeyNumber()) {
+          continue;
+        }
+        if (earlierEvent.getVelocity() <= 0.0 || laterEvent.getVelocity() <= 0.0) {
+          continue;
+        }
+        if (earlierEvent.getOffTime() < laterEvent.getTime()) {
+          continue;
+        }
+        // Ok, must be tied.
+        earlierEvent.setOffTime(laterEvent.getOffTime());
+        score.erase(score.begin() + laterI);
+        break;
       }
     }
   }
-  
+
   void ChordLindenmayer::applyVoiceleadingOperations()
   {
     transform(score, false);
@@ -176,55 +176,55 @@ namespace csound
     switch(equivalenceClass)
       {
       case 'O':
-	{
-	  value = Conversions::modulus(value, 12.0);
-	}
-	break;
+        {
+          value = Conversions::modulus(value, 12.0);
+        }
+        break;
       case 'R':
-	{
-	  // the rangeBass will be applied only at the final stage.
-	  value = Conversions::modulus(value, turtle.rangeSize);
-	}
-	break;
+        {
+          // the rangeBass will be applied only at the final stage.
+          value = Conversions::modulus(value, turtle.rangeSize);
+        }
+        break;
       }
     return value;
   }
 
   /*
    * [
-   * ]     
-   * Fx    
-   * Mv    
-   * oNEdx 
-   * oSEdx 
-   * oCEdx 
-   * oCEv  
-   * oVx 
-   * ROdex 
-   * ICOx  
-   * KCO   
-   * QCOx   
+   * ]
+   * Fx
+   * Mv
+   * oNEdx
+   * oSEdx
+   * oCEdx
+   * oCEv
+   * oVx
+   * ROdex
+   * ICOx
+   * KCO
+   * QCOx
    * VC+
    * VC-
-   * WN  
-   * WCV 
-   * WCNV 
-   * AC   
-   * ACV  
-   * ACN  
-   * ACNV 
-   * ACL 
+   * WN
+   * WCV
+   * WCNV
+   * AC
+   * ACV
+   * ACN
+   * ACNV
+   * ACL
    * ACNL
-   * A0  
+   * A0
    */
-  char ChordLindenmayer::parseCommand(const std::string &command, 
-				      std::string &operation, 
-				      char &target, 
-				      char &equivalenceClass, 
-				      size_t &dimension,
-				      size_t &dimension1,
-				      double &scalar,
-				      std::vector<double> &vector)
+  char ChordLindenmayer::parseCommand(const std::string &command,
+                                      std::string &operation,
+                                      char &target,
+                                      char &equivalenceClass,
+                                      size_t &dimension,
+                                      size_t &dimension1,
+                                      double &scalar,
+                                      std::vector<double> &vector)
   {
     const char *command_ = command.c_str();
     char o = command[0];
@@ -248,35 +248,35 @@ namespace csound
       dimension = getDimension(command[2]);
       dimension1 = getDimension(command[3]);
       if (command.length() > 4) {
-	scalar =  Conversions::stringToDouble(command.substr(4));
+        scalar =  Conversions::stringToDouble(command.substr(4));
       }
     } else if (std::strpbrk(command_, "=+-*/") == command_) {
       operation = o;
       target = command[1];
       if (target == 'V') {
-	scalar = Conversions::stringToDouble(command.substr(2));
+        scalar = Conversions::stringToDouble(command.substr(2));
       } else if ((target == 'C') || (target == 'M')) {
-	// Operations on chords can operate on vectors of pitches; 
-	// on Jazz-style chord names; 
-	// or on any individual voice of the chord.
-	equivalenceClass = command[2];
-	if (command[3] == '(') {
-	  Conversions::stringToVector(command.substr(4), vector);
-	} else if (command[3] == '"') {
-	  std::string temp = command.substr(3);
-	  vector = Conversions::nameToPitches(Conversions::trimQuotes(temp));
-	} else {
-	  dimension = getDimension(command[3]);
-	  if (command.length() > 4) {
-	    scalar =  Conversions::stringToDouble(command.substr(4));
-	  }
-	}
+        // Operations on chords can operate on vectors of pitches;
+        // on Jazz-style chord names;
+        // or on any individual voice of the chord.
+        equivalenceClass = command[2];
+        if (command[3] == '(') {
+          Conversions::stringToVector(command.substr(4), vector);
+        } else if (command[3] == '"') {
+          std::string temp = command.substr(3);
+          vector = Conversions::nameToPitches(Conversions::trimQuotes(temp));
+        } else {
+          dimension = getDimension(command[3]);
+          if (command.length() > 4) {
+            scalar =  Conversions::stringToDouble(command.substr(4));
+          }
+        }
       } else if ((target == 'N') or (target == 'S')) {
-	equivalenceClass = command[2];
-	dimension = getDimension(command[3]);
-	if (command.length() > 4) {
-	  scalar =  Conversions::stringToDouble(command.substr(4));
-	}
+        equivalenceClass = command[2];
+        dimension = getDimension(command[3]);
+        if (command.length() > 4) {
+          scalar =  Conversions::stringToDouble(command.substr(4));
+        }
       }
     } else if (o == 'I') {
       operation = o;
@@ -299,454 +299,454 @@ namespace csound
     }
     return o;
   }
-  
+
   void ChordLindenmayer::interpret(std::string command)
   {
     /* <ul>
-     * <li>O = the operation proper (e.g. sum or product).</li> 
+     * <li>O = the operation proper (e.g. sum or product).</li>
      * <li>T = the target, or part of the turtle to which the
-     *         operation applies, and which has an implicit rank 
+     *         operation applies, and which has an implicit rank
      *         (e.g. scalar, vector, tensor).</li>
-     * <li>E = its equivalence class (e.g. octave or range).</li> 
-     * <li>D = the individual dimension of the operation 
+     * <li>E = its equivalence class (e.g. octave or range).</li>
+     * <li>D = the individual dimension of the operation
      *         (e.g. pitch or time).</li>
      * <li>X = the operand (which defaults to 1).</li>
      * </ul>
      */
-    std::string operation; 
+    std::string operation;
     char target;
-    char equivalenceClass; 
+    char equivalenceClass;
     size_t dimension;
     size_t dimension1;
     double scalar;
     std::vector<double> vector;
-    char o = parseCommand(command, 
-			  operation, 
-			  target, 
-			  equivalenceClass, 
-			  dimension, 
-			  dimension1, 
-			  scalar, 
-			  vector);
+    char o = parseCommand(command,
+                          operation,
+                          target,
+                          equivalenceClass,
+                          dimension,
+                          dimension1,
+                          scalar,
+                          vector);
     switch (o)
-      { 
+      {
       case '[':
-	{
-	  turtleStack.push(turtle);
-	}
-	break;
+        {
+          turtleStack.push(turtle);
+        }
+        break;
       case ']':
-	{
-	  turtle = turtleStack.top();
-	  turtleStack.pop();
-	}
-	break;
+        {
+          turtle = turtleStack.top();
+          turtleStack.pop();
+        }
+        break;
       case 'F':
-	{
-	  Event orientedStep;
-	  for (size_t i = 0, n = turtle.note.size(); i < n; ++i) {
-	    turtle.note[i] = turtle.note[i] + ((turtle.step[i] * turtle.orientation[i]) * scalar);
-	  }
-	}
-	break;
+        {
+          Event orientedStep;
+          for (size_t i = 0, n = turtle.note.size(); i < n; ++i) {
+            turtle.note[i] = turtle.note[i] + ((turtle.step[i] * turtle.orientation[i]) * scalar);
+          }
+        }
+        break;
       case '=':
-	{
-	  switch(target)
-	    {
-	    case 'N':
-	      {
-		turtle.note[dimension] = scalar;
-		equivalence(turtle.note[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'S':
-	      {
-		turtle.step[dimension] = scalar;
-		equivalence(turtle.step[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'O':
-	      {
-		turtle.orientation[dimension] = scalar;
-		equivalence(turtle.orientation[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'C':
-	      {
-		turtle.chord = vector;
-	      }
-	      break;
-	    case 'M':
-	      {
-		turtle.modality = vector;
-	      }
-	      break;
-	    case 'V':
-	      {
-		turtle.voicing = scalar;
-		equivalence(turtle.voicing, equivalenceClass);
-	      }
-	      break;
-	    case 'B':
-	      {
-		turtle.rangeBass = scalar;
-		equivalence(turtle.rangeBass, equivalenceClass);
-	      }
-	      break;
-	    case 'R':
-	      {
-		turtle.rangeSize = scalar;
-		equivalence(turtle.rangeSize, equivalenceClass);
-	      }
-	      break;
-	    }
-	}
-	break;
+        {
+          switch(target)
+            {
+            case 'N':
+              {
+                turtle.note[dimension] = scalar;
+                equivalence(turtle.note[dimension], equivalenceClass);
+              }
+              break;
+            case 'S':
+              {
+                turtle.step[dimension] = scalar;
+                equivalence(turtle.step[dimension], equivalenceClass);
+              }
+              break;
+            case 'O':
+              {
+                turtle.orientation[dimension] = scalar;
+                equivalence(turtle.orientation[dimension], equivalenceClass);
+              }
+              break;
+            case 'C':
+              {
+                turtle.chord = vector;
+              }
+              break;
+            case 'M':
+              {
+                turtle.modality = vector;
+              }
+              break;
+            case 'V':
+              {
+                turtle.voicing = scalar;
+                equivalence(turtle.voicing, equivalenceClass);
+              }
+              break;
+            case 'B':
+              {
+                turtle.rangeBass = scalar;
+                equivalence(turtle.rangeBass, equivalenceClass);
+              }
+              break;
+            case 'R':
+              {
+                turtle.rangeSize = scalar;
+                equivalence(turtle.rangeSize, equivalenceClass);
+              }
+              break;
+            }
+        }
+        break;
       case '+':
-	{
-	  switch(target)
-	    {
-	    case 'N':
-	      {
-		turtle.note[dimension] = turtle.note[dimension] + (turtle.step[dimension] * scalar);
-		equivalence(turtle.note[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'S':
-	      {
-		turtle.step[dimension] = turtle.step[dimension] + scalar;
-		equivalence(turtle.step[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'O':
-	      {
-		turtle.orientation[dimension] = turtle.orientation[dimension] + scalar;
-		equivalence(turtle.orientation[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'C':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.chord[vectorI] = turtle.chord[vectorI] + vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'M':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.modality[vectorI] = turtle.modality[vectorI] + vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'V':
-	      {
-		turtle.voicing = turtle.voicing + scalar;
-		equivalence(turtle.voicing, equivalenceClass);
-	      }
-	      break;
-	    case 'B':
-	      {
-		turtle.rangeBass = turtle.rangeBass + scalar;
-		equivalence(turtle.rangeBass, equivalenceClass);
-	      }
-	      break;
-	    case 'R':
-	      {
-		turtle.rangeSize = turtle.rangeSize + scalar;
-		equivalence(turtle.rangeSize, equivalenceClass);
-	      }
-	      break;
-	    }
-	  break;
-	}
+        {
+          switch(target)
+            {
+            case 'N':
+              {
+                turtle.note[dimension] = turtle.note[dimension] + (turtle.step[dimension] * scalar);
+                equivalence(turtle.note[dimension], equivalenceClass);
+              }
+              break;
+            case 'S':
+              {
+                turtle.step[dimension] = turtle.step[dimension] + scalar;
+                equivalence(turtle.step[dimension], equivalenceClass);
+              }
+              break;
+            case 'O':
+              {
+                turtle.orientation[dimension] = turtle.orientation[dimension] + scalar;
+                equivalence(turtle.orientation[dimension], equivalenceClass);
+              }
+              break;
+            case 'C':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.chord[vectorI] = turtle.chord[vectorI] + vector[vectorI];
+                }
+              }
+              break;
+            case 'M':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.modality[vectorI] = turtle.modality[vectorI] + vector[vectorI];
+                }
+              }
+              break;
+            case 'V':
+              {
+                turtle.voicing = turtle.voicing + scalar;
+                equivalence(turtle.voicing, equivalenceClass);
+              }
+              break;
+            case 'B':
+              {
+                turtle.rangeBass = turtle.rangeBass + scalar;
+                equivalence(turtle.rangeBass, equivalenceClass);
+              }
+              break;
+            case 'R':
+              {
+                turtle.rangeSize = turtle.rangeSize + scalar;
+                equivalence(turtle.rangeSize, equivalenceClass);
+              }
+              break;
+            }
+          break;
+        }
       case '-':
-	{
-	  switch(target)
-	    {
-	    case 'N':
-	      {
-		turtle.note[dimension] = turtle.note[dimension] - (turtle.step[dimension] * scalar);
-		equivalence(turtle.note[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'S':
-	      {
-		turtle.step[dimension] = turtle.step[dimension] - scalar;
-		equivalence(turtle.step[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'O':
-	      {
-		turtle.orientation[dimension] = turtle.orientation[dimension] - scalar;
-		equivalence(turtle.orientation[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'C':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.chord[vectorI] = turtle.chord[vectorI] - vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'M':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.modality[vectorI] = turtle.modality[vectorI] - vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'V':
-	      {
-		turtle.voicing = turtle.voicing - scalar;
-		equivalence(turtle.voicing, equivalenceClass);
-	      }
-	      break;
-	    case 'B':
-	      {
-		turtle.rangeBass = turtle.rangeBass - scalar;
-		equivalence(turtle.rangeBass, equivalenceClass);
-	      }
-	      break;
-	    case 'R':
-	      {
-		turtle.rangeSize = turtle.rangeSize - scalar;
-		equivalence(turtle.rangeSize, equivalenceClass);
-	      }
-	      break;
-	    }
-	  break;
-	}
-	break;
+        {
+          switch(target)
+            {
+            case 'N':
+              {
+                turtle.note[dimension] = turtle.note[dimension] - (turtle.step[dimension] * scalar);
+                equivalence(turtle.note[dimension], equivalenceClass);
+              }
+              break;
+            case 'S':
+              {
+                turtle.step[dimension] = turtle.step[dimension] - scalar;
+                equivalence(turtle.step[dimension], equivalenceClass);
+              }
+              break;
+            case 'O':
+              {
+                turtle.orientation[dimension] = turtle.orientation[dimension] - scalar;
+                equivalence(turtle.orientation[dimension], equivalenceClass);
+              }
+              break;
+            case 'C':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.chord[vectorI] = turtle.chord[vectorI] - vector[vectorI];
+                }
+              }
+              break;
+            case 'M':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.modality[vectorI] = turtle.modality[vectorI] - vector[vectorI];
+                }
+              }
+              break;
+            case 'V':
+              {
+                turtle.voicing = turtle.voicing - scalar;
+                equivalence(turtle.voicing, equivalenceClass);
+              }
+              break;
+            case 'B':
+              {
+                turtle.rangeBass = turtle.rangeBass - scalar;
+                equivalence(turtle.rangeBass, equivalenceClass);
+              }
+              break;
+            case 'R':
+              {
+                turtle.rangeSize = turtle.rangeSize - scalar;
+                equivalence(turtle.rangeSize, equivalenceClass);
+              }
+              break;
+            }
+          break;
+        }
+        break;
       case '*':
-	{
-	  switch(target)
-	    {
-	    case 'N':
-	      {
-		turtle.note[dimension] = turtle.note[dimension] * (turtle.step[dimension] * scalar);
-		equivalence(turtle.note[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'S':
-	      {
-		turtle.step[dimension] = turtle.step[dimension] * scalar;
-		equivalence(turtle.step[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'O':
-	      {
-		turtle.orientation[dimension] = turtle.orientation[dimension] * scalar;
-		equivalence(turtle.orientation[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'C':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.chord[vectorI] = turtle.chord[vectorI] * vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'M':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.modality[vectorI] = turtle.modality[vectorI] * vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'V':
-	      {
-		turtle.voicing = turtle.voicing * scalar;
-		equivalence(turtle.voicing, equivalenceClass);
-	      }
-	      break;
-	    case 'B':
-	      {
-		turtle.rangeBass = turtle.rangeBass * scalar;
-		equivalence(turtle.rangeBass, equivalenceClass);
-	      }
-	      break;
-	    case 'R':
-	      {
-		turtle.rangeSize = turtle.rangeSize * scalar;
-		equivalence(turtle.rangeSize, equivalenceClass);
-	      }
-	      break;
-	    }
-	  break;
-	}
-	break;
+        {
+          switch(target)
+            {
+            case 'N':
+              {
+                turtle.note[dimension] = turtle.note[dimension] * (turtle.step[dimension] * scalar);
+                equivalence(turtle.note[dimension], equivalenceClass);
+              }
+              break;
+            case 'S':
+              {
+                turtle.step[dimension] = turtle.step[dimension] * scalar;
+                equivalence(turtle.step[dimension], equivalenceClass);
+              }
+              break;
+            case 'O':
+              {
+                turtle.orientation[dimension] = turtle.orientation[dimension] * scalar;
+                equivalence(turtle.orientation[dimension], equivalenceClass);
+              }
+              break;
+            case 'C':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.chord[vectorI] = turtle.chord[vectorI] * vector[vectorI];
+                }
+              }
+              break;
+            case 'M':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.modality[vectorI] = turtle.modality[vectorI] * vector[vectorI];
+                }
+              }
+              break;
+            case 'V':
+              {
+                turtle.voicing = turtle.voicing * scalar;
+                equivalence(turtle.voicing, equivalenceClass);
+              }
+              break;
+            case 'B':
+              {
+                turtle.rangeBass = turtle.rangeBass * scalar;
+                equivalence(turtle.rangeBass, equivalenceClass);
+              }
+              break;
+            case 'R':
+              {
+                turtle.rangeSize = turtle.rangeSize * scalar;
+                equivalence(turtle.rangeSize, equivalenceClass);
+              }
+              break;
+            }
+          break;
+        }
+        break;
       case '/':
-	{
-	  switch(target)
-	    {
-	    case 'N':
-	      {
-		turtle.note[dimension] = turtle.note[dimension] / (turtle.step[dimension] * scalar);
-		equivalence(turtle.note[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'S':
-	      {
-		turtle.step[dimension] = turtle.step[dimension] / scalar;
-		equivalence(turtle.step[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'O':
-	      {
-		turtle.orientation[dimension] = turtle.orientation[dimension] / scalar;
-		equivalence(turtle.orientation[dimension], equivalenceClass);
-	      }
-	      break;
-	    case 'C':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.chord[vectorI] = turtle.chord[vectorI] / vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'M':
-	      {
-		size_t vectorN = std::min(vector.size(), turtle.chord.size());
-		for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
-		  turtle.modality[vectorI] = turtle.modality[vectorI] / vector[vectorI];
-		}
-	      }
-	      break;
-	    case 'V':
-	      {
-		turtle.voicing = turtle.voicing / scalar;
-		equivalence(turtle.voicing, equivalenceClass);
-	      }
-	      break;
-	    case 'B':
-	      {
-		turtle.rangeBass = turtle.rangeBass / scalar;
-		equivalence(turtle.rangeBass, equivalenceClass);
-	      }
-	      break;
-	    case 'R':
-	      {
-		turtle.rangeSize = turtle.rangeSize / scalar;
-		equivalence(turtle.rangeSize, equivalenceClass);
-	      }
-	      break;
-	    }
-	  break;
-	}
-	break;
+        {
+          switch(target)
+            {
+            case 'N':
+              {
+                turtle.note[dimension] = turtle.note[dimension] / (turtle.step[dimension] * scalar);
+                equivalence(turtle.note[dimension], equivalenceClass);
+              }
+              break;
+            case 'S':
+              {
+                turtle.step[dimension] = turtle.step[dimension] / scalar;
+                equivalence(turtle.step[dimension], equivalenceClass);
+              }
+              break;
+            case 'O':
+              {
+                turtle.orientation[dimension] = turtle.orientation[dimension] / scalar;
+                equivalence(turtle.orientation[dimension], equivalenceClass);
+              }
+              break;
+            case 'C':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.chord[vectorI] = turtle.chord[vectorI] / vector[vectorI];
+                }
+              }
+              break;
+            case 'M':
+              {
+                size_t vectorN = std::min(vector.size(), turtle.chord.size());
+                for (size_t vectorI = 0; vectorI < vectorN; ++vectorI) {
+                  turtle.modality[vectorI] = turtle.modality[vectorI] / vector[vectorI];
+                }
+              }
+              break;
+            case 'V':
+              {
+                turtle.voicing = turtle.voicing / scalar;
+                equivalence(turtle.voicing, equivalenceClass);
+              }
+              break;
+            case 'B':
+              {
+                turtle.rangeBass = turtle.rangeBass / scalar;
+                equivalence(turtle.rangeBass, equivalenceClass);
+              }
+              break;
+            case 'R':
+              {
+                turtle.rangeSize = turtle.rangeSize / scalar;
+                equivalence(turtle.rangeSize, equivalenceClass);
+              }
+              break;
+            }
+          break;
+        }
+        break;
       case 'R':
-	{
-	  boost::numeric::ublas::matrix<double> rotation = createRotation(dimension, dimension1, scalar);
-	  turtle.orientation = boost::numeric::ublas::prod(rotation, turtle.orientation);
-	}
-	break;
+        {
+          boost::numeric::ublas::matrix<double> rotation = createRotation(dimension, dimension1, scalar);
+          turtle.orientation = boost::numeric::ublas::prod(rotation, turtle.orientation);
+        }
+        break;
       case 'T':
-	{
-	  turtle.chord = Voicelead::T(turtle.chord, scalar);
-	}
-	break;
+        {
+          turtle.chord = Voicelead::T(turtle.chord, scalar);
+        }
+        break;
       case 'I':
-	{
-	  turtle.chord = Voicelead::I(turtle.chord, scalar);
-	}
-	break;
+        {
+          turtle.chord = Voicelead::I(turtle.chord, scalar);
+        }
+        break;
       case 'K':
-	{
-	  turtle.chord = Voicelead::K(turtle.chord);
-	}
-	break;
+        {
+          turtle.chord = Voicelead::K(turtle.chord);
+        }
+        break;
       case 'Q':
-	{
-	  turtle.chord = Voicelead::Q(turtle.chord, scalar, turtle.modality);
-	}
-	break;
+        {
+          turtle.chord = Voicelead::Q(turtle.chord, scalar, turtle.modality);
+        }
+        break;
       default:
-	{
-	  if        (operation == "VC+") {
-	    std::vector<double> temp = turtle.chord;
-	    std::sort(temp.begin(), temp.end());
-	    if (turtle.chord.size()){
-	      turtle.chord.push_back(temp.front());
-	    } else {
-	      turtle.chord.push_back(0.0);
-	    }
-	  } else if (operation == "VC-") {
-	    if (turtle.chord.size() > 0) {
-	      turtle.chord.resize(turtle.chord.size() - 1);
-	    }
-	  } else if (operation == "WN") {
-	    score.append(turtle.note);
-	  } else if (operation == "WCV") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
-						 ptv[1], 
-						 turtle.voicing,
-						 0,
-						 turtle.rangeSize);
-	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
-	      Event event = turtle.note;
-	      event.setKey(turtle.chord[i]);
-	      score.append(event);
-	    }
-	  } else if (operation == "WCNV") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
-	    turtle.chord = Voicelead::ptvToChord(ptv[0], 
-						 ptv[1], 
-						 turtle.voicing,
-						 0,
-						 turtle.rangeSize);
-	    for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
-	      Event event = turtle.note;
-	      event.setKey(turtle.chord[i]);
-	      score.append(event);
-	    }
-	    //	  } else if (operation == "WCL") {
-	    //    } else if (operation == "WCNL") {
-	  } else if (operation == "AC") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
-	    //    } else if (operation == "ACV") {
-	  } else if (operation == "ACN") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
-	    PT(turtle.note.getTime(), ptv[0], ptv[1]);
-	    //    } else if (operation == "ACNV") {
-	  } else if (operation == "ACL") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
-	  } else if (operation == "ACNL") {
-	    std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord, 
-							    0, 
-							    turtle.rangeSize);
-	    ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
-	    PTL(turtle.note.getTime(), ptv[0], ptv[1]);
-	  } else if (operation == "A0") {
-	    // Creates an uninitialized operation, which does nothing, 
-	    // thus ending the prior operation.
-	    operations[turtle.note.getTime()].beginTime = turtle.note.getTime();
-	  }
-	}
+        {
+          if        (operation == "VC+") {
+            std::vector<double> temp = turtle.chord;
+            std::sort(temp.begin(), temp.end());
+            if (turtle.chord.size()){
+              turtle.chord.push_back(temp.front());
+            } else {
+              turtle.chord.push_back(0.0);
+            }
+          } else if (operation == "VC-") {
+            if (turtle.chord.size() > 0) {
+              turtle.chord.resize(turtle.chord.size() - 1);
+            }
+          } else if (operation == "WN") {
+            score.append(turtle.note);
+          } else if (operation == "WCV") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            turtle.chord = Voicelead::ptvToChord(ptv[0],
+                                                 ptv[1],
+                                                 turtle.voicing,
+                                                 0,
+                                                 turtle.rangeSize);
+            for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
+              Event event = turtle.note;
+              event.setKey(turtle.chord[i]);
+              score.append(event);
+            }
+          } else if (operation == "WCNV") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+            turtle.chord = Voicelead::ptvToChord(ptv[0],
+                                                 ptv[1],
+                                                 turtle.voicing,
+                                                 0,
+                                                 turtle.rangeSize);
+            for (size_t i = 0, n = turtle.chord.size(); i < n; ++i) {
+              Event event = turtle.note;
+              event.setKey(turtle.chord[i]);
+              score.append(event);
+            }
+            //    } else if (operation == "WCL") {
+            //    } else if (operation == "WCNL") {
+          } else if (operation == "AC") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            PT(turtle.note.getTime(), ptv[0], ptv[1]);
+            //    } else if (operation == "ACV") {
+          } else if (operation == "ACN") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+            PT(turtle.note.getTime(), ptv[0], ptv[1]);
+            //    } else if (operation == "ACNV") {
+          } else if (operation == "ACL") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            PTL(turtle.note.getTime(), ptv[0], ptv[1]);
+          } else if (operation == "ACNL") {
+            std::vector<double> ptv = Voicelead::chordToPTV(turtle.chord,
+                                                            0,
+                                                            turtle.rangeSize);
+            ptv[1] = Voicelead::T(ptv[1], turtle.note.getKey());
+            PTL(turtle.note.getTime(), ptv[0], ptv[1]);
+          } else if (operation == "A0") {
+            // Creates an uninitialized operation, which does nothing,
+            // thus ending the prior operation.
+            operations[turtle.note.getTime()].beginTime = turtle.note.getTime();
+          }
+        }
       }
   }
-  
+
   int ChordLindenmayer::getDimension (char dimension) const
   {
     switch(dimension)
@@ -819,20 +819,20 @@ namespace csound
     score.clear();
   }
 
-  void ChordLindenmayer::produceOrTransform(Score &collectingScore, 
-					    size_t beginAt, 
-					    size_t endAt, 
-					    const boost::numeric::ublas::matrix<double> &compositeCoordinates)
+  void ChordLindenmayer::produceOrTransform(Score &collectingScore,
+                                            size_t beginAt,
+                                            size_t endAt,
+                                            const boost::numeric::ublas::matrix<double> &compositeCoordinates)
   {
     // Begin at the end of the score generated so far.
     size_t collectingScoreI = collectingScore.size();
     // Allocate all new notes at once.
     collectingScore.resize(collectingScore.size() + score.size());
-    for (size_t scoreI = 0, collectingScoreN = collectingScore.size(); 
-	 collectingScoreI < collectingScoreN; 
-	 ++scoreI, ++collectingScoreI) {
-      collectingScore[collectingScoreI] = boost::numeric::ublas::prod(compositeCoordinates, 
-								      score[scoreI]);
+    for (size_t scoreI = 0, collectingScoreN = collectingScore.size();
+         collectingScoreI < collectingScoreN;
+         ++scoreI, ++collectingScoreI) {
+      collectingScore[collectingScoreI] = boost::numeric::ublas::prod(compositeCoordinates,
+                                                                      score[scoreI]);
     }
   }
 }

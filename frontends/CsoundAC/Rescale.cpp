@@ -29,8 +29,8 @@ namespace csound
     initialize();
     for(size_t i = 0; i < Event::ELEMENT_COUNT; i++)
       {
-	score.rescaleMinima[i] = false;
-	score.rescaleRanges[i] = false;
+        score.rescaleMinima[i] = false;
+        score.rescaleRanges[i] = false;
       }
   }
 
@@ -42,14 +42,14 @@ namespace csound
   {
     if(!initialized)
       {
-	for(int i = 0; i < Event::ELEMENT_COUNT; i++)
-	  {
-	    dimensions[std::string("rescaleMinimum") + Event::labels[i]] = i;
-	    dimensions[std::string("rescaleRange") + Event::labels[i]] = i;
-	    dimensions[std::string("targetMinimum") + Event::labels[i]] = i;
-	    dimensions[std::string("targetRange") + Event::labels[i]] = i;
-	  }
-	initialized = true;
+        for(int i = 0; i < Event::ELEMENT_COUNT; i++)
+          {
+            dimensions[std::string("rescaleMinimum") + Event::labels[i]] = i;
+            dimensions[std::string("rescaleRange") + Event::labels[i]] = i;
+            dimensions[std::string("targetMinimum") + Event::labels[i]] = i;
+            dimensions[std::string("targetRange") + Event::labels[i]] = i;
+          }
+        initialized = true;
       }
   }
 
@@ -57,14 +57,14 @@ namespace csound
   {
     for(int i = 0; i < Event::ELEMENT_COUNT; i++)
       {
-	score_.setScale(score_, 
-			i, 
-			score.rescaleMinima[i], 
-			score.rescaleRanges[i], 
-			beginAt, 
-			endAt, 
-			score.scaleTargetMinima[i], 
-			score.scaleTargetRanges[i]);
+        score_.setScale(score_, 
+                        i, 
+                        score.rescaleMinima[i], 
+                        score.rescaleRanges[i], 
+                        beginAt, 
+                        endAt, 
+                        score.scaleTargetMinima[i], 
+                        score.scaleTargetRanges[i]);
       }
   }
 

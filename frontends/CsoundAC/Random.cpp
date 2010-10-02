@@ -127,9 +127,9 @@ namespace csound
     return transformation;
   }
   void Random::produceOrTransform(Score &score, 
-				  size_t beginAt, 
-				  size_t endAt, 
-				  const ublas::matrix<double> &compositeCoordinates)
+                                  size_t beginAt, 
+                                  size_t endAt, 
+                                  const ublas::matrix<double> &compositeCoordinates)
   {
     createDistribution(distribution);
     if(eventCount > 0)
@@ -149,12 +149,12 @@ namespace csound
               }
             score.push_back(transformedEvent);
           }
-	// Apply the global transformation of coordinate system 
-	// to all child events produced by this node.
-	size_t finalEndAt = score.size();
-	for (size_t i = endAt; i < finalEndAt; i++) {
-	  score[i] = ublas::prod(compositeCoordinates, score[i]);
-	}
+        // Apply the global transformation of coordinate system 
+        // to all child events produced by this node.
+        size_t finalEndAt = score.size();
+        for (size_t i = endAt; i < finalEndAt; i++) {
+          score[i] = ublas::prod(compositeCoordinates, score[i]);
+        }
       }
     else
       {

@@ -301,8 +301,8 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
             else if(csddata.find("Maker")!=string::npos){
               equals = csddata.find('=');
               temp = csddata.substr(equals+1) + (sizeof(MYFLT) == 4 ?
-			 "     (csLADSPA: Lazzarini, Walsh)" :
-			 "     (csLADSPA64: Lazzarini, Walsh)") ;
+                         "     (csLADSPA: Lazzarini, Walsh)" :
+                         "     (csLADSPA64: Lazzarini, Walsh)") ;
               temp = trim(temp);
               tmp = new char[temp.length()+1];
               strcpy(tmp, (const char*)temp.c_str());
