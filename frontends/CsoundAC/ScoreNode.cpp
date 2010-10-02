@@ -30,9 +30,9 @@ namespace csound
   }
 
   void ScoreNode::produceOrTransform(Score &score_, 
-				     size_t beginAt, 
-				     size_t endAt, 
-				     const ublas::matrix<double> &compositeCoordinates)
+                                     size_t beginAt, 
+                                     size_t endAt, 
+                                     const ublas::matrix<double> &compositeCoordinates)
   {
     if(importFilename.length() > 0)
       {

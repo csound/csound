@@ -298,7 +298,7 @@ namespace csound
     for (size_t i = 0, n = chord.size(); i < n; ++i) {
       double pc_ = pc(chord[i]);
       if (std::find(uniquepcs.begin(), uniquepcs.end(), pc_) == uniquepcs.end()) {
-	uniquepcs.push_back(pc_);
+        uniquepcs.push_back(pc_);
       } 
     }
     sort(uniquepcs);
@@ -771,10 +771,10 @@ namespace csound
   }
 
   bool Voicelead::addOctave(const std::vector<double> 
-			    &lowestVoicing, 
-			    std::vector<double> &newVoicing, 
-			    size_t maximumPitch, 
-			    size_t divisionsPerOctave)
+                            &lowestVoicing, 
+                            std::vector<double> &newVoicing, 
+                            size_t maximumPitch, 
+                            size_t divisionsPerOctave)
   {
     for (size_t voice = 0, voices = lowestVoicing.size(); voice < voices; voice++) {
       double newPitch = newVoicing[voice] + 12.0;
@@ -990,7 +990,7 @@ namespace csound
       std::vector<double> ty = T(Y, i);
       std::vector<double> pcsty = pcs(ty);
       if (pcsx == pcsty) {
-	return true;
+        return true;
       }
       i = i + g;
     }
@@ -1005,7 +1005,7 @@ namespace csound
       std::vector<double> iy = I(Y, i);
       std::vector<double> pcsiy = pcs(iy);
       if (pcsx == pcsiy) {
-	return true;
+        return true;
       }
       i = i + g;
     }

@@ -88,9 +88,9 @@ namespace csound
       note = csound::Event();
       step = csound::Event();
       for(size_t i = 0; i < Event::HOMOGENEITY; i++)
-	{
-	  step[i] = 1.0;
-	}
+        {
+          step[i] = 1.0;
+        }
       orientation = csound::Event();
       orientation[Event::TIME] = 1.0;
       chord.clear();
@@ -115,42 +115,42 @@ namespace csound
     bool operator < (const Turtle &other) const
     {
       if (note < other.note) {
-	return true;
+        return true;
       } else if (other.note < note) {
-	return false;
+        return false;
       }
       if (step < other.step) {
-	return true;
+        return true;
       } else if (other.step < step) {
-	return false;
+        return false;
       }
       if (orientation < other.orientation) {
-	return true;
+        return true;
       } else if (other.orientation < orientation) {
-	return false;
+        return false;
       }
       if (chord < other.chord) {
-	return true;
+        return true;
       } else if (other.chord < chord) {
-	return false;
+        return false;
       }
       if (rangeBass < other.rangeBass) {
-	return false;
+        return false;
       } else if (other.rangeBass < rangeBass) {
-	return true;
+        return true;
       }
       if (rangeSize < other.rangeSize) {
-	return true;
+        return true;
       } else if (other.rangeSize < rangeSize) {
-	return false;
+        return false;
       }
       if (voicing < other.voicing) {
-	return true;
+        return true;
       } else if (other.voicing < voicing) {
-	return false;
+        return false;
       }
       if (modality < other.modality) {
-	return true;
+        return true;
       }
       return false;
     }
@@ -356,13 +356,13 @@ namespace csound
     virtual void interpret(std::string command);
     virtual int getDimension (char dimension) const;
     virtual char parseCommand(const std::string &command, 
-			      std::string &operation, 
-			      char &target, 
-			      char &equivalenceClass, 
-			      size_t &dimension,
-			      size_t &dimension1,
-			      double &scalar,
-			      std::vector<double> &vector);
+                              std::string &operation, 
+                              char &target, 
+                              char &equivalenceClass, 
+                              size_t &dimension,
+                              size_t &dimension1,
+                              double &scalar,
+                              std::vector<double> &vector);
     virtual ublas::matrix<double> createRotation (int dimension1, int dimension2, double angle) const;
     /**
      * Returns the result of applying the equivalence class to the value,

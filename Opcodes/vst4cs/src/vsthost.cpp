@@ -43,270 +43,270 @@ void VSTPlugin::initializeOpcodes()
     return;
   }
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effOpen, "effOpen"));
+                                                        (long) effOpen, "effOpen"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effClose, "effClose"));
+                                                        (long) effClose, "effClose"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetProgram, "effSetProgram"));
+                                                        (long) effSetProgram, "effSetProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetProgram, "effGetProgram"));
+                                                        (long) effGetProgram, "effGetProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetProgramName, "effSetProgramName"));
+                                                        (long) effSetProgramName, "effSetProgramName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetProgramName, "effGetProgramName"));
+                                                        (long) effGetProgramName, "effGetProgramName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetParamLabel, "effGetParamLabel"));
+                                                        (long) effGetParamLabel, "effGetParamLabel"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetParamDisplay, "effGetParamDisplay"));
+                                                        (long) effGetParamDisplay, "effGetParamDisplay"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetParamName, "effGetParamName"));
+                                                        (long) effGetParamName, "effGetParamName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetVu, "effGetVu"));
+                                                        (long) effGetVu, "effGetVu"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetSampleRate, "effSetSampleRate"));
+                                                        (long) effSetSampleRate, "effSetSampleRate"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetBlockSize, "effSetBlockSize"));
+                                                        (long) effSetBlockSize, "effSetBlockSize"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effMainsChanged, "effMainsChanged"));
+                                                        (long) effMainsChanged, "effMainsChanged"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditGetRect, "effEditGetRect"));
+                                                        (long) effEditGetRect, "effEditGetRect"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditOpen, "effEditOpen"));
+                                                        (long) effEditOpen, "effEditOpen"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditClose, "effEditClose"));
+                                                        (long) effEditClose, "effEditClose"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditDraw, "effEditDraw"));
+                                                        (long) effEditDraw, "effEditDraw"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditMouse, "effEditMouse"));
+                                                        (long) effEditMouse, "effEditMouse"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditKey, "effEditKey"));
+                                                        (long) effEditKey, "effEditKey"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditIdle, "effEditIdle"));
+                                                        (long) effEditIdle, "effEditIdle"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditTop, "effEditTop"));
+                                                        (long) effEditTop, "effEditTop"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditSleep, "effEditSleep"));
+                                                        (long) effEditSleep, "effEditSleep"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effIdentify, "effIdentify"));
+                                                        (long) effIdentify, "effIdentify"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetChunk, "effGetChunk"));
+                                                        (long) effGetChunk, "effGetChunk"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetChunk, "effSetChunk"));
+                                                        (long) effSetChunk, "effSetChunk"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effProcessEvents, "effProcessEvents"));
+                                                        (long) effProcessEvents, "effProcessEvents"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effCanBeAutomated, "effCanBeAutomated"));
+                                                        (long) effCanBeAutomated, "effCanBeAutomated"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effString2Parameter, "effString2Parameter"));
+                                                        (long) effString2Parameter, "effString2Parameter"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetNumProgramCategories, "effGetNumProgramCategories"));
+                                                        (long) effGetNumProgramCategories, "effGetNumProgramCategories"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetProgramNameIndexed, "effGetProgramNameIndexed"));
+                                                        (long) effGetProgramNameIndexed, "effGetProgramNameIndexed"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effCopyProgram, "effCopyProgram"));
+                                                        (long) effCopyProgram, "effCopyProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effConnectInput, "effConnectInput"));
+                                                        (long) effConnectInput, "effConnectInput"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effConnectOutput, "effConnectOutput"));
+                                                        (long) effConnectOutput, "effConnectOutput"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetInputProperties, "effGetInputProperties"));
+                                                        (long) effGetInputProperties, "effGetInputProperties"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetOutputProperties, "effGetOutputProperties"));
+                                                        (long) effGetOutputProperties, "effGetOutputProperties"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetPlugCategory, "effGetPlugCategory"));
+                                                        (long) effGetPlugCategory, "effGetPlugCategory"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetCurrentPosition, "effGetCurrentPosition"));
+                                                        (long) effGetCurrentPosition, "effGetCurrentPosition"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetDestinationBuffer, "effGetDestinationBuffer"));
+                                                        (long) effGetDestinationBuffer, "effGetDestinationBuffer"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effOfflineNotify, "effOfflineNotify"));
+                                                        (long) effOfflineNotify, "effOfflineNotify"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effOfflinePrepare, "effOfflinePrepare"));
+                                                        (long) effOfflinePrepare, "effOfflinePrepare"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effOfflineRun, "effOfflineRun"));
+                                                        (long) effOfflineRun, "effOfflineRun"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effProcessVarIo, "effProcessVarIo"));
+                                                        (long) effProcessVarIo, "effProcessVarIo"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetSpeakerArrangement, "effSetSpeakerArrangement"));
+                                                        (long) effSetSpeakerArrangement, "effSetSpeakerArrangement"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetBlockSizeAndSampleRate, "effSetBlockSizeAndSampleRate"));
+                                                        (long) effSetBlockSizeAndSampleRate, "effSetBlockSizeAndSampleRate"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetBypass, "effSetBypass"));
+                                                        (long) effSetBypass, "effSetBypass"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetEffectName, "effGetEffectName"));
+                                                        (long) effGetEffectName, "effGetEffectName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetErrorText, "effGetErrorText"));
+                                                        (long) effGetErrorText, "effGetErrorText"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetVendorString, "effGetVendorString"));
+                                                        (long) effGetVendorString, "effGetVendorString"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetProductString, "effGetProductString"));
+                                                        (long) effGetProductString, "effGetProductString"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetVendorVersion, "effGetVendorVersion"));
+                                                        (long) effGetVendorVersion, "effGetVendorVersion"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effVendorSpecific, "effVendorSpecific"));
+                                                        (long) effVendorSpecific, "effVendorSpecific"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effCanDo, "effCanDo"));
+                                                        (long) effCanDo, "effCanDo"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetTailSize, "effGetTailSize"));
+                                                        (long) effGetTailSize, "effGetTailSize"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effIdle, "effIdle"));
+                                                        (long) effIdle, "effIdle"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetIcon, "effGetIcon"));
+                                                        (long) effGetIcon, "effGetIcon"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetViewPosition, "effSetViewPosition"));
+                                                        (long) effSetViewPosition, "effSetViewPosition"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetParameterProperties, "effGetParameterProperties"));
+                                                        (long) effGetParameterProperties, "effGetParameterProperties"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effKeysRequired, "effKeysRequired"));
+                                                        (long) effKeysRequired, "effKeysRequired"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetVstVersion, "effGetVstVersion"));
+                                                        (long) effGetVstVersion, "effGetVstVersion"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditKeyDown, "effEditKeyDown"));
+                                                        (long) effEditKeyDown, "effEditKeyDown"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEditKeyUp, "effEditKeyUp"));
+                                                        (long) effEditKeyUp, "effEditKeyUp"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetEditKnobMode, "effSetEditKnobMode"));
+                                                        (long) effSetEditKnobMode, "effSetEditKnobMode"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetMidiProgramName, "effGetMidiProgramName"));
+                                                        (long) effGetMidiProgramName, "effGetMidiProgramName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetCurrentMidiProgram, "effGetCurrentMidiProgram"));
+                                                        (long) effGetCurrentMidiProgram, "effGetCurrentMidiProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetMidiProgramCategory, "effGetMidiProgramCategory"));
+                                                        (long) effGetMidiProgramCategory, "effGetMidiProgramCategory"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effHasMidiProgramsChanged, "effHasMidiProgramsChanged"));
+                                                        (long) effHasMidiProgramsChanged, "effHasMidiProgramsChanged"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetMidiKeyName, "effGetMidiKeyName"));
+                                                        (long) effGetMidiKeyName, "effGetMidiKeyName"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effBeginSetProgram, "effBeginSetProgram"));
+                                                        (long) effBeginSetProgram, "effBeginSetProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effEndSetProgram, "effEndSetProgram"));
+                                                        (long) effEndSetProgram, "effEndSetProgram"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effGetSpeakerArrangement, "effGetSpeakerArrangement"));
+                                                        (long) effGetSpeakerArrangement, "effGetSpeakerArrangement"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effShellGetNextPlugin, "effShellGetNextPlugin"));
+                                                        (long) effShellGetNextPlugin, "effShellGetNextPlugin"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effStartProcess, "effStartProcess"));
+                                                        (long) effStartProcess, "effStartProcess"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effStopProcess, "effStopProcess"));
+                                                        (long) effStopProcess, "effStopProcess"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetTotalSampleToProcess, "effSetTotalSampleToProcess"));
+                                                        (long) effSetTotalSampleToProcess, "effSetTotalSampleToProcess"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effSetPanLaw, "effSetPanLaw"));
+                                                        (long) effSetPanLaw, "effSetPanLaw"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effBeginLoadBank, "effBeginLoadBank"));
+                                                        (long) effBeginLoadBank, "effBeginLoadBank"));
   dispatchOpcodes().insert(std::pair<long, std::string>(
-							(long) effBeginLoadProgram, "effBeginLoadProgram"));
+                                                        (long) effBeginLoadProgram, "effBeginLoadProgram"));
 
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterAutomate, "audioMasterAutomate"));
+                                                      (long) audioMasterAutomate, "audioMasterAutomate"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterVersion, "audioMasterVersion"));
+                                                      (long) audioMasterVersion, "audioMasterVersion"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterCurrentId, "audioMasterCurrentId"));
+                                                      (long) audioMasterCurrentId, "audioMasterCurrentId"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterIdle, "audioMasterIdle"));
+                                                      (long) audioMasterIdle, "audioMasterIdle"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterPinConnected, "audioMasterPinConnected"));
+                                                      (long) audioMasterPinConnected, "audioMasterPinConnected"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterWantMidi, "audioMasterWantMidi"));
+                                                      (long) audioMasterWantMidi, "audioMasterWantMidi"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetTime, "audioMasterGetTime"));
+                                                      (long) audioMasterGetTime, "audioMasterGetTime"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterProcessEvents, "audioMasterProcessEvents"));
+                                                      (long) audioMasterProcessEvents, "audioMasterProcessEvents"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterSetTime, "audioMasterSetTime"));
+                                                      (long) audioMasterSetTime, "audioMasterSetTime"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterTempoAt, "audioMasterTempoAt"));
+                                                      (long) audioMasterTempoAt, "audioMasterTempoAt"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetNumAutomatableParameters,
-						      "audioMasterGetNumAutomatableParameters"));
+                                                      (long) audioMasterGetNumAutomatableParameters,
+                                                      "audioMasterGetNumAutomatableParameters"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetParameterQuantization,
-						      "audioMasterGetParameterQuantization"));
+                                                      (long) audioMasterGetParameterQuantization,
+                                                      "audioMasterGetParameterQuantization"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterIOChanged, "audioMasterIOChanged"));
+                                                      (long) audioMasterIOChanged, "audioMasterIOChanged"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterNeedIdle, "audioMasterNeedIdle"));
+                                                      (long) audioMasterNeedIdle, "audioMasterNeedIdle"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterSizeWindow, "audioMasterSizeWindow"));
+                                                      (long) audioMasterSizeWindow, "audioMasterSizeWindow"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetSampleRate, "audioMasterGetSampleRate"));
+                                                      (long) audioMasterGetSampleRate, "audioMasterGetSampleRate"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetBlockSize, "audioMasterGetBlockSize"));
+                                                      (long) audioMasterGetBlockSize, "audioMasterGetBlockSize"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetInputLatency, "audioMasterGetInputLatency"));
+                                                      (long) audioMasterGetInputLatency, "audioMasterGetInputLatency"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetOutputLatency, "audioMasterGetOutputLatency"));
+                                                      (long) audioMasterGetOutputLatency, "audioMasterGetOutputLatency"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetPreviousPlug, "audioMasterGetPreviousPlug"));
+                                                      (long) audioMasterGetPreviousPlug, "audioMasterGetPreviousPlug"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetNextPlug, "audioMasterGetNextPlug"));
+                                                      (long) audioMasterGetNextPlug, "audioMasterGetNextPlug"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterWillReplaceOrAccumulate,
-						      "audioMasterWillReplaceOrAccumulate"));
+                                                      (long) audioMasterWillReplaceOrAccumulate,
+                                                      "audioMasterWillReplaceOrAccumulate"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetCurrentProcessLevel,
-						      "audioMasterGetCurrentProcessLevel"));
+                                                      (long) audioMasterGetCurrentProcessLevel,
+                                                      "audioMasterGetCurrentProcessLevel"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetAutomationState, "audioMasterGetAutomationState"));
+                                                      (long) audioMasterGetAutomationState, "audioMasterGetAutomationState"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOfflineStart, "audioMasterOfflineStart"));
+                                                      (long) audioMasterOfflineStart, "audioMasterOfflineStart"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOfflineRead, "audioMasterOfflineRead"));
+                                                      (long) audioMasterOfflineRead, "audioMasterOfflineRead"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOfflineWrite, "audioMasterOfflineWrite"));
+                                                      (long) audioMasterOfflineWrite, "audioMasterOfflineWrite"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOfflineGetCurrentPass,
-						      "audioMasterOfflineGetCurrentPass"));
+                                                      (long) audioMasterOfflineGetCurrentPass,
+                                                      "audioMasterOfflineGetCurrentPass"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOfflineGetCurrentMetaPass,
-						      "audioMasterOfflineGetCurrentMetaPass"));
+                                                      (long) audioMasterOfflineGetCurrentMetaPass,
+                                                      "audioMasterOfflineGetCurrentMetaPass"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterSetOutputSampleRate,
-						      "audioMasterSetOutputSampleRate"));
+                                                      (long) audioMasterSetOutputSampleRate,
+                                                      "audioMasterSetOutputSampleRate"));
   //     masterOpcodes().insert(std::pair<long, std::string>(
   //         (long) audioMasterGetSpeakerArrangement,
   //         "audioMasterGetSpeakerArrangement"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetOutputSpeakerArrangement,
-						      "audioMasterGetOutputSpeakerArrangement"));
+                                                      (long) audioMasterGetOutputSpeakerArrangement,
+                                                      "audioMasterGetOutputSpeakerArrangement"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetVendorString, "audioMasterGetVendorString"));
+                                                      (long) audioMasterGetVendorString, "audioMasterGetVendorString"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetProductString, "audioMasterGetProductString"));
+                                                      (long) audioMasterGetProductString, "audioMasterGetProductString"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetVendorVersion, "audioMasterGetVendorVersion"));
+                                                      (long) audioMasterGetVendorVersion, "audioMasterGetVendorVersion"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterVendorSpecific, "audioMasterVendorSpecific"));
+                                                      (long) audioMasterVendorSpecific, "audioMasterVendorSpecific"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterSetIcon, "audioMasterSetIcon"));
+                                                      (long) audioMasterSetIcon, "audioMasterSetIcon"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterCanDo, "audioMasterCanDo"));
+                                                      (long) audioMasterCanDo, "audioMasterCanDo"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetLanguage, "audioMasterGetLanguage"));
+                                                      (long) audioMasterGetLanguage, "audioMasterGetLanguage"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOpenWindow, "audioMasterOpenWindow"));
+                                                      (long) audioMasterOpenWindow, "audioMasterOpenWindow"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterCloseWindow, "audioMasterCloseWindow"));
+                                                      (long) audioMasterCloseWindow, "audioMasterCloseWindow"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetDirectory, "audioMasterGetDirectory"));
+                                                      (long) audioMasterGetDirectory, "audioMasterGetDirectory"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterUpdateDisplay, "audioMasterUpdateDisplay"));
+                                                      (long) audioMasterUpdateDisplay, "audioMasterUpdateDisplay"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterBeginEdit, "audioMasterBeginEdit"));
+                                                      (long) audioMasterBeginEdit, "audioMasterBeginEdit"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterEndEdit, "audioMasterEndEdit"));
+                                                      (long) audioMasterEndEdit, "audioMasterEndEdit"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterOpenFileSelector, "audioMasterOpenFileSelector"));
+                                                      (long) audioMasterOpenFileSelector, "audioMasterOpenFileSelector"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterCloseFileSelector, "audioMasterCloseFileSelector"));
+                                                      (long) audioMasterCloseFileSelector, "audioMasterCloseFileSelector"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterEditFile, "audioMasterEditFile"));
+                                                      (long) audioMasterEditFile, "audioMasterEditFile"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetChunkFile, "audioMasterGetChunkFile"));
+                                                      (long) audioMasterGetChunkFile, "audioMasterGetChunkFile"));
   masterOpcodes().insert(std::pair<long, std::string>(
-						      (long) audioMasterGetInputSpeakerArrangement,
-						      "audioMasterGetInputSpeakerArrangement"));
+                                                      (long) audioMasterGetInputSpeakerArrangement,
+                                                      "audioMasterGetInputSpeakerArrangement"));
 
   opcodeRefCount()++;
 }
@@ -369,7 +369,7 @@ void VSTPlugin::SendMidi()
 {
   if (aeffect && vstMidiEvents.size() > 0) {
     vstEventsBuffer.resize(sizeof(VstEvents) +
-			   (sizeof(VstEvent *) * vstMidiEvents.size()));
+                           (sizeof(VstEvent *) * vstMidiEvents.size()));
     VstEvents *vstEvents = (VstEvents *) &vstEventsBuffer.front();
 
     vstEvents->numEvents = vstMidiEvents.size();
@@ -377,13 +377,13 @@ void VSTPlugin::SendMidi()
     for (size_t i = 0, n = vstEvents->numEvents; i < n; i++) {
       vstEvents->events[i] = (VstEvent *) &vstMidiEvents[i];
       Debug("VSTPlugin::SendMidi(queue size %d status %d data1 %d "
-	    "data2 %d detune %d delta %d\n",
-	    vstEvents->numEvents,
-	    ((VstMidiEvent *)vstEvents->events[i])->midiData[0],
-	    ((VstMidiEvent *)vstEvents->events[i])->midiData[1],
-	    ((VstMidiEvent *)vstEvents->events[i])->midiData[2],
-	    ((VstMidiEvent *)vstEvents->events[i])->detune,
-	    ((VstMidiEvent *)vstEvents->events[i])->deltaFrames);
+            "data2 %d detune %d delta %d\n",
+            vstEvents->numEvents,
+            ((VstMidiEvent *)vstEvents->events[i])->midiData[0],
+            ((VstMidiEvent *)vstEvents->events[i])->midiData[1],
+            ((VstMidiEvent *)vstEvents->events[i])->midiData[2],
+            ((VstMidiEvent *)vstEvents->events[i])->detune,
+            ((VstMidiEvent *)vstEvents->events[i])->deltaFrames);
     }
     Dispatch(effProcessEvents, 0, 0, vstEvents, 0.0f);
     vstMidiEvents.resize(0);
@@ -412,12 +412,12 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 #ifdef __MACH__
   CFStringRef vstBundlePath =
     CFStringCreateWithCString(kCFAllocatorDefault,
-			      libraryName_, kCFStringEncodingMacRoman );
+                              libraryName_, kCFStringEncodingMacRoman );
   CFURLRef vstBundleURL =
     CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
-				  vstBundlePath,
-				  kCFURLPOSIXPathStyle,
-				  true);
+                                  vstBundlePath,
+                                  kCFURLPOSIXPathStyle,
+                                  true);
   CFBundleRef vstBundle = CFBundleCreate(kCFAllocatorDefault, vstBundleURL);
 
   CFRelease(vstBundlePath);
@@ -428,8 +428,8 @@ int VSTPlugin::Instantiate(const char *libraryName_)
     if (csound->OpenLibrary(&libraryHandle, libraryName_) != 0)
 #endif
       {
-	Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
-	return VSTINSTANCE_ERR_NO_VALID_FILE;
+        Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
+        return VSTINSTANCE_ERR_NO_VALID_FILE;
       }
   Debug("Loaded plugin library '%s'.\n", libraryName_);
 
@@ -438,7 +438,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
   /* For VST SDK 2.4 and later. */
   PVSTMAIN main =
     (PVSTMAIN) CFBundleGetFunctionPointerForName(vstBundle,
-						 CFSTR("VSTPluginMain"));
+                                                 CFSTR("VSTPluginMain"));
   /* For VST SDK 2.3 and earlier. */
   if (!main) {
     main = CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
@@ -484,7 +484,7 @@ void VSTPlugin::Info()
   Log("====================================================\n");
   Log("Loaded plugin: %s\n", productName);
   if (!aeffect->dispatcher(aeffect,
-			   effGetVendorString, 0, 0, &vendorName, 0.0f)) {
+                           effGetVendorString, 0, 0, &vendorName, 0.0f)) {
     strcpy(vendorName, "Unknown vendor");
   }
   Log("Vendor name: %s \n", vendorName);
@@ -506,7 +506,7 @@ void VSTPlugin::Info()
       Log("  Parameter%5i: %s\n",i, buffer);
   }
   csound->Message(csound, "Number of programs: %d\n",
-		  (int) aeffect->numPrograms);
+                  (int) aeffect->numPrograms);
   for (i = 0; i < aeffect->numPrograms; i++) {
     strcpy(buffer, "No program");
     GetProgramName(0, i, buffer);
@@ -514,7 +514,7 @@ void VSTPlugin::Info()
       Log("  Program%7i: %s\n", i, buffer);
   }
   csound->Message(csound,
-		  "----------------------------------------------------\n");
+                  "----------------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs(void)
@@ -636,7 +636,7 @@ void VSTPlugin::OpenEditor()
   if (aeffect->flags & effFlagsHasEditor == 1) {
     GetEditorRect();
     Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left,
-	  rect.right, rect.bottom);
+          rect.right, rect.bottom);
     window = new Fl_Window(rect.right, rect.bottom, GetName());
     Debug("Window 0x%x.\n", window);
     window->show();
@@ -737,7 +737,7 @@ void VSTPlugin::Debug(const char *format, ...)
   va_start(args, format);
   if (csound) {
     if ((csound->GetMessageLevel(csound) & 7) == 7 ||
-	csound->GetDebug(csound)) {
+        csound->GetDebug(csound)) {
       csound->MessageV(csound, 0, format, args);
     }
   }
@@ -825,7 +825,7 @@ VstTimeInfo *VSTPlugin::GetTime(void)
     vstTimeInfo.samplePos = 0;
   vstTimeInfo.sampleRate = framesPerSecond;
   Debug("&vstTimeInfo 0x%x sampleRate %f samplePos %f.\n",
-	&vstTimeInfo, vstTimeInfo.sampleRate, vstTimeInfo.samplePos);
+        &vstTimeInfo, vstTimeInfo.sampleRate, vstTimeInfo.samplePos);
   return &vstTimeInfo;
 }
 
@@ -842,7 +842,7 @@ bool VSTPlugin::OnCanDo(const char *ptr)
       (!strcmp(ptr, "sendVstEvents")) ||
       (!strcmp(ptr, "receiveVstEvents")) ||
       (!strcmp(ptr, "sendVstTimeInfo")) /*||
-					  (!strcmp(ptr, "sizeWindow"))*/)
+                                          (!strcmp(ptr, "sizeWindow"))*/)
     return true;
   return false;
 }
@@ -858,11 +858,11 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
 }
 
 long VSTPlugin::Master(AEffect *effect, 
-		       long opcode, 
-		       long index,
+                       long opcode, 
+                       long index,
                        long value, 
-		       void *ptr, 
-		       float opt)
+                       void *ptr, 
+                       float opt)
 {
   VSTPlugin *plugin = 0;
   CSOUND *csound = 0;
@@ -879,13 +879,13 @@ long VSTPlugin::Master(AEffect *effect,
   // These messages are to tell Csound what the plugin wants it to do.
   if (plugin) {
     plugin->Debug("VSTPlugin::Master(AEffect 0x%p, opcode %ld %s, index %ld, "
-		  "value %dl, ptr 0x%p, opt %f)\n",
-		  effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
+                  "value %dl, ptr 0x%p, opt %f)\n",
+                  effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
   }
 //   else {
 //     fprintf(stdout, "VSTPlugin::Master(AEffect 0x%p, opcode %ld %s, index %ld, "
-// 	    "value %ld, ptr 0x%p, opt %f)\n",
-// 	    effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
+//          "value %ld, ptr 0x%p, opt %f)\n",
+//          effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
 //   }
   switch (opcode) {
   case audioMasterAutomate:
@@ -906,8 +906,8 @@ long VSTPlugin::Master(AEffect *effect,
   case audioMasterPinConnected:
     if (effect)
       {
-	return !((value) ?  OnOutputConnected(effect, index) :
-		 OnInputConnected(effect, index));
+        return !((value) ?  OnOutputConnected(effect, index) :
+                 OnInputConnected(effect, index));
       }
   case audioMasterWantMidi:
     return false;

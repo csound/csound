@@ -227,11 +227,11 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer, 
-		  0x100, 
-		  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
-		  getOutputSoundfileName().c_str(),
-		  getNormalizedSoundfileName().c_str(),
-		  levelDb);
+                  0x100, 
+                  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
+                  getOutputSoundfileName().c_str(),
+                  getNormalizedSoundfileName().c_str(),
+                  levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
     tagFile(*this, getNormalizedSoundfileName());
@@ -241,9 +241,9 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain -n %f rate 44100\n",
-		  getOutputSoundfileName().c_str(),
-		  getCdSoundfileName().c_str(),
-		  levelDb);
+                  getOutputSoundfileName().c_str(),
+                  getCdSoundfileName().c_str(),
+                  levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
     tagFile(*this, getCdSoundfileName());
@@ -253,14 +253,14 @@ namespace csound
   {
     char buffer[0x100];
     std::snprintf(buffer, 
-		  0x100, 
-		  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
-		  getTitle().c_str(),
-		  getArtist().c_str(),
-		  getAlbum().c_str(),
-		  getCopyright().c_str(),
-		  getCdSoundfileName().c_str(),
-		  getMp3SoundfileName().c_str());
+                  0x100, 
+                  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
+                  getTitle().c_str(),
+                  getArtist().c_str(),
+                  getAlbum().c_str(),
+                  getCopyright().c_str(),
+                  getCdSoundfileName().c_str(),
+                  getMp3SoundfileName().c_str());
     System::inform("Composition::translateToMp3(): %s", buffer);
     int result = std::system(buffer);
   }

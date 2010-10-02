@@ -372,9 +372,9 @@ namespace csound
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON) {
       if (getVelocity() > 0) {
-	return true;
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
     return false;
@@ -387,9 +387,9 @@ namespace csound
     }
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON) {
       if (getVelocity() == 0) {
-	return true;
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
     return false;

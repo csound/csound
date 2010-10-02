@@ -739,7 +739,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
                 delete_fluid_synth(fluidSynth);
                 delete_fluid_settings(fluidSettings);
             }
-			fluidSynths.clear();
+                        fluidSynths.clear();
         }
     }
     return 0;

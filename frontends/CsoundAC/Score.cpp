@@ -519,25 +519,25 @@ namespace csound
       ///std::set<const MidiEvent *> usedNoteOffEvents;
       for(std::vector<MidiEvent>::iterator onEventI = trackI->begin(); onEventI != trackI->end(); ++onEventI) {
         const MidiEvent &noteOnEvent = *onEventI;
-	std::cerr << "At:       " << std::hex << &noteOnEvent << " " << noteOnEvent.toString();
+        std::cerr << "At:       " << std::hex << &noteOnEvent << " " << noteOnEvent.toString();
         if(noteOnEvent.isNoteOn()) {
           for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != trackI->end(); ++offEventI) {
             const MidiEvent &noteOffEvent = *offEventI;
             ///if (usedNoteOffEvents.find(&noteOffEvent) == usedNoteOffEvents.end()) {
-	    if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
-	std::cerr << " matches: " << std::hex << &noteOffEvent << " " << noteOffEvent.toString();
-	      double status = noteOnEvent.getStatusNybble();
-	      double instrument = noteOnEvent.getChannelNybble();
-	      double time_ = noteOnEvent.time;
-	      double duration = noteOffEvent.time - noteOnEvent.time;
-	      double key = noteOnEvent.getKey();
-	      double velocity = noteOnEvent.getVelocity();
-	      append(time_, duration, status, instrument, key, velocity);
-	      std::cerr << "  producing: " << back().toString().c_str() << std::endl;
-	      ///usedNoteOffEvents.insert(&noteOffEvent);
-	      break;
-	    }
-	    ///}
+            if(noteOnEvent.matchesNoteOffEvent(noteOffEvent)) {
+        std::cerr << " matches: " << std::hex << &noteOffEvent << " " << noteOffEvent.toString();
+              double status = noteOnEvent.getStatusNybble();
+              double instrument = noteOnEvent.getChannelNybble();
+              double time_ = noteOnEvent.time;
+              double duration = noteOffEvent.time - noteOnEvent.time;
+              double key = noteOnEvent.getKey();
+              double velocity = noteOnEvent.getVelocity();
+              append(time_, duration, status, instrument, key, velocity);
+              std::cerr << "  producing: " << back().toString().c_str() << std::endl;
+              ///usedNoteOffEvents.insert(&noteOffEvent);
+              break;
+            }
+            ///}
           }
         }
       }
@@ -1179,13 +1179,13 @@ namespace csound
     std::vector<double> pcs = Voicelead::uniquePcs(pitches);
     std::vector<double> kpcs = Voicelead::K(pcs);
     voicelead(priorBegin,
-	      begin,
-	      begin,
-	      end,
-	      kpcs,
-	      base,
-	      range,
-	      avoidParallels);
+              begin,
+              begin,
+              end,
+              kpcs,
+              base,
+              range,
+              avoidParallels);
   }
   static std::vector<double> matchContextSize(const std::vector<double> context, const std::vector<double> pcs)
   {
@@ -1239,13 +1239,13 @@ namespace csound
     std::vector<double> qpcs = Voicelead::Q(localPcs, Q, context);
     printChord("  effect of Q:   ", qpcs);
     voicelead(priorBegin,
-	      begin,
-	      begin,
-	      end,
-	      qpcs,
-	      base,
-	      range,
-	      avoidParallels);
+              begin,
+              begin,
+              end,
+              qpcs,
+              base,
+              range,
+              avoidParallels);
   }
 
   struct TimeAtComparator
