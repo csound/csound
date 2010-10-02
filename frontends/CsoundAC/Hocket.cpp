@@ -39,8 +39,8 @@ namespace csound
     ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
     for(std::vector<Node*>::iterator it = children.begin(); it != children.end(); ++it)
       {
-	Node *child = *it;
-	child->traverse(compositeCoordinates, this->score);
+        Node *child = *it;
+        child->traverse(compositeCoordinates, this->score);
       }
     size_t endAt = this->score.size();
     produceOrTransform(score, beginAt, endAt, compositeCoordinates);
@@ -52,7 +52,7 @@ namespace csound
     std::sort(this->score.begin(), this->score.end());
     for(size_t i = startingIndex, n = this->score.size(); i < n; i += modulus)
       {
-	score.push_back(this->score[i]);
+        score.push_back(this->score[i]);
       }
   }
 }

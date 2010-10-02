@@ -40,15 +40,15 @@ namespace csound
   {
     for(size_t i = 0; i < count; i++)
       {
-	transformations.push_back(createTransform());
+        transformations.push_back(createTransform());
       }
     weights.resize(transformations.size(), transformations.size());
     for(size_t precursor = 0; precursor < transformations.size(); precursor++)
       {
-	for(size_t successor = 0; successor < transformations.size(); successor++)
-	  {
-	    weights(precursor,successor) = 1.0;
-	  }
+        for(size_t successor = 0; successor < transformations.size(); successor++)
+          {
+            weights(precursor,successor) = 1.0;
+          }
       }
   }
 
@@ -67,30 +67,30 @@ namespace csound
     d--;
     if(d < 0)
       {
-	double velocity = event.getVelocity() * weight;
-	if(velocity > 0.0)
-	  {
-	    score.push_back(event);
-	  }
+        double velocity = event.getVelocity() * weight;
+        if(velocity > 0.0)
+          {
+            score.push_back(event);
+          }
       }
     else
       {
-	for(size_t s = 0; s < transformations.size(); s++)
-	  {
-	    const ublas::matrix<double> &t = transformations[s];
-	    Event e;
-	    ublas::axpy_prod(t, event, e);
-	    double w = 0.0;
-	    if(weight == -1.0)
-	      {
-		w = 1.0;
-	      }
-	    else
-	      {
-		w = weights(p,s) * weight;
-	      }
-	    iterate(d, s, e, w);
-	  }
+        for(size_t s = 0; s < transformations.size(); s++)
+          {
+            const ublas::matrix<double> &t = transformations[s];
+            Event e;
+            ublas::axpy_prod(t, event, e);
+            double w = 0.0;
+            if(weight == -1.0)
+              {
+                w = 1.0;
+              }
+            else
+              {
+                w = weights(p,s) * weight;
+              }
+            iterate(d, s, e, w);
+          }
       }
   }
 
@@ -106,9 +106,9 @@ namespace csound
   }
 
   void MCRM::produceOrTransform(Score &score,
-				size_t beginAt,
-				size_t endAt,
-				const ublas::matrix<double> &coordinates)
+                                size_t beginAt,
+                                size_t endAt,
+                                const ublas::matrix<double> &coordinates)
   {
     generate();
     ScoreNode::produceOrTransform(score, beginAt, endAt, coordinates);

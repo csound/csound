@@ -692,7 +692,7 @@ extern "C"
         Stk::setRawwavePath(path);
         csound_global_mutex_unlock();
         csound->Message(csound,
-			Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
+                        Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)

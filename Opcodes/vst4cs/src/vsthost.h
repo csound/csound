@@ -115,16 +115,16 @@ class VSTPlugin {
   virtual bool AddMIDI(int data, int deltaFrames, int detune);
   virtual void SendMidi();
   virtual void processReplacing(float **inputs, 
-				float **outputs,
-				long sampleframes);
+                                float **outputs,
+                                long sampleframes);
   virtual void process(float **inputs, 
-		       float **outputs, 
-		       long sampleframes);
+                       float **outputs, 
+                       long sampleframes);
   virtual long Dispatch(long opCode, 
-			long index=0, 
-			long value=0, 
-			void *ptr=0, 
-			float opt=0);
+                        long index=0, 
+                        long value=0, 
+                        void *ptr=0, 
+                        float opt=0);
   virtual void Log(const char *format, ...);
   virtual void Debug(const char *format, ...);
   virtual void OpenEditor();
@@ -135,8 +135,8 @@ class VSTPlugin {
   static long OnGetVersion(AEffect *effect);
   static bool OnCanDo(const char *ptr);
   static long Master(AEffect *effect,
-		     long opcode, long index, long value, void *ptr,
-		     float opt);
+                     long opcode, long index, long value, void *ptr,
+                     float opt);
   static void initializeOpcodes();
   long EffGetChunk(void **ptr, bool isPreset = false) // GAB
   {

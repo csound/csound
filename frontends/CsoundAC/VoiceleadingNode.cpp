@@ -120,63 +120,63 @@ namespace csound
     }
     if (!(operation.K == DBL_MAX)) {
       if ((operation.V == DBL_MAX) && (!operation.L)) {
-	System::inform("Operation: K\n");
-	score.setK(priorOperation.begin,
-		   operation.begin,
-		   operation.end,
-		   base,
-		   range);
+        System::inform("Operation: K\n");
+        score.setK(priorOperation.begin,
+                   operation.begin,
+                   operation.end,
+                   base,
+                   range);
       } else if ((operation.V != DBL_MAX) && (!operation.L)) {
-	System::inform("Operation: KV\n");
-	score.setKV(priorOperation.begin,
-		    operation.begin,
-		    operation.end,
-		    operation.V,
-		    base,
-		    range);
+        System::inform("Operation: KV\n");
+        score.setKV(priorOperation.begin,
+                    operation.begin,
+                    operation.end,
+                    operation.V,
+                    base,
+                    range);
       } else if ((operation.V == DBL_MAX) && (operation.L)) {
-	System::inform("Operation: KL\n");
-	score.setKL(priorOperation.begin,
-		    operation.begin,
-		    operation.end,
-		    base,
-		    range,
-		    operation.avoidParallels);
+        System::inform("Operation: KL\n");
+        score.setKL(priorOperation.begin,
+                    operation.begin,
+                    operation.end,
+                    base,
+                    range,
+                    operation.avoidParallels);
       }
     } else if (!(operation.Q == DBL_MAX)) {
       if ((operation.V == DBL_MAX) && (!operation.L)) {
-	System::inform("Operation: Q\n");
-	score.setQ(priorOperation.begin,
-		   operation.begin,
-		   operation.end,
-		   operation.Q,
-		   modality,
-		   base,
-		   range);
-      } else if ((operation.V != DBL_MAX) && (!operation.L)) {	
-	System::inform("Operation: QV\n");
-	score.setQV(priorOperation.begin,
-		    operation.begin,
-		    operation.end,
-		    operation.Q,
-		    modality,
-		    operation.V,
-		    base,
-		    range);
+        System::inform("Operation: Q\n");
+        score.setQ(priorOperation.begin,
+                   operation.begin,
+                   operation.end,
+                   operation.Q,
+                   modality,
+                   base,
+                   range);
+      } else if ((operation.V != DBL_MAX) && (!operation.L)) {  
+        System::inform("Operation: QV\n");
+        score.setQV(priorOperation.begin,
+                    operation.begin,
+                    operation.end,
+                    operation.Q,
+                    modality,
+                    operation.V,
+                    base,
+                    range);
       } else if ((operation.V == DBL_MAX) && (operation.L)) {
-	System::inform("Operation: QL\n");
-	score.setQL(priorOperation.begin,
-		    operation.begin,
-		    operation.end,
-		    operation.Q,
-		    modality,
-		    base,
-		    range,
-		    operation.avoidParallels);
+        System::inform("Operation: QL\n");
+        score.setQL(priorOperation.begin,
+                    operation.begin,
+                    operation.end,
+                    operation.Q,
+                    modality,
+                    base,
+                    range,
+                    operation.avoidParallels);
       }
     } else if (!(operation.P == DBL_MAX) && !(operation.T == DBL_MAX)) {
       if (!(operation.V == DBL_MAX)) {
-	System::inform("Operation: PTV\n");
+        System::inform("Operation: PTV\n");
         score.setPTV(operation.begin,
                      operation.end,
                      operation.P,
@@ -185,7 +185,7 @@ namespace csound
                      base,
                      range);
       } else if (operation.L) {
-	System::inform("Operation: PTL\n");
+        System::inform("Operation: PTL\n");
         score.setPT(operation.begin,
                     operation.end,
                     operation.P,
@@ -202,7 +202,7 @@ namespace csound
                         avoidParallels,
                         divisionsPerOctave);
       } else {
-	System::inform("Operation: PT\n");
+        System::inform("Operation: PT\n");
         score.setPT(operation.begin,
                     operation.end,
                     operation.P,
@@ -213,7 +213,7 @@ namespace csound
       }
     } else if (!(operation.C == DBL_MAX)) {
       if (!(operation.V == DBL_MAX)) {
-	System::inform("Operation: CV\n");
+        System::inform("Operation: CV\n");
         std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
         printChord("CV", pcs);
         std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
@@ -228,7 +228,7 @@ namespace csound
                      base,
                      range);
       } else if (operation.L) {
-	System::inform("Operation: CL\n");
+        System::inform("Operation: CL\n");
         std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
         printChord("CL", pcs);
         score.voicelead(priorOperation.begin,
@@ -241,7 +241,7 @@ namespace csound
                         avoidParallels,
                         divisionsPerOctave);
       } else {
-	System::inform("Operation: C\n");
+        System::inform("Operation: C\n");
         std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
         score.setPitchClassSet(operation.begin,
                                operation.end,
@@ -249,7 +249,7 @@ namespace csound
                                divisionsPerOctave);
       }
     } else {
-	System::inform("Operation: V\n");
+        System::inform("Operation: V\n");
         if (!(operation.V == DBL_MAX)) {
         std::vector<double> ptv = score.getPTV(operation.begin,
                                                operation.end,
@@ -265,7 +265,7 @@ namespace csound
                      range,
                      divisionsPerOctave);
       } else if (operation.L) {
-	System::inform("Operation: L\n");
+        System::inform("Operation: L\n");
         score.voicelead(priorOperation.begin,
                         priorOperation.end,
                         operation.begin,
@@ -395,9 +395,9 @@ namespace csound
   }
 
   void VoiceleadingNode::produceOrTransform(Score &score, 
-					    size_t beginAt, 
-					    size_t endAt, 
-					    const ublas::matrix<double> &compositeCoordinates)
+                                            size_t beginAt, 
+                                            size_t endAt, 
+                                            const ublas::matrix<double> &compositeCoordinates)
   {
     transform(score, rescaleTimes);
     // Apply the global transformation of coordinate system 
@@ -450,14 +450,14 @@ namespace csound
     int endIndex = ops.size();
     for (currentIndex = 0; currentIndex < endIndex; ++currentIndex) {
       if (currentIndex == 0) {
-	priorIndex = currentIndex;
+        priorIndex = currentIndex;
       } else {
-	priorIndex = currentIndex - 1;
+        priorIndex = currentIndex - 1;
       }
       if (currentIndex == backIndex) {
-	nextIndex = currentIndex;
+        nextIndex = currentIndex;
       } else {
-	nextIndex = currentIndex + 1;
+        nextIndex = currentIndex + 1;
       }
       priorOperation = ops[priorIndex];
       currentOperation = ops[currentIndex];
