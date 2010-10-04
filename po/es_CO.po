@@ -100,154 +100,154 @@ msgstr ""
 msgid "(unknown error)"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:465
+#: Engine/csound_orc_compile.c:472
 #, c-format
 msgid "create_opcode: No rule to handle statemnent of type %d\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:656
+#: Engine/csound_orc_compile.c:666
 #, c-format
 msgid "create_instrument: instr num %ld\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:665
+#: Engine/csound_orc_compile.c:676
 #, c-format
 msgid "create_instrument: instr name %s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:672 Engine/otran.c:341
+#: Engine/csound_orc_compile.c:683 Engine/otran.c:341
 msgid "invalid name for instrument"
 msgstr "nombre inválido para el instrumento"
 
-#: Engine/csound_orc_compile.c:676 Engine/otran.c:346
+#: Engine/csound_orc_compile.c:687 Engine/otran.c:346
 #, c-format
 msgid "instr %s redefined"
 msgstr "instr %s redefinido"
 
-#: Engine/csound_orc_compile.c:817 Engine/otran.c:142 Engine/symbtab.c:394
+#: Engine/csound_orc_compile.c:828 Engine/otran.c:142 Engine/symbtab.c:394
 #, c-format
 msgid "invalid input type for opcode %s"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:822 Engine/otran.c:147 Engine/symbtab.c:399
+#: Engine/csound_orc_compile.c:833 Engine/otran.c:147 Engine/symbtab.c:399
 #, fuzzy, c-format
 msgid "too many input args for opcode %s"
 msgstr "demasiados argumentos de entrada"
 
-#: Engine/csound_orc_compile.c:837 Engine/otran.c:162 Engine/symbtab.c:414
+#: Engine/csound_orc_compile.c:848 Engine/otran.c:162 Engine/symbtab.c:414
 #, c-format
 msgid "too many output args for opcode %s"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:853 Engine/otran.c:181 Engine/symbtab.c:433
+#: Engine/csound_orc_compile.c:864 Engine/otran.c:181 Engine/symbtab.c:433
 #, c-format
 msgid "invalid output type for opcode %s"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:938 Engine/otran.c:329
+#: Engine/csound_orc_compile.c:949 Engine/otran.c:329
 #, c-format
 msgid "instr %ld redefined"
 msgstr "instr %ld redefinido"
 
-#: Engine/csound_orc_compile.c:948
+#: Engine/csound_orc_compile.c:959
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1088
+#: Engine/csound_orc_compile.c:1101
 #, c-format
 msgid "Unknown TREE node of type %d found in root.\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1144 Engine/otran.c:555 Engine/otran.c:1404
+#: Engine/csound_orc_compile.c:1157 Engine/otran.c:555 Engine/otran.c:1404
 #, c-format
 msgid "%s invalid sample rate"
 msgstr "%s tasa de muestreo inválida"
 
-#: Engine/csound_orc_compile.c:1146 Engine/otran.c:557 Engine/otran.c:1406
+#: Engine/csound_orc_compile.c:1159 Engine/otran.c:557 Engine/otran.c:1406
 #, c-format
 msgid "%s invalid control rate"
 msgstr "%s frecuencia de control inválida"
 
-#: Engine/csound_orc_compile.c:1149 Engine/otran.c:560 Engine/otran.c:1402
+#: Engine/csound_orc_compile.c:1162 Engine/otran.c:560 Engine/otran.c:1402
 #, c-format
 msgid "%s invalid ksmps value"
 msgstr "%s valor de ksmps inválido"
 
-#: Engine/csound_orc_compile.c:1152 Engine/otran.c:562 Engine/otran.c:1408
+#: Engine/csound_orc_compile.c:1165 Engine/otran.c:562 Engine/otran.c:1408
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr, ksmps inconsistentes"
 
-#: Engine/csound_orc_compile.c:1164
+#: Engine/csound_orc_compile.c:1179
 msgid "perf-pass statements illegal in header blk\n"
 msgstr ""
 "enunciados de ejecución (perf-pass) son ilegales en el bloque de encabezado\n"
 
-#: Engine/csound_orc_compile.c:1168
+#: Engine/csound_orc_compile.c:1184
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d errores de sintaxis en la orquesta.  compilación inváilda\n"
 
-#: Engine/csound_orc_compile.c:1228 Engine/otran.c:646
+#: Engine/csound_orc_compile.c:1244 Engine/otran.c:646
 msgid "inconsistent argoff sumcount"
 msgstr "cuenta argoff inconsistente"
 
-#: Engine/csound_orc_compile.c:1300 Engine/otran.c:715
+#: Engine/csound_orc_compile.c:1316 Engine/otran.c:715
 #, c-format
 msgid "LABELS list is full...extending to %d\n"
 msgstr "la lista de etiquetas (LABELS) está llena...extendiendo a  %d\n"
 
-#: Engine/csound_orc_compile.c:1338 Engine/otran.c:753
+#: Engine/csound_orc_compile.c:1354 Engine/otran.c:753
 #, c-format
 msgid "GOTOS list is full..extending to %d\n"
 msgstr "la lista de GOTOS está llena..extendiendo a %d\n"
 
-#: Engine/csound_orc_compile.c:1371 Engine/otran.c:786
+#: Engine/csound_orc_compile.c:1387 Engine/otran.c:786
 #, c-format
 msgid "target label '%s' not found"
 msgstr "etiqueta '%s' no encontrada"
 
-#: Engine/csound_orc_compile.c:1436 Engine/otran.c:841
+#: Engine/csound_orc_compile.c:1452 Engine/otran.c:841
 #, c-format
 msgid "string syntax '%s'"
 msgstr "sintaxis de cadena '%s'"
 
-#: Engine/csound_orc_compile.c:1486 Engine/otran.c:891
+#: Engine/csound_orc_compile.c:1502 Engine/otran.c:891
 #, c-format
 msgid "numeric syntax '%s'"
 msgstr "sintaxis numérica '%s'"
 
-#: Engine/csound_orc_compile.c:1512 Engine/otran.c:917
+#: Engine/csound_orc_compile.c:1528 Engine/otran.c:917
 #, c-format
 msgid "extending Floating pool to %d\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1551 Engine/otran.c:989
+#: Engine/csound_orc_compile.c:1567 Engine/otran.c:989
 msgid "gblnamset(): memory allocation failure"
 msgstr "gblnamset(): falla en asignación de memoria"
 
-#: Engine/csound_orc_compile.c:1579 Engine/otran.c:1017
+#: Engine/csound_orc_compile.c:1595 Engine/otran.c:1017
 msgid "lclnamset(): memory allocation failure"
 msgstr "lclnamset(): falla en asignación de memoria"
 
-#: Engine/csound_orc_compile.c:1604 Engine/otran.c:1042
+#: Engine/csound_orc_compile.c:1620 Engine/otran.c:1042
 msgid "unexpected global name"
 msgstr "nombre global inesperado"
 
-#: Engine/csound_orc_compile.c:1627 Engine/otran.c:1064
+#: Engine/csound_orc_compile.c:1643 Engine/otran.c:1064
 msgid "unknown nametype"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:58
+#: Engine/csound_orc_semantics.c:119
 #, c-format
 msgid "csound_orcerror: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:595 Engine/rdorch.c:1858
+#: Engine/csound_orc_semantics.c:659 Engine/rdorch.c:1858
 msgid "insufficient required arguments"
 msgstr "número insuficiente de argumentos requeridos"
 
-#: Engine/csound_orc_semantics.c:660 Engine/rdorch.c:1614 Engine/rdorch.c:1632
+#: Engine/csound_orc_semantics.c:723 Engine/rdorch.c:1614 Engine/rdorch.c:1632
 #: Engine/rdorch.c:1673 Engine/rdorch.c:1808 Engine/rdorch.c:1975
 #, c-format
 msgid "modified opcod: %s"
@@ -5431,11 +5431,11 @@ msgstr "inz index > isizea. Nada escrito."
 msgid "inz index < 0. Not writing."
 msgstr "inz index < 0. Nada escrito."
 
-#: OOps/ugrw1.c:3278 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
+#: OOps/ugrw1.c:3279 Opcodes/vbap_zak.c:201 Opcodes/vbap_zak.c:500
 msgid "outz index > isizea. No output"
 msgstr ""
 
-#: OOps/ugrw1.c:3280 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
+#: OOps/ugrw1.c:3281 Opcodes/vbap_zak.c:204 Opcodes/vbap_zak.c:503
 msgid "outz index < 0. No output."
 msgstr ""
 
@@ -5817,16 +5817,16 @@ msgstr ""
 msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:147
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:149
 msgid "error allocating fluid engine\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:206
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:208
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:570
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:572
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -5915,7 +5915,7 @@ msgstr "ftconv: no ha sido inicializado"
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:136 Opcodes/signalflowgraph.cpp:746
+#: Opcodes/ftgen.c:136 Opcodes/signalflowgraph.cpp:756
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -7826,11 +7826,11 @@ msgstr ""
 msgid "error... could not create sfont globals\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:581
+#: Opcodes/signalflowgraph.cpp:589
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:772
+#: Opcodes/signalflowgraph.cpp:782
 msgid "ftgenonce error"
 msgstr ""
 
@@ -8147,13 +8147,13 @@ msgstr ""
 msgid "stdopcod.c: error: globals already allocated"
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:589
+#: Opcodes/stk/stkOpcodes.cpp:685
 msgid ""
 "Error: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:599
+#: Opcodes/stk/stkOpcodes.cpp:695
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
 msgstr ""
