@@ -42,6 +42,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 void comment(void);
 void do_comment(void);
 void do_include(CSOUND *, int);
+void do_macro_arg(CSOUND *, char *);
 void do_macro(CSOUND *, char *);
 void do_umacro(CSOUND *, char *);
 #define udoflag csound->parserUdoflag
@@ -247,7 +248,9 @@ CONT            \\[[ \t]*\n
 {DEFINE}       BEGIN(macro);
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACRO}  {
+                  yytext[yyleng-1] = '\0';
                   printf("Define macro with args %s\n", yytext);
+                  do_macro_arg(csound, yytext);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
@@ -311,6 +314,12 @@ void do_include(CSOUND *csound, int term)
       exit(1);
     }
     yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
+}
+    
+void do_macro_arg(CSOUND *csound, char *name0)
+{
+    printf("Macro with args not written yet\n");
+    exit(1);
 }
 
 void do_macro(CSOUND *csound, char *name0)
