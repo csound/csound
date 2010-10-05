@@ -89,6 +89,8 @@ def runTest():
         ["test35.csd", "test of passign"],
         ["test36.csd", "opcode with all input args optional (passign)"],
         ["test37.csd", "Testing in and out"],
+        ["test38.csd", "Testing simple macro"],
+        ["test39.csd", "Testing macro with argument"],
     ]
 
 
