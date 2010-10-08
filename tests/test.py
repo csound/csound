@@ -91,6 +91,7 @@ def runTest():
         ["test37.csd", "Testing in and out"],
         ["test38.csd", "Testing simple macro"],
         ["test39.csd", "Testing macro with argument"],
+        ["test40.csd", "Testing i^j"],
     ]
 
 

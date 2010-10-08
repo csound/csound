@@ -1,6 +1,13 @@
+2010-10-08  John ff  <jpff@cs.bath.ac.uk>
+
+	* OOps/cmath.c (ipow, apow): If normalisation is zero make it 1;
+	Needed in new parser as optional arg not  handled
+
+	* csound_orc.l: Many changes in macros and stack of inputs
+
 2010-09-23  john ffitch  <jpff@codemist.co.uk>
 
-	* Opcodes/fout.c (sprints): Attempt tp fix %%->% problem\
+	* Opcodes/fout.c (sprints): Attempt tp fix %%->% problem
 
 2010-09-18  john ffitch  <jpff@codemist.co.uk>
 
