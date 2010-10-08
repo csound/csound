@@ -51,8 +51,7 @@ void do_umacro(CSOUND *, char *);
 //extern int namedInstrFlag;
 int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
-YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-int include_stack_ptr = 0;
+//YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #define MARGS   (3)
 
 typedef struct MACRO {          /* To store active macros */
@@ -64,6 +63,8 @@ typedef struct MACRO {          /* To store active macros */
     char          *arg[MARGS];  /* With these arguments */
 } MACRO;
 MACRO* macros = NULL;
+MACRO* alt_stack[MAX_INCLUDE_DEPTH];
+unsigned int macro_stack_ptr = 0;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
@@ -73,6 +74,8 @@ IDENTN          [a-zA-Z0-9_]+
 MACRO           [a-zA-Z0-9_]+\(
 MACRONAME       "$"[a-zA-Z0-9_]+
 MACRONAMED      "$"[a-zA-Z0-9_]+\.
+MACRONAMEA      "$"[a-zA-Z0-9_]+\(
+MACRONAMEDA     "$"[a-zA-Z0-9_]+\.\(
 INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
@@ -176,7 +179,7 @@ CONT            \\[[ \t]*\n
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
-                  MACRO     *mm = macros, *mm_save = NULL;
+                  MACRO     *mm = macros;
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
                       break;
@@ -188,15 +191,20 @@ CONT            \\[[ \t]*\n
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
+                  if (UNLIKELY(macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
-                  include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-                  yy_switch_to_buffer(yy_scan_string(mm->body));
-                }
+                  //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  alt_stack[macro_stack_ptr++] = macros;
+                  /* printf("Push %p macro stack; new body #%s#\n", macros, mm->body); */
+                  /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
+                  yypush_buffer_state(YY_CURRENT_BUFFER);
+                  yy_scan_string(mm->body);
+                  /* printf("%p\n", YY_CURRENT_BUFFER); */
+                 }
 {MACRONAMED}    {
-                  MACRO     *mm = macros, *mm_save = NULL;
+                  MACRO     *mm = macros, *mm_save = macros;
                   yytext[csound_orcleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
@@ -209,13 +217,70 @@ CONT            \\[[ \t]*\n
                   }
                   /* Need to read from macro definition */
                   /* ??fiddle with buffers I guess */
-                  if (UNLIKELY(include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
+                  if (UNLIKELY(macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
                     csound->Message(csound, Str("Includes nested too deeply"));
                     exit(1);
                   }
-                  include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-                  yy_switch_to_buffer(yy_scan_string(mm->body));
+                  //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  alt_stack[macro_stack_ptr++] = mm_save;
+                  /* printf("Push %p macro stack\n", mm_save); */
+                  /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
+                  yypush_buffer_state(YY_CURRENT_BUFFER);
+                  yy_scan_string(mm->body);
+                  /* printf("%p\n", YY_CURRENT_BUFFER); */
                 }
+{MACRONAMEA}    {
+                  MACRO     *mm = macros, *mm_save = macros;
+                  int c, i, j;
+                  printf("Macro with arguments call %s\n", yytext);
+                  yytext[csound_orcleng-1] = '\0';
+                  while (mm != NULL) {  /* Find the definition */
+                    /* printf("Check %s against %s\n", yytext+1, mm->name); */
+                    if (!(strcmp(yytext+1, mm->name)))
+                      break;
+                    mm = mm->next;
+                  }
+                  if (UNLIKELY(mm == NULL)) {
+                    csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                    csound->LongJmp(csound, 1);
+                  }
+                  /* Need to read from macro definition */
+                  /* printf("Looking for %d args\n", mm->acnt); */
+                  for (j = 0; j < mm->acnt; j++) {
+                    char  term = (j == mm->acnt - 1 ? ')' : '\'');
+                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');   /* Compatability */
+                    MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+                    int   size = 100;
+                    nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
+                    /* printf("Arg %d: %s\n", j+1, mm->arg[j]); */
+                    strcpy(nn->name, mm->arg[j]);
+                    /* csound->Message(csound, "defining argument %s ", nn->name); */
+                    i = 0;
+                    nn->body = (char*) mmalloc(csound, 100);
+                    while ((c = input())!= term && c!=trm1) {
+                      if (UNLIKELY(i > 98)) {
+                        csound->Die(csound,
+                                    Str("Missing argument terminator\n%.98s"),
+                                    nn->body);
+                      }
+                      nn->body[i++] = c;
+                      if (UNLIKELY(i >= size))
+                        nn->body = mrealloc(csound, nn->body, size += 100);
+                    }
+                    nn->body[i] = '\0';
+                    /* csound->Message(csound, "as...#%s#\n", nn->body); */
+                    nn->acnt = 0;       /* No arguments for arguments */
+                    nn->next = macros;
+                    macros = nn;
+                  }
+                  /* printf("New body: ...#%s#\n", mm->body); */
+                  //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  alt_stack[macro_stack_ptr++] = mm_save;
+                  /* printf("Push %p macro stack\n", mm_save); */
+                  yypush_buffer_state(YY_CURRENT_BUFFER);
+                  yy_scan_string(mm->body);
+                }
+{MACRONAMEDA}   { printf("Macro with arguments call not written\n");}
 {INTGR}         {
                     if(udoflag == 0) {
                         *lvalp = lookup_token(csound, yytext);
@@ -237,13 +302,25 @@ CONT            \\[[ \t]*\n
                   BEGIN(INITIAL);
                 }
 <<EOF>>         {
-                  if ( --include_stack_ptr != 0 ) {
-                    yyterminate();
-                  }
-                  else {
-                    yy_delete_buffer( YY_CURRENT_BUFFER );
-                    yy_switch_to_buffer(include_stack[include_stack_ptr] );
-                  }
+                  MACRO *x, *y=macros;
+                  /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
+                  yypop_buffer_state();
+                  if ( !YY_CURRENT_BUFFER ) yyterminate();
+                  /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
+                  macros = alt_stack[--macro_stack_ptr];
+                  /* printf("End of input segment: macro pop %p -> %p\n", y, macros); */
+                  /* while (y!=macros) { */
+                  /*   int c = y->acnt; */
+                  /*   printf("macros %p,%p\n", y, macros); */
+                  /*   printf("Free %p\n", y->name); */
+                  /*   //free(y->name); */
+                  /*   while (c>0) { */
+                  /*      printf("Arg %d: %p\n", c, y->arg[c-1]); */
+                  /*      //free(y->arg[--c]); */
+                  /*      --c; */
+                  /*   } */
+                  /*   y = y->next; */
+                  /* } */
                 }
 {DEFINE}       BEGIN(macro);
 <macro>[ \t]*    /* eat the whitespace */
@@ -267,8 +344,8 @@ CONT            \\[[ \t]*\n
                 }
 
 .               { csound->Message(csound,
-                                 Str("Line %d: Unknown character: '%s'\n"),
-                                 yyline,yytext);
+                                 Str("Line %d: Unknown character: '%c'(%2x)\n"),
+                                 yyline,yytext[0],yytext[0]);
                 }
 
 %%
@@ -302,38 +379,59 @@ void do_include(CSOUND *csound, int term)
     }
     buffer[p] = '\0';
     while ((c=input())!='\n');
-    if (UNLIKELY( include_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-      csound->Message(csound, Str("Includes nested too deeply"));
-      exit(1);
-    }
-
-    include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     yyin = fopen( buffer, "r" );
     if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
-    yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
-}
-    
-void do_macro_arg(CSOUND *csound, char *name0)
-{
-    printf("Macro with args not written yet\n");
-    exit(1);
+    alt_stack[macro_stack_ptr++] = macros;
+    yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ) );
 }
 
-void do_macro(CSOUND *csound, char *name0)
+static inline int isNameChar(int c, int pos)
+{
+    c = (int) ((unsigned char) c);
+    return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
+}
+
+void do_macro_arg(CSOUND *csound, char *name0)
 {
     MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
     int   size = 100;
+    int mlen = 40;
+    char *mname = malloc(mlen);
     mm->margs = MARGS;    /* Initial size */
-    printf("Macro definition for %s\n", name0);
     mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
-    mm->acnt = 0;
+    do {
+      csound->Message(csound, "M-arguments: ");
+      while (isspace((c = input())));
+      i = 0;
+
+      while (isNameChar(c, i)) {
+        mname[i++] = c;
+        if (i==mlen)
+          mname = (char *)realloc(mname, mlen+=40);
+        c = input();
+      }
+      mname[i] = '\0';
+      mm->arg[arg] = mmalloc(csound, i + 1);
+      strcpy(mm->arg[arg++], mname);
+      if (arg >= mm->margs) {
+        mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
+                               + mm->margs * sizeof(char*));
+        mm->margs += MARGS;
+      }
+      while (isspace(c))
+        c = input();
+    } while (c == '\'' || c == '#');
+    if (UNLIKELY(c != ')'))
+      csound->Message(csound, Str("macro error\n"));
+    free(mname);
+    while (c!='#') c = input();
+    mm->acnt = arg;
     i = 0;
-    while ((c=input()) != '#'); /* Skip to next # */
     mm->body = (char*) mmalloc(csound, 100);
     while ((c = input()) != '#') {
       mm->body[i++] = c;
@@ -348,6 +446,37 @@ void do_macro(CSOUND *csound, char *name0)
         yyline++;
     }
     mm->body[i] = '\0';
+    mm->next = macros;
+    macros = mm;
+}
+
+void do_macro(CSOUND *csound, char *name0)
+{
+    MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+    int   arg = 0, i, c;
+    int   size = 100;
+    mm->margs = MARGS;    /* Initial size */
+    printf("Macro definition for %s\n", name0);
+    mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
+    strcpy(mm->name, name0);
+    mm->acnt = 0;
+    i = 0;
+    while ((c = input()) != '#');
+    mm->body = (char*) mmalloc(csound, 100);
+    while ((c = input()) != '#') {
+      mm->body[i++] = c;
+      if (UNLIKELY(i >= size))
+        mm->body = mrealloc(csound, mm->body, size += 100);
+      if (c == '\\') {                    /* allow escaped # */
+        mm->body[i++] = c = input();
+        if (i >= size)
+          mm->body = mrealloc(csound, mm->body, size += 100);
+      }
+      if (UNLIKELY(c == '\n'))
+        yyline++;
+    }
+    mm->body[i] = '\0';
+    //    printf("Body #%s#\n", mm->body);
     mm->next = macros;
     macros = mm;
 }

@@ -5,7 +5,7 @@ sr=44100
 ksmps=1
 nchnls=1
 
-#define FOO(X) #1#
+#define FOO #1#
 instr 1
   kenv linseg  0, 0.1, $FOO, p3-0.2, 1, 0.1, 0
   asig in

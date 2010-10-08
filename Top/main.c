@@ -317,6 +317,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
       new_orc_parser(csound);
+
     }
     else {
       otran(csound);                  /* read orcfile, setup desblks & spaces */
