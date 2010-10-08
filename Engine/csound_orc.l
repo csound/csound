@@ -204,7 +204,7 @@ CONT            \\[[ \t]*\n
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                  }
 {MACRONAMED}    {
-                  MACRO     *mm = macros, *mm_save = macros;
+                  MACRO     *mm = macros;
                   yytext[csound_orcleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
@@ -222,7 +222,7 @@ CONT            \\[[ \t]*\n
                     exit(1);
                   }
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-                  alt_stack[macro_stack_ptr++] = mm_save;
+                  alt_stack[macro_stack_ptr++] = macros;
                   /* printf("Push %p macro stack\n", mm_save); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
                   yypush_buffer_state(YY_CURRENT_BUFFER);
