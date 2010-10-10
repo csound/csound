@@ -214,8 +214,10 @@ void Composition::performMaster()
     System::inform("BEGAN Composition::performMaster()...\n");
     timestamp = makeTimestamp();
     score.save(getMidiFilename());
-    score.save(getMusicXmlFilename());
-    translateToNotation();
+    // Not implemented fully yet.
+    //score.save(getMusicXmlFilename());
+    // Would often take too long!...
+    //translateToNotation();
     perform();
     System::inform("ENDED Composition::performMaster().\n");
 }
@@ -338,10 +340,13 @@ void Composition::translateToNotation(const std::vector<std::string> partNames, 
     char buffer[0x200];
     std::sprintf(buffer, "title = %s\n", getTitle().c_str());
     stream << buffer;
-    std::sprintf(buffer, "author = %s\n", getArtist().c_str());
-    stream << buffer;
+    if (getArtist().length() > 1) {
+        std::sprintf(buffer, "author = %s\n", getArtist().c_str());
+        stream << buffer;
+    }
     stream << "beat = 1/64" << std::endl;
-    stream << "beatdiv = 1" << std::endl;
+    stream << "timesig (4 4)" << std::endl;
+    stream << "lily-papersize = 11x17" << std::endl;
     if (header.size() > 1) {
         stream << header.c_str();
     }
