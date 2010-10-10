@@ -26,150 +26,164 @@
 
 namespace csound
 {
-  Composition::Composition() :
+Composition::Composition() :
     tonesPerOctave(12.0),
     conformPitches(false)
-  {
-  }
+{
+}
 
-  Composition::~Composition()
-  {
-  }
+Composition::~Composition()
+{
+}
 
-  void Composition::render()
-  {
+void Composition::render()
+{
     clear();
     generate();
     timestamp = makeTimestamp();
     perform();
-  }
+}
 
-  void Composition::renderAll()
-  {
+void Composition::renderAll()
+{
     clear();
     generate();
     performAll();
-  }
+}
 
-  void Composition::perform()
-  {
-  }
+void Composition::perform()
+{
+}
 
-  void Composition::generate()
-  {
-  }
+void Composition::generate()
+{
+}
 
-  void Composition::clear()
-  {
+void Composition::clear()
+{
     score.clear();
-  }
+}
 
-  Score &Composition::getScore()
-  {
+Score &Composition::getScore()
+{
     return score;
-  }
+}
 
-  void Composition::write(const char *text)
-  {
+void Composition::write(const char *text)
+{
     System::message(text);
-  }
+}
 
-  void Composition::setTonesPerOctave(double tonesPerOctave)
-  {
+void Composition::setTonesPerOctave(double tonesPerOctave)
+{
     this->tonesPerOctave = tonesPerOctave;
-  }
+}
 
-  double Composition::getTonesPerOctave() const
-  {
+double Composition::getTonesPerOctave() const
+{
     return tonesPerOctave;
-  }
+}
 
-  void Composition::setConformPitches(bool conformPitches)
-  {
+void Composition::setConformPitches(bool conformPitches)
+{
     this->conformPitches = conformPitches;
-  }
+}
 
-  bool Composition::getConformPitches() const
-  {
+bool Composition::getConformPitches() const
+{
     return conformPitches;
-  }
+}
 
-  std::string Composition::getFilename() const
-  {
+std::string Composition::getFilename() const
+{
     return filename;
-  }
+}
 
-  void Composition::setFilename(std::string filename)
-  {
+void Composition::setFilename(std::string filename)
+{
     this->filename = filename;
-  }
+}
 
-  std::string Composition::generateFilename()
-  {
+std::string Composition::generateFilename()
+{
     char buffer[0x100];
     snprintf(buffer, 0x100, "silence.%s.py", makeTimestamp().c_str());
     return buffer;
-  }
+}
 
-  std::string Composition::getMidiFilename()
-  {
+std::string Composition::getMidiFilename()
+{
     std::string name = getFilename();
     name.append(".mid");
     return name;
-  }
+}
 
-  std::string Composition::getOutputSoundfileName()
-  {
+std::string Composition::getOutputSoundfileName()
+{
     std::string name = getFilename();
     name.append(".wav");
     return name;
-  }
+}
 
-  std::string Composition::getNormalizedSoundfileName()
-  {
+std::string Composition::getNormalizedSoundfileName()
+{
     std::string name = getFilename();
     name.append(".norm.wav");
     return name;
-  }
+}
 
-  std::string Composition::getCdSoundfileName()
-  {
+std::string Composition::getCdSoundfileName()
+{
     std::string name = getFilename();
     name.append(".cd.wav");
     return name;
-  }
+}
 
-  std::string Composition::getMp3SoundfileName()
-  {
+std::string Composition::getMp3SoundfileName()
+{
     std::string name = getFilename();
     name.append(".mp3");
     return name;
-  }
+}
 
-  std::string Composition::getMusicXmlFilename()
-  {
+std::string Composition::getMusicXmlFilename()
+{
     std::string name = getFilename();
     name.append(".xml");
     return name;
-  }
+}
 
-  std::string Composition::makeTimestamp()
-  {
+std::string Composition::getFomusFilename()
+{
+    std::string name = getFilename();
+    name.append(".fms");
+    return name;
+}
+
+std::string Composition::getLilypondFilename()
+{
+    std::string name = getFilename();
+    name.append(".ly");
+    return name;
+}
+
+std::string Composition::makeTimestamp()
+{
     time_t time_ = 0;
     time(&time_);
     struct tm* tm_ = gmtime(&time_);
     char buffer[0x100];
     strftime(buffer, 0x100, "%Y-%m-%d.%H-%M-%S", tm_);
     return buffer;
-  }
+}
 
-  std::string Composition::getTimestamp() const
-  {
+std::string Composition::getTimestamp() const
+{
     return timestamp;
-  }
-  
-  void tagFile(Composition &composition, std::string filename)
-  {
+}
+
+void tagFile(Composition &composition, std::string filename)
+{
     std::string command = "bwfmetaedit";
     command = command + " --OriginationDate=" + composition.getTimestamp().substr(0, 10);
     command = command + " --ICRD=" + composition.getTimestamp().substr(0, 10);
@@ -189,129 +203,175 @@ namespace csound
     }
     if (composition.getLicense().length() > 1) {
         command = command + " --ICMT=" + composition.getLicense();
-    }    
+    }
     command = command + " " + filename.c_str();
     System::inform("tagFile(): %s\n", command.c_str());
     int result = std::system(command.c_str());
-  }
+}
 
-  void Composition::performMaster()
-  {
+void Composition::performMaster()
+{
     System::inform("BEGAN Composition::performMaster()...\n");
     timestamp = makeTimestamp();
     score.save(getMidiFilename());
     score.save(getMusicXmlFilename());
+    translateToNotation();
     perform();
     System::inform("ENDED Composition::performMaster().\n");
-  }
+}
 
-  void Composition::performAll()
-  {
+void Composition::performAll()
+{
     System::inform("BEGAN Composition::performAll()...\n");
     performMaster();
     translateMaster();
     System::inform("ENDED Composition::performAll().\n");
-  }
+}
 
-  void Composition::translateMaster()
-  {
+void Composition::translateMaster()
+{
     System::inform("ENDED Composition::translateMaster().\n");
     tagFile(*this, getOutputSoundfileName());
     normalizeOutputSoundfile();
     translateToCdAudio();
     translateToMp3();
     System::inform("ENDED Composition::translateMaster().\n");
-  }
+}
 
-  void Composition::normalizeOutputSoundfile(double levelDb)
-  {
+void Composition::normalizeOutputSoundfile(double levelDb)
+{
     char buffer[0x100];
-    std::snprintf(buffer, 
-                  0x100, 
-                  "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
-                  getOutputSoundfileName().c_str(),
-                  getNormalizedSoundfileName().c_str(),
-                  levelDb);
+    std::snprintf(buffer,
+            0x100,
+            "sox %s -V3 -b 32 -e floating-point %s gain -n %f\n",
+            getOutputSoundfileName().c_str(),
+            getNormalizedSoundfileName().c_str(),
+            levelDb);
     int result = std::system(buffer);
     System::inform("Composition::normalizeOutputSoundfile(): %s", buffer);
     tagFile(*this, getNormalizedSoundfileName());
-  }
+}
 
-  void Composition::translateToCdAudio(double levelDb)
-  {
+void Composition::translateToCdAudio(double levelDb)
+{
     char buffer[0x100];
     std::snprintf(buffer, 0x100, "sox %s -V3 -b 16 %s gain -n %f rate 44100\n",
-                  getOutputSoundfileName().c_str(),
-                  getCdSoundfileName().c_str(),
-                  levelDb);
+            getOutputSoundfileName().c_str(),
+            getCdSoundfileName().c_str(),
+            levelDb);
     System::inform("Composition::translateToCdAudio(): %s", buffer);
     int result = std::system(buffer);
     tagFile(*this, getCdSoundfileName());
-  }
+}
 
-  void Composition::translateToMp3(double bitrate, double levelDb)
-  {
+void Composition::translateToMp3(double bitrate, double levelDb)
+{
     char buffer[0x100];
-    std::snprintf(buffer, 
-                  0x100, 
-                  "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
-                  getTitle().c_str(),
-                  getArtist().c_str(),
-                  getAlbum().c_str(),
-                  getCopyright().c_str(),
-                  getCdSoundfileName().c_str(),
-                  getMp3SoundfileName().c_str());
+    std::snprintf(buffer,
+            0x100,
+            "lame --verbose --disptime 2 --nohist --preset cd --tt %s --ta %s --tl %s --tc %s %s %s\n",
+            getTitle().c_str(),
+            getArtist().c_str(),
+            getAlbum().c_str(),
+            getCopyright().c_str(),
+            getCdSoundfileName().c_str(),
+            getMp3SoundfileName().c_str());
     System::inform("Composition::translateToMp3(): %s", buffer);
     int result = std::system(buffer);
-  }
+}
 
-  std::string Composition::getArtist() const
-  {
+std::string Composition::getArtist() const
+{
     return artist;
-  }
+}
 
-  void Composition::setArtist(std::string value)
-  {
+void Composition::setArtist(std::string value)
+{
     artist = value;
-  }
+}
 
-  std::string Composition::getTitle() const
-  {
+std::string Composition::getTitle() const
+{
     return title;
-  }
+}
 
-  void Composition::setTitle(std::string value)
-  {
+void Composition::setTitle(std::string value)
+{
     title = value;
-  }
+}
 
-  std::string Composition::getCopyright() const
-  {
+std::string Composition::getCopyright() const
+{
     return copyright;
-  }
+}
 
-  void Composition::setCopyright(std::string value)
-  {
+void Composition::setCopyright(std::string value)
+{
     copyright = value;
-  }
+}
 
-  std::string Composition::getAlbum() const
-  {
+std::string Composition::getAlbum() const
+{
     return album;
-  }
+}
 
-  void Composition::setAlbum(std::string value)
-  {
+void Composition::setAlbum(std::string value)
+{
     album = value;
-  }
+}
 
-  std::string Composition::getLicense() const
-  {
+std::string Composition::getLicense() const
+{
     return license;
-  }
+}
 
-  void Composition::setLicense(std::string value)
-  {
+void Composition::setLicense(std::string value)
+{
     license = value;
-  }
+}
+
+void Composition::translateToNotation(const std::vector<std::string> partNames, std::string header)
+{
+    std::string filename = getFomusFilename();
+    std::ofstream stream;
+    stream.open(filename.c_str(), std::ifstream::binary);
+    char buffer[0x200];
+    std::sprintf(buffer, "title = %s\n", getTitle().c_str());
+    stream << buffer;
+    std::sprintf(buffer, "author = %s\n", getArtist().c_str());
+    stream << buffer;
+    stream << "beat = 1/64" << std::endl;
+    stream << "beatdiv = 1" << std::endl;
+    if (header.size() > 1) {
+        stream << header.c_str();
+    }
+    if (partNames.size() > 0) {
+        for (size_t partI = 0, partN = partNames.size(); partI < partN; ++partI) {
+            std::sprintf(buffer, "part <id = %d name = %s>\n", partI, partNames[partI].c_str());
+            stream << buffer;
+        }
+    } else {
+        for (size_t partI = 0, partN = 100; partI < partN; ++partI) {
+            std::sprintf(buffer, "part <id = %d name = Part%d>\n", partI, partI);
+            stream << buffer;
+        }
+    }
+    for (size_t eventI = 0, eventN = score.size(); eventI < eventN; ++eventI) {
+        const Event &event = score[eventI];
+        if (event.isNoteOn()) {
+            double duration = event.getDuration() * 32.0;
+            duration = Conversions::round(duration);
+            if (duration > 0) {
+                std::sprintf(buffer, "part %g time %g dur %g pitch %g;\n", event.getInstrument() + 1, event.getTime() * 32.0, duration, event.getKey());
+                stream << buffer;
+            }
+        }
+    }
+    stream.close();
+    std::sprintf(buffer, "fomus -i %s -o %s.ly", getFomusFilename().c_str(), getTitle().c_str());
+    int result;
+    result = std::system(buffer);
+    std::sprintf(buffer, "lilypond -fpdf %s.ly", getTitle().c_str());
+    result = std::system(buffer);
+}
 }
