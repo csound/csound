@@ -338,10 +338,10 @@ void Composition::translateToNotation(const std::vector<std::string> partNames, 
     std::ofstream stream;
     stream.open(filename.c_str(), std::ifstream::binary);
     char buffer[0x200];
-    std::sprintf(buffer, "title = %s\n", getTitle().c_str());
+    std::sprintf(buffer, "title = \"%s\"\n", getTitle().c_str());
     stream << buffer;
     if (getArtist().length() > 1) {
-        std::sprintf(buffer, "author = %s\n", getArtist().c_str());
+        std::sprintf(buffer, "author = \"%s\"\n", getArtist().c_str());
         stream << buffer;
     }
     stream << "beat = 1/64" << std::endl;
