@@ -78,7 +78,8 @@ namespace csound
     virtual void load(MidiFile &midiFile);
     /**
      * Save as a MIDI file, format 1 (.mid) file,
-     * or as a partwise MusicXML (.xml) file.
+     * or as a partwise MusicXML (.xml) file, 
+     * or as a Fomus music notation (.fms) file.
      * Only sounding data is saved.
      */
     virtual void save(std::string filename);

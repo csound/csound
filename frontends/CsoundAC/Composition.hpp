@@ -95,6 +95,16 @@ public:
      */
     virtual std::string getMusicXmlFilename();
     /**
+     * Returns a MusicXML filename based on the filename
+     * of this, by appending ".fms" to the filename.
+     */
+    virtual std::string getFomusFilename();
+    /**
+     * Returns a MusicXML filename based on the filename
+     * of this, by appending ".ly" to the filename.
+     */
+    virtual std::string getLilypondFilename();
+    /**
      * Generate performance events and store them in the score.
      * Must be overidden in derived classes.
      */
@@ -181,6 +191,14 @@ public:
      * tempered pitch.
      */
     virtual bool getConformPitches() const;
+    /**
+     * Saves the generated score in Fomus format
+     * and uses Fomus and Lilypond to translate that 
+     * to a PDF of music notation. A meter of 4/4
+     * and a tempo of MM 120 is assumed. 
+     * A vector of part names may be supplied.
+     */
+    virtual void translateToNotation(const std::vector<std::string> partNames = std::vector<std::string>(), std::string header = "");
     virtual std::string getArtist() const;
     virtual void setArtist(std::string value);
     virtual std::string getTitle() const;
