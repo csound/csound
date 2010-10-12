@@ -1,3 +1,7 @@
+2010-10-12  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc.y: Allow labels in exprlists
+
 2010-10-08  John ff  <jpff@cs.bath.ac.uk>
 
 	* OOps/cmath.c (ipow, apow): If normalisation is zero make it 1;
