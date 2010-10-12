@@ -487,6 +487,7 @@ exprlist  : exprlist S_COM expr
                 }
           | exprlist S_COM error
           | expr { $$ = $1;     }
+          | T_IDENT { $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)yylval);     }
           | /* null */          { $$ = NULL; }
           ;
 
@@ -618,7 +619,8 @@ constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
 opcode0   : T_OPCODE0
             {
                 if (PARSER_DEBUG)
-                  csound->Message(csound, "opcode0 yylval=%p\n", yylval);
+                  csound->Message(csound, "opcode0 yylval=%p (%s)\n",
+                                  yylval,((ORCTOKEN *)yylval)->lexeme );
                 $$ = make_leaf(csound, T_OPCODE0, (ORCTOKEN *)yylval);
             }
           ;
