@@ -789,9 +789,7 @@ oscFound = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
 musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'MusicXML2::SXMLFile f = MusicXML2::TXMLFile::create();', autoadd=0)
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
-#ompFound = configure.CheckHeader("omp.h", language = "C++")
-#if ompFound:
-#   commonEnvironment.Append(CPPFLAGS = ['-DHAVE_OMP'])
+
 #if not buildOLPC:
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 #if not buildOLPC:
@@ -1061,6 +1059,7 @@ def MacOSX_InstallHeader(headerName):
 
 def MacOSX_InstallPlugin(fileName):
     if buildOSXFramework:
+        print "COPYINNG plugin"
         pluginDir = '%s/Resources/Opcodes' % OSXFrameworkCurrentVersion
         if commonEnvironment['useDouble'] != '0':
             pluginDir += '64'
@@ -1350,11 +1349,11 @@ def fixCFlagsForSwig(env):
         env['CCFLAGS'].remove('-pedantic')
     if '-pedantic' in env['CXXFLAGS']:
         env['CXXFLAGS'].remove('-pedantic')
-    if compilerGNU():
+    # if compilerGNU():
         # work around non-ANSI type punning in SWIG generated wrapper files
-        if(getPlatform != 'darwin'):
-         env['CCFLAGS'].append('-fno-strict-aliasing')
-         env['CXXFLAGS'].append('-fno-strict-aliasing')
+         #if(getPlatform != 'darwin'):
+          #env['CCFLAGS'].append('-fno-strict-aliasing')
+          #env['CXXFLAGS'].append('-fno-strict-aliasing')
 
 def makePythonModule(env, targetName, sources):
     if getPlatform() == 'darwin':
@@ -1666,6 +1665,7 @@ if p5gfound==1:
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
+   if getPlatform() != 'darwin':
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 if sys.byteorder == 'big':
     sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])

@@ -1,4 +1,5 @@
 #include "csdl.h"
+#include "pstream.h"
 
 typedef struct dats{
   OPDS h;
@@ -362,10 +363,77 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
 
 }
 
+typedef struct {
+  OPDS h;
+  PVSDAT *fout;
+  PVSDAT *fin;
+  MYFLT *klock;
+  MYFLT  *file;
+  uint32 lastframe;
+}PVSLOCK;
+
+static int pvslockset(CSOUND *csound, PVSLOCK *p)
+{
+    int32    N = p->fin->N;
+
+    if (UNLIKELY(p->fin == p->fout))
+      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+    p->fout->N = N;
+    p->fout->overlap = p->fin->overlap;
+    p->fout->winsize = p->fin->winsize;
+    p->fout->wintype = p->fin->wintype;
+    p->fout->format = p->fin->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+   if (p->fout->frame.auxp == NULL ||
+            p->fout->frame.size < sizeof(float) * (N + 2))
+          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+   if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
+          return csound->InitError(csound, Str("pvsfreeze: signal format "
+                                               "must be amp-freq."));
+
+   return OK;
+}
+
+
+static int pvslockproc(CSOUND *csound, PVSLOCK *p) {
+  int i,n,k,j, maxmagi;
+  float mag,  maxmag, *fout = (float *) p->fout->frame.auxp, 
+        *fin = (float *) p->fin->frame.auxp;
+  int N = p->fin->N;
+  int peaks[4096];
+  memset(peaks, 0, sizeof(int)*4096);
+
+  if (p->lastframe < p->fin->framecount){
+    memcpy(fout,fin, sizeof(float)*(N+2));
+    if(*p->klock) {
+ for(i=2, n = 0; i < N-4; i+=2){
+   float p2 = fin[i];
+   float p3 = fin[i+2];
+   float p1 = fin[i-2];
+   float p4 = fin[i+4];
+   float p5 = fin[i+6];
+   if(p3 > p1 && p3 > p2 && p3 > p4 && p3 > p5) {
+        //peaks[n] = i; n++;
+     //csound->Message(csound, "peak: %d = %f \n", i, fin[i+1]);
+     float freq = fin[i+3];
+     fout[i-1] = fout[i+1] = fout[i+3] = fout[i+5] = fout[i+7] = freq;
+     //if(p3 > p4) 
+     //fout[i+5] = fin[i+1];
+   }
+ }
+    }
+ p->fout->framecount = p->lastframe = p->fin->framecount;
+  }
+  return OK;
+}
+
 static OENTRY localops[] = {
 {"mincer", sizeof(DATASPACE), 5, "a", "akkkkoo", (SUBR)sinit, NULL,(SUBR)sprocess },
 {"temposcal", sizeof(DATASPACE), 5, "a", "kkkkkoop",
                                                (SUBR)sinit2, NULL,(SUBR)sprocess2 },
+ {"pvslock", sizeof(PVSLOCK), 3, "f", "fk", (SUBR) pvslockset,
+         (SUBR) pvslockproc},
 };
 
 LINKAGE
