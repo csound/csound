@@ -1401,12 +1401,12 @@ CSOUND_FILETYPES;
 
 #define csoundSpinLock(spinlock)                        \
   {                                                             \
-    while (__sync_lock_test_and_set(spinlock, 1) == 1) {        \
-    }                                                           \
+    while (__sync_lock_test_and_set(spinlock, 1) == 1) {	\
+     }							\
   }
 #define csoundSpinUnLock(spinlock)              \
   {                                             \
-    __sync_lock_release(spinlock);              \
+     __sync_lock_release(spinlock);		\
   }
 
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);

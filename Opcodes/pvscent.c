@@ -161,14 +161,18 @@ typedef struct _pvspitch
 int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
+  int size;
     p->lastframe = 0;
 
 #ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
 #endif
-    csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->peakfreq);
-    csound->AuxAlloc(csound, sizeof(MYFLT)*(p->fin->N+2)/4, &p->inharmonic);
+    size = sizeof(MYFLT)*(p->fin->N+2)/4;
+    if(p->peakfreq.auxp == NULL || p->peakfreq.size < size/2)
+    csound->AuxAlloc(csound, size, &p->peakfreq);
+    if(p->inharmonic.auxp == NULL || p->inharmonic.size < size)
+    csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
                                "PV Frames must be in AMP_FREQ format!\n");
@@ -231,7 +235,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
         maxPartial = (int) (PeakFreq[0]/lowHearThreshold);
 
         /* Calculates the inharmonicity for each fundamental candidate */
-        for (i=0; i<maxPartial; i++) {
+        for (i=0; i<maxPartial && i < numBins/2; i++) {
           inharmonic[i] = FL(0.0);
           f0Cand = PeakFreq[0]/(i+1);
 
