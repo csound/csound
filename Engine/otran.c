@@ -367,13 +367,15 @@ void otran(CSOUND *csound)
               /* IV - Oct 31 2002 */
               if (UNLIKELY(!check_instr_name(name))) {
                 synterr(csound, Str("invalid name for opcode"));
-                continue;
+                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
+                /*continue;*/
               }
               if (UNLIKELY(ip->t.inlist->count != 3)) {
                 synterr(csound, Str("opcode declaration error "
                                     "(usage: opcode name, outtypes, intypes) "
                                     "-- opcode %s"), name);
-                continue;
+                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
+                /*continue;*/
               }
 
               /* IV - Oct 31 2002: check if opcode is already defined */
