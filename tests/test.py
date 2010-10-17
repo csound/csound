@@ -92,6 +92,7 @@ def runTest():
         ["test38.csd", "Testing simple macro"],
         ["test39.csd", "Testing macro with argument"],
         ["test40.csd", "Testing i^j"],
+        ["test41.csd", "if statement with = instead of =="],
     ]
 
 

@@ -163,7 +163,7 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex (TREE*, CSOUND *);
+extern int csound_orclex(TREE*, CSOUND *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
 extern void csound_orcerror(CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
@@ -380,46 +380,6 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
           }
           ;
 
-/* ifthen    : T_IF S_LB expr S_RB then S_NL statementlist T_ENDIF S_NL */
-/*           { */
-/*             $5->right = $7; */
-/*             $$ = make_node(csound, T_IF, $3, $5); */
-/*           } */
-/*           | T_IF S_LB expr S_RB then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL */
-/*           { */
-/*             $5->right = $7; */
-/*             $5->next = make_node(csound, T_ELSE, NULL, $9); */
-/*             $$ = make_node(csound, T_IF, $3, $5); */
-
-/*           } */
-/*           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ENDIF S_NL */
-/*           { */
-/*             if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF FOUND!\n"); */
-/*             $5->right = $7; */
-/*             $5->next = $8; */
-/*             $$ = make_node(csound, T_IF, $3, $5); */
-/*           } */
-/*           | T_IF S_LB expr S_RB then S_NL statementlist elseiflist T_ELSE statementlist T_ENDIF S_NL */
-/*           { */
-/*             if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF-ELSE FOUND!\n"); */
-/*             TREE * tempLastNode; */
-
-/*             $5->right = $7; */
-/*             $5->next = $8; */
-
-/*             $$ = make_node(csound, T_IF, $3, $5); */
-
-/*             tempLastNode = $$; */
-
-/*             while(tempLastNode->right != NULL && tempLastNode->right->next != NULL) { */
-/*                 tempLastNode = tempLastNode->right->next; */
-/*             } */
-
-/*             tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $10); */
-
-/*           } */
-/*           ; */
-
 elseiflist : elseiflist elseif
             {
                 TREE * tempLastNode = $1;
@@ -442,14 +402,6 @@ elseif    : T_ELSEIF expr then S_NL statementlist
             }
           ;
 
-/* elseif    : T_ELSEIF S_LB expr S_RB then S_NL statementlist */
-/*             { */
-/*                 if (PARSER_DEBUG) csound->Message(csound, "ELSEIF FOUND!\n"); */
-/*                 $5->right = $7; */
-/*                 $$ = make_node(csound, T_ELSEIF, $3, $5); */
-/*             } */
-/*           ; */
-
 then      : T_THEN
             { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)yylval); }
           | T_KTHEN
@@ -468,9 +420,9 @@ goto  : T_GOTO
           ;
 
 /* Allow all words as a label */
-label : T_IDENT     { $$ = (ORCTOKEN *)$1; }
-      | T_OPCODE    { $$ = (ORCTOKEN *)$1; }
-      | T_OPCODE0   { $$ = (ORCTOKEN *)$1; }
+label : T_IDENT     { $$ = (TREE *)$1; }
+      | T_OPCODE    { $$ = (TREE *)$1; }
+      | T_OPCODE0   { $$ = (TREE *)$1; }
       ;
 
 
@@ -505,6 +457,8 @@ expr      : expr S_Q expr S_COL expr %prec S_Q
           | expr S_NEQ error
           | expr S_EQ expr      { $$ = make_node(csound, S_EQ, $1, $3); }
           | expr S_EQ error
+          | expr S_ASSIGN expr  { $$ = make_node(csound, S_EQ, $1, $3); }
+          | expr S_ASSIGN error
           | expr S_GT expr      { $$ = make_node(csound, S_GT, $1, $3); }
           | expr S_GT error
           | expr S_LT expr      { $$ = make_node(csound, S_LT, $1, $3); }
