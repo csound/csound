@@ -171,17 +171,17 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
       switch(current->type) {
       case T_IDENT_S:
         ip->lclscnt++;
-        if (PARSER_DEBUG) 
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "S COUNT INCREASED: %d\n", ip->lclscnt);
         break;
       case T_IDENT_W:
         ip->lclwcnt++;
-        if (PARSER_DEBUG) 
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "W COUNT INCREASED: %d\n", ip->lclwcnt);
         break;
       case T_IDENT_A:
         ip->lclacnt++;
-        if (PARSER_DEBUG) 
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "A COUNT INCREASED: %d\n", ip->lclacnt);
         break;
       case T_IDENT_K:
@@ -191,7 +191,7 @@ void update_lclcount(CSOUND *csound, INSTRTXT *ip, TREE *argslist)
       case T_INTGR:
       default:
         ip->lclkcnt++;
-        if (PARSER_DEBUG) 
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "K COUNT INCREASED: %d\n", ip->lclkcnt);
       }
       current = current->next;
@@ -365,7 +365,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
     case T_OPCODE:
     case T_OPCODE0:
     case S_ASSIGN:
-      if (PARSER_DEBUG)
+      if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
                         root->value->lexeme);
@@ -407,7 +407,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
-          } else {
+          }
+          else {
             lgbuild(csound, arg);
           }
 
@@ -428,7 +429,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
-          } else {
+          }
+          else {
             lgbuild(csound, arg);
           }
 
@@ -451,14 +453,16 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
         if (root->right != NULL) {
           if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
             tp->intype = argtyp2(csound, tp->inlist->arg[0]);
-          } else  {
+          }
+          else  {
             tp->intype = 'l';          /*   (unless label)  */
           }
         }
 
-        if (root->left != NULL) {                       /* pftype defined by outarg */
+        if (root->left != NULL) {      /* pftype defined by outarg */
           tp->pftype = argtyp2(csound, root->left->value->lexeme);
-        } else {                            /*    else by 1st inarg     */
+        }
+        else {                            /*    else by 1st inarg     */
           tp->pftype = tp->intype;
         }
 
@@ -549,7 +553,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
 
       if (current->type != T_INSTR && current->type != T_UDO) {
 
-        if (PARSER_DEBUG) 
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
         if (current->type == S_ASSIGN
@@ -568,24 +572,26 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
           /* modify otran defaults*/
           if (current->left->type == T_SRATE) {
             csound->tran_sr = val;
-          } else if (current->left->type == T_KRATE) {
+          }
+          else if (current->left->type == T_KRATE) {
             csound->tran_kr = val;
-          } else if (current->left->type == T_KSMPS) {
+          }
+          else if (current->left->type == T_KSMPS) {
             csound->tran_ksmps = val;
-          } else if (current->left->type == T_NCHNLS) {
+          }
+          else if (current->left->type == T_NCHNLS) {
             csound->tran_nchnls = current->right->value->value;
-          } else if (current->left->type == T_NCHNLSI) {
+          }
+          else if (current->left->type == T_NCHNLSI) {
             csound->tran_nchnlsi = current->right->value->value;
             /* csound->Message(csound, "SETTING NCHNLS: %d\n", csound->tran_nchnls); */
-          } else if (current->left->type == T_0DBFS) {
+          }
+          else if (current->left->type == T_0DBFS) {
             csound->tran_0dbfs = val;
+            csound->Message(csound, "SETTING 0DBFS: %f\n", csound->tran_0dbfs);
           }
 
-          /* TODO - Implement 0dbfs constant */
-          /*else if (strcmp(s, "0dbfs") == 0) {*/
-          /* we have set this as reserved in rdorch.c */
-          /*csound->tran_0dbfs = constval;
-            }*/
+          /* TODO - Implement 0dbfs constant  -- surely done?? */
         }
 
         op->nxtop = create_opcode(csound, current, ip);
@@ -1000,6 +1006,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     gblnamset(csound, "kr");
     gblnamset(csound, "ksmps");
     gblnamset(csound, "nchnls");
+    gblnamset(csound, "nchnls_i");
     gblnamset(csound, "0dbfs"); /* no commandline override for that! */
     gblnamset(csound, "$sr");   /* incl command-line overrides */
     gblnamset(csound, "$kr");
@@ -1049,9 +1056,9 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
                   TREE *p =  current->left;
                   printf("intlist case:\n"); /* This code is suspect */
                   while (p) {
-                    print_tree(csound, "Top of loop\n", p);
+                    //                    print_tree(csound, "Top of loop\n", p);
                     if (p->left) {
-                      print_tree(csound, "Left\n", p->left);
+                      //                      print_tree(csound, "Left\n", p->left);
                       insert_instrtxt(csound, instrtxt, p->left->value->value);
                     }
                     else {
@@ -1783,7 +1790,7 @@ char argtyp2(CSOUND *csound, char *s)
       return('S');                              /* quoted String */
       /* ST(lgprevdef) = lgexist(csound, s);  */             /* (lgprev) */
     if (strcmp(s,"sr") == 0    || strcmp(s,"kr") == 0 ||
-        strcmp(s,"0dbfs") == 0 ||
+        strcmp(s,"0dbfs") == 0 || strcmp(s,"nchnls_i") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
       return('r');                              /* rsvd */
     if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */

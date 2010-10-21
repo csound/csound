@@ -85,6 +85,7 @@
 %token T_KRATE
 %token T_KSMPS
 %token T_NCHNLS
+%token T_NCHNLSI
 %token T_0DBFS
 %token T_STRCONST
 %token T_IDENT
@@ -112,7 +113,6 @@
 %token T_ELSEIF
 %token T_ELSE
 %token T_ENDIF
-%token T_NCHNLSI
 
 %token T_INTLIST
 
@@ -249,7 +249,8 @@ udodecl   : T_UDOSTART
                 TREE *udoAns = make_leaf(csound, T_UDO_ANS, (ORCTOKEN *)$7);
                 TREE *udoArgs = make_leaf(csound, T_UDO_ARGS, (ORCTOKEN *)$10);
                 udoflag = -1;
-                if (PARSER_DEBUG) csound->Message(csound, "UDO COMPLETE\n");
+                if (UNLIKELY(PARSER_DEBUG))
+                  csound->Message(csound, "UDO COMPLETE\n");
 
                 udoTop->left = ident;
                 ident->left = udoAns;
@@ -259,7 +260,7 @@ udodecl   : T_UDOSTART
 
                 $$ = udoTop;
 
-                if (PARSER_DEBUG) print_tree(csound, "UDO\n", (TREE *)$$);
+                if (UNLIKELY(PARSER_DEBUG)) print_tree(csound, "UDO\n", (TREE *)$$);
 
               }
 
@@ -354,7 +355,8 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
           }
           | T_IF expr then S_NL statementlist elseiflist T_ENDIF S_NL
           {
-            if (PARSER_DEBUG) csound->Message(csound, "IF-ELSEIF FOUND!\n");
+              if (UNLIKELY(PARSER_DEBUG))
+                csound->Message(csound, "IF-ELSEIF FOUND!\n");
             $3->right = $5;
             $3->next = $6;
             $$ = make_node(csound, T_IF, $2, $3);
@@ -396,7 +398,8 @@ elseiflist : elseiflist elseif
 
 elseif    : T_ELSEIF expr then S_NL statementlist
             {
-                if (PARSER_DEBUG) csound->Message(csound, "ELSEIF FOUND!\n");
+                if (UNLIKELY(PARSER_DEBUG))
+                  csound->Message(csound, "ELSEIF FOUND!\n");
                 $3->right = $5;
                 $$ = make_node(csound, T_ELSEIF, $2, $3);
             }
@@ -572,7 +575,7 @@ constant  : T_INTGR     { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)yylval); }
 
 opcode0   : T_OPCODE0
             {
-                if (PARSER_DEBUG)
+                if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "opcode0 yylval=%p (%s)\n",
                                   yylval,((ORCTOKEN *)yylval)->lexeme );
                 $$ = make_leaf(csound, T_OPCODE0, (ORCTOKEN *)yylval);
