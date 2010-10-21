@@ -30,11 +30,11 @@
 
 extern  char argtyp2(CSOUND*, char*);
 extern  int tree_arg_list_count(TREE *);
-
-TREE* force_rate(TREE* a, char t)
-{                               /* Ensure a is of type t */
-    return a;
-}
+void print_tree(CSOUND *, char *, TREE *);
+/* TREE* force_rate(TREE* a, char t) */
+/* {                               /\* Ensure a is of type t *\/ */
+/*     return a; */
+/* } */
 
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
@@ -43,6 +43,7 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
     TREE* ans;
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
+    //    print_tree(csound, "Verify", root);
     if (root==NULL) return NULL;
     if (root->left)  {
       root->left = verify_tree(csound, root->left);
@@ -126,11 +127,11 @@ void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
  */
 TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
     TREE *current;
-    if(first == NULL) {
+    if (first == NULL) {
         return newlast;
     }
 
-    if(newlast == NULL) {
+    if (newlast == NULL) {
         return first;
     }
 
@@ -140,7 +141,7 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast) {
      * useful; the number 400 is arbitrary, chosen as it seemed to be a value
      * higher than all the type numbers that were being printed out
      */
-    if(first->type > 400 || first-> type < 0) {
+    if (first->type > 400 || first-> type < 0) {
         return newlast;
     }
 
@@ -176,20 +177,20 @@ TREE* make_node(CSOUND *csound, int type, TREE* left, TREE* right)
 
 TREE* make_leaf(CSOUND *csound, int type, ORCTOKEN *v)
 {
-  TREE *ans;
-  ans = (TREE*)mmalloc(csound, sizeof(TREE));
-  if (UNLIKELY(ans==NULL)) {
-    /* fprintf(stderr, "Out of memory\n"); */
-    exit(1);
-  }
-  ans->type = type;
-  ans->left = NULL;
-  ans->right = NULL;
-  ans->next = NULL;
-  ans->len = 0;
-  ans->rate = -1;
-  ans->value = v;
-  return ans;
+    TREE *ans;
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans==NULL)) {
+      /* fprintf(stderr, "Out of memory\n"); */
+      exit(1);
+    }
+    ans->type = type;
+    ans->left = NULL;
+    ans->right = NULL;
+    ans->next = NULL;
+    ans->len = 0;
+    ans->rate = -1;
+    ans->value = v;
+    return ans;
 }
 
 /** Utility function to create assignment statements
@@ -200,18 +201,18 @@ char* get_assignment_type(CSOUND *csound, char * ans, TREE* arg1) {
     char* str = (char*)mcalloc(csound, 65);
 
     switch (c) {
-          case 'S':
-                  strcpy(str, "strcpy");
-                  break;
-          case 'a':
-                c = argtyp2(csound, arg1->value->lexeme);
-                strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
-                /* strcpy(str, "=.a"); */
-                break;
-          case 'p':
-                  c = 'i'; /* purposefully fall through */
-          default:
-                  sprintf(str, "=.%c", c);
+    case 'S':
+      strcpy(str, "strcpy");
+      break;
+    case 'a':
+      c = argtyp2(csound, arg1->value->lexeme);
+      strcpy(str, (c == 'a' ? "=.a" : "upsamp"));
+      /* strcpy(str, "=.a"); */
+      break;
+    case 'p':
+      c = 'i'; /* purposefully fall through */
+    default:
+      sprintf(str, "=.%c", c);
     }
 
     if (PARSER_DEBUG)
@@ -227,10 +228,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
 {
     int i;
     if (UNLIKELY(l==NULL)) {
-        return;
+      return;
     }
     for (i=0; i<n; i++) {
-        csound->Message(csound, " ");
+      csound->Message(csound, " ");
     }
 
     csound->Message(csound, "TYPE: %d ", l->type);
@@ -380,10 +381,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
 {
     int i;
     if (l==NULL) {
-        return;
+      return;
     }
     for (i=0; i<n; i++) {
-        csound->Message(csound, " ");
+      csound->Message(csound, " ");
     }
 
     csound->Message(csound, "<tree type=\"%d\" ", l->type);
@@ -533,8 +534,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"name=\"T_INTGR\" value=\"%d\"",
                       l->value->value); break;
     case T_NUMBER:
-      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\"",
-                      l->value->fvalue); break;
+      csound->Message(csound,"name=\"T_NUMBER\" value=\"%f\" type=%d",
+                      l->value->fvalue, l->value->type); break;
     case S_ANDTHEN:
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
     case S_APPLY:
@@ -570,13 +571,13 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
     print_tree_xml(csound, l->right,n+1);
 
     for (i=0; i<n; i++) {
-        csound->Message(csound, " ");
+      csound->Message(csound, " ");
     }
 
     csound->Message(csound, "</tree>\n");
 
-    if(l->next != NULL) {
-        print_tree_xml(csound, l->next, n);
+    if (l->next != NULL) {
+      print_tree_xml(csound, l->next, n);
     }
 }
 
