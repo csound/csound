@@ -190,19 +190,6 @@ typedef struct _pvsfilter {
 static int pvsfilterset(CSOUND *, PVSFILTER *p);
 static int pvsfilter(CSOUND *, PVSFILTER *p);
 
-typedef struct _pvshift {
-    OPDS    h;
-    PVSDAT  *fout;
-    PVSDAT  *fin;
-    MYFLT   *kshift;
-    MYFLT   *lowest;
-    MYFLT   *keepform;
-    MYFLT   *gain;
-    uint32  lastframe;
-} PVSSHIFT;
-
-static int pvsshiftset(CSOUND *, PVSSHIFT *p);
-static int pvsshift(CSOUND *, PVSSHIFT *p);
 
 typedef struct _pvsblur {
     OPDS    h;
