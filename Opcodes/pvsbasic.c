@@ -1024,8 +1024,7 @@ typedef struct _pvscale {
   MYFLT   *keepform;
   MYFLT   *gain;
   MYFLT   *coefs;
-  MYFLT   *cf;
-  AUXCH   fenv, ceps, peak;
+  AUXCH   fenv, ceps;
   uint32  lastframe;
 } PVSSCALE;
 
@@ -1067,13 +1066,6 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
       p->fenv.size < sizeof(MYFLT) * (N+2)) 
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
-
-
-  if (p->peak.auxp == NULL ||
-      p->peak.size < sizeof(int) * (N+2)/2)  
-    csound->AuxAlloc(csound, sizeof(int) * (N + 2)/2, &p->peak);
-  memset(p->peak.auxp, 0, sizeof(int)*(N+2)/2);
-
   return OK;
 }
 
@@ -1091,12 +1083,8 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
   float   *fout = (float *) p->fout->frame.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-  int   *peaks = (int *) p->peak.auxp;
+  float sr = csound->esr, binf;
   int coefs = (int) *p->coefs;
-  MYFLT cf = *p->cf;
- 
-  if(cf < 1) cf = 6000.f*pscal;
-  else cf *= pscal; 
 
   if (UNLIKELY(fout == NULL)) goto err1;
 
@@ -1141,7 +1129,6 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 #endif
   if (p->lastframe < p->fin->framecount) {
     int n, k=1; 
-    peaks[0] = fin[0];
     fout[0] = fin[0];
     fout[N] = fin[N];
       
@@ -1151,7 +1138,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
       fenv[n] = 0.f;
     }
    
-    if(keepform >= 3){ /* modes 3 & 4 */
+    if(keepform){ /* new modes 1 & 2 */
       int cond = 1; 
       for(i=0; i < N; i+=2) fenv[i/2] = log(fin[i]);
       if(coefs < 1) coefs = 80;
@@ -1165,7 +1152,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
         for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;   
         csound->ComplexFFT(csound, ceps, N/2);
         for(i=0; i < N; i+=2) {
-          if(keepform > 3){
+          if(keepform > 1){
 	    if(fenv[i/2] < ceps[i]) 
 	      fenv[i/2] = ceps[i];
 	    if((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
@@ -1177,57 +1164,25 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 	    }
 	}
       }
-       if(keepform > 3)
+       if(keepform > 1)
         for(i=0; i<N/2; i++) {
 	  fenv[i] = exp(fenv[i]);
 	  max = max < fenv[i] ? fenv[i] : max;
 	  } 
       if(max)
-	for(i=0; i<N/2; i++) fenv[i]/=max;
-	
+	for(i=0; i<N; i+=2){
+           fenv[i/2]/=max;
+           binf = (i/2)*sr/N;
+           if(fenv[i/2] && binf < pscal*sr/2 ) 
+                    fin[i] /= fenv[i/2];
+        }	
     }
-
-    if(keepform == 2) {
-      for(i=2, n = 1; i < N-2; i+=2, n++){
-      
-	float p2 = fin[i];
-	float p3 = fin[i+2];
-	float p1 = fin[i-2];
-	if(p3 > p2 && p2  > p1){
-	  peaks[k] = i; k++;
-	}
-      }
-     
-      for(i=1; i < k; i++){
-	int len; float incr, start, m1, m2;
-        len = (peaks[i] - peaks[i-1])/2;
-        m1 = log(fin[peaks[i]]);
-	m2 = log(fin[peaks[i-1]]);
-        incr = (m1 - m2)/len;
-        start = m2;
-	for(n=peaks[i-1]/2; n < len+peaks[i-1]/2; n+=1){
-	  start += incr; fenv[n] = exp(start);
-	}
-      }
-      
-    }
-     
     for (i = 2, chan = 1; i < N; chan++, i += 2) {
-
       int newchan; 
       newchan  = (int) ((chan * pscal)+0.5) << 1;
-
       if (newchan < N && newchan > 0) {
-	float sr = csound->esr, binf,fad;
-	binf = (newchan/2)*sr/N;
-	fad = (binf - cf)/(sr/2 - cf);
-	fout[newchan] = keepform ?
-	  (keepform == 1  ? fin[newchan] : (binf > cf ? fin[i]*fad + fin[i]*fenv[newchan/2]*(1.f-fad): 
-					    fin[i]*fenv[newchan/2]))
-	  : fin[i];
-          
-	fout[newchan + 1] = (float) (fin[i + 1] * pscal);
-	   
+	fout[newchan] = keepform ? fin[i]*fenv[newchan/2] : fin[i];
+	fout[newchan + 1] = (float) (fin[i + 1] * pscal);	   
       }
     }
 
@@ -1248,6 +1203,19 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 }
 
 /* pvshift */
+
+typedef struct _pvshift {
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kshift;
+    MYFLT   *lowest;
+    MYFLT   *keepform;
+    MYFLT   *gain;
+    MYFLT   *coefs;
+    AUXCH   fenv, ceps;
+    uint32  lastframe;
+} PVSSHIFT;
 
 static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
@@ -1281,6 +1249,16 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
   p->fout->sliding = p->fin->sliding;
   p->fout->NB = p->fin->NB;
 #endif
+
+   if (p->ceps.auxp == NULL ||
+      p->ceps.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
+  memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
+  if (p->fenv.auxp == NULL ||
+      p->fenv.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
+  memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
+
   return OK;
 }
 
@@ -1295,6 +1273,10 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
   float   g = (float) *p->gain;
   float   *fin = (float *) p->fin->frame.auxp;
   float   *fout = (float *) p->fout->frame.auxp;
+  MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
+  MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
+  float sr = csound->esr, binf;
+  int coefs = (int) *p->coefs;
 
   if (UNLIKELY(fout == NULL)) goto err1;
 #ifndef OLPC
@@ -1346,8 +1328,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     fout[N] = fin[N];
 
     for (i = 2; i < N; i += 2) {
-      max = max < fin[i] ? fin[i] : max;
-
+      fenv[i/2] = 0.0;
       if (i < lowest) {
 	fout[i] = fin[i];
 	fout[i + 1] = fin[i + 1];
@@ -1357,6 +1338,45 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 	fout[i + 1] = -1.0f;
       }
     }
+     if(keepform){ /* new modes 1 & 2 */
+      int cond = 1; 
+      for(i=0; i < N; i+=2) fenv[i/2] = log(fin[i]);
+      if(coefs < 1) coefs = 80;
+      while(cond){
+	cond = 0;
+	for(i=0; i < N; i+=2){
+	  ceps[i] = fenv[i/2];
+          ceps[i+1] = 0.0;
+	} 
+	csound->InverseComplexFFT(csound, ceps, N/2);
+        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;   
+        csound->ComplexFFT(csound, ceps, N/2);
+        for(i=0; i < N; i+=2) {
+          if(keepform > 1){
+	    if(fenv[i/2] < ceps[i]) 
+	      fenv[i/2] = ceps[i];
+	    if((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
+          }
+	  else 
+	    {
+	      fenv[i/2] = exp(ceps[i]);
+	      max = max < fenv[i/2] ? fenv[i/2] : max;
+	    }
+	}
+      }
+       if(keepform > 1)
+        for(i=0; i<N/2; i++) {
+	  fenv[i] = exp(fenv[i]);
+	  max = max < fenv[i] ? fenv[i] : max;
+	  } 
+      if(max)
+	for(i=0; i<N; i+=2){
+           fenv[i/2]/=max;
+           binf = (i/2)*sr/N;
+           if(fenv[i/2] && binf < sr/2+pshift ) 
+                    fin[i] /= fenv[i/2];
+        }	
+    }
 
     for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
 
@@ -1364,7 +1384,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 
       if (newchan < N && newchan > lowest) {
 	fout[newchan] = keepform ?
-	  (keepform == 1 || !max ? fin[newchan] : fin[i] * (fin[newchan] / max)) : fin[i];
+	  fin[i] * fenv[newchan/2] : fin[i];
 	fout[newchan + 1] = (float) (fin[i + 1] + pshift);
       }
     }
@@ -1670,15 +1690,15 @@ static OENTRY localops[] = {
 #ifndef OLPC
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
-  {"pvscale", sizeof(PVSSCALE), 3, "f", "fxOPOO", (SUBR) pvsscaleset,
+  {"pvscale", sizeof(PVSSCALE), 3, "f", "fxOPO", (SUBR) pvsscaleset,
    (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkop", (SUBR) pvsshiftset,
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #else
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
-  {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPOO", (SUBR) pvsscaleset, (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOp", (SUBR) pvsshiftset,
+  {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO", (SUBR) pvsscaleset, (SUBR) pvsscale},
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #endif
   {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},

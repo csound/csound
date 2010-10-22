@@ -195,9 +195,22 @@ typedef struct _pvsvoc {
   PVSDAT  *ffr;
   MYFLT   *kdepth;
   MYFLT   *gain;
+  MYFLT   *kcoefs;
+  AUXCH   fenv, ceps;
   uint32   lastframe;
 }
   pvsvoc;
+
+typedef struct _pvsmorph {
+  OPDS h;
+  PVSDAT  *fout;
+  PVSDAT  *fin;
+  PVSDAT  *ffr;
+  MYFLT   *kdepth;
+  MYFLT   *gain;
+  uint32   lastframe;
+}
+  pvsmorph;
 
 static int sndloop_init(CSOUND *csound, sndloop *p)
 {
@@ -986,6 +999,16 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
                                Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
+   if (p->ceps.auxp == NULL ||
+      p->ceps.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
+  memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
+  if (p->fenv.auxp == NULL ||
+      p->fenv.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
+  memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
+   
+
 
     return OK;
 }
@@ -993,19 +1016,52 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
 static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
     int32 i,N = p->fout->N;
-    float g = (float) *p->gain;
+    float gain = (float) *p->gain;
     MYFLT kdepth = (MYFLT) *(p->kdepth);
     float *fin = (float *) p->fin->frame.auxp;
     float *ffr = (float *) p->ffr->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-
+    int coefs = (int) *(p->kcoefs);
+    MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
+    MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
+    float sr = csound->esr;
+    float max;
+    int cond, j;
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
+      for(j=0; j < 2; j++) {
+	max = 0.f;
+      memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2)); 
+      for(i=0; i < N; i+=2) fenv[i/2] = (j ? log(fin[i]) : log(ffr[i]));
+      if(coefs < 1) coefs = 80;
+      cond = 1;
+      while(cond){
+	cond = 0;
+	for(i=0; i < N; i+=2){
+	  ceps[i] = fenv[i/2];
+          ceps[i+1] = 0.0;
+	} 
+	csound->InverseComplexFFT(csound, ceps, N/2);
+        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;   
+        csound->ComplexFFT(csound, ceps, N/2);
+        for(i=0; i < N; i+=2) {    
+	      fenv[i/2] = exp(ceps[i]);
+	      max = max < fenv[i/2] ? fenv[i/2] : max;
+	}
+      }
+       
+      if(max)
+	for(i=0; i<N; i+=2){
+           fenv[i/2]/=max;
+           if(fenv[i/2] && !j) /* flatten excitation amps */
+	       ffr[i] /= fenv[i/2];
+        }	   
+      }
 
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for(i=0;i < N+2;i+=2) {
-        fout[i] = fin[i]*g;
+        fout[i] = fenv[i/2]*(ffr[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
         fout[i+1] = ffr[i+1]*(kdepth) + fin[i+1]*(FL(1.0)-kdepth);
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
@@ -1016,7 +1072,30 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
 }
 
-static int pvsmorph_process(CSOUND *csound, pvsvoc *p)
+static int pvsmorph_init(CSOUND *csound, pvsmorph *p)
+{
+    int32 N = p->fin->N;
+
+    if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
+      csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+    p->fout->N =  N;
+    p->fout->overlap = p->fin->overlap;
+    p->fout->winsize = p->fin->winsize;
+    p->fout->wintype = p->fin->wintype;
+    p->fout->format = p->fin->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+
+    if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))){
+      return csound->InitError(csound,
+                               Str("signal format must be amp-phase "
+                                   "or amp-freq.\n"));
+    }
+
+    return OK;
+}
+
+static int pvsmorph_process(CSOUND *csound, pvsmorph *p)
 {
     int32 i,N = p->fout->N;
     float frint = (float) *p->gain;
@@ -1051,13 +1130,13 @@ static OENTRY localops[] = {
   {"pvsarp", sizeof(pvsarp), 3,
    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
   {"pvsvoc", sizeof(pvsvoc), 3,
-   "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
+   "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), 5,
    "a", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
  {"flooper3", sizeof(flooper3), 5,
   "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},
  {"pvsmorph", sizeof(pvsvoc), 3,
-   "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsmorph_process}
+   "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
 
 int sndloop_init_(CSOUND *csound)
