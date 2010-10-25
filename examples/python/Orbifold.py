@@ -35,7 +35,7 @@ See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra,
 _Musical Actions of Dihedral Groups_, 2008 
 (arXiv:0711.1873v2).
 
-You can do a plain old transpositions
+You can do plain old transpositions
 by pressing 1, 2, 3, 4, 5, or 6.
 
 You can move each voice independently with the arrow keys: 
@@ -826,10 +826,10 @@ endin
             ''')
         model.csound.setScore('''
             f1 0 8192 10 1
-            f0 600
+            f0 6000
             e
             ''')
-        model.csound.setCommand('csound -h -d -r 44100 -k 441 -m128 -b100 -B100 -odac temp.orc temp.sco')
+        model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac temp.orc temp.sco')
         model.csound.exportForPerformance()
         gc.disable()
         model.csound.compile()
@@ -863,7 +863,7 @@ if __name__ == '__main__':
     scene.width = 300 * 7
     scene.height = 300 * 5
     # Tonnetz for trichords
-    model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
+    model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space
     #model = TonnetzModel(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
     # Tonnetz in ranged chord space
