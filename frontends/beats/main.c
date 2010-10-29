@@ -39,12 +39,6 @@ double pt[13] = { 8.1757989156,  8.6619572180,  9.1770239974,  9.7227182413,
                  16.3516084259
 };
 
-/* int input(void) */
-/* { */
-/*     int ch = getc(yyin); */
-/*     return ch; */
-/* } */
-
 int main(int argc, char **argv)
 {
     char buf[80];
