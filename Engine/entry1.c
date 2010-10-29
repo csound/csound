@@ -37,7 +37,7 @@
                 i       irate scalar
                 k       krate scalar
                 a       arate vector
-                f       fregency variable
+                f       frequency variable
                 w       spectral variable
                 x       krate scalar or arate vector
                 S       String
@@ -71,6 +71,7 @@
                 s       arate or krate scalar
                 X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
                 N       multiple args (a, k, i, or S-rate)
+                F       multiple args (f-rate)
    (these types must agree with rdorch.c)                               */
 
 /* If dsblksize is 0xffff then translate on output arg

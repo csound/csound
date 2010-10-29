@@ -1851,6 +1851,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           case 'J':
           case 'j': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "-1");
             break;
+          case 'F':
           case 'M':
           case 'N':
           case 'm': nreqd--;
@@ -1994,7 +1995,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       if (UNLIKELY((n != nreqd) &&      /* IV - Oct 24 2002: end of new code */
           !(n > 0 && n < nreqd &&
             (types[n] == 'm' || types[n] == 'z' || types[n] == 'I' ||
-             types[n] == 'X' || types[n] ==  'N')))) {
+             types[n] == 'X' || types[n] == 'N' || types[n] == 'F')))) {
         synterr(csound, Str("illegal no of output args"));
         if (n > nreqd)
           n = nreqd;

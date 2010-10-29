@@ -383,6 +383,7 @@
 ./Opcodes/ugnorman.h
 ./Opcodes/ugsc.c
 ./Opcodes/ugsc.h
+./Opcodes/urandom.c
 ./Opcodes/vaops.c
 ./Opcodes/vbap.c
 ./Opcodes/vbap.h
