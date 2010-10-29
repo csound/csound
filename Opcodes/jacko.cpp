@@ -585,7 +585,7 @@ struct JackoState
   }
   int close()
   {
-    //csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
+    csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
     int result = OK;
     // Try not to do thread related operations more than once...
     if (jackInitialized) {
@@ -612,7 +612,7 @@ struct JackoState
            ++it) {
         result = jack_port_unregister(jackClient, it->second);
       }
-      //      result = jack_client_close(jackClient);
+      result = jack_client_close(jackClient);
       //result = pthread_cond_destroy(&csoundCondition);
       //result = pthread_mutex_destroy(&csoundConditionMutex);
       //result = pthread_cond_destroy(&closeCondition);
@@ -622,7 +622,7 @@ struct JackoState
       midiInPorts.clear();
       midiOutPorts.clear();
     }
-    //csound->Message(csound, Str("ENDED JackoState::close().\n"));
+    csound->Message(csound, Str("ENDED JackoState::close().\n"));
     return result;
   }
   int processJack(jack_nframes_t frames)
