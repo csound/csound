@@ -441,6 +441,10 @@ else:
 
 commonEnvironment = cf.Finish()
 
+if compilerGNU():
+   commonEnvironment.Prepend(CCFLAGS = ['-Wno-format'])
+   commonEnvironment.Prepend(CXXFLAGS = ['-Wno-format'])
+
 if commonEnvironment['gcc4opt'] == 'atom':
     commonEnvironment.Prepend(CCFLAGS = Split('-mtune=prescott -O2 -fomit-frame-pointer'))
 elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
@@ -485,7 +489,7 @@ elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
 
 if getPlatform() == 'win32' and compilerGNU():
-    commonEnvironment.Prepend(CCFLAGS = Split('-Wno-format -fexceptions -shared-libgcc'))
+    commonEnvironment.Prepend(CCFLAGS = Split('-fexceptions -shared-libgcc'))
     commonEnvironment.Prepend(CXXFLAGS = Split('-fexceptions -shared-libgcc'))
     commonEnvironment.Prepend(LINKFLAGS = Split('-fexceptions -shared-libgcc'))
     commonEnvironment.Prepend(SHLINKFLAGS = Split('-fexceptions -shared-libgcc'))
