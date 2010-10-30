@@ -1,7 +1,10 @@
+SRC = beats.tab.c lex.yy.c main.c
+OBJ = beats.tab.o lex.yy.o main.o
+
 all:	beats
 
-beats:	beats.tab.o lex.yy.o main.o
-	gcc -g -o beats lex.yy.o beats.tab.o main.o -lm
+beats:	$(OBJ)
+	gcc -g -o beats $(OBJ) -lm
 
 lex.yy.c:	beats.l beats.tab.h
 	flex beats.l
@@ -19,7 +22,11 @@ main.o:	main.c
 	gcc -g -c main.c
 
 clean:
-	rm main.o beats.tab.o beats.tab.c beats.tab.h lex.yy.o lex.yy.c beats
+	rm -rf main.o beats.tab.o beats.tab.c beats.tab.h lex.yy.o lex.yy.c \
+	beats makefile
 
 dist:
 	zip beats.zip  beats.l  beats.y main.c Makefile test.xs
+
+makefile: Makefile $(SRC)
+	gcc -M $(SRC) | cat Makefile - > makefile

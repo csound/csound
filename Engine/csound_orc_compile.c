@@ -295,7 +295,8 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 /*      if ((n != nreqd) &&       */        /* IV - Oct 24 2002: end of new code */
 /*          !(n > 0 && n < nreqd &&
             (types[n] == (char) 'm' || types[n] == (char) 'z' ||
-             types[n] == (char) 'X' || types[n] == (char) 'N'))) {
+             types[n] == (char) 'X' || types[n] == (char) 'N' ||
+             types[n] == (char) 'F' || types[n] == (char) 'I'))) {
              synterr(csound, Str("illegal no of output args"));
              if (n > nreqd)
              n = nreqd;
