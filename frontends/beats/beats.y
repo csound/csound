@@ -46,7 +46,7 @@
     double int2pow(int);
     extern int yyline;
     extern FILE* myout;
-      extern int debug;
+    extern int debug;
 %}
 %token  S_NL
 %token  S_EQ
