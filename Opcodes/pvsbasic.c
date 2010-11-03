@@ -130,7 +130,7 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     if (p->lastframe < p->fin->framecount) {
       int32 framesize = p->fin->N+2, i;
       MYFLT scale = csound->e0dbfs;
-      for(i=0;i < framesize; i+=2) {
+      for (i=0;i < framesize; i+=2) {
         fout[i] = fin[i]/scale;
         fout[i+1] = fin[i+1];
       }
@@ -255,12 +255,12 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
       if (*p->interp) {
         /* interpolate */
         frac = pos - posi;
-        for(i=0; i < N+2; i+=2) {
+        for (i=0; i < N+2; i+=2) {
           fout[i] = amp*(frame1[i] + frac*(frame2[i] - frame1[i]));
           fout[i+1] =  frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
         }
       } else  /* don't */
-        for(i=0; i < N+2; i+=2) {
+        for (i=0; i < N+2; i+=2) {
           fout[i] = amp*(frame1[i]);
           fout[i+1] =  frame1[i+1];
         }
@@ -304,7 +304,7 @@ int pvstanalset(CSOUND *csound, PVST *p) {
     if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
       csound->Die(csound, Str("invalid number of output arguments"));
     p->nchans = nChannels;
-    for(i=0; i < p->nchans; i++) {
+    for (i=0; i < p->nchans; i++) {
       N = p->fout[i]->N = (*p->fftsize > 0 ? *p->fftsize : 2048);
       hsize = p->fout[i]->overlap = (*p->hsize > 0 ? *p->hsize : 512);
       p->fout[i]->wintype = PVS_WIN_HANN;
@@ -333,7 +333,7 @@ int pvstanalset(CSOUND *csound, PVST *p) {
         p->win.size < sizeof(MYFLT) * (N))
       csound->AuxAlloc(csound, (N) * sizeof(MYFLT), &p->win);
     p->scale = 0.f;
-    for(i=0; i < N; i++)
+    for (i=0; i < N; i++)
       p->scale += ((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N);
 
 
@@ -442,7 +442,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         csound->RealFFT(csound, nwin, N);
 
         tmp_real = tmp_im = (MYFLT) 1e-20;
-        for(i=2; i < N; i++) {
+        for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
           tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
         }
@@ -453,7 +453,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         fwin[N] = fwin[1]/scale; fwin[0] = fwin[0]/scale;
         fwin[N+1] = fwin[1] = 0.0;
 
-        for(i=2,k=1; i < N; i+=2, k++) {
+        for (i=2,k=1; i < N; i+=2, k++) {
           float bph, fph, dph;
           /* freqs */
           bph = atan2(bwin[i+1],bwin[i]);
@@ -695,13 +695,13 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       memset(fout, 0, sizeof(float)*framesize);
       /* for (i = 0; i < framesize; i ++) fout[i] = 0.f; */
 
-      for(n=1; n <= harm; n++) {
+      for (n=1; n <= harm; n++) {
         if (type == 3) amp = famp/(harm);
         else amp = (famp/n);
         freq = ffun*n;
         cfbin = freq/w;
         cbin = (int)MYFLT2LRND(cfbin);
-        for(i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++) {
+        for (i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++) {
           k = i<<1;
           a = sin(i-cfbin)/(i-cfbin);
           fout[k] = amp*a*a*a;
@@ -1214,26 +1214,26 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
       if (keepform) {
         int cond = 1;
-        for(i=0; i < N; i+=2)
+        for (i=0; i < N; i+=2)
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
 
 
         if (keepform > 2) { /* experimental mode 3 */
           int j;
           int w = 5, w2  = w*2;
-          for(i=0; i < w; i++) ceps[i] = fenv[i];
-          for(i=w; i < N/2-w; i++) {
+          for (i=0; i < w; i++) ceps[i] = fenv[i];
+          for (i=w; i < N/2-w; i++) {
             ceps[i] = 0.0;
-            for(j=-w; j < w; j++)
+            for (j=-w; j < w; j++)
               ceps[i] += fenv[i+j];
             ceps[i] /= w2;
           }
-          for(i=0; i<N/2; i++) {
+          for (i=0; i<N/2; i++) {
             fenv[i] = exp(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
           if (max)
-            for(i=0; i<N; i+=2) {
+            for (i=0; i<N; i+=2) {
               fenv[i/2]/=max;
               binf = (i/2)*sr/N;
               if (fenv[i/2] && binf < pscal*sr/2 )
@@ -1244,14 +1244,14 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
           if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
             csound->InverseComplexFFT(csound, ceps, N/2);
-            for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
             csound->ComplexFFT(csound, ceps, N/2);
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               if (keepform > 1) {
                 if (fenv[i/2] < ceps[i])
                   fenv[i/2] = ceps[i];
@@ -1265,12 +1265,12 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
             }
           }
           if (keepform > 1)
-            for(i=0; i<N; i+=2) {
+            for (i=0; i<N; i+=2) {
               fenv[i/2] = exp(ceps[i]);
               max = max < fenv[i/2] ? fenv[i/2] : max;
             }
           if (max)
-            for(i=2; i<N; i+=2) {
+            for (i=2; i<N; i+=2) {
               fenv[i/2]/=max;
               binf = (i/2)*sr/N;
               if (fenv[i/2] && binf < pscal*sr/2 )
@@ -1444,19 +1444,19 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
       }
       if (keepform) { /* new modes 1 & 2 */
         int cond = 1;
-        for(i=0; i < N; i+=2)
+        for (i=0; i < N; i+=2)
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
         if (coefs < 1) coefs = 80;
         while(cond) {
           cond = 0;
-          for(i=0; i < N; i+=2) {
+          for (i=0; i < N; i+=2) {
             ceps[i] = fenv[i/2];
             ceps[i+1] = 0.0;
           }
           csound->InverseComplexFFT(csound, ceps, N/2);
-          for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+          for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
           csound->ComplexFFT(csound, ceps, N/2);
-          for(i=0; i < N; i+=2) {
+          for (i=0; i < N; i+=2) {
             if (keepform > 1) {
               if (fenv[i/2] < ceps[i])
                 fenv[i/2] = ceps[i];
@@ -1470,12 +1470,12 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
           }
         }
         if (keepform > 1)
-          for(i=0; i<N/2; i++) {
+          for (i=0; i<N/2; i++) {
             fenv[i] = exp(fenv[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
         if (max)
-          for(i=lowest; i<N; i+=2) {
+          for (i=lowest; i<N; i+=2) {
             fenv[i/2]/=max;
             binf = (i/2)*sr/N;
             if (fenv[i/2] && binf < sr/2+pshift )
@@ -1593,25 +1593,25 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
 
       {
         int cond = 1;
-        for(i=0; i < N; i+=2) {
+        for (i=0; i < N; i+=2) {
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
         }
         if (keepform > 2) { /* experimental mode 3 */
           int j;
           int w = 5;
-          for(i=0; i < w; i++) ceps[i] = fenv[i];
-          for(i=w; i < N/2-w; i++) {
+          for (i=0; i < w; i++) ceps[i] = fenv[i];
+          for (i=w; i < N/2-w; i++) {
             ceps[i] = 0.0;
-            for(j=-w; j < w; j++)
+            for (j=-w; j < w; j++)
               ceps[i] += fenv[i+j];
             ceps[i]  /= 2*w;
           }
-          for(i=0; i<N/2; i++) {
+          for (i=0; i<N/2; i++) {
             fenv[i] = exp(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
           if (max)
-            for(i=lowest; i<N; i+=2) {
+            for (i=lowest; i<N; i+=2) {
               fenv[i/2]/=max;
               binf = (i/2)*sr/N;
               if (fenv[i/2] && binf < pscal*sr/2+pshift )
@@ -1622,14 +1622,14 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
           if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
             csound->InverseComplexFFT(csound, ceps, N/2);
-            for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
             csound->ComplexFFT(csound, ceps, N/2);
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               if (keepform > 1) {
                 if (fenv[i/2] < ceps[i])
                   fenv[i/2] = ceps[i];
@@ -1643,12 +1643,12 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
             }
           }
           if (keepform > 1)
-            for(i=0; i<N; i+=2) {
+            for (i=0; i<N; i+=2) {
               fenv[i/2] = exp(ceps[i]);
               max = max < fenv[i/2] ? fenv[i/2] : max;
             }
           if (max)
-            for(i=lowest; i<N; i+=2) {
+            for (i=lowest; i<N; i+=2) {
               fenv[i/2]/=max;
               binf = (i/2)*sr/N;
               if (fenv[i/2] && binf < pscal*sr/2+pshift )
@@ -2016,25 +2016,25 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
       int n, k=1;
       {
         int cond = 1;
-        for(i=0; i < N; i+=2) {
+        for (i=0; i < N; i+=2) {
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
         }
         if(keepform > 2) { /* experimental mode 3 */
           int j;
           int w = 5;
-          for(i=0; i < w; i++) ceps[i] = fenv[i];
-          for(i=w; i < N/2-w; i++) {
+          for (i=0; i < w; i++) ceps[i] = fenv[i];
+          for (i=w; i < N/2-w; i++) {
             ceps[i] = 0.0;
-            for(j=-w; j < w; j++)
+            for (j=-w; j < w; j++)
               ceps[i] += fenv[i+j];
             ceps[i]  /= 2*w;
           }
-          for(i=0; i<N/2; i++) {
+          for (i=0; i<N/2; i++) {
             fenv[i] = exp(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
           /* if(max)
-             for(i=0; i<N; i+=2) {
+             for (i=0; i<N; i+=2) {
              fenv[i/2]/=max;
              }*/
         }
@@ -2042,14 +2042,14 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
           if(coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
             csound->InverseComplexFFT(csound, ceps, N/2);
-            for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
             csound->ComplexFFT(csound, ceps, N/2);
-            for(i=0; i < N; i+=2) {
+            for (i=0; i < N; i+=2) {
               if(keepform > 1) {
                 if(fenv[i/2] < ceps[i])
                   fenv[i/2] = ceps[i];
@@ -2063,12 +2063,12 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
             }
           }
           if(keepform > 1)
-            for(i=0; i<N; i+=2) {
+            for (i=0; i<N; i+=2) {
               fenv[i/2] = exp(ceps[i]);
               max = max < fenv[i/2] ? fenv[i/2] : max;
             }
           /* if(max)
-             for(i=0; i<N/2; i++) fenv[i]/=max; */
+             for (i=0; i<N/2; i++) fenv[i]/=max; */
         }
       }
       for (i = 0; i < N/2 || i < size; i++) ftab[i] = fenv[i]*g;
