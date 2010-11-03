@@ -313,24 +313,24 @@ int pvstanalset(CSOUND *csound, PVST *p){
      p->fout[i]->frame.size < sizeof(float) * (N + 2))
     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout[i]->frame); 
   if(p->bwin[i].auxp == NULL ||
-     p->bwin[i].size < sizeof(float) * (N + 2))
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->bwin[i]);
+     p->bwin[i].size < sizeof(MYFLT) * (N + 2))
+    csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->bwin[i]);
   if(p->fwin[i].auxp == NULL ||
-     p->fwin[i].size < sizeof(float) * (N + 2))
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fwin[i]);
+     p->fwin[i].size < sizeof(MYFLT) * (N + 2))
+    csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->fwin[i]);
   if(p->nwin[i].auxp == NULL ||
-     p->nwin[i].size < sizeof(float) * (N + 2))
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->nwin[i]);
-  memset(p->fwin[i].auxp, 0, sizeof(float)*(N+2));
-  memset(p->bwin[i].auxp, 0, sizeof(float)*(N+2));
-  memset(p->nwin[i].auxp, 0, sizeof(float)*(N+2));
+     p->nwin[i].size < sizeof(MYFLT) * (N + 2))
+    csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->nwin[i]);
+  memset(p->fwin[i].auxp, 0, sizeof(MYFLT)*(N+2));
+  memset(p->bwin[i].auxp, 0, sizeof(MYFLT)*(N+2));
+  memset(p->nwin[i].auxp, 0, sizeof(MYFLT)*(N+2));
   memset(p->fout[i]->frame.auxp, 0, sizeof(float)*(N+2));
   
   }
 
   if(p->win.auxp == NULL ||
-     p->win.size < sizeof(float) * (N))
-    csound->AuxAlloc(csound, (N) * sizeof(float), &p->win);
+     p->win.size < sizeof(MYFLT) * (N))
+    csound->AuxAlloc(csound, (N) * sizeof(MYFLT), &p->win);
   p->scale = 0.f;
   for(i=0; i < N; i++)
     p->scale += ((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N);
@@ -355,8 +355,8 @@ int pvstanal(CSOUND *csound, PVST *p){
   double frac, spos = p->pos, pos;
   MYFLT *tab, dbtresh = *p->dbthresh;
   FUNC *ft;
-  float *fout, *win = (float *) p->win.auxp;
-  float *bwin, *fwin, *nwin;
+  float *fout; 
+  MYFLT *bwin, *fwin, *nwin, *win = (float *) p->win.auxp;
   float amp = (float) (*p->kamp), factor = p->factor, fund = p->fund;
   float pitch = (float) (*p->kpitch), rotfac = p->rotfac, scale = p->scale;
   MYFLT time = *p->ktime;
@@ -397,9 +397,9 @@ int pvstanal(CSOUND *csound, PVST *p){
     for(j=0; j < nchans; j++) {
 
     fout = (float *)  p->fout[j]->frame.auxp;
-    bwin = (float *) p->bwin[j].auxp;
-    fwin = (float *) p->fwin[j].auxp;
-    nwin = (float *) p->nwin[j].auxp;
+    bwin = (MYFLT *) p->bwin[j].auxp;
+    fwin = (MYFLT *) p->fwin[j].auxp;
+    nwin = (MYFLT *) p->nwin[j].auxp;
 
     /* this loop fills two frames/windows with samples from table,
        reading is linearly-interpolated,
@@ -2087,13 +2087,13 @@ static OENTRY localops[] = {
    (SUBR) pvsfilter},
   {"pvscale", sizeof(PVSSCALE), 3, "f", "fxOPO", (SUBR) pvsscaleset,
    (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkOPO", (SUBR) pvsshiftset,
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkOOO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #else
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
   {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO", (SUBR) pvsscaleset, (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOPO", (SUBR) pvsshiftset,
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOOO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #endif
   {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
