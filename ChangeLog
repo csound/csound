@@ -1,3 +1,8 @@
+2010-11-04  John ff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/pvsbasic.c (MAXOUTS): Extend upto 16 outputs
+	(localops): Use F format in pvstanal
+
 2010-10-12  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc.y: Allow labels in exprlists
