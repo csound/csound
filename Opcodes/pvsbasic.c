@@ -370,15 +370,15 @@ int pvstanal(CSOUND *csound, PVST *p)
       ft = csound->FTnp2Find(csound,p->knum);
       tab = ft->ftable;
       size = ft->flen;
-      nchans = ft->nchanls;
+      /* nchans = ft->nchanls; */
       /* spos is the reading position in samples, hsize is hopsize,
          time is current read rate
          esr is sampling rate
       */
-      /*if (UNLIKELY((int) ft->nchanls != nchans))
+      if (UNLIKELY((int) ft->nchanls != nchans))
         return csound->PerfError(csound, Str("number of output arguments "
-        "inconsistent with number of "
-        "sound file channels"));*/
+                                             "inconsistent with number of "
+                                             "sound file channels"));
       if (time < 0 || time >= 1 || !*p->konset) {
         spos += hsize*time;
       }
