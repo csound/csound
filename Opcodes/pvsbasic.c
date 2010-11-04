@@ -29,7 +29,7 @@
 #include "pvsbasic.h"
 #include "pvfileio.h"
 #include <math.h>
-#define MAXOUTS 8
+#define MAXOUTS 16
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
@@ -296,7 +296,8 @@ typedef struct _pvst {
   int nchans;
 } PVST;
 
-int pvstanalset(CSOUND *csound, PVST *p) {
+int pvstanalset(CSOUND *csound, PVST *p)
+{
 
     int i, N, hsize, nChannels;
 
@@ -2131,12 +2132,8 @@ static OENTRY localops[] = {
   {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "SkkopP",(SUBR) pvsdiskinset,
    (SUBR) pvsdiskinproc, NULL},
 
-  {"pvstanal", sizeof(PVST), 3, "ff", "kkkkPoooP",(SUBR) pvstanalset,
+  {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
-#ifdef BETA
-  {"pvstanal2", sizeof(PVST), 3, "FFFFFFFF", "kkkkPoooP",(SUBR) pvstanalset,
-   (SUBR) pvstanal, NULL},
-#endif
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
    {"pvsenvw", sizeof(PVSWARP), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
 };
