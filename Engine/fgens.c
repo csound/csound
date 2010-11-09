@@ -2477,11 +2477,14 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       ff->flen     -= 1;
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
-      if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
+      /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
       else ftp->nchanls  = 1;
-      ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
+      ftp->flenfrms = ff->flen / p->nchanls; */ /* ?????????? */
       def           = 1;
     }
+    if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
+      else ftp->nchanls  = 1;
+    ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
 #if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
