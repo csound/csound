@@ -1,3 +1,9 @@
+2010-11-12  John ff  <jpff@cs.bath.ac.uk>
+
+	* Engine/csound_orc_semantics.c (handle_polymorphic_opcode):
+	Calculating c before switch can lead to following a null
+	pointer.  Moved calculation to where it is needed.
+
 2010-11-05  John ff  <jpff@cs.bath.ac.uk>
 
 	* OOps/ugens4.c (riset, rndset, rhset): Use Warning rather than Message
