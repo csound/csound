@@ -695,8 +695,6 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
 
       if (ep->dsblksiz >= 0xfffb) {
 
-        c = tree_argtyp(csound, tree->right);
-
         switch (ep->dsblksiz) {
 
         case 0xffff:
@@ -726,6 +724,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
         case 0xfffe:                              /* Two tags for OSCIL's    */
           if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffe\n");
+          c = tree_argtyp(csound, tree->right);
           if (c != 'a') c = 'k';
           if ((d = tree_argtyp(csound, tree->right->next)) != 'a') d = 'k';
           sprintf(str, "%s.%c%c", ep->opname, c, d);
@@ -735,6 +734,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
           strcpy(tree->value->lexeme, str);
           break;
         case 0xfffd:                              /* For peak, etc.          */
+          c = tree_argtyp(csound, tree->right);
           if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffd\n");
           if (c != 'a') c = 'k';
@@ -747,6 +747,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
         case 0xfffc:                              /* For divz types          */
           if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffc\n");
+          c = tree_argtyp(csound, tree->right);
           d = tree_argtyp(csound, tree->right->next);
           if ((c=='i' || c=='c') && (d=='i' || d=='c'))
             c = 'i', d = 'i';
@@ -763,7 +764,8 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
         case 0xfffb:          /* determine opcode by type of first input arg */
           if (PARSER_DEBUG)
             csound->Message(csound, "POLYMORPHIC 0xfffb\n");
-          /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
+          c = tree_argtyp(csound, tree->right);
+           /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
           if (c=='p') c = 'i';
           /*if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
             c = 'i';
