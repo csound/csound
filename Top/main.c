@@ -316,8 +316,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "********************\n");
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
+      cs_init_math_constants_macros(csound);
+      cs_init_omacros(csound, csound->omacros);
       new_orc_parser(csound);
-
     }
     else {
       otran(csound);                  /* read orcfile, setup desblks & spaces */
