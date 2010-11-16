@@ -1,3 +1,9 @@
+2010-11-16  John ff  <jpff@cs.bath.ac.uk>
+
+	* Top/main.c (csoundCompile): and call macro inits
+
+	* Engine/csound_orc.l: ADd standard macro initialisation code to lexer
+
 2010-11-12  John ff  <jpff@cs.bath.ac.uk>
 
 	* Engine/csound_orc_semantics.c (handle_polymorphic_opcode):

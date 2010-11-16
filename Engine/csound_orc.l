@@ -572,3 +572,79 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     return ans;
 }
 
+static void add_math_const_macro(CSOUND *csound, char * name, char *body)
+{
+    MACRO *mm;
+
+    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+    mm->name = (char*) mcalloc(csound, strlen(name) + 3);
+    sprintf(mm->name, "M_%s", name);
+    mm->next = macros;
+    macros = mm;
+    mm->margs = MARGS;    /* Initial size */
+    mm->acnt = 0;
+    mm->body = (char*) mcalloc(csound, strlen(body) + 1);
+    mm->body = strcpy(mm->body, body);
+}
+
+/**
+ * Add math constants from math.h as orc macros
+ */
+void cs_init_math_constants_macros(CSOUND *csound)
+ {
+     add_math_const_macro(csound, "E", "2.7182818284590452354");
+     add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
+     add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
+     add_math_const_macro(csound, "LN2", "0.69314718055994530942");
+     add_math_const_macro(csound, "LN10", "2.30258509299404568402");
+     add_math_const_macro(csound, "PI", "3.14159265358979323846");
+     add_math_const_macro(csound, "PI_2", "1.57079632679489661923");
+     add_math_const_macro(csound, "PI_4", "0.78539816339744830962");
+     add_math_const_macro(csound, "1_PI", "0.31830988618379067154");
+     add_math_const_macro(csound, "2_PI", "0.63661977236758134308");
+     add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
+     add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
+     add_math_const_macro(csound, "SQRT1_2", "0.70710678118654752440");
+     add_math_const_macro(csound, "INF", "2147483647.0"); /* ~7 years */
+}
+
+void cs_init_omacros(CSOUND *csound, NAMES *nn)
+{
+    while (nn) {
+      char  *s = nn->mac;
+      char  *p = strchr(s, '=');
+      char  *mname;
+      MACRO *mm;
+
+      if (p == NULL)
+        p = s + strlen(s);
+      if (csound->oparms->msglevel & 7)
+        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
+      s = strchr(s, ':') + 1;                   /* skip arg bit */
+      if (UNLIKELY(s == NULL || s >= p))
+        csound->Die(csound, Str("Invalid macro name for --omacro"));
+      mname = (char*) mmalloc(csound, (p - s) + 1);
+      strncpy(mname, s, p - s);
+      mname[p - s] = '\0';
+      /* check if macro is already defined */
+      for (mm = macros; mm != NULL; mm = mm->next) {
+        if (strcmp(mm->name, mname) == 0)
+          break;
+      }
+      if (mm == NULL) {
+        mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+        mm->name = mname;
+        mm->next = macros;
+        macros = mm;
+      }
+      else
+        mfree(csound, mname);
+      mm->margs = MARGS;    /* Initial size */
+      mm->acnt = 0;
+      if (*p != '\0')
+        p++;
+      mm->body = (char*) mmalloc(csound, strlen(p) + 1);
+      strcpy(mm->body, p);
+      nn = nn->next;
+    }
+}
