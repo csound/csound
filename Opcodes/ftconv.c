@@ -189,8 +189,8 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
         n = (int) ftp->flen;
       for (i = 0; i < n; i++) {
         if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
-          csound->Message(csound,
-                          Str("ftconv: warning: skipped non-zero samples, "
+          csound->Warning(csound,
+                          Str("ftconv: skipped non-zero samples, "
                               "impulse response may be truncated\n"));
           break;
         }

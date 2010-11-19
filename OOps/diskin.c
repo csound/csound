@@ -194,14 +194,12 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & WARNMSG) !=0) {
-      csound->Message(csound, Str("diskin: opened '%s':\n"),
-                              csound->GetFileName(fd));
-      csound->Message(csound, Str("        %d Hz, %d channel(s), "
-                                  "%ld sample frames\n"),
-                              (int) sfinfo.samplerate, (int) sfinfo.channels,
-                              (int32) sfinfo.frames);
-    }
+    csound->Warning(csound, Str("diskin: opened '%s':\n"
+                                "        %d Hz, %d channel(s), "
+                                "%ld sample frames\n"),
+                    csound->GetFileName(fd),
+                    (int) sfinfo.samplerate, (int) sfinfo.channels,
+                    (int32) sfinfo.frames);
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels &&
                  (csound->oparms_.msglevel & WARNMSG) != 0)) {
@@ -214,9 +212,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
       return OK;
     /* set file parameters from header info */
     p->fileLength = (int32) sfinfo.frames;
-    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate &&
-        (csound->oparms_.msglevel & WARNMSG) != 0) {
-      csound->Message(csound, Str("diskin: warning: file sample rate (%d) "
+    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate) {
+      csound->Warning(csound, Str("diskin: warning: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                       sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
     }
@@ -250,7 +247,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->prv_kTranspose = FL(0.0);
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, (bsize ? bsize : 4096));
-    csound->Message(csound, Str("bufsize %d\n"), p->bufSize);
+    csound->Warning(csound, Str("bufsize %d\n"), p->bufSize);
     p->bufStartPos = -((int32)(p->bufSize << 1));
 
     if(p->auxch.auxp == NULL ||

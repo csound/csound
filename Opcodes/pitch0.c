@@ -34,10 +34,10 @@ int mute_inst(CSOUND *csound, MUTE *p)
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
     if (UNLIKELY(n < 1)) return NOTOK;
     if (onoff==0) {
-      csound->Message(csound, Str("Muting new instances of instr %d\n"), n);
+      csound->Warning(csound, Str("Muting new instances of instr %d\n"), n);
     }
     else {
-      csound->Message(csound, Str("Allowing instrument %d to start\n"), n);
+      csound->Warning(csound, Str("Allowing instrument %d to start\n"), n);
     }
     csound->instrtxtp[n]->muted = onoff;
     return OK;

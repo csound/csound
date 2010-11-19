@@ -218,7 +218,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                                  "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+                           "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file"), name);
@@ -228,14 +228,12 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & WARNMSG) != 0) {
-      csound->Message(csound, Str("diskin2: opened '%s':\n"),
-                              csound->GetFileName(fd));
-      csound->Message(csound, Str("         %d Hz, %d channel(s), "
-                                  "%ld sample frames\n"),
-                              (int)sfinfo.samplerate, (int)sfinfo.channels,
-                              (int32) sfinfo.frames);
-    }
+    csound->Message(csound, Str("diskin2: opened '%s':\n"
+                                "         %d Hz, %d channel(s), "
+                                "%ld sample frames\n"),
+                    csound->GetFileName(fd),
+                    (int)sfinfo.samplerate, (int)sfinfo.channels,
+                    (int32) sfinfo.frames);
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return csound->InitError(csound,
@@ -269,10 +267,9 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
         p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
       }
       else {
-        if (!(csound->oparms_.msglevel & WARNMSG))
-          csound->Message(csound, Str("diskin2: warning: file sample rate (%d) "
-                                      "!= orchestra sr (%d)\n"),
-                          sfinfo.samplerate, (int)(csound->esr + FL(0.5)));
+        csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
+                                    "!= orchestra sr (%d)\n"),
+                        sfinfo.samplerate, (int)(csound->esr + FL(0.5)));
       }
     }
     /* wrap mode */
@@ -599,12 +596,12 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     fdrecord(csound, &(p->fdch));
     /* print file information */
     if ((csound->oparms_.msglevel & 7) == 7) {
-      csound->Message(csound, Str("soundin: opened '%s':\n"),
-                              csound->GetFileName(fd));
-      csound->Message(csound, Str("         %d Hz, %d channel(s), "
+      csound->Message(csound, Str("soundin: opened '%s':\n"
+                                  "         %d Hz, %d channel(s), "
                                   "%ld sample frames\n"),
-                              (int) sfinfo.samplerate, (int) sfinfo.channels,
-                              (int32) sfinfo.frames);
+                      csound->GetFileName(fd),
+                      (int) sfinfo.samplerate, (int) sfinfo.channels,
+                      (int32) sfinfo.frames);
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
@@ -618,7 +615,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     /* set file parameters from header info */
     p->fileLength = (int_least64_t) sfinfo.frames;
     if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate)
-      csound->Message(csound, Str("soundin: warning: file sample rate (%d) "
+      csound->Warning(csound, Str("soundin: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                               sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
     fmt = sfinfo.format & SF_FORMAT_SUBMASK;

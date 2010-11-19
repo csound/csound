@@ -49,7 +49,9 @@ static OENTRY localops[] = {
 PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
 {
     PVOC_GLOBALS  *p;
+#ifdef BETA
     csound->Message(csound, "calling alloc globals");
+#endif
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "pvocGlobals",
                                               sizeof(PVOC_GLOBALS)) != 0))
       csound->Die(csound, Str("Error allocating PVOC globals"));

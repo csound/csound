@@ -387,7 +387,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
         ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
       }
 
-    csound->Message(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
+    csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
                             (long) IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);

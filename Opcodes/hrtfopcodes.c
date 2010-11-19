@@ -228,8 +228,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Message(csound,
-                      Str("\n\nWARNING!!:\nOrchestra sampling rate is not"
+      csound->Warning(csound,
+                      Str("\nOrchestra sampling rate is not"
                           " compatible with HRTF data files\nShould be %.0f,"
                           " see Csound help for object\n\n"), sr);
 
@@ -596,8 +596,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
             if(initialfade>IMPLENGTH) {
               /*post warning if fades ovelap*/
               if(cross)
-                csound->Message(csound,
-                                Str("\nWARNING: fades are overlapping: "
+                csound->Warning(csound,
+                                Str("fades are overlapping: "
                                     "this could lead to noise: reduce "
                                     "fade size or change trajectory\n\n"));
               /*reset l, use as index to fade*/
@@ -1205,8 +1205,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Message(csound,
-                      Str("\n\nWARNING!!:\nOrchestra sampling rate is not "
+      csound->Warning(csound,
+                      Str("Orchestra sampling rate is not "
                           "compatible with HRTF data files\nShould be %.0f,"
                           " see Csound help for object\n\n"), sr);
 
@@ -1766,8 +1766,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     p->sr = sr;
 
     if (UNLIKELY(csound->esr != sr))
-      csound->Message(csound,
-                      Str("\n\nWARNING!!:\nOrchestra sampling rate is not "
+      csound->Warning(csound,
+                      Str("Orchestra sampling rate is not "
                           "compatible with HRTF data files\nShould be %.0f, "
                           "see Csound help for object\n\n"), sr);
 

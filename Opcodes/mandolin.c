@@ -87,7 +87,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
         p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       }
       else {
-        csound->Message(csound, Str("No base frequency for mandolin"));
+        csound->Warning(csound, Str("No base frequency for mandolin"));
         p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);
