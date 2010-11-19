@@ -161,7 +161,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     MYFLT   reflect = *p->reflect;
 
     if (UNLIKELY(reflect <= FL(0.0) || reflect >= FL(1.0))) {
-      csound->Message(csound, Str("Reflection invalid (%f)\n"), reflect);
+      csound->Warning(csound, Str("Reflection invalid (%f)\n"), reflect);
       reflect = FL(0.5);
     }
     ar         = p->ar;
@@ -174,7 +174,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     pickfrac   = pickup & OVERMSK;
     pickup     = pickup>>OVERSHT;
     if (UNLIKELY(pickup<0 || pickup > p->rail_len)) {
-      csound->Message(csound, Str("Pickup out of range (%f)\n"), *p->pickup);
+      csound->Warning(csound, Str("Pickup out of range (%f)\n"), *p->pickup);
       pickup   = p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
       pickup   = pickup>>OVERSHT;

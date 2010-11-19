@@ -449,8 +449,10 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     if (specwp == 0 || (p->prFlg)++ == -(int) specwp) {
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-      if (specwp < 0)
+#ifdef BETA
+     if (specwp < 0)
         csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
+#endif
       if (specwp > 0)
         PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
 

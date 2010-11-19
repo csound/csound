@@ -516,7 +516,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
         ff[NB-1].re -= FL(0.5)*fw[NB-2].re;
         break;
       default:
-        csound->Message(csound,
+        csound->Warning(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
       case PVS_WIN_RECT:
         memcpy(ff, fw, NB*sizeof(CMPLX));

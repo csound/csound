@@ -63,22 +63,22 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
         MYFLT loc_sec = *p->location;
         MYFLT loc_sec_per_sr = loc_sec*csound->GetSr(csound);
         jack_transport_locate(client, loc_sec_per_sr);
-        csound->Message(csound,
+        csound->Warning(csound,
                         Str("jacktransport: playback head moved "
                             "at %f seconds\n"), loc_sec);
       }
       //start or stop
       switch ((int)(*p->command)){
       case START:
-        csound->Message(csound, Str("jacktransport: playing.\n"));
+        csound->Warning(csound, Str("jacktransport: playing.\n"));
         jack_transport_start(client);
         break;
       case STOP:
-        csound->Message(csound, Str("jacktransport: stopped.\n"));
+        csound->Warning(csound, Str("jacktransport: stopped.\n"));
         jack_transport_stop(client);
         break;
       default:
-        csound->Message(csound, Str("jacktransport: invalid parameter.\n"));
+        csound->Warning(csound, Str("jacktransport: invalid parameter.\n"));
         break;
       }
     }

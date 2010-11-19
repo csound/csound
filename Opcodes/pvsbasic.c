@@ -2135,7 +2135,7 @@ static OENTRY localops[] = {
   {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
-   {"pvsenvw", sizeof(PVSWARP), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
+  {"pvsenvw", sizeof(PVSWARP), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
 };
 
 int pvsbasic_init_(CSOUND *csound)

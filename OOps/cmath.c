@@ -74,11 +74,11 @@ int seedrand(CSOUND *csound, PRAND *p)
       seedVal = (uint32_t)((double)*p->out + 0.5);
     else if (!seedVal) {
       seedVal = (uint32_t)csound->GetRandomSeedFromTime();
-      csound->Message(csound, Str("Seeding from current time %u\n"),
+      csound->Warning(csound, Str("Seeding from current time %u\n"),
                               (unsigned int)seedVal);
     }
     else
-      csound->Message(csound, Str("Seeding with %u\n"), (unsigned int)seedVal);
+      csound->Warning(csound, Str("Seeding with %u\n"), (unsigned int)seedVal);
     csound->SeedRandMT(&(csound->randState_), NULL, seedVal);
     csound->holdrand = (int)(seedVal & (uint32_t) 0x7FFFFFFF);
     while (seedVal >= (uint32_t)0x7FFFFFFE)

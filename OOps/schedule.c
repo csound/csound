@@ -111,7 +111,6 @@ int schedule(CSOUND *csound, SCHED *p)
 /*       csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur); */
       p->midi = (dur <= FL(0.0));
       if (p->midi) {
-/*         csound->Message(csound,"SCH: MIDI case\n"); */
         csound->Warning(csound,Str("schedule in MIDI mode is not "
                                    "implemented correctly, do not use it\n"));
         /* set 1 k-cycle of extratime in order to allow mtrnoff to
@@ -427,7 +426,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
     /* Check that instrument is defined */
     if (insno < 1 || insno > csound->maxinsno ||
         csound->instrtxtp[insno] == NULL) {
-      csound->Message(csound, Str("schedkwhen ignored. "
+      csound->Warning(csound, Str("schedkwhen ignored. "
                                   "Instrument %d undefined\n"), insno);
       csound->perferrcnt++;
       return -1;

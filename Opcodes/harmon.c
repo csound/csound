@@ -219,14 +219,14 @@ static int harmon234(CSOUND *csound, HARM234 *p)
           /* find z-cross with grtst slope to peak */
           if (p->poslead < LCNT) {            /*      and consistent polarity */
             if (p->poslead == 1)
-              csound->Message(csound, Str("harm signal has positive lead\n"));
+              csound->Warning(csound, Str("harm signal has positive lead\n"));
             p->poslead += 1;
           }
         }
         else {
           if (p->poslead > -LCNT) {
             if (p->poslead == -1)
-              csound->Message(csound, Str("harm signal has negative lead\n"));
+              csound->Warning(csound, Str("harm signal has negative lead\n"));
             p->poslead -= 1;
           }
         }
@@ -355,7 +355,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     p->vocamp = vocamp;
 
     if (UNLIKELY(oflow && ++p->hmrngflg > 10)) {
-      csound->Message(csound, Str("harmon234: out of range\n"));
+      csound->Warning(csound, Str("harmon234: out of range\n"));
       p->hmrngflg = 0;
     }
     if (inp1 >= p->midp) {                       /* if end of pq bufs */

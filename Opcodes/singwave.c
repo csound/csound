@@ -260,7 +260,7 @@ static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
     VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
                            phonParams[i][3][1], FL(1.0));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
-    csound->Message(csound,
+    csound->Warning(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
 }
 
@@ -374,7 +374,7 @@ int voicform(CSOUND *csound, VOICF *p)
     if (p->oldform != *p->formant || p->ph != (int)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
       p->ph = (int)(0.5 + *p->phoneme);
-      csound->Message(csound, Str("Setting Phoneme: %d %f\n"),
+      csound->Warning(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
       VoicForm_setPhoneme(csound, p, (int) *p->phoneme, p->oldform);
     }

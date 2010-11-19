@@ -445,9 +445,8 @@ static int vco(CSOUND *csound, VCO *p)
     rtfqc = SQRT(fqc);
     knh = (int)(csound->esr*p->nyq/fqc);
     if (UNLIKELY((n = (int)knh) <= 0)) {
-      csound->Message(csound, "knh=%x nyq=%f fqc=%f\n", knh, p->nyq, fqc);
-                                /* Line apparently missing here */
-      csound->Message(csound, Str("vco knh (%d) <= 0; taken as 1\n"), n);
+      csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"
+                      "vco knh (%d) <= 0; taken as 1\n", knh, p->nyq, fqc, n);
       n = 1;
     }
     tnp1 = n + n + 1;           /* calc 2n + 1 */

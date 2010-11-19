@@ -421,7 +421,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
 
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)) return NOTOK;
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
-      csound->Message(csound, Str("losc: no sample rate stored in function "
+      csound->Warning(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
       p->fsr=csound->esr;
     }

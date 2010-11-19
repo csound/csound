@@ -307,7 +307,7 @@ static int atsread(CSOUND *csound, ATSREAD *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSREAD: only positive time pointer "
+        csound->Warning(csound, Str("ATSREAD: only positive time pointer "
                                     "values allowed, setting to zero\n"));
       }
     }
@@ -316,7 +316,7 @@ static int atsread(CSOUND *csound, ATSREAD *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSREAD: timepointer out of range, "
+        csound->Warning(csound, Str("ATSREAD: timepointer out of range, "
                                     "truncated to last frame\n"));
       }
     }
@@ -428,7 +428,7 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSREADNZ: only positive time pointer "
+        csound->Warning(csound, Str("ATSREADNZ: only positive time pointer "
                                     "values allowed, setting to zero\n"));
       }
     }
@@ -437,7 +437,7 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSREADNZ: timepointer out of range, "
+        csound->Warning(csound, Str("ATSREADNZ: timepointer out of range, "
                                     "truncated to last frame\n"));
       }
     }
@@ -582,7 +582,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
-        csound->Message(csound, Str("ATSADD: only positive time pointer "
+        csound->Warning(csound, Str("ATSADD: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
       }
     }
@@ -591,7 +591,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSADD: time pointer out of range, "
+        csound->Warning(csound, Str("ATSADD: time pointer out of range, "
                                     "truncating to last frame\n"));
       }
     }
@@ -986,7 +986,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
-        csound->Message(csound, Str("ATSADDNZ: only positive time pointer "
+        csound->Warning(csound, Str("ATSADDNZ: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
       }
     }
@@ -995,7 +995,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSADDNZ: time pointer out of range, "
+        csound->Warning(csound, Str("ATSADDNZ: time pointer out of range, "
                                     "truncating to last frame\n"));
       }
     }
@@ -1234,7 +1234,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
-        csound->Message(csound, Str("ATSSINNOI: only positive time pointer "
+        csound->Warning(csound, Str("ATSSINNOI: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
       }
     }
@@ -1243,7 +1243,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSSINNOI: time pointer out of range, "
+        csound->Warning(csound, Str("ATSSINNOI: time pointer out of range, "
                                     "truncating to last frame\n"));
       }
     }
@@ -1631,7 +1631,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
-        csound->Message(csound, Str("ATSBUFREAD: only positive time pointer "
+        csound->Warning(csound, Str("ATSBUFREAD: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
       }
     }
@@ -1640,7 +1640,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSBUFREAD: time pointer out of range, "
+        csound->Warning(csound, Str("ATSBUFREAD: time pointer out of range, "
                                     "truncating to last frame\n"));
       }
     }
@@ -1980,7 +1980,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       frIndx = FL(0.0);
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;
-        csound->Message(csound, Str("ATSCROSS: only positive time pointer "
+        csound->Warning(csound, Str("ATSCROSS: only positive time pointer "
                                     "values are allowed, setting to zero\n"));
       }
     }
@@ -1989,7 +1989,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
-        csound->Message(csound, Str("ATSCROSS: time pointer out of range, "
+        csound->Warning(csound, Str("ATSCROSS: time pointer out of range, "
                                     "truncating to last frame\n"));
       }
     }

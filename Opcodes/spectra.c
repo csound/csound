@@ -101,7 +101,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       p->curq = Q;
       p->hanning = hanning;
       p->ncoefs = ncoefs;
-      csound->Message(csound,
+      csound->Warning(csound,
                       Str("spectrum: %s window, %s out, making tables ...\n"),
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
@@ -121,7 +121,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       }
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
-      csound->Message(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
+      csound->Warning(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
                               hicps, locps);
 
       basfrq = hicps/2.0;                     /* oct below retuned top */
@@ -135,7 +135,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         curfrq *= frqmlt;
       }
       windsiz = *(p->winlen);
-      csound->Message(csound,
+      csound->Warning(csound,
                       Str("\tQ %4.1f uses a %d sample window each octdown\n"),
                       Q, windsiz);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
@@ -185,7 +185,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      csound->Message(csound, Str("\t%d oct analysis window "
+      csound->Warning(csound, Str("\t%d oct analysis window "
                                   "delay = %ld samples (%d msecs)\n"),
                               nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
@@ -632,14 +632,14 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     for (fp = fhip; fp < fendp; )
       *fp++ = FL(0.0);
 
-    csound->Message(csound, Str("specptrk: %d freqs, %d%s ptls at "),
+    csound->Warning(csound, Str("specptrk: %d freqs, %d%s ptls at "),
                             (int)nfreqs, (int)nptls, inc==2 ? Str(" odd") : "");
     for (nn = 0; nn < nptls; nn++)
-      csound->Message(csound, "\t%d", p->pdist[nn]);
+      csound->Warning(csound, "\t%d", p->pdist[nn]);
     if (p->rolloff) {
-      csound->Message(csound, Str("\n\t\trolloff vals:"));
+      csound->Warning(csound, Str("\n\t\trolloff vals:"));
       for (nn = 0; nn < nptls; nn++)
-        csound->Message(csound, "\t%4.2f", p->pmult[nn]);
+        csound->Warning(csound, "\t%4.2f", p->pmult[nn]);
     }
 
     dbthresh = *p->idbthresh;                     /* thresholds: */
@@ -660,7 +660,7 @@ int sptrkset(CSOUND *csound, SPECPTRK *p)
     }
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    csound->Message(csound, Str("\n\tdbthresh %4.1f: X-corr %s "
+    csound->Warning(csound, Str("\n\tdbthresh %4.1f: X-corr %s "
                                 "threshon %4.1f, threshoff %4.1f\n"),
                             dbthresh, outstring[inspecp->dbout],
                             p->threshon, p->threshoff);
@@ -1169,7 +1169,7 @@ int spfilset(CSOUND *csound, SPECFILT *p)
         }
       }
     }
-    csound->Message(csound, Str("coef range: %6.3f - %6.3f\n"),
+    csound->Warning(csound, Str("coef range: %6.3f - %6.3f\n"),
                             *p->coefs, *(p->coefs+npts-1));
     {
       MYFLT *flp = (MYFLT *) p->states;

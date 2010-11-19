@@ -113,7 +113,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       if (mpainfo.layer == 1) strcat(temp, "Layer I");
       else if (mpainfo.layer == 2) strcat(temp, "Layer II");
       else strcat(temp, "Layer III");
-      csound->Message(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+      csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
                       temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
                       mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                       mpainfo.duration%60);
@@ -131,7 +131,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
       return OK;
     /* set file parameters from header info */
     if ((int) (csound->esr + FL(0.5)) != mpainfo.frequency) {
-      csound->Message(csound, Str("mp3in: warning: file sample rate (%d) "
+      csound->Warning(csound, Str("mp3in: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                       mpainfo.frequency, (int) (csound->esr + FL(0.5)));
     }

@@ -67,16 +67,16 @@ int oggplay_init (CSOUND *csound, OGGPLAY * p)
         /* get the total time in seconds of the physical bitstream */
         double length=ov_time_total(&p->vf,-1);
         if (length > iseek){
-          csound->Message(csound, Str("oggplay: seek file to sec=%f \n"), iseek);
+          csound->Warning(csound, Str("oggplay: seek file to sec=%f \n"), iseek);
           ov_time_seek(&p->vf, iseek);
         }
         else
-          csound->Message(csound,
+          csound->Warning(csound,
                           Str("oggplay: seek_point=%f > file_length=%f \n"),
                           iseek, length);
       }
       else
-        csound->Message(csound, Str("oggplay: file is not seekable \n"));
+        csound->Warning(csound, Str("oggplay: file is not seekable \n"));
     }
 
     return OK;
@@ -95,11 +95,11 @@ int oggplay_perf (CSOUND *csound, OGGPLAY * p)
           if ((ret = ov_read(&p->vf, p->pbuf.auxp,
                              p->buflen, 0, 2, 1, &p->bs)) != 0) {
             if (p->bs != 0)
-              csound->Message(csound,
+              csound->Warning(csound,
                               Str("oggplay: Only one logical "
                                   "bitstream currently supported\n"));
             if(ret < 0 )
-              csound->Message(csound,
+              csound->Warning(csound,
                               Str("oggplay: Warning hole in data\n"));
             p->pint = (int16_t*) p->pbuf.auxp;
             p->nsamples = ret/2;
