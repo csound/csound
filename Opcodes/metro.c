@@ -55,7 +55,7 @@ static int metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if ((longphs = (int32)phs))
-        csound->Message(csound, Str("metro:init phase truncation"));
+        csound->Warning(csound, Str("metro:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;

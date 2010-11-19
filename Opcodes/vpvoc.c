@@ -319,7 +319,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
       if (specwp < 0)
-        csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
+        csound->Warning(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
         PreWarpSpec(p->pp, buf, asize, pex, (MYFLT *)p->memenv.auxp);
 

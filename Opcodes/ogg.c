@@ -74,7 +74,7 @@ int oggread_init (CSOUND *csound, OGGREAD * p)
 
     /* Check samplerate */
     if ((MYFLT)(vi->rate) != csound->esr) {
-      csound->Message(csound, Str("oggread: warning: sample rate of file is %d "
+      csound->Warning(csound, Str("oggread: sample rate of file is %d "
                                   "which coes not match sr (=%f)\n"),
                                   vi->rate, csound->esr);
     }
@@ -88,16 +88,16 @@ int oggread_init (CSOUND *csound, OGGREAD * p)
         /* get the total time in seconds of the physical bitstream */
         double length=ov_time_total(&p->vf,-1);
         if (length > iseek) {
-          csound->Message(csound, Str("oggread: seek file to sec=%f\n"), iseek);
+          csound->Warning(csound, Str("oggread: seek file to sec=%f\n"), iseek);
           ov_time_seek(&p->vf, iseek);
         }
         else
-          csound->Message(csound,
+          csound->Warning(csound,
                           Str("oggread: seek_point=%f > file_length=%f\n"),
                           iseek, length);
       }
       else
-        csound->Message(csound, Str("oggread: file is not seekable\n"));
+        csound->Warning(csound, Str("oggread: file is not seekable\n"));
     }
     return OK;
 }
@@ -113,11 +113,11 @@ int oggread_perf (CSOUND *csound, OGGREAD * p)
           if ((ret = ov_read(&p->vf, p->pbuf, OGGREAD_BUFLEN,
                              0, 2, 1, &p->bs)) != 0) {
             if (p->bs != 0)
-              csound->Message(csound,
+              csound->Warning(csound,
                               Str("oggread: Only one logical bitstream "
                                   "currently supported\n"));
             if (ret < 0 )
-              csound->Message(csound, Str("oggread: Warning hole in data\n"));
+              csound->Warning(csound, Str("oggread: Warning hole in data\n"));
             p->pint = (int16_t*) p->pbuf;
             p->nsamples = ret/2;
             p->doperf = 1;

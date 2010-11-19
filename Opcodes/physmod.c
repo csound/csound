@@ -126,7 +126,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
       else if (*p->frequency)
         p->length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
-        csound->Message(csound, Str("No base frequency for clarinet "
+        csound->Warning(csound, Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
         p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
@@ -288,7 +288,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
       else if (*p->frequency!=FL(0.0))
         length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
-        csound->Message(csound, Str("No base frequency for flute "
+        csound->Warning(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
         length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
@@ -486,7 +486,7 @@ int bowedset(CSOUND *csound, BOWED *p)
       else if (*p->frequency!=FL(0.0))
         length = (int32) (csound->esr / *p->frequency + FL(1.0));
       else {
-        csound->Message(csound, Str("unknown lowest frequency for bowed string "
+        csound->Warning(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
         length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }
@@ -762,7 +762,7 @@ int brassset(CSOUND *csound, BRASS *p)
       else if (p->frq!=FL(0.0))
         p->length = (int32) (csound->esr / p->frq + FL(1.0));
       else {
-        csound->Message(csound, Str("No base frequency for brass "
+        csound->Warning(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
         p->length = (int32) (csound->esr / FL(50.0) + FL(1.0));
       }

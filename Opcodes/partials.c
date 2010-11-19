@@ -162,7 +162,7 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
-      csound->Message(csound,
+      csound->Warning(csound,
                       "partials: no phase input, tracks will contain "
                       "amp & freq only\n");
       p->nophase = 1;

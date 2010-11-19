@@ -569,7 +569,7 @@ int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
     int ls_amount;
 
     dim = (int) *p->dim;
-    csound->Message(csound, "dim : %d\n",dim);
+    csound->Warning(csound, "dim : %d\n",dim);
     if (UNLIKELY(!((dim==2) || (dim == 3)))) {
       csound->Die(csound, Str("Error in loudspeaker dimension."));
     }
@@ -666,13 +666,13 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     }
 
     k = 3;
-    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Warning(csound, Str("\nConfigured loudspeakers\n"));
     for (i = 0; i < triplet_amount; i++) {
-      csound->Message(csound, Str("Triplet %d Loudspeakers: "), i);
+      csound->Warning(csound, Str("Triplet %d Loudspeakers: "), i);
       for (j = 0; j < 3; j++) {
-        csound->Message(csound, "%d ", (int) ls_table[k++]);
+        csound->Warning(csound, "%d ", (int) ls_table[k++]);
       }
-      csound->Message(csound, "\n");
+      csound->Warning(csound, "\n");
 
    /* printf("\nMatrix "); */
       for (j = 0; j < 9; j++) {
@@ -765,13 +765,13 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
     }
     k=3;
-    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Warning(csound, Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
-      csound->Message(csound, Str("Pair %d Loudspeakers: "), i);
+      csound->Warning(csound, Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
-        csound->Message(csound, "%d ", (int) ls_table[k++]);
+        csound->Warning(csound, "%d ", (int) ls_table[k++]);
       }
-      csound->Message(csound, "\n");
+      csound->Warning(csound, "\n");
 
    /* csound->Message(csound, "\nMatrix "); */
       /* for (j=0; j < 4; j++) { */

@@ -1345,7 +1345,7 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
       p->grd_NumRows = 20;
       /* Warn if user tried but failed to give sensible number */
       if (UNLIKELY(*p->iparam1 != FL(0.0)))
-        csound->Message(csound, Str("pinkish: Gardner method requires 4-%d bands. "
+        csound->Warning(csound, Str("pinkish: Gardner method requires 4-%d bands. "
                                     "Default %ld substituted for %d.\n"),
                         GRD_MAX_RANDOM_ROWS, p->grd_NumRows,
                         (int) *p->iparam1);

@@ -157,7 +157,7 @@ int wiimote_poll(CSOUND *csound, WIIMOTE *p)
       case WIIUSE_DISCONNECT:
       case WIIUSE_UNEXPECTED_DISCONNECT:
         /* the wiimote disconnected */
-        csound->Message(csound,
+        csound->Warning(csound,
                         Str("wiimote %i disconnected\n"), wiimotes[i]->unid);
         *p->res = FL(0.0);
         return;
@@ -171,11 +171,11 @@ int wiimote_poll(CSOUND *csound, WIIMOTE *p)
         /*                                     exp.nunchuk, 90.0f); */
         /* wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]-> */
         /*                                    exp.nunchuk, 100); */
-        csound->Message(csound, Str("Nunchuk inserted.\n"));
+        csound->Warning(csound, Str("Nunchuk inserted.\n"));
         break;
       case WIIUSE_NUNCHUK_REMOVED:
         /* some expansion was removed */
-        csound->Message(csound, Str("Nunchuk for wiimote %i was removed.\n"), i);
+        csound->Warning(csound, Str("Nunchuk for wiimote %i was removed.\n"), i);
         break;
       default:
         break;

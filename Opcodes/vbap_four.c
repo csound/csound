@@ -90,7 +90,7 @@ int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR *p)
     int32 i,j, spreaddirnum;
     MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Warning(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
 
@@ -223,7 +223,7 @@ int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
 
     /* other initialization */
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
-      csound->Message(csound,
+      csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
@@ -293,7 +293,7 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
-      csound->Message(csound,
+      csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
@@ -323,7 +323,7 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
         csound->Die(csound, Str("Missing fields in vbap4move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0))
-          csound->Message(csound,
+          csound->Warning(csound,
                           Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */

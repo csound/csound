@@ -380,7 +380,7 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
       if (value != p->last_value) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
-        csound->Message(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
+        csound->Warning(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
         control_change(csound, (int)*p->chn-1, (int)*p->msb_num, msb);
         control_change(csound, (int)*p->chn-1, (int)*p->lsb_num, lsb);
         p->last_value = value;

@@ -214,7 +214,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             break;
           }
         default:
-          csound->Message(csound, Str("Unknown OSC type %c\n"), type[1]);
+          csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
         }
       }
       lo_send_message(p->addr, (char*)p->dest, msg);
@@ -580,7 +580,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
-    csound->Message(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
+    csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
     *(p->ihandle) = (MYFLT) n;
 #ifdef BETA
     csound->RegisterDeinitCallback(csound, p,
