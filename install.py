@@ -14,7 +14,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
                'H/csound.hpp', 'H/csoundCore.h', 'H/cwindow.h',
                'H/msg_attr.h', 'H/OpcodeBase.hpp', 'H/pstream.h',
                'H/pvfileio.h', 'H/soundio.h', 'H/sysdep.h', 'H/text.h',
-               'H/version.h',
+               'H/version.h', 'float-version-double.h',  'float-version.h',
                'interfaces/CppSound.hpp', 'interfaces/filebuilding.h',
                'interfaces/CsoundFile.hpp', 'interfaces/csPerfThread.hpp']
 
