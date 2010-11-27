@@ -884,12 +884,14 @@ int adsyn(CSOUND *csound, ADSYN *p)
       else {                                 /* else interp towds nxt amp */
         if ((diff = (int16)((ap+1)->val - amp))) {
           ktogo = (int16)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
-          curp->amp += diff / ktogo;
+          if (ktogo == 0) curp->amp += diff;
+          else            curp->amp += diff / ktogo;
         }
         if ((nxtim = (fp+1)->tim) != 32767            /*      & nxt frq */
             && (diff = (fp+1)->val - curp->frq)) {
           ktogo = (int16)(((nxtim<<10) - p->mksecs + timkincr - 1) / timkincr);
-          curp->frq += diff / ktogo;
+          if (ktogo == 0) curp->frq += diff;
+          else            curp->frq += diff / ktogo;
         }
       }
     }
