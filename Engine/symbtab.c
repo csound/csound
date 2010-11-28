@@ -186,7 +186,11 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "urd", T_FUNCTION);
     add_token(csound, "not", T_FUNCTION);
     add_token(csound, "cent", T_FUNCTION);
-
+    add_token(csound, "octave", T_FUNCTION);
+    add_token(csound, "semitone", T_FUNCTION);
+    add_token(csound, "cpsmidinn", T_FUNCTION);
+    add_token(csound, "octmidinn", T_FUNCTION);
+    add_token(csound, "pchmidinn", T_FUNCTION);
 }
 
 static unsigned int hash(char *s)
@@ -209,7 +213,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     while (a!=NULL) {
       if (strcmp(a->lexeme, s)==0) {
         if (type == a->type) return a;
-        //printf("Type confusion for %s, stopping\n", s);
+        printf("Type confusion for %s (%d,%d), stopping\n", s, type, a->type);
         exit(1);
       }
       a = a->next;
