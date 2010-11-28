@@ -185,6 +185,7 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "tb15", T_FUNCTION);
     add_token(csound, "urd", T_FUNCTION);
     add_token(csound, "not", T_FUNCTION);
+    add_token(csound, "cent", T_FUNCTION);
 
 }
 
