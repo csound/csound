@@ -117,7 +117,8 @@ int csound_orcwrap()
 /* BISON PARSER FUNCTION */
 void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 {
-    csound->Message(csound, Str("csound_orcerror: %s\n"), str);
+    extern int yyline;
+    csound->Message(csound, Str("csound_orcerror on line %d: %s\n"), yyline, str);
 }
 
 /**
