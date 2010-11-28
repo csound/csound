@@ -1,3 +1,7 @@
+2010-11-28  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/symbtab.c: Added cent as function
+
 2010-11-27  john ffitch  <jpff@codemist.co.uk>
 
 	* OOps/ugens3.c (adsyn): check that ktogo is never zero
