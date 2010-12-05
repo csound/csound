@@ -104,8 +104,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar;
-    MYFLT   *ch;
+    MYFLT   *ar[40];
+    MYFLT   *ch[VARGMAX];
 } INCH;
 
 typedef struct {
