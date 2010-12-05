@@ -519,7 +519,7 @@ OENTRY opcodlst_1[] = {
 { "tablegpw", S(TABLENG),2,   "",  "k",    NULL,   (SUBR)tablegpw, NULL},
 { "tableimix",S(TABLEMIX),1,  "",  "iiiiiiiii", (SUBR)itablemix, NULL, NULL},
 { "tablemix", S(TABLEMIX),2,  "",  "kkkkkkkkk",
-                                   (SUBR)tablemixset, (SUBR)tablemix, NULL},
+                                   (SUBR)tablzemixset, (SUBR)tablemix, NULL},
 { "tableicopy",S(TABLECOPY),1, "", "ii",   (SUBR)itablecopy, NULL, NULL},
 { "tablecopy", S(TABLECOPY),2, "", "kk",
                                       (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
@@ -573,7 +573,9 @@ OENTRY opcodlst_1[] = {
 { "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                         "",     NULL,   NULL,   in32 },
 #endif
-{ "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
+//{ "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
+{ "inch",   S(INCH),    4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                        "z",    NULL,   NULL,   inch_opcode },
 #ifndef OLPC
 { "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                         "",     NULL,   NULL,   inall_opcode },

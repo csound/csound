@@ -1126,24 +1126,48 @@ int in32(CSOUND *csound, INALL *p)
 #endif
 
 int inch_opcode(CSOUND *csound, INCH *p)
-{
-    int   ch = (int)(*p->ch + FL(0.5));
-    int   n;
-    int   nsmps = csound->ksmps;
-    MYFLT *sp = csound->spin + (ch - 1);
-    MYFLT *ain = p->ar;
-    if (UNLIKELY(ch > csound->inchnls)) {
-      return NOTOK;
+{                               /* Rewritten to allow multiple args upto 40 */
+    int nc, nChannels = p->INCOUNT;
+    int   ch, n, nsmps = csound->ksmps;
+    MYFLT *sp, *ain;
+    if (nChannels != p->OUTOCOUNT)
+      return
+        csound->PerfError(csound,
+                          Str("Input and output argument count differs in inch"));
+    for (nc=0; nc<nChannels; nc++) {
+      ch = (int)(*p->ch[nc] + FL(0.5));
+      if (UNLIKELY(ch > csound->inchnls)) {
+        return NOTOK;
+      }
+      sp = csound->spin + (ch - 1);
+      ain = p->ar[nc];
+      for (n = 0; n < nsmps; n++) {
+        ain[n] = *sp;
+        sp += csound->inchnls;
+      }
     }
-    /* Are APINLOCKS really necessary for reading?? */
-    CSOUND_SPIN_SPINLOCK
-    for (n = 0; n < nsmps; n++) {
-      ain[n] = *sp;
-      sp += csound->inchnls;
-    }
-    CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+
+/* int inch_opcode(CSOUND *csound, INCH *p) */
+/* { */
+/*     int   ch = (int)(*p->ch + FL(0.5)); */
+/*     int   n; */
+/*     int   nsmps = csound->ksmps; */
+/*     MYFLT *sp = csound->spin + (ch - 1); */
+/*     MYFLT *ain = p->ar; */
+/*     if (UNLIKELY(ch > csound->inchnls)) { */
+/*       return NOTOK; */
+/*     } */
+/*     /\* Are APINLOCKS really necessary for reading?? *\/ */
+/*     CSOUND_SPIN_SPINLOCK */
+/*     for (n = 0; n < nsmps; n++) { */
+/*       ain[n] = *sp; */
+/*       sp += csound->inchnls; */
+/*     } */
+/*     CSOUND_SPIN_SPINUNLOCK */
+/*     return OK; */
+/* } */
 
 int inall_opcode(CSOUND *csound, INALL *p)
 {

@@ -1,5 +1,11 @@
 2010-12-05  john ffitch  <jpff@codemist.co.uk>
 
+	* H/aops.h (struct INCH): Rewritten
+
+	* OOps/aops.c (inch_opcode): Rewritten
+
+	* Engine/entry1.c: Allow multiple args in inch
+
 	* Engine/csound_orc.l (do_at): New code to support @ and @@ operators
 
 2010-11-28  john ffitch  <jpff@codemist.co.uk>
