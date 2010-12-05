@@ -130,6 +130,8 @@
 %right S_BITNOT
 %right S_UNOT
 %right S_UMINUS
+%right S_ATAT
+%right S_AT
 %left S_Q
 %nonassoc S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
 %token S_GOTO
