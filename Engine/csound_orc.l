@@ -41,6 +41,7 @@ ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
 void comment(void);
 void do_comment(void);
+ORCTOKEN *do_at(CSOUND *, int);
 void do_include(CSOUND *, int);
 void do_macro_arg(CSOUND *, char *);
 void do_macro(CSOUND *, char *);
@@ -80,6 +81,7 @@ INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
 STCOM           "/"\*
 WHITE           [ \t]+
+OPTWHITE        [ \t]*
 INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
@@ -125,7 +127,8 @@ CONT            \\[[ \t]*\n
 "#"             { return S_NEQV; }
 "¬"             { return S_BITNOT; }
 "~"             { return S_BITNOT; }
-
+"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1); return T_INTGR; }
+"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0); return T_INTGR; }
 "if"            { return T_IF; }
 "then"          { return T_THEN; }
 "ithen"         { return T_ITHEN; }
@@ -547,6 +550,25 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     /* ans->lexeme[len-2] = '\0';  */
     ans->lexeme = (char*)mcalloc(csound, len + 1);
     strcpy(ans->lexeme, s);
+    return ans;
+}
+
+ORCTOKEN *do_at(CSOUND *csound, int k)
+{
+    int n, i = 1;
+    ORCTOKEN *ans;
+    char buf[16];
+    char *s = yytext;
+    int len;
+    while (*s=='@') s++;
+    n = atoi(s);
+    while (i<=n-k && i< 0x4000000) i <<= 1;
+    ans = new_token(csound, T_INTGR);
+    sprintf(buf, "%d", i+k);
+    len = strlen(buf);
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    strncpy(ans->lexeme, buf, len);
+    ans->value = i;
     return ans;
 }
 
