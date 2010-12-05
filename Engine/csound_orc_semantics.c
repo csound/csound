@@ -55,8 +55,8 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
                   (double)root->left->value->value :root->left->value->fvalue);
           rval = (root->right->type == T_INTGR ?
                   (double)root->right->value->value :root->left->value->fvalue);
-            ans = root->left;
-            ans->type = ans->value->type = T_NUMBER;
+          ans = root->left;
+          ans->type = ans->value->type = T_NUMBER;
           switch (root->type) {
           case S_PLUS:
             ans->value->fvalue = lval+rval;
@@ -82,22 +82,22 @@ TREE * verify_tree(CSOUND *csound, TREE *root)
             sprintf(ans->value->lexeme, "%f", ans->value->fvalue);
             //Memory leak!! mfree(csound, root); mfree(csound, root->right);
             return ans;
-          /* case S_NEQ: */
-          /*   break; */
-          /* case S_AND: */
-          /*   break; */
-          /* case S_OR: */
-          /*   break; */
-          /* case S_LT: */
-          /*   break; */
-          /* case S_LE: */
-          /*   break; */
-          /* case S_EQ: */
-          /*   break; */
-          /* case S_GT: */
-          /*   break; */
-          /* case S_GE: */
-          /*   break; */
+            /* case S_NEQ: */
+            /*   break; */
+            /* case S_AND: */
+            /*   break; */
+            /* case S_OR: */
+            /*   break; */
+            /* case S_LT: */
+            /*   break; */
+            /* case S_LE: */
+            /*   break; */
+            /* case S_EQ: */
+            /*   break; */
+            /* case S_GT: */
+            /*   break; */
+            /* case S_GE: */
+            /*   break; */
           default: break;
           }
         }
