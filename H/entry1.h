@@ -244,6 +244,7 @@ int     krdset(CSOUND *, void *), krd2set(CSOUND *, void *);
 int     krd3set(CSOUND *, void *), krd4set(CSOUND *, void *);
 int     kread(CSOUND *, void *), kread2(CSOUND *, void *);
 int     kread3(CSOUND *, void *), kread4(CSOUND *, void *);
+int     krdsset(CSOUND *, void *), kreads(CSOUND *, void *);
 int     ipow(CSOUND *, void *), apow(CSOUND *, void *);
 int     alinear(CSOUND *, void *), iklinear(CSOUND *, void *);
 int     atrian(CSOUND *, void *), iktrian(CSOUND *, void *);

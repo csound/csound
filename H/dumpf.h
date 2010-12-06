@@ -102,3 +102,12 @@ typedef struct {
         FDCH   fdch;
 } KREAD4;
 
+typedef struct {
+        OPDS   h;
+        MYFLT  *str, *ifilcod, *iprd;
+        int32  countdown, timcount;
+        char   *lasts;
+        FILE   *f;
+        FDCH   fdch;
+} KREADS;
+

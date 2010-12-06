@@ -1137,13 +1137,17 @@ int inch_opcode(CSOUND *csound, INCH *p)
     for (nc=0; nc<nChannels; nc++) {
       ch = (int)(*p->ch[nc] + FL(0.5));
       if (UNLIKELY(ch > csound->inchnls)) {
-        return NOTOK;
+        csound->Message(csound, Str("Input channel %d too large; ignored", ch);
+        memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
+        //        return OK;
       }
-      sp = csound->spin + (ch - 1);
-      ain = p->ar[nc];
-      for (n = 0; n < nsmps; n++) {
-        ain[n] = *sp;
-        sp += csound->inchnls;
+      else {
+        sp = csound->spin + (ch - 1);
+        ain = p->ar[nc];
+        for (n = 0; n < nsmps; n++) {
+          ain[n] = *sp;
+          sp += csound->inchnls;
+        }
       }
     }
     return OK;
