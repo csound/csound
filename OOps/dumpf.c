@@ -513,3 +513,33 @@ int kread4(CSOUND *csound, KREAD4 *p)
     return OK;
 }
 
+int krdsset(CSOUND *csound, KREADS *p)
+{
+    /* open in curdir or pathname */
+    char soundiname[1024];
+    csound->strarg2name(csound, soundiname,
+                        p->ifilcod, "readk.", p->XSTRCODE);
+    if (p->fdch.fd != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+                               "SFDIR;SSDIR", 0, 0);
+    if (UNLIKELY(p->fdch.fd == NULL))
+      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+    fdrecord(csound, &p->fdch);
+    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+      p->timcount = 1;
+    p->countdown = 0;
+    p->lasts = (char*)csound->Malloc(csound, 1+csound->strVarMaxLen);
+    p->lasts[0] = '\0';
+    return OK;
+}
+
+int kreads(CSOUND *csound, KREADS *p)
+{
+    if (--p->countdown <= 0) {
+      p->countdown = p->timcount;
+      fgets(p->lasts, csound->strVarMaxLen,  p->f);
+    }
+    strncpy((char*) p->str, p->lasts, csound->strVarMaxLen);
+    return OK;
+}
