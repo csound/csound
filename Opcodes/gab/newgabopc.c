@@ -57,7 +57,7 @@ static int  mtable1_k(CSOUND *csound, MTABLE1 *p)
     }
     table= p->ftable;
     for (j=0; j < nargs; j++)
-      **out++ =  table[j];
+      *out[j] =  table[j];
     return OK;
 }
 
@@ -532,8 +532,8 @@ static int lposca(CSOUND *csound, LPOSC *p)
     MYFLT   *out = p->out,  *amp=p->amp;
     MYFLT   *ft =  p->ftp->ftable, *curr_samp;
     MYFLT   fract;
-    long    n, nsmps = csound->ksmps;
-    long    loop, end, looplength /* = p->looplength */ ;
+    int32   n, nsmps = csound->ksmps;
+    int32   loop, end, looplength /* = p->looplength */ ;
 
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
@@ -699,14 +699,14 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 {
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
-    MYFLT       *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
+    MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
-    long    n = csound->ksmps;
-    long        loop, end, looplength /* = p->looplength */ ;
+    int32    n = csound->ksmps;
+    int32    loop, end, looplength /* = p->looplength */ ;
     if ((loop = (long) *p->kloop) < 0) loop=0;/* gab */
     else if (loop > p->tablen-3) loop = p->tablen-3;
     if ((end = (long) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-        else if (end <= 2) end = 2;
+    else if (end <= 2) end = 2;
     if (end < loop+2) end = loop + 2;
     looplength = end - loop;
     do {
@@ -778,18 +778,23 @@ static int trRangeRand(CSOUND *csound, TRANGERAND *p)
 typedef struct
 {
      OPDS    h;
-     MYFLT   *rcar, *rmod, *kfreq_max, *kfreq_min, *kband_max, *kband_min;
+     MYFLT   *rcar, *rmod;
+     MYFLT   *kfreq_max, *kfreq_min, *kband_max, *kband_min;
 } DSH;
 
 
 
 static int dashow (CSOUND *csound, DSH *p)
 {
-    *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+    MYFLT range = *p->kband_max - *p->kband_min;
+    if (range != FL(0.0))
+      *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+    else 
+      *p->rmod = FL(0.0);
     *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
 
-    if (*p->rmod <= 0.f) *p->rmod = (MYFLT) fabs (*p->rmod);
-    if (*p->rcar <= 0.f) *p->rcar = (MYFLT) fabs (*p->rcar);
+    if (*p->rmod <= FL(0.0)) *p->rmod = (MYFLT) fabs (*p->rmod);
+    if (*p->rcar <= FL(0.0)) *p->rcar = (MYFLT) fabs (*p->rcar);
     return OK;
 }
 #endif
