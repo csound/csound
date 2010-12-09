@@ -2115,6 +2115,7 @@ static int vecdly_set(CSOUND *csound,VECDEL *p)
         for (j = 0; j < elements; j++) {
           MYFLT *temp = buf[j];
           int count = n;
+          /* memset(buf[j], 0, sizeof(MYFLT)*n); */
           do {
             *temp++ = FL(0.0);
           } while (--count);
@@ -2175,6 +2176,8 @@ static int vseg_set(CSOUND *csound,VSEG *p)
     }
     if ( p->elements > ftp->flen )
       return csound->InitError(csound, "vlinseg/vexpseg: invalid num. of elements");
+
+    /* memset(p->vector, 0, sizeof(MYFLT)*p->elements); */
     vector = p->vector;
     flength = p->elements;
 
@@ -2384,10 +2387,11 @@ static int kdel_set(CSOUND *csound,KDEL *p)
       if (p->aux.auxp == NULL || (int)(n*sizeof(MYFLT)) > p->aux.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
-        buf = (MYFLT *)p->aux.auxp;
-        do {
-          *buf++ = FL(0.0);
-        } while (--n);
+        memset(p->aux.auxp, 0, sizeof(MYFLT)*n);
+        /* buf = (MYFLT *)p->aux.auxp; */
+        /* do { */
+        /*   *buf++ = FL(0.0); */
+        /* } while (--n); */
       }
       p->left = 0;
     }
@@ -2452,6 +2456,7 @@ static int ca_set(CSOUND *csound,CELLA *p)
     currLine = (p->currLine = (MYFLT *) p->auxch.auxp);
     p->NewOld = 0;
     p->ruleLen = (int) *p->irulelen;
+    /* memcpy(currLine, initVec, sizeof(MYFLT)*elements); */
     do {
       *currLine++ = *initVec++;
     } while (--elements);
@@ -2464,7 +2469,8 @@ static int ca(CSOUND *csound,CELLA *p)
       MYFLT *currLine = p->currLine, *initVec = p->initVec;
       int elements =  p->elements;
       p->NewOld = 0;
-      do {
+     /* memcpy(currLine, initVec, sizeof(MYFLT)*elements); */
+     do {
         *currLine++ = *initVec++;
       } while (--elements);
     }
