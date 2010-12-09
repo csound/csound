@@ -38,19 +38,20 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
-                      (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
+                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       return csound->InitError(csound,Str("illegal reson iscl value, %f"),
                                *p->iscl);
     }
-    p->prvcf = p->prvbw = -FL(100.0);
-
     if (!(*p->istor)) {
-      int j;
-      for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0);
+      memset(p->yt1, 0, p->loop*sizeof(MYFLT));
+      memset(p->yt2, 0, p->loop*sizeof(MYFLT));
+      /* int j; */
+      /* for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0); */
     }
+    p->prvcf = p->prvbw = -FL(100.0);
     return OK;
 }
 
@@ -63,12 +64,12 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = (MYFLT) cos((double)(*p->kcf * csound->tpidsr * csound->ksmps));
+      p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = (MYFLT) exp((double)(*p->kbw * csound->mtpdsr * csound->ksmps));
+      p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
       flag = 1;
     }
     if (flag) {
@@ -78,9 +79,9 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
       p->c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
       c2sqr = p->c2 * p->c2;
       if (p->scale == 1)
-        p->c1 = omc3 * (MYFLT)sqrt(1.0 - (double)(c2sqr / c3t4));
+        p->c1 = omc3 * SQRT(FL(1.0) - (c2sqr / c3t4));
       else if (p->scale == 2)
-        p->c1 = (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr) * omc3/c3p1));
+        p->c1 = SQRT((c3p1*c3p1-c2sqr) * omc3/c3p1);
       else p->c1 = FL(1.0);
     }
     c1   = p->c1;
@@ -128,7 +129,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;   /* load once */
       for (n=0; n<nsmps; n++)  { /* for loops compile better */
         int i = (int)(ndx[n]*xbmul);
-        if (UNLIKELY(i >= p->tablen)) {
+        if (UNLIKELY(i >= p->tablen || i<0)) {
           return csound->PerfError(csound, Str("tabw off end"));
         }
         tab[i] = rslt[n];
@@ -137,7 +138,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     else {
       for (n=0; n<nsmps; n++) {
         int i = ndx[n];
-        if (UNLIKELY(i >= p->tablen)) {
+        if (UNLIKELY(i >= p->tablen || i<0)) {
           return csound->PerfError(csound, Str("tabw off end"));
         }
         tab[i] = rslt[n];
@@ -153,7 +154,7 @@ static int fastabk(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * p->xbmul);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= p->tablen)) {
+    if (UNLIKELY(i >= p->tablen || i<0)) {
       return csound->PerfError(csound, Str("tab off end"));
     }
     *p->rslt =  p->table[i];
@@ -167,7 +168,7 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * p->xbmul);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= p->tablen)) {
+    if (UNLIKELY(i >= p->tablen || i<0)) {
       return csound->PerfError(csound, Str("tabw off end"));
     }
     p->table[i] = *p->rslt;
@@ -186,7 +187,7 @@ static int fastabi(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * ftp->flen);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= ftp->flen)) {
+    if (UNLIKELY(i >= ftp->flen || i<0)) {
         return csound->PerfError(csound, Str("tab_i off end"));
     }
     *p->rslt =  ftp->ftable[i];
@@ -205,7 +206,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
       i = (int) (*p->xndx * ftp->flen);
     else
       i = (int) *p->xndx;
-    if (UNLIKELY(i >= ftp->flen)) {
+    if (UNLIKELY(i >= ftp->flen || i<0)) {
         return csound->PerfError(csound, Str("tabw_i off end"));
     }
     ftp->ftable[i] = *p->rslt;
@@ -344,64 +345,64 @@ static int nlalp_set(CSOUND *csound,NLALP *p)
 
 static int nlalp(CSOUND *csound,NLALP *p)
 {
-   int nsmps;
-   MYFLT *rp;
-   MYFLT *ip;
-   double m0;
-   double m1;
-   double tm0;
-   double tm1;
-   double klfact;
-   double knfact;
+    int nsmps = csound->ksmps, n;
+    MYFLT *rp;
+    MYFLT *ip;
+    double m0;
+    double m1;
+    double tm0;
+    double tm1;
+    double klfact;
+    double knfact;
 
-   nsmps = csound->ksmps;
-   rp = p->aresult;
-   ip = p->ainsig;
-   klfact = (double)*p->klfact;
-   knfact = (double)*p->knfact;
-   tm0 = p->m0;
-   tm1 = p->m1;
-   if (knfact == 0.0) { /* linear case */
-     if (klfact == 0.0) { /* degenerated linear case */
-       m0 = (double)*ip++ - tm1;
-       *rp++ = (MYFLT)(tm0);
-       while (--nsmps) {
-         *rp++ = (MYFLT)(m0);
-         m0 = (double)*ip++;
-       }
-       tm0 = m0;
-       tm1 = 0.0;
-     } else { /* normal linear case */
-       do {
-         m0 = (double)*ip++ - tm1;
-         m1 = m0 * klfact;
-         *rp++ = (MYFLT)(tm0 + m1);
-         tm0 = m0;
-         tm1 = m1;
-       } while (--nsmps);
-     }
-   } else { /* non-linear case */
-     if (klfact == 0.0) { /* simplified non-linear case */
-       do {
-         m0 = (double)*ip++ - tm1;
-         m1 = fabs(m0) * knfact;
-         *rp++ = (MYFLT)(tm0 + m1);
-         tm0 = m0;
-         tm1 = m1;
-       } while (--nsmps);
-     } else { /* normal non-linear case */
-       do {
-         m0 = (double)*ip++ - tm1;
-         m1 = m0 * klfact + fabs(m0) * knfact;
-         *rp++ = (MYFLT)(tm0 + m1);
-         tm0 = m0;
-         tm1 = m1;
-       } while (--nsmps);
-     }
-   }
-   p->m0 = tm0;
-   p->m1 = tm1;
-   return OK;
+    rp = p->aresult;
+    ip = p->ainsig;
+    klfact = (double)*p->klfact;
+    knfact = (double)*p->knfact;
+    tm0 = p->m0;
+    tm1 = p->m1;
+    if (knfact == 0.0) { /* linear case */
+      if (klfact == 0.0) { /* degenerated linear case */
+        m0 = (double)ip[0] - tm1;
+        rp[0] = (MYFLT)(tm0);
+        for (n=1; n<nsmps; n++) {
+          rp[n] = (MYFLT)(m0);
+          m0 = (double)ip[n];
+        }
+        tm1 = 0.0;
+        tm0 = m0;
+      }
+      else { /* normal linear case */
+        for (n=0; n<nsmps; n++) {
+          m0 = (double)ip[n] - tm1;
+          m1 = m0 * klfact;
+          rp[n] = (MYFLT)(tm0 + m1);
+          tm1 = m1;
+          tm0 = m0;
+        }
+      }
+    } else { /* non-linear case */
+      if (klfact == 0.0) { /* simplified non-linear case */
+        for (n=0; n<nsmps; n++) {
+          m0 = (double)ip[n] - tm1;
+          m1 = fabs(m0) * knfact;
+          rp[n] = (MYFLT)(tm0 + m1);
+          tm1 = m1;
+          tm0 = m0;
+        }
+      } else { /* normal non-linear case */
+        for (n=0; n<nsmps; n++) {
+          m0 = (double)ip[n] - tm1;
+          m1 = m0 * klfact + fabs(m0) * knfact;
+          rp[n] = (MYFLT)(tm0 + m1);
+          tm1 = m1;
+          tm0 = m0;
+        }
+      }
+    }
+    p->m0 = tm0;
+    p->m1 = tm1;
+    return OK;
 }
 
 /* ----------------------------------------------- */
@@ -411,6 +412,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     FUNC    *ftp;
     int     count;
     int32   *lphs;
+    MYFLT   iphs = *p->iphs;
 
     p->inerr = 0;
 
@@ -459,17 +461,19 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
 
-    if (*p->iphs > 1) {
-      do {
-        *lphs++ = ((int32)
+    if (iphs > 1) {
+      int c;
+      for (c=0; c<count; c++) {
+        lphs[c] = ((int32)
                    ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
                              / 2147483645.0) * FMAXLEN)) & PHMASK;
-      } while (--count);
+      }
     }
-    else if (*p->iphs >= 0) {
-      do {
-        *lphs++ = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
-      } while (--count);
+    else if (iphs >= 0) {
+      int c;
+      for (c=0; c<count; c++) {
+        lphs[c] = ((int32)(iphs * FMAXLEN)) & PHMASK;
+      }
     }
     if (p->pamp.auxp==NULL ||
         p->pamp.size < (int32)(sizeof(MYFLT)*p->count))
@@ -661,6 +665,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
+/* This code is wrong; old_inargs is not initialised */
 static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
@@ -700,37 +705,35 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 
 static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
-    int n = csound->ksmps, flag = (int) *p->imaxflag;
+    int n, nsnps = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {
     case 0: /* absolute maximum */
-      do {
+      for (n=0; n<nsmps; n++) {
         MYFLT temp;
-        if ((temp = (MYFLT) fabs(*a++)) > max) max = temp;
-      } while (--n);
+        if ((temp = FABS(a[n])) > max) max = temp;
+      }
       if (max > p->max) p->max = max;
       break;
     case 1: /* actual maximum */
-      do {
-        if (*a > max) max = *a;
-        ++a;
-      } while (--n);
+      for (n=0; n<nsmps; n++) {
+        if (a[n] > max) max = a[n];
+      }
       if (max > p->max) p->max = max;
       break;
     case 2: /* actual minimum */
-      do {
-        if (*a < max) max = *a;
-        ++a;
-      } while (--n);
+      for (n=0; n<nsmps; n++) {
+        if (a[n] < max) max = a[n];
+      }
       if (max < p->max) p->max = max;
       break;
     case 3: { /* average */
         MYFLT temp = FL(0.0);
         p->counter += n;
-        do {
-          temp += *a++;
-        } while (--n);
+        for (n=0; n<nsmps; n++) {
+          temp += a[n];
+        }
         p->max += temp;
       }
       break;

@@ -394,11 +394,12 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
     }
     if ( p->elements > ftp->flen )
       return csound->InitError(csound, Str("vphaseseg: invalid num. of elements"));
-    vector = p->vector;
-    flength = p->elements;
+    /* vector = p->vector; */
+    /* flength = p->elements; */
 
-    do      *vector++ = FL(0.0);
-    while (--flength);
+    memset(p->vector, 0, sizeof(MYFLT)*p->elements);
+    /* do      *vector++ = FL(0.0); */
+    /* while (--flength); */
 
     if (**argp <= 0.0)  return NOTOK;           /* if idur1 <= 0, skip init  */
     //p->cursegp = tempsegp =segp;              /* else proceed from 1st seg */
@@ -431,6 +432,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
     for (j=0; j< nsegs; j++)
       segp[j].d /= durtot;
 
+    /* This could be a memmove */
     for (j=nsegs-1; j>= 0; j--)
       segp[j+1].d = segp[j].d;
 
