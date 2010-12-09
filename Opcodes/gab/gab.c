@@ -705,7 +705,7 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 
 static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
-    int n, nsnps = csound->ksmps, flag = (int) *p->imaxflag;
+    int n, nsmps = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     switch(flag) {
