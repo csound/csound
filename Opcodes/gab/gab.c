@@ -35,7 +35,7 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
 {
     int scale;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+    if ((p->loop = MYFLT2LRND(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
@@ -92,11 +92,9 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
     asig = p->asig;
     ar   = p->ar;
     for (j=0; j< p->loop; j++) {
-      *ar = c1 * *asig + c2 * *yt1 - c3 * *yt2;
-      *yt2 = *yt1;
-      *yt1 = *ar;
-      yt1++;
-      yt2++;
+      *ar = c1 * *asig + c2 * yt1[j] - c3 * yt2[j];
+      yt2[j] = yt1[j];
+      yt1[j] = *ar;
       asig= p->ar;
     }
     return OK;
@@ -222,7 +220,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;
       for (i=0; i<nsmps; i++) {
         int n = (int) (ndx[i] * xbmul);
-        if (UNLIKELY(i >= p->tablen)) {
+        if (UNLIKELY(n >= p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
         rslt[i] = tab[n];
@@ -231,7 +229,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
     else {
       for (i=0; i<nsmps; i++) {
         int n = (int) ndx[i];
-        if (UNLIKELY(i >= p->tablen)) {
+        if (UNLIKELY(n >= p->tablen || n<0)) {
           return csound->PerfError(csound, Str("tab off end"));
         }
         rslt[i] = tab[n];
@@ -244,7 +242,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 {
     MYFLT             *ft;
     STDOPCOD_GLOBALS  *pp;
-    if (UNLIKELY(csound->GetTable(csound, &ft, (int) *(p->ifn)) < 0))
+    if (UNLIKELY(csound->GetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->tb_ptrs[ndx] = ft;
@@ -334,7 +332,7 @@ static void printi(CSOUND *csound, PRINTI *p)
 /* opcodes from Jens Groh */
 /* ====================== */
 
-static int nlalp_set(CSOUND *csound,NLALP *p)
+static int nlalp_set(CSOUND *csound, NLALP *p)
 {
    if (!(*p->istor)) {
      p->m0 = 0.0;
@@ -343,7 +341,7 @@ static int nlalp_set(CSOUND *csound,NLALP *p)
    return OK;
 }
 
-static int nlalp(CSOUND *csound,NLALP *p)
+static int nlalp(CSOUND *csound, NLALP *p)
 {
     int nsmps = csound->ksmps, n;
     MYFLT *rp;
@@ -478,8 +476,8 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     if (p->pamp.auxp==NULL ||
         p->pamp.size < (int32)(sizeof(MYFLT)*p->count))
       csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
-
-    memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
+    else                        /* AuxAlloc clear anyway */
+      memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
     /* count = (int)*p->icnt; */
     /* do { */
     /*   *pAmp++ = FL(0.0); */
@@ -669,6 +667,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
 static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
+    memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
     return OK;
 }
 

@@ -110,7 +110,7 @@ typedef struct {
               /*   representing the phase of the table            */    \
               if (*sld->ifn > 0)   *ftp = csound->FTFind(csound, sld->ifn); \
             }                                                           \
-            chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
+            chanblock[*slnum++] =  (MYFLT)(MYFLT2LRND(value * f7bit));  \
             min++; max++; ftp++; j++; sld++;                            \
         }                                                               \
     }                                                                   \
@@ -315,7 +315,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
             return csound->InitError(csound, sbuf);                     \
           }                                                             \
         }                                                               \
-        chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
+        chanblock[*slnum++] =  (MYFLT)MYFLT2LRND(value * f7bit);        \
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
         b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp * csound->tpidsr * csound->ksmps))); \
