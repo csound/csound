@@ -335,15 +335,16 @@ int pvstanalset(CSOUND *csound, PVST *p)
       csound->AuxAlloc(csound, (N) * sizeof(MYFLT), &p->win);
     p->scale = 0.f;
     for (i=0; i < N; i++)
-      p->scale += ((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N);
-
+      p->scale += (((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N));
+    for (i=0; i < N; i++)
+      ((MYFLT *)p->win.auxp)[i] *= 2./p->scale;
 
     p->rotfac = hsize*TWOPI/N;
     p->factor = csound->esr/(hsize*TWOPI);
     p->fund = csound->esr/N;
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
-    p->pos =  *p->offset*csound->esr;
+    p->pos =  *p->offset*csound->esr + hsize;
     p->accum = 0.0;
     return OK;
 }
@@ -393,8 +394,8 @@ int pvstanal(CSOUND *csound, PVST *p)
       }
 
       sizefrs = size/nchans;
-      while (spos > sizefrs) spos -= sizefrs;
-      while (spos <= 0)  spos += sizefrs;
+      while (spos > sizefrs - N - hsize) spos -= sizefrs;
+      while (spos <= hsize)  spos += sizefrs;
       pos = spos;
       for (j=0; j < nchans; j++) {
 
@@ -414,23 +415,24 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          if (post >= 0 && post < size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-          else in =  (MYFLT) 0;
+          /*if (post >= size) post -= size;
+	    else if (post < 0) post += size;*/
+          in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          if (post >= 0 && post < size)
-            in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
-          else in =  (MYFLT) 0;
+          /*if (post >= size) post -= size;
+	    else if (post < 0) post += size;*/
+          in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           bwin[i] = in * win[i];  /* window it */
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          if (post >= 0 && post < size) in =  tab[post];
-          else in =  (MYFLT) 0;
+          /*if (post >= size) post -= size;
+	    else if (post < 0) post += size;*/
+          in =  tab[post];
           nwin[i] = amp * in * win[i];
           /* increment read pos according to pitch transposition */
           pos += pitch;
@@ -451,7 +453,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         if (powrat > dbtresh) p->tscale=0;
         /*else tscale=1;*/
 
-        fwin[N] = fwin[1]/scale; fwin[0] = fwin[0]/scale;
+        /*fwin[N] = fwin[1]/scale; fwin[0] = fwin[0]/scale;*/
         fwin[N+1] = fwin[1] = 0.0;
 
         for (i=2,k=1; i < N; i+=2, k++) {
@@ -465,7 +467,7 @@ int pvstanal(CSOUND *csound, PVST *p)
           while(dph < -PI) dph += TWOPI;
           fout[i+1] = dph*factor + k*fund;
           /* mags */
-          fwin[i] /= scale; fwin[i+1] /= scale;
+          /* fwin[i] /= scale; fwin[i+1] /= scale; */
           fout[i] = sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
         }
 

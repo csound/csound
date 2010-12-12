@@ -103,8 +103,8 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
         */
         spos  = hsize*(int)((time[n])*csound->esr/hsize);
 	sizefrs = size/nchans;
-	while(spos > sizefrs) spos -= sizefrs;
-	while(spos <= 0)  spos += sizefrs;
+	while(spos > sizefrs - N) spos -= sizefrs;
+	while(spos <= hsize)  spos += sizefrs;
         pos = spos;
 
 	for(j = 0; j < nchans; j++) {
@@ -249,7 +249,7 @@ static int sinit2(CSOUND *csound, DATASPACE *p){
     for(i=0; i < p->nchans; i++)
     if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
-    p->pos = *p->offset*csound->esr;
+    p->pos = *p->offset*csound->esr + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
     return OK;
@@ -298,8 +298,8 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
                                              "sound file channels"));
 
         sizefrs = size/nchans;
-	while(spos > sizefrs) spos -= sizefrs;
-	while(spos <= 0)  spos += sizefrs;
+	while(spos > sizefrs - N - hsize) spos -= sizefrs;
+	while(spos <= hsize)  spos += sizefrs;
         pos = spos;
 
 	for(j = 0; j < nchans; j++) {
