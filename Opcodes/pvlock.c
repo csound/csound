@@ -109,8 +109,8 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
 
 	for(j = 0; j < nchans; j++) {
 
-         bwin = (float *) p->bwin[j].auxp;
-         fwin = (float *) p->fwin[j].auxp;
+         bwin = (MYFLT *) p->bwin[j].auxp;
+         fwin = (MYFLT *) p->fwin[j].auxp;
          prev = (MYFLT *)p->prev[j].auxp;
          framecnt  = (int *)p->framecount[j].auxp;
          outframe= (MYFLT *) p->outframe[j].auxp;
@@ -304,9 +304,9 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
 
 	for(j = 0; j < nchans; j++) {
 
-         bwin = (float *) p->bwin[j].auxp;
-         fwin = (float *) p->fwin[j].auxp;
-         nwin = (float *) p->nwin[j].auxp;
+         bwin = (MYFLT *) p->bwin[j].auxp;
+         fwin = (MYFLT *) p->fwin[j].auxp;
+         nwin = (MYFLT *) p->nwin[j].auxp;
          prev = (MYFLT *)p->prev[j].auxp;
          framecnt  = (int *)p->framecount[j].auxp;
          outframe= (MYFLT *) p->outframe[j].auxp;
