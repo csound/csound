@@ -1,3 +1,7 @@
+2010-12-17  John ff  <jpff@cs.bath.ac.uk>
+
+	* Opcodes/gab/vectorial.c: Lots of optimisations and corrections
+
 2010-12-10  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/gab/gab.c (isChanged_set): Initialise p->old_inargs

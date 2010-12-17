@@ -358,7 +358,7 @@ static int mtabw_i(CSOUND *csound, MTABIW *p)
 static int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("mtabw: incorrect table number"));
     }
     p->ftable = ftp->ftable;
@@ -446,19 +446,18 @@ static int vadd_i(CSOUND *csound, VECTOROPI *p)
 {
     FUNC    *ftp;
     MYFLT   *vector;
-    long    i, elements, dstoffset, len;
+    int32    i, elements, dstoffset, len;
     MYFLT   value = *p->kval;
 
     ftp = csound->FTnp2Find(csound, p->ifn);
-    if (ftp == NULL)  {
-      csound->InitError(csound,Str("vadd_i: invalid table number %i"),
-                        (int) *p->ifn);
-      return NOTOK;
+    if (UNLIKELY(ftp == NULL))  {
+      return csound->InitError(csound,Str("vadd_i: invalid table number %i"),
+                               (int) *p->ifn);
     }
     vector = ftp->ftable;
-    len = (long) ftp->flen;
-    elements = (long) *p->ielements;
-    dstoffset = (long) *p->idstoffset;
+    len = (int32) ftp->flen;
+    elements = MYFLT2LRND(*p->ielements);
+    dstoffset = MYFLT2LRND(*p->idstoffset);
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -466,7 +465,7 @@ static int vadd_i(CSOUND *csound, VECTOROPI *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
       csound->Warning(csound,Str("vadd_i: ifn length exceeded"));
     }
@@ -478,13 +477,13 @@ static int vadd_i(CSOUND *csound, VECTOROPI *p)
 static int vaddk(CSOUND *csound, VECTOROP *p)
 {
     int i, len;
-    long dstoffset, elements = (long)*p->kelements;
+    int32 dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
-    value = (MYFLT)*p->kval;
+    value = *p->kval;
     len = p->len;
-    dstoffset = (long)*p->kdstoffset;
+    dstoffset = MYFLT2LRND(*p->kdstoffset);
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -492,9 +491,9 @@ static int vaddk(CSOUND *csound, VECTOROP *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vadd: ifn1 length exceeded"));
     }
     for (i = 0; i < elements; i++)
@@ -506,19 +505,18 @@ static int vmult_i(CSOUND *csound, VECTOROPI *p)
 {
     FUNC    *ftp;
     MYFLT   *vector;
-    long    i, elements, dstoffset, len;
+    int32    i, elements, dstoffset, len;
     MYFLT   value = *p->kval;
 
     ftp = csound->FTnp2Find(csound, p->ifn);
-    if (ftp == NULL)  {
-      csound->InitError(csound,Str("vadd_i: invalid table number %i"),
+    if (UNLIKELY(ftp == NULL))  {
+      return csound->InitError(csound,Str("vadd_i: invalid table number %i"),
                         (int) *p->ifn);
-      return NOTOK;
     }
     vector = ftp->ftable;
-    len = (long) ftp->flen;
-    elements = (long) *p->ielements;
-    dstoffset = (long) *p->idstoffset;
+    len = (int32) ftp->flen;
+    elements = MYFLT2LRND(*p->ielements);
+    dstoffset = MYFLT2LRND(*p->idstoffset);
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -526,7 +524,7 @@ static int vmult_i(CSOUND *csound, VECTOROPI *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
       csound->Warning(csound,Str("vmult_i: ifn length exceeded"));
     }
@@ -538,13 +536,13 @@ static int vmult_i(CSOUND *csound, VECTOROPI *p)
 static int vmultk(CSOUND *csound, VECTOROP *p)
 {
     int i, len;
-    long dstoffset, elements = (long)*p->kelements;
+    int32 dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
     value = (MYFLT)*p->kval;
     len = p->len;
-    dstoffset = (long)*p->kdstoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -552,9 +550,9 @@ static int vmultk(CSOUND *csound, VECTOROP *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vmult: ifn1 length exceeded"));
     }
     for (i = 0; i < elements; i++)
@@ -566,19 +564,19 @@ static int vpow_i(CSOUND *csound, VECTOROPI *p)
 {
     FUNC    *ftp;
     MYFLT   *vector;
-    long    i, elements, dstoffset, len;
+    int32    i, elements, dstoffset, len;
     MYFLT   value = *p->kval;
 
     ftp = csound->FTnp2Find(csound, p->ifn);
-    if (ftp == NULL)  {
+    if (UNLIKELY(ftp == NULL))  {
       csound->InitError(csound,Str("vpow_i: invalid table number %i"),
                         (int) *p->ifn);
       return NOTOK;
     }
     vector = ftp->ftable;
-    len = (long) ftp->flen;
-    elements = (long) *p->ielements;
-    dstoffset = (long) *p->idstoffset;
+    len = (int32) ftp->flen;
+    elements = (int32) *p->ielements;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -586,12 +584,12 @@ static int vpow_i(CSOUND *csound, VECTOROPI *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
       csound->Warning(csound,Str("vpow_i: ifn length exceeded"));
     }
     for (i = 0; i < elements; i++)
-      vector[i] = pow(vector[i], value);
+      vector[i] = POWER(vector[i], value);
 
     return OK;
 }
@@ -599,13 +597,13 @@ static int vpow_i(CSOUND *csound, VECTOROPI *p)
 static int vpowk(CSOUND *csound, VECTOROP *p)
 {
     int i, len;
-    long dstoffset, elements = (long)*p->kelements;
+    int32 dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
     value = (MYFLT)*p->kval;
     len = p->len;
-    dstoffset = (long)*p->kdstoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -613,13 +611,13 @@ static int vpowk(CSOUND *csound, VECTOROP *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vpow: ifn1 length exceeded"));
     }
     for (i = 0; i < elements; i++)
-      vector[i] = pow(vector[i], value);
+      vector[i] = POWER(vector[i], value);
     return OK;
 }
 
@@ -627,19 +625,18 @@ static int vexp_i(CSOUND *csound, VECTOROPI *p)
 {
     FUNC    *ftp;
     MYFLT   *vector;
-    long    i, elements, dstoffset, len;
+    int32    i, elements, dstoffset, len;
     MYFLT   value = *p->kval;
 
     ftp = csound->FTnp2Find(csound, p->ifn);
-    if (ftp == NULL)  {
-      csound->InitError(csound,Str("vexp_i: invalid table number %i"),
-                        (int) *p->ifn);
-      return NOTOK;
+    if (UNLIKELY(ftp == NULL))  {
+      return csound->InitError(csound,Str("vexp_i: invalid table number %i"),
+                               (int) *p->ifn);
     }
     vector = ftp->ftable;
-    len = (long) ftp->flen;
-    elements = (long) *p->ielements;
-    dstoffset = (long) *p->idstoffset;
+    len = (int32) ftp->flen;
+    elements = (int32) *p->ielements;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -647,25 +644,25 @@ static int vexp_i(CSOUND *csound, VECTOROPI *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
       csound->Warning(csound,Str("vexp_i: ifn length exceeded"));
     }
     for (i = 0; i < elements; i++)
-      vector[i] = pow(value, vector[i]);
+      vector[i] = POWER(value, vector[i]);
     return OK;
 }
 
 static int vexpk(CSOUND *csound, VECTOROP *p)
 {
     int i, len;
-    long dstoffset, elements = (long)*p->kelements;
+    int32 dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
     value = (MYFLT)*p->kval;
     len = p->len;
-    dstoffset = (long)*p->kdstoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
     }
@@ -673,13 +670,13 @@ static int vexpk(CSOUND *csound, VECTOROP *p)
       len -= dstoffset;
       vector += dstoffset;
     }
-    if (elements > len)  {
+    if (UNLIKELY(elements > len))  {
       elements = len;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vexp: ifn1 length exceeded"));
     }
     for (i = 0; i < elements; i++)
-      vector[i] += pow(value, vector[i]);
+      vector[i] += POWER(value, vector[i]);
     return OK;
 }
 
@@ -692,27 +689,25 @@ static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
        csound->Warning(csound, Str("vectorsop: ifn1 = ifn2."));*/
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL)  {
-      csound->InitError(csound,
-                        Str("vectorsop: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vectorsop: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vectorsop: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vectorsop: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
     p->vector1 = ftp1->ftable;
     p->vector2 = ftp2->ftable;
     /*int elements = (int) *p->kelements;
-    p->dstoffset = (long) *p->kdstoffset;
-    p->srcoffset = (long) *p->ksrcoffset;*/
-    p->len1 = (long) ftp1->flen+1;  /* Guard point included */
-    p->len2 = (long) ftp2->flen+1;/*
-    if ((elements | (long) *p->kdstoffset) < 0L ||
-         (elements + (long) *p->kdstoffset)  > p->len1) {
+    p->dstoffset = (int32) *p->kdstoffset;
+    p->srcoffset = (int32) *p->ksrcoffset;*/
+    p->len1 = (int32) ftp1->flen+1;  /* Guard point included */
+    p->len2 = (int32) ftp2->flen+1;/*
+    if ((elements | (int32) *p->kdstoffset) < 0L ||
+         (elements + (int32) *p->kdstoffset)  > p->len1) {
       return csound->Warning(csound, Str("vectorops: Destination table length exceeded"));
     }*/
     return OK;
@@ -721,14 +716,14 @@ static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
 static int vcopy(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -737,9 +732,9 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vcopy: ifn1 length exceeded"));
     }
      /*elements = (elements < len1 ? elements : len1);*/
@@ -756,8 +751,8 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
         /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vcopy: ifn2 length exceeded"));
       n = len2;
     }
@@ -771,7 +766,7 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
     for (; i < n; i++)
       vector1[i] = vector2[i];
     for ( ; i < elements; i++)
-      vector1[i] = 0;
+      vector1[i] = FL(0.0);
     return OK;
 }
 
@@ -779,31 +774,29 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL)  {
-      csound->InitError(csound,
-                        Str("vcopy_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vcopy_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vcopy_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vcopy_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
 /*     if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vcopy_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -812,7 +805,7 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vcopy_i: ifn1 length exceeded"));
     }
@@ -821,7 +814,7 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
       /*int   i, */n = -srcoffset;
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -830,7 +823,7 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
 /*     n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vcopy_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -844,21 +837,21 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
     for ( ; i < n; i++)
       vector1[i] = vector2[i];
     for ( ; i < elements; i++)
-      vector1[i] = 0;
+      vector1[i] = FL(0.0);
     return OK;
 }
 
 static int vaddvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -867,9 +860,9 @@ static int vaddvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vaddv: ifn1 length exceeded"));
     }
 /*     elements = (elements < len1 ? elements : len1);*/
@@ -887,8 +880,8 @@ static int vaddvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vaddv: ifn2 length exceeded"));
       n = len2;
     }
@@ -910,30 +903,28 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, n, elements, srcoffset, dstoffset, len1, len2;
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vaddv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vaddv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vaddv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vaddv_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
     /* if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vaddv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -942,7 +933,7 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vaddv_i: ifn1 length exceeded"));
     }
@@ -952,7 +943,7 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
       n = -srcoffset;
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -974,14 +965,14 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
 static int vsubvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -990,9 +981,9 @@ static int vsubvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vsubv: ifn1 length exceeded"));
     }
         /* elements = (elements < len1 ? elements : len1);*/
@@ -1010,8 +1001,8 @@ static int vsubvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+          if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vsubv: ifn2 length exceeded"));
       n = len2;
     }
@@ -1033,31 +1024,29 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vsubv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vsubv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vsubv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vsubv_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
 /*     if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vsubv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1066,7 +1055,7 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vsubv_i: ifn1 length exceeded"));
     }
@@ -1085,7 +1074,7 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
         /* n = (elements < len2 ? elements : len2); */
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vsubv_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -1104,14 +1093,14 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
 static int vmultvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1120,9 +1109,9 @@ static int vmultvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vmultv: ifn1 length exceeded"));
     }
     /*elements = (elements < len1 ? elements : len1);*/
@@ -1140,8 +1129,8 @@ static int vmultvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY(elements > len2)) {
+        if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vmultv: ifn2 length exceeded"));
       n = len2;
     }
@@ -1163,31 +1152,29 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vmultv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vmultv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vmultv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vmultv_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
 /*     if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vmultv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp1->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp1->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1196,7 +1183,7 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vmultv_i: ifn1 length exceeded"));
     }
@@ -1205,7 +1192,7 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
       /*int   i, */n = -srcoffset;
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -1214,7 +1201,7 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vmultv_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -1233,14 +1220,14 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
 static int vdivvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1249,9 +1236,9 @@ static int vdivvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vdivv: ifn1 length exceeded"));
     }
         /* elements = (elements < len1 ? elements : len1); */
@@ -1269,8 +1256,8 @@ static int vdivvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vdivv: ifn2 length exceeded"));
       n = len2;
     }
@@ -1292,31 +1279,29 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vdivv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vdivv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vdivv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vdivv_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
      /*if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vdivv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1325,7 +1310,7 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vdivv_i: ifn1 length exceeded"));
     }
@@ -1335,7 +1320,7 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
       /*int   i, n = -srcoffset; */
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -1344,7 +1329,7 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vdivv_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -1363,14 +1348,14 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
 static int vpowvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1379,9 +1364,9 @@ static int vpowvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vpowv: ifn1 length exceeded"));
     }
     /*elements = (elements < len1 ? elements : len1);*/
@@ -1399,8 +1384,8 @@ static int vpowvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
         /* n = (elements < len2 ? elements : len2); */
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vpowv: ifn2 length exceeded"));
       n = len2;
     }
@@ -1409,10 +1394,10 @@ static int vpowvk(CSOUND *csound,VECTORSOP *p)
     if (p->vector1 == p->vector2 && vector1 > vector2) {
       /* special case: need to reverse direction */
       for (j = n; --j >= 0; i++)
-        vector1[j] = (MYFLT) pow (vector1[j], vector2[j]);
+        vector1[j] = POWER(vector1[j], vector2[j]);
     }
     for ( ; i < n; i++)
-      vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
+      vector1[i] = POWER(vector1[i], vector2[i]);
     /*for ( ; i < elements; i++)
       vector1[i] = 0;*/
     return OK;
@@ -1422,31 +1407,29 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
 {
   FUNC    *ftp1, *ftp2;
   MYFLT   *vector1, *vector2;
-  long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+  int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
   ftp1 = csound->FTnp2Find(csound, p->ifn1);
   ftp2 = csound->FTnp2Find(csound, p->ifn2);
-  if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vpowv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+  if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vpowv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vpowv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+  else if (UNLIKELY(ftp2 == NULL))  {
+    return csound->InitError(csound,
+                             Str("vpowv_i: ifn2 invalid table number %i"),
+                             (int) *p->ifn2);
     }
      /*if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vpowv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1455,7 +1438,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vpowv_i: ifn1 length exceeded"));
     }
@@ -1464,7 +1447,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
       /*int   i, */n = -srcoffset;
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -1473,7 +1456,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vpowv_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -1482,24 +1465,24 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
     if (p->vector1 == p->vector2 && vector1 > vector2) {
       /*special case: need to reverse direction*/
       for (j = n; --j >= 0; i++)
-        vector1[j] = (MYFLT) pow (vector1[j], vector2[j]);
+        vector1[j] = POWER(vector1[j], vector2[j]);
     }
     for (i = 0; i < n; i++)
-      vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
+      vector1[i] = POWER(vector1[i], vector2[i]);
     return OK;
 }
 
 static int vexpvk(CSOUND *csound,VECTORSOP *p)
 {
     int i, j, n;
-    long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
+    int32 len1, len2, srcoffset, dstoffset, elements = (int32)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
     vector2 = p->vector2;
     len1 = p->len1;
     len2 = p->len2;
-    srcoffset = (long)*p->ksrcoffset;
-    dstoffset = (long)*p->kdstoffset;
+    srcoffset = (int32)*p->ksrcoffset;
+    dstoffset = (int32)*p->kdstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1508,9 +1491,9 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
-      if ((int) *p->kverbose != 0)
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vexpv: ifn1 length exceeded"));
     }
         /* elements = (elements < len1 ? elements : len1); */
@@ -1528,8 +1511,8 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
       vector2 += srcoffset;
     }
      /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
-      if ((int) *p->kverbose != 0)
+    if (UNLIKELY(elements > len2)) {
+      if (UNLIKELY((int) *p->kverbose != 0))
         csound->Warning(csound,Str("vexpv: ifn2 length exceeded"));
       n = len2;
     }
@@ -1538,10 +1521,10 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
     if (p->vector1 == p->vector2 && vector1 > vector2) {
       /* special case: need to reverse direction */
       for (j = n; --j >= 0; i++)
-        vector1[j] = (MYFLT) pow (vector2[j], vector1[j]);
+        vector1[j] = POWER(vector2[j], vector1[j]);
     }
     for ( ; i < n; i++)
-      vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);
+      vector1[i] = POWER(vector2[i], vector1[i]);
     /* for ( ; i < elements; i++)
       vector1[i] = 1;*/
     return OK;
@@ -1551,31 +1534,29 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
 {
   FUNC    *ftp1, *ftp2;
   MYFLT   *vector1, *vector2;
-  long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+  int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
   ftp1 = csound->FTnp2Find(csound, p->ifn1);
   ftp2 = csound->FTnp2Find(csound, p->ifn2);
-  if (ftp1 == NULL) {
-      csound->InitError(csound,
-                        Str("vexpv_i: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
-    }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vexpv_i: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+  if (UNLIKELY(ftp1 == NULL)) {
+      return csound->InitError(csound,
+                               Str("vexpv_i: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
+  }
+  else if (UNLIKELY(ftp2 == NULL))  {
+    return csound->InitError(csound,
+                             Str("vexpv_i: ifn2 invalid table number %i"),
+                             (int) *p->ifn2);
     }
     /*if (*p->ifn1 == *p->ifn2)
       csound->Warning(csound, Str("vexpv_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1584,7 +1565,7 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vexpv_i: ifn1 length exceeded"));
     }
@@ -1594,7 +1575,7 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
       /*int   i, n = -srcoffset; */
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -1603,7 +1584,7 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
       vector2 += srcoffset;
     }
     /*n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vexpv_i: ifn2 length exceeded"));
       n = len2;
     }
@@ -1612,10 +1593,10 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
     if (p->vector1 == p->vector2 && vector1 > vector2) {
       /* special case: need to reverse direction */
       for (j = n; --j >= 0; i++)
-        vector1[j] = (MYFLT) pow (vector2[j], vector1[j]);
+        vector1[j] = POWER(vector2[j], vector1[j]);
     }
     for ( ; i < n; i++)
-      vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);
+      vector1[i] = POWER(vector2[i], vector1[i]);
     return OK;
 }
 
@@ -1635,36 +1616,34 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    int32    i, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
-    if (*p->ifn1 == *p->ifn2) {
-      csound->InitError(csound,
-                        Str("vmap: Error: ifn1 and ifn2 can not be the same"));
-      return NOTOK;
+    if (UNLIKELY(*p->ifn1 == *p->ifn2)) {
+      return csound->InitError(csound,
+                               Str("vmap: Error: ifn1 and ifn2 can not "
+                                   "be the same"));
     }
-    if (ftp1 == NULL)  {
-      csound->InitError(csound,
-                        Str("vmap: ifn1 invalid table number %i"),
-                        (int) *p->ifn1);
-      return NOTOK;
+    if (UNLIKELY(ftp1 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vmap: ifn1 invalid table number %i"),
+                               (int) *p->ifn1);
     }
-    else if (ftp2 == NULL)  {
-      csound->InitError(csound,
-                        Str("vmap: ifn2 invalid table number %i"),
-                        (int) *p->ifn2);
-      return NOTOK;
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vmap: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
 /*     if (*p->ifn1 == *p->ifn2)
        csound->Warning(csound, Str("vcopy_i: ifn1 = ifn2."));*/
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
-    len1 = (long) ftp1->flen+1;
-    len2 = (long) ftp2->flen+1;
-    elements = (long) *p->ielements;
-    srcoffset = (long) *p->isrcoffset;
-    dstoffset = (long) *p->idstoffset;
+    len1 = (int32) ftp1->flen+1;
+    len2 = (int32) ftp2->flen+1;
+    elements = (int32) *p->ielements;
+    srcoffset = (int32) *p->isrcoffset;
+    dstoffset = (int32) *p->idstoffset;
     if (dstoffset < 0) {
       elements += dstoffset;
       srcoffset -= dstoffset;
@@ -1673,7 +1652,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
       len1 -= dstoffset;
       vector1 += dstoffset;
     }
-    if (elements > len1)  {
+    if (UNLIKELY(elements > len1))  {
       elements = len1;
       csound->Warning(csound,Str("vmap: ifn1 length exceeded"));
     }
@@ -1682,7 +1661,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
       /*int   i, */n = -srcoffset;
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
-        vector1[i] = 0;
+        vector1[i] = FL(0.0);
       elements -= i;
       vector1 += i;
     }
@@ -1691,7 +1670,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
       vector2 += srcoffset;
     }
 /*     n = (elements < len2 ? elements : len2);*/
-    if (elements > len2) {
+    if (UNLIKELY(elements > len2)) {
       csound->Warning(csound,Str("vmap: ifn2 length exceeded"));
       n = len2;
     }
@@ -1700,7 +1679,7 @@ static int vmap_i(CSOUND *csound,VECTORSOPI *p)
     for ( ; i < n; i++)
       vector1[i] = vector2[(int)vector1[i]];
     for ( ; i < elements; i++)
-      vector1[i] = 0;
+      vector1[i] = FL(0.0);
     return OK;
 }
 
@@ -1711,7 +1690,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if ( p->elements > ftp->flen ) {
+    if (UNLIKELY(p->elements > ftp->flen )) {
       return csound->InitError(csound, "vectorop: invalid num of elements");
     }
     return OK;
@@ -1736,18 +1715,20 @@ static int vport_set(CSOUND *csound,VPORT *p)
     int elements;
     MYFLT *vector, *yt1,*vecInit  = NULL;
 
-    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL)) {
       vector = (p->vector = ftp->ftable);
       elements = (p->elements = (int) *p->ielements);
-      if ( elements > ftp->flen )
-        return csound->InitError(csound, "vport: invalid table length or num of elements");
+      if (UNLIKELY(elements > ftp->flen) )
+        return csound->InitError(csound,
+                                 "vport: invalid table length or num of elements");
     }
     else return csound->InitError(csound, "vport: invalid table");
-    if (*p->ifnInit) {
-      if ((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL) {
+    if (LIKELY(*p->ifnInit)) {
+      if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL)) {
         vecInit = ftp->ftable;
-        if ( elements > ftp->flen )
-          return csound->InitError(csound, "vport: invalid init table length or num of elements");
+        if (UNLIKELY(elements > ftp->flen) )
+          return csound->InitError(csound, "vport: invalid init table length"
+                                   " or num of elements");
       }
       else return csound->InitError(csound, "vport: invalid init table");
     }
@@ -1758,7 +1739,8 @@ static int vport_set(CSOUND *csound,VPORT *p)
       do {
         *yt1++ = *vecInit++;
       } while (--elements);
-    } else {
+    }
+    else {
       do {
         *yt1++ = FL(0.0);
       } while (--elements);
@@ -1788,7 +1770,7 @@ static int vport(CSOUND *csound,VPORT *p)
 /*-------------------------------*/
 static int vwrap(CSOUND *csound,VLIMIT *p)
 {
-    int elements = p->elements;
+    int elements = p->elements; 
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
 
@@ -1801,11 +1783,11 @@ static int vwrap(CSOUND *csound,VLIMIT *p)
     else {
       do {
         if (*vector >= max) {
-          *vector = min + (MYFLT) fmod(*vector - min, fabs(min-max));
+          *vector = min + FMOD(*vector - min, FABS(min-max));
           vector++;
         }
         else {
-          *vector = max - (MYFLT) fmod(max - *vector, fabs(min-max));
+          *vector = max - FMOD(max - *vector, FABS(min-max));
           vector++;
         }
       } while (--elements);
@@ -1848,12 +1830,12 @@ static int vmirror(CSOUND *csound,VLIMIT *p)
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
 
-static long randint31(long seed31)
+static int32 randint31(int32 seed31)
 {
-    unsigned long rilo, rihi;
+    uint32 rilo, rihi;
 
-    rilo = RIA * (long)(seed31 & 0xFFFF);
-    rihi = RIA * (long)((unsigned long)seed31 >> 16);
+    rilo = RIA * (int32)(seed31 & 0xFFFF);
+    rihi = RIA * (int32)((uint32)seed31 >> 16);
     rilo += (rihi & 0x7FFF) << 16;
     if (rilo > RIM) {
       rilo &= RIM;
@@ -1864,7 +1846,7 @@ static long randint31(long seed31)
       rilo &= RIM;
       ++rilo;
     }
-    return (long)rilo;
+    return (int32)rilo;
 }
 
 static int vrandh_set(CSOUND *csound,VRANDH *p)
@@ -1872,36 +1854,40 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     FUNC        *ftp;
     int elements = 0;
     MYFLT *num1;
-    unsigned long seed;
-    long r;
+    uint32 seed;
+    int32 r;
 
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
         seed = csound->GetRandomSeedFromTime();
         if (*p->isize == 0) {
-          p->rand = (long) (seed & 0xFFFFUL);
+          p->rand = (int32) (seed & 0xFFFFUL);
         }
         else {
-          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+          p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
-        csound->Message(csound, Str("vrandh: Seeding from current time %lu\n"), seed);
+        csound->Message(csound,
+                        Str("vrandh: Seeding from current time %lu\n"),
+                        seed);
       }
       else {
         if (*p->isize == 0)
           p->rand = 0xffff&(short)(*p->iseed * 32768L);   /* init rand integ    */
         else
-          p->rand = (long) (*p->iseed * FL(2147483648.0));
+          p->rand = (int32) (*p->iseed * FL(2147483648.0));
       }
       if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
         p->elements = (int) *p->ielements;
         p->offset = (int) *p->idstoffset;
       }
       else return csound->InitError(csound, "vrandh: Invalid table.");
-      if ( *p->idstoffset >= ftp->flen)
-        csound->InitError(csound, "vrandh: idstoffset is greater than table length.");
+      if (UNLIKELY(*p->idstoffset >= ftp->flen))
+        return csound->InitError(csound,
+                                 "vrandh: idstoffset is greater than table length.");
       p->vector = ftp->ftable + p->offset;
-      if ( p->elements + p->offset > ftp->flen ) {
-        csound->Warning(csound, "vrandh: Table length exceeded, last elements discarded.");
+      if (UNLIKELY(p->elements + p->offset > ftp->flen)) {
+        csound->Warning(csound,
+                        "randh: Table length exceeded, last elements discarded.");
         p->elements = p->offset - ftp->flen;
       }
     }
@@ -1913,11 +1899,11 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
     do {
       if (*p->isize == 0) {
         *num1++ = (MYFLT) ((short) r) * DV32768;
-        r = (long) (r & 0xFFFFUL);
+        r = (int32) (r & 0xFFFFUL);
       }
       else {
         // 31-bit PRNG
-        *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        *num1++ = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
         r = randint31( r);
       }
     } while (--elements);
@@ -1931,13 +1917,13 @@ static int vrandh(CSOUND *csound,VRANDH *p)
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
     int elements = p->elements;
-    long r;
+    int32 r;
 
     do {
       *vector++ = (*num1++ * value) + *p->ioffset;
     } while (--elements);
 
-    p->phs += (long)(*p->kcps * csound->kicvt);
+    p->phs += (int32)(*p->kcps * csound->kicvt);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
@@ -1952,7 +1938,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
         }
         else {
           // 31-bit PRNG
-          *num1++ = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+          *num1++ = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
           r = randint31(r);
         }
       } while (--elements);
@@ -1966,36 +1952,39 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
     FUNC        *ftp;
     int elements = 0;
     MYFLT *dfdmax, *num1, *num2;
-    unsigned long seed;
-    long r;
+    uint32 seed;
+    int32 r;
 
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
         seed = csound->GetRandomSeedFromTime();
         if (*p->isize == 0) {
-          p->rand = (long) (seed & 0xFFFFUL);
+          p->rand = (int32) (seed & 0xFFFFUL);
         }
         else {
-          p->rand = (long) (seed % 0x7FFFFFFEUL) + 1L;
+          p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
-        csound->Message(csound, Str("vrandi: Seeding from current time %lu\n"), seed);
+        csound->Message(csound,
+                        Str("vrandi: Seeding from current time %lu\n"), seed);
       }
       else {
         if (*p->isize == 0)
           p->rand = 0xffff&(short)(*p->iseed * 32768L);   /* init rand integ    */
         else
-          p->rand = (long) (*p->iseed * FL(2147483648.0));
+          p->rand = (int32) (*p->iseed * FL(2147483648.0));
       }
-      if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+      if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL)) {
         p->elements = (int) *p->ielements;
         p->offset = (int) *p->idstoffset;
       }
       else return csound->InitError(csound, "vrandi: Invalid table.");
-      if ( p->offset >= ftp->flen)
-        csound->InitError(csound, "vrandi: idstoffset is greater than table length.");
+      if (UNLIKELY(p->offset >= ftp->flen))
+        return csound->InitError(csound,
+                                 "vrandi: idstoffset is greater than table length.");
       p->vector = ftp->ftable + p->offset;
-      if ( p->elements > ftp->flen ) {
-        csound->Warning(csound, "vrandi: Table length exceeded, last elements discarded.");
+      if (UNLIKELY(p->elements > ftp->flen)) {
+        csound->Warning(csound,
+                        "vrandi: Table length exceeded, last elements discarded.");
         p->elements = p->offset - ftp->flen;
       }
     }
@@ -2011,11 +2000,11 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
       *num1 = FL(0.0);
       if (*p->isize == 0) {
         *num2 = (MYFLT) ((short) r) * DV32768;
-        r = (long) (r & 0xFFFFUL);
+        r = (int32) (r & 0xFFFFUL);
       }
       else {
         // 31-bit PRNG
-        *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        *num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
         r = randint31(r);
       }
       *dfdmax++ = (*num2++ - *num1++) / FMAXLEN;
@@ -2030,13 +2019,14 @@ static int vrandi(CSOUND *csound,VRANDI *p)
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
     int elements = p->elements;
-    long r;
+    int32 r;
 
     do {
-      *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) + *p->ioffset;
+      *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) +
+        *p->ioffset;
     } while (--elements);
 
-    p->phs += (long)(*p->kcps * csound->kicvt);
+    p->phs += (int32)(*p->kcps * csound->kicvt);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
@@ -2054,7 +2044,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
         }
         else {
           // 31-bit PRNG
-          *num2 = (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
+          *num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
           r = randint31(r);
         }
         *dfdmax++ = ((MYFLT)*num2++ - (MYFLT)*num1++) / FMAXLEN;
@@ -2068,46 +2058,46 @@ static int vecdly_set(CSOUND *csound,VECDEL *p)
 {
     FUNC        *ftp;
     int elements = (p->elements = (int) *p->ielements), j;
-    long n;
+    int32 n;
 
-    if ((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL)) {
       p->outvec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if ( elements > ftp->flen )
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid output table");
-    if ((ftp = csound->FTnp2Find(csound,p->ifnIn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnIn)) != NULL)) {
       p->invec = ftp->ftable;
-      if (elements > ftp->flen)
+      if (UNLIKELY(elements > ftp->flen))
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid input table");
-    if ((ftp = csound->FTnp2Find(csound,p->ifnDel)) != NULL) {
+    if (LIKELY(ftp = csound->FTnp2Find(csound,p->ifnDel) != NULL)) {
       p->dlyvec = ftp->ftable;
-      if ( elements > ftp->flen )
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid delay table");
 
-    n = (p->maxd = (long) (*p->imaxd * csound->ekr));
+    n = (p->maxd = (int32) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL ||
           (int)(elements * sizeof(MYFLT *)
                 + n * elements * sizeof(MYFLT)
-                + elements * sizeof(long)) > p->aux.size) {
+                + elements * sizeof(int32)) > p->aux.size) {
         csound->AuxAlloc(csound, elements * sizeof(MYFLT *)
                  + n * elements * sizeof(MYFLT)
-                 + elements * sizeof(long),
+                 + elements * sizeof(int32),
                  &p->aux);
         p->buf= (MYFLT **) p->aux.auxp;
         for (j = 0; j < elements; j++) {
           p->buf[j] = (MYFLT*) ((char*) p->aux.auxp + sizeof(MYFLT*) * elements
                                                     + sizeof(MYFLT) * n * j);
         }
-        p->left = (long*) ((char*) p->aux.auxp + sizeof(MYFLT*) * elements
+        p->left = (int32*) ((char*) p->aux.auxp + sizeof(MYFLT*) * elements
                                                + sizeof(MYFLT) * n * elements);
       }
       else {
@@ -2128,11 +2118,11 @@ static int vecdly_set(CSOUND *csound,VECDEL *p)
 
 static int vecdly(CSOUND *csound,VECDEL *p)
 {
-    long maxd = p->maxd, *indx=p->left, v1, v2;
+    int32 maxd = p->maxd, *indx=p->left, v1, v2;
     MYFLT **buf = p->buf, fv1, fv2, *inVec = p->invec;
     MYFLT *outVec = p->outvec, *dlyVec = p->dlyvec;
     int elements = p->elements;
-    if (buf==NULL) {
+    if (UNLIKELY(buf==NULL)) {
       return csound->InitError(csound, "vecdly: not initialized");
     }
     do {
@@ -2142,8 +2132,8 @@ static int vecdly(CSOUND *csound,VECDEL *p)
       while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
       if (fv1 < maxd - 1) fv2 = fv1 + 1;
       else                fv2 = FL(0.0);
-      v1 = (long)fv1;
-      v2 = (long)fv2;
+      v1 = (int32)fv1;
+      v2 = (int32)fv2;
       *outVec++ = (*buf)[v1] + (fv1 - v1) * ((*buf)[v2]-(*buf)[v1]);
       ++buf;
       if (++(*indx) == maxd) *indx = 0;
@@ -2158,12 +2148,12 @@ static int vseg_set(CSOUND *csound,VSEG *p)
     int nsegs;
     MYFLT       **argp, dur, *vector;
     FUNC *nxtfunc, *curfunc, *ftp;
-    long        flength;
+    int32        flength;
 
     nsegs = ((p->INCOUNT-2) >> 1);      /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
-      csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG *) p->auxch.auxp;
       (segp+nsegs)->cnt = MAXPOS;
     }
@@ -2174,7 +2164,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if ( p->elements > ftp->flen )
+    if (UNLIKELY( p->elements > ftp->flen ))
       return csound->InitError(csound, "vlinseg/vexpseg: invalid num. of elements");
 
     /* memset(p->vector, 0, sizeof(MYFLT)*p->elements); */
@@ -2197,7 +2187,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
         segp->d = dur * csound->ekr;
         segp->function =  curfunc;
         segp->nxtfunction = nxtfunc;
-        segp->cnt = (long) (segp->d + .5);
+        segp->cnt = (int32) (segp->d + .5);
       }
       else break;               /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -2213,15 +2203,14 @@ static int vlinseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0), *vector;
-    long        flength, upcnt;
-    if (p->auxch.auxp==NULL) {
-      /* csound->InitError(csound, Str(X_1270,"tableseg: not initialized")); */
+    int32        flength, upcnt;
+    if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->InitError(csound, "tableseg: not initialized");
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (long)segp->d-segp->cnt;
+    upcnt = (int32)segp->d-segp->cnt;
     if (upcnt > 0)
       durovercnt = segp->d/upcnt;
     while (--segp->cnt < 0)
@@ -2243,16 +2232,15 @@ static int vexpseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0), *vector;
-    long        flength, upcnt;
+    int32        flength, upcnt;
 
-    if (p->auxch.auxp==NULL) {
-      /* csound->InitError(csound, Str(X_1271,"tablexseg: not initialized")); */
+    if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->InitError(csound, "tablexseg: not initialized");
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (long)segp->d-segp->cnt;
+    upcnt = (int32)segp->d-segp->cnt;
     if (upcnt > 0) cntoverdur = upcnt/ segp->d;
     while(--segp->cnt < 0)
       p->cursegp = ++segp;
@@ -2277,12 +2265,12 @@ static int vphaseseg_set(CSOUND *csound,VPSEG *p)
     MYFLT       **argp,  *vector;
     double dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
-    long        flength;
+    int32        flength;
 
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
-      csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
       /* (segp+nsegs)->cnt = MAXPOS;  */
     }
@@ -2316,7 +2304,7 @@ static int vphaseseg_set(CSOUND *csound,VPSEG *p)
         segp->d = dur; /* * csound->ekr; */
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
-        /* segp->cnt = (long) (segp->d + .5);  */
+        /* segp->cnt = (int32) (segp->d + .5);  */
       }
       else break;               /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -2378,9 +2366,9 @@ static int vphaseseg(CSOUND *csound,VPSEG *p)
 /* ------------------------- */
 static int kdel_set(CSOUND *csound,KDEL *p)
 {
-    unsigned long n;
+    uint32 n;
     MYFLT *buf;
-    n = (p->maxd = (long) (*p->imaxd * csound->ekr));
+    n = (p->maxd = (int32) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
@@ -2400,10 +2388,10 @@ static int kdel_set(CSOUND *csound,KDEL *p)
 
 static int kdelay(CSOUND *csound,KDEL *p)
 {
-    long maxd = p->maxd, indx, v1, v2;
+    int32 maxd = p->maxd, indx, v1, v2;
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
 
-    if (buf==NULL) {
+    if (UNLIKELY(buf==NULL)) {
       return csound->InitError(csound, "vdelayk: not initialized");
     }
 
@@ -2413,13 +2401,13 @@ static int kdelay(CSOUND *csound,KDEL *p)
     while (fv1 < FL(0.0))       fv1 += (MYFLT)maxd;
     while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
     if (*p->interp) { /*  no interpolation */
-      *p->kr = buf[(long) fv1];
+      *p->kr = buf[(int32) fv1];
     }
     else {
       if (fv1 < maxd - 1) fv2 = fv1 + 1;
       else                fv2 = FL(0.0);
-      v1 = (long)fv1;
-      v2 = (long)fv2;
+      v1 = (int32)fv1;
+      v2 = (int32)fv2;
       *p->kr = buf[v1] + (fv1 - v1) * (buf[v2]-buf[v1]);
     }
     if (++(p->left) == maxd) p->left = 0;
@@ -2433,20 +2421,20 @@ static int ca_set(CSOUND *csound,CELLA *p)
     int elements;
     MYFLT *currLine, *initVec = NULL;
 
-    if ((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if ( elements > ftp->flen )
+      if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound, "cella: invalid num of elements");
     }
     else return csound->InitError(csound, "cella: invalid output table");
-    if ((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
-      if ( elements > ftp->flen )
+      if (UNLIKELY(elements > ftp->flen ))
         return csound->InitError(csound, "cella: invalid num of elements");
     }
     else return csound->InitError(csound, "cella: invalid initial state table");
-    if ((ftp = csound->FTnp2Find(csound,p->iRuleFunc)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
     else return csound->InitError(csound, "cella: invalid rule table");
