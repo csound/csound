@@ -2158,7 +2158,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL)
+    if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL))
       return NOTOK;
     if ((ftp = csound->FTnp2Find(csound,p->ioutfunc)) != NULL) {
       p->vector = ftp->ftable;
@@ -2175,19 +2175,20 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       *vector++ = FL(0.0);
     } while (--flength);
 
-    if (**argp <= FL(0.0))  return NOTOK; /* if idur1 <= 0, skip init  */
+    if (UNLIKELY(**argp <= FL(0.0)))  return NOTOK; /* if idur1 <= 0, skip init  */
     p->cursegp = segp;              /* else proceed from 1st seg */
     segp--;
     do {
       segp++;           /* init each seg ..  */
       curfunc = nxtfunc;
       dur = **argp++;
-      if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL) return NOTOK;
+      if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL))
+        return NOTOK;
       if (dur > FL(0.0)) {
         segp->d = dur * csound->ekr;
         segp->function =  curfunc;
         segp->nxtfunction = nxtfunc;
-        segp->cnt = (int32) (segp->d + .5);
+        segp->cnt = (int32) MYFLT2LRND(segp->d);
       }
       else break;               /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -2376,10 +2377,6 @@ static int kdel_set(CSOUND *csound,KDEL *p)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
         memset(p->aux.auxp, 0, sizeof(MYFLT)*n);
-        /* buf = (MYFLT *)p->aux.auxp; */
-        /* do { */
-        /*   *buf++ = FL(0.0); */
-        /* } while (--n); */
       }
       p->left = 0;
     }
