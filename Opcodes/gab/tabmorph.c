@@ -38,9 +38,9 @@ static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
-      if ((ftp = csound->FTFind(csound, *argp++)) == NULL)
+      if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
         return csound->InitError(csound, Str("tabmorph: invalid table number"));
-      if (ftp->flen != flength && flength  != 0)
+      if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
                             Str("tabmorph: all tables must have the same length!"));
@@ -137,7 +137,7 @@ static int tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 
 static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate */
 {
-    int     nsmps = csound->ksmps, tablen = p->length;
+    int    n, nsmps = csound->ksmps, tablen = p->length;
     MYFLT *out = p->out;
     MYFLT *index = p->xindex;
     MYFLT *interpoint = p->xinterpoint;
@@ -145,20 +145,20 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
     MYFLT *tabndx2 = p->xtabndx2;
 
 
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT index_frac,tabndx1frac, tabndx2frac;
       MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
       MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       long index_int;
       int tabndx1int, tabndx2int;
-      MYFLT ndx = *index++ * tablen;
+      MYFLT ndx = index[n] * tablen;
       index_int = (int) ndx;
       index_frac = ndx - index_int;
       index_int %= tablen;
 
 
-      tabndx1int = (int) *tabndx1;
-      tabndx1frac = *tabndx1++ - tabndx1int;
+      tabndx1int = (int) tabndx1[n];
+      tabndx1frac = tabndx1[n] - tabndx1int;
       tabndx1int %= p->numOfTabs;
 
       tab1val1a = (p->table[tabndx1int  ])[index_int];
@@ -172,8 +172,8 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
       val1  = val1a + (val1b-val1a) * index_frac;
       /*--------------*/
 
-      tabndx2int = (int) *tabndx2;
-      tabndx2frac = *tabndx2++ - tabndx2int;
+      tabndx2int = (int) tabndx2[n];
+      tabndx2frac = tabndx2[n] - tabndx2int;
       tabndx2int %= p->numOfTabs;
 
       tab2val1a = (p->table[tabndx2int  ])[index_int];
@@ -186,20 +186,17 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      *interpoint -= (int) *interpoint; /* to limit to zero to 1 range */
+      interpoint[n] -= (int) interpoint[n]; /* to limit to zero to 1 range */
 
-      {
-        MYFLT tmp =*out++ = val1 * (1 - *interpoint);
-        *out++ = tmp + val2 * *interpoint++;
-      }
-    } while (--nsmps);
+      out[n] = val1 * (1 - interpoint[n]) + val2 * interpoint[n];
+    }
     return OK;
 }
 
 
 static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out and table index */
 {
-    int     nsmps = csound->ksmps, tablen = p->length;
+    int    n, nsmps = csound->ksmps, tablen = p->length;
 
     MYFLT *out = p->out;
     MYFLT *index;
@@ -222,11 +219,11 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
     interpoint = *p->xinterpoint;
     interpoint -= (int) interpoint; /* to limit to zero to 1 range */
 
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
       MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       long index_int;
-      MYFLT ndx = *index++ * tablen;
+      MYFLT ndx = index[n] * tablen;
 
       index_int = (int) ndx;
       index_frac = ndx - index_int;
@@ -253,8 +250,8 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      *out++ = val1 * (1 - interpoint) + val2 * interpoint;
-    } while (--nsmps);
+      out[n] = val1 * (1 - interpoint) + val2 * interpoint;
+    }
     return OK;
 }
 
