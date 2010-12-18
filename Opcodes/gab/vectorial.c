@@ -2073,7 +2073,7 @@ static int vecdly_set(CSOUND *csound,VECDEL *p)
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid input table");
-    if (LIKELY(ftp = csound->FTnp2Find(csound,p->ifnDel) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnDel)) != NULL)) {
       p->dlyvec = ftp->ftable;
       if (UNLIKELY( elements > ftp->flen ))
         return csound->InitError(csound, "vecdelay: invalid num of elements");
