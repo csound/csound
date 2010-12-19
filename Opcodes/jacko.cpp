@@ -506,10 +506,9 @@ struct JackoState
   std::list<unsigned char> midiInputQueue;
   jack_position_t jack_position;
   pthread_t closeThread;
+  pthread_mutex_t conditionMutex;
   pthread_cond_t closeCondition;
-  pthread_mutex_t closeConditionMutex;
   pthread_cond_t csoundCondition;
-  pthread_mutex_t csoundConditionMutex;
   JackoState(CSOUND *csound_, const char *serverName_, const char *clientName_) :
     csound(csound_),
     serverName(serverName_),
@@ -522,9 +521,8 @@ struct JackoState
     csound = csound_;
     csoundFramesPerTick = csound->GetKsmps(csound);
     csoundFramesPerSecond = csound->GetSr(csound);
-    result = pthread_mutex_init(&csoundConditionMutex, 0);
+    result = pthread_mutex_init(&conditionMutex, 0);
     result = pthread_cond_init(&csoundCondition, 0);
-    result = pthread_mutex_init(&closeConditionMutex, 0);
     result = pthread_cond_init(&closeCondition, 0);
     // Create a thread to run the close routine. It will immediately block until it is signaled.
     result = pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
@@ -613,10 +611,9 @@ struct JackoState
         result = jack_port_unregister(jackClient, it->second);
       }
       result = jack_client_close(jackClient);
-      //result = pthread_cond_destroy(&csoundCondition);
-      //result = pthread_mutex_destroy(&csoundConditionMutex);
-      //result = pthread_cond_destroy(&closeCondition);
-      //result = pthread_mutex_destroy(&closeConditionMutex);
+      result = pthread_cond_destroy(&csoundCondition);
+      result = pthread_cond_destroy(&closeCondition);
+      result = pthread_mutex_destroy(&conditionMutex);
       audioOutPorts.clear();
       audioInPorts.clear();
       midiInPorts.clear();
@@ -664,10 +661,9 @@ struct JackoState
       if (result && jackActive) {
         csoundActive = true;
         jackActive = false;
-        if (pthread_mutex_trylock(&csoundConditionMutex) == 0) {
-          pthread_cond_signal(&csoundCondition);
-          pthread_mutex_unlock(&csoundConditionMutex);
-        }
+        pthread_mutex_lock(&conditionMutex);
+        pthread_cond_signal(&csoundCondition);
+        pthread_mutex_unlock(&conditionMutex);
         return result;
       }
     }
@@ -685,9 +681,9 @@ struct JackoState
       // While Jack is processing, wait here.
       // The Jack process callback will then call csoundPerformKsmps
       // until the Csound performance is complete.
-      result = pthread_mutex_lock(&csoundConditionMutex);
-      result = pthread_cond_wait(&csoundCondition, &csoundConditionMutex);
-      result = pthread_mutex_unlock(&csoundConditionMutex);
+      result = pthread_mutex_lock(&conditionMutex);
+      result = pthread_cond_wait(&csoundCondition, &conditionMutex);
+      result = pthread_mutex_unlock(&conditionMutex);
     }
     if (jackActive) {
       return 1;
@@ -697,10 +693,9 @@ struct JackoState
       // Jack can be shut down and cleaned up in a separate
       // thread. Doing this inside the Jack process callback
       // takes too long and may cause other problems.
-      if (pthread_mutex_trylock(&closeConditionMutex) == 0) {
-        result = pthread_cond_signal(&closeCondition);
-        result = pthread_mutex_unlock(&closeConditionMutex);
-      }
+      result = pthread_mutex_lock(&conditionMutex);
+      result = pthread_cond_signal(&closeCondition);
+      result = pthread_mutex_unlock(&conditionMutex);
       return result;
     }
   }
@@ -708,9 +703,9 @@ struct JackoState
   {
     int result = 0;
     // Wait until signaled to actually shut down the Jack client.
-    result = pthread_mutex_lock(&closeConditionMutex);
-    result = pthread_cond_wait(&closeCondition, &closeConditionMutex);
-    result = pthread_mutex_unlock(&closeConditionMutex);
+    result = pthread_mutex_lock(&conditionMutex);
+    result = pthread_cond_wait(&closeCondition, &conditionMutex);
+    result = pthread_mutex_unlock(&conditionMutex);
     close();
     return (void *) result;
   }
