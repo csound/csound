@@ -1903,6 +1903,7 @@ else:
             print "Adding Jack library for PortAudio"
             portaudioEnvironment.Append(LIBS = ['jack'])
         portaudioEnvironment.Append(LIBS = ['asound', 'pthread'])
+        makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
     elif getPlatform() == 'win32':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
