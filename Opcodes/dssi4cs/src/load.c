@@ -116,7 +116,7 @@ void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
 
     /* pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_LAZY); */
     pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_NOW);
-    if (!pvPluginHandle) {
+    if (UNLIKELY(!pvPluginHandle)) {
       csound->Die(csound, Str("Failed to load plugin \"%s\": %s"),
                           pcPluginFilename, dlerror());
     }
@@ -148,7 +148,7 @@ const LADSPA_Descriptor *
     pfDescriptorFunction
         = (LADSPA_Descriptor_Function) dlsym(pvLADSPAPluginLibrary,
                                              "ladspa_descriptor");
-    if (!pfDescriptorFunction) {
+    if (UNLIKELY(!pfDescriptorFunction)) {
       const char *pcError = dlerror();
 
       if (pcError) {
@@ -167,7 +167,7 @@ const LADSPA_Descriptor *
 
     for (lPluginIndex = 0; ; lPluginIndex++) {
       psDescriptor = pfDescriptorFunction(lPluginIndex);
-      if (psDescriptor == NULL)
+      if (UNLIKELY(psDescriptor == NULL))
         break;
       if (strcmp(psDescriptor->Label, pcPluginLabel) == 0)
         return psDescriptor;
