@@ -118,7 +118,7 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
     if (!DSSIPlugin)
       return NULL;
     DSSIPlugin_ = DSSIPlugin;
-    if (PluginNumber > *DSSIPlugin->PluginCount) {
+    if (UNLIKELY(PluginNumber > *DSSIPlugin->PluginCount)) {
 #ifdef DEBUG
       csound->Message(csound,
                       "DSSI4CS: PluginNumber > *DSSIPlugin->PluginCount.\n");
@@ -132,7 +132,7 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
                       DSSIPlugin_->PluginNumber);
 #endif
 
-      if (!DSSIPlugin_->NextPlugin) {
+      if (UNLIKELY(!DSSIPlugin_->NextPlugin)) {
         return NULL;
       }
       DSSIPlugin_ = DSSIPlugin_->NextPlugin;
@@ -201,12 +201,12 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                 (int) csound->GetInputArgSMask(p));
     PluginIndex = (unsigned long) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
-    if (!PluginLibrary)
+    if (UNLIKELY(!PluginLibrary))
       return csound->InitError(csound, "DSSI4CS: Failed to load %s.",
                                        dssiFilename);
     if (!DSSIPlugin) {
-      if (csound->CreateGlobalVariable(csound, "$DSSI4CS",
-                                               sizeof(DSSI4CS_PLUGIN)) != 0)
+      if (UNLIKELY(csound->CreateGlobalVariable(csound, "$DSSI4CS",
+                                                sizeof(DSSI4CS_PLUGIN))) != 0)
         csound->Die(csound, "Error creating global variable '$DSSI4CS'");
       DSSIPlugin = (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound,
                                                                   "$DSSI4CS");
@@ -268,7 +268,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         csound->Message(csound, "DSSI4CS: LADSPA Plugin Detected\n");
       }
     }
-    if ((!DSSIPlugin_->Descriptor) && (!DSSIPlugin_->DSSIDescriptor)) {
+    if (UNLIKELY((!DSSIPlugin_->Descriptor) &&
+                 (!DSSIPlugin_->DSSIDescriptor))) {
       const char *pcError = dlerror();
 
       /* TODO: cleanup if error */
@@ -291,7 +292,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                   dssiFilename);
       return NOTOK;
     }
-    if (!LDescriptor) {
+    if (UNLIKELY(!LDescriptor)) {
       csound->InitError(csound, "DSSI4CS: No plugin index %lu in %s",
                                 PluginIndex, dssiFilename);
       return NOTOK;
@@ -301,28 +302,28 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     }
 
     if (DSSIPlugin_->Type == LADSPA) {
-      if (!
+      if (UNLIKELY(!
           (DSSIPlugin_->Handle =
            (LADSPA_Handle) DSSIPlugin_->Descriptor->instantiate(DSSIPlugin_->
                                                                 Descriptor,
-                                                                SampleRate)))
+                                                                SampleRate))))
         return csound->InitError(csound,
                                  "DSSI4CS: Could not instantiate plugin: %s",
                                  dssiFilename);
-      if (!DSSIPlugin_->Descriptor->run)
+      if (UNLIKELY(!DSSIPlugin_->Descriptor->run))
         return csound->InitError(csound, "DSSI4CS: No run() funtion in: %s",
                                          LDescriptor->Name);
       PortCount = DSSIPlugin_->Descriptor->PortCount;
     }
     else {
-      if (!
+      if (UNLIKELY(!
           (DSSIPlugin_->Handle =
            (LADSPA_Handle) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->
-           instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate)))
+           instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate))))
         return csound->InitError(csound,
                                  "DSSI4CS: Could not instantiate plugin: %s",
                                  dssiFilename);
-      if (!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)
+      if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run))
         return csound->InitError(csound, "DSSI4CS: No run() funtion in: %s",
                                          LDescriptor->Name);
       PortCount = DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortCount;
@@ -393,7 +394,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         }
         if (p->iverbose != 0) {
           csound->Message(csound,
-                          "DSSI4CS: Created internal control port %lu for Port %i.\n",
+                          "DSSI4CS: Created internal control port "
+                          "%lu for Port %i.\n",
                           ConnectedControlPorts, i);
         }
 
@@ -499,8 +501,8 @@ int dssiactivate_init(CSOUND * csound, DSSIACTIVATE * p)
 
     p->DSSIPlugin_ = LocatePlugin(Number, csound);
     p->printflag = -999;
-    if ((!p->DSSIPlugin_) || (Number > *p->DSSIPlugin_->PluginCount) ||
-        (!p->DSSIPlugin_->Handle))
+    if (UNLIKELY((!p->DSSIPlugin_) || (Number > *p->DSSIPlugin_->PluginCount) ||
+                 (!p->DSSIPlugin_->Handle)))
       return csound->InitError(csound, "DSSI4CS: Invalid plugin: %i (MAX= %i).",
                                        Number, *p->DSSIPlugin_->PluginCount);
 #ifdef DEBUG

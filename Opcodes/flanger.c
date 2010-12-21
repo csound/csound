@@ -48,8 +48,8 @@ static int flanger(CSOUND *csound, FLANGER *p)
     MYFLT *freq_del = p->xdel;
     MYFLT feedback =  *p->kfeedback;
     MYFLT fv1;
-    int32  v2;
-    int32  v1;
+    int32 v2;
+    int32 v1;
     MYFLT yt1= p->yt1;
 
     int n,nsmps = csound->ksmps;
@@ -121,7 +121,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del++;
         buf[indx] = in[n] + (yt1 * feedback);
-        if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
         fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
@@ -131,7 +131,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
                   fv1 + 1 : 0;  /* Find next smpl for interpolation */
         bufv1 = buf[v1=(int32)fv1];
         out_delay = bufv1 + (fv1 - v1) * ( buf[(int32)fv2] - bufv1);
-        if (++indx == p->maxd) indx = 0; /* Advance current pointer */
+        if (UNLIKELY(++indx == p->maxd)) indx = 0; /* Advance current pointer */
         /*---------------- filter -----------------------*/
         out[n] = yt1 = c1 * out_delay + c2 * yt1;
       }
@@ -141,7 +141,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
         /*---------------- delay -----------------------*/
         MYFLT fd = *freq_del;
         buf[indx] = in[n] + (yt1 * feedback);
-        if (fd<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd = FL(1.0)/MAXDELAY;
         fv1 = indx - (csound->esr / fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
@@ -151,7 +151,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
               fv1 + 1 : 0;  /* Find next smpl for interpolation */
         bufv1 = buf[v1=(int32)fv1];
         out_delay = bufv1 + (fv1 - v1) * ( buf[(int32)fv2] - bufv1);
-        if (++indx == p->maxd) indx = 0;     /* Advance current pointer */
+        if (UNLIKELY(++indx == p->maxd)) indx = 0;     /* Advance current pointer */
         /*---------------- filter -----------------------*/
         out[n] = yt1 = c1 * out_delay + c2 * yt1;
       }
@@ -199,21 +199,21 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     unsigned int maxdM1 = p->maxd-1;
 
     /*---------------- delay1 -----------------------*/
-    uint32  indx1;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->esr; */
-    MYFLT feedback1 =  *p->kfeedback1;
+    uint32 indx1;
+    MYFLT  *buf1 = (MYFLT *)p->aux1.auxp;
+    MYFLT  *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * csound->esr; */
+    MYFLT  feedback1 =  *p->kfeedback1;
     MYFLT  fv1_1, fv2_1, out_delay1 ;
-    int32   v1_1;
+    int32  v1_1;
         /*---------------- filter1 -----------------------*/
     MYFLT c1_1, c2_1, yt1_1;
         /*---------------- delay2 -----------------------*/
-    uint32  indx2;
-    MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->esr;*/
-    MYFLT feedback2 =  *p->kfeedback2;
+    uint32 indx2;
+    MYFLT  *buf2 = (MYFLT *)p->aux2.auxp;
+    MYFLT  *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * csound->esr;*/
+    MYFLT  feedback2 =  *p->kfeedback2;
     MYFLT  fv1_2, fv2_2, out_delay2 ;
-    int32   v1_2;
+    int32  v1_2;
         /*---------------- filter2 -----------------------*/
     MYFLT c1_2, c2_2, yt1_2;
         /*-----------------------------------------------*/
@@ -247,12 +247,12 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
         MYFLT fd2 = *freq_del2++;
         buf1[indx1] = buf2[indx2] =
           in[n] + old_out * (feedback1 + feedback2);
-        if (fd1<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd1<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd1 = FL(1.0)/MAXDELAY;
-        if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd2<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
-        fv1_1 = indx1 - (csound->esr / fd1); /*Make sure inside the buffer */
-        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer  */
+        fv1_1 = indx1 - (csound->esr / fd1); /* Make sure inside the buffer */
+        fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer */
         while (fv1_1 < 0)    fv1_1 += p->maxd;
         while (fv1_2 < 0)    fv1_2 += p->maxd;
         fv2_1 = (fv1_1<maxdM1)?
@@ -263,8 +263,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
         v1_2 = (int32)fv1_2;
         out_delay1 = buf1[v1_1] + (fv1_1-v1_1)*(buf1[(int32)fv2_1]-buf1[v1_1]);
         out_delay2 = buf2[v1_2] + (fv1_2-v1_2)*(buf2[(int32)fv2_2]-buf2[v1_2]);
-        if (++indx1 == p->maxd) indx1 = 0;        /* Advance current pointer */
-        if (++indx2 == p->maxd) indx2 = 0;        /* Advance current pointer */
+        if (UNLIKELY(++indx1 == p->maxd)) indx1 = 0; /* Advance current pointer */
+        if (UNLIKELY(++indx2 == p->maxd)) indx2 = 0; /* Advance current pointer */
         out1 = yt1_1 = c1_1 * out_delay1 + c2_1 * yt1_1;
         out2 = yt1_2 = c1_2 * out_delay2 + c2_2 * yt1_2;
         out[n] = old_out = out1 + out2;
@@ -276,9 +276,9 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
         MYFLT fd2 = *freq_del2;
         buf1[indx1] = buf2[indx2] =
           in[n] + old_out * (feedback1 + feedback2);
-        if (fd1<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd1<FL(1.0)/MAXDELAY))/* Avoid silly values jpff */
           fd1 = FL(1.0)/MAXDELAY;
-        if (fd2<FL(1.0)/MAXDELAY) /* Avoid silly values jpff */
+        if (UNLIKELY(fd2<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd2 = FL(1.0)/MAXDELAY;
         fv1_1 = indx1 - (csound->esr / fd1); /* Make sure inside the buffer */
         fv1_2 = indx2 - (csound->esr / fd2); /* Make sure inside the buffer */
@@ -292,8 +292,8 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
         v1_2 = (int32)fv1_2;
         out_delay1 = buf1[v1_1] + (fv1_1 - v1_1)*(buf1[(int32)fv2_1]-buf1[v1_1]);
         out_delay2 = buf2[v1_2] + (fv1_2 - v1_2)*(buf2[(int32)fv2_2]-buf2[v1_2]);
-        if (++indx1 == p->maxd) indx1 = 0;        /* Advance current pointer */
-        if (++indx2 == p->maxd) indx2 = 0;        /* Advance current pointer */
+        if (UNLIKELY(++indx1 == p->maxd)) indx1 = 0; /* Advance current pointer */
+        if (UNLIKELY(++indx2 == p->maxd)) indx2 = 0; /* Advance current pointer */
         out1 = yt1_1 = c1_1 * out_delay1 + c2_1 * yt1_1;
         out2 = yt1_2 = c1_2 * out_delay2 + c2_2 * yt1_2;
         out[n] = old_out = out1 + out2;

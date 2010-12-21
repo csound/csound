@@ -33,7 +33,7 @@ struct fileinTag {
     void        *fd;          /* file handle returned by CSOUND::FileOpen */
     char        *name;        /* short name */
     int         do_scale;     /* non-zero if 0dBFS scaling should be applied */
-    unsigned int  refCount;   /* reference count, | 0x80000000 if close reqd */
+    uint32      refCount;   /* reference count, | 0x80000000 if close reqd */
 };
 
 typedef struct VCO2_TABLE_ARRAY_  VCO2_TABLE_ARRAY;

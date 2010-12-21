@@ -44,6 +44,7 @@
 /*  works.  Nothing out of the ordinary in this version.   */
 /***********************************************************/
 
+/* Used by moog1.c as well */
 void make_TwoZero(TwoZero *p)
 {
     p->zeroCoeffs[0] = FL(0.0);
