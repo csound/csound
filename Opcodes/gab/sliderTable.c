@@ -501,7 +501,7 @@ static int sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
     MYFLT *min = p->min, *max= p->max;
     FUNC **ftp = p->ftp;
     do  {
-      if (unlikely((value=*sld->initvalue) < (*min=*sld->imin) ||
+      if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) ||
                    value > (*max=*sld->imax) )) {
         sprintf(sbuf, Str("illegal initvalue at position n.%d"), j);
         return csound->InitError(csound, sbuf);
