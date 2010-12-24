@@ -23,10 +23,10 @@
 #include "soundio.h"
 #include <sndfile.h>
 
-void rewriteheader(SNDFILE *ofd)
+void rewriteheader(void *ofd)
 {
     if (LIKELY(ofd != NULL))
-      sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+      sf_command((SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
 /* Stand-Alone sndgetset() */

@@ -29,12 +29,13 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#include <sndfile.h>
 #include <stdarg.h>
 #include <setjmp.h>
 
 /*
 #include <sndfile.h>
+JPff:  But this gives warnings in many files as rewriteheader expects 
+to have an argument of SNDFILE*.  Might be able to fix with a void*
 VL: moved to allow opcodes to be built without libsndfile headers
 The libsndfile header is now place only where it is used:
 Engine/envvar.c
@@ -860,7 +861,7 @@ extern const uint32_t csPlayScoMask;
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
     int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
-    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, struct SF_INFO *);
+    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);
     char *(*type2string)(int type);
@@ -868,7 +869,7 @@ extern const uint32_t csPlayScoMask;
                          char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
     void *(*sndgetset)(CSOUND *, void *);
     int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
-    void (*rewriteheader)(SNDFILE *ofd);
+    void (*rewriteheader)(void *ofd);
     int (*Rand31)(int *seedVal);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
