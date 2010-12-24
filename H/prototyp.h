@@ -24,6 +24,7 @@
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 
+#include <sndfile.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,7 +72,7 @@ int     sfsampsize(int sf_format);
 char    *type2string(int type);
 int     type2csfiletype(int type, int encoding);
 int     sftype2csfiletype(int type);
-void    rewriteheader(struct SNDFILE *ofd);
+void    rewriteheader(SNDFILE *ofd);
 int     readOptions(CSOUND *, FILE *, int);
 int     argdecode(CSOUND *, int, char **);
 void    remove_tmpfiles(CSOUND *);

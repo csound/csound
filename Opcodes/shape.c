@@ -43,6 +43,10 @@ typedef struct {
 static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* data)
 {
     data->maxamplitude = *data->ifullscale;
+    if (UNLIKELY(data->maxamplitude<= 0.0))
+      return
+        csound->InitError(csound,
+                          Str("powershape: ifullscale must be strictly positive"));
     data->one_over_maxamp = FL(1.0) / data->maxamplitude;
     return OK;
 }
@@ -50,30 +54,30 @@ static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* data)
 static int PowerShape(CSOUND* csound, POWER_SHAPE* data)
 {
     MYFLT     cur, amt, maxampl, invmaxampl;
-    int       nsmps = csound->ksmps;
+    int       n, nsmps = csound->ksmps;
     MYFLT*    out = data->aout;
     MYFLT*    in = data->ain;
 
     amt = *(data->kshapeamount);
-    maxampl = data->maxamplitude;
     invmaxampl = data->one_over_maxamp;
     if (amt == FL(0.0)) {                    /* treat zero-power with care */
-      do {
-        cur = *in++;
-        if (cur == FL(0.0))  *out++ = FL(0.0);    /* make 0^0 = 0 for continuity */
-        else                 *out++ = maxampl;    /* otherwise, x^0 = 1.0 */
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        cur = in[n];
+        if (cur == FL(0.0))  out[n] = FL(0.0);    /* make 0^0 = 0 for continuity */
+        else                 out[n] = maxampl;    /* otherwise, x^0 = 1.0 */
+      }
     }
     else {
-      do {
-        cur = *in++ * invmaxampl;
+      maxampl = data->maxamplitude;
+      for (n=0; n<nsmps; n++) {
+        cur = in[n] * invmaxampl;
         if (cur < FL(0.0))                /* treat negatives with care */
           /* make output negative to avoid DC offsets and preserve continuity */
           /* with even powers */
-          *out++ = - POWER(-cur,amt) * maxampl;
+          out[n] = - POWER(-cur,amt) * maxampl;
         else
-          *out++ = POWER(cur,amt) * maxampl;
-      } while (--nsmps);
+          out[n] = POWER(cur,amt) * maxampl;
+      }
     }
     return OK;
 }
@@ -123,8 +127,8 @@ static int ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* data)
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
        the individual chebyshev polynomials as we are adding them up. */
-      csound->AuxAlloc(csound, (2*ncoeff + 1)*sizeof(MYFLT), &(data->coeff));
-      data->chebn = ((MYFLT*)data->coeff.auxp) + ncoeff;
+    csound->AuxAlloc(csound, (2*ncoeff + 1)*sizeof(MYFLT), &(data->coeff));
+    data->chebn = ((MYFLT*)data->coeff.auxp) + ncoeff;
     return OK;
 }
 
@@ -369,7 +373,7 @@ int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
     int32   longphs;
 
     if ((phs = *p->initphase) >= FL(0.0)) {
-      if ((longphs = (int32)phs)) {
+      if (UNLIKELY((longphs = (int32)phs))) {
         csound->Warning(csound, Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;
@@ -469,7 +473,7 @@ static int Phasine(CSOUND* csound, PHASINE* data)
     adjust = *(data->kphaseadjust);
     last = data->lastin;
     maxampl = data->maxamplitude;
-    for (n-0; n<nsmps; n++) {
+    for (n=0; n<nsmps; n++) {
       cur = in[n];
       phase = ASIN(cur/maxampl) / PI_F; /* current "phase" value */
       if (last < cur) {

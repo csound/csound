@@ -1020,7 +1020,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     MYFLT kdepth = (MYFLT) *(p->kdepth);
     float *fin = (float *) p->fin->frame.auxp;
     float *ffr = (float *) p->ffr->frame.auxp;
-    float *fexc = (MYFLT *) p->fexc.auxp;
+    float *fexc = (float *) p->fexc.auxp;
     float *fout = (float *) p->fout->frame.auxp;
     int coefs = (int) *(p->kcoefs), j;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;

@@ -412,7 +412,7 @@ static int imageload (CSOUND *csound, IMGLOAD * p)
       (Image **) csound->ReAlloc(csound, pimages->images,
                                  sizeof(Image *) * pimages->cnt);
 
-    strcpy(filename, (char*) p->ifilnam);
+    strncpy(filename, (char*) p->ifilnam, 254);
 
     img = __doOpenImage(filename, csound);
 

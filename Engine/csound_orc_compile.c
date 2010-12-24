@@ -668,7 +668,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
       sprintf(c, "%ld", instrNum);
 
-      if (PARSER_DEBUG) 
+      if (PARSER_DEBUG)
           csound->Message(csound,
                           Str("create_instrument: instr num %ld\n"), instrNum);
 
@@ -679,7 +679,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root)
       int32  insno_priority = -1L;
       c = root->left->value->lexeme;
 
-      if (PARSER_DEBUG) 
+      if (PARSER_DEBUG)
           csound->Message(csound, Str("create_instrument: instr name %s\n"), c);
 
       if (UNLIKELY(*c == '+')) {
@@ -991,6 +991,8 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     OPTXT       *bp;
     char        *opname;
     int32        count, sumcount, instxtcount, optxtcount;
+    TREE * current = root;
+    INSTRTXT * instr0;
 
     strsav_create(csound);
 
@@ -1019,98 +1021,98 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
     ST(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
     constndx(csound, "0");
 
-
-    TREE * current = root;
-
-    INSTRTXT * instr0 = create_instrument0(csound, root);
+    instr0 = create_instrument0(csound, root);
     prvinstxt = prvinstxt->nxtinstxt = instr0;
     insert_instrtxt(csound, instr0, 0);
 
     while (current != NULL) {
 
-        switch (current->type) {
-            case T_INIT:
-            case S_ASSIGN:
-                /* csound->Message(csound, "Assignment found\n"); */
-                break;
-            case T_INSTR:
-                /* csound->Message(csound, "Instrument found\n"); */
+      switch (current->type) {
+      case T_INIT:
+      case S_ASSIGN:
+        /* csound->Message(csound, "Assignment found\n"); */
+        break;
+      case T_INSTR:
+        /* csound->Message(csound, "Instrument found\n"); */
 
-                resetouts(csound); /* reset #out counts */
-                lblclear(csound); /* restart labelist  */
+        resetouts(csound); /* reset #out counts */
+        lblclear(csound); /* restart labelist  */
 
-                instrtxt = create_instrument(csound, current);
+        instrtxt = create_instrument(csound, current);
 
-                prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+        prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
-                /* Handle Inserting into CSOUND here by checking id's (name or
-                 * numbered) and using new insert_instrtxt?
-                 */
-                if (PARSER_DEBUG) printf("Starting to install instruments\n");
-                /* Temporarily using the following code */
-                if (current->left->type == T_INTGR) { /* numbered instrument */
-                  int32 instrNum = (int32)current->left->value->value;
+        /* Handle Inserting into CSOUND here by checking id's (name or
+         * numbered) and using new insert_instrtxt?
+         */
+        if (PARSER_DEBUG) printf("Starting to install instruments\n");
+        /* Temporarily using the following code */
+        if (current->left->type == T_INTGR) { /* numbered instrument */
+          int32 instrNum = (int32)current->left->value->value;
 
-                  insert_instrtxt(csound, instrtxt, instrNum);
-                }
-                else if (current->left->type == T_INTLIST) {
-                  TREE *p =  current->left;
-                  printf("intlist case:\n"); /* This code is suspect */
-                  while (p) {
-                    //                    print_tree(csound, "Top of loop\n", p);
-                    if (p->left) {
-                      //                      print_tree(csound, "Left\n", p->left);
-                      insert_instrtxt(csound, instrtxt, p->left->value->value);
-                    }
-                    else {
-                      insert_instrtxt(csound, instrtxt, p->value->value);
-                      break;
-                    }
-                    p = p->right;
-                  }
-                }
+          insert_instrtxt(csound, instrtxt, instrNum);
+        }
+        else if (current->left->type == T_INTLIST) {
+          TREE *p =  current->left;
+          printf("intlist case:\n"); /* This code is suspect */
+          while (p) {
+            //                    print_tree(csound, "Top of loop\n", p);
+            if (p->left) {
+              //                      print_tree(csound, "Left\n", p->left);
+              insert_instrtxt(csound, instrtxt, p->left->value->value);
+            }
+            else {
+              insert_instrtxt(csound, instrtxt, p->value->value);
+              break;
+            }
+            p = p->right;
+          }
+        }
+        break;
+      case T_UDO:
+        /* csound->Message(csound, "UDO found\n"); */
 
-                break;
-            case T_UDO:
-                /* csound->Message(csound, "UDO found\n"); */
+        resetouts(csound); /* reset #out counts */
+        lblclear(csound); /* restart labelist  */
 
-                resetouts(csound); /* reset #out counts */
-                lblclear(csound); /* restart labelist  */
+        instrtxt = create_instrument(csound, current);
 
-                instrtxt = create_instrument(csound, current);
+        prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
-                prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+        opname = current->left->value->lexeme;
 
-                opname = current->left->value->lexeme;
+        /* csound->Message(csound, */
+        /*     "Searching for OPCODINFO for opname: %s\n", opname); */
 
-                /* csound->Message(csound, */
-                /*     "Searching for OPCODINFO for opname: %s\n", opname); */
+        OPCODINFO *opinfo = find_opcode_info(csound, opname);
 
-                OPCODINFO *opinfo = find_opcode_info(csound, opname);
-
-                if (UNLIKELY(opinfo == NULL)) {
-                    csound->Message(csound,
-                        "ERROR: Could not find OPCODINFO for opname: %s\n",
-                        opname);
-                }
-                else {
-                    opinfo->ip = instrtxt;
-                    instrtxt->insname = (char*)mmalloc(csound, 1+strlen(opname));
-                    strcpy(instrtxt->insname, opname);
-                    instrtxt->opcode_info = opinfo;
-                }
-
-                /* Handle Inserting into CSOUND here by checking id's (name or
-                 * numbered) and using new insert_instrtxt?
-                 */
-
-                break;
-            default:
-              csound->Message(csound, Str("Unknown TREE node of type %d found in root.\n"), current->type);
-              if (PARSER_DEBUG) print_tree(csound, NULL, current);
+        if (UNLIKELY(opinfo == NULL)) {
+          csound->Message(csound,
+                          "ERROR: Could not find OPCODINFO for opname: %s\n",
+                          opname);
+        }
+        else {
+          opinfo->ip = instrtxt;
+          instrtxt->insname = (char*)mmalloc(csound, 1+strlen(opname));
+          strcpy(instrtxt->insname, opname);
+          instrtxt->opcode_info = opinfo;
         }
 
-        current = current->next;
+        /* Handle Inserting into CSOUND here by checking id's (name or
+         * numbered) and using new insert_instrtxt?
+         */
+
+        break;
+      case T_OPCODE:
+        break;
+      default:
+        csound->Message(csound,
+                        Str("Unknown TREE node of type %d found in root.\n"),
+                        current->type);
+        /* if (PARSER_DEBUG) */ print_tree(csound, NULL, current);
+      }
+
+      current = current->next;
 
     }
 

@@ -97,7 +97,7 @@ static PyObject *
 exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
 {
     FILE      *file;
-    PyObject  *result=1, *module, *public;
+    PyObject  *result, *module, *public;
     void      *fd;
 
     module = PyImport_AddModule("__main__");
