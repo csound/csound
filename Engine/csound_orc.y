@@ -265,12 +265,6 @@ udodecl   : T_UDOSTART
                 if (UNLIKELY(PARSER_DEBUG)) print_tree(csound, "UDO\n", (TREE *)$$);
 
               }
-            |
-            T_UDOSTART T_IDENT T_UDO_ANS S_COM T_UDO_ARGS S_NL statementlist T_UDOEND S_NL
-            {
-                csound->Message(csound, "Commq missing in UDO");
-                exit(1);
-            }
             ;
 
 
