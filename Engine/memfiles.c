@@ -340,9 +340,9 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
  * be undefined in this case).
  */
 
-SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
-                                                 SF_INFO *sfinfo)
+SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
 {
+    SF_INFO       *sfinfo = sfi;
     SNDFILE       *sf;
     void          *fd;
     SNDMEMFILE    *p = NULL;

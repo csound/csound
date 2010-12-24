@@ -14,7 +14,6 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -37,7 +36,7 @@
 #define CS_PACKAGE_VERSION  "5.12"
 #define CS_VERSION          (5)
 #define CS_SUBVER           (12)
-#define CS_PATCHLEVEL       (90)
+#define CS_PATCHLEVEL       (91)
 
 #define CS_APIVERSION       2   /* should be increased anytime a new version
                                    contains changes that an older host will
