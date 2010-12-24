@@ -568,7 +568,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
     FUNC    *ftp;
     int32   lobits, phase, inc;
     double  *oscphase;
-    int     i, nsmps = csound->ksmps;
+    int     i, n, nsmps = csound->ksmps;
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
@@ -620,16 +620,15 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       a = oldamps[i];
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
-      do {
+      for (n; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
-        *ar += (v1 + fract * (*ftab - v1)) * a;
-        ar++;
+        ar[n] += (v1 + fract * (*ftab - v1)) * a;
         phase += inc;
         phase &= PHMASK;
         a+=inca;
-      } while (--nsmps);
+      } 
       *oscphase = (double) phase;
       oldamps[i] = amp;
       oscphase++;

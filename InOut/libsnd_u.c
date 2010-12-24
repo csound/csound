@@ -23,7 +23,7 @@
 #include "soundio.h"
 #include <sndfile.h>
 
-void rewriteheader(struct SNDFILE *ofd)
+void rewriteheader(SNDFILE *ofd)
 {
     if (LIKELY(ofd != NULL))
       sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);

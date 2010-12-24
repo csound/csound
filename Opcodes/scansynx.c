@@ -189,16 +189,17 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsnx_elem *) pp->scsnx_list;
     if (UNLIKELY(i == NULL)) {
-      return csound->InitError(csound,
-                               Str("xscans: No scan synthesis net specified"));
+      csound->InitError(csound, Str("xscans: No scan synthesis net specified"));
+      return NULL;
     }
     while (1) {
       if (i->id == id)
         break;
       i = i->next;
-      if (UNLIKELY(i == NULL))
-        return csound->InitError(csound,
-                                 Str("Eek ... scan synthesis id was not found"));
+      if (UNLIKELY(i == NULL)) {
+        csound->InitError(csound, Str("Eek ... scan synthesis id was not found"));
+        return NULL;
+      }
     }
     return i->p;
 }

@@ -259,7 +259,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     int         nvoice;
     int32       flen, tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
@@ -288,17 +288,17 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
    ar   = p->ar;
 
    /* *** Start the loop .... *** */
-   do {                         /* while (--nsmps) */
+   for (n=0; n<nsmps; n++) {                         /* while (--nsmps) */
                                 /* Optimisations */
      int32      *fpnt = p->fpnt, *cnt = p->cnt, *gskip = p->gskip;
      int32      *gap = p->gap, *gsize = p->gsize;
      int32      *stretch = p->stretch, *mode = p->mode;
      MYFLT      *pshift = p->pshift, *phs = p->phs;
-     *ar = FL(0.0);
+     ar[n] = FL(0.0);
 
      for (nvoice = 0; nvoice < *p->ivoice; nvoice++) {
        if (*fpnt >= (*gsize -1)) {
-         *ar += 0;
+         ar[n] += 0;            /* Is this necessary?? */
          *cnt +=1L;
        }
        else {
@@ -352,7 +352,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
            envlop = *(ftbl_env + tmplong3);
          }
 
-         *ar +=(v1 + ( *(ftbl + tmpfpnt)   - v1) * fract ) * envlop ;
+         ar[n] +=(v1 + ( *(ftbl + tmpfpnt)   - v1) * fract ) * envlop ;
 
          *phs += *pshift;
          *fpnt = (int32)*phs;
@@ -411,8 +411,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
        stretch++; mode++; pshift++; phs++;
      }
   /* p->clock++; */
-     *ar++ *= *p->xamp;     /* increment audio pointer and multiply the xamp */
-   } while (--nsmps);
+     ar[n] *= *p->xamp;     /* increment audio pointer and multiply the xamp */
+   }
    return OK;
  err1:
    return csound->PerfError(csound, Str("grain4: not initialised"));

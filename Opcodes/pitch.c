@@ -1571,7 +1571,7 @@ int Fosckk(CSOUND *csound, XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1584,11 +1584,11 @@ int Fosckk(CSOUND *csound, XOSC *p)
     inc = (*p->xcps * flen) * csound->onedsr;
     amp = *p->xamp;
     ar = p->sr;
-    do {
-      *ar++ = *(ftbl + (int)(phs)) * amp;
+    for (n=0; n<nsmps; n++) {
+      ar[n] = *(ftbl + (int)(phs)) * amp;
       phs += inc;
       if (phs>flen) phs -= flen;
-    } while (--nsmps);
+    }
     p->lphs = phs;
     return OK;
 }
@@ -1598,7 +1598,7 @@ int Foscak(CSOUND *csound, XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1611,11 +1611,11 @@ int Foscak(CSOUND *csound, XOSC *p)
     inc = (*p->xcps * flen) * csound->onedsr;
     ampp = p->xamp;
     ar = p->sr;
-    do {
-      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
+    for (n=0; n<nsmps; n++) {
+      ar[n] = *(ftbl + (int)(phs)) * ampp[n];
       phs += inc;
       if (phs>flen) phs -= flen;
-    } while (--nsmps);
+    }
     p->lphs = phs;
     return OK;
 }
@@ -1625,7 +1625,7 @@ int Foscka(CSOUND *csound, XOSC *p)
     FUNC        *ftp;
     MYFLT       amp, *ar, *cpsp, *ftbl;
     MYFLT       inc, phs;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1639,12 +1639,12 @@ int Foscka(CSOUND *csound, XOSC *p)
     amp = *p->xamp;
     cpsp = p->xcps;
     ar = p->sr;
-    do {
-      MYFLT inc = (*cpsp++ *flen * csound->onedsr);
-      *ar++ = *(ftbl + (int)(phs)) * amp;
+    for (n=0; n<nsmps; n++) {
+      MYFLT inc = (cpsp[n] *flen * csound->onedsr);
+      ar[n] = *(ftbl + (int)(phs)) * amp;
       phs += inc;
       if (phs>flen) phs -= flen;
-    } while (--nsmps);
+    }
     p->lphs = phs;
     return OK;
 }
@@ -1654,7 +1654,7 @@ int Foscaa(CSOUND *csound, XOSC *p)
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
     MYFLT       phs;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     int flen;
 
     ftp = p->ftp;
@@ -1666,12 +1666,12 @@ int Foscaa(CSOUND *csound, XOSC *p)
     phs = p->lphs;
     ampp = p->xamp;
     ar = p->sr;
-    do {
-      MYFLT inc = (*p->xcps++ * flen) * csound->onedsr;
-      *ar++ = *(ftbl + (int)(phs)) * *ampp++;
+    for (n=0; n<nsmps; n++) {
+      MYFLT inc = (p->xcps[n] * flen) * csound->onedsr;
+      ar[n] = *(ftbl + (int)(phs)) * ampp[n];
       phs += inc;
       if (phs>flen) phs -= flen;
-    } while (--nsmps);
+    }
     p->lphs = phs;
     return OK;
 }
@@ -1807,7 +1807,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 int trnseg(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
@@ -1832,25 +1832,25 @@ int trnseg(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        do {
-          *rs++ = val;
+        for (n=0; n<nsmps; n++) {
+          rs[n] = val;
           val += p->curinc;
-        } while (--nsmps);
+        }
       }
       else {
-        do {
-          *rs++ = val;
+        for (n=0; n<nsmps; n++) {
+          rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc *
             (FL(1.0) - EXP(p->curx));
-        } while (--nsmps);
+        }
       }
       p->curval = val;
       return OK;
 putk:
-      do {
-        *rs++ = val;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        rs[n] = val;
+      }
     }
     return OK;
 }
@@ -1956,7 +1956,7 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
 int trnsegr(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, Str("transeg: not initialised (arate)\n"));
@@ -1990,25 +1990,25 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        do {
-          *rs++ = val;
+        for (n=0; n<nsmps; n++) {
+          rs[n] = val;
           val += p->curinc;
-        } while (--nsmps);
+        }
       }
       else {
-        do {
-          *rs++ = val;
+        for (n=0; n<nsmps; n++) {
+          rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc *
             (FL(1.0) - EXP(p->curx));
-        } while (--nsmps);
+        }
       }
       p->curval = val;
       return OK;
 putk:
-      do {
-        *rs++ = val;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        rs[n] = val;
+      }
     }
     return OK;
 }
@@ -2027,7 +2027,7 @@ int varicolset(CSOUND *csound, VARI *p)
 
 int varicol(CSOUND *csound, VARI *p)
 {
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       beta = *p->beta;
     MYFLT       sq1mb2 = p->sq1mb2;
     MYFLT       lastx = p->last;
@@ -2042,12 +2042,12 @@ int varicol(CSOUND *csound, VARI *p)
        ampmod = p->ampmod = FL(0.785)/(FL(1.0)+p->lastbeta);
     }
 
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT rnd = FL(2.0) * (MYFLT) rand_31(csound) / FL(2147483645) - FL(1.0);
       lastx = lastx * beta + sq1mb2 * rnd;
-      *rslt++ = lastx * *kamp * ampmod;
+      rslt[n] = lastx * *kamp * ampmod;
       kamp += ampinc;
-    } while (--nsmps);
+    }
     p->last = lastx;
     return OK;
 }
@@ -2215,7 +2215,7 @@ int medfilt(CSOUND *csound, MEDFILT *p)
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (arate)\n"));
     }
-    if (kwind > maxwind) {
+    if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,
                       Str("median: window (%d)larger than maximum(%d); truncated"),
                       kwind, maxwind);
@@ -2234,7 +2234,8 @@ int medfilt(CSOUND *csound, MEDFILT *p)
         /* printf("memcpy: 0 <- 0 (%d)\n", index); */
         memcpy(&med[index], &buffer[maxwind+index-kwind],
                (kwind-index)*sizeof(MYFLT));
-        /* printf("memcpy: %d <- %d (%d)\n", index, maxwind+index-kwind, kwind-index); */
+        /* printf("memcpy: %d <- %d (%d)\n",
+           index, maxwind+index-kwind, kwind-index); */
       }
       /* { int i; */
       /*   for (i=0; i<8; i++) printf(" %f", buffer[i]); */
@@ -2262,7 +2263,7 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, Str("median: not initialised (krate)\n"));
     }
-    if (kwind > maxwind) {
+    if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,
                       Str("median: window (%d)larger than maximum(%d); truncated"),
                       kwind, maxwind);

@@ -29,7 +29,7 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-
+#include <sndfile.h>
 #include <stdarg.h>
 #include <setjmp.h>
 
@@ -50,9 +50,6 @@ util/pvanal.c
 util/sndinfo.c
 util/xtrct.c
 */
-struct SF_INFO;
-struct SNDFILE;
-
 
 #include "csound.h"
 
@@ -871,7 +868,7 @@ extern const uint32_t csPlayScoMask;
                          char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
     void *(*sndgetset)(CSOUND *, void *);
     int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
-    void (*rewriteheader)(struct SNDFILE *ofd);
+    void (*rewriteheader)(SNDFILE *ofd);
     int (*Rand31)(int *seedVal);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
@@ -1336,7 +1333,7 @@ extern const uint32_t csPlayScoMask;
     int           tran_nchnlsi;
     int           scnt0;        /* Count of extra strings */
     char          *sstrbuf0[3]; /* For extra strings in scores */
-    int           *sstrlen0[3]; /* lengths for extra strings */
+    int           sstrlen0[3];  /* lengths for extra strings */
  
 #endif  /* __BUILDING_LIBCSOUND */
   };

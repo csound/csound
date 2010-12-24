@@ -321,6 +321,7 @@ static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
               int   j;
               src = p->args[i];
               dst = (MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+              //memcpy(dst, src, sizeof(MYFLT)*csound->ksmps;
               for (j = 0; j < csound->ksmps; j++)
                 dst[j] = src[j];
             }
