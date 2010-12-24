@@ -131,7 +131,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     MYFLT       koct, vocamp, diramp;
     PULDAT      *endp;
     VOCDAT      *vdp;
-    int16       nsmps, oflow = 0;
+    int16       n, nsmps, oflow = 0;
 
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */
@@ -144,6 +144,8 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     }
     inp1 = p->inp1;
     inp2 = p->inp2;
+    //memcpy(p->inp1, p->asig, sizeof(MYFLT)*nsmps);
+    //memcpy(p->inp2, p->asig, sizeof(MYFLT)*nsmps);
     for (srcp = p->asig, nsmps = csound->ksmps; nsmps--; )
       *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
 
@@ -156,7 +158,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
       p0 = inp2 - triprd;                       /* btwn 3 prds back & 1 prd back */
       plim = inp2 - period;
       buf0 = p->bufp;
-      if (p0 < buf0)
+      if (UNLIKELY(p0 < buf0))
         p0 = buf0;
 
       x = p0;                                   /* locate first zero crossing   */
@@ -217,14 +219,14 @@ static int harmon234(CSOUND *csound, HARM234 *p)
 
         if (pospk / posdist > -negpk / negdist) {
           /* find z-cross with grtst slope to peak */
-          if (p->poslead < LCNT) {            /*      and consistent polarity */
+          if (UNLIKELY(p->poslead < LCNT)) {   /*      and consistent polarity */
             if (p->poslead == 1)
               csound->Warning(csound, Str("harm signal has positive lead\n"));
             p->poslead += 1;
           }
         }
         else {
-          if (p->poslead > -LCNT) {
+          if (UNLIKELY(p->poslead > -LCNT)) {
             if (p->poslead == -1)
               csound->Warning(csound, Str("harm signal has negative lead\n"));
             p->poslead -= 1;
@@ -250,7 +252,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         if ((zval = *z) != FL(0.0)) {
           int16 n, nlim = inp2 - z;
           for (n = 1; n < nlim; n++) {
-            if (zval * *(z+n) <= FL(0.0)) {     /*        find nearest zcrossing */
+            if (zval * *(z+n) <= FL(0.0)) {     /*       find nearest zcrossing */
               z += n;
               break;
             } else if (zval * *(z-n) <= FL(0.0)) {
@@ -281,6 +283,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
           MYFLT *sigp = p->sigmoid + (int)signdx;
           *bufp++ = *x++ * *sigp;               /*      w. sigmoid-envlpd ends  */
         }
+        //memcpy(bufp, x, sizeof(MYFLT)*ndirect);
         while (ndirect--)
           *bufp++ = *x++;
         signdx = (MYFLT)SLEN - siginc;

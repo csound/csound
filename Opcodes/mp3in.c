@@ -105,7 +105,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     /*          *mpainfo.frames; */
     /* csound->Message(csound, "maxsize = %li\n", maxsize); */
     /* print file information */
-    {
+    /* if (UNLIKELY(csound->oparms_.msglevel & WARNMSG)) */ {
       char temp[80];
       if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
       else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
@@ -173,7 +173,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
         short *bb = (short*)buffer;
         while (r != MP3DEC_RETCODE_OK || 2*pos >=  p->bufused) {
           r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
-          if (p->bufused == 0) {
+          if (UNLIKELY(p->bufused == 0)) {
             memset(&al[n], 0, (nsmps-n)*sizeof(MYFLT));
             memset(&ar[n], 0, (nsmps-n)*sizeof(MYFLT));
             goto ending;

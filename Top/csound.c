@@ -3152,7 +3152,7 @@ extern "C" {
 #ifdef MSVC
     const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
 #else
-    const char *PUBLIC csoundGetFirstMessage(CSOUND *csound)
+      const char * PUBLIC csoundGetFirstMessage(CSOUND *csound)
 #endif
     {
         csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
