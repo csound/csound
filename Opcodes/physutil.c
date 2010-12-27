@@ -140,6 +140,8 @@ void Envelope_setRate(CSOUND *csound, Envelope *e, MYFLT aRate)
     }
     else
       e->rate = aRate;
+    //    printf("Env setRate: %p rate=%f value=%f target=%f\n", e,
+    //           e->rate, e->value, e->target);
 }
 
 void Envelope_setTarget(Envelope *e, MYFLT aTarget)
@@ -157,6 +159,8 @@ void Envelope_setValue(Envelope *e, MYFLT aValue)
 
 MYFLT Envelope_tick(Envelope *e)
 {
+    //    printf("(Envelope_tick: %p state=%d target=%f, rate=%f, value=%f => ", e,
+    //           e->state, e->target, e->rate, e->value);
     if (e->state) {
       if (e->target > e->value) {
         e->value += e->rate;
@@ -173,6 +177,7 @@ MYFLT Envelope_tick(Envelope *e)
         }
       }
     }
+    //           printf("%f) ", e->value);
     return e->value;
 }
 

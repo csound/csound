@@ -133,7 +133,11 @@ static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
     Modulatr_setVibFreq(p->modulator, FL(6.0));
     Modulatr_setVibAmt(p->modulator, FL(0.04));
     make_Envelope(&p->envelope);
+    //    printf("Singwave envelope=%p\n", &p->envelope);
+    /* Envelope_setTarget(&p->envelope, FL(1.0)); */
+    /* Envelope_setRate(csound, &p->envelope, FL(0.1)); */
     make_Envelope(&p->pitchEnvelope);
+    //    printf("Singwave pitchenvelope=%p\n", &p->pitchEnvelope);
     SingWave_setFreq(csound, p, FL(75.0));
     Envelope_setRate(csound, &p->pitchEnvelope, FL(1.0));
 /*  SingWave_print(csound, p); */
@@ -150,9 +154,10 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 
     p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr;
     temp -= p->rate;
-    if (temp<0) temp = - temp;
+    if (temp<0) temp = -temp;
     Envelope_setTarget(&p->pitchEnvelope, p->rate);
     Envelope_setRate(csound, &p->pitchEnvelope, p->sweepRate * temp);
+    //    Envelope_print(csound, &p->pitchEnvelope);
 }
 
 #define SingWave_setVibFreq(p, vibFreq) \
@@ -169,9 +174,10 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
     MYFLT mytime = p->mytime;
 
     temp_rate = Envelope_tick(&p->pitchEnvelope);
+    //    printf("SingWave_tick: %f\n", temp_rate);
     mytime += temp_rate;                      /*  Update current time     */
     mytime += temp_rate*Modulatr_tick(csound,&p->modulator); /* Add vibratos */
-
+    //printf("             : %f %d\n", mytime, p->wave->flen);
     while (mytime >= (MYFLT)p->wave->flen) {  /*  Check for end of sound  */
       mytime -= p->wave->flen;                /*  loop back to beginning  */
     }
@@ -184,10 +190,13 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
 
     temp1 = temp + 1;
     if (temp1==p->wave->flen) temp1 = temp; /* Wrap!! */
-    lastOutput = alpha * p->wave->ftable[temp1];         /*  Do linear  */
-    lastOutput += (FL(1.0)-alpha) * p->wave->ftable[temp];   /* interpolation */
-    lastOutput *= Envelope_tick(&p->envelope);
 
+    lastOutput = alpha * p->wave->ftable[temp1];         /*  Do linear  */
+    //    printf("             : (%d %d) %f %f ", temp, temp1, alpha, lastOutput);
+    lastOutput += (FL(1.0)-alpha) * p->wave->ftable[temp];   /* interpolation */
+    //    printf("%f ", lastOutput);
+    lastOutput *= Envelope_tick(&p->envelope);
+//    printf("%f\n", lastOutput);
     p->mytime = mytime;
     return lastOutput;
 }
@@ -198,8 +207,8 @@ static void SingWave_print(CSOUND *csound, SingWave *p)
     csound->Message(csound, Str("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
                             p->rate, p->sweepRate, p->mytime);
     Modulatr_print(csound, &p->modulator);
-    Envelope_print(csound, &p->envelope);
-    Envelope_print(csound, &p->pitchEnvelope);
+    //    Envelope_print(csound, &p->envelope);
+    //    Envelope_print(csound, &p->pitchEnvelope);
 }
 #endif
 
@@ -260,7 +269,7 @@ static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
     VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0],
                            phonParams[i][3][1], FL(1.0));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
-    csound->Warning(csound,
+    csound->Message(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
 }
 
@@ -311,7 +320,8 @@ int voicformset(CSOUND *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK)) return NOTOK;
+    if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK))
+      return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
     Envelope_setTarget(&(p->voiced.envelope), FL(0.0));
 
@@ -346,10 +356,20 @@ int voicformset(CSOUND *csound, VOICF *p)
     FormSwep_clear(p->filters[1]);
     FormSwep_clear(p->filters[2]);
     FormSwep_clear(p->filters[3]);
+    {
+      MYFLT temp, freq = *p->frequency;
+      if ((freq * FL(22.0)) > csound->esr)	{
+        csound->Warning(csound,"This note is too high!!\n");
+        freq = csound->esr / FL(22.0);
+      }
+      p->basef = freq;
+      temp = FABS(FL(1500.0) - freq) + FL(200.0);
+      p->lastGain = FL(10000.0) / temp / temp;
+      SingWave_setFreq(csound, &p->voiced, freq);
+    }
+
     Envelope_setTarget(&(p->voiced.envelope), amp);
     OnePole_setPole(&p->onepole, FL(0.95) - (amp * FL(0.2))/FL(128.0));
-    p->basef = *p->frequency;
-    SingWave_setFreq(csound, &p->voiced, p->basef);
 /*  voicprint(csound, p); */
     return OK;
 }
@@ -357,9 +377,7 @@ int voicformset(CSOUND *csound, VOICF *p)
 int voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
-    int32 nsmps = csound->ksmps;
-    MYFLT temp;
-    MYFLT lastOutput;
+    int32 n, nsmps = csound->ksmps;
 
     if (p->basef != *p->frequency) {
       p->basef = *p->frequency;
@@ -380,18 +398,28 @@ int voicform(CSOUND *csound, VOICF *p)
     }
 /*  voicprint(csound, p); */
 
-    do {
+    for (n=0; n<nsmps; n++) {
+      MYFLT temp;
+      MYFLT lastOutput;
       temp   = OnePole_tick(&p->onepole,
                             OneZero_tick(&p->onezero,
                                          SingWave_tick(csound, &p->voiced)));
+      //      printf("%d: temp=%f ", n, temp);
       temp  += Envelope_tick(&p->noiseEnv) * Noise_tick(csound, &p->noise);
+      //      printf("%f\n", temp);
       lastOutput  = FormSwep_tick(csound, &p->filters[0], temp);
+      //      printf("%d: output=%f ", lastOutput);
       lastOutput  = FormSwep_tick(csound, &p->filters[1], lastOutput);
+      //      printf("%f ", lastOutput);
       lastOutput  = FormSwep_tick(csound, &p->filters[2], lastOutput);
+      //      printf("%f ", lastOutput);
       lastOutput  = FormSwep_tick(csound, &p->filters[3], lastOutput);
-      lastOutput *= FL(0.07) * FL(1.5);        /* JPff rescaled */
-      *ar++ = lastOutput * AMP_SCALE;
-    } while (--nsmps);
+      //      printf("%f ", lastOutput);
+      lastOutput *= p->lastGain;
+      //      printf("%f ", lastOutput);
+      //      printf("->%f\n", lastOutput* AMP_SCALE);
+      ar[n] = lastOutput * FL(0.22) * AMP_SCALE;
+    }
 
     return OK;
 }
