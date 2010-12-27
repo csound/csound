@@ -643,7 +643,11 @@ extern "C" {
             0,            /*    syntaxCheckOnly   */
             1,            /*    useCsdLineCounts  */
 #ifdef ENABLE_NEW_PARSER
+  #ifdef BETA
             1,            /*    newParser   */
+  #else
+            0,            /*    newParser   */
+  #endif
 #endif
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
