@@ -117,6 +117,7 @@ typedef struct VOICF {
     MYFLT       oldform;
     int         ph;
     MYFLT       basef;
+    MYFLT       lastGain;
     SingWave    voiced;
     Noise       noise;
     Envelope    noiseEnv;
