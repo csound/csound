@@ -1,3 +1,8 @@
+2010-12-28  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/symbtab.c (add_token): remove message if Opcode/Function
+	confusion 
+
 2010-12-18  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/gab/tabmorph.c (atabmorphia): Fixed editing error that
