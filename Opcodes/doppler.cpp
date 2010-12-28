@@ -206,6 +206,7 @@ public:
   }
 };
 
+#ifdef NEVER
 struct Doppler2 : public OpcodeBase<Doppler2>
 {
   // Csound opcode outputs.
@@ -286,6 +287,8 @@ struct Doppler2 : public OpcodeBase<Doppler2>
     return OK;
   }
 };
+#endif
+
 
 extern "C"
 {
@@ -301,6 +304,7 @@ extern "C"
         (SUBR) Doppler::kontrol_,
         0,
       },
+#ifdef NEVER
       {
         (char*)"doppler2",
         sizeof(Doppler2),
@@ -311,6 +315,7 @@ extern "C"
         (SUBR) Doppler2::kontrol_,
         0,
       },
+#endif
       {
         0,
         0,
