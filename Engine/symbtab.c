@@ -213,7 +213,8 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     while (a!=NULL) {
       if (strcmp(a->lexeme, s)==0) {
         if (type == a->type) return a;
-        printf("Type confusion for %s (%d,%d), replacing\n", s, type, a->type);
+        if (type!= T_FUNCTION || a->type!=T_OPCODE) 
+          printf("Type confusion for %s (%d,%d), replacing\n", s, type, a->type);
         a->type = type;
         return a;
       }
