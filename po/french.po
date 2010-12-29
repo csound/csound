@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2010-01-01 16:07+0000\n"
+"PO-Revision-Date: 2010-12-29 12:07+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -103,17 +103,17 @@ msgstr "(erreur inconnue)"
 #: Engine/csound_orc_compile.c:477
 #, c-format
 msgid "create_opcode: No rule to handle statemnent of type %d\n"
-msgstr "create_opcode: aucune règle pour traiter une instruction de type %d\n"
+msgstr "create_opcode : aucune règle pour traiter une instruction de type %d\n"
 
 #: Engine/csound_orc_compile.c:673
 #, c-format
 msgid "create_instrument: instr num %ld\n"
-msgstr "create_instrument: numéro d'instrument %ld\n"
+msgstr "create_instrument : numéro d'instrument %ld\n"
 
 #: Engine/csound_orc_compile.c:683
 #, c-format
 msgid "create_instrument: instr name %s\n"
-msgstr "create_instrument: nom de l'instrument %s\n"
+msgstr "create_instrument : nom de l'instrument %s\n"
 
 #: Engine/csound_orc_compile.c:690 Engine/otran.c:341
 msgid "invalid name for instrument"
@@ -583,7 +583,7 @@ msgstr "numéro de table source inconnu"
 
 #: Engine/fgens.c:2088
 msgid "Gen41: negative probability not allowed"
-msgstr ""
+msgstr "Gen41 : probabilité négative interdite"
 
 #: Engine/fgens.c:2154 Opcodes/fareygen.c:70
 #, c-format
@@ -833,7 +833,7 @@ msgstr "les allocation inactives ont été rendues à l'espace libre\n"
 #: Engine/insert.c:720
 #, c-format
 msgid "could not find playing instr %f\n"
-msgstr ""
+msgstr "impossible de trouver l'instr actif %f\n"
 
 #: Engine/insert.c:733
 msgid ""
@@ -2128,7 +2128,7 @@ msgstr "    Chaîne tronquée\n"
 #: Engine/symbtab.c:218
 #, c-format
 msgid "Type confusion for %s (%d,%d), replacing\n"
-msgstr ""
+msgstr "Confusion de type pour %s (%d,%d), remplacement\n"
 
 #: Engine/symbtab.c:344
 #, c-format
@@ -2792,12 +2792,12 @@ msgstr " *** Impossible d'ouvrir le périphérique '%s' pour l'entrée audio : %
 #: InOut/rtalsa.c:394
 #, c-format
 msgid "ALSA: -B %d not allowed on this device; using %d instead\n"
-msgstr ""
+msgstr "ALSA : -B %d interdit sur ce périphérique ; utiliser plutôt %d\n"
 
 #: InOut/rtalsa.c:417
 #, c-format
 msgid "ALSA: -b %d not allowed on this device; using %d instead\n"
-msgstr ""
+msgstr "ALSA : -b %d interdit sur ce périphérique ; utiliser plutôt %d\n"
 
 #: InOut/rtalsa.c:430
 #, c-format
@@ -2848,7 +2848,7 @@ msgstr "ALSA midi : erreur en ouvrant le périphérique : %s\n"
 
 #: InOut/rtalsa.c:768
 msgid "ALSA midi: No devices found.\n"
-msgstr ""
+msgstr "ALSA midi : aucun périphérique trouvé.\n"
 
 #: InOut/rtalsa.c:867
 #, c-format
@@ -2931,6 +2931,8 @@ msgid ""
 "CoreAudio real-time audio module for Csound\n"
 "by Victor Lazzarini\n"
 msgstr ""
+"Module audio temps-réel CoreAudio pour Csound\n"
+"par Victor Lazzarini\n"
 
 #: InOut/rtcoreaudio.c:105
 msgid "rtaudio: CoreAudio module enabled\n"
@@ -3232,7 +3234,7 @@ msgstr "utilisation de l'interface de callback\n"
 
 #: InOut/rtpulse.c:47
 msgid "PulseAudio client RT IO module for Csoundby Victor Lazzarini\n"
-msgstr ""
+msgstr "Module client d'E/S TR PulseAudio pour Csound par Victor Lazzarini\n"
 
 #: InOut/rtpulse.c:52
 msgid " *** rtpulse: error allocating globals"
@@ -3755,7 +3757,7 @@ msgstr "pas supporté sur ce terminal"
 #: OOps/aops.c:104 OOps/aops.c:129
 #, c-format
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
-msgstr ""
+msgstr "Il ne peut y avoir plus d'arguments In que Out dans init (%d,%d)"
 
 #: OOps/aops.c:632
 msgid "non-looping sample"
@@ -3771,14 +3773,13 @@ msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
 #: OOps/aops.c:1136
-#, fuzzy
 msgid "Input and output argument count differs in inch"
-msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
+msgstr "Les nombres d'arguments d'entrée et de sortie diffèrent dans inch"
 
 #: OOps/aops.c:1140
 #, c-format
 msgid "Input channel %d too large; ignored"
-msgstr ""
+msgstr "Canal d'entrée %d trop grand ; ignoré"
 
 #: OOps/aops.c:1620
 msgid "k-rate invalue ChannelName cannot start with $"
@@ -3879,13 +3880,13 @@ msgid "diskin: %s: failed to open file"
 msgstr "diskin : %s : l'ouverture du fichier a échoué"
 
 #: OOps/diskin.c:197
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin: opened '%s':\n"
 "        %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"diskin: opened '%s':\n"
-"         %d Hz, %d voix, %ld trames d'échantillons\n"
+"diskin : '%s' ouvert :\n"
+"          %d Hz, %d voix, %ld trames d'échantillons\n"
 
 #: OOps/diskin.c:207
 msgid "diskin: number of output args inconsistent with number of file channels"
@@ -3959,13 +3960,13 @@ msgid "diskin2: %s: failed to open file"
 msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
 
 #: OOps/diskin2.c:231
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"diskin2: opened '%s' :\n"
-"         %d Hz, %d voix, %ld trames d'échantillons\n"
+"diskin2 : '%s' ouvert :\n"
+"          %d Hz, %d voix, %ld trames d'échantillons\n"
 
 #: OOps/diskin2.c:240
 msgid ""
@@ -3999,12 +4000,12 @@ msgid "soundin: %s: failed to open file"
 msgstr "soundin : %s : l'ouverture du fichier a échoué"
 
 #: OOps/diskin2.c:599
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
-"soundin: opened '%s' :\n"
+"soundin: '%s' ouvert :\n"
 "         %d Hz, %d voix, %ld trames d'échantillons\n"
 
 #: OOps/diskin2.c:609
@@ -4015,11 +4016,9 @@ msgstr ""
 "nombre de canaux du fichier"
 
 #: OOps/diskin2.c:618
-#, fuzzy, c-format
+#, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr ""
-"soundin : avertissement : taux d'échantillonnage (%d) du fichier != sr (%d) "
-"de l'orchestre\n"
+msgstr "soundin : taux d'échantillonnage (%d) != sr (%d) de l'orchestre\n"
 
 #: OOps/diskin2.c:651
 msgid "soundin: not initialised"
@@ -5735,7 +5734,7 @@ msgstr "nombre d'arguments non valide"
 
 #: Opcodes/OSC.c:663 Opcodes/OSC.c:668
 msgid "argument list inconsistent with format string"
-msgstr ""
+msgstr "liste d'arguments inconsistante avec le format chaîne"
 
 #: Opcodes/OSC.c:672
 msgid "invalid type"
@@ -5967,36 +5966,36 @@ msgstr ""
 
 #: Opcodes/fareygen.c:140
 msgid "insufficient arguments for fareytable"
-msgstr ""
+msgstr "arguments insuffisants pour une table de Farey"
 
 #: Opcodes/fareyseq.c:250 Opcodes/fareyseq.c:300
 #, c-format
 msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
-msgstr ""
+msgstr "Farey : No de table < 1 dft=%.2f  sft=%.2f"
 
 #: Opcodes/fareyseq.c:255
 #, c-format
 msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
-msgstr ""
+msgstr "Farey : Type de filtre < 1 dft=%.2f  sft=%.2f"
 
 #: Opcodes/fareyseq.c:270 Opcodes/fareyseq.c:318
 #, c-format
 msgid "Farey: Destination dft table %.2f not found."
-msgstr ""
+msgstr "Farey : Table dft de destination %.2f introuvable"
 
 #: Opcodes/fareyseq.c:281 Opcodes/fareyseq.c:329
 #, c-format
 msgid "Farey: Source sft table %.2f not found."
-msgstr "Farey : La table %.2f de la source sft n'a pas été trouvée"
+msgstr "Farey : Table sft source %.2f introuvable"
 
 #: Opcodes/fareyseq.c:305
 msgid "Farey: Filter type < 1"
-msgstr ""
+msgstr "Farey : Type de filtre < 1"
 
 #: Opcodes/fareyseq.c:447 Opcodes/fareyseq.c:468
 #, c-format
 msgid "Table no. < 1 sft=%.2f"
-msgstr "Numéro de table < 1 dft=%.2f  sft=%.2f"
+msgstr "Numéro de table < 1 sft=%.2f"
 
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
 msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
@@ -6140,7 +6139,7 @@ msgstr "ftload : impossible d'ouvrir le fichier"
 
 #: Opcodes/ftgen.c:354
 msgid "ftload: incorrect file"
-msgstr ""
+msgstr "ftload : fichier incorrect"
 
 #: Opcodes/ftgen.c:467
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
@@ -6166,11 +6165,11 @@ msgstr "fastab : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:131 Opcodes/gab/gab.c:140 Opcodes/gab/gab.c:170
 msgid "tabw off end"
-msgstr ""
+msgstr "tabw hors-limite"
 
 #: Opcodes/gab/gab.c:156 Opcodes/gab/gab.c:224 Opcodes/gab/gab.c:233
 msgid "tab off end"
-msgstr ""
+msgstr "tab hors-limite"
 
 #: Opcodes/gab/gab.c:182
 msgid "tab_i: incorrect table number"
@@ -6178,7 +6177,7 @@ msgstr "tab_i : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:189
 msgid "tab_i off end"
-msgstr ""
+msgstr "tab_i hors-limite"
 
 #: Opcodes/gab/gab.c:201
 msgid "tabw_i: incorrect table number"
@@ -6186,7 +6185,7 @@ msgstr "tabw_i : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:208
 msgid "tabw_i off end"
-msgstr ""
+msgstr "tabw_i hors-limite"
 
 #: Opcodes/gab/gab.c:246
 msgid "tab_init: incorrect table number"
@@ -6784,7 +6783,7 @@ msgid "hrtfer: not initialised"
 msgstr "hrtfer : non initialisé"
 
 #: Opcodes/hrtfopcodes.c:232
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "Orchestra sampling rate is not compatible with HRTF data files\n"
@@ -6792,8 +6791,6 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"\n"
-"ATTENTION !! :\n"
 "Le taux d'évhantillonnage de l'orchestre n'est pas compatible avec les "
 "fichiers de données HRTF.\n"
 "Il devrait valoir %.0f, voir l'aide de Csound à ce sujet\n"
@@ -6850,28 +6847,23 @@ msgstr ""
 "\n"
 
 #: Opcodes/hrtfopcodes.c:600
-#, fuzzy
 msgid ""
 "fades are overlapping: this could lead to noise: reduce fade size or change "
 "trajectory\n"
 "\n"
 msgstr ""
-"\n"
-"AVERTISSEMENT : les fondus se chevauchent : ceci peut provoquer du bruit : "
+"les fondus se chevauchent : ceci peut provoquer du bruit : "
 "réduisez la taille des fondus ou changez la trajectoire\n"
 "\n"
 
 #: Opcodes/hrtfopcodes.c:1209 Opcodes/hrtfopcodes.c:1770
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Orchestra sampling rate is not compatible with HRTF data files\n"
 "Should be %.0f, see Csound help for object\n"
 "\n"
 msgstr ""
-"\n"
-"\n"
-"ATTENTION !! :\n"
-"Le taux d'évhantillonnage de l'orchestre n'est pas compatible avec les "
+"Le taux d'échantillonnage de l'orchestre n'est pas compatible avec les "
 "fichiers de données HRTF.\n"
 "Il devrait valoir %.0f, voir l'aide de Csound à ce sujet\n"
 "\n"
@@ -6921,66 +6913,68 @@ msgid ""
 "Could not create Jack client \"%s\" -- is Jack server \"%s\" running? "
 "Status: %d\n"
 msgstr ""
+"Impossible de créer le client Jack \"%s\" -- le serveur Jack \"%s\" est-il actif ? "
+"Etat : %d\n"
 
 #: Opcodes/jacko.cpp:543
 #, c-format
 msgid "Created Jack client \"%s\" for Jack server \"%s\".\n"
-msgstr ""
+msgstr "Client Jack \"%s\" créé pour le serveur Jack \"%s\".\n"
 
 #: Opcodes/jacko.cpp:548
 #, c-format
 msgid "Jack buffer size %d != Csound ksmps %d, exiting...\n"
-msgstr ""
+msgstr "Taille du tampon Jack %d != Csound ksmps %d, sortie...\n"
 
 #: Opcodes/jacko.cpp:556
 #, c-format
 msgid "Jack sampling rate %d != Csound sr %d, exiting...\n"
-msgstr ""
+msgstr "Taux d'échantillonnage de Jack %d != Csound sr %d, sortie...\n"
 
 #: Opcodes/jacko.cpp:567
 #, c-format
 msgid "Activated Jack client \"%s\".\n"
-msgstr ""
+msgstr "Client Jack activé \"%s\".\n"
 
 #: Opcodes/jacko.cpp:571
 #, c-format
 msgid "Failed to activate Jack client \"%s\": status %d.\n"
-msgstr ""
+msgstr "L'activation du client Jack \"%s\" a échoué : état %d.\n"
 
 #: Opcodes/jacko.cpp:586
 msgid "BEGAN JackoState::close()...\n"
-msgstr ""
+msgstr "DEBUT de JackoState::close()...\n"
 
 #: Opcodes/jacko.cpp:622
 msgid "ENDED JackoState::close().\n"
-msgstr ""
+msgstr "FIN de JackoState::close().\n"
 
 #: Opcodes/jacko.cpp:876
 #, c-format
 msgid "Failed to set Jack freewheeling mode to \"%s\": error %d.\n"
-msgstr ""
+msgstr "La mise de Jack en mode roue libre \"%s\" a échoué : erreur %d.\n"
 
 #: Opcodes/jacko.cpp:878
 #, c-format
 msgid "Set Jack freewheeling mode to \"%s\".\n"
-msgstr ""
+msgstr "Jack mis en mode roue libre \"%s\".\n"
 
 #: Opcodes/jacko.cpp:893
 #, c-format
 msgid "Turned Jack connections \"%s\".\n"
-msgstr ""
+msgstr "Connexions Jack \"%s\".\n"
 
 #: Opcodes/jacko.cpp:934 Opcodes/jacko.cpp:1034 Opcodes/jacko.cpp:1134
 #: Opcodes/jacko.cpp:1200
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create Jack port \"%s\".\n"
-msgstr "impossible d'ouvrir le port du Jack \"%s\".\n"
+msgstr "Impossible de créer le port de Jack \"%s\".\n"
 
 #: Opcodes/jacko.cpp:946 Opcodes/jacko.cpp:1046 Opcodes/jacko.cpp:1146
 #: Opcodes/jacko.cpp:1212
 #, c-format
 msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
-msgstr ""
+msgstr "Impossible de créer la connexion Jack de \"%s\" à \"%s\" : état %d.\n"
 
 #: Opcodes/jackTransport.c:58
 msgid "Cannot find Jack client.\n"
@@ -7107,11 +7101,9 @@ msgid "mp3in: %s: failed to open file"
 msgstr "mp3in : %s : l'ouverture du fichier a échoué"
 
 #: Opcodes/mp3in.c:134
-#, fuzzy, c-format
+#, c-format
 msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr ""
-"mp3in : avertissement : taux d'échantillonnage du fichier (%d) != sr de "
-"l'orchestre (%d)\n"
+msgstr "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
 
 #: Opcodes/nlfilt.c:123
 msgid "nlfilt: not initialised"
@@ -7119,11 +7111,11 @@ msgstr "nlfilt : non initialisé"
 
 #: Opcodes/nlfilt.c:160
 msgid "More arguments than p fields"
-msgstr ""
+msgstr "Plus d'arguments que p-champs"
 
 #: Opcodes/nlfilt.c:168
 msgid "buffer overflow in passign"
-msgstr ""
+msgstr "dépassement de tampon dans passign"
 
 #: Opcodes/ogg.c:53
 msgid "oggread: invalid number of channels"
@@ -7145,10 +7137,9 @@ msgstr ""
 "du fichier"
 
 #: Opcodes/ogg.c:77
-#, fuzzy, c-format
+#, c-format
 msgid "oggread: sample rate of file is %d which coes not match sr (=%f)\n"
-msgstr ""
-"oggread : avertissement : le taux d'échantillonnage du fichier vaut %d qui "
+msgstr "oggread : le taux d'échantillonnage du fichier vaut %d qui "
 "ne correspond pas à sr (=%f)\n"
 
 #: Opcodes/ogg.c:91
@@ -7499,7 +7490,7 @@ msgstr ""
 
 #: Opcodes/pitch.c:1731
 msgid "Incorrect argument count in transeg"
-msgstr ""
+msgstr "Nombre d'arguments incorrect dans transeg"
 
 #: Opcodes/pitch.c:1778 Opcodes/pitch.c:1918
 msgid "Error: transeg not initialised (krate)\n"
@@ -7511,7 +7502,7 @@ msgstr "transeg : non initialisé (taux-a)\n"
 
 #: Opcodes/pitch.c:1867
 msgid "Incorrect argument count in transegr"
-msgstr ""
+msgstr "Nombre d'arguments incorrect dans transegr"
 
 #: Opcodes/pitch.c:2216
 msgid "median: not initialised (arate)\n"
@@ -7520,7 +7511,7 @@ msgstr "median : non initialisé (taux-a)\n"
 #: Opcodes/pitch.c:2220 Opcodes/pitch.c:2268
 #, c-format
 msgid "median: window (%d)larger than maximum(%d); truncated"
-msgstr ""
+msgstr "median : fenêtre (%d) plus grande que le maximum (%d) ; tronquée"
 
 #: Opcodes/pitch.c:2264
 msgid "median: not initialised (krate)\n"
@@ -7724,9 +7715,8 @@ msgid "pvcross: not initialised"
 msgstr "pvcross : non initialisé"
 
 #: Opcodes/pvlock.c:35 Opcodes/pvsbasic.c:306
-#, fuzzy
 msgid "invalid number of output arguments"
-msgstr "nombre d'arguments non valide"
+msgstr "nombre d'arguments de sortie non valide"
 
 #: Opcodes/pvlock.c:455 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:489
 #: Opcodes/pvsbasic.c:802 Opcodes/pvsbasic.c:923 Opcodes/pvsbasic.c:1009
@@ -7839,13 +7829,12 @@ msgid "SDFT case not implemented yet"
 msgstr "SDFT pas encore implémentée"
 
 #: Opcodes/pvsbuffer.c:85
-#, fuzzy
 msgid "error... could not create global var for handle\n"
-msgstr "avertissement... impossible de créer une variable globale\n"
+msgstr "erreur... impossible de créer une var globale pour le descripteur\n"
 
 #: Opcodes/pvsbuffer.c:142 Opcodes/pvsbuffer.c:191
 msgid "error... could not read handle from global variable\n"
-msgstr ""
+msgstr "erreur... impossible de lire le descripteur dans les variables globales\n"
 
 #: Opcodes/pvsbuffer.c:239
 msgid "Invalid buffer handle"
@@ -8059,7 +8048,7 @@ msgstr "sfload : impossible d'utiliser des variables globales\n"
 
 #: Opcodes/sfont.c:170
 msgid "Extending soundfonts"
-msgstr ""
+msgstr "Extension de soundfonts"
 
 #: Opcodes/sfont.c:201
 #, c-format
@@ -8170,7 +8159,7 @@ msgstr "inletf : le format de signal doit être amp-phase ou amp-fréq."
 
 #: Opcodes/signalflowgraph.cpp:782
 msgid "ftgenonce error"
-msgstr ""
+msgstr "erreur ftgenonce"
 
 #: Opcodes/singwave.c:85
 msgid "No table for Modulatr"
@@ -8637,7 +8626,7 @@ msgstr " valeur de imode incorrecte"
 
 #: Opcodes/uggab.c:185
 msgid "Min and max the same"
-msgstr ""
+msgstr "Min et max sont les mêmes"
 
 #: Opcodes/uggab.c:424
 msgid "losc: no sample rate stored in function assuming=sr\n"
@@ -8652,7 +8641,7 @@ msgstr "valeur illégale de iscl de reson : %f"
 
 #: Opcodes/uggab.c:579
 msgid "loop cannot be zero"
-msgstr ""
+msgstr "une boucle ne peut pas être nulle"
 
 #: Opcodes/uggab.c:1056 Opcodes/uggab.c:1098
 msgid "vibrato(krate): not initialised"
@@ -9649,9 +9638,8 @@ msgid "--opcode-lib=NAMES\tDynamic libraries to load"
 msgstr "--opcode-lib=NOMS\tBibliothèques dynamiques à charger"
 
 #: Top/argdecode.c:218
-#, fuzzy
 msgid "--opcode-omit=NAMES\tDynamic libraries not to load"
-msgstr "--opcode-omit=NOMS\tBibliothèques dynamiques non à charger"
+msgstr "--opcode-omit=NOMS\tBibliothèques dynamiques à ne pas charger"
 
 #: Top/argdecode.c:219
 msgid "--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY"
@@ -9914,7 +9902,7 @@ msgstr "Impossible d'ouvrir le fichier d'indirection %s\n"
 
 #: Top/argdecode.c:1215
 msgid "no number of threads"
-msgstr ""
+msgstr "aucun numéro de thread"
 
 #: Top/argdecode.c:1225 util/envext.c:94 util/mixer.c:320 util/scale.c:245
 #: util/xtrct.c:244
@@ -10031,7 +10019,7 @@ msgstr "nom de chemin trop long, on se passe de '%s'"
 #: Top/csmodule.c:732
 #, c-format
 msgid "Library %s omitted\n"
-msgstr ""
+msgstr "Bibliothèque %s omise\n"
 
 #: Top/csmodule.c:768
 msgid "Loading command-line libraries:\n"
