@@ -214,7 +214,9 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
       if (strcmp(a->lexeme, s)==0) {
         if (type == a->type) return a;
         if (type!= T_FUNCTION || a->type!=T_OPCODE) 
-          printf("Type confusion for %s (%d,%d), replacing\n", s, type, a->type);
+          csound->Warning(csound,
+                          Str("Type confusion for %s (%d,%d), replacing\n"),
+                          s, type, a->type);
         a->type = type;
         return a;
       }
