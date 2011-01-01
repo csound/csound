@@ -307,6 +307,7 @@
 ./Opcodes/pvadd.h
 ./Opcodes/pvinterp.c
 ./Opcodes/pvinterp.h
+./Opcodes/pvlock.c
 ./Opcodes/pvoc.c
 ./Opcodes/pvoc.h
 ./Opcodes/pvocext.c
@@ -322,6 +323,8 @@
 ./Opcodes/pvscent.c
 ./Opcodes/pvsdemix.c
 ./Opcodes/pvsdemix.h
+./Opcodes/pvsgendy.c
+./Opcodes/pvslock.c
 ./Opcodes/py/pycall.auto.c
 ./Opcodes/py/pycall.auto.h
 ./Opcodes/py/pythonhelper.h
@@ -392,6 +395,7 @@
 ./Opcodes/vbap_sixteen.c
 ./Opcodes/vbap_zak.c
 ./Opcodes/vibraphn.h
+./Opcodes/Vosim.c
 ./Opcodes/vpvoc.c
 ./Opcodes/vpvoc.h
 ./Opcodes/vst4cs/src/fxbank.cpp
