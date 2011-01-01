@@ -76,14 +76,14 @@ static MYFLT noise_tick(CSOUND *csound)
 #define SEKE_SOUND_DECAY  FL(0.96)
 #define SEKE_SYSTEM_DECAY FL(0.999)
 #define SEKE_GAIN         FL(20.0)
-#define SEKE_NUM_BEANS    64
+#define SEKE_NUM_BEANS    FL(64.0)
 #define SEKE_CENTER_FREQ  FL(5500.0)
 #define SEKE_RESON        FL(0.6)
 /***********************  SANDPAPER **************************/
 #define SANDPAPR_SOUND_DECAY FL(0.999)
 #define SANDPAPR_SYSTEM_DECAY FL(0.999)
 #define SANDPAPR_GAIN     FL(0.5)
-#define SANDPAPR_NUM_GRAINS 128
+#define SANDPAPR_NUM_GRAINS FL(128.0)
 #define SANDPAPR_CENTER_FREQ FL(4500.0)
 #define SANDPAPR_RESON    FL(0.6)
 /*(********************** CABASA *****************************/
@@ -106,7 +106,7 @@ static MYFLT noise_tick(CSOUND *csound)
 #define WUTR_SOUND_DECAY  FL(0.95)
 #define WUTR_SYSTEM_DECAY FL(0.996)
 #define WUTR_GAIN         FL(1.0)
-#define WUTR_NUM_SOURCES  10
+#define WUTR_NUM_SOURCES  FL(10.0)
 #define WUTR_CENTER_FREQ0 FL(450.0)
 #define WUTR_CENTER_FREQ1 FL(600.0)
 #define WUTR_CENTER_FREQ2 FL(750.0)
@@ -171,7 +171,7 @@ static MYFLT noise_tick(CSOUND *csound)
 #define STIX1_SOUND_DECAY FL(0.96)
 #define STIX1_SYSTEM_DECAY FL(0.998)
 #define STIX1_GAIN        FL(30.0)
-#define STIX1_NUM_BEANS   2
+#define STIX1_NUM_BEANS   FL(2.0)
 #define STIX1_CENTER_FREQ FL(5500.0)
 #define STIX1_RESON       FL(0.6)
 /************************ Crunch1 ***************************/
@@ -225,7 +225,7 @@ static int cabasa(CSOUND *csound, CABASA *p)
     MYFLT coeff1      = p->coeffs1;
     MYFLT gain        = p->gain;
 
-    if (*p->num_beads != p->last_num) {
+    if (*p->num_beads != p->last_num) { /* # beans has changed */
       p->last_num = *p->num_beads;
       if ((int32)(*p->num_beads+FL(0.5)) != p->num_objects) {
         p->num_objects = (int32)(*p->num_beads+FL(0.5));
@@ -292,10 +292,10 @@ static int sekereset(CSOUND *csound, SEKERE *p)
     p->finalZ0 = FL(0.0);
     p->shake_maxSave = FL(0.0);
     p->totalEnergy  = FL(0.0);
-    p->num_objects = (MYFLT)SEKE_NUM_BEANS;
+    p->num_objects = SEKE_NUM_BEANS;
     p->soundDecay = SEKE_SOUND_DECAY;
     p->systemDecay = SEKE_SYSTEM_DECAY;
-    p->gain = LOG((MYFLT)SEKE_NUM_BEANS)*SEKE_GAIN/(MYFLT)SEKE_NUM_BEANS;
+    p->gain = LOG(SEKE_NUM_BEANS)*SEKE_GAIN/SEKE_NUM_BEANS;
     p->resons = SEKE_RESON;
     p->coeffs1 = SEKE_RESON * SEKE_RESON;
     p->coeffs0 = - SEKE_RESON * FL(2.0) *
@@ -394,11 +394,11 @@ static int sandset(CSOUND *csound, SEKERE *p)
     p->finalZ0 = FL(0.0);
     p->shake_maxSave = FL(0.0);
     p->totalEnergy  = FL(0.0);
-    p->num_objects = (MYFLT)SANDPAPR_NUM_GRAINS;
+    p->num_objects = SANDPAPR_NUM_GRAINS;
     p->soundDecay = SANDPAPR_SOUND_DECAY;
     p->systemDecay = SANDPAPR_SYSTEM_DECAY;
-    p->gain = LOG((MYFLT)SANDPAPR_NUM_GRAINS) *
-      SANDPAPR_GAIN / (MYFLT) SANDPAPR_NUM_GRAINS;
+    p->gain = LOG(SANDPAPR_NUM_GRAINS) *
+      SANDPAPR_GAIN / SANDPAPR_NUM_GRAINS;
     p->resons = SANDPAPR_RESON;
     p->coeffs1 = SANDPAPR_RESON * SANDPAPR_RESON;
     p->coeffs0 = - SANDPAPR_RESON * FL(2.0) *
@@ -422,10 +422,10 @@ static int stixset(CSOUND *csound, SEKERE *p)
     p->finalZ0 = FL(0.0);
     p->shake_maxSave = FL(0.0);
     p->totalEnergy  = FL(0.0);
-    p->num_objects = (MYFLT)STIX1_NUM_BEANS;
+    p->num_objects = STIX1_NUM_BEANS;
     p->soundDecay = STIX1_SOUND_DECAY;
     p->systemDecay = STIX1_SYSTEM_DECAY;
-    p->gain = LOG((MYFLT)STIX1_NUM_BEANS) * STIX1_GAIN / (MYFLT) STIX1_NUM_BEANS;
+    p->gain = LOG(STIX1_NUM_BEANS) * STIX1_GAIN / STIX1_NUM_BEANS;
     p->resons = STIX1_RESON;
     p->coeffs1 = STIX1_RESON * STIX1_RESON;
     p->coeffs0 = - STIX1_RESON * FL(2.0) *
@@ -914,11 +914,10 @@ static int wuterset(CSOUND *csound, WUTER *p)
     p->center_freqs0   = p->res_freq0 = WUTR_CENTER_FREQ0;
     p->center_freqs1   = p->res_freq1 = WUTR_CENTER_FREQ1;
     p->center_freqs2   = p->res_freq2 = WUTR_CENTER_FREQ2;
-    p->num_objectsSave = p->num_objects = (MYFLT)WUTR_NUM_SOURCES;
+    p->num_objectsSave = p->num_objects = WUTR_NUM_SOURCES;
     p->soundDecay      = WUTR_SOUND_DECAY;
     p->systemDecay     = WUTR_SYSTEM_DECAY;
-    temp               = LOG((MYFLT)WUTR_NUM_SOURCES) * WUTR_GAIN /
-      (MYFLT) WUTR_NUM_SOURCES;
+    temp               = LOG(WUTR_NUM_SOURCES) * WUTR_GAIN / WUTR_NUM_SOURCES;
     p->gains0          = p->gains1 = p->gains2 = temp;
     p->coeffs01        = WUTR_RESON * WUTR_RESON;
     p->coeffs00        = -WUTR_RESON * FL(2.0) *
@@ -933,6 +932,8 @@ static int wuterset(CSOUND *csound, WUTER *p)
     p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
+    p->shake_maxSave = FL(0.0);
+    p->num_objects = p->finalZ0 = p->finalZ1 = p->finalZ2 = FL(0.0);
     return OK;
 }
 
@@ -991,20 +992,21 @@ static int wuter(CSOUND *csound, WUTER *p)
           int j;
           sndLevel = shakeEnergy;
           j = my_random(csound, 3);
+          /* ******** Stange that there is no use of freq0 and freq2  */
           if (j == 0)   {
             p->center_freqs0 = p->res_freq1 *
               (FL(0.75) + (FL(0.25) * noise_tick(csound)));
-            p->gains0 = (MYFLT)fabs(noise_tick(csound));
+            p->gains0 = FABS(noise_tick(csound));
           }
           else if (j == 1)      {
             p->center_freqs1 = p->res_freq1 *
               (FL(1.0) + (FL(0.25) * noise_tick(csound)));
-            p->gains1 = (MYFLT)fabs(noise_tick(csound));
+            p->gains1 = FABS(noise_tick(csound));
           }
           else  {
             p->center_freqs2 = p->res_freq1 *
               (FL(1.25) + (FL(0.25) * noise_tick(csound)));
-            p->gains2 = (MYFLT)fabs(noise_tick(csound));
+            p->gains2 = FABS(noise_tick(csound));
           }
         }
 
