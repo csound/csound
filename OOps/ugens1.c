@@ -283,8 +283,8 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     if (UNLIKELY((segp->cnt = (int32)(release * csound->ekr + FL(0.5))) == 0))
       segp->cnt = 0;
     if (midip) {
-      p->xtra = (int32)(*argp[5] * csound->ekr + FL(0.5));   /* Release time?? */
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
+      p->xtra = relestim;/*  VL 4-1-2011 was (int32)(*argp[5] * csound->ekr + FL(0.5)); this seems to fix it */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int)relestim;
     }
@@ -311,7 +311,8 @@ int lsgrset(CSOUND *csound, LINSEG *p)
     int32 relestim;
     lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = -1;
+    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases in an instr => xtratim 
+                            set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
     return OK;
