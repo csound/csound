@@ -1104,6 +1104,7 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
 
         break;
       case T_OPCODE:
+      case T_OPCODE0:
         break;
       default:
         csound->Message(csound,
