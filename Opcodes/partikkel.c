@@ -295,6 +295,8 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->fmampindex = 0;
     p->distindex = 0;
     p->synced = 0;
+    p->graininc = 0.0;
+
     /* allocate memory for the grain mix buffer */
     size = csound->ksmps*sizeof(MYFLT);
     if (p->aux.auxp == NULL || p->aux.size < size)
@@ -529,7 +531,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
     int32 n;
     NODE *node;
     MYFLT **waveformparams = &p->waveform1;
-    MYFLT grainfreq = *p->grainfreq;
+    MYFLT grainfreq = fabs(*p->grainfreq);
 
     /* krate table lookup, first look up waveform ftables */
     for (n = 0; n < 4; ++n) {
@@ -548,10 +550,6 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
     /* start grain scheduling */
     for (n = 0; n < csound->ksmps; ++n) {
-        if (p->grainfreq_arate)
-            grainfreq = p->grainfreq[n];
-        p->graininc = fabs(grainfreq*csound->onedsr);
-
         if (p->sync[n] >= FL(1.0)) {
             /* we got a full sync pulse, hardsync grain clock if needed */
             if (!p->synced) {
@@ -602,7 +600,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
                 offset = 10.;
             else
                 offset = (offset - p->grainphase)/grainfreq;
-            /* prepare actual grain creation */
+
             /* check if there are any grains left in the pool */
             if (!p->gpool.free_nodes) {
                 if (!p->out_of_voices_warning) {
@@ -629,6 +627,10 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
         /* store away the scheduler phase for use in partikkelsync */
         if (p->globals_entry)
             p->globals_entry->synctab[csound->ksmps + n] = p->grainphase;
+
+        if (p->grainfreq_arate)
+            grainfreq = fabs(p->grainfreq[n]);
+        p->graininc = grainfreq*csound->onedsr;
         p->grainphase += p->graininc;
     }
     return OK;
