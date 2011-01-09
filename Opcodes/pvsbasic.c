@@ -294,13 +294,14 @@ typedef struct _pvst {
   AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
   AUXCH win;
   int nchans;
+  int init;
 } PVST;
 
 int pvstanalset(CSOUND *csound, PVST *p)
 {
 
     int i, N, hsize, nChannels;
-
+    p->init = 0;
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
       csound->Die(csound, Str("invalid number of output arguments"));
@@ -344,7 +345,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
     p->fund = csound->esr/N;
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
-    p->pos =  *p->offset*csound->esr + hsize;
+    p->pos =  *p->offset*csound->esr;
     p->accum = 0.0;
     return OK;
 }
@@ -381,19 +382,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         return csound->PerfError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
-      if (time < 0 || time >= 1 || !*p->konset) {
-        spos += hsize*time;
-      }
-      else if (p->tscale) {
-        spos += hsize*(time/(1+p->accum));
-        p->accum=0.0;
-       }
-      else  {
-        spos += hsize;
-        p->accum++;
-        p->tscale = 1;
-      }
-
+   
       sizefrs = size/nchans;
       if(!*p->wrap && spos >= sizefrs) {
         for (j=0; j < nchans; j++) {
@@ -404,7 +393,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       }
 
       while (spos >= sizefrs) spos -= sizefrs;
-      while (spos < hsize)  spos += sizefrs;
+      while (spos < 0)  spos += sizefrs;
       pos = spos;
       for (j=0; j < nchans; j++) {
 
@@ -424,25 +413,22 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          while (post >= size) post -= size;
-	  while (post < 0) post += size;
-          in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+	  if (post < 0 || post >= size ) in = 0.0;
+          else in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          while (post >= size) post -= size;
-	  while (post < 0) post += size;
-          in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
-          bwin[i] = in * win[i];  /* window it */  
+          if (post < 0 ||post >= size ) in = 0.0;
+          else in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
+          bwin[i] = in * win[i];  /* window it */ 
           if(*p->konset){
-	  while (post >= size) post -= size;
-	  while (post < 0) post += size;
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          in =  tab[post];
+          if (post < 0 || post >= size ) in = 0.0;
+          else in =  tab[post];
           nwin[i] = amp * in * win[i];
 	  }
           /* increment read pos according to pitch transposition */
@@ -483,6 +469,18 @@ int pvstanal(CSOUND *csound, PVST *p)
         }
         
         p->fout[j]->framecount++;
+      }
+     if (time < 0 || time >= 1 || !*p->konset) {
+        spos += hsize*time;
+      }
+      else if (p->tscale) {
+        spos += hsize*(time/(1+p->accum));
+        p->accum=0.0;
+       }
+      else  {
+        spos += hsize;
+        p->accum++;
+        p->tscale = 1;
       }
     end:
       p->scnt -= hsize;
