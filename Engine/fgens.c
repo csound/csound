@@ -2471,8 +2471,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       }
       if (csound->oparms->msglevel & 7)
         csound->Message(csound, Str("  defer length %d\n"), ff->flen);
-      if (p->channel == ALLCHNLS)
-        ff->flen *= p->nchanls;
+       if (p->channel == ALLCHNLS)
+	 ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
       ff->flen     -= 1;
       ftp           = ftalloc(ff);            /*   alloc now, and           */
@@ -2482,7 +2482,10 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       ftp->flenfrms = ff->flen / p->nchanls; */ /* ?????????? */
       def           = 1;
     }
-    if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
+    if (p->channel==ALLCHNLS) {
+    //ff->flen *= p->nchanls;
+    ftp->nchanls  = p->nchanls;
+    }
       else ftp->nchanls  = 1;
     ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
