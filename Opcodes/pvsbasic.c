@@ -283,7 +283,7 @@ typedef struct _pvst {
   MYFLT  *kpitch;
   MYFLT  *knum;
   MYFLT  *konset;
-  MYFLT  *offset;
+  MYFLT  *wrap, *offset;
   MYFLT  *fftsize, *hsize, *dbthresh;
   uint32 scnt;
   int tscale;
@@ -364,6 +364,7 @@ int pvstanal(CSOUND *csound, PVST *p)
     float pitch = (float) (*p->kpitch), rotfac = p->rotfac, scale = p->scale;
     MYFLT time = *p->ktime;
     float tmp_real, tmp_im, powrat;
+    
 
     if (p->scnt >= hsize) {
 
@@ -386,7 +387,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       else if (p->tscale) {
         spos += hsize*(time/(1+p->accum));
         p->accum=0.0;
-      }
+       }
       else  {
         spos += hsize;
         p->accum++;
@@ -394,8 +395,16 @@ int pvstanal(CSOUND *csound, PVST *p)
       }
 
       sizefrs = size/nchans;
-      while (spos > sizefrs - N - hsize) spos -= sizefrs;
-      while (spos <= hsize)  spos += sizefrs;
+      if(!*p->wrap && spos >= sizefrs) {
+        for (j=0; j < nchans; j++) {
+          memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
+           p->fout[j]->framecount++;
+	}
+         goto end;
+      }
+
+      while (spos >= sizefrs) spos -= sizefrs;
+      while (spos < hsize)  spos += sizefrs;
       pos = spos;
       for (j=0; j < nchans; j++) {
 
@@ -415,25 +424,27 @@ int pvstanal(CSOUND *csound, PVST *p)
           frac = pos  - post;
           post *= nchans;
           post += j;
-          /*if (post >= size) post -= size;
-	    else if (post < 0) post += size;*/
+          while (post >= size) post -= size;
+	  while (post < 0) post += size;
           in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           fwin[i] = amp * in * win[i]; /* window it */
           /* back windo, bwin */
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
-          /*if (post >= size) post -= size;
-	    else if (post < 0) post += size;*/
+          while (post >= size) post -= size;
+	  while (post < 0) post += size;
           in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
-          bwin[i] = in * win[i];  /* window it */
+          bwin[i] = in * win[i];  /* window it */  
+          if(*p->konset){
+	  while (post >= size) post -= size;
+	  while (post < 0) post += size;
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
-          /*if (post >= size) post -= size;
-	    else if (post < 0) post += size;*/
           in =  tab[post];
           nwin[i] = amp * in * win[i];
+	  }
           /* increment read pos according to pitch transposition */
           pos += pitch;
         }
@@ -442,8 +453,8 @@ int pvstanal(CSOUND *csound, PVST *p)
         */
         csound->RealFFT(csound, bwin, N);
         csound->RealFFT(csound, fwin, N);
+        if(*p->konset){
         csound->RealFFT(csound, nwin, N);
-
         tmp_real = tmp_im = (MYFLT) 1e-20;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -451,7 +462,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         }
         powrat = FL(20.0)*LOG10(tmp_real/tmp_im);
         if (powrat > dbtresh) p->tscale=0;
-        /*else tscale=1;*/
+        } else p->tscale=1;
 
         /*fwin[N] = fwin[1]/scale; fwin[0] = fwin[0]/scale;*/
         fwin[N+1] = fwin[1] = 0.0;
@@ -470,9 +481,10 @@ int pvstanal(CSOUND *csound, PVST *p)
           /* fwin[i] /= scale; fwin[i+1] /= scale; */
           fout[i] = sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
         }
-
+        
         p->fout[j]->framecount++;
       }
+    end:
       p->scnt -= hsize;
       p->pos = spos;
     }
@@ -2134,7 +2146,7 @@ static OENTRY localops[] = {
   {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "SkkopP",(SUBR) pvsdiskinset,
    (SUBR) pvsdiskinproc, NULL},
 
-  {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPoooP",(SUBR) pvstanalset,
+  {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
   {"pvsenvw", sizeof(PVSWARP), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
