@@ -142,13 +142,11 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
     buffersize /= mpainfo.decoded_sample_size;
-    if (skip > 0) {
-      do {
-        uint32_t xx= skip;
-        if ((uint32_t)xx > buffersize) xx = buffersize;
-        skip -= xx;
-        r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
-      } while (skip>0);
+    while (skip > 0) {
+      uint32_t xx= skip;
+      if ((uint32_t)xx > buffersize) xx = buffersize;
+      skip -= xx;
+      r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
     }
     p->r = r;
     /* done initialisation */

@@ -45,24 +45,24 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 {
     time_t temp_time;
     char *time_string;
+    /* char *q; */
     int32 tmp;
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
     tmp = (int32) MYFLT2LRND(*(p->timstmp));
 #else
     tmp = (int32) (*(p->timstmp) + FL(0.5));
 #endif
-    if (tmp < 0) {
-      temp_time = time(NULL);
-/*       printf("Timestamp = %f\n", *p->timstmp); */
-    } else {
-      temp_time = (time_t)tmp;
-/*       printf("Timestamp = %f\n", *p->timstmp); */
-    }
+    if (tmp < 0) temp_time = time(NULL);
+    else         temp_time = (time_t)tmp;
+    
     time_string = ctime(&temp_time);
+    /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
     ((char*) p->Stime_)[0] = '\0';
     if (UNLIKELY((int) strlen(time_string) >= csound->strVarMaxLen)) {
       return csound->InitError(csound, Str("dates: buffer overflow"));
     }
+    /* q = strchr(time_string, '\n'); */
+    /* if (q) *q='\0'; */
     strcpy((char*) p->Stime_, time_string);
     return OK;
 }
