@@ -2678,7 +2678,8 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     uint32_t bufsize, bufused = 0;
     uint64_t maxsize;
     uint8_t *buffer;
-    int size = 0x10000;
+    int size = 0x100;
+    int flen;
 
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -2727,7 +2728,10 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
-    fd = open(sfname, O_RDONLY); /* search paths */
+    (void)csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+                                     sfname, NULL, "SFDIR;SSDIR",
+                                     CSFTYPE_UNKNOWN_AUDIO, 0);
+    //    fd = open(sfname, O_RDONLY); /* search paths */
     if (fd < 0) {
       mp3dec_uninit(mpa);
       fterror(ff, "sfname");
@@ -2763,26 +2767,33 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     while (skip > 0) {
       uint32_t xx = skip;
       if ((uint32_t)xx > bufsize) xx = bufsize;
+      //      printf("gen49: skipping xx\n", xx);
       skip -=xx;
       mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*xx, &bufused);
     }
-    bufsize *= mpainfo.decoded_sample_size;
-    r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
+    //bufsize *= mpainfo.decoded_sample_size;
+    r = mp3dec_decode(mpa, buffer, size, &bufused);
+    flen = ftp->flen;
+    //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
     while ((r == MP3DEC_RETCODE_OK) && bufused) {
       int i;
-      int len = ftp->flen;
       short *bb = (short*)buffer;
-      for (i=0; i<bufused; i++)  {
-        if (p>=len) {
+      //printf("gen49: p=%d bufused=%d\n", p, bufused);
+      for (i=0; i<bufused/mpainfo.decoded_sample_size; i++)  {
+        if (p>=flen) {
           free(buffer);
+          //printf("gen49: i=%d p=%d exit as at end of table\n", i, p);
           return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
         }
         fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->e0dbfs;
+        //printf("%d: %f %d\n", p, fp[p], bb[i]);
         p++;
        }
       if (i <= 0) break;
-      r = mp3dec_decode(mpa, buffer, bufsize, &bufused);
+      //printf("gen49: new buffer\n");
+      r = mp3dec_decode(mpa, buffer, size, &bufused);
     }
+
     free(buffer);
     r |= mp3dec_uninit(mpa);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
