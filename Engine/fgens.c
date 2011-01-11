@@ -2678,7 +2678,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     uint32_t bufsize, bufused = 0;
     uint64_t maxsize;
     uint8_t *buffer;
-    int size = 0x100;
+    int size = 0x1000;
     int flen;
 
     if (UNLIKELY(ff->e.pcnt < 7)) {
