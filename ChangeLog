@@ -1,3 +1,7 @@
+2011-01-13  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/ugens2.c (ko1set): ensure that th eincement cannot be zero
+
 2011-01-10  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen49): Use csound->FileOpen2 rather than open
