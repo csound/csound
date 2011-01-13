@@ -965,6 +965,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     p->phs = 0;
     p->dcnt = (int32)(*p->idel * csound->ekr);
     p->kinc = (int32) (csound->kicvt / *p->idur);
+    if (p->kinc==0) p->kinc = 1;
     return OK;
 }
 
