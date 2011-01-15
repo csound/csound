@@ -16,7 +16,7 @@
 2010-12-18  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/gab/tabmorph.c (atabmorphia): Fixed editing error that
-	woul dhav ecaused opcode to scribble over memory
+	would have caused opcode to scribble over memory
 
 2010-12-17  John ff  <jpff@cs.bath.ac.uk>
 
