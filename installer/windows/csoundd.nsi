@@ -18,7 +18,7 @@
 #######################################################################
 
 !define PRODUCT "Csound"
-!define PROGRAM "Csound5.12.1"
+!define PROGRAM "Csound5.13.1"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
 !ifdef NONFREE
