@@ -1712,6 +1712,8 @@ makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
 makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
 makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
 makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
+makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
+makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 if buildOLPC :
    oggEnvironment = pluginEnvironment.Clone()
    makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
