@@ -44,6 +44,11 @@ typedef struct {
     AUXCH   auxch;
     FDCH    fdch;
 } MP3IN;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ir;
+    MYFLT   *iFileCode;
+} MP3LEN;
 
 int mp3ininit(CSOUND *csound, MP3IN *p)
 {
@@ -194,10 +199,56 @@ int mp3in(CSOUND *csound, MP3IN *p)
     }
     return OK;
 }
+
+int mp3len(CSOUND *csound, MP3LEN *p)
+{
+    char    name[1024];
+    int     fd;
+    mp3dec_t mpa           = NULL;
+    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
+                               MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
+                               MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
+                               0.0 };
+    mpadec_info_t mpainfo;
+    int r;
+
+    /* open file */
+    mpa = mp3dec_init();
+    if (UNLIKELY(!mpa)) {
+      return csound->InitError(csound, Str("Not enough memory\n"));
+    }
+    if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
+      mp3dec_uninit(mpa);
+      return csound->InitError(csound, mp3dec_error(r));
+    }
+    /* FIXME: name can overflow with very long string */
+    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+                                   name, "rb", "SFDIR;SSDIR",
+                                   CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+      return
+        csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
+    }
+    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+      mp3dec_uninit(mpa);
+      return csound->InitError(csound, mp3dec_error(r));
+    }
+    if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
+                 MP3DEC_RETCODE_OK)) {
+      close(fd);
+      mp3dec_uninit(mpa);
+      return csound->InitError(csound, mp3dec_error(r));
+    }
+    close(fd);
+    *p->ir = (MYFLT)mpainfo.duration;
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"mp3in", S(MP3IN), 5, "aa", "Toooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in}
+  {"mp3in",  S(MP3IN),  5, "aa", "Toooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
+  {"mp3len", S(MP3LEN), 1, "i",  "T",     (SUBR) mp3len,    NULL,  NULL}
 };
 
 LINKAGE
