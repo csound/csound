@@ -46,7 +46,7 @@ namespace csound
   bool Conversions::initialized_ = false;
   static bool initialized__ = Conversions::initialize();
 
-  void Conversions::subfill(std::string root, char *cname, double cpcs)
+  void Conversions::subfill(std::string root, const char *cname, double cpcs)
   {
     double pcs = pitchClassSetsForNames[root];
     root.append(cname);
@@ -60,7 +60,7 @@ namespace csound
     pitchClassSetsForNames[root] = mcpcs;
   }
 
-  void Conversions::fill(char *cname, char *cpitches_)
+  void Conversions::fill(const char *cname, const char *cpitches_)
   {
     double cpcs = 0.0;
     char separators[] = " ";
