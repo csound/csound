@@ -36,6 +36,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int     i;
+    int     n;
     float   *bframe;
     int32    N = (int32) *p->framesize;
 
@@ -48,7 +49,6 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
 #ifndef OLPC
     p->fout->sliding = 0;
     if (p->fout->overlap < csound->ksmps || p->fout->overlap <=10) {
-      int n;
       int NB = 1+N/2;
       MYFLT *bframe;
       p->fout->NB = NB;
@@ -2016,7 +2016,6 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     float   *fin = (float *) p->fin->frame.auxp;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-    float sr = csound->esr;
     int coefs = (int) *p->coefs;
     FUNC  *ft = csound->FTnp2Find(csound, p->ftab);
     int size = ft->flen;
@@ -2024,7 +2023,6 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 
     *p->kflag = 0.0;
     if (p->lastframe < p->fin->framecount) {
-      int n;
       {
         int cond = 1;
         for (i=0; i < N; i+=2) {
