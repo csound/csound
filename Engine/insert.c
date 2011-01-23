@@ -166,12 +166,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
     init:
       if (tp->psetdata) {
-        MYFLT *pfld = &ip->p3;              /* if pset data present */
         MYFLT *pdat = tp->psetdata + 2;
         int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
-        /* do { */
-        /*   *pfld++ = *pdat++; */
-        /* } while (--nn); */
         memcpy(&ip->p3, pdat, sizeof(MYFLT)*nn);
       }
       if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {

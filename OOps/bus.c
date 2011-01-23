@@ -1168,7 +1168,6 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     MYFLT       *dummy;
     const char  *argName;
     int         type = CSOUND_CONTROL_CHANNEL, mode, err;
-    int         *lock;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
     if (UNLIKELY(csound->GetOutputArgCnt(p) != 1))

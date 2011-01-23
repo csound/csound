@@ -58,7 +58,9 @@
 #include "csoundCore.h"
 #include "pvfileio.h"
 
+#if !defined(WAVE_FORMAT_EXTENSIBLE)
 #define WAVE_FORMAT_EXTENSIBLE  (0xFFFE)
+#endif
 #ifndef WAVE_FORMAT_PCM
 #define WAVE_FORMAT_PCM         (0x0001)
 #endif
