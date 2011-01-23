@@ -53,11 +53,12 @@ if sys.platform[:3] == 'win':
     customLIBPATH.append(r'C:\utah\opt\portmidi')
     ################################################################
     # If you want to build the FLTK widgets, csound5gui, cseditor,
-    # CsoundAC, or CsoundVST, FLTK is required.
-    customCPPPATH.append(r'C:\utah\opt\fltk-1.3.x-r8276')
-    customLIBPATH.append(r'C:\utah\opt\fltk-1.3.x-r8276\src')
-    customLIBPATH.append(r'C:\utah\opt\fltk-1.3.x-r8276\lib')
-    customLIBPATH.append(r'C:\utah\opt\fltk-1.3.x-r8276\bin')
+    # CsoundAC, or CsoundVST, FLTK is required. But only specify 
+    # these if fltk-config does not work for you. C:\utah\opt\fltk-1.3.0rc3
+    # customCPPPATH.append(r'C:\utah\opt\fltk-1.3.0rc3')
+    # customLIBPATH.append(r'C:\utah\opt\fltk-1.3.0rc3\src')
+    # customLIBPATH.append(r'C:\utah\opt\fltk-1.3.0rc3\lib')
+    # customLIBPATH.append(r'C:\utah\opt\fltk-1.3.0rc3\bin')
     ################################################################
     # If you want to build the image opcodes,
     # libpng and libz are required.
