@@ -50,8 +50,13 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 /*     /\* fprintf(stderr, "(%p,%p)[%c,%c] -> %d\n", a, b, ca, cb, ans); *\/ */
 /*     return ans; */
 /* } */
+#if !defined(TRUE)
 #define TRUE (1)
+#endif
+#if !defined(FALSE)
 #define FALSE (0)
+#endif
+
 inline int ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];

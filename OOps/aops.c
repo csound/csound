@@ -122,8 +122,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
 {
     int nargs = p->INCOUNT;
     int   i, n, nsmps = csound->ksmps;
-    MYFLT aa;
-
+    MYFLT aa = FL(0.0);
     if (nargs > p->OUTOCOUNT)
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
