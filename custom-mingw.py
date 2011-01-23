@@ -36,9 +36,6 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build Csound,
     # libsndfile is REQUIRED.
-    ################################################################
-    # If you want to build Csound,
-    # libsndfile is REQUIRED.
     customCPPPATH.append(r'C:\utah\opt\Mega-Nerd\libsndfile\include')
     customLIBPATH.append(r'C:\utah\opt\Mega-Nerd\libsndfile')
     ################################################################
