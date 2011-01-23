@@ -362,7 +362,7 @@ int pvstanal(CSOUND *csound, PVST *p)
     float *fout;
     MYFLT *bwin, *fwin, *nwin, *win = (MYFLT *) p->win.auxp;
     float amp = (float) (*p->kamp), factor = p->factor, fund = p->fund;
-    float pitch = (float) (*p->kpitch), rotfac = p->rotfac, scale = p->scale;
+    float pitch = (float) (*p->kpitch), rotfac = p->rotfac;
     MYFLT time = *p->ktime;
     float tmp_real, tmp_im, powrat;
     
@@ -450,7 +450,6 @@ int pvstanal(CSOUND *csound, PVST *p)
         if (powrat > dbtresh) p->tscale=0;
         } else p->tscale=1;
 
-        /*fwin[N] = fwin[1]/scale; fwin[0] = fwin[0]/scale;*/
         fwin[N+1] = fwin[1] = 0.0;
 
         for (i=2,k=1; i < N; i+=2, k++) {
@@ -464,7 +463,6 @@ int pvstanal(CSOUND *csound, PVST *p)
           while(dph < -PI) dph += TWOPI;
           fout[i+1] = dph*factor + k*fund;
           /* mags */
-          /* fwin[i] /= scale; fwin[i+1] /= scale; */
           fout[i] = sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
         }
         
@@ -1215,7 +1213,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
     }
 #endif
     if (p->lastframe < p->fin->framecount) {
-      int n, k=1;
+      int n;
       fout[0] = fin[0];
       fout[N] = fin[N];
 
@@ -1594,7 +1592,7 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
     if (UNLIKELY(fout == NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
-      int n, k=1;
+      int n;
       fout[0] = fin[0];
       fout[N] = fin[N];
 
@@ -2026,7 +2024,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 
     *p->kflag = 0.0;
     if (p->lastframe < p->fin->framecount) {
-      int n, k=1;
+      int n;
       {
         int cond = 1;
         for (i=0; i < N; i+=2) {
