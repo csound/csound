@@ -620,7 +620,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
       a = oldamps[i];
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
-      for (n; n<nsmps; n++) {
+      for (n=0; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         fract = (MYFLT) PFRAC(phase);
