@@ -1930,7 +1930,7 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
-    if getPlatform() != 'darwin':
+    if getPlatform() != 'darwin' and getPlatform() != 'win32':
         portMidiEnvironment.Append(LIBS = ['porttime'])
     if getPlatform() == 'win32':
         portMidiEnvironment.Append(LIBS = csoundWindowsLibraries)
