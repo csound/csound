@@ -1830,9 +1830,7 @@ else:
         widgetsEnvironment.Append(LIBS = ['pthread', 'm'])
     elif getPlatform() == 'win32':
         if compilerGNU():
-            #widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            widgetsEnvironment.Prepend(
-                LINKFLAGS = ['-Wl'])#,'--enable-runtime-pseudo-reloc'])
+            widgetsEnvironment.Append(CPPFLAGS = Split('-DWIN32 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT -DFL_DLL -DFL_LIBRARY'))
             widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
         else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
