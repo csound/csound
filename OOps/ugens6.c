@@ -764,16 +764,13 @@ int del1set(CSOUND *csound, DELAY1 *p)
 int delay1(CSOUND *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
-    int         n, nsmps = csound->ksmps;
+    int         nsmps = csound->ksmps;
 
     ar = p->ar;
     /* asig = p->asig - 1; */
     asig = p->asig;
     ar[0] = p->sav1;
     memmove(&ar[1], asig, sizeof(MYFLT)*(nsmps-1));
-    /* for (n = 1; n < nsmps; n++) { */
-    /*   ar[n] = asig[n]; */
-    /* } */
     p->sav1 = asig[nsmps-1];
     return OK;
 }

@@ -272,7 +272,7 @@ int rsnsetx(CSOUND *csound, RESONX *p)
 int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
     int flag = 0, nsmps = csound->ksmps, j;
-    MYFLT       *ar, *asig;
+    MYFLT       *ar;
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
 
