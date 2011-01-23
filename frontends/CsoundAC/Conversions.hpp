@@ -60,8 +60,8 @@ namespace csound
     static bool initialized_;
     static std::map<std::string, double> pitchClassSetsForNames;
     static std::map<double, std::string> namesForPitchClassSets;
-    static void subfill(std::string root, char *cname, double pcs);
-    static void fill(char *cname, char *cpitches);
+    static void subfill(std::string root, const char *cname, double pcs);
+    static void fill(const char *cname, const char *cpitches);
     static std::string listPitchClassSets();
 #if !defined(SWIG)
     static const double PI_;
