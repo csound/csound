@@ -25,6 +25,9 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
+#if defined(USE_OPENMP)
+#include <omp.h>
+#endif
 
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
@@ -33,10 +36,12 @@ extern  char    *get_sconame(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
-
 extern  OENTRY  opcodlst_1[];
-
 extern  uintptr_t  kperfThread(void * cs);
+#if defined(ENABLE_NEW_PARSER)
+extern void cs_init_math_constants_macros(CSOUND *csound);
+extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
+#endif
 
 static void create_opcodlst(CSOUND *csound)
 {
