@@ -656,7 +656,7 @@ static OENTRY localops[] = {
         sizeof(FluidAllOut),
         5,
         (char *)"aa",
-        (char *)"i",
+        (char *)"",
         (SUBR) &FluidAllOut::init_,
         (SUBR) 0,
         (SUBR) &FluidAllOut::audio_
