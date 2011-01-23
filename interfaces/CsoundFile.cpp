@@ -275,7 +275,7 @@ int CsoundFile::save(std::ostream &stream) const
   public:
     long tpq;
     double tempo;
-    CsoundFileMidiWriter(CsoundFile *csoundFile_) : csoundFile(*csoundFile_), tpq(1000), tempo(1.0)
+    CsoundFileMidiWriter(CsoundFile *csoundFile_) : tpq(1000), tempo(1.0), csoundFile(*csoundFile_)
     {
       csoundFile.removeScore();
     }
