@@ -157,6 +157,7 @@ namespace csound
       chunkStart = a.chunkStart;
       chunkEnd = a.chunkEnd;
     }
+    return *this;
   }
 
   void Chunk::read(std::istream &stream)
@@ -233,6 +234,7 @@ namespace csound
       trackCount = a.trackCount;
       timeFormat = a.timeFormat;
     }
+    return *this;
   }
 
   void MidiHeader::clear()
@@ -450,6 +452,7 @@ namespace csound
         (*this)[i] = a[i];
       }
     }
+    return *this;
   }
 
   void MidiTrack::read(std::istream &stream, MidiFile &midiFile)
