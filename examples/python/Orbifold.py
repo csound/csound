@@ -57,10 +57,9 @@ import copy
 import collections
 from visual import *
 from numpy import *
-import Image
-import ImageGrab
-import ImageOps
-import psyco
+#import Image
+#import ImageGrab
+#import ImageOps
 
 import csnd
 import CsoundAC
@@ -604,12 +603,12 @@ class TonnetzModel(Tonnetz):
                 print
                 try:
                     if bbox:
-                        image = ImageGrab.grab(bbox)
+                        pass #image = ImageGrab.grab(bbox)
                     else:
-                        image = ImageGrab.grab()
+                        pass #image = ImageGrab.grab()
                     #image = ImageOps.grayscale(image)
-                    image.save(filename)
-                    print 'Captured screen shot in "%s".' % (filename)
+                    #image.save(filename)
+                    #print 'Captured screen shot in "%s".' % (filename)
                 except:
                     traceback.print_exc()
                 scene.mouse.events = 0
@@ -863,7 +862,7 @@ if __name__ == '__main__':
     scene.width = 300 * 7
     scene.height = 300 * 5
     # Tonnetz for trichords
-    model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
+    model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space
     #model = TonnetzModel(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
     # Tonnetz in ranged chord space
