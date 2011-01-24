@@ -225,7 +225,7 @@ static Sxmlelement makeAttributes()
 
 static std::string makePartId(int partid)
 {
-
+    return "";
 }
 
 static Sxmlelement makePart(int instrument, const std::vector<const Event *> &part_)
