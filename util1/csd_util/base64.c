@@ -41,7 +41,7 @@ int encode_byte(FILE *infl, FILE *outfl)
 
 /* convert an entire input file */
 
-void encode_file(char *inflname, FILE *outfl)
+void encode_file(char *inflname, FILE *outfl, int style)
 {
     char  *s, *s0;
 
@@ -64,10 +64,16 @@ void encode_file(char *inflname, FILE *outfl)
       exit(-1);
     }
     /* create new CSD tag and encode file */
-    fprintf(outfl, "<CsFileB filename=%s>", s);
+    if (style) 
+      fprintf(outfl, "<CsMidifileB>");
+    else
+      fprintf(outfl, "<CsFileB filename=\"%s\">", s);
     linepos = bitcnt = inval = 0;
     while (encode_byte(infile, outfl));
-    fprintf(outfl, "\n</CsFileB>\n");
+    if (style) 
+      fprintf(outfl, "\b</CsMidifileB>\n");
+    else
+      fprintf(outfl, "\n</CsFileB>\n");
     /* close file */
     fclose(infile); infile = NULL;
 }
