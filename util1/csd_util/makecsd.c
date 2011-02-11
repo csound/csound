@@ -234,7 +234,7 @@ int main(int argc, char **argv)
       }
       else if (!strcmp(argv[i], "-L")) {        /* options file name */
         if (!(--j)) {
-          fprintf(stderr, "makecsd: missing option for -b\n");
+          fprintf(stderr, "makecsd: missing option for -L\n");
           exit(-1);
         }
         i++;
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
       }
       else if (!strcmp(argv[i], "-l")) {        /* options file name */
         if (!(--j)) {
-          fprintf(stderr, "makecsd: missing option for -b\n");
+          fprintf(stderr, "makecsd: missing option for -l\n");
           exit(-1);
         }
         i++;
@@ -388,7 +388,7 @@ int main(int argc, char **argv)
       case 6:
         fprintf(outfile, "Creative Commons "
                 "Attribution\n"
-                "CC BY \n");
+                "CC BY\n");
         break;
       case 7:
         fprintf(outfile, "Licenced under BSD\n");
