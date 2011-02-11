@@ -1,3 +1,10 @@
+2011-02-09  john ffitch  <jpff@codemist.co.uk>
+
+	* util1/csd_util/makecsd.c (main): new options for MIDI files and
+	score processing; licence control as well
+
+	* util1/csd_util/base64.c (encode_file): Added extra arg to selct tags
+
 2011-01-20  john ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/mp3in.c (mp3len): New code

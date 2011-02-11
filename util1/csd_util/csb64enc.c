@@ -17,7 +17,7 @@ static  FILE    *outfile = NULL;
 /* convert 6 bits of input and write to output file */
 extern  int     encode_byte(FILE*, FILE*);
 /* convert an entire input file */
-extern  void    encode_file(char*, FILE*);
+extern  void    encode_file(char*, FILE*, int);
 /* line width */
 extern  int     maxlinepos;
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
       outfile = stdout;
     /* encode all input files */
     for (i = 0; i < nr_infiles; i++)
-      encode_file(infile_names[i], outfile);
+      encode_file(infile_names[i], outfile, 0);
     /* close output file */
     if (!output_is_stdout) {
       fflush(outfile);

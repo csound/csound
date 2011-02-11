@@ -443,45 +443,45 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     return FALSE;
 }
 
-static int createMIDI(CSOUND *csound, FILE *unf)
-{
-    int   size, c;
-    char  *p;
-    FILE  *midf;
-    void  *fd;
+/* static int createMIDI(CSOUND *csound, FILE *unf) */
+/* { */
+/*     int   size, c; */
+/*     char  *p; */
+/*     FILE  *midf; */
+/*     void  *fd; */
 
-    /* Generate MIDI file name */
-    csoundTmpFileName(csound, ST(midname), ".mid");
-    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL,
-                                CSFTYPE_STD_MIDI, 1);
-    if (fd == NULL) {
-      csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
-                        ST(midname));
-    }
-    csound->tempStatus |= csMidiScoMask;
-    my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf);
-    if (sscanf(ST(buffer), Str("Size = %d"), &size) == 0) {
-      csoundDie(csound, Str("Error in reading MIDI subfile -- no size read"));
-    }
-    for ( ; size > 0; size--) {
-      c = getc(unf);
-      putc(c, midf);
-    }
-    csoundFileClose(csound, fd);
-    add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
-    ST(midiSet) = TRUE;
-    while (TRUE) {
-      if (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
-        p = ST(buffer);
-        while (*p == ' ' || *p == '\t') p++;
-        if (strstr(p, "</CsMidifile>") == p) {
-          return TRUE;
-        }
-      }
-    }
-    csoundErrorMsg(csound, Str("Missing end tag </CsMidifile>"));
-    return FALSE;
-}
+/*     /\* Generate MIDI file name *\/ */
+/*     csoundTmpFileName(csound, ST(midname), ".mid"); */
+/*     fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL, */
+/*                                 CSFTYPE_STD_MIDI, 1); */
+/*     if (fd == NULL) { */
+/*       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"), */
+/*                         ST(midname)); */
+/*     } */
+/*     csound->tempStatus |= csMidiScoMask; */
+/*     my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf); */
+/*     if (sscanf(ST(buffer), "Size = %d", &size) == 0) { */
+/*       csoundDie(csound, Str("Error in reading MIDI subfile -- no size read")); */
+/*     } */
+/*     for ( ; size > 0; size--) { */
+/*       c = getc(unf); */
+/*       putc(c, midf); */
+/*     } */
+/*     csoundFileClose(csound, fd); */
+/*     add_tmpfile(csound, ST(midname));               /\* IV - Feb 03 2005 *\/ */
+/*     ST(midiSet) = TRUE; */
+/*     while (TRUE) { */
+/*       if (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) { */
+/*         p = ST(buffer); */
+/*         while (*p == ' ' || *p == '\t') p++; */
+/*         if (strstr(p, "</CsMidifile>") == p) { */
+/*           return TRUE; */
+/*         } */
+/*       } */
+/*     } */
+/*     csoundErrorMsg(csound, Str("Missing end tag </CsMidifile>")); */
+/*     return FALSE; */
+/* } */
 
 static void read_base64(CSOUND *csound, FILE *in, FILE *out)
 {
@@ -579,7 +579,7 @@ static int createSample(CSOUND *csound, FILE *unf)
     void  *fd;
     char  sampname[256];
 
-    sscanf(ST(buffer), "<CsSampleB filename=%d>", &num);
+    sscanf(ST(buffer), "<CsSampleB filename=\"%d\">", &num);
     sprintf(sampname, "soundin.%d", num);
     if ((smpf = fopen(sampname, "rb")) != NULL) {
       fclose(smpf);
@@ -613,7 +613,7 @@ static int createFile(CSOUND *csound, FILE *unf)
     char  filename[256];
 
     filename[0] = '\0';
-    sscanf(ST(buffer), "<CsFileB filename=%s>", filename);
+    sscanf(ST(buffer), "<CsFileB filename=\"%s\">", filename);
     if (filename[0] != '\0' && filename[strlen(filename) - 1] == '>')
       filename[strlen(filename) - 1] = '\0';
     if ((smpf = fopen(filename, "rb")) != NULL) {
@@ -796,10 +796,10 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
           r = createExScore(csound, p, unf);
         result = r && result;
       }
-      else if (strstr(p, "<CsMidifile>") == p) {
-        r = createMIDI(csound, unf);
-        result = r && result;
-      }
+      /* else if (strstr(p, "<CsMidifile>") == p) { */
+      /*   r = createMIDI(csound, unf); */
+      /*   result = r && result; */
+      /* } */
       else if (strstr(p, "<CsMidifileB>") == p) {
         r = createMIDI2(csound, unf);
         result = r && result;

@@ -268,7 +268,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
 /* From matt ingalls */
 int filevalid(CSOUND *csound, FILEVALID *p)
 {
-    char soundiname[512];
+    char soundiname[512];       /* There is no check on this length */
     *p->r1 = 0;
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
                         p->XSTRCODE);
