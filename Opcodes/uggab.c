@@ -1426,20 +1426,39 @@ static int aRangeRand(CSOUND *csound, RANGERAND *p)
     return OK;
 }
 
+/* mode and fstval arguments added */
+/* by Francois Pinot, jan. 2011    */
 static int randomi_set(CSOUND *csound, RANDOMI *p)
 {
+    p->phs = 0;
+    int mode = (int)(*p->mode);
+    switch (mode) {
+    case 1: /* immediate interpolation between kmin and 1st random number */
+        p->num1 = FL(0.0);
+        p->num2 = randGab;
+        p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+        break;
+    case 2: /* immediate interpolation between ifirstval and 1st random number */
+        p->num1 = (*p->max - *p->min) ? (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
+        p->num2 = randGab;
+        p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+        break;
+    case 3: /* immediate interpolation between 1st and 2nd random number */
+        p->num1 = randGab;
+        p->num2 = randGab;
+        p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+        break;
+    default: /* old behaviour as developped by Gabriel */
+        p->num1 = p->num2 = FL(0.0);
+        p->dfdmax = FL(0.0);
+    }
     p->cpscod = (XINARG2) ? 1 : 0;
-    p->dfdmax = FL(0.0);
     return OK;
-/* Surely should initialise these */
-/*     p->phs = 0; */
-/*     p->num1 = p->num2 = FL(0.0); */
 }
 
 static int krandomi(CSOUND *csound, RANDOMI *p)
 {
-    *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) *
-      (*p->max - *p->min) + *p->min;
+    *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * (*p->max - *p->min) + *p->min;
     p->phs += (int32)(*p->xcps * csound->kicvt);
     if (p->phs >= MAXLEN) {
       p->phs   &= PHMASK;
@@ -1478,8 +1497,22 @@ static int randomi(CSOUND *csound, RANDOMI *p)
     return OK;
 }
 
+/* mode and fstval arguments added */
+/* by Francois Pinot, jan. 2011    */
 static int randomh_set(CSOUND *csound, RANDOMH *p)
 {
+    p->phs = 0;
+    int mode = (int)(*p->mode);
+    switch (mode) {
+    case 2: /* the first output value is ifirstval */
+        p->num1 = (*p->max - *p->min) ? (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
+        break;
+    case 3: /* the first output value is a random number within the defined range */
+        p->num1 = randGab;
+        break;
+    default: /* old behaviour as developped by Gabriel */
+        p->num1 = FL(0.0);
+    }
     p->cpscod = (XINARG2) ? 1 : 0;
     return OK;
 }
@@ -1655,9 +1688,9 @@ static OENTRY localops[] = {
 { "random.a", S(RANGERAND), 4, "a", "kk",    NULL, NULL,  (SUBR)aRangeRand      },
 { "rspline",  S(RANDOM3), 7, "s", "xxkk",
                                (SUBR)random3_set, (SUBR)random3, (SUBR)random3a },
-{ "randomi",  S(RANDOMI), 7, "s", "kkx",
+{ "randomi",  S(RANDOMI), 7, "s", "kkxoo",
                                (SUBR)randomi_set, (SUBR)krandomi, (SUBR)randomi },
-{ "randomh",  S(RANDOMH), 7, "s", "kkx",
+{ "randomh",  S(RANDOMH), 7, "s", "kkxoo",
                                  (SUBR)randomh_set,(SUBR)krandomh,(SUBR)randomh },
 { "urd.i",  S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL    },
 { "urd.k",  S(DURAND),  2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },

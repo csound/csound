@@ -202,17 +202,21 @@ typedef struct  {
         MYFLT   *out, *min, *max;
 } RANGERAND;
 
+/* mode and fstval arguments added */
+/* by Francois Pinot, jan. 2011    */
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *min, *max, *xcps;
+        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval; 
         int16   cpscod;
         int32   phs;
         MYFLT   num1, num2, dfdmax;
 } RANDOMI;
 
+/* mode and fstval arguments added */
+/* by Francois Pinot, jan. 2011    */
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *min, *max, *xcps;
+        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
         int32   phs;
         MYFLT   num1;
