@@ -442,10 +442,6 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
             {
               csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
             }
-          if(csoundFrameI == 0)
-            {
-              performKsmps(true);
-            }
           for(channelI = 0; channelI < channelN; channelI++)
             {
               hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
@@ -455,7 +451,8 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
           if(csoundFrameI > csoundLastFrame)
             {
               csoundFrameI = 0;
-            }
+              performKsmps(true);
+           }
         }
     }
   else
@@ -486,10 +483,6 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
           {
             csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
           }
-        if(csoundFrameI == 0)
-          {
-            performKsmps(true);
-          }
         for(channelI = 0; channelI < channelN; channelI++)
           {
             hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] *  outputScale;
@@ -499,6 +492,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
         if(csoundFrameI > csoundLastFrame)
           {
             csoundFrameI = 0;
+            performKsmps(true);
           }
       }
   }
