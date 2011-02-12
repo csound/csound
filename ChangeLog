@@ -1,9 +1,15 @@
+2010-09-02  Michael Gogins <michael.gogins@gmail.com>
+
+	* Corrected signature of fluidAllOut opcode, and fencepost error in that opcode.
+	
+	* Fixed order of processing in CsoundVST audio output callbacks.
+	
 2011-02-09  john ffitch  <jpff@codemist.co.uk>
 
 	* util1/csd_util/makecsd.c (main): new options for MIDI files and
 	score processing; licence control as well
 
-	* util1/csd_util/base64.c (encode_file): Added extra arg to selct tags
+	* util1/csd_util/base64.c (encode_file): Added extra arg to select tags
 
 2011-01-20  john ffitch  <jpff@codemist.co.uk>
 
