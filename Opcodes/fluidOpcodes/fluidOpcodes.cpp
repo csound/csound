@@ -315,7 +315,9 @@ public:
     int kontrol(CSOUND *csound) {
 #pragma omp critical (critical_section_fluid_cck)
         {
+            value = (int) *kVal;
             if (value != priorValue) {
+                priorValue = value;
                 channel = (int) *iChannelNumber;
                 controller = (int) *iControllerNumber;
                 fluid_synth_cc(fluidSynth, channel, controller, value);
@@ -471,10 +473,12 @@ public:
     int kontrol(CSOUND *csound) {
 #pragma omp critical (critical_section_fluidopcodes)
         {
+            midiStatus    = 0xF0 & (int) *kMidiStatus;
             midiChannel = (int) *kMidiChannel;
             midiData1 = (int) *kMidiData1;
             midiData2 = (int) *kMidiData2;
             int result =  -1;
+  
             if (midiData2 != priorMidiData2 ||
                     midiData1 != priorMidiData1 ||
                     midiChannel != priorMidiChannel ||
@@ -544,6 +548,7 @@ noteOff:
                 priorMidiData2 = midiData2;
             }
         }
+        
         return OK;
     }
 };
