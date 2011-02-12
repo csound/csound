@@ -25,6 +25,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 GETTING STARTED
 
+QuteCsound, a graphical shell for Csound, makes an excellent place to begin 
+the exploration of Csound, especially because QuteCsound has an extensive menu 
+of built-in examples that show off Csound's capabilities. Many musicians make 
+QuteCsound their main Csound environment, although there are other excellent 
+environments. QuteCsound runs not only Csound code, but also Python scripts.
+
 The tutorial/tutorial.pdf file is an illustrated tutorial of how to 
 find, install, configure, and use Csound. To get started with 
 real-time MIDI performance, for example, see Section 2.1.3.

@@ -538,17 +538,17 @@ skipAssoc:
       # Pthreads
       File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
       # FLTK
-      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
-      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
-      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_gl-1.1.dll
-      File c:\utah\opt\fltk-1.1.10\src\mgwfltknox_images-1.1.dll
+      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox-1.3.dll
+      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_forms-1.3.dll
+      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_gl-1.3.dll
+      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_images-1.3.dll
       # PortAudio
       #File C:\utah\opt\portaudio\portaudio.dll
       # PortMIDI
-      File C:\utah\opt\portmidi\portmidi.dll
-      File C:\utah\opt\portmidi\porttime.dll
+      File C:\utah\opt\portmidi\libportmidi.dll
+      #File C:\utah\opt\portmidi\porttime.dll
       # Fluidsynth
-      File C:\utah\opt\fluidsynth\src\libfluidsynth.dll
+      File C:\utah\opt\fluidsynth-1.1.3\src\libfluidsynth.dll
       # Image opcodes
       #File C:\utah\mingw\bin\zlib1.dll
       #File C:\utah\mingw\bin\libpng.dll
@@ -563,6 +563,7 @@ skipAssoc:
       File C:\windows\system32\MSVCRT.DLL
       # GNU
       File C:\utah\msys\1.0\local\bin\libglib-2.0-0.dll
+      File C:\utah\msys\1.0\local\bin\intl.dll
       File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
     SetOutPath $INSTDIR\${OPCODEDIR_VAL}
@@ -716,9 +717,9 @@ SectionGroup "Front ends"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
-      File C:\utah\opt\Qt\2010.04\qt\bin\QtCore4.dll
-      File C:\utah\opt\Qt\2010.04\qt\bin\QtGui4.dll
-      File C:\utah\opt\Qt\2010.04\qt\bin\QtXml4.dll
+      File C:\utah\opt\Qt\2010.05\qt\bin\QtCore4.dll
+      File C:\utah\opt\Qt\2010.05\qt\bin\QtGui4.dll
+      File C:\utah\opt\Qt\2010.05\qt\bin\QtXml4.dll
       File C:\utah\mingw_qt\bin\mingwm10.dll
       File C:\utah\mingw_qt\bin\libgcc_s_dw2-1.dll
 !ifdef FLOAT
