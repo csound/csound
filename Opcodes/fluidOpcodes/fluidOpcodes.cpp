@@ -108,7 +108,7 @@ class FluidEngine : public OpcodeBase<FluidEngine>
 public:
     int init(CSOUND *csound) {
         int result = OK;
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_engine)
         {
             fluid_synth_t *fluidSynth = 0;
             fluid_settings_t *fluidSettings = 0;
@@ -184,7 +184,7 @@ class FluidLoad : public OpcodeBase<FluidLoad>
 public:
     int init(CSOUND *csound) {
         int result = OK;
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_load)
         {
             soundFontId = -1;
             toa(iFluidSynth, fluidSynth);
@@ -246,7 +246,7 @@ class FluidProgramSelect : public OpcodeBase<FluidProgramSelect>
     unsigned int preset;
 public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_select)
         {
             toa(iFluidSynth, fluidSynth);
             channel = (int) *iChannelNumber;
@@ -278,7 +278,7 @@ class FluidCCI : public OpcodeBase<FluidCCI>
     int value;
  public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_cci)
         {
             toa(iFluidSynth, fluidSynth);
             channel = (int) *iChannelNumber;
@@ -305,7 +305,7 @@ class FluidCCK : public OpcodeBase<FluidCCK>
     int priorValue;
 public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_cck)
         {
             toa(iFluidSynth, fluidSynth);
             priorValue = -1;
@@ -313,7 +313,7 @@ public:
         return OK;
     }
     int kontrol(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_cck)
         {
             if (value != priorValue) {
                 channel = (int) *iChannelNumber;
@@ -339,7 +339,7 @@ class FluidNote : public OpcodeNoteoffBase<FluidNote>
     int velocity;
 public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_noteoff)
         {
             toa(iFluidSynth, fluidSynth);
             channel = (int) *iChannelNumber;
@@ -350,7 +350,7 @@ public:
         return OK;
     }
     int noteoff(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_noteoff)
         {
             fluid_synth_noteoff(fluidSynth, channel, key);
         }
@@ -373,7 +373,7 @@ class FluidOut : public OpcodeBase<FluidOut>
     int ksmps;
 public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_out)
         {
             toa(iFluidSynth, fluidSynth);
             ksmps = csound->GetKsmps(csound);
@@ -381,7 +381,7 @@ public:
         return OK;
     }
     int audio(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_out)
         {
             for (frame = 0; frame < ksmps; frame++) {
                 leftSample = 0.0f;
@@ -408,14 +408,14 @@ class FluidAllOut : public OpcodeBase<FluidAllOut>
     int ksmps;
 public:
     int init(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_all_out)
         {
             ksmps = csound->GetKsmps(csound);
         }
         return OK;
     }
     int audio(CSOUND *csound) {
-#pragma omp critical (critical_section_fluidopcodes)
+#pragma omp critical (critical_section_fluid_all_out)
         {
             std::vector<fluid_synth_t *> &fluidSynths = getFluidSynthsForCsoundInstances()[csound];
             for (frame = 0; frame < ksmps; frame++) {
@@ -423,12 +423,12 @@ public:
                 aRightOut[frame] = FL(0.0);
                 for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
                     fluid_synth_t *fluidSynth = fluidSynths[i];
-                    leftSample = 0.0f;
-                    rightSample = 0.0f;
+                    leftSample = FL(0.0);
+                    rightSample = FL(0.0);  
                     fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
                             &rightSample, 0, 1);
-                    aLeftOut[i] += (MYFLT) leftSample /* * csound->e0dbfs */;
-                    aRightOut[i] += (MYFLT) rightSample /* * csound->e0dbfs */;
+                    aLeftOut[frame] += (MYFLT) leftSample /* * csound->e0dbfs */;
+                    aRightOut[frame] += (MYFLT) rightSample /* * csound->e0dbfs */;
                 }
             }
         }
