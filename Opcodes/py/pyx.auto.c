@@ -14,20 +14,20 @@ static int pyexec_krate(CSOUND *csound, PYEXEC *p)
     return OK;
 }
 
-/* static int pyexeci_irate(CSOUND *csound, PYEXEC *p) */
-/* { */
-/*     char      source[1024]; */
-/*     PyObject  *result; */
+static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
+{
+    char      source[1024];
+    PyObject  *result;
 
-/*     strcpy(source, (char*) p->string); */
+    strcpy(source, (char*) p->string);
 
-/*     result = exec_file_in_given_context(csound, source, 0); */
-/*     if (result == NULL) { */
-/*       return pyErrMsg(p, "python exception"); */
-/*     } */
-/*     Py_DECREF(result); */
-/*     return OK; */
-/* } */
+    result = exec_file_in_given_context(csound, source, 0);
+    if (result == NULL) {
+      return pyErrMsg(p, "python exception");
+    }
+    Py_DECREF(result);
+    return OK;
+}
 
 static int pylexec_irate(CSOUND *csound, PYEXEC *p)
 {
@@ -240,26 +240,26 @@ static int pyeval_krate(CSOUND *csound, PYEVAL *p)
     return OK;
 }
 
-/* static int pyevali_irate(CSOUND *csound, PYEVAL *p) */
-/* { */
-/*     char      source[1024]; */
-/*     PyObject  *result; */
+static int pyevali_irate(CSOUND *csound, PYEVAL *p)
+{
+    char      source[1024];
+    PyObject  *result;
 
-/*     strcpy(source, (char*) p->string); */
+    strcpy(source, (char*) p->string);
 
-/*     result = eval_string_in_given_context(source, 0); */
-/*     if (result == NULL) { */
-/*       return pyErrMsg(p, "python exception"); */
-/*     } */
-/*     else if (!PyFloat_Check(result)) { */
-/*       errMsg(p, "expression must evaluate in a float"); */
-/*     } */
-/*     else { */
-/*       *p->result = PyFloat_AsDouble(result); */
-/*     } */
-/*     Py_DECREF(result); */
-/*     return OK; */
-/* } */
+    result = eval_string_in_given_context(source, 0);
+    if (result == NULL) {
+      return pyErrMsg(p, "python exception");
+    }
+    else if (!PyFloat_Check(result)) {
+      errMsg(p, "expression must evaluate in a float");
+    }
+    else {
+      *p->result = PyFloat_AsDouble(result);
+    }
+    Py_DECREF(result);
+    return OK;
+}
 
 static int pyleval_irate(CSOUND *csound, PYEVAL *p)
 {
@@ -386,20 +386,20 @@ static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
     return OK;
 }
 
-/* static int pyassigni_irate(CSOUND *csound, PYASSIGN *p) */
-/* { */
-/*     char      source[1024]; */
-/*     PyObject  *result; */
+static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
+{
+    char      source[1024];
+    PyObject  *result;
 
-/*     sprintf(source, "%s = %f", (char*) p->string, *p->value); */
+    sprintf(source, "%s = %f", (char*) p->string, *p->value);
 
-/*     result = run_statement_in_given_context(source, 0); */
-/*     if (result == NULL) { */
-/*       return pyErrMsg(p, "python exception"); */
-/*     } */
-/*     Py_DECREF(result); */
-/*     return OK; */
-/* } */
+    result = run_statement_in_given_context(source, 0);
+    if (result == NULL) {
+      return pyErrMsg(p, "python exception");
+    }
+    Py_DECREF(result);
+    return OK;
+}
 
 static int pylassign_irate(CSOUND *csound, PYASSIGN *p)
 {
