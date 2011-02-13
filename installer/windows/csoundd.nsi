@@ -822,7 +822,7 @@ SectionGroup "Csound interfaces"
         File ..\..\examples\lua\Lindenmayer.lua
     SectionEnd
   SectionGroupEnd
-  SectionGroup "Python (requires Python 2.6)"
+  SectionGroup "Python (requires Python 2.7)"
     Section /o "Python opcodes"
       SectionIn 2
       SetOutPath $INSTDIR\${OPCODEDIR_VAL}
