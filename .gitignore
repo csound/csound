@@ -1,0 +1,112 @@
+# Intermediate object files
+*.o
+*.os
+
+# Opcode libraries
+/lib*.*
+/tclcsound.*
+
+
+# Final library
+/libcsound*
+
+# SCons cache and log
+/.scon*
+/config.log
+
+# Bison & Flex output
+/Engine/csound_orclex.c
+/Engine/csound_orcparse.[hc]
+/Engine/csound_orcparse.output
+
+# gettext output files are all placed in subdirs
+/po/*/
+
+# Output executables
+atsa
+atsa.exe
+beats
+beats.exe
+cs
+cs.exe
+csb64enc
+csb64enc.exe
+csound
+csound.exe
+cstclsh
+cstclsh.exe
+cswish
+cswish.exe
+cvanal
+cvanal.exe
+dnoise
+dnoise.exe
+envext
+envext.exe
+extract
+extract.exe
+extractor
+extractor.exe
+het_export
+het_export.exe
+het_import
+het_import.exe
+hetro
+hetro.exe
+lpanal
+lpanal.exe
+lpc_export
+lpc_export.exe
+lpc_import
+lpc_import.exe
+makecsd
+makecsd.exe
+mixer
+mixer.exe
+pv_export
+pv_export.exe
+pv_import
+pv_import.exe
+pvanal
+pvanal.exe
+pvlook
+pvlook.exe
+scale
+scale.exe
+scot
+scot.exe
+scsort
+scsort.exe
+sdif2ad
+sdif2ad.exe
+sndinfo
+sndinfo.exe
+srconv
+srconv.exe
+winsound
+winsound.exe
+
+# PD external
+/csoundapi*.*
+
+
+# C++ lib
+/libcsnd*
+
+# Python wrappers
+csnd.py
+_csnd.so
+
+# CsoundAC
+/libCsoundAC*
+CsoundAC.py
+
+# SWIG Wrappers
+*_wrap.cc
+*_wrap.h
+interfaces/*.java
+csnd.jar
+*.class
+
+# Vim swap files
+*.swp
