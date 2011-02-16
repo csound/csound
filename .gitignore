@@ -101,6 +101,8 @@ _csnd.so
 /libCsoundAC*
 CsoundAC.py
 
+csladspa.so
+
 # SWIG Wrappers
 *_wrap.cc
 *_wrap.h
