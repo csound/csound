@@ -2797,7 +2797,7 @@ if getPlatform() == "darwin":
   csLadspaEnv.Append(LINKFLAGS="-bundle")
  csladspa = csLadspaEnv.Program('csladspa.so', 'frontends/csladspa/csladspa.cpp' )
 else:
- csladspa = csLadspaEnv.SharedLibrary('frontends/csladspa/csladspa.cpp')
+ csladspa = csLadspaEnv.SharedLibrary('csladspa', 'frontends/csladspa/csladspa.cpp')
 Depends(csladspa, csoundLibrary)
 libs.append(csladspa)
 
