@@ -1,6 +1,6 @@
 # include <stdio.h>                     /*             CSCORE.H     */
 
-# define PMAX 50
+# define PMAX 1000
 
 typedef struct event {
         char op;
