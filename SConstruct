@@ -2819,6 +2819,7 @@ else:
                                     ['frontends/beats/main.c', 
                                      'frontends/beats/lex.yy.c', 
                                      'frontends/beats/beats.tab.c'])
+    executables.append(bb)
 
 
 
