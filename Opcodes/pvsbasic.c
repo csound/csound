@@ -2097,13 +2097,13 @@ static OENTRY localops[] = {
    (SUBR) pvsfilter},
   {"pvscale", sizeof(PVSSCALE), 3, "f", "fxOPO", (SUBR) pvsscaleset,
    (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkOOO", (SUBR) pvsshiftset,
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fxkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #else
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "fffp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
   {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO", (SUBR) pvsscaleset, (SUBR) pvsscale},
-  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOOO", (SUBR) pvsshiftset,
+  {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
 #endif
   {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
