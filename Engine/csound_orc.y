@@ -427,6 +427,19 @@ goto  : T_GOTO
 label : T_IDENT     { $$ = (TREE *)$1; }
       | T_OPCODE    { $$ = (TREE *)$1; }
       | T_OPCODE0   { $$ = (TREE *)$1; }
+      | T_IDENT_P   { $$ = (TREE *)$1; }
+      | T_IDENT_I   { $$ = (TREE *)$1; }
+      | T_IDENT_GI  { $$ = (TREE *)$1; }
+      | T_IDENT_K   { $$ = (TREE *)$1; }
+      | T_IDENT_GK  { $$ = (TREE *)$1; }
+      | T_IDENT_A   { $$ = (TREE *)$1; }
+      | T_IDENT_GA  { $$ = (TREE *)$1; }
+      | T_IDENT_W   { $$ = (TREE *)$1; }
+      | T_IDENT_GW  { $$ = (TREE *)$1; }
+      | T_IDENT_F   { $$ = (TREE *)$1; }
+      | T_IDENT_GF  { $$ = (TREE *)$1; }
+      | T_IDENT_S   { $$ = (TREE *)$1; }
+      | T_IDENT_GS  { $$ = (TREE *)$1; }
       ;
 
 
