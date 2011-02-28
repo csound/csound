@@ -1,10 +1,10 @@
 SRC = beats.tab.c lex.yy.c main.c
 OBJ = beats.tab.o lex.yy.o main.o
 
-all:	beats
+all:	csbeats
 
-beats:	$(OBJ)
-	gcc -g -o beats $(OBJ) -lm
+csbeats:	$(OBJ)
+	gcc -g -o csbeats $(OBJ) -lm
 
 lex.yy.c:	beats.l beats.tab.h
 	flex beats.l
