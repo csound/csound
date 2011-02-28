@@ -56,11 +56,12 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
     if ((*p->points != (MYFLT) 0) && (p->size > (int) *p->points)) {
       p->size = *p->points;
     }
-    if ((p->fdata.auxp == NULL) || (p->fdata.size < (int) (p->size*sizeof(MYFLT)))) {
+    if ((p->fdata.auxp == NULL) ||
+        (p->fdata.size < (int) (p->size*sizeof(MYFLT)))) {
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
     sprintf(strmsg, Str("instr %d, pvs-signal %s:"),
-      (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
+            (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
                     (int) *p->flag, Str("display"));
     p->lastframe = 0;
@@ -92,7 +93,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
       npts = (int32)(*p->iprd * csound->ekr);
     else npts = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(npts <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd"));
+      return csound->InitError(csound, Str("illegal iprd in display"));
 
     }
     if ((nprds = (int32)*p->inprds) <= 1) {
@@ -106,11 +107,11 @@ int dspset(CSOUND *csound, DSPLAY *p)
     }
     if ((auxp = p->auxch.auxp) == NULL || totpts != p->totpts) {
       csound->AuxAlloc(csound, totpts * sizeof(MYFLT), &p->auxch);
-      auxp = p->auxch.auxp;
-      p->begp = (MYFLT *) auxp;
-      p->endp = p->begp + bufpts;
-      p->npts = npts;
-      p->nprds = nprds;
+      auxp      = p->auxch.auxp;
+      p->begp   = (MYFLT *) auxp;
+      p->endp   = p->begp + bufpts;
+      p->npts   = npts;
+      p->nprds  = nprds;
       p->bufpts = bufpts;
       p->totpts = totpts;
     }
@@ -206,9 +207,11 @@ static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int hannq)
     }
 
     if (wBuf!= NULL) {        /* NB: size/2 + 1 long - just indep terms */
+      MYFLT tmp;
       size /= 2;              /* to fix scaling */
+      tmp =  = PI_F/(MYFLT)size; /* optimisatuon?? */
       for (i=0; i<=size;++i)
-        wBuf[i] = max * (a-b*COS(PI_F*(MYFLT)i/(MYFLT)size ) );
+        wBuf[i] = max * (a-b*COS(tmp*(MYFLT)i) );
     }
     return;
 }
@@ -246,13 +249,13 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       step_size = (int32)(*p->iprd * csound->ekr);
     else step_size = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(step_size <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd"));
+      return csound->InitError(csound, Str("illegal iprd in ffy display"));
     }
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
-    if (window_size != p->windsize
-        || hanning != p->hanning) {             /* if windowing has changed:  */
+    if (window_size != p->windsize ||
+        hanning != p->hanning) {             /* if windowing has changed:  */
       int32 auxsiz;
       MYFLT *hWin;
       p->windsize = window_size;                /* set new parameter values */
@@ -458,10 +461,10 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       auxsiz = (npts * 5 + lamspan * 3) * sizeof(MYFLT);
       csound->AuxAlloc(csound, (int32)auxsiz, &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
-      p->hbeg = fltp;     fltp += npts;
-      p->hend = fltp;
-      p->xbeg = fltp;     fltp += npts;
-      p->xend = fltp;
+      p->hbeg   = fltp;   fltp += npts;
+      p->hend   = fltp;
+      p->xbeg   = fltp;   fltp += npts;
+      p->xend   = fltp;
       p->stmemp = fltp;   fltp += npts;
       p->linexp = fltp;   fltp += npts;
       p->ftable = fltp;   fltp += npts;
