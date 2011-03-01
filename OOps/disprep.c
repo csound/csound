@@ -209,7 +209,7 @@ static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int hannq)
     if (wBuf!= NULL) {        /* NB: size/2 + 1 long - just indep terms */
       MYFLT tmp;
       size /= 2;              /* to fix scaling */
-      tmp =  = PI_F/(MYFLT)size; /* optimisatuon?? */
+      tmp = PI_F/(MYFLT)size; /* optimisatuon?? */
       for (i=0; i<=size;++i)
         wBuf[i] = max * (a-b*COS(tmp*(MYFLT)i) );
     }
