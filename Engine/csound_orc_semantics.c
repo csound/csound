@@ -685,6 +685,10 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
       /* } */
       return;
     }
+    else if (tree->type==0) {
+      csound->Message(csound, "Null trype in tree -- aborting\n");
+      exit(2);
+    }
     else {
       int opnum = find_opcode(csound, tree->value->lexeme);
       OENTRY *ep = csound->opcodlst + opnum;
