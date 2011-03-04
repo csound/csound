@@ -686,7 +686,7 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
       return;
     }
     else if (tree->type==0) {
-      csound->Message(csound, "Null trype in tree -- aborting\n");
+      csound->Message(csound, "Null type in tree -- aborting\n");
       exit(2);
     }
     else {
