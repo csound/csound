@@ -26,6 +26,7 @@
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "typetabl.h"   /* IV - Oct 31 2002 */
 #include "envvar.h"
+#include <stddef.h>
 
 #ifdef sun
 #define   SEEK_SET        0
@@ -524,7 +525,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         endspace = ortext + ST(orchsiz) + 1;
         /* printf("%p (%d) %p\n", ortext, ST(orchsiz), endspace); */
         if (ortext != orold) {
-          long adj = ortext - orold;
+          ptrdiff_t adj = ortext - orold;
           for (i=1; i<=lincnt; i++)
             ST(linadr)[i] += adj; /* Relocate */
           cp += adj;
