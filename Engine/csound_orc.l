@@ -69,7 +69,7 @@ unsigned int macro_stack_ptr = 0;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
-LABEL           [[a-zA-Z_][a-zA-Z0-9_]*:
+LABEL           [a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRO           [a-zA-Z0-9_]+\(
