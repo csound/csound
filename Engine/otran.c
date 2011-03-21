@@ -1230,8 +1230,8 @@ void oload(CSOUND *p)
       p->Die(p, Str("bad value for 0dbfs: must be positive."));
     if (UNLIKELY(O->odebug))
       p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
-                    "0dbfs = %.1f\n",
-                    p->esr, p->ekr, p->ksmps, p->nchnls, p->e0dbfs);
+                    "nchnlsi = %d 0dbfs = %.1f\n",
+                 p->esr, p->ekr, p->ksmps, p->nchnls, p->inchnls, p->e0dbfs);
     if (O->sr_override) {        /* if command-line overrides, apply now */
       p->esr = (MYFLT) O->sr_override;
       p->ekr = (MYFLT) O->kr_override;

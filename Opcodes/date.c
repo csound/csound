@@ -37,7 +37,13 @@ typedef struct {
 
 static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
-    *p->time_ = (MYFLT) time(NULL);
+#ifdef USE_DOUBLE
+    time_t base = 0;
+#else
+    /*    time_t base = 946684800;    /* 1 Jan 2000 */
+    time_t base = 1262304000;    /* 1 Jan 2010 */
+#endif
+    *p->time_ = (MYFLT) (time(NULL)-base);
     return OK;
 }
 

@@ -1768,7 +1768,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
         flushlin(csound);
         return(0);
       }
-      while ((c = getscochar(csound, 0)) != '"') {
+      while ((c = getscochar(csound, 1)) != '"') {
         if (UNLIKELY(c == LF || c == EOF)) {
           sreaderr(csound, Str("unmatched quote"));
           return(0);
