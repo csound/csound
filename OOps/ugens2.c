@@ -144,9 +144,11 @@ int phsor(CSOUND *csound, PHSOR *p)
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY(phase >= 1.0))
+        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT 
+                                              to avoid rounded output 
+                                              exceeding 1.0 on float version */
           phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
+        else if (UNLIKELY((MYFLT)phase < 0.0))
           phase += 1.0;
       }
     }
@@ -155,9 +157,10 @@ int phsor(CSOUND *csound, PHSOR *p)
       for (n=0; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY(phase >= 1.0))
+        if (UNLIKELY((MYFLT)phase >= 1.0)){
           phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
+	}
+        else if (UNLIKELY((MYFLT)phase < 0.0))
           phase += 1.0;
       }
     }
