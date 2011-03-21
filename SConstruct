@@ -2815,7 +2815,7 @@ else:
                                source = 'frontends/beats/beats.y')
     blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
                                source = 'frontends/beats/beats.l')
-    bb = csBeatsEnvironment.Program('beats',
+    bb = csBeatsEnvironment.Program('csbeats',
                                     ['frontends/beats/main.c', 
                                      'frontends/beats/lex.yy.c', 
                                      'frontends/beats/beats.tab.c'])

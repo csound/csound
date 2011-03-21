@@ -378,9 +378,11 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     }
 }
 
-static void print_tree_xml(CSOUND *csound, TREE *l, int n)
+enum {TREE_NONE, TREE_LEFT, TREE_RIGHT, TREE_NEXT};
+static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 {
     int i;
+    char *child[4] = {"", "left", "right", "next"};
     if (l==NULL) {
       return;
     }
@@ -388,7 +390,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
       csound->Message(csound, " ");
     }
 
-    csound->Message(csound, "<tree type=\"%d\" ", l->type);
+    csound->Message(csound, "<tree%s type=\"%d\" ", child[which], l->type);
 
     switch (l->type) {
     case S_COM:
@@ -568,17 +570,17 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n)
 
     csound->Message(csound, " >\n");
 
-    print_tree_xml(csound, l->left,n+1);
-    print_tree_xml(csound, l->right,n+1);
+    print_tree_xml(csound, l->left,n+1, TREE_LEFT);
+    print_tree_xml(csound, l->right,n+1, TREE_RIGHT);
 
     for (i=0; i<n; i++) {
       csound->Message(csound, " ");
     }
 
-    csound->Message(csound, "</tree>\n");
+    csound->Message(csound, "</tree%s>\n", child[which]);
 
     if (l->next != NULL) {
-      print_tree_xml(csound, l->next, n);
+      print_tree_xml(csound, l->next, n, TREE_NEXT);
     }
 }
 
@@ -590,7 +592,7 @@ void print_tree(CSOUND * csound, char* msg, TREE *l)
       else
         csound->Message(csound, "Printing Tree\n");
       csound->Message(csound, "<ast>\n");
-      print_tree_xml(csound, l, 0);
+      print_tree_xml(csound, l, 0, TREE_NONE);
       csound->Message(csound, "</ast>\n");
     }
 }
@@ -684,6 +686,10 @@ void handle_polymorphic_opcode(CSOUND* csound, TREE * tree) {
       /*   print_tree(csound, "Odd case\n", tree); */
       /* } */
       return;
+    }
+    else if (tree->type==0) {
+      csound->Message(csound, "Null type in tree -- aborting\n");
+      exit(2);
     }
     else {
       int opnum = find_opcode(csound, tree->value->lexeme);
