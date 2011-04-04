@@ -34,7 +34,7 @@
 
 /*
 #include <sndfile.h>
-JPff:  But this gives warnings in many files as rewriteheader expects 
+JPff:  But this gives warnings in many files as rewriteheader expects
 to have an argument of SNDFILE*.  Might be able to fix with a void*
 VL: moved to allow opcodes to be built without libsndfile headers
 The libsndfile header is now place only where it is used:
@@ -1335,7 +1335,7 @@ extern const uint32_t csPlayScoMask;
     int           scnt0;        /* Count of extra strings */
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           sstrlen0[3];  /* lengths for extra strings */
- 
+
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
