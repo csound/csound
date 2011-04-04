@@ -365,7 +365,6 @@ int pvstanal(CSOUND *csound, PVST *p)
     float pitch = (float) (*p->kpitch), rotfac = p->rotfac;
     MYFLT time = *p->ktime;
     float tmp_real, tmp_im, powrat;
-    
 
     if (p->scnt >= hsize) {
 

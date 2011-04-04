@@ -36,7 +36,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
       return csound->PerfError(csound, Str("NaN in pow\n"));
     else if (p->norm!=NULL)
       *p->sr = POWER(in, powerOf) / *p->norm;
-    else 
+    else
       *p->sr = POWER(in, powerOf);
     return OK;
 }

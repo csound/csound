@@ -628,7 +628,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
         phase += inc;
         phase &= PHMASK;
         a+=inca;
-      } 
+      }
       *oscphase = (double) phase;
       oldamps[i] = amp;
       oscphase++;
