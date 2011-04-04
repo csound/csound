@@ -137,8 +137,9 @@ static const char *shortUsageList[] = {
 };
 
 static const char *longUsageList[] = {
-  Str_noop("--format={wav,aiff,au,raw,ircam,w64,wavex,sd2,flac}"),
-  Str_noop("--format={alaw,ulaw,schar,uchar,float,short,long,24bit}"),
+  "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
+  "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,WVE,ogg,MPC,W64}",
+  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit}",
   Str_noop("\t\t\tSet output file format"),
 #ifndef OLPC
   Str_noop("--aiff\t\t\tSet AIFF format"),

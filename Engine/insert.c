@@ -170,7 +170,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
         memcpy(&ip->p3, pdat, sizeof(MYFLT)*nn);
       }
-      if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
+      if (UNLIKELY((n = tp->pmax) != newevtp->pcnt && !tp->psetdata)) {
         char *name = csound->instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),

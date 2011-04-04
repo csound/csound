@@ -503,7 +503,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    /*   if (UNLIKELY(PARSER_DEBUG)) */csound->Message(csound, "Creating boolean expression\n");
+    if (UNLIKELY(PARSER_DEBUG))
+      csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
@@ -752,12 +753,12 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 label = create_synthetic_ident(csound, genlabs);
                 labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
-                printf("goto types %c %c %c %c %d\n",
-                       expressionNodes->left->type, tempRight->type,
-                       argtyp2(csound, expressionNodes->left->value->lexeme),
-                       argtyp2(csound, tempRight->value->lexeme),
-                       (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') ||
-                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+                /* printf("goto types %c %c %c %c %d\n", */
+                /*        expressionNodes->left->type, tempRight->type, */
+                /*        argtyp2(csound, expressionNodes->left->value->lexeme), */
+                /*        argtyp2(csound, tempRight->value->lexeme), */
+                /*        (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') || */
+                /*        (argtyp2(csound, tempRight->value->lexeme) == 'k')); */
                 gotoToken =
                   create_goto_token(csound,
                    expressionNodes->left->value->lexeme,
