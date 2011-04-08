@@ -48,10 +48,8 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     char varname[32] = "::buffer0";
     FSIG_HANDLE **phandle = NULL;
 
-#ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
-#endif
     if (p->handmem.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
     p->handle = (FSIG_HANDLE *) p->handmem.auxp;
@@ -165,9 +163,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
          p->fout->frame.size < sizeof(float) * (N + 2))
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-#ifndef OLPC
     p->fout->sliding = 0;
-#endif
     p->scnt = p->fout->overlap;
     p->iclear = *p->clear;
     p->handle = handle;

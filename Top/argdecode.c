@@ -62,20 +62,15 @@ static void set_stdout_assign(CSOUND *csound, int type, int state)
 static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
   Str_noop("-U unam\trun utility program unam"),
-#ifndef OLPC
   Str_noop("-C\tuse Cscore processing of scorefile"),
-#endif
   Str_noop("-I\tI-time only orch run"),
   Str_noop("-n\tno sound onto disk"),
   Str_noop("-i fnam\tsound input filename"),
   Str_noop("-o fnam\tsound output filename"),
   Str_noop("-b N\tsample frames (or -kprds) per software sound I/O buffer"),
   Str_noop("-B N\tsamples per hardware sound I/O buffer"),
-#ifndef OLPC
   Str_noop("-A\tcreate an AIFF format output soundfile"),
-#endif
   Str_noop("-W\tcreate a WAV format output soundfile"),
-#ifndef OLPC
   Str_noop("-J\tcreate an IRCAM format output soundfile"),
   Str_noop("-h\tno header on output soundfile"),
   Str_noop("-c\t8-bit signed_char sound samples"),
@@ -83,45 +78,32 @@ static const char *shortUsageList[] = {
   Str_noop("-a\talaw sound samples"),
 #endif
   Str_noop("-8\t8-bit unsigned_char sound samples"),
-#endif
   Str_noop("-u\tulaw sound samples"),
   Str_noop("-s\tshort_int sound samples"),
-#ifndef OLPC
   Str_noop("-l\tlong_int sound samples"),
-#endif
   Str_noop("-f\tfloat sound samples"),
-#ifndef OLPC
   Str_noop("-3\t24bit sound samples"),
-#endif
   Str_noop("-r N\torchestra srate override"),
   Str_noop("-k N\torchestra krate override"),
-#ifndef OLPC
   Str_noop("-K\tDo not generate PEAK chunks"),
-#endif
   Str_noop("-v\tverbose orch translation"),
   Str_noop("-m N\ttty message level. Sum of:"),
   Str_noop("\t\t1=note amps, 2=out-of-range msg, 4=warnings"),
   Str_noop("\t\t0/32/64/96=note amp format (raw,dB,colors)"),
   Str_noop("\t\t128=print benchmark information"),
-#ifndef OLPC
   Str_noop("-d\tsuppress all displays"),
-#endif
   Str_noop("-g\tsuppress graphics, use ascii displays"),
-#ifndef OLPC
   Str_noop("-G\tsuppress graphics, use Postscript displays"),
   Str_noop("-x fnam\textract from score.srt using extract file 'fnam'"),
-#endif
   Str_noop("-t N\tuse uninterpreted beats of the score, initially at tempo N"),
   Str_noop("-t 0\tuse score.srt for sorted score rather than a temporary"),
   Str_noop("-L dnam\tread Line-oriented realtime score events from device 'dnam'"),
   Str_noop("-M dnam\tread MIDI realtime events from device 'dnam'"),
   Str_noop("-F fnam\tread MIDIfile event stream from file 'fnam'"),
   /*  Str_noop("-P N\tMIDI sustain pedal threshold (0 - 128)"), */
-#ifndef OLPC
   Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
   Str_noop("-H#\tprint heartbeat style 1, 2 or 3 at each soundfile write"),
   Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
-#endif
   Str_noop("-T\tterminate the performance when miditrack is done"),
   Str_noop("-D\tdefer GEN01 soundfile loads until performance time"),
   Str_noop("-Q dnam\tselect MIDI output device"),
@@ -141,22 +123,16 @@ static const char *longUsageList[] = {
   "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,WVE,ogg,MPC,W64}",
   "--format={alaw,ulaw,schar,uchar,float,short,long,24bit}",
   Str_noop("\t\t\tSet output file format"),
-#ifndef OLPC
   Str_noop("--aiff\t\t\tSet AIFF format"),
   Str_noop("--au\t\t\tSet AU format"),
-#endif
   Str_noop("--wave\t\t\tSet WAV format"),
-#ifndef OLPC
   Str_noop("--ircam\t\t\tSet IRCAM format"),
   Str_noop("--noheader\t\tRaw format"),
   Str_noop("--nopeaks\t\tDo not write peak information"),
-#endif
   " ",
   Str_noop("--nodisplays\t\tsUppress all displays"),
   Str_noop("--asciidisplay\t\tSuppress graphics, use ascii displays"),
-#ifndef OLPC
   Str_noop("--postscriptdisplay\tSuppress graphics, use Postscript displays"),
-#endif
   " ",
   Str_noop("--defer-gen1\t\tDefer GEN01 soundfile loads until performance time"),
   Str_noop("--iobufsamps=N\t\tSample frames (or -kprds) per software sound I/O buffer"),
@@ -168,12 +144,10 @@ static const char *longUsageList[] = {
   Str_noop("--midi-device=FNAME\tRead MIDI realtime events from device"),
   Str_noop("--terminate-on-midi\tTerminate the performance when miditrack is done"),
   " ",
-#ifndef OLPC
   Str_noop("--heartbeat=N\t\tPrint a heartbeat style 1, 2 or 3 at each soundfile write"),
   Str_noop("--notify\t\tNotify (ring the bell) when score or miditrack is done"),
   Str_noop("--rewrite\t\tContinually rewrite header while writing soundfile (WAV/AIFF)"),
   " ",
-#endif
   Str_noop("--input=FNAME\t\tSound input filename"),
   Str_noop("--output=FNAME\t\tSound output filename"),
   Str_noop("--logfile=FNAME\t\tLog output to file"),
@@ -419,7 +393,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       } while (s != NULL);
       return 1;
     }
-#ifndef OLPC
     /* -A */
     else if (!(strcmp (s, "aiff"))) {
       O->filetyp = TYP_AIFF;            /* AIFF output request */
@@ -429,7 +402,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->filetyp = TYP_AU;              /* AU output request */
       return 1;
     }
-#endif
     else if (!(strncmp (s, "iobufsamps=", 11))) {
       s += 11;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no iobufsamps"));
@@ -443,12 +415,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->inbufsamps = O->outbufsamps = atoi(s);
       return 1;
     }
-#ifndef OLPC
     else if (!(strcmp (s, "cscore"))) {
       O->usingcscore = 1;               /* use cscore processing  */
       return 1;
     }
-#endif
     else if (!(strcmp (s, "nodisplays"))) {
       O->displays = 0;                  /* no func displays */
       return 1;
@@ -492,7 +462,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->postscript = 1;                /* don't use graphics but PostScript */
       return 1;
     }
-#ifndef OLPC
     /* -h */
     else if (!(strcmp (s, "noheader"))) {
       O->filetyp = TYP_RAW;             /* RAW output request */
@@ -504,7 +473,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       else O->heartbeat = atoi(s);
       return 1;
     }
-#endif
 #ifdef EMBEDDED_PYTHON
     else if (strncmp(s, "pyvar=", 6) == 0) {
       s += 6;
@@ -539,7 +507,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 0;                   /* and implies nosound */
       return 1;
     }
-#ifndef OLPC
     /*
       -j Used in localisation
       -J create an IRCAM format output soundfile
@@ -548,7 +515,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->filetyp = TYP_IRCAM;           /* IRCAM output request */
       return 1;
     }
-#endif
     /*
       -k N orchestra krate override
      */
@@ -558,13 +524,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->kr_override = (float)atof(s);
       return 1;
     }
-#ifndef OLPC
     /* -K */
     else if (!(strcmp (s, "nopeaks"))) {
       csound->peakchunks = 0;           /* Do not write peak information */
       return 1;
     }
-#endif
     /*
       -L dnam read Line-oriented realtime score events from device 'dnam'
      */
@@ -691,13 +655,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 0;                   /* nosound        */
       return 1;
     }
-#ifndef OLPC
     /* -N */
     else if (!(strcmp (s, "notify"))) {
       O->ringbell = 1;                  /* notify on completion */
       return 1;
     }
-#endif
     else if (!(strncmp (s, "output=", 7))) {
       s += 7;
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no outfilename"));
@@ -726,13 +688,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sr_override = (float)atof(s);
       return 1;
     }
-#ifndef OLPC
     /* R */
     else if (!(strcmp (s, "rewrite"))) {
       O->rewrt_hdr = 1;
       return 1;
     }
-#endif
     /* -S  */
     /* tempo=N use uninterpreted beats of the score, initially at tempo N
      */
@@ -943,11 +903,9 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               csound->LongJmp(csound, retval);
             }
             break;
-#ifndef OLPC
           case 'C':
             O->usingcscore = 1;           /* use cscore processing  */
             break;
-#endif
           case 'I':
             csound->initonly = 1;         /* I-only overrides */
             O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
@@ -999,14 +957,12 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             /* defaults in rtaudio.c */
             s += n;
             break;
-#ifndef OLPC
           case 'A':
             O->filetyp = TYP_AIFF;        /* AIFF output request*/
             break;
           case 'J':
             O->filetyp = TYP_IRCAM;       /* IRCAM output request */
             break;
-#endif
           case 'W':
             O->filetyp = TYP_WAV;         /* WAV output request */
             break;
@@ -1047,11 +1003,9 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           case 'g':
             O->graphsoff = 1;             /* don't use graphics */
             break;
-#ifndef OLPC
           case 'G':
             O->postscript = 1;            /* Postscript graphics*/
             break;
-#endif
           case 'x':
             FIND(Str("no xfilename"));
             csound->xfilename = s;        /* extractfile name */
@@ -1119,7 +1073,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             O->Midioutname = s;
             s += (int) strlen(s);
             break;
-#ifndef OLPC
           case 'R':
             O->rewrt_hdr = 1;
             break;
@@ -1133,7 +1086,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           case 'N':
             O->ringbell = 1;              /* notify on completion */
             break;
-#else
           case 'R': case 'N':
             break;
           case 'H':
