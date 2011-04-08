@@ -59,7 +59,6 @@ kamp            ATSinterpread   kfreq
 
 */
 
-#ifndef OLPC
 
 #include "ugnorman.h"
 #include <ctype.h>
@@ -2076,4 +2075,3 @@ int ugnorman_init_(CSOUND *csound)
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 
-#endif

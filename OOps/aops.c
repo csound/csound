@@ -1039,7 +1039,6 @@ int ins(CSOUND *csound, INS *p)
     return OK;
 }
 
-#ifndef OLPC
 int inq(CSOUND *csound, INQ *p)
 {
     MYFLT       *sp = csound->spin, *ar1 = p->ar1, *ar2 = p->ar2,
@@ -1122,7 +1121,6 @@ int in32(CSOUND *csound, INALL *p)
 {
     return inn(csound, p, 32);
 }
-#endif
 
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
@@ -1234,7 +1232,6 @@ int outs(CSOUND *csound, OUTS *p)
     return OK;
 }
 
-#ifndef OLPC
 int outq(CSOUND *csound, OUTQ *p)
 {
     MYFLT       *sp= csound->spout, *ap1= p->asig1, *ap2= p->asig2,
@@ -1264,7 +1261,6 @@ int outq(CSOUND *csound, OUTQ *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
-#endif
 
 int outs1(CSOUND *csound, OUTM *p)
 {
@@ -1336,7 +1332,6 @@ int outs12(CSOUND *csound, OUTM *p)
     return OK;
 }
 
-#ifndef OLPC
 int outq1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = csound->spout, *ap1 = p->asig;
@@ -1507,7 +1502,6 @@ int outo(CSOUND *csound, OUTO *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
-#endif
 
 static int outn(CSOUND *csound, int n, OUTX *p)
 {
@@ -1538,7 +1532,6 @@ static int outn(CSOUND *csound, int n, OUTX *p)
     return OK;
 }
 
-#ifndef OLPC
 int outx(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 16, p);
@@ -1548,7 +1541,6 @@ int outX(CSOUND *csound, OUTX *p)
 {
     return outn(csound, 32, p);
 }
-#endif
 
 int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {

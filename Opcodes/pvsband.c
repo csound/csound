@@ -45,7 +45,6 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
-#ifndef OLPC
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
           csound->ksmps*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
@@ -53,7 +52,6 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
       else memset(p->fout->frame.auxp, 0, csound->ksmps*(N+2)*sizeof(MYFLT));
     }
     else
-#endif
       {
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < (N+2)*sizeof(float))  /* RWD MUST be 32bit */
@@ -67,10 +65,8 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-#ifndef OLPC
     p->fout->sliding = p->fin->sliding;
     p->fout->NB = p->fin->NB;
-#endif
     return OK;
 }
 
@@ -92,7 +88,6 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
     if (lowbnd<lowcut) lowbnd = lowcut;
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
-#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB  = p->fout->NB;
@@ -143,7 +138,6 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       }
       return OK;
     }
-#endif
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
         MYFLT frq = fin[i+1];
@@ -198,7 +192,6 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
     if (lowbnd<lowcut) lowbnd = lowcut;
     if (higbnd<lowbnd) higbnd = lowbnd;
     if (higcut<higbnd) higcut = higbnd;
-#ifndef OLPC
     if (p->fin->sliding) {
       int n, nsmps = csound->ksmps;
       int NB  = p->fout->NB;
@@ -247,7 +240,6 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
       }
       return OK;
     }
-#endif
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
         MYFLT frq = fin[i+1];
