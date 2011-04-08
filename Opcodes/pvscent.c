@@ -50,7 +50,6 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT c = FL(0.0);
     MYFLT d = FL(0.0);
     MYFLT j, binsize = FL(0.5)*csound->esr/(MYFLT)N;
-#ifndef OLPC
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int NB = p->fin->NB;
@@ -60,7 +59,6 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
       }
     }
     else
-#endif
       {
         float *fin = (float *) p->fin->frame.auxp;
         if (p->lastframe < p->fin->framecount) {
@@ -75,7 +73,6 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-#ifndef OLPC
 static int pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
@@ -121,7 +118,6 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
     }
     return OK;
 }
-#endif
 
 /* PVSPITCH opcode by Ala OCinneide */
 
@@ -164,10 +160,8 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
   int size;
     p->lastframe = 0;
 
-#ifndef OLPC
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
-#endif
     size = sizeof(MYFLT)*(p->fin->N+2)/4;
     if(p->peakfreq.auxp == NULL || p->peakfreq.size < size/2)
     csound->AuxAlloc(csound, size, &p->peakfreq);
@@ -302,11 +296,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-#ifdef OLPC
-  { "pvscent", sizeof(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL},
-#else
   { "pvscent", sizeof(PVSCENT), 3, "s", "f", (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
-#endif
   { "pvspitch", sizeof(PVSPITCH), 3, "kk", "fk",
                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
