@@ -130,15 +130,9 @@ typedef struct {
 #define SSTRCOD3   3945464
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
-#ifdef OLPC
-#define DFLT_SR    FL(16000.0)
-#define DFLT_KR    FL(160.0)
-#define DFLT_KSMPS 100
-#else
 #define DFLT_SR    FL(44100.0)
 #define DFLT_KR    FL(4410.0)
 #define DFLT_KSMPS 10
-#endif
 #define DFLT_NCHNLS 1
 #define MAXCHNLS   256
 

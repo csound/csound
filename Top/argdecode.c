@@ -1086,16 +1086,6 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           case 'N':
             O->ringbell = 1;              /* notify on completion */
             break;
-          case 'R': case 'N':
-            break;
-          case 'H':
-            if (isdigit(*s)) {
-              int x;
-              sscanf(s, "%d%n", &x, &n);
-              s += n;
-            }
-            break;
-#endif
           case 'T':
             O->termifend = 1;             /* terminate on midifile end */
             break;

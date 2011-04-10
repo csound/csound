@@ -1498,7 +1498,7 @@ makePlugin(pluginEnvironment, 'pitch',
            ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
 makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
- makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 ##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
