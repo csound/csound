@@ -16,10 +16,8 @@ commandOptions.Add('buildVirtual',
 commandOptions.Update(commonEnvironment)
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
-util.fixEnvForOLPC(commonEnvironment)
-
 # widgets
-if commonEnvironment['useFLTK'] != '0' and commonEnvironment['buildOLPC'] == '0':
+if commonEnvironment['useFLTK'] != '0':
     fltkfound = configure.CheckHeader("FL/Fl.H",
             language = "C++")
     if not fltkfound:

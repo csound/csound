@@ -35,7 +35,7 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 TREE* create_boolean_expression(CSOUND*, TREE*);
 TREE * create_expression(CSOUND *, TREE *);
 
-static int genlabs = 300;
+/* static int genlabs = 300; */
 
 char *create_out_arg(CSOUND *csound, char outype)
 {
@@ -702,7 +702,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
             if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found if-then\n");
             if (right->next != NULL) {
-              endLabelCounter = genlabs++;
+              endLabelCounter = csound->genlabs++;
             }
 
             while (ifBlockCurrent != NULL) {
@@ -750,8 +750,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 }
 
                 statements = tempRight->right;
-                label = create_synthetic_ident(csound, genlabs);
-                labelEnd = create_synthetic_label(csound, genlabs++);
+                label = create_synthetic_ident(csound, csound->genlabs);
+                labelEnd = create_synthetic_label(csound, csound->genlabs++);
                 tempRight->right = label;
                 /* printf("goto types %c %c %c %c %d\n", */
                 /*        expressionNodes->left->type, tempRight->type, */
