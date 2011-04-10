@@ -91,6 +91,7 @@ int     rnd1(CSOUND *, void *), birnd1(CSOUND *, void *);
 int     abs1(CSOUND *, void *), exp01(CSOUND *, void *);
 int     log01(CSOUND *, void *), sqrt1(CSOUND *, void *);
 int     sin1(CSOUND *, void *), cos1(CSOUND *, void *);
+int     is_NaN(CSOUND *, void *), is_NaNa(CSOUND *, void *);
 int     tan1(CSOUND *, void *), asin1(CSOUND *, void *);
 int     acos1(CSOUND *, void *), atan1(CSOUND *, void *);
 int     sinh1(CSOUND *, void *), cosh1(CSOUND *, void *);
