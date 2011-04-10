@@ -1721,3 +1721,24 @@ int is_NaNa(CSOUND *csound, ASSIGN *p)
       *p->r += isnan(a[k]);
     return OK;
 }
+
+int is_inf(CSOUND *csound, ASSIGN *p)
+{
+    *p->r = isinf(*p->a);
+    return OK;
+}
+
+int is_infa(CSOUND *csound, ASSIGN *p)
+{
+    int k, nsmps = csound->ksmps;
+    MYFLT *a = p->a;
+    MYFLT ans = FL(0.0);
+    int sign = 1;
+    for (k=0; k<nsmps; k++) {
+      if (isinf(a[k]))
+        if (ans==FL(0.0)) sign = (int)isinf(a[k]);
+      ans++;
+    }
+    *p->r = ans*sign;
+    return OK;
+}
