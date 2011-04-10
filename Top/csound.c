@@ -669,7 +669,8 @@ extern "C" {
         0,              /*  tran_nchnlsi */
         0,              /* Count of extra strings */
         {NULL, NULL, NULL}, /* For extra strings in scores */
-        {0, 0, 0}       /* For extra strings in scores */
+        {0, 0, 0},      /* For extra strings in scores */
+        300             /* Count for generated labels */
     };
 
     /* from threads.c */
