@@ -1252,7 +1252,7 @@ static OENTRY localops[] = {
 { "oscilv.aa", S(XOSC),  5,     "a",   "aaio", (SUBR)Foscset, NULL, (SUBR)Foscaa },
 #endif
 { "median", S(MEDFILT),  5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
-{ "mediank", S(MEDFILT),  5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt}
+{ "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
 LINKAGE
