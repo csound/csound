@@ -1706,3 +1706,18 @@ int outvalset(CSOUND *csound, OUTVAL *p)
     return OK;
 }
 
+int is_NaN(CSOUND *csound, ASSIGN *p)
+{
+    *p->r = isnan(*p->a);
+    return OK;
+}
+
+int is_NaNa(CSOUND *csound, ASSIGN *p)
+{
+    int k, nsmps = csound->ksmps;
+    MYFLT *a = p->a;
+    *p->r = FL(0.0);
+    for (k=0; k<nsmps; k++) 
+      *p->r += isnan(a[k]);
+    return OK;
+}
