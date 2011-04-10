@@ -345,7 +345,6 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
     return OK;
 }
 
-#if 0
 /* int nocdfset(CSOUND *csound, NOCTDFT *p) */
 /*     /\* noctdft - calcs disc Fourier transform of oct-downsampled data *\/ */
 /*     /\* outputs coefs (mag, db or mag2) of log freq within each octave *\/ */
@@ -1201,7 +1200,6 @@ int specfilt(CSOUND *csound, SPECFILT *p)
  err1:
     return csound->PerfError(csound, Str("specfilt: not initialised"));
 }
-#endif
 
 #define S       sizeof
 

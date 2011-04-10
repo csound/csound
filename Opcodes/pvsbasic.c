@@ -2048,7 +2048,6 @@ static OENTRY localops[] = {
   {"pvscale", sizeof(PVSSCALE), 3, "f", "fkOPO", (SUBR) pvsscaleset, (SUBR) pvsscale},
   {"pvshift", sizeof(PVSSHIFT), 3, "f", "fkkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
-#endif
   {"pvsmix", sizeof(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
   {"pvsfilter", sizeof(PVSFILTER), 3, "f", "ffxp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
