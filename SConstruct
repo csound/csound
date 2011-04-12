@@ -1553,9 +1553,9 @@ makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
 makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
 makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
 makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
-oggEnvironment = pluginEnvironment.Clone()
-makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
-oggEnvironment.Append(LIBS=['vorbisfile'])
+#oggEnvironment = pluginEnvironment.Clone()
+#makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
+#oggEnvironment.Append(LIBS=['vorbisfile'])
 makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
 
 if commonEnvironment['buildImageOpcodes'] == '1':
