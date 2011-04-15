@@ -114,3 +114,9 @@ csnd.jar
 
 # Vim swap files
 *.swp
+
+## backups
+*~
+
+## Others
+TAGSpo/old_*
