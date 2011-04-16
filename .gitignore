@@ -97,6 +97,7 @@ winsound.exe
 
 # Python wrappers
 csnd.py
+csnd.pyc
 _csnd.so
 
 # CsoundAC
@@ -119,4 +120,8 @@ csnd.jar
 *~
 
 ## Others
-TAGSpo/old_*
+TAGS
+po/old_*
+*.wav
+Release_Notes/*
+
