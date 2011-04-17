@@ -1,5 +1,7 @@
 ./Engine/auxfd.c
 ./Engine/cfgvar.c
+./Engine/cs_par_base.c
+./Engine/cs_par_dispatch.c
 ./Engine/csound_orc_compile.c
 ./Engine/csound_orc_expressions.c
 ./Engine/csound_orc_optimize.c
