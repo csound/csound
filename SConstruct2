@@ -155,48 +155,6 @@ class Utility:
         print >> sys.stderr, "FATAL: " + msg
         Exit(1)
 
-    def fixEnvForOLPC(self, env):
-        if env['buildOLPC'] == '1':
-            env['pythonVersion']    = '2.5'
-            env.Prepend(CPPFLAGS    = ['-DOLPC'])
-            env.Prepend(CPPFLAGS    = ['-DENABLE_OPCODEDIR_WARNINGS=0'])
-
-            if util.getPlatform() != 'linux': print "Build platform is not linux"
-            # Set other options??
-            env['useGettext']           = '1'
-            env['useDouble']            = '0'
-            env['usePortAudio']         = '0'
-            env['useJack']              = '1'
-            env['usePulseAudio']        = '1'
-            env['buildCsoundAC']        = '0'
-            env['buildCsound5GUI']      = '0'
-            env['useDouble']            = '0'
-            env['usePortMIDI']          = '0'
-            env['useALSA']              = '1'
-            env['useFLTK']              = '0'
-            env['buildCsoundVST']       = '0'
-            env['buildCsoundAC']        = '0'
-            #'buildCsound5GUI'
-            env['buildLoris']           = '0'
-            env['buildStkOpcodes']      = '0'
-            env['useOSC']               = '1'
-            env['buildFluidOpcodes']    = '0'
-            env['prefix']               = '/usr'
-            env['buildUtilities']       = '0'
-            env['gcc3opt']              = 'k6'
-            env['useLrint']             = '1'
-            env['Word64']               = '0'
-            env['Lib64']                = '0'
-            env['buildPDClass']         = '0'
-            env['buildDSSI']            = '0'
-            env['buildVirtual']         = '1'
-            env['buildInterfaces']      = '1'
-            env['buildJavaWrapper']     = '0'
-            env['buildNewParser']       = '0'
-            env['buildvst4cs']          = '0'
-            env['buildImageOpcodes']    = '1'
-            env['dynamicCsoundLibrary'] = '1'
-
     def fixEnvForPython(self, env, conf):
         if util.platform == 'linux':
             path1 = '/usr/include/python%s' % env['pythonVersion']
@@ -418,10 +376,6 @@ commandOptions.Add('buildvst4cs',
 commandOptions.Add('useGettext',
     'Set to 1 to use the GNU internationalisation/localisation scheme',
     '0')
-##### JPff for OLPC #####
-commandOptions.Add('buildOLPC',
-    'Set to 1 to build OLPC version',
-    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -487,8 +441,6 @@ initialEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 customSWIGFLAGS     = initialEnvironment['customSWIGFLAGS']
 initialEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
-buildOLPC           = ( initialEnvironment['buildOLPC'] == '1')
-util.fixEnvForOLPC( initialEnvironment )
 
 if initialEnvironment['useDouble'] != '0'   : util.csoundLibraryName += '64'
 elif util.platform == 'win32'               : util.csoundLibraryName += '32'
@@ -527,10 +479,9 @@ else:
 
 if initialEnvironment['gcc3opt'] != '0' or initialEnvironment['gcc4opt'] != '0':
     initialEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
-    if not buildOLPC:
-        initialEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
-        if initialEnvironment['useGprof'] != '1':
-            initialEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer'])
+    initialEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
+    if initialEnvironment['useGprof'] != '1':
+        initialEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer'])
     if initialEnvironment['gcc4opt'] != '0':
         initialEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = initialEnvironment['gcc4opt']
@@ -942,14 +893,7 @@ OOps/ugens3.c       OOps/ugens4.c       OOps/ugens5.c       OOps/ugens6.c
 OOps/ugrw1.c        OOps/ugrw2.c        OOps/vdelay.c
 '''
 
-if buildOLPC:
-    libCsoundSources = Split( libEngine + libSndMid + libOO + '''
-Top/argdecode.c     Top/csmodule.c      Top/csound.c        Top/getstring.c
-Top/main.c          Top/new_opts.c      Top/one_file.c      Top/opcode.c
-Top/threads.c       Top/utility.c
-''')
-else:
-    libCsoundSources = Split(libEngine + libSndMid + libOO + '''
+libCsoundSources = Split(libEngine + libSndMid + libOO + '''
 Top/argdecode.c Top/cscore_internal.c   Top/cscorfns.c  Top/csmodule.c
 Top/csound.c    Top/getstring.c         Top/main.c      Top/new_opts.c
 Top/one_file.c  Top/opcode.c            Top/threads.c   Top/utility.c
@@ -1170,16 +1114,7 @@ else:
 #############################################################################
 #
 # Utility programs.
-if buildOLPC:
-  stdutilSources = Split('''
-                        util/cvanal.c       util/dnoise.c
-    util/envext.c       util/lpanal.c       util/mixer.c
-    util/pvanal.c       util/pvlook.c       util/scale.c
-    util/sndinfo.c      util/srconv.c
-    util/std_util.c
-  ''')
-else :
-  stdutilSources = Split('''
+stdutilSources = Split('''
     util/atsa.c         util/cvanal.c       util/dnoise.c
     util/envext.c       util/xtrct.c        util/het_export.c
     util/het_import.c   util/hetro.c        util/lpanal.c
@@ -1193,8 +1128,7 @@ else :
 stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
 util.makePlugin(pluginEnvironment, 'stdutil', stdutilSources)
 
-if not buildOLPC:
-  if (commonEnvironment['buildUtilities'] != '0'):
+if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
         ['atsa',        'util/atsa_main.c'    ],
         ['cvanal',      'util/cvl_main.c'     ],
@@ -1218,12 +1152,11 @@ if not buildOLPC:
     for i in utils:
         util.installProgram(csoundProgramEnvironment.Program(i[0], i[1]))
 
-if not buildOLPC:
-    util.installProgram(csoundProgramEnvironment.Program(
+util.installProgram(csoundProgramEnvironment.Program(
         'scsort',['util1/sortex/smain.c']))
-    util.installProgram(csoundProgramEnvironment.Program(
+util.installProgram(csoundProgramEnvironment.Program(
         'extract', ['util1/sortex/xmain.c']))
-    if util.compilerGNU():
+if util.compilerGNU():
         util.installProgram(commonEnvironment.Program(
             'cs', ['util1/csd_util/cs.c']))
         util.installProgram(commonEnvironment.Program(
@@ -1236,7 +1169,7 @@ if not buildOLPC:
             'scot', ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
-    util.installProgram(commonEnvironment.Program(
+util.installProgram(commonEnvironment.Program(
         'sdif2ad', ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
 if (commonEnvironment['generateTags']=='0') or (util.platform != 'darwin' and util.platform != 'linux'):

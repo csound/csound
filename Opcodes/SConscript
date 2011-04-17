@@ -33,11 +33,7 @@ commandOptions.Add('buildLoris',
 commandOptions.Update(commonEnvironment)
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
-util.fixEnvForOLPC(commonEnvironment)
-
 pluginEnvironment = commonEnvironment.Clone()
-
-buildOLPC = (commonEnvironment['buildOLPC'] != '0')
 
 if util.platform == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
@@ -64,20 +60,18 @@ stdsrcs = Split( '''
     ugmoss.c                        ugsc.c
     wave-terrain.c  stdopcod.c
         ''')
-if not buildOLPC:
-    stdsrcs.append(Split('ambicode.c spat3d.c ugnorman.c') )
+stdsrcs.append(Split('ambicode.c spat3d.c ugnorman.c') )
 
 util.makePlugin(pluginEnvironment, 'stdopcod', stdsrcs)
 
-if util.platform != 'win32' and not buildOLPC:
+if util.platform != 'win32':
     util.makePlugin(pluginEnvironment, 'control', 'control.c')
 
 util.makePlugin(pluginEnvironment, 'eqfil', 'eqfil.c')
 util.makePlugin(pluginEnvironment, 'pvsbuffer', 'pvsbuffer.c')
 util.makePlugin(pluginEnvironment, 'scoreline', 'scoreline.c')
 
-if not buildOLPC:
-  util.makePlugin(pluginEnvironment, 'ftest', 'ftest.c')
+util.makePlugin(pluginEnvironment, 'ftest', 'ftest.c')
 
 util.makePlugin(pluginEnvironment, 'mixer', 'mixer.cpp')
 util.makePlugin(pluginEnvironment, 'modal4',
@@ -100,15 +94,13 @@ if sys.byteorder == 'big':
     sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 util.makePlugin(sfontEnvironment, 'sfont', ['sfont.c'])
 
-if not buildOLPC:
-  util.makePlugin(pluginEnvironment, 'babo', ['babo.c'])
+util.makePlugin(pluginEnvironment, 'babo', ['babo.c'])
 
 util.makePlugin(pluginEnvironment, 'barmodel', ['bilbar.c'])
 util.makePlugin(pluginEnvironment, 'compress', ['compress.c'])
 util.makePlugin(pluginEnvironment, 'grain4', ['grain4.c'])
 
-if not buildOLPC:
-  util.makePlugin(pluginEnvironment, 'hrtferX', ['hrtferX.c'])
+util.makePlugin(pluginEnvironment, 'hrtferX', ['hrtferX.c'])
 
 util.makePlugin(pluginEnvironment, 'loscilx', ['loscilx.c'])
 util.makePlugin(pluginEnvironment, 'minmax', ['minmax.c'])
@@ -124,8 +116,7 @@ util.makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
 '''))
 util.makePlugin(pluginEnvironment, 'stackops', ['stackops.c'])
 
-if not buildOLPC:
-  util.makePlugin(pluginEnvironment, 'vbap',
+util.makePlugin(pluginEnvironment, 'vbap',
            ['vbap.c', 'vbap_eight.c', 'vbap_four.c',
             'vbap_sixteen.c', 'vbap_zak.c'])
 
@@ -139,12 +130,6 @@ util.makePlugin(pluginEnvironment, 'mutexops', ['mutexops.cpp'])
 util.makePlugin(pluginEnvironment, 'partikkel', ['partikkel.c'])
 util.makePlugin(pluginEnvironment, 'shape', ['shape.c'])
 
-if buildOLPC :
-    oggEnvironment = pluginEnvironment.Clone()
-    oggEnvironment.Append(LIBS=['vorbisfile', 'vorbis', 'ogg'])
-    util.makePlugin(oggEnvironment, 'ogg', ['ogg.c'])
-    util.makePlugin(oggEnvironment, 'oggplay', ['oggplay.c'])
-
 util.makePlugin(pluginEnvironment, 'vosim', ['Vosim.c'])
 
 util.makePlugin(pluginEnvironment, 'gabnew', Split('''
@@ -154,21 +139,20 @@ util.makePlugin(pluginEnvironment, 'gabnew', Split('''
 '''))
 util.makePlugin(pluginEnvironment, 'hrtfnew', 'hrtfopcodes.c')
 
-if not buildOLPC:
-    jackFound = configure.CheckHeader("jack/jack.h", language = "C")
-    if jackFound:
-        jpluginEnvironment = pluginEnvironment.Clone()
-        if util.platform == 'linux':
-            jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
-        elif util.platform == 'win32':
-            jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
-        else:
-            jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
-        util.makePlugin(jpluginEnvironment, 'jackTransport', 'jackTransport.c')
-    if configure.CheckHeader("boost/any.hpp", language = "C++"):
-        util.makePlugin(pluginEnvironment, 'chua', 'chua/ChuaOscillator.cpp')
-    if configure.CheckHeader("gmm/gmm.h", language = "C++"):
-        util.makePlugin(pluginEnvironment, 'linear_algebra', 'linear_algebra.cpp')
+jackFound = configure.CheckHeader("jack/jack.h", language = "C")
+if jackFound:
+    jpluginEnvironment = pluginEnvironment.Clone()
+    if util.platform == 'linux':
+        jpluginEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+    elif util.platform == 'win32':
+        jpluginEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
+    else:
+        jpluginEnvironment.Append(LIBS = ['pthread', 'jack'])
+    util.makePlugin(jpluginEnvironment, 'jackTransport', 'jackTransport.c')
+if configure.CheckHeader("boost/any.hpp", language = "C++"):
+    util.makePlugin(pluginEnvironment, 'chua', 'chua/ChuaOscillator.cpp')
+if configure.CheckHeader("gmm/gmm.h", language = "C++"):
+    util.makePlugin(pluginEnvironment, 'linear_algebra', 'linear_algebra.cpp')
 
 if commonEnvironment['buildImageOpcodes'] == '1':
     if not configure.CheckHeader("png.h", language="C"):

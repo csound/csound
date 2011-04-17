@@ -34,7 +34,7 @@
 
 /*
 #include <sndfile.h>
-JPff:  But this gives warnings in many files as rewriteheader expects 
+JPff:  But this gives warnings in many files as rewriteheader expects
 to have an argument of SNDFILE*.  Might be able to fix with a void*
 VL: moved to allow opcodes to be built without libsndfile headers
 The libsndfile header is now place only where it is used:
@@ -130,15 +130,9 @@ typedef struct {
 #define SSTRCOD3   3945464
 #define SSTRSIZ    200
 #define ALLCHNLS   0x7fff
-#ifdef OLPC
-#define DFLT_SR    FL(16000.0)
-#define DFLT_KR    FL(160.0)
-#define DFLT_KSMPS 100
-#else
 #define DFLT_SR    FL(44100.0)
 #define DFLT_KR    FL(4410.0)
 #define DFLT_KSMPS 10
-#endif
 #define DFLT_NCHNLS 1
 #define MAXCHNLS   256
 
@@ -1335,7 +1329,8 @@ extern const uint32_t csPlayScoMask;
     int           scnt0;        /* Count of extra strings */
     char          *sstrbuf0[3]; /* For extra strings in scores */
     int           sstrlen0[3];  /* lengths for extra strings */
- 
+    int           genlabs;      /* Count for generated labels */
+
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

@@ -738,7 +738,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
       do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
-      if (op) 
+      if (op)
         sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
@@ -1234,7 +1234,7 @@ INSDS *insert_event(CSOUND *csound,
       if (name)
         csound->Message(csound, Str("instr %s expects midi event data, "
                                     "cannot run from score\n"), name);
-      else 
+      else
         csound->Message(csound, Str("instr %d expects midi event data, "
                                     "cannot run from score\n"), insno);
       csound->perferrcnt++;

@@ -1,3 +1,8 @@
+2011-04-10  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/aops.c (is_NaN, is_NaNa): New function
+	(is_inf, is_NaNa): New function
+
 2011-03-17  john ffitch  <jpff@codemist.co.uk>
 
 	* Engine/csound_orc_expressions.c (csound_orc_expand_expressions):

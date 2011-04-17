@@ -103,10 +103,8 @@ static const char *usage_txt[] = {
   Str_noop("-s\tshort_int sound samples"),
   Str_noop("-l\tlong_int sound samples"),
   Str_noop("-f\tfloat sound samples"),
-#ifndef OLPC
   Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
   Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
-#endif
   Str_noop("-N\tnotify (ring the bell) when score or miditrack is done"),
   Str_noop("-F fpnum\tamount to scale amplitude for next input"),
   Str_noop("-F fname\tfile of a scale table for next input"),
@@ -297,7 +295,6 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
           case 'f':
             outformch = set_output_format(csound, c, outformch);
             break;
-#ifndef OLPC
           case 'R':
             O->rewrt_hdr = 1;
             break;
@@ -309,7 +306,6 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             }
             else O->heartbeat = 1;
             break;
-#endif
           case 'N':
             O->ringbell = 1;             /* notify on completion */
             break;

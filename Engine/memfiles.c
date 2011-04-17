@@ -348,7 +348,6 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     SNDMEMFILE    *p = NULL;
     SF_INFO       tmp;
     unsigned char h;
-  
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
       return NULL;
