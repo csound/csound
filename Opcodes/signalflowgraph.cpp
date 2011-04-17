@@ -562,7 +562,6 @@ struct Inletf : public OpcodeBase<Inletf> {
                             if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
                                 csound->Warning(csound, "Unsafe to have same fsig as in and out");
                             }
-#ifndef OLPC
                             fsignal->sliding = 0;
                             if (sourceOutlet->fsignal->sliding) {
                                 if (fsignal->frame.auxp == NULL ||
@@ -572,7 +571,6 @@ struct Inletf : public OpcodeBase<Inletf> {
                                 fsignal->NB = sourceOutlet->fsignal->NB;
                                 fsignal->sliding = 1;
                             } else
-#endif
                                 if (fsignal->frame.auxp == NULL ||
                                         fsignal->frame.size < sizeof(float) * (N + 2)) {
                                     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
@@ -590,7 +588,6 @@ struct Inletf : public OpcodeBase<Inletf> {
                                         "must be amp-phase or amp-freq."));
                             fsignalInitialized = true;
                         }
-#ifndef OLPC
                         if (fsignal->sliding) {
                             for (size_t frameI = 0; frameI < ksmps; frameI++) {
                                 sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
@@ -603,7 +600,6 @@ struct Inletf : public OpcodeBase<Inletf> {
                             }
                         }
                     } else {
-#endif
                         sink = (float *)fsignal->frame.auxp;
                         source = (float *)sourceOutlet->fsignal->frame.auxp;
                         if (lastframe < fsignal->framecount) {
@@ -617,9 +613,7 @@ struct Inletf : public OpcodeBase<Inletf> {
                             }
                             fsignal->framecount = lastframe = sourceOutlet->fsignal->framecount;
                         }
-#ifndef OLPC
                     }
-#endif
                 }
             }
         }

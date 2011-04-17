@@ -426,7 +426,7 @@ public:
                 for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
                     fluid_synth_t *fluidSynth = fluidSynths[i];
                     leftSample = FL(0.0);
-                    rightSample = FL(0.0);  
+                    rightSample = FL(0.0);
                     fluid_synth_write_float(fluidSynth, 1, &leftSample, 0, 1,
                             &rightSample, 0, 1);
                     aLeftOut[frame] += (MYFLT) leftSample /* * csound->e0dbfs */;
@@ -478,7 +478,7 @@ public:
             midiData1 = (int) *kMidiData1;
             midiData2 = (int) *kMidiData2;
             int result =  -1;
-  
+ 
             if (midiData2 != priorMidiData2 ||
                     midiData1 != priorMidiData1 ||
                     midiChannel != priorMidiChannel ||
@@ -548,7 +548,7 @@ noteOff:
                 priorMidiData2 = midiData2;
             }
         }
-        
+
         return OK;
     }
 };

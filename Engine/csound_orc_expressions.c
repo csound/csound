@@ -35,7 +35,7 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 TREE* create_boolean_expression(CSOUND*, TREE*);
 TREE * create_expression(CSOUND *, TREE *);
 
-static int genlabs = 300;
+/* static int genlabs = 300; */
 
 char *create_out_arg(CSOUND *csound, char outype)
 {
@@ -389,7 +389,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
-    
+
     op = mcalloc(csound, 80);
 
      switch(root->type) {
@@ -424,7 +424,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
           strncat(op, "k", 80);
           outype = arg1;
         }
-        else 
+        else
           strncat(op, "i", 80);
         outarg = create_out_arg(csound, outype);
       }
@@ -702,7 +702,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
             if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found if-then\n");
             if (right->next != NULL) {
-              endLabelCounter = genlabs++;
+              endLabelCounter = csound->genlabs++;
             }
 
             while (ifBlockCurrent != NULL) {
@@ -722,7 +722,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 //                print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
                 ifBlockCurrent->type = T_IF;
                 ifBlockCurrent = make_node(csound, T_ELSE, NULL, ifBlockCurrent);
-                //tempLeft = NULL; 
+                //tempLeft = NULL;
                 /*   ifBlockLast->next = */
                 /*     csound_orc_expand_expressions(csound, ifBlockCurrent); */
                 /* while (ifBlockLast->next != NULL) { */
@@ -750,8 +750,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 }
 
                 statements = tempRight->right;
-                label = create_synthetic_ident(csound, genlabs);
-                labelEnd = create_synthetic_label(csound, genlabs++);
+                label = create_synthetic_ident(csound, csound->genlabs);
+                labelEnd = create_synthetic_label(csound, csound->genlabs++);
                 tempRight->right = label;
                 /* printf("goto types %c %c %c %c %d\n", */
                 /*        expressionNodes->left->type, tempRight->type, */
@@ -801,7 +801,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               ifBlockLast = endLabel;
             }
             ifBlockLast->next = current->next;
-            
+
             /* Connect in all of the TREE nodes that were flattened from
              * the if-else-else block
              */

@@ -29,9 +29,7 @@
 #include "oload.h"
 #include "remote.h"
 #include <math.h>
-#ifndef OLPC
-# include "cscore.h"
-#endif
+#include "cscore.h"
 
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
@@ -62,10 +60,8 @@ typedef struct {
     int16   sectno;
     int     lplayed;
     int     segamps, sormsg;
-#ifndef OLPC
     EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
     EVENT   *lsect;
-#endif
 } MUSMON_GLOBALS;
 
 #define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
@@ -283,7 +279,6 @@ int musmon(CSOUND *csound)
     /* notify the host if it asked */
     csoundNotifyFileOpened(csound, O->playscore, CSFTYPE_SCORE_OUT, 0,
                              (csound->tempStatus & csPlayScoMask)!=0);
-#ifndef OLPC
     if (UNLIKELY(O->usingcscore)) {
       if (ST(lsect) == NULL) {
         ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
@@ -322,7 +317,6 @@ int musmon(CSOUND *csound)
       csound->Message(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
-#endif
 
     csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
     /* apply score offset if non-zero */
@@ -447,7 +441,6 @@ void cs_beep(CSOUND *csound)
 #endif
 }
 
-#ifndef OLPC
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
     if (csound->musmonGlobals == NULL)
@@ -461,7 +454,6 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
       ;
     return OK;
 }
-#endif
 
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
@@ -878,7 +870,6 @@ int sensevents(CSOUND *csound)
       }
       else {
         /* else read next score event */
-#ifndef OLPC
         if (UNLIKELY(O->usingcscore)) {           /*    get next lplay event      */
           /* FIXME: this may be non-portable */
           if (ST(ep) < ST(epend))                       /* nxt event    */
@@ -886,7 +877,6 @@ int sensevents(CSOUND *csound)
           else                                          /* else lcode   */
             memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
         } else
-#endif
           if (!(rdscor(csound, e)))       /*   or rd nxt evt from scorfil */
             e->opcod = 'e';
         csound->currevent = e;

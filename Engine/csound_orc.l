@@ -63,9 +63,9 @@ typedef struct MACRO {          /* To store active macros */
     int           margs;        /* amount of space for args */
     char          *arg[MARGS];  /* With these arguments */
 } MACRO;
-MACRO* macros = NULL;
-MACRO* alt_stack[MAX_INCLUDE_DEPTH];
-unsigned int macro_stack_ptr = 0;
+static MACRO* macros = NULL;
+static MACRO* alt_stack[MAX_INCLUDE_DEPTH];
+static unsigned int macro_stack_ptr = 0;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
@@ -283,7 +283,57 @@ CONT            \\[[ \t]*\n
                   yypush_buffer_state(YY_CURRENT_BUFFER);
                   yy_scan_string(mm->body);
                 }
-{MACRONAMEDA}   { printf("Macro with arguments call not written\n");}
+{MACRONAMEDA}    {
+                  MACRO     *mm = macros, *mm_save = macros;
+                  int c, i, j;
+                  printf("Macro with arguments call %s\n", yytext);
+                  yytext[csound_orcleng-2] = '\0';
+                  while (mm != NULL) {  /* Find the definition */
+                    /* printf("Check %s against %s\n", yytext+1, mm->name); */
+                    if (!(strcmp(yytext+1, mm->name)))
+                      break;
+                    mm = mm->next;
+                  }
+                  if (UNLIKELY(mm == NULL)) {
+                    csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                    csound->LongJmp(csound, 1);
+                  }
+                  /* Need to read from macro definition */
+                  /* printf("Looking for %d args\n", mm->acnt); */
+                  for (j = 0; j < mm->acnt; j++) {
+                    char  term = (j == mm->acnt - 1 ? ')' : '\'');
+                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');   /* Compatability */
+                    MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+                    int   size = 100;
+                    nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
+                    /* printf("Arg %d: %s\n", j+1, mm->arg[j]); */
+                    strcpy(nn->name, mm->arg[j]);
+                    /* csound->Message(csound, "defining argument %s ", nn->name); */
+                    i = 0;
+                    nn->body = (char*) mmalloc(csound, 100);
+                    while ((c = input())!= term && c!=trm1) {
+                      if (UNLIKELY(i > 98)) {
+                        csound->Die(csound,
+                                    Str("Missing argument terminator\n%.98s"),
+                                    nn->body);
+                      }
+                      nn->body[i++] = c;
+                      if (UNLIKELY(i >= size))
+                        nn->body = mrealloc(csound, nn->body, size += 100);
+                    }
+                    nn->body[i] = '\0';
+                    /* csound->Message(csound, "as...#%s#\n", nn->body); */
+                    nn->acnt = 0;       /* No arguments for arguments */
+                    nn->next = macros;
+                    macros = nn;
+                  }
+                  /* printf("New body: ...#%s#\n", mm->body); */
+                  //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+                  alt_stack[macro_stack_ptr++] = mm_save;
+                  /* printf("Push %p macro stack\n", mm_save); */
+                  yypush_buffer_state(YY_CURRENT_BUFFER);
+                  yy_scan_string(mm->body);
+                }
 {INTGR}         {
                     if(udoflag == 0) {
                         *lvalp = lookup_token(csound, yytext);

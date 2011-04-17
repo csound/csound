@@ -297,21 +297,18 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
                                 Str("-A overriding local default WAV out"));
               O->filetyp = TYP_AIFF;    /* AIFF output request*/
               break;
-#ifndef OLPC
             case 'J':
               if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV)
                 csound->Warning(csound, Str("-J overriding local default "
                                             "AIFF/WAV out"));
               O->filetyp = TYP_IRCAM;   /* IRCAM output request */
               break;
-#endif
             case 'W':
               if (O->filetyp == TYP_AIFF)
                 csound->Warning(csound,
                                 Str("-W overriding local default AIFF out"));
               O->filetyp = TYP_WAV;      /* WAV output request */
               break;
-#ifndef OLPC
             case 'h':
               O->filetyp = TYP_RAW;
               O->sfheader = 0;           /* skip sfheader  */
@@ -355,7 +352,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               }
               else O->heartbeat = 1;
               break;
-#endif
             case 't':
               FIND(Str("no t argument"));
 #if defined(USE_DOUBLE)
@@ -1169,9 +1165,7 @@ static const char *usage_txt[] = {
   Str_noop("V : verbose - print status info"),
   Str_noop("A : AIFF format output"),
   Str_noop("W : WAV format output"),
-#ifndef OLPC
   Str_noop("J : IRCAM format output"),
-#endif
     NULL
 };
 
