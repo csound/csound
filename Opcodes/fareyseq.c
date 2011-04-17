@@ -503,8 +503,8 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     /* Now get the base address of the table. */
     bases = p->funcs->ftable;
 
-    MYFLT* temp; 
-    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT)); 
+    MYFLT* temp;
+    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT));
     memset (temp, 0, sizeof(MYFLT) * sourcelength);
 
     for (i = 0; i < sourcelength; i++) {

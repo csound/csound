@@ -130,9 +130,6 @@ static  const   char    *plugindir_envvar =   "OPCODEDIR";
 static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-#ifdef OLPC
-# define CS_DEFAULT_PLUGINDIR  "/usr/lib/csound/plugins"
-#else
 #if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
@@ -148,7 +145,6 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
 #    endif
 #  endif
-#endif
 #endif
 
 typedef struct opcodeLibFunc_s {

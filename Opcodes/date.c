@@ -60,7 +60,7 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 #endif
     if (tmp < 0) temp_time = time(NULL);
     else         temp_time = (time_t)tmp;
-    
+
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
     ((char*) p->Stime_)[0] = '\0';
