@@ -1714,7 +1714,8 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
         csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
                          &p->fout->frame);
 
-      if (p->delframes.auxp == NULL)
+      if (p->delframes.auxp == NULL ||
+          p->delframes.size <   (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes)
         csound->AuxAlloc(csound,
                          (N + 2) * sizeof(MYFLT) * csound->ksmps * delayframes,
                          &p->delframes);
@@ -1730,7 +1731,8 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
             p->fout->frame.size < sizeof(float) * (N + 2))
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-        if (p->delframes.auxp == NULL)
+        if (p->delframes.auxp == NULL ||
+          p->delframes.size <   (N + 2) * sizeof(float) * csound->ksmps * delayframes)
           csound->AuxAlloc(csound, (N + 2) * sizeof(float) * delayframes,
                            &p->delframes);
       }
