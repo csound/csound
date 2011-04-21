@@ -219,7 +219,7 @@ static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
 /* -------------------------------------------------------------------- */
 
 /* These opocdes were not implemented because the functionality of      */
-/* CopyTabElements has already been included in vcopy and vcopy_i       */ 
+/* CopyTabElements has already been included in vcopy and vcopy_i       */
 
 typedef struct { /* GAB 11/Jan/2001 */
      OPDS   h;
@@ -326,7 +326,6 @@ static int copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p)
 #endif
 
 /* -------------------------------------------------------------------- */
-#ifndef OLPC
 
 typedef struct {
         OPDS    h;
@@ -429,7 +428,7 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     }
     return OK;
 }
-#endif
+
 /* -------------------------------------------------------------------- */
 #include "Opcodes/uggab.h"
 
@@ -789,7 +788,7 @@ static int dashow (CSOUND *csound, DSH *p)
     MYFLT range = *p->kband_max - *p->kband_min;
     if (range != FL(0.0))
       *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
-    else 
+    else
       *p->rmod = FL(0.0);
     *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
 
@@ -820,10 +819,8 @@ static OENTRY localops[] = {
   { "lposcilsa2", S(LPOSC_ST), 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
   /* { "dashow.i", S(DSH), 1,  "ii","iiii", (SUBR)dashow     }, */
   /* { "dashow.k", S(DSH), 2,  "kk","kkkk", NULL, (SUBR)dashow   }, */
-#ifndef OLPC
   { "inrg", S(INRANGE), 5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange },
   { "outrg", S(OUTRANGE), 5, "", "ky", (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange}
-#endif
 };
 
 
