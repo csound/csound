@@ -6101,7 +6101,9 @@ msgstr ""
 
 #: Opcodes/ftconv.c:193
 msgid "ftconv: skipped non-zero samples, impulse response may be truncated\n"
-msgstr "ftconv : des échantillons non nuls ont été sautés, la réponse impulsionnelle est peut-être tronquée\n"
+msgstr ""
+"ftconv : des échantillons non nuls ont été sautés, la réponse impulsionnelle "
+"est peut-être tronquée\n"
 
 #: Opcodes/ftconv.c:289
 msgid "ftconv: not initialised"
@@ -6852,8 +6854,8 @@ msgid ""
 "trajectory\n"
 "\n"
 msgstr ""
-"les fondus se chevauchent : ceci peut provoquer du bruit : "
-"réduisez la taille des fondus ou changez la trajectoire\n"
+"les fondus se chevauchent : ceci peut provoquer du bruit : réduisez la "
+"taille des fondus ou changez la trajectoire\n"
 "\n"
 
 #: Opcodes/hrtfopcodes.c:1209 Opcodes/hrtfopcodes.c:1770
@@ -6913,8 +6915,8 @@ msgid ""
 "Could not create Jack client \"%s\" -- is Jack server \"%s\" running? "
 "Status: %d\n"
 msgstr ""
-"Impossible de créer le client Jack \"%s\" -- le serveur Jack \"%s\" est-il actif ? "
-"Etat : %d\n"
+"Impossible de créer le client Jack \"%s\" -- le serveur Jack \"%s\" est-il "
+"actif ? Etat : %d\n"
 
 #: Opcodes/jacko.cpp:543
 #, c-format
@@ -7103,7 +7105,8 @@ msgstr "mp3in : %s : l'ouverture du fichier a échoué"
 #: Opcodes/mp3in.c:134
 #, c-format
 msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
-msgstr "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
+msgstr ""
+"mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
 
 #: Opcodes/nlfilt.c:123
 msgid "nlfilt: not initialised"
@@ -7139,8 +7142,9 @@ msgstr ""
 #: Opcodes/ogg.c:77
 #, c-format
 msgid "oggread: sample rate of file is %d which coes not match sr (=%f)\n"
-msgstr "oggread : le taux d'échantillonnage du fichier vaut %d qui "
-"ne correspond pas à sr (=%f)\n"
+msgstr ""
+"oggread : le taux d'échantillonnage du fichier vaut %d qui ne correspond pas "
+"à sr (=%f)\n"
 
 #: Opcodes/ogg.c:91
 #, c-format
@@ -7834,7 +7838,8 @@ msgstr "erreur... impossible de créer une var globale pour le descripteur\n"
 
 #: Opcodes/pvsbuffer.c:142 Opcodes/pvsbuffer.c:191
 msgid "error... could not read handle from global variable\n"
-msgstr "erreur... impossible de lire le descripteur dans les variables globales\n"
+msgstr ""
+"erreur... impossible de lire le descripteur dans les variables globales\n"
 
 #: Opcodes/pvsbuffer.c:239
 msgid "Invalid buffer handle"

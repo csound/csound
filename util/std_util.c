@@ -27,7 +27,6 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int   err = 0;
 
-#ifndef OLPC
     err |= atsa_init_(csound);
     err |= envext_init_(csound);
     err |= het_export_init_(csound);
@@ -37,7 +36,6 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     err |= pv_export_init_(csound);
     err |= pv_import_init_(csound);
     err |= xtrct_init_(csound);
-#endif
     err |= cvanal_init_(csound);
     err |= dnoise_init_(csound);
     err |= hetro_init_(csound);

@@ -447,12 +447,10 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         sscanf(s,"%d",&lpc.verbose);
                         if (lpc.verbose > 1)  lpc.debug = 1;
                         break;
-#ifndef OLPC
         case 'g':
                         csound->Warning(csound,
                           Str("graphical display is currently unsupported"));
                         break;
-#endif
         case 'a':
                         storePoles = TRUE;
                         break;
@@ -912,9 +910,7 @@ static const char *usage_txt[] = {
   Str_noop("-Q<maxcps>\tupper limit for pitch search (default 200 Hz)"),
   Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug"
            " (default 0)"),
-#ifndef OLPC
   Str_noop("-g\tgraphical display of results"),
-#endif
   Str_noop("-a\t\talternate (pole) file storage"),
   Str_noop("-- fname\tLog output to file"),
   Str_noop("see also:  Csound Manual Appendix"),
