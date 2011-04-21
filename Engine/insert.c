@@ -170,7 +170,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
         memcpy(&ip->p3, pdat, sizeof(MYFLT)*nn);
       }
-      if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
+      if (UNLIKELY((n = tp->pmax) != newevtp->pcnt && !tp->psetdata)) {
         char *name = csound->instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
@@ -738,7 +738,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
       do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
-      if (op) 
+      if (op)
         sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
@@ -1234,7 +1234,7 @@ INSDS *insert_event(CSOUND *csound,
       if (name)
         csound->Message(csound, Str("instr %s expects midi event data, "
                                     "cannot run from score\n"), name);
-      else 
+      else
         csound->Message(csound, Str("instr %d expects midi event data, "
                                     "cannot run from score\n"), insno);
       csound->perferrcnt++;

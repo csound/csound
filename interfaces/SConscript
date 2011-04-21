@@ -21,7 +21,6 @@ commandOptions.Add('buildJavaWrapper',
 
 commandOptions.Update(commonEnvironment)
 Help(commandOptions.GenerateHelpText(commonEnvironment))
-util.fixEnvForOLPC(commonEnvironment)
 
 
 # Ugly but necessary: scons doesn't manage swig that well

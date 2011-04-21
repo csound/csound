@@ -1770,7 +1770,7 @@ static int vport(CSOUND *csound,VPORT *p)
 /*-------------------------------*/
 static int vwrap(CSOUND *csound,VLIMIT *p)
 {
-    int elements = p->elements; 
+    int elements = p->elements;
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
 

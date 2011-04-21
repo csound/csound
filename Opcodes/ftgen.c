@@ -101,7 +101,7 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     fp[2] = ftevt->p2orig = FL(0.0);                    /* force time 0 */
     fp[3] = ftevt->p3orig = *p->p3;
     fp[4] = *p->p4;
-    
+
     if ((n = csound->GetInputArgSMask(p)))
       if (n&0x8) {              /* Named gen */
         NAMEDGEN *n = (NAMEDGEN*) csound->GetNamedGens(csound);

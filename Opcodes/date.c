@@ -38,10 +38,10 @@ typedef struct {
 static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
 #ifdef USE_DOUBLE
-    time_t base = 0;
+    const time_t base = 0;
 #else
     /*    time_t base = 946684800;    /* 1 Jan 2000 */
-    time_t base = 1262304000;    /* 1 Jan 2010 */
+    const time_t base = 1262304000;    /* 1 Jan 2010 */
 #endif
     *p->time_ = (MYFLT) (time(NULL)-base);
     return OK;
@@ -60,7 +60,7 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 #endif
     if (tmp < 0) temp_time = time(NULL);
     else         temp_time = (time_t)tmp;
-    
+
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
     ((char*) p->Stime_)[0] = '\0';
