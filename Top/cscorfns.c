@@ -20,7 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#ifndef OLPC
 
 #include "csoundCore.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
@@ -913,5 +912,3 @@ PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
       n++;
     return(n);
 }
-
-#endif

@@ -1,5 +1,7 @@
 ./Engine/auxfd.c
 ./Engine/cfgvar.c
+./Engine/cs_par_base.c
+./Engine/cs_par_dispatch.c
 ./Engine/csound_orc_compile.c
 ./Engine/csound_orc_expressions.c
 ./Engine/csound_orc_optimize.c
@@ -498,15 +500,6 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
-./frontends/CsoundX/AudioCode/AudioDevice.cpp
-./frontends/CsoundX/AudioCode/AudioDevice.h
-./frontends/CsoundX/AudioCode/AudioDeviceList.cpp
-./frontends/CsoundX/AudioCode/AudioDeviceList.h
-./frontends/CsoundX/AudioCode/AudioRingBuffer2.cpp
-./frontends/CsoundX/AudioCode/AudioRingBuffer2.h
-./frontends/CsoundX/AudioCode/ComplexPlayThru.cpp
-./frontends/CsoundX/AudioCode/ComplexPlayThru.h
-./frontends/CsoundX/MyDocument.h
 ./frontends/OSX/main.c
 ./frontends/cscore/cscore.c
 ./frontends/cscore/cscoremain.c

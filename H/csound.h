@@ -457,10 +457,8 @@ CSOUND_FILETYPES;
      the pvs bus interface */
   typedef struct pvsdat_ext {
         int32            N;
-#ifndef OLPC
         int             sliding; /* Flag to indicate sliding case */
         int32           NB;
-#endif
         int32           overlap;
         int32           winsize;
         int             wintype;

@@ -31,6 +31,8 @@ cs
 cs.exe
 csb64enc
 csb64enc.exe
+csbeats
+csbeats.exe
 csound
 csound.exe
 cstclsh
@@ -95,6 +97,7 @@ winsound.exe
 
 # Python wrappers
 csnd.py
+csnd.pyc
 _csnd.so
 
 # CsoundAC
@@ -112,3 +115,13 @@ csnd.jar
 
 # Vim swap files
 *.swp
+
+## backups
+*~
+
+## Others
+TAGS
+po/old_*
+*.wav
+Release_Notes/*
+

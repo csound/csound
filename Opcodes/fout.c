@@ -798,7 +798,7 @@ static int incr(CSOUND *csound, INCR *p)
 static int clear(CSOUND *csound, CLEARS *p)
 {
     int   nsmps = csound->ksmps, j;
-    
+
     for (j = 0; j < p->INOCOUNT; j++) {
       memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);
     }

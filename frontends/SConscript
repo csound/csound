@@ -37,8 +37,6 @@ commandOptions.Add('buildCsoundVST',
 commandOptions.Update(commonEnvironment)
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
-util.fixEnvForOLPC(commonEnvironment)
-
 # First the csound program with no dependencies
 programEnvironment = commonEnvironment.Clone()
 csoundSources = ['csound/csound_main.c']

@@ -48,7 +48,6 @@ void SPECset(CSOUND *p, SPECDAT *specdp, int32 npts)
       p->AuxAlloc(p, nbytes, &specdp->auxch);
     specdp->npts = npts;
 }
-#ifndef OLPC
 
 static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
@@ -346,7 +345,6 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
     return OK;
 }
 
-#if 0
 /* int nocdfset(CSOUND *csound, NOCTDFT *p) */
 /*     /\* noctdft - calcs disc Fourier transform of oct-downsampled data *\/ */
 /*     /\* outputs coefs (mag, db or mag2) of log freq within each octave *\/ */
@@ -506,7 +504,6 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
 /*     specp->ktimstamp = csound->kcounter;        /\* time-stamp the output   *\/ */
 /*     return OK; */
 /* } */
-#endif
 
 int spdspset(CSOUND *csound, SPECDISP *p)
 {
@@ -1203,12 +1200,10 @@ int specfilt(CSOUND *csound, SPECFILT *p)
  err1:
     return csound->PerfError(csound, Str("specfilt: not initialised"));
 }
-#endif
 
 #define S       sizeof
 
 static OENTRY localops[] = {
-#ifndef OLPC
 { "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
@@ -1220,7 +1215,6 @@ static OENTRY localops[] = {
                                              (SUBR)sptrkset,NULL,(SUBR)specptrk},
 { "specsum",  S(SPECSUM), 5, "k",  "wo",   (SUBR)spsumset,NULL,  (SUBR)specsum },
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
-#endif
 { "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo",
                                              (SUBR)pitchset, NULL, (SUBR)pitch },
 { "maca", S(SUM),        5,  "a", "y",    (SUBR)macset,      NULL, (SUBR)maca  },
@@ -1258,7 +1252,7 @@ static OENTRY localops[] = {
 { "oscilv.aa", S(XOSC),  5,     "a",   "aaio", (SUBR)Foscset, NULL, (SUBR)Foscaa },
 #endif
 { "median", S(MEDFILT),  5,     "a", "akio", (SUBR)medfiltset, NULL, (SUBR)medfilt},
-{ "mediank", S(MEDFILT),  5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt}
+{ "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
 LINKAGE

@@ -26,7 +26,7 @@
 
 #include <sndfile.h>
 
-#define DISKIN2_MAXCHN  24              /* for consistency with soundin   */
+#define DISKIN2_MAXCHN  40              /* for consistency with soundin   */
 #define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
