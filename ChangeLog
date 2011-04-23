@@ -1,9 +1,13 @@
-2010-09-02  Michael Gogins <michael.gogins@gmail.com>
+2011-04-10  john ffitch  <jpff@codemist.co.uk>
 
-	* Corrected signature of fluidAllOut opcode, and fencepost error in that opcode.
-	
-	* Fixed order of processing in CsoundVST audio output callbacks.
-	
+	* OOps/aops.c (is_NaN, is_NaNa): New function
+	(is_inf, is_NaNa): New function
+
+2011-03-17  john ffitch  <jpff@codemist.co.uk>
+
+	* Engine/csound_orc_expressions.c (csound_orc_expand_expressions):
+	Generate kgoto rather than goto.  Not totally sure this is right yet
+
 2011-02-09  john ffitch  <jpff@codemist.co.uk>
 
 	* util1/csd_util/makecsd.c (main): new options for MIDI files and
@@ -112,6 +116,13 @@
 
 	* SConstruct: 
 	* Top/csound.c: Make new parser default
+
+2010-09-02  Michael Gogins <michael.gogins@gmail.com>
+
+	* Corrected signature of fluidAllOut opcode, and fencepost error
+	in that opcode.
+
+	* Fixed order of processing in CsoundVST audio output callbacks.
 
 2010-09-02  Michael Gogins <michael.gogins@gmail.com>
 

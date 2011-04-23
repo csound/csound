@@ -256,10 +256,6 @@ commandOptions.Add('buildImageOpcodes',
 commandOptions.Add('useOpenMP',
     'Set to 1 to use OpenMP for parallel performance',
     '0')
-##### JPff for OLPC #####
-commandOptions.Add('buildOLPC',
-    'Set to 1 to build OLPC version',
-    '0')
 commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
     '8.4')
@@ -355,54 +351,6 @@ commonEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 customSWIGFLAGS = commonEnvironment['customSWIGFLAGS']
 commonEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
 
-if commonEnvironment['buildOLPC'] == '1':
-    commonEnvironment['pythonVersion'] = '2.5'
-    buildOLPC = True;
-    commonEnvironment.Prepend(CPPFLAGS = ['-DOLPC'])
-    commonEnvironment.Prepend(CPPFLAGS = ['-DENABLE_OPCODEDIR_WARNINGS=0'])
-    if getPlatform() != 'linux':
-       print "Build platform is not linux"
-    # Set other options??
-    commonEnvironment['useGettext'] = '1'
-    commonEnvironment['useDouble'] = '0'
-    commonEnvironment['usePortAudio'] = '0'
-    commonEnvironment['useJack'] = '1'
-    #jackFound = False
-    commonEnvironment['buildCsoundAC'] = '0'
-    commonEnvironment['buildCsound5GUI'] = '0'
-    commonEnvironment['useDouble'] = '0'
-    commonEnvironment['usePortMIDI'] = '0'
-    commonEnvironment['useALSA'] = '1'
-    commonEnvironment['useFLTK'] = '0'
-    commonEnvironment['buildCsoundVST'] = '0'
-    commonEnvironment['buildCsoundAC'] = '0'
-    #'buildCsound5GUI'
-    commonEnvironment['buildLoris'] = '0'
-    commonEnvironment['buildStkOpcodes'] = '0'
-    commonEnvironment['useOSC'] = '1'
-    commonEnvironment['prefix'] = '/usr'
-    commonEnvironment['buildUtilities'] = '0'
-    fltkFound = False
-    portaudioFound = False
-    oscFound = True
-    ##commonEnvironment['gcc4opt'] = '1'
-    commonEnvironment['gcc3opt'] = 'k6'
-    commonEnvironment['useLrint'] = '1'
-    commonEnvironment['Word64'] = '0'
-    commonEnvironment['Lib64'] = '0'
-    commonEnvironment['buildPDClass'] = '0'
-    commonEnvironment['buildDSSI'] = '0'
-    commonEnvironment['buildVirtual'] = '1'
-    commonEnvironment['buildInterfaces'] = '1'
-    commonEnvironment['buildJavaWrapper'] = '0'
-    commonEnvironment['buildNewParser'] = '0'
-    commonEnvironment['buildvst4cs'] = '0'
-    commonEnvironment['buildImageOpcodes'] = '1'
-    commonEnvironment['dynamicCsoundLibrary'] = '1'
-    commonEnvironment['useOpenMP'] = '0'
-else:
-    buildOLPC = False
-
 # Define options for different platforms.
 if getPlatform() != 'win32' and getPlatform() != 'sunos':
     print "Build platform is '" + getPlatform() + "'."
@@ -448,8 +396,7 @@ if compilerGNU():
 if commonEnvironment['gcc4opt'] == 'atom':
     commonEnvironment.Prepend(CCFLAGS = Split('-mtune=prescott -O2 -fomit-frame-pointer'))
 elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
-    if not buildOLPC:
-        commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
+    commonEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
     if commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = commonEnvironment['gcc4opt']
@@ -483,7 +430,6 @@ if commonEnvironment['useGprof'] == '1':
     commonEnvironment.Append(LINKFLAGS = ['-pg'])
     commonEnvironment.Append(SHLINKFLAGS = ['-pg'])
 elif commonEnvironment['gcc3opt'] != 0 or commonEnvironment['gcc4opt'] != '0':
-   if not buildOLPC:
     if not compilerSun() and commonEnvironment['gcc4opt'] != 'atom':
         commonEnvironment.Append(CCFLAGS = ['-fomit-frame-pointer'])
         commonEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
@@ -777,11 +723,10 @@ if syncLockTestAndSetFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
    print  'found sync lock'
 vstSdkFound = configure.CheckHeader("frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h", language = "C++")
-if not buildOLPC:
-   portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
-   #portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
-   portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
-   fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
+portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
+#portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
+portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
+fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
 if fltkFound:
     fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
 else:
@@ -794,12 +739,8 @@ musicXmlFound = configure.CheckLibWithHeader('musicxml2', 'xmlfile.h', 'C++', 'M
 if musicXmlFound:
    commonEnvironment.Append(CPPFLAGS = ['-DHAVE_MUSICXML2'])
 
-#if not buildOLPC:
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
-#if not buildOLPC:
 pulseaudioFound = configure.CheckHeader("pulse/simple.h", language = "C")
-#else:
-#pulseaudioFound = 0
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
@@ -811,8 +752,6 @@ zlibhfound = configure.CheckHeader("zlib.h", language = "C")
 midiPluginSdkFound = configure.CheckHeader("funknown.h", language = "C++")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 #print 'LUA: %s' % (['no', 'yes'][int(luaFound)])
-if buildOLPC:
-   luaFound = False
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
 print "Python Version: " + commonEnvironment['pythonVersion']
@@ -1077,83 +1016,7 @@ def makePlugin(env, pluginName, srcs):
     MacOSX_InstallPlugin('lib' + pluginName + '.dylib')
     return pluginLib
 
-if buildOLPC:
-  libCsoundSources = Split('''
-Engine/auxfd.c
-Engine/cfgvar.c
-Engine/entry1.c
-Engine/envvar.c
-Engine/express.c
-Engine/extract.c
-Engine/fgens.c
-Engine/insert.c
-Engine/linevent.c
-Engine/memalloc.c
-Engine/memfiles.c
-Engine/musmon.c
-Engine/namedins.c
-Engine/otran.c
-Engine/rdorch.c
-Engine/rdscor.c
-Engine/scsort.c
-Engine/scxtract.c
-Engine/sort.c
-Engine/sread.c
-Engine/swrite.c
-Engine/twarp.c
-InOut/libsnd.c
-InOut/libsnd_u.c
-InOut/midifile.c
-InOut/midirecv.c
-InOut/midisend.c
-InOut/winascii.c
-InOut/windin.c
-InOut/window.c
-OOps/aops.c
-OOps/bus.c
-OOps/cmath.c
-OOps/diskin.c
-OOps/diskin2.c
-OOps/disprep.c
-OOps/dumpf.c
-OOps/fftlib.c
-OOps/goto_ops.c
-OOps/midiinterop.c
-OOps/midiops.c
-OOps/midiout.c
-OOps/mxfft.c
-OOps/oscils.c
-OOps/pstream.c
-OOps/pvfileio.c
-OOps/pvsanal.c
-OOps/random.c
-OOps/remote.c
-OOps/schedule.c
-OOps/sndinfUG.c
-OOps/str_ops.c
-OOps/ugens1.c
-OOps/ugens2.c
-OOps/ugens3.c
-OOps/ugens4.c
-OOps/ugens5.c
-OOps/ugens6.c
-OOps/ugrw1.c
-OOps/ugrw2.c
-OOps/vdelay.c
-Top/argdecode.c
-Top/csmodule.c
-Top/csound.c
-Top/getstring.c
-Top/main.c
-Top/new_opts.c
-Top/one_file.c
-Top/opcode.c
-Top/threads.c
-Top/utility.c
-
-''')
-else:
-  libCsoundSources = Split('''
+libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
 Engine/entry1.c
@@ -1596,26 +1459,7 @@ else:
 # Plugin opcodes.
 #############################################################################
 
-if buildOLPC:
-  makePlugin(pluginEnvironment, 'stdopcod', Split('''
-                            Opcodes/bbcut.c         Opcodes/biquad.c
-    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
-    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
-    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
-    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
-    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
-    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
-    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
-    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
-    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
-    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
-                            Opcodes/syncgrain.c     Opcodes/ugens7.c
-    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
-    Opcodes/ugmoss.c                                Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
-'''))
-else:
-  makePlugin(pluginEnvironment, 'stdopcod', Split('''
+makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
     Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
     Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
@@ -1633,7 +1477,7 @@ else:
     Opcodes/wave-terrain.c  Opcodes/stdopcod.c
     '''))
 
-if not buildOLPC and (getPlatform() == 'linux' or getPlatform() == 'darwin'):
+if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
@@ -1641,8 +1485,7 @@ makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
 makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
-if not buildOLPC:
-  makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
 makePlugin(pluginEnvironment, 'modal4',
@@ -1653,10 +1496,9 @@ makePlugin(pluginEnvironment, 'physmod', Split('''
 '''))
 makePlugin(pluginEnvironment, 'pitch',
            ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
-if not buildOLPC:
- makePlugin(pluginEnvironment, 'scansyn',
+makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
- makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
 if mpafound==1:
   makePlugin(pluginEnvironment, 'mp3in', ['Opcodes/mp3in.c'])
 ##commonEnvironment.Append(LINKFLAGS = ['-Wl,-as-needed'])
@@ -1674,13 +1516,11 @@ if compilerGNU():
 if sys.byteorder == 'big':
     sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
-if not buildOLPC:
-  makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
+makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
 makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
-if not buildOLPC:
-  makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
+makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
@@ -1694,8 +1534,7 @@ makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
     Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
 '''))
 makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
-if not buildOLPC:
-  makePlugin(pluginEnvironment, 'vbap',
+makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
             'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
 makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
@@ -1714,10 +1553,9 @@ makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
 makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
 makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
 makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
-if buildOLPC :
-   oggEnvironment = pluginEnvironment.Clone()
-   makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
-   oggEnvironment.Append(LIBS=['vorbisfile'])
+#oggEnvironment = pluginEnvironment.Clone()
+#makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
+#oggEnvironment.Append(LIBS=['vorbisfile'])
 makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
 
 if commonEnvironment['buildImageOpcodes'] == '1':
@@ -1733,8 +1571,7 @@ if commonEnvironment['buildImageOpcodes'] == '1':
             makePlugin(pluginEnvironment, 'image', ['Opcodes/imageOpcodes.c'])
 else:
     print 'CONFIGURATION DECISION: Not building image opcodes'
-if not buildOLPC:
- makePlugin(pluginEnvironment, 'gabnew', Split('''
+makePlugin(pluginEnvironment, 'gabnew', Split('''
     Opcodes/gab/tabmorph.c  Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c'''))
@@ -1753,9 +1590,9 @@ if jackFound and commonEnvironment['useJack'] == '1':
 	jpluginEnvironment.Append(LINKFLAGS = ['-framework', 'Jackmp'])
     makePlugin(jpluginEnvironment, 'jackTransport', 'Opcodes/jackTransport.c')
     makePlugin(jpluginEnvironment, 'jacko', 'Opcodes/jacko.cpp')
-if (not buildOLPC) and boostFound:
+if boostFound:
     makePlugin(pluginEnvironment, 'chua', 'Opcodes/chua/ChuaOscillator.cpp')
-if (not buildOLPC) and gmmFound and commonEnvironment['useDouble'] != '0':
+if gmmFound and commonEnvironment['useDouble'] != '0':
     makePlugin(pluginEnvironment, 'linear_algebra', 'Opcodes/linear_algebra.cpp')
     print 'CONFIGURATION DECISION: Building linear algebra opcodes.'
 else:
@@ -1813,7 +1650,7 @@ else:
     if getPlatform() == 'darwin':
         csoundProgramEnvironment.Append(LINKFLAGS = Split('''-framework Carbon -framework CoreAudio -framework CoreMidi'''))
 
-if buildOLPC or (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
+if (not (commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
     widgetsEnvironment = pluginEnvironment.Clone()
@@ -1965,20 +1802,11 @@ else:
 
 # end udp opcodes
 
-# OGG opcodes
-if buildOLPC:
-    print "CONFIGURATION DECISION: Building OGG plugins."
-    oggEnvironment = pluginEnvironment.Clone()
-    oggEnvironment.Append(LINKFLAGS = ['-lvorbisfile', '-lvorbis', '-logg'])
-    makePlugin(oggEnvironment, 'oggplay', ['Opcodes/oggplay.c'])
-# end ogg opcodes
-
 # FLUIDSYNTH OPCODES
 
-if not buildOLPC:
-  if not configure.CheckHeader("fluidsynth.h", language = "C"):
+if not configure.CheckHeader("fluidsynth.h", language = "C"):
     print "CONFIGURATION DECISION: Not building fluid opcodes."
-  else:
+else:
 	print "CONFIGURATION DECISION: Building fluid opcodes."
 	fluidEnvironment = pluginEnvironment.Clone()
 	if getPlatform() == 'win32':
@@ -2192,16 +2020,7 @@ else:
 #############################################################################
 #
 # Utility programs.
-if buildOLPC:
-  stdutilSources = Split('''
-                        util/cvanal.c       util/dnoise.c
-    util/envext.c        util/lpanal.c util/mixer.c
-    util/pvanal.c       util/pvlook.c       util/scale.c
-    util/sndinfo.c      util/srconv.c
-    util/std_util.c
-  ''')
-else :
-  stdutilSources = Split('''
+stdutilSources = Split('''
     util/atsa.c         util/cvanal.c       util/dnoise.c
     util/envext.c       util/xtrct.c        util/het_export.c
     util/het_import.c   util/hetro.c        util/lpanal.c
@@ -2211,13 +2030,11 @@ else :
     util/pv_import.c
     util/std_util.c
   ''')
-if not buildOLPC:
- stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
+stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
 
 makePlugin(pluginEnvironment, 'stdutil', stdutilSources)
 
-if not buildOLPC:
-  if (commonEnvironment['buildUtilities'] != '0'):
+if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
         ['atsa',        'util/atsa_main.c'    ],
         ['cvanal',      'util/cvl_main.c'     ],
@@ -2241,12 +2058,11 @@ if not buildOLPC:
     for i in utils:
        executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
 
-if not buildOLPC:
-  executables.append(csoundProgramEnvironment.Program('scsort',
+executables.append(csoundProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
-  executables.append(csoundProgramEnvironment.Program('extract',
+executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-  if compilerGNU():
+if compilerGNU():
     executables.append(commonEnvironment.Program('cs',
       ['util1/csd_util/cs.c']))
     executables.append(commonEnvironment.Program('csb64enc',
@@ -2257,7 +2073,7 @@ if not buildOLPC:
       ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
-  executables.append(commonEnvironment.Program('sdif2ad',
+executables.append(commonEnvironment.Program('sdif2ad',
     ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
 for i in executables:
@@ -2815,7 +2631,7 @@ else:
                                source = 'frontends/beats/beats.y')
     blb = csBeatsEnvironment.CFile(target = 'frontends/beats/lex.yy.c',
                                source = 'frontends/beats/beats.l')
-    bb = csBeatsEnvironment.Program('beats',
+    bb = csBeatsEnvironment.Program('csbeats',
                                     ['frontends/beats/main.c', 
                                      'frontends/beats/lex.yy.c', 
                                      'frontends/beats/beats.tab.c'])

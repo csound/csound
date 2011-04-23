@@ -175,6 +175,7 @@ extern void add_udo_definition(CSOUND*, char *, char *, char *);
 orcfile           : rootstatement
                         {
                             *astTree = *((TREE *)$1);
+                            //print_tree(csound, "ALL", $1);
                         }
                   ;
 
@@ -344,19 +345,19 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $$ = make_node(csound, T_IF, $2, $3);
-            //print_tree(csound, "if-endif\N", $$);
+            //print_tree(csound, "if-endif", $$);
           }
           | T_IF expr then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
           {
             $3->right = $5;
             $3->next = make_node(csound, T_ELSE, NULL, $7);
             $$ = make_node(csound, T_IF, $2, $3);
-            //print_tree(csound, "if-else"$$);
+            //print_tree(csound, "if-else", $$);
 
           }
           | T_IF expr then S_NL statementlist elseiflist T_ENDIF S_NL
           {
-              if (UNLIKELY(PARSER_DEBUG))
+            if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "IF-ELSEIF FOUND!\n");
             $3->right = $5;
             $3->next = $6;
@@ -380,6 +381,7 @@ ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
             }
 
             tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $8);
+            //print_tree(csound, "IF TREE", $$);
           }
           ;
 
@@ -403,6 +405,7 @@ elseif    : T_ELSEIF expr then S_NL statementlist
                   csound->Message(csound, "ELSEIF FOUND!\n");
                 $3->right = $5;
                 $$ = make_node(csound, T_ELSEIF, $2, $3);
+                //print_tree(csound, "ELSEIF", $$);
             }
           ;
 

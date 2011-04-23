@@ -146,8 +146,6 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-          /* } */
-          /* else { */
             csound->Warning(csound, Str("SNDWARP at last sample frame"));
           }
         }

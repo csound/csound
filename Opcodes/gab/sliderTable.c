@@ -591,7 +591,7 @@ static int ctrl7a(CSOUND *csound, CTRL7a *p)
       value = *(p->ftp->ftable + (long)(value*(p->ftp->flen-1)));
     }
     /* scales the output */
-    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL; 
+    value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL;
     value = p->yt1 = p->c1 * value + p->c2 * p->yt1;
     ar = p->r;
     val = p->prev;

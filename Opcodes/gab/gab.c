@@ -128,6 +128,7 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       for (n=0; n<nsmps; n++)  { /* for loops compile better */
         int i = (int)(ndx[n]*xbmul);
         if (UNLIKELY(i >= p->tablen || i<0)) {
+          csound->Message(csound, "ndx: %f \n", ndx[n]);
           return csound->PerfError(csound, Str("tabw off end"));
         }
         tab[i] = rslt[n];

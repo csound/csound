@@ -59,7 +59,6 @@ kamp            ATSinterpread   kfreq
 
 */
 
-#ifndef OLPC
 
 #include "ugnorman.h"
 #include <ctype.h>
@@ -628,7 +627,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
         phase += inc;
         phase &= PHMASK;
         a+=inca;
-      } 
+      }
       *oscphase = (double) phase;
       oldamps[i] = amp;
       oscphase++;
@@ -2076,4 +2075,3 @@ int ugnorman_init_(CSOUND *csound)
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 
-#endif
