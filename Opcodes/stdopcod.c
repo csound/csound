@@ -42,11 +42,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;
     p->buf = (MYFLT*) NULL;
-#ifndef OLPC
     /* ugnorman.c */
     p->atsbufreadaddr = NULL;
     err |= ambicode_init_(csound);
-#endif
     err |= bbcut_init_(csound);
     err |= biquad_init_(csound);
     err |= butter_init_(csound);
@@ -79,18 +77,14 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= sndloop_init_(csound);
     err |= sndwarp_init_(csound);
     err |= space_init_(csound);
-#ifndef OLPC
     err |= spat3d_init_(csound);
-#endif
     err |= syncgrain_init_(csound);
     err |= ugens7_init_(csound);
     err |= ugens9_init_(csound);
     err |= ugensa_init_(csound);
     err |= uggab_init_(csound);
     err |= ugmoss_init_(csound);
-#ifndef OLPC
     err |= ugnorman_init_(csound);
-#endif
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
 

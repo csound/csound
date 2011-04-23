@@ -94,8 +94,6 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
 }
 
-#ifndef OLPC
-
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
     /* opcode params */
@@ -159,7 +157,6 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     }
     return OK;
 }
-#endif
 
 int pvsanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -175,10 +172,8 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     int wintype = (int) *p->wintype;
     /* deal with iinit and iformat later on! */
 
-#ifndef OLPC
     if (overlap<csound->ksmps || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
-#endif
     if (UNLIKELY(N <= 32))
       csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
@@ -257,9 +252,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->wintype = wintype;
     p->fsig->framecount = 1;
     p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
-#ifndef OLPC
     p->fsig->sliding = 0;
-#endif
     return OK;
 }
 
@@ -426,7 +419,6 @@ static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 
 }
 
-#ifndef OLPC
 static inline double mod2Pi(double x)
 {
     x = fmod(x,TWOPI);
@@ -653,7 +645,6 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     p->inptr = loc;
     return OK;
 }
-#endif
 
 int pvsanal(CSOUND *csound, PVSANAL *p)
 {
@@ -665,13 +656,11 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     if (UNLIKELY(p->input.auxp==NULL)) {
       csound->Die(csound, Str("pvsanal: Not Initialised.\n"));
     }
-#ifndef OLPC
     {
       int overlap = (int)*p->overlap;
       if (overlap<csound->ksmps || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
-#endif
     for (i=0; i < csound->ksmps; i++)
       anal_tick(csound,p,ain[i]);
     return OK;
@@ -698,7 +687,6 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->overlap = overlap;
     p->wintype = wintype;
     p->format = p->fsig->format;
-#ifndef OLPC
     if (p->fsig->sliding) {
       /* get params from input fsig */
       /* we TRUST they are legal */
@@ -710,7 +698,6 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
       csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->output);
       return OK;
     }
-#endif
     /* and put into locals */
     halfwinsize = M/2;
     buflen = M*4;
@@ -968,7 +955,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
-#ifndef OLPC
 int pvssynth(CSOUND *csound, PVSYNTH *p)
 {
     int i, k;
@@ -1006,7 +992,6 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
     }
     return OK;
 }
-#endif
 
 int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
@@ -1016,9 +1001,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     if (UNLIKELY(p->output.auxp==NULL)) {
       csound->Die(csound, Str("pvsynth: Not Initialised.\n"));
     }
-#ifndef OLPC
     if (p->fsig->sliding) return pvssynth(csound, p);
-#endif
     for (i=0;i < csound->ksmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;

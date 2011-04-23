@@ -197,6 +197,8 @@ OENTRY opcodlst_1[] = {
 { "sin.i",  S(EVAL),    1,      "i",    "i",    sin1                    },
 { "cos.i",  S(EVAL),    1,      "i",    "i",    cos1                    },
 { "tan.i",  S(EVAL),    1,      "i",    "i",    tan1                    },
+{ "qinf.i", S(EVAL),    1,      "i",    "i",    is_inf                  },
+{ "qnan.i", S(EVAL),    1,      "i",    "i",    is_NaN                  },
 { "sininv.i", S(EVAL),  1,      "i",    "i",    asin1                   },
 { "cosinv.i", S(EVAL),  1,      "i",    "i",    acos1                   },
 { "taninv.i", S(EVAL),  1,      "i",    "i",    atan1                   },
@@ -219,6 +221,8 @@ OENTRY opcodlst_1[] = {
 { "sin.k",  S(EVAL),    2,      "k",    "k",    NULL,   sin1            },
 { "cos.k",  S(EVAL),    2,      "k",    "k",    NULL,   cos1            },
 { "tan.k",  S(EVAL),    2,      "k",    "k",    NULL,   tan1            },
+{ "qinf.k", S(EVAL),    2,      "k",    "k",    NULL,   is_inf          },
+{ "qnan.k", S(EVAL),    2,      "k",    "k",    NULL,   is_NaN          },
 { "sininv.k", S(EVAL),  2,      "k",    "k",    NULL,   asin1           },
 { "cosinv.k", S(EVAL),  2,      "k",    "k",    NULL,   acos1           },
 { "taninv.k", S(EVAL),  2,      "k",    "k",    NULL,   atan1           },
@@ -239,6 +243,8 @@ OENTRY opcodlst_1[] = {
 { "sin.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   sina    },
 { "cos.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   cosa    },
 { "tan.a",  S(EVAL),    4,      "a",    "a",    NULL,   NULL,   tana    },
+{ "qinf.a", S(EVAL),    4,      "a",    "a",    NULL,   NULL,   is_infa },
+{ "qnan.a", S(EVAL),    4,      "a",    "a",    NULL,   NULL,   is_NaNa },
 { "sininv.a", S(EVAL),  4,      "a",    "a",    NULL,   NULL,   asina   },
 { "cosinv.a", S(EVAL),  4,      "a",    "a",    NULL,   NULL,   acosa   },
 { "taninv.a", S(EVAL),  4,      "a",    "a",    NULL,   NULL,   atana   },
@@ -373,15 +379,13 @@ OENTRY opcodlst_1[] = {
 { "gain",   S(GAIN),    5,      "a",    "akqo", gainset,NULL,   gain    },
 { "balance",S(BALANCE), 5,      "a",    "aaqo", balnset,NULL,   balance },
 { "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
-{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
+{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
                                                 sndinset, NULL, soundin   },
 { "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set, NULL, soundout  },
 { "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo1set, NULL, soundouts },
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
 { "ins",    S(INS),     4,      "aa",   "",     NULL,   NULL,   ins     },
-#ifndef OLPC
 { "inq",    S(INQ),     4,      "aaaa", "",     NULL,   NULL,   inq     },
-#endif
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
@@ -390,13 +394,11 @@ OENTRY opcodlst_1[] = {
 { "outs",   S(OUTS),    4,      "",     "aa",   NULL,   NULL,   outs    },
 { "outs1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs1   },
 { "outs2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outs2   },
-#ifndef OLPC
 { "outq",   S(OUTQ),    4,      "",     "aaaa", NULL,   NULL,   outq    },
 { "outq1",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq1   },
 { "outq2",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq2   },
 { "outq3",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq3   },
 { "outq4",  S(OUTM),    4,      "",     "a",    NULL,   NULL,   outq4   },
-#endif
 { "igoto",  S(GOTO),    1,      "",     "l",    igoto                   },
 { "kgoto",  S(GOTO),    2,      "",     "l",    NULL,   kgoto           },
 { "goto",   S(GOTO),    3,      "",     "l",    igoto,  kgoto           },
@@ -463,9 +465,9 @@ OENTRY opcodlst_1[] = {
 { "unirand.i",S(PRAND), 1,     "i",     "k",    ikuniform, NULL,  NULL  },
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
-{ "diskin",S(SOUNDINEW),5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkooooo",
+{ "diskin",S(SOUNDINEW),5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "Tkooooo",
                             (SUBR) newsndinset, NULL, (SUBR) soundinew  },
-{ "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooooo",
+{ "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
                             (SUBR) diskin2_perf                         },
 { "noteon", S(OUT_ON),  1,      "",     "iii",  iout_on, NULL,   NULL   },
@@ -567,17 +569,14 @@ OENTRY opcodlst_1[] = {
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
-#ifndef OLPC
 { "inh",    S(INH),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
 { "ino",    S(INO),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
 { "inx",    S(INALL),   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
 { "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                         "",     NULL,   NULL,   in32 },
-#endif
 //{ "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
 { "inch",   S(INCH),    4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                         "z",    NULL,   NULL,   inch_opcode },
-#ifndef OLPC
 { "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                         "",     NULL,   NULL,   inall_opcode },
   /* Note that there is code in rdorch.c that assumes that opcodes starting
@@ -589,7 +588,6 @@ OENTRY opcodlst_1[] = {
 { "outx",   S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaa",NULL,NULL, outx },
 { "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                                 NULL,   NULL,   outX    },
-#endif
 { "outch",  S(OUTCH),   4,      "",     "Z",    NULL,   NULL,   outch   },
 { "outc",   S(OUTX),    4,      "",     "y",    NULL,   NULL,   outall  },
 { "cpsxpch", S(XENH),   1,      "i",    "iiii", cpsxpch, NULL,  NULL    },

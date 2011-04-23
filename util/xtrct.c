@@ -74,10 +74,8 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->Message(csound,Str("-T fpnum\ttime in secs at which to start file\n"));
     csound->Message(csound,Str("-E fpnum\ttime in secs at which to end file\n"));
     csound->Message(csound,Str("-D fpnum\tduration in secs of extract\n"));
-#ifndef OLPC
     csound->Message(csound,Str("-R\tRewrite header\n"));
     csound->Message(csound,Str("-H\t\tHeartbeat\n"));
-#endif
     csound->Message(csound,Str("-v\t\tverbose mode for debugging\n"));
     csound->Message(csound,Str("-- fname\tLog output to file\n"));
     csound->Message(csound,Str("flag defaults: extractor -otest -S 0\n"));
@@ -226,14 +224,12 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
               xtrc.stop = -1;
             }
             break;
-#ifndef OLPC
           case 'H':
             O->heartbeat = 1;
             break;
           case 'R':
             O->rewrt_hdr = 1;
             break;
-#endif
           case 'N':
             O->ringbell = 1;            /* notify on completion */
             break;
