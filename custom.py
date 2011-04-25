@@ -17,7 +17,8 @@ customSHLINKFLAGS = []
 customSWIGFLAGS = []
 
 ## This seems to do nothing
-customSHLINKFLAGS.append('-Wl,--as-needed')
+if sys.platform != 'darwin':
+    customSHLINKFLAGS.append('-Wl,--as-needed')
 if sys.platform[:5] == 'linux':
     platform = 'linux'
     customCPPPATH.append('/usr/lib/jvm/java-1.5.0/include')
