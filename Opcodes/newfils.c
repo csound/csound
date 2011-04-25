@@ -119,7 +119,8 @@ static int statevar_process(CSOUND *csound,statevar *p)
 
     f = 2.0*sin(freq*(double)csound->pidsr/ostimes);
     q = 1.0/res;
-    lim = (2.0 - f) / (ostimes * 0.4);
+    lim = 0.1*((2.0 - f) / 2.)*(1./ostimes);
+    /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
 
     if (q < lim) q = lim;
 
