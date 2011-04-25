@@ -546,7 +546,6 @@ struct Inletf : public OpcodeBase<Inletf> {
   int audio(CSOUND *csound) {
     int result = OK;
 #pragma omp critical (cs_sfg_ports)
-<<<<<<< HEAD
     {
       float *sink = 0;
       float *source = 0;
@@ -554,161 +553,75 @@ struct Inletf : public OpcodeBase<Inletf> {
       CMPLX *sourceFrame = 0;
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
-	   sourceI < sourceN;
-	   sourceI++) {
-	// Loop over the source connection instances...
-	const std::vector<Outletf *> *instances = sourceOutlets->at(sourceI);
-	for (size_t instanceI = 0, instanceN = instances->size();
-	     instanceI < instanceN;
-	     instanceI++) {
-	  const Outletf *sourceOutlet = instances->at(instanceI);
-	  // Skip inactive instances.
-	  if (sourceOutlet->h.insdshead->actflg) {
-	    if (!fsignalInitialized) {
-	      int32 N = sourceOutlet->fsignal->N;
-	      if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-		csound->Warning(csound, "Unsafe to have same fsig as in and out");
-	      }
-#ifndef OLPC
-	      fsignal->sliding = 0;
-	      if (sourceOutlet->fsignal->sliding) {
-		if (fsignal->frame.auxp == NULL ||
-		    fsignal->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-		  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
-				   &fsignal->frame);
-		fsignal->NB = sourceOutlet->fsignal->NB;
-		fsignal->sliding = 1;
-	      } else
-#endif
-		if (fsignal->frame.auxp == NULL ||
-		    fsignal->frame.size < sizeof(float) * (N + 2)) {
-		  csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
-		}
-	      fsignal->N = N;
-	      fsignal->overlap = sourceOutlet->fsignal->overlap;
-	      fsignal->winsize = sourceOutlet->fsignal->winsize;
-	      fsignal->wintype = sourceOutlet->fsignal->wintype;
-	      fsignal->format = sourceOutlet->fsignal->format;
-	      fsignal->framecount = 1;
-	      lastframe = 0;
-	      if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
-			   (fsignal->format == PVS_AMP_PHASE)))
-		result = csound->InitError(csound, Str("inletf: signal format "
-						       "must be amp-phase or amp-freq."));
-	      fsignalInitialized = true;
-	    }
-#ifndef OLPC
-	    if (fsignal->sliding) {
-	      for (size_t frameI = 0; frameI < ksmps; frameI++) {
-		sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
-		sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
-		for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
-		  if (sourceFrame[binI].re > sinkFrame[binI].re) {
-		    sinkFrame[binI] = sourceFrame[binI];
-		  }
-		}
-	      }
-	    }
-	  } else {
-#endif
-	    sink = (float *)fsignal->frame.auxp;
-	    source = (float *)sourceOutlet->fsignal->frame.auxp;
-	    if (lastframe < fsignal->framecount) {
-	      for (size_t binI = 0, binN = fsignal->N + 2;
-		   binI < binN;
-		   binI += 2) {
-		if (source[binI] > sink[binI]) {
-		  source[binI] = sink[binI];
-		  source[binI + 1] = sink[binI + 1];
-		}
-	      }
-	      fsignal->framecount = lastframe = sourceOutlet->fsignal->framecount;
-	    }
-#ifndef OLPC
-	  }
-#endif
-	}
-      }
-=======
-        {
-            float *sink = 0;
-            float *source = 0;
-            CMPLX *sinkFrame = 0;
-            CMPLX *sourceFrame = 0;
-            // Loop over the source connections...
-            for (size_t sourceI = 0, sourceN = sourceOutlets->size();
-                    sourceI < sourceN;
-                    sourceI++) {
-                // Loop over the source connection instances...
-                const std::vector<Outletf *> *instances = sourceOutlets->at(sourceI);
-                for (size_t instanceI = 0, instanceN = instances->size();
-                        instanceI < instanceN;
-                        instanceI++) {
-                    const Outletf *sourceOutlet = instances->at(instanceI);
-                    // Skip inactive instances.
-                    if (sourceOutlet->h.insdshead->actflg) {
-                        if (!fsignalInitialized) {
-                            int32 N = sourceOutlet->fsignal->N;
-                            if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-                                csound->Warning(csound, "Unsafe to have same fsig as in and out");
-                            }
-                            fsignal->sliding = 0;
-                            if (sourceOutlet->fsignal->sliding) {
-                                if (fsignal->frame.auxp == NULL ||
-                                        fsignal->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
-                                    csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
-                                            &fsignal->frame);
-                                fsignal->NB = sourceOutlet->fsignal->NB;
-                                fsignal->sliding = 1;
-                            } else
-                                if (fsignal->frame.auxp == NULL ||
-                                        fsignal->frame.size < sizeof(float) * (N + 2)) {
-                                    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
-                                }
-                            fsignal->N = N;
-                            fsignal->overlap = sourceOutlet->fsignal->overlap;
-                            fsignal->winsize = sourceOutlet->fsignal->winsize;
-                            fsignal->wintype = sourceOutlet->fsignal->wintype;
-                            fsignal->format = sourceOutlet->fsignal->format;
-                            fsignal->framecount = 1;
-                            lastframe = 0;
-                            if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
-                                    (fsignal->format == PVS_AMP_PHASE)))
-                                result = csound->InitError(csound, Str("inletf: signal format "
-                                        "must be amp-phase or amp-freq."));
-                            fsignalInitialized = true;
-                        }
-                        if (fsignal->sliding) {
-                            for (size_t frameI = 0; frameI < ksmps; frameI++) {
-                                sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
-                                sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
-                                for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
-                                    if (sourceFrame[binI].re > sinkFrame[binI].re) {
-                                        sinkFrame[binI] = sourceFrame[binI];
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        sink = (float *)fsignal->frame.auxp;
-                        source = (float *)sourceOutlet->fsignal->frame.auxp;
-                        if (lastframe < fsignal->framecount) {
-                            for (size_t binI = 0, binN = fsignal->N + 2;
-                                    binI < binN;
-                                    binI += 2) {
-                                if (source[binI] > sink[binI]) {
-                                    source[binI] = sink[binI];
-                                    source[binI + 1] = sink[binI + 1];
-                                }
-                            }
-                            fsignal->framecount = lastframe = sourceOutlet->fsignal->framecount;
-                        }
-                    }
+           sourceI < sourceN;
+           sourceI++) {
+        // Loop over the source connection instances...
+        const std::vector<Outletf *> *instances = sourceOutlets->at(sourceI);
+        for (size_t instanceI = 0, instanceN = instances->size();
+             instanceI < instanceN;
+             instanceI++) {
+          const Outletf *sourceOutlet = instances->at(instanceI);
+          // Skip inactive instances.
+          if (sourceOutlet->h.insdshead->actflg) {
+            if (!fsignalInitialized) {
+              int32 N = sourceOutlet->fsignal->N;
+              if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
+                csound->Warning(csound, "Unsafe to have same fsig as in and out");
+              }
+              fsignal->sliding = 0;
+              if (sourceOutlet->fsignal->sliding) {
+                if (fsignal->frame.auxp == NULL ||
+                    fsignal->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
+                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+                                   &fsignal->frame);
+                fsignal->NB = sourceOutlet->fsignal->NB;
+                fsignal->sliding = 1;
+              } else
+                if (fsignal->frame.auxp == NULL ||
+                    fsignal->frame.size < sizeof(float) * (N + 2)) {
+                  csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
                 }
+              fsignal->N = N;
+              fsignal->overlap = sourceOutlet->fsignal->overlap;
+              fsignal->winsize = sourceOutlet->fsignal->winsize;
+              fsignal->wintype = sourceOutlet->fsignal->wintype;
+              fsignal->format = sourceOutlet->fsignal->format;
+              fsignal->framecount = 1;
+              lastframe = 0;
+              if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
+                           (fsignal->format == PVS_AMP_PHASE)))
+                result = csound->InitError(csound, Str("inletf: signal format "
+                                                       "must be amp-phase or amp-freq."));
+              fsignalInitialized = true;
             }
+            if (fsignal->sliding) {
+              for (size_t frameI = 0; frameI < ksmps; frameI++) {
+                sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
+                sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
+                for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
+                  if (sourceFrame[binI].re > sinkFrame[binI].re) {
+                    sinkFrame[binI] = sourceFrame[binI];
+                  }
+                }
+              }
+            }
+          } else {
+            sink = (float *)fsignal->frame.auxp;
+            source = (float *)sourceOutlet->fsignal->frame.auxp;
+            if (lastframe < fsignal->framecount) {
+              for (size_t binI = 0, binN = fsignal->N + 2;
+                   binI < binN;
+                   binI += 2) {
+                if (source[binI] > sink[binI]) {
+                  source[binI] = sink[binI];
+                  source[binI + 1] = sink[binI + 1];
+                }
+              }
+              fsignal->framecount = lastframe = sourceOutlet->fsignal->framecount;
+            }
+          }
         }
-        return result;
->>>>>>> origin/HEAD
+      }
     }
     return result;
   }
