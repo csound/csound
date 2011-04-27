@@ -258,7 +258,7 @@ commandOptions.Add('useOpenMP',
     '0')
 commandOptions.Add('tclversion',
     'Set to 8.4 or 8.5',
-    '8.4')
+    '8.5')
 commandOptions.Add('includeMP3',
      'Set to 1 if using mpadec',
      '0')
