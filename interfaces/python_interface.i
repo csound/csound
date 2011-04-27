@@ -20,6 +20,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+
+
 #ifndef MACOSX
 %module(directors="1") csnd
 %feature("director") CsoundCallbackWrapper;
@@ -43,6 +45,7 @@
 
 %feature("autodoc", "1");
 %{
+    #include <cstddef>
     #include "csound.h"
     #include "cfgvar.h"
     #include "csound.hpp"
@@ -51,7 +54,7 @@
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
-    #include "Soundfile.hpp"
+    #include "Soundfile.hpp" 
 %}
 
 %apply int { size_t };
