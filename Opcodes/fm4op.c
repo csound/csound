@@ -1096,6 +1096,7 @@ int percflute(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[71] * FL(0.5);
     p->gains[2] = amp * FM4Op_gains[93] * FL(0.5);
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
+    p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
     for (n=0;n<nsmps;n++) {
       MYFLT   lastOutput = FM4Alg4_tick(csound, p, c1, c2);
       ar[n] = lastOutput*AMP_SCALE*FL(2.0);
