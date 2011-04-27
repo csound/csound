@@ -116,9 +116,10 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
 
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2(csound, fname, CSFTYPE_ATS)) == NULL)) {
-      return csound->InitError(csound,
+      csound->InitError(csound,
                                Str("%s: Ats file %s not read (does it exist?)"),
                                opname, fname);
+      return -1;
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
@@ -1098,8 +1099,9 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno);
-    if (UNLIKELY(p->swapped < 0))
+    if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
+    }
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
 
