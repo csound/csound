@@ -900,7 +900,7 @@ static int wuterset(CSOUND *csound, WUTER *p)
 
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
-               - (int)(csound->ekr * *p->dettack);
+		      - (int)(csound->ekr * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -972,7 +972,7 @@ static int wuter(CSOUND *csound, WUTER *p)
       p->coeffs20 = -WUTR_RESON * FL(2.0) *
         COS(p->res_freq2 * csound->tpidsr);
     }
-    if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
+    //if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
       p->shakeEnergy = FL(0.0);
     }

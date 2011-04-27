@@ -238,6 +238,9 @@ typedef struct _atssinnoi {
     ATSSTRUCT *atshead;
     char    *filename;
     int     swapped;    /* indicates if the data file is byte swapped or not */
+  double noiphase[25];
+  double phaseinc[25];
+
 } ATSSINNOI;
 
 typedef struct _atspartialtap {
