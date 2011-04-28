@@ -353,8 +353,8 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
-
-    if (pabs->paStream == NULL
+    
+    /*   if (pabs->paStream == NULL
 #ifdef WIN32
         || pabs->paused
 #endif
@@ -363,7 +363,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
         paClearOutputBuffer(pabs, paOutput);
       return paContinue;
     }
-
+    */
 #if NO_FULLDUPLEX_PA_LOCK
     err = 0;
     if (!pabs->noPaLock)
@@ -402,8 +402,8 @@ static int paBlockingReadWriteStreamCallback(const void *input,
       }
     }
 
-    csound->NotifyThreadLock(pabs->clientLock);
-
+   csound->NotifyThreadLock(pabs->clientLock);
+   paClearOutputBuffer(pabs, pabs->outputBuffer);
     return paContinue;
 }
 
@@ -521,12 +521,11 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 static void rtclose_(CSOUND *csound)
 {
     PA_BLOCKING_STREAM *pabs;
-
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return;
-
+    
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
       int       i;
@@ -539,6 +538,7 @@ static void rtclose_(CSOUND *csound)
         csound->NotifyThreadLock(pabs->clientLock);
         Pa_Sleep(80);
       }
+      
       Pa_AbortStream(stream);
       Pa_CloseStream(stream);
       Pa_Sleep(80);
