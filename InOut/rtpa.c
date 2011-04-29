@@ -30,7 +30,7 @@
 #endif
 #include <portaudio.h>
 
-#define NO_FULLDUPLEX_PA_LOCK   0
+#define NO_FULLDUPLEX_PA_LOCK   1   /* VL:29.04.11 disabled locks to remove end-of-performance clicks */
 
 typedef struct PaAlsaStreamInfo {
     unsigned long   size;
@@ -353,14 +353,16 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
-    
+
+   
 #ifdef WIN32    
 if (pabs->paStream == NULL
-  || pabs->paused) {
-      if (pabs->mode & 2)
+      || pabs->paused
+) {
+if (pabs->mode & 2)
         paClearOutputBuffer(pabs, paOutput);
-      return paContinue;
-    }
+return paContinue;
+}
 #endif
 
 #if NO_FULLDUPLEX_PA_LOCK
@@ -371,10 +373,10 @@ if (pabs->paStream == NULL
 #  ifdef WIN32
       err = csound->WaitThreadLock(pabs->paLock, (size_t) pabs->paLockTimeout);
 #  else
-      err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+    err = csound->WaitThreadLock(pabs->paLock, (size_t) 50); /* VL: reduced from 500 to 50 */
 #  endif
 #else
-      csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+      csound->WaitThreadLock(pabs->paLock, (size_t) 50);
     err = 0;
 #endif
 
@@ -433,7 +435,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
           if (!pabs->noPaLock)
 #endif
             csound->NotifyThreadLock(pabs->paLock);
-          csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
+          csound->WaitThreadLock(pabs->clientLock, (size_t) 50);
         }
         pabs->currentInputIndex = 0;
       }
@@ -465,7 +467,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
         if (!pabs->noPaLock)
 #endif
           csound->NotifyThreadLock(pabs->paLock);
-        csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
+        csound->WaitThreadLock(pabs->clientLock, (size_t) 50);
         pabs->currentOutputIndex = 0;
       }
     } while (++i < samples);
@@ -524,7 +526,7 @@ static void rtclose_(CSOUND *csound)
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return;
-    
+   
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
       int       i;
