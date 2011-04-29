@@ -354,16 +354,15 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
     
-    /*   if (pabs->paStream == NULL
-#ifdef WIN32
-        || pabs->paused
-#endif
-        ) {
+#ifdef WIN32    
+if (pabs->paStream == NULL
+  || pabs->paused) {
       if (pabs->mode & 2)
         paClearOutputBuffer(pabs, paOutput);
       return paContinue;
     }
-    */
+#endif
+
 #if NO_FULLDUPLEX_PA_LOCK
     err = 0;
     if (!pabs->noPaLock)
