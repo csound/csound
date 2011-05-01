@@ -125,3 +125,7 @@ po/old_*
 *.wav
 Release_Notes/*
 
+.DS_Store
+CsoundLib64*
+examples/java/CSDPlayer.jar
+examples/java/CsoundEditor.jar
