@@ -425,6 +425,8 @@ if(BUILD_NEW_PARSER)
 
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
     
+    list(APPEND libcsound_CFLAGS -DENABLE_NEW_PARSER)
+    
     if(NEW_PARSER_DEBUG)
         message(STATUS "Building with new parser debugging")
         list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
