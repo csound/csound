@@ -1,20 +1,16 @@
 # UTILITY PLUGIN AND PROGRAMS
 
 set(stdutil_SRCS
-    cvanal.c    dnoise.c    envext.c    lpanal.c 
-    mixer.c     pvanal.c    pvlook.c    scale.c
-    sndinfo.c   srconv.c    std_util.c)
-    
-if(NOT buildOLPC ) 
-    list(APPEND stdutil_SRCS
-        atsa.c      xtrct.c         het_export.c    het_import.c
-        hetro.c     lpc_export.c    lpc_import.c
-        pv_export.c pv_import.c     ../SDIF/sdif.c)
-endif()
+    atsa.c          cvanal.c        dnoise.c    envext.c    
+    het_export.c    het_import.c    hetro.c     lpanal.c 
+    lpc_export.c    lpc_import.c    mixer.c     pvanal.c        
+    pv_export.c     pv_import.c     pvlook.c    scale.c
+    sndinfo.c       srconv.c        std_util.c  xtrct.c
+    ../SDIF/sdif.c)
 
 make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
 
-if(NOT BUILD_OLPC AND BUILD_UTILITIES) 
+if(BUILD_UTILITIES) 
     make_utility(atsa        atsa_main.c)
     make_utility(cvanal      cvl_main.c)
     make_utility(dnoise      dnoise_main.c)

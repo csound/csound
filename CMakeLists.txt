@@ -195,7 +195,6 @@ endif()
 ## USER OPTIONS ##
 
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
-option(BUILD_OLPC "Set to build OLPC version" OFF)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 
 option(BUILD_NEW_PARSER "Enable building new parser (requires Flex/Bison)" ON)
@@ -293,10 +292,9 @@ set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
 include_directories(./H)
 
-if(NOT BUILD_OLPC) 
-    #adding this for files that #include SDIF/sdif*
-    include_directories(./)
-endif()
+ 
+#adding this for files that #include SDIF/sdif*
+include_directories(./)
 
 #if(WIN32)
     include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
@@ -335,6 +333,7 @@ set(libcsound_SRCS
     InOut/winascii.c
     InOut/windin.c
     InOut/window.c
+    InOut/winEPS.c
     OOps/aops.c
     OOps/bus.c
     OOps/cmath.c
@@ -367,6 +366,8 @@ set(libcsound_SRCS
     OOps/ugrw2.c
     OOps/vdelay.c
     Top/argdecode.c
+    Top/cscore_internal.c
+    Top/cscorfns.c
     Top/csmodule.c
     Top/csound.c
     Top/getstring.c
@@ -376,14 +377,6 @@ set(libcsound_SRCS
     Top/opcode.c
     Top/threads.c
     Top/utility.c)
-
-# These files are not needed for OLPC builds
-if(NOT BUILD_OLPC)
-    list(APPEND libcsound_SRCS
-        InOut/winEPS.c
-        Top/cscore_internal.c
-        Top/cscorfns.c)
-endif()
 
 # Handling New Parser
 
