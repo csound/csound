@@ -1,8 +1,7 @@
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
-# Blanks are for files not built on OLPC
 set(stdopcod_SRCS 
-                    bbcut.c         biquad.c
+    ambicode.c      bbcut.c         biquad.c
     butter.c        clfilt.c        cross2.c
     dam.c           dcblockr.c      filter.c
     flanger.c       follow.c        fout.c
@@ -13,14 +12,11 @@ set(stdopcod_SRCS
     nlfilt.c        oscbnk.c        pluck.c
     repluck.c       reverbsc.c      seqtime.c
     sndloop.c       sndwarp.c       space.c
-                    syncgrain.c     ugens7.c
+    spat3d.c        syncgrain.c     ugens7.c
     ugens9.c        ugensa.c        uggab.c
     ugmoss.c        ugnorman.c      ugsc.c
     wave-terrain.c  stdopcod.c)
 
-if( NOT buildOLPC )
-    list(APPEND stdopcod_SRCS ambicode.c spat3d.c)
-endif()
 make_plugin(stdopcod "${stdopcod_SRCS}" ${LIBSNDFILE_LIBRARY} m)
 if(HAVE_VALUES_H)
     set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
@@ -102,37 +98,34 @@ if(NOT WIN32)
     make_plugin(udpsend socksend.c)
 endif()
 
-if(NOT buildOLPC) 
-    # IF NOT BUILDING WITH OLPC, BUILD THESE OPCODE LIBS
-    make_plugin(ftest ftest.c m)
-    make_plugin(ambicode1 ambicode1.c m)
-    make_plugin(babo babo.c m)
-    make_plugin(hrtferX hrtferX.c m)
 
-    set(vbap_SRCS 
-        vbap.c vbap_eight.c vbap_four.c
-        vbap_sixteen.c vbap_zak.c)
-    make_plugin(vbap "${vbap_SRCS}" m)
+make_plugin(ftest ftest.c m)
+make_plugin(ambicode1 ambicode1.c m)
+make_plugin(babo babo.c m)
+make_plugin(hrtferX hrtferX.c m)
 
-    set(scansyn_SRCS
-        scansyn.c scansynx.c)
-    make_plugin(scansyn "${scansyn_SRCS}" m)
-    
-    if(UNIX)
-        make_plugin(control control.c)
-    endif()
+set(vbap_SRCS 
+    vbap.c vbap_eight.c vbap_four.c
+    vbap_sixteen.c vbap_zak.c)
+make_plugin(vbap "${vbap_SRCS}" m)
+
+set(scansyn_SRCS
+    scansyn.c scansynx.c)
+make_plugin(scansyn "${scansyn_SRCS}" m)
+
+if(UNIX)
+    make_plugin(control control.c)
 endif()
+
 
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-if(buildOLPC)
-    # IF BUILDING WITH OLPC, BUILD THESE OPCODE LIBS
-    if(VORBISFILE_LIBRARY)
-        set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
-        make_plugin(ogg ogg.c "${vorbis_LIBS}")
-    endif()
-endif()
+# OGG Opcode previously was built only for OLPC
+#if(VORBISFILE_LIBRARY)
+#    set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
+#    make_plugin(ogg ogg.c "${vorbis_LIBS}")
+#endif()
 
 
 
