@@ -69,6 +69,7 @@ def getPlatform():
 
 print "System platform is '" + getPlatform() + "'."
 
+
 # Create options that can be set from the command line.
 
 commandOptions = Options()
@@ -323,6 +324,8 @@ Help(commandOptions.GenerateHelpText(commonEnvironment))
 
 if commonEnvironment['custom']:
     optionsFilename = commonEnvironment['custom']
+
+Requires(optionsFilename, commonEnvironment)
 
 print "Using options from '%s.'" % optionsFilename
 
