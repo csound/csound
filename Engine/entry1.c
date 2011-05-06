@@ -869,6 +869,10 @@ OENTRY opcodlst_1[] = {
    (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
 { "remove",      S(DELETEIN),         1,      "",             "T",
    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
+#ifdef PARCS
+{ "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globallock,   globallock,   NULL},
+{ "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globalunlock, globalunlock, NULL},
+#endif
 /* terminate list */
 {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
