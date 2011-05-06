@@ -157,6 +157,10 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
+#ifdef PARCS                    
+#include "cs_par_base.h"
+#include "cs_par_orc_semantics.h"
+#endif
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
@@ -206,26 +210,43 @@ intlist   :  T_INTGR S_COM intlist
 instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
             intlist S_NL
-                { namedInstrFlag = 0; }
+                { namedInstrFlag = 0;
+#ifdef PARCS
+                  csp_orc_sa_instr_add_tree(csound, $3);
+#endif
+                }
             statementlist T_ENDIN S_NL
                 {
                     $$ = make_node(csound, T_INSTR, $3, $6);
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
 
           | T_INSTR
                 { namedInstrFlag = 1; }
             T_IDENT S_NL
-                { namedInstrFlag = 0; }
+                { namedInstrFlag = 0;
+#ifdef PARCS
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$3)->lexeme);
+#endif
+                }
             statementlist T_ENDIN S_NL
                 {
                     TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
                     $$ = make_node(csound, T_INSTR, ident, $6);
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
 
           | T_INSTR S_NL error
                 {
                     namedInstrFlag = 0;
                     csound->Message(csound, Str("No number following instr\n"));
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
           ;
 
@@ -301,6 +322,11 @@ statement : ident S_ASSIGN expr S_NL
                        ans->left->value->lexeme, ans->right->value->lexeme); */
 
                     $$ = ans;
+#ifdef PARCS                    
+                    csp_orc_sa_global_read_write_add_list(csound, 
+                                                            csp_orc_sa_globals_find(csound, ans->left),
+                                                            csp_orc_sa_globals_find(csound, ans->right));    
+#endif              
                 }
           | ans opcode exprlist S_NL
                 {
@@ -309,6 +335,11 @@ statement : ident S_ASSIGN expr S_NL
                     $2->right = $3;
 
                     $$ = $2;
+#ifdef PARCS
+                    csp_orc_sa_global_read_write_add_list(csound, 
+                                                            csp_orc_sa_globals_find(csound, $2->left),
+                                                            csp_orc_sa_globals_find(csound, $2->right));
+#endif
                 }
           | opcode0 exprlist S_NL
                 {
@@ -316,6 +347,9 @@ statement : ident S_ASSIGN expr S_NL
                     ((TREE *)$1)->right = (TREE *)$2;
 
                     $$ = $1;
+#ifdef PARCS                    
+w                    csp_orc_sa_global_read_add_list(csound, csp_orc_sa_globals_find(csound, $1->right));
+#endif
                 }
           | T_LABEL
                 {
