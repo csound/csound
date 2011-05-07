@@ -200,6 +200,8 @@ option(BUILD_UTILITIES "Build stand-alone executables for utilities that can als
 option(BUILD_NEW_PARSER "Enable building new parser (requires Flex/Bison)" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 
+option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" OFF)
+
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
 
  # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
@@ -426,6 +428,22 @@ if(BUILD_NEW_PARSER)
     else()
         message(STATUS "Not building with new parser debugging")
     endif()
+    
+    if(BUILD_MULTI_CORE)
+        message(STATUS "Building with multicore")
+        
+        list(APPEND libcsound_SRCS
+            Engine/cs_par_base.c
+            Engine/cs_par_orc_semantic_analysis.c
+            Engine/cs_par_dispatch.c
+            Engine/new_orc_parser.c)
+        
+        list(APPEND libcsound_CFLAGS -DPARCS)
+        
+    else()
+        message(STATUS "Not building with multicore")
+    endif()
+    
 endif()
 
 
