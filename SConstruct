@@ -1126,7 +1126,7 @@ Engine/cs_par_dispatch.c
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
 
-if commonEnvironment['buildNewParser'] != '0':
+if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += newParserSources
 
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
