@@ -25,12 +25,6 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
-
-#include "csound_orc.h"
-
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include "cs_par_dispatch.h"
 #if defined(USE_OPENMP)
 #include <omp.h>
 #endif
@@ -419,40 +413,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-#ifdef PARCS
-    /* SYY - Mar 28, 2007 - Multithreaded Csound */
-
-    if (O->numThreads > 1) {
-        int i;
-        THREADINFO *current = NULL;
-
-        csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
-        csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
-
-        csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
-        csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-
-        csound->multiThreadedComplete = 0;
-
-        for(i = 1; i < O->numThreads; i++) {
-            THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
-
-            t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
-            t->next = NULL;
-
-            if(current == NULL) {
-                csound->multiThreadedThreadInfo = t;
-            } else {
-                current->next = t;
-            }
-            current = t;
-        }
-
-        csound->WaitBarrier(csound->barrier2);
-
-        csp_parallel_compute_spec_setup(csound);
-    }
-#endif
 
     return musmon(csound);
 }
