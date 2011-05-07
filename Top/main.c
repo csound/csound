@@ -28,9 +28,12 @@
 
 #include "csound_orc.h"
 
+#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
+#endif
+
 #if defined(USE_OPENMP)
 #include <omp.h>
 #endif
