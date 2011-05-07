@@ -1113,6 +1113,7 @@ Engine/csound_orc_semantics.c
 Engine/csound_orc_expressions.c
 Engine/csound_orc_optimize.c
 Engine/csound_orc_compile.c
+Engine/new_orc_parser.c
 Engine/symbtab.c
 ''')
 
@@ -1120,7 +1121,6 @@ MultiCoreSources = Split('''
 Engine/cs_par_base.c
 Engine/cs_par_orc_semantic_analysis.c
 Engine/cs_par_dispatch.c
-Engine/new_orc_parser.c
 ''')
 
 if commonEnvironment['buildMultiCore'] != '0':

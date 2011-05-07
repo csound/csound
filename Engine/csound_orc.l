@@ -69,6 +69,7 @@ static unsigned int macro_stack_ptr = 0;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
+STRCONSTe       \"(\\.|[^\"])*$
 LABEL           [a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
@@ -173,6 +174,12 @@ CONT            \\[[ \t]*\n
 {LABEL}         { *lvalp = make_label(csound, yytext); return T_LABEL; }
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
+
+{STRCONSTe}     { *lvalp = make_string(csound, yytext); 
+                  csound->Message(csound, 
+                          Str("unterminated string found on line %d >>%s<<\n"),
+                          yyline, yytext);
+                  return (T_STRCONST); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
