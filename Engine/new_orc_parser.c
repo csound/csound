@@ -3,6 +3,7 @@
 
     Copyright (C) 2006
     Steven Yi
+    Modifications 2009 by Christopher Wilson for multicore
 
     This file is part of Csound.
 
@@ -61,7 +62,7 @@ void new_orc_parser(CSOUND *csound)
     csound_orcrestart(csound_orcin);
     retVal = csound_orcparse(csound, astTree);
 
-    if (retVal == 0) {
+    if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
     }
     else if (retVal == 1){
@@ -76,12 +77,26 @@ void new_orc_parser(CSOUND *csound)
     }
 
     astTree = verify_tree(csound, astTree);
+#ifdef PARCS
+    if (LIKELY(O->numThreads > 1)) {
+      /* insert the locks around global variables before expr expansion */
+      astTree = csp_locks_insert(csound, astTree);
+      csp_locks_cache_build(csound);
+    }
+#endif /* PARCS */
+
     astTree = csound_orc_expand_expressions(csound, astTree);
 
     if (UNLIKELY(PARSER_DEBUG)) {
       print_tree(csound, "AST - AFTER EXPANSION\n", astTree);
+    }     
+#ifdef PARCS
+    if (LIKELY(O->numThreads > 1)) {
+      /* calculate the weights for the instruments */
+      csp_weights_calculate(csound, astTree);
     }
-
+#endif /* PARCS */
+ 
     astTree = csound_orc_optimize(csound, astTree);
     csound_orc_compile(csound, astTree);
 
