@@ -1113,7 +1113,6 @@ Engine/csound_orc_semantics.c
 Engine/csound_orc_expressions.c
 Engine/csound_orc_optimize.c
 Engine/csound_orc_compile.c
-Engine/new_orc_parser.c
 Engine/symbtab.c
 ''')
 
