@@ -348,7 +348,7 @@ statement : ident S_ASSIGN expr S_NL
 
                     $$ = $1;
 #ifdef PARCS                    
-w                    csp_orc_sa_global_read_add_list(csound, csp_orc_sa_globals_find(csound, $1->right));
+                    csp_orc_sa_global_read_add_list(csound, csp_orc_sa_globals_find(csound, $1->right));
 #endif
                 }
           | T_LABEL
