@@ -29,6 +29,9 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
+#ifdef PARCS
+#include <pthread.h>
+#endif
 #include <stdarg.h>
 #include <setjmp.h>
 
@@ -192,6 +195,7 @@ typedef struct {
     int     useCsdLineCounts;
 #ifdef ENABLE_NEW_PARSER
     int     newParser; /* SYY - July 30, 2006: for --new-parser */
+    int     calculateWeights;
 #endif
   } OPARMS;
 
@@ -1319,6 +1323,14 @@ extern const uint32_t csPlayScoMask;
     THREADINFO    *multiThreadedThreadInfo;
     INSDS         *multiThreadedStart;
     INSDS         *multiThreadedEnd;
+#ifdef PARCS
+    char                *weight_info;
+    char                *weight_dump;
+    char                *weights;
+    struct dag_t        *multiThreadedDag;
+    pthread_barrier_t   *barrier1;
+    pthread_barrier_t   *barrier2;
+#endif
     uint32_t      tempStatus;    /* keeps track of which files are temps */
     int           orcLineOffset; /* 1 less than 1st orch line in the CSD */
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */

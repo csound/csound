@@ -240,6 +240,9 @@ commandOptions.Add('buildNewParser',
 commandOptions.Add('NewParserDebug',
     'Enable tracing of new parser',
     '0')
+commandOptions.Add('buildMultiCore',
+    'Enable building for multicore sytem (requires new parser)',
+    '0')
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
@@ -865,7 +868,10 @@ if getPlatform() == 'darwin':
 
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
-if commonEnvironment['buildNewParser'] != '0':
+if commonEnvironment['buildMultiCore'] != '0':
+    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+
+if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
     if getPlatform() == "win32":
         Tool('lex')(csoundLibraryEnvironment)
         Tool('yacc')(csoundLibraryEnvironment)
@@ -1110,6 +1116,16 @@ Engine/csound_orc_compile.c
 Engine/new_orc_parser.c
 Engine/symbtab.c
 ''')
+
+MultiCoreSources = Split('''
+Engine/cs_par_base.c
+Engine/cs_par_orc_semantic_analysis.c
+Engine/cs_par_dispatch.c
+Engine/new_orc_parser.c
+''')
+
+if commonEnvironment['buildMultiCore'] != '0':
+    libCsoundSources += MultiCoreSources
 
 if commonEnvironment['buildNewParser'] != '0':
     libCsoundSources += newParserSources
