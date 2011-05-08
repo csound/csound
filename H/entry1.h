@@ -55,6 +55,9 @@
 #include "bus.h"
 #include "pstream.h"
 #include "remote.h"
+#ifdef PARCS
+#include "cs_par_ops.h"
+#endif
 
 #define S(x)    sizeof(x)
 
@@ -375,4 +378,6 @@ int     delete_instr(CSOUND *, void *);
 int     insremot(CSOUND *, void *), insglobal(CSOUND *, void *);
 int     midremot(CSOUND *, void *), midglobal(CSOUND *, void *);
 int     remoteport(CSOUND *, void *);
+int     globallock(CSOUND *, void *);
+int     globalunlock(CSOUND *, void *);
 int filebit(CSOUND *, void *);

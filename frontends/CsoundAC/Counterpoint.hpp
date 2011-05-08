@@ -56,7 +56,7 @@
 #include <string>
 #include <cstdarg>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <boost/random.hpp>
 #include <boost/random/variate_generator.hpp>
 %}
@@ -64,7 +64,7 @@
 #include <string>
 #include <cstdarg>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/random.hpp>

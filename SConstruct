@@ -69,6 +69,7 @@ def getPlatform():
 
 print "System platform is '" + getPlatform() + "'."
 
+
 # Create options that can be set from the command line.
 
 commandOptions = Options()
@@ -239,6 +240,9 @@ commandOptions.Add('buildNewParser',
 commandOptions.Add('NewParserDebug',
     'Enable tracing of new parser',
     '0')
+commandOptions.Add('buildMultiCore',
+    'Enable building for multicore sytem (requires new parser)',
+    '0')
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
@@ -324,6 +328,8 @@ Help(commandOptions.GenerateHelpText(commonEnvironment))
 if commonEnvironment['custom']:
     optionsFilename = commonEnvironment['custom']
 
+Requires(optionsFilename, commonEnvironment)
+
 print "Using options from '%s.'" % optionsFilename
 
 fileOptions = Options(optionsFilename)
@@ -407,6 +413,10 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch ppc '))
+      if cpuType == 'universalX86':
+        commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch x86_64 '))
+        commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch x86_64 '))
+        commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch x86_64 '))
       else:
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch %s' % cpuType))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch %s' % cpuType))
@@ -858,7 +868,10 @@ if getPlatform() == 'darwin':
 
 csoundLibraryEnvironment = commonEnvironment.Clone()
 
-if commonEnvironment['buildNewParser'] != '0':
+if commonEnvironment['buildMultiCore'] != '0':
+    csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+
+if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
     if getPlatform() == "win32":
         Tool('lex')(csoundLibraryEnvironment)
         Tool('yacc')(csoundLibraryEnvironment)
@@ -1104,7 +1117,16 @@ Engine/new_orc_parser.c
 Engine/symbtab.c
 ''')
 
-if commonEnvironment['buildNewParser'] != '0':
+MultiCoreSources = Split('''
+Engine/cs_par_base.c
+Engine/cs_par_orc_semantic_analysis.c
+Engine/cs_par_dispatch.c
+''')
+
+if commonEnvironment['buildMultiCore'] != '0':
+    libCsoundSources += MultiCoreSources
+
+if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += newParserSources
 
 csoundLibraryEnvironment.Append(CCFLAGS='-fPIC')
