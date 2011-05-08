@@ -435,8 +435,7 @@ if(BUILD_NEW_PARSER)
         list(APPEND libcsound_SRCS
             Engine/cs_par_base.c
             Engine/cs_par_orc_semantic_analysis.c
-            Engine/cs_par_dispatch.c
-            Engine/new_orc_parser.c)
+            Engine/cs_par_dispatch.c)
         
         list(APPEND libcsound_CFLAGS -DPARCS)
         
