@@ -413,7 +413,7 @@ elif commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch ppc '))
         commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch ppc '))
-      if cpuType == 'universalX86':
+      elif cpuType == 'universalX86':
         commonEnvironment.Prepend(CCFLAGS = Split('-O3 -arch i386 -arch x86_64 '))
         commonEnvironment.Prepend(CXXFLAGS = Split('-O3 -arch i386 -arch x86_64 '))
         commonEnvironment.Prepend(LINKFLAGS = Split('-arch i386 -arch x86_64 '))
