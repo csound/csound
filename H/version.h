@@ -14,6 +14,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
+
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -24,10 +25,18 @@
 #define CSOUND_VERSION_H
 
 /* Define to the full name of this package. */
+#ifndef PARCS
 #define CS_PACKAGE_NAME     "Csound"
+#else /* PARCS */
+#define CS_PACKAGE_NAME     "ParCsound"
+#endif /* PARCS */
 
 /* Define to the full name and version of this package. */
+#ifndef PARCS
 #define CS_PACKAGE_STRING   "Csound 5.13"
+#else /* PARCS */
+#define CS_PACKAGE_STRING   "ParCsound 5.13"
+#endif /* PARCS */
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
@@ -36,7 +45,7 @@
 #define CS_PACKAGE_VERSION  "5.13"
 #define CS_VERSION          (5)
 #define CS_SUBVER           (13)
-#define CS_PATCHLEVEL       (51)
+#define CS_PATCHLEVEL       (55)
 
 #define CS_APIVERSION       2   /* should be increased anytime a new version
                                    contains changes that an older host will

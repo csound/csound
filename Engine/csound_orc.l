@@ -69,6 +69,7 @@ static unsigned int macro_stack_ptr = 0;
 %}
 
 STRCONST        \"(\\.|[^\"])*\"
+STRCONSTe       \"(\\.|[^\"])*$
 LABEL           [a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
@@ -173,6 +174,12 @@ CONT            \\[[ \t]*\n
 {LABEL}         { *lvalp = make_label(csound, yytext); return T_LABEL; }
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
+
+{STRCONSTe}     { *lvalp = make_string(csound, yytext); 
+                  csound->Message(csound, 
+                          Str("unterminated string found on line %d >>%s<<\n"),
+                          yyline, yytext);
+                  return (T_STRCONST); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
@@ -664,6 +671,7 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
  */
 void cs_init_math_constants_macros(CSOUND *csound)
  {
+     yyline = csound->orcLineOffset; /* deal with offset */
      add_math_const_macro(csound, "E", "2.7182818284590452354");
      add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
      add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
