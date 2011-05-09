@@ -1579,7 +1579,8 @@ makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
 #makePlugin(oggEnvironment, 'ogg', ['Opcodes/ogg.c'])
 #oggEnvironment.Append(LIBS=['vorbisfile'])
 makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
-makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
+if getPlatform() == 'linux':
+    makePlugin(pluginEnvironment, 'cpumeter', ['Opcodes/cpumeter.c'])
 
 if commonEnvironment['buildImageOpcodes'] == '1':
     if getPlatform() == 'win32':
