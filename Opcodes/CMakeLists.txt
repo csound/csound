@@ -115,6 +115,7 @@ make_plugin(scansyn "${scansyn_SRCS}" m)
 
 if(UNIX)
     make_plugin(control control.c)
+    make_plugin(cpumeter cpumeter.c)
 endif()
 
 
