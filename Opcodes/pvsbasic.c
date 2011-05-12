@@ -364,6 +364,12 @@ int pvstanal(CSOUND *csound, PVST *p)
 
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
+      if(ft == NULL){
+	csound->PerfError(csound, "could not find table number %d\n", (int) *p->knum);
+	return NOTOK;
+
+      }
+
       tab = ft->ftable;
       size = ft->flen;
       /* nchans = ft->nchanls; */
@@ -666,12 +672,15 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
           freq = ffun*m;
           cfbin = freq/w;
           cbin = (int)MYFLT2LRND(cfbin);
-          for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
-            a = sin(i-cfbin)/(i-cfbin);
+          if (cbin != 0)     {
+            for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
+            if(i-cfbin == 0) a = 1;
+	    else a = sin(i-cfbin)/(i-cfbin);
             fout[i].re = amp*a*a*a;
             fout[i].im = freq;
           }
           if (type==2) m++;
+	  }
         }
       }
       return OK;
@@ -695,13 +704,16 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
         freq = ffun*n;
         cfbin = freq/w;
         cbin = (int)MYFLT2LRND(cfbin);
+         if (cbin != 0)     {
         for (i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++) {
           k = i<<1;
-          a = sin(i-cfbin)/(i-cfbin);
+          if(i-cfbin == 0) a = 1;
+          else a = sin(i-cfbin)/(i-cfbin);
           fout[k] = amp*a*a*a;
           fout[k+1] = freq;
         }
         if (type==2) n++;
+	 }
       }
       p->fout->framecount = p->lastframe;
     }
@@ -1968,6 +1980,14 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     int size = ft->flen;
     MYFLT *ftab = ft->ftable;
 
+    if(ft == NULL) {
+      csound->PerfError(csound, "could not find table number %d\n", (int) *p->ftab);
+      return NOTOK;
+    }
+
+    size = ft->flen;
+    ftab = ft->ftable;
+
     *p->kflag = 0.0;
     if (p->lastframe < p->fin->framecount) {
       {
@@ -2072,7 +2092,7 @@ static OENTRY localops[] = {
   {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
-  {"pvsenvw", sizeof(PVSWARP), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
+  {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
 };
 
 int pvsbasic_init_(CSOUND *csound)
