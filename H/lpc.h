@@ -26,8 +26,8 @@
 #define LP_MAGIC    999
 #define LP_MAGIC2   2399                   /* pole file type */
 #define LPBUFSIZ    4096           /* in lpanal */
-#define MAXWINDIN   1000           /* for 10ms hops at 50 KC */
-#define MAXPOLES    50
+#define MAXWINDIN   5000           /* for 10ms hops at 50 KC */
+#define MAXPOLES    1000
 #define NDATA       4   /* number of data values stored with frame */
 
 typedef struct {
