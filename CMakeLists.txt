@@ -46,7 +46,7 @@ function(make_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        if(NOT MSVC OR NOT(${ARGV${i}} MATCHES "m"))
+        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
             target_link_libraries(${libname} ${ARGV${i}})
         endif()
         math(EXPR i "${i}+1")
