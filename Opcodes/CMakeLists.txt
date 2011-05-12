@@ -117,7 +117,9 @@ if(UNIX)
     make_plugin(control control.c)
 endif()
 
-
+if(LINUX)
+    make_plugin(cpumeter cpumeter.c)
+endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
