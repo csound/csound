@@ -761,8 +761,9 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
     int i, j, k, limit;
 
    /* Transfer signal in x array */
-    for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig)/*   &  copy sigin into */
+    for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig){ /*   &  copy sigin into */
       *xp = (double) *sig;
+    }
 
    /* Build system to be solved */
     for (i=0; i < thislp->poleCount;++i)  {
@@ -837,11 +838,13 @@ static void gauss(CSOUND *csound, LPC* thislp,
           amax = npq;
         }
       }
-      if (amax < 1.0e-20) {
-        csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
-                        i, thislp->poleCount, amax);
-        csound->Die(csound, Str("gauss: ill-conditioned"));
-      }
+       if (amax < 1.0e-20) {
+   /* csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
+                      i, thislp->poleCount, amax);
+      csound->Die(csound, Str("gauss: ill-conditioned"));
+   */ 
+	 for (ii=i; ii < thislp->poleCount;++ii) a[ii][i] = 1.0e-20; /* VL: fix for very low values */
+       }
       if (i != istar) {
         for (j=0; j < thislp->poleCount;++j)  {    /* switch rows */
           dum = a[istar][j];
@@ -870,11 +873,14 @@ static void gauss(CSOUND *csound, LPC* thislp,
       }
     }                               /* return if last pivot is too small */
     if (fabs(a[thislp->poleCount-1][thislp->poleCount-1]) < 1e-20) {
-      csound->Message(csound,"Row %d or %d have maximum of %g\n",
+      a[thislp->poleCount-1][thislp->poleCount-1] = 1.0e-20; /* VL: fix for very low values */
+
+      /*
+            csound->Message(csound,"Row %d or %d have maximum of %g\n",
              thislp->poleCount-1, thislp->poleCount,
              fabs(a[thislp->poleCount-1][thislp->poleCount-1]));
-      csound->Die(csound, Str("gauss: ill-conditioned"));
-    }
+	     csound->Die(csound, Str("gauss: ill-conditioned"));*/
+      }
 
     b[thislp->poleCount-1] =
       c[thislp->poleCount-1] / a[thislp->poleCount-1][thislp->poleCount-1];
