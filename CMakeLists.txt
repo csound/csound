@@ -254,11 +254,12 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h") 
 endif()
 
-if(WIN32)   
+find_library(PTHREAD_LIBRARY pthread)
+
+if(NOT PTHREAD_LIBRARY AND WIN32)   
     find_library(PTHREAD_LIBRARY pthreadGC2)
-else()
-    find_library(PTHREAD_LIBRARY pthread)
-endif(WIN32)
+endif()
+
 if(NOT PTHREAD_LIBRARY)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
