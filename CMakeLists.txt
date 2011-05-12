@@ -27,6 +27,7 @@ if(CUSTOM_CMAKE)
 endif()
 
 include(TestBigEndian)
+include(CheckFunctionExists)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -45,7 +46,9 @@ function(make_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        target_link_libraries(${libname} ${ARGV${i}})
+        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
+            target_link_libraries(${libname} ${ARGV${i}})
+        endif()
         math(EXPR i "${i}+1")
     endwhile()
     
@@ -264,6 +267,9 @@ if(NOT PTHREAD_LIBRARY)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
+set(CMAKE_REQUIRED_INCLUDES pthread.h)
+set(CMAKE_REQUIRED_LIBRARIES pthread)
+
 # Now, non required library searches #
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
@@ -298,6 +304,20 @@ include_directories(./H)
  
 #adding this for files that #include SDIF/sdif*
 include_directories(./)
+
+#checking pthread functions
+check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
+
+if(PTHREAD_SPIN_LOCK_EXISTS)
+   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
+endif()
+
+if(PTHREAD_BARRIER_INIT_EXISTS)
+   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+endif()
+
+
 
 #if(WIN32)
     include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
