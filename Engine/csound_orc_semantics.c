@@ -118,7 +118,13 @@ int csound_orcwrap()
 void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 {
     extern int yyline;
-    csound->Message(csound, Str("csound_orcerror on line %d: %s\n"), yyline, str);
+    extern char* csound_orctext;
+    extern FILE* csound_orcin;
+    extern char* buffer;
+
+    csound->Message(csound, Str("error: %s (token \"%s\")"), str, csound_orctext);
+    csound->Message(csound, Str(" line %d: %s"), yyline, buffer); // buffer has \n at end
+
 }
 
 /**
