@@ -754,13 +754,13 @@ int get_next_line(void) {
   char *p;
   
   nBuffer = 0;
-  eof = false;
+  eof = 0;
 
   p = fgets(buffer, lMaxBuffer, yyin);
   if (  p == NULL  ) {
     if (  ferror(yyin)  )
       return -1;
-    eof = true;
+    eof = 1;
     return 1;
   }
 
