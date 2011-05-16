@@ -86,14 +86,14 @@ OPTWHITE        [ \t]*
 INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
-CONT            \\[[ \t]*\n
+CONT            \\[ \t]*\n
 %x incl
 %x macro
 %x umacro
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-{CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
+{CONT}          { yyline++; }
 "\n"            { yyline++; return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }
@@ -671,7 +671,7 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
  */
 void cs_init_math_constants_macros(CSOUND *csound)
  {
-     yyline = csound->orcLineOffset; /* deal with offset */
+     yyline = csound->orcLineOffset-1; /* deal with offset */
      add_math_const_macro(csound, "E", "2.7182818284590452354");
      add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
      add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
