@@ -880,6 +880,7 @@ if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCo
     csoundLibraryEnvironment.Append(YACCFLAGS = ['-d', reportflag, '-p','csound_orc'])
     csoundLibraryEnvironment.Append(LEXFLAGS = ['-Pcsound_orc'])
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DENABLE_NEW_PARSER'])
+    csoundLibraryEnvironment.Append(CPPPATH = ['Engine'])
     yaccBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orcparse.c',
                                source = 'Engine/csound_orc.y')
     lexBuild = csoundLibraryEnvironment.CFile(target = 'Engine/csound_orclex.c',

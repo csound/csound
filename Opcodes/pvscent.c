@@ -162,8 +162,8 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
-    size = sizeof(MYFLT)*(p->fin->N+2)/4;
-    if(p->peakfreq.auxp == NULL || p->peakfreq.size < size/2)
+    size = sizeof(MYFLT)*(p->fin->N+2);
+    if(p->peakfreq.auxp == NULL || p->peakfreq.size < size)
     csound->AuxAlloc(csound, size, &p->peakfreq);
     if(p->inharmonic.auxp == NULL || p->inharmonic.size < size)
     csound->AuxAlloc(csound, size, &p->inharmonic);
