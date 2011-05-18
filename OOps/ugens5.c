@@ -693,8 +693,8 @@ int lpread(CSOUND *csound, LPREAD *p)
         return csound->PerfError(csound, Str("Interpolation failed"));
       }
       for (i=0; i<p->npoles; i++) {
-        *cp++ = interMagn[i];
-        *cp++ = interPhas[i];
+        *cp++ =  interMagn[i];
+        *cp++ =  interPhas[i];
       }
     }
     else {

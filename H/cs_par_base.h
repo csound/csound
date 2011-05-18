@@ -3,27 +3,28 @@
 
 #include <semaphore.h>
 
-#define TAKE_LOCK(x) pthread_spin_lock(x)
+/* #define TAKE_LOCK(x) pthread_spin_lock(x)
 #define RELS_LOCK(x) pthread_spin_unlock(x)
 #define LOCK_TYPE  pthread_spinlock_t
-#define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE)
+#define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE)*/
 
 /* #define TAKE_LOCK(x) pthread_mutex_lock(x) */
 /* #define RELS_LOCK(x) pthread_mutex_unlock(x) */
 /* #define LOCK_TYPE  pthread_mutex_t */
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
-/* #if !defined(HAVE_PTHREAD_SPIN_LOCK) */
-/* # define TAKE_LOCK(x) pthread_mutex_lock(x) */
-/* # define RELS_LOCK(x) pthread_mutex_unlock(x) */
-/* # define LOCK_TYPE  pthread_mutex_t */
-/* # define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
-/* #else */
-/* # define TAKE_LOCK(x) pthread_spin_lock(x) */
-/* # define RELS_LOCK(x) pthread_spin_unlock(x) */
-/* # define LOCK_TYPE  pthread_spinlock_t */
-/* # define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE) */
-/* #endif */
+#if !defined(HAVE_PTHREAD_SPIN_LOCK) /* VL: 18.05.2011 enabled this to allow OSX build */
+ # define TAKE_LOCK(x) pthread_mutex_lock(x) 
+ # define RELS_LOCK(x) pthread_mutex_unlock(x) 
+ # define LOCK_TYPE  pthread_mutex_t 
+ # define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) 
+
+ #else 
+ # define TAKE_LOCK(x) pthread_spin_lock(x) 
+ # define RELS_LOCK(x) pthread_spin_unlock(x) 
+ # define LOCK_TYPE  pthread_spinlock_t 
+ # define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE) 
+#endif 
 
 #define DYNAMIC_2_SERIALIZE_PAR
 
