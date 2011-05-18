@@ -55,6 +55,22 @@ int yyline = 0;
 //YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #define MARGS   (3)
 
+static int eof = 0;
+static int nBuffer = 0;
+static int lBuffer = 0;
+int lMaxBuffer = 1000;
+char *buffer;
+
+int get_next_char(char *b, int maxBuffer); 
+int get_next_line(void); 
+
+#define YY_INPUT(buf,result,max_size)  {\
+    result = get_next_char(buf, max_size); \
+    if (  result <= 0  ) \
+      result = YY_NULL; \
+    }
+
+
 typedef struct MACRO {          /* To store active macros */
     char          *name;        /* Use is by name */
     int           acnt;         /* Count of arguments */
@@ -94,7 +110,8 @@ CONT            \\[[ \t]*\n
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 {CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
-"\n"            { yyline++; return S_NL; }
+"\n"            { //yyline++; 
+                  return S_NL; }
 "//"            { comment(); return S_NL; }
 ";"             { comment(); return S_NL; }
 {STCOM}         { do_comment(); }
@@ -728,3 +745,48 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
       nn = nn->next;
     }
 }
+
+
+/* Functions for working with grabbing input one line aa time */
+
+int get_next_line(void) {
+  int i;
+  char *p;
+  
+  nBuffer = 0;
+  eof = 0;
+
+  p = fgets(buffer, lMaxBuffer, yyin);
+  if (  p == NULL  ) {
+    if (  ferror(yyin)  )
+      return -1;
+    eof = 1;
+    return 1;
+  }
+
+  yyline++;
+  
+  lBuffer = strlen(buffer);
+
+  return 0;
+}
+
+int get_next_char(char *b, int maxBuffer) {
+  int frc;
+  
+  if (  eof  )
+    return 0;
+  
+  while (  nBuffer >= lBuffer  ) {
+    frc = get_next_line();
+    if (  frc != 0  )
+      return 0;
+    }
+
+  b[0] = buffer[nBuffer];
+  nBuffer += 1;
+
+  return b[0]==0?0:1;
+}
+
+
