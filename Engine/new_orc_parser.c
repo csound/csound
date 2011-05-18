@@ -44,6 +44,11 @@ extern void csound_orc_compile(CSOUND *, TREE *);
 
 void new_orc_parser(CSOUND *csound)
 {
+
+	/* The following are defined in csound_orc.l */
+	extern int lMaxBuffer;
+	extern char* buffer;
+
     void *t;
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
@@ -51,12 +56,16 @@ void new_orc_parser(CSOUND *csound)
 
     init_symbtab(csound);
 
+    buffer = (char*)csound->Malloc(csound, lMaxBuffer);
+
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Testing...\n");
 
     if (UNLIKELY((t = csound->FileOpen2(csound, &csound_orcin, CSFILE_STD,
                                  csound->orchname, "rb", NULL,
-                                        CSFTYPE_ORCHESTRA, 0)) == NULL))
-      csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
+                                        CSFTYPE_ORCHESTRA, 0)) == NULL)) {
+    	csound->Free(csound, buffer);
+    	csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
+    }
 
     csound_orcdebug = O->odebug;
     csound_orcrestart(csound_orcin);
@@ -100,5 +109,6 @@ void new_orc_parser(CSOUND *csound)
     astTree = csound_orc_optimize(csound, astTree);
     csound_orc_compile(csound, astTree);
 
+    csound->Free(csound, buffer);
 }
 
