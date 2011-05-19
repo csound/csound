@@ -383,3 +383,5 @@ int     globalunlock(CSOUND *, void *);
 int     filebit(CSOUND *, void *);
 int     iexprndi(CSOUND *, void *), exprndiset(CSOUND *, void *);
 int     kexprndi(CSOUND *, void *), aexprndi(CSOUND *, void *);
+int     icauchyi(CSOUND *, void *), cauchyiset(CSOUND *, void *);
+int     kcauchyi(CSOUND *, void *), acauchyi(CSOUND *, void *);
