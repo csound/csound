@@ -106,6 +106,7 @@ OENTRY opcodlst_1[] = {
 { "chanctrl",0xffff                                                     },
 { "cpsmidib",0xffff                                                     },
 { "exprand", 0xffff                                                     },
+{ "exprandi", 0xffff                                                     },
 { "gauss" ,  0xffff                                                     },
 { "limit", 0xffff,                                                      },
 { "linrand", 0xffff                                                     },
@@ -873,6 +874,9 @@ OENTRY opcodlst_1[] = {
 { "##globallock",   S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globallock,   globallock,   NULL},
 { "##globalunlock", S(GLOBAL_LOCK_UNLOCK), 3, "", "k", globalunlock, globalunlock, NULL},
 #endif
+{ "exprandi.i",S(PRANDI), 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
+{ "exprandi.k",S(PRANDI), 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
+{ "exprandi.a",S(PRANDI), 4,      "a",    "kxx",  exprndiset, NULL, aexprndi },
 /* terminate list */
 {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };

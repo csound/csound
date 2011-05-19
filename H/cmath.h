@@ -37,3 +37,11 @@ typedef struct  {
         MYFLT   *out, *arg1, *arg2, *arg3;
 } PRAND;
 
+typedef struct  {
+        OPDS    h;
+        MYFLT   *ar, *arg1, *xamp, *xcps;
+        MYFLT   *iseed;
+        MYFLT   dfdmax, num1, num2;
+        int32   phs;
+        int     ampcod, cpscod;
+} PRANDI;
