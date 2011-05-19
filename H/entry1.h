@@ -385,3 +385,5 @@ int     iexprndi(CSOUND *, void *), exprndiset(CSOUND *, void *);
 int     kexprndi(CSOUND *, void *), aexprndi(CSOUND *, void *);
 int     icauchyi(CSOUND *, void *), cauchyiset(CSOUND *, void *);
 int     kcauchyi(CSOUND *, void *), acauchyi(CSOUND *, void *);
+int     igaussi(CSOUND *, void *), gaussiset(CSOUND *, void *);
+int     kgaussi(CSOUND *, void *), agaussi(CSOUND *, void *);
