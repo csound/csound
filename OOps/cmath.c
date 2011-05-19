@@ -315,6 +315,67 @@ int iktrian(CSOUND *csound, PRAND *p)
     return OK;
 }
 
+int exprndiset(CSOUND *csound, PRANDI *p)
+{
+    p->num1 = exprand(csound, *p->arg1);
+    p->num2 = exprand(csound, *p->arg1);
+    p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+    p->phs = 0;
+    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
+    p->cpscod = (XINARG2) ? 1 : 0;
+    return OK;
+}
+
+int iexprndi(CSOUND *csound, PRANDI *p)
+{
+    exprndiset(csound, p);
+    return kexprndi(csound, p);
+}
+
+int kexprndi(CSOUND *csound, PRANDI *p)
+{                                       /* rslt = (num1 + diff*phs) * amp */
+    /* IV - Jul 11 2002 */
+    *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
+    p->phs += (int32)(*p->xcps * csound->kicvt); /* phs += inc           */
+    if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
+      p->phs &= PHMASK;                         /*      mod the phs     */
+      p->num1 = p->num2;                      /*      & new num vals  */
+      p->num2 = exprand(csound, *p->arg1); 
+      p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+      printf("**\n");
+    }
+    return OK;
+}
+
+int aexprndi(CSOUND *csound, PRANDI *p)
+{
+    int32       phs = p->phs, inc;
+    int         n, nn = csound->ksmps;
+    MYFLT       *ar, *ampp, *cpsp;
+
+    cpsp = p->xcps;
+    ampp = p->xamp;
+    ar = p->ar;
+    inc = (int32)(*cpsp++ * csound->sicvt);
+    for (n=0;n<nn;n++) {
+      /* IV - Jul 11 2002 */
+      ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
+      if (p->ampcod)
+        ampp++;
+      phs += inc;                               /* phs += inc       */
+      if (p->cpscod)
+        inc = (int32)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
+      if (phs >= MAXLEN) {                      /* when phs o'flows, */
+        phs &= PHMASK;
+        p->num1 = p->num2;
+        p->num2 = exprand(csound, *p->arg1);
+        p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
+      }
+    }
+    p->phs = phs;
+    return OK;
+}
+
 int aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
     int   n, nsmps = csound->ksmps;

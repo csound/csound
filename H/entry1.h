@@ -380,4 +380,6 @@ int     midremot(CSOUND *, void *), midglobal(CSOUND *, void *);
 int     remoteport(CSOUND *, void *);
 int     globallock(CSOUND *, void *);
 int     globalunlock(CSOUND *, void *);
-int filebit(CSOUND *, void *);
+int     filebit(CSOUND *, void *);
+int     iexprndi(CSOUND *, void *), exprndiset(CSOUND *, void *);
+int     kexprndi(CSOUND *, void *), aexprndi(CSOUND *, void *);
