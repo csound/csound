@@ -342,7 +342,6 @@ int kexprndi(CSOUND *csound, PRANDI *p)
       p->num1 = p->num2;                      /*      & new num vals  */
       p->num2 = exprand(csound, *p->arg1); 
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
-      printf("**\n");
     }
     return OK;
 }
