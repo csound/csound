@@ -522,8 +522,8 @@ int ikpcauchy(CSOUND *csound, PRAND *p)
 
 int cauchyiset(CSOUND *csound, PRANDI *p)
 {
-    p->num1 = cauchyrand(csound, *p->arg1);
-    p->num2 = cauchyrand(csound, *p->arg1);
+    p->num1 = cauchrand(csound, *p->arg1);
+    p->num2 = cauchrand(csound, *p->arg1);
     p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     p->phs = 0;
     p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
@@ -545,7 +545,7 @@ int kcauchyi(CSOUND *csound, PRANDI *p)
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
-      p->num2 = cauchyrand(csound, *p->arg1); 
+      p->num2 = cauchrand(csound, *p->arg1); 
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -572,7 +572,7 @@ int acauchyi(CSOUND *csound, PRANDI *p)
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         p->num1 = p->num2;
-        p->num2 = cauchyrand(csound, *p->arg1);
+        p->num2 = cauchrand(csound, *p->arg1);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }
     }
