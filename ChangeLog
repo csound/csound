@@ -1,3 +1,8 @@
+2011-05-19  john ffitch  <jpff@codemist.co.uk>
+
+	* OOps/cmath.c (exprndiset, kexprndi, aexprndi): New code for
+	exprandi opcode
+
 2011-05-05  john ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct (optionsFilename): Try to check that the custom.py exists
