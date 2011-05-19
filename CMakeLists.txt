@@ -220,6 +220,10 @@ if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_definitions("-fvisibility=hidden")
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
+    add_definitions("-Wno-format")
+endif()
+
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
 #else()
