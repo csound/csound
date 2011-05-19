@@ -710,7 +710,7 @@ else:
     print 'CONFIGURATION DECISION: No P5 Glove support'
 
 
-pthreadSpinlockFound = False # configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_spin_lock(0);')
+pthreadSpinlockFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_spin_lock(0);')
 if pthreadSpinlockFound:
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_SPIN_LOCK'])
 pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
