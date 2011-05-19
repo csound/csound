@@ -29,9 +29,9 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#ifdef PARCS
+/*#ifdef PARCS*/
 #include <pthread.h>
-#endif
+/*#endif*/
 #include <stdarg.h>
 #include <setjmp.h>
 
