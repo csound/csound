@@ -29,9 +29,9 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-/*#ifdef PARCS*/
+#ifdef PARCS
 #include <pthread.h>
-/*#endif*/
+#endif
 #include <stdarg.h>
 #include <setjmp.h>
 
@@ -1058,7 +1058,7 @@ extern const uint32_t csPlayScoMask;
     double        curBeat, curBeat_inc;
     /** beat time = 60 / tempo           */
     long          ibeatTime;   /* Beat time in samples */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t spoutlock, spinlock;
 #else
     int           spoutlock, spinlock;
@@ -1095,7 +1095,7 @@ extern const uint32_t csPlayScoMask;
     CsoundRandMTState *csRandState;
     int           randSeed1;
     int           randSeed2;
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     pthread_spinlock_t memlock;
 #else
     int           memlock;
