@@ -1279,8 +1279,9 @@ static MYFLT nextval(FILE *f)
 {
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
-    int c = getc(f);
+  int c;
  top:
+  c = getc(f);
     if (feof(f)) return FL(0.0); /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
