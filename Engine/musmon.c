@@ -29,7 +29,7 @@
 #include "oload.h"
 #include "remote.h"
 #include <math.h>
-#include "cscore.h"
+# include "cscore.h"
 
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG

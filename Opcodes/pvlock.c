@@ -4,13 +4,11 @@
 
 typedef struct dats{
   OPDS h;
-  MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN, *idecim,
-        *konset, *offset, *dbthresh;
+  MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN, *idecim, *konset, *offset, *dbthresh;
   int cnt, hsize, curframe, N, decim,tscale,nchans;
   double pos;
   MYFLT accum;
-  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS], nwin[MAXOUTS],
-        prev[MAXOUTS], framecount[MAXOUTS];
+  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS], nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS];
 } DATASPACE;
 
 
@@ -91,13 +89,13 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
         ft = csound->FTnp2Find(csound,p->knum);
         tab = ft->ftable;
         size = ft->flen;
-
+       
        if (UNLIKELY((int) ft->nchanls != nchans))
         return csound->PerfError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
 
-
+       
 
         /* spos is the reading position in samples, hsize is hopsize,
            time[n] is current read position in secs
@@ -213,14 +211,14 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
         framecnt[curframe] = curframe*N;
         /* write to overlapped output frames */
         for(i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
-
+        
 	}
 
         cnt=0;
         curframe++;
         if(curframe == decim) curframe = 0;
       }
-
+      
       for(j=0; j < nchans; j++){
       framecnt  = (int *) p->framecount[j].auxp;
       outframe  = (MYFLT *) p->outframe[j].auxp;
@@ -236,7 +234,7 @@ static int sprocess(CSOUND *csound, DATASPACE *p) {
       }
      cnt++;
     }
-
+ 
     p->cnt = cnt;
     p->curframe = curframe;
     return OK;
@@ -276,7 +274,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
     int decim = p->decim;
 
     for(n=0; n < ksmps; n++) {
-
+      
       if(cnt == hsize){
 	  ft = csound->FTnp2Find(csound,p->knum);
         tab = ft->ftable;
@@ -312,10 +310,10 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
          prev = (MYFLT *)p->prev[j].auxp;
          framecnt  = (int *)p->framecount[j].auxp;
          outframe= (MYFLT *) p->outframe[j].auxp;
-
-
+ 
+	 
           for(i=0; i < N; i++) {
-
+          
           post = (int) pos;
           frac = pos  - post;
           post *= nchans;
@@ -323,15 +321,15 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
           if(post >= 0 && post < size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
           else in =  (MYFLT) 0;
-          fwin[i] = in * win[i];
-
+          fwin[i] = in * win[i]; 
+         
           post = (int) (pos - hsize*pitch);
           post *= nchans;
           post += j;
           if(post >= 0 && post < size)
             in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           else in =  (MYFLT) 0;
-          bwin[i] = in * win[i];
+          bwin[i] = in * win[i];  
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
@@ -340,7 +338,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
           nwin[i] = in * win[i];
           pos += pitch;
         }
-
+	 
         csound->RealFFT(csound, bwin, N);
         bwin[N] = bwin[1];
         bwin[N+1] = 0.;
@@ -411,27 +409,27 @@ static int sprocess2(CSOUND *csound, DATASPACE *p) {
         framecnt[curframe] = curframe*N;
 
 	for(i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
-
+	  
 	}
         cnt=0;
         curframe++;
         if(curframe == decim) curframe = 0;
       }
-
+           
       for(j=0; j < nchans; j++){
         out = p->out[j];
 	framecnt  = (int *) p->framecount[j].auxp;
 	outframe  = (MYFLT *) p->outframe[j].auxp;
-
+ 
        out[n] = (MYFLT) 0;
-
+     
       for(i = 0; i < decim; i++){
         out[n] += outframe[framecnt[i]];
-        framecnt[i]++;
+        framecnt[i]++;	
       }
       out[n] *= amp*(2./3.);
       }
-     cnt++;
+     cnt++;  
     }
     p->cnt = cnt;
     p->curframe = curframe;
@@ -475,13 +473,13 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
 
 static int pvslockproc(CSOUND *csound, PVSLOCK *p) {
   int i,n,k,j, maxmagi;
-  float mag,  maxmag, *fout = (float *) p->fout->frame.auxp,
+  float mag,  maxmag, *fout = (float *) p->fout->frame.auxp, 
         *fin = (float *) p->fin->frame.auxp;
   int N = p->fin->N;
-
+  
   if (p->lastframe < p->fin->framecount){
     memcpy(fout,fin, sizeof(float)*(N+2));
-
+  
   if(*p->klock) {
    for(i=2, n = 0; i < N-4; i+=2){
    float p2 = fin[i];
@@ -489,7 +487,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p) {
    float p1 = fin[i-2];
    float p4 = fin[i+4];
    float p5 = fin[i+6];
-   if(p3 > p1 && p3 > p2 && p3 > p4 && p3 > p5) {
+   if(p3 > p1 && p3 > p2 && p3 > p4 && p3 > p5) {       
      float freq = fin[i+3], d;
      d = 0.01*freq;
      if(FABS(fout[i-1] - freq) < d)fout[i-1]  = freq;

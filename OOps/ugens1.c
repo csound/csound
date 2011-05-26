@@ -311,8 +311,7 @@ int lsgrset(CSOUND *csound, LINSEG *p)
     int32 relestim;
     lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases
-                            in an instr => xtratim
+    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases in an instr => xtratim 
                             set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
