@@ -22,7 +22,6 @@ commandOptions.Add('buildJavaWrapper',
 commandOptions.Update(commonEnvironment)
 Help(commandOptions.GenerateHelpText(commonEnvironment))
 
-
 # Ugly but necessary: scons doesn't manage swig that well
 # We need to list all files because the scons scanner won't always
 # detect all of them and thus fail sometimes
