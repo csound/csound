@@ -219,7 +219,7 @@ static int schedInTime(CSOUND *csound, SCHEDINTIME *p)
 /* -------------------------------------------------------------------- */
 
 /* These opocdes were not implemented because the functionality of      */
-/* CopyTabElements has already been included in vcopy and vcopy_i       */
+/* CopyTabElements has already been included in vcopy and vcopy_i       */ 
 
 typedef struct { /* GAB 11/Jan/2001 */
      OPDS   h;
@@ -428,7 +428,6 @@ static int outRange(CSOUND *csound, OUTRANGE *p)
     }
     return OK;
 }
-
 /* -------------------------------------------------------------------- */
 #include "Opcodes/uggab.h"
 
@@ -788,7 +787,7 @@ static int dashow (CSOUND *csound, DSH *p)
     MYFLT range = *p->kband_max - *p->kband_min;
     if (range != FL(0.0))
       *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
-    else
+    else 
       *p->rmod = FL(0.0);
     *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
 
@@ -873,4 +872,3 @@ PUBLIC  int     csoundModuleDestroy(CSOUND *csound)
 {
     return 0;
 }
-

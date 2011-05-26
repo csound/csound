@@ -367,15 +367,13 @@ void otran(CSOUND *csound)
               /* IV - Oct 31 2002 */
               if (UNLIKELY(!check_instr_name(name))) {
                 synterr(csound, Str("invalid name for opcode"));
-                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
-                /*continue;*/
+                continue;
               }
               if (UNLIKELY(ip->t.inlist->count != 3)) {
                 synterr(csound, Str("opcode declaration error "
                                     "(usage: opcode name, outtypes, intypes) "
                                     "-- opcode %s"), name);
-                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
-                /*continue;*/
+                continue;
               }
 
               /* IV - Oct 31 2002: check if opcode is already defined */
@@ -1230,8 +1228,8 @@ void oload(CSOUND *p)
       p->Die(p, Str("bad value for 0dbfs: must be positive."));
     if (UNLIKELY(O->odebug))
       p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
-                    "nchnlsi = %d 0dbfs = %.1f\n",
-                 p->esr, p->ekr, p->ksmps, p->nchnls, p->inchnls, p->e0dbfs);
+                    "0dbfs = %.1f\n",
+                    p->esr, p->ekr, p->ksmps, p->nchnls, p->e0dbfs);
     if (O->sr_override) {        /* if command-line overrides, apply now */
       p->esr = (MYFLT) O->sr_override;
       p->ekr = (MYFLT) O->kr_override;

@@ -24,6 +24,9 @@
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
+
+
+
 /* check for the presence of a modern compiler (for use of certain features) */
 
 #ifdef HAVE_GCC3
@@ -60,6 +63,10 @@ typedef int_least32_t int32;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
+#endif
+
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+#include <pthread.h>
 #endif
 
 #if defined(HAVE_PTHREAD_SPIN_LOCK)

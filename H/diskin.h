@@ -42,8 +42,8 @@ typedef struct {
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
     int     wrapMode;
-    int32   fileLength;         /* in sample frames */
-    int32   bufStartPos;
+    int32    fileLength;         /* in sample frames */
+    int32    bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
     int64_t pos_frac_inc;
     SNDFILE *sf;
