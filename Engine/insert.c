@@ -29,7 +29,7 @@
 #include "aops.h"       /* for cond's */
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
-
+#include "pstream.h"
 extern MYFLT cpsocfrc[];        /* Needed by CPSOCTL */
 
 static  void    showallocs(CSOUND *);
@@ -1085,6 +1085,13 @@ int xinset(CSOUND *csound, XIN *p)
       *(tmp++) = *(p->args + *ndx_list);/* "to" address */
     }
     *(tmp++) = NULL;            /* put delimiter */
+    /* fsigs: we'll need to do extra work 
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(bufs + *ndx_list);   
+      *(tmp++) = *(p->args + *ndx_list);
+    }
+    *(tmp++) = NULL;       */
+
     /* fix for case when xout is omitted */
     *(tmp++) = NULL; *tmp = NULL;
     return OK;
@@ -1136,6 +1143,13 @@ int xoutset(CSOUND *csound, XOUT *p)
       *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
     }
     *tmp = NULL;                /* put delimiter */
+      /* fsigs: we'll need to do extra work 
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(p->args + *ndx_list);
+      *(tmp++) = *(bufs + *ndx_list);   
+    }
+    *tmp = NULL; */
+
     return OK;
 }
 
