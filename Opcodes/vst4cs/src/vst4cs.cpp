@@ -392,7 +392,7 @@ extern "C" {
     VSTPROGSET *p = (VSTPROGSET *) data;
     int program = (int)*p->iprogram;
     VSTPlugin *plugin = ST(vstPlugins)[(size_t) *p->iVSThandle];
-    if (program>16 || program<=0) {
+    if (program<=0) {
       csound->Message(csound, "VSTprogset: Program %d treated as 1\n", program);
       program = 1;
     }
