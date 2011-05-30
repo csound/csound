@@ -124,7 +124,6 @@ void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
 
     csound->Message(csound, Str("error: %s (token \"%s\")"), str, csound_orctext);
     csound->Message(csound, Str(" line %d: %s"), yyline, buffer); // buffer has \n at end
-
 }
 
 /**

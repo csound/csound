@@ -376,7 +376,7 @@ extern "C" {
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
     0.0,            /*  beatTime            */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
     PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
 #else
@@ -411,7 +411,7 @@ extern "C" {
     NULL,           /*  csRandState         */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
+#if defined(HAVE_PTHREAD_SPIN_LOCK) && defined(PARCS)
     PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock           */
 #else
     0,              /*  memlock             */

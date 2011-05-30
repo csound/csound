@@ -46,11 +46,11 @@ typedef struct CPU_t {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *k0, *kk[8], *ktrig;
+        MYFLT   *k0, *kk[8], *itrig;
         AUXCH   cpu_a;
         CPU_t   *cpus;
         int     cpu_max;
-        int     cnt;
+        int     cnt, trig;
         FILE    *fp;
 } CPUMETER;
 
@@ -86,7 +86,7 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
     csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (int)*p->ktrig * csound->esr;
+    p->cnt = (p->trig = (int)(*p->itrig * csound->esr));
     return k;
 }
 
@@ -188,9 +188,10 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
 }
 static int cpupercent(CSOUND *csound, CPUMETER* p)
 {
-    if (--p->cnt< 0) {
+    p->cnt -= csound->ksmps;
+    if (p->cnt< 0) {
       int n = cpupercent_renew(csound, p);
-      p->cnt = (int)*p->ktrig * csound->esr;
+      p->cnt = p->trig;
       return n;
     }
     return OK;   
@@ -199,7 +200,7 @@ static int cpupercent(CSOUND *csound, CPUMETER* p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "cpumeter",   S(CPUMETER),   5, "zzzzzzzzz", "k",
+  { "cpumeter",   S(CPUMETER),   5, "kzzzzzzzz", "i",
     (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   }
 };
 
