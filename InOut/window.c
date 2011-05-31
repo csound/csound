@@ -82,7 +82,7 @@ void dispinit(CSOUND *csound)
 
     if (O->displays && !(O->graphsoff || O->postscript)) {
       if (!csound->isGraphable_)
-        find_opcode(csound, "FLrun");       /* load FLTK for displays */
+      find_opcode(csound, "FLrun");       /* load FLTK for displays */
       if (csound->isGraphable_)
         return;         /* provided by window driver: is this session able? */
     }
@@ -118,7 +118,6 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
-
     if (!csound->oparms->displays) return;    /* return if displays disabled */
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
@@ -130,6 +129,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
       if (csound->oparms->postscript)
         PS_MakeGraph(csound, wdptr, label); /* open PS file + write header    */
     }
+
     wdptr->waitflg  = waitflg;
     wdptr->polarity = (int16)NOPOL;
     wdptr->max      = FL(0.0);
@@ -153,7 +153,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   *fp, *fplim;
     MYFLT   max, min, absmax, fval;
     int     pol;
-
+     
     if (!csound->oparms->displays)  return;   /* displays disabled? return */
     fp = wdptr->fdata;
     fplim = fp + wdptr->npts;
@@ -177,8 +177,11 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)POSPOL && min < FL(0.0)) pol = (int16)BIPOL;
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
+    
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
+
+
     /* Write postscript code */
     if (csound->oparms->postscript)
       PS_DrawGraph(csound, wdptr);
