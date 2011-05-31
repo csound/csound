@@ -21,6 +21,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+%pure_parser
+%parse-param {PARSE_PARM *parm}
+%parse-param {void *scanner}
+%lex-param {yyscan_t *scanner}
+
 %token S_COM
 %token S_Q
 %token S_COL
@@ -161,6 +166,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #endif
+#include "parse_param.h"
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
@@ -169,9 +175,9 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex(TREE**, CSOUND *);
+ extern int csound_orclex(TREE**, void *, CSOUND *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
-extern void csound_orcerror(CSOUND *, TREE*, char*);
+extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
 %}
 %%
