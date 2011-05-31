@@ -26,15 +26,16 @@
 #include "csoundCore.h"
 #include "csound_orcparse.h"
 #include "csound_orc.h"
+#include "parse_param.h"
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
-extern FILE *csound_orcin;
-extern void csound_orcrestart(FILE*);
+extern FILE **get_csound_orcin(void*);
+extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
 
-extern int csound_orcparse(CSOUND*, TREE*);
+extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *);
@@ -47,29 +48,32 @@ void new_orc_parser(CSOUND *csound)
 
 	/* The following are defined in csound_orc.l */
 	extern int lMaxBuffer;
-	extern char* buffer;
 
     void *t;
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
+    PARSE_PARM  pp;
 
     init_symbtab(csound);
 
-    buffer = (char*)csound->Malloc(csound, lMaxBuffer);
+    pp.buffer = (char*)csound->Malloc(csound, lMaxBuffer);
 
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Testing...\n");
 
-    if (UNLIKELY((t = csound->FileOpen2(csound, &csound_orcin, CSFILE_STD,
+    csound_orcdebug = O->odebug;
+    csound_orclex_init(&pp.yyscanner);
+    csound_orcset_extra(&pp, pp.yyscanner);
+
+    if (UNLIKELY((t = csound->FileOpen2(csound, get_csound_orcin(pp.yyscanner), CSFILE_STD,
                                  csound->orchname, "rb", NULL,
                                         CSFTYPE_ORCHESTRA, 0)) == NULL)) {
-    	csound->Free(csound, buffer);
+    	csound->Free(csound, pp.buffer);
     	csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     }
 
-    csound_orcdebug = O->odebug;
-    csound_orcrestart(csound_orcin);
-    retVal = csound_orcparse(csound, astTree);
+    //    csound_orcrestart(*get_csound_orcin(pp.yyscanner), pp.yyscanner);
+    retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
     if (LIKELY(retVal == 0)) {
       csound->Message(csound, "Parsing successful!\n");
@@ -109,6 +113,6 @@ void new_orc_parser(CSOUND *csound)
     astTree = csound_orc_optimize(csound, astTree);
     csound_orc_compile(csound, astTree);
 
-    csound->Free(csound, buffer);
+    csound->Free(csound, pp.buffer);
 }
 

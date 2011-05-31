@@ -27,6 +27,7 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "namedins.h"
+#include "parse_param.h"
 
 extern  char argtyp2(CSOUND*, char*);
 extern  int tree_arg_list_count(TREE *);
@@ -115,15 +116,17 @@ int csound_orcwrap()
 }
 
 /* BISON PARSER FUNCTION */
-void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
+void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
+                     CSOUND *csound, TREE *astTree, char *str)
 {
+    extern char *get_csound_orctext(void *);
     extern int yyline;
-    extern char* csound_orctext;
-    extern FILE* csound_orcin;
-    extern char* buffer;
+    //    extern char* buffer;
 
-    csound->Message(csound, Str("error: %s (token \"%s\")"), str, csound_orctext);
-    csound->Message(csound, Str(" line %d: %s"), yyline, buffer); // buffer has \n at end
+    csound->Message(csound, Str("error: %s (token \"%s\")"),
+                    str, get_csound_orctext(yyscanner));
+    csound->Message(csound, Str(" line %d: %s"),
+                    yyline, pp->buffer); // buffer has \n at end
 }
 
 /**
