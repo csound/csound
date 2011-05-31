@@ -66,6 +66,7 @@ typedef struct {
   Fl_Button   *end;
   Fl_Menu_Item *menu;
   graph_box   *graph;
+  int graph_created;
 } FLGRAPH_GLOBALS;
 
 #define ST(x)   (((FLGRAPH_GLOBALS*) csound->flgraphGlobals)->x)
@@ -90,7 +91,7 @@ void flgraph_init(CSOUND *csound)
       ST(end) = (Fl_Button *) 0;
       ST(graph) = (graph_box *) 0;
       ST(menu) = (Fl_Menu_Item *) 0;
-      
+      ST(graph_created) = 0;
 
       /*ST(menu) =  (Fl_Menu_Item*) csound->Calloc(csound,
 	sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));*/
@@ -270,7 +271,7 @@ void makeWindow(CSOUND *csound, char *name)
     ST(end)->hide();
     ST(form)->resizable(ST(graph));
     ST(form)->end();
-   
+    ST(graph_created) = 1;
 }
 
 extern "C" {
@@ -322,7 +323,7 @@ extern "C" {
 
   int ExitGraph_FLTK(CSOUND *csound)
   {
-      if (ST(form)) {
+    if (ST(form) && ST(graph_created)) {
             csound->Message(csound, "exitgraphfltk\n");
 	if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
 	const char *env = csound->GetEnv(csound, "CSNOSTOP");
@@ -345,6 +346,7 @@ extern "C" {
       ST(choice) = (Fl_Choice *) 0;
       ST(graph) = (graph_box *) 0;
       ST(end) = (Fl_Button *) 0;
+      ST(graph_created) = 0;
       
        for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
@@ -355,7 +357,7 @@ extern "C" {
              delete ST(menu);
              ST(menu) = (Fl_Menu_Item *) 0;
        }
-  
+       
       }
      
       return 0;
