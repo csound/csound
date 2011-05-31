@@ -285,8 +285,7 @@ extern "C" {
 
   uintptr_t MakeWindow_FLTK(CSOUND *csound, char *name)
   {
-    
-     csound->Message(csound, "makewindowfltk\n");
+ 
       if (ST(form) == NULL) {
         makeWindow(csound, name);
         ST(form)->show();
@@ -323,8 +322,8 @@ extern "C" {
 
   int ExitGraph_FLTK(CSOUND *csound)
   {
-    if (ST(form) && ST(graph_created)) {
-            csound->Message(csound, "exitgraphfltk\n");
+    if (ST(form) && ST(graph_created) == 1) {
+          
 	if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
 	const char *env = csound->GetEnv(csound, "CSNOSTOP");
 	if (env == NULL || strcmp(env, "yes") != 0) {
