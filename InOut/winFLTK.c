@@ -35,6 +35,8 @@
 
 #include "winFLTK.h"
 
+
+
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
     wdptr->windid = MakeWindow_FLTK(csound,(char*)name);
@@ -101,6 +103,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           csound->SetKillXYinCallback(csound, KillXYin_FLTK);
            /* seemed to crash, but not anymore... */
           csound->RegisterResetCallback(csound, NULL, widget_reset);
+	  csound->Message(csound, "graph init \n");
+         
         }
 #ifdef LINUX
       }
