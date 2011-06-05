@@ -142,16 +142,19 @@ int lsgset(CSOUND *csound, LINSEG *p)
 
 int lsgset_bkpt(CSOUND *csound, LINSEG *p)
 {
-  int32 cnt = 0;
+  int32 cnt = 0, bkpt = 0;
   int nsegs;
   SEG *segp;
   lsgset(csound, p);
   nsegs = p->segsrem;
   segp = p->cursegp;
   do{
+    if(cnt > segp->cnt) return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+    csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
     segp->cnt -= cnt;
     cnt += segp->cnt;
     segp++;
+    bkpt++;
       } while(--nsegs);
   return OK;
 }
@@ -433,6 +436,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                          /* else proceed from 1st seg */
     segp--;
+    p->segsrem = nsegs;
     do {
       segp++;           /* init each seg ..  */
       val = nxtval;
@@ -446,7 +450,6 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       segp->cnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
-    p->segsrem = nsegs + 1;
     return OK;
 
  experr:
@@ -460,18 +463,50 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
 
 int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 {
-  int32 cnt = 0;
-  int nsegs;
-  XSEG *segp;
-  xsgset(csound, p);
-  nsegs = p->segsrem;
-  segp = p->cursegp;
-  do{
-    segp->cnt -= cnt;
-    cnt += segp->cnt;
-    segp++;
-      } while(--nsegs);
-  return OK;
+   XSEG        *segp;
+    int         nsegs;
+    MYFLT       d, **argp, val, dur, dursum, bkpt, nxtval;
+    int         n=0;
+
+    nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
+    if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
+        nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
+      p->cursegp = segp = (XSEG *) p->auxch.auxp;
+      (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
+    }
+    argp = p->argums;
+    nxtval = **argp++;
+    if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
+    p->cursegp = segp;                          /* else proceed from 1st seg */
+    segp--;
+    p->segsrem = nsegs;
+    do {
+      segp++;           /* init each seg ..  */
+      val = nxtval;
+      bkpt = **argp++;
+      if(bkpt < dursum)
+          return csound->InitError(csound, Str("Breakpoint time %f not valid"), bkpt);
+      dur = bkpt - dursum;
+      dursum += dur;
+      nxtval = **argp++;
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
+        goto experr;
+      d = dur * csound->ekr;
+      segp->val = val;
+      segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+      segp->cnt = (int32) (d + FL(0.5));
+    } while (--nsegs);
+    segp->cnt = MAXPOS;         /* set last cntr to infin */
+    return OK;
+
+ experr:
+    n = segp - p->cursegp + 1;
+    if (val == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n);
+    else if (nxtval == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 
