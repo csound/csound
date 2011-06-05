@@ -274,6 +274,10 @@ void makeWindow(CSOUND *csound, char *name)
     ST(graph_created) = 1;
 }
 
+void graphs_reset(CSOUND * csound){
+  if(csound->flgraphGlobals != NULL)csound->Free(csound, csound->flgraphGlobals);
+}
+
 extern "C" {
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)

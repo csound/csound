@@ -140,6 +140,23 @@ int lsgset(CSOUND *csound, LINSEG *p)
     return OK;
 }
 
+int lsgset_bkpt(CSOUND *csound, LINSEG *p)
+{
+  int32 cnt = 0;
+  int nsegs;
+  SEG *segp;
+  lsgset(csound, p);
+  nsegs = p->segsrem;
+  segp = p->cursegp;
+  do{
+    segp->cnt -= cnt;
+    cnt += segp->cnt;
+    segp++;
+      } while(--nsegs);
+  return OK;
+}
+
+
 int klnseg(CSOUND *csound, LINSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
@@ -306,6 +323,10 @@ int madsrset(CSOUND *csound, LINSEG *p)
 
 /* End of ADSR */
 
+
+
+
+
 int lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32 relestim;
@@ -425,6 +446,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       segp->cnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
+    p->segsrem = nsegs + 1;
     return OK;
 
  experr:
@@ -435,6 +457,23 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       return csound->InitError(csound, Str("ival%d is zero"), n+1);
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
+
+int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
+{
+  int32 cnt = 0;
+  int nsegs;
+  XSEG *segp;
+  xsgset(csound, p);
+  nsegs = p->segsrem;
+  segp = p->cursegp;
+  do{
+    segp->cnt -= cnt;
+    cnt += segp->cnt;
+    segp++;
+      } while(--nsegs);
+  return OK;
+}
+
 
 int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 {
