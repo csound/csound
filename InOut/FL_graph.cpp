@@ -61,12 +61,13 @@ public:
 };
 
 typedef struct {
-  Fl_Window   *form;
+
   Fl_Choice   *choice;
   Fl_Button   *end;
   Fl_Menu_Item *menu;
   graph_box   *graph;
   int graph_created;
+  Fl_Window   *form;
 } FLGRAPH_GLOBALS;
 
 #define ST(x)   (((FLGRAPH_GLOBALS*) csound->flgraphGlobals)->x)
@@ -92,6 +93,7 @@ void flgraph_init(CSOUND *csound)
       ST(graph) = (graph_box *) 0;
       ST(menu) = (Fl_Menu_Item *) 0;
       ST(graph_created) = 0;
+     
 
       /*ST(menu) =  (Fl_Menu_Item*) csound->Calloc(csound,
 	sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));*/
@@ -256,10 +258,10 @@ void makeWindow(CSOUND *csound, char *name)
 {
     if (ST(form))
       return;
-  
+    
+    ST(form) = new Fl_Window(WIDTH, HEIGHT, name);
     ST(menu) = new Fl_Menu_Item[1+NUMOFWINDOWS];
     memset(ST(menu), 0, sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));    
-    ST(form) = new Fl_Window(WIDTH, HEIGHT, name);
     ST(choice) = new Fl_Choice(140, 0, 140, 20, "Choose Graph");
     ST(choice)->menu(ST(menu));
     ST(choice)->value(0);
@@ -272,6 +274,11 @@ void makeWindow(CSOUND *csound, char *name)
     ST(form)->resizable(ST(graph));
     ST(form)->end();
     ST(graph_created) = 1;
+     
+}
+
+void graphs_reset(CSOUND * csound){
+  //if(csound->flgraphGlobals != NULL)csound->Free(csound, csound->flgraphGlobals);
 }
 
 extern "C" {
@@ -290,6 +297,7 @@ extern "C" {
         makeWindow(csound, name);
         ST(form)->show();
       }
+      
       return (uintptr_t) ST(form);
   }
 
@@ -322,26 +330,23 @@ extern "C" {
 
   int ExitGraph_FLTK(CSOUND *csound)
   {
-    if (ST(form) && ST(graph_created) == 1) {
+      if (ST(form) && ST(graph_created) == 1) {
           
 	if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
 	const char *env = csound->GetEnv(csound, "CSNOSTOP");
 	if (env == NULL || strcmp(env, "yes") != 0) {
 	  ST(end)->show();
-           /* print click-Exit message in most recently active window */
+           // print click-Exit message in most recently active window 
 	  while (ST(end)->value() == 0 && ST(form)->shown()) {
 	    Fl_wait_locked(csound, 0.03);
 	  }
           }
 	 }
-        if(ST(choice)) delete ST(choice);
-	if(ST(graph)) delete ST(graph);
-        if(ST(end)) delete ST(end);
-	delete ST(form);
+
+        delete ST(form); 
+        ST(form) = (Fl_Window *) 0;
         Fl_wait_locked(csound, 0.0);
-      
-     
-      ST(form) = (Fl_Window *) 0;
+        
       ST(choice) = (Fl_Choice *) 0;
       ST(graph) = (graph_box *) 0;
       ST(end) = (Fl_Button *) 0;
@@ -356,6 +361,8 @@ extern "C" {
              delete ST(menu);
              ST(menu) = (Fl_Menu_Item *) 0;
        }
+       
+       
        
       }
      
@@ -449,6 +456,7 @@ extern "C" {
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
+    
       delete ((Fl_Window*) wdptr->windid);
       wdptr->windid = (uintptr_t) 0;
   }

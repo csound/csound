@@ -387,3 +387,5 @@ int     icauchyi(CSOUND *, void *), cauchyiset(CSOUND *, void *);
 int     kcauchyi(CSOUND *, void *), acauchyi(CSOUND *, void *);
 int     igaussi(CSOUND *, void *), gaussiset(CSOUND *, void *);
 int     kgaussi(CSOUND *, void *), agaussi(CSOUND *, void *);
+int     lsgset_bkpt(CSOUND *csound, void *p);
+int xsgset_bkpt(CSOUND *csound, void *p);
