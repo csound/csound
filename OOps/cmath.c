@@ -126,17 +126,17 @@ static inline MYFLT trirand(CSOUND *csound, MYFLT range)
 
 /* exponential distribution routine */
 
-static MYFLT exprand(CSOUND *csound, MYFLT l)
+static MYFLT exprand(CSOUND *csound, MYFLT lambda)
 {
     uint32_t  r1;
 
-    if (l < FL(0.0)) return (FL(0.0)); /* for safety */
+    if (UNLIKELY(lambda < FL(0.0))) return (FL(0.0)); /* for safety */
 
     do {
       r1 = csoundRandMT(&(csound->randState_));
     } while (!r1);
 
-    return -((MYFLT)log(UInt32toFlt(r1)) * l);
+    return -((MYFLT)log(UInt32toFlt(r1)) * lambda);
 }
 
 /* bilateral exponential distribution routine */
@@ -145,7 +145,7 @@ static MYFLT biexprand(CSOUND *csound, MYFLT range)
 {
     int32_t r1;
 
-    if (range < FL(0.0)) return (FL(0.0)); /* For safety */
+    if (UNLIKELY(range < FL(0.0))) return (FL(0.0)); /* For safety */
 
     while ((r1 = (int32_t)csoundRandMT(&(csound->randState_)))==0);
 
@@ -205,7 +205,7 @@ static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 {
     double  r1, r2;
     double aa, bb;
-    if (a <= FL(0.0) || b <= FL(0.0))
+    if (UNLIKELY(a <= FL(0.0) || b <= FL(0.0)))
       return FL(0.0);
 
     aa = (double)a; bb = (double)b;
@@ -231,7 +231,7 @@ static MYFLT weibrand(CSOUND *csound, MYFLT s, MYFLT t)
     uint32_t  r1;
     double    r2;
 
-    if (t <= FL(0.0)) return FL(0.0);
+    if (UNLIKELY(t <= FL(0.0))) return FL(0.0);
 
     do {
       r1 = csoundRandMT(&(csound->randState_));
@@ -248,7 +248,7 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 {
     MYFLT r1, r2, r3;
 
-    if (lambda < FL(0.0)) return FL(0.0);
+    if (UNLIKELY(lambda < FL(0.0))) return FL(0.0);
 
     r1 = unirand(csound);
     r2 = EXP(-lambda);
@@ -337,8 +337,8 @@ int kexprndi(CSOUND *csound, PRANDI *p)
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
     p->phs += (int32)(*p->xcps * csound->kicvt); /* phs += inc           */
-    if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
-      p->phs &= PHMASK;                         /*      mod the phs     */
+    if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
+      p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
       p->num2 = exprand(csound, *p->arg1); 
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
@@ -361,10 +361,10 @@ int aexprndi(CSOUND *csound, PRANDI *p)
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
       if (p->ampcod)
         ampp++;
-      phs += inc;                               /* phs += inc       */
+      phs += inc;                                /* phs += inc       */
       if (p->cpscod)
         inc = (int32)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
-      if (phs >= MAXLEN) {                      /* when phs o'flows, */
+      if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
         p->num2 = exprand(csound, *p->arg1);
@@ -459,9 +459,9 @@ int kgaussi(CSOUND *csound, PRANDI *p)
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
     p->phs += (int32)(*p->xcps * csound->kicvt); /* phs += inc           */
-    if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
+    if (UNLIKELY(p->phs >= MAXLEN)) {           /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
-      p->num1 = p->num2;                      /*      & new num vals  */
+      p->num1 = p->num2;                        /*      & new num vals  */
       p->num2 = gaussrand(csound, *p->arg1); 
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
@@ -486,7 +486,7 @@ int agaussi(CSOUND *csound, PRANDI *p)
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
         inc = (int32)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
-      if (phs >= MAXLEN) {                      /* when phs o'flows, */
+      if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
         p->num2 = gaussrand(csound, *p->arg1);
@@ -683,14 +683,14 @@ int gen21_rand(FGDATA *ff, FUNC *ftp)
         ft[i] = pcauchrand(csound, scale);
       break;
     case 9:                     /* Beta distribution */
-      if (nargs < 3) {
+      if (UNLIKELY(nargs < 3)) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
         ft[i] = betarand(csound, scale, (MYFLT) ff->e.p[7], (MYFLT) ff->e.p[8]);
       break;
     case 10:                    /* Weibull Distribution */
-      if (nargs < 2) {
+      if (UNLIKELY(nargs < 2)) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
