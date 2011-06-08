@@ -142,21 +142,26 @@ int lsgset(CSOUND *csound, LINSEG *p)
 
 int lsgset_bkpt(CSOUND *csound, LINSEG *p)
 {
-  int32 cnt = 0, bkpt = 0;
-  int nsegs;
-  SEG *segp;
-  lsgset(csound, p);
-  nsegs = p->segsrem;
-  segp = p->cursegp;
-  do{
-    if(cnt > segp->cnt) return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
-    csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
-    segp->cnt -= cnt;
-    cnt += segp->cnt;
-    segp++;
-    bkpt++;
-      } while(--nsegs);
-  return OK;
+    int32 cnt = 0, bkpt = 0;
+    int nsegs;
+    int n;
+    SEG *segp;
+    n = lsgset(csound, p);
+    if (UNLIKELY(n!=0)) return n;
+    nsegs = p->segsrem;
+    segp = p->cursegp;
+    do {
+      if (UNLIKELY(cnt > segp->cnt))
+        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+#ifdef BETA
+      csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
+#endif
+      segp->cnt -= cnt;
+      cnt += segp->cnt;
+      segp++;
+      bkpt++;
+    } while (--nsegs);
+    return OK;
 }
 
 
