@@ -289,6 +289,7 @@ int pitchset(CSOUND *, PITCH *p);
 int trnseg(CSOUND *, TRANSEG *p);
 int trnsegr(CSOUND *csound, TRANSEG *p);
 int trnset(CSOUND *, TRANSEG *p);
+int trnset_bkpt(CSOUND *, TRANSEG *p);
 int trnsetr(CSOUND *csound, TRANSEG *p);
 int varicol(CSOUND *, VARI *p);
 int varicolset(CSOUND *, VARI *p);
