@@ -1771,6 +1771,60 @@ int trnset(CSOUND *csound, TRANSEG *p)
     return OK;
 }
 
+int trnset_bkpt(CSOUND *csound, TRANSEG *p)
+{
+    NSEG        *segp;
+    int         nsegs;
+    MYFLT       **argp, val;
+    MYFLT       totdur = FL(0.0);
+
+    if (UNLIKELY(p->INOCOUNT%3!=1))
+      csound->InitError(csound, Str("Incorrect argument count in transegb"));
+    nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
+    if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
+        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
+      p->cursegp = segp = (NSEG *) p->auxch.auxp;
+    }
+    segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    argp = p->argums;
+    val = **argp++;
+    if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
+    p->curval = val;
+    p->curcnt = 0;
+    p->cursegp = segp - 1;            /* else setup null seg0 */
+    p->segsrem = nsegs + 1;
+    p->curx = FL(0.0);
+    do {                              /* init each seg ..  */
+      MYFLT dur = **argp++;
+      MYFLT alpha = **argp++;
+      MYFLT nxtval = **argp++;
+      MYFLT d;
+      dur -= totdur;
+      totdur += dur;
+      d = dur * csound->esr;
+      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
+        segp->cnt = 0;
+      else
+        segp->cnt = (int32)(dur * csound->ekr);
+        segp->nxtpt = nxtval;
+      segp->val = val;
+      if (alpha == FL(0.0)) {
+        segp->c1 = (nxtval-val)/d;
+      }
+      else {
+        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
+      }
+      segp->alpha = alpha/d;
+      val = nxtval;
+      segp++;
+    } while (--nsegs);
+    p->xtra = -1;
+    p->alpha = ((NSEG*)p->auxch.auxp)[0].alpha;
+    p->curinc = ((NSEG*)p->auxch.auxp)[0].c1;
+    return OK;
+}
+
 int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
