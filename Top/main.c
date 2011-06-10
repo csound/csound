@@ -25,7 +25,11 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
+
+
+#ifdef ENABLE_NEW_PARSER
 #include "csound_orc.h"
+#endif
 
 #ifdef PARCS
 #include "cs_par_base.h"
