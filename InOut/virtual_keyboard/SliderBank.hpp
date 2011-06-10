@@ -26,8 +26,8 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Group.H>
-#include <Fl/Fl_Value_Slider.H>
-#include <Fl/Fl_Spinner.H>
+#include <FL/Fl_Value_Slider.H>
+#include <FL/Fl_Spinner.H>
 #include "csdl.h"
 #include "SliderData.hpp"
 

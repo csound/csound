@@ -142,21 +142,26 @@ int lsgset(CSOUND *csound, LINSEG *p)
 
 int lsgset_bkpt(CSOUND *csound, LINSEG *p)
 {
-  int32 cnt = 0, bkpt = 0;
-  int nsegs;
-  SEG *segp;
-  lsgset(csound, p);
-  nsegs = p->segsrem;
-  segp = p->cursegp;
-  do{
-    if(cnt > segp->cnt) return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
-    csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
-    segp->cnt -= cnt;
-    cnt += segp->cnt;
-    segp++;
-    bkpt++;
-      } while(--nsegs);
-  return OK;
+    int32 cnt = 0, bkpt = 0;
+    int nsegs;
+    int n;
+    SEG *segp;
+    n = lsgset(csound, p);
+    if (UNLIKELY(n!=0)) return n;
+    nsegs = p->segsrem;
+    segp = p->cursegp;
+    do {
+      if (UNLIKELY(cnt > segp->cnt))
+        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+#ifdef BETA
+      csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
+#endif
+      segp->cnt -= cnt;
+      cnt += segp->cnt;
+      segp++;
+      bkpt++;
+    } while (--nsegs);
+    return OK;
 }
 
 
@@ -465,7 +470,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 {
    XSEG        *segp;
     int         nsegs;
-    MYFLT       d, **argp, val, dur, dursum, bkpt, nxtval;
+    MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n=0;
 
     nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
@@ -486,7 +491,8 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       val = nxtval;
       bkpt = **argp++;
       if(bkpt < dursum)
-          return csound->InitError(csound, Str("Breakpoint time %f not valid"), bkpt);
+          return csound->InitError(csound,
+                                   Str("Breakpoint time %f not valid"), bkpt);
       dur = bkpt - dursum;
       dursum += dur;
       nxtval = **argp++;
@@ -509,6 +515,57 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
+
+int xsgset2b(CSOUND *csound, EXPSEG2 *p)
+{
+    XSEG        *segp;
+    int         nsegs;
+    MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
+    int         n;
+
+    nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
+    if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
+        (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
+      p->cursegp = segp = (XSEG *) p->auxch.auxp;
+      (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
+    }
+    argp = p->argums;
+    nxtval = **argp++;
+    if (**argp <= FL(0.0))  return OK;        /* if idur1 <= 0, skip init  */
+    p->cursegp = segp;                      /* else proceed from 1st seg */
+    segp--;
+    do {
+      segp++;           /* init each seg ..  */
+      val = nxtval;
+      bkpt = **argp++;
+      if(bkpt < dursum)
+          return csound->InitError(csound,
+                                   Str("Breakpoint time %f not valid"), bkpt);
+      dur = bkpt - dursum;
+      dursum += dur;
+      nxtval = **argp++;
+/*       if (dur > FL(0.0)) { */
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
+          goto experr;
+        d = dur * csound->esr;
+        segp->val = val;
+        segp->mlt = POWER((nxtval / val), FL(1.0)/d);
+        segp->cnt = (int32) (d + FL(0.5));
+/*       } */
+/*       else break;               /\*  .. til 0 dur or done *\/ */
+    } while (--nsegs);
+    segp->cnt = MAXPOS;         /* set last cntr to infin */
+    return OK;
+
+ experr:
+    n = segp - p->cursegp + 1;
+    if (val == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n);
+    else if (nxtval == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+}
 
 int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 {
@@ -557,6 +614,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 }
 
 /***************************************/
+
 int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
