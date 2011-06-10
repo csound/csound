@@ -383,21 +383,21 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
                       winsize = (1 << powtwo));
     }
     p->hopsize = *p->size;
-    if (!p->signal.auxp && p->signal.size < p->hopsize*sizeof(MYFLT)) {
+    if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
     }
-    if (!p->prev.auxp && p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
+    if (!p->prev.auxp || p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT), &p->prev);
     }
-    if (!p->sin.auxp && p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
+    if (!p->sin.auxp || p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (p->hopsize*2)*sizeof(MYFLT), &p->sin);
     }
 
-    if (!p->spec2.auxp && p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
+    if (!p->spec2.auxp || p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(MYFLT), &p->spec2);
     }
 
-    if (!p->spec1.auxp && p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
+    if (!p->spec1.auxp || p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (winsize*4)*sizeof(MYFLT), &p->spec1);
     }
 
@@ -415,7 +415,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     else
      p->numpks = *p->peak;
 
-    if (!p->peakarray.auxp && p->peakarray.size < (p->numpks+1)*sizeof(PEAK)) {
+    if (!p->peakarray.auxp || p->peakarray.size < (p->numpks+1)*sizeof(PEAK)) {
       csound->AuxAlloc(csound, (p->numpks+1)*sizeof(PEAK), &p->peakarray);
     }
 
