@@ -28,9 +28,10 @@
 #include "csound_orc.h"
 #include "parse_param.h"
 
+#include "yyguts.h"
+
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
-extern FILE **get_csound_orcin(void*);
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -54,6 +55,8 @@ void new_orc_parser(CSOUND *csound)
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
     OPARMS *O = csound->oparms;
     PARSE_PARM  pp;
+    void *ttt;
+    struct yyguts_t* yyg;
 
     init_symbtab(csound);
 
@@ -63,16 +66,24 @@ void new_orc_parser(CSOUND *csound)
 
     csound_orcdebug = O->odebug;
     csound_orclex_init(&pp.yyscanner);
-    csound_orcset_extra(&pp, pp.yyscanner);
+    yyg = (struct yyguts_t*)pp.yyscanner;
+    printf("%s (%d): yyg=%p, yyg->yy_c_buf_p=%p\n", __FILE__, __LINE__, yyg, yyg->yy_c_buf_p);
 
-    if (UNLIKELY((t = csound->FileOpen2(csound, get_csound_orcin(pp.yyscanner), CSFILE_STD,
+    csound_orcset_extra(&pp, pp.yyscanner);
+    printf("%s (%d): yyg=%p, yyg->yy_c_buf_p=%p\n", __FILE__, __LINE__, yyg, yyg->yy_c_buf_p);
+
+    if (UNLIKELY((t = csound->FileOpen2(csound, &ttt, CSFILE_STD,
                                  csound->orchname, "rb", NULL,
                                         CSFTYPE_ORCHESTRA, 0)) == NULL)) {
     	csound->Free(csound, pp.buffer);
     	csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     }
+    printf("%s (%d): yyg=%p, yyg->yy_c_buf_p=%p\n", __FILE__, __LINE__, yyg, yyg->yy_c_buf_p);
+    csound_orcset_in(ttt, pp.yyscanner);
+    printf("%s (%d): yyg=%p, yyg->yy_c_buf_p=%p\n", __FILE__, __LINE__, yyg, yyg->yy_c_buf_p);
 
-    //    csound_orcrestart(*get_csound_orcin(pp.yyscanner), pp.yyscanner);
+    csound_orcrestart(ttt, pp.yyscanner);
+    printf("%s (%d): yyg=%p, yyg->yy_c_buf_p=%p\n", __FILE__, __LINE__, yyg, yyg->yy_c_buf_p);
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
     if (LIKELY(retVal == 0)) {

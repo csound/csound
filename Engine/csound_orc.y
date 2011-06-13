@@ -24,6 +24,7 @@
 %pure_parser
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
+%lex-param { CSOUND * csound }
 %lex-param {yyscan_t *scanner}
 
 %token S_COM
@@ -145,7 +146,6 @@
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE * astTree }
-%lex-param { CSOUND * csound }
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -175,7 +175,7 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
- extern int csound_orclex(TREE**, void *, CSOUND *);
+ extern int csound_orclex(TREE**, CSOUND *, void *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
 extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
