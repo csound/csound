@@ -70,7 +70,7 @@ int lMaxBuffer = 1000;
 
 #define YY_INPUT(buf,result,max_size)  {\
     result = get_next_char(buf, max_size, yyg); \
-    if (  result <= 0  ) \
+    if ( UNLIKELY( result <= 0  )) \
       result = YY_NULL; \
     }
 
@@ -500,14 +500,14 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
-        if (i==mlen)
+        if (UNLIKELY(i==mlen))
           mname = (char *)realloc(mname, mlen+=40);
         c = input(yyscanner);
       }
       mname[i] = '\0';
       mm->arg[arg] = mmalloc(csound, i + 1);
       strcpy(mm->arg[arg++], mname);
-      if (arg >= mm->margs) {
+      if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
         mm->margs += MARGS;
@@ -528,7 +528,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (i >= size)
+        if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
@@ -558,7 +558,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (i >= size)
+        if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
@@ -761,43 +761,45 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
 
 /* Functions for working with grabbing input one line aa time */
 
-int get_next_line(struct yyguts_t * yyg) {
-  int i;
-  char *p;
+int get_next_line(struct yyguts_t * yyg) 
+{
+    int i;
+    char *p;
   
-  nBuffer = 0;
-  eof = 0;
+    nBuffer = 0;
+    eof = 0;
 
-  p = fgets(yyextra->buffer, lMaxBuffer, yyin);
-  if (  p == NULL  ) {
-    if (  ferror(yyin)  )
-      return -1;
-    eof = 1;
-    return 1;
-  }
-
-  yyline++;
-  
-  lBuffer = strlen(yyextra->buffer);
-
-  return 0;
-}
-
-int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg) {
-  int frc;
-  
-  if (  eof  )
-    return 0;
-  
-  while (  nBuffer >= lBuffer  ) {
-    frc = get_next_line(yyg);
-    if (  frc != 0  )
-      return 0;
+    p = fgets(yyextra->buffer, lMaxBuffer, yyin);
+    if (UNLIKELY(p == NULL)) {
+      if (ferror(yyin))
+        return -1;
+      eof = 1;
+      return 1;
     }
 
-  b[0] = yyextra->buffer[nBuffer];
-  nBuffer += 1;
+    yyline++;
+  
+    lBuffer = strlen(yyextra->buffer);
 
-  return b[0]==0?0:1;
+    return 0;
+}
+
+int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
+{
+    int frc;
+  
+    if (UNLIKELY(  eof  ))
+      return 0;
+  
+    while (  nBuffer >= lBuffer  ) {
+      frc = get_next_line(yyg);
+      if (UNLIKELY(  frc != 0  ))
+        return 0;
+    }
+
+    b[0] = yyextra->buffer[nBuffer];
+    nBuffer += 1;
+
+    return b[0]==0?0:1;
 }
 
