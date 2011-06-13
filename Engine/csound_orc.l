@@ -66,7 +66,7 @@ static int eof = 0;
 static int nBuffer = 0;
 static int lBuffer = 0;
 int lMaxBuffer = 1000;
-char *buffer;
+//char *buffer;
 
 #define YY_INPUT(buf,result,max_size)  {\
     result = get_next_char(buf, max_size, yyg); \
@@ -768,7 +768,7 @@ int get_next_line(struct yyguts_t * yyg) {
   nBuffer = 0;
   eof = 0;
 
-  p = fgets(buffer, lMaxBuffer, yyin);
+  p = fgets(yyextra->buffer, lMaxBuffer, yyin);
   if (  p == NULL  ) {
     if (  ferror(yyin)  )
       return -1;
@@ -778,7 +778,7 @@ int get_next_line(struct yyguts_t * yyg) {
 
   yyline++;
   
-  lBuffer = strlen(buffer);
+  lBuffer = strlen(yyextra->buffer);
 
   return 0;
 }
@@ -795,21 +795,9 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg) {
       return 0;
     }
 
-  b[0] = buffer[nBuffer];
+  b[0] = yyextra->buffer[nBuffer];
   nBuffer += 1;
 
   return b[0]==0?0:1;
 }
 
-
-FILE **get_csound_orcin(void* yyscanner)
-{
-    struct yyguts_t *yyg = (struct yyguts_t *)yyscanner;
-    return &yyin;
-}
-
-char *get_csound_orctext(void* yyscanner)
-{
-    struct yyguts_t *yyg = (struct yyguts_t *)yyscanner;
-    return yytext;
-}
