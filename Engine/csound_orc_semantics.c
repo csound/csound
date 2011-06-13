@@ -29,6 +29,8 @@
 #include "namedins.h"
 #include "parse_param.h"
 
+char *csound_orcget_text ( void *scanner );
+
 extern  char argtyp2(CSOUND*, char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -119,12 +121,11 @@ int csound_orcwrap()
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE *astTree, char *str)
 {
-    extern char *get_csound_orctext(void *);
     extern int yyline;
     //    extern char* buffer;
 
     csound->Message(csound, Str("error: %s (token \"%s\")"),
-                    str, get_csound_orctext(yyscanner));
+                    str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d: %s"),
                     yyline, pp->buffer); // buffer has \n at end
 }

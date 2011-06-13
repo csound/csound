@@ -1,5 +1,5 @@
 typedef struct parse_parm_s {
-  void            *yyscanner;
+    void            *yyscanner;
     char            *buffer;
 //  int             pos;
 //  int             length;
