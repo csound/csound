@@ -165,6 +165,9 @@ CONT            \\[[ \t]*\n
 "elseif"        { return T_ELSEIF; }
 "else"          { return T_ELSE; }
 "endif"         { return T_ENDIF; }
+"until"         { return T_UNTIL; }
+"do"            { return T_DO; }
+"endloop"       { return T_ENDLOOP; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_GOTO;
