@@ -167,7 +167,7 @@ CONT            \\[[ \t]*\n
 "endif"         { return T_ENDIF; }
 "until"         { return T_UNTIL; }
 "do"            { return T_DO; }
-"endloop"       { return T_ENDLOOP; }
+"od"            { return T_OD; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_GOTO;
