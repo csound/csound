@@ -309,8 +309,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
           csound->Message(csound,"T_UNTIL:\n"); break;
     case T_DO:
           csound->Message(csound,"T_DO:\n"); break;
-    case T_ENDLOOP:
-          csound->Message(csound,"T_ENDLOOP:\n"); break;
+    case T_OD:
+          csound->Message(csound,"T_OD:\n"); break;
     case T_GOTO:
       csound->Message(csound,"T_GOTO:\n"); break;
     case T_IGOTO:
@@ -483,8 +483,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
           csound->Message(csound,"name=\"T_UNTIL\""); break;
     case T_DO:
           csound->Message(csound,"name=\"T_DO\""); break;
-    case T_ENDLOOP:
-          csound->Message(csound,"name=\"T_ENDLOOP\""); break;
+    case T_OD:
+          csound->Message(csound,"name=\"T_OD\""); break;
     case T_GOTO:
       csound->Message(csound,"name=\"T_GOTO\""); break;
     case T_IGOTO:
