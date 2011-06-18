@@ -2337,4 +2337,3 @@ int kmedfilt(CSOUND *csound, MEDFILT *p)
     p->ind = index;
     return OK;
 }
-

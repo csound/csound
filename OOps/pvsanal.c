@@ -94,6 +94,7 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
 }
 
+
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
     /* opcode params */

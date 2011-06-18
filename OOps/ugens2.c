@@ -144,8 +144,8 @@ int phsor(CSOUND *csound, PHSOR *p)
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT
-                                              to avoid rounded output
+        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT 
+                                              to avoid rounded output 
                                               exceeding 1.0 on float version */
           phase -= 1.0;
         else if (UNLIKELY((MYFLT)phase < 0.0))

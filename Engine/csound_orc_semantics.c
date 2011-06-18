@@ -27,6 +27,9 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "namedins.h"
+#include "parse_param.h"
+
+char *csound_orcget_text ( void *scanner );
 
 extern  char argtyp2(CSOUND*, char*);
 extern  int tree_arg_list_count(TREE *);
@@ -115,15 +118,16 @@ int csound_orcwrap()
 }
 
 /* BISON PARSER FUNCTION */
-void csound_orcerror(CSOUND *csound, TREE *astTree, char *str)
+void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
+                     CSOUND *csound, TREE *astTree, char *str)
 {
     extern int yyline;
-    extern char* csound_orctext;
-    extern FILE* csound_orcin;
-    extern char* buffer;
+    //    extern char* buffer;
 
-    csound->Message(csound, Str("error: %s (token \"%s\")"), str, csound_orctext);
-    csound->Message(csound, Str(" line %d: %s"), yyline, buffer); // buffer has \n at end
+    csound->Message(csound, Str("error: %s (token \"%s\")"),
+                    str, csound_orcget_text(yyscanner));
+    csound->Message(csound, Str(" line %d: %s"),
+                    yyline, pp->buffer); // buffer has \n at end
 }
 
 /**
@@ -301,6 +305,12 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
           csound->Message(csound,"T_ELSEIF:\n"); break;
     case T_ELSE:
           csound->Message(csound,"T_ELSE:\n"); break;
+    case T_UNTIL:
+          csound->Message(csound,"T_UNTIL:\n"); break;
+    case T_DO:
+          csound->Message(csound,"T_DO:\n"); break;
+    case T_OD:
+          csound->Message(csound,"T_OD:\n"); break;
     case T_GOTO:
       csound->Message(csound,"T_GOTO:\n"); break;
     case T_IGOTO:
@@ -469,6 +479,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
           csound->Message(csound,"name=\"T_ELSEIF\""); break;
     case T_ELSE:
           csound->Message(csound,"name=\"T_ELSE\""); break;
+    case T_UNTIL:
+          csound->Message(csound,"name=\"T_UNTIL\""); break;
+    case T_DO:
+          csound->Message(csound,"name=\"T_DO\""); break;
+    case T_OD:
+          csound->Message(csound,"name=\"T_OD\""); break;
     case T_GOTO:
       csound->Message(csound,"name=\"T_GOTO\""); break;
     case T_IGOTO:
