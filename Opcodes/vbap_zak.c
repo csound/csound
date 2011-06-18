@@ -28,6 +28,7 @@
    Ville Pulkki & John ffitch
 */
 
+
 #include "csdl.h"
 #include "vbap.h"
 #include <math.h>
@@ -570,4 +571,3 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     }
     return OK;
 }
-

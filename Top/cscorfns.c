@@ -912,3 +912,4 @@ PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
       n++;
     return(n);
 }
+

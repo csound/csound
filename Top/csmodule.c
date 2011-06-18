@@ -234,7 +234,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (UNLIKELY(fname[0] == '\0'))
       return CSOUND_ERROR;
     /* load library */
-/* #if defined(LINUX) */
+/*  #if defined(LINUX) */
 /*       printf("About to open library '%s'\n", libraryPath); */
 /* #endif */
     err = csound->OpenLibrary(&h, libraryPath);

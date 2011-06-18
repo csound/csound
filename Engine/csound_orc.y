@@ -21,6 +21,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+%pure_parser
+%parse-param {PARSE_PARM *parm}
+%parse-param {void *scanner}
+%lex-param { CSOUND * csound }
+%lex-param {yyscan_t *scanner}
+
 %token S_COM
 %token S_Q
 %token S_COL
@@ -113,6 +119,9 @@
 %token T_ELSEIF
 %token T_ELSE
 %token T_ENDIF
+%token T_UNTIL
+%token T_DO
+%token T_OD
 
 %token T_INTLIST
 
@@ -140,7 +149,6 @@
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE * astTree }
-%lex-param { CSOUND * csound }
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -161,6 +169,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #endif
+#include "parse_param.h"
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
@@ -169,9 +178,9 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex(TREE**, CSOUND *);
+ extern int csound_orclex(TREE**, CSOUND *, void *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
-extern void csound_orcerror(CSOUND *, TREE*, char*);
+extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
 %}
 %%
@@ -368,6 +377,12 @@ statement : ident S_ASSIGN expr S_NL
                     $$ = make_node(csound, T_IF, $2, $3);
                 }
           | ifthen
+          | T_UNTIL expr T_DO statementlist T_OD
+              {
+                  $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)yylval);
+                  $$->left = $2;
+                  $$->right = $4;
+              }
           | S_NL { $$ = NULL; }
           ;
 
@@ -450,7 +465,6 @@ then      : T_THEN
           | T_ITHEN
             { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)yylval); }
           ;
-
 
 goto  : T_GOTO
             { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }

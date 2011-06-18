@@ -994,22 +994,21 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) ||
-                 (p->fout->format==PVS_AMP_PHASE))){
+    if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))){
       return csound->InitError(csound,
                                Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
-    if (p->ceps.auxp == NULL ||
-        p->ceps.size < sizeof(MYFLT) * (N+2))
-      csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
-    memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
-    if (p->fenv.auxp == NULL ||
-        p->fenv.size < sizeof(MYFLT) * (N+2))
-      csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
-    if (p->fexc.auxp == NULL ||
-        p->fexc.size < sizeof(MYFLT) * (N+2))
-      csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
+   if (p->ceps.auxp == NULL ||
+      p->ceps.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
+  memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
+  if (p->fenv.auxp == NULL ||
+      p->fenv.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
+  if (p->fexc.auxp == NULL ||
+      p->fexc.size < sizeof(MYFLT) * (N+2)) 
+    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
 
     return OK;
 }
@@ -1028,11 +1027,11 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
     float sr = csound->esr;
     float maxe=0.f, maxa=0.f;
-
+   
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
-      for(j=0; j < 2; j++) {
+      for(j=0; j < 2; j++) {	
 	MYFLT a;
 	maxe = 0.f;
         maxa = 0.f;
@@ -1046,24 +1045,24 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 	for(i=0; i < N; i+=2){
 	  ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
-	}
+	} 
 	csound->InverseComplexFFT(csound, ceps, N/2);
-        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;   
         csound->ComplexFFT(csound, ceps, N/2);
-        for(i=0; i < N; i+=2) {
+        for(i=0; i < N; i+=2) {    
 	  fenv[i/2] = exp(ceps[i]);
 	   maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
-	}
+	}      
 	if(maxe)
 	for(i=0; i<N; i+=2){
-          if(j) fenv[i/2] *= maxa/maxe;
+          if(j) fenv[i/2] *= maxa/maxe;   
 	  if(fenv[i/2] && !j) {
              fenv[i/2] /= maxe;
 	     fexc[i] /= fenv[i/2];
-	  }
-	  }
+	  }	   
+	  }	   
       }
-
+     
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for(i=0;i < N+2;i+=2) {
         fout[i] = fenv[i/2]*(fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
@@ -1071,7 +1070,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
-
+    
     return OK;
  err1:
     return csound->PerfError(csound,Str("pvsvoc: not initialised\n"));
@@ -1091,8 +1090,7 @@ static int pvsmorph_init(CSOUND *csound, pvsmorph *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) ||
-                 (p->fout->format==PVS_AMP_PHASE))){
+    if (UNLIKELY(!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))){
       return csound->InitError(csound,
                                Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));

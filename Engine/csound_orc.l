@@ -28,10 +28,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "csoundCore.h"
-#define YYSTYPE ORCTOKEN*
-#define YY_DECL int yylex (YYSTYPE *lvalp, CSOUND *csound)
+#define YYSTYPE TREE*
+#define YYLTYPE ORCTOKEN*
 #include "tok.h"
+#define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orcparse.h"
+#include "csound_orc.h"
+YYSTYPE *yylval_param;
+YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
 extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
 ORCTOKEN *new_token(CSOUND *csound, int type);
@@ -39,13 +43,12 @@ ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
-void comment(void);
-void do_comment(void);
-ORCTOKEN *do_at(CSOUND *, int);
-void do_include(CSOUND *, int);
-void do_macro_arg(CSOUND *, char *);
-void do_macro(CSOUND *, char *);
-void do_umacro(CSOUND *, char *);
+void comment(yyscan_t);
+void do_comment(yyscan_t);
+void do_include(CSOUND *, int, yyscan_t);
+void do_macro_arg(CSOUND *, char *, yyscan_t);
+void do_macro(CSOUND *, char *, yyscan_t);
+void do_umacro(CSOUND *, char *, yyscan_t);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
@@ -54,19 +57,20 @@ int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
 //YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #define MARGS   (3)
+#include "parse_param.h"
+
+#define YY_EXTRA_TYPE  PARSE_PARM *
+#define PARM    yyget_extra(yyscanner)
 
 static int eof = 0;
 static int nBuffer = 0;
 static int lBuffer = 0;
 int lMaxBuffer = 1000;
-char *buffer;
-
-int get_next_char(char *b, int maxBuffer); 
-int get_next_line(void); 
+//char *buffer;
 
 #define YY_INPUT(buf,result,max_size)  {\
-    result = get_next_char(buf, max_size); \
-    if (  result <= 0  ) \
+    result = get_next_char(buf, max_size, yyg); \
+    if ( UNLIKELY( result <= 0  )) \
       result = YY_NULL; \
     }
 
@@ -82,7 +86,13 @@ typedef struct MACRO {          /* To store active macros */
 static MACRO* macros = NULL;
 static MACRO* alt_stack[MAX_INCLUDE_DEPTH];
 static unsigned int macro_stack_ptr = 0;
+struct yyguts_t;
+ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
 %}
+%option reentrant
+%option bison-bridge
+%option bison-locations
+
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
@@ -103,6 +113,7 @@ INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
 CONT            \\[[ \t]*\n
+
 %x incl
 %x macro
 %x umacro
@@ -112,9 +123,9 @@ CONT            \\[[ \t]*\n
 {CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
 "\n"            { //yyline++; 
                   return S_NL; }
-"//"            { comment(); return S_NL; }
-";"             { comment(); return S_NL; }
-{STCOM}         { do_comment(); }
+"//"            { comment(yyscanner); return S_NL; }
+";"             { comment(yyscanner); return S_NL; }
+{STCOM}         { do_comment(yyscanner); }
 "("             { return S_LB; }
 ")"             { return S_RB; }
 "+"             { return S_PLUS; }
@@ -145,8 +156,8 @@ CONT            \\[[ \t]*\n
 "#"             { return S_NEQV; }
 "¬"             { return S_BITNOT; }
 "~"             { return S_BITNOT; }
-"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1); return T_INTGR; }
-"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0); return T_INTGR; }
+"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return T_INTGR; }
+"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return T_INTGR; }
 "if"            { return T_IF; }
 "then"          { return T_THEN; }
 "ithen"         { return T_ITHEN; }
@@ -154,6 +165,9 @@ CONT            \\[[ \t]*\n
 "elseif"        { return T_ELSEIF; }
 "else"          { return T_ELSE; }
 "endif"         { return T_ENDIF; }
+"until"         { return T_UNTIL; }
+"do"            { return T_DO; }
+"od"            { return T_OD; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_GOTO;
@@ -226,13 +240,13 @@ CONT            \\[[ \t]*\n
                   alt_stack[macro_stack_ptr++] = macros;
                   /* printf("Push %p macro stack; new body #%s#\n", macros, mm->body); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
-                  yypush_buffer_state(YY_CURRENT_BUFFER);
-                  yy_scan_string(mm->body);
+                  yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                  yy_scan_string(mm->body, yyscanner);
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                  }
 {MACRONAMED}    {
                   MACRO     *mm = macros;
-                  yytext[csound_orcleng-1] = '\0';
+                  yytext[yyleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
                       break;
@@ -252,15 +266,15 @@ CONT            \\[[ \t]*\n
                   alt_stack[macro_stack_ptr++] = macros;
                   /* printf("Push %p macro stack\n", mm_save); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
-                  yypush_buffer_state(YY_CURRENT_BUFFER);
-                  yy_scan_string(mm->body);
+                  yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                  yy_scan_string(mm->body, yyscanner);
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                 }
 {MACRONAMEA}    {
                   MACRO     *mm = macros, *mm_save = macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
-                  yytext[csound_orcleng-1] = '\0';
+                  yytext[yyleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     /* printf("Check %s against %s\n", yytext+1, mm->name); */
                     if (!(strcmp(yytext+1, mm->name)))
@@ -284,7 +298,7 @@ CONT            \\[[ \t]*\n
                     /* csound->Message(csound, "defining argument %s ", nn->name); */
                     i = 0;
                     nn->body = (char*) mmalloc(csound, 100);
-                    while ((c = input())!= term && c!=trm1) {
+                    while ((c = input(yyscanner))!= term && c!=trm1) {
                       if (UNLIKELY(i > 98)) {
                         csound->Die(csound,
                                     Str("Missing argument terminator\n%.98s"),
@@ -304,14 +318,14 @@ CONT            \\[[ \t]*\n
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
                   alt_stack[macro_stack_ptr++] = mm_save;
                   /* printf("Push %p macro stack\n", mm_save); */
-                  yypush_buffer_state(YY_CURRENT_BUFFER);
-                  yy_scan_string(mm->body);
+                  yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                  yy_scan_string(mm->body, yyscanner);
                 }
 {MACRONAMEDA}    {
                   MACRO     *mm = macros, *mm_save = macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
-                  yytext[csound_orcleng-2] = '\0';
+                  yytext[yyleng-2] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     /* printf("Check %s against %s\n", yytext+1, mm->name); */
                     if (!(strcmp(yytext+1, mm->name)))
@@ -335,7 +349,7 @@ CONT            \\[[ \t]*\n
                     /* csound->Message(csound, "defining argument %s ", nn->name); */
                     i = 0;
                     nn->body = (char*) mmalloc(csound, 100);
-                    while ((c = input())!= term && c!=trm1) {
+                    while ((c = input(yyscanner))!= term && c!=trm1) {
                       if (UNLIKELY(i > 98)) {
                         csound->Die(csound,
                                     Str("Missing argument terminator\n%.98s"),
@@ -355,8 +369,8 @@ CONT            \\[[ \t]*\n
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
                   alt_stack[macro_stack_ptr++] = mm_save;
                   /* printf("Push %p macro stack\n", mm_save); */
-                  yypush_buffer_state(YY_CURRENT_BUFFER);
-                  yy_scan_string(mm->body);
+                  yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                  yy_scan_string(mm->body, yyscanner);
                 }
 {INTGR}         {
                     if(udoflag == 0) {
@@ -375,13 +389,13 @@ CONT            \\[[ \t]*\n
 {WHITE}         { }
 {INCLUDE}       BEGIN(incl);
 <incl>[ \t]*     /* eat the whitespace */
-<incl>.         { do_include(csound, yytext[0]); /* got the include file name */
+<incl>.         { do_include(csound, yytext[0], yyscanner); /* got the include file name */
                   BEGIN(INITIAL);
                 }
 <<EOF>>         {
                   MACRO *x, *y=macros;
                   /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
-                  yypop_buffer_state();
+                  yypop_buffer_state(yyscanner);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
                   macros = alt_stack[--macro_stack_ptr];
@@ -404,19 +418,19 @@ CONT            \\[[ \t]*\n
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
                   printf("Define macro with args %s\n", yytext);
-                  do_macro_arg(csound, yytext);
+                  do_macro_arg(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
                 }
 <macro>{IDENTN} {
                   printf("Define macro %s\n", yytext);
-                  do_macro(csound, yytext);
+                  do_macro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
                 }
 {UNDEF}        BEGIN(umacro);
 <umacro>[ \t]*    /* eat the whitespace */
 <umacro>{IDENT}  {
                   printf("Undefine macro %s\n", yytext);
-                  do_umacro(csound, yytext);
+                  do_umacro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
                 }
 
@@ -426,43 +440,44 @@ CONT            \\[[ \t]*\n
                 }
 
 %%
-void comment(void)              /* Skip until nextline */
+void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
 
-    while ((c = input()) != '\n'); /* skip */
+    while ((c = input(yyscanner)) != '\n'); /* skip */
     yyline++;
 }
 
-void do_comment(void)              /* Skip until * and / chars */
+void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     char c;
     for (;;) {
-      while ((c=input()) != '*')
+      while ((c=input(yyscanner)) != '*')
           if (UNLIKELY(c=='\n')) yyline++; /* skip */
-      if ((c=input())=='/') return;
+      if ((c=input(yyscanner))=='/') return;
       if (UNLIKELY(c=='\n')) yyline++;
     }
 }
 
-void do_include(CSOUND *csound, int term)
+void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
     char buffer[100];
     int p=0;
     int c;
-    while ((c=input())!=term) {
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+    while ((c=input(yyscanner))!=term) {
       buffer[p] = c;
       p++;
     }
     buffer[p] = '\0';
-    while ((c=input())!='\n');
+    while ((c=input(yyscanner))!='\n');
     yyin = fopen( buffer, "r" );
     if (UNLIKELY( ! yyin )) {
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
     alt_stack[macro_stack_ptr++] = macros;
-    yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ) );
+    yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 }
 
 static inline int isNameChar(int c, int pos)
@@ -471,7 +486,7 @@ static inline int isNameChar(int c, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
-void do_macro_arg(CSOUND *csound, char *name0)
+void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
@@ -483,40 +498,40 @@ void do_macro_arg(CSOUND *csound, char *name0)
     strcpy(mm->name, name0);
     do {
       csound->Message(csound, "M-arguments: ");
-      while (isspace((c = input())));
+      while (isspace((c = input(yyscanner))));
       i = 0;
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
-        if (i==mlen)
+        if (UNLIKELY(i==mlen))
           mname = (char *)realloc(mname, mlen+=40);
-        c = input();
+        c = input(yyscanner);
       }
       mname[i] = '\0';
       mm->arg[arg] = mmalloc(csound, i + 1);
       strcpy(mm->arg[arg++], mname);
-      if (arg >= mm->margs) {
+      if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
         mm->margs += MARGS;
       }
       while (isspace(c))
-        c = input();
+        c = input(yyscanner);
     } while (c == '\'' || c == '#');
     if (UNLIKELY(c != ')'))
       csound->Message(csound, Str("macro error\n"));
     free(mname);
-    while (c!='#') c = input();
+    while (c!='#') c = input(yyscanner);
     mm->acnt = arg;
     i = 0;
     mm->body = (char*) mmalloc(csound, 100);
-    while ((c = input()) != '#') {
+    while ((c = input(yyscanner)) != '#') {
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
-        mm->body[i++] = c = input();
-        if (i >= size)
+        mm->body[i++] = c = input(yyscanner);
+        if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
@@ -527,7 +542,7 @@ void do_macro_arg(CSOUND *csound, char *name0)
     macros = mm;
 }
 
-void do_macro(CSOUND *csound, char *name0)
+void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
@@ -538,15 +553,15 @@ void do_macro(CSOUND *csound, char *name0)
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
-    while ((c = input()) != '#');
+    while ((c = input(yyscanner)) != '#');
     mm->body = (char*) mmalloc(csound, 100);
-    while ((c = input()) != '#') {
+    while ((c = input(yyscanner)) != '#') {
       mm->body[i++] = c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
-        mm->body[i++] = c = input();
-        if (i >= size)
+        mm->body[i++] = c = input(yyscanner);
+        if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
@@ -558,7 +573,7 @@ void do_macro(CSOUND *csound, char *name0)
     macros = mm;
 }
 
-void do_umacro(CSOUND *csound, char *name0)
+void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int i,c;
     if (UNLIKELY(csound->oparms->msglevel))
@@ -585,7 +600,7 @@ void do_umacro(CSOUND *csound, char *name0)
         mfree(csound, nn->arg[i]);
       mm->next = nn->next; mfree(csound, nn);
     }
-    while ((c=input()) != '\n' && c != EOF);       /* ignore rest of line */
+    while ((c=input(yyscanner)) != '\n' && c != EOF);       /* ignore rest of line */
     yyline++;
 }
 
@@ -627,7 +642,7 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     return ans;
 }
 
-ORCTOKEN *do_at(CSOUND *csound, int k)
+ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
 {
     int n, i = 1;
     ORCTOKEN *ans;
@@ -749,44 +764,45 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
 
 /* Functions for working with grabbing input one line aa time */
 
-int get_next_line(void) {
-  int i;
-  char *p;
+int get_next_line(struct yyguts_t * yyg) 
+{
+    int i;
+    char *p;
   
-  nBuffer = 0;
-  eof = 0;
+    nBuffer = 0;
+    eof = 0;
 
-  p = fgets(buffer, lMaxBuffer, yyin);
-  if (  p == NULL  ) {
-    if (  ferror(yyin)  )
-      return -1;
-    eof = 1;
-    return 1;
-  }
-
-  yyline++;
-  
-  lBuffer = strlen(buffer);
-
-  return 0;
-}
-
-int get_next_char(char *b, int maxBuffer) {
-  int frc;
-  
-  if (  eof  )
-    return 0;
-  
-  while (  nBuffer >= lBuffer  ) {
-    frc = get_next_line();
-    if (  frc != 0  )
-      return 0;
+    p = fgets(yyextra->buffer, lMaxBuffer, yyin);
+    if (UNLIKELY(p == NULL)) {
+      if (ferror(yyin))
+        return -1;
+      eof = 1;
+      return 1;
     }
 
-  b[0] = buffer[nBuffer];
-  nBuffer += 1;
+    yyline++;
+  
+    lBuffer = strlen(yyextra->buffer);
 
-  return b[0]==0?0:1;
+    return 0;
 }
 
+int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
+{
+    int frc;
+  
+    if (UNLIKELY(  eof  ))
+      return 0;
+  
+    while (  nBuffer >= lBuffer  ) {
+      frc = get_next_line(yyg);
+      if (UNLIKELY(  frc != 0  ))
+        return 0;
+    }
+
+    b[0] = yyextra->buffer[nBuffer];
+    nBuffer += 1;
+
+    return b[0]==0?0:1;
+}
 
