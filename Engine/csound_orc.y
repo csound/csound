@@ -121,7 +121,7 @@
 %token T_ENDIF
 %token T_UNTIL
 %token T_DO
-%token T_ENDLOOP
+%token T_OD
 
 %token T_INTLIST
 
@@ -377,7 +377,7 @@ statement : ident S_ASSIGN expr S_NL
                     $$ = make_node(csound, T_IF, $2, $3);
                 }
           | ifthen
-          | T_UNTIL expr T_DO statementlist T_ENDLOOP
+          | T_UNTIL expr T_DO statementlist T_OD
               {
                   $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)yylval);
                   $$->left = $2;
