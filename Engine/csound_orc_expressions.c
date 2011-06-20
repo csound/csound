@@ -629,6 +629,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
  *   2. for else statements found, do no conditional and just link in statements
  *
  * */
+
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
     //    int32 labelCounter = 300L;
@@ -819,17 +820,44 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
           }
         }
+        break;
       case T_UNTIL:
-        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found IF statement\n");
-        {
-          TREE * left = current->left;
-          TREE * right = current->right;
-          TREE* last;
-          TREE * gotoToken;
-          int endLabelCounter = -1;
-          csound->Message(csound, "Found if-then\n");
-          endLabelCounter = genlabs++;
-        }
+        csound->Message(csound, "Found UNTIL statement\n");
+        //#include "until.c"
+        /* { */
+        /*   TREE * expr = current->left; */
+        /*   TREE * body = current->right; */
+        /*   TREE* last; */
+        /*   TREE * gotoToken; */
+        /*   int topLabelCounter = genlabs++; */
+        /*   int endLabelCounter = genlabs++; */
+        /*   TREE *endLabel = create_synthetic_label(csound, endLabelCounter); */
+        /*   TREE *endLabel0 = create_synthetic_label(csound, endLabelCounter); */
+        /*   TREE *topLabel = create_synthetic_label(csound, topLabelCounter); */
+        /*   TREE *topLabel0 = create_synthetic_label(csound, topLabelCounter); */
+        /*   //char nn = argtyp2(csound, expr->value->lexeme); */
+        /*   //int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 0); /\* ?? JPff *\/ */
+        /*   topLabel->next = current; */
+        /*   current->type = T_IF; */
+        /*   current->right =  make_leaf(csound,T_GOTO, NULL); */
+        /*   current->right->right = endLabel; */
+        /*   current->next = body; */
+        /*   print_tree(csound, "0000\n", current); */
+        /*   while (body->next != NULL) { */
+        /*       body = body->next; */
+        /*   } */
+        /*   print_tree(csound, "1111\n", body); */
+        /*   body->next = make_leaf(csound,T_GOTO, NULL); */
+        /*   body->next->right = topLabel0; */
+        /*   print_tree(csound, "GOTO", body->next); */
+        /*   body = body->next; */
+        /*   body->next = endLabel0; */
+        /*   endLabel0->next = NULL; */
+        /*   current = topLabel; */
+        /*   print_tree(csound, "after expansion\n", current); */
+        /*   current = csound_orc_expand_expressions(csound, current); */
+        /*   print_tree(csound, "final expansion\n", current); */
+        /* } */
         break;
       default:
         { /* This is WRONG in optional argsq */
