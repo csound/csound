@@ -819,6 +819,17 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
             csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
           }
         }
+      case T_UNTIL:
+        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found IF statement\n");
+        {
+          TREE * left = current->left;
+          TREE * right = current->right;
+          TREE* last;
+          TREE * gotoToken;
+          int endLabelCounter = -1;
+          csound->Message(csound, "Found if-then\n");
+          endLabelCounter = genlabs++;
+        }
         break;
       default:
         { /* This is WRONG in optional argsq */
