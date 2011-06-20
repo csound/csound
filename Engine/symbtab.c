@@ -79,28 +79,14 @@ void init_symbtab(CSOUND *csound)
     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
-          /* if (PARSER_DEBUG) */
-          /*   csound->Message(csound, */
-          /*           "Found PolyMorphic Opcode %s\n",ep->opname); */
-
           len = strlen(ep->opname) + 1;
           polyName = mcalloc(csound, len + 1);
           sprintf(polyName, "%s.", ep->opname);
 
           for (temp = (OENTRY*) csound->opcodlst;
                temp < (OENTRY*) csound->oplstend; temp++) {
-            if(ep != temp && strncmp(polyName, temp->opname, len) == 0) {
+            if (ep != temp && strncmp(polyName, temp->opname, len) == 0) {
               add_token(csound, ep->opname, get_opcode_type(temp));
-
-              if (PARSER_DEBUG) {
-                if(get_opcode_type(temp) == T_OPCODE) {
-                  csound->Message(csound, "Using Type T_OPCODE\n");
-                }
-                else {
-                  csound->Message(csound, "Using Type T_OPCODE0\n");
-                }
-              }
-              break;
             }
           }
 
