@@ -1,3 +1,8 @@
+2011-06-21  john ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/wiimote.c (wii_data_init): Return value missing
+	(wii_data_inits): Ditto
+
 2011-05-25  John ff  <jpff@cs.bath.ac.uk>
 
 	* Engine/fgens.c (nextval): Ensure c moves on if not a number
