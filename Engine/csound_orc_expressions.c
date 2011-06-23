@@ -389,7 +389,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       arg1 = argtyp2(csound, root->left->value->lexeme);
     }
     arg2 = argtyp2(csound, root->right->value->lexeme);
-    
+
     op = mcalloc(csound, 80);
 
      switch(root->type) {
@@ -424,7 +424,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
           strncat(op, "k", 80);
           outype = arg1;
         }
-        else 
+        else
           strncat(op, "i", 80);
         outarg = create_out_arg(csound, outype);
       }
@@ -722,7 +722,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 //                print_tree(csound, "ELSEIF case\n", ifBlockCurrent);
                 ifBlockCurrent->type = T_IF;
                 ifBlockCurrent = make_node(csound, T_ELSE, NULL, ifBlockCurrent);
-                //tempLeft = NULL; 
+                //tempLeft = NULL;
                 /*   ifBlockLast->next = */
                 /*     csound_orc_expand_expressions(csound, ifBlockCurrent); */
                 /* while (ifBlockLast->next != NULL) { */
@@ -801,7 +801,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               ifBlockLast = endLabel;
             }
             ifBlockLast->next = current->next;
-            
+
             /* Connect in all of the TREE nodes that were flattened from
              * the if-else-else block
              */
@@ -822,42 +822,80 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
         }
         break;
       case T_UNTIL:
-        csound->Message(csound, "Found UNTIL statement\n");
-        //#include "until.c"
-        /* { */
-        /*   TREE * expr = current->left; */
-        /*   TREE * body = current->right; */
-        /*   TREE* last; */
-        /*   TREE * gotoToken; */
-        /*   int topLabelCounter = genlabs++; */
-        /*   int endLabelCounter = genlabs++; */
-        /*   TREE *endLabel = create_synthetic_label(csound, endLabelCounter); */
-        /*   TREE *endLabel0 = create_synthetic_label(csound, endLabelCounter); */
-        /*   TREE *topLabel = create_synthetic_label(csound, topLabelCounter); */
-        /*   TREE *topLabel0 = create_synthetic_label(csound, topLabelCounter); */
-        /*   //char nn = argtyp2(csound, expr->value->lexeme); */
-        /*   //int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 0); /\* ?? JPff *\/ */
-        /*   topLabel->next = current; */
-        /*   current->type = T_IF; */
-        /*   current->right =  make_leaf(csound,T_GOTO, NULL); */
-        /*   current->right->right = endLabel; */
-        /*   current->next = body; */
-        /*   print_tree(csound, "0000\n", current); */
-        /*   while (body->next != NULL) { */
-        /*       body = body->next; */
-        /*   } */
-        /*   print_tree(csound, "1111\n", body); */
-        /*   body->next = make_leaf(csound,T_GOTO, NULL); */
-        /*   body->next->right = topLabel0; */
-        /*   print_tree(csound, "GOTO", body->next); */
-        /*   body = body->next; */
-        /*   body->next = endLabel0; */
-        /*   endLabel0->next = NULL; */
-        /*   current = topLabel; */
-        /*   print_tree(csound, "after expansion\n", current); */
-        /*   current = csound_orc_expand_expressions(csound, current); */
-        /*   print_tree(csound, "final expansion\n", current); */
-        /* } */
+        if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound, "Found UNTIL statement\n");
+        {
+          TREE * left = current->left;
+          TREE * right = current->right;
+          TREE* last;
+          TREE * gotoToken;
+
+          int32 topLabelCounter = genlabs++;
+          int32 endLabelCounter = genlabs++;
+          TREE *tempLeft = current->left;
+          TREE *tempRight = current->right;
+          TREE *ifBlockStart = current;
+          TREE *ifBlockCurrent = current;
+          TREE *ifBlockLast = current;
+          TREE *next = current->next;
+          TREE *statements, *label, *labelEnd;
+          int type;
+          /* *** Stage 1: Create a top label (overwriting *** */
+          {                           /* Change UNTIL to label and add IF */
+            TREE* t=create_synthetic_label(csound, topLabelCounter);
+            current->type = t->type; current->left = current->right = NULL;
+            current->value = t->value;
+            ifBlockCurrent = t;
+            ifBlockCurrent->left = tempLeft;
+            ifBlockCurrent->right = tempRight;
+            ifBlockCurrent->next = current->next;
+            ifBlockCurrent->type = T_IF;
+            current->next = t;
+          }
+          /* *** Stage 2: Boolean expression *** */
+          /* Deal with the boolean expression to variable */
+          tempRight = ifBlockCurrent->right;
+          expressionNodes =
+            ifBlockLast->next = create_boolean_expression(csound,
+                                                          ifBlockCurrent->left);
+          ifBlockLast = ifBlockLast->next;
+          /* *** Stage 3: Create the goto *** */
+          statements = tempRight;     /* the body of the loop */
+          label    = create_synthetic_ident(csound, topLabelCounter);
+          labelEnd = create_synthetic_label(csound, endLabelCounter);
+          gotoToken =
+            create_goto_token(csound,
+                              expressionNodes->left->value->lexeme,
+                              labelEnd,
+                              type =
+                              ((argtyp2(csound,
+                                        expressionNodes->left->value->lexeme)=='k')
+                               ||
+                               (argtyp2(csound,
+                                        tempRight->value->lexeme) == 'k')));
+          /* relinking */
+          tempRight = ifBlockLast->next;
+          ifBlockLast->next = gotoToken;
+          ifBlockLast->next->next = tempRight;
+          gotoToken->right->next = labelEnd;
+          gotoToken->next = statements;
+          labelEnd = create_synthetic_label(csound, endLabelCounter);
+          while (statements->next != NULL) { /* To end of body */
+            statements = statements->next;
+          }
+          {
+            TREE *topLabel = create_synthetic_ident(csound,
+                                                    topLabelCounter);
+            TREE *gotoTopLabelToken =
+              create_simple_goto_token(csound, topLabel, (type==1 ? 0 : 1));
+            if (UNLIKELY(PARSER_DEBUG))
+              csound->Message(csound, "Creating simple goto token\n");
+            statements->next = gotoTopLabelToken;
+            gotoTopLabelToken->next = labelEnd;
+          }
+          ifBlockLast = labelEnd;
+          ifBlockCurrent = tempRight->next;
+        }
         break;
       default:
         { /* This is WRONG in optional argsq */
