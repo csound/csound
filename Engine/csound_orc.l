@@ -548,7 +548,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int   arg = 0, i, c;
     int   size = 100;
     mm->margs = MARGS;    /* Initial size */
-    printf("Macro definition for %s\n", name0);
+    //    printf("Macro definition for %s\n", name0);
     mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
     mm->acnt = 0;
