@@ -78,6 +78,7 @@ void new_orc_parser(CSOUND *csound)
     }
     csound_orcset_in(ttt, pp.yyscanner);
     csound_orcrestart(ttt, pp.yyscanner);
+    csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
     if (LIKELY(retVal == 0)) {
