@@ -121,13 +121,13 @@ int csound_orcwrap()
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE *astTree, char *str)
 {
-    extern int yyline;
+    //??    extern int yyline;
     //    extern char* buffer;
 
     csound->Message(csound, Str("error: %s (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     csound->Message(csound, Str(" line %d: %s"),
-                    yyline, pp->buffer); // buffer has \n at end
+                    csound_orcget_lineno(yyscanner), pp->buffer); // buffer has \n at end
 }
 
 /**
