@@ -36,7 +36,7 @@
 #endif
 
 ORCTOKEN** symbtab;
-extern int yyline;
+//??extern int yyline;
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
@@ -245,7 +245,7 @@ int isUDOAnsList(char *s)
     return 1;
 }
 
-ORCTOKEN *lookup_token(CSOUND *csound, char *s)
+ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
     unsigned int h = hash(s);
     int type = T_IDENT;
@@ -327,7 +327,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
       else if (s[1]=='w') type = T_IDENT_GW;
       else if (s[1]=='S') type = T_IDENT_GS;
       else {
-        csound->Message(csound, Str("Unknown word type for %s on line %d\n"), s, yyline);
+        csound->Message(csound, Str("Unknown word type for %s on line %d\n"), s, csound_orcget_lineno(yyscanner));
         exit(1);
       }
     }

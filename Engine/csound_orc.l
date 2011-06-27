@@ -37,7 +37,7 @@
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
+extern ORCTOKEN *lookup_token(CSOUND *csound, char *, void *);
 ORCTOKEN *new_token(CSOUND *csound, int type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
@@ -53,7 +53,7 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
 //extern int namedInstrFlag;
-int yyline = 0;
+//??int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
 //YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #define MARGS   (3)
@@ -120,11 +120,16 @@ CONT            \\[[ \t]*\n
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-{CONT}          { /* printf("****Continuation found\n"); */ yyline++; }
-"\n"            { //yyline++; 
+{CONT}          { /* printf("****Continuation found\n"); */ csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
+ }
+"\n"            { //csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner); 
+printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
                   return S_NL; }
-"//"            { comment(yyscanner); return S_NL; }
-";"             { comment(yyscanner); return S_NL; }
+"//"            { comment(yyscanner); printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
+return S_NL; }
+";"             { comment(yyscanner); printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
+return S_NL; }
 {STCOM}         { do_comment(yyscanner); }
 "("             { return S_LB; }
 ")"             { return S_RB; }
@@ -209,14 +214,14 @@ CONT            \\[[ \t]*\n
 {STRCONSTe}     { *lvalp = make_string(csound, yytext); 
                   csound->Message(csound, 
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          yyline, yytext);
+                          csound_orcget_lineno(yyscanner), yytext);
                   return (T_STRCONST); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_0DBFS;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return T_0DBFS; }
-{IDENT}         { *lvalp = lookup_token(csound, yytext);
+{IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
@@ -374,9 +379,9 @@ CONT            \\[[ \t]*\n
                 }
 {INTGR}         {
                     if(udoflag == 0) {
-                        *lvalp = lookup_token(csound, yytext);
+                        *lvalp = lookup_token(csound, yytext, yyscanner);
                     } else if(udoflag == 1) {
-                        *lvalp = lookup_token(csound, yytext);
+                        *lvalp = lookup_token(csound, yytext, yyscanner);
                         (*lvalp)->type = T_UDO_ARGS;
                     } else {
                         *lvalp = make_int(csound, yytext); return (T_INTGR);
@@ -436,7 +441,7 @@ CONT            \\[[ \t]*\n
 
 .               { csound->Message(csound,
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
-                                 yyline,yytext[0],yytext[0]);
+                                 csound_orcget_lineno(yyscanner),yytext[0],yytext[0]);
                 }
 
 %%
@@ -445,7 +450,7 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
     char c;
 
     while ((c = input(yyscanner)) != '\n'); /* skip */
-    yyline++;
+    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
 }
 
 void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
@@ -453,9 +458,9 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
     char c;
     for (;;) {
       while ((c=input(yyscanner)) != '*')
-          if (UNLIKELY(c=='\n')) yyline++; /* skip */
+          if (UNLIKELY(c=='\n')) csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner); /* skip */
       if ((c=input(yyscanner))=='/') return;
-      if (UNLIKELY(c=='\n')) yyline++;
+      if (UNLIKELY(c=='\n')) csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
 }
 
@@ -535,7 +540,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
-        yyline++;
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
     mm->body[i] = '\0';
     mm->next = macros;
@@ -565,7 +570,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n'))
-        yyline++;
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
     mm->body[i] = '\0';
     //    printf("Body #%s#\n", mm->body);
@@ -601,7 +606,7 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       mm->next = nn->next; mfree(csound, nn);
     }
     while ((c=input(yyscanner)) != '\n' && c != EOF);       /* ignore rest of line */
-    yyline++;
+    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
 }
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
@@ -703,7 +708,7 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
  */
 void cs_init_math_constants_macros(CSOUND *csound)
  {
-     yyline = csound->orcLineOffset; /* deal with offset */
+//??     yyline = csound->orcLineOffset; /* deal with offset */
      add_math_const_macro(csound, "E", "2.7182818284590452354");
      add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
      add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
@@ -780,7 +785,7 @@ int get_next_line(struct yyguts_t * yyg)
       return 1;
     }
 
-    yyline++;
+    csound_orcset_lineno(1+csound_orcget_lineno(yyg),yyg);
   
     lBuffer = strlen(yyextra->buffer);
 
