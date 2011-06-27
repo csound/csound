@@ -62,11 +62,8 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-static int eof = 0;
-static int nBuffer = 0;
+static int nBuffer = 0;         /* These two need to be encapsculated */
 static int lBuffer = 0;
-int lMaxBuffer = 1000;
-//char *buffer;
 
 #define YY_INPUT(buf,result,max_size)  {\
     result = get_next_char(buf, max_size, yyg); \
@@ -120,16 +117,13 @@ CONT            \\[[ \t]*\n
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
-{CONT}          { /* printf("****Continuation found\n"); */ csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
-printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
+{CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                       yyscanner);
  }
-"\n"            { //csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner); 
-printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
+"\n"            { 
                   return S_NL; }
-"//"            { comment(yyscanner); printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
-return S_NL; }
-";"             { comment(yyscanner); printf("newline: line %d\n", csound_orcget_lineno(yyscanner));
-return S_NL; }
+"//"            { comment(yyscanner); return S_NL; }
+";"             { comment(yyscanner); return S_NL; }
 {STCOM}         { do_comment(yyscanner); }
 "("             { return S_LB; }
 ")"             { return S_RB; }
@@ -775,13 +769,11 @@ int get_next_line(struct yyguts_t * yyg)
     char *p;
   
     nBuffer = 0;
-    eof = 0;
 
     p = fgets(yyextra->buffer, lMaxBuffer, yyin);
     if (UNLIKELY(p == NULL)) {
       if (ferror(yyin))
         return -1;
-      eof = 1;
       return 1;
     }
 
@@ -796,7 +788,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
 {
     int frc;
   
-    if (UNLIKELY(  eof  ))
+    if (UNLIKELY( feof(yyin)  ))
       return 0;
   
     while (  nBuffer >= lBuffer  ) {

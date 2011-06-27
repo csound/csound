@@ -46,10 +46,6 @@ extern void csound_orc_compile(CSOUND *, TREE *);
 
 void new_orc_parser(CSOUND *csound)
 {
-
-	/* The following are defined in csound_orc.l */
-	extern int lMaxBuffer;
-
     void *t;
     int retVal;
     TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
