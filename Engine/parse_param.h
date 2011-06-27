@@ -5,3 +5,5 @@ typedef struct parse_parm_s {
 //  int             length;
 //  double          result;
 } PARSE_PARM;
+
+#define lMaxBuffer (1000)
