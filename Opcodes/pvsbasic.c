@@ -33,6 +33,83 @@
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
+typedef struct _pvsgain {
+  OPDS    h;
+  PVSDAT  *fout;
+  PVSDAT  *fa;
+  MYFLT   *kgain;
+  uint32  lastframe;
+} PVSGAIN;
+
+static int pvsgainset(CSOUND *csound, PVSGAIN *p){
+
+    int32    N = p->fa->N;
+    p->fout->sliding = 0;
+    if (p->fa->sliding) {
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(MYFLT) * csound->ksmps * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+                         &p->fout->frame);
+      p->fout->NB = p->fa->NB;
+      p->fout->sliding = 1;
+    }
+    else
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2))
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    p->fout->N = N;
+    p->fout->overlap = p->fa->overlap;
+    p->fout->winsize = p->fa->winsize;
+    p->fout->wintype = p->fa->wintype;
+    p->fout->format = p->fa->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE)))
+      return csound->InitError(csound, Str("pvsgain: signal format "
+                                           "must be amp-phase or amp-freq."));
+    return OK;
+}
+
+static int pvsgain(CSOUND *csound, PVSGAIN *p)
+{
+    int     i;
+    int32    framesize;
+    float   *fout, *fa;
+    MYFLT gain = *p->kgain;
+
+    if (p->fa->sliding) {
+      CMPLX * fout, *fa;
+      int n, nsmps=csound->ksmps;
+      int NB = p->fa->NB;
+      for (n=0; n<nsmps; n++) {
+        fout = (CMPLX*) p->fout->frame.auxp +NB*n;
+        fa = (CMPLX*) p->fa->frame.auxp +NB*n;
+        for (i = 0; i < NB; i++) {
+          fout[i].re = fa[i].re*gain;
+          fout[i].im = fa[i].im;
+        }
+      }
+      return OK;
+    }
+    fout = (float *) p->fout->frame.auxp;
+    fa = (float *) p->fa->frame.auxp;
+
+    framesize = p->fa->N + 2;
+
+    if (p->lastframe < p->fa->framecount) {
+      for (i = 0; i < framesize; i += 2){
+        fout[i] = fa[i]*gain;
+        fout[i+1] = fa[i+1];
+      }
+        p->fout->framecount = p->fa->framecount;
+        p->lastframe = p->fout->framecount;
+    }
+    return OK;    
+}
+
+
+
 static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int     i;
@@ -75,8 +152,10 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
           bframe[i + 1] = (i >>1) * N * csound->onedsr;
         }
       }
+    p->lastframe = 0;
     return OK;
 }
+
 
 typedef struct {
   OPDS h;
@@ -914,8 +993,8 @@ static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     int32    N = p->fa->N;
 
-    if (UNLIKELY(p->fa == p->fout || p->fb == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+    /* if (UNLIKELY(p->fa == p->fout || p->fb == p->fout))
+       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));*/
     p->fout->sliding = 0;
     if (p->fa->sliding) {
       if (p->fout->frame.auxp == NULL ||
@@ -983,7 +1062,8 @@ static int pvsmix(CSOUND *csound, PVSMIX *p)
           fout[i + 1] = fb[i + 1];
         }
       }
-      p->fout->framecount = p->lastframe = p->fa->framecount;
+      p->fout->framecount =  p->fa->framecount;
+      p->lastframe = p->fout->framecount;
     }
     return OK;
  err1:
@@ -2093,6 +2173,7 @@ static OENTRY localops[] = {
    (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
   {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
+  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)
