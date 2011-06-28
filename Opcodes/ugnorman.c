@@ -492,8 +492,8 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
               + (int) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
-    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+    if(p->auxch.auxp == NULL || p->auxch.size < memsize)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);

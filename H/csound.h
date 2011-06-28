@@ -1430,21 +1430,7 @@ extern "C" {
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 
 #elif defined(MACOSX)
-
-# include <libkern/OSAtomic.h>
-# define csoundSpinLock(spinlock)                               \
-    {                                                           \
-      OSSpinLockLock(spinlock);                                 \
-    }
-# define csoundSpinUnLock(spinlock)                             \
-    {                                                           \
-      OSSpinLockUnlock(spinlock);                               \
-    }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(MACOSX)
-
+  
 #ifndef SWIG
 
 #include <libkern/OSAtomic.h>
