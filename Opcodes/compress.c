@@ -77,6 +77,7 @@ static int compress(CSOUND *csound, CMPRS *p)
     MYFLT       *ar, *ainp, *cinp;
     int32        nsmps = csound->ksmps;
     int         n;
+    MYFLT scal = 32768./csound->e0dbfs;  /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -125,8 +126,8 @@ static int compress(CSOUND *csound, CMPRS *p)
       double csig;
       asig = *p->aptr;                  /* get signals from delay line  */
       csig = *p->cptr;
-      *p->aptr = ainp[n];               /*   & replace with incoming    */
-      if ((lsig = cinp[n]) < FL(0.0))
+      *p->aptr = ainp[n]*scal;               /*   & replace with incoming    */
+      if ((lsig = cinp[n]*scal) < FL(0.0))
         lsig = -lsig;                   /*   made abs for control       */
       *p->cptr = lsig;
       if (p->cptr == p->lmaxp) {        /* if prev ctrl was old lamax   */
@@ -171,7 +172,7 @@ static int compress(CSOUND *csound, CMPRS *p)
       }
       else if (p->cenv < p->envthrsh)
         asig = FL(0.0);                 /* else maybe noise gate */
-      ar[n] = asig;
+      ar[n] = asig/scal;
       if (++p->aptr >= p->cbuf) {
         p->aptr = p->abuf;
         p->cptr = p->cbuf;
