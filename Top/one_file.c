@@ -615,11 +615,14 @@ static int createFile(CSOUND *csound, FILE *unf)
 
     filename[0] = '\0';
 
-    p += 19;    /* 19 = strlen("<CsFileB filename=\"") */
-    printf("p=>>%s<<\n", p);
-    q = strchr(p, '"');
+    p += 18;    /* 18= strlen("<CsFileB filename=  ") */
+    if (*p=='"') {
+      p++; q = strchr(p, '"');
+    }
+    else
+      q = strchr(p, '>');
     if (q) *q='\0';
-    printf("p=>>%s<<\n", p);
+    //  printf("p=>>%s<<\n", p);
     strcpy(filename, p);
 //sscanf(ST(buffer), "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
