@@ -1,4 +1,12 @@
 #define MARGS   (3)
+#define MAX_INCLUDE_DEPTH 100
+struct MACRO;
+
+typedef struct MACRON {
+  int      n;
+  struct MACRO    *s;
+} MACRON;
+
 typedef struct MACRO {          /* To store active macros */
     char          *name;        /* Use is by name */
     int           acnt;         /* Count of arguments */
@@ -16,11 +24,14 @@ typedef struct parse_parm_s {
 //  double          result;
     MACRO           *macros;
 //  unsigned int    macro_stack_ptr;
-    int nBuffer;
-    int lBuffer;
+    int             nBuffer;
+    int             lBuffer;
+    MACRON alt_stack[MAX_INCLUDE_DEPTH];
+    unsigned int macro_stack_ptr;
 
 } PARSE_PARM;
 
 #define lMaxBuffer (1000)
 void    cs_init_math_constants_macros(CSOUND*, void*);
 void    cs_init_omacros(CSOUND*, void*, NAMES*);
+
