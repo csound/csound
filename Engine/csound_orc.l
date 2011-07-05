@@ -53,7 +53,6 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
 //extern int namedInstrFlag;
-//??int yyline = 0;
 #define MAX_INCLUDE_DEPTH 100
 //YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #define MARGS   (3)
@@ -72,14 +71,6 @@ static int lBuffer = 0;
     }
 
 
-typedef struct MACRO {          /* To store active macros */
-    char          *name;        /* Use is by name */
-    int           acnt;         /* Count of arguments */
-    char          *body;        /* The text of the macro */
-    struct MACRO  *next;        /* Chain of active macros */
-    int           margs;        /* amount of space for args */
-    char          *arg[MARGS];  /* With these arguments */
-} MACRO;
 static MACRO* macros = NULL;
 static MACRO* alt_stack[MAX_INCLUDE_DEPTH];
 static unsigned int macro_stack_ptr = 0;
