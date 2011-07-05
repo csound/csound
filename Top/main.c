@@ -52,7 +52,7 @@ extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  OENTRY  opcodlst_1[];
 extern  uintptr_t  kperfThread(void * cs);
 #if defined(ENABLE_NEW_PARSER)
-extern void cs_init_math_constants_macros(CSOUND *csound);
+extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
 #endif
 
@@ -334,8 +334,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "********************\n");
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
-      cs_init_math_constants_macros(csound);
-      cs_init_omacros(csound, csound->omacros);
       new_orc_parser(csound);
     }
     else {
