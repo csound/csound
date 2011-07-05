@@ -55,14 +55,10 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 //extern int namedInstrFlag;
 #define MAX_INCLUDE_DEPTH 100
 //YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-#define MARGS   (3)
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
-
-static int nBuffer = 0;         /* These two need to be encapsculated */
-static int lBuffer = 0;
 
 #define YY_INPUT(buf,result,max_size)  {\
     result = get_next_char(buf, max_size, yyg); \
@@ -71,7 +67,7 @@ static int lBuffer = 0;
     }
 
 
-static MACRO* macros = NULL;
+//static MACRO* macros = NULL;
 static MACRO* alt_stack[MAX_INCLUDE_DEPTH];
 static unsigned int macro_stack_ptr = 0;
 struct yyguts_t;
@@ -210,7 +206,7 @@ CONT            \\[[ \t]*\n
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
-                  MACRO     *mm = macros;
+                  MACRO     *mm = PARM->macros;
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
                       break;
@@ -227,15 +223,15 @@ CONT            \\[[ \t]*\n
                     exit(1);
                   }
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-                  alt_stack[macro_stack_ptr++] = macros;
-                  /* printf("Push %p macro stack; new body #%s#\n", macros, mm->body); */
+                  alt_stack[macro_stack_ptr++] = PARM->macros;
+                  /* printf("Push %p macro stack; new body #%s#\n", PARM->macros, mm->body); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                   yy_scan_string(mm->body, yyscanner);
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                  }
 {MACRONAMED}    {
-                  MACRO     *mm = macros;
+                  MACRO     *mm = PARM->macros;
                   yytext[yyleng-1] = '\0';
                   while (mm != NULL) {  /* Find the definition */
                     if (!(strcmp(yytext+1, mm->name)))
@@ -253,7 +249,7 @@ CONT            \\[[ \t]*\n
                     exit(1);
                   }
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-                  alt_stack[macro_stack_ptr++] = macros;
+                  alt_stack[macro_stack_ptr++] = PARM->macros;
                   /* printf("Push %p macro stack\n", mm_save); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
@@ -261,7 +257,7 @@ CONT            \\[[ \t]*\n
                   /* printf("%p\n", YY_CURRENT_BUFFER); */
                 }
 {MACRONAMEA}    {
-                  MACRO     *mm = macros, *mm_save = macros;
+                  MACRO     *mm = PARM->macros, *mm_save = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-1] = '\0';
@@ -301,8 +297,8 @@ CONT            \\[[ \t]*\n
                     nn->body[i] = '\0';
                     /* csound->Message(csound, "as...#%s#\n", nn->body); */
                     nn->acnt = 0;       /* No arguments for arguments */
-                    nn->next = macros;
-                    macros = nn;
+                    nn->next = PARM->macros;
+                    PARM->macros = nn;
                   }
                   /* printf("New body: ...#%s#\n", mm->body); */
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
@@ -312,7 +308,7 @@ CONT            \\[[ \t]*\n
                   yy_scan_string(mm->body, yyscanner);
                 }
 {MACRONAMEDA}    {
-                  MACRO     *mm = macros, *mm_save = macros;
+                  MACRO     *mm = PARM->macros, *mm_save = PARM->macros;
                   int c, i, j;
                   printf("Macro with arguments call %s\n", yytext);
                   yytext[yyleng-2] = '\0';
@@ -352,8 +348,8 @@ CONT            \\[[ \t]*\n
                     nn->body[i] = '\0';
                     /* csound->Message(csound, "as...#%s#\n", nn->body); */
                     nn->acnt = 0;       /* No arguments for arguments */
-                    nn->next = macros;
-                    macros = nn;
+                    nn->next = PARM->macros;
+                    PARM->macros = nn;
                   }
                   /* printf("New body: ...#%s#\n", mm->body); */
                   //include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
@@ -383,16 +379,16 @@ CONT            \\[[ \t]*\n
                   BEGIN(INITIAL);
                 }
 <<EOF>>         {
-                  MACRO *x, *y=macros;
+                  MACRO *x, *y=PARM->macros;
                   /* printf("Leaving buffer %p\n", YY_CURRENT_BUFFER); */
                   yypop_buffer_state(yyscanner);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* printf("End of input; popping to %p\n", YY_CURRENT_BUFFER); */
-                  macros = alt_stack[--macro_stack_ptr];
-                  /* printf("End of input segment: macro pop %p -> %p\n", y, macros); */
-                  /* while (y!=macros) { */
+                  PARM->macros = alt_stack[--macro_stack_ptr];
+                  /* printf("End of input segment: macro pop %p -> %p\n", y, PARM->macros); */
+                  /* while (y!=PARM->macros) { */
                   /*   int c = y->acnt; */
-                  /*   printf("macros %p,%p\n", y, macros); */
+                  /*   printf("PARM->macros %p,%p\n", y, PARM->macros); */
                   /*   printf("Free %p\n", y->name); */
                   /*   //free(y->name); */
                   /*   while (c>0) { */
@@ -466,7 +462,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Message(csound, Str("Cannot open file \"%s\"\n"), buffer);
       exit(1);
     }
-    alt_stack[macro_stack_ptr++] = macros;
+    alt_stack[macro_stack_ptr++] = PARM->macros;
     yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
 }
 
@@ -528,8 +524,8 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
     mm->body[i] = '\0';
-    mm->next = macros;
-    macros = mm;
+    mm->next = PARM->macros;
+    PARM->macros = mm;
 }
 
 void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -559,8 +555,8 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     mm->body[i] = '\0';
     //    printf("Body #%s#\n", mm->body);
-    mm->next = macros;
-    macros = mm;
+    mm->next = PARM->macros;
+    PARM->macros = mm;
 }
 
 void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -568,15 +564,15 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int i,c;
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
-    if (strcmp(name0, macros->name)==0) {
-      MACRO *mm=macros->next;
-      mfree(csound, macros->name); mfree(csound, macros->body);
-      for (i=0; i<macros->acnt; i++)
-        mfree(csound, macros->arg[i]);
-      mfree(csound, macros); macros = mm;
+    if (strcmp(name0, PARM->macros->name)==0) {
+      MACRO *mm=PARM->macros->next;
+      mfree(csound, PARM->macros->name); mfree(csound, PARM->macros->body);
+      for (i=0; i<PARM->macros->acnt; i++)
+        mfree(csound, PARM->macros->arg[i]);
+      mfree(csound, PARM->macros); PARM->macros = mm;
     }
     else {
-      MACRO *mm = macros;
+      MACRO *mm = PARM->macros;
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
@@ -673,15 +669,15 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     return ans;
 }
 
-static void add_math_const_macro(CSOUND *csound, char * name, char *body)
+static void add_math_const_macro(CSOUND *csound, void* yyscanner, char * name, char *body)
 {
     MACRO *mm;
 
     mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
     mm->name = (char*) mcalloc(csound, strlen(name) + 3);
     sprintf(mm->name, "M_%s", name);
-    mm->next = macros;
-    macros = mm;
+    mm->next = PARM->macros;
+    PARM->macros = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->acnt = 0;
     mm->body = (char*) mcalloc(csound, strlen(body) + 1);
@@ -689,28 +685,28 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
 }
 
 /**
- * Add math constants from math.h as orc macros
+ * Add math constants from math.h as orc PARM->macros
  */
-void cs_init_math_constants_macros(CSOUND *csound)
+void cs_init_math_constants_macros(CSOUND *csound, void* yyscanner)
  {
-//??     yyline = csound->orcLineOffset; /* deal with offset */
-     add_math_const_macro(csound, "E", "2.7182818284590452354");
-     add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
-     add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
-     add_math_const_macro(csound, "LN2", "0.69314718055994530942");
-     add_math_const_macro(csound, "LN10", "2.30258509299404568402");
-     add_math_const_macro(csound, "PI", "3.14159265358979323846");
-     add_math_const_macro(csound, "PI_2", "1.57079632679489661923");
-     add_math_const_macro(csound, "PI_4", "0.78539816339744830962");
-     add_math_const_macro(csound, "1_PI", "0.31830988618379067154");
-     add_math_const_macro(csound, "2_PI", "0.63661977236758134308");
-     add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
-     add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
-     add_math_const_macro(csound, "SQRT1_2", "0.70710678118654752440");
-     add_math_const_macro(csound, "INF", "2147483647.0"); /* ~7 years */
+     PARM->macros = NULL;
+     add_math_const_macro(csound, yyscanner, "E", "2.7182818284590452354");
+     add_math_const_macro(csound, yyscanner, "LOG2E", "1.4426950408889634074");
+     add_math_const_macro(csound, yyscanner, "LOG10E", "0.43429448190325182765");
+     add_math_const_macro(csound, yyscanner, "LN2", "0.69314718055994530942");
+     add_math_const_macro(csound, yyscanner, "LN10", "2.30258509299404568402");
+     add_math_const_macro(csound, yyscanner, "PI", "3.14159265358979323846");
+     add_math_const_macro(csound, yyscanner, "PI_2", "1.57079632679489661923");
+     add_math_const_macro(csound, yyscanner, "PI_4", "0.78539816339744830962");
+     add_math_const_macro(csound, yyscanner, "1_PI", "0.31830988618379067154");
+     add_math_const_macro(csound, yyscanner, "2_PI", "0.63661977236758134308");
+     add_math_const_macro(csound, yyscanner, "2_SQRTPI", "1.12837916709551257390");
+     add_math_const_macro(csound, yyscanner, "SQRT2", "1.41421356237309504880");
+     add_math_const_macro(csound, yyscanner, "SQRT1_2", "0.70710678118654752440");
+     add_math_const_macro(csound, yyscanner, "INF", "2147483647.0"); /* ~7 years */
 }
 
-void cs_init_omacros(CSOUND *csound, NAMES *nn)
+void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 {
     while (nn) {
       char  *s = nn->mac;
@@ -729,15 +725,15 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
-      for (mm = macros; mm != NULL; mm = mm->next) {
+      for (mm = PARM->macros; mm != NULL; mm = mm->next) {
         if (strcmp(mm->name, mname) == 0)
           break;
       }
       if (mm == NULL) {
         mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
         mm->name = mname;
-        mm->next = macros;
-        macros = mm;
+        mm->next = PARM->macros;
+        PARM->macros = mm;
       }
       else
         mfree(csound, mname);
@@ -758,8 +754,9 @@ int get_next_line(struct yyguts_t * yyg)
 {
     int i;
     char *p;
+    void *yyscanner = yyg;
   
-    nBuffer = 0;
+    PARM->nBuffer = 0;
 
     p = fgets(yyextra->buffer, lMaxBuffer, yyin);
     if (UNLIKELY(p == NULL)) {
@@ -770,7 +767,7 @@ int get_next_line(struct yyguts_t * yyg)
 
     csound_orcset_lineno(1+csound_orcget_lineno(yyg),yyg);
   
-    lBuffer = strlen(yyextra->buffer);
+    PARM->lBuffer = strlen(yyextra->buffer);
 
     return 0;
 }
@@ -778,18 +775,18 @@ int get_next_line(struct yyguts_t * yyg)
 int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
 {
     int frc;
-  
+    void *yyscanner = yyg;
     if (UNLIKELY( feof(yyin)  ))
       return 0;
   
-    while (  nBuffer >= lBuffer  ) {
+    while (  PARM->nBuffer >= PARM->lBuffer  ) {
       frc = get_next_line(yyg);
       if (UNLIKELY(  frc != 0  ))
         return 0;
     }
 
-    b[0] = yyextra->buffer[nBuffer];
-    nBuffer += 1;
+    b[0] = yyextra->buffer[PARM->nBuffer];
+    PARM->nBuffer += 1;
 
     return b[0]==0?0:1;
 }
