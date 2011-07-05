@@ -54,6 +54,7 @@ void new_orc_parser(CSOUND *csound)
     void *ttt;
     //    struct yyguts_t* yyg;
 
+    memset(&pp, '\0', sizeof(PARSE_PARM));
     init_symbtab(csound);
 
     pp.buffer = (char*)csound->Malloc(csound, lMaxBuffer);
@@ -77,6 +78,7 @@ void new_orc_parser(CSOUND *csound)
     csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
     cs_init_math_constants_macros(csound, pp.yyscanner);
     cs_init_omacros(csound, pp.yyscanner, csound->omacros);
+
     retVal = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
 
     if (LIKELY(retVal == 0)) {
