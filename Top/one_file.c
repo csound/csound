@@ -611,11 +611,20 @@ static int createFile(CSOUND *csound, FILE *unf)
     FILE  *smpf;
     void  *fd;
     char  filename[256];
+    char *p = ST(buffer), *q;
 
     filename[0] = '\0';
-    sscanf(ST(buffer), "<CsFileB filename=\"%s\">", filename);
-    if (filename[0] != '\0' && filename[strlen(filename) - 1] == '>')
-      filename[strlen(filename) - 1] = '\0';
+
+    p += 19;    /* 19 = strlen("<CsFileB filename=\"") */
+    printf("p=>>%s<<\n", p);
+    q = strchr(p, '"');
+    if (q) *q='\0';
+    printf("p=>>%s<<\n", p);
+    strcpy(filename, p);
+//sscanf(ST(buffer), "<CsFileB filename=\"%s\">", filename);
+//    if (filename[0] != '\0' &&
+//       filename[strlen(filename) - 1] == '>' && filename[strlen(filename) - 2] == '"')
+//    filename[strlen(filename) - 2] = '\0';
     if ((smpf = fopen(filename, "rb")) != NULL) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
