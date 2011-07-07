@@ -34,6 +34,7 @@ typedef struct {
   MYFLT  *ktime;
   PVSDAT *fin;
   MYFLT  *len;
+  MYFLT  pos;
   uint32 nframes;
   uint32 cframes;
   AUXCH handmem;
@@ -88,7 +89,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 
     p->lastframe = 0;
     p->cframes = 0;
-    *p->ktime = FL(0.0);
+    *p->ktime = p->pos = FL(0.0);
     return OK;
 }
 
@@ -105,10 +106,11 @@ static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
         fout[i+1] = fin[i+1];
       }
       p->handle->header.framecount = p->lastframe = p->fin->framecount;
+      p->pos = p->cframes/(csound->esr/p->fin->overlap);
       p->cframes++;
       if(p->cframes == p->nframes)p->cframes = 0;
     }
-     *p->ktime = p->cframes/(csound->esr/p->fin->overlap);
+    *p->ktime = p->pos;
 
     return OK;
 }
@@ -203,7 +205,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
       strt = (int)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
       end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
       frames = handle->frames-1;
-      pos = *p->ktime*(sr/overlap) - 1;
+      pos = *p->ktime*(sr/p->scnt);
 
        if(p->iclear) memset(fout, 0, sizeof(float)*(N+2));
       while(pos >= frames) pos -= frames;
