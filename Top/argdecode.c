@@ -1049,7 +1049,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
                 csound->keep_tmp = 1;
                 break;
               }
-              else O->cmdTempo = val;
+              O->cmdTempo = val;
               O->Beatmode = 1;            /* on uninterpreted Beats */
             }
             break;
