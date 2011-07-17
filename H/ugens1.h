@@ -26,13 +26,13 @@
 typedef struct {
         OPDS    h;
         MYFLT   *xr, *ia, *idur, *ib;
-        MYFLT   val, incr;
+        double   val, incr;
 } LINE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *xr, *ia, *idur, *ib;
-        MYFLT   val, mlt;
+       double   val, mlt;
 } EXPON;
 
 typedef struct {

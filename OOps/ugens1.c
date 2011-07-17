@@ -29,7 +29,7 @@
 
 int linset(CSOUND *csound, LINE *p)
 {
-    MYFLT       dur;
+   double       dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
       p->incr = (*p->ib - *p->ia) / dur * csound->onedkr;
@@ -64,7 +64,7 @@ int aline(CSOUND *csound, LINE *p)
 
 int expset(CSOUND *csound, EXPON *p)
 {
-    MYFLT       dur, a, b;
+  double       dur, a, b;
 
     if (LIKELY((dur = *p->idur) > FL(0.0) )) {
       a = *p->ia;
