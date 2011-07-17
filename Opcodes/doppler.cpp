@@ -127,15 +127,15 @@ public:
     blockRate = sampleRate / blockSize;
     // Take care of default values.
     if (*jSpeedOfSound == MYFLT(-1.0)) {
-      *jSpeedOfSound = MYFLT(340.29);
+      speedOfSound = MYFLT(340.29);
     }
-    speedOfSound = *jSpeedOfSound;
+    else speedOfSound = *jSpeedOfSound;
     if (*jUpdateFilterCutoff == MYFLT(-1.0)) {
 //    MYFLT blockRateNyquist = blockRate / MYFLT(2.0);
 //    *jUpdateFilterCutoff = blockRateNyquist / MYFLT(2.0);
-      *jUpdateFilterCutoff = MYFLT(6.0); // very conservative
+      smoothingFilterCutoff = MYFLT(6.0); // very conservative
     }
-    smoothingFilterCutoff = *jUpdateFilterCutoff;
+    else smoothingFilterCutoff = *jUpdateFilterCutoff;
     samplesPerDistance = sampleRate / speedOfSound;
     audioInterpolator = new LinearInterpolator;
     smoothingFilter = NULL;
@@ -234,14 +234,14 @@ struct Doppler2 : public OpcodeBase<Doppler2>
     blockRate = sampleRate / blockSize;
     // Take care of default values.
     if (*jSpeedOfSound == MYFLT(-1.0)) {
-      *jSpeedOfSound = MYFLT(340.29);
+      SpeedOfSound = MYFLT(340.29);
     }
-    speedOfSound = *jSpeedOfSound;
+    else speedOfSound = *jSpeedOfSound;
     if (*jUpdateFilterCutoff == MYFLT(-1.0)) {
       MYFLT blockRateNyquist = blockRate / MYFLT(2.0);
-      *jUpdateFilterCutoff = blockRateNyquist / MYFLT(2.0);
+      smoothingFilterCutoff = blockRateNyquist / MYFLT(2.0);
     }
-    smoothingFilterCutoff = *jUpdateFilterCutoff;
+    else smoothingFilterCutoff = *jUpdateFilterCutoff;
     samplesPerDistance = sampleRate / speedOfSound;
     audioInterpolator = new LinearInterpolator;
     // The smoothing filter cannot be initialized at i-time,
