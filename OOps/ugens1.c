@@ -47,7 +47,7 @@ int kline(CSOUND *csound, LINE *p)
 
 int aline(CSOUND *csound, LINE *p)
 {
-    MYFLT       val, inc, *ar;
+    double val, inc, *ar;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -56,7 +56,7 @@ int aline(CSOUND *csound, LINE *p)
     inc *= csound->onedksmps;
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
-      ar[n] = val;
+      ar[n] = (MYFLT)val;
       val += inc;       /* interp val for ksmps */
     }
     return OK;
@@ -64,7 +64,7 @@ int aline(CSOUND *csound, LINE *p)
 
 int expset(CSOUND *csound, EXPON *p)
 {
-  double       dur, a, b;
+    double       dur, a, b;
 
     if (LIKELY((dur = *p->idur) > FL(0.0) )) {
       a = *p->ia;
@@ -91,7 +91,7 @@ int kexpon(CSOUND *csound, EXPON *p)
 
 int expon(CSOUND *csound, EXPON *p)
 {
-    MYFLT       val, mlt, inc, *ar,nxtval;
+    double val, mlt, inc, *ar,nxtval;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -101,7 +101,7 @@ int expon(CSOUND *csound, EXPON *p)
     inc *= csound->onedksmps;   /* increment per sample */
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
-      ar[n] = val;
+      ar[n] = (MYFLT)val;
       val += inc;               /* interp val for ksmps */
     }
     p->val = nxtval;            /* store next value */
@@ -113,7 +113,8 @@ int lsgset(CSOUND *csound, LINSEG *p)
 {
     SEG *segp;
     int nsegs;
-    MYFLT       **argp, val;
+    MYFLT       **argp;
+    double val;
 
     nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -123,15 +124,15 @@ int lsgset(CSOUND *csound, LINSEG *p)
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
     argp = p->argums;
-    val = **argp++;
+    val = (double)**argp++;
     if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
     p->cursegp = segp - 1;          /* else setup null seg0 */
     p->segsrem = nsegs + 1;
     do {                                /* init each seg ..  */
-      MYFLT dur = **argp++;
-      segp->nxtpt = **argp++;
+      double dur = (double)**argp++;
+      segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0))
         segp->cnt = 0;
       segp++;
@@ -199,7 +200,7 @@ int klnseg(CSOUND *csound, LINSEG *p)
 
 int linseg(CSOUND *csound, LINSEG *p)
 {
-    MYFLT  val, ainc, *rs = p->rslt;
+    double val, ainc, *rs = p->rslt;
     int    n, nsmps=csound->ksmps;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
@@ -225,14 +226,14 @@ int linseg(CSOUND *csound, LINSEG *p)
       if (UNLIKELY((ainc = p->curainc) == FL(0.0)))
         goto putk;
       for (n=0; n<nsmps; n++) {
-        rs[n] = val;
+        rs[n] = (MYFLT)val;
         val += ainc;
       }
     }
     else {
     putk:
       for (n=0; n<nsmps; n++) {
-        rs[n] = val;
+        rs[n] = (MYFLT)val;
       }
     }
     return OK;
@@ -247,7 +248,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     SEG         *segp;
     int         nsegs;
     MYFLT       **argp = p->argums;
-    MYFLT       dur;
+    double      dur;
     MYFLT       len = csound->curip->p3;
     MYFLT       release = *argp[3];
     int32       relestim;
@@ -267,12 +268,12 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     else if (**argp > FL(0.0))
       memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
     if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
-    p->curval = FL(0.0);
+    p->curval = 0.0;
     p->curcnt = 0;
     p->cursegp = segp - 1;      /* else setup null seg0 */
     p->segsrem = nsegs;
                                 /* Delay */
-    dur = *argp[4];
+    dur = (double)*argp[4];
     if (UNLIKELY(dur > len)) dur = len;
     len -= dur;
     segp->nxtpt = FL(0.0);
