@@ -2466,12 +2466,12 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       return fterror(ff, "Failed to open file");
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
-      if (UNLIKELY((ff->flen = p->framesrem) <= 0)) {
+      if (UNLIKELY((ff->flen = p->framesrem + 1) <= 0)) {
         /*   get minsize from soundin */
         return fterror(ff, Str("deferred size, but filesize unknown"));
       }
       if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("  defer length %d\n"), ff->flen);
+        csound->Message(csound, Str("  defer length %d\n"), ff->flen - 1);
        if (p->channel == ALLCHNLS)
 	 ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
@@ -2482,6 +2482,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       else ftp->nchanls  = 1;
       ftp->flenfrms = ff->flen / p->nchanls; */ /* ?????????? */
       def           = 1;
+      ff->flen -= 1;
       table_length = ff->flen;
     }
     if (p->channel==ALLCHNLS) {
@@ -2577,8 +2578,12 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     csound->FileClose(csound, p->fd);
-    if (def)
+    if (def) {
+      MYFLT *tab = (MYFLT *) ftp->ftable;
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
+      tab[ff->flen] = tab[0];  /* guard point */ 
+      ftp->flen -= 1;  /* exclude guard point */
+    }
     return OK;
 }
 
