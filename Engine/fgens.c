@@ -2420,7 +2420,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     SNDFILE *fd;
     int     truncmsg = 0;
     int32   inlocs = 0;
-    int     def = 0;
+    int     def = 0, table_length = ff->flen + 1;
 
     p = &tmpspace;
     memset(p, 0, sizeof(SOUNDIN));
@@ -2475,13 +2475,14 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
        if (p->channel == ALLCHNLS)
 	 ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
-      ff->flen     -= 1;
+      /*ff->flen     -= 1;*/                  /* VL: this was causing tables to exclude last point  */
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
       /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
       else ftp->nchanls  = 1;
       ftp->flenfrms = ff->flen / p->nchanls; */ /* ?????????? */
       def           = 1;
+      table_length = ff->flen;
     }
     if (p->channel==ALLCHNLS) {
     //ff->flen *= p->nchanls;
@@ -2562,9 +2563,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
 #endif      /* HAVE_LIBSNDFILE >= 1013 */
     /* read sound with opt gain */
-    if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, ff->flen + 1, p)) < 0)) {
+   
+    if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, table_length, p)) < 0)) {
       return fterror(ff, Str("GEN1 read error"));
     }
+    
     if (p->audrem > 0 && !truncmsg && p->framesrem > ff->flen) {
       /* Reduce msg */
       csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
