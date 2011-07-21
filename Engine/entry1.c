@@ -514,7 +514,7 @@ OENTRY opcodlst_1[] = {
 { "filesr", S(SNDINFO),  1,     "i",    "Tp",   filesr, NULL, NULL         },
 { "filebit", S(SNDINFO),  1,     "i",   "Tp",   filebit, NULL, NULL        },
 { "filepeak", S(SNDINFOPEAK), 1, "i",   "To",   filepeak, NULL, NULL       },
-{ "filevalid", S(FILEVALID), 1,  "i",   "S",    filevalid, NULL, NULL      },
+{ "filevalid", S(FILEVALID), 1,  "i",   "T",    filevalid, NULL, NULL      },
 /*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
 /* Robin Whittle */
 { "tableiw",  S(TABLEW),1,     "",      "iiiooo", (SUBR)itablew, NULL, NULL},
