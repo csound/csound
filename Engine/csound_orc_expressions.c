@@ -775,7 +775,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
                   char nn = argtyp2(csound, tempRight->value->lexeme);
-                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 0); /* ?? JPff */
+                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2); /* ?? JPff */
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
