@@ -72,7 +72,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
     int         n, nsmps=csound->ksmps;
     MYFLT       *rs, *aphs, onedsr = csound->onedsr;
     double b = p->b;
-    double      incr;
+    double      incr, R = *p->kR;
 
     rs = p->sr;
     aphs = p->aphs;
@@ -84,14 +84,14 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         rs[n] = (MYFLT) b;
         aphs[n] = (MYFLT) phase;
         phase += incr;
-        b *= *p->kR;
+        b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b = 1.0;
+          b = pow(R, 1+phase); 
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = 1.0;
+          b = pow(R, 1+phase); 
         }
       }
     }
@@ -101,14 +101,14 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         rs[n] = (MYFLT) b;
         aphs[n] = (MYFLT) phase;
         phase += incr;
-        b *= *p->kR;
+        b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b = FL(1.0);
+          b =  pow(R, 1+phase); 
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = FL(1.0);
+          b = pow(R, 1+phase); 
         }
       }
     }
