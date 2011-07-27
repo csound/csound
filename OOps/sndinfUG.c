@@ -275,6 +275,7 @@ int filevalid(CSOUND *csound, FILEVALID *p)
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
+      return OK;
     }
     if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
       *p->r1 = 1;
