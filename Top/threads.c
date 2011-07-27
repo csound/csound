@@ -181,13 +181,15 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #define BARRIER_SERIAL_THREAD (-1)
 
-#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+#if !defined(HAVE_PTHREAD_BARRIER_INIT) 
+#ifndef __MACH__
 
 typedef struct barrier {
     pthread_mutex_t mut;
     pthread_cond_t cond;
     unsigned int count, max, iteration;
 } barrier_t;
+#endif
 #endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),

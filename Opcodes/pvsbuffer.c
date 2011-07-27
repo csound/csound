@@ -279,7 +279,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p){
                                    N/2+1, ftab->flen);
       tab2 = ftab->ftable;
       for(i=0; i < N+2; i++){
-        pos = (*p->ktime - tab[i])*(sr/p->overlap);
+        pos = (*p->ktime - tab[i])*(sr/overlap);
         while(pos >= frames) pos -= frames;
         while(pos < 0) pos += frames;
         posi = (int) pos;
