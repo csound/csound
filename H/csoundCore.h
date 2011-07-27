@@ -91,7 +91,7 @@ typedef struct {
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
-#define OUTCOUNT    ORTXT.outlist->count
+#define OUTCOUNT    ORTXT.outlist->count   /* Not used */
 #define INOCOUNT    ORTXT.inoffs->count
 #define OUTOCOUNT   ORTXT.outoffs->count
 #define XINCODE     ORTXT.xincod
