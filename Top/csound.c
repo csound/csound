@@ -868,6 +868,10 @@ extern "C" {
 
   static void signal_handler(int sig)
   {
+      if (sig == (int) SIGPIPE) {
+        psignal(sig, "Csound ignoring SIGPIPE");
+        return;
+      }
       psignal(sig, "Csound tidy up");
       if ((sig == (int) SIGINT || sig == (int) SIGTERM) && !exitNow_) {
         exitNow_ = -1;

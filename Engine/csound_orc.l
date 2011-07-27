@@ -93,10 +93,13 @@ INCLUDE         "#include"
 DEFINE          "#define"
 UNDEF           "#undef"
 CONT            \\[[ \t]*\n
+XSTR            "{{"
+EXSTR           "}}"
 
 %x incl
 %x macro
 %x umacro
+%x xstr
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -185,6 +188,44 @@ CONT            \\[[ \t]*\n
 "endop"         { *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
 
 {LABEL}         { *lvalp = make_label(csound, yytext); return T_LABEL; }
+
+"\{\{"          { 
+                  PARM->xstrbuff = (char *)malloc(128);
+                  PARM->xstrptr = 0; PARM->xstrmax = 128; 
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  BEGIN(xstr);
+                }
+
+<xstr>"}}"   {
+                  BEGIN(INITIAL);
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  *lvalp = make_string(csound, PARM->xstrbuff);
+                  free(PARM->xstrbuff);
+                  return T_STRCONST;
+                }
+
+<xstr>"\n"     { /* THe next two should be one case but I cannot get that to work */
+                  if (PARM->xstrptr+2==PARM->xstrmax) {
+                      PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+                      printf("Extending xstr buffer\n");
+                  }
+//                  printf("Adding newline (%.2x)\n", yytext[0]);
+                  PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                }
+
+<xstr>.     { if (PARM->xstrptr+2==PARM->xstrmax) {
+                      PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+                      printf("Extending xstr buffer\n");
+                  }
+//                  printf("Adding (%.2x)\n", yytext[0]);
+                  PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                }
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
 
@@ -430,6 +471,7 @@ CONT            \\[[ \t]*\n
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
                                  csound_orcget_lineno(yyscanner),yytext[0],yytext[0]);
                 }
+
 
 %%
 void comment(yyscan_t yyscanner)              /* Skip until nextline */

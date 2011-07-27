@@ -1415,7 +1415,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
         tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
         p->evtbuf = (tmp != 0 ? tmp : -1);
       }
-      else if (p->keyDown != NULL)
+      else if (p->OUTOCOUNT>1 && p->keyDown != NULL)
         p->evtbuf = -1 - keyCode;
       if (keyCode < 0)
         keyCode = 65535 - keyCode;
@@ -1425,7 +1425,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
     }
     *(p->ans) = (MYFLT) ((keyCode & (int)0xFFFF) ?
                          (keyCode & (int)0xFFFF) : -1);
-    if (p->keyDown != NULL)
+    if (p->OUTOCOUNT>1 && p->keyDown != NULL)
       *(p->keyDown) = (MYFLT) ((keyCode > 0 && keyCode < 65536) ? 1 : 0);
 
     return OK;
