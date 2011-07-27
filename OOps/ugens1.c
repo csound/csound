@@ -47,7 +47,7 @@ int kline(CSOUND *csound, LINE *p)
 
 int aline(CSOUND *csound, LINE *p)
 {
-    double val, inc, *ar;
+  double val, inc; MYFLT *ar;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -91,7 +91,7 @@ int kexpon(CSOUND *csound, EXPON *p)
 
 int expon(CSOUND *csound, EXPON *p)
 {
-    double val, mlt, inc, *ar,nxtval;
+  double val, mlt, inc, nxtval; MYFLT *ar;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -200,7 +200,7 @@ int klnseg(CSOUND *csound, LINSEG *p)
 
 int linseg(CSOUND *csound, LINSEG *p)
 {
-    double val, ainc, *rs = p->rslt;
+    double val, ainc; MYFLT *rs = p->rslt;
     int    n, nsmps=csound->ksmps;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
