@@ -63,7 +63,8 @@ int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT *p) /* during note performance:   */
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
           for (i = 0; i < nsmps; i++) {
-            outptr[i] = inptr[i] * (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+            outptr[i] = inptr[i] *
+              (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
             (MYFLT) (i) * invfloatn * gainsubstr;
