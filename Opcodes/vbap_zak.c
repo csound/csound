@@ -49,8 +49,8 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 
     vbap_zak_control(csound,p);
     for (i=0; i<n; i++) {
-      p->beg_gains[i]=p->end_gains[i];
-      p->end_gains[i]=p->updated_gains[i];
+      p->beg_gains[i] = p->end_gains[i];
+      p->end_gains[i] = p->updated_gains[i];
     }
 
     /* write audio to result audio streams weighted
@@ -71,11 +71,13 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
           p->curr_gains[j]= ogain +
             (MYFLT) (i) * invfloatn * gainsubstr;
         }
-        else
+        else {
           for (i=0; i<nsmps; ++i)
-            outptr[n] = inptr[n] * ogain;
-      else
+            outptr[i] = inptr[i] * ogain;
+        }
+      else 
         memset(outptr, 0, nsmps*sizeof(MYFLT));
+      outptr += nsmps;
     }
     return OK;
 }
@@ -93,7 +95,6 @@ int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
                       Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
-
     if (*p->spread <FL(0.0))
       *p->spread=FL(0.0);
     else if (*p->spread >FL(100.0))
