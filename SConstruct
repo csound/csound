@@ -581,7 +581,7 @@ elif getPlatform() == 'darwin':
     # ex. 4:3 maps OS X 10.4 to Python 2.3
     # Note that OS X 10.2 did not ship with a Python framework
     # and 10.0 and 10.1 shipped with no Python at all
-    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5, 6:6 }
+    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5, 6:6, 7:7 }
     sysPyVers = OSXSystemPythonVersions[OSXvers]
     if OSXvers >= 2:
         print "Apple Python version is 2.%d" % sysPyVers
