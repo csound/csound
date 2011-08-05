@@ -586,8 +586,13 @@ int main(int argc, char *argv[])
     qsort(db, opListSize, sizeof(opcodeListEntry), mycmp);
     {
       int i;
-      for (i=0; i<opListSize; i++)
-        printf("%s\t%s\n", db[i].opname, db[i].module);
+      for (i=0; i<opListSize; i++) {
+        int m, n = strlen(db[i].opname);
+        printf("%s", db[i].opname);
+        for (m=n; m<24; m++) putchar(' ');
+        printf("%s\n", db[i].module);
+        //printf("%s\t%s\n", db[i].opname, db[i].module);
+      }
     }
 }
 
