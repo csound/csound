@@ -488,13 +488,26 @@ int mycmp(const void *a, const void *b)
     return strcmp(aa->opname, bb->opname);
 }
 
+int modcmp(const void *a, const void *b)
+{
+    int n;
+    const opcodeListEntry *aa= a, *bb = b;
+    n = strcmp(aa->module, bb->module);
+    if (n==0) n = strcmp(aa->opname, bb->opname);
+    return n;
+}
+
 int main(int argc, char *argv[])
 {
     DIR             *dir;
     struct dirent   *f;
     char *dname;
     OENTRY *ops;
+    int msort = 0;
 
+    if (argv>1 && (strcmp(argv[1], "-m")==0)) {
+      argc--; argv++; msort = 1;
+    }
     if (argc>1) dname = argv[1]; else dname = ".";
     dir = opendir(dname);
 
@@ -583,7 +596,8 @@ int main(int argc, char *argv[])
     /*     printf("\t%s\t%s\n", db[i].opname, db[i].module); */
     /* } */
 /* This sort seems to fail actually sort */
-    qsort(db, opListSize, sizeof(opcodeListEntry), mycmp);
+    if (msort) qsort(db, opListSize, sizeof(opcodeListEntry), modcmp);
+    else qsort(db, opListSize, sizeof(opcodeListEntry), mycmp);
     {
       int i;
       for (i=0; i<opListSize; i++) {
