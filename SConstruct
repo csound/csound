@@ -847,7 +847,7 @@ if commonEnvironment['useDouble'] != '0':
 elif getPlatform() == 'win32':
     csoundLibraryName += '32'
 # flags for linking with the Csound library
-libCsoundLinkFlags = []
+libCsoundLinkFlags = commonEnvironment['LINKFLAGS'] 
 if getPlatform() == 'sunos':
     libCsoundLibs = ['sndfile', 'socket', 'rt', 'nsl']
 else:
@@ -1174,7 +1174,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             'CsoundLib_install',
             libName,
             'rm -r /Library/Frameworks/%s; cp -R %s /Library/Frameworks/' % (OSXFrameworkBaseDir, OSXFrameworkBaseDir))
-        libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
+        libCsoundLinkFlags += ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
     elif getPlatform() == 'win32':
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
