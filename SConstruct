@@ -275,7 +275,9 @@ commandOptions.Add('includeP5Glove',
 commandOptions.Add('buildBeats',
      'Set to 1 if building beats score language',
      '0')
-
+commandOptions.Add('buildcatalog',
+     'Set to 1 if building opcode/library catalogue',
+     '0')
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
@@ -2662,6 +2664,14 @@ else:
                                      'frontends/beats/beats.tab.c'])
     executables.append(bb)
 
+if not (commonEnvironment['buildBeats'] != '0'):
+    print 'CONFIGURATION DECISION: Not building beats score frontend.'
+else:
+    print "CONFIGURATION DECISION: Building beats score frontend"
+    catEnvironment = Environment(ENV = os.environ)
+    catEnvironment.Append(LINKFLAGS = ['-ldl'])
+    bb = catEnvironment.Program('mkdb', ['mkdbmain.c''])
+    executables.append(bb)
 
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux'):

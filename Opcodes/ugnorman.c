@@ -106,19 +106,19 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     ATSSTRUCT         *atsh;
     int               i;
 
-    strcpy(opname, csound->GetOpcodeName(p));   /* opcode name */
+    strncpy(opname, csound->GetOpcodeName(p), 64);   /* opcode name */
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
     csound->strarg2name(csound, fname, name_arg, "ats.",
-                                (int) csound->GetInputArgSMask(p));
+                        (int) csound->GetInputArgSMask(p));
 
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2(csound, fname, CSFTYPE_ATS)) == NULL)) {
       csound->InitError(csound,
-                               Str("%s: Ats file %s not read (does it exist?)"),
-                               opname, fname);
+                        Str("%s: Ats file %s not read (does it exist?)"),
+                        opname, fname);
       return -1;
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
@@ -766,8 +766,9 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
     return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
 }
 
-static void /* FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position) */
-FetchADDNZbands(int firstband, double *datastart, int frmInc, int maxFr, int swapped, double *buf, MYFLT position)
+static void FetchADDNZbands(int firstband, double *datastart,
+                            int frmInc, int maxFr, int swapped,
+                            double *buf, MYFLT position)
 {
     double  frac;               /* the distance in time we are between frames */
     double  *frm0, *frm1;
@@ -780,7 +781,7 @@ FetchADDNZbands(int firstband, double *datastart, int frmInc, int maxFr, int swa
     printf("FetchADDNZbands: position %f\n", (double)position);
 #endif
     frame = (int) position;
-    frm0 = /*p->*/datastart + frame * frmInc;
+    frm0 = datastart + frame * frmInc;
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
@@ -808,6 +809,11 @@ FetchADDNZbands(int firstband, double *datastart, int frmInc, int maxFr, int swa
 
     }
 }
+
+static double freqs[25]= {
+  100.0, 100.0, 100.0, 100.0, 110.0, 120.0, 140.0, 150.0, 160.0, 190.0,
+  210.0, 240.0, 280.0, 320.0, 380.0, 450.0, 550.0, 700.0, 900.0, 1100.0,
+  1300.0, 1800.0, 2500.0, 3500.0, 4500.0};
 
 static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 {
@@ -881,85 +887,90 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     }
 
     /* save bandwidths for creating noise bands */
-    p->nfreq[0] = 100.0;
-    p->nfreq[1] = 100.0;
-    p->nfreq[2] = 100.0;
-    p->nfreq[3] = 100.0;
-    p->nfreq[4] = 110.0;
-    p->nfreq[5] = 120.0;
-    p->nfreq[6] = 140.0;
-    p->nfreq[7] = 150.0;
-    p->nfreq[8] = 160.0;
-    p->nfreq[9] = 190.0;
-    p->nfreq[10] = 210.0;
-    p->nfreq[11] = 240.0;
-    p->nfreq[12] = 280.0;
-    p->nfreq[13] = 320.0;
-    p->nfreq[14] = 380.0;
-    p->nfreq[15] = 450.0;
-    p->nfreq[16] = 550.0;
-    p->nfreq[17] = 700.0;
-    p->nfreq[18] = 900.0;
-    p->nfreq[19] = 1100.0;
-    p->nfreq[20] = 1300.0;
-    p->nfreq[21] = 1800.0;
-    p->nfreq[22] = 2500.0;
-    p->nfreq[23] = 3500.0;
-    p->nfreq[24] = 4500.0;
+    memcpy(p->nfreq, freqs, 25*sizeof(double));
+    /* p->nfreq[0] = 100.0; */
+    /* p->nfreq[1] = 100.0; */
+    /* p->nfreq[2] = 100.0; */
+    /* p->nfreq[3] = 100.0; */
+    /* p->nfreq[4] = 110.0; */
+    /* p->nfreq[5] = 120.0; */
+    /* p->nfreq[6] = 140.0; */
+    /* p->nfreq[7] = 150.0; */
+    /* p->nfreq[8] = 160.0; */
+    /* p->nfreq[9] = 190.0; */
+    /* p->nfreq[10] = 210.0; */
+    /* p->nfreq[11] = 240.0; */
+    /* p->nfreq[12] = 280.0; */
+    /* p->nfreq[13] = 320.0; */
+    /* p->nfreq[14] = 380.0; */
+    /* p->nfreq[15] = 450.0; */
+    /* p->nfreq[16] = 550.0; */
+    /* p->nfreq[17] = 700.0; */
+    /* p->nfreq[18] = 900.0; */
+    /* p->nfreq[19] = 1100.0; */
+    /* p->nfreq[20] = 1300.0; */
+    /* p->nfreq[21] = 1800.0; */
+    /* p->nfreq[22] = 2500.0; */
+    /* p->nfreq[23] = 3500.0; */
+    /* p->nfreq[24] = 4500.0; */
 
-    /* initialise frequencies to modulate noise by */
-    p->phaseinc[0] = TWOPI * 50.0 * csound->onedsr;
-    p->phaseinc[1] = TWOPI * 150.0 * csound->onedsr;
-    p->phaseinc[2] = TWOPI * 250.0 * csound->onedsr;
-    p->phaseinc[3] = TWOPI * 350.0 * csound->onedsr;
-    p->phaseinc[4] = TWOPI * 455.0 * csound->onedsr;
-    p->phaseinc[5] = TWOPI * 570.0 * csound->onedsr;
-    p->phaseinc[6] = TWOPI * 700.0 * csound->onedsr;
-    p->phaseinc[7] = TWOPI * 845.0 * csound->onedsr;
-    p->phaseinc[8] = TWOPI * 1000.0 * csound->onedsr;
-    p->phaseinc[9] = TWOPI * 1175.0 * csound->onedsr;
-    p->phaseinc[10] = TWOPI * 1375.0 * csound->onedsr;
-    p->phaseinc[11] = TWOPI * 1600.0 * csound->onedsr;
-    p->phaseinc[12] = TWOPI * 1860.0 * csound->onedsr;
-    p->phaseinc[13] = TWOPI * 2160.0 * csound->onedsr;
-    p->phaseinc[14] = TWOPI * 2510.0 * csound->onedsr;
-    p->phaseinc[15] = TWOPI * 2925.0 * csound->onedsr;
-    p->phaseinc[16] = TWOPI * 3425.0 * csound->onedsr;
-    p->phaseinc[17] = TWOPI * 4050.0 * csound->onedsr;
-    p->phaseinc[18] = TWOPI * 4850.0 * csound->onedsr;
-    p->phaseinc[19] = TWOPI * 5850.0 * csound->onedsr;
-    p->phaseinc[20] = TWOPI * 7050.0 * csound->onedsr;
-    p->phaseinc[21] = TWOPI * 8600.0 * csound->onedsr;
-    p->phaseinc[22] = TWOPI * 10750.0 * csound->onedsr;
-    p->phaseinc[23] = TWOPI * 13750.0 * csound->onedsr;
-    p->phaseinc[24] = TWOPI * 17750.0 * csound->onedsr;
-
+    {
+      double tmp = TWOPI * csound->onedsr;
+      
+      /* initialise frequencies to modulate noise by */
+      p->phaseinc[0] = 50.0 * tmp;
+      p->phaseinc[1] = 150.0 * tmp;
+      p->phaseinc[2] = 250.0 * tmp;
+      p->phaseinc[3] = 350.0 * tmp;
+      p->phaseinc[4] = 455.0 * tmp;
+      p->phaseinc[5] = 570.0 * tmp;
+      p->phaseinc[6] = 700.0 * tmp;
+      p->phaseinc[7] = 845.0 * tmp;
+      p->phaseinc[8] = 1000.0 * tmp;
+      p->phaseinc[9] = 1175.0 * tmp;
+      p->phaseinc[10] = 1375.0 * tmp;
+      p->phaseinc[11] = 1600.0 * tmp;
+      p->phaseinc[12] = 1860.0 * tmp;
+      p->phaseinc[13] = 2160.0 * tmp;
+      p->phaseinc[14] = 2510.0 * tmp;
+      p->phaseinc[15] = 2925.0 * tmp;
+      p->phaseinc[16] = 3425.0 * tmp;
+      p->phaseinc[17] = 4050.0 * tmp;
+      p->phaseinc[18] = 4850.0 * tmp;
+      p->phaseinc[19] = 5850.0 * tmp;
+      p->phaseinc[20] = 7050.0 * tmp;
+      p->phaseinc[21] = 8600.0 * tmp;
+      p->phaseinc[22] = 10750.0 * tmp;
+      p->phaseinc[23] = 13750.0 * tmp;
+      p->phaseinc[24] = 17750.0 * tmp;
+    }
     /* initialise phase */
-    p->oscphase[0] = 0.0;
-    p->oscphase[1] = 0.0;
-    p->oscphase[2] = 0.0;
-    p->oscphase[3] = 0.0;
-    p->oscphase[4] = 0.0;
-    p->oscphase[5] = 0.0;
-    p->oscphase[6] = 0.0;
-    p->oscphase[7] = 0.0;
-    p->oscphase[8] = 0.0;
-    p->oscphase[9] = 0.0;
-    p->oscphase[10] = 0.0;
-    p->oscphase[11] = 0.0;
-    p->oscphase[12] = 0.0;
-    p->oscphase[13] = 0.0;
-    p->oscphase[14] = 0.0;
-    p->oscphase[15] = 0.0;
-    p->oscphase[16] = 0.0;
-    p->oscphase[17] = 0.0;
-    p->oscphase[18] = 0.0;
-    p->oscphase[19] = 0.0;
-    p->oscphase[20] = 0.0;
-    p->oscphase[21] = 0.0;
-    p->oscphase[22] = 0.0;
-    p->oscphase[23] = 0.0;
-    p->oscphase[24] = 0.0;
+    memset(p->oscphase, '\0', 25*sizeof(double));
+    /* p->oscphase[0] = 0.0; */
+    /* p->oscphase[1] = 0.0; */
+    /* p->oscphase[2] = 0.0; */
+    /* p->oscphase[3] = 0.0; */
+    /* p->oscphase[4] = 0.0; */
+    /* p->oscphase[5] = 0.0; */
+    /* p->oscphase[6] = 0.0; */
+    /* p->oscphase[7] = 0.0; */
+    /* p->oscphase[8] = 0.0; */
+    /* p->oscphase[9] = 0.0; */
+    /* p->oscphase[10] = 0.0; */
+    /* p->oscphase[11] = 0.0; */
+    /* p->oscphase[12] = 0.0; */
+    /* p->oscphase[13] = 0.0; */
+    /* p->oscphase[14] = 0.0; */
+    /* p->oscphase[15] = 0.0; */
+    /* p->oscphase[16] = 0.0; */
+    /* p->oscphase[17] = 0.0; */
+    /* p->oscphase[18] = 0.0; */
+    /* p->oscphase[19] = 0.0; */
+    /* p->oscphase[20] = 0.0; */
+    /* p->oscphase[21] = 0.0; */
+    /* p->oscphase[22] = 0.0; */
+    /* p->oscphase[23] = 0.0; */
+    /* p->oscphase[24] = 0.0; */
 
     /* initialise band limited noise parameters */
     for (i = 0; i < 25; i++) {
@@ -1002,8 +1013,8 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     else
       p->prFlg = 1;
 
-    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr, p->swapped, p->buf, frIndx);
-    /*FetchADDNZbands(p, p->buf, frIndx);*/
+    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr,
+                    p->swapped, p->buf, frIndx);
 
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
@@ -1014,6 +1025,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 
     synthme = p->bandoffset;
     nsynthed = 0;
+    nsmps = csound->ksmps;
 
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
@@ -1021,7 +1033,6 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
         amp = csound->e0dbfs*
           SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         ar = p->aoutput;
-        nsmps = csound->ksmps;
         for (n=0; n<nsmps; n++) {
           ar[n] += (COS(p->oscphase[i])
                    * amp * randiats(csound, &(p->randinoise[i])));
@@ -1056,8 +1067,9 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
 
     for (i = 0; i < (int) p->atshead->nfrms; i++) {
       /* init sums */
-      for (k = 0; k < 25; k++)
-        bandsum[k] = 0.0;
+      memset(bandsum, 0, 25*sizeof(double));
+      /* for (k = 0; k < 25; k++) */
+      /*   bandsum[k] = 0.0; */
       /* find sums per band */
       for (j = 0; j < (int) p->atshead->npartials; j++) {
         partialfreq = *(curframe + 2 + j * (int) p->partialinc);
@@ -1208,95 +1220,66 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* for time pointer out of range */
     p->prFlg = 1;               /* true */
 
-
-    p->phaseinc[0] = TWOPI * 50.0 * csound->onedsr;
-    p->phaseinc[1] = TWOPI * 150.0 * csound->onedsr;
-    p->phaseinc[2] = TWOPI * 250.0 * csound->onedsr;
-    p->phaseinc[3] = TWOPI * 350.0 * csound->onedsr;
-    p->phaseinc[4] = TWOPI * 455.0 * csound->onedsr;
-    p->phaseinc[5] = TWOPI * 570.0 * csound->onedsr;
-    p->phaseinc[6] = TWOPI * 700.0 * csound->onedsr;
-    p->phaseinc[7] = TWOPI * 845.0 * csound->onedsr;
-    p->phaseinc[8] = TWOPI * 1000.0 * csound->onedsr;
-    p->phaseinc[9] = TWOPI * 1175.0 * csound->onedsr;
-    p->phaseinc[10] = TWOPI * 1375.0 * csound->onedsr;
-    p->phaseinc[11] = TWOPI * 1600.0 * csound->onedsr;
-    p->phaseinc[12] = TWOPI * 1860.0 * csound->onedsr;
-    p->phaseinc[13] = TWOPI * 2160.0 * csound->onedsr;
-    p->phaseinc[14] = TWOPI * 2510.0 * csound->onedsr;
-    p->phaseinc[15] = TWOPI * 2925.0 * csound->onedsr;
-    p->phaseinc[16] = TWOPI * 3425.0 * csound->onedsr;
-    p->phaseinc[17] = TWOPI * 4050.0 * csound->onedsr;
-    p->phaseinc[18] = TWOPI * 4850.0 * csound->onedsr;
-    p->phaseinc[19] = TWOPI * 5850.0 * csound->onedsr;
-    p->phaseinc[20] = TWOPI * 7050.0 * csound->onedsr;
-    p->phaseinc[21] = TWOPI * 8600.0 * csound->onedsr;
-    p->phaseinc[22] = TWOPI * 10750.0 * csound->onedsr;
-    p->phaseinc[23] = TWOPI * 13750.0 * csound->onedsr;
-    p->phaseinc[24] = TWOPI * 17750.0 * csound->onedsr;
+    {
+      double tmp = TWOPI * csound->onedsr;
+      p->phaseinc[0] = 50.0 * tmp;
+      p->phaseinc[1] = 150.0 * tmp;
+      p->phaseinc[2] = 250.0 * tmp;
+      p->phaseinc[3] = 350.0 * tmp;
+      p->phaseinc[4] = 455.0 * tmp;
+      p->phaseinc[5] = 570.0 * tmp;
+      p->phaseinc[6] = 700.0 * tmp;
+      p->phaseinc[7] = 845.0 * tmp;
+      p->phaseinc[8] = 1000.0 * tmp;
+      p->phaseinc[9] = 1175.0 * tmp;
+      p->phaseinc[10] = 1375.0 * tmp;
+      p->phaseinc[11] = 1600.0 * tmp;
+      p->phaseinc[12] = 1860.0 * tmp;
+      p->phaseinc[13] = 2160.0 * tmp;
+      p->phaseinc[14] = 2510.0 * tmp;
+      p->phaseinc[15] = 2925.0 * tmp;
+      p->phaseinc[16] = 3425.0 * tmp;
+      p->phaseinc[17] = 4050.0 * tmp;
+      p->phaseinc[18] = 4850.0 * tmp;
+      p->phaseinc[19] = 5850.0 * tmp;
+      p->phaseinc[20] = 7050.0 * tmp;
+      p->phaseinc[21] = 8600.0 * tmp;
+      p->phaseinc[22] = 10750.0 * tmp;
+      p->phaseinc[23] = 13750.0 * tmp;
+      p->phaseinc[24] = 17750.0 * tmp;
+    }
 
     /* initialise phase */
-    p->noiphase[0] = 0.0;
-    p->noiphase[1] = 0.0;
-    p->noiphase[2] = 0.0;
-    p->noiphase[3] = 0.0;
-    p->noiphase[4] = 0.0;
-    p->noiphase[5] = 0.0;
-    p->noiphase[6] = 0.0;
-    p->noiphase[7] = 0.0;
-    p->noiphase[8] = 0.0;
-    p->noiphase[9] = 0.0;
-    p->noiphase[10] = 0.0;
-    p->noiphase[11] = 0.0;
-    p->noiphase[12] = 0.0;
-    p->noiphase[13] = 0.0;
-    p->noiphase[14] = 0.0;
-    p->noiphase[15] = 0.0;
-    p->noiphase[16] = 0.0;
-    p->noiphase[17] = 0.0;
-    p->noiphase[18] = 0.0;
-    p->noiphase[19] = 0.0;
-    p->noiphase[20] = 0.0;
-    p->noiphase[21] = 0.0;
-    p->noiphase[22] = 0.0;
-    p->noiphase[23] = 0.0;
-    p->oscphase[24] = 0.0;
-
-    { 
-
-    MYFLT nfreq[25];
-    nfreq[0] = 100.0;
-    nfreq[1] = 100.0;
-    nfreq[2] = 100.0;
-    nfreq[3] = 100.0;
-    nfreq[4] = 110.0;
-    nfreq[5] = 120.0;
-    nfreq[6] = 140.0;
-    nfreq[7] = 150.0;
-    nfreq[8] = 160.0;
-    nfreq[9] = 190.0;
-    nfreq[10] = 210.0;
-    nfreq[11] = 240.0;
-    nfreq[12] = 280.0;
-    nfreq[13] = 320.0;
-    nfreq[14] = 380.0;
-    nfreq[15] = 450.0;
-    nfreq[16] = 550.0;
-    nfreq[17] = 700.0;
-    nfreq[18] = 900.0;
-    nfreq[19] = 1100.0;
-    nfreq[20] = 1300.0;
-    nfreq[21] = 1800.0;
-    nfreq[22] = 2500.0;
-    nfreq[23] = 3500.0;
-    nfreq[24] = 4500.0;
-
+    memset(p->noiphase, 0, 25*sizeof(double));
+    /* p->noiphase[0] = 0.0; */
+    /* p->noiphase[1] = 0.0; */
+    /* p->noiphase[2] = 0.0; */
+    /* p->noiphase[3] = 0.0; */
+    /* p->noiphase[4] = 0.0; */
+    /* p->noiphase[5] = 0.0; */
+    /* p->noiphase[6] = 0.0; */
+    /* p->noiphase[7] = 0.0; */
+    /* p->noiphase[8] = 0.0; */
+    /* p->noiphase[9] = 0.0; */
+    /* p->noiphase[10] = 0.0; */
+    /* p->noiphase[11] = 0.0; */
+    /* p->noiphase[12] = 0.0; */
+    /* p->noiphase[13] = 0.0; */
+    /* p->noiphase[14] = 0.0; */
+    /* p->noiphase[15] = 0.0; */
+    /* p->noiphase[16] = 0.0; */
+    /* p->noiphase[17] = 0.0; */
+    /* p->noiphase[18] = 0.0; */
+    /* p->noiphase[19] = 0.0; */
+    /* p->noiphase[20] = 0.0; */
+    /* p->noiphase[21] = 0.0; */
+    /* p->noiphase[22] = 0.0; */
+    /* p->noiphase[23] = 0.0; */
+    /* p->oscphase[24] = 0.0; */
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int) *p->iptls; i++) {
-      randiats_setup(csound,nfreq[i] , &(p->randinoise[i]));
-    }
-
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
 
     return OK;
@@ -1341,7 +1324,8 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
       p->prFlg = 1;
 
     fetchSINNOIpartials(p, frIndx);
-    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr, p->swapped, p->nzbuf, frIndx);
+    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr,
+                    p->swapped, p->nzbuf, frIndx);
 
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
@@ -1637,9 +1621,9 @@ static int mycomp(const void *p1, const void *p2)
     const ATS_DATA_LOC *a1 = p1;
     const ATS_DATA_LOC *a2 = p2;
 
-    if ((*a1).freq < (*a2).freq)
+    if (a1->freq < a2->freq)
       return -1;
-    else if ((*a1).freq == (*a2).freq)
+    else if (a1->freq == a2->freq)
       return 0;
     else
       return 1;
