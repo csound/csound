@@ -1698,11 +1698,7 @@ else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
-        widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
-        widgetsEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
-            -framework ApplicationServices
-        '''))
+        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
     makePlugin(widgetsEnvironment, 'widgets',
                ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
 
