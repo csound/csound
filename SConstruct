@@ -583,7 +583,7 @@ elif getPlatform() == 'darwin':
     # ex. 4:3 maps OS X 10.4 to Python 2.3
     # Note that OS X 10.2 did not ship with a Python framework
     # and 10.0 and 10.1 shipped with no Python at all
-    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5, 6:6 }
+    OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5, 6:6, 7:7 }
     sysPyVers = OSXSystemPythonVersions[OSXvers]
     if OSXvers >= 2:
         print "Apple Python version is 2.%d" % sysPyVers
@@ -849,7 +849,7 @@ if commonEnvironment['useDouble'] != '0':
 elif getPlatform() == 'win32':
     csoundLibraryName += '32'
 # flags for linking with the Csound library
-libCsoundLinkFlags = []
+libCsoundLinkFlags = commonEnvironment['LINKFLAGS'] 
 if getPlatform() == 'sunos':
     libCsoundLibs = ['sndfile', 'socket', 'rt', 'nsl']
 else:
@@ -1176,7 +1176,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             'CsoundLib_install',
             libName,
             'rm -r /Library/Frameworks/%s; cp -R %s /Library/Frameworks/' % (OSXFrameworkBaseDir, OSXFrameworkBaseDir))
-        libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
+        libCsoundLinkFlags += ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
     elif getPlatform() == 'win32':
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
@@ -1700,11 +1700,7 @@ else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
-        widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
-        widgetsEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
-            -framework ApplicationServices
-        '''))
+        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
     makePlugin(widgetsEnvironment, 'widgets',
                ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
 

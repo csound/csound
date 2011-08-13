@@ -304,7 +304,7 @@ endif()
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
 include_directories(./H)
-
+include_directories(./Engine)
  
 #adding this for files that #include SDIF/sdif*
 include_directories(./)
