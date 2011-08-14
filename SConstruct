@@ -2663,7 +2663,7 @@ else:
 if not (commonEnvironment['buildcatalog'] != '0'):
     print 'CONFIGURATION DECISION: Not building catalog builder.'
 else:
-    print "CONFIGURATION DECISION: Building catalog builde"
+    print "CONFIGURATION DECISION: Building catalog builder"
     catEnvironment = Environment(ENV = os.environ)
     catEnvironment.Append(LINKFLAGS = ['-ldl'])
     bb = catEnvironment.Program('mkdb', ['mkdb.c'])
