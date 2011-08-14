@@ -2666,7 +2666,7 @@ else:
     print "CONFIGURATION DECISION: Building beats score frontend"
     catEnvironment = Environment(ENV = os.environ)
     catEnvironment.Append(LINKFLAGS = ['-ldl'])
-    bb = catEnvironment.Program('mkdb', ['mkdbmain.c''])
+    bb = catEnvironment.Program('mkdb', ['mkdbmain.c'])
     executables.append(bb)
 
 
