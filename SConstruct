@@ -2660,10 +2660,10 @@ else:
                                      'frontends/beats/beats.tab.c'])
     executables.append(bb)
 
-if not (commonEnvironment['buildBeats'] != '0'):
-    print 'CONFIGURATION DECISION: Not building beats score frontend.'
+if not (commonEnvironment['buildcatalog'] != '0'):
+    print 'CONFIGURATION DECISION: Not building catalog builder.'
 else:
-    print "CONFIGURATION DECISION: Building beats score frontend"
+    print "CONFIGURATION DECISION: Building catalog builde"
     catEnvironment = Environment(ENV = os.environ)
     catEnvironment.Append(LINKFLAGS = ['-ldl'])
     bb = catEnvironment.Program('mkdb', ['mkdb.c'])
