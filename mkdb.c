@@ -499,7 +499,7 @@ int main(int argc, char *argv[])
     OENTRY *ops;
     int msort = 0;
 
-    if (argv>1 && (strcmp(argv[1], "-m")==0)) {
+    if (argc>1 && (strcmp(argv[1], "-m")==0)) {
       argc--; argv++; msort = 1;
     }
     if (argc>1) dname = argv[1]; else dname = ".";
@@ -522,7 +522,7 @@ int main(int argc, char *argv[])
     /* cs.SetExternalMidiWriteCallback = null; */
     /* cs.SetExternalMidiOutCloseCallback = null; */
     cs.GetEnv = (const char *(*)(CSOUND *, const char *))nullp;
-    cs.LocalizeString = (char *(*)(char *))nullc;
+    cs.LocalizeString = (char *(*)(const char *))nullc;
 
     cs.oparms = (OPARMS*)calloc(1, sizeof(OPARMS));
     cs.widgetGlobals = (void*)null; /* ie something */
