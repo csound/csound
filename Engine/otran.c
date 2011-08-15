@@ -263,7 +263,7 @@ void otran(CSOUND *csound)
     ARGLST      *alp;
     char        *s;
     int32        pmax = -1, nn;
-    int32        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
+    int32        n = 0, opdstot = 0, count, sumcount, instxtcount, optxtcount;
 
     if (csound->otranGlobals == NULL) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
