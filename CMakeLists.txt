@@ -566,6 +566,15 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
+option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
+
+if(BUILD_CATALOG)
+
+make_executable(mkdb "mkdb" "dl")
+
+endif()
+
+
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(interfaces)
