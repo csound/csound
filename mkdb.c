@@ -471,12 +471,6 @@ void*  nullp(CSOUND *cs, const char *s)
     return NULL;
 }
 
-int true(void)
-{
-    return 1;
-}
-
-
 char *csoundLocalizeString(const char *s)
 {
     return (char *)s;
