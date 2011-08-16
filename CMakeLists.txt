@@ -567,11 +567,11 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
 option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
-
+check_deps(BUILD_CATALOG)
 if(BUILD_CATALOG)
 
 make_executable(mkdb "mkdb" "dl")
-
+set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
 endif()
 
 
