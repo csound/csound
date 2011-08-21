@@ -175,8 +175,9 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     fp1 = inbuf;
     outbuf = fp2 = (MYFLT*) csound->Malloc(csound,
                                            sizeof(MYFLT) * (Hlenpadded + 2));
-    for (i = 0; i < (Hlenpadded + 2); i++)
-      outbuf[i] = FL(0.0);
+    /* for (i = 0; i < (Hlenpadded + 2); i++) */
+    /*   outbuf[i] = FL(0.0); */
+    memset(outbuf, 0, sizeof(MYFLT)*(Hlenpadded + 2));
 
     for (i = 0; i < nchanls; i++) {
       for (j = Hlen; j > 0; j--) {
@@ -190,7 +191,7 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       /* write straight out, just the indep vals */
       fwrite(outbuf, 1, cvh->dataBsize/nchanls, ofd);
       for (j = Hlenpadded - Hlen; j > 0; j--)
-        *fp2++ = FL(0.0);
+        fp2[j] = FL(0.0);
       fp2 = outbuf;
     }
     return 0;
