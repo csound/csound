@@ -569,7 +569,8 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
       for (i = 0; i < n; i++)
         if (mixin[i].start > sample && mixin[i].start - sample < size)
           size = mixin[i].start - sample;
-      for (j=0; j<size*outputs; j++) buffer[j] = FL(0.0);
+      /* for (j=0; j<size*outputs; j++) buffer[j] = FL(0.0); */
+      memset(buffer, 0, sizeof(MYFLT)*size*outputs);
       this_block = 0;
       for (i = 0; i<n; i++) {
         if (sample >= mixin[i].start) {

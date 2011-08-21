@@ -571,8 +571,8 @@ OENTRY opcodlst_1[] = {
 { "resonk", S(KRESON),  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL  },
 { "aresonk",S(KRESON),  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kareson, NULL },
 { "limit.i", S(LIMIT),  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL       },
-{ "limit.k",  S(LIMIT), 3, "k",     "xkk",  (SUBR)limitset, (SUBR)klimit, NULL },
-{ "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
+{ "limit.k",  S(LIMIT), 2, "k",     "xkk",  NULL,           (SUBR)klimit, NULL },
+{ "limit.a",  S(LIMIT), 4, "a",     "xkk",  NULL,           NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
 { "inh",    S(INH),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
