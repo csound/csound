@@ -178,7 +178,7 @@ int kporset(CSOUND *csound, KPORT *p)
     /* Set internal state to last input variable, but only if it is not
      * negative. (Why?) -- because that is how ugens without re-init is done
      * everywhere in Csound -- JPff */
-    if (*p->isig >= 0)
+    if (UNLIKELY(*p->isig >= 0))
       p->yt1 = *p->isig;
     p->prvhtim = -FL(100.0);
     return OK;
@@ -199,7 +199,7 @@ int kport(CSOUND *csound, KPORT *p)
      * c1 = 1 - c2
      *
      */
-    if (p->prvhtim != *p->khtim) {
+    if (UNLIKELY(p->prvhtim != *p->khtim)) {
       p->c2 = POWER(FL(0.5), csound->onedkr / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
@@ -217,7 +217,7 @@ int ktonset(CSOUND *csound, KTONE *p)
     /* Initialise internal variables to  0 or 1.                 */
     p->c1 = p->prvhp = FL(0.0);
     p->c2 = FL(1.0);
-    if (!(*p->istor))
+    if (LIKELY(!(*p->istor)))
       p->yt1 = FL(0.0);
     return OK;
 }
@@ -228,7 +228,7 @@ int ktone(CSOUND *csound, KTONE *p)
 {
     /* If the current frequency is different from before, then calculate
      * new values for c1 and c2.                                 */
-    if (*p->khp != p->prvhp) {
+    if (UNLIKELY(*p->khp != p->prvhp)) {
       MYFLT b;
       p->prvhp = *p->khp;
       /* b = cos ( 2 * pi * freq / krate)
@@ -254,11 +254,10 @@ int ktone(CSOUND *csound, KTONE *p)
  * variables. Identical to tone, except for the output calculation.      */
 int katone(CSOUND *csound, KTONE *p)
 {
-    if (*p->khp != p->prvhp) {
+    if (UNLIKELY(*p->khp != p->prvhp)) {
       MYFLT b;
       p->prvhp = *p->khp;
-      b = FL(2.0)
-          - COS(*p->khp * csound->tpidsr * csound->ksmps);
+      b = FL(2.0) - COS(*p->khp * csound->tpidsr * csound->ksmps);
       p->c2 = b - SQRT(b * b - FL(1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -287,7 +286,7 @@ int krsnset(CSOUND *csound, KRESON *p)
     /* Put dummy values into previous centre freq and bandwidth.         */
     p->prvcf = p->prvbw = -FL(100.0);
     /* Set intial state to 0 if istor = 0.       */
-    if (!(*p->istor))
+    if (LIKELY(!(*p->istor)))
       p->yt1 = p->yt2 = FL(0.0);
     return OK;
 }
@@ -302,7 +301,7 @@ int kreson(CSOUND *csound, KRESON *p)
 
     /* Calculations for centre frequency if it changes.
      * cosf = cos (2pi * freq / krate)                   */
-    if (*p->kcf != p->prvcf) {
+    if (UNLIKELY(*p->kcf != p->prvcf)) {
       p->prvcf = *p->kcf;
       p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
       flag = 1;
@@ -310,7 +309,7 @@ int kreson(CSOUND *csound, KRESON *p)
 
     /* Calculations for bandwidth if it changes.
      * c3 = exp (-2pi * bwidth / krate)                  */
-    if (*p->kbw != p->prvbw) {
+    if (UNLIKELY(*p->kbw != p->prvbw)) {
       p->prvbw = *p->kbw;
       p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
       flag = 1;
@@ -325,7 +324,7 @@ int kreson(CSOUND *csound, KRESON *p)
      * c3       Gain for output of delay 2.
      */
 
-    if (flag) {
+    if (UNLIKELY(flag)) {
       c3p1 = p->c3 + FL(1.0);
       c3t4 = p->c3 * FL(4.0);
       omc3 = 1 - p->c3;
@@ -372,17 +371,17 @@ int kareson(CSOUND *csound, KRESON *p)
     int flag = 0;
     MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
     /*      or 1/.5  (sine) */
-    if (*p->kcf != p->prvcf) {
+    if (UNLIKELY(*p->kcf != p->prvcf)) {
       p->prvcf = *p->kcf;
       p->cosf = COS(*p->kcf * csound->tpidsr * csound->ksmps);
       flag = 1;
     }
-    if (*p->kbw != p->prvbw) {
+    if (UNLIKELY(*p->kbw != p->prvbw)) {
       p->prvbw = *p->kbw;
       p->c3 = EXP(*p->kbw * csound->mtpdsr * csound->ksmps);
       flag = 1;
     }
-    if (flag) {
+    if (UNLIKELY(flag)) {
       c3p1 = p->c3 + FL(1.0);
       c3t4 = p->c3 * FL(4.0);
       omc3 = 1 - p->c3;
@@ -417,14 +416,14 @@ int kareson(CSOUND *csound, KRESON *p)
 /* limit and ilimit
  */
 
-int limitset(CSOUND *csound, LIMIT *p)
-     /* Because we are using Csounds facility (thread = 7) for deciding
-      * whether this is a or k rate, we must provide an init time setup
-      * function. In this case, we have nothing to do.   */
-{
+/* int limitset(CSOUND *csound, LIMIT *p) */
+/*      /\* Because we are using Csounds facility (thread = 7) for deciding */
+/*       * whether this is a or k rate, we must provide an init time setup */
+/*       * function. In this case, we have nothing to do.   *\/ */
+/* { */
 
-    return OK;
-}
+/*     return OK; */
+/* } */
 
 /* klimit()
  *
@@ -436,7 +435,7 @@ int klimit(CSOUND *csound, LIMIT *p)
 
     /* Optimise for speed when xsig is within the limits.   */
 
-    if (((xsig = *p->xsig) <= *p->xhigh) && (xsig >= *p->xlow)) {
+    if (LIKELY(((xsig = *p->xsig) <= *p->xhigh) && (xsig >= *p->xlow))) {
       *p->xdest = xsig;
     }
     else {
@@ -467,7 +466,7 @@ int limit(CSOUND *csound, LIMIT *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
-    int loopcount = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     /*-----------------------------------*/
 
     /* Optimise for speed when xsig is within the limits.     */
@@ -483,24 +482,24 @@ int limit(CSOUND *csound, LIMIT *p)
 
     if ((xlow = *p->xlow) >= (xhigh = *p->xhigh)) {
       xaverage = (xlow + xhigh) * FL(0.5);/* times 0.2 rather that /2 -- JPff */
-      do {
-        *adest++ = xaverage;
-      } while (--loopcount);
+      for (n=0; n<nsmps; n++) {
+        adest[n] = xaverage;
+      }
     }
     else
-      do {
+      for (n=0; n<nsmps; n++) {
         /* Do normal processing, testing each input value against the limits. */
-        if (((xsig = *asig++) <= xhigh) && (xsig >= xlow)) {
+        if (((xsig = asig[n]) <= xhigh) && (xsig >= xlow)) {
           /* xsig was within the limits.      */
-          *adest++ = xsig;
+          adest[n] = xsig;
         }
         else {
           if (xsig > xhigh)
-            *adest++ = xhigh;
+            adest[n] = xhigh;
           else
-            *adest++ = xlow;
+            adest[n] = xlow;
         }
-      } while (--loopcount);
+      }
     return OK;
 }
 
