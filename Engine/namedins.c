@@ -893,7 +893,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
     }
     /* need to search */
     pp = (GlobalVariableEntry_t**) &(csnd->namedGlobals[(int) h]);
-    do {
+    while (1) {
       /* check for a conflicting name */
       if (UNLIKELY(sCmp(name, (char*) ((*pp)->name)) == 0)) {
         free((void*) p);
@@ -902,7 +902,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
       if ((*pp)->nxt == NULL)
         break;
       pp = &((*pp)->nxt);
-    } while (1);
+    }
     (*pp)->nxt = (GlobalVariableEntry_t*) p;
     /* successfully finished */
     return CSOUND_SUCCESS;

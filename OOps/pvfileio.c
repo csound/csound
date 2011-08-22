@@ -152,7 +152,7 @@ static inline int byte_order(void)
 
 static inline int pvfile_read_tag(PVOCFILE *p, char *s)
 {
-    if ((int) fread(s, 1, 4, p->fp) != 4) {
+    if (UNLIKELY((int) fread(s, 1, 4, p->fp) != 4)) {
       s[0] = '\0';
       return -1;
     }
@@ -162,7 +162,7 @@ static inline int pvfile_read_tag(PVOCFILE *p, char *s)
 
 static inline int pvfile_write_tag(PVOCFILE *p, const char *s)
 {
-    if ((int) fwrite((void*) s, 1, 4, p->fp) != 4)
+    if (UNLIKELY((int) fwrite((void*) s, 1, 4, p->fp) != 4))
       return -1;
     return 0;
 }
@@ -298,7 +298,7 @@ const char *pvoc_errorstr(CSOUND *csound)
 {
     int i = -(csound->pvErrorCode);
 
-    if (i < 0 || i > 42) i = 1;
+    if (UNLIKELY(i < 0 || i > 42)) i = 1;
     return (const char *) Str(pvErrorStrings[i]);
 }
 
@@ -313,7 +313,7 @@ const char *pvoc_errorstr(CSOUND *csound)
 
 int init_pvsys(CSOUND *csound)
 {
-    if (csound->pvNumFiles) {
+    if (UNLIKELY(csound->pvNumFiles)) {
       csound->pvErrorCode = -2;
       return 0;
     }
@@ -323,7 +323,7 @@ int init_pvsys(CSOUND *csound)
 
 static inline PVOCFILE *pvsys_getFileHandle(CSOUND *csound, int fd)
 {
-    if (fd < 0 || fd >= csound->pvNumFiles)
+    if (UNLIKELY(fd < 0 || fd >= csound->pvNumFiles))
       return (PVOCFILE*) NULL;
     return (PVFILETABLE[fd]);
 }
@@ -436,10 +436,10 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     }
 
-    if (wtype == PVOC_DEFAULT)
+    else if (wtype == PVOC_DEFAULT)
       wtype = PVOC_HAMMING;
 
-    if (wtype == PVOC_KAISER)
+    else if (wtype == PVOC_KAISER)
       if (wparam != 0.0f)
         winparam = wparam;
     /* will need an internal default for window parameters... */

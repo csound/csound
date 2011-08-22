@@ -134,12 +134,12 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     /*
      * determine the factors of n
      */
-    k=nf=abs(n);
+    k = nf = abs(n);
     if (nf==1)
       return;
 
-    nspn=abs(nf*nspn);
-    ntot=abs(nspn*nseg);
+    nspn = abs(nf*nspn);
+    ntot = abs(nspn*nseg);
 
     for (m=0; !(k%16); nfac[++m]=4,k/=16);
     for (j=3,jj=9; jj<=k; j+=2,jj=j*j)
@@ -211,12 +211,12 @@ static void fftmx(MYFLT *a, MYFLT *b,
                   int *np, int nfac[])
 {
     int i,inc,
-      j,jc,jf, jj,
-      k, k1, k2, k3=0, k4,
-      kk,klim,ks,kspan, kspnn,
-      lim,
-      maxf,mm,
-      nn,nt;
+        j,jc,jf, jj,
+        k, k1, k2, k3=0, k4,
+        kk,klim,ks,kspan, kspnn,
+        lim,
+        maxf,mm,
+        nn,nt;
     double  aa, aj, ajm, ajp, ak, akm, akp,
       bb, bj, bjm, bjp, bk, bkm, bkp,
       c1, c2=0, c3=0, c72, cd,
@@ -229,7 +229,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     nt = inc*ntot;
     ks = inc*nspan;
 /******************* REPLACED MARCH 29: ***********************
-                                        rad = atan((double)1.0);
+                                        rad = atan(1.0);
 **************************************************************/
     rad = 0.785398163397448278900;
 /******************* REPLACED MARCH 29: ***********************
@@ -240,7 +240,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     c72 = 0.309016994374947451270;
     s72 = 0.951056516295153531190;
 /******************* REPLACED MARCH 29: ***********************
-                                        s120 = sqrt((double)0.75);
+                                        s120 = sqrt(0.75);
 **************************************************************/
     s120 = 0.866025403784438707600;
 
@@ -273,13 +273,13 @@ static void fftmx(MYFLT *a, MYFLT *b,
       maxf = nfac[*kt];
 
 /*
- * compute fourier transform
+ * compute Fourier transform
  */
 
  lbl40:
     dr = (8.0 * (double)jc)/((double)kspan);
 /*************************** APRIL 1991 POW & POW2 not WORKING.. REPLACE *******
-                    cd = 2.0 * (pow2 ( sin((double)0.5 * dr * rad)) );
+                    cd = 2.0 * (pow2 ( sin(0.5 * dr * rad)) );
 *******************************************************************************/
     xx =  sin(0.5 * dr * rad);
     cd = 2.0 * xx * xx;
@@ -314,7 +314,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     ak = c1 - ((cd*c1)+(sd*s1));
     s1 = ((sd*c1)-(cd*s1)) + s1;
     c1 = ak;
-lbl80:
+ lbl80:
     do {
       do {
         k2 = kk + kspan;
@@ -440,7 +440,7 @@ lbl80:
     if (kk <= jc)   goto lbl120;
     if (kspan==jc)  goto lbl350;
     goto lbl40;
-lbl180:
+ lbl180:
     akp = akm + bjm;
     akm = akm - bjm;
     bkp = bkm - ajm;

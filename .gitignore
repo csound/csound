@@ -1,6 +1,7 @@
 # Intermediate object files
 *.o
 *.os
+*.so
 
 # Opcode libraries
 /lib*.*
@@ -112,6 +113,11 @@ csladspa.so
 interfaces/*.java
 csnd.jar
 *.class
+
+#Loris anf Perry's stuff
+Opcodes/Loris/*
+loris.py
+Opcodes/stk/*
 
 # Vim swap files
 *.swp
