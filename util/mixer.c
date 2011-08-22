@@ -320,7 +320,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
         mixin[n].name = --s;
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
-        if (n++ >= NUMBER_OF_FILES) {
+        if (UNLIKELY(n++ >= NUMBER_OF_FILES)) {
           usage(csound,Str("Too many mixin"));
         }
         mixin[n].start = -1;
@@ -503,7 +503,7 @@ static MYFLT gain(MIXER_GLOBALS *pp, int n, int i)
     if (i<mixin[n].table->x0) mixin[n].table = mixin[n].fulltable;
     while (i<mixin[n].table->x0 ||
            i>=mixin[n].table->x1) {/* Get correct segment */
-      if (pp->debug)
+      if (UNLIKELY(pp->debug))
         csound->Message(csound, "Table %d: %d (%d %f) -> %d %f [%f]\n",
                         n, i, mixin[n].table->x0, mixin[n].table->y0,
                         mixin[n].table->x1, mixin[n].table->y1,
@@ -527,7 +527,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->skiptime = FL(0.0);
     strcpy(p->sfname, ddd->name);
     /* open sndfil, do skiptime */
-    if ((infd = csound->sndgetset(csound, p)) == NULL)
+    if (UNLIKELY((infd = csound->sndgetset(csound, p)) == NULL))
       return NULL;
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
@@ -607,7 +607,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
           more_to_read++;
       }
       for (j = 0; j < this_block * outputs; j++) {
-        if (buffer[j] > csound->e0dbfs || buffer[j] < -(csound->e0dbfs))
+        if (UNLIKELY(buffer[j] > csound->e0dbfs || buffer[j] < -(csound->e0dbfs)))
           pp->outrange++;
         if (buffer[j] == max) maxtimes++;
         if (buffer[j] == min) mintimes++;
@@ -648,7 +648,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
                                 "%d times\n"),
                             (int) min, lminpos, tpersample * (lminpos/outputs),
                             (int) lminpos % outputs, mintimes);
-    if (pp->outrange)
+    if (UNLIKELY(pp->outrange))
       csound->Message(csound, Str("%d sample%s out of range\n"),
                               pp->outrange, (pp->outrange == 1 ? "" : "s"));
     else

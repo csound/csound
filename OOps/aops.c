@@ -34,7 +34,7 @@
 #define ONEdLOG2    FL(1.4426950408889634074)
 #define MIDINOTE0   (3.00)  /* Lowest midi note is 3.00 in oct & pch formats */
 
-/* static lookup tables, initialised once at start-up */
+/* static lookup tables, initialised once at start-up; also used by midi ops */
 MYFLT   cpsocfrc[OCTRES] = { FL(0.0) };
 static  MYFLT   powerof2[4096];
 
@@ -75,15 +75,6 @@ int aassign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-#if 0
-/* Taken out as identical to assign above */
-int init(CSOUND *csound, ASSIGN *p)
-{
-    *p->r = *p->a;
-    return OK;
-}
-#endif
-
 int ainit(CSOUND *csound, ASSIGN *p)
 {
     MYFLT aa = *p->a;
@@ -99,7 +90,7 @@ int minit(CSOUND *csound, ASSIGNM *p)
     int nargs = p->INCOUNT;
     int i;
     MYFLT *tmp;
-    if (nargs > p->OUTOCOUNT)
+    if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
@@ -123,7 +114,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     int nargs = p->INCOUNT;
     int   i, n, nsmps = csound->ksmps;
     MYFLT aa = FL(0.0);
-    if (nargs > p->OUTOCOUNT)
+    if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
@@ -170,7 +161,7 @@ KK(divkk,/)
 
 MYFLT MOD(MYFLT a, MYFLT bb)
 {
-    if (bb==FL(0.0)) return FL(0.0);
+    if (UNLIKELY(bb==FL(0.0))) return FL(0.0);
     else {
       MYFLT b = (bb<0 ? -bb : bb);
       MYFLT d = FMOD(a, b);
@@ -822,7 +813,7 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
     int numgrades;
     int basekeymidi;
     MYFLT basefreq, factor, interval;
-    if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) goto err1;
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL)) goto err1;
     func = ftp->ftable;
     numgrades = (int)*func++;
     interval = *func++;
@@ -856,7 +847,8 @@ int cpstun(CSOUND *csound, CPSTUN *p)
       int numgrades;
       int basekeymidi;
       MYFLT basefreq, factor, interval;
-      if ((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL) goto err1;
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->tablenum)) == NULL))
+        goto err1;
       func = ftp->ftable;
       numgrades = (int)*func++;
       interval = *func++;
@@ -885,7 +877,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
 
 int logbasetwo_set(CSOUND *csound, EVAL *p)
 {
-    if (csound->logbase2 == NULL) {
+    if (UNLIKELY(csound->logbase2 == NULL)) {
       double  x = (1.0 / INTERVAL);
       int     i;
       csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
@@ -1127,7 +1119,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
     int nc, nChannels = p->INCOUNT;
     int   ch, n, nsmps = csound->ksmps;
     MYFLT *sp, *ain;
-    if (nChannels != p->OUTOCOUNT)
+    if (UNLIKELY(nChannels != p->OUTOCOUNT))
       return
         csound->PerfError(csound,
                           Str("Input and output argument count differs in inch"));
@@ -1607,7 +1599,7 @@ int invalset(CSOUND *csound, INVAL *p)
       /* check for starting with a $, which will confuse hosts
          -- pretty unlikely given that the parser thinks
          "$string" is a macro -- but just in case: */
-      if (*s == '$')
+      if (UNLIKELY(*s == '$'))
         return csound->InitError(csound, Str("k-rate invalue ChannelName "
                                              "cannot start with $"));
       /* allocate the space used to pass a string during the k-pass */
