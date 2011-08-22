@@ -162,7 +162,7 @@ static void csfree(CSHDR *bp)
     }
 }
 
-/* creat an array of event pointer slots */
+/* create an array of event pointer slots */
 
 PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
 {
@@ -614,6 +614,7 @@ PUBLIC EVLIST * cscoreListExtractTime(CSOUND *csound,
       case 'f':
         if (e->p[2] < to) {
           *q++ = e = cscoreCopyEvent(csound,e);
+          b->nevents++;
           if (e->p[2] <= from)
             e->p[2] = FL(0.0);
           else e->p[2] -= from;
@@ -623,21 +624,24 @@ PUBLIC EVLIST * cscoreListExtractTime(CSOUND *csound,
         if (e->p[2] < from) {
           if (e->p[2] + e->p[3] > from) {
             *q++ = e = cscoreCopyEvent(csound,e);
+            b->nevents++;
             e->p[3] -= from - e->p[2];
             e->p[2] = FL(0.0);
             if (e->p[3] > maxp3)
               e->p[3] = maxp3;
           }
         }
-        else if (e->p[2] < to) {
+        else if ((e->p[2] >= from) && (e->p[2] < to)) {
           *q++ = e = cscoreCopyEvent(csound, e);
+          b->nevents++;
           if (e->p[2] + e->p[3] > to)
             e->p[3] = to - e->p[2];
-            e->p[2] -= from;
+          e->p[2] -= from;
         }
         break;
       default:
         *q++ = cscoreCopyEvent(csound,e);
+        b->nevents++;
         break;
       }
     c = cscoreListCopy(csound,b);
