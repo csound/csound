@@ -766,7 +766,7 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
     return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
 }
 
-static void FetchADDNZbands(int firstband, double *datastart,
+static void FetchADDNZbands(int ptls, int firstband, double *datastart,
                             int frmInc, int maxFr, int swapped,
                             double *buf, MYFLT position)
 {
@@ -782,11 +782,11 @@ static void FetchADDNZbands(int firstband, double *datastart,
 #endif
     frame = (int) position;
     frm0 = datastart + frame * frmInc;
-
+  
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
     if (frame == maxFr) {
-      for (i = 0; i < 25; i++) {
+      for (i = 0; i < ptls; i++) {
         buf[i] = (swapped == 1 ? bswap(&frm0[firstband + i])
                                     : frm0[firstband + i]); /* output value */
       }
@@ -795,8 +795,8 @@ static void FetchADDNZbands(int firstband, double *datastart,
 
     frm1 = frm0 + frmInc;
     frac = (double) (position - frame);
-
-    for (i = 0; i < 25; i++) {
+    
+    for (i = 0; i < ptls; i++) {
       if (swapped == 1) {
         frm0val = bswap(&(frm0[firstband + i]));
         frm1val = bswap(&(frm1[firstband + i]));
@@ -805,9 +805,11 @@ static void FetchADDNZbands(int firstband, double *datastart,
         frm0val = frm0[firstband + i];
         frm1val = frm1[firstband + i];
       }
+   
       buf[i] = frm0val + frac * (frm1val - frm0val);  /* calc energy */
-
+   
     }
+    
 }
 
 static double freqs[25]= {
@@ -1013,7 +1015,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
     else
       p->prFlg = 1;
 
-    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr,
+    FetchADDNZbands(25, p->firstband, p->datastart, p->frmInc, p->maxFr,
                     p->swapped, p->buf, frIndx);
 
     /* set local pointer to output and initialise output to zero */
@@ -1124,7 +1126,8 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+    if(p->auxch.auxp != NULL || memsize > p->auxch.size) 
+        csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
@@ -1154,6 +1157,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
       p->nzdata = (double *) csound->Malloc(csound, sizeof(double) * nzmemsize);
     }
 
+    
     /* make sure partials are in range */
     if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
                  (int) (*p->iptloffset) < 0)) {
@@ -1214,7 +1218,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     }
     /* save the memory size of the noise */
     p->nzmemsize = nzmemsize;
-
+  
    
     /* flag set to reduce the amount of warnings sent out */
     /* for time pointer out of range */
@@ -1281,7 +1285,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     for (i = 0; i < (int) *p->iptls; i++) {
       randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
-
+   
     return OK;
 }
 
@@ -1301,6 +1305,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     MYFLT   freq;
     MYFLT   nzfreq;
     ATS_DATA_LOC *oscbuf;
+    //csound->Message(csound , "start \n");
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -1322,23 +1327,27 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     }
     else
       p->prFlg = 1;
-
+    
+    
     fetchSINNOIpartials(p, frIndx);
-    FetchADDNZbands(p->firstband, p->datastart, p->frmInc, p->maxFr,
+    
+    FetchADDNZbands(*p->iptls, p->firstband, p->datastart, p->frmInc, p->maxFr,
                     p->swapped, p->nzbuf, frIndx);
-
+   
+   
     /* set local pointer to output and initialise output to zero */
     ar = p->aoutput;
-
+    	
     memset(ar, 0, csound->ksmps*sizeof(MYFLT));
 /*     for (i = 0; i < csound->ksmps; i++) */
 /*       *ar++ = FL(0.0); */
 
     oscbuf = p->oscbuf;
     nzbuf = p->nzbuf;
-
+  
     /* do synthesis */
     if (p->firstband != -1) {
+
       for (i = 0; i < (int) *p->iptls; i++) {
         phase = p->oscphase[i];
         ar = p->aoutput;
@@ -1366,6 +1375,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         }
         p->oscphase[i] = phase;
       }
+      
     }
     else {
       for (i = 0; i < (int) *p->iptls; i++) {
@@ -1383,7 +1393,9 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         }
         p->oscphase[i] = phase;
       }
+     
     }
+   
     return OK;
 }
 
