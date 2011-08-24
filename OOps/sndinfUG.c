@@ -174,11 +174,11 @@ int filebit(CSOUND *csound, SNDINFO *p)
 
     getsndinfo(csound, p, &hdr);
     format = hdr.format &  SF_FORMAT_SUBMASK;
-    if(format < 5)
+    if (format < 5)
       bits = format*8 ;
-    else if(format == 5) bits = 8;
-    else if(format == 6) bits = -1;
-    else if(format == 7) bits = -2;
+    else if (format == 5) bits = 8;
+    else if (format == 6) bits = -1;
+    else if (format == 7) bits = -2;
     else bits = -format; /* non-PCM data */
 
     *(p->r1) = (MYFLT) bits;

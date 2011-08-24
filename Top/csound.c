@@ -1217,7 +1217,7 @@ extern "C" {
       int index = 0;
       THREADINFO *current = csound->multiThreadedThreadInfo;
 
-      if(current == NULL) {
+      if (current == NULL) {
         return -1;
       }
 

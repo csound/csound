@@ -492,7 +492,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
               + (int) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if(p->auxch.auxp == NULL || p->auxch.size < memsize)
+    if (p->auxch.auxp == NULL || p->auxch.size < memsize)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
@@ -1354,7 +1354,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
           phase += inc;
 
           /* calc noise */
-          if( i < 25) {
+          if (i < 25) {
           noise = nzamp * COS(p->noiphase[i])
 	    * randiats(csound, &(p->randinoise[i]));
            p->noiphase[i] += p->phaseinc[i];
@@ -1865,8 +1865,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
                       (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if(p->auxch.auxp == NULL || p->auxch.size >= memsize)
-    csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+    if (p->auxch.auxp == NULL || p->auxch.size >= memsize)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
@@ -2029,7 +2029,7 @@ static void ScalePartials(
       }
       /* do the actual scaling */
 
-      if(i<tbufnp && cbuf[i].amp > kthresh)
+      if (i<tbufnp && cbuf[i].amp > kthresh)
         cbuf[i].amp = cbuf[i].amp * cbufamp + tempamp*tbufamp;
       else  cbuf[i].amp *= cbufamp;
     }
