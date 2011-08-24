@@ -228,7 +228,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     Uint8 r, g, b;
 
     srfc = IMG_Load(filename);
-    if(srfc) {
+    if (srfc) {
         SDL_LockSurface(srfc);
         img = malloc(sizeof(Image));
         img->w = srfc->w;

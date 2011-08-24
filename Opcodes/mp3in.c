@@ -142,7 +142,7 @@ int mp3ininit(CSOUND *csound, MP3IN *p)
     }
     /* initialise buffer */
     p->bufSize = buffersize;
-    if(p->auxch.auxp == NULL || p->auxch.size < buffersize)
+    if (p->auxch.auxp == NULL || p->auxch.size < buffersize)
       csound->AuxAlloc(csound, buffersize, &p->auxch);
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
