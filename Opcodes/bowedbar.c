@@ -144,7 +144,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
       p->length = (int)(csound->esr/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<NR_MODES; i++) {
-        if((int)(p->length/p->modes[i]) > 4)
+        if ((int)(p->length/p->modes[i]) > 4)
           DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
         else    {
           p->nr_modes = i;

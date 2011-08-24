@@ -48,12 +48,12 @@ int get_opcode_type(OENTRY *ep)
 {
     int retVal = 0;
 
-//    if((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
+//    if ((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
 //       (ep->intypes == NULL || strlen(ep->intypes) == 0)) {
 //        retVal = T_OPCODE00;
 //    } else
 
-    if(ep->outypes == NULL || strlen(ep->outypes) == 0) {
+    if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
       retVal = T_OPCODE0;
     }
     else {
@@ -92,7 +92,7 @@ void init_symbtab(CSOUND *csound)
 
           mfree(csound, polyName);
 
-//        if(strchr(ep->opname, '.') != NULL) {
+//        if (strchr(ep->opname, '.') != NULL) {
 //           csound->Message(csound,
 //                   "Found PolyMorphic Opcode Definition %s\n",ep->opname);
 //        }
@@ -306,7 +306,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (PARSER_DEBUG)
       csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag);
 
-    if(udoflag == -2 || namedInstrFlag == 1) {
+    if (udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }
 

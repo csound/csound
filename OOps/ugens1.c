@@ -490,7 +490,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       segp++;           /* init each seg ..  */
       val = nxtval;
       bkpt = **argp++;
-      if(bkpt < dursum)
+      if (UNLIKELY(bkpt < dursum))
           return csound->InitError(csound,
                                    Str("Breakpoint time %f not valid"), bkpt);
       dur = bkpt - dursum;
@@ -539,7 +539,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
       segp++;           /* init each seg ..  */
       val = nxtval;
       bkpt = **argp++;
-      if(bkpt < dursum)
+      if (UNLIKELY(bkpt < dursum))
           return csound->InitError(csound,
                                    Str("Breakpoint time %f not valid"), bkpt);
       dur = bkpt - dursum;
