@@ -39,9 +39,9 @@ int csoundAddUtility(CSOUND *csound, const char *name,
     if (csound == NULL || name == NULL || name[0] == '\0' || UtilFunc == NULL)
       return -1;
     p = (csUtility_t*) csound->utility_db;
-    if (p != NULL) {
+    if (LIKELY(p != NULL)) {
       do {
-        if (strcmp(p->name, name) == 0)
+        if (UNLIKELY(strcmp(p->name, name) == 0))
           return -1;    /* name is already in use */
         if (p->nxt == NULL)
           break;
@@ -70,24 +70,24 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     volatile void *saved_exitjmp;
     volatile int  n;
 
-    if (csound == NULL)
+    if (UNLIKELY(csound == NULL))
       return -1;
 
     saved_exitjmp = (void*) malloc(sizeof(jmp_buf));
-    if (saved_exitjmp == NULL)
+    if (UNLIKELY(saved_exitjmp == NULL))
       return -1;
     memcpy((void*) saved_exitjmp, (void*) &(csound->exitjmp), sizeof(jmp_buf));
 
-    if ((n = setjmp(csound->exitjmp)) != 0) {
+    if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
       n = (n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
       goto err_return;
     }
 
-    if (name == NULL || name[0] == '\0')
+    if (UNLIKELY(name == NULL || name[0] == '\0'))
       goto notFound;
     p = (csUtility_t*) csound->utility_db;
     while (1) {
-      if (p == NULL)
+      if (UNLIKELY(p == NULL))
         goto notFound;
       if (strcmp(p->name, name) == 0)
         break;
@@ -150,7 +150,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
       p = p->nxt, utilCnt++;
     /* allocate list */
     lst = (char**) malloc(sizeof(char*) * (utilCnt + 1));
-    if (lst == NULL)
+    if (UNLIKELY(lst == NULL))
       return NULL;
     /* store pointers to utility names */
     utilCnt = 0;
@@ -188,17 +188,17 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
     char        *desc = NULL;
 
     /* check for valid parameters */
-    if (utilName == NULL)
+    if (UNLIKELY(utilName == NULL))
       return CSOUND_ERROR;
     /* find utility in database */
     while (p != NULL && strcmp(p->name, utilName) != 0)
       p = p->nxt;
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;      /* not found */
     /* copy description text */
     if (utilDesc != NULL && utilDesc[0] != '\0') {
       desc = (char*) csound->Malloc(csound, strlen(utilDesc) + 1);
-      if (desc == NULL)
+      if (UNLIKELY(desc == NULL))
         return CSOUND_MEMORY;
       strcpy(desc, utilDesc);
     }
@@ -221,12 +221,12 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
     csUtility_t *p = (csUtility_t*) csound->utility_db;
 
     /* check for valid parameters */
-    if (utilName == NULL)
+    if (UNLIKELY(utilName == NULL))
       return NULL;
     /* find utility in database */
     while (p != NULL && strcmp(p->name, utilName) != 0)
       p = p->nxt;
-    if (p == NULL)
+    if (UNLIKELY(p == NULL))
       return NULL;      /* not found */
     /* return with utility description (if any) */
     return (const char*) p->desc;
