@@ -93,7 +93,8 @@ def runTest():
         ["test39.csd", "Testing macro with argument"],
         ["test40.csd", "Testing i^j"],
         ["test41.csd", "if statement with = instead of =="],
-    ]
+        ["test42.csd", "extended string"],
+   ]
 
 
     output = ""

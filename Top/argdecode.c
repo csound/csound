@@ -63,6 +63,9 @@ static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
+#ifdef PARCS
+  Str_noop("-j N\tuse N processes"),
+#endif
   Str_noop("-I\tI-time only orch run"),
   Str_noop("-n\tno sound onto disk"),
   Str_noop("-i fnam\tsound input filename"),
@@ -838,12 +841,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->noDefaultPaths = 1;
       return 1;
     }
-    else if(!(strncmp (s, "num-threads=", 12))) {
+    else if (!(strncmp (s, "num-threads=", 12))) {
       s += 12 ;
       O->numThreads = atoi(s);
       return 1;
     }
-    else if(!(strcmp (s, "syntax-check-only"))) {
+    else if (!(strcmp (s, "syntax-check-only"))) {
       O->syntaxCheckOnly = 1;
       return 1;
     }
@@ -856,6 +859,30 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->newParser = 1;             /* Use New Parser */
       return 1;
     }
+#ifdef PARCS
+    else if (!(strncmp(s, "weight-info=", 12))) {
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no weight-info"));
+      csound->weight_info = s;
+      return 1;
+    }
+    else if (!(strncmp(s, "weight-dump=", 12))) {
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no weight-dump"));
+      csound->weight_dump = s;
+      return 1;
+    }
+    else if (!(strncmp(s, "weights=", 8))) {
+      s += 8;
+      if (*s=='\0') dieu(csound, Str("no weights"));
+      csound->weights = s;
+      return 1;
+    }
+    else if (!(strcmp(s, "compute-weights"))) {
+      O->calculateWeights = 1;
+      return 1;
+    }
+#endif
     else if (!(strcmp(s, "old-parser"))) {
       O->newParser = 0;             /* Use Old Parser */
       return 1;
@@ -1022,7 +1049,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
                 csound->keep_tmp = 1;
                 break;
               }
-              else O->cmdTempo = val;
+              O->cmdTempo = val;
               O->Beatmode = 1;            /* on uninterpreted Beats */
             }
             break;

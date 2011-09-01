@@ -1,6 +1,7 @@
 # Intermediate object files
 *.o
 *.os
+*.so
 
 # Opcode libraries
 /lib*.*
@@ -113,6 +114,11 @@ interfaces/*.java
 csnd.jar
 *.class
 
+#Loris anf Perry's stuff
+Opcodes/Loris/*
+loris.py
+Opcodes/stk/*
+
 # Vim swap files
 *.swp
 
@@ -125,3 +131,7 @@ po/old_*
 *.wav
 Release_Notes/*
 
+.DS_Store
+CsoundLib64*
+examples/java/CSDPlayer.jar
+examples/java/CsoundEditor.jar

@@ -56,7 +56,17 @@ class PUBLIC CppSound : public Csound, public CsoundFile
   size_t spoutSize;
   std::string renderedSoundfile;
 public:
-  CppSound();
+  CppSound() : Csound(),
+                       go(false),
+                       isCompiled(false),
+                       isPerforming(false),
+                       spoutSize(0)
+{
+
+  //SetHostData((CSOUND *)0);
+
+}
+
   virtual ~CppSound();
   virtual CSOUND *getCsound();
   virtual long getThis();

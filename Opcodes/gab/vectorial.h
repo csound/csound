@@ -168,7 +168,7 @@ typedef struct {
     MYFLT   *ifnOut, *ifnIn, *ifnDel, *ielements, *imaxd, *istod;
     AUXCH   aux;
     MYFLT   **buf, *outvec, *invec, *dlyvec;
-    int32   *left, maxd;
+    long    *left, maxd;
     int     elements;
 } VECDEL;
 

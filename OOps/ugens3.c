@@ -237,8 +237,8 @@ int losset(CSOUND *csound, LOSC *p)
       else {
         p->beg2 = (int32) (*p->ibeg2 * (MYFLT) (LOFACT));
         p->end2 = (int32) (*p->iend2 * (MYFLT) (LOFACT));
-        if (p->mod2 < 0 || p->mod2 > 3 ||
-            p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2) {
+        if (UNLIKELY(p->mod2 < 0 || p->mod2 > 3 ||
+                     p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2)) {
           goto lerr3;
         }
       }

@@ -234,7 +234,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (UNLIKELY(fname[0] == '\0'))
       return CSOUND_ERROR;
     /* load library */
-/* #if defined(LINUX) */
+/*  #if defined(LINUX) */
 /*       printf("About to open library '%s'\n", libraryPath); */
 /* #endif */
     err = csound->OpenLibrary(&h, libraryPath);
@@ -898,6 +898,7 @@ int csoundDestroyModules(CSOUND *csound)
 
     retval = CSOUND_SUCCESS;
     while (csound->csmodule_db != NULL) {
+     
       m = (csoundModule_t*) csound->csmodule_db;
       /* call destructor functions */
       if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
@@ -906,13 +907,14 @@ int csoundDestroyModules(CSOUND *csound)
           print_module_error(csound, Str("Error de-initialising module '%s'"),
                                      &(m->name[0]), m, i);
           retval = CSOUND_ERROR;
-        }
+        } 
       }
       /* unload library */
-      csoundCloseLibrary(m->h);
+      csoundCloseLibrary(m->h); 
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
       free((void*) m);
+  
     }
     /* return with error code */
     return retval;

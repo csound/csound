@@ -34,6 +34,7 @@ typedef struct {
   MYFLT  *ktime;
   PVSDAT *fin;
   MYFLT  *len;
+  MYFLT  pos;
   uint32 nframes;
   uint32 cframes;
   AUXCH handmem;
@@ -71,11 +72,12 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle->data = (float *)  p->buffer.auxp;
 
 
-    while((phandle = (FSIG_HANDLE **)csound->QueryGlobalVariable(csound,varname)) != NULL)
-        if(p->handle == *phandle) break;
-        else sprintf(varname, "::buffer%d", ++i);
+    while ((phandle = (FSIG_HANDLE **)csound->QueryGlobalVariable(csound,varname))
+          != NULL)
+      if (p->handle == *phandle) break;
+      else sprintf(varname, "::buffer%d", ++i);
 
-    if(phandle == NULL) {
+    if (phandle == NULL) {
      csound->CreateGlobalVariable(csound, varname, sizeof(FSIG_HANDLE *));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */
@@ -88,7 +90,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 
     p->lastframe = 0;
     p->cframes = 0;
-    *p->ktime = FL(0.0);
+    *p->ktime = p->pos = FL(0.0);
     return OK;
 }
 
@@ -100,15 +102,16 @@ static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
       int32 framesize = p->fin->N + 2, i;
       float *fout = (float *) p->buffer.auxp;
       fout += framesize*p->cframes;
-      for(i=0;i < framesize; i+=2) {
+      for (i=0;i < framesize; i+=2) {
         fout[i] = fin[i];
         fout[i+1] = fin[i+1];
       }
       p->handle->header.framecount = p->lastframe = p->fin->framecount;
+      p->pos = p->cframes/(csound->esr/p->fin->overlap);
       p->cframes++;
-      if(p->cframes == p->nframes)p->cframes = 0;
+      if (p->cframes == p->nframes)p->cframes = 0;
     }
-     *p->ktime = p->cframes/(csound->esr/p->fin->overlap);
+    *p->ktime = p->pos;
 
     return OK;
 }
@@ -165,7 +168,6 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     p->fout->sliding = 0;
     p->scnt = p->fout->overlap;
-    p->iclear = *p->clear;
     p->handle = handle;
     return OK;
 }
@@ -178,68 +180,141 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     MYFLT frac;
     float *fout, *buffer;
     int strt = *p->strt, end = *p->end, overlap, i, N;
+    p->iclear = *p->clear;
 
-   if(*p->hptr != p->optr){
+   if (*p->hptr != p->optr) {
+     char varname[32];
+     sprintf(varname, "::buffer%d", (int)(*p->hptr));
+     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
+     if (phandle == NULL)
+       csound->PerfError(csound, Str("error... could not read handle from global variable\n"));
+     else
+       handle = *phandle;
+   }
+
+   if (handle == NULL) goto err1;
+
+   fout = (float *) p->fout->frame.auxp,
+     buffer = handle->data;
+   N = p->fout->N;
+   overlap = p->fout->overlap;
+   
+   if (p->scnt >= overlap){
+     float *frame1, *frame2;
+     strt /= (sr/N);
+     end /= (sr/N);
+     strt = (int)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
+     end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
+     frames = handle->frames-1;
+     pos = *p->ktime*(sr/overlap);
+     
+     if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
+     while (pos >= frames) pos -= frames;
+     while (pos < 0) pos += frames;
+     posi = (int) pos;
+     if (N == handle->header.N &&
+         overlap == handle->header.overlap){
+       frame1 = buffer + (N + 2) * posi;
+       frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
+       frac = pos - posi;
+
+       for (i=strt; i < end; i+=2){
+         fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
+         fout[i+1] = frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
+       }
+     }
+     else
+       for (i=0; i < N+2; i+=2){
+         fout[i] = 0.0f;
+         fout[i+1] = 0.0f;
+       }
+     p->scnt -= overlap;
+     p->fout->framecount++;
+   }
+   p->scnt += csound->ksmps;
+
+   return OK;
+ err1:
+    return csound->PerfError(csound, Str("Invalid buffer handle"));
+  }
+
+
+static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
+{
+    unsigned int posi, frames;
+    MYFLT pos, sr = csound->esr;
+    FSIG_HANDLE *handle =  p->handle, **phandle;
+    MYFLT frac, *tab1, *tab2, *tab;
+    FUNC *ftab;
+    float *fout, *buffer;
+    int overlap, i, N;
+
+    if (*p->hptr != p->optr){
       char varname[32];
       sprintf(varname, "::buffer%d", (int)(*p->hptr));
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
-    if (phandle == NULL)
-      csound->PerfError(csound, Str("error... could not read handle from global variable\n"));
-    else
-      handle = *phandle;
-     }
+      if (phandle == NULL)
+        csound->PerfError(csound,
+                          Str("error... could not read handle from "
+                              "global variable\n"));
+      else
+        handle = *phandle;
+    }
 
-    if(handle == NULL) goto err1;
-
+    if (UNLIKELY(handle == NULL)) goto err1;
     fout = (float *) p->fout->frame.auxp,
     buffer = handle->data;
     N = p->fout->N;
     overlap = p->fout->overlap;
-
-    if(p->scnt >= overlap){
+   
+    
+    if (p->scnt >= overlap) {
       float *frame1, *frame2;
-      strt /= (sr/N);
-      end /= (sr/N);
-      strt = (int)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
-      end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
       frames = handle->frames-1;
-      pos = *p->ktime*(sr/overlap) - 1;
-
-       if(p->iclear) memset(fout, 0, sizeof(float)*(N+2));
-      while(pos >= frames) pos -= frames;
-      while(pos < 0) pos += frames;
-      posi = (int) pos;
-      if(N == handle->header.N &&
-         overlap == handle->header.overlap){
-        frame1 = buffer + (N + 2) * posi;
-        frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
-      frac = pos - posi;
-
-      for(i=strt; i < end; i+=2){
-        fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
-        fout[i+1] = frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
-        }
-      }
-      else
-       for(i=0; i < N+2; i+=2){
-        fout[i] = 0.0f;
-        fout[i+1] = 0.0f;
+      ftab = csound->FTFind(csound, p->strt);
+      if (ftab->flen < N/2+1) 
+        csound->PerfError(csound, "table length too small: needed %d, got %d\n",
+                          N/2+1, ftab->flen);
+      tab = tab1 = ftab->ftable;
+      ftab = csound->FTFind(csound, p->end);
+      if (ftab->flen < N/2+1) 
+         csound->PerfError(csound, "table length too small: needed %d, got %d\n",
+                                   N/2+1, ftab->flen);
+      tab2 = ftab->ftable;
+      for (i=0; i < N+2; i++){
+        pos = (*p->ktime - tab[i])*(sr/overlap);
+        while(pos >= frames) pos -= frames;
+        while(pos < 0) pos += frames;
+        posi = (int) pos;
+        if (N == handle->header.N &&
+           overlap == handle->header.overlap){
+           frame1 = buffer + (N + 2) * posi;
+           frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
+           frac = pos - posi;
+           fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
+        } else
+	  fout[i] = 0.0f;
+        if (tab == tab1) tab = tab2;
+	  else tab = tab1;
       }
       p->scnt -= overlap;
       p->fout->framecount++;
     }
     p->scnt += csound->ksmps;
-
     return OK;
  err1:
     return csound->PerfError(csound, Str("Invalid buffer handle"));
   }
 
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi", (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
-  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL}
+  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
+  {"pvsbufread2", S(PVSBUFFERREAD), 3, "f", "kkkk", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 
 LINKAGE

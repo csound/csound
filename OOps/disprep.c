@@ -637,7 +637,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
             sumsqr += *memp * *memp;
           } while (--terms);
           crossprods = sumraw * sumraw - sumsqr;
-          if(crossprods >= 0)
+          if (crossprods >= 0)
             RMScross = SQRT(crossprods / p->ncross);
           else
             RMScross = FL(0.0);

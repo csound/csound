@@ -21,6 +21,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+%pure_parser
+%parse-param {PARSE_PARM *parm}
+%parse-param {void *scanner}
+%lex-param { CSOUND * csound }
+%lex-param {yyscan_t *scanner}
+
 %token S_COM
 %token S_Q
 %token S_COL
@@ -113,6 +119,9 @@
 %token T_ELSEIF
 %token T_ELSE
 %token T_ENDIF
+%token T_UNTIL
+%token T_DO
+%token T_OD
 
 %token T_INTLIST
 
@@ -140,7 +149,6 @@
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE * astTree }
-%lex-param { CSOUND * csound }
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -157,6 +165,11 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
+#ifdef PARCS                    
+#include "cs_par_base.h"
+#include "cs_par_orc_semantics.h"
+#endif
+#include "parse_param.h"
 
     //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
@@ -165,9 +178,9 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex(TREE**, CSOUND *);
+ extern int csound_orclex(TREE**, CSOUND *, void *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
-extern void csound_orcerror(CSOUND *, TREE*, char*);
+extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
 %}
 %%
@@ -206,26 +219,43 @@ intlist   :  T_INTGR S_COM intlist
 instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
             intlist S_NL
-                { namedInstrFlag = 0; }
+                { namedInstrFlag = 0;
+#ifdef PARCS
+                  csp_orc_sa_instr_add_tree(csound, $3);
+#endif
+                }
             statementlist T_ENDIN S_NL
                 {
                     $$ = make_node(csound, T_INSTR, $3, $6);
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
 
           | T_INSTR
                 { namedInstrFlag = 1; }
             T_IDENT S_NL
-                { namedInstrFlag = 0; }
+                { namedInstrFlag = 0;
+#ifdef PARCS
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$3)->lexeme);
+#endif
+                }
             statementlist T_ENDIN S_NL
                 {
                     TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
                     $$ = make_node(csound, T_INSTR, ident, $6);
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
 
           | T_INSTR S_NL error
                 {
                     namedInstrFlag = 0;
                     csound->Message(csound, Str("No number following instr\n"));
+#ifdef PARCS
+                    csp_orc_sa_instr_finalize(csound);
+#endif
                 }
           ;
 
@@ -301,6 +331,11 @@ statement : ident S_ASSIGN expr S_NL
                        ans->left->value->lexeme, ans->right->value->lexeme); */
 
                     $$ = ans;
+#ifdef PARCS                    
+                    csp_orc_sa_global_read_write_add_list(csound, 
+                                                            csp_orc_sa_globals_find(csound, ans->left),
+                                                            csp_orc_sa_globals_find(csound, ans->right));    
+#endif              
                 }
           | ans opcode exprlist S_NL
                 {
@@ -309,6 +344,11 @@ statement : ident S_ASSIGN expr S_NL
                     $2->right = $3;
 
                     $$ = $2;
+#ifdef PARCS
+                    csp_orc_sa_global_read_write_add_list(csound, 
+                                                            csp_orc_sa_globals_find(csound, $2->left),
+                                                            csp_orc_sa_globals_find(csound, $2->right));
+#endif
                 }
           | opcode0 exprlist S_NL
                 {
@@ -316,6 +356,9 @@ statement : ident S_ASSIGN expr S_NL
                     ((TREE *)$1)->right = (TREE *)$2;
 
                     $$ = $1;
+#ifdef PARCS                    
+                    csp_orc_sa_global_read_add_list(csound, csp_orc_sa_globals_find(csound, $1->right));
+#endif
                 }
           | T_LABEL
                 {
@@ -334,6 +377,12 @@ statement : ident S_ASSIGN expr S_NL
                     $$ = make_node(csound, T_IF, $2, $3);
                 }
           | ifthen
+          | T_UNTIL expr T_DO statementlist T_OD
+              {
+                  $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)yylval);
+                  $$->left = $2;
+                  $$->right = $4;
+              }
           | S_NL { $$ = NULL; }
           ;
 
@@ -416,7 +465,6 @@ then      : T_THEN
           | T_ITHEN
             { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)yylval); }
           ;
-
 
 goto  : T_GOTO
             { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
@@ -603,3 +651,33 @@ opcode    : T_OPCODE    { $$ = make_leaf(csound, T_OPCODE, (ORCTOKEN *)yylval); 
           ;
 
 %%
+
+#ifdef SOME_FINE_DAY
+void
+yyerror(char *s, ...)
+{
+  va_list ap;
+  va_start(ap, s);
+
+  if(yylloc.first_line)
+    fprintf(stderr, "%d.%d-%d.%d: error: ", yylloc.first_line, yylloc.first_column,
+	    yylloc.last_line, yylloc.last_column);
+  vfprintf(stderr, s, ap);
+  fprintf(stderr, "\n");
+
+}
+
+void
+lyyerror(YYLTYPE t, char *s, ...)
+{
+  va_list ap;
+  va_start(ap, s);
+
+  if(t.first_line)
+    fprintf(stderr, "%d.%d-%d.%d: error: ", t.first_line, t.first_column,
+	    t.last_line, t.last_column);
+  vfprintf(stderr, s, ap);
+  fprintf(stderr, "\n");
+}
+
+#endif

@@ -1,5 +1,5 @@
 # vim: filetype=python expandtab sw=4 tabstop=4
-# Synched to SConstruct revision 1.710, except for the Sun changes in 1.769
+# Copied from SConstruct revision 1.646
 print '''
 C S O U N D 5
 
@@ -42,7 +42,7 @@ class Utility:
         elif sys.platform[:6] == 'darwin'   : self.platform = 'darwin'
         else                                : self.platform = 'unsupported'
         # library version is CS_VERSION.CS_APIVERSION
-        self.csoundLibraryVersion = '5.2'
+        self.csoundLibraryVersion = '5.1'
         self.csoundLibraryName = 'csound'
 
     def compilerIntel(self):
@@ -82,12 +82,8 @@ class Utility:
 
     def makePlugin(self, env, pluginName, srcs):
         pluginLib = env.SharedLibrary(pluginName, srcs)
+        pluginLibraries.append(pluginLib)
         self.MacOSX_InstallPlugin('lib' + pluginName + '.dylib')
-        plugindir = "csound/plugins"
-        if env['useDouble'] == '1':
-            plugindir += '64'
-        plugindir += '-%s' % self.csoundLibraryVersion
-        self.installLib(pluginLib, plugindir)
         return pluginLib
 
     def fixCFlagsForSwig(self, env):
@@ -115,9 +111,8 @@ class Utility:
              initialEnvironment['pythonVersion'] < '2.4':
                     Depends(pyModule_, pythonImportLibrary)
             print "PYTHON MODULE %s..." % targetName
-        modulesdir = 'lib/python%s/site-packages' % env['pythonVersion']
-        self.installFiles(pyModule_, modulesdir)
-        self.installFiles('%s.py' % targetName, modulesdir)
+        pythonModules.append(pyModule_)
+        pythonModules.append('%s.py' % targetName)
         return pyModule_
 
     def addOSXResourceFork(self, env, baseName, dirName):
@@ -146,7 +141,6 @@ class Utility:
         gtFile = 'po/' + baseName + '.po'
         ttFile = 'po/' + target + '/LC_MESSAGES/csound5.mo'
         env.Command(ttFile, gtFile, 'msgfmt -o %s %s' % (ttFile, gtFile))
-        self.installFiles(target, 'share/locale')
         return ttFile
     # Output stuff
     def confDecision(self, msg):
@@ -169,40 +163,23 @@ class Utility:
                 pythonLibraryPath   = ['/usr/local/lib', '/usr/lib', tmp]
             pythonLibs              = ['python%s' % env['pythonVersion']]
         elif util.platform == 'darwin':
-            # find Mac OS X major version
-            fout = os.popen("uname -r")
-            kernelstr = fout.readline()
-            fout.close()
-            OSXvers = int(kernelstr[:kernelstr.find('.')]) - 4
-            print "Mac OS X version 10.%d" % OSXvers
-            # dictionary mapping OS X version to Apple Python version
-            # ex. 4:3 maps OS X 10.4 to Python 2.3
-            # Note that OS X 10.2 did not ship with a Python framework
-            # and 10.0 and 10.1 shipped with no Python at all
-            OSXSystemPythonVersions = { 0:0, 1:0, 2:2, 3:3, 4:3, 5:5 }
-            sysPyVers = OSXSystemPythonVersions[OSXvers]
-            if OSXvers >= 2:
-                print "Apple Python version is 2.%d" % sysPyVers
-            # vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
-            vers = sys.version_info
-            pvers = "%s.%s" % (vers[0], vers[1])
-            # This logic is not quite right on OS X 10.2 and earlier
-            # or if the MacPython version equals the expected Apple Python version
-            if vers[1] == sysPyVers:
-                print "Current Python version is %s, using Apple Python Framework" % pvers
+            vers = (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255)
+            if vers[1] == 3:
+                print "Python version is 2.3, using Apple Python Framework"
                 pyBasePath = '/System/Library/Frameworks/Python.framework'
             else:
-                print "Current Python version is %s, using MacPython Framework" % pvers
-                pyBasePath = '/Library/Frameworks/Python.framework'
-            if commonEnvironment['pythonVersion'] != pvers:
-                commonEnvironment['pythonVersion'] = pvers
+                print "Python version is 2.%s, using MacPython Framework" % vers[1]
+                pyBasePath = '/Library/Frameworks/Python.Framework'
+            pvers = "2.%s" % vers[1]
+            if env['pythonVersion'] != pvers:
+                env['pythonVersion'] = pvers
                 print "WARNING python version used is " + pvers
-            pythonIncludePath = ['%s/Headers' % pyBasePath]
-            pythonLinkFlags = [ '-F' + pyBasePath, '-framework', 'python']
-            path1 = '%s/Versions/Current/lib' % pyBasePath
-            path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
-            pythonLibraryPath = [path1, path2]
-            pythonLibs = []
+            pythonIncludePath   = ['%s/Headers' % pyBasePath]
+            pythonLinkFlags     = [ '-F' + pyBasePath, '-framework', 'python']
+            path1               = '%s/Versions/Current/lib' % pyBasePath
+            path2 = '%s/python%s/config' % (path1, env['pythonVersion'])
+            pythonLibraryPath   = [path1, path2]
+            pythonLibs          = []
         elif util.platform == 'win32':
             pythonIncludePath   = []
             pythonLinkFlags     = []
@@ -222,39 +199,18 @@ class Utility:
         env.Append( LIBS = pythonLibs )
         return True
 
-    def installFiles(self, files, subdir):
-        # initialEnvironment is the first one to exist
-        if initialEnvironment['install'] == '1':
-            destdir = initialEnvironment['instdir']
-            destdir += "/%s/%s" % (initialEnvironment['prefix'], subdir)
-            destdir = destdir.replace("//", "/")
-            # most likely
-            if destdir[0] != '/':
-                destdir = '#' + destdir
-            Default(initialEnvironment.Install(destdir, files))
-
-    def installProgram(self, program):
-        self.installFiles(program, "bin")
-
-    def installLib(self, lib, subdir = None):
-        libdir = "lib"
-        if initialEnvironment['Lib64'] == '1':
-            libdir += "64"
-        if subdir:
-            libdir += "/" + subdir
-        self.installFiles(lib, libdir)
-
-    def installHeaders(self, headers):
-        self.installFiles(headers, "include/csound")
 
 util = Utility()
 
+pluginLibraries = []
+executables     = []
+libs            = []
+pythonModules   = []
 headers = Split('''
     H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csound.hpp H/csoundCore.h
     H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h H/pvfileio.h
     H/soundio.h H/sysdep.h H/text.h H/version.h
     interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h
-    interfaces/csPerfThread.hpp
 ''')
 
 #############################################################################
@@ -287,15 +243,18 @@ commandOptions.Add('usePortMIDI',
 commandOptions.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio and MIDI input and output.',
     '1')
-commandOptions.Add('usePulseAudio',
-    'Set to 1 to use PulseAudio for real-time audio and MIDI input and output.',
-    '0')
 commandOptions.Add('useJack',
     'Set to 1 if you compiled PortAudio to use Jack; also builds Jack plugin.',
     '1')
 commandOptions.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
+commandOptions.Add('buildCsoundVST',
+    'Set to 1 to build CsoundVST (needs CsoundAC, FLTK, boost, Python, SWIG).',
+    '0')
+commandOptions.Add('buildCsoundAC',
+    'Set to 1 to build CsoundAC (needs FLTK, boost, Python, SWIG).',
+    '0')
 commandOptions.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
@@ -335,9 +294,6 @@ commandOptions.Add('Word64',
 commandOptions.Add('Lib64',
     'Build for lib64 rather than lib',
     '0')
-commandOptions.Add('bufferoverflowu',
-    'Set to 1 to use the Windows buffer overflow library, required if you use MinGW to link with MSVC-built libraries',
-    '0')
 if util.platform == 'win32':
     commandOptions.Add('dynamicCsoundLibrary',
         'Set to 0 to build static Csound library instead of csound.dll',
@@ -373,6 +329,9 @@ commandOptions.Add('buildNewParser',
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
+commandOptions.Add('buildSDFT',
+    'Set to 0 to avoid building SDFT code',
+    '1')
 commandOptions.Add('useGettext',
     'Set to 1 to use the GNU internationalisation/localisation scheme',
     '0')
@@ -402,7 +361,7 @@ elif util.platform == 'win32':
     #Tool('mingw')(initialEnvironment)
     optionsFilename = 'custom-mingw.py'
 else:
-    initialEnvironment = Environment(ENV = os.environ)
+    initialEnvironment = Environment(ENV = {'PATH' : os.environ['PATH']})
     optionsFilename = 'custom.py'
 
 commandOptions.Update(initialEnvironment)
@@ -411,8 +370,6 @@ Help(commandOptions.GenerateHelpText(initialEnvironment))
 
 if initialEnvironment['custom']:
     optionsFilename = initialEnvironment['custom']
-
-util.installHeaders(headers)
 
 print "Using options from '%s.'" % optionsFilename
 
@@ -440,7 +397,6 @@ customSHLINKFLAGS   = initialEnvironment['customSHLINKFLAGS']
 initialEnvironment.Prepend(SHLINKFLAGS = customSHLINKFLAGS)
 customSWIGFLAGS     = initialEnvironment['customSWIGFLAGS']
 initialEnvironment.Prepend(SWIGFLAGS = customSWIGFLAGS)
-
 
 if initialEnvironment['useDouble'] != '0'   : util.csoundLibraryName += '64'
 elif util.platform == 'win32'               : util.csoundLibraryName += '32'
@@ -478,10 +434,8 @@ else:
     initialEnvironment.Prepend(CCFLAGS = ['-DNOGETTEXT'])
 
 if initialEnvironment['gcc3opt'] != '0' or initialEnvironment['gcc4opt'] != '0':
-    initialEnvironment.Prepend(CCFLAGS = ['-ffast-math'])
-    initialEnvironment.Append(CCFLAGS = ['-freorder-blocks'])
-    if initialEnvironment['useGprof'] != '1':
-        initialEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer'])
+    initialEnvironment.Prepend(CCFLAGS = Split(
+        '-fomit-frame-pointer -ffast-math'))
     if initialEnvironment['gcc4opt'] != '0':
         initialEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
         cpuType = initialEnvironment['gcc4opt']
@@ -504,9 +458,7 @@ if initialEnvironment['noDebug'] == '0':
 
 if initialEnvironment['useGprof'] == '1':
     initialEnvironment.Append(CCFLAGS = ['-pg'])
-    initialEnvironment.Append(CXXFLAGS = ['-pg'])
     initialEnvironment.Append(LINKFLAGS = ['-pg'])
-    initialEnvironment.Append(SHLINKFLAGS = ['-pg'])
 
 if util.compilerGNU():
     initialEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
@@ -529,6 +481,9 @@ if initialEnvironment['useDouble'] == '0':
 else:
     print 'CONFIGURATION DECISION: Using double-precision floating point for audio samples.'
     initialEnvironment.Append(CPPFLAGS = ['-DUSE_DOUBLE'])
+
+if initialEnvironment['buildSDFT'] == '1':
+    initialEnvironment.Prepend(CPPFLAGS = ['-DSDFT'])
 
 # Define different build environments for different types of targets.
 
@@ -557,7 +512,6 @@ elif util.platform == 'win32':
     initialEnvironment.Append(CXXFLAGS  = '-DWIN32')
     initialEnvironment.Append(CXXFLAGS  = '-DPIPES')
     initialEnvironment.Append(CXXFLAGS  = '-DOS_IS_WIN32')
-    initialEnvironment.Append(CXXFLAGS = '-DFL_DLL')
     if util.compilerGNU():
         initialEnvironment.Prepend(CCFLAGS  = "-Wall")
         initialEnvironment.Append(CPPPATH   = '/usr/local/include')
@@ -577,7 +531,6 @@ elif util.platform == 'win32':
         initialEnvironment.Append(CCFLAGS   =  '/MP')
         initialEnvironment.Append(CCFLAGS   =  '/GR')
         initialEnvironment.Append(CCFLAGS   =  '/G7')
-        initialEnvironment.Append(CCFLAGS =  '/D_SCL_SECURE_NO_DEPRECATE')
         initialEnvironment.Prepend(CCFLAGS  = Split('/Zi /D_NDEBUG /DNDEBUG'))
         initialEnvironment.Prepend(LINKFLAGS = Split('''/INCREMENTAL:NO /OPT:REF /OPT:ICF /DEBUG'''))
         initialEnvironment.Prepend(SHLINKFLAGS = Split(
@@ -632,12 +585,6 @@ elif util.platform == 'win32':
     tclIncludePath      = []
     pythonLibs          = ['python%s' %
         initialEnvironment['pythonVersion'].replace('.', '')]
-else:
-    pythonIncludePath   = []
-    pythonLinkFlags     = []
-    pythonLibraryPath   = []
-    tclIncludePath      = []
-    pythonLibs          = []
 
 # Check for prerequisites.
 # We check only for headers; checking for libs may fail
@@ -701,20 +648,62 @@ if not configure.CheckHeader("stdio.h", language = "C"):
 if not configure.CheckLibWithHeader("sndfile", "sndfile.h", language = "C"):
     print "The sndfile library is required to build Csound 5."
     Exit(-1)
-if not configure.CheckLibWithHeader("pthread", "pthread.h", language = "C"):
-    print "The pthread library is required to build Csound 5."
-    Exit(-1)
-if configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);'):
-    initialEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
-if not util.compilerMicrosoft():
-    if configure.CheckLibWithHeader('m', 
-     'stdint.h', 'C', '__sync_lock_test_and_set((int32_t *)0, 0);',
-      autoadd = False):
-        initialEnvironment.Append(CPPFLAGS = ['-DHAVE_SYNC_LOCK_TEST_AND_SET'])
+vstHeader   = "frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
+vstSdkFound = configure.CheckHeader(vstHeader, language = "C++")
+portaudioFound = configure.CheckLibWithHeader(
+        "portaudio","portaudio.h", language = "C")
+portmidiFound = configure.CheckLibWithHeader(
+        "portmidi", "portmidi.h", language = "C")
+fltkFound = configure.CheckLibWithHeader(
+        "fltk", "FL/Fl.H", language = "C++")
+boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
+alsaFound  = configure.CheckLibWithHeader(
+    "asound", "alsa/asoundlib.h", language = "C")
+oscFound   = configure.CheckLibWithHeader("lo", "lo/lo.h", language = "C")
+jackFound   = configure.CheckLibWithHeader(
+        "jack", "jack/jack.h", language = "C")
+stkFound        = configure.CheckHeader(
+    "Opcodes/stk/include/Stk.h", language = "C++")
+midiPluginSdkFound  = configure.CheckHeader("funknown.h", language = "C++")
+
+swigFound = 'swig' in initialEnvironment['TOOLS']
+print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
+
+pythonFound = configure.CheckHeader("Python.h", language = "C")
+if not pythonFound:
+    for i in pythonIncludePath:
+        pythonFound = pythonFound or configure.CheckHeader(
+            '%s/Python.h' % i, language = "C")
+
+if util.platform == 'darwin':
+    javaFound   = configure.CheckHeader(
+        "/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h",
+        language = "C++")
+else:
+    javaFound   = configure.CheckHeader("jni.h", language = "C++")
+if util.platform == 'linux' and not javaFound:
+    if initialEnvironment['buildInterfaces'] != '0':
+        if initialEnvironment['buildJavaWrapper'] != '0':
+            baseDir = '/usr/lib'
+            if initialEnvironment['Lib64'] == '1':
+                baseDir += '64'
+            for i in ['java', 'jvm/java', 'jvm/java-1.5.0']:
+                javaIncludePath = '%s/%s/include' % (baseDir, i)
+                tmp = '%s/linux/jni_md.h' % javaIncludePath
+                if configure.CheckHeader(tmp, language = "C++"):
+                    javaFound = 1
+                    break
+    if javaFound:
+        initialEnvironment.Append(CPPPATH = [javaIncludePath])
+        initialEnvironment.Append(CPPPATH = [javaIncludePath + '/linux'])
 
 if util.platform == 'win32':
     initialEnvironment['ENV']['PATH']   = os.environ['PATH']
     initialEnvironment['SYSTEMROOT']    = os.environ['SYSTEMROOT']
+
+if vstSdkFound:
+    initialEnvironment.Prepend(CPPFLAGS = ['-DHAVE_VST_SDK'])
+
 
 # Define macros that configure and config.h used to define.
 headerMacroCheck = [
@@ -820,21 +809,22 @@ if util.platform == 'win32':
             ws2_32      wsock32     advapi32    comctl32    comdlg32
             glu32       kernel32    odbc32      odbccp32    ole32
             oleaut32    shell32     user32      uuid        winmm
-            winspool    ws2_32      wsock32     pthread
+            winspool    ws2_32      wsock32
         ''')
+       	if initialEnvironment['useBufferOverflowLibrary'] != '0':
+           csoundWindowsLibraries.append('bufferoverflowu')       	  
+           csoundWindowsLibraries.append('winmm')       	  
     else:
         csoundWindowsLibraries = Split('''
             kernel32        gdi32           wsock32         ole32
             uuid            winmm           user32.lib      ws2_32.lib
             comctl32.lib    gdi32.lib       comdlg32.lib    advapi32.lib
             shell32.lib     ole32.lib       oleaut32.lib    uuid.lib
-            odbc32.lib      odbccp32.lib    kernel32.lib
+            odbc32.lib      odbccp32.lib    bufferoverflowu kernel32.lib
             user32.lib      gdi32.lib       winspool.lib    comdlg32.lib
             advapi32.lib    shell32.lib     ole32.lib       oleaut32.lib
-            uuid.lib        odbc32.lib      odbccp32.lib    pthread.lib
+            uuid.lib        odbc32.lib      odbccp32.lib    bufferoverflowu
         ''')
-    if commonEnvironment['bufferoverflowu'] != '0':
-        csoundWindowsLibraries.append('bufferoverflowu')
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     if util.compilerGNU():
         csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
@@ -982,10 +972,9 @@ else:
     csoundLibrary = csoundLibraryEnvironment.Library(
         util.csoundLibraryName, libCsoundSources)
 
-libCsoundLibs.append(util.csoundLibraryName)
-
-util.installLib(csoundLibrary)
-
+if not util.platform == 'win32' : libCsoundLibs.append(csoundLibrary)
+else                            : libCsoundLibs.append(util.csoundLibraryName)
+libs.append(csoundLibrary)
 # Make everything link (correctly) against libcsound, even if not needed.
 # FIXME: when linking statically this may lead to larger than normal binaries.
 # Stripping should help (?). It appears that at least gcc doesn't link
@@ -1023,15 +1012,39 @@ else:
 # FLTK widgets
 
 csoundProgramEnvironment    = commonEnvironment.Clone()
+vstEnvironment              = commonEnvironment.Clone()
+vstEnvironment.Append(CXXFLAGS = '-DVST_FORCE_DEPRECATED=0')
+guiProgramEnvironment       = commonEnvironment.Clone()
 
-
+fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
+if util.platform != 'darwin':
+    fltkConfigFlags += ' --ldflags'
+try:
+    if vstEnvironment.ParseConfig(fltkConfigFlags):
+        print 'Parsed fltk-config.'
+    else:
+        print 'Could not parse fltk-config.'
+except:
+    print 'Exception when attempting to parse fltk-config.'
+if util.platform == 'darwin':
+    # fltk_png z fltk_jpeg are not on OSX at the mo
+    vstEnvironment.Append(LIBS = Split('fltk fltk_images'))
 if util.platform == 'win32':
-    if not util.compilerGNU():
+    if util.compilerGNU():
+        vstEnvironment.Append(          LINKFLAGS   = "--subsystem:windows")
+        guiProgramEnvironment.Append(   LINKFLAGS   = "--subsystem:windows")
+        vstEnvironment.Append(          LIBS        = ['stdc++', 'supc++'])
+        guiProgramEnvironment.Append(   LIBS        = ['stdc++', 'supc++'])
+    else:
         csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
 else:
     if util.platform == 'linux':
         csoundProgramEnvironment.Append(LIBS = ['dl'])
+        vstEnvironment.Append(          LIBS = ['dl'])
+        guiProgramEnvironment.Append(   LIBS = ['dl'])
     csoundProgramEnvironment.Append(    LIBS = ['pthread', 'm'])
+    vstEnvironment.Append(              LIBS = ['stdc++', 'pthread', 'm'])
+    guiProgramEnvironment.Append(       LIBS = ['stdc++', 'pthread', 'm'])
     if util.platform == 'darwin':
         csoundProgramEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
@@ -1041,75 +1054,197 @@ pluginEnvironment = commonEnvironment.Clone()
 # REAL TIME AUDIO AND MIDI
 
 if commonEnvironment['useCoreAudio'] == '1' and util.platform == 'darwin':
-    util.confDecision("Building CoreAudio plugin.")
+    print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Clone()
     coreaudioEnvironment.Append(
         CCFLAGS = '-I/system/library/Frameworks/CoreAudio.framework/Headers')
     util.makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
 else:
-    util.confDecision("Not building CoreAudio plugin.")
+    print "CONFIGURATION DECISION: Not building CoreAudio plugin."
 
-if commonEnvironment['useALSA'] == '1':
-    if not configure.CheckLibWithHeader("asound", "alsa/asoundlib.h",
-      language = "C", autoadd = False):
-        util.fatal("You specified useALSA but asound was not found")
-    util.confDecision("Building ALSA plugin.")
+if not (commonEnvironment['useALSA'] == '1' and alsaFound):
+    print "CONFIGURATION DECISION: Not building ALSA plugin."
+else:
+    print "CONFIGURATION DECISION: Building ALSA plugin."
     alsaEnvironment = pluginEnvironment.Clone()
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     util.makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
-else:
-    util.confDecision("Building ALSA plugin")
-
-if commonEnvironment['usePulseAudio'] == '1':
-    if not configure.CheckHeader("pulse/simple.h", language = "C"):
-        util.fatal("You specified usePulseAudio but PulseAudio was not found")
-    util.confDecision("Building PulseAudio plugin")
-    pulseaudioEnv = pluginEnvironment.Clone()
-    pulseaudioEnv.Append(LIBS = ['pulse-simple'])
-    makePlugin(pulseaudioEnv, 'rtpulse', ['InOut/rtpulse.c'])
 
 if util.platform == 'win32':
     winmmEnvironment = pluginEnvironment.Clone()
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
     util.makePlugin(winmmEnvironment, 'rtwinmm', ['InOut/rtwinmm.c'])
 
-if commonEnvironment['usePortAudio'] == '1':
-    if not configure.CheckLibWithHeader("portaudio","portaudio.h", language = "C",
-      autoadd = False):
-        util.fatal("You specified usePortAudio but PortAudio was not found")
+if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
+    print "CONFIGURATION DECISION: Not building PortAudio module."
+else:
+    print "CONFIGURATION DECISION: Building PortAudio module."
     portaudioEnvironment = pluginEnvironment.Clone()
-    portaudioEnvironment.Append(LIBS = ['portaudio'])
     if util.platform == 'win32':
+       portaudioEnvironment.Append(LIBS = ['portaudio'])
+    else:
+       portaudioEnvironment.Append(LIBS = ['portaudio'])
+    if (util.platform == 'linux'):
+        if (commonEnvironment['useJack']=='1' and jackFound):
+            print "Adding Jack library for PortAudio"
+            portaudioEnvironment.Append(LIBS = ['jack'])
+        portaudioEnvironment.Append(LIBS = ['pthread'])
+        if alsaFound:
+            portaudioEnvironment.Append(LIBS = ['asound'])
+    elif util.platform == 'win32':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
     util.makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
 
-
-if commonEnvironment['useJack'] == '1':
-    if not configure.CheckHeader("jack/jack.h", language = "C"):
-        util.fatal("You specified useJack but JACK was not found")
-    util.confDecision("Building JACK plugin.")
+if not (commonEnvironment['useJack'] == '1' and jackFound):
+    print "CONFIGURATION DECISION: Not building JACK plugin."
+else:
+    print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Clone()
-    if util.platform == 'win32':
+    if util.platform == 'linux':
+        jackEnvironment.Append(LIBS = ['jack', 'pthread'])
+        if alsaFound and portaudioFound:
+            portaudioEnvironment.Append(LIBS = ['asound'])
+    elif util.platform == 'win32':
         jackEnvironment.Append(LIBS = ['jackdmp', 'pthread'])
     else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     util.makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
-else:
-    util.confDecision("Not building JACK plugin.")
 
-if commonEnvironment['usePortMIDI'] == '1':
-    if not configure.CheckLibWithHeader("portmidi", "portmidi.h",
-     language = "C", autoadd = False):
-        util.fatal("You specified usePortMIDI but PortMIDI was not found")
-    util.confDecision('Building with PortMIDI.')
+if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
+    print 'CONFIGURATION DECISION: Building with PortMIDI.'
     portMidiEnvironment = pluginEnvironment.Clone()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
     if util.platform != 'darwin':
         portMidiEnvironment.Append(LIBS = ['porttime'])
+    if util.platform == 'linux' and alsaFound:
+        portMidiEnvironment.Append(LIBS = ['asound'])
+    if util.platform == 'win32' and initialEnvironment['useBufferOverflowLibrary'] != '0':
+        portMidiEnvironment.Append(LIBS = ['bufferoverflowu', 'winmm'])
     util.makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
-    util.confDecision('Not building with PortMIDI.')
+    print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
+#util.makePlugin(pluginEnvironment, 'asciimidi',
+#                   ['InOut/ascii_midi_driver/ascii_midi_driver.cpp'])
+
+
+# VST HOST OPCODES
+if (commonEnvironment['buildvst4cs'] != '1'):
+    print "CONFIGURATION DECISION: Not building vst4cs opcodes."
+else:
+    print "CONFIGURATION DECISION: Building vst4cs opcodes."
+    if (util.platform == 'win32'or util.platform == 'linux') and fltkFound:
+        vst4Environment = vstEnvironment.Clone()
+        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
+        vst4Environment.Append(CPPPATH  = ['frontends/CsoundVST'])
+        if util.compilerGNU():
+            vst4Environment.Append(LIBS = Split(
+                'fltk_images fltk_png fltk_z fltk_jpeg fltk'))
+            vst4Environment.Append(LIBS = ['stdc++'])
+        else:
+            vst4Environment.Append(LIBS = Split(
+                'fltkimages fltkpng fltkz fltkjpeg fltk'))
+        util.makePlugin(vst4Environment, 'vst4cs', Split('''
+                        Opcodes/vst4cs/src/vst4cs.cpp
+                        Opcodes/vst4cs/src/fxbank.cpp
+                        Opcodes/vst4cs/src/vsthost.cpp
+                        '''))
+    elif util.platform == 'darwin' and fltkFound:
+        vst4Environment = vstEnvironment.Clone()
+        vst4Environment.Append(LIBS = ['fltk'])
+        vst4Environment.Append(LIBS = ['stdc++'])
+        vst4Environment.Append(LINKFLAGS =
+            ['-framework', 'carbon', '-framework', 'ApplicationServices'])
+        vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+        vst4Environment.Append(CPPFLAGS = ['-DCS_VSTHOST'])
+        util.makePlugin(vst4Environment, 'vst4cs', Split('''
+            Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
+            Opcodes/vst4cs/src/vsthost.cpp
+        '''))
+
+
+# STK opcodes
+
+if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
+    print 'CONFIGURATION DECISION: Not building STK opcodes.'
+else:
+    print 'CONFIGURATION DECISION: Building STK opcodes.'
+    # For the STK opcodes, the STK distribution include, src, and rawwaves
+    # directories should be copied thusly:
+    #   csound5/Opcodes/stk/include
+    #   csound5/Opcodes/stk/src
+    #   csound5/Opcodes/stk/rawwaves
+    # Then, the following sources (and any other future I/O or OS dependent
+    # sources) should be ignored:
+    removeSources = Split('''
+        Opcodes/stk/src/InetWvIn.cpp    Opcodes/stk/src/InetWvOut.cpp
+        Opcodes/stk/src/Mutex.cpp       Opcodes/stk/src/RtAudio.cpp
+        Opcodes/stk/src/RtMidi.cpp
+        Opcodes/stk/src/RtWvIn.cpp      Opcodes/stk/src/RtWvOut.cpp
+        Opcodes/stk/src/Socket.cpp      Opcodes/stk/src/TcpClient.cpp
+        Opcodes/stk/src/TcpServer.cpp   Opcodes/stk/src/Thread.cpp
+        Opcodes/stk/src/UdpSocket.cpp
+    ''')
+    stkEnvironment = pluginEnvironment.Clone()
+    if util.platform == 'win32':
+        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__')
+    elif util.platform == 'linux':
+        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__')
+    elif util.platform == 'darwin':
+        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__')
+    if sys.byteorder == 'big':
+        stkEnvironment.Append(CCFLAGS = '-D__BIG_ENDIAN__')
+    else:
+        stkEnvironment.Append(CCFLAGS = '-D__LITTLE_ENDIAN__')
+    stkEnvironment.Prepend(CPPPATH = Split(
+        'Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
+    stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
+    stkSources = []
+    for source in stkSources_:
+        stkSources.append(source.replace('\\', '/'))
+    for removeMe in removeSources:
+        stkSources.remove(removeMe)
+    stkLibrarySources = []
+    for i in stkSources:
+        stkLibrarySources += stkEnvironment.SharedObject(i)
+    stkLibrary = stkEnvironment.StaticLibrary('stk_base', stkLibrarySources)
+    stkEnvironment.Prepend(LIBS = ['stk_base'])
+    if util.compilerGNU():
+        stkEnvironment.Append(LIBS = ['stdc++'])
+    elif util.platform == 'linux' or util.platform == 'darwin':
+        stkEnvironment.Append(LIBS = ['pthread'])
+    # This is the one that actually defines the opcodes.
+    # They are straight wrappers, as simple as possible.
+    stk = util.makePlugin(stkEnvironment, 'stk', ['Opcodes/stk/stkOpcodes.cpp'])
+    Depends(stk, stkLibrary)
+
+# Python opcodes
+
+if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
+    print "CONFIGURATION DECISION: Not building Python opcodes."
+else:
+    print "CONFIGURATION DECISION: Building Python opcodes."
+    pyEnvironment = pluginEnvironment.Clone()
+    if util.platform != 'darwin':
+       pyEnvironment.Append(CPPPATH = pythonIncludePath)
+       pyEnvironment.Append(LIBPATH = pythonLibraryPath)
+    else:
+       pyEnvironment.Append(
+            CPPPATH = "/System/Library/Frameworks/Python.framework/Headers")
+
+    pyEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    pyEnvironment.Append(LIBS = pythonLibs)
+    if util.platform == 'linux':
+        pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+    elif util.platform == 'darwin':
+        pyEnvironment.Append(LIBS = ['dl', 'm'])
+    elif util.platform == 'win32':
+        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    pythonOpcodes = util.makePlugin(
+        pyEnvironment, 'py', ['Opcodes/py/pythonopcodes.c'])
+    if util.platform == 'win32' and pythonLibs[0] < 'python24':
+        Depends(pythonOpcodes, pythonImportLibrary)
 
 #############################################################################
 #
@@ -1150,27 +1285,201 @@ if (commonEnvironment['buildUtilities'] != '0'):
         ['sndinfo',     'util/sndinfo_main.c' ],
         ['srconv',      'util/srconv_main.c'  ]]
     for i in utils:
-        util.installProgram(csoundProgramEnvironment.Program(i[0], i[1]))
-
-util.installProgram(csoundProgramEnvironment.Program(
-        'scsort',['util1/sortex/smain.c']))
-util.installProgram(csoundProgramEnvironment.Program(
-        'extract', ['util1/sortex/xmain.c']))
+      executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
+executables.append(csoundProgramEnvironment.Program(
+    'scsort',['util1/sortex/smain.c']))
+executables.append(csoundProgramEnvironment.Program(
+    'extract', ['util1/sortex/xmain.c']))
 if util.compilerGNU():
-        util.installProgram(commonEnvironment.Program(
-            'cs', ['util1/csd_util/cs.c']))
-        util.installProgram(commonEnvironment.Program(
-            'csb64enc',
-                ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
-        util.installProgram(commonEnvironment.Program(
-            'makecsd',
-                ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
-        util.installProgram(commonEnvironment.Program(
-            'scot', ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
+    executables.append(commonEnvironment.Program(
+        'cs', ['util1/csd_util/cs.c']))
+    executables.append(commonEnvironment.Program(
+        'csb64enc',
+        ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
+    executables.append(commonEnvironment.Program(
+        'makecsd',
+        ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
+    executables.append(commonEnvironment.Program(
+        'scot', ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
-util.installProgram(commonEnvironment.Program(
-        'sdif2ad', ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
+executables.append(commonEnvironment.Program(
+    'sdif2ad', ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
+
+for i in executables : Depends(i, csoundLibrary)
+
+#############################################################################
+#
+# Front ends.
+#############################################################################
+
+
+# Build CsoundAC
+
+if not ((commonEnvironment['buildCsoundAC'] == '1') and fltkFound and boostFound and fltkFound):
+    print 'CONFIGURATION DECISION: Not building CsoundAC extension module for Csound with algorithmic composition.'
+else:
+    print 'CONFIGURATION DECISION: Building CsoundAC extension module for Csound with algorithmic composition.'
+    acEnvironment = vstEnvironment.Clone()
+    headers += glob.glob('frontends/CsoundAC/*.hpp')
+    acEnvironment.Prepend(CPPPATH   = ['frontends/CsoundAC', 'interfaces'])
+    acEnvironment.Append(CPPPATH    = pythonIncludePath)
+    acEnvironment.Append(LINKFLAGS  = pythonLinkFlags)
+    acEnvironment.Append(LIBPATH    = pythonLibraryPath)
+    if util.platform != 'darwin': acEnvironment.Prepend(LIBS  = pythonLibs)
+    acEnvironment.Prepend(LIBS      = csndModule)
+    acEnvironment.Append(SWIGFLAGS  = Split(
+        '-c++ -includeall -verbose -outdir .'))
+    if util.platform == 'linux':
+        acEnvironment.Append(LIBS               = ['util', 'dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS        = '--no-export-all-symbols')
+        acEnvironment.Append(LINKFLAGS          = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        try     : os.symlink('lib_CsoundAC.so', '_CsoundAC.so')
+        except  : pass
+        Clean('lib_CsoundAC.so', '_CsoundAC.so')
+    elif util.platform == 'darwin':
+        acEnvironment.Append(LIBS = ['dl', 'm'])
+        acEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        acEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        acEnvironment['SHLIBSUFFIX'] = '.dylib'
+    elif util.platform == 'win32':
+        if  util.compilerGNU():
+            acEnvironment.Prepend(LIBS = Split(
+                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+        else:
+            acEnvironment.Prepend(LIBS = Split(
+                'fltk fltkimages fltkpng fltkjpeg fltkz'))
+    for option in acEnvironment['CCFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            acEnvironment.Append(SWIGFLAGS = [option])
+    for option in acEnvironment['CPPPATH']:
+        option = '-I' + option
+        acEnvironment.Append(SWIGFLAGS = [option])
+    print 'PATH =', commonEnvironment['ENV']['PATH']
+    csoundAcSources = Split('''
+    frontends/CsoundAC/Cell.cpp             frontends/CsoundAC/Composition.cpp
+    frontends/CsoundAC/Conversions.cpp      frontends/CsoundAC/Counterpoint.cpp
+    frontends/CsoundAC/CounterpointNode.cpp frontends/CsoundAC/Event.cpp
+    frontends/CsoundAC/Hocket.cpp           frontends/CsoundAC/ImageToScore.cpp
+    frontends/CsoundAC/Lindenmayer.cpp      frontends/CsoundAC/MCRM.cpp
+    frontends/CsoundAC/Midifile.cpp         frontends/CsoundAC/MusicModel.cpp
+    frontends/CsoundAC/Node.cpp             frontends/CsoundAC/Random.cpp
+    frontends/CsoundAC/Rescale.cpp          frontends/CsoundAC/Score.cpp
+    frontends/CsoundAC/ScoreNode.cpp        frontends/CsoundAC/Sequence.cpp
+    frontends/CsoundAC/Shell.cpp            frontends/CsoundAC/Soundfile.cpp
+    frontends/CsoundAC/StrangeAttractor.cpp frontends/CsoundAC/System.cpp
+    frontends/CsoundAC/Voicelead.cpp        frontends/CsoundAC/VoiceleadingNode.cpp
+    ''')
+    swigflags = acEnvironment['SWIGFLAGS']
+    acWrapperEnvironment = acEnvironment.Clone()
+    util.fixCFlagsForSwig(acWrapperEnvironment)
+    if commonEnvironment['dynamicCsoundLibrary'] == '1':
+        csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
+    else:
+        csoundac = acEnvironment.Library('CsoundAC', csoundAcSources)
+    libs.append(csoundac)
+    Depends(csoundac, csoundInterfaces)
+    Depends(csoundac, csoundLibrary)
+    csoundAcPythonWrapper = acWrapperEnvironment.SharedObject(
+        'frontends/CsoundAC/CsoundAC.i', SWIGFLAGS = [swigflags, '-python'])
+    acWrapperEnvironment.Clean('.', 'frontends/CsoundAC/CsoundAC_wrap.h')
+    if util.platform == 'darwin':
+        acPythonEnvironment  = acEnvironment.Clone()
+        acPythonEnvironment.Prepend(LIBS = ['CsoundAC'])
+        csoundAcPythonModule = util.makePythonModule(acPythonEnvironment, 'CsoundAC',
+                                                csoundAcPythonWrapper)
+    else:
+        acPythonEnvironment = acEnvironment.Clone()
+        acPythonEnvironment.Append(LINKFLAGS    = pythonLinkFlags)
+        acPythonEnvironment.Prepend(LIBPATH     = pythonLibraryPath)
+        acPythonEnvironment.Prepend(LIBS        = pythonLibs)
+        acPythonEnvironment.Append(CPPPATH      = pythonIncludePath)
+        acPythonEnvironment.Prepend(LIBS        = ['CsoundAC'])
+        csoundAcPythonModule = util.makePythonModule(
+            acPythonEnvironment, 'CsoundAC', [csoundAcPythonWrapper])
+        if util.platform == 'win32' and pythonLibs[0] < 'python24' and util.compilerGNU():
+            Depends(csoundvstPythonModule, pythonImportLibrary)
+        pythonModules.append('CsoundAC.py')
+    if commonEnvironment['useDouble'] != '0' :
+        counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound64'))
+    else:
+        counterpoint = acEnvironment.Program(
+            'counterpoint', ['frontends/CsoundAC/CounterpointMain.cpp'],
+            LIBS = Split('CsoundAC csnd csound32'))
+
+# Build CsoundVST
+
+if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
+    print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
+else:
+    print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
+    headers += glob.glob('frontends/CsoundVST/*.h')
+    headers += glob.glob('frontends/CsoundVST/*.hpp')
+    vstEnvironment.Prepend(CPPPATH = ['interfaces', 'frontends/CsoundVST'])
+    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    vstEnvironment.Prepend(LIBS = ['csnd'])
+    if util.platform == 'linux':
+        vstEnvironment.Append(LIBS              = ['util', 'dl', 'm'])
+        vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
+        vstEnvironment.Append(LINKFLAGS         = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+    elif util.platform == 'darwin':
+        vstEnvironment.Append(LIBS              = ['dl', 'm'])
+        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
+        vstEnvironment.Append(SHLINKFLAGS       = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS       = '--add-stdcall-alias')
+        vstEnvironment['SHLIBSUFFIX']           = '.dylib'
+    elif util.platform == 'win32':
+        if util.compilerGNU():
+            vstEnvironment['ENV']['PATH']       = os.environ['PATH']
+            vstEnvironment.Append(SHLINKFLAGS   = Split('-Wl,--add-stdcall-alias --no-export-all-symbols'))
+            vstEnvironment.Append(CCFLAGS       = ['-DNDEBUG'])
+            guiProgramEnvironment.Prepend(LINKFLAGS = Split(
+                '-mwindows -Wl,--enable-runtime-pseudo-reloc'))
+            vstEnvironment.Prepend(LINKFLAGS =
+                ['-Wl,--enable-runtime-pseudo-reloc'])
+            guiProgramEnvironment.Append(LINKFLAGS  = '-mwindows')
+            vstEnvironment.Append(LIBS              = Split(
+                'fltk fltk_images fltk_png fltk_jpeg fltk_z'))
+        else:
+            vstEnvironment.Append(LIBS = Split(
+                'csound64 csnd fltk fltkimages fltkpng fltkjpeg fltkz'))
+    print 'PATH =', commonEnvironment['ENV']['PATH']
+    csoundVstSources = Split('''
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp
+    frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/vstplugmain.cpp
+    frontends/CsoundVST/CsoundVST.cpp       
+    frontends/CsoundVST/CsoundVstFltk.cpp
+    frontends/CsoundVST/CsoundVSTMain.cpp   
+    frontends/CsoundVST/CsoundVstUi.cpp
+    ''')
+    if util.platform == 'win32':
+        if util.compilerGNU():
+           vstEnvironment.Append(SHLINKFLAGS = ['-module'])
+           vstEnvironment['ENV']['PATH'] = os.environ['PATH']
+        csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
+    csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources)
+    libs.append(csoundvst)
+    Depends(csoundvst, csoundInterfaces)
+    Depends(csoundvst, csoundLibrary)
+    if commonEnvironment['useDouble'] != '0':
+        csoundvstGui = guiProgramEnvironment.Program(
+            'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
+            LIBS = Split('csound64 csnd CsoundVST'))
+    else:
+        csoundvstGui = guiProgramEnvironment.Program(
+            'CsoundVSTShell', ['frontends/CsoundVST/csoundvst_main.cpp'],
+            LIBS = Split('csound32 csnd CsoundVST'))
+    executables.append(csoundvstGui)
+    Depends(csoundvstGui, csoundvst)
+
 
 if (commonEnvironment['generateTags']=='0') or (util.platform != 'darwin' and util.platform != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
@@ -1193,9 +1502,49 @@ if commonEnvironment['useGettext'] == '1':
     util.gettextTarget(csound5GettextEnvironment, 'es_CO', 'es_CO')
     ##  The following are incomplete
     util.gettextTarget(csound5GettextEnvironment, 'german', 'de')
-    util.gettextTarget(csound5GettextEnvironment, 'italian', 'it')
+    ## italian is not in the repository (VL 28-01-08), will not build
+    #gettextTarget(csound5GettextEnvironment, 'italian', 'it')
     util.gettextTarget(csound5GettextEnvironment, 'romanian', 'ro')
-    util.gettextTarget(csound5GettextEnvironment, 'russian', 'ru')
+
+# INSTALL OPTIONS
+
+INSTDIR = commonEnvironment['instdir']
+PREFIX = INSTDIR + commonEnvironment['prefix']
+
+BIN_DIR = PREFIX + "/bin"
+INCLUDE_DIR = PREFIX + "/include/csound"
+
+if (commonEnvironment['Lib64'] == '1'):
+    LIB_DIR = PREFIX + "/lib64"
+    PYTHON_DIR = '%s/lib64' % sys.prefix
+else:
+    LIB_DIR = PREFIX + "/lib"
+    PYTHON_DIR = '%s/lib' % sys.prefix
+
+PYTHON_DIR += '/python%s/site-packages' % commonEnvironment['pythonVersion']
+
+for i in sys.path:
+    if i[:sys.prefix.__len__()] == sys.prefix and i[-13:] == 'site-packages':
+        PYTHON_DIR = i
+
+if commonEnvironment['useDouble'] == '0':
+    PLUGIN_DIR = LIB_DIR + "/csound/plugins"
+else:
+    PLUGIN_DIR = LIB_DIR + "/csound/plugins64"
+
+if commonEnvironment['install'] == '1':
+    installExecutables = Alias('install-executables',
+        Install(BIN_DIR, executables))
+    installOpcodes = Alias('install-opcodes',
+        Install(PLUGIN_DIR, pluginLibraries))
+    installHeaders = Alias('install-headers',
+        Install(INCLUDE_DIR, headers))
+    installLibs = Alias('install-libs',
+        Install(LIB_DIR, libs))
+    installPythonModules = Alias('install-py',
+        Install(PYTHON_DIR, pythonModules))
+    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installPythonModules])
+
 
 ###Code to create pkconfig files
 #env = Environment(tools=['default', 'scanreplace'], toolpath=['tools'])
@@ -1204,11 +1553,10 @@ if commonEnvironment['useGettext'] == '1':
 
 Export( "commonEnvironment", "commandOptions", "util" )
 Export( "configure" )
-# Interfaces must be before frontends
-SConscript('interfaces/SConscript')
 SConscript('frontends/SConscript')
 SConscript('Opcodes/SConscript')
 SConscript('InOut/SConscript')
+SConscript('interfaces/SConscript')
 
 
 if util.platform == 'darwin' and commonEnvironment['useFLTK'] == '1':

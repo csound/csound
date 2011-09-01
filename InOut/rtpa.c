@@ -30,7 +30,7 @@
 #endif
 #include <portaudio.h>
 
-#define NO_FULLDUPLEX_PA_LOCK   0
+#define NO_FULLDUPLEX_PA_LOCK   0   
 
 typedef struct PaAlsaStreamInfo {
     unsigned long   size;
@@ -64,8 +64,8 @@ typedef struct PA_BLOCKING_STREAM_ {
     PaStreamParameters outputPaParameters;
 #ifdef WIN32
     int         paused;                 /* VL: to allow for smooth pausing  */
-    int         paLockTimeout;
 #endif
+    int         paLockTimeout;
 } PA_BLOCKING_STREAM;
 
 static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -282,7 +282,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
 #endif
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
-#ifdef WIN32
+
     pabs->paLockTimeout =
         (int) (1.33 * (pabs->outputPaParameters.suggestedLatency
                          >= pabs->inputPaParameters.suggestedLatency ?
@@ -292,7 +292,7 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
       pabs->paLockTimeout = 25;
     else if (pabs->paLockTimeout > 1000)
       pabs->paLockTimeout = 1000;
-#endif
+
 
     err = Pa_OpenStream(&stream,
                         (pabs->mode & 1 ? &(pabs->inputPaParameters)
@@ -354,31 +354,32 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
 
-    if (pabs->paStream == NULL
-#ifdef WIN32
-        || pabs->paused
-#endif
-        ) {
-      if (pabs->mode & 2)
+   
+#ifdef WIN32    
+if (pabs->paStream == NULL
+      || pabs->paused
+) {
+if (pabs->mode & 2)
         paClearOutputBuffer(pabs, paOutput);
-      return paContinue;
-    }
+return paContinue;
+}
+#endif
 
 #if NO_FULLDUPLEX_PA_LOCK
     err = 0;
     if (!pabs->noPaLock)
 #endif
-#ifndef __MACH__
-#  ifdef WIN32
+      /*#ifndef __MACH__*/
+      /*#  ifdef WIN32 */
       err = csound->WaitThreadLock(pabs->paLock, (size_t) pabs->paLockTimeout);
-#  else
-      err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+    /*#  else
+    err = csound->WaitThreadLock(pabs->paLock, (size_t) 500); 
 #  endif
-#else
+    #else
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
-    err = 0;
-#endif
-
+      err = 0;
+     #endif*/
+ 
     if (pabs->mode & 1) {
       int n = pabs->inBufSamples;
       int i = 0;
@@ -401,8 +402,9 @@ static int paBlockingReadWriteStreamCallback(const void *input,
         paClearOutputBuffer(pabs, paOutput);
       }
     }
-
-    csound->NotifyThreadLock(pabs->clientLock);
+   
+   paClearOutputBuffer(pabs, pabs->outputBuffer);
+   csound->NotifyThreadLock(pabs->clientLock);
 
     return paContinue;
 }
@@ -521,11 +523,12 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 static void rtclose_(CSOUND *csound)
 {
     PA_BLOCKING_STREAM *pabs;
-
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
     if (pabs == NULL)
       return;
+   
+    
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
@@ -539,6 +542,7 @@ static void rtclose_(CSOUND *csound)
         csound->NotifyThreadLock(pabs->clientLock);
         Pa_Sleep(80);
       }
+      
       Pa_AbortStream(stream);
       Pa_CloseStream(stream);
       Pa_Sleep(80);

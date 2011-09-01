@@ -111,7 +111,7 @@ typedef struct CSFILE_ {
 /* 32 bytes for name and 480 bytes for value. */
 /* Only written by csoundSetGlobalEnv().      */
 
-static char globalEnvVars[8192] = { (char) 0 }; /* !!!!STATIC!!!! */
+static char globalEnvVars[8192] = { (char) 0 };
 
 #define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int) (x) << 9]))
 #define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int) (x) << 9) + 32]))
@@ -790,7 +790,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     cwd = mmalloc(csound, 512);
     getcwd(cwd, 512);
 
-    if(lastIndex == NULL) {
+    if (lastIndex == NULL) {
         return cwd;
     }
 

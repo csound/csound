@@ -108,12 +108,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
-    int     S_incnt, S_outcnt;
+    int     S_incnt, S_outcnt, f_outcnt, f_incnt;
     int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    int16   *S_inlist, *S_outlist;
+    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist;
 
     /* count the number of arguments, and check types */
-    i = i_incnt = S_incnt = a_incnt = k_incnt =
+    i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
         i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (uint16) sizeof(UOPCODE);
@@ -128,6 +128,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_incnt++;              /* also updated at i-time */
       case 'k':
         k_incnt++; *otypes++ = 'k';
+        break;
+      case 'f':
+        f_incnt++; *otypes++ = *types;
         break;
       case 'i':
       case 'o':
@@ -150,7 +153,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
     inm->inchns = i;                    /* total number of input chnls */
-    inm->perf_incnt = a_incnt + k_incnt;
+    inm->perf_incnt = a_incnt + k_incnt + f_incnt;
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
@@ -171,6 +174,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'k':
         k_outcnt++; *otypes++ = 'k';
         break;
+      case 'f':
+        f_outcnt++; *otypes++ = *types;
+        break;
       case 'i':
         i_outcnt++; *otypes++ = *types;
         break;
@@ -185,7 +191,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
-    inm->perf_outcnt = a_outcnt + k_outcnt;
+    inm->perf_outcnt = a_outcnt + k_outcnt + f_outcnt;
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
@@ -193,15 +199,17 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     i = i_incnt + S_incnt + inm->perf_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
-                                                   sizeof(int16) * (i + 8));
+                                                   sizeof(int16) * (i + 10));
     S_inlist = i_inlist + i_incnt + 1;
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
+    f_inlist = k_inlist + k_incnt + 1;
     i = 0; types = inm->intypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_inlist++ = i; break;
         case 'k': *k_inlist++ = i; break;
+        case 'f': *f_inlist++ = i; break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
         case 'o':
@@ -211,23 +219,25 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       }
       i++;
     }
-    *i_inlist = *S_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
-    i_outlist = inm->out_ndx_list = k_inlist + 1;
+    *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = -1;     /* put delimiters */
+    i_outlist = inm->out_ndx_list = f_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
     a_outlist = S_outlist + S_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
+    f_outlist = k_outlist + k_outcnt + 1;
     i = 0; types = inm->outtypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
+        case 'f': *f_outlist++ = i; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;
         case 'S': *S_outlist++ = i; break;
       }
       i++;
     }
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist = *f_outlist = -1;  /* put delimiters */
     return err;
 }
 
@@ -253,7 +263,7 @@ void otran(CSOUND *csound)
     ARGLST      *alp;
     char        *s;
     int32        pmax = -1, nn;
-    int32        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
+    int32        n = 0, opdstot = 0, count, sumcount, instxtcount, optxtcount;
 
     if (csound->otranGlobals == NULL) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
@@ -367,15 +377,13 @@ void otran(CSOUND *csound)
               /* IV - Oct 31 2002 */
               if (UNLIKELY(!check_instr_name(name))) {
                 synterr(csound, Str("invalid name for opcode"));
-                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
-                /*continue;*/
+                continue;
               }
               if (UNLIKELY(ip->t.inlist->count != 3)) {
                 synterr(csound, Str("opcode declaration error "
                                     "(usage: opcode name, outtypes, intypes) "
                                     "-- opcode %s"), name);
-                csound->Die(csound, "syntax error \n"); /* VL - 17.10.10 - exit here to prevent crash */
-                /*continue;*/
+                continue;
               }
 
               /* IV - Oct 31 2002: check if opcode is already defined */
@@ -1230,8 +1238,8 @@ void oload(CSOUND *p)
       p->Die(p, Str("bad value for 0dbfs: must be positive."));
     if (UNLIKELY(O->odebug))
       p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
-                    "nchnlsi = %d 0dbfs = %.1f\n",
-                 p->esr, p->ekr, p->ksmps, p->nchnls, p->inchnls, p->e0dbfs);
+                    "0dbfs = %.1f\n",
+                    p->esr, p->ekr, p->ksmps, p->nchnls, p->e0dbfs);
     if (O->sr_override) {        /* if command-line overrides, apply now */
       p->esr = (MYFLT) O->sr_override;
       p->ekr = (MYFLT) O->kr_override;

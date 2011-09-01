@@ -829,10 +829,12 @@ int comb(CSOUND *csound, COMB *p)
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
     asig = p->asig;
+    MYFLT out;
     for (n=0; n<nsmps; n++) {
-      ar[n] = *xp;
+      out = *xp;
       *xp *= coef;
       *xp += asig[n];
+      ar[n] = out;
       if (UNLIKELY(++xp >= endp))
         xp = (MYFLT *) p->auxch.auxp;
     }

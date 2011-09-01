@@ -198,6 +198,7 @@ int wii_data_init(CSOUND *csound, WIIMOTE *p)
       return csound->InitError(csound, Str("No wii open"));
     p->wii = wiimotes;
     p->wiir = wiirange;
+    return OK;
 }
 
 int wii_data(CSOUND *csound, WIIMOTE *p)
@@ -326,6 +327,7 @@ int wii_data_inits(CSOUND *csound, WIIMOTES *p)
       return csound->InitError(csound, Str("No wii open"));
     p->wii = wiimotes;
     p->wiir = wiirange;
+    return OK;
 }
 
 int wii_send(CSOUND *csound, WIIMOTES *p)
