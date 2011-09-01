@@ -107,7 +107,7 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     /* check bin params */
     startbin = (int32) *p->ibin;            /* default 0 */
     binoffset = (int32) *p->ibinoffset; /* default 1 */
-    if (UNLIKELY(startbin        < 0 || startbin > noscs))
+    if (UNLIKELY(startbin < 0 || startbin > noscs))
       csound->Die(csound, Str("pvsadsyn: ibin parameter out of range.\n"));
     if (UNLIKELY(startbin + n_oscs > noscs))
       csound->Die(csound, Str("pvsadsyn: ibin + inoscs too large.\n"));
@@ -158,7 +158,7 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     float *frame;        /* RWD MUST be 32bit */
     MYFLT *a,*x,*y;
     MYFLT *amps,*freqs,*lastamps;
-    MYFLT ffac = *p->kfmod;
+    MYFLT ffac    = *p->kfmod;
     MYFLT nyquist = csound->esr * FL(0.5);
     /* we add to outbuf, so clear it first*/
     memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
@@ -393,16 +393,17 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
     n_mcframes = p->nframes / p->chans;
 
     if (p->ptr>=p->overlap) {
-      if (UNLIKELY(pos < 0.0f))
-        pos = 0.0f;     /* or report as error... */
+      if (UNLIKELY(pos < FL(0.0)))
+        pos = FL(0.0);     /* or report as error... */
       framepos = pos * p->arate;
       frame1pos = (int32) framepos;
 
       if (frame1pos>= n_mcframes -1) {
         /* just return final frame */
         pframe1 = pmem + (p->blockalign * (n_mcframes -1)) + p->chanoffset;
-        for (i=0;i < framesize;i++)
-          *fout++ = *pframe1++;
+        /* for (i=0;i < framesize;i++) */
+        /*   *fout++ = *pframe1++; */
+        memcpy(fout, pframe1, sizeof(float)*framesize);
       }
       else {
         /* gotta interpolate */
@@ -414,9 +415,9 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
         pframe2 = pframe1 + p->blockalign;
         for (i=0;i < framesize;i+=2) {
           MYFLT amp,freq;
-          j = i+1;
-          amp = pframe1[i] + frac * (pframe2[i] - pframe1[i]);
-          freq = pframe1[j] + frac * (pframe2[j] - pframe1[j]);
+          j       = i+1;
+          amp     = pframe1[i] + frac * (pframe2[i] - pframe1[i]);
+          freq    = pframe1[j] + frac * (pframe2[j] - pframe1[j]);
           fout[i] = (float) amp;
           fout[j] = (float) freq;
         }
@@ -488,7 +489,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     int32 flen, nbins;
     MYFLT *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
-    float margin,depth = (float)*p->kdepth;
+    float margin, depth = (float)*p->kdepth;
 
     flen = p->maskfunc->flen + 1;
     ftable = p->maskfunc->ftable;
@@ -505,28 +506,28 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
                      "clipped to zero.\n"));
         p->nwarned = 1;
       }
-      depth = FL(0.0);
+      depth = 0.0f;
     }
-    if (depth > 1.0f) {
+    if (UNLIKELY(depth > 1.0f)) {
       if (UNLIKELY(!p->pwarned))  {
         csound->Warning(csound, Str("pvsmaska: kdepth > 1: clipped.\n"));
         p->pwarned = 1;
       }
-      depth = FL(1.0);
+      depth = 1.0f;
     }
     /* massage into internal mapping */
     /* user 0 --> my 1
        user 1 ---> my 0
        user 0.75 -->my 0.25
     */
-    depth = (float)(FL(1.0) - depth);
+    depth = (1.0f - depth);
 
-    margin = (float)(FL(1.0) - depth);
+    margin = 1.0f - depth;
     if (p->fsrc->sliding) {
       int NB = p->fsrc->NB;
       CMPLX *fout, *fsrc;
       int n, nsmps=csound->ksmps;
-      MYFLT amp = 1.0f;
+      MYFLT amp = FL(1.0);
       for (n=0; n<nsmps; n++) {
         fout = (CMPLX *) p->fout->frame.auxp +n*NB;
         fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;
@@ -541,7 +542,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     nbins = p->fftsize/2 + 1;
     /* only process when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
-      MYFLT amp = 1.0f;
+      MYFLT amp = FL(1.0);
       int aindex, findex;
       for (i=0;i < nbins;i++) {
         amp = depth + margin * ftable[i];
@@ -571,7 +572,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
     p->wintype = p->fsrc->wintype;
     p->format  = p->fsrc->format;
     p->fftsize = N;
-    p->outfna = p->outfnf = NULL;
+    p->outfna  = p->outfnf = NULL;
     p->lastframe = 0;
 
     if (UNLIKELY(!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE)))
@@ -600,7 +601,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
       ftablea[i] = fsrc[i*2];
 
     /* freq table? */
-    if ((int32) *p->ifnf >= 1.0f) {
+    if ((int32) *p->ifnf >= 1) {
       p->outfnf = csound->FTFind(csound, p->ifnf);
       if (UNLIKELY(p->outfnf==NULL))
         return NOTOK;
@@ -665,23 +666,23 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
     float *fdest;                         /* RWD MUST be 32bit */
     int32 flena,flenf,nbins, N = p->fdest->N;
     /* source fsig */
-    p->overlap = p->fdest->overlap;
-    p->winsize = p->fdest->winsize;
-    p->wintype = p->fdest->wintype;
-    p->format  = p->fdest->format;
-    p->fftsize = N;
-    p->infna = p->infnf = NULL;
-    p->ftablea = p->ftablef = NULL;
+    p->overlap   = p->fdest->overlap;
+    p->winsize   = p->fdest->winsize;
+    p->wintype   = p->fdest->wintype;
+    p->format    = p->fdest->format;
+    p->fftsize   = N;
+    p->infna     = p->infnf = NULL;
+    p->ftablea   = p->ftablef = NULL;
     p->lastframe = 0;
-    nbins = p->fftsize/2 + 1;
+    nbins        = p->fftsize/2 + 1;
 
     if (UNLIKELY(!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE)))
       csound->Die(csound, Str("pvsftr: signal format must be "
                               "amp-phase or amp-freq.\n"));
     /* ifn = 0 = notused */
-    if (UNLIKELY(*p->ifna < 0.0f))
+    if (UNLIKELY(*p->ifna < FL(0.0)))
       csound->Die(csound, Str("pvsftr: bad value for ifna.\n"));
-    if (UNLIKELY(*p->ifnf < 0.0f))
+    if (UNLIKELY(*p->ifnf < FL(0.0)))
       csound->Die(csound, Str("pvsftr: bad value for ifnf.\n"));
 
     /* if ifna=0; no amps to read; one assumes the user ias changing freqs only,

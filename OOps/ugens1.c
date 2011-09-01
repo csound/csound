@@ -29,7 +29,7 @@
 
 int linset(CSOUND *csound, LINE *p)
 {
-    MYFLT       dur;
+   double       dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
       p->incr = (*p->ib - *p->ia) / dur * csound->onedkr;
@@ -47,7 +47,7 @@ int kline(CSOUND *csound, LINE *p)
 
 int aline(CSOUND *csound, LINE *p)
 {
-    MYFLT       val, inc, *ar;
+  double val, inc; MYFLT *ar;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -56,7 +56,7 @@ int aline(CSOUND *csound, LINE *p)
     inc *= csound->onedksmps;
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
-      ar[n] = val;
+      ar[n] = (MYFLT)val;
       val += inc;       /* interp val for ksmps */
     }
     return OK;
@@ -64,7 +64,7 @@ int aline(CSOUND *csound, LINE *p)
 
 int expset(CSOUND *csound, EXPON *p)
 {
-    MYFLT       dur, a, b;
+    double       dur, a, b;
 
     if (LIKELY((dur = *p->idur) > FL(0.0) )) {
       a = *p->ia;
@@ -91,7 +91,7 @@ int kexpon(CSOUND *csound, EXPON *p)
 
 int expon(CSOUND *csound, EXPON *p)
 {
-    MYFLT       val, mlt, inc, *ar,nxtval;
+  double val, mlt, inc, nxtval; MYFLT *ar;
     int n, nsmps=csound->ksmps;
 
     val = p->val;
@@ -101,7 +101,7 @@ int expon(CSOUND *csound, EXPON *p)
     inc *= csound->onedksmps;   /* increment per sample */
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
-      ar[n] = val;
+      ar[n] = (MYFLT)val;
       val += inc;               /* interp val for ksmps */
     }
     p->val = nxtval;            /* store next value */
@@ -113,7 +113,8 @@ int lsgset(CSOUND *csound, LINSEG *p)
 {
     SEG *segp;
     int nsegs;
-    MYFLT       **argp, val;
+    MYFLT       **argp;
+    double val;
 
     nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -123,15 +124,15 @@ int lsgset(CSOUND *csound, LINSEG *p)
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
     argp = p->argums;
-    val = **argp++;
+    val = (double)**argp++;
     if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
     p->cursegp = segp - 1;          /* else setup null seg0 */
     p->segsrem = nsegs + 1;
     do {                                /* init each seg ..  */
-      MYFLT dur = **argp++;
-      segp->nxtpt = **argp++;
+      double dur = (double)**argp++;
+      segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32)(dur * csound->ekr + FL(0.5))) < 0))
         segp->cnt = 0;
       segp++;
@@ -139,6 +140,31 @@ int lsgset(CSOUND *csound, LINSEG *p)
     p->xtra = -1;
     return OK;
 }
+
+int lsgset_bkpt(CSOUND *csound, LINSEG *p)
+{
+    int32 cnt = 0, bkpt = 0;
+    int nsegs;
+    int n;
+    SEG *segp;
+    n = lsgset(csound, p);
+    if (UNLIKELY(n!=0)) return n;
+    nsegs = p->segsrem;
+    segp = p->cursegp;
+    do {
+      if (UNLIKELY(cnt > segp->cnt))
+        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+#ifdef BETA
+      csound->Message(csound, " %d: %d, %d \n", bkpt, cnt, segp->cnt);
+#endif
+      segp->cnt -= cnt;
+      cnt += segp->cnt;
+      segp++;
+      bkpt++;
+    } while (--nsegs);
+    return OK;
+}
+
 
 int klnseg(CSOUND *csound, LINSEG *p)
 {
@@ -174,7 +200,7 @@ int klnseg(CSOUND *csound, LINSEG *p)
 
 int linseg(CSOUND *csound, LINSEG *p)
 {
-    MYFLT  val, ainc, *rs = p->rslt;
+    double val, ainc; MYFLT *rs = p->rslt;
     int    n, nsmps=csound->ksmps;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
@@ -200,14 +226,14 @@ int linseg(CSOUND *csound, LINSEG *p)
       if (UNLIKELY((ainc = p->curainc) == FL(0.0)))
         goto putk;
       for (n=0; n<nsmps; n++) {
-        rs[n] = val;
+        rs[n] = (MYFLT)val;
         val += ainc;
       }
     }
     else {
     putk:
       for (n=0; n<nsmps; n++) {
-        rs[n] = val;
+        rs[n] = (MYFLT)val;
       }
     }
     return OK;
@@ -222,7 +248,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     SEG         *segp;
     int         nsegs;
     MYFLT       **argp = p->argums;
-    MYFLT       dur;
+    double      dur;
     MYFLT       len = csound->curip->p3;
     MYFLT       release = *argp[3];
     int32       relestim;
@@ -242,12 +268,12 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     else if (**argp > FL(0.0))
       memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
     if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
-    p->curval = FL(0.0);
+    p->curval = 0.0;
     p->curcnt = 0;
     p->cursegp = segp - 1;      /* else setup null seg0 */
     p->segsrem = nsegs;
                                 /* Delay */
-    dur = *argp[4];
+    dur = (double)*argp[4];
     if (UNLIKELY(dur > len)) dur = len;
     len -= dur;
     segp->nxtpt = FL(0.0);
@@ -306,13 +332,16 @@ int madsrset(CSOUND *csound, LINSEG *p)
 
 /* End of ADSR */
 
+
+
+
+
 int lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32 relestim;
     lsgset(csound,p);
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases
-                            in an instr => xtratim
+    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr releases in an instr => xtratim 
                             set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
@@ -412,6 +441,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                          /* else proceed from 1st seg */
     segp--;
+    p->segsrem = nsegs;
     do {
       segp++;           /* init each seg ..  */
       val = nxtval;
@@ -423,6 +453,107 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       segp->val = val;
       segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->cnt = (int32) (d + FL(0.5));
+    } while (--nsegs);
+    segp->cnt = MAXPOS;         /* set last cntr to infin */
+    return OK;
+
+ experr:
+    n = segp - p->cursegp + 1;
+    if (val == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n);
+    else if (nxtval == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+}
+
+int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
+{
+   XSEG        *segp;
+    int         nsegs;
+    MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
+    int         n=0;
+
+    nsegs = p->INOCOUNT >> 1;                   /* count segs & alloc if nec */
+    if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
+        nsegs*sizeof(XSEG) < (unsigned int)p->auxch.size) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
+      p->cursegp = segp = (XSEG *) p->auxch.auxp;
+      (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
+    }
+    argp = p->argums;
+    nxtval = **argp++;
+    if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
+    p->cursegp = segp;                          /* else proceed from 1st seg */
+    segp--;
+    p->segsrem = nsegs;
+    do {
+      segp++;           /* init each seg ..  */
+      val = nxtval;
+      bkpt = **argp++;
+      if (UNLIKELY(bkpt < dursum))
+          return csound->InitError(csound,
+                                   Str("Breakpoint time %f not valid"), bkpt);
+      dur = bkpt - dursum;
+      dursum += dur;
+      nxtval = **argp++;
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
+        goto experr;
+      d = dur * csound->ekr;
+      segp->val = val;
+      segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+      segp->cnt = (int32) (d + FL(0.5));
+    } while (--nsegs);
+    segp->cnt = MAXPOS;         /* set last cntr to infin */
+    return OK;
+
+ experr:
+    n = segp - p->cursegp + 1;
+    if (val == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n);
+    else if (nxtval == FL(0.0))
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+}
+
+
+int xsgset2b(CSOUND *csound, EXPSEG2 *p)
+{
+    XSEG        *segp;
+    int         nsegs;
+    MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
+    int         n;
+
+    nsegs = p->INOCOUNT >> 1;           /* count segs & alloc if nec */
+    if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
+        (unsigned int)nsegs*sizeof(XSEG) > (unsigned int)p->auxch.size) {
+      csound->AuxAlloc(csound, (int32)nsegs*sizeof(XSEG), &p->auxch);
+      p->cursegp = segp = (XSEG *) p->auxch.auxp;
+      (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
+    }
+    argp = p->argums;
+    nxtval = **argp++;
+    if (**argp <= FL(0.0))  return OK;        /* if idur1 <= 0, skip init  */
+    p->cursegp = segp;                      /* else proceed from 1st seg */
+    segp--;
+    do {
+      segp++;           /* init each seg ..  */
+      val = nxtval;
+      bkpt = **argp++;
+      if (UNLIKELY(bkpt < dursum))
+          return csound->InitError(csound,
+                                   Str("Breakpoint time %f not valid"), bkpt);
+      dur = bkpt - dursum;
+      dursum += dur;
+      nxtval = **argp++;
+/*       if (dur > FL(0.0)) { */
+      if (UNLIKELY(val * nxtval <= FL(0.0)))
+          goto experr;
+        d = dur * csound->esr;
+        segp->val = val;
+        segp->mlt = POWER((nxtval / val), FL(1.0)/d);
+        segp->cnt = (int32) (d + FL(0.5));
+/*       } */
+/*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
@@ -483,6 +614,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 }
 
 /***************************************/
+
 int expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
@@ -1163,7 +1295,7 @@ int evrset(CSOUND *csound, ENVLPR *p)
     else {
       p->phs = -1;
       p->val = *(ftp->ftable + ftp->flen)-asym;
-      irise = FL(0.0);          /* in case irise < 0 */
+      /* irise = FL(0.0);          /* in case irise < 0 */
     }
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
       return csound->InitError(csound, Str("rise func ends with zero"));

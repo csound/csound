@@ -150,9 +150,9 @@ void mfree(CSOUND *csound, void *p)
       else
         MEMALLOC_DB = (void*)nxt;
     }
-    CSOUND_MEM_SPINUNLOCK
     /* free memory */
     free((void*) pp);
+    CSOUND_MEM_SPINUNLOCK
 }
 
 void *mrealloc(CSOUND *csound, void *oldp, size_t size)

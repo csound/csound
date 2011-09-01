@@ -272,7 +272,7 @@ static int streson(CSOUND *csound, STRES *p)
       /* GetSample(p); */
       MYFLT tmpo;
       rp = (vdt + wp);
-      if(rp >= size) rp -= size;
+      if (rp >= size) rp -= size;
       tmpo = p->Cdelay[rp];
       w = in[n] + tmpo;
       s = (LPdelay + w)*0.5;
@@ -293,7 +293,7 @@ static int streson(CSOUND *csound, STRES *p)
 static OENTRY localops[] = {
 { "repluck", S(WGPLUCK2), 5, "a",  "ikikka",(SUBR)wgpsetin, NULL, (SUBR)wgpluck},
 { "wgpluck2",S(WGPLUCK2), 5, "a",  "ikikk", (SUBR)wgpset,   NULL, (SUBR)wgpluck},
-{ "streson", S(STRES),    5, "a",  "aki",  (SUBR)stresonset, NULL, (SUBR)streson}
+{ "streson", S(STRES),    5, "a",  "akk",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
 int repluck_init_(CSOUND *csound)

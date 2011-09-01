@@ -11,7 +11,7 @@ typedef struct TREE {
   struct TREE   *right;
   struct TREE   *next;
 } TREE;
-#include "../Engine/csound_orcparse.h"
+#include "csound_orcparse.h"
 #include "csoundCore.h"
 
 enum {

@@ -383,21 +383,21 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
                       winsize = (1 << powtwo));
     }
     p->hopsize = *p->size;
-    if (!p->signal.auxp && p->signal.size < p->hopsize*sizeof(MYFLT)) {
+    if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
     }
-    if (!p->prev.auxp && p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
+    if (!p->prev.auxp || p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT), &p->prev);
     }
-    if (!p->sin.auxp && p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
+    if (!p->sin.auxp || p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (p->hopsize*2)*sizeof(MYFLT), &p->sin);
     }
 
-    if (!p->spec2.auxp && p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
+    if (!p->spec2.auxp || p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(MYFLT), &p->spec2);
     }
 
-    if (!p->spec1.auxp && p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
+    if (!p->spec1.auxp || p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, (winsize*4)*sizeof(MYFLT), &p->spec1);
     }
 
@@ -415,7 +415,7 @@ int pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     else
      p->numpks = *p->peak;
 
-    if (!p->peakarray.auxp && p->peakarray.size < (p->numpks+1)*sizeof(PEAK)) {
+    if (!p->peakarray.auxp || p->peakarray.size < (p->numpks+1)*sizeof(PEAK)) {
       csound->AuxAlloc(csound, (p->numpks+1)*sizeof(PEAK), &p->peakarray);
     }
 
@@ -446,7 +446,7 @@ int pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
       }
       buf[pos] = sig[i]*scale;
     }
-    //if(p->cps)
+    //if (p->cps)
     *p->freq = p->cps;
     //else *p->freq = p->prevf;
     //p->prevf = *p->freq;
@@ -468,11 +468,11 @@ typedef struct _pitchaf{
 
 int pitchafset(CSOUND *csound, PITCHAF *p){
   int siz = (int)(csound->GetSr(csound)/ (*p->iflow));
-  if(p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
+  if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
-  if(p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(MYFLT))
+  if (p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff2);
-  if(p->cor.auxp == NULL || p->cor.size < siz*sizeof(MYFLT))
+  if (p->cor.auxp == NULL || p->cor.size < siz*sizeof(MYFLT))
     csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->cor);
 
   memset(p->buff1.auxp, 0, p->buff1.size);
@@ -485,46 +485,48 @@ int pitchafset(CSOUND *csound, PITCHAF *p){
   return OK;
 }
 
-int pitchafproc(CSOUND *csound, PITCHAF *p){
+int pitchafproc(CSOUND *csound, PITCHAF *p)
+{
 
- int lag = p->lag,n, i, j, imax = 0, len = p->len, ksmps = csound->GetKsmps(csound);
- MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
- MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
- MYFLT *cor = (MYFLT *)p->cor.auxp;
- MYFLT *s = p->asig, pitch;
- MYFLT ifmax = *p->kfmax;
+    int lag = p->lag,n, i, j, imax = 0, len = p->len,
+      ksmps = csound->GetKsmps(csound);
+    MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
+    MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
+    MYFLT *cor = (MYFLT *)p->cor.auxp;
+    MYFLT *s = p->asig, pitch;
+    MYFLT ifmax = *p->kfmax;
 
- for(n=0; n < ksmps; n++){
-  for(i=0,j=lag; i < len; i++) {
-    cor[lag] += buff1[i]*buff2[j];
-    j = j != len ? j+1 : 0;
-  }
-  buff2[lag++] = s[n];
-
-  if(lag == len) {
-    float max = 0.f;
-    for(i=0; i < len; i++) {
-      if (cor[i] > max) {
-        max = cor[i];
-        if(i) imax = i;
+    for (n=0; n < ksmps; n++) {
+      for (i=0,j=lag; i < len; i++) {
+        cor[lag] += buff1[i]*buff2[j];
+        j = j != len ? j+1 : 0;
       }
-        buff1[i] = buff2[i];
-        cor[i] = 0.f;
-    }
-    len = csound->GetSr(csound)/(*p->kfmin);
-    if(len > p->size) len = p->size;
-    lag  =  0;
-  }
-  }
-  p->lag = lag;
-  p->len = len;
-   if(imax) {
-    pitch = csound->GetSr(csound)/imax;
-   if(pitch <= *p->kfmax) p->pitch = pitch;
-   }
-  *p->kpitch = p->pitch;
+      buff2[lag++] = s[n];
 
-  return OK;
+      if (lag == len) {
+        float max = 0.0f;
+        for (i=0; i < len; i++) {
+          if (cor[i] > max) {
+            max = cor[i];
+            if (i) imax = i;
+          }
+          buff1[i] = buff2[i];
+          cor[i] = FL(0.0);
+        }
+        len = csound->GetSr(csound)/(*p->kfmin);
+        if (len > p->size) len = p->size;
+        lag  =  0;
+      }
+    }
+    p->lag = lag;
+    p->len = len;
+    if (imax) {
+      pitch = csound->GetSr(csound)/imax;
+      if (pitch <= *p->kfmax) p->pitch = pitch;
+    }
+    *p->kpitch = p->pitch;
+
+    return OK;
 }
 
 

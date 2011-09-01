@@ -45,31 +45,6 @@
 #define TXHGHT   14      /* baseline offset for text */
 #define MAXLSEGS 4096    /* X can only deal with so many linesegs .. */
 
-typedef struct {
-  Fl_Window   *form;
-  Fl_Choice   *choice;
-  Fl_Button   *end;
-  Fl_Menu_Item *menu;
-} FLGRAPH_GLOBALS;
-
-#define ST(x)   (((FLGRAPH_GLOBALS*) csound->flgraphGlobals)->x)
-
-void flgraph_init(CSOUND *csound)
-{
-    if (csound->flgraphGlobals==NULL) {
-      csound->flgraphGlobals =
-        (FLGRAPH_GLOBALS*) csound->Malloc(csound,sizeof(FLGRAPH_GLOBALS));
-      ST(form) = (Fl_Window *) 0;
-      ST(choice) = (Fl_Choice *) 0;
-      ST(end) = (Fl_Button *) 0;
-
-      ST(menu) =
-        (Fl_Menu_Item*) csound->Calloc(csound,
-                                       sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));
-    }
-}
-
-
 class graph_box : public Fl_Window {
   void draw();
 public:
@@ -82,10 +57,51 @@ public:
       curr = last = -1;
       csound = (CSOUND*)cs;
   }
-  void add_graph(WINDAT *wdptr);
+  //void add_graph(WINDAT *wdptr);
 };
 
-static  graph_box   *graph = (graph_box *) 0;
+typedef struct {
+
+  Fl_Choice   *choice;
+  Fl_Button   *end;
+  Fl_Menu_Item *menu;
+  graph_box   *graph;
+  int graph_created;
+  Fl_Window   *form;
+} FLGRAPH_GLOBALS;
+
+#define ST(x)   (((FLGRAPH_GLOBALS*) csound->flgraphGlobals)->x)
+
+/*void printouts(CSOUND *csound){ 
+    csound->Message(csound, "menu object: %p\n", ST(menu));
+    csound->Message(csound, "form object: %p\n", ST(form));
+    csound->Message(csound, "graph object: %p\n", ST(graph));
+    csound->Message(csound, "choice object: %p\n", ST(choice));
+    csound->Message(csound, "globals %p\n",  csound->flgraphGlobals);
+}*/
+
+void flgraph_init(CSOUND *csound)
+{
+  
+    if (csound->flgraphGlobals==NULL) {  
+      csound->flgraphGlobals =
+        (FLGRAPH_GLOBALS*) csound->Malloc(csound,sizeof(FLGRAPH_GLOBALS));
+    }
+      ST(form) = (Fl_Window *) 0;
+      ST(choice) = (Fl_Choice *) 0;
+      ST(end) = (Fl_Button *) 0;
+      ST(graph) = (graph_box *) 0;
+      ST(menu) = (Fl_Menu_Item *) 0;
+      ST(graph_created) = 0;
+     
+
+      /*ST(menu) =  (Fl_Menu_Item*) csound->Calloc(csound,
+	sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));*/
+      /* VL: moved menu object to be built at each new compilation */
+ 
+}
+
+/* static  graph_box   *graph = (graph_box *) 0; */
 
 void graph_box::draw()
 {
@@ -179,29 +195,37 @@ void graph_box::draw()
     fl_line_style(FL_SOLID);
 }
 
+
+
 void add_graph(CSOUND *csound, WINDAT *wdptr)
 {
     WINDAT *n = (WINDAT*) malloc(sizeof(WINDAT));
     int    m;
     WINDAT *old;
     int    replacing = 0;
-
+    
     memcpy(n, wdptr, sizeof(WINDAT));
     n->fdata = (MYFLT*) malloc(n->npts * sizeof(MYFLT));
     memcpy(n->fdata, wdptr->fdata, n->npts * sizeof(MYFLT));
+
+ 
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
-      if (ST(menu)[m].text != NULL &&
-          strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
+      if(ST(menu) != NULL) {
+       if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
+	if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
         replacing = 1;
         goto replace;
+        }
+       }
       }
     }
     // Use a new slot, cycling round
-    graph->last++;
-    m = graph->last;
+    ST(graph)->last++;
+    m = ST(graph)->last;
     if (m >= NUMOFWINDOWS)
-      m = graph->last = 0;
+      m = ST(graph)->last = 0;
  replace:
+    
     old = (WINDAT*)ST(menu)[m].user_data_;
     if (old) {
       free((void*) old->fdata);
@@ -214,60 +238,73 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
       ST(menu)[m].text = (const char*) malloc(strlen(n->caption) + 1);
       strcpy((char*) ST(menu)[m].text, n->caption);
     }
-
-    /*
-      graph->curr = m;
-      ST(choice)->value(m);
-    */
-    graph->curr = ST(choice)->value();  /* VL: 29.04.09 fix */
-    graph->redraw();
+    
+    
+    // ST(graph)->curr = m;
+    //  ST(choice)->value(m);
+    
+    ST(graph)->curr = ST(choice)->value();  /* VL: 29.04.09 fix */
+    ST(graph)->redraw();
 }
 
 void do_redraw(Fl_Widget *, void *cs)
 {
     CSOUND *csound = (CSOUND*)cs;
-    graph->curr = ST(choice)->value();
-    graph->redraw();
+    ST(graph)->curr = ST(choice)->value();
+    ST(graph)->redraw();
 }
 
 void makeWindow(CSOUND *csound, char *name)
 {
     if (ST(form))
       return;
+    
     ST(form) = new Fl_Window(WIDTH, HEIGHT, name);
+    ST(menu) = new Fl_Menu_Item[1+NUMOFWINDOWS];
+    memset(ST(menu), 0, sizeof(Fl_Menu_Item)*(1+NUMOFWINDOWS));    
     ST(choice) = new Fl_Choice(140, 0, 140, 20, "Choose Graph");
     ST(choice)->menu(ST(menu));
     ST(choice)->value(0);
     ST(choice)->callback((Fl_Callback*) do_redraw,  (void*)csound);
-    graph = new graph_box(csound,
+    ST(graph) = new graph_box(csound,
                           BDR, 30 + BDR, WIDTH - 2 * BDR, HEIGHT - 30 - 2 * BDR);
-    graph->end();
+    ST(graph)->end();
     ST(end) = new Fl_Button(WIDTH - 40, 0, 35, 20, "Quit");
     ST(end)->hide();
-    ST(form)->resizable(graph);
+    ST(form)->resizable(ST(graph));
     ST(form)->end();
+    ST(graph_created) = 1;
+     
+}
+
+void graphs_reset(CSOUND * csound){
+  //if(csound->flgraphGlobals != NULL)csound->Free(csound, csound->flgraphGlobals);
 }
 
 extern "C" {
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
+   
       add_graph(csound, wdptr);
       csound->CheckEvents(csound);
   }
 
   uintptr_t MakeWindow_FLTK(CSOUND *csound, char *name)
   {
+ 
       if (ST(form) == NULL) {
         makeWindow(csound, name);
         ST(form)->show();
       }
+      
       return (uintptr_t) ST(form);
   }
 
   int CsoundYield_FLTK(CSOUND *csound)
   {
 #ifndef NO_FLTK_THREADS
+
       /* nothing to do, unless no widget thread is running */
       if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
         return 1;
@@ -293,28 +330,42 @@ extern "C" {
 
   int ExitGraph_FLTK(CSOUND *csound)
   {
-      if (ST(form)) {
-        if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
-          const char *env = csound->GetEnv(csound, "CSNOSTOP");
-          if (env == NULL || strcmp(env, "yes") != 0) {
-            /* print click-Exit message in most recently active window */
-            ST(end)->show();
-            while (ST(end)->value() == 0 && ST(form)->shown() /* && kcnt */) {
-              Fl_wait_locked(csound, 0.03);
-            }
+      if (ST(form) && ST(graph_created) == 1) {
+          
+	if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
+	const char *env = csound->GetEnv(csound, "CSNOSTOP");
+	if (env == NULL || strcmp(env, "yes") != 0) {
+	  ST(end)->show();
+           // print click-Exit message in most recently active window 
+	  while (ST(end)->value() == 0 && ST(form)->shown()) {
+	    Fl_wait_locked(csound, 0.03);
+	  }
           }
-        }
-        delete ST(form);
+	 }
+
+        delete ST(form); 
+        ST(form) = (Fl_Window *) 0;
         Fl_wait_locked(csound, 0.0);
-      }
-      ST(form) = (Fl_Window *) 0;
+        
       ST(choice) = (Fl_Choice *) 0;
+      ST(graph) = (graph_box *) 0;
       ST(end) = (Fl_Button *) 0;
-      for (int i = 0; i < NUMOFWINDOWS; i++) {
+      ST(graph_created) = 0;
+      
+       for (int i = 0; i < NUMOFWINDOWS; i++) {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n)
           kill_graph(csound, (uintptr_t) ((void*) n));
+	  } 
+       if(ST(menu)){
+             delete ST(menu);
+             ST(menu) = (Fl_Menu_Item *) 0;
+       }
+       
+       
+       
       }
+     
       return 0;
   }
 
@@ -405,6 +456,7 @@ extern "C" {
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
+    
       delete ((Fl_Window*) wdptr->windid);
       wdptr->windid = (uintptr_t) 0;
   }

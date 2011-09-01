@@ -29,7 +29,7 @@
 #include "oload.h"
 #include "remote.h"
 #include <math.h>
-#include "cscore.h"
+# include "cscore.h"
 
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
@@ -83,7 +83,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 static void settempo(CSOUND *csound, MYFLT tempo)
 {
     if (tempo <= FL(0.0)) return;
-    if (csound->oparms->Beatmode==0)
+    if (csound->oparms->Beatmode==1)
       csound->ibeatTime = (int)(csound->esr*60.0 / (double) tempo);
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
@@ -391,7 +391,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->scfp) {
       fclose(csound->scfp); csound->scfp = NULL;
     }
-
+  
     /* print stats only if musmon was actually run */
     if (UNLIKELY(csound->musmonGlobals != NULL)) {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
@@ -413,10 +413,12 @@ PUBLIC int csoundCleanup(CSOUND *csound)
                               csound->perferrcnt);
       print_benchmark_info(csound, Str("end of performance"));
     }
+     
     /* close line input (-L) */
     RTclose(csound);
     /* close MIDI input */
     MidiClose(csound);
+ 
     /* IV - Feb 03 2005: do not need to call rtclose from here, */
     /* as sfclosein/sfcloseout will do that. */
     if (!csound->enableHostImplementedAudioIO) {
@@ -429,6 +431,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->remoteGlobals) remote_Cleanup(csound);
     if (csound->oparms->ringbell)
       cs_beep(csound);
+   
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 

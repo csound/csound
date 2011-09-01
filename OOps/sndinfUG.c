@@ -174,11 +174,11 @@ int filebit(CSOUND *csound, SNDINFO *p)
 
     getsndinfo(csound, p, &hdr);
     format = hdr.format &  SF_FORMAT_SUBMASK;
-    if(format < 5)
+    if (format < 5)
       bits = format*8 ;
-    else if(format == 5) bits = 8;
-    else if(format == 6) bits = -1;
-    else if(format == 7) bits = -2;
+    else if (format == 5) bits = 8;
+    else if (format == 6) bits = -1;
+    else if (format == 7) bits = -2;
     else bits = -format; /* non-PCM data */
 
     *(p->r1) = (MYFLT) bits;
@@ -275,6 +275,7 @@ int filevalid(CSOUND *csound, FILEVALID *p)
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
+      return OK;
     }
     if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
       *p->r1 = 1;

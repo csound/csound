@@ -84,6 +84,8 @@ void widget_init(CSOUND *csound)
     }
 }
 
+extern void graphs_reset(CSOUND *csound);
+
 int widget_reset(CSOUND *csound, void *pp)
 {
     IGN(pp);
@@ -92,6 +94,7 @@ int widget_reset(CSOUND *csound, void *pp)
       delete (WIDGET_GLOBALS*)csound->widgetGlobals;
       csound->widgetGlobals = NULL;
     }
+    graphs_reset(csound);
     return OK;
 }
 

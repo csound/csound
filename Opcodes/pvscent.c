@@ -157,15 +157,15 @@ typedef struct _pvspitch
 int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
-  int size;
+    int size;
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
-    size = sizeof(MYFLT)*(p->fin->N+2)/4;
-    if(p->peakfreq.auxp == NULL || p->peakfreq.size < size/2)
+    size = sizeof(MYFLT)*(p->fin->N+2);
+    if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
     csound->AuxAlloc(csound, size, &p->peakfreq);
-    if(p->inharmonic.auxp == NULL || p->inharmonic.size < size)
+    if (p->inharmonic.auxp == NULL || p->inharmonic.size < size)
     csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,

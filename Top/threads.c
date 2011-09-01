@@ -181,17 +181,16 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #define BARRIER_SERIAL_THREAD (-1)
 
-/* VL: already defined in CsoundCore.h:70
-#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+#if !defined(HAVE_PTHREAD_BARRIER_INIT) 
+#ifndef __MACH__
 
 typedef struct barrier {
     pthread_mutex_t mut;
     pthread_cond_t cond;
     unsigned int count, max, iteration;
 } barrier_t;
-
 #endif
-*/
+#endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -284,8 +283,10 @@ PUBLIC void csoundNotifyThreadLock(void *lock)
 
 PUBLIC void csoundDestroyThreadLock(void *lock)
 {
-    pthread_mutex_destroy((pthread_mutex_t*) lock);
-    free(lock);
+    if (0==pthread_mutex_destroy((pthread_mutex_t*) lock))
+      free(lock);
+    else
+      perror("csoundDestroyThreadLock: ");
 }
 
 
@@ -413,10 +414,9 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 #else
   pthread_barrier_t *barrier =
     (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
-  int status = pthread_barrier_init(barrier, 0, max);
-  if (status) {
-    return 0;
-  }
+  int status = pthread_barrier_init(barrier, 0, max-1);
+  fprintf(stderr, "Create barrier %d => %p ($d)\n", max, barrier, status);
+  if (status) return 0;
   return barrier;
 #endif
 }

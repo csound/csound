@@ -25,9 +25,22 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
+
+
+#ifdef ENABLE_NEW_PARSER
+#include "csound_orc.h"
+#endif
+
+#ifdef PARCS
+#include "cs_par_base.h"
+#include "cs_par_orc_semantics.h"
+#include "cs_par_dispatch.h"
+#endif
+
 #if defined(USE_OPENMP)
 #include <omp.h>
 #endif
+
 
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
@@ -39,7 +52,7 @@ extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  OENTRY  opcodlst_1[];
 extern  uintptr_t  kperfThread(void * cs);
 #if defined(ENABLE_NEW_PARSER)
-extern void cs_init_math_constants_macros(CSOUND *csound);
+extern void cs_init_math_constants_macros(CSOUND *csound,void *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, NAMES *nn);
 #endif
 
@@ -156,7 +169,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
                                CSFTYPE_OPTIONS, 0);
-        if(fd != NULL)
+        if (fd != NULL)
           csound->Message(csound, Str("Reading options from $HOME/.csoundrc\n"));
         mfree(csound, s);
       }
@@ -197,7 +210,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         /* Add directory of CSD file to search paths before orchname gets
          * replaced with temp orch name if default paths is enabled */
-        if(!O->noDefaultPaths) {
+        if (!O->noDefaultPaths) {
           fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
           csoundAppendEnv(csound, "SADIR", fileDir);
           csoundAppendEnv(csound, "SSDIR", fileDir);
@@ -285,7 +298,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
       csoundNotifyFileOpened(csound, sconame, CSFTYPE_SCORE, 1, 1);
       csound->tempStatus |= csScoInMask;
-    } else if(!csdFound && !O->noDefaultPaths){
+    } else if (!csdFound && !O->noDefaultPaths){
         /* Add directory of SCO file to search paths*/
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
         csoundAppendEnv(csound, "SADIR", fileDir);
@@ -295,7 +308,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
 
     /* Add directory of ORC file to search paths*/
-    if(!csdFound && !O->noDefaultPaths) {
+    if (!csdFound && !O->noDefaultPaths) {
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);
@@ -321,8 +334,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, "********************\n");
       csound->Message(csound, "* USING NEW PARSER *\n");
       csound->Message(csound, "********************\n");
-      cs_init_math_constants_macros(csound);
-      cs_init_omacros(csound, csound->omacros);
       new_orc_parser(csound);
     }
     else {

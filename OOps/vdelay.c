@@ -82,7 +82,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         while (UNLIKELY(fv1 >= (MYFLT)maxd))
           fv1 -= (MYFLT)maxd;
 
-        if (fv1 < maxd - 1) /* Find next sample for interpolation      */
+        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
           fv2 = fv1 + FL(1.0);
         else
           fv2 = FL(0.0);
@@ -113,7 +113,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         while (UNLIKELY(fv1 >= (MYFLT)maxd))
           fv1 -= (MYFLT)maxd;
 
-        if (fv1 < maxd - 1) /* Find next sample for interpolation      */
+        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
           fv2 = fv1 + FL(1.0);
         else
           fv2 = FL(0.0);
