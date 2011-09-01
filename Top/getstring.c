@@ -65,7 +65,7 @@ void init_getstring(void)
     /* bind_textdomain_codeset("csound5", "UTF-8"); */
 #ifdef never
     /* This is experimental; where should these be?? */
-    bindtextdomain("csound5", "/home/jpff/Sourceforge/csound5/po");
+    bindtextdomain("csound5", "/home/jpff/Sourceforge/csound/csound5/po");
 #endif
 }
 

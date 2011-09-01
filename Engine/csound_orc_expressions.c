@@ -330,8 +330,8 @@ static TREE *create_cond_expression(CSOUND *csound, TREE *root)
     opTree = create_opcode_token(csound, op);
     opTree->left = create_ans_token(csound, outarg);
     opTree->right = b;
-    opTree->right->next = d;
-    opTree->right->next->next = c;
+    opTree->right->next = c;
+    opTree->right->next->next = d;
     /* should recycle memory for root->right */
     //mfree(csound, root->right); root->right = NULL;
     last->next = opTree;
