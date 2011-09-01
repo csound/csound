@@ -20,6 +20,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+
+
 #ifndef MACOSX
 %module(directors="1") csnd
 %feature("director") CsoundCallbackWrapper;
@@ -43,6 +45,7 @@
 
 %feature("autodoc", "1");
 %{
+    #include <cstddef>
     #include "csound.h"
     #include "cfgvar.h"
     #include "csound.hpp"
@@ -51,7 +54,7 @@
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
-    #include "Soundfile.hpp"
+    #include "Soundfile.hpp" 
 %}
 
 %apply int { size_t };
@@ -331,9 +334,11 @@ static void pythonMessageCallback(CSOUND *csound,
   void SetOutputValueCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->outvalfunc == NULL)
-        if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    if(pydata->outvalfunc == NULL){
+      if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
+    }
     else Py_XDECREF(pydata->outvalfunc);
+
         pydata->outvalfunc = pyfunc;
         self->SetOutputValueCallback(PythonOutValueCallback);
         Py_XINCREF(pyfunc);
@@ -433,9 +438,12 @@ static void PythonCallback(void *p){
 %include "Soundfile.hpp"
 */
 
+
 %extend CppSound {
   void setPythonMessageCallback()
   {
     self->SetMessageCallback(pythonMessageCallback);
   }
+
+ 
 };

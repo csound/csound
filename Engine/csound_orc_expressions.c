@@ -35,7 +35,7 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 TREE* create_boolean_expression(CSOUND*, TREE*);
 TREE * create_expression(CSOUND *, TREE *);
 
-/* static int genlabs = 300; */
+static int genlabs = 300;
 
 char *create_out_arg(CSOUND *csound, char outype)
 {
@@ -503,8 +503,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     TREE *anchor = NULL, *last;
     TREE * opTree;
 
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Creating boolean expression\n");
+    /*   if (UNLIKELY(PARSER_DEBUG)) */csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
@@ -630,6 +629,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
  *   2. for else statements found, do no conditional and just link in statements
  *
  * */
+
 TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 {
     //    int32 labelCounter = 300L;
@@ -702,7 +702,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 
             if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found if-then\n");
             if (right->next != NULL) {
-              endLabelCounter = csound->genlabs++;
+              endLabelCounter = genlabs++;
             }
 
             while (ifBlockCurrent != NULL) {
@@ -750,15 +750,15 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 }
 
                 statements = tempRight->right;
-                label = create_synthetic_ident(csound, csound->genlabs);
-                labelEnd = create_synthetic_label(csound, csound->genlabs++);
+                label = create_synthetic_ident(csound, genlabs);
+                labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
-                /* printf("goto types %c %c %c %c %d\n", */
-                /*        expressionNodes->left->type, tempRight->type, */
-                /*        argtyp2(csound, expressionNodes->left->value->lexeme), */
-                /*        argtyp2(csound, tempRight->value->lexeme), */
-                /*        (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') || */
-                /*        (argtyp2(csound, tempRight->value->lexeme) == 'k')); */
+                printf("goto types %c %c %c %c %d\n",
+                       expressionNodes->left->type, tempRight->type,
+                       argtyp2(csound, expressionNodes->left->value->lexeme),
+                       argtyp2(csound, tempRight->value->lexeme),
+                       (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') ||
+                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
                 gotoToken =
                   create_goto_token(csound,
                    expressionNodes->left->value->lexeme,
@@ -775,7 +775,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
                   char nn = argtyp2(csound, tempRight->value->lexeme);
-                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 0); /* ?? JPff */
+                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2); /* ?? JPff */
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
@@ -819,6 +819,82 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           else {
             csound->Message(csound, "ERROR: Neither if-goto or if-then found!!!");
           }
+        }
+        break;
+      case T_UNTIL:
+        if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound, "Found UNTIL statement\n");
+        {
+          TREE * left = current->left;
+          TREE * right = current->right;
+          TREE* last;
+          TREE * gotoToken;
+
+          int32 topLabelCounter = genlabs++;
+          int32 endLabelCounter = genlabs++;
+          TREE *tempLeft = current->left;
+          TREE *tempRight = current->right;
+          TREE *ifBlockStart = current;
+          TREE *ifBlockCurrent = current;
+          TREE *ifBlockLast = current;
+          TREE *next = current->next;
+          TREE *statements, *label, *labelEnd;
+          int type;
+          /* *** Stage 1: Create a top label (overwriting *** */
+          {                           /* Change UNTIL to label and add IF */
+            TREE* t=create_synthetic_label(csound, topLabelCounter);
+            current->type = t->type; current->left = current->right = NULL;
+            current->value = t->value;
+            ifBlockCurrent = t;
+            ifBlockCurrent->left = tempLeft;
+            ifBlockCurrent->right = tempRight;
+            ifBlockCurrent->next = current->next;
+            ifBlockCurrent->type = T_IF;
+            current->next = t;
+          }
+          /* *** Stage 2: Boolean expression *** */
+          /* Deal with the boolean expression to variable */
+          tempRight = ifBlockCurrent->right;
+          expressionNodes =
+            ifBlockLast->next = create_boolean_expression(csound,
+                                                          ifBlockCurrent->left);
+          ifBlockLast = ifBlockLast->next;
+          /* *** Stage 3: Create the goto *** */
+          statements = tempRight;     /* the body of the loop */
+          label    = create_synthetic_ident(csound, topLabelCounter);
+          labelEnd = create_synthetic_label(csound, endLabelCounter);
+          gotoToken =
+            create_goto_token(csound,
+                              expressionNodes->left->value->lexeme,
+                              labelEnd,
+                              type =
+                              ((argtyp2(csound,
+                                        expressionNodes->left->value->lexeme)=='k')
+                               ||
+                               (argtyp2(csound,
+                                        tempRight->value->lexeme) == 'k')));
+          /* relinking */
+          tempRight = ifBlockLast->next;
+          ifBlockLast->next = gotoToken;
+          ifBlockLast->next->next = tempRight;
+          gotoToken->right->next = labelEnd;
+          gotoToken->next = statements;
+          labelEnd = create_synthetic_label(csound, endLabelCounter);
+          while (statements->next != NULL) { /* To end of body */
+            statements = statements->next;
+          }
+          {
+            TREE *topLabel = create_synthetic_ident(csound,
+                                                    topLabelCounter);
+            TREE *gotoTopLabelToken =
+              create_simple_goto_token(csound, topLabel, (type==1 ? 0 : 1));
+            if (UNLIKELY(PARSER_DEBUG))
+              csound->Message(csound, "Creating simple goto token\n");
+            statements->next = gotoTopLabelToken;
+            gotoTopLabelToken->next = labelEnd;
+          }
+          ifBlockLast = labelEnd;
+          ifBlockCurrent = tempRight->next;
         }
         break;
       default:

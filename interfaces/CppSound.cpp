@@ -23,15 +23,17 @@
 #include <cstring>
 #include <ctime>
 
-CppSound::CppSound() : Csound(),
+/*CppSound::CppSound() : Csound(),
                        go(false),
                        isCompiled(false),
                        isPerforming(false),
                        spoutSize(0)
 {
-  SetHostData((CSOUND *)0);
-}
 
+  //SetHostData((CSOUND *)0);
+
+}
+*/
 CppSound::~CppSound()
 {
 }

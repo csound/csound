@@ -36,7 +36,7 @@
 #endif
 
 ORCTOKEN** symbtab;
-extern int yyline;
+//??extern int yyline;
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 //extern int udoflag;
@@ -48,12 +48,12 @@ int get_opcode_type(OENTRY *ep)
 {
     int retVal = 0;
 
-//    if((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
+//    if ((ep->outypes == NULL || strlen(ep->outypes) == 0) &&
 //       (ep->intypes == NULL || strlen(ep->intypes) == 0)) {
 //        retVal = T_OPCODE00;
 //    } else
 
-    if(ep->outypes == NULL || strlen(ep->outypes) == 0) {
+    if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
       retVal = T_OPCODE0;
     }
     else {
@@ -79,34 +79,20 @@ void init_symbtab(CSOUND *csound)
     for (ep = (OENTRY*) csound->opcodlst; ep < (OENTRY*) csound->oplstend; ep++) {
         if (ep->dsblksiz >= 0xfffb) {
           char * polyName;
-          /* if (PARSER_DEBUG) */
-          /*   csound->Message(csound, */
-          /*           "Found PolyMorphic Opcode %s\n",ep->opname); */
-
           len = strlen(ep->opname) + 1;
           polyName = mcalloc(csound, len + 1);
           sprintf(polyName, "%s.", ep->opname);
 
           for (temp = (OENTRY*) csound->opcodlst;
                temp < (OENTRY*) csound->oplstend; temp++) {
-            if(ep != temp && strncmp(polyName, temp->opname, len) == 0) {
+            if (ep != temp && strncmp(polyName, temp->opname, len) == 0) {
               add_token(csound, ep->opname, get_opcode_type(temp));
-
-              if (PARSER_DEBUG) {
-                if(get_opcode_type(temp) == T_OPCODE) {
-                  csound->Message(csound, "Using Type T_OPCODE\n");
-                }
-                else {
-                  csound->Message(csound, "Using Type T_OPCODE0\n");
-                }
-              }
-              break;
             }
           }
 
           mfree(csound, polyName);
 
-//        if(strchr(ep->opname, '.') != NULL) {
+//        if (strchr(ep->opname, '.') != NULL) {
 //           csound->Message(csound,
 //                   "Found PolyMorphic Opcode Definition %s\n",ep->opname);
 //        }
@@ -141,8 +127,6 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "sin", T_FUNCTION);
     add_token(csound, "cos", T_FUNCTION);
     add_token(csound, "tan", T_FUNCTION);
-    add_token(csound, "qinf", T_FUNCTION);
-    add_token(csound, "qnan", T_FUNCTION);
     add_token(csound, "sininv", T_FUNCTION);
     add_token(csound, "cosinv", T_FUNCTION);
     add_token(csound, "taninv", T_FUNCTION);
@@ -215,7 +199,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     while (a!=NULL) {
       if (strcmp(a->lexeme, s)==0) {
         if (type == a->type) return a;
-        if (type!= T_FUNCTION || a->type!=T_OPCODE)
+        if (type!= T_FUNCTION || a->type!=T_OPCODE) 
           csound->Warning(csound,
                           Str("Type confusion for %s (%d,%d), replacing\n"),
                           s, type, a->type);
@@ -261,7 +245,7 @@ int isUDOAnsList(char *s)
     return 1;
 }
 
-ORCTOKEN *lookup_token(CSOUND *csound, char *s)
+ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
     unsigned int h = hash(s);
     int type = T_IDENT;
@@ -322,7 +306,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
     if (PARSER_DEBUG)
       csound->Message(csound, "NamedInstrFlag: %d\n", namedInstrFlag);
 
-    if(udoflag == -2 || namedInstrFlag == 1) {
+    if (udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }
 
@@ -343,7 +327,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s)
       else if (s[1]=='w') type = T_IDENT_GW;
       else if (s[1]=='S') type = T_IDENT_GS;
       else {
-        csound->Message(csound, Str("Unknown word type for %s on line %d\n"), s, yyline);
+        csound->Message(csound, Str("Unknown word type for %s on line %d\n"), s, csound_orcget_lineno(yyscanner));
         exit(1);
       }
     }

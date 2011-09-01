@@ -474,7 +474,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip)
       break;
     default:
       csound->Message(csound,
-                      Str("create_opcode: No rule to handle statemnent of "
+                      Str("create_opcode: No rule to handle statement of "
                           "type %d\n"), root->type);
       print_tree(csound, NULL, root);
     }
@@ -564,7 +564,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
                                             current->right->value->lexeme)];
 
 
-          /* if(current->right->type == T_INTGR) {
+          /* if (current->right->type == T_INTGR) {
              val = FL(current->right->value->value);
              } else {
              val = FL(current->right->value->fvalue);

@@ -40,7 +40,7 @@ int messi(CSOUND *csound, INMESS *p)
 }
 
 int messk(CSOUND *csound, INMESS *p){
-    if(*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
+    if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess);
     return OK;
 }
 

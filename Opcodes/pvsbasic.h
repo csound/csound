@@ -129,6 +129,7 @@ typedef struct _pvsini {
     OPDS    h;
     PVSDAT  *fout;
     MYFLT   *framesize, *olap, *winsize, *wintype, *format;
+    uint32  lastframe;
 } PVSINI;
 
 typedef struct _pvsosc {

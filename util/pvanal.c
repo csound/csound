@@ -276,9 +276,9 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (ovlp < 2 || ovlp > 64) {
-      csound->Message(csound, Str("pvanal: %d is a bad window overlap index\n"),
+      csound->Message(csound, Str("WARNING: pvanal: %d might be a bad window overlap index\n"),
                               (int) ovlp);
-      return -1;
+      /* return -1; */ /* VL: removed this restriction, which sounds a bit drastic */
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
     csound->Message(csound, Str("%ld infrsize, %ld infrInc\n"),
@@ -481,8 +481,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       total_sampsread += sampsread;
       /* zeropad to full buflen */
       if (sampsread < buflen_samps) {
-        for (i = sampsread; i < buflen_samps; i++)
-          inbuf[i] = FL(0.0);
+        /* for (i = sampsread; i < buflen_samps; i++) */
+        /*   inbuf[i] = FL(0.0); */
+        memset(inbuf, 0, sizeof(MYFLT)*buflen_samps);
         sampsread = buflen_samps;
       }
       chan_split(csound, inbuf, inbuf_c, sampsread, chans);
@@ -515,8 +516,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
 
     /* write out remaining frames */
     sampsread = fftsize * chans;
-    for (i = 0;i< sampsread;i++)
-      inbuf[i] = FL(0.0);
+    /* for (i = 0;i< sampsread;i++) */
+    /*   inbuf[i] = FL(0.0); */
+    memset(inbuf, 0, sizeof(MYFLT)*sampsread);
     chan_split(csound,inbuf,inbuf_c,sampsread,chans);
     for (i = 0; i < sampsread/chans; i+= overlap) {
       for (k = 0; k < chans; k++) {
@@ -688,15 +690,15 @@ static int init(CSOUND *csound,
     thispvx->Dd = thispvx->analWinLen + thispvx->nI + 1;
     thispvx->flag = 1;
 
-    for (i=0;i < thispvx->ibuflen;i++)
-      thispvx->input[i] = FL(0.0);
-
-    for (i=0;i < N+2;i++)
-      thispvx->anal[i] = FL(0.0);
-
-    for (i=0;i < N2+1;i++)
-      thispvx->oldInPhase[i] = FL(0.0);
-
+    /* for (i=0;i < thispvx->ibuflen;i++) */
+    /*   thispvx->input[i] = FL(0.0); */
+    memset(thispvx->input, 0, sizeof(MYFLT)*thispvx->ibuflen);
+    /* for (i=0;i < N+2;i++) */
+    /*   thispvx->anal[i] = FL(0.0); */
+    memset(thispvx->anal, 0, sizeof(MYFLT)*(N+2));
+    /* for (i=0;i < N2+1;i++) */
+    /*   thispvx->oldInPhase[i] = FL(0.0); */
+    memset(thispvx->oldInPhase, 0, sizeof(MYFLT)*(N2+1));
     *pvx = thispvx;
     return 0;
 }
@@ -756,8 +758,10 @@ static long generate_frame(CSOUND *csound, PVX *pvx,
        channels.   The subroutines fft and reals together implement
        one efficient FFT call for a real input sequence.  */
 
-    for (i = 0; i < N+2; i++)
-      *(anal + i) = FL(0.0);        /*initialize*/
+/* initialize */
+    /* for (i = 0; i < N+2; i++) */
+    /*   *(anal + i) = FL(0.0); */
+    memset(anal, 0, sizeof(MYFLT)*(N+2));
 
     j = (pvx->nI - pvx->analWinLen-1+pvx->ibuflen)%pvx->ibuflen;  /*input pntr*/
 

@@ -253,7 +253,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     /* for (i = 0; i < pvfrsiz(p); ++i) */
     /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
-    if(p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
+    if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
     return OK;
 }

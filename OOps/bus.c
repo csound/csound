@@ -72,14 +72,14 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
       return CSOUND_MEMORY;
     }
     newp = (PVSDATEXT *)mrealloc(csound, *p,  sizeof(PVSDATEXT) * newSize);
-    for(i=*oldSize; i < chans; i++){
-      pp = &newp[i];
-      pp->frame = (float *)mmalloc(csound, (fin->N+2)*sizeof(float));
-      pp->N = fin->N;
-      pp->overlap = fin->overlap;
-      pp->winsize = fin->winsize;
-      pp->wintype = fin->wintype;
-      pp->format =  fin->format;
+    for (i=*oldSize; i < chans; i++) {
+      pp             = &newp[i];
+      pp->frame      = (float *)mmalloc(csound, (fin->N+2)*sizeof(float));
+      pp->N          = fin->N;
+      pp->overlap    = fin->overlap;
+      pp->winsize    = fin->winsize;
+      pp->wintype    = fin->wintype;
+      pp->format     = fin->format;
       pp->framecount = fin->framecount;
     }
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
@@ -119,7 +119,7 @@ PUBLIC int csoundChanIKSet(CSOUND *csound, MYFLT value, int n)
 */
 PUBLIC int csoundChanOKGet(CSOUND *csound, MYFLT *value, int n)
 {
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return CSOUND_ERROR;
     if ((unsigned int)n >= (unsigned int)csound->nchanok) {
       int   err = chan_realloc(csound,
@@ -140,7 +140,7 @@ PUBLIC int csoundChanOKGet(CSOUND *csound, MYFLT *value, int n)
 */
 PUBLIC int csoundChanIASet(CSOUND *csound, const MYFLT *value, int n)
 {
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return CSOUND_ERROR;
     n *= csound->ksmps;
     if ((unsigned int)n >= (unsigned int)csound->nchania) {
@@ -162,7 +162,7 @@ PUBLIC int csoundChanIASet(CSOUND *csound, const MYFLT *value, int n)
 */
 PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
 {
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return CSOUND_ERROR;
     n *= csound->ksmps;
     if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
@@ -177,7 +177,7 @@ PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
 
 PUBLIC int csoundChanIKSetValue(CSOUND *csound, int n, MYFLT value)
 {
-    if (n < 0)
+    if (UNLIKELY(n < 0))
       return CSOUND_ERROR;
     if ((unsigned int)n >= (unsigned int)csound->nchanik) {
       int   err = chan_realloc(csound,
@@ -191,45 +191,45 @@ PUBLIC int csoundChanIKSetValue(CSOUND *csound, int n, MYFLT value)
 
 PUBLIC MYFLT csoundChanOKGetValue(CSOUND *csound, int n)
 {
-  if (n < 0)
-    return CSOUND_ERROR;
-  if ((unsigned int)n >= (unsigned int)csound->nchanok) {
-    int   err = chan_realloc(csound,
-                             &(csound->chanok), &(csound->nchanok), n + 1);
-    if (UNLIKELY(err))
-      return err;
-  }
-  return csound->chanok[n];
+    if (UNLIKELY(n < 0))
+      return CSOUND_ERROR;
+    if ((unsigned int)n >= (unsigned int)csound->nchanok) {
+      int   err = chan_realloc(csound,
+                               &(csound->chanok), &(csound->nchanok), n + 1);
+      if (UNLIKELY(err))
+        return err;
+    }
+    return csound->chanok[n];
 }
 
 PUBLIC int csoundChanIASetSample(CSOUND *csound, int n, int i, MYFLT sample)
 {
-  if (n < 0)
-    return CSOUND_ERROR;
-  n *= csound->ksmps;
-  if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
-    int   err = chan_realloc(csound, &(csound->chanoa),
-                             &(csound->nchanoa), n + csound->ksmps);
-    if (UNLIKELY(err))
-      return err;
-  }
-  csound->chanoa[n + i] = sample;
-  return CSOUND_SUCCESS;
+    if (UNLIKELY(n < 0))
+      return CSOUND_ERROR;
+    n *= csound->ksmps;
+    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+      int   err = chan_realloc(csound, &(csound->chanoa),
+                               &(csound->nchanoa), n + csound->ksmps);
+      if (UNLIKELY(err))
+        return err;
+    }
+    csound->chanoa[n + i] = sample;
+    return CSOUND_SUCCESS;
 }
 
 
 PUBLIC MYFLT csoundChanOAGetSample(CSOUND *csound, int n, int i)
 {
-  if (n < 0)
-    return CSOUND_ERROR;
-  n *= csound->ksmps;
-  if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
-    int   err = chan_realloc(csound, &(csound->chanoa),
-                             &(csound->nchanoa), n + csound->ksmps);
-    if (UNLIKELY(err))
-      return err;
-  }
-  return csound->chanoa[n + i];
+    if (UNLIKELY(n < 0))
+      return CSOUND_ERROR;
+    n *= csound->ksmps;
+    if ((unsigned int)n >= (unsigned int)csound->nchanoa) {
+      int   err = chan_realloc(csound, &(csound->chanoa),
+                               &(csound->nchanoa), n + csound->ksmps);
+      if (UNLIKELY(err))
+        return err;
+    }
+    return csound->chanoa[n + i];
 }
 
 
@@ -259,7 +259,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
     memcpy(&fout[n], fin, sizeof(PVSDATEXT)-sizeof(float *));
-    if (size > 0)
+    if (LIKELY(size > 0))
        memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
@@ -287,7 +287,7 @@ PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
     }
     size = fout->N < fin[n].N ? fout->N : fin[n].N;
     memcpy(fout, &fin[n], sizeof(PVSDATEXT)-sizeof(float *));
-    if (size > 0)
+    if (LIKELY(size > 0))
       memcpy(fout->frame, fin[n].frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
@@ -1415,7 +1415,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
         tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
         p->evtbuf = (tmp != 0 ? tmp : -1);
       }
-      else if (p->keyDown != NULL)
+      else if (p->OUTOCOUNT>1 && p->keyDown != NULL)
         p->evtbuf = -1 - keyCode;
       if (keyCode < 0)
         keyCode = 65535 - keyCode;
@@ -1425,7 +1425,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
     }
     *(p->ans) = (MYFLT) ((keyCode & (int)0xFFFF) ?
                          (keyCode & (int)0xFFFF) : -1);
-    if (p->keyDown != NULL)
+    if (p->OUTOCOUNT>1 && p->keyDown != NULL)
       *(p->keyDown) = (MYFLT) ((keyCode > 0 && keyCode < 65536) ? 1 : 0);
 
     return OK;

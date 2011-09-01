@@ -623,7 +623,7 @@ int* getRemoteSocksIn(CSOUND *csound)
 
 char remoteID(CSOUND *csound)
 {
-    return (char)0;
+    return '\0';
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
