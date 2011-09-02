@@ -70,16 +70,18 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the Python opcodes, the Python interfaces
     # to Csound, or CsoundAC, Python 2.5 is required.
-    customCPPPATH.append(r'C:\utah\opt\Python26\include')
-    customLIBPATH.append(r'C:\utah\opt\Python26\libs')
+    customCPPPATH.append(r'C:\utah\opt\Python27\include')
+    customLIBPATH.append(r'C:\utah\opt\Python27\libs')
     ################################################################
     # If you want to build CsoundVST, you need the 
     # Steinberg VST SDK version 2.4.
-    customCPPPATH.append(r'C:\utah\opt\vstsdk2.4')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4\public.sdk\source\vst2.x')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4\pluginterfaces\vst2.x')    
     ################################################################
     # If you want to build CsoundAC, you need the 
     # boost C++ libraries.
-    customCPPPATH.append(r'C:\utah\opt\boost_1_44_0')
+    customCPPPATH.append(r'C:\utah\opt\boost_1_47_0')
     ################################################################
     # If you want to build scoregen, you need the include
     # path to VST MIDI plugin SDK header files. 
