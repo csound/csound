@@ -139,6 +139,9 @@ else:
 commandOptions.Add('buildPythonOpcodes',
     'Set to 1 to build Python opcodes',
     '0')
+commandOptions.Add('buildLuaOpcodes',
+    'Set to 1 to build Lua opcodes',
+    '0')
 commandOptions.Add('prefix',
     'Base directory for installs. Defaults to /usr/local.',
     '/usr/local')
@@ -1696,6 +1699,7 @@ else:
         if compilerGNU():
             widgetsEnvironment.Append(CPPFLAGS = Split('-DWIN32 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT -DFL_DLL -DFL_LIBRARY'))
             widgetsEnvironment.Append(LIBS = Split('fltk_images fltk_png fltk_jpeg fltk_z fltk'))
+            # widgetsEnvironment.Append(LIBS = Split('mgwfltknox_images-1.3 mgwfltknox-1.3 mgwfltknox_forms-1.3'))
         else:
             widgetsEnvironment.Append(LIBS = Split('fltkimages fltkpng fltkz fltkjpeg fltk'))
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -2039,6 +2043,22 @@ else:
                                ['Opcodes/py/pythonopcodes.c'])
     if getPlatform() == 'win32' and pythonLibs[0] < 'python24':
         Depends(pythonOpcodes, pythonImportLibrary)
+
+# Python opcodes
+
+if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0' and getPlatform() != 'darwin'):
+    print "CONFIGURATION DECISION: Not building Lua opcodes."
+else:
+    print "CONFIGURATION DECISION: Building Lua opcodes."
+    luaEnvironment = pluginEnvironment.Clone()
+    luaEnvironment.Append(LIBS = ['lua51'])
+    if getPlatform() == 'linux':
+        luaEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+    elif getPlatform() == 'win32':
+        luaEnvironment['ENV']['PATH'] = os.environ['PATH']
+        luaEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    luaOpcodes = makePlugin(luaEnvironment, 'LuaCsound',
+                               ['Opcodes/LuaCsound.cpp'])
 
 #############################################################################
 #

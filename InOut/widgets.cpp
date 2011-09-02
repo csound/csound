@@ -21,6 +21,9 @@
   02111-1307 USA
 */
 
+#if defined(WIN32)
+#include <FL/Fl_Output.H>
+#endif
 #include "widglobals.h"
 #include <FL/x.H>
 
