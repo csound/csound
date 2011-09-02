@@ -88,8 +88,8 @@ if sys.platform[:3] == 'win':
     customCPPPATH.append(r'C:\utah\opt\VSTModuleArchitectureSDK\pluginterfaces\base')    
     ################################################################
     # If you want to build Lua interfaces, you need Lua.
-    customCPPPATH.append(r'C:\utah\opt\luajit-2.0\src')
-    customLIBPATH.append(r'C:\utah\opt\luajit-2.0\src')
+    customCPPPATH.append(r'C:\utah\opt\luajit\src')
+    customLIBPATH.append(r'C:\utah\opt\luajit\src')
     ################################################################
     # If you want to build Tcl\Tk interfaces
     # or Tclcsound, you need Tcl\Tk.
@@ -100,8 +100,8 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the FluidSynth opcodes,
     # you need the FluidSynth DLL (not .lib).
-    customLIBPATH.append(r'C:\utah\opt\fluidsynth\src')
-    customCPPPATH.append(r'C:\utah\opt\fluidsynth\include')
+    customLIBPATH.append(r'C:\utah\opt\fluidsynth\trunk\fluidsynth\src')
+    customCPPPATH.append(r'C:\utah\opt\fluidsynth\trunk\fluidsynth\include')
     # And the dsound library from the Microsoft DirectX SDK.
     customLIBPATH.append(r'C:\utah\opt\directx-sdk-2010-06\Lib\x86')
     ################################################################
