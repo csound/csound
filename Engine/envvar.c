@@ -790,7 +790,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     cwd = mmalloc(csound, 512);
     getcwd(cwd, 512);
 
-    if(lastIndex == NULL) {
+    if (lastIndex == NULL) {
         return cwd;
     }
 

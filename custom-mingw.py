@@ -70,24 +70,26 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the Python opcodes, the Python interfaces
     # to Csound, or CsoundAC, Python 2.5 is required.
-    customCPPPATH.append(r'C:\utah\opt\Python26\include')
-    customLIBPATH.append(r'C:\utah\opt\Python26\libs')
+    customCPPPATH.append(r'C:\utah\opt\Python27\include')
+    customLIBPATH.append(r'C:\utah\opt\Python27\libs')
     ################################################################
     # If you want to build CsoundVST, you need the 
     # Steinberg VST SDK version 2.4.
-    customCPPPATH.append(r'C:\utah\opt\vstsdk2.4')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4\public.sdk\source\vst2.x')    
+    customCPPPATH.append(r'C:\utah\opt\Steinberg\vstsdk2.4\pluginterfaces\vst2.x')    
     ################################################################
     # If you want to build CsoundAC, you need the 
     # boost C++ libraries.
-    customCPPPATH.append(r'C:\utah\opt\boost_1_44_0')
+    customCPPPATH.append(r'C:\utah\opt\boost_1_47_0')
     ################################################################
     # If you want to build scoregen, you need the include
     # path to VST MIDI plugin SDK header files. 
     customCPPPATH.append(r'C:\utah\opt\VSTModuleArchitectureSDK\pluginterfaces\base')    
     ################################################################
     # If you want to build Lua interfaces, you need Lua.
-    customCPPPATH.append(r'C:\utah\opt\luajit-2.0\src')
-    customLIBPATH.append(r'C:\utah\opt\luajit-2.0\src')
+    customCPPPATH.append(r'C:\utah\opt\luajit\src')
+    customLIBPATH.append(r'C:\utah\opt\luajit\src')
     ################################################################
     # If you want to build Tcl\Tk interfaces
     # or Tclcsound, you need Tcl\Tk.
@@ -98,8 +100,8 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the FluidSynth opcodes,
     # you need the FluidSynth DLL (not .lib).
-    customLIBPATH.append(r'C:\utah\opt\fluidsynth\src')
-    customCPPPATH.append(r'C:\utah\opt\fluidsynth\include')
+    customLIBPATH.append(r'C:\utah\opt\fluidsynth\trunk\fluidsynth\src')
+    customCPPPATH.append(r'C:\utah\opt\fluidsynth\trunk\fluidsynth\include')
     # And the dsound library from the Microsoft DirectX SDK.
     customLIBPATH.append(r'C:\utah\opt\directx-sdk-2010-06\Lib\x86')
     ################################################################

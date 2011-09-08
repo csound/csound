@@ -29,7 +29,7 @@
 static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 {
     MYFLT *tmp;
-    int32  nsmps;
+    int32 nsmps;
     int   i;
 
     /* swap buffer pointers */
@@ -62,7 +62,7 @@ static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
         /* convert sample count to mono samples and read file */
         nsmps *= (int32) p->nChannels;
         i = (int)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
-        if (i < 0)  /* error ? */
+        if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
     }
@@ -81,13 +81,13 @@ static inline void diskin2_get_sample(DISKIN2 *p, int32 fPos, int n, MYFLT scl)
     int  bufPos, i;
 
     if (p->wrapMode) {
-      if (fPos >= p->fileLength)
+      if (UNLIKELY(fPos >= p->fileLength))
         fPos -= p->fileLength;
-      else if (fPos < 0L)
+      else if (UNLIKELY(fPos < 0L))
         fPos += p->fileLength;
     }
     bufPos = (int)(fPos - p->bufStartPos);
-    if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
+    if (UNLIKELY((unsigned int) bufPos >= (unsigned int) p->bufSize)) {
       /* not in current buffer frame, need to read file */
       diskin2_read_buffer(p, bufPos);
       /* recalculate buffer position */
@@ -262,7 +262,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->fileLength = (int32) sfinfo.frames;
     p->warpScale = 1.0;
     if ((int)(csound->esr + FL(0.5)) != sfinfo.samplerate) {
-      if (p->winSize != 1) {
+      if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
         p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
       }
@@ -274,7 +274,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     }
     /* wrap mode */
     p->wrapMode = (*(p->iWrapMode) == FL(0.0) ? 0 : 1);
-    if (p->fileLength < 1L)
+    if (UNLIKELY(p->fileLength < 1L))
       p->wrapMode = 0;
     /* initialise read position */
     pos = (double)*(p->iSkipTime) * (double)csound->esr * p->warpScale;
@@ -282,7 +282,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
       p->pos_frac %= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
-      if (p->pos_frac < (int64_t)0)
+      if (UNLIKELY(p->pos_frac < (int64_t)0))
         p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
     }
     p->pos_frac_inc = (int64_t)0;
@@ -324,7 +324,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
 {
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32    ndx;
+    int32   ndx;
     int     i, nn, chn, wsized2, warp;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
@@ -440,7 +440,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
             d += 1.0; v += c * x; x += v;
             /* sample 1 */
             /* avoid division by zero */
-            if (frac_d > 0.99997) {
+            if (UNLIKELY(frac_d > 0.99997)) {
               a1 = onedwarp;
             }
             else {
@@ -595,7 +595,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms_.msglevel & 7) == 7) {
+    if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
       csound->Message(csound, Str("soundin: opened '%s':\n"
                                   "         %d Hz, %d channel(s), "
                                   "%ld sample frames\n"),
@@ -670,8 +670,8 @@ int soundin(CSOUND *csound, SOUNDIN_ *p)
       else {
         bufPos *= p->nChannels;
         i = 0;
-        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
-        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+        /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
+        /* p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++]; */
         do {
           p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
         } while (i < p->nChannels);

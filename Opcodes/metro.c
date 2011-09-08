@@ -65,7 +65,7 @@ static int metro_set(CSOUND *csound, METRO *p)
 static int metro(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
-    if(phs == 0.0 && p->flag) {
+    if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
       p->flag = 0;
     }

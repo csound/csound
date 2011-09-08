@@ -53,14 +53,14 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
 
       default:
 
-        if(current->right != NULL) {
+        if (current->right != NULL) {
           if (PARSER_DEBUG) csound->Message(csound, "Found Statement.\n");
 
-          if(current->type == S_ASSIGN && previous != NULL) {
+          if (current->type == S_ASSIGN && previous != NULL) {
             /* S_ASSIGN should be guaranteed to have left and right
              * arg by the time it gets here */
-            if(previous->left != NULL && previous->left->value != NULL) {
-              if(strcmp(previous->left->value->lexeme,
+            if (previous->left != NULL && previous->left->value != NULL) {
+              if (strcmp(previous->left->value->lexeme,
                         current->right->value->lexeme) == 0) {
 
               }
@@ -71,7 +71,7 @@ TREE* csound_orc_optimize(CSOUND * csound, TREE *root)
         }
       }
 
-      if(anchor == NULL) {
+      if (anchor == NULL) {
         anchor = current;
       }
 

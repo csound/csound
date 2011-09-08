@@ -51,6 +51,7 @@ extern "C" {
 #endif
 #ifdef WIN32
 # include <windows.h>
+# include <winsock2.h>
 #endif
 #include <math.h>
 #include "oload.h"
@@ -868,10 +869,12 @@ extern "C" {
 
   static void signal_handler(int sig)
   {
+#if defined(SIGPIPE)
       if (sig == (int) SIGPIPE) {
         psignal(sig, "Csound ignoring SIGPIPE");
         return;
       }
+#endif
       psignal(sig, "Csound tidy up");
       if ((sig == (int) SIGINT || sig == (int) SIGTERM) && !exitNow_) {
         exitNow_ = -1;
@@ -1217,7 +1220,7 @@ extern "C" {
       int index = 0;
       THREADINFO *current = csound->multiThreadedThreadInfo;
 
-      if(current == NULL) {
+      if (current == NULL) {
         return -1;
       }
 
