@@ -73,13 +73,13 @@ static inline void diskin_get_sample(SOUNDINEW *p, int32 fPos, int n, MYFLT scl)
     int  bufPos, i;
 
     if (p->wrapMode) {
-      if (fPos >= p->fileLength)
+      if (UNLIKELY(fPos >= p->fileLength))
         fPos -= p->fileLength;
-      else if (fPos < 0L)
+      else if (UNLIKELY(fPos < 0L))
         fPos += p->fileLength;
     }
     bufPos = (int) (fPos - p->bufStartPos);
-    if (bufPos < 0 || bufPos > p->bufSize) {
+    if (UNLIKELY(bufPos < 0 || bufPos > p->bufSize)) {
       /* not in current buffer frame, need to read file */
       diskin_read_buffer(p, bufPos);
       /* recalculate buffer position */
@@ -97,8 +97,8 @@ static inline void diskin_get_sample(SOUNDINEW *p, int32 fPos, int n, MYFLT scl)
     else {
       bufPos *= p->nChannels;
       i = 0;
-      p->aOut[i++][n] += scl * (MYFLT) p->buf[bufPos++];
-      p->aOut[i++][n] += scl * (MYFLT) p->buf[bufPos++];
+      /* p->aOut[i++][n] += scl * (MYFLT) p->buf[bufPos++]; */
+      /* p->aOut[i++][n] += scl * (MYFLT) p->buf[bufPos++]; */
       do {
         p->aOut[i++][n] += scl * (MYFLT) p->buf[bufPos++];
       } while (i < p->nChannels);
@@ -250,7 +250,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     csound->Warning(csound, Str("bufsize %d\n"), p->bufSize);
     p->bufStartPos = -((int32)(p->bufSize << 1));
 
-    if(p->auxch.auxp == NULL ||
+    if (p->auxch.auxp == NULL ||
        p->auxch.size < 2*p->bufSize*sizeof(MYFLT)*p->nChannels)
       csound->AuxAlloc(csound,2*sizeof(MYFLT)*p->bufSize*p->nChannels, &p->auxch);
     p->buf = (float *) p->auxch.auxp;
@@ -436,7 +436,7 @@ int soundout(CSOUND *csound, SNDOUT *p)
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundout: not initialised"));
     for (nn = 0; nn < nsamps; nn++) {
-      if (p->c.outbufp >= p->c.bufend) {
+      if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }
@@ -453,7 +453,7 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
     if (UNLIKELY(p->c.sf == NULL))
       return csound->PerfError(csound, Str("soundouts: not initialised"));
     for (nn = 0; nn < nsamps; nn++) {
-      if (p->c.outbufp >= p->c.bufend) {
+      if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
         sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }

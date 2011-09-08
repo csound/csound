@@ -28,8 +28,8 @@
 
 #include "csdl.h"
 
-#if !defined(SWIG) && defined(HAVE_VST_SDK)
-#include "../../../frontends/CsoundVST/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.h"
+#if !defined(SWIG) && defined(CS_VSTHOST)
+#include <audioeffectx.h>
 #endif
 
 #include <vector>

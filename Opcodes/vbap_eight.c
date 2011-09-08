@@ -200,7 +200,7 @@ int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT *p)
     p->ls_am     = (int) ls_table[1];
     p->ls_set_am = (int) ls_table[2];
     ptr = &(ls_table[3]);
-    if(!p->ls_set_am)
+    if (!p->ls_set_am)
       return csound->InitError(csound, Str("vbap system NOT configured. \
            \nMissing vbaplsinit opcode in orchestra?"));
 
@@ -485,9 +485,9 @@ int vbap_EIGHT_moving_init(CSOUND *csound, VBAP_EIGHT_MOVING *p)
     p->ls_am = (int) ls_table[1];
     p->ls_set_am = (int) ls_table[2];
     ptr = &(ls_table[3]);
-    if(!p->ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \
-           \nMissing vbaplsinit opcode in orchestra?"));
+    if (!p->ls_set_am)
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
+                                           " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp == NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));

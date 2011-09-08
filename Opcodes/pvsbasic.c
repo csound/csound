@@ -443,7 +443,7 @@ int pvstanal(CSOUND *csound, PVST *p)
 
       /* audio samples are stored in a function table */
       ft = csound->FTnp2Find(csound,p->knum);
-      if(ft == NULL){
+      if (ft == NULL){
 	csound->PerfError(csound, "could not find table number %d\n", (int) *p->knum);
 	return NOTOK;
 
@@ -462,7 +462,7 @@ int pvstanal(CSOUND *csound, PVST *p)
                                              "sound file channels"));
 
       sizefrs = size/nchans;
-      if(!*p->wrap && spos >= sizefrs) {
+      if (!*p->wrap && spos >= sizefrs) {
         for (j=0; j < nchans; j++) {
           memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
            p->fout[j]->framecount++;
@@ -501,7 +501,7 @@ int pvstanal(CSOUND *csound, PVST *p)
           if (post < 0 ||post >= size ) in = 0.0;
           else in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
           bwin[i] = in * win[i];  /* window it */
-          if(*p->konset){
+          if (*p->konset){
           post = (int) pos + hsize;
           post *= nchans;
           post += j;
@@ -517,7 +517,7 @@ int pvstanal(CSOUND *csound, PVST *p)
         */
         csound->RealFFT(csound, bwin, N);
         csound->RealFFT(csound, fwin, N);
-        if(*p->konset){
+        if (*p->konset){
         csound->RealFFT(csound, nwin, N);
         tmp_real = tmp_im = (MYFLT) 1e-20;
         for (i=2; i < N; i++) {
@@ -753,7 +753,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
           cbin = (int)MYFLT2LRND(cfbin);
           if (cbin != 0)     {
             for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
-            if(i-cfbin == 0) a = 1;
+            if (i-cfbin == 0) a = 1;
 	    else a = sin(i-cfbin)/(i-cfbin);
             fout[i].re = amp*a*a*a;
             fout[i].im = freq;
@@ -786,7 +786,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
          if (cbin != 0)     {
         for (i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++) {
           k = i<<1;
-          if(i-cfbin == 0) a = 1;
+          if (i-cfbin == 0) a = 1;
           else a = sin(i-cfbin)/(i-cfbin);
           fout[k] = amp*a*a*a;
           fout[k+1] = freq;
@@ -1719,18 +1719,18 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
         int newchan;
         newchan  = (int) ((chan * pscal + cshift)+0.5) << 1;
-        if(i >= lowest) {
-          if(newchan < N && newchan > 0)
+        if (i >= lowest) {
+          if (newchan < N && newchan > 0)
             fout[newchan] = fin[newchan]*fenv[i/2];
         } else fout[i] = fin[i];
         fout[i + 1] = fin[i + 1];
       }
 
       for (i = lowest; i < N; i += 2) {
-        if(isnan(fout[i])) fout[i] = 0.0f;
+        if (isnan(fout[i])) fout[i] = 0.0f;
         else fout[i] *= g;
         binf = (i/2)*sr/N;
-        if(fenv[i/2] && binf < pscal*sr/2+pshift )
+        if (fenv[i/2] && binf < pscal*sr/2+pshift )
           fin[i] *= fenv[i/2];
       }
 
@@ -2060,7 +2060,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     int size = ft->flen;
     MYFLT *ftab = ft->ftable;
 
-    if(ft == NULL) {
+    if (ft == NULL) {
       csound->PerfError(csound, "could not find table number %d\n", (int) *p->ftab);
       return NOTOK;
     }
@@ -2075,7 +2075,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
         for (i=0; i < N; i+=2) {
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
         }
-        if(keepform > 2) { /* experimental mode 3 */
+        if (keepform > 2) { /* experimental mode 3 */
           int j;
           int w = 5;
           for (i=0; i < w; i++) ceps[i] = fenv[i];
@@ -2089,13 +2089,13 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
             fenv[i] = exp(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
-          /* if(max)
+          /* if (max)
              for (i=0; i<N; i+=2) {
              fenv[i/2]/=max;
              }*/
         }
         else {  /* new modes 1 & 2 */
-          if(coefs < 1) coefs = 80;
+          if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
             for (i=0; i < N; i+=2) {
@@ -2106,10 +2106,10 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
             for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
             csound->ComplexFFT(csound, ceps, N/2);
             for (i=0; i < N; i+=2) {
-              if(keepform > 1) {
-                if(fenv[i/2] < ceps[i])
+              if (keepform > 1) {
+                if (fenv[i/2] < ceps[i])
                   fenv[i/2] = ceps[i];
-                if((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
+                if ((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
               }
               else
                 {
@@ -2118,12 +2118,12 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
                 }
             }
           }
-          if(keepform > 1)
+          if (keepform > 1)
             for (i=0; i<N; i+=2) {
               fenv[i/2] = exp(ceps[i]);
               max = max < fenv[i/2] ? fenv[i/2] : max;
             }
-          /* if(max)
+          /* if (max)
              for (i=0; i<N/2; i++) fenv[i]/=max; */
         }
       }

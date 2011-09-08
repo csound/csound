@@ -388,7 +388,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     print_tree_i(csound, l->left,n+1);
     print_tree_i(csound, l->right,n+1);
 
-    if(l->next != NULL) {
+    if (l->next != NULL) {
         print_tree_i(csound, l->next, n);
     }
 }
@@ -689,7 +689,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 }
 
 char tree_argtyp(CSOUND *csound, TREE *tree) {
-    if(tree->type == T_INTGR || tree->type == T_NUMBER) {
+    if (tree->type == T_INTGR || tree->type == T_NUMBER) {
       return 'i';
     }
 

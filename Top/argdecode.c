@@ -841,12 +841,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->noDefaultPaths = 1;
       return 1;
     }
-    else if(!(strncmp (s, "num-threads=", 12))) {
+    else if (!(strncmp (s, "num-threads=", 12))) {
       s += 12 ;
       O->numThreads = atoi(s);
       return 1;
     }
-    else if(!(strcmp (s, "syntax-check-only"))) {
+    else if (!(strcmp (s, "syntax-check-only"))) {
       O->syntaxCheckOnly = 1;
       return 1;
     }

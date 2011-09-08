@@ -169,7 +169,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
                                CSFTYPE_OPTIONS, 0);
-        if(fd != NULL)
+        if (fd != NULL)
           csound->Message(csound, Str("Reading options from $HOME/.csoundrc\n"));
         mfree(csound, s);
       }
@@ -210,7 +210,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         /* Add directory of CSD file to search paths before orchname gets
          * replaced with temp orch name if default paths is enabled */
-        if(!O->noDefaultPaths) {
+        if (!O->noDefaultPaths) {
           fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
           csoundAppendEnv(csound, "SADIR", fileDir);
           csoundAppendEnv(csound, "SSDIR", fileDir);
@@ -298,7 +298,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
       csoundNotifyFileOpened(csound, sconame, CSFTYPE_SCORE, 1, 1);
       csound->tempStatus |= csScoInMask;
-    } else if(!csdFound && !O->noDefaultPaths){
+    } else if (!csdFound && !O->noDefaultPaths){
         /* Add directory of SCO file to search paths*/
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
         csoundAppendEnv(csound, "SADIR", fileDir);
@@ -308,7 +308,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
 
     /* Add directory of ORC file to search paths*/
-    if(!csdFound && !O->noDefaultPaths) {
+    if (!csdFound && !O->noDefaultPaths) {
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);

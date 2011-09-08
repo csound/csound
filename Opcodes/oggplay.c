@@ -98,7 +98,7 @@ int oggplay_perf (CSOUND *csound, OGGPLAY * p)
               csound->Warning(csound,
                               Str("oggplay: Only one logical "
                                   "bitstream currently supported\n"));
-            if(ret < 0 )
+            if (ret < 0 )
               csound->Warning(csound,
                               Str("oggplay: Warning hole in data\n"));
             p->pint = (int16_t*) p->pbuf.auxp;

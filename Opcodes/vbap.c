@@ -128,12 +128,12 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
 
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
     gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
-    if(dim==3) gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
+    if (dim==3) gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
 
-      for (i=0;i<ls_amount;i++) {
+    for (i=0;i<ls_amount;i++) {
       if (gains[i]<LOWEST_ACCEPTABLE_WT)
         gains[i]=FL(0.0);
-        }
+    }
 }
 
 void scale_angles(ANG_VEC *avec)
