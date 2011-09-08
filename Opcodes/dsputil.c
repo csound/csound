@@ -405,7 +405,7 @@ void PreWarpSpec(
       pkcnt--;
       for (j = 1; j <= pkcnt; j++) {
         posi = size / 2 - pkcnt + j - 1;
-        if(posi > 0 && posi < size)
+        if (posi > 0 && posi < size)
           dsputil_env[posi] = pkOld + slope * j;
       }
     }

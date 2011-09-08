@@ -966,7 +966,7 @@ int pvoc_fseek(CSOUND *csound, int ifd, int offset)
       csound->pvErrorCode = -37;
       return -1;
     }
-    if(offset == 1)
+    if (offset == 1)
     skipframes = (int32) p->fmtdata.nChannels;
     else skipframes = offset;
     skipsize = p->pvdata.dwFrameAlign * skipframes;

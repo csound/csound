@@ -131,7 +131,7 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
         *p->ktrig = curr_val * p->curr_unit_time;
       }
       else {
-        if(p->first_flag) {
+        if (p->first_flag) {
           *p->ktrig = p->table[p->ndx];
           p->first_flag=0;
         }
@@ -236,7 +236,7 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
         *p->ktrig = curr_val * p->curr_unit_time;
       }
       else {
-        if(p->first_flag) {
+        if (p->first_flag) {
           *p->ktrig = p->table[p->ndx];
           p->first_flag = 0;
         }

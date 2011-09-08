@@ -741,7 +741,7 @@ int lpformant(CSOUND *csound, LPFORM *p)
         pm = coefp[i];
         pp = coefp[i+1];
         cfs[j] = pp*sr/TWOPI;
-        /* if(pm > 1.0) csound->Message(csound,
+        /* if (pm > 1.0) csound->Message(csound,
                                         Str("warning unstable pole %f\n"), pm); */
         bws[j] = -log(pm)*sr/PI;
       }
@@ -753,10 +753,10 @@ int lpformant(CSOUND *csound, LPFORM *p)
     }
 
     j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
-    if(bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
-    if(bws[j] < 1.0) bws[j] = 1.0;
-    if(cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
-    if(cfs[j] < 0) cfs[j] = -cfs[j];
+    if (bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
+    if (bws[j] < 1.0) bws[j] = 1.0;
+    if (cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
+    if (cfs[j] < 0) cfs[j] = -cfs[j];
     *p->kcf = cfs[j];
     *p->kbw = bws[j];
 

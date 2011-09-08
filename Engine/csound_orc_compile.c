@@ -564,7 +564,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root)
                                             current->right->value->lexeme)];
 
 
-          /* if(current->right->type == T_INTGR) {
+          /* if (current->right->type == T_INTGR) {
              val = FL(current->right->value->value);
              } else {
              val = FL(current->right->value->fvalue);
