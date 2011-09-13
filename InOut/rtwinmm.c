@@ -101,13 +101,13 @@ static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
       dev->nBuffers = 2;
     if (dev->enable_buf_timer)
       dev->nBuffers *= 2;
-    if (dev->nBuffers > MAXBUFFERS) {
+    if (UNLIKELY(dev->nBuffers > MAXBUFFERS)) {
       dev->nBuffers = 0;
       return err_msg(csound, Str("too many buffers"));
     }
     for (i = 0; i < dev->nBuffers; i++) {
       ptr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, (SIZE_T) bufBytes);
-      if (ptr == (HGLOBAL) NULL) {
+      if (UNLIKELY(ptr == (HGLOBAL) NULL)) {
         dev->nBuffers = i;
         return err_msg(csound, Str("memory allocation failure"));
       }
@@ -122,7 +122,7 @@ static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
         err = (int) waveInPrepareHeader(dev->inDev,
                                         (LPWAVEHDR) &(dev->buffers[i]),
                                         sizeof(WAVEHDR));
-      if (err != MMSYSERR_NOERROR)
+      if (UNLIKELY(err != MMSYSERR_NOERROR))
         return err_msg(csound, Str("failed to prepare buffers"));
       dev->buffers[i].dwFlags |= WHDR_DONE;
     }
@@ -180,7 +180,7 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     MYFLT   tmp_f;
     int     tmp_i;
     int n;
-for (n=0; n<nSmps; n++){
+    for (n=0; n<nSmps; n++) {
       int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
       tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
@@ -197,7 +197,7 @@ static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf, int16_t *outBuf, i
     MYFLT   tmp_f;
     int     tmp_i;
     int n;
-for (n=0; n<nSmps; n++){
+    for (n=0; n<nSmps; n++){
       tmp_f = inBuf[n] * (MYFLT) 0x8000;
       tmp_i = (int) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
@@ -212,7 +212,7 @@ static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
     int64_t tmp_i;
     (void) seed;
     int n;
-for (n=0; n<nSmps; n++){
+    for (n=0; n<nSmps; n++) {
       tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
       tmp_i = (int64_t) (tmp_f + (tmp_f < FL(0.0) ? FL(-0.5) : FL(0.5)));
       if (tmp_i < -((int64_t) 0x80000000UL))
@@ -262,7 +262,7 @@ static int open_device(CSOUND *csound,
     int             i, ndev, devNum, conv_idx;
     DWORD           openFlags = CALLBACK_NULL;
 
-    if (parm->devName != NULL)
+    if (UNLIKELY(parm->devName != NULL))
       return err_msg(csound, Str("Must specify a device number, not a name"));
     if (set_format_params(csound, &wfx, parm) != 0)
       return -1;
@@ -279,9 +279,9 @@ static int open_device(CSOUND *csound,
                            sizeof(WAVEOUTCAPSA));
         csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
-      if (ndev < 1)
+      if (UNLIKELY(ndev < 1))
         return err_msg(csound, Str("No output device is available"));
-      if (devNum < 0 || devNum >= ndev) {
+      if (UNLIKELY(devNum < 0 || devNum >= ndev)) {
         return err_msg(csound, Str("Device number is out of range"));
       }
       waveOutGetDevCapsA((unsigned int) devNum, (LPWAVEOUTCAPSA) &caps,
@@ -298,9 +298,9 @@ static int open_device(CSOUND *csound,
                           sizeof(WAVEINCAPSA));
         csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
-      if (ndev < 1)
+      if (UNLIKELY(ndev < 1))
         return err_msg(csound, Str("no input device is available"));
-      if (devNum < 0 || devNum >= ndev) {
+      if (UNLIKELY(devNum < 0 || devNum >= ndev)) {
         return err_msg(csound, Str("device number is out of range"));
       }
       waveInGetDevCapsA((unsigned int) devNum, (LPWAVEINCAPSA) &caps,
@@ -311,7 +311,7 @@ static int open_device(CSOUND *csound,
     p = (rtWinMMGlobals*)
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
     dev = (rtWinMMDevice*) malloc(sizeof(rtWinMMDevice));
-    if (dev == NULL)
+    if (UNLIKELY(dev == NULL))
       return err_msg(csound, Str("memory allocation failure"));
     memset(dev, 0, sizeof(rtWinMMDevice));
     conv_idx = (parm->sampleFormat == AE_SHORT ?
@@ -320,9 +320,9 @@ static int open_device(CSOUND *csound,
       p->outDev = dev;
       csound->rtPlay_userdata = (void*) dev;
       dev->enable_buf_timer = p->enable_buf_timer;
-      if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
-                      (LPWAVEFORMATEX) &wfx, 0, 0,
-                      openFlags) != MMSYSERR_NOERROR) {
+      if (UNLIKELY(waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
+                               (LPWAVEFORMATEX) &wfx, 0, 0,
+                               openFlags) != MMSYSERR_NOERROR)) {
         dev->outDev = (HWAVEOUT) 0;
         return err_msg(csound, Str("failed to open device"));
       }
@@ -349,9 +349,9 @@ static int open_device(CSOUND *csound,
       csound->rtRecord_userdata = (void*) dev;
       /* disable playback timer in full-duplex mode */
       dev->enable_buf_timer = p->enable_buf_timer = 0;
-      if (waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
-                     (LPWAVEFORMATEX) &wfx, 0, 0,
-                     openFlags) != MMSYSERR_NOERROR) {
+      if (UNLIKELY(waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
+                              (LPWAVEFORMATEX) &wfx, 0, 0,
+                              openFlags) != MMSYSERR_NOERROR)) {
         dev->inDev = (HWAVEIN) 0;
         return err_msg(csound, Str("failed to open device"));
       }
@@ -364,7 +364,7 @@ static int open_device(CSOUND *csound,
                   (void (*)(int, void*, MYFLT*)) float_to_MYFLT;  break;
       }
     }
-    if (allocate_buffers(csound, dev, parm, is_playback) != 0)
+    if (UNLIKELY(allocate_buffers(csound, dev, parm, is_playback) != 0))
       return -1;
     if (!is_playback)
       waveInStart(dev->inDev);
@@ -531,13 +531,13 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 
     *userData = NULL;
     ndev = (int) midiInGetNumDevs();
-    if (ndev < 1) {
+    if (UNLIKELY(ndev < 1)) {
       csound->ErrorMsg(csound, Str("rtmidi: no input devices are available"));
       return -1;
     }
     if (devName != NULL && devName[0] != '\0' &&
         strcmp(devName, "default") != 0) {
-      if (devName[0] < '0' || devName[0] > '9') {
+      if (UNLIKELY(devName[0] < '0' || devName[0] > '9')) {
         csound->ErrorMsg(csound, Str("rtmidi: must specify a device number, "
                                      "not a name"));
         return -1;
@@ -549,13 +549,13 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
       midiInGetDevCaps((unsigned int) i, &caps, sizeof(MIDIINCAPS));
       csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
     }
-    if (devnum < 0 || devnum >= ndev) {
+    if (UNLIKELY(devnum < 0 || devnum >= ndev)) {
       csound->ErrorMsg(csound,
                        Str("rtmidi: input device number is out of range"));
       return -1;
     }
     p = (RTMIDI_MME_GLOBALS*) calloc((size_t) 1, sizeof(RTMIDI_MME_GLOBALS));
-    if (p == NULL) {
+    if (UNLIKELY(p == NULL)) {
       csound->ErrorMsg(csound, Str("rtmidi: memory allocation failure"));
       return -1;
     }
@@ -564,9 +564,9 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     midiInGetDevCaps((unsigned int) devnum, &caps, sizeof(MIDIINCAPS));
     csound->Message(csound, Str("Opening MIDI input device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
-    if (midiInOpen(&(p->inDev), (unsigned int) devnum,
-                   (DWORD) midi_in_handler, (DWORD) p, CALLBACK_FUNCTION)
-        != MMSYSERR_NOERROR) {
+    if (UNLIKELY(midiInOpen(&(p->inDev), (unsigned int) devnum,
+                            (DWORD) midi_in_handler, (DWORD) p, CALLBACK_FUNCTION)
+                 != MMSYSERR_NOERROR)) {
       p->inDev = (HMIDIIN) 0;
       csound->ErrorMsg(csound, Str("rtmidi: could not open input device"));
       return -1;
@@ -635,13 +635,13 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
 
     *userData = NULL;
     ndev = (int) midiOutGetNumDevs();
-    if (ndev < 1) {
+    if (UNLIKELY(ndev < 1)) {
       csound->ErrorMsg(csound, Str("rtmidi: no output devices are available"));
       return -1;
     }
     if (devName != NULL && devName[0] != '\0' &&
         strcmp(devName, "default") != 0) {
-      if (devName[0] < '0' || devName[0] > '9') {
+      if (UNLIKELY(devName[0] < '0' || devName[0] > '9')) {
         csound->ErrorMsg(csound, Str("rtmidi: must specify a device number, "
                                      "not a name"));
         return -1;
@@ -653,7 +653,7 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
       midiOutGetDevCaps((unsigned int) i, &caps, sizeof(MIDIOUTCAPS));
       csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
     }
-    if (devnum < 0 || devnum >= ndev) {
+    if (UNLIKELY(devnum < 0 || devnum >= ndev)) {
       csound->ErrorMsg(csound,
                        Str("rtmidi: output device number is out of range"));
       return -1;
@@ -661,8 +661,9 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
     midiOutGetDevCaps((unsigned int) devnum, &caps, sizeof(MIDIOUTCAPS));
     csound->Message(csound, Str("Opening MIDI output device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
-    if (midiOutOpen(&outDev, (unsigned int) devnum,
-                    (DWORD) 0, (DWORD) 0, CALLBACK_NULL) != MMSYSERR_NOERROR) {
+    if (UNLIKELY(midiOutOpen(&outDev, (unsigned int) devnum,
+                             (DWORD) 0, (DWORD) 0,
+                             CALLBACK_NULL) != MMSYSERR_NOERROR)) {
       csound->ErrorMsg(csound, Str("rtmidi: could not open output device"));
       return -1;
     }
@@ -720,12 +721,12 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
 
-    if (csound->oparms->msglevel & 0x400)
+    if (UNLIKELY(csound->oparms->msglevel & 0x400))
       csound->Message(csound, Str("Windows MME real time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
 
-    if (csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
-                                   sizeof(rtWinMMGlobals)) != 0)
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
+                                              sizeof(rtWinMMGlobals)) != 0))
       return err_msg(csound, Str("could not allocate global structure"));
     pp = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
                                                        "_rtwinmm_globals");
