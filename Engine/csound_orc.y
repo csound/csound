@@ -381,7 +381,7 @@ statement : ident S_ASSIGN expr S_NL
           | ifthen
           | T_UNTIL expr T_DO statementlist T_OD
               {
-                  $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)yylval);
+                  $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)$1);
                   $$->left = $2;
                   $$->right = $4;
               }
@@ -461,19 +461,19 @@ elseif    : T_ELSEIF expr then S_NL statementlist
           ;
 
 then      : T_THEN
-            { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)$1); }
           | T_KTHEN
-            { $$ = make_leaf(csound, T_KTHEN, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_KTHEN, (ORCTOKEN *)$1); }
           | T_ITHEN
-            { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)$1); }
           ;
 
 goto  : T_GOTO
-            { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)$1); }
           | T_KGOTO
-            { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)$1); }
           | T_IGOTO
-            { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)yylval); }
+            { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)$1); }
           ;
 
 /* Allow all words as a label */
