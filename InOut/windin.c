@@ -42,27 +42,27 @@ int xyinset(CSOUND *csound, XYIN *p)
     MYFLT   iyinit = *p->iyinit;
     MYFLT   ixinit = *p->ixinit;
 
-    if ((p->timcount = (int) (csound->ekr * *p->iprd + FL(0.5))) <= 0) {
+    if (UNLIKELY((p->timcount = (int) (csound->ekr * *p->iprd + FL(0.5))) <= 0)) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
-    if (iymin > iymax) {        /* swap if wrong order */
+    if (UNLIKELY(iymin > iymax)) {        /* swap if wrong order */
       y = iymin; iymin = iymax; iymax = y;
     }
-    if (iyinit < iymin)
+    if (UNLIKELY(iyinit < iymin))
       iyinit = iymin;
-    else if (iyinit > iymax)
+    else if (UNLIKELY(iyinit > iymax))
       iyinit = iymax;
     *(p->kyrslt) = iyinit;
     y = (*p->iymax != *p->iymin ? (*p->iymax - iyinit) / (*p->iymax - *p->iymin)
                                   : FL(0.5));
     p->w.y = y;
 
-    if (ixmin > ixmax) {        /* swap if wrong order */
+    if (UNLIKELY(ixmin > ixmax)) {        /* swap if wrong order */
       x = ixmin; ixmin = ixmax; ixmax = x;
     }
-    if (ixinit < ixmin)
+    if (UNLIKELY(ixinit < ixmin))
       ixinit = ixmin;
-    else if (ixinit > ixmax)
+    else if (UNLIKELY(ixinit > ixmax))
       ixinit = ixmax;
     *(p->kxrslt) = ixinit;
     x = (*p->ixmax != *p->ixmin ? (ixinit - *p->ixmin) / (*p->ixmax - *p->ixmin)
@@ -78,7 +78,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 
 int xyin(CSOUND *csound, XYIN *p)
 {
-    if (!(--p->countdown)) {                          /* at each countdown   */
+    if (UNLIKELY(!(--p->countdown))) {                /* at each countdown   */
       p->countdown = p->timcount;                     /*   reset counter &   */
       csound->csoundReadXYinCallback_(csound, &p->w); /*   read cursor postn */
       *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin);

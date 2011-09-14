@@ -222,7 +222,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
                                         (char*) NULL,
                                         JACK_DEFAULT_AUDIO_TYPE,
                                         portFlags);
-    if (portNames == (char**) NULL)
+    if (UNLIKELY(portNames == (char**) NULL))
       goto err_return;
     retval = 0;
     csound->Message(csound, Str("The available JACK %s devices are:\n"),
