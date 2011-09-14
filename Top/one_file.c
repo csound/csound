@@ -101,7 +101,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
       do {
 #endif
 #ifndef WIN32
-        if (mytmpnam(buf) == NULL)
+        if (UNLIKELY(mytmpnam(buf) == NULL))
           csound->Die(csound, Str(" *** cannot create temporary file"));
 #else
         {
@@ -109,7 +109,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
           if (s == NULL)
             s = (char*) csoundGetEnv(csound, "HOME");
           s = _tempnam(s, "cs");
-          if (s == NULL)
+          if (UNLIKELY(s == NULL))
             csound->Die(csound, Str(" *** cannot create temporary file"));
           strncpy(buf, s, nBytes);
           free(s);
@@ -149,7 +149,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 
 static void alloc_globals(CSOUND *csound)
 {
-    if (csound->oneFileGlobals == NULL) {
+    if (UNLIKELY(csound->oneFileGlobals == NULL)) {
       csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS));
       /* count lines from 0 so that it adds OK to orc/sco counts */
       ST(csdlinecount) = 0;
@@ -165,7 +165,7 @@ char *get_sconame(CSOUND *csound)
 static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
 {
     char *a = s;
-    if (n <= 1) return NULL;                 /* best of a bad deal */
+    if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
       int ch = getc(stream);
       if (ch == EOF) {                       /* error or EOF       */
@@ -292,7 +292,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
             my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf);
             p = ST(buffer); goto top;
           }
-          if (argc == CSD_MAX_ARGS)
+          if (UNLIKELY(argc == CSD_MAX_ARGS))
             csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
                       CSD_MAX_ARGS);
           argv[++argc] = p;
@@ -308,7 +308,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
 #endif
       /*      argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
-      if (argc == 0) {
+      if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
           csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"),
                          ST(buffer));
@@ -318,7 +318,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
       }
       else argdecode(csound, argc, argv);
     }
-    if (readingCsOptions)
+    if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
     else
       ST(csdlinecount) = 0;
@@ -339,7 +339,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
 #endif
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Failed to create %s"), ST(orcname));
     }
     csound->orcLineOffset = ST(csdlinecount);
@@ -372,7 +372,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof);
 #endif
     /* RWD 3:2000 */
-    if (fd == NULL)
+    if (UNLIKELY(fd == NULL))
       return FALSE;
 
     csound->scoLineOffset = ST(csdlinecount);
@@ -399,12 +399,12 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     FILE  *scof;
 
     p = strstr(p, "bin=\"");
-    if (p==NULL) {
+    if (UNLIKELY(p==NULL)) {
       csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
     q = strchr(p+5, '"');
-    if (q==NULL) {              /* No program given */
+    if (UNLIKELY(q==NULL)) {              /* No program given */
       csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
@@ -419,7 +419,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
 /* #ifdef _DEBUG */
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 /* #endif */
-    if (fd == NULL)
+    if (UNLIKELY(fd == NULL))
       return FALSE;
 
     csound->scoLineOffset = ST(csdlinecount);
@@ -429,7 +429,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         char sys[1024];
         csoundFileClose(csound, fd);
         sprintf(sys, "%s %s %s", prog, extname, ST(sconame));
-        if (system(sys) != 0) {
+        if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
           return FALSE;
         }
@@ -535,7 +535,7 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
       n &= ((1 << nbits) - 1);
       putc(c, out);
     }
-    if (nbits > 0 && n != 0) {
+    if (UNLIKELY(nbits > 0 && n != 0)) {
       csoundDie(csound, Str("Truncated byte at end of base64 stream"));
     }
 }
@@ -550,7 +550,7 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     csoundTmpFileName(csound, ST(midname), ".mid");
     fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL,
                                 CSFTYPE_STD_MIDI, 1);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
     }
@@ -581,13 +581,13 @@ static int createSample(CSOUND *csound, FILE *unf)
 
     sscanf(ST(buffer), "<CsSampleB filename=\"%d\">", &num);
     sprintf(sampname, "soundin.%d", num);
-    if ((smpf = fopen(sampname, "rb")) != NULL) {
+    if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
     }
     fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
                                 CSFTYPE_UNKNOWN_AUDIO, 1);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
     }
     read_base64(csound, unf, smpf);
@@ -615,7 +615,7 @@ static int createFile(CSOUND *csound, FILE *unf)
 
     filename[0] = '\0';
 
-    p += 18;    /* 18= strlen("<CsFileB filename=  ") */
+    p += 18;    /* 18== strlen("<CsFileB filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
     }
@@ -628,13 +628,13 @@ static int createFile(CSOUND *csound, FILE *unf)
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' && filename[strlen(filename) - 2] == '"')
 //    filename[strlen(filename) - 2] = '\0';
-    if ((smpf = fopen(filename, "rb")) != NULL) {
+    if (UNLIKELY((smpf = fopen(filename, "rb")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
     fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
                                 CSFTYPE_UNKNOWN, 1);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
     read_base64(csound, unf, smpf);
@@ -668,7 +668,7 @@ static int checkVersion(CSOUND *csound, FILE *unf)
         return result;
       if (strstr(p, "Before") != NULL) {
         sscanf(p, "Before %d.%d", &major, &minor);
-        if (version >= ((major * 1000) + (minor*10))) {
+        if (UNLIKELY(version >= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires a version of "
                                  "Csound before %d.%02d"), major, minor);
           result = FALSE;
@@ -676,14 +676,14 @@ static int checkVersion(CSOUND *csound, FILE *unf)
       }
       else if (strstr(p, "After") != NULL) {
         sscanf(p, "After %d.%d", &major, &minor);
-        if (version <= ((major * 1000) + (minor*10))) {
+        if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires a version of "
                                  "Csound after %d.%02d"), major, minor);
           result = FALSE;
         }
       }
       else if (sscanf(p, "%d.%d", &major, &minor) == 2) {
-        if (version <= ((major * 1000) + (minor*10))) {
+        if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires a version of "
                                 "Csound after %d.%02d"), major, minor);
           result = FALSE;
@@ -745,7 +745,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
                                 CSFTYPE_UNIFIED_CSD, 0);
     /* RWD 3:2000 fopen can fail... */
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
                                strerror(errno));
       return 0;
@@ -785,7 +785,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         else {
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
           do {
-            if (my_fgets(csound, ST(buffer), CSD_MAX_LINE_LEN, unf) == NULL) {
+            if (UNLIKELY(my_fgets(csound, ST(buffer),
+                                  CSD_MAX_LINE_LEN, unf) == NULL)) {
               csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
               result = FALSE;
               break;
@@ -838,8 +839,9 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         csoundMessage(csound, Str("unknown CSD tag: %s\n"), ST(buffer));
       }
     }
-    if (!started) {
-      csoundMessage(csound, Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
+      if (UNLIKELY(!started)) {
+      csoundMessage(csound,
+                    Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
       result = FALSE;
     }
     *pname = ST(orcname);
