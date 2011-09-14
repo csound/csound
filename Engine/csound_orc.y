@@ -597,7 +597,7 @@ function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
                                         { $$ = make_node(csound, S_COM, $1, $3); }
           | exprstrlist S_COM T_STRCONST
                  { $$ = make_node(csound, S_COM, $1,
-                   make_leaf(csound, T_STRCONST, (ORCTOKEN *)yylval)); }
+                   make_leaf(csound, T_STRCONST, (ORCTOKEN *)$3)); }
           | exprstrlist S_COM error
           | expr                { $$ = $1; }
           ;
@@ -683,3 +683,4 @@ lyyerror(YYLTYPE t, char *s, ...)
 }
 
 #endif
+
