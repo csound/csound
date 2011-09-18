@@ -33,9 +33,6 @@ docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
 
 # -----------------------------------------------------------------------------
 
-print 'Csound5 Linux installer by Istvan Varga'
-print ''
-
 prefix = '/usr/local'
 instDir = '/'
 vimDir = ''
@@ -47,14 +44,14 @@ md5Name = 'csound5-%s.md5sums' % time.strftime("%Y-%m-%d", time.localtime())
 word64Suffix = ''
 
 def printUsage():
-    print "Usage: ./install.py [options...]"
-    print "Allowed options are:"
-    print "    --prefix=DIR    base directory (default: /usr/local)"
-    print "    --instdir=DIR   installation root directory (default: /)"
-    print "    --vimdir=DIR    VIM runtime directory (default: none)"
-    print "    --word64        install libraries to 'lib64' instead of 'lib'"
-    print "    --help          print this message"
-    print ""
+    print ("Usage: ./install.py [options...]")
+    print ("Allowed options are:")
+    print ("    --prefix=DIR    base directory (default: /usr/local)")
+    print ("    --instdir=DIR   installation root directory (default: /)")
+    print ("    --vimdir=DIR    VIM runtime directory (default: none)")
+    print ("    --word64        install libraries to 'lib64' instead of 'lib'")
+    print ("    --help          print this message")
+    print ("")
 
 # parse command line options
 
@@ -73,10 +70,10 @@ if sys.argv.__len__() > 1:
             word64Suffix = '64'
         else:
             printUsage()
-            print 'Error: unknown option: %s' % sys.argv[i]
+            print ('Error: unknown option: %s' % sys.argv[i])
             raise SystemExit(1)
 
-print prefix
+print (prefix)
 
 # concatenates a list of directory names,
 # and returns full path without a trailing '/'
@@ -158,9 +155,9 @@ def installFile_(src, dst, perm, stripMode):
         err = runCmd(['strip', stripMode, fullName])
     if err == 0:
         addMD5(fullName, fileName)
-        print '  %s' % fileName
+        print ('  %s' % fileName)
     else:
-        print ' *** error copying %s' % fileName
+        print (' *** error copying %s' % fileName)
     return err
 
 def installFile(src, dst):
@@ -195,9 +192,9 @@ def installLink(src, dst):
             addMD5(concatPath([instDir, src]), linkName)
         else:
             addMD5(concatPath([instDir, linkName]), linkName)
-        print '  %s' % linkName
+        print ('  %s' % linkName)
     else:
-        print ' *** error copying %s' % linkName
+        print (' *** error copying %s' % linkName)
     return err
 
 def findFiles(dir, pat):
@@ -220,28 +217,28 @@ makeDir(concatPath([binDir]))
 installedBinaries = findFiles(concatPath([instDir, binDir]), '.+')
 if ('csound' in installedBinaries) or ('csound64' in installedBinaries):
     if 'uninstall-csound5' in installedBinaries:
-        print ' *** WARNING: found an already existing installation of Csound'
+        print (' *** WARNING: found an already existing installation of Csound')
         tmp = ''
         while (tmp != 'yes\n') and (tmp != 'no\n'):
             sys.__stderr__.write(
                 ' *** Uninstall it ? Type \'yes\', or \'no\' to quit: ')
             tmp = sys.__stdin__.readline()
         if tmp != 'yes\n':
-            print ' *** Csound installation has been aborted'
-            print ''
+            print (' *** Csound installation has been aborted')
+            print ('')
             raise SystemExit(1)
-        print ' --- Removing old Csound installation...'
+        print (' --- Removing old Csound installation...')
         runCmd([concatPath([instDir, binDir, 'uninstall-csound5'])])
-        print ''
+        print ('')
     else:
-        print ' *** Error: an already existing installation of Csound was found'
-        print ' *** Try removing it first, and then run this script again'
-        print ''
+        print (' *** Error: an already existing installation of Csound was found')
+        print (' *** Try removing it first, and then run this script again')
+        print ('')
         raise SystemExit(1)
 
 # copy binaries
 
-print ' === Installing executables ==='
+print (' === Installing executables ===')
 for i in exeFiles1:
     if findFiles('.', i).__len__() > 0:
         err = installXFile('--strip-unneeded', i, binDir)
@@ -253,7 +250,7 @@ for i in exeFiles2:
 
 # copy libraries
 
-print ' === Installing libraries ==='
+print (' === Installing libraries ===')
 libList = findFiles('.', 'libcsound\\.a')
 libList += findFiles('.', 'libcsound64\\.a')
 libList += findFiles('.', 'libcsound\\.so\\..+')
@@ -280,7 +277,7 @@ for i in libList:
 
 # copy plugin libraries
 
-print ' === Installing plugins ==='
+print (' === Installing plugins ===')
 if not useDouble:
     pluginDir = pluginDir32
 else:
@@ -297,13 +294,13 @@ for i in pluginList:
 
 # copy header files
 
-print ' === Installing header files ==='
+print (' === Installing header files ===')
 err = installFiles(headerFiles, includeDir)
 installErrors = installErrors or err
 
 # copy language interfaces
 
-print ' === Installing language interfaces ==='
+print (' === Installing language interfaces ===')
 wrapperList = [['csnd\\.py', '0', pythonDir],
                ['loris\\.py', '0', pythonDir],
                ['CsoundVST\\.py', '0', pythonDir],
@@ -325,7 +322,7 @@ for i in wrapperList:
 
 # copy XMG files
 
-print ' === Installing Localisation files ==='
+print (' === Installing Localisation files ===')
 xmgList = findFiles('.', '.+\\.xmg')
 if xmgList.__len__() > 0:
     err = installFiles(xmgList, xmgDir)
@@ -339,20 +336,20 @@ else:
     err = runCmd(['install', '-p', '-m', '0644', src, fileName])
     if err == 0:
         addMD5(fileName, fileName)
-        print '  %s' % fileName
+        print ('  %s' % fileName)
     else:
-        print ' *** error copying %s' % fileName
+        print (' *** error copying %s' % fileName)
         installErrors = installErrors or err
 
 # Copy documentation
 
-print ' === Installing documentation ==='
+print (' === Installing documentation ===')
 err = installFiles(docFiles, docDir)
 installErrors = installErrors or err
 
 # copy Tcl/Tk files
 
-print ' === Installing Tcl/Tk modules and scripts ==='
+print (' === Installing Tcl/Tk modules and scripts ===')
 if findFiles('.', 'tclcsound\\.so').__len__() > 0:
     err = installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
     installErrors = installErrors or err
@@ -366,7 +363,7 @@ installErrors = installErrors or err
 # copy STK raw wave files
 
 if '%s/libstk.so' % pluginDir in fileList:
-    print ' === Installing STK raw wave files ==='
+    print (' === Installing STK raw wave files ===')
     rawWaveFiles = []
     for fName in os.listdir('./Opcodes/stk/rawwaves'):
         if re.match('^.*\.raw$', fName) != None:
@@ -395,7 +392,7 @@ try:
 except:
     pdDir = ''
 if pdDir != '':
-    print ' === Installing csoundapi~ PD object ==='
+    print (' === Installing csoundapi~ PD object ===')
     err = installXFile('--strip-unneeded', 'csoundapi~.pd_linux', pdDir)
     if err == 0:
         try:
@@ -407,7 +404,7 @@ if pdDir != '':
 # copy VIM files if enabled
 
 if vimDir != '':
-    print ' === Installing VIM syntax files ==='
+    print (' === Installing VIM syntax files ===')
     err = installXFile('', 'installer/misc/vim/cshelp', binDir)
     installErrors = installErrors or err
     err = installFile('installer/misc/vim/csound.vim',
@@ -420,68 +417,72 @@ if vimDir != '':
 
 # create uninstall script
 
-print ' === Installing uninstall script ==='
+print (' === Installing uninstall script ===')
 fileList += [concatPath([prefix, md5Name])]
 fileList += [concatPath([binDir, 'uninstall-csound5'])]
 try:
     f = open(concatPath([instDir, binDir, 'uninstall-csound5']), 'w')
-    print >> f, '#!/bin/sh'
-    print >> f, ''
+    #print >> f, '#!/bin/sh'
+    f.write('#!/bin/sh n')
+    #print >> f, ''
     for i in fileList:
-        print >> f, 'rm -f "%s"' % i
-    print >> f, ''
-    print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
-    print >> f, ''
+        #print >> f, 'rm -f "%s"' % i
+        f.write('rm -f "%s"\n' % i)
+    # print >> f, ''
+    #print >> f, '/sbin/ldconfig > /dev/null 2> /dev/null'
+    f.write('/sbin/ldconfig > /dev/null 2> /dev/null \n') 
+    #print >> f, ''
     f.close()
     os.chmod(concatPath([instDir, binDir, 'uninstall-csound5']), 0755)
     addMD5(concatPath([instDir, binDir, 'uninstall-csound5']),
            concatPath([binDir, 'uninstall-csound5']))
-    print '  %s' % concatPath([binDir, 'uninstall-csound5'])
+    print ('  %s' % concatPath([binDir, 'uninstall-csound5']))
 except:
-    print ' *** Error creating uninstall script'
+    print (' *** Error creating uninstall script')
     installErrors = 1
 
 # save MD5 checksums
 
-print ' === Installing MD5 checksums ==='
+print (' === Installing MD5 checksums ===')
 try:
     f = open(concatPath([instDir, prefix, md5Name]), 'w')
-    print >> f, md5List,
+     #print >> f, md5List,
+    f.write(md5list)
     f.close()
     os.chmod(concatPath([instDir, prefix, md5Name]), 0644)
-    print '  %s' % concatPath([prefix, md5Name])
+    print ('  %s' % concatPath([prefix, md5Name]))
 except:
-    print ' *** Error installing MD5 checksums'
+    print (' *** Error installing MD5 checksums')
     installErrors = 1
 
 # -----------------------------------------------------------------------------
 
-print ''
+print ('')
 
 # check for errors
 
 if installErrors:
-    print ' *** Errors occured during installation, deleting files...'
+    print (' *** Errors occured during installation, deleting files...')
     for i in fileList:
         try:
             os.remove(concatPath([instDir, i]))
         except:
             pass
 else:
-    print 'Csound installation has been successfully completed.'
-    print 'Before running Csound, make sure that the following environment'
-    print 'variables are set:'
+    print ('Csound installation has been successfully completed.')
+    print ('Before running Csound, make sure that the following environment')
+    print ('variables are set:')
     if not useDouble:
-        print '  OPCODEDIR=%s' % pluginDir32
+        print ('  OPCODEDIR=%s' % pluginDir32)
     else:
-        print '  OPCODEDIR64=%s' % pluginDir64
-    print '  CSSTRNGS=%s' % xmgDir
+        print ('  OPCODEDIR64=%s' % pluginDir64)
+    print ('  CSSTRNGS=%s' % xmgDir)
     if '%s/libstk.so' % pluginDir in fileList:
-        print '  RAWWAVE_PATH=%s' % rawWaveDir
-    print 'Csound can be uninstalled by running %s/uninstall-csound5' % binDir
+        print ('  RAWWAVE_PATH=%s' % rawWaveDir)
+    print ('Csound can be uninstalled by running %s/uninstall-csound5' % binDir)
 
 if os.getuid() == 0:
     runCmd(['/sbin/ldconfig'])
 
-print ''
+print ('')
 
