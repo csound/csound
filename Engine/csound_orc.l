@@ -76,7 +76,7 @@ ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
-LABEL           [a-zA-Z_][a-zA-Z0-9_]*:
+LABEL           ^[ \t]*[a-zA-Z_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
 MACRO           [a-zA-Z0-9_]+\(
@@ -106,7 +106,7 @@ EXSTR           "}}"
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
  }
-"\n"            { 
+"\n"            {
                   return S_NL; }
 "//"            { comment(yyscanner); return S_NL; }
 ";"             { comment(yyscanner); return S_NL; }
@@ -187,11 +187,14 @@ EXSTR           "}}"
 "opcode"        { return T_UDOSTART; }
 "endop"         { *lvalp = new_token(csound, T_UDOEND); return T_UDOEND; }
 
-{LABEL}         { *lvalp = make_label(csound, yytext); return T_LABEL; }
+{LABEL}         { char *pp = yytext;
+                  while (*pp==' ' || *pp=='\t') pp++;
+                  *lvalp = make_label(csound, pp); return T_LABEL;
+                }
 
-"\{\{"          { 
+"\{\{"          {
                   PARM->xstrbuff = (char *)malloc(128);
-                  PARM->xstrptr = 0; PARM->xstrmax = 128; 
+                  PARM->xstrptr = 0; PARM->xstrmax = 128;
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                   BEGIN(xstr);
@@ -229,8 +232,8 @@ EXSTR           "}}"
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (T_STRCONST); }
 
-{STRCONSTe}     { *lvalp = make_string(csound, yytext); 
-                  csound->Message(csound, 
+{STRCONSTe}     { *lvalp = make_string(csound, yytext);
+                  csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
                           csound_orcget_lineno(yyscanner), yytext);
                   return (T_STRCONST); }
@@ -240,7 +243,8 @@ EXSTR           "}}"
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return T_0DBFS; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
-                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
+                  /* csound->Message(csound,"%s -> %d\n",
+                                     yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
 {MACRONAME}     {
                   MACRO     *mm = PARM->macros;
@@ -261,7 +265,8 @@ EXSTR           "}}"
                   }
                   PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                   PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                  /* printf("Push %p macro stack; new body #%s#\n", PARM->macros, mm->body); */
+                  /* printf("Push %p macro stack; new body #%s#\n",
+                            PARM->macros, mm->body); */
                   /* printf("Push buffer %p -> ", YY_CURRENT_BUFFER); */
                   yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                   yy_scan_string(mm->body, yyscanner);
@@ -311,13 +316,15 @@ EXSTR           "}}"
                   /* printf("Looking for %d args\n", mm->acnt); */
                   for (j = 0; j < mm->acnt; j++) {
                     char  term = (j == mm->acnt - 1 ? ')' : '\'');
-                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');   /* Compatability */
+/* Compatability */
+                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                     MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                     int   size = 100;
                     nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
                     /* printf("Arg %d: %s\n", j+1, mm->arg[j]); */
                     strcpy(nn->name, mm->arg[j]);
-                    /* csound->Message(csound, "defining argument %s ", nn->name); */
+                    /* csound->Message(csound, "defining argument %s ",
+                                       nn->name); */
                     i = 0;
                     nn->body = (char*) mmalloc(csound, 100);
                     while ((c = input(yyscanner))!= term && c!=trm1) {
@@ -362,13 +369,15 @@ EXSTR           "}}"
                   /* printf("Looking for %d args\n", mm->acnt); */
                   for (j = 0; j < mm->acnt; j++) {
                     char  term = (j == mm->acnt - 1 ? ')' : '\'');
-                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');   /* Compatability */
+/* Compatability */
+                    char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                     MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
                     int   size = 100;
                     nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
                     /* printf("Arg %d: %s\n", j+1, mm->arg[j]); */
                     strcpy(nn->name, mm->arg[j]);
-                    /* csound->Message(csound, "defining argument %s ", nn->name); */
+                    /* csound->Message(csound, "defining argument %s ",
+                                       nn->name); */
                     i = 0;
                     nn->body = (char*) mmalloc(csound, 100);
                     while ((c = input(yyscanner))!= term && c!=trm1) {
@@ -410,7 +419,8 @@ EXSTR           "}}"
 {WHITE}         { }
 {INCLUDE}       BEGIN(incl);
 <incl>[ \t]*     /* eat the whitespace */
-<incl>.         { do_include(csound, yytext[0], yyscanner); /* got the include file name */
+<incl>.         { /* got the include file name */
+                  do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
 <<EOF>>         {
@@ -444,7 +454,8 @@ EXSTR           "}}"
                     }
                     y->next = x;
                   }
-                  /* printf("End of input segment: macro pop %p -> %p\n", y, PARM->macros); */
+                  /* printf("End of input segment: macro pop %p -> %p\n",
+                             y, PARM->macros); */
                 }
 {DEFINE}       BEGIN(macro);
 <macro>[ \t]*    /* eat the whitespace */
@@ -469,7 +480,8 @@ EXSTR           "}}"
 
 .               { csound->Message(csound,
                                  Str("Line %d: Unknown character: '%c'(%2x)\n"),
-                                 csound_orcget_lineno(yyscanner),yytext[0],yytext[0]);
+                                 csound_orcget_lineno(yyscanner),
+                                 yytext[0],yytext[0]);
                 }
 
 
@@ -487,9 +499,11 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
     char c;
     for (;;) {
       while ((c=input(yyscanner)) != '*')
-          if (UNLIKELY(c=='\n')) csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner); /* skip */
+          if (UNLIKELY(c=='\n')) /* skip */
+            csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
       if ((c=input(yyscanner))=='/') return;
-      if (UNLIKELY(c=='\n')) csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      if (UNLIKELY(c=='\n'))
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
 }
 
@@ -634,7 +648,7 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mfree(csound, nn->arg[i]);
       mm->next = nn->next; mfree(csound, nn);
     }
-    while ((c=input(yyscanner)) != '\n' && c != EOF);       /* ignore rest of line */
+    while ((c=input(yyscanner)) != '\n' && c != EOF); /* ignore rest of line */
     csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
 }
 
@@ -717,7 +731,8 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     return ans;
 }
 
-static void add_math_const_macro(CSOUND *csound, void* yyscanner, char * name, char *body)
+static void add_math_const_macro(CSOUND *csound, void* yyscanner,
+                                 char * name, char *body)
 {
     MACRO *mm;
 
@@ -798,12 +813,12 @@ void cs_init_omacros(CSOUND *csound, void *yyscanner, NAMES *nn)
 
 /* Functions for working with grabbing input one line aa time */
 
-int get_next_line(struct yyguts_t * yyg) 
+int get_next_line(struct yyguts_t * yyg)
 {
     int i;
     char *p;
     void *yyscanner = yyg;
-  
+
     PARM->nBuffer = 0;
 
     p = fgets(yyextra->buffer, lMaxBuffer, yyin);
@@ -814,7 +829,7 @@ int get_next_line(struct yyguts_t * yyg)
     }
 
     csound_orcset_lineno(1+csound_orcget_lineno(yyg),yyg);
-  
+
     PARM->lBuffer = strlen(yyextra->buffer);
 
     return 0;
@@ -826,7 +841,7 @@ int get_next_char(char *b, int maxBuffer, struct yyguts_t* yyg)
     void *yyscanner = yyg;
     if (UNLIKELY( feof(yyin)  ))
       return 0;
-  
+
     while (  PARM->nBuffer >= PARM->lBuffer  ) {
       frc = get_next_line(yyg);
       if (UNLIKELY(  frc != 0  ))
