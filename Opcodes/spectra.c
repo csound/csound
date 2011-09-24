@@ -1229,7 +1229,7 @@ static OENTRY localops[] = {
                                 (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
 { "adsynt",S(HSBOSC),    5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
 { "mpulse", S(IMPULSE),  5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
-{ "lpf18", S(LPF18),     5,  "a", "akkk",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
+{ "lpf18", S(LPF18),     5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db   },
 { "waveset", S(BARRI),   5,  "a", "ako",   (SUBR)wavesetset,  NULL, (SUBR)waveset},
 { "pinkish", S(PINKISH),  5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
 { "noise",  S(VARI),   5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },

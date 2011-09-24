@@ -281,6 +281,9 @@ commandOptions.Add('buildBeats',
 commandOptions.Add('buildcatalog',
      'Set to 1 if building opcode/library catalogue',
      '0')
+commandOptions.Add('includeSerial',
+     'Set to 1 if compiling serial code',
+     '0')
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
@@ -713,6 +716,13 @@ if commonEnvironment['includeP5Glove'] == '1' :
 else:
     p5gfound = 0
     print 'CONFIGURATION DECISION: No P5 Glove support'
+
+if commonEnvironment['includeSerial'] == '1' :
+    serialfound = 1
+    print 'CONFIGURATION DECISION: Building with Serial code support'
+else:
+    serialfound = 0
+    print 'CONFIGURATION DECISION: No Serial code support'
 
 
 #pthreadSpinlockFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_spin_lock(0);')
@@ -1269,7 +1279,7 @@ def makePythonModule(env, targetName, sources):
 def makeLuaModule(env, targetName, srcs):
     if getPlatform() == 'darwin':
         env.Prepend(LINKFLAGS = ['-bundle'])
-        lusModule_ = env.Program('%s.so' % targetName, srcs)
+        luaModule_ = env.Program('%s.so' % targetName, srcs)
     else:
         if getPlatform() == 'linux' or getPlatform() == 'sunos':
             luaModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="", SHLIBSUFFIX = '.so')
@@ -1536,6 +1546,9 @@ if wiifound==1:
 if p5gfound==1:
   P5GEnvironment = pluginEnvironment.Clone()
   makePlugin(P5GEnvironment, 'p5g', ['Opcodes/p5glove.c'])
+if serialfound==1:
+  SerEnvironment = pluginEnvironment.Clone()
+  makePlugin(SerEnvironment, 'serial', ['Opcodes/serial.c'])
 
 sfontEnvironment = pluginEnvironment.Clone()
 if compilerGNU():
@@ -2046,7 +2059,7 @@ else:
 
 # Python opcodes
 
-if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0' and getPlatform() != 'darwin'):
+if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Lua opcodes."
 else:
     print "CONFIGURATION DECISION: Building Lua opcodes."
