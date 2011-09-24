@@ -280,7 +280,6 @@ public:
 };
 
 /**
-/**
  * lua_iopcall_off Sname, ...  Calls a Lua opcode at i-rate only. Any number of 
  *                             output and/or input arguments may be passed. 
  *                             All arguments must be passed on the right-hand 
