@@ -2117,10 +2117,12 @@ int varicol(CSOUND *csound, VARI *p)
 int lpf18set(CSOUND *csound, LPF18 *p)
 {
     /* Initialise delay lines */
-    p->ay1 = FL(0.0);
-    p->ay2 = FL(0.0);
-    p->aout = FL(0.0);
-    p->lastin = FL(0.0);
+    if (*p->istor==FL(0.0)) {
+        p->ay1 = FL(0.0);
+        p->ay2 = FL(0.0);
+        p->aout = FL(0.0);
+        p->lastin = FL(0.0);
+    }
     return OK;
 }
 

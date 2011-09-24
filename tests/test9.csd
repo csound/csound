@@ -19,7 +19,7 @@ kenv 	= kenv * giamp
 
 aout	vco2 kenv, ifreq
 
-testLabel:
+  testLabel:
 
 	outs aout, aout
 	endin
