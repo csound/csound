@@ -2494,6 +2494,7 @@ else:
 
 # Build csoundapi~ (pd class)
 
+print commonEnvironment['buildPDClass'], pdhfound
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Clone()
