@@ -683,6 +683,9 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'f':
       case 'h':
       case 'i':
+#ifdef SOMEFINEDAY
+      case 'T':
+#endif
         if (UNLIKELY(*s != 'k'))
           return csound->InitError(csound, Str("argument list inconsistent "
                                                "with format string"));
