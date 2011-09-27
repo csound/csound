@@ -1279,7 +1279,7 @@ def makePythonModule(env, targetName, sources):
 def makeLuaModule(env, targetName, srcs):
     if getPlatform() == 'darwin':
         env.Prepend(LINKFLAGS = ['-bundle'])
-        lusModule_ = env.Program('%s.so' % targetName, srcs)
+        luaModule_ = env.Program('%s.so' % targetName, srcs)
     else:
         if getPlatform() == 'linux' or getPlatform() == 'sunos':
             luaModule_ = env.SharedLibrary('%s' % targetName, srcs, SHLIBPREFIX="", SHLIBSUFFIX = '.so')
@@ -2059,7 +2059,7 @@ else:
 
 # Python opcodes
 
-if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0' and getPlatform() != 'darwin'):
+if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Lua opcodes."
 else:
     print "CONFIGURATION DECISION: Building Lua opcodes."
@@ -2494,6 +2494,7 @@ else:
 
 # Build csoundapi~ (pd class)
 
+print commonEnvironment['buildPDClass'], pdhfound
 if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Clone()
