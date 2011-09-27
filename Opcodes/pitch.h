@@ -200,7 +200,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *ain, *fco, *res, *dist;
+        MYFLT   *ar, *ain, *fco, *res, *dist, *istor;
         MYFLT   ay1, ay2, aout, lastin;
 } LPF18;
 

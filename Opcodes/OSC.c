@@ -104,12 +104,18 @@ typedef struct {
     void    *nxt;               /* pointer to next opcode on the same port */
 } OSCLISTEN;
 
+static int oscsend_deinit(CSOUND *csound, OSCSEND *p)
+{
+    lo_address a = (lo_address)p->addr;
+    lo_address_free(a);
+    return OK;
+}
+
 static int osc_send_set(CSOUND *csound, OSCSEND *p)
 {
     char port[8];
     char *pp = port;
     char *hh;
-    lo_address t;
 
     /* with too many args, XINCODE/XSTRCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
@@ -124,10 +130,11 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
       sprintf(port, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host;
     if (*hh=='\0') hh = NULL;
-    t = lo_address_new(hh, pp);
-    p->addr = t;
+    p->addr = lo_address_new(hh, pp);
     p->cnt = 0;
     p->last = 0;
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND *, void *)) oscsend_deinit);
     return OK;
 }
 
@@ -139,6 +146,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
        2) string
        3) double
        4) char
+       5) table as blob
     */
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
@@ -213,6 +221,30 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             lo_message_add_timetag(msg, tt);
             break;
           }
+          //#ifdef SOMEFINEDAY
+        case 'T':               /* Table/blob */
+          {
+            lo_blob myblob;
+            int     len;
+            FUNC    *ftp;
+            void *data;
+            if (UNLIKELY(p->XSTRCODE&msk))
+              return csound->PerfError(csound, Str("String not expected"));
+            /* make sure fn exists */
+            if (LIKELY((ftp=csound->FTFind(csound,arg[i]))!=NULL)) {
+              data = ftp->ftable;
+              len = ftp->flen-1;        /* and set it up */
+            }
+            else {
+              return csound->PerfError(csound,
+                                       Str("ftable %.2f does not exist"), *arg[i]);
+            }
+            myblob = lo_blob_new(sizeof(MYFLT)*len, data);
+            lo_message_add_blob(msg, myblob);
+            lo_blob_free(myblob);
+            break;   
+          }
+          //#endif
         default:
           csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
         }
