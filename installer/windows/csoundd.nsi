@@ -538,17 +538,17 @@ skipAssoc:
       # Pthreads
       File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
       # FLTK
-      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox-1.3.dll
-      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_forms-1.3.dll
-      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_gl-1.3.dll
-      File C:\utah\opt\fltk-1.3.0rc3\src\mgwfltknox_images-1.3.dll
+      File C:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
+      File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
+      File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_gl-1.1.dll
+      File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_images-1.1.dll
       # PortAudio
       #File C:\utah\opt\portaudio\portaudio.dll
       # PortMIDI
       File C:\utah\opt\portmidi\libportmidi.dll
       #File C:\utah\opt\portmidi\porttime.dll
       # Fluidsynth
-      File C:\utah\opt\fluidsynth-1.1.3\src\libfluidsynth.dll
+      File C:\utah\opt\fluidsynth\trunk\fluidsynth\src\libfluidsynth.dll
       # Image opcodes
       #File C:\utah\mingw\bin\zlib1.dll
       #File C:\utah\mingw\bin\libpng.dll
@@ -558,7 +558,7 @@ skipAssoc:
       File C:\utah\opt\musicxml-v2\win32\codeblocks\libmusicxml2.dll
       # pthreads
       # Now static. File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
-      File c:\utah\mingw_qt\bin\libgomp-1.dll
+      File c:\utah\opt\MinGW\bin\libgomp-1.dll
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
       # GNU
@@ -567,6 +567,7 @@ skipAssoc:
       File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
     # Opcodes, drivers, and other modules:
     SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+      File ..\..\LuaCsound.dll
       File ..\..\ambicode1.dll
       File ..\..\ampmidid.dll
       File ..\..\babo.dll
@@ -579,6 +580,8 @@ skipAssoc:
       File ..\..\cs_pvs_ops.dll
       File ..\..\doppler.dll
       File ..\..\eqfil.dll
+      File ..\..\fareygen.dll
+      File ..\..\fareyseq.dll
       File ..\..\fluidOpcodes.dll
       File ..\..\ftest.dll
       File ..\..\gabnew.dll
@@ -684,7 +687,7 @@ skipAssoc:
     Section "Csound Reference Manual"
       SectionIn 1 2 3
       SetOutPath $INSTDIR\doc\manual
-  	File /r ..\..\..\..\manual\html\*
+  	File /r ..\..\..\manual\html\*
     SectionEnd
     Section "A Csound Tutorial"
       SectionIn 2 3
@@ -717,15 +720,15 @@ SectionGroup "Front ends"
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
       # QuteCsound
-      File C:\utah\opt\Qt\2010.05\qt\bin\QtCore4.dll
-      File C:\utah\opt\Qt\2010.05\qt\bin\QtGui4.dll
-      File C:\utah\opt\Qt\2010.05\qt\bin\QtXml4.dll
-      File C:\utah\mingw_qt\bin\mingwm10.dll
-      File C:\utah\mingw_qt\bin\libgcc_s_dw2-1.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
+      File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
+      File C:\utah\opt\Mingw\bin\mingwm10.dll
+      File C:\utah\opt\Mingw\bin\libgcc_s_dw2-1.dll
 !ifdef FLOAT
-      File C:\utah\opt\qutecsound\bin\qutecsoundf.exe
+      File C:\utah\opt\qcs-build-desktop\bin\qutecsoundf.exe
 !else
-      File C:\utah\opt\qutecsound\bin\qutecsound-d.exe
+      File C:\utah\opt\qcs-build-desktop\bin\qutecsound-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -802,8 +805,8 @@ SectionGroup "Csound interfaces"
     Section "luaCsnd: Lua interface to Csound"
       SectionIn 2 3
       SetOutPath $INSTDIR\bin
-        File C:\utah\opt\luajit-2.0\src\lua51.dll
-        File C:\utah\opt\luajit-2.0\src\luajit.exe
+        File C:\utah\opt\luajit\src\lua51.dll
+        File C:\utah\opt\luajit\src\luajit.exe
         File ..\..\csnd.dll
         File ..\..\luaCsnd.dll
       SetOutPath $INSTDIR\examples\lua
@@ -813,11 +816,13 @@ SectionGroup "Csound interfaces"
       SectionIn 2 3
       CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\luajit.lnk" "$INSTDIR\bin\luajit.exe" "" "" "" "" "" "Lua JIT shell"
       SetOutPath $INSTDIR\bin
-        File C:\utah\opt\luajit-2.0\src\lua51.dll
-        File C:\utah\opt\luajit-2.0\src\luajit.exe
+        File C:\utah\opt\luajit\src\lua51.dll
+        File C:\utah\opt\luajit\src\luajit.exe
         File ..\..\csnd.dll
         File ..\..\luaCsnd.dll
         File ..\..\luaCsoundAC.dll
+      SetOutPath $INSTDIR\${OPCODEDIR_VAL}
+        File ..\..\LuaCsound.dll
       SetOutPath $INSTDIR\examples\lua
         File ..\..\examples\lua\Lindenmayer.lua
     SectionEnd
