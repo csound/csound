@@ -9,7 +9,7 @@ export PATH=/c/utah/opt/clisp-2.49:${PATH}
 export PATH=/c/utah/opt/swigwin-2.0.4:${PATH}
 export PATH=/c/utah/opt/pd/bin:${PATH}
 export PATH=/c/utah/opt/liblo:${PATH}
-export PATH=/c/utah/opt/Java/jdk1.6.0_23/bin:${PATH}
+export PATH=/c/utah/opt/Java/jdk1.7.0/bin:${PATH}
 export PATH=/c/utah/opt/fluidsynth-1.1.3/src:${PATH}
 export PATH=/c/utah/opt/luajit/src:${PATH}
 export PATH=/c/utah/opt/Graphviz2.26.3/bin:${PATH}
@@ -26,13 +26,14 @@ export PATH=${PATH}:/c/utah/opt/qutecsound/bin
 export PATH=${PATH}:/c/utah/opt/musicxml-v2/win32/codeblocks
 export PATH=${PATH}:/c/utah/opt/gtk/bin
 export PATH=${PATH}:/c/utah/opt/MinGW/msys/1.0/bin
-export PATH=/c/utah/opt/Qt/2010.05/bin:${PATH}
-export PATH=/c/utah/opt/Qt/2010.05/qt/bin:${PATH}
+export PATH=/c/utah/opt/Qt/mingw/bin:${PATH}
+export PATH=/c/utah/opt/Qt/Desktop/Qt/4.7.4/mingw/bin:${PATH}
 export PATH=/c/utah/opt/PythonQt-build-desktop/lib:${PATH}
 export PATH=${PATH}:/c/utah/opt/MiKTeX-2.9/miktex/bin
 export PATH=${PATH}:/c/utah/opt/MiKTeX-2.9/miktex/bin
 export RAWWAVE_PATH=D:/utah/home/mkg/csound/csound5/Opcodes/stk/rawwaves
 export OPCODEDIR64=D:/utah/home/mkg/csound/csound5
 export PYTHONPATH=D:/utah/home/mkg/csound/csound5
+export PATH=/c/utah/opt/MinGW/bin:${PATH}
 echo $PATH
 

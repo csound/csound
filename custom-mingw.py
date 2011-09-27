@@ -107,8 +107,8 @@ if sys.platform[:3] == 'win':
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. 
-    customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_21\include')
-    customCPPPATH.append(r'C:\utah\opt\Java\jdk1.6.0_21\include\win32')
+    customCPPPATH.append(r'C:\utah\opt\Java\jdk1.7.0\include')
+    customCPPPATH.append(r'C:\utah\opt\Java\jdk1.7.0\include\win32')
     ################################################################
     # If you want to build the OSC opcodes,
     # you need liblo.
@@ -120,7 +120,7 @@ if sys.platform[:3] == 'win':
     # If you want to build the Pure Data external csoundapi~,
     # you need Pure Data. 
     # Add it here (you do NOT need to build it first):
-    customCPPPATH.append(r'C:\utah\opt\pure-data\pd\src')
+    customCPPPATH.append(r'C:\utah\opt\pure-data\src')
     # But this should installed from the pre-built version:
     customLIBPATH.append(r'C:\utah\opt\pd\bin')
     ################################################################
