@@ -214,7 +214,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             lo_message_add_timetag(msg, tt);
             break;
           }
-#ifdef SOMEFINEDAY
+          //#ifdef SOMEFINEDAY
         case 'T':               /* Table/blob */
           {
             lo_blob myblob;
@@ -234,9 +234,10 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             }
             myblob=lo_blob_new(sizeof(MYFLT)*len, data);
             lo_message_add_blob(msg, myblob);
+            lo_blob_free(myblob);
             break;   
           }
-#endif
+          //#endif
         default:
           csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
         }

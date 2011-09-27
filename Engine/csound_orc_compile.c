@@ -1045,24 +1045,26 @@ void csound_orc_compile(CSOUND *csound, TREE *root) {
         /* Handle Inserting into CSOUND here by checking id's (name or
          * numbered) and using new insert_instrtxt?
          */
-        if (PARSER_DEBUG) printf("Starting to install instruments\n");
+        printf("Starting to install instruments\n");
         /* Temporarily using the following code */
         if (current->left->type == T_INTGR) { /* numbered instrument */
           int32 instrNum = (int32)current->left->value->value;
 
           insert_instrtxt(csound, instrtxt, instrNum);
         }
-        else if (current->left->type == T_INTLIST) {
+        else if (current->left->type == T_INSTLIST) {
           TREE *p =  current->left;
-          printf("intlist case:\n"); /* This code is suspect */
+          printf("instlist case:\n"); /* This code is suspect */
           while (p) {
-            //                    print_tree(csound, "Top of loop\n", p);
+            print_tree(csound, "Top of loop\n", p);
             if (p->left) {
-              //                      print_tree(csound, "Left\n", p->left);
-              insert_instrtxt(csound, instrtxt, p->left->value->value);
+              print_tree(csound, "Left\n", p->left);
+              if (p->left->type == T_INTGR)
+                insert_instrtxt(csound, instrtxt, p->left->value->value);
             }
             else {
-              insert_instrtxt(csound, instrtxt, p->value->value);
+              if (p->type == T_INTGR)
+                insert_instrtxt(csound, instrtxt, p->value->value);
               break;
             }
             p = p->right;
