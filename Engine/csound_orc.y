@@ -123,7 +123,7 @@
 %token T_DO
 %token T_OD
 
-%token T_INTLIST
+%token T_INSTLIST
 
 %start orcfile
 %left S_AND S_OR
@@ -210,15 +210,23 @@ rootstatement     : rootstatement topstatement
                   ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-intlist   : T_INTGR S_COM intlist
-              { $$ = make_node(csound, T_INTLIST,
+instlist  : T_INTGR S_COM instlist
+              { $$ = make_node(csound, T_INSTLIST,
                                make_leaf(csound, T_INTGR, (ORCTOKEN *)$1), $3); }
+          | T_IDENT S_COM instlist
+              {
+#ifdef PARCS
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
+#endif
+                  $$ = make_node(csound, T_INSTLIST,
+                               make_leaf(csound, T_IDENT, (ORCTOKEN *)$1), $3); }
           | T_INTGR { $$ = make_leaf(csound, T_INTGR, (ORCTOKEN *)$1); }
+          | T_IDENT { $$ = make_leaf(csound, T_IDENT, (ORCTOKEN *)$1); }
           ;
 
 instrdecl : T_INSTR
                 { namedInstrFlag = 1; }
-            intlist S_NL
+            instlist S_NL
                 { namedInstrFlag = 0;
 #ifdef PARCS
                   csp_orc_sa_instr_add_tree(csound, $3);
@@ -232,22 +240,22 @@ instrdecl : T_INSTR
 #endif
                 }
 
-          | T_INSTR
-                { namedInstrFlag = 1; }
-            T_IDENT S_NL
-                { namedInstrFlag = 0;
-#ifdef PARCS
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$3)->lexeme);
-#endif
-                }
-            statementlist T_ENDIN S_NL
-                {
-                    TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3);
-                    $$ = make_node(csound, T_INSTR, ident, $6);
-#ifdef PARCS
-                    csp_orc_sa_instr_finalize(csound);
-#endif
-                }
+/*           | T_INSTR */
+/*                 { namedInstrFlag = 1; } */
+/*             T_IDENT S_NL */
+/*                 { namedInstrFlag = 0; */
+/* #ifdef PARCS */
+/*                   csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$3)->lexeme); */
+/* #endif */
+/*                 } */
+/*             statementlist T_ENDIN S_NL */
+/*                 { */
+/*                     TREE *ident = make_leaf(csound, T_IDENT, (ORCTOKEN *)$3); */
+/*                     $$ = make_node(csound, T_INSTR, ident, $6); */
+/* #ifdef PARCS */
+/*                     csp_orc_sa_instr_finalize(csound); */
+/* #endif */
+/*                 } */
 
           | T_INSTR S_NL error
                 {
