@@ -33,19 +33,19 @@
 
 /* Define to the full name and version of this package. */
 #ifndef PARCS
-#define CS_PACKAGE_STRING   "Csound 5.13"
+#define CS_PACKAGE_STRING   "Csound 5.14"
 #else /* PARCS */
-#define CS_PACKAGE_STRING   "ParCsound 5.13"
+#define CS_PACKAGE_STRING   "ParCsound 5.14"
 #endif /* PARCS */
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define CS_PACKAGE_VERSION  "5.13"
+#define CS_PACKAGE_VERSION  "5.14"
 #define CS_VERSION          (5)
-#define CS_SUBVER           (13)
-#define CS_PATCHLEVEL       (92)
+#define CS_SUBVER           (14)
+#define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       2   /* should be increased anytime a new version
                                    contains changes that an older host will
