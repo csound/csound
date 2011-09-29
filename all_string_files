@@ -399,10 +399,9 @@
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/locsig.c
 ./Opcodes/locsig.h
-./Opcodes/Loris/csound/lorisgens5.C
-./Opcodes/Loris/csound/lorisgens5.h
 ./Opcodes/Loris/lorisgens5.C
 ./Opcodes/Loris/lorisgens5.h
+./Opcodes/LuaCsound.cpp
 ./Opcodes/loscilx.c
 ./Opcodes/lowpassr.c
 ./Opcodes/lowpassr.h
@@ -514,7 +513,6 @@
 ./Opcodes/spectra.c
 ./Opcodes/spectra.h
 ./Opcodes/stackops.c
-./Opcodes/stdopcod.
 ./Opcodes/stdopcod.c
 ./Opcodes/stk/stkOpcodes.cpp
 ./Opcodes/syncgrain.c
