@@ -886,7 +886,7 @@ csoundLibraryEnvironment = commonEnvironment.Clone()
 if commonEnvironment['buildMultiCore'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
 
-if commonEnvironment['buildNewParser'] != '0'
+if commonEnvironment['buildNewParser'] != '0':
     if commonEnvironment['buildMultiCore'] != '0':
       csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
       if getPlatform() == "win32":
