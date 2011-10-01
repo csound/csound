@@ -242,7 +242,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             myblob = lo_blob_new(sizeof(MYFLT)*len, data);
             lo_message_add_blob(msg, myblob);
             lo_blob_free(myblob);
-            break;   
+            break;
           }
           //#endif
         default:
@@ -575,7 +575,6 @@ static void OSC_error(int num, const char *msg, const char *path)
     fprintf(stderr, "OSC server error %d in path %s: %s\n", num, path, msg);
 }
 
-#ifdef BETA
 static int OSC_deinit(CSOUND *csound, OSCINIT *p)
 {
     int n = (int)*p->ihandle;
@@ -590,7 +589,6 @@ static int OSC_deinit(CSOUND *csound, OSCINIT *p)
     csound->Message(csound, Str("OSC deinitiatised\n"));
     return OK;
 }
-#endif
 
 static int osc_listener_init(CSOUND *csound, OSCINIT *p)
 {
@@ -614,10 +612,8 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     pp->nPorts = n + 1;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
     *(p->ihandle) = (MYFLT) n;
-#ifdef BETA
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) OSC_deinit);
-#endif
     return OK;
 }
 
@@ -686,6 +682,10 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       if (s[0] == 'g')
         s++;
       switch (p->saved_types[i]) {
+#ifdef SOMEFINEDAY
+      case 'T':
+        p->saved_types[i] = 'b';
+#endif
       case 'c':
       case 'd':
       case 'f':
