@@ -245,7 +245,7 @@ commandOptions.Add('NewParserDebug',
     '0')
 commandOptions.Add('buildMultiCore',
     'Enable building for multicore sytem (requires new parser)',
-    '0')
+    '1')
 commandOptions.Add('buildvst4cs',
     'Set to 1 to build vst4cs plugins (requires Steinberg VST headers)',
     '0')
@@ -886,8 +886,10 @@ csoundLibraryEnvironment = commonEnvironment.Clone()
 if commonEnvironment['buildMultiCore'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
 
-if commonEnvironment['buildNewParser'] != '0' or commonEnvironment['buildMultiCore'] != '0':
-    if getPlatform() == "win32":
+if commonEnvironment['buildNewParser'] != '0'
+    if commonEnvironment['buildMultiCore'] != '0':
+      csoundLibraryEnvironment.Append(CPPFLAGS = ['-DPARCS'])
+      if getPlatform() == "win32":
         Tool('lex')(csoundLibraryEnvironment)
         Tool('yacc')(csoundLibraryEnvironment)
     print 'CONFIGURATION DECISION: Building with new parser enabled'
