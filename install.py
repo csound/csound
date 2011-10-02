@@ -307,10 +307,12 @@ print ' === Installing language interfaces ==='
 wrapperList = [['csnd\\.py', '0', pythonDir],
                ['loris\\.py', '0', pythonDir],
                ['CsoundVST\\.py', '0', pythonDir],
+               ['CsoundVSTCsoundAC\\.py', '0', pythonDir],
                ['scoregen\\.py', '0', pythonDir],
                ['_csnd\\.so', '1', pythonDir2],
                ['_loris\\.so', '1', pythonDir2],
                ['_scoregen\\.so', '1', pythonDir2],
+               ['_CsoundAC\\.so ', '1', pythonDir2],
                ['csnd\\.jar', '0', javaDir],
                ['interfaces/csound5\\.lisp', '0', lispDir]]
 for i in wrapperList:
