@@ -384,7 +384,7 @@ OENTRY opcodlst_1[] = {
 { "rms",    S(RMS),     3,      "k",    "aqo",  rmsset, rms             },
 { "gain",   S(GAIN),    5,      "a",    "akqo", gainset,NULL,   gain    },
 { "balance",S(BALANCE), 5,      "a",    "aaqo", balnset,NULL,   balance },
-{ "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
+{ "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL, (SUBR)pan  },
 { "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
                                                 sndinset, NULL, soundin   },
 { "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set, NULL, soundout  },
