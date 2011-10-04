@@ -312,13 +312,14 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     // to return T_IDENT instead of any sub-type
     // Currently fixed by definition of label non-terminal
     switch (s[0]) {
+    case 'S': type = T_IDENT_S; break;
+    case 'a': type = T_IDENT_A; break;
+    case 'f': type = T_IDENT_F; break;
     case 'i': type = T_IDENT_I; break;
     case 'k': type = T_IDENT_K; break;
-    case 'a': type = T_IDENT_A; break;
     case 'p': type = T_IDENT_P; break;
-    case 'f': type = T_IDENT_F; break;
+    case 't': type = T_IDENT_T; break;
     case 'w': type = T_IDENT_W; break;
-    case 'S': type = T_IDENT_S; break;
     case'g':
       switch (s[1]) {
       case 'i': type = T_IDENT_GI; break;
@@ -326,6 +327,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       case 'a': type = T_IDENT_GA; break;
       case 'f': type = T_IDENT_GF; break;
       case 'w': type = T_IDENT_GW; break;
+      case 't': type = T_IDENT_GT; break;
       case 'S': type = T_IDENT_GS; break;
       default: 
         csound->Message(csound, Str("Unknown word type for %s on line %d\n"),
