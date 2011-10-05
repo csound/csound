@@ -18,7 +18,7 @@
 #######################################################################
 
 !define PRODUCT "Csound"
-!define PROGRAM "Csound5.13.1"
+!define PROGRAM "Csound5.14.0"
 !echo "Building installer for: ${PROGRAM}"
 !ifdef FLOAT
 !ifdef NONFREE
@@ -537,6 +537,7 @@ skipAssoc:
       File C:\utah\opt\Mega-Nerd\libsndfile\libsndfile-1.dll
       # Pthreads
       File C:\utah\opt\pthreads\Pre-built.2\lib\pthreadGC2.dll
+      File C:\utah\opt\MinGW\bin\libpthread-2.dll
       # FLTK
       File C:\utah\opt\fltk-1.1.10\src\mgwfltknox-1.1.dll
       File C:\utah\opt\fltk-1.1.10\src\mgwfltknox_forms-1.1.dll
@@ -562,6 +563,10 @@ skipAssoc:
       # C runtime library
       File C:\windows\system32\MSVCRT.DLL
       # GNU
+      File C:\utah\opt\MinGW\bin\libgettextsrc-0-17.dll
+      File C:\utah\opt\MinGW\bin\libstdc++-6.dll
+      File C:\utah\opt\MinGW\bin\mingwm10.dll
+      File C:\utah\opt\MinGW\bin\libgcc_s_dw2-1.dll
       File C:\utah\msys\1.0\local\bin\libglib-2.0-0.dll
       File C:\utah\msys\1.0\local\bin\intl.dll
       File C:\utah\msys\1.0\local\bin\libgthread-2.0-0.dll
@@ -723,8 +728,6 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
-      File C:\utah\opt\Mingw\bin\mingwm10.dll
-      File C:\utah\opt\Mingw\bin\libgcc_s_dw2-1.dll
 !ifdef FLOAT
       File C:\utah\opt\qcs-build-desktop\bin\qutecsoundf.exe
 !else
