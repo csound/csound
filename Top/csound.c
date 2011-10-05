@@ -64,6 +64,12 @@ extern "C" {
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
+
+  /* **** MAJOR PROBLEM: PTHREAD_SPINLOCK_INITIALIZER is not defined in Linux */
+
+#ifdef linux
+  #define PTHREAD_SPINLOCK_INITIALIZER 0
+#endif
 #endif /* PARCS */
 
 #if defined(USE_OPENMP)
