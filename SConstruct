@@ -1911,7 +1911,6 @@ else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
 # Loris opcodes
-
 if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
@@ -2059,17 +2058,25 @@ else:
 
 # Python opcodes
 
-if not (luaFound and commonEnvironment['buildLuaOpcodes'] != '0'):
+if not (commonEnvironment['buildLuaOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Lua opcodes."
 else:
     print "CONFIGURATION DECISION: Building Lua opcodes."
     luaEnvironment = pluginEnvironment.Clone()
-    luaEnvironment.Append(LIBS = ['lua51'])
+    
     if getPlatform() == 'linux':
-        luaEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+       if(luaFound == 1):
+         luaEnvironment.Append(LIBS = ['lua51'])
+         luaEnvironment.Append(LIBS = ['util', 'dl', 'm'])
     elif getPlatform() == 'win32':
+       if(luaFound == 1):
+        luaEnvironment.Append(LIBS = ['lua51'])
         luaEnvironment['ENV']['PATH'] = os.environ['PATH']
         luaEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    elif getPlatform() == 'darwin':
+        luaEnvironment.Append(LIBS = 'luajit-51')
+        luaEnvironment.Append(CPPPATH = '/usr/local/include/luajit-2.0')
+        luaEnvironment.Append(CPPFLAGS = '-fopenmp')
     luaOpcodes = makePlugin(luaEnvironment, 'LuaCsound',
                                ['Opcodes/LuaCsound.cpp'])
 
