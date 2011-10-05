@@ -45,6 +45,7 @@
                 U       String or i/k-rate
                 B       Boolean
                 l       Label
+                t       Table
      and codes
                 m       begins an indef list of iargs (any count)
                 M       begins an indef list of args (any count/rate i,k,a)
@@ -141,9 +142,11 @@ OENTRY opcodlst_1[] = {
 { "=.i",    S(ASSIGNM), 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
 { "=.k",    S(ASSIGNM), 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
 { "=.a",    S(ASSIGN),  4,      "a",    "x",    NULL,   NULL,   aassign },
+{ "=.t",    S(ASSIGN),  4,      "t",    "x",    NULL,   NULL,   tassign },
 { "init.i", S(ASSIGNM), 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
 { "init.k", S(ASSIGNM), 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
 { "init.a", S(ASSIGNM), 1,      "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
+{ "init.t", S(ASSIGNM), 1,      "t",     "io",                   tinit  },
 { ">",      S(RELAT),   0,      "B",    "kk",   gt,     gt              },
 { ">=",     S(RELAT),   0,      "B",    "kk",   ge,     ge              },
 { "<",      S(RELAT),   0,      "B",    "kk",   lt,     lt              },
