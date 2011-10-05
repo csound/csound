@@ -4,7 +4,7 @@
 lua_opdef "luatest", {{
 local ffi = require("ffi")
 local string = require("string")
-local csoundLibrary = ffi.load('csound64.dll.5.2')
+local csoundLibrary = ffi.load('/Library/Frameworks/CsoundLib.framework/CsoundLib')
 ffi.cdef[[
     int csoundGetKsmps(void *);
     double csoundGetSr(void *);
@@ -59,3 +59,54 @@ e
 </CsScore>
 
 </CsoundSynthesizer>
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>72</x>
+ <y>179</y>
+ <width>400</width>
+ <height>200</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>231</r>
+  <g>46</g>
+  <b>255</b>
+ </bgcolor>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>slider1</objectName>
+  <x>5</x>
+  <y>5</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{68aef6e9-fc92-45d7-9c08-0ba0f7162849}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.00000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>
+<MacOptions>
+Version: 3
+Render: Real
+Ask: Yes
+Functions: ioObject
+Listing: Window
+WindowBounds: -900 -700 400 200
+CurrentView: io
+IOViewEdit: On
+Options:
+</MacOptions>
+
+<MacGUI>
+ioView nobackground {59367, 11822, 65535}
+ioSlider {5, 5} {20, 100} 0.000000 1.000000 0.000000 slider1
+</MacGUI>

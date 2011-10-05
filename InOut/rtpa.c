@@ -66,6 +66,7 @@ typedef struct PA_BLOCKING_STREAM_ {
     int         paused;                 /* VL: to allow for smooth pausing  */
 #endif
     int         paLockTimeout;
+    int         complete;
 } PA_BLOCKING_STREAM;
 
 static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -355,6 +356,10 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     float   *paOutput = (float*) output;
 
    
+    if (pabs->complete == 1) {
+        return paComplete;
+    }
+    
 #ifdef WIN32    
 if (pabs->paStream == NULL
       || pabs->paused
@@ -493,6 +498,8 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
     *(p->GetRtRecordUserData(p)) = (void*) pabs;
 
+    pabs->complete = 0;
+    
     return 0;
 }
 
@@ -515,6 +522,8 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
     *(p->GetRtPlayUserData(p)) = (void*) pabs;
 
+    pabs->complete = 0;
+    
     return (paBlockingReadWriteOpen(p));
 }
 
@@ -528,7 +537,7 @@ static void rtclose_(CSOUND *csound)
     if (pabs == NULL)
       return;
    
-    
+    pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
@@ -540,12 +549,12 @@ static void rtclose_(CSOUND *csound)
 #endif
           csound->NotifyThreadLock(pabs->paLock);
         csound->NotifyThreadLock(pabs->clientLock);
-        Pa_Sleep(80);
+//        Pa_Sleep(80);
       }
       
-      Pa_AbortStream(stream);
+      Pa_StopStream(stream);
       Pa_CloseStream(stream);
-      Pa_Sleep(80);
+//      Pa_Sleep(80);
     }
 
     if (pabs->clientLock != NULL) {
