@@ -287,6 +287,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_EQ:\n"); break;
     case S_ASSIGN:
       csound->Message(csound,"S_ASSIGN:\n"); break;
+    case S_TASSIGN:
+      csound->Message(csound,"S_TASSIGN:\n"); break;
     case S_GT:
       csound->Message(csound,"S_GT:\n"); break;
     case S_GE:
@@ -357,6 +359,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"IDENT_F: %s\n", l->value->lexeme); break;
     case T_IDENT_GF:
       csound->Message(csound,"IDENT_GF: %s\n", l->value->lexeme); break;
+    case T_IDENT_T:
+      csound->Message(csound,"IDENT_T: %s\n", l->value->lexeme); break;
+    case T_IDENT_GT:
+      csound->Message(csound,"IDENT_GT: %s\n", l->value->lexeme); break;
     case T_IDENT_P:
       csound->Message(csound,"IDENT_P: %s\n", l->value->lexeme); break;
     case T_IDENT_B:
@@ -448,6 +454,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_EQ\""); break;
     case S_ASSIGN:
       csound->Message(csound,"name=\"S_ASSIGN\""); break;
+    case S_TASSIGN:
+      csound->Message(csound,"name=\"S_TASSIGN\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
@@ -544,6 +552,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case T_IDENT_GF:
       csound->Message(csound,"name=\"IDENT_GF\" varname=\"%s\"",
+                      l->value->lexeme); break;
+    case T_IDENT_T:
+      csound->Message(csound,"name=\"IDENT_T\" varname=\"%s\"",
+                      l->value->lexeme); break;
+    case T_IDENT_GT:
+      csound->Message(csound,"name=\"IDENT_GT\" varname=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT_P:
       csound->Message(csound,"name=\"IDENT_P\" varname=\"%s\"",
