@@ -1815,7 +1815,6 @@ TEXT *getoptxt(CSOUND *csound, int *init)
               case 'a':
               case 'k':
 	      case 'f':
-	      case 't':
               case 'i': xtypes[i] = c[i]; break;
               case 'K': xtypes[i] = 'k';
             }
@@ -1983,8 +1982,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           while (c[i]) {
             switch (c[i]) {
             case 'a': xtypes[i] = c[i]; break;
-            case 'f': xtypes[i] = c[i]; break;
-            case 't': xtypes[i] = c[i]; break;
+            case  'f': xtypes[i] = c[i]; break;
             case 'k':
             case 'P':
             case 'K': xtypes[i] = 'k'; break;
@@ -2050,7 +2048,6 @@ static void intyperr(CSOUND *csound, int n, char tfound, char expect)
     switch (tfound) {
     case 'w':
     case 'f':
-    case 't':
     case 'a':
     case 'k':
     case 'i':

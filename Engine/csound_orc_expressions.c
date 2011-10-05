@@ -114,8 +114,6 @@ int get_expression_ans_type(CSOUND * csound, char * ans)
       return T_IDENT_B;
     case 'b':
       return T_IDENT_b;
-    case 't':
-      return T_IDENT_T;
     default:
       return T_IDENT_I;
     }
@@ -255,7 +253,6 @@ static int is_expression_node(TREE *node)
     case S_NEQV:
     case S_BITNOT:
     case S_Q:
-    case S_SLB:
       return 1;
     }
    return 0;
@@ -395,7 +392,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
 
     op = mcalloc(csound, 80);
 
-    switch(root->type) {
+     switch(root->type) {
     case S_PLUS:
       strncpy(op, "add", 80);
       outarg = set_expression_type(csound, op, arg1, arg2);
@@ -470,8 +467,6 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       strncpy(op, "not", 80);
       outarg = set_expression_type(csound, op, arg1, '\0');
       break;
-    default:
-      printf("Unknown case in expression %d\n", root->type); 
     }
     opTree = create_opcode_token(csound, op);
     if (root->left != NULL) {

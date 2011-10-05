@@ -133,33 +133,6 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     return OK;
 }
 
-int tinit(CSOUND *csound, INITT *p)
-{
-    int size = MYFLT2LRND(*p->size);
-    MYFLT val = *p->value;
-    TABDAT *t = p->a;
-    int i;
- 
-    t->size = size;
-    mfree(csound, t->data);
-    t->data = mmalloc(csound, sizeof(MYFLT)*(size+1));
-    for (i=0; i<=size; i++) t->data[i] = val;
-    return OK;
-}
-
-int tassign(CSOUND *csound, ASSIGNT *p)
-{
-    TABDAT *t = p->tab;
-    int ind = MYFLT2LRND(*p->ind);
-    if (ind<0 || ind>t->size) 
-      return csound->PerfError(csound,
-                               Str("Index %d out of range [0,%d] in t[]\n"),
-                               ind, t->size);
-    t->data[ind] = *p->val;
-    return OK;
-}
-
-
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
   { *p->rbool = (*p->a OP *p->b) ? 1 : 0;  return OK; }
