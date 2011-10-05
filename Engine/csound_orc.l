@@ -113,8 +113,6 @@ EXSTR           "}}"
 {STCOM}         { do_comment(yyscanner); }
 "("             { return S_LB; }
 ")"             { return S_RB; }
-"["             { return S_SLB; }
-"]"             { return S_SRB; }
 "+"             { return S_PLUS; }
 "-"             { return S_MINUS; }
 "*"             { return S_TIMES; }
