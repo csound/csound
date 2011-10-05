@@ -66,7 +66,7 @@ keys_t &manageLuaReferenceKeys(const lua_State *L, const std::string &opcode, ch
 {
     static std::map<const lua_State *, std::map<std::string, keys_t> > luaReferenceKeys;
     keys_t *keys = 0;
-#pragma omp critical(lc_getrefkey)
+    #pragma omp critical(lc_getrefkey)
     {
         switch(operation)
         {
@@ -95,9 +95,9 @@ lua_State *manageLuaState(char operation = 'O')
 {
     static std::map<int, lua_State *> luaStatesForThreads;
     lua_State *L = 0;
-#pragma omp critical(lc_manageLuaState)
+    #pragma omp critical(lc_manageLuaState)
     {
-        int threadId = omp_get_thread_num();
+      int threadId = omp_get_thread_num();
         switch(operation)
         {
         case 'O':
