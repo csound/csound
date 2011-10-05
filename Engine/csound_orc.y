@@ -108,6 +108,8 @@
 %token T_IDENT_GF
 %token T_IDENT_S
 %token T_IDENT_GS
+%token T_IDENT_T
+%token T_IDENT_GT
 %token T_IDENT_P
 %token T_IDENT_B
 %token T_IDENT_b
@@ -500,6 +502,8 @@ label : T_OPCODE    { $$ = (TREE *)$1; }
       | T_IDENT_GF  { $$ = (TREE *)$1; }
       | T_IDENT_S   { $$ = (TREE *)$1; }
       | T_IDENT_GS  { $$ = (TREE *)$1; }
+      | T_IDENT_T   { $$ = (TREE *)$1; }
+      | T_IDENT_GT  { $$ = (TREE *)$1; }
       | T_IDENT     { $$ = (TREE *)$1; }
       ;
 
@@ -624,6 +628,7 @@ ident     : T_IDENT_I   { $$ = make_leaf(csound, T_IDENT_I, (ORCTOKEN *)$1); }
           | T_IDENT_F   { $$ = make_leaf(csound, T_IDENT_F, (ORCTOKEN *)$1); }
           | T_IDENT_W   { $$ = make_leaf(csound, T_IDENT_W, (ORCTOKEN *)$1); }
           | T_IDENT_S   { $$ = make_leaf(csound, T_IDENT_S, (ORCTOKEN *)$1); }
+          | T_IDENT_T   { $$ = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$1); }
           | T_IDENT_A   { $$ = make_leaf(csound, T_IDENT_A, (ORCTOKEN *)$1); }
           | T_IDENT_P   { $$ = make_leaf(csound, T_IDENT_P, (ORCTOKEN *)$1); }
           | gident      { $$ = $1; }
@@ -634,6 +639,7 @@ gident    : T_IDENT_GI  { $$ = make_leaf(csound, T_IDENT_GI, (ORCTOKEN *)$1); }
           | T_IDENT_GF  { $$ = make_leaf(csound, T_IDENT_GF, (ORCTOKEN *)$1); }
           | T_IDENT_GW  { $$ = make_leaf(csound, T_IDENT_GW, (ORCTOKEN *)$1); }
           | T_IDENT_GS  { $$ = make_leaf(csound, T_IDENT_GS, (ORCTOKEN *)$1); }
+          | T_IDENT_GT  { $$ = make_leaf(csound, T_IDENT_GS, (ORCTOKEN *)$1); }
           | T_IDENT_GA  { $$ = make_leaf(csound, T_IDENT_GA, (ORCTOKEN *)$1); }
           ;
 
