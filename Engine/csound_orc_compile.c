@@ -1778,7 +1778,7 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 #endif
 
 char argtyp2(CSOUND *csound, char *s)
-{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
+{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
@@ -1805,7 +1805,7 @@ char argtyp2(CSOUND *csound, char *s)
       c = *(++s);
     if (c == 'g')
       c = *(++s);
-    if (strchr("akiBbfS", c) != NULL)
+    if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');
 }
