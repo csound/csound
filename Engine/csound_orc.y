@@ -50,6 +50,7 @@
 %token S_EQ
 %token S_ASSIGN
 %token S_TASSIGN
+%token S_TABREF
 %token S_GT
 %token S_GE
 %token S_BITAND
@@ -352,13 +353,14 @@ statement : ident S_ASSIGN expr S_NL
                 }
           | T_IDENT_T S_SLB iexp S_SRB S_ASSIGN expr S_NL
           {
-              TREE *ans = make_leaf(csound, S_TASSIGN, (ORCTOKEN *)$1);
-                  ans->left = (TREE *)$3;
-                  ans->right = (TREE *)$6;
+              TREE *ans = make_node(csound, S_TASSIGN,
+                                    make_node(csound, S_TABREF,
+                                              make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$1),
+                                              $3), $6);
                   /* ans->value->lexeme = get_assignment_type(csound,
                      ans->left->value->lexeme, ans->right->value->lexeme); */
-
-                  $$ = ans;
+              print_tree(csound, "TABLE WRITE", ans);
+              $$ = ans;
   /* #ifdef PARCS */
   /*                   csp_orc_sa_global_read_write_add_list(csound, */
   /*                                     csp_orc_sa_globals_find(csound, ans->left) */
@@ -592,7 +594,8 @@ ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
           | T_IDENT_T S_SLB iexp S_SRB
           {
-              $$ = make_node(csound, S_SLB, $1, $3);
+              $$ = make_node(csound, S_TABREF,
+                             make_leaf(csound, T_IDENT_T, (ORCTOKEN*)$1), $3);
           }
           | S_MINUS ifac %prec S_UMINUS
             {
