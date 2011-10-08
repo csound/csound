@@ -59,6 +59,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *ans;
+    TABDAT  *tab;
+    MYFLT   *ind;
+} TABREF;
+
+
+typedef struct {
+    OPDS    h;
     int     *rbool;
     MYFLT   *a, *b;
 } RELAT;
