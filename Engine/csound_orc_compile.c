@@ -1614,6 +1614,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
       case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
       case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
       case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
+      case 't': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
       case 'S': p->type = STYPE; p->count = ST(lclnxtscnt)++; break;
       default:  p->type = KTYPE; p->count = ST(lclnxtkcnt)++; break;
     }
