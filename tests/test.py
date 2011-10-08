@@ -96,6 +96,7 @@ def runTest():
         ["test41.csd", "if statement with = instead of =="],
         ["test42.csd", "extended string"],
 	["test44.csd", "expected failure with in-arg given to in opcode", 1],
+	["test45.csd", "if-goto with expression in boolean comparison"],
    ]
 
 
