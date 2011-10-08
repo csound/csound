@@ -434,6 +434,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       break;
     case S_TABREF:
       strncpy(op, "tabref", 80);
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found TABREF: %s\n", op);
       outarg = create_out_arg(csound, 'k');
       break;
     case T_FUNCTION: /* assumes on single arg input */
@@ -482,6 +483,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       opTree->right = root->left;
       opTree->right->next = root->right;
       opTree->left = create_ans_token(csound, outarg);
+      print_tree(csound, "making expression", opTree);
     }
     else {
       opTree->right = root->right;
