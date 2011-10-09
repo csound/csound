@@ -653,18 +653,6 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
 
-
-int csound_orc_boolean_expression_k_rate(CSOUND* csound, TREE* root) {
-    TREE* current = root;
-    
-    while (current->next != NULL) {
-        current = current->next;
-    }
-    
-    return (argtyp2(csound,current->right->value->lexeme) == 'k') ||
-    (argtyp2(csound,current->right->next->value->lexeme) == 'k');
-}
-
 /* Expands expression nodes into opcode calls
  *
  *
@@ -821,7 +809,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                   create_goto_token(csound,
                    last->left->value->lexeme,
                    tempRight,
-                   csound_orc_boolean_expression_k_rate(csound, expressionNodes) ||
+                   (argtyp2(csound, last->left->value->lexeme) == 'B') ||
                    (argtyp2(csound, tempRight->value->lexeme) == 'k'));
                 /* relinking */
                 last->next = gotoToken;
