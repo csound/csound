@@ -146,7 +146,7 @@ OENTRY opcodlst_1[] = {
 { "init.i", S(ASSIGNM), 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
 { "init.k", S(ASSIGNM), 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
 { "init.a", S(ASSIGNM), 1,      "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
-{ "init.t", S(ASSIGNM), 1,      "t",     "io",                   tinit  },
+{ "init.t", S(ASSIGNM), 1,      "t",    "io",                    tinit  },
 { "tabref", S(TABREF),  3,      "k",    "tk",   tabref_check, tabref, NULL },
 { ">",      S(RELAT),   0,      "B",    "kk",   gt,     gt              },
 { ">=",     S(RELAT),   0,      "B",    "kk",   ge,     ge              },
