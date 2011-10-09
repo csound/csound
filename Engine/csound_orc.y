@@ -354,11 +354,8 @@ statement : ident S_ASSIGN expr S_NL
           | T_IDENT_T S_SLB iexp S_SRB S_ASSIGN expr S_NL
           {
               TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$5);
-              print_tree(csound, "TREE 1", ans);
               ans->left = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$1);
-              print_tree(csound, "TREE 2", ans);
               ans->right = appendToTree(csound, $3, $6);
-              print_tree(csound, "TREE 3", ans);
                   /* ans->value->lexeme = get_assignment_type(csound,
                      ans->left->value->lexeme, ans->right->value->lexeme); */
               //print_tree(csound, "TABLE ASSIGN", ans);

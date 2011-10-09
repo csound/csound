@@ -200,7 +200,8 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       sprintf(op, "cngoto");
       break;
     default:
-      sprintf(op, "cggoto");
+      if (type) sprintf(op, "ckgoto");
+      else sprintf(op, "cggoto");
     }
 
     opTree = create_opcode_token(csound, op);
@@ -479,7 +480,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       opTree->right = root->left;
       opTree->right->next = root->right;
       opTree->left = create_ans_token(csound, outarg);
-      print_tree(csound, "making expression", opTree);
+      //print_tree(csound, "making expression", opTree);
     }
     else {
       opTree->right = root->right;
@@ -876,7 +877,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                               labelEnd,
                               type =
                               ((argtyp2(csound,
-                                        expressionNodes->left->value->lexeme)=='k')
+                                        expressionNodes->left->value->lexeme)=='B')
                                ||
                                (argtyp2(csound,
                                         tempRight->value->lexeme) == 'k')));
