@@ -40,6 +40,8 @@
 %token S_NL
 %token S_LB
 %token S_RB
+%token S_SLB
+%token S_SRB
 %token S_NEQ
 %token S_AND
 %token S_OR
