@@ -287,6 +287,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_EQ:\n"); break;
     case S_ASSIGN:
       csound->Message(csound,"S_ASSIGN:\n"); break;
+    case S_TASSIGN:
+      csound->Message(csound,"S_TASSIGN:\n"); break;
+    case S_TABREF:
+      csound->Message(csound,"S_TABREF:\n"); break;
     case S_GT:
       csound->Message(csound,"S_GT:\n"); break;
     case S_GE:
@@ -346,9 +350,13 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case T_IDENT_GA:
       csound->Message(csound,"IDENT_GA: %s\n", l->value->lexeme); break;
     case T_IDENT_S:
-      csound->Message(csound,"IDENT_D: %s\n", l->value->lexeme); break;
+      csound->Message(csound,"IDENT_S: %s\n", l->value->lexeme); break;
     case T_IDENT_GS:
       csound->Message(csound,"IDENT_GS: %s\n", l->value->lexeme); break;
+    case T_IDENT_T:
+      csound->Message(csound,"IDENT_T: %s\n", l->value->lexeme); break;
+    case T_IDENT_GT:
+      csound->Message(csound,"IDENT_GT: %s\n", l->value->lexeme); break;
     case T_IDENT_W:
       csound->Message(csound,"IDENT_W: %s\n", l->value->lexeme); break;
     case T_IDENT_GW:
@@ -448,6 +456,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_EQ\""); break;
     case S_ASSIGN:
       csound->Message(csound,"name=\"S_ASSIGN\""); break;
+    case S_TASSIGN:
+      csound->Message(csound,"name=\"S_TASSIGN\""); break;
+    case S_TABREF:
+      csound->Message(csound,"name=\"S_TABREF\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
@@ -528,10 +540,16 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"IDENT_GA\" varname=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT_S:
-      csound->Message(csound,"name=\"IDENT_D\" varname=\"%s\"",
+      csound->Message(csound,"name=\"IDENT_S\" varname=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT_GS:
       csound->Message(csound,"name=\"IDENT_GS\" varname=\"%s\"",
+                      l->value->lexeme); break;
+    case T_IDENT_T:
+      csound->Message(csound,"name=\"IDENT_T\" varname=\"%s\"",
+                      l->value->lexeme); break;
+    case T_IDENT_GT:
+      csound->Message(csound,"name=\"IDENT_GT\" varname=\"%s\"",
                       l->value->lexeme); break;
     case T_IDENT_W:
       csound->Message(csound,"name=\"IDENT_W\" varname=\"%s\"",
