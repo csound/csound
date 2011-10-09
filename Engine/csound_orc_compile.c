@@ -1614,6 +1614,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
       case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
       case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
       case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
+      case 't': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
       case 'S': p->type = STYPE; p->count = ST(lclnxtscnt)++; break;
       default:  p->type = KTYPE; p->count = ST(lclnxtkcnt)++; break;
     }
@@ -1778,7 +1779,7 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 #endif
 
 char argtyp2(CSOUND *csound, char *s)
-{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
+{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
@@ -1805,7 +1806,7 @@ char argtyp2(CSOUND *csound, char *s)
       c = *(++s);
     if (c == 'g')
       c = *(++s);
-    if (strchr("akiBbfS", c) != NULL)
+    if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');
 }

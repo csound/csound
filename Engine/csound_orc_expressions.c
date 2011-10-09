@@ -253,6 +253,7 @@ static int is_expression_node(TREE *node)
     case S_NEQV:
     case S_BITNOT:
     case S_Q:
+    case S_TABREF:
       return 1;
     }
    return 0;
@@ -429,6 +430,11 @@ TREE * create_expression(CSOUND *csound, TREE *root)
         outarg = create_out_arg(csound, outype);
       }
       break;
+    case S_TABREF:
+      strncpy(op, "tabref", 80);
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found TABREF: %s\n", op);
+      outarg = create_out_arg(csound, 'k');
+      break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
       if (c == 'p' || c == 'c')   c = 'i';
@@ -473,6 +479,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       opTree->right = root->left;
       opTree->right->next = root->right;
       opTree->left = create_ans_token(csound, outarg);
+      print_tree(csound, "making expression", opTree);
     }
     else {
       opTree->right = root->right;
