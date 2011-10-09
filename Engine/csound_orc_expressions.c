@@ -653,6 +653,18 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, T_LABEL, make_label(csound, label));
 }
 
+
+int csound_orc_boolean_expression_k_rate(CSOUND* csound, TREE* root) {
+    TREE* current = root;
+    
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    
+    return (argtyp2(csound,current->right->value->lexeme) == 'k') ||
+    (argtyp2(csound,current->right->next->value->lexeme) == 'k');
+}
+
 /* Expands expression nodes into opcode calls
  *
  *
@@ -798,17 +810,18 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 label = create_synthetic_ident(csound, genlabs);
                 labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
-                printf("goto types %c %c %c %c %d\n",
-                       expressionNodes->left->type, tempRight->type,
-                       argtyp2(csound, expressionNodes->left->value->lexeme),
-                       argtyp2(csound, tempRight->value->lexeme),
-                       (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') ||
-                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+//                printf("goto types %c %c %c %c %d\n",
+//                       expressionNodes->left->type, tempRight->type,
+//                       argtyp2(csound, last->left->value->lexeme),
+//                       argtyp2(csound, tempRight->value->lexeme),
+//                       (argtyp2(csound, last->left->value->lexeme) == 'k') ||
+//                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+                  print_tree(csound, "expression nodes", expressionNodes);
                 gotoToken =
                   create_goto_token(csound,
-                   expressionNodes->left->value->lexeme,
+                   last->left->value->lexeme,
                    tempRight,
-                   (argtyp2(csound,expressionNodes->left->value->lexeme)== 'k') ||
+                   csound_orc_boolean_expression_k_rate(csound, expressionNodes) ||
                    (argtyp2(csound, tempRight->value->lexeme) == 'k'));
                 /* relinking */
                 last->next = gotoToken;
