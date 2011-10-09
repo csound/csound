@@ -287,6 +287,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"S_EQ:\n"); break;
     case S_ASSIGN:
       csound->Message(csound,"S_ASSIGN:\n"); break;
+    case S_TASSIGN:
+      csound->Message(csound,"S_TASSIGN:\n"); break;
+    case S_TABREF:
+      csound->Message(csound,"S_TABREF:\n"); break;
     case S_GT:
       csound->Message(csound,"S_GT:\n"); break;
     case S_GE:
@@ -448,6 +452,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_EQ\""); break;
     case S_ASSIGN:
       csound->Message(csound,"name=\"S_ASSIGN\""); break;
+    case S_TASSIGN:
+      csound->Message(csound,"name=\"S_TASSIGN\""); break;
+    case S_TABREF:
+      csound->Message(csound,"name=\"S_TABREF\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
