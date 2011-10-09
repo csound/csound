@@ -786,6 +786,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               {
                 TREE* last = expressionNodes;
                 TREE *statements, *label, *labelEnd, *gotoToken;
+                int gotoType;
 
                 while (last->next != NULL) {
                   last = last->next;
@@ -804,13 +805,14 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
 //                       argtyp2(csound, tempRight->value->lexeme),
 //                       (argtyp2(csound, last->left->value->lexeme) == 'k') ||
 //                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
-                  print_tree(csound, "expression nodes", expressionNodes);
+//                print_tree(csound, "expression nodes", expressionNodes);
+                gotoType = (argtyp2(csound, last->left->value->lexeme) == 'B') ||
+                  (argtyp2(csound, tempRight->value->lexeme) == 'k');
                 gotoToken =
                   create_goto_token(csound,
                    last->left->value->lexeme,
                    tempRight,
-                   (argtyp2(csound, last->left->value->lexeme) == 'B') ||
-                   (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+                   gotoType);
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
@@ -820,8 +822,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  char nn = argtyp2(csound, tempRight->value->lexeme);
-                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2); /* ?? JPff */
+                  int type = (gotoType == 1) ? 0 : 1;
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
