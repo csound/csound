@@ -200,7 +200,8 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       sprintf(op, "cngoto");
       break;
     default:
-      sprintf(op, "cggoto");
+      if (type) sprintf(op, "ckgoto");
+      else sprintf(op, "cggoto");
     }
 
     opTree = create_opcode_token(csound, op);
@@ -253,6 +254,7 @@ static int is_expression_node(TREE *node)
     case S_NEQV:
     case S_BITNOT:
     case S_Q:
+    case S_TABREF:
       return 1;
     }
    return 0;
@@ -429,6 +431,11 @@ TREE * create_expression(CSOUND *csound, TREE *root)
         outarg = create_out_arg(csound, outype);
       }
       break;
+    case S_TABREF:
+      strncpy(op, "tabref", 80);
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found TABREF: %s\n", op);
+      outarg = create_out_arg(csound, 'k');
+      break;
     case T_FUNCTION: /* assumes on single arg input */
       c = arg2;
       if (c == 'p' || c == 'c')   c = 'i';
@@ -473,6 +480,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       opTree->right = root->left;
       opTree->right->next = root->right;
       opTree->left = create_ans_token(csound, outarg);
+      //print_tree(csound, "making expression", opTree);
     }
     else {
       opTree->right = root->right;
@@ -507,10 +515,26 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
+        last = anchor;
+        while (last->next != NULL) {
+            last = last->next;
+        }
         /* TODO - Free memory of old left node
            freetree */
         root->left = create_ans_token(csound, anchor->left->value->lexeme);
+    } else if (is_expression_node(root->left)) {
+        anchor = create_expression(csound, root->left);
+        
+        /* TODO - Free memory of old left node
+         freetree */
+        last = anchor;
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        root->left = create_ans_token(csound, last->left->value->lexeme);
     }
+
+    
     if (is_boolean_expression_node(root->right)) {
       TREE * newRight = create_boolean_expression(csound, root->right);
       if (anchor == NULL) {
@@ -526,6 +550,27 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       /* TODO - Free memory of old right node
          freetree */
       root->right = create_ans_token(csound, newRight->left->value->lexeme);
+    } else if (is_expression_node(root->right)) {
+        TREE * newRight = create_expression(csound, root->right);
+        if (anchor == NULL) {
+            anchor = newRight;
+        }
+        else {
+            last = anchor;
+            while (last->next != NULL) {
+                last = last->next;
+            }
+            last->next = newRight;
+        }
+        last = newRight;
+        
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        
+        /* TODO - Free memory of old right node
+         freetree */
+        root->right = create_ans_token(csound, last->left->value->lexeme);
     }
 
     op = mcalloc(csound, 80);
@@ -680,9 +725,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               previous->next = expressionNodes;
             }
             gotoToken = create_goto_token(csound,
-                                          expressionNodes->left->value->lexeme,
+                                          last->left->value->lexeme,
                                           right,
-                                          expressionNodes->left->type == 'k' ||
+                                          last->left->type == 'k' ||
                                           right->type =='k');
             last->next = gotoToken;
             gotoToken->next = current->next;
@@ -741,6 +786,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               {
                 TREE* last = expressionNodes;
                 TREE *statements, *label, *labelEnd, *gotoToken;
+                int gotoType;
 
                 while (last->next != NULL) {
                   last = last->next;
@@ -753,18 +799,20 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 label = create_synthetic_ident(csound, genlabs);
                 labelEnd = create_synthetic_label(csound, genlabs++);
                 tempRight->right = label;
-                printf("goto types %c %c %c %c %d\n",
-                       expressionNodes->left->type, tempRight->type,
-                       argtyp2(csound, expressionNodes->left->value->lexeme),
-                       argtyp2(csound, tempRight->value->lexeme),
-                       (argtyp2(csound, expressionNodes->left->value->lexeme) == 'k') ||
-                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+//                printf("goto types %c %c %c %c %d\n",
+//                       expressionNodes->left->type, tempRight->type,
+//                       argtyp2(csound, last->left->value->lexeme),
+//                       argtyp2(csound, tempRight->value->lexeme),
+//                       (argtyp2(csound, last->left->value->lexeme) == 'k') ||
+//                       (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+//                print_tree(csound, "expression nodes", expressionNodes);
+                gotoType = (argtyp2(csound, last->left->value->lexeme) == 'B') ||
+                  (argtyp2(csound, tempRight->value->lexeme) == 'k');
                 gotoToken =
                   create_goto_token(csound,
-                   expressionNodes->left->value->lexeme,
+                   last->left->value->lexeme,
                    tempRight,
-                   (argtyp2(csound,expressionNodes->left->value->lexeme)== 'k') ||
-                   (argtyp2(csound, tempRight->value->lexeme) == 'k'));
+                   gotoType);
                 /* relinking */
                 last->next = gotoToken;
                 gotoToken->next = statements;
@@ -774,8 +822,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                 if (endLabelCounter > 0) {
                   TREE *endLabel = create_synthetic_ident(csound,
                                                           endLabelCounter);
-                  char nn = argtyp2(csound, tempRight->value->lexeme);
-                  int type = (nn == 'k' ? 0 : nn == 'i' ? 1 : 2); /* ?? JPff */
+                  int type = (gotoType == 1) ? 0 : 1;
                   TREE *gotoEndLabelToken =
                     create_simple_goto_token(csound, endLabel, type);
                   if (UNLIKELY(PARSER_DEBUG))
@@ -869,7 +916,7 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
                               labelEnd,
                               type =
                               ((argtyp2(csound,
-                                        expressionNodes->left->value->lexeme)=='k')
+                                        expressionNodes->left->value->lexeme)=='B')
                                ||
                                (argtyp2(csound,
                                         tempRight->value->lexeme) == 'k')));

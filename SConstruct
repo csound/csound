@@ -1567,6 +1567,7 @@ makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
+makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
 makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
 makePlugin(pluginEnvironment, 'pvoc', Split('''
     Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c

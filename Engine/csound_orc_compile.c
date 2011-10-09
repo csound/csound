@@ -204,21 +204,19 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     int n = tp->inlist->count;
     char *s;
     char *types = ep->intypes;
-    int nreqd = -1;
+    int nreqd = strlen(types);
     char      tfound = '\0', treqd;
 
-    if (nreqd < 0)    /* for other opcodes */
-      nreqd = strlen(types);
-
-    /*if (n > nreqd) {*/                  /* IV - Oct 24 2002: end of new code */
-    /*if ((treqd = types[nreqd-1]) == 'n') {*/  /* indef args: */
-    /*  if (!(incnt & 01))*/                    /* require odd */
-    /*synterr(csound, Str("missing or extra arg"));*/
-    /*}*/       /* IV - Sep 1 2002: added 'M' */
-    /*else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&*/
-    /*treqd != 'Z' && treqd != 'M' && treqd != 'N')*/ /* else any no */
-    /*synterr(csound, Str("too many input args"));*/
-    /*}*/
+    if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
+      if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
+        int incnt = -1;                       /* Should count args */
+        if (!(incnt & 01))                    /* require odd */
+          synterr(csound, Str("missing or extra arg"));
+      }       /* IV - Sep 1 2002: added 'M' */
+      else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
+               treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
+        synterr(csound, Str("too many input args"));
+    }
 
     while (n--) {                     /* inargs:   */
       s = tp->inlist->arg[n];
@@ -1614,6 +1612,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
       case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
       case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
       case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
+      case 't': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
       case 'S': p->type = STYPE; p->count = ST(lclnxtscnt)++; break;
       default:  p->type = KTYPE; p->count = ST(lclnxtkcnt)++; break;
     }
@@ -1778,7 +1777,7 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 #endif
 
 char argtyp2(CSOUND *csound, char *s)
-{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
+{                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
     /* csound->Message(csound, "\nArgtyp2: received %s\n", s); */
@@ -1805,7 +1804,7 @@ char argtyp2(CSOUND *csound, char *s)
       c = *(++s);
     if (c == 'g')
       c = *(++s);
-    if (strchr("akiBbfS", c) != NULL)
+    if (strchr("akiBbfSt", c) != NULL)
       return(c);
     else return('?');
 }

@@ -467,6 +467,10 @@ extern "C" {
         float*          frame;
     } PVSDATEXT;
 
+    typedef struct {
+      int     size;
+      MYFLT   *data;
+    } TABDAT;
 
     typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
             const char *channelName,
