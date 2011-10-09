@@ -95,6 +95,8 @@ def runTest():
         ["test40.csd", "Testing i^j"],
         ["test41.csd", "if statement with = instead of =="],
         ["test42.csd", "extended string"],
+	["test44.csd", "expected failure with in-arg given to in opcode", 1],
+	["test45.csd", "if-goto with expression in boolean comparison"],
    ]
 
 
@@ -110,6 +112,7 @@ def runTest():
     for t in tests:
         filename = t[0]
         desc = t[1]
+        expectedResult = (len(t) == 3) and 1 or 0
 
         if(os.sep == '\\'):
             command = "..\\csound.exe %s %s %s 2> %s"%(parserType, runArgs, filename, tempfile)
@@ -118,13 +121,15 @@ def runTest():
             command = "../csound %s %s %s &> %s"%(parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
 
-        print "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
+        print "Test %i: %s (%s)\nReturn Code: %i"%(counter, desc, filename, retVal)
 
-        if retVal == 0:
+        if (retVal == 0) == (expectedResult == 0):
             testPass += 1
+            print "Result: PASS\n"
         else:
             testFail += 1
-
+            print "Result: FAIL\n"
+        
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
