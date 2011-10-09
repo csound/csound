@@ -515,10 +515,26 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
         anchor = create_boolean_expression(csound, root->left);
+        last = anchor;
+        while (last->next != NULL) {
+            last = last->next;
+        }
         /* TODO - Free memory of old left node
            freetree */
         root->left = create_ans_token(csound, anchor->left->value->lexeme);
+    } else if (is_expression_node(root->left)) {
+        anchor = create_expression(csound, root->left);
+        
+        /* TODO - Free memory of old left node
+         freetree */
+        last = anchor;
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        root->left = create_ans_token(csound, last->left->value->lexeme);
     }
+
+    
     if (is_boolean_expression_node(root->right)) {
       TREE * newRight = create_boolean_expression(csound, root->right);
       if (anchor == NULL) {
@@ -534,6 +550,27 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root)
       /* TODO - Free memory of old right node
          freetree */
       root->right = create_ans_token(csound, newRight->left->value->lexeme);
+    } else if (is_expression_node(root->right)) {
+        TREE * newRight = create_expression(csound, root->right);
+        if (anchor == NULL) {
+            anchor = newRight;
+        }
+        else {
+            last = anchor;
+            while (last->next != NULL) {
+                last = last->next;
+            }
+            last->next = newRight;
+        }
+        last = newRight;
+        
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        
+        /* TODO - Free memory of old right node
+         freetree */
+        root->right = create_ans_token(csound, last->left->value->lexeme);
     }
 
     op = mcalloc(csound, 80);
@@ -688,9 +725,9 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
               previous->next = expressionNodes;
             }
             gotoToken = create_goto_token(csound,
-                                          expressionNodes->left->value->lexeme,
+                                          last->left->value->lexeme,
                                           right,
-                                          expressionNodes->left->type == 'k' ||
+                                          last->left->type == 'k' ||
                                           right->type =='k');
             last->next = gotoToken;
             gotoToken->next = current->next;
