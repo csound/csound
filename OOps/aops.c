@@ -151,14 +151,11 @@ int tassign(CSOUND *csound, ASSIGNT *p)
 {
     TABDAT *t = p->tab;
     int ind = MYFLT2LRND(*p->ind);
-    printf("%d:t->data = %p\n",__LINE__, t->data);
     if (ind<0 || ind>t->size) 
       return csound->PerfError(csound,
                                Str("Index %d out of range [0,%d] in t[]\n"),
                                ind, t->size);
-    printf("%d:t->data = %p\n",__LINE__, t->data);
     t->data[ind] = *p->val;
-    printf("%d:t->data = %p\n",__LINE__, t->data);
     return OK;
 }
 
@@ -173,15 +170,12 @@ int tabref(CSOUND *csound, TABREF *p)
 {
     int ind = MYFLT2LRND(*p->ind);
     TABDAT *t = p->tab;
-    printf("%d:t->data = %p\n",__LINE__, t->data);
-    if (ind<0 || ind>t->size) 
+     if (ind<0 || ind>t->size) 
       return csound->PerfError(csound,
                                Str("Index %d out of range [0,%d] in t[]\n"),
                                ind, t->size);
-    printf("%d:t->data = %p\n",__LINE__, t->data);
-    *p->ans = t->data[ind];
-    printf("%d:t->data = %p\n",__LINE__, t->data);
-    return OK;
+     *p->ans = t->data[ind];
+     return OK;
 }
 
 #define RELATN(OPNAME,OP)                               \
