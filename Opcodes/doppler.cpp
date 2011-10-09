@@ -95,7 +95,7 @@ public:
 std::list<RCLowpassFilter *> smoothingFilterInstances;
 std::list<DelayLine *> delayLineInstances;
 
-class Doppler : public OpcodeBase<Doppler>
+class Doppler : public OpcodeNoteoffBase<Doppler>
 {
 public:
   // Csound opcode outputs.
@@ -204,91 +204,24 @@ public:
     }
     return OK;
   }
+    int noteoff(CSOUND *csound)
+    {
+        int result = OK;
+        if (audioBufferQueue) {
+            while (!audioBufferQueue->empty()) {
+                delete audioBufferQueue->front();
+                audioBufferQueue->pop_front();
+            }
+            delete audioBufferQueue;
+            audioBufferQueue = 0;            
+        }
+        if (sourcePositionQueue) {
+            delete sourcePositionQueue;
+            sourcePositionQueue = 0;
+        }
+        return result;
+    }
 };
-
-#ifdef NEVER
-struct Doppler2 : public OpcodeBase<Doppler2>
-{
-  // Csound opcode outputs.
-  MYFLT *audioOutput;
-  // Csound opcode inputs.
-  MYFLT *audioInput;
-  MYFLT *kSourcePosition;
-  MYFLT *kMicPosition;
-  MYFLT *jSpeedOfSound;
-  MYFLT *jUpdateFilterCutoff;
-  // Doppler internal state.
-  MYFLT speedOfSound;
-  MYFLT smoothingFilterCutoff;
-  MYFLT sampleRate;
-  MYFLT samplesPerDistance;
-  MYFLT blockSize;
-  MYFLT blockRate;
-  RCLowpassFilter *smoothingFilter;
-  LinearInterpolator *audioInterpolator;
-  DelayLine *delayLine;
-  int init(CSOUND *csound)
-  {
-    sampleRate = csound->GetSr(csound);
-    blockSize = csound->GetKsmps(csound);
-    blockRate = sampleRate / blockSize;
-    // Take care of default values.
-    if (*jSpeedOfSound == MYFLT(-1.0)) {
-      SpeedOfSound = MYFLT(340.29);
-    }
-    else speedOfSound = *jSpeedOfSound;
-    if (*jUpdateFilterCutoff == MYFLT(-1.0)) {
-      MYFLT blockRateNyquist = blockRate / MYFLT(2.0);
-      smoothingFilterCutoff = blockRateNyquist / MYFLT(2.0);
-    }
-    else smoothingFilterCutoff = *jUpdateFilterCutoff;
-    samplesPerDistance = sampleRate / speedOfSound;
-    audioInterpolator = new LinearInterpolator;
-    // The smoothing filter cannot be initialized at i-time,
-    // because it must be initialized from a k-rate variable.
-    smoothingFilter = 0;
-    delayLine = new DelayLine;
-    return OK;
-  }
-  int kontrol(CSOUND *csound)
-  {
-    MYFLT sourcePosition = *kSourcePosition;
-    MYFLT micPosition = *kMicPosition;
-    MYFLT position = sourcePosition - micPosition;
-    // On the very first block only, initialize the smoothing filter.
-    if (!smoothingFilter) {
-      smoothingFilter = new RCLowpassFilter();
-      smoothingFilter->initialize(sampleRate, smoothingFilterCutoff, *kSourcePosition);
-      log(csound, "Doppler::kontrol: sizeof(MYFLT):                  %10d\n", sizeof(MYFLT));
-      log(csound, "Doppler::kontrol: PI:                             %10.3f\n", pi);
-      log(csound, "Doppler::kontrol: this:                           %10p\n", this);
-      log(csound, "Doppler::kontrol: sampleRate:                       %10.3f\n", sampleRate);
-      log(csound, "Doppler::kontrol: blockSize:                 %10.3f\n", blockSize);
-      log(csound, "Doppler::kontrol: blockRate:                       %10.3f\n", blockRate);
-      log(csound, "Doppler::kontrol: speedOfSound:           %10.3f\n", speedOfSound);
-      log(csound, "Doppler::kontrol: samplesPerDistance:                 %10.3f\n", samplesPerDistance);
-      log(csound, "Doppler::kontrol: smoothingFilterCutoff:  %10.3f\n", smoothingFilterCutoff);
-      log(csound, "Doppler::kontrol: kMicPosition:             %10.3f\n", *kMicPosition);
-      log(csound, "Doppler::kontrol: kSourcePosition:          %10.3f\n", *kSourcePosition);
-      delayLine->initialize(sampleRate, 10.0);
-    }
-    for (size_t frame = 0; frame < blockSize; frame++) {
-      delayLine->write(audioInput[frame]);
-      MYFLT distance = std::fabs(position);
-      MYFLT delayFrames = distance * samplesPerDistance;
-      MYFLT delayFramesFloor = int(delayFrames);
-      MYFLT fraction = delayFrames - delayFramesFloor;
-      MYFLT currentValue = delayLine->delayFrames((int) delayFrames);
-      audioInterpolator->put(currentValue);
-      currentValue = audioInterpolator->get(fraction);
-      position = smoothingFilter->update(position);
-      audioOutput[frame] = currentValue;
-    }
-    return OK;
-  }
-};
-#endif
-
 
 extern "C"
 {
@@ -304,18 +237,6 @@ extern "C"
         (SUBR) Doppler::kontrol_,
         0,
       },
-#ifdef NEVER
-      {
-        (char*)"doppler2",
-        sizeof(Doppler2),
-        3,
-        (char*)"a",
-        (char*)"akkjj",
-        (SUBR) Doppler2::init_,
-        (SUBR) Doppler2::kontrol_,
-        0,
-      },
-#endif
       {
         0,
         0,
