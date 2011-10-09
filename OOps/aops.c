@@ -133,6 +133,19 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     return OK;
 }
 
+typedef struct {
+    OPDS    h;
+    TABDAT  *tab;
+} TABDEL;
+  
+static int tabdel(CSOUND *csound, void *p)
+{
+    TABDAT *t = ((TABDEL*)p)->tab;
+    mfree(csound, t->data);
+    mfree(csound, p);
+    return OK;
+}
+
 int tinit(CSOUND *csound, INITT *p)
 {
     int size = MYFLT2LRND(*p->size);
@@ -144,6 +157,12 @@ int tinit(CSOUND *csound, INITT *p)
     mfree(csound, t->data);
     t->data = mmalloc(csound, sizeof(MYFLT)*(size+1));
     for (i=0; i<=size; i++) t->data[i] = val;
+    { // Need to recover space eventually
+      TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL));
+      op->h.insdshead = ((OPDS*) p)->insdshead;
+      op->tab = t;
+      csound->RegisterDeinitCallback(csound, op, tabdel);
+    }
     return OK;
 }
 
