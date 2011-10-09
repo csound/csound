@@ -204,21 +204,19 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     int n = tp->inlist->count;
     char *s;
     char *types = ep->intypes;
-    int nreqd = -1;
+    int nreqd = strlen(types);
     char      tfound = '\0', treqd;
 
-    if (nreqd < 0)    /* for other opcodes */
-      nreqd = strlen(types);
-
-    /*if (n > nreqd) {*/                  /* IV - Oct 24 2002: end of new code */
-    /*if ((treqd = types[nreqd-1]) == 'n') {*/  /* indef args: */
-    /*  if (!(incnt & 01))*/                    /* require odd */
-    /*synterr(csound, Str("missing or extra arg"));*/
-    /*}*/       /* IV - Sep 1 2002: added 'M' */
-    /*else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&*/
-    /*treqd != 'Z' && treqd != 'M' && treqd != 'N')*/ /* else any no */
-    /*synterr(csound, Str("too many input args"));*/
-    /*}*/
+    if (n > nreqd) {                 /* IV - Oct 24 2002: end of new code */
+      if ((treqd = types[nreqd-1]) == 'n') {  /* indef args: */
+        int incnt = -1;                       /* Should count args */
+        if (!(incnt & 01))                    /* require odd */
+          synterr(csound, Str("missing or extra arg"));
+      }       /* IV - Sep 1 2002: added 'M' */
+      else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
+               treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
+        synterr(csound, Str("too many input args"));
+    }
 
     while (n--) {                     /* inargs:   */
       s = tp->inlist->arg[n];
