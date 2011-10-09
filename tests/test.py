@@ -97,6 +97,7 @@ def runTest():
         ["test42.csd", "extended string"],
 	["test44.csd", "expected failure with in-arg given to in opcode", 1],
 	["test45.csd", "if-goto with expression in boolean comparison"],
+	["test46.csd", "if-then with expression in boolean comparison"],
    ]
 
 
