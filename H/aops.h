@@ -39,11 +39,6 @@ typedef struct {
     MYFLT   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
 } ASSIGNM;
 
-typedef struct tabdat {
-    int     size;
-    MYFLT   *data;
-} TABDAT;
-
 typedef struct {
     OPDS    h;
     TABDAT  *a;
