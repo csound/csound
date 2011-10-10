@@ -141,7 +141,16 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
     int i;
     MYFLT range;
 
+    // Correct start an dening points
     if (end<0) end = t->size;
+    else if (end>t->size) end = t->size;
+    else if (end<0) end = 0;
+    if (strt<0) strt = 0;
+    else if (strt>t->size) strt = t->size;
+    if (end<strt) {
+      int x = end; end = strt; strt = x;
+    }
+    // get data range
     for (i=strt+1; i<end; i++) {
       if (t->data[i]<tmin) tmin = t->data[i];
       if (t->data[i]>tmax) tmax = t->data[i];
@@ -153,6 +162,31 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
     return OK;
 }
 
+typedef struct {
+    OPDS h;
+    TABDAT *dst;
+    TABDAT *src;
+} TABCPY;
+
+static int tabcopy_set(CSOUND *csound, TABCPY *p)
+{
+    if (LIKELY(p->src->data)) return OK;
+    return csound->InitError(csound, Str("t-variable not initialised"));
+    if (LIKELY(p->dst->data)) return OK;
+    return csound->InitError(csound, Str("t-variable not initialised"));
+    return OK;
+}
+
+static int tabcopy(CSOUND *csound, TABCPY *p)
+{
+    int sizes = p->src->size;
+    int sized = p->dst->size;
+    int len = sizes>sized ? sized : sizes;
+    memmove(p->dst->data, p->src->data, len*sizeof(MYFLT));
+    return OK;
+}
+
+
 
 static OENTRY localops[] =
 {
@@ -161,11 +195,11 @@ static OENTRY localops[] =
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
-  { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ", (SUBR) tabscaleset, (SUBR) tabscale },
+  { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
+  { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy }
   //  { "copy2ftab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) tab2ftab },
   //  { "copy2ttab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) ftab2tab },
 };
-//scalet t1, kmin, kmax[, startdefault0[,enddefend]]
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter    
