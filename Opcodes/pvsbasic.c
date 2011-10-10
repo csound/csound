@@ -2135,6 +2135,77 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 
 }
 
+typedef struct pvs2tab_t { 
+    OPDS h;
+    MYFLT *framecount;
+    TABDAT *ans;
+    PVSDAT *fsig;
+} PVS2TAB_T;
+
+int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p){
+  if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
+                 (p->fsig->format == PVS_AMP_PHASE)))
+      return csound->InitError(csound, Str("pvs2tab: signal format "
+                                           "must be amp-phase or amp-freq."));
+  if (LIKELY(p->ans->data)) return OK;
+  return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
+int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
+ 
+  int size = p->ans->size, N = p->fsig->N, i;
+  float *fsig = (float *) p->fsig->frame.auxp;
+  for(i = 0; i < size && i < N+2; i++)
+      p->ans->data[i] = (MYFLT) fsig[i];   
+  *p->framecount = (MYFLT) p->fsig->framecount;
+  
+  return OK;
+}
+
+typedef struct tab2pvs_t { 
+    OPDS h;
+    PVSDAT *fout;
+    TABDAT *in;
+    MYFLT  *olap, *winsize, *wintype, *format;
+    uint32  lastframe;
+} TAB2PVS_T;
+
+int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p){
+  if (LIKELY(p->in->data)){
+    int N;
+    p->fout->N = N = p->in->size - 2;
+    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (int32) *p->wintype;
+    p->fout->format = 0;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+   if (p->fout->frame.auxp == NULL || p->fout->frame.size < sizeof(float) * (N + 2)) {
+          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+     }
+
+  memset(p->fout->frame.auxp, sizeof(float)*(N+2), 0);
+  return OK;
+  }
+  else return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
+int  tab2pvs(CSOUND *csound, TAB2PVS_T *p){
+ 
+  int size = p->in->size, i;
+  float *fout = (float *) p->fout->frame.auxp;
+  
+  if(p->lastframe < p->fout->framecount){
+    for(i = 0; i < size; i++){
+      fout[i] = (float) p->in->data[i]; 
+    } 
+    p->lastframe = p->fout->framecount;
+  }
+  return OK;
+}
+
+
+
 
 static OENTRY localops[] = {
   {"pvsfwrite", sizeof(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
@@ -2168,12 +2239,13 @@ static OENTRY localops[] = {
    (SUBR) pvsoscprocess, NULL},
   {"pvsdiskin", sizeof(pvsdiskin), 3, "f", "SkkopP",(SUBR) pvsdiskinset,
    (SUBR) pvsdiskinproc, NULL},
-
   {"pvstanal", sizeof(PVST), 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",(SUBR) pvstanalset,
    (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
   {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
-  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL}
+  {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
+  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop", (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)

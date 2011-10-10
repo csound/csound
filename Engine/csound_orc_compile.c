@@ -215,7 +215,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       }       /* IV - Sep 1 2002: added 'M' */
       else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
                treqd != 'Z' && treqd != 'M' && treqd != 'N') /* else any no */
-        synterr(csound, Str("too many input args"));
+        synterr(csound, Str("too many input args\n"));
     }
 
     while (n--) {                     /* inargs:   */
