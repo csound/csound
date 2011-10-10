@@ -184,10 +184,11 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
- extern int csound_orclex(TREE**, CSOUND *, void *);
+extern int csound_orclex(TREE**, CSOUND *, void *);
 extern void print_tree(CSOUND *, char *msg, TREE *);
 extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, char*);
 extern void add_udo_definition(CSOUND*, char *, char *, char *);
+extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 %}
 %%
 
@@ -351,6 +352,14 @@ statement : ident S_ASSIGN expr S_NL
                                     csp_orc_sa_globals_find(csound, ans->right));
 #endif
                 }
+          | T_IDENT_T S_ASSIGN T_IDENT_T S_NL
+          {
+              ORCTOKEN *op = lookup_token(csound, "#copytab", NULL);
+              TREE *ans = make_leaf(csound, T_OPCODE, op);
+              ans->left = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$1);
+              ans->right = make_leaf(csound, T_IDENT_T, (ORCTOKEN *)$3);
+              $$ = ans;
+          }
           | T_IDENT_T S_SLB iexp S_SRB S_ASSIGN expr S_NL
           {
               TREE *ans = make_leaf(csound, S_ASSIGN, (ORCTOKEN *)$5);
