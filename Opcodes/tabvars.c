@@ -40,6 +40,13 @@ typedef struct {
     MYFLT  *kfn;
 } TABCOPY;
 
+typedef struct {
+    OPDS h;
+    TABDAT *tab;
+    MYFLT  *kmin, *kmax;
+    MYFLT  *kstart, *kend;
+} TABSCALE;
+
 static int tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->ans->data && p->left->data && p->right->data)) return OK;
@@ -106,15 +113,63 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
     return OK;
 }
   
+static int tabsum(CSOUND *csound, TABQUERY *p)
+{
+    TABDAT *t = p->tab;
+    int i, size = t->size;
+    MYFLT ans = FL(0.0);
+
+    for (i=1; i<=size; i++)
+      ans += t->data[i];
+    *p->ans = ans;
+    return OK;
+}
+  
+static int tabscaleset(CSOUND *csound, TABSCALE *p)
+{
+    if (LIKELY(p->tab->data)) return OK;
+    return csound->InitError(csound, Str("t-variable not initialised"));
+}
+
+static int tabscale(CSOUND *csound, TABSCALE *p)
+{
+    MYFLT min = *p->kmin, max = *p->kmax;
+    int strt = (int)MYFLT2LRND(*p->kstart), end = (int)MYFLT2LRND(*p->kend);
+    TABDAT *t = p->tab;
+    MYFLT tmin = t->data[strt];
+    MYFLT tmax = tmin;
+    int i;
+    MYFLT range;
+
+    if (end<0) end = t->size;
+    for (i=strt+1; i<end; i++) {
+      if (t->data[i]<tmin) tmin = t->data[i];
+      if (t->data[i]>tmax) tmax = t->data[i];
+    }
+    range = (max-min)/(tmax-tmin);
+    for (i=strt; i<end; i++) {
+      t->data[i] = (t->data[i]-tmin)*range + min;
+    }
+    return OK;
+}
+
+
 static OENTRY localops[] =
 {
   { "plustab", sizeof(TABARITH), 3, "", "ttt", (SUBR) tabarithset, (SUBR) tabadd },
   { "multtab", sizeof(TABARITH), 3, "", "ttt", (SUBR) tabarithset, (SUBR) tabmult },
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
+  { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
+  { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ", (SUBR) tabscaleset, (SUBR) tabscale },
   //  { "copy2ftab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) tab2ftab },
   //  { "copy2ttab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) ftab2tab },
 };
+//scalet t1, kmin, kmax[, startdefault0[,enddefend]]
+// reverse, scramble, mirror, stutter, rotate, ...
+// jpff: stutter is an interesting one (very musical). It basically
+//          randomly repeats (holds) values based on a probability parameter    
+
 
 LINKAGE
 
