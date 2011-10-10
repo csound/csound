@@ -2176,7 +2176,7 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p){
     p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
     p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
     p->fout->wintype = (int32) *p->wintype;
-    p->fout->format = (int32) *p->format;
+    p->fout->format = 0;
     p->fout->framecount = 1;
     p->lastframe = 0;
    if (p->fout->frame.auxp == NULL || p->fout->frame.size < sizeof(float) * (N + 2)) {
@@ -2243,7 +2243,7 @@ static OENTRY localops[] = {
   {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
   {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
   {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
-  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toopo", (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
+  {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toop", (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)
