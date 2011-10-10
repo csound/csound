@@ -107,9 +107,11 @@ struct SignalFlowGraph;
 struct Outleta;
 struct Outletk;
 struct Outletf;
+struct Outletkid;
 struct Inleta;
 struct Inletk;
 struct Inletf;
+struct Inletkid;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
@@ -117,7 +119,7 @@ struct FtGenOnce;
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
   stream << a.opcod;
-  for (size_t i = 0; i < a.pcnt; i++) {
+  for (int i = 0; i < a.pcnt; i++) {
     stream << " " << a.p[i];
   }
   return stream;
@@ -177,19 +179,23 @@ struct EventBlock {
   }
 };
 
-// Identifiers are always "sourcename:outletname" or "sinkname:inletname".
+// Identifiers are always "sourcename:outletname" and "sinkname:inletname",
+// or "sourcename:idname:outletname" and "sinkname:inletname."
 
 std::map<CSOUND *, std::map< std::string, std::vector< Outleta * > > > aoutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Outletk * > > > koutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Outletf * > > > foutletsForCsoundsForSourceOutletIds;
+std::map<CSOUND *, std::map< std::string, std::vector< Outletkid * > > > kidoutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inleta * > > > ainletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletk * > > > kinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletf * > > > finletsForCsoundsForSinkInletIds;
+std::map<CSOUND *, std::map< std::string, std::vector< Inletkid * > > > kidinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< std::string > > > connectionsForCsounds;
 std::map<CSOUND *, std::map< EventBlock, int > > functionTablesForCsoundsForEvtblks;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outleta *> *> * > > aoutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletk *> *> * > > koutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletf *> *> * > > foutletVectorsForCsounds;
+std::map<CSOUND *, std::vector< std::vector< std::vector<Outletkid *> *> * > > kidoutletVectorsForCsounds;
 
 // For true thread-safety, access to shared data must be protected.
 // We will use one OpenMP critical section for each logically independent
@@ -209,6 +215,8 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
       kinletsForCsoundsForSinkInletIds[csound].clear();
       foutletsForCsoundsForSourceOutletIds[csound].clear();
       finletsForCsoundsForSinkInletIds[csound].clear();
+      kidoutletsForCsoundsForSourceOutletIds[csound].clear();
+      kidinletsForCsoundsForSinkInletIds[csound].clear();
       connectionsForCsounds[csound].clear();
     }
 #pragma omp critical (critical_section_ftables)
@@ -315,7 +323,7 @@ struct Inleta : public OpcodeBase<Inleta> {
 
       //warn(csound, "BEGAN Inleta::audio()...\n");
       // Zero the inlet buffer.
-      for (size_t sampleI = 0; sampleI < sampleN; sampleI++) {
+      for (int sampleI = 0; sampleI < sampleN; sampleI++) {
 	asignal[sampleI] = FL(0.0);
       }
       // Loop over the source connections...
@@ -331,7 +339,7 @@ struct Inleta : public OpcodeBase<Inleta> {
 	  // Skip inactive instances.
 	  if (sourceOutlet->h.insdshead->actflg) {
 	    // Loop over the samples in the inlet buffer.
-	    for (size_t sampleI = 0;
+	    for (int sampleI = 0;
 		 sampleI < sampleN;
 		 sampleI++) {
 	      asignal[sampleI] += sourceOutlet->asignal[sampleI];
@@ -595,7 +603,7 @@ struct Inletf : public OpcodeBase<Inletf> {
               fsignalInitialized = true;
             }
             if (fsignal->sliding) {
-              for (size_t frameI = 0; frameI < ksmps; frameI++) {
+              for (int frameI = 0; frameI < ksmps; frameI++) {
                 sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
                 sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
                 for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
@@ -608,7 +616,7 @@ struct Inletf : public OpcodeBase<Inletf> {
           } else {
             sink = (float *)fsignal->frame.auxp;
             source = (float *)sourceOutlet->fsignal->frame.auxp;
-            if (lastframe < fsignal->framecount) {
+            if (lastframe < int(fsignal->framecount)) {
               for (size_t binI = 0, binN = fsignal->N + 2;
                    binI < binN;
                    binI += 2) {
@@ -624,6 +632,137 @@ struct Inletf : public OpcodeBase<Inletf> {
       }
     }
     return result;
+  }
+};
+
+struct Outletkid : public OpcodeBase<Outletkid> {
+  /**
+   * Inputs.
+   */
+  MYFLT *Sname;
+  MYFLT *SinstanceId;
+  MYFLT *ksignal;
+  /**
+   * State.
+   */
+  char sourceOutletId[0x100];
+  char *instanceId;
+  int init(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+      const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
+      instanceId = csound->strarg2name(csound,
+                   (char*) NULL,
+                   SinstanceId,
+                   (char *)"",
+                   (int) csound->GetInputArgSMask(this));
+      if (insname && instanceId) {
+	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+      } else {
+	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+      }
+      if (insname) {
+	std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname);
+      } else {
+	std::sprintf(sourceOutletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+      }
+      std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+      if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
+	koutlets.push_back(this);
+	warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
+      }
+    }
+    return OK;
+  }
+};
+
+struct Inletkid : public OpcodeBase<Inletkid> {
+  /**
+   * Output.
+   */
+  MYFLT *ksignal;
+  /**
+   * Inputs.
+   */
+  MYFLT *Sname;
+  MYFLT *SinstanceId;
+  /**
+   * State.
+   */
+  char sinkInletId[0x100];
+  char *instanceId;
+  std::vector< std::vector<Outletkid *> *> *sourceOutlets;
+  int ksmps;
+  int init(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+
+      ksmps = csound->GetKsmps(csound);
+      if (std::find(kidoutletVectorsForCsounds[csound].begin(),
+		    kidoutletVectorsForCsounds[csound].end(),
+		    sourceOutlets) == kidoutletVectorsForCsounds[csound].end()) {
+	sourceOutlets = new std::vector< std::vector<Outletkid *> *>;
+	kidoutletVectorsForCsounds[csound].push_back(sourceOutlets);
+      }
+      sinkInletId[0] = 0;
+      instanceId = csound->strarg2name(csound,
+                   (char*) NULL,
+                   SinstanceId,
+                   (char *)"",
+                   (int) csound->GetInputArgSMask(this));
+      const char *insname = csound->instrtxtp[h.insdshead->insno]->insname;
+      if (insname) {
+	std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname);
+      } else {
+	std::sprintf(sinkInletId, "%d:%s", h.insdshead->insno, (char *)Sname);
+      }
+      std::vector<Inletkid *> &kinlets = kidinletsForCsoundsForSinkInletIds[csound][sinkInletId];
+      if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
+	kinlets.push_back(this);
+	warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+      }
+      // Find source outlets connecting to this.
+      // Any number of sources may connect to any number of sinks.
+      std::vector<std::string> &sourceOutletIds = connectionsForCsounds[csound][sinkInletId];
+      for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
+	const std::string &sourceOutletId = sourceOutletIds[i];
+	std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+	if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
+	  sourceOutlets->push_back(&koutlets);
+	  warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+	}
+      }
+    }
+    return OK;
+  }
+  /**
+   * Replay instance signal.
+   */
+  int kontrol(CSOUND *csound) {
+#pragma omp critical (cs_sfg_ports)
+    {
+      // Zero the inlet buffer.
+      *ksignal = FL(0.0);
+      // Loop over the source connections...
+      for (size_t sourceI = 0, sourceN = sourceOutlets->size();
+	   sourceI < sourceN;
+	   sourceI++) {
+	// Loop over the source connection instances...
+	const std::vector<Outletkid *> *instances = sourceOutlets->at(sourceI);
+	for (size_t instanceI = 0, instanceN = instances->size();
+	     instanceI < instanceN;
+	     instanceI++) {
+	  const Outletkid *sourceOutlet = instances->at(instanceI);
+	  // Skip inactive instances and also all non-matching instances.
+	  if (sourceOutlet->h.insdshead->actflg) {
+        if (std::strcmp(sourceOutlet->instanceId, instanceId) == 0) {
+	    *ksignal += *sourceOutlet->ksignal;
+        }
+	  }
+	}
+      }
+    }
+    return OK;
   }
 };
 
@@ -843,6 +982,26 @@ extern "C"
       3,
       (char *)"k",
       (char *)"S",
+      (SUBR)&Inletk::init_,
+      (SUBR)&Inletk::kontrol_,
+      0
+    },
+    {
+      (char *)"outletkid",
+      sizeof(Outletkid),
+      3,
+      (char *)"",
+      (char *)"SSk",
+      (SUBR)&Outletk::init_,
+      (SUBR)&Outletk::kontrol_,
+      0
+    },
+    {
+      (char *)"inletkid",
+      sizeof(Inletkid),
+      3,
+      (char *)"k",
+      (char *)"SS",
       (SUBR)&Inletk::init_,
       (SUBR)&Inletk::kontrol_,
       0

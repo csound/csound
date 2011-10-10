@@ -146,20 +146,23 @@ public:
     {
         int result = OK;
         lua_State *L = manageLuaState();
+        /* Ensure that Csound is available in the global environment. */
+        lua_pushlightuserdata(L, csound);
+        lua_setfield(L, LUA_GLOBALSINDEX, "csound");
         const char *luacode =  csound->strarg2name(csound,
                                (char *) 0,
                                luacode_,
                                (char *)"default",
                                (int) csound->GetInputArgSMask(this));
-        log(csound, "Executing Lua code:\n%s\n", luacode);
+        //log(csound, "Executing Lua code:\n%s\n", luacode);
         result = luaL_dostring(L, luacode);
         if (result == 0)
         {
-            log(csound, "Result: %d\n", result);
+            //log(csound, "Result: %d\n", result);
         }
         else
         {
-            log(csound, "Failed with: %d\n", result);
+            log(csound, "luaL_dostring failed with: %d\n", result);
         }
         return result;
     }
@@ -475,7 +478,7 @@ public:
                                luacode_,
                                (char *)"default",
                                (int) csound->GetInputArgSMask(this));
-        log(csound, "Executing Lua code:\n%s\n", luacode);
+        //log(csound, "Executing Lua code:\n%s\n", luacode);
         result = luaL_dostring(L, luacode);
         if (result == 0)
         {
@@ -517,7 +520,7 @@ public:
         }
         else
         {
-            log(csound, "Failed with: %d\n", result);
+            log(csound, "luaL_dostring failed with: %d\n", result);
         }
         return result;
     }
