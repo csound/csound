@@ -2137,9 +2137,9 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 
 typedef struct pvs2tab_t { 
     OPDS h;
+    MYFLT *framecount;
     TABDAT *ans;
     PVSDAT *fsig;
-    uint32  lastframe;
 } PVS2TAB_T;
 
 int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p){
@@ -2155,14 +2155,10 @@ int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
  
   int size = p->ans->size, N = p->fsig->N, i;
   float *fsig = (float *) p->fsig->frame.auxp;
+  for(i = 0; i < size && i < N+2; i++)
+      p->ans->data[i] = (MYFLT) fsig[i];   
+  *p->framecount = (MYFLT) p->fsig->framecount;
   
-  
-  if(p->lastframe < p->fsig->framecount){
-    for(i = 0; i < size && i < N+2; i++){
-      p->ans->data[i] = (MYFLT) fsig[i];  
-    } 
-    p->lastframe = p->fsig->framecount;
-  }
 }
 
 typedef struct tab2pvs_t { 
@@ -2246,7 +2242,7 @@ static OENTRY localops[] = {
   {"pvswarp", sizeof(PVSWARP), 3, "f", "fkkOPPO", (SUBR) pvswarpset, (SUBR) pvswarp},
   {"pvsenvftw", sizeof(PVSENVW), 3, "k", "fkPPO", (SUBR) pvsenvwset, (SUBR) pvsenvw},
   {"pvsgain", sizeof(PVSGAIN), 3, "f", "fk", (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
-  {"pvs2tab", sizeof(PVS2TAB_T), 3, "", "tf", (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"pvs2tab", sizeof(PVS2TAB_T), 3, "k", "tf", (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
   {"tab2pvs", sizeof(TAB2PVS_T), 3, "f", "toopo", (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 
