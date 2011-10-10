@@ -715,23 +715,23 @@ skipAssoc:
   SectionGroupEnd
 SectionGroupEnd
 SectionGroup "Front ends"
-  Section "QuteCsound (user-defined widgets)"
+  Section "CsoundQt (user-defined widgets)"
     SectionIn 2 3
 !ifdef FLOAT
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsoundf.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-f.exe" "" "" "" "" "" " CsoundQt"
 !else
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\qutecsound.lnk" "$INSTDIR\bin\qutecsound-d.exe" "" "" "" "" "" " QuteCsound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-d.exe" "" "" "" "" "" " CsoundQt"
 !endif
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
-      # QuteCsound
+      # CsoundQt
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
 !ifdef FLOAT
-      File C:\utah\opt\qcs-build-desktop\bin\qutecsoundf.exe
+      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
 !else
-      File C:\utah\opt\qcs-build-desktop\bin\qutecsound-d.exe
+      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -857,6 +857,33 @@ SectionGroup "Csound interfaces"
 	File ..\..\_CsoundAC.pyd  
         File ..\..\CsoundAC.py
     SectionEnd
+    Section /o "CsoundQt-Py (user-defined widgets with PythonQt support)"
+      SectionIn 2
+    !ifdef FLOAT
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-f-py.exe" "" "" "" "" "" " CsoundQt-py"
+    !else
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-d-py.exe" "" "" "" "" "" " CsoundQt-py"
+    !endif
+        SetOutPath $INSTDIR\bin
+          File ..\..\csnd.dll
+          # CsoundQt
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtCore4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtNetwork4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtOpenGL4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtSql4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtSvg4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtWebKit4.dll
+          File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\phonon4.dll
+          File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt_QtAll.dll
+          File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt.dll
+    !ifdef FLOAT
+          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
+    !else
+          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
+    !endif
+      SectionEnd
   SectionGroupEnd 
   SectionGroup "Java (requires Java)"
     Section "csnd: Java interface to Csound"
