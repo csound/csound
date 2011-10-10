@@ -1966,12 +1966,12 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
 
 int ktrnsegr(CSOUND *csound, TRANSEG *p)
 {
-    NSEG        *segp = p->cursegp;
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
       csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
+        NSEG        *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
         while (p->segsrem > 1) {        /* reles flag new:      */
           segp = ++p->cursegp;          /*   go to last segment */
@@ -1981,13 +1981,10 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         goto newm;                      /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {           /* if done cur segment  */
-        NSEG *segp = p->cursegp;
       chk1:
-        if (!(--p->segsrem))  {
-          p->curval = segp->nxtpt;      /* advance the cur val  */
-          return OK;
-        }
-        p->cursegp = ++segp;            /*   find the next      */
+          if (p->segsrem == 2) return OK;    /*   seg Y rpts lastval */
+          if (!(--p->segsrem)) return OK;    /*   seg Z now done all */
+        segp = ++p->cursegp;            /*   find the next      */
       newm:
         if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
           p->curval = segp->nxtpt;      /*   poslen = new slope */
