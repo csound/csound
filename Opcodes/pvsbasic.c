@@ -2159,6 +2159,7 @@ int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
       p->ans->data[i] = (MYFLT) fsig[i];   
   *p->framecount = (MYFLT) p->fsig->framecount;
   
+  return OK;
 }
 
 typedef struct tab2pvs_t { 
@@ -2200,6 +2201,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p){
     } 
     p->lastframe = p->fout->framecount;
   }
+  return OK;
 }
 
 
