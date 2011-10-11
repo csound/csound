@@ -11,6 +11,7 @@ from Tkinter import *
 
 parserType = "--new-parser"
 showUIatClose = False
+csoundExecutable = ""
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -117,14 +118,16 @@ def runTest():
         expectedResult = (len(t) == 3) and 1 or 0
 
         if(os.sep == '\\'):
-            command = "..\\csound.exe %s %s %s 2> %s"%(parserType, runArgs, filename, tempfile)
+            executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
+            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
         else:
-            command = "../csound %s %s %s &> %s"%(parserType, runArgs, filename, tempfile)
+            executable = (csoundExecutable == "") and "../csound" or csoundExecutable
+            command = "%s %s %s %s &> %s"%(executable, parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
 
         print "Test %i: %s (%s)\nReturn Code: %i"%(counter, desc, filename, retVal)
-
+        print expectedResult
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
             print "Result: PASS\n"
@@ -175,6 +178,12 @@ if __name__ == "__main__":
                 showUIatClose = True
             elif arg == "--old-parser":
                 parserType = "--old-parser"
+            elif arg.startswith("--csound-executable="):
+                csoundExecutable = arg[20:]
+                print csoundExecutable
+            elif arg.startswith("--opcodedir64="):
+                os.environ['OPCODEDIR64'] = arg[14:]
+                print os.environ['OPCODEDIR64'] 
     results = runTest()
     if (showUIatClose):
         showUI(results)
