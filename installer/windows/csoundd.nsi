@@ -745,6 +745,15 @@ SectionGroup "Front ends"
       File ..\..\frontends\CsoundVST\*.hpp
    SectionEnd
 !endif
+  Section "Cabbage (Csound VST plugins with GUIs, requires VST host)"
+    SectionIn 2 3
+    SetOutPath $INSTDIR\Cabbage
+      File C:\utah\opt\cabbage\QuickTest\Cabbage.exe
+      File C:\utah\opt\cabbage\QuickTest\CabbagePluginEffect.dat
+      File C:\utah\opt\cabbage\QuickTest\CabbagePluginSynth.dat
+      File C:\utah\opt\cabbage\QuickTest\SimpleSynth.csd
+      CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\cabbage.lnk" "$INSTDIR\Cabbage\Cabbage.exe" "" "" "" "" "" " Cabbage"
+   SectionEnd
   Section /o "tclcsound (requires TCL/Tk)"
     SectionIn 2
     SetOutPath $INSTDIR\bin
@@ -907,7 +916,6 @@ SectionGroup "Csound interfaces"
   SectionEnd
 SectionGroupEnd
 
-
 Section "Uninstall"
   	RMDir /r $INSTDIR
   	!insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
@@ -917,6 +925,14 @@ Section "Uninstall"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   	Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\cabbage.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\luajit.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\csoundqt.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\csoundqt-py.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\README.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\CsoundAcTutorial.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\cswish.lnk"
+  	Delete "$SMPROGRAMS\$MUI_TEMP\cstclsh.lnk"
 	# Delete empty start menu parent directories.
   	StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
 startMenuDeleteLoop:

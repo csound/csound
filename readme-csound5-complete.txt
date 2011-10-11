@@ -25,11 +25,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 GETTING STARTED
 
-QuteCsound, a graphical shell for Csound, makes an excellent place to begin 
-the exploration of Csound, especially because QuteCsound has an extensive menu 
+CsoundQt, a graphical shell for Csound, makes an excellent place to begin 
+the exploration of Csound, especially because CsoundQt has an extensive menu 
 of built-in examples that show off Csound's capabilities. Many musicians make 
-QuteCsound their main Csound environment, although there are other excellent 
-environments. QuteCsound runs not only Csound code, but also Python scripts.
+CsoundQt their main Csound environment, although there are other excellent 
+environments. CsoundQt runs not only Csound code, but also Python scripts.
+
+CsoundVST is a VST plugin version of Csound. Please see "A Csound Tutorial"
+herein for instructions on use. CsoundVST does not support custom VST GUIs,
+but allows the Csound orchestra to be edited in the VST host.
+
+Cabbage is a tool for making Csound VST plugins, either effects or synthesizers,
+out of Csound unified files (.csd files) that have a special <Cabbage> tag. 
+Please see http://code.google.com/p/cabbage for more information and 
+instructions on use. Cabbage supports custom VST GUIs, but does not allow the 
+Csound orchestra to be edited in the VST host.
 
 The tutorial/tutorial.pdf file is an illustrated tutorial of how to 
 find, install, configure, and use Csound. To get started with 
