@@ -166,23 +166,25 @@ typedef struct {
     OPDS h;
     TABDAT *dst;
     TABDAT *src;
+    int    len;
 } TABCPY;
 
 static int tabcopy_set(CSOUND *csound, TABCPY *p)
 {
-    if (LIKELY(p->src->data)) return OK;
-    return csound->InitError(csound, Str("t-variable not initialised"));
-    if (LIKELY(p->dst->data)) return OK;
-    return csound->InitError(csound, Str("t-variable not initialised"));
+    int sizes,sized;
+    if (UNLIKELY(p->src->data==NULL))
+      return csound->InitError(csound, Str("t-variable not initialised"));
+    if (UNLIKELY(p->dst->data==NULL)) 
+      return csound->InitError(csound, Str("t-variable not initialised"));
+    sizes = p->src->size;
+    sized = p->dst->size;
+    p->len = sizeof(MYFLT)*(sizes>sized ? sized : sizes);
     return OK;
 }
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
-    int sizes = p->src->size;
-    int sized = p->dst->size;
-    int len = sizes>sized ? sized : sizes;
-    memmove(p->dst->data, p->src->data, len*sizeof(MYFLT));
+    memmove(p->dst->data, p->src->data, len);
     return OK;
 }
 
