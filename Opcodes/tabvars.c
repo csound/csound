@@ -184,7 +184,7 @@ static int tabcopy_set(CSOUND *csound, TABCPY *p)
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
-    memmove(p->dst->data, p->src->data, len);
+    memmove(p->dst->data, p->src->data, p->len);
     return OK;
 }
 
