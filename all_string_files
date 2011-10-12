@@ -519,6 +519,7 @@
 ./Opcodes/syncgrain.h
 ./Opcodes/system_call.c
 ./Opcodes/tabsum.c
+./Opcodes/tabvars.c
 ./Opcodes/ugakbari.c
 ./Opcodes/ugens7.c
 ./Opcodes/ugens8.c
