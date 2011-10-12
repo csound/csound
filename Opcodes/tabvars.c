@@ -192,8 +192,8 @@ static int tabcopy(CSOUND *csound, TABCPY *p)
 
 static OENTRY localops[] =
 {
-  { "plustab", sizeof(TABARITH), 3, "", "ttt", (SUBR) tabarithset, (SUBR) tabadd },
-  { "multtab", sizeof(TABARITH), 3, "", "ttt", (SUBR) tabarithset, (SUBR) tabmult },
+  { "plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
+  { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },
   { "maxtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmax },
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
