@@ -2581,7 +2581,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
           else: 
             tcloc = 'CsoundLib64.framework/Resources/TclTk/'
           csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib',
-                                     'mkdir' + tcloc + ';cp -R tclcsound.dylib ' + tcloc)
+                                     'mkdir ' + tcloc + ';cp -R tclcsound.dylib ' + tcloc)
 
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
