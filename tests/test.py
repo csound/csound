@@ -100,6 +100,7 @@ def runTest():
 	["test45.csd", "if-goto with expression in boolean comparison"],
 	["test46.csd", "if-then with expression in boolean comparison"],
 	["test47.csd", "until loop and t-variables"],
+	["test48.csd", "expected failure with variable used before defined", 1],
    ]
 
 
