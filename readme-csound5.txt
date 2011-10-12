@@ -30,11 +30,6 @@ of built-in examples that show off Csound's capabilities. Many musicians make
 CsoundQt their main Csound environment, although there are other excellent 
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-Cabbage is a tool for making Csound VST plugins, either effects or synthesizers,
-out of Csound unified files (.csd files) that have a special <Cabbage> tag. 
-Please see http://code.google.com/p/cabbage for more information, and 
-instructions for use.
-
 The tutorial/tutorial.pdf file is an illustrated tutorial of how to 
 find, install, configure, and use Csound. To get started with 
 real-time MIDI performance, for example, see Section 2.1.3.
