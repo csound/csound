@@ -126,10 +126,7 @@ iwin = p13
 iq = p15
 isrc = p16
 
-if isrc == 1 goto noise
-asig diskin "sound.wav", 1, 0, 1
-asig = asig/2000
-goto next
+
 noise: asig rand 1
 
 next:
