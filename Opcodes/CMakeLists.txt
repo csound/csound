@@ -79,6 +79,7 @@ make_plugin(tabsum tabsum.c)
 make_plugin(crossfm crossfm.c m)
 make_plugin(pvlock pvlock.c m)
 make_plugin(vosim Vosim.c)
+make_plugin(tabfns tabvars.c)
 
 set(gabnew_SRCS
     gab/tabmorph.c      gab/hvs.c
