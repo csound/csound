@@ -188,6 +188,38 @@ static int tabcopy(CSOUND *csound, TABCPY *p)
     return OK;
 }
 
+static int tab2ftab(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int fsize;
+    MYFLT *fdata;
+    int tlen = p->tab->size;
+    if (UNLIKELY(p->tab->data==NULL))
+      return csound->PerfError(csound, Str("t-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+        return csound->PerfError(csound, Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+}
+
+static int ftab2tab(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int         fsize;
+    MYFLT       *fdata;
+    int tlen = p->tab->size;
+    if (UNLIKELY(p->tab->data==NULL))
+      return csound->PerfError(csound, Str("t-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) 
+        return csound->PerfError(csound, Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
+}
+
 
 
 static OENTRY localops[] =
@@ -198,9 +230,9 @@ static OENTRY localops[] =
   { "mintab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabmin },
   { "sumtab", sizeof(TABQUERY), 3, "k", "t", (SUBR) tabqset, (SUBR) tabsum },
   { "scalet", sizeof(TABSCALE), 3, "", "tkkOJ",(SUBR) tabscaleset,(SUBR) tabscale },
-  { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy }
-  //  { "copy2ftab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) tab2ftab },
-  //  { "copy2ttab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) ftab2tab },
+  { "#copytab", sizeof(TABCPY), 3, "t", "t", (SUBR) tabcopy_set, (SUBR)tabcopy },
+  { "copy2ftab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) tab2ftab },
+  { "copy2ttab", sizeof(TABCOPY), 1, "", "tk", NULL, (SUBR) ftab2tab }
 };
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
