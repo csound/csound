@@ -28,6 +28,7 @@
 #include "csound_orc.h"
 #include "parse_param.h"
 
+
 //#include "yyguts.h"
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
@@ -43,6 +44,10 @@ extern TREE* verify_tree(CSOUND *, TREE *);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csound_orc_compile(CSOUND *, TREE *);
+#ifdef PARCS
+extern TREE *csp_locks_insert(CSOUND *csound, TREE *root);
+#endif
+
 
 void new_orc_parser(CSOUND *csound)
 {
