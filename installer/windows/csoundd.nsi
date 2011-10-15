@@ -715,12 +715,15 @@ skipAssoc:
   SectionGroupEnd
 SectionGroupEnd
 SectionGroup "Front ends"
-  Section "CsoundQt (user-defined widgets)"
+  #Section "CsoundQt (user-defined widgets)"
+  Section "QuteCsound(user-defined widgets)"
     SectionIn 2 3
 !ifdef FLOAT
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-f.exe" "" "" "" "" "" " CsoundQt"
+#    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-f.exe" "" "" "" "" "" " CsoundQt"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\qutecsound-f.exe" "" "" "" "" "" " QuteCsound"
 !else
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-d.exe" "" "" "" "" "" " CsoundQt"
+#    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\CsoundQt-d.exe" "" "" "" "" "" " CsoundQt"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt.lnk" "$INSTDIR\bin\qutecsound-d.exe" "" "" "" "" "" " QuteCsound"
 !endif
     SetOutPath $INSTDIR\bin
       File ..\..\csnd.dll
@@ -729,9 +732,11 @@ SectionGroup "Front ends"
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtGui4.dll
       File C:\utah\opt\Qt\Desktop\Qt\4.7.4\mingw\bin\QtXml4.dll
 !ifdef FLOAT
-      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
+      #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f.exe
+      File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-f.exe
 !else
-      File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
+      #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d.exe
+      File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-d.exe
 !endif
   SectionEnd
 !ifdef NONFREE
@@ -866,12 +871,15 @@ SectionGroup "Csound interfaces"
 	File ..\..\_CsoundAC.pyd  
         File ..\..\CsoundAC.py
     SectionEnd
-    Section /o "CsoundQt-Py (user-defined widgets with PythonQt support)"
+    #Section /o "CsoundQt-Py (user-defined widgets with PythonQt support)"
+    Section /o "QuteCsound-Py (user-defined widgets with PythonQt support)"
       SectionIn 2
     !ifdef FLOAT
-        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-f-py.exe" "" "" "" "" "" " CsoundQt-py"
+        #CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-f-py.exe" "" "" "" "" "" " CsoundQt-py"
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\qutecsound-f-py.exe" "" "" "" "" "" " QuteCsound-py"
     !else
-        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-d-py.exe" "" "" "" "" "" " CsoundQt-py"
+        #CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\CsoundQt-d-py.exe" "" "" "" "" "" " CsoundQt-py"
+        CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csoundqt-py.lnk" "$INSTDIR\bin\qutecsound-d-py.exe" "" "" "" "" "" " QuteCsound-py"
     !endif
         SetOutPath $INSTDIR\bin
           File ..\..\csnd.dll
@@ -888,9 +896,11 @@ SectionGroup "Csound interfaces"
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt_QtAll.dll
           File C:\utah\opt\PythonQt-build-desktop\lib\PythonQt.dll
     !ifdef FLOAT
-          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
+          #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-f-py.exe
+          File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-f-py.exe
     !else
-          File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
+          #File C:\utah\opt\qcs-build-desktop\bin\CsoundQt-d-py.exe
+          File C:\utah\opt\qutecsound-0.6.1\qutecsound-0.6.1\bin\qutecsound-d-py.exe
     !endif
       SectionEnd
   SectionGroupEnd 
