@@ -45,7 +45,11 @@ typedef struct devparams_ {
     float   srate;
     int     nchns;
     int     isNInterleaved;
+#if defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_5)
     AudioDeviceIOProcID     procID;
+#else
+  int procID;
+#endif
 } DEVPARAMS;
 
 /* module interface functions */
