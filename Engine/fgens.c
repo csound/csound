@@ -2139,9 +2139,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       inc = (p2-p1) / (MYFLT) (width-1);
       for ( k=0; k < width; k++) {
         *fp++ = p1+(inc*k);
-        csound->Message(csound, "fp[%d] = %f \n", k, p1+(inc*k));
       }
-      csound->Message(csound, "tot %d args %f %f %f \n",width, p1,p2,p3);
     }
     *fp = *(fp-1);
 
