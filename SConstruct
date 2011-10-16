@@ -2416,7 +2416,7 @@ else:
     Depends(csoundAcPythonModule, pythonWrapper)
     Depends(csoundAcPythonModule, csoundac)
     Depends(csoundAcPythonModule, csnd)
-    if luaFound:
+    if luaFound and commonEnvironment['buildLuaWrapper']:
        luaCsoundACWrapperEnvironment = acWrapperEnvironment.Clone()
        if getPlatform() == 'win32':
        	  luaCsoundACWrapperEnvironment.Prepend(LIBS = Split('luaCsnd lua51 CsoundAC csnd fltk_images'))
