@@ -2108,7 +2108,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     int     nargs = ff->e.pcnt - 4;
     CSOUND  *csound = ff->csound;
     int nsw = 1;
-    MYFLT   *valp = &ff->e.p[2];
+    MYFLT   *valp = &ff->e.p[5];
 
     if (ff->e.pcnt>=PMAX)
       csound->Warning(csound, Str("using extended arguments\n"));
@@ -2123,7 +2123,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
     }
-    nsw = 1; valp = &ff->e.p[2];
+    nsw = 1; valp = &ff->e.p[5];
     for (j=0; j< nargs; j+=3) {
       MYFLT p1, p2, p3;
       p1 = *valp++;
@@ -2135,11 +2135,13 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       p3 = *valp++;
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      width = (int) ((p3/tot_prob) * ff->flen +FL(0.5));
+      width = (int) ((p3) * ff->flen +FL(0.5)); /*VL: used to be p3/tot_prob, but that seeemed wrong */
       inc = (p2-p1) / (MYFLT) (width-1);
       for ( k=0; k < width; k++) {
         *fp++ = p1+(inc*k);
+        csound->Message(csound, "fp[%d] = %f \n", k, p1+(inc*k));
       }
+      csound->Message(csound, "tot %d args %f %f %f \n",width, p1,p2,p3);
     }
     *fp = *(fp-1);
 
