@@ -1,5 +1,5 @@
 CSOUND
-Version 5.14.0
+Version 5.14.2
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
