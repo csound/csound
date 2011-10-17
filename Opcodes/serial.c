@@ -197,8 +197,10 @@ int serialport_init(const char* serialport, int baud)
 {
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
-
-    hSerial = CreateFile(serialport, GENERIC_READ | GENERIC_WRITE, 0, 
+    WCHAR wport[256];
+    MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED, serialport, strlen(src)+1, 
+                        wport, 256);
+    hSerial = CreateFile(wport, GENERIC_READ | GENERIC_WRITE, 0, 
                          0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     dcbSerial.DCBlength=sizeof(dcbSerialParams);
