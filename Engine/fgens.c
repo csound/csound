@@ -2081,13 +2081,13 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
     int     j, k, width;
-    int32    tot_prob = 0;
+    MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
     for (j=0; j < nargs; j+=2) {
       if (pp[j+1]<0)
         return fterror(ff, Str("Gen41: negative probability not allowed"));
-      tot_prob += (int32) pp[j+1];
+      tot_prob += pp[j+1];
     }
     for (j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
@@ -2104,16 +2104,15 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, inc;
     int     j, k, width;
-    int32    tot_prob = 0;
+    MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
     CSOUND  *csound = ff->csound;
     int nsw = 1;
-    MYFLT   *valp = &ff->e.p[2];
+    MYFLT   *valp = &ff->e.p[5];
 
     if (ff->e.pcnt>=PMAX)
       csound->Warning(csound, Str("using extended arguments\n"));
     for (j=0; j < nargs; j+=3) {
-      tot_prob += (int32) *valp++;
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
       valp++;
@@ -2122,8 +2121,9 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       valp++;
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
+      tot_prob += *valp++;
     }
-    nsw = 1; valp = &ff->e.p[2];
+    nsw = 1; valp = &ff->e.p[5];
     for (j=0; j< nargs; j+=3) {
       MYFLT p1, p2, p3;
       p1 = *valp++;
@@ -2135,7 +2135,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       p3 = *valp++;
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      width = (int) ((p3/tot_prob) * ff->flen +FL(0.5));
+      width = (int) ((p3/tot_prob) * ff->flen +FL(0.5)); 
       inc = (p2-p1) / (MYFLT) (width-1);
       for ( k=0; k < width; k++) {
         *fp++ = p1+(inc*k);
