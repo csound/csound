@@ -267,3 +267,5 @@ static OENTRY localops[] = {
     { (char *)"serialPeekByte", S(SERIALPEEK), 2, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   }
 };
+
+LINKAGE
