@@ -222,7 +222,11 @@ int serialport_init(const char* serialport, int baud)
                         wport, 256);
     hSerial = CreateFile(wport, GENERIC_READ | GENERIC_WRITE, 0, 
                          0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-
+ //Check if the connection was successfull
+    if (hSerial==INVALID_HANDLE_VALUE) {
+      //If not success full display an Error
+      return csound->InitError(csound, Str("%s not available.\n"), serialport);
+    }
     dcbSerial.DCBlength=sizeof(dcbSerialParams);
     switch (baud) {
     case 4800:  dcbSerialParams.BaudRate=CBR_4800; break;
