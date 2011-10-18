@@ -1,25 +1,54 @@
-#include <stdlib.h> 
-#include <stdint.h>   /* Standard types */
-#include <string.h>   /* String function definitions */
-#include <unistd.h>   /* UNIX standard function definitions */
-#include <fcntl.h>    /* File control definitions */
-#include <errno.h>    /* Error number definitions */
-#include <termios.h>  /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-#include <getopt.h>
-
-#include "csdl.h"
-#include "csound.h"
-
 /*****************************************************
  
 			CSOUND SERIAL PORT OPCODES
 			  ma++ ingalls, 2011/9/4
  
  * based on "Arduino-serial"
- * Copyleft (c) 2006, Tod E. Kurt, tod@todbot.com
+ * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
  * http://todbot.com/blog/
+
+    Copyright (C) 2011 matt ingalls 
+    based on "Arduino-serial", Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
+    http://todbot.com/blog/ and licenced LGPL to csound
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
  
+#include <stdlib.h> 
+#include <stdint.h>   /* Standard types */
+#include <string.h>   /* String function definitions */
+
+#ifndef _WINDOWS_
+#include <unistd.h>   /* UNIX standard function definitions */
+#include <fcntl.h>    /* File control definitions */
+#include <termios.h>  /* POSIX terminal control definitions */
+#include <sys/ioctl.h>
+#endif
+
+#include "csdl.h"
+
+/* **************************************************
+   As far as I can tell his should work on Windows
+   as well using "COM1" etc
+   ************************************************** */
+
+
+/*****************************************************
 
 open a port.  baudRate defaults to 9600
 	iPort  serialBegin         SPortName [, baudRate ]
@@ -114,6 +143,7 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
 
 
+#ifndef _WINDOWS_
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
 // opens the port in fully raw mode so you can send binary data.
@@ -122,7 +152,8 @@ int serialport_init(const char* serialport, int baud)
 {
     struct termios toptions;
     int fd;
-    
+    speed_t brate;
+
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
             serialport,baud);
 	
@@ -136,9 +167,8 @@ int serialport_init(const char* serialport, int baud)
       perror("init_serialport: Couldn't get term attributes");
       return -1;
     }
-    //speed_t brate = baud; // let you override switch below if needed
-    speed_t brate = B9600;  // ma++ changed to always default to 9600
     switch(baud) {
+    default:     brate = B9600; break;
     case 4800:   brate=B4800;   break;
     case 9600:   brate=B9600;   break;
 #ifdef B14400
@@ -180,24 +210,72 @@ int serialport_init(const char* serialport, int baud)
 	
     return fd;
 }
+#else
+#include <windows.h>
+
+int serialport_init(const char* serialport, int baud)
+{
+    HANDLE hSerial;
+    DCB dcbSerialParams = {0};
+    WCHAR wport[256];
+    MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED, serialport, strlen(src)+1, 
+                        wport, 256);
+    hSerial = CreateFile(wport, GENERIC_READ | GENERIC_WRITE, 0, 
+                         0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+ //Check if the connection was successfull
+    if (hSerial==INVALID_HANDLE_VALUE) {
+      //If not success full display an Error
+      return csound->InitError(csound, Str("%s not available.\n"), serialport);
+    }
+    dcbSerial.DCBlength=sizeof(dcbSerialParams);
+    switch (baud) {
+    case 4800:  dcbSerialParams.BaudRate=CBR_4800; break;
+    case 9600:
+    default:    dcbSerialParams.BaudRate=CBR_9600; break;
+    }
+    dcbSerialParams.ByteSize=8;
+    dcbSerialParams.StopBits=ONESTOPBIT;
+    dcbSerialParams.Parity=NOPARITY;
+    SetCommState(hSerial, &dcbSerialParams);
+    return (int)hSerial;
+}
+#endif
+
 
 int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    *p->returnedPort = serialport_init((char *)p->portName, *p->baudRate);
+    *p->returnedPort = (MYFLT)serialport_init((char *)p->portName, *p->baudRate);
     return OK;
 }
+
 int serialEnd(CSOUND *csound, SERIALEND *p)
 {
+#ifndef _WINDOWS_
     close(*p->port);
+#else
+    CloseHandle(*p->port); 
+#endif
     return OK;
 }
+
 int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
-    if (p->XSTRCODE & 2)
+    if (p->XSTRCODE & 2) {
+#ifdef _WINDOWS_
       write(*p->port, p->toWrite, strlen((char *)p->toWrite));
+#else
+      int nbytes;
+      WriteFile(*p->port,p->toWrite, strlen((char *)p->toWrite), &nbytes, NULL);
+#endif
+    }
     else {
       unsigned char b = *p->toWrite;
+#ifndef _WINDOWS_
       write(*p->port, &b, 1);
+#else
+      int nbytes;
+      WriteFile(*p->port, &b, 1, &nbytes, NULL);
+#endif
     }
 
     return OK;
@@ -206,7 +284,12 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
 int serialRead(CSOUND *csound, SERIALREAD *p)
 {
     unsigned char b = 0;
-    ssize_t bytes = read(*p->port, &b, 1);
+    ssize_t bytes;
+#ifndef _WINDOWS_
+    bytes = read(*p->port, &b, 1);
+#else
+    ReadFile(*p->port, &b, 1, &bytes, NULL));
+#endif
     if (bytes > 0)
       *p->rChar = b;
     else 
@@ -218,7 +301,12 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
 int serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32768];
-    ssize_t bytes = read(*p->port, str, 32768);
+    ssize_t bytes;
+#ifndef _WINDOWS_
+    bytes  = read(*p->port, str, 32768);
+#else
+    ReadFile(*p->port, str, 32768, &bytes, NULL));
+#endif
     if (bytes > 0) {
       str[bytes] = 0; // terminate
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", str);
@@ -228,7 +316,9 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 
 int serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
+#ifndef _WINDOWS_
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
+#endif
     return OK;
 }
 
@@ -262,8 +352,10 @@ static OENTRY localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    { (char *)"serialAvailable", S(SERIALAVAIL), 2, (char *)"k", (char *)"i",
-      (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   },
-    { (char *)"serialPeekByte", S(SERIALPEEK), 2, (char *)"k", (char *)"i",
-      (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   }
+    /* { (char *)"serialAvailable", S(SERIALAVAIL), 2, (char *)"k", (char *)"i", */
+    /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
+    /* { (char *)"serialPeekByte", S(SERIALPEEK), 2, (char *)"k", (char *)"i", */
+    /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
+
+LINKAGE
