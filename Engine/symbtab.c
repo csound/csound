@@ -221,7 +221,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkKopS0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkfKopS0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -235,7 +235,7 @@ int isUDOAnsList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aikSK0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aikfSK0", s[len]) == NULL)) {
         return 0;
       }
       len--;
@@ -353,8 +353,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 /* UDO code below was from otran, broken out and modified for new parser by
  * SYY
  */
-/* VL -- I have made the modifications below to allow for f-sigs but there is something
-   else to be done for the new parser to accept the f-type, which I am not sure about */
+/* VL -- I have made the modifications below to allow for f-sigs and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
