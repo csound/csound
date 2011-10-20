@@ -228,7 +228,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       i++;
     }
     *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *t_inlist = -1;     /* put delimiters */
-    i_outlist = inm->out_ndx_list = f_inlist + 1;
+    i_outlist = inm->out_ndx_list = t_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
     a_outlist = S_outlist + S_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
