@@ -79,8 +79,8 @@
 #include "csmodule.h"
 
 #if defined(__MACH__)
-#include <TargetConditionals.h>
-#if !defined (TARGET_OS_IPHONE) && !defined (TARGET_IPHONE_SIMULATOR)
+//#include <TargetConditionals.h>
+#if (TARGET_OS_IPHONE == 0) && (TARGET_IPHONE_SIMULATOR == 0)
 #if defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
 #define NEW_MACH_CODE
 #else
