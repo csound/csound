@@ -1580,7 +1580,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
 	 }
-
+	
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1616,7 +1616,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 }
+	 } 
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
@@ -1648,7 +1648,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
     }
-
+    
     /* restore globals */
     csound->ksmps = g_ksmps;
     csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
@@ -1698,12 +1698,13 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT)); 
-	 }
+	 } 
        /* VL: tsigs */
-       while (*(++tmp)) {                
+        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-	 }
+	 } 
+       
         
       /*  run each opcode  */
       do {
@@ -1735,7 +1736,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
        while (*(++tmp)) {                
          ptr1 = *tmp; 
          memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(TABDAT)); 
-       }
+	 } 
       /*  run each opcode  */
       do {
         (*csound->pds->opadr)(csound, csound->pds);
@@ -1752,12 +1753,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
      while (*(++tmp)) {                
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
-      }
+       }
      /* tsigs */
     while (*(++tmp)) {                
        ptr1 = *tmp;
        memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(TABDAT));
-      }
+       } 
  endop:
     /* restore globals */
     csound->pds = saved_pds;
