@@ -44,6 +44,7 @@ public:
     Fl_Spinner *channelSpinner;
     Fl_Choice *bankChoice;
     Fl_Choice *programChoice;
+    Fl_Choice *octaveChoice;
 
     KeyboardMapping *keyboardMapping;
 

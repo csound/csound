@@ -23,6 +23,19 @@
 
 #include "SliderBank.hpp"
 
+#include <FL/Fl.H>
+#include <FL/Fl_Double_Window.H>
+
+int WheelSlider::handle(int event) {
+    int res = Fl_Value_Slider::handle(event);
+    if (event == FL_MOUSEWHEEL) {
+        int dy = Fl::event_dy();
+        value(clamp(round(increment(value(), -dy))));
+        return 1;
+    }
+    return res;
+}
+
 static void spinnerCallback(Fl_Widget *widget, void *v) {
     Fl_Spinner *spinner = (Fl_Spinner *)widget;
     SliderBank *sliderBank = (SliderBank *)v;
@@ -70,7 +83,7 @@ SliderBank::SliderBank(CSOUND *csound,
         x = 10;
         y = 10 + (i * 25);
       } else {
-        x = 317;
+        x = 382;
         y = 10 + ((i - 5) * 25);
       }
 
@@ -83,7 +96,7 @@ SliderBank::SliderBank(CSOUND *csound,
       spinner->callback((Fl_Callback*)spinnerCallback, this);
 
 
-      Fl_Value_Slider *slider = new Fl_Value_Slider(x + 70, y, 227, 20);
+      WheelSlider *slider = new WheelSlider(x + 70, y, 292, 20);
       sliders[i] = slider;
       slider->type(FL_HOR_SLIDER);
       slider->maximum(127);
@@ -121,6 +134,11 @@ void SliderBank::setChannel(int channel) {
 
 SliderData * SliderBank::getSliderData() {
     return &sliderData[channel];
+}
+
+void SliderBank::incrementSlider(int index, int n) {
+  Fl_Slider* slider = sliders[index];
+  slider->value(slider->clamp(slider->round(slider->increment(slider->value(), n))));
 }
 
 void SliderBank::lock() {
