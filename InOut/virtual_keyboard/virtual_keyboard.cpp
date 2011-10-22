@@ -36,7 +36,7 @@ static std::map<CSOUND *, FLTKKeyboardWidget *> keyboardWidgets;
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
     return new FLTKKeyboardWindow(csound, dev,
-                                  624, 270, "Csound Virtual Keyboard");
+                                  754, 270, "Csound Virtual Keyboard");
 }
 
 static FLTKKeyboardWidget *createWidget(CSOUND *csound, const char *dev,
