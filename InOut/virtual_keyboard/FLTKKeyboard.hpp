@@ -27,10 +27,11 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include "csdl.h"
+#include "SliderBank.hpp"
 
 class FLTKKeyboard : public Fl_Widget {
 public:
-  FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L);
+  FLTKKeyboard(CSOUND *csound, SliderBank *sliderBank, int X, int Y, int W, int H, const char *L);
   ~FLTKKeyboard();
   int handle(int event);
   void draw();
@@ -41,16 +42,18 @@ public:
   void unlock();
   void allNotesOff();
   int aNotesOff;
-private:
   int octave;
+private:
   int getMIDIKey(int x, int y);
   int lastMidiKey;
   int isWhiteKey(int key);
   int getMidiValForWhiteKey(int whiteKeyNum);
   void handleKey(int key, int value);
+  void handleControl(int key);
 
   CSOUND *csound;
   void * mutex;
+  SliderBank *sliderBank;
 };
 
 #endif /*FLTKKEYBOARD_HPP_*/

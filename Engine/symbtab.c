@@ -221,7 +221,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkKopS0ft", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkftKopS0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -235,7 +235,7 @@ int isUDOAnsList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aikSK0ft", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aikftSK0", s[len]) == NULL)) {
         return 0;
       }
       len--;
@@ -353,6 +353,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 /* UDO code below was from otran, broken out and modified for new parser by
  * SYY
  */
+/* VL -- I have made the modifications below to allow for f-sigs & t-sigs and on line 224 and 238*/
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
@@ -360,13 +361,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
-    int     S_incnt, S_outcnt;
+    int     S_incnt, S_outcnt, f_outcnt, f_incnt, t_incnt, t_outcnt;
     int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    int16   *S_inlist, *S_outlist;
-
+    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *t_inlist, *t_outlist;
+  
     /* count the number of arguments, and check types */
-    i = i_incnt = S_incnt = a_incnt = k_incnt =
-        i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
+    i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
+        i_outcnt = S_outcnt = a_outcnt = k_outcnt = t_incnt = t_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (uint16) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
@@ -380,6 +381,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_incnt++;              /* also updated at i-time */
       case 'k':
         k_incnt++; *otypes++ = 'k';
+        break;
+      case 'f':
+        f_incnt++; *otypes++ = *types;
+        break;
+      case 't':
+        t_incnt++; *otypes++ = *types;
         break;
       case 'i':
       case 'o':
@@ -402,7 +409,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
     inm->inchns = i;                    /* total number of input chnls */
-    inm->perf_incnt = a_incnt + k_incnt;
+    inm->perf_incnt = a_incnt + k_incnt + f_incnt + t_incnt;
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
@@ -423,6 +430,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'k':
         k_outcnt++; *otypes++ = 'k';
         break;
+      case 'f':
+        f_outcnt++; *otypes++ = *types;
+        break;
+      case 't':
+        t_outcnt++; *otypes++ = *types;
+        break;
       case 'i':
         i_outcnt++; *otypes++ = *types;
         break;
@@ -437,7 +450,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     *otypes = '\0';
     inm->outchns = i;                   /* total number of output chnls */
-    inm->perf_outcnt = a_outcnt + k_outcnt;
+    inm->perf_outcnt = a_outcnt + k_outcnt + f_outcnt + t_outcnt;
     opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
@@ -445,15 +458,19 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     i = i_incnt + S_incnt + inm->perf_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
-                                                   sizeof(int16) * (i + 8));
+                                                   sizeof(int16) * (i + 12));
     S_inlist = i_inlist + i_incnt + 1;
     a_inlist = S_inlist + S_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
+    f_inlist = k_inlist + k_incnt + 1;
+    t_inlist = f_inlist + f_incnt + 1;
     i = 0; types = inm->intypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_inlist++ = i; break;
         case 'k': *k_inlist++ = i; break;
+        case 'f': *f_inlist++ = i; break;
+        case 't': *t_inlist++ = i; break;
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
         case 'o':
@@ -463,23 +480,29 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       }
       i++;
     }
-    *i_inlist = *S_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
-    i_outlist = inm->out_ndx_list = k_inlist + 1;
+      
+    *i_inlist = *S_inlist = *a_inlist = *k_inlist = *f_inlist = *t_inlist = -1;     /* put delimiters */
+    i_outlist = inm->out_ndx_list = t_inlist + 1;
     S_outlist = i_outlist + i_outcnt + 1;
     a_outlist = S_outlist + S_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
+    f_outlist = k_outlist + k_outcnt + 1;
+    t_outlist = f_outlist + f_outcnt + 1;
     i = 0; types = inm->outtypes;
     while (*types) {
       switch (*types++) {
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
+        case 'f': *f_outlist++ = i; break;
+        case 't': *t_outlist++ = i; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': *i_outlist++ = i; break;
         case 'S': *S_outlist++ = i; break;
       }
       i++;
     }
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
+    
+    *i_outlist = *S_outlist = *a_outlist = *k_outlist = *f_outlist = *t_outlist = -1;  /* put delimiters */
     return err;
 }
 
