@@ -55,4 +55,8 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node);
 struct instr_semantics_t *csp_orc_sa_instr_get_by_name(char *instr_name);
 struct instr_semantics_t *csp_orc_sa_instr_get_by_num(int16 insno);
 
+/* interlocks */
+void csp_orc_sa_interlocks(CSOUND *, ORCTOKEN *);
+
+
 #endif /* end of include guard: __CSOUND_ORC_SEMANTIC_ANALYSIS_H__ */

@@ -31,6 +31,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 
+#include "interlocks.h"
 
 /***********************************************************************
  * static function prototypes
@@ -179,6 +180,54 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
       csp_set_dealloc(csound, &set);
 
       curr->read = new;
+    }
+}
+
+void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
+{
+    char *name = opcode->lexeme;
+    int32 opnum = find_opcode(csound, name);
+    OENTRY *ep = csound->opcodlst + opnum;
+    int16 code = ep->thread;
+    if (code&0xfff8) {
+      /* zak etc */
+      struct set_t *rr = NULL;
+      struct set_t *ww = NULL;
+      csp_set_alloc_string(csound, &ww);
+      csp_set_alloc_string(csound, &rr);
+      switch (code&0xfff8) {
+      case ZR:
+        csp_set_add(csound, rr, "##zak");
+        break;
+      case ZW:
+        csp_set_add(csound, ww, "##zak");
+        break;
+      case ZB:
+        csp_set_add(csound, rr, "##zak");
+        csp_set_add(csound, ww, "##zak");
+        break;
+      case TR:
+        csp_set_add(csound, rr, "##tab");
+        break;
+      case TW:
+        csp_set_add(csound, ww, "##tab");
+        break;
+      case TB:
+        csp_set_add(csound, rr, "##tab");
+        csp_set_add(csound, ww, "##tab");
+        break;
+      case CR:
+        csp_set_add(csound, rr, "##chn");
+        break;
+      case CW:
+        csp_set_add(csound, ww, "##chn");
+        break;
+      case CB:
+        csp_set_add(csound, rr, "##chn");
+        csp_set_add(csound, ww, "##chn");
+        break;
+      }
+      csp_orc_sa_global_read_write_add_list(csound, ww, rr);
     }
 }
 

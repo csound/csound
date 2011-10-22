@@ -221,7 +221,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkKopS0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkKopS0ft", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -235,7 +235,7 @@ int isUDOAnsList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aikSK0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aikSK0ft", s[len]) == NULL)) {
         return 0;
       }
       len--;
