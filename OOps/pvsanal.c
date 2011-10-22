@@ -681,7 +681,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     int32 halfwinsize,buflen;
     int i,nBins,Mf,Lf;
     double IO;
-
+      
     /* get params from input fsig */
     /* we TRUST they are legal */
     int32 N = p->fsig->N;
@@ -728,14 +728,15 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     synwinhalf = (MYFLT *) (p->synwinbuf.auxp) + halfwinsize;
  
     
-
+  
     /* synthesis windows */
     if (M <= N) {
       if (UNLIKELY(PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK))
         return NOTOK;
-
+  
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
+       
 
        sum = FL(0.0); 
         for (i = -halfwinsize; i <= halfwinsize; i++)
@@ -792,6 +793,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
     }
    
+   
    if (!(N & (N - 1L)))
      sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
     else
@@ -799,7 +801,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
    
   for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
-
+ 
 /*  p->invR = FL(1.0) / csound->esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
@@ -810,6 +812,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->outptr = 0;
     p->nextOut = (MYFLT *) (p->output.auxp);
     p->buflen = buflen;
+
     return OK;
 }
 

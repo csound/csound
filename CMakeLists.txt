@@ -203,11 +203,12 @@ option(BUILD_UTILITIES "Build stand-alone executables for utilities that can als
 option(BUILD_NEW_PARSER "Enable building new parser (requires Flex/Bison)" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 
-option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" OFF)
+option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
 
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
 
- # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
+
+# Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -477,7 +478,7 @@ else()
     set(CSOUNDLIB "csound")
 endif()
 
-add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
+add_library(${CSOUNDLIB} SHARED STATIC ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     # Do not pull extra libs when linking against shared libcsound
     # The shared library loader will do that for us
