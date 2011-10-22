@@ -60,15 +60,6 @@
 #endif
 
 #define S(x)    sizeof(x)
-#define ZR (0) /* (0x5000) */
-#define ZW (0) /* (0x48000) */
-#define ZB (0) /* (0x5800) */
-#define TR (0) /* (0x3000) */
-#define TW (0) /* (0x2800) */
-#define TB (0) /* (0x3800) */
-#define CR (0) /* (0x7000) */
-#define CW (0) /* (0x6800) */
-#define CB (0) /* (0x7800) */
 
 int     ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int     assign(CSOUND *, void *), rassign(CSOUND *, void *);
