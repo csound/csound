@@ -62,6 +62,8 @@ lpc_export
 lpc_export.exe
 lpc_import
 lpc_import.exe
+mkdb
+mkdb.exe
 makecsd
 makecsd.exe
 mixer
@@ -135,3 +137,7 @@ Release_Notes/*
 CsoundLib64*
 examples/java/CSDPlayer.jar
 examples/java/CsoundEditor.jar
+
+## Build scripts
+build
+buildD
