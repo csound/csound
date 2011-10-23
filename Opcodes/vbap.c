@@ -32,6 +32,7 @@ functions for loudspeaker table initialization */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "interlocks.h"
 
 static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
                                ls_triplet_chain **ls_triplets,
@@ -904,7 +905,7 @@ static OENTRY localops[] = {
     (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
   { "vbap16",     S(VBAP_SIXTEEN),          5,  "aaaaaaaaaaaaaaaa", "akOO",
     (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
-  { "vbapz",      S(VBAP_ZAK),              5,  "",                 "iiakOO",
+  { "vbapz",      S(VBAP_ZAK),           ZW|5,  "",                 "iiakOO",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
   { "vbaplsinit", S(VBAP_LS_INIT), 1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
@@ -914,7 +915,7 @@ static OENTRY localops[] = {
     (SUBR) vbap_EIGHT_moving_init,  (SUBR) NULL,    (SUBR) vbap_EIGHT_moving },
   { "vbap16move", S(VBAP_SIXTEEN_MOVING),   5,  "aaaaaaaaaaaaaaaa", "aiiim",
     (SUBR) vbap_SIXTEEN_moving_init, (SUBR) NULL, (SUBR) vbap_SIXTEEN_moving },
-  { "vbapzmove",  S(VBAP_ZAK_MOVING),       5,  "",                 "iiaiiim",
+  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 

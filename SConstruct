@@ -728,9 +728,12 @@ else:
 #pthreadSpinlockFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_spin_lock(0);')
 if getPlatform() != 'darwin': # pthreadSpinlockFound:
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_SPIN_LOCK'])
-pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, 0, 0);')
+pthreadBarrierFound = configure.CheckLibWithHeader('pthread', 'pthread.h', 'C', 'pthread_barrier_init(0, NULL, 0);')
 if pthreadBarrierFound:
+    print 'CONFIGURATION DECISION: Using HAVE_PTHREAD_BARRIER_INIT'
     commonEnvironment.Append(CPPFLAGS = ['-DHAVE_PTHREAD_BARRIER_INIT'])
+else:
+    print 'CONFIGURATION DECISION: Not using HAVE_PTHREAD_BARRIER_INIT'
 openMpFound = configure.CheckLibWithHeader('gomp', 'omp.h', 'C++', 'int n = omp_get_num_threads();')
 if openMpFound and pthreadBarrierFound and commonEnvironment['useOpenMP'] == '1':
     print 'CONFIGURATION DECISION: Using OpenMP.'
