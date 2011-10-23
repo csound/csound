@@ -432,7 +432,7 @@ TREE * create_expression(CSOUND *csound, TREE *root)
       }
       break;
     case S_TABREF:
-      strncpy(op, "tabref", 80);
+      strncpy(op, "##tabref", 80);
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Found TABREF: %s\n", op);
       outarg = create_out_arg(csound, 'k');
       break;
