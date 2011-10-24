@@ -32,3 +32,8 @@
 #define CR (0x080)
 #define CW (0x100)
 #define CB (0x180)
+
+#define SB (0x200)
+
+#define DP (0x8000)
+
