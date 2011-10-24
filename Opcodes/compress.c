@@ -257,7 +257,7 @@ static int distort(CSOUND *csound, DIST *p)
 static OENTRY localops[] = {
   { "compress", S(CMPRS), 5, "a", "aakkkkkki",
     (SUBR) compset, NULL, (SUBR) compress },
-  { "distort", S(DIST), 5, "a", "akiqo",
+  { "distort", S(DIST), TR|5, "a", "akiqo",
     (SUBR) distset, NULL, (SUBR) distort }
 };
 

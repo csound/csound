@@ -29,6 +29,8 @@
 #endif
 
 #include "csoundCore.h"
+#include "interlocks.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -229,9 +229,19 @@ int serialport_init(const char* serialport, int baud)
     }
     dcbSerial.DCBlength=sizeof(dcbSerialParams);
     switch (baud) {
-    case 4800:  dcbSerialParams.BaudRate=CBR_4800; break;
-    case 9600:
-    default:    dcbSerialParams.BaudRate=CBR_9600; break;
+    case 1200:  dcbSerialParams.BaudRate = CBR_1200; break;
+    case 2400:  dcbSerialParams.BaudRate = CBR_2400; break;
+    case 4800:  dcbSerialParams.BaudRate = CBR_4800; break;
+    default:
+    case 9600:  dcbSerialParams.BaudRate = CBR_9600; break;
+    case 14400:  dcbSerialParams.BaudRate = CBR_14400; break;
+    case 19200:  dcbSerialParams.BaudRate = CBR_19200; break;
+    case 38400:  dcbSerialParams.BaudRate = CBR_38400; break;
+    case 56000:  dcbSerialParams.BaudRate = CBR_56000; break;
+    case 57600:  dcbSerialParams.BaudRate = CBR_57600; break;
+    case 115200:  dcbSerialParams.BaudRate = CBR_115200; break;
+    case 128000:  dcbSerialParams.BaudRate = CBR_128000; break;
+    case 256000:  dcbSerialParams.BaudRate = CBR_256000; break;
     }
     dcbSerialParams.ByteSize=8;
     dcbSerialParams.StopBits=ONESTOPBIT;
@@ -239,6 +249,27 @@ int serialport_init(const char* serialport, int baud)
     SetCommState(hSerial, &dcbSerialParams);
     return (int)hSerial;
 }
+/* Also
+#define BAUD_075        1
+#define BAUD_110        2
+#define BAUD_134_5        4
+#define BAUD_150        8
+#define BAUD_300        16
+#define BAUD_600        32
+#define BAUD_1200        64
+#define BAUD_1800        128
+#define BAUD_2400        256
+#define BAUD_4800        512
+#define BAUD_7200        1024
+#define BAUD_9600        2048
+#define BAUD_14400        4096
+#define BAUD_19200        8192
+#define BAUD_38400        16384
+#define BAUD_56K        32768
+#define BAUD_128K        65536
+#define BAUD_115200        131072
+#define BAUD_57600        262144
+*/
 #endif
 
 
