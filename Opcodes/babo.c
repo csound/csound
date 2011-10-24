@@ -126,6 +126,7 @@ input  |    |------>|
 #include "csdl.h"
 #include "babo.h"
 #include <math.h>
+#include "interlocks.h"
 
 #if !defined(FLT_MAX)
 #define FLT_MAX         (1.0e38)
@@ -819,7 +820,7 @@ babo(CSOUND *csound, void *entry)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "babo",   S(BABO), 5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   }
+{ "babo",   S(BABO), TR|5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   }
 };
 
 LINKAGE

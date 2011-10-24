@@ -565,10 +565,10 @@ static int ftmorf(CSOUND *csound, FTMORF *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "dconv",  S(DCONV), 5, "a", "aii",   (SUBR)dconvset, NULL, (SUBR)dconv      },
+{ "dconv",  S(DCONV), TR|5, "a", "aii",   (SUBR)dconvset, NULL, (SUBR)dconv      },
 { "vcomb", S(VCOMB),  5, "a", "akxioo", (SUBR)vcombset, NULL, (SUBR)vcomb     },
 { "valpass", S(VCOMB),5, "a", "akxioo", (SUBR)vcombset, NULL, (SUBR)valpass   },
-{ "ftmorf", S(FTMORF),3, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf, NULL    },
+{ "ftmorf", S(FTMORF),TR|3, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf, NULL    },
 { "and.ii",  S(AOP),  1, "i", "ii",   (SUBR)and_kk                  },
 { "and.kk",  S(AOP),  2, "k", "kk",   NULL,   (SUBR)and_kk          },
 { "and.ka",  S(AOP),  4, "a", "ka",   NULL,   NULL,   (SUBR)and_ka  },

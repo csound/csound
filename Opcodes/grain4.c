@@ -430,7 +430,7 @@ static MYFLT grand( GRAINV4 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "granule", S(GRAINV4), 5, "a", "xiiiiiiiiikikiiivppppo",
+{ "granule", S(GRAINV4), TR|5, "a", "xiiiiiiiiikikiiivppppo",
              (SUBR)grainsetv4, NULL, (SUBR)graingenv4}
 };
 

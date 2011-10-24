@@ -62,6 +62,7 @@ kamp            ATSinterpread   kfreq
 
 #include "ugnorman.h"
 #include <ctype.h>
+#include "interlocks.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 
@@ -2144,7 +2145,7 @@ static OENTRY localops[] = {
         (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
     { "ATSreadnz",      S(ATSREADNZ),       3,  "k",    "kTi",
         (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
-    { "ATSadd",         S(ATSADD),          5,  "a",    "kkTiiopo",
+    { "ATSadd",         S(ATSADD),          TR|5,  "a",    "kkTiiopo",
         (SUBR) atsaddset,           (SUBR) NULL,            (SUBR) atsadd    },
     { "ATSaddnz",       S(ATSADDNZ),        5,  "a",    "kTiop",
         (SUBR) atsaddnzset,         (SUBR) NULL,            (SUBR) atsaddnz  },
@@ -2156,7 +2157,7 @@ static OENTRY localops[] = {
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
     { "ATSinterpread",  S(ATSINTERPREAD),   3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        5,  "a",    "kkTikkiopoo",
+    { "ATScross",       S(ATSCROSS),        TR|5,  "a",    "kkTikkiopoo",
         (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
     { "ATSinfo",        S(ATSINFO),         1,  "i",    "Ti",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }

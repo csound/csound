@@ -155,7 +155,7 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "grain", S(PGRA),  5,   "a",    "xxxkkkiiio", (SUBR)agsset, NULL, (SUBR)ags }
+{ "grain", S(PGRA),  TR|5,   "a",    "xxxkkkiiio", (SUBR)agsset, NULL, (SUBR)ags }
 };
 
 int grain_init_(CSOUND *csound)

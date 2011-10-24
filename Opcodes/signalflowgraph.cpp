@@ -1049,7 +1049,7 @@ extern "C"
     {
       (char *)"ftgenonce",
       sizeof(FtGenOnce),
-      1,
+      TW|1,
       (char *)"i",
       (char *)"iiiiTm",
       (SUBR)&FtGenOnce::init_,
