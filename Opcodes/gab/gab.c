@@ -861,7 +861,7 @@ static OENTRY localops[] = {
 /* { "a_k",   S(INDIFF),  5,  "a",  "k",  (SUBR)a_k_set,NULL, (SUBR)interp }, */
   { "tabrec",   S(TABREC),  3,     "",      "kkkkz",
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
-  { "tabplay",  S(TABPLAY), 3,     "",      "kkkz",
+  { "tabplay",  S(TABPLAY), TR|3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
   { "changed", S(ISCHANGED), 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },

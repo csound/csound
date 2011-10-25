@@ -244,7 +244,7 @@ static int modmatrix(CSOUND *csound, MODMATRIX *m)
 
 static OENTRY localops[] = {
     {
-        "modmatrix", sizeof(MODMATRIX), 3,
+        "modmatrix", sizeof(MODMATRIX), TB|3,
         "",
         "iiiiiik",
         (SUBR)modmatrix_init,

@@ -803,7 +803,7 @@ static int dashow (CSOUND *csound, DSH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vtable1k",       S(MTABLE1),         3,  "",  "kz",          (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
+  { "vtable1k",       S(MTABLE1),         TR|3,  "",  "kz",          (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
   /*      { "schedk",         S(SCHEDK),          3,  "",  "kkz",         (SUBR)schedk_i,         (SUBR) schedk,          (SUBR) NULL }, */
   /*      { "schedInTime",    S(SCHEDINTIME),     3,  "",  "kz",          (SUBR)schedInTime_set,  (SUBR)schedInTime ,     (SUBR) NULL }, */
   /*      { "copyTabElems",   S(COPYTABELEMS),    3,  "",  "kikiki",      (SUBR)copyTabElems_set, (SUBR)copyTabElems,     (SUBR)NULL  }, */
@@ -813,9 +813,9 @@ static OENTRY localops[] = {
   /*      { "lposcinta",      S(LPOSC),           5,      "a", "akkkio",      (SUBR)lposc_set,            NULL,                                   (SUBR)lposcinta}, */
   /*      { "lposcintsa",     S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo}, */
   /*      { "lposcintsa2",    S(LPOSCINT_ST),     5,  "aa","akkkio",              (SUBR)lposcint_stereo_set,NULL,                                 (SUBR)lposcinta_stereo_no_trasp}, */
-  { "lposcila", S(LPOSC),      5, "a", "akkkio", (SUBR)lposc_set, NULL, (SUBR)lposca},
-  { "lposcilsa", S(LPOSC_ST),  5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo},
-  { "lposcilsa2", S(LPOSC_ST), 5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
+  { "lposcila", S(LPOSC),      TR|5, "a", "akkkio", (SUBR)lposc_set, NULL, (SUBR)lposca},
+  { "lposcilsa", S(LPOSC_ST),  TR|5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo},
+  { "lposcilsa2", S(LPOSC_ST), TR|5, "aa","akkkio", (SUBR)lposc_stereo_set, NULL, (SUBR)lposca_stereo_no_trasp},
   /* { "dashow.i", S(DSH), 1,  "ii","iiii", (SUBR)dashow     }, */
   /* { "dashow.k", S(DSH), 2,  "kk","kkkk", NULL, (SUBR)dashow   }, */
   { "inrg", S(INRANGE), 5, "", "ky", (SUBR)inRange_i, (SUBR)NULL, (SUBR)inRange },

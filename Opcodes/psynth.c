@@ -1204,10 +1204,10 @@ static OENTRY localops[] =
     {"tradsyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth_process}
     ,
-    {"sinsyn", sizeof(_PSYN2), 5, "a", "fkki", (SUBR) psynth2_init, NULL,
+    {"sinsyn", sizeof(_PSYN2), TR|5, "a", "fkki", (SUBR) psynth2_init, NULL,
      (SUBR) psynth2_process}
     ,
-    {"resyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"resyn", sizeof(_PSYN), TR|5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth3_process}
     ,
     {"trscale", sizeof(_PTRANS), 3, "f", "fz", (SUBR) trans_init,

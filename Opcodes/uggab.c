@@ -1706,7 +1706,7 @@ static OENTRY localops[] = {
 { "poscil.ka", S(POSC), 5, "a", "kaio", (SUBR)posc_set, NULL,  (SUBR)poscka },
 { "poscil.ak", S(POSC), 5, "a", "akio", (SUBR)posc_set, NULL,  (SUBR)poscak },
 { "poscil.aa", S(POSC), 5, "a", "aaio", (SUBR)posc_set, NULL,  (SUBR)poscaa },
-{ "lposcil",  S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
+{ "lposcil",  S(LPOSC), TR|5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
 { "poscil3",  S(POSC),  TR|7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3 },
 { "lposcil3", S(LPOSC), TR|5, "a", "kkkkio", (SUBR)lposc_set, NULL,(SUBR)lposc3},
 { "trigger",  S(TRIG),  3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },

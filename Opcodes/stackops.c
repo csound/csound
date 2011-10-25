@@ -642,15 +642,15 @@ static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY localops[] = {
-  { "stack",  sizeof(STACK_OPCODE), 1,  "",                                "i",
+  { "stack",  sizeof(STACK_OPCODE), SB|1,  "",                                "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  3,  "",                                "N",
+  { "push",   sizeof(PUSH_OPCODE),  SB|3,  "",                                "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+  { "pop",    sizeof(POP_OPCODE),   SB|3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  3,  "",                                "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SB|3,  "",                                "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   3,  "f",                               "",
+  { "pop_f",  sizeof(POP_OPCODE),   SB|3,  "f",                               "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
