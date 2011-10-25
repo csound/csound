@@ -1400,25 +1400,6 @@ extern "C" {
 #  define CSOUND_SPIN_UNLOCK
 #endif
 
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-# if defined(SWIG)
-#define csoundSpinLock(spinlock)                        \
-  {                                                     \
-    pthread_spin_lock((pthread_spinlock_t *)spinlock);  \
-  }
-#define csoundSpinUnLock(spinlock)                       \
-  {                                                      \
-    pthread_spin_unlock((pthread_spinlock_t *)spinlock); \
-  }
-#  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-# else
-#  define csoundSpinLock(spinlock)
-#  define csoundSpinUnLock(spinlock)
-#  define CSOUND_SPIN_LOCK
-#  define CSOUND_SPIN_UNLOCK
-#endif
-
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
 # define csoundSpinLock(spinlock)                               \
@@ -1438,13 +1419,13 @@ extern "C" {
 #ifndef SWIG
 
 #include <libkern/OSAtomic.h>
-#define csoundSpinLock(spinlock)                        \
-    {                                                     \
-       OSSpinLockLock(spinlock);                          \
+#define csoundSpinLock(spinlock)                \
+    {                                           \
+       OSSpinLockLock(spinlock);                \
     }
 #define csoundSpinUnLock(spinlock)              \
-    {                                             \
-       OSSpinLockUnlock(spinlock);                \
+    {                                           \
+       OSSpinLockUnlock(spinlock);              \
     }
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 
