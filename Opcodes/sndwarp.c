@@ -355,9 +355,9 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "sndwarp", S(SNDWARP), 5, "mm", "xxxiiiiiii",
+  { "sndwarp", S(SNDWARP), TR|5, "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, NULL, (SUBR)sndwarp},
-  { "sndwarpst", S(SNDWARPST), 5, "mmmm","xxxiiiiiii",
+  { "sndwarpst", S(SNDWARPST), TR|5, "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,NULL,(SUBR)sndwarpst}
 };
 

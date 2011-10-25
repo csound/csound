@@ -260,13 +260,13 @@ static int atabmorphi(CSOUND *csound, TABMORPH *p) /* all args k-rate except out
 
 static OENTRY localops[] = {
 
-{ "tabmorph",  S(TABMORPH), 3,  "k", "kkkkm",
+{ "tabmorph",  S(TABMORPH), TR|3,  "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
-{ "tabmorphi", S(TABMORPH), 3,  "k", "kkkkm",
+{ "tabmorphi", S(TABMORPH), TR|3,  "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
-{ "tabmorpha", S(TABMORPH), 5,  "a", "aaaam",
+{ "tabmorpha", S(TABMORPH), TR|5,  "a", "aaaam",
                (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphia},
-{ "tabmorphak",S(TABMORPH), 5,  "a", "akkkm",
+{ "tabmorphak",S(TABMORPH), TR|5,  "a", "akkkm",
                (SUBR) tabmorph_set,  NULL, (SUBR) atabmorphi }
 
 };

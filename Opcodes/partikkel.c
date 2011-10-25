@@ -836,7 +836,7 @@ static int partikkelsync(CSOUND *csound, PARTIKKELSYNC *p)
 
 static OENTRY localops[] = {
     {
-        "partikkel", sizeof(PARTIKKEL), 5,
+        "partikkel", sizeof(PARTIKKEL), TR|5,
         "ammmmmmm",
         "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkio",
         (SUBR)partikkel_init,
@@ -844,7 +844,7 @@ static OENTRY localops[] = {
         (SUBR)partikkel
     },
     {
-        "partikkelsync", sizeof(PARTIKKELSYNC), 5,
+        "partikkelsync", sizeof(PARTIKKELSYNC), TR|5,
         "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)NULL,
