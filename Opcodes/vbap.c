@@ -899,23 +899,23 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vbap4",      S(VBAP_FOUR),             5,  "aaaa",             "akOO",
+  { "vbap4",      S(VBAP_FOUR),             TR|5,  "aaaa",             "akOO",
     (SUBR) vbap_FOUR_init,          (SUBR) NULL,    (SUBR) vbap_FOUR        },
-  { "vbap8",      S(VBAP_EIGHT),            5,  "aaaaaaaa",         "akOO",
+  { "vbap8",      S(VBAP_EIGHT),            TR|5,  "aaaaaaaa",         "akOO",
     (SUBR) vbap_EIGHT_init,         (SUBR) NULL,    (SUBR) vbap_EIGHT       },
-  { "vbap16",     S(VBAP_SIXTEEN),          5,  "aaaaaaaaaaaaaaaa", "akOO",
+  { "vbap16",     S(VBAP_SIXTEEN),          TR|5,  "aaaaaaaaaaaaaaaa", "akOO",
     (SUBR) vbap_SIXTEEN_init,       (SUBR) NULL,    (SUBR) vbap_SIXTEEN     },
-  { "vbapz",      S(VBAP_ZAK),           ZW|5,  "",                 "iiakOO",
+  { "vbapz",      S(VBAP_ZAK),           ZW|TR|5,  "",                 "iiakOO",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
-  { "vbaplsinit", S(VBAP_LS_INIT), 1, "", "iioooooooooooooooooooooooooooooooo",
+  { "vbaplsinit", S(VBAP_LS_INIT), TR|1, "", "iioooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
-  { "vbap4move",  S(VBAP_FOUR_MOVING),      5,  "aaaa",             "aiiim",
+  { "vbap4move",  S(VBAP_FOUR_MOVING),      TR|5,  "aaaa",             "aiiim",
     (SUBR) vbap_FOUR_moving_init,   (SUBR) NULL,    (SUBR) vbap_FOUR_moving },
-  { "vbap8move",  S(VBAP_EIGHT_MOVING),     5,  "aaaaaaaa",         "aiiim",
+  { "vbap8move",  S(VBAP_EIGHT_MOVING),     TR|5,  "aaaaaaaa",         "aiiim",
     (SUBR) vbap_EIGHT_moving_init,  (SUBR) NULL,    (SUBR) vbap_EIGHT_moving },
-  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   5,  "aaaaaaaaaaaaaaaa", "aiiim",
+  { "vbap16move", S(VBAP_SIXTEEN_MOVING),   TR|5,  "aaaaaaaaaaaaaaaa", "aiiim",
     (SUBR) vbap_SIXTEEN_moving_init, (SUBR) NULL, (SUBR) vbap_SIXTEEN_moving },
-  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|5,  "",                 "iiaiiim",
+  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR|5,  "",                 "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  }
 };
 

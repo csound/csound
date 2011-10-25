@@ -949,7 +949,7 @@ extern "C"
     {
       (char *)"outleta",
       sizeof(Outleta),
-      5,
+      CW|5,
       (char *)"",
       (char *)"Sa",
       (SUBR)&Outleta::init_,
@@ -959,7 +959,7 @@ extern "C"
     {
       (char *)"inleta",
       sizeof(Inleta),
-      5,
+      CR|5,
       (char *)"a",
       (char *)"S",
       (SUBR)&Inleta::init_,
@@ -969,7 +969,7 @@ extern "C"
     {
       (char *)"outletk",
       sizeof(Outletk),
-      3,
+      CW|3,
       (char *)"",
       (char *)"Sk",
       (SUBR)&Outletk::init_,
@@ -979,7 +979,7 @@ extern "C"
     {
       (char *)"inletk",
       sizeof(Inletk),
-      3,
+      CR|3,
       (char *)"k",
       (char *)"S",
       (SUBR)&Inletk::init_,
@@ -989,7 +989,7 @@ extern "C"
     {
       (char *)"outletkid",
       sizeof(Outletkid),
-      3,
+      CW|3,
       (char *)"",
       (char *)"SSk",
       (SUBR)&Outletk::init_,
@@ -999,7 +999,7 @@ extern "C"
     {
       (char *)"inletkid",
       sizeof(Inletkid),
-      3,
+      CR|3,
       (char *)"k",
       (char *)"SS",
       (SUBR)&Inletk::init_,
@@ -1009,7 +1009,7 @@ extern "C"
     {
       (char *)"outletf",
       sizeof(Outletf),
-      5,
+      CW|5,
       (char *)"",
       (char *)"Sf",
       (SUBR)&Outletf::init_,
@@ -1019,7 +1019,7 @@ extern "C"
     {
       (char *)"inletf",
       sizeof(Inletf),
-      5,
+      CR|5,
       (char *)"f",
       (char *)"S",
       (SUBR)&Inletf::init_,
