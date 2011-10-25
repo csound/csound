@@ -57,6 +57,7 @@ struct instr_semantics_t *csp_orc_sa_instr_get_by_num(int16 insno);
 
 /* interlocks */
 void csp_orc_sa_interlocks(CSOUND *, ORCTOKEN *);
+void csp_orc_sa_interlocksf(CSOUND *, int);
 
 
 #endif /* end of include guard: __CSOUND_ORC_SEMANTIC_ANALYSIS_H__ */
