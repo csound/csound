@@ -637,7 +637,250 @@ ifac      : ident               { $$ = $1; }
           | function S_LB error
           ;
 
-function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); }
+function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
+#ifdef PARCS
+            if ((ORCTOKEN *)$1->value != 0)
+                csp_orc_sa_interlocksf(csound, $1->value);
+#endif
+                }
+          | T_LABEL
+                {
+                    $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)$1);
+                }
+          | goto label S_NL
+                {
+                    $1->left = NULL;
+                    $1->right = make_leaf(csound, T_LABEL, (ORCTOKEN *)$2);
+                    $$ = $1;
+                }
+          | T_IF expr goto label S_NL
+                {
+                    $3->left = NULL;
+                    $3->right = make_leaf(csound, T_LABEL, (ORCTOKEN *)$4);
+                    $$ = make_node(csound, T_IF, $2, $3);
+                }
+          | ifthen
+          | T_UNTIL expr T_DO statementlist T_OD
+              {
+                  $$ = make_leaf(csound, T_UNTIL, (ORCTOKEN *)$1);
+                  $$->left = $2;
+                  $$->right = $4;
+              }
+          | S_NL { $$ = NULL; }
+          ;
+
+ans       : ident               { $$ = $1; }
+          | ans S_COM ident     { $$ = appendToTree(csound, $1, $3); }
+          ;
+
+ifthen    : T_IF expr then S_NL statementlist T_ENDIF S_NL
+          {
+            $3->right = $5;
+            $$ = make_node(csound, T_IF, $2, $3);
+            //print_tree(csound, "if-endif", $$);
+          }
+          | T_IF expr then S_NL statementlist T_ELSE statementlist T_ENDIF S_NL
+          {
+            $3->right = $5;
+            $3->next = make_node(csound, T_ELSE, NULL, $7);
+            $$ = make_node(csound, T_IF, $2, $3);
+            //print_tree(csound, "if-else", $$);
+
+          }
+          | T_IF expr then S_NL statementlist elseiflist T_ENDIF S_NL
+          {
+            if (UNLIKELY(PARSER_DEBUG))
+                csound->Message(csound, "IF-ELSEIF FOUND!\n");
+            $3->right = $5;
+            $3->next = $6;
+            $$ = make_node(csound, T_IF, $2, $3);
+            //print_tree(csound, "if-elseif\n", $$);
+          }
+          | T_IF expr then S_NL statementlist elseiflist T_ELSE
+            statementlist T_ENDIF S_NL
+          {
+            TREE * tempLastNode;
+
+            $3->right = $5;
+            $3->next = $6;
+
+            $$ = make_node(csound, T_IF, $2, $3);
+
+            tempLastNode = $$;
+
+            while (tempLastNode->right!=NULL && tempLastNode->right->next!=NULL) {
+                tempLastNode = tempLastNode->right->next;
+            }
+
+            tempLastNode->right->next = make_node(csound, T_ELSE, NULL, $8);
+            //print_tree(csound, "IF TREE", $$);
+          }
+          ;
+
+elseiflist : elseiflist elseif
+            {
+                TREE * tempLastNode = $1;
+
+                while (tempLastNode->right!=NULL && tempLastNode->right->next!=NULL) {
+                    tempLastNode = tempLastNode->right->next;
+                }
+
+                tempLastNode->right->next = $2;
+                $$ = $1;
+            }
+            | elseif { $$ = $1; }
+           ;
+
+elseif    : T_ELSEIF expr then S_NL statementlist
+            {
+                if (UNLIKELY(PARSER_DEBUG))
+                  csound->Message(csound, "ELSEIF FOUND!\n");
+                $3->right = $5;
+                $$ = make_node(csound, T_ELSEIF, $2, $3);
+                //print_tree(csound, "ELSEIF", $$);
+            }
+          ;
+
+then      : T_THEN
+            { $$ = make_leaf(csound, T_THEN, (ORCTOKEN *)$1); }
+          | T_KTHEN
+            { $$ = make_leaf(csound, T_KTHEN, (ORCTOKEN *)$1); }
+          | T_ITHEN
+            { $$ = make_leaf(csound, T_ITHEN, (ORCTOKEN *)$1); }
+          ;
+
+goto  : T_GOTO
+            { $$ = make_leaf(csound, T_GOTO, (ORCTOKEN *)$1); }
+          | T_KGOTO
+            { $$ = make_leaf(csound, T_KGOTO, (ORCTOKEN *)$1); }
+          | T_IGOTO
+            { $$ = make_leaf(csound, T_IGOTO, (ORCTOKEN *)$1); }
+          ;
+
+/* Allow all words as a label */
+label : T_OPCODE    { $$ = (TREE *)$1; }
+      | T_OPCODE0   { $$ = (TREE *)$1; }
+      | T_IDENT_P   { $$ = (TREE *)$1; }
+      | T_IDENT_I   { $$ = (TREE *)$1; }
+      | T_IDENT_GI  { $$ = (TREE *)$1; }
+      | T_IDENT_K   { $$ = (TREE *)$1; }
+      | T_IDENT_GK  { $$ = (TREE *)$1; }
+      | T_IDENT_A   { $$ = (TREE *)$1; }
+      | T_IDENT_GA  { $$ = (TREE *)$1; }
+      | T_IDENT_W   { $$ = (TREE *)$1; }
+      | T_IDENT_GW  { $$ = (TREE *)$1; }
+      | T_IDENT_F   { $$ = (TREE *)$1; }
+      | T_IDENT_GF  { $$ = (TREE *)$1; }
+      | T_IDENT_S   { $$ = (TREE *)$1; }
+      | T_IDENT_GS  { $$ = (TREE *)$1; }
+      | T_IDENT_T   { $$ = (TREE *)$1; }
+      | T_IDENT_GT  { $$ = (TREE *)$1; }
+      | T_IDENT     { $$ = (TREE *)$1; }
+      ;
+
+
+exprlist  : exprlist S_COM expr
+                {
+                    /* $$ = make_node(S_COM, $1, $3); */
+                    $$ = appendToTree(csound, $1, $3);
+                }
+          | exprlist S_COM label
+                {
+                    /* $$ = make_node(S_COM, $1, $3); */
+                    $$ = appendToTree(csound, $1,
+                                      make_leaf(csound, T_LABEL, (ORCTOKEN *)$3));
+                }
+          | exprlist S_COM error
+          | expr { $$ = $1;     }
+          | T_IDENT { $$ = make_leaf(csound, T_LABEL, (ORCTOKEN *)$1);     }
+          | /* null */          { $$ = NULL; }
+          ;
+
+expr      : expr S_Q expr S_COL expr %prec S_Q
+            { $$ = make_node(csound, S_Q, $1,
+                             make_node(csound, S_COL, $3, $5)); }
+          | expr S_Q expr S_COL error
+          | expr S_Q expr error
+          | expr S_Q error
+          | expr S_LE expr      { $$ = make_node(csound, S_LE, $1, $3); }
+          | expr S_LE error
+          | expr S_GE expr      { $$ = make_node(csound, S_GE, $1, $3); }
+          | expr S_GE error
+          | expr S_NEQ expr     { $$ = make_node(csound, S_NEQ, $1, $3); }
+          | expr S_NEQ error
+          | expr S_EQ expr      { $$ = make_node(csound, S_EQ, $1, $3); }
+          | expr S_EQ error
+          | expr S_ASSIGN expr  { $$ = make_node(csound, S_EQ, $1, $3); }
+          | expr S_ASSIGN error
+          | expr S_GT expr      { $$ = make_node(csound, S_GT, $1, $3); }
+          | expr S_GT error
+          | expr S_LT expr      { $$ = make_node(csound, S_LT, $1, $3); }
+          | expr S_LT error
+          | expr S_AND expr     { $$ = make_node(csound, S_AND, $1, $3); }
+          | expr S_AND error
+          | expr S_OR expr      { $$ = make_node(csound, S_OR, $1, $3); }
+          | expr S_OR error
+          | S_NOT expr %prec S_UNOT { $$ = make_node(csound, S_UNOT, $2, NULL); }
+          | S_NOT error
+          | iexp                { $$ = $1; }
+          ;
+
+iexp      : iexp S_PLUS iterm   { $$ = make_node(csound, S_PLUS, $1, $3); }
+          | iexp S_PLUS error
+          | iexp S_MINUS iterm  { $$ = make_node(csound, S_MINUS, $1, $3); }
+          | iexp S_MINUS error
+          | iterm               { $$ = $1; }
+          ;
+
+iterm     : iterm S_TIMES ifac  { $$ = make_node(csound, S_TIMES, $1, $3); }
+          | iterm S_TIMES error
+          | iterm S_DIV ifac    { $$ = make_node(csound, S_DIV, $1, $3); }
+          | iterm S_DIV error
+          | iterm S_MOD ifac    { $$ = make_node(csound, S_MOD, $1, $3); }
+          | iterm S_MOD error
+          | ifac                { $$ = $1; }
+          ;
+
+ifac      : ident               { $$ = $1; }
+          | constant            { $$ = $1; }
+          | T_IDENT_T S_SLB iexp S_SRB
+          {
+              $$ = make_node(csound, S_TABREF,
+                             make_leaf(csound, T_IDENT_T, (ORCTOKEN*)$1), $3);
+          }
+          | S_MINUS ifac %prec S_UMINUS
+            {
+                $$ = make_node(csound, S_UMINUS, NULL, $2);
+            }
+          | S_PLUS ifac %prec S_UMINUS
+            {
+                $$ = $2;
+            }
+          | ifac S_POW ifac   { $$ = make_node(csound, S_POW, $1, $3); }
+          | ifac S_BITOR ifac   { $$ = make_node(csound, S_BITOR, $1, $3); }
+          | ifac S_BITAND ifac   { $$ = make_node(csound, S_BITAND, $1, $3); }
+          | ifac S_NEQV ifac   { $$ = make_node(csound, S_NEQV, $1, $3); }
+          | ifac S_BITSHL ifac   { $$ = make_node(csound, S_BITSHL, $1, $3); }
+          | ifac S_BITSHR ifac   { $$ = make_node(csound, S_BITSHR, $1, $3); }
+          | S_BITNOT ifac %prec S_UMINUS
+            { $$ = make_node(csound, S_BITNOT, NULL, $2);}
+          | S_MINUS error
+          | S_LB expr S_RB      { $$ = $2; }
+          | S_LB expr error
+          | S_LB error
+          | function S_LB exprlist S_RB
+            {
+                $1->left = NULL;
+                $1->right = $3;
+
+                $$ = $1;
+            }
+          | function S_LB error
+          ;
+
+function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
+                          if ($1->value != 0)
+                            csp_orc_sa_interlocksf(csound, $1->value);}
           ;
 
 /* exprstrlist    : exprstrlist S_COM expr
