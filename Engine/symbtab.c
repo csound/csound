@@ -30,6 +30,7 @@
 #include "csound_orcparse.h"
 #include "insert.h"
 #include "namedins.h"
+#include "interlocks.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -41,6 +42,7 @@ ORCTOKEN** symbtab;
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
+static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 
 int get_opcode_type(OENTRY *ep)
 {
@@ -136,10 +138,10 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "ampdbfs", T_FUNCTION);
     add_token(csound, "dbamp", T_FUNCTION);
     add_token(csound, "dbfsamp", T_FUNCTION);
-    add_token(csound, "ftlen", T_FUNCTION);
-    add_token(csound, "ftsr", T_FUNCTION);
-    add_token(csound, "ftlptim", T_FUNCTION);
-    add_token(csound, "ftchnls", T_FUNCTION);
+    add_token_p(csound, "ftlen", T_FUNCTION, TR);
+    add_token_p(csound, "ftsr", T_FUNCTION, TR);
+    add_token_p(csound, "ftlptim", T_FUNCTION, TR);
+    add_token_p(csound, "ftchnls", T_FUNCTION, TR);
     add_token(csound, "i", T_FUNCTION);
     add_token(csound, "k", T_FUNCTION);
     add_token(csound, "cpsoct", T_FUNCTION);
@@ -147,27 +149,27 @@ void init_symbtab(CSOUND *csound)
     add_token(csound, "cpspch", T_FUNCTION);
     add_token(csound, "pchoct", T_FUNCTION);
     add_token(csound, "octcps", T_FUNCTION);
-    add_token(csound, "nsamp", T_FUNCTION);
+    add_token_p(csound, "nsamp", T_FUNCTION, TR);
     add_token(csound, "powoftwo", T_FUNCTION);
     add_token(csound, "logbtwo", T_FUNCTION);
     add_token(csound, "a", T_FUNCTION);
-    add_token(csound, "tb0", T_FUNCTION);
-    add_token(csound, "tb1", T_FUNCTION);
-    add_token(csound, "tb2", T_FUNCTION);
-    add_token(csound, "tb3", T_FUNCTION);
-    add_token(csound, "tb4", T_FUNCTION);
-    add_token(csound, "tb5", T_FUNCTION);
-    add_token(csound, "tb6", T_FUNCTION);
-    add_token(csound, "tb7", T_FUNCTION);
-    add_token(csound, "tb8", T_FUNCTION);
-    add_token(csound, "tb9", T_FUNCTION);
-    add_token(csound, "tb10", T_FUNCTION);
-    add_token(csound, "tb11", T_FUNCTION);
-    add_token(csound, "tb12", T_FUNCTION);
-    add_token(csound, "tb13", T_FUNCTION);
-    add_token(csound, "tb14", T_FUNCTION);
-    add_token(csound, "tb15", T_FUNCTION);
-    add_token(csound, "urd", T_FUNCTION);
+    add_token_p(csound, "tb0", T_FUNCTION, TR);
+    add_token_p(csound, "tb1", T_FUNCTION, TR);
+    add_token_p(csound, "tb2", T_FUNCTION, TR);
+    add_token_p(csound, "tb3", T_FUNCTION, TR);
+    add_token_p(csound, "tb4", T_FUNCTION, TR);
+    add_token_p(csound, "tb5", T_FUNCTION, TR);
+    add_token_p(csound, "tb6", T_FUNCTION, TR);
+    add_token_p(csound, "tb7", T_FUNCTION, TR);
+    add_token_p(csound, "tb8", T_FUNCTION, TR);
+    add_token_p(csound, "tb9", T_FUNCTION, TR);
+    add_token_p(csound, "tb10", T_FUNCTION, TR);
+    add_token_p(csound, "tb11", T_FUNCTION, TR);
+    add_token_p(csound, "tb12", T_FUNCTION, TR);
+    add_token_p(csound, "tb13", T_FUNCTION, TR);
+    add_token_p(csound, "tb14", T_FUNCTION, TR);
+    add_token_p(csound, "tb15", T_FUNCTION, TR);
+    add_token_p(csound, "urd", T_FUNCTION, TR);
     add_token(csound, "not", T_FUNCTION);
     add_token(csound, "cent", T_FUNCTION);
     add_token(csound, "octave", T_FUNCTION);
@@ -216,6 +218,13 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     return ans;
 }
 
+static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val)
+{
+    ORCTOKEN *ans = add_token(csound, s, type);
+    ans->value = val;
+    return ans;
+}
+    
 int isUDOArgList(char *s)
 {
     int len = strlen(s) - 1;

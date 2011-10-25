@@ -183,12 +183,8 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
     }
 }
 
-void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
+void csp_orc_sa_interlocksf(CSOUND *csound, int code)
 {
-    char *name = opcode->lexeme;
-    int32 opnum = find_opcode(csound, name);
-    OENTRY *ep = csound->opcodlst + opnum;
-    int16 code = ep->thread;
     if (code&0xfff8) {
       /* zak etc */
       struct set_t *rr = NULL;
@@ -229,6 +225,14 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
       }
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
     }
+}
+
+void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
+{
+    char *name = opcode->lexeme;
+    int32 opnum = find_opcode(csound, name);
+    OENTRY *ep = csound->opcodlst + opnum;
+    csp_orc_sa_interlocksf(csound, ep->thread);
 }
 
 static int inInstr = 0;
