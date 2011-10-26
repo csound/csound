@@ -944,6 +944,8 @@ TREE *csound_orc_expand_expressions(CSOUND * csound, TREE *root)
           ifBlockCurrent = tempRight->next;
         }
         break;
+      case T_LABEL:
+        break;
       default:
         { /* This is WRONG in optional argsq */
           TREE* previousArg = NULL;
