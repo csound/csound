@@ -86,7 +86,7 @@ MACRONAMEA      "$"[a-zA-Z0-9_]+\(
 MACRONAMEDA     "$"[a-zA-Z0-9_]+\.\(
 INTGR           [0-9]+
 NUMBER          [0-9]+\.[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?
-STCOM           "/"\*
+STCOM           \/\*
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 INCLUDE         "#include"
@@ -500,10 +500,12 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     char c;
     for (;;) {
-      while ((c=input(yyscanner)) != '*')
-          if (UNLIKELY(c=='\n')) /* skip */
-            csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
-      if ((c=input(yyscanner))=='/') return;
+      c = input(yyscanner);
+      if (UNLIKELY(c=='\n')) /* skip */
+          csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      if (c != '*') continue;
+      while ((c=input(yyscanner))=='*');
+      if (c=='/') return;
       if (UNLIKELY(c=='\n'))
         csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     }
