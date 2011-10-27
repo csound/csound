@@ -28,6 +28,7 @@ endif()
 
 include(TestBigEndian)
 include(CheckFunctionExists)
+include(CheckIncludeFile)
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -281,7 +282,7 @@ find_library(VORBISFILE_LIBRARY vorbisfile)
 find_file(USE_GETTEXT libintl.h)
 find_library(LIBINTL_LIBRARY intl)
 
-set(HEADERS_TO_CHECK 
+set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
@@ -291,7 +292,7 @@ foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
     string(TOUPPER ${header} tmp)
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
-    find_file(HAVE_${upper_header} ${header})
+    check_include_file(${header} HAVE_${upper_header})
 endforeach()
 
 # Flex/Bison for the new parser
