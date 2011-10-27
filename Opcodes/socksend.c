@@ -49,13 +49,15 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *asigl, *asigr, *ipaddress, *port, *buffersize;
+    MYFLT   *format;
     AUXCH   aux;
     int     sock, conn;
     int     bsize, wp;
+    int     ff, bwidth;
     struct sockaddr_in server_addr;
 } SOCKSENDS;
 
-#define MTU (1456)
+//#define MTU (1456)
 
 /* UDP version one channel */
 static int init_send(CSOUND *csound, SOCKSEND *p)
@@ -63,11 +65,11 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     int     bsize;
 
     p->bsize = bsize = (int) *p->buffersize;
-    if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
-      return csound->InitError(csound, Str("The buffersize must be <= %d samples "
-                                           "to fit in a udp-packet."),
-                               (int) (MTU / sizeof(MYFLT)));
-    }
+    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
+    /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
+    /*                                        "to fit in a udp-packet."), */
+    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /* } */
     p->wp = 0;
 
     p->sock = socket(PF_INET, SOCK_DGRAM, 0);
@@ -119,15 +121,16 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int     bsize;
+    int     bwidth = sizeof(MYFLT);
 
     p->bsize = bsize = (int) *p->buffersize;
-    if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) {
-      return csound->InitError(csound, Str("The buffersize must be <= %d samples "
-                                           "to fit in a udp-packet."),
-                               (int) (MTU / sizeof(MYFLT)));
-    }
+    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
+    /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
+    /*                                        "to fit in a udp-packet."), */
+    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /* } */
     p->wp = 0;
-
+    p->ff = (int)(*p->format);
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
@@ -139,13 +142,15 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
+    if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to */
-    if (p->aux.auxp == NULL || (long) (bsize * sizeof(MYFLT)) > p->aux.size)
+    if (p->aux.auxp == NULL || (long) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, (bsize * sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
-      memset(p->aux.auxp, 0, sizeof(MYFLT) * bsize);
+      memset(p->aux.auxp, 0, bwidth * bsize);
     }
+    p->bwidth = bwidth;
     return OK;
 }
 
@@ -164,14 +169,20 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     for (i = 0, wp = p->wp; i < ksmps; i++, wp += 2) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
+        if (UNLIKELY(sendto(p->sock, out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, Str("sendto failed"));
         }
         wp = 0;
       }
-      out[wp] = asigl[i];
-      out[wp + 1] = asigr[i];
+      if (p->ff) {
+        out[wp] = (int16)asigl[i];
+        out[wp + 1] = (int16)asigr[i];
+      }
+      else {
+        out[wp] = asigl[i];
+        out[wp + 1] = asigr[i];
+      }
     }
     p->wp = wp;
 
@@ -239,7 +250,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 static OENTRY localops[] = {
   { "socksend", S(SOCKSEND), 5, "", "aSii", (SUBR) init_send, NULL,
     (SUBR) send_send },
-  { "socksends", S(SOCKSENDS), 5, "", "aaSii", (SUBR) init_sendS, NULL,
+  { "socksends", S(SOCKSENDS), 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 5, "", "aSi", (SUBR) init_ssend, NULL,
     (SUBR) send_ssend }
