@@ -194,8 +194,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     if (!ff.flen) {
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
-      if (UNLIKELY(genum != 1 && genum != 23 && genum != 28)) {
-        return fterror(&ff, Str("deferred size for GENs 1, 23 or 28 only"));
+      if (UNLIKELY(genum != 1 && genum != 23 && genum != 28 && genum != 49)) {
+        return fterror(&ff, Str("deferred size for GENs 1, 23, 28 or 49 only"));
       }
       if (msg_enabled)
         csound->Message(csound, Str("ftable %d:\n"), ff.fno);
@@ -2673,6 +2673,27 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 #include "mp3dec.h"
 static int gen49(FGDATA *ff, FUNC *ftp)
 {
+    if (UNLIKELY(ff->e.pcnt < 7)) {
+      return fterror(ff, Str("insufficient arguments"));
+    }
+    if (ff->csound->oparms->gen01defer) {
+      /* We're deferring the soundfile load until performance time,
+         so allocate the function table descriptor, save the arguments,
+         and get out */
+      ftp = ftalloc(ff);
+      ftp->gen01args.gen01 = ff->e.p[4];
+      ftp->gen01args.ifilno = ff->e.p[5];
+      ftp->gen01args.iskptim = ff->e.p[6];
+      ftp->gen01args.iformat = ff->e.p[7];
+      ftp->gen01args.channel = ff->e.p[8];
+      strcpy(ftp->gen01args.strarg, ff->e.strarg);
+      return OK;
+    }
+    return gen01raw(ff, ftp);
+}
+
+static int gen49raw(FGDATA *ff, FUNC *ftp)
+{
     CSOUND  *csound        = ff->csound;
     MYFLT   *fp            = ftp->ftable;
     mp3dec_t mpa           = NULL;
@@ -2806,6 +2827,32 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     free(buffer);
     r |= mp3dec_uninit(mpa);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
+}
+
+static CS_NOINLINE FUNC *gen48_defer_load(CSOUND *csound, int fno)
+{
+    FGDATA  ff;
+    char    strarg[SSTRSIZ];
+    FUNC    *ftp = csound->flist[fno];
+
+    /* The soundfile hasn't been loaded yet, so call GEN49 */
+    strcpy(strarg, ftp->gen01args.strarg);
+    memset(&ff, 0, sizeof(FGDATA));
+    ff.fno = fno;
+    ff.e.strarg = strarg;
+    ff.e.opcod = 'f';
+    ff.e.pcnt = 8;
+    ff.e.p[1] = (MYFLT) fno;
+    ff.e.p[4] = ftp->gen01args.gen01;
+    ff.e.p[5] = ftp->gen01args.ifilno;
+    ff.e.p[6] = ftp->gen01args.iskptim;
+    ff.e.p[7] = ftp->gen01args.iformat;
+    ff.e.p[8] = ftp->gen01args.channel;
+    if (UNLIKELY(gen49raw(&ff, ftp) != 0)) {
+      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
+      return NULL;
+    }
+    return csound->flist[fno];
 }
 #endif
 

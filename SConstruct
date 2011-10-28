@@ -969,7 +969,6 @@ uuid
 winmm
 winspool
 ws2_32
-wsock32
         ''')
     else:
         csoundWindowsLibraries = Split('''
