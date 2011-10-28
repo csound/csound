@@ -106,6 +106,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     int     buffersize = p->bsize;
     MYFLT   *asig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
     int     ff = p->ff;
 
     for (i = 0, wp = p->wp; i < ksmps; i++, wp++) {
@@ -118,13 +119,13 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
         wp = 0;
       }
       if (ff) { // Scale for 0dbfs and make LE
-        int16 val = 0x8000*(asig[i]/csound->e0dbfs);
+        int16 val = (int16)((32768.0*asig[i])/csound->e0dbfs);
         char  benchar[2];
         char *p = benchar;
 
         *p++ = 0xFF & val;
         *p   = 0xFF & (val >> 8);
-        out[wp] =(*(int16 *)benchar);
+        outs[wp] =(*(int16 *)benchar);
       }
       else 
        out[wp] = asig[i];
