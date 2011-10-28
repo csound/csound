@@ -59,7 +59,7 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKSENDS;
 
-//#define MTU (1456)
+#define MTU (1456)
 
 /* UDP version one channel */
 static int init_send(CSOUND *csound, SOCKSEND *p)
@@ -95,6 +95,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     else {
       memset(p->aux.auxp, 0, bwidth * bsize);
     }
+    p->bwidth = bwidth;
     return OK;
 }
 
