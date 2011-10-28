@@ -40,9 +40,11 @@ extern  int     inet_aton(const char *cp, struct in_addr *inp);
 typedef struct {
     OPDS    h;
     MYFLT   *asig, *ipaddress, *port, *buffersize;
+    MYFLT   *format;
     AUXCH   aux;
     int     sock, conn;
     int     bsize, wp;
+    int     ff, bwidth;
     struct sockaddr_in server_addr;
 } SOCKSEND;
 
@@ -57,13 +59,15 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKSENDS;
 
-//#define MTU (1456)
+#define MTU (1456)
 
 /* UDP version one channel */
 static int init_send(CSOUND *csound, SOCKSEND *p)
 {
     int     bsize;
+    int     bwidth = sizeof(MYFLT);
 
+    p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
     /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
@@ -83,13 +87,15 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
+    if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to  */
-    if (p->aux.auxp == NULL || (long) (bsize * sizeof(MYFLT)) > p->aux.size)
+    if (p->aux.auxp == NULL || (long) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, (bsize * sizeof(MYFLT)), &p->aux);
+      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
-      memset(p->aux.auxp, 0, sizeof(MYFLT) * bsize);
+      memset(p->aux.auxp, 0, bwidth * bsize);
     }
+    p->bwidth = bwidth;
     return OK;
 }
 
@@ -100,17 +106,29 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     int     buffersize = p->bsize;
     MYFLT   *asig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
+    int     ff = p->ff;
 
     for (i = 0, wp = p->wp; i < ksmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, out, buffersize * sizeof(MYFLT), 0, to,
+        if (UNLIKELY(sendto(p->sock, out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, Str("sendto failed"));
         }
         wp = 0;
       }
-      out[wp] = asig[i];
+      if (ff) { // Scale for 0dbfs and make LE
+        int16 val = (int16)((32768.0*asig[i])/csound->e0dbfs);
+        char  benchar[2];
+        char *p = benchar;
+
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        outs[wp] =(*(int16 *)benchar);
+      }
+      else 
+       out[wp] = asig[i];
     }
     p->wp = wp;
 
@@ -123,6 +141,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     int     bsize;
     int     bwidth = sizeof(MYFLT);
 
+    p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
     /*   return csound->InitError(csound, Str("The buffersize must be <= %d samples " */
@@ -130,7 +149,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     /*                            (int) (MTU / sizeof(MYFLT))); */
     /* } */
     p->wp = 0;
-    p->ff = (int)(*p->format);
+
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
@@ -160,9 +179,11 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     MYFLT   *asigl = p->asigl;
     MYFLT   *asigr = p->asigr;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
     int     i;
     int     buffersize = p->bsize;
     int     wp, ksmps = csound->ksmps;
+    int     ff = p->ff;
 
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */
@@ -175,9 +196,18 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
         }
         wp = 0;
       }
-      if (p->ff) {
-        out[wp] = (int16)asigl[i];
-        out[wp + 1] = (int16)asigr[i];
+      if (ff) { // Scale for 0dbfs and make LE
+        int16 val = 0x8000*(asigl[i]/csound->e0dbfs);
+        char  benchar[2];
+        char *p = benchar;
+
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        outs[wp] =(*(int16 *)benchar);
+        val = 0x8000*(asigl[i+1]/csound->e0dbfs);
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        outs[wp + 1] =(*(int16 *)benchar);
       }
       else {
         out[wp] = asigl[i];
@@ -248,7 +278,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "socksend", S(SOCKSEND), 5, "", "aSii", (SUBR) init_send, NULL,
+  { "socksend", S(SOCKSEND), 5, "", "aSiio", (SUBR) init_send, NULL,
     (SUBR) send_send },
   { "socksends", S(SOCKSENDS), 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
