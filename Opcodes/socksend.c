@@ -179,6 +179,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     MYFLT   *asigl = p->asigl;
     MYFLT   *asigr = p->asigr;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
     int     i;
     int     buffersize = p->bsize;
     int     wp, ksmps = csound->ksmps;
@@ -202,11 +203,11 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 
         *p++ = 0xFF & val;
         *p   = 0xFF & (val >> 8);
-        out[wp] =(*(int16 *)benchar);
+        outs[wp] =(*(int16 *)benchar);
         val = 0x8000*(asigl[i+1]/csound->e0dbfs);
         *p++ = 0xFF & val;
         *p   = 0xFF & (val >> 8);
-        out[wp + 1] =(*(int16 *)benchar);
+        outs[wp + 1] =(*(int16 *)benchar);
       }
       else {
         out[wp] = asigl[i];
