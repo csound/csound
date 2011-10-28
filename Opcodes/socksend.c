@@ -116,9 +116,14 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
         }
         wp = 0;
       }
-      if (ff) { // Scale for 0dbfs TODO ensure LE
+      if (ff) { // Scale for 0dbfs and make LE
         int16 val = 0x8000*(asig[i]/csound->e0dbfs);
-        out[wp] = val;
+        char  benchar[2];
+        char *p = benchar;
+
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        out[wp] =(*(int16 *)benchar);
       }
       else 
        out[wp] = asig[i];
@@ -188,11 +193,18 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
         }
         wp = 0;
       }
-      if (ff) { // Scale for 0dbfs TODO ensure LE
+      if (ff) { // Scale for 0dbfs and make LE
         int16 val = 0x8000*(asigl[i]/csound->e0dbfs);
-        out[wp] = val;
+        char  benchar[2];
+        char *p = benchar;
+
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        out[wp] =(*(int16 *)benchar);
         val = 0x8000*(asigl[i+1]/csound->e0dbfs);
-        out[wp + 1] = val;
+        *p++ = 0xFF & val;
+        *p   = 0xFF & (val >> 8);
+        out[wp + 1] =(*(int16 *)benchar);
       }
       else {
         out[wp] = asigl[i];
