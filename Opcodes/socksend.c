@@ -23,7 +23,7 @@
 
 #include "csdl.h"
 #include <sys/types.h>
-#ifdef __OS_WINDOWS__
+#ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -112,7 +112,7 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     for (i = 0, wp = p->wp; i < ksmps; i++, wp++) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, out, buffersize  * p->bwidth, 0, to,
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, Str("sendto failed"));
         }
@@ -190,7 +190,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     for (i = 0, wp = p->wp; i < ksmps; i++, wp += 2) {
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, out, buffersize * p->bwidth, 0, to,
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
           return csound->PerfError(csound, Str("sendto failed"));
         }
