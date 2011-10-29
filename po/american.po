@@ -554,7 +554,7 @@ msgid "illegal gen number"
 msgstr ""
 
 #: Engine/fgens.c:198
-msgid "deferred size for GENs 1, 23 or 28 only"
+msgid "deferred size for GENs 1, 23, 28 or 49 only"
 msgstr ""
 
 #: Engine/fgens.c:201 Engine/fgens.c:249
