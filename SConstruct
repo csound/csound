@@ -1842,6 +1842,8 @@ else:
     print "CONFIGURATION DECISION: Building UDP plugins."
     udpEnvironment = pluginEnvironment.Clone()
     udpEnvironment.Append(LIBS = ['pthread'])
+    if getPlatform() = 'win32':
+      udpEnvironment.Append(LIBS = ['ws2_32'])
     makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
     makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
 

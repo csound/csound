@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifdef __OS_WINDOWS__
+#ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -317,9 +317,11 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 again:
     if (connect(p->sock, (struct sockaddr *) &p->server_addr,
                 sizeof(p->server_addr)) < 0) {
+#ifndef WIN32
       if (errno == ECONNREFUSED)
         goto again;
-      return csound->InitError(csound, Str("connect failed"));
+#endif
+      return csound->InitError(csound, Str("connect failed (%d)"), errno);
     }
 
     return OK;
