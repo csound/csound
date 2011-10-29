@@ -33,7 +33,7 @@
 #include <stdint.h>   /* Standard types */
 #include <string.h>   /* String function definitions */
 
-#ifndef _WINDOWS_
+#ifndef WIN32
 #include <unistd.h>   /* UNIX standard function definitions */
 #include <fcntl.h>    /* File control definitions */
 #include <termios.h>  /* POSIX terminal control definitions */
@@ -143,7 +143,7 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
 
 
-#ifndef _WINDOWS_
+#ifndef WIN32
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
 // opens the port in fully raw mode so you can send binary data.
@@ -281,7 +281,7 @@ int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 
 int serialEnd(CSOUND *csound, SERIALEND *p)
 {
-#ifndef _WINDOWS_
+#ifndef WIN32
     close(*p->port);
 #else
     CloseHandle(*p->port); 
@@ -292,7 +292,7 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
 int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
     if (p->XSTRCODE & 2) {
-#ifdef _WINDOWS_
+#ifdef WIN32
       write(*p->port, p->toWrite, strlen((char *)p->toWrite));
 #else
       int nbytes;
@@ -301,7 +301,7 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
     }
     else {
       unsigned char b = *p->toWrite;
-#ifndef _WINDOWS_
+#ifndef WIN32
       write(*p->port, &b, 1);
 #else
       int nbytes;
@@ -316,7 +316,7 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
 {
     unsigned char b = 0;
     ssize_t bytes;
-#ifndef _WINDOWS_
+#ifndef WIN32
     bytes = read(*p->port, &b, 1);
 #else
     ReadFile(*p->port, &b, 1, &bytes, NULL));
@@ -333,7 +333,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32768];
     ssize_t bytes;
-#ifndef _WINDOWS_
+#ifndef WIN32
     bytes  = read(*p->port, str, 32768);
 #else
     ReadFile(*p->port, str, 32768, &bytes, NULL));
@@ -347,7 +347,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 
 int serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
-#ifndef _WINDOWS_
+#ifndef WIN32
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
 #endif
     return OK;
