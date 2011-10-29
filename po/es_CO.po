@@ -570,8 +570,8 @@ msgid "illegal gen number"
 msgstr "número GEN ilegal"
 
 #: Engine/fgens.c:198
-msgid "deferred size for GENs 1, 23 or 28 only"
-msgstr "tamaño diferido sólo permitido para GEN1, GEN23, GEN28"
+msgid "deferred size for GENs 1, 23, 28 or 49 only"
+msgstr "tamaño diferido sólo permitido para GEN1, GEN23, GEN28, GEN49"
 
 #: Engine/fgens.c:201 Engine/fgens.c:249
 #, c-format
