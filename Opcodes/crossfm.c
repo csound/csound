@@ -422,14 +422,16 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
 
 #define S sizeof
 
-static OENTRY localops[] = {
+OENTRY crossfm_localops[] = {
   { "crossfm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfm },
   { "crossfmi", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmi },
   { "crosspm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xpm },
   { "crosspmi", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xpmi },
   { "crossfmpm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpm },
-  { "crossfmpmi", S(CROSSFM),TR| 5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpmi }
+  { "crossfmpmi", S(CROSSFM),TR| 5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpmi },
+  { "" }
 };
 
-LINKAGE
+LINKAGE1(crossfm_localops)
+
 

@@ -61,6 +61,12 @@ PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)            \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
+#define LINKAGE1(name)                                                 \
+PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)            \
+{   (void) csound; *ep = name; return (long) (sizeof(name)-sizeof(OENTRY));  } \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
+
 #define FLINKAGE                                                        \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return localfgens;                               }   \

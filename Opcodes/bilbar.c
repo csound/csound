@@ -547,12 +547,13 @@ int play_pp(CSOUND *csound, CSPP *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY bilbar_localops[] = {
     {"barmodel", S(BAR), 5, "a", "kkiikiiii", (SUBR) bar_init, NULL,
      (SUBR) bar_run},
     { "prepiano", S(CSPP), 5, "mm", "iiiiiikkiiiiiiioo",
-     (SUBR)init_pp, NULL, (SUBR)play_pp }
+      (SUBR)init_pp, NULL, (SUBR)play_pp },
+    { "" }
 };
 
-LINKAGE
+LINKAGE1(bilbar_localops)
 
