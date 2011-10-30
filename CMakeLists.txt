@@ -479,7 +479,7 @@ else()
     set(CSOUNDLIB "csound")
 endif()
 
-add_library(${CSOUNDLIB} SHARED STATIC ${libcsound_SRCS})
+add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     # Do not pull extra libs when linking against shared libcsound
     # The shared library loader will do that for us
