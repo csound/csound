@@ -39,7 +39,9 @@
 #define MAXBUFS 32
 #define MTU (1456)
 
+#ifndef WIN32
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
+#endif
 
 static  uintptr_t udpRecv(void *data);
 static  int     deinit_udpRecv(CSOUND *csound, void *pdata);
@@ -89,7 +91,7 @@ static uintptr_t udpRecv(void *pdata)
 
     while (p->threadon) {
       /* get the data from the socket and store it in a tmp buffer */
-      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
+      if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen))) {
         p->wbufferuse++;
         p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
         buf = (MYFLT *) ((char *) p->buffer.auxp + (p->wbufferuse * MTU));
@@ -108,6 +110,12 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
     int     bufnos;
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
 
     p->wp = 0;
     p->rp = 0;
@@ -200,6 +208,12 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
     int     bufnos;
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
 
     p->wp = 0;
     p->rp = 0;
@@ -293,6 +307,12 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
 /* TCP version */
 static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -309,15 +329,18 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
+#ifdef WIN32
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+#else
     inet_aton((const char *) p->ipaddress, &(p->server_addr.sin_addr));
-
+#endif
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
 
 again:
     if (connect(p->sock, (struct sockaddr *) &p->server_addr,
                 sizeof(p->server_addr)) < 0) {
-#ifndef WIN32
+#ifdef ECONNREFUSED
       if (errno == ECONNREFUSED)
         goto again;
 #endif
