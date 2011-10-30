@@ -467,12 +467,13 @@ abformdec(CSOUND * csound, AMBID * p) {
 
 #define S(x) sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY ambicode1_localops[] = {
   { "bformenc1", S(AMBIC), 5, "mmmmmmmmmmmmmmmm", "akk",
                 (SUBR)ibformenc, NULL, (SUBR)abformenc },
   { "bformdec1", S(AMBID), 5, "mmmmmmmm", "iy",
-                (SUBR)ibformdec, NULL, (SUBR)abformdec }
+    (SUBR)ibformdec, NULL, (SUBR)abformdec },
+  { "" }
 };
 
-LINKAGE
+LINKAGE1(ambicode1_localops)
 

@@ -66,7 +66,12 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 {
     int     bsize;
     int     bwidth = sizeof(MYFLT);
-
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
     p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
@@ -76,15 +81,19 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     /* } */
     p->wp = 0;
 
-    p->sock = socket(PF_INET, SOCK_DGRAM, 0);
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0); 
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+#ifdef WIN32
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+#else
     inet_aton((const char *) p->ipaddress,
               &p->server_addr.sin_addr);    /* the server IP address */
+#endif
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
     if (p->ff) bwidth = sizeof(int16);
@@ -140,6 +149,12 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int     bsize;
     int     bwidth = sizeof(MYFLT);
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
 
     p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
@@ -157,8 +172,12 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+#ifdef WIN32
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+#else
     inet_aton((const char *) p->ipaddress,
               &p->server_addr.sin_addr);    /* the server IP address */
+#endif
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
     if (p->ff) bwidth = sizeof(int16);
@@ -223,6 +242,12 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 static int init_ssend(CSOUND *csound, SOCKSEND *p)
 {
     socklen_t clilen;
+#ifdef WIN32
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
 
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -240,7 +265,11 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
+#ifdef WIN32
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+#else
     inet_aton((const char *) p->ipaddress, &(p->server_addr.sin_addr));
+#endif
 
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
