@@ -279,7 +279,7 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 # Now, non required library searches #
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
-find_file(USE_GETTEXT libintl.h)
+check_include_file(libintl.h USE_GETTEXT)
 find_library(LIBINTL_LIBRARY intl)
 
 set(HEADERS_TO_CHECK
