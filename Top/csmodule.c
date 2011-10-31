@@ -1317,11 +1317,12 @@ extern long babo_localops_init(CSOUND *, void *);
 extern long bilbar_localops_init(CSOUND *, void *);
 extern long compress_localops_init(CSOUND *, void *);
 extern long pvsbuffer_localops_init(CSOUND *, void *);
+extern long vosim_localops_init(CSOUND *, void *);
 extern long eqfil_localops_init(CSOUND *, void *);
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 
-const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init,
+const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init, vosim_localops_init,
 				  compress_localops_init, pvsbuffer_localops_init, eqfil_localops_init,
                                  NULL };
 

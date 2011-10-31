@@ -19,7 +19,9 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 #include <limits.h>
 
