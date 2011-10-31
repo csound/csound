@@ -95,8 +95,8 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
      cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
      ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
      if(!ret){
-      /* MIDI output port */
-       pname = CFStringCreateWithCString(NULL, "outport", defaultEncoding);
+      /* MIDI input port */
+       pname = CFStringCreateWithCString(NULL, "inport", defaultEncoding);
        ret = MIDIInputPortCreate(mclient, pname, ReadProc, refcon, &mport);
        if(!ret){
 	 /* sources, we connect to all available input sources */
