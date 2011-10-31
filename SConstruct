@@ -1178,6 +1178,11 @@ Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
 Opcodes/pitch.c Opcodes/pitch0.c  Opcodes/spectra.c Opcodes/ambicode1.c
 Opcodes/sfont.c Opcodes/grain4.c Opcodes/hrtferX.c Opcodes/loscilx.c
 Opcodes/minmax.c Opcodes/pan2.c Opcodes/tabvars.c Opcodes/phisem.c
+Opcodes/hrtfopcodes.c Opcodes/stackops.c Opcodes/vbap.c 
+Opcodes/vbap_eight.c Opcodes/vbap_four.c Opcodes/vbap_sixteen.c
+Opcodes/vbap_zak.c Opcodes/vaops.c Opcodes/ugakbari.c Opcodes/harmon.c 
+Opcodes/pitchtrack.c Opcodes/partikkel.c Opcodes/shape.c Opcodes/tabsum.c
+Opcodes/crossfm.c Opcodes/pvlock.c Opcodes/fareyseq.c 
 ''')
 
 oldpvoc = Split('''
@@ -1550,7 +1555,7 @@ else:
 
 
 # these opcodes have been folded back into csoundLib
-#makePlugin(pluginEnvironment, 'stdopcd', Split('''
+# makePlugin(pluginEnvironment, 'stdopcd', Split('''
 #    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
 #    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
 #    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
@@ -1570,66 +1575,67 @@ else:
 # makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 # makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 # makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
-#makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
-#makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
-#makePlugin(pluginEnvironment, 'modal4',
+# makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
+# makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
+# makePlugin(pluginEnvironment, 'modal4',
 #           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
-#makePlugin(pluginEnvironment, 'physmod', Split('''
+# makePlugin(pluginEnvironment, 'physmod', Split('''
 #    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
 #    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
 #'''))
-##makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
-##makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
-##makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
-#makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
+# makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
+# makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
+# makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
+# makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
 #    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
 #    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
 #'''))
-#makePlugin(pluginEnvironment, 'pitch',
+# makePlugin(pluginEnvironment, 'pitch',
 #           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
-#makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
-#sfontEnvironment = pluginEnvironment.Clone()
-#if compilerGNU():
+# makePlugin(pluginEnvironment, 'ambicode1', ['Opcodes/ambicode1.c'])
+# sfontEnvironment = pluginEnvironment.Clone()
+# if compilerGNU():
 #   if getPlatform() != 'darwin':
 #    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
-#if sys.byteorder == 'big':
+# if sys.byteorder == 'big':
 #    sfontEnvironment.Append(CCFLAGS = ['-DWORDS_BIGENDIAN'])
-#makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
-#makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
-#makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
-#makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
-#makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
-#makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
-#makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
-#makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
-#makePlugin(pluginEnvironment, 'pvoc', Split('''
+# makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
+# makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
+# makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
+# makePlugin(pluginEnvironment, 'loscilx', ['Opcodes/loscilx.c'])
+# makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
+# makePlugin(pluginEnvironment, 'cs_pan2', ['Opcodes/pan2.c'])
+# makePlugin(pluginEnvironment, 'tabfns', ['Opcodes/tabvars.c'])
+# makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+# makePlugin(pluginEnvironment, 'pvoc', Split('''
 #    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
 #    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
 #'''))
-makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
-makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
-makePlugin(pluginEnvironment, 'vbap',
-           ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
-            'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
-makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
-makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
-makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
-makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
-makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
-makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
-makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
-makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
-makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
-makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
-makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
-makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
-makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
-makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
-makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
-makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
+# makePlugin(hrtfnewEnvironment, 'hrtfnew', 'Opcodes/hrtfopcodes.c')
+# makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
+# makePlugin(pluginEnvironment, 'vbap',
+#           ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
+#            'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
+# makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
+# makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
+# makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
+# makePlugin(pluginEnvironment, 'ptrack', ['Opcodes/pitchtrack.c'])
+# makePlugin(pluginEnvironment, 'partikkel', ['Opcodes/partikkel.c'])
+# makePlugin(pluginEnvironment, 'shape', ['Opcodes/shape.c'])
+# makePlugin(pluginEnvironment, 'tabsum', ['Opcodes/tabsum.c'])
+# makePlugin(pluginEnvironment, 'crossfm', ['Opcodes/crossfm.c'])
+# makePlugin(pluginEnvironment, 'pvlock', ['Opcodes/pvlock.c'])
+# makePlugin(pluginEnvironment, 'fareyseq', ['Opcodes/fareyseq.c'])
+ 
 
 #============================== ==================================
 
+makePlugin(pluginEnvironment, 'fareygen', ['Opcodes/fareygen.c'])
+makePlugin(pluginEnvironment, 'cs_date', ['Opcodes/date.c'])
+makePlugin(pluginEnvironment, 'system_call', ['Opcodes/system_call.c'])
+makePlugin(pluginEnvironment, 'ampmidid', ['Opcodes/ampmidid.cpp'])
+makePlugin(pluginEnvironment, 'mutexops', ['Opcodes/mutexops.cpp'])
+makePlugin(pluginEnvironment, 'doppler', ['Opcodes/doppler.cpp'])
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
