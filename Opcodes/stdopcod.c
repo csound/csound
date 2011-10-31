@@ -21,13 +21,14 @@
 
 #include "stdopcod.h"
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+/* PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
+*/
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int stdopc_ModuleInit(CSOUND *csound)
 {
     STDOPCOD_GLOBALS  *p;
     int               err = 0;
@@ -91,8 +92,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
+/*
 PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
+*/
 

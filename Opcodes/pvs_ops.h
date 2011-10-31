@@ -22,7 +22,12 @@
 #ifndef CSOUND_PVS_OPS_H
 #define CSOUND_PVS_OPS_H
 
-#include "csdl.h"
+/* #include "csdl.h" */
+#include "csoundCore.h"
+
+#ifdef PARCS
+#include "interlocks.h"
+#endif
 
 extern int ifd_init_(CSOUND *);
 extern int partials_init_(CSOUND *);

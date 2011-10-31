@@ -19,7 +19,12 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
+#ifdef PARCS
+#include "interlocks.h"
+#endif
+
 #include "pstream.h"
 
 typedef struct {
@@ -311,10 +316,12 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+/* static */ 
+OENTRY pvsbuffer_localops[] = {
   {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi", (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
   {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
   {"pvsbufread2", S(PVSBUFFERREAD), 3, "f", "kkkk", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 
-LINKAGE
+LINKAGE1(pvsbuffer_localops)
+/* LINKAGE */

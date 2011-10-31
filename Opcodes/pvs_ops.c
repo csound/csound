@@ -21,13 +21,15 @@
 
 #include "pvs_ops.h"
 
+/*
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
+*/
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int pvsopc_ModuleInit(CSOUND *csound)
 {
     int     err = 0;
 
@@ -42,8 +44,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
+/*
 PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
+*/
 
