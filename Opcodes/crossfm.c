@@ -429,7 +429,6 @@ OENTRY crossfm_localops[] = {
   { "crosspmi", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xpmi },
   { "crossfmpm", S(CROSSFM), TR|5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpm },
   { "crossfmpmi", S(CROSSFM),TR| 5, "aa", "xxxxkiioo", (SUBR)xfmset, NULL, (SUBR)xfmpmi },
-  { "" }
 };
 
 LINKAGE1(crossfm_localops)

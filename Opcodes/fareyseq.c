@@ -741,7 +741,6 @@ OENTRY fareyseq_localops[] = {
     {"fareylen", S (FAREYLEN), TR|2, "k", "k", NULL, (SUBR) fareylen, NULL},
     {"tableshufflei", S (TABSHUFFLE), TB|1, "", "i", (SUBR) tableshuffle, NULL, NULL},
     {"tableshuffle", S (TABSHUFFLE), TB|2, "", "k", (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
-  { "" }
 };
 
 LINKAGE1(fareyseq_localops)
