@@ -33,7 +33,8 @@
 /*  excitation source for other instruments*/
 /*******************************************/
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include "singwave.h"
 #include "moog1.h"
 

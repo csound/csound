@@ -1172,8 +1172,15 @@ pvs_opcodes = Split('''
     Opcodes/pvsbuffer.c
 ''')
 
+folded_ops = Split('''Opcodes/modmatrix.c Opcodes/scoreline.c Opcodes/modal4.c
+Opcodes/physutil.c Opcodes/physmod.c Opcodes/mandolin.c Opcodes/singwave.c
+Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c''')
+
 libCsoundSources += stdopcodes
 libCsoundSources += pvs_opcodes
+libCsoundSources += folded_ops
+
+
 
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
@@ -1554,23 +1561,23 @@ else:
 # makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 # makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 # makePlugin(pluginEnvironment, 'vosim', ['Opcodes/Vosim.c'])
+#makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
+#makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
+#makePlugin(pluginEnvironment, 'modal4',
+#           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
+#makePlugin(pluginEnvironment, 'physmod', Split('''
+#    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
+#    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
+#'''))
+
+
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
-makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
-
-
-makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
 makePlugin(pluginEnvironment, 'signalflowgraph', ['Opcodes/signalflowgraph.cpp'])
-makePlugin(pluginEnvironment, 'modal4',
-           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
-makePlugin(pluginEnvironment, 'physmod', Split('''
-    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
-    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
-'''))
 makePlugin(pluginEnvironment, 'pitch',
            ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
 makePlugin(pluginEnvironment, 'scansyn',
