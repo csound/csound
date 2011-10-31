@@ -33,8 +33,8 @@
 /*  should worry about this (making money) worry away.   */
 /*                                                       */
 /*********************************************************/
-
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include "fm4op.h"
 
 /***********************************************************/
