@@ -222,7 +222,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
 
 
 
-static OENTRY localops[] =
+OENTRY tabvars_localops[] =
 {
   { "plustab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabadd },
   { "multtab", sizeof(TABARITH), 3, "t", "tt", (SUBR) tabarithset, (SUBR) tabmult },
@@ -239,7 +239,7 @@ static OENTRY localops[] =
 //          randomly repeats (holds) values based on a probability parameter    
 
 
-LINKAGE
+LINKAGE1(tabvars_localops)
 
 
 

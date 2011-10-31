@@ -1128,7 +1128,7 @@ int lorismorph_cleanup(CSOUND *csound, void * p)
 //
 extern "C"
 {
-  static OENTRY localops[] =
+  OENTRY loris_localops[] =
     {
       {(char*)"lorisread",  sizeof(LORISREAD),  3, (char*)"", (char*)"kTikkko",
        (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
@@ -1138,7 +1138,7 @@ extern "C"
        (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
 
-LINKAGE
+  LINKAGE1(loris_localops)
 
 }
 
