@@ -244,7 +244,7 @@ static int pylcallni_irate(CSOUND *csound, PYCALLN *p)
 
   /* PYTHON OPCODES */
 
-static OENTRY localops[] = {
+OENTRY python_localops[] = {
 
   /* INITIALIZATION */
 
@@ -398,5 +398,5 @@ static OENTRY localops[] = {
 
 };
 
-LINKAGE
+LINKAGE1(python_localops)
 
