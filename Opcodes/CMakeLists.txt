@@ -22,22 +22,22 @@
 #    set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
 #endif()
 
-make_plugin(modmatrix modmatrix.c)
+#make_plugin(modmatrix modmatrix.c)
 #make_plugin(eqfil eqfil.c m)
 #make_plugin(pvsbuffer pvsbuffer.c)
-make_plugin(scoreline scoreline.c)
+#make_plugin(scoreline scoreline.c)
 make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
 
-set(modal4_SRCS 
-    modal4.c physutil.c)
-make_plugin(modal4 "${modal4_SRCS}" m)
+#set(modal4_SRCS 
+#    modal4.c physutil.c)
+#make_plugin(modal4 "${modal4_SRCS}" m)
 
-set(physmod_SRCS 
-    physmod.c physutil.c 
-    mandolin.c singwave.c
-    fm4op.c moog1.c shaker.c bowedbar.c)
-make_plugin(physmod "${physmod_SRCS}" m)
+#set(physmod_SRCS 
+#    physmod.c physutil.c 
+#    mandolin.c singwave.c
+#    fm4op.c moog1.c shaker.c bowedbar.c)
+#make_plugin(physmod "${physmod_SRCS}" m)
 
 
 set(pitch_SRCS 

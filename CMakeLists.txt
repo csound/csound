@@ -399,6 +399,19 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+
+    Opcodes/modmatrix.c 
+    Opcodes/scoreline.c 
+    Opcodes/modal4.c
+    Opcodes/physutil.c 
+    Opcodes/physmod.c 
+    Opcodes/mandolin.c 
+    Opcodes/singwave.c
+    Opcodes/fm4op.c 
+    Opcodes/moog1.c 
+    Opcodes/shaker.c 
+    Opcodes/bowedbar.c
+
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
