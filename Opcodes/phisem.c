@@ -45,7 +45,9 @@
 /*  Sandpapr (sandpaper)                                  */
 /**********************************************************/
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"        
+#include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
 
