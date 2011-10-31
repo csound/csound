@@ -21,9 +21,7 @@
 
 // #include "csdl.h"
 #include "csoundCore.h"
-#ifdef PARCS
 #include "interlocks.h"
-#endif
 
 #include "pstream.h"
 
@@ -87,7 +85,8 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */
     if (phandle == NULL)
-      csound->InitError(csound, Str("error... could not create global var for handle\n"));
+      csound->InitError(csound,
+                        Str("error... could not create global var for handle\n"));
     else
       *phandle = p->handle;
      }
@@ -145,7 +144,9 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     /* csound->Message(csound, "%s:\n", varname); */
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
-      csound->InitError(csound, Str("error... could not read handle from global variable\n"));
+      csound->InitError(csound,
+                        Str("error... could not read handle from "
+                            "global variable\n"));
     else
       handle = *phandle;
     p->optr = *p->hptr;
@@ -192,7 +193,9 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      sprintf(varname, "::buffer%d", (int)(*p->hptr));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
-       csound->PerfError(csound, Str("error... could not read handle from global variable\n"));
+       csound->PerfError(csound,
+                         Str("error... could not read handle "
+                             "from global variable\n"));
      else
        handle = *phandle;
    }
@@ -278,13 +281,15 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       frames = handle->frames-1;
       ftab = csound->FTFind(csound, p->strt);
       if (ftab->flen < N/2+1) 
-        csound->PerfError(csound, "table length too small: needed %d, got %d\n",
+        csound->PerfError(csound,
+                          Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTFind(csound, p->end);
       if (ftab->flen < N/2+1) 
-         csound->PerfError(csound, "table length too small: needed %d, got %d\n",
-                                   N/2+1, ftab->flen);
+        csound->PerfError(csound,
+                          Str("table length too small: needed %d, got %d\n"),
+                          N/2+1, ftab->flen);
       tab2 = ftab->ftable;
       for (i=0; i < N+2; i++){
         pos = (*p->ktime - tab[i])*(sr/overlap);
@@ -318,9 +323,12 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
 /* static */ 
 OENTRY pvsbuffer_localops[] = {
-  {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi", (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
-  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
-  {"pvsbufread2", S(PVSBUFFERREAD), 3, "f", "kkkk", (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
+  {"pvsbuffer", S(PVSBUFFER), 3, "ik", "fi",
+   (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
+  {"pvsbufread", S(PVSBUFFERREAD), 3, "f", "kkOOo",
+   (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
+  {"pvsbufread2", S(PVSBUFFERREAD), 3, "f", "kkkk",
+   (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 
 LINKAGE1(pvsbuffer_localops)
