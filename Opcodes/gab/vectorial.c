@@ -1730,8 +1730,8 @@ static int vport_set(CSOUND *csound,VPORT *p)
       if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL)) {
         vecInit = ftp->ftable;
         if (UNLIKELY(elements > ftp->flen) )
-          return csound->InitError(csound, Str("vport: invalid init table length")
-                                   " or num of elements");
+          return csound->InitError(csound, Str("vport: invalid init table length"
+                                               " or num of elements"));
       }
       else return csound->InitError(csound, Str("vport: invalid init table"));
     }
@@ -2562,5 +2562,11 @@ OENTRY vectorial_localops[] = {
   { "vcella", S(CELLA),      TR|3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca     }
 };
 
-LINKAGE1(vectorial_localops)
+int gab_vectorial_init_(CSOUND *csound)
+{
+    return
+      csound->AppendOpcodes(csound, &(vectorial_localops[0]),
+                            (int) (sizeof(vectorial_localops) / sizeof(OENTRY)));
+}
+
 
