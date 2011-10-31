@@ -21,7 +21,11 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
+#ifdef PARCS
+#include "interlocks.h"
+#endif
 
 typedef struct _equ {
   OPDS h;
