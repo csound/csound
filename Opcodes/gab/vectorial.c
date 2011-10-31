@@ -437,7 +437,7 @@ static int vectorOp_set(CSOUND *csound, VECTOROP *p)
      if ((elements | (long)*p->kdstoffset) < 0L ||
           (elements + (long)*p->kdstoffset) > p->len) {
        return csound->InitError(csound,
-                                Str("vectorop: Destination table length exceeded"));
+                      Str("vectorop: Destination table length exceeded"));
      } */
     return OK;
 }
@@ -451,7 +451,8 @@ static int vadd_i(CSOUND *csound, VECTOROPI *p)
 
     ftp = csound->FTnp2Find(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))  {
-      return csound->InitError(csound,Str("vadd_i: invalid table number %i"),
+      return csound->InitError(csound,
+                               Str("vadd_i: invalid table number %i"),
                                (int) *p->ifn);
     }
     vector = ftp->ftable;
@@ -708,7 +709,8 @@ static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
     p->len2 = (int32) ftp2->flen+1;/*
     if ((elements | (int32) *p->kdstoffset) < 0L ||
          (elements + (int32) *p->kdstoffset)  > p->len1) {
-      return csound->Warning(csound, Str("vectorops: Destination table length exceeded"));
+      return csound->Warning(csound,
+                             Str("vectorops: Destination table length exceeded"));
     }*/
     return OK;
 }
@@ -1532,21 +1534,21 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
 
 static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
 {
-  FUNC    *ftp1, *ftp2;
-  MYFLT   *vector1, *vector2;
-  int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    int32    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
-  ftp1 = csound->FTnp2Find(csound, p->ifn1);
-  ftp2 = csound->FTnp2Find(csound, p->ifn2);
-  if (UNLIKELY(ftp1 == NULL)) {
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (UNLIKELY(ftp1 == NULL)) {
       return csound->InitError(csound,
                                Str("vexpv_i: ifn1 invalid table number %i"),
                                (int) *p->ifn1);
-  }
-  else if (UNLIKELY(ftp2 == NULL))  {
-    return csound->InitError(csound,
-                             Str("vexpv_i: ifn2 invalid table number %i"),
-                             (int) *p->ifn2);
+    }
+    else if (UNLIKELY(ftp2 == NULL))  {
+      return csound->InitError(csound,
+                               Str("vexpv_i: ifn2 invalid table number %i"),
+                               (int) *p->ifn2);
     }
     /*if (*p->ifn1 == *p->ifn2)
       csound->Warning(csound, Str("vexpv_i: ifn1 = ifn2."));*/
@@ -1691,7 +1693,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
       p->elements = (int) *p->ielements;
     }
     if (UNLIKELY(p->elements > ftp->flen )) {
-      return csound->InitError(csound, "vectorop: invalid num of elements");
+      return csound->InitError(csound, Str("vectorop: invalid num of elements"));
     }
     return OK;
 }
@@ -1720,17 +1722,18 @@ static int vport_set(CSOUND *csound,VPORT *p)
       elements = (p->elements = (int) *p->ielements);
       if (UNLIKELY(elements > ftp->flen) )
         return csound->InitError(csound,
-                                 "vport: invalid table length or num of elements");
+                                 Str("vport: invalid table length or "
+                                     "num of elements"));
     }
-    else return csound->InitError(csound, "vport: invalid table");
+    else return csound->InitError(csound, Str("vport: invalid table"));
     if (LIKELY(*p->ifnInit)) {
       if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL)) {
         vecInit = ftp->ftable;
         if (UNLIKELY(elements > ftp->flen) )
-          return csound->InitError(csound, "vport: invalid init table length"
+          return csound->InitError(csound, Str("vport: invalid init table length")
                                    " or num of elements");
       }
-      else return csound->InitError(csound, "vport: invalid init table");
+      else return csound->InitError(csound, Str("vport: invalid init table"));
     }
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, elements * sizeof(MYFLT), &p->auxch);
@@ -1880,14 +1883,16 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
         p->elements = (int) *p->ielements;
         p->offset = (int) *p->idstoffset;
       }
-      else return csound->InitError(csound, "vrandh: Invalid table.");
+      else return csound->InitError(csound, Str("vrandh: Invalid table."));
       if (UNLIKELY(*p->idstoffset >= ftp->flen))
         return csound->InitError(csound,
-                                 "vrandh: idstoffset is greater than table length.");
+                                 Str("vrandh: idstoffset is greater than"
+                                     " table length."));
       p->vector = ftp->ftable + p->offset;
       if (UNLIKELY(p->elements + p->offset > ftp->flen)) {
         csound->Warning(csound,
-                        "randh: Table length exceeded, last elements discarded.");
+                        Str("randh: Table length exceeded, "
+                            "last elements discarded."));
         p->elements = p->offset - ftp->flen;
       }
     }
@@ -1977,14 +1982,16 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
         p->elements = (int) *p->ielements;
         p->offset = (int) *p->idstoffset;
       }
-      else return csound->InitError(csound, "vrandi: Invalid table.");
+      else return csound->InitError(csound, Str("vrandi: Invalid table."));
       if (UNLIKELY(p->offset >= ftp->flen))
         return csound->InitError(csound,
-                                 "vrandi: idstoffset is greater than table length.");
+                                 Str("vrandi: idstoffset is greater than"
+                                     "table length."));
       p->vector = ftp->ftable + p->offset;
       if (UNLIKELY(p->elements > ftp->flen)) {
         csound->Warning(csound,
-                        "vrandi: Table length exceeded, last elements discarded.");
+                        Str("vrandi: Table length exceeded, "
+                            "last elements discarded."));
         p->elements = p->offset - ftp->flen;
       }
     }
@@ -2064,21 +2071,24 @@ static int vecdly_set(CSOUND *csound, VECDEL *p)
       p->outvec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
       if (UNLIKELY( elements > ftp->flen ))
-        return csound->InitError(csound, "vecdelay: invalid num of elements");
+        return csound->InitError(csound,
+                                 Str("vecdelay: invalid num of elements"));
     }
-    else return csound->InitError(csound, "vecdly: invalid output table");
+    else return csound->InitError(csound, Str("vecdly: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnIn)) != NULL)) {
       p->invec = ftp->ftable;
       if (UNLIKELY(elements > ftp->flen))
-        return csound->InitError(csound, "vecdelay: invalid num of elements");
+        return csound->InitError(csound,
+                                 Str("vecdelay: invalid num of elements"));
     }
-    else return csound->InitError(csound, "vecdly: invalid input table");
+    else return csound->InitError(csound, Str("vecdly: invalid input table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnDel)) != NULL)) {
       p->dlyvec = ftp->ftable;
       if (UNLIKELY( elements > ftp->flen ))
-        return csound->InitError(csound, "vecdelay: invalid num of elements");
+        return csound->InitError(csound,
+                                 Str("vecdelay: invalid num of elements"));
     }
-    else return csound->InitError(csound, "vecdly: invalid delay table");
+    else return csound->InitError(csound, Str("vecdly: invalid delay table"));
 
     n = (p->maxd = (int32) (*p->imaxd * csound->ekr));
     if (n == 0) n = (p->maxd = 1);
@@ -2123,7 +2133,7 @@ static int vecdly(CSOUND *csound,VECDEL *p)
     MYFLT *outVec = p->outvec, *dlyVec = p->dlyvec;
     int elements = p->elements;
     if (UNLIKELY(buf==NULL)) {
-      return csound->InitError(csound, "vecdly: not initialized");
+      return csound->InitError(csound, Str("vecdly: not initialized"));
     }
     do {
       (*buf)[*indx] = *inVec++;
@@ -2165,7 +2175,8 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       p->elements = (int) *p->ielements;
     }
     if (UNLIKELY( p->elements > ftp->flen ))
-      return csound->InitError(csound, "vlinseg/vexpseg: invalid num. of elements");
+      return csound->InitError(csound,
+                               Str("vlinseg/vexpseg: invalid num. of elements"));
 
     /* memset(p->vector, 0, sizeof(MYFLT)*p->elements); */
     vector = p->vector;
@@ -2175,7 +2186,8 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       *vector++ = FL(0.0);
     } while (--flength);
 
-    if (UNLIKELY(**argp <= FL(0.0)))  return NOTOK; /* if idur1 <= 0, skip init  */
+    if (UNLIKELY(**argp <= FL(0.0)))
+      return NOTOK; /* if idur1 <= 0, skip init */
     p->cursegp = segp;              /* else proceed from 1st seg */
     segp--;
     do {
@@ -2206,7 +2218,7 @@ static int vlinseg(CSOUND *csound,VSEG *p)
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0), *vector;
     int32        flength, upcnt;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->InitError(csound, "tableseg: not initialized");
+      return csound->InitError(csound, Str("tableseg: not initialized"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -2236,7 +2248,7 @@ static int vexpseg(CSOUND *csound,VSEG *p)
     int32        flength, upcnt;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->InitError(csound, "tablexseg: not initialized");
+      return csound->InitError(csound, Str("tablexseg: not initialized"));
     }
     segp = p->cursegp;
     curtab = segp->function->ftable;
@@ -2283,7 +2295,8 @@ static int vphaseseg_set(CSOUND *csound,VPSEG *p)
       p->elements = (int) *p->ielements;
     }
     if ( p->elements > ftp->flen )
-      return csound->InitError(csound, "vphaseseg: invalid num. of elements");
+      return csound->InitError(csound,
+                               Str("vphaseseg: invalid num. of elements"));
     vector = p->vector;
     flength = p->elements;
 
@@ -2389,7 +2402,7 @@ static int kdelay(CSOUND *csound,KDEL *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
 
     if (UNLIKELY(buf==NULL)) {
-      return csound->InitError(csound, "vdelayk: not initialized");
+      return csound->InitError(csound, Str("vdelayk: not initialized"));
     }
 
     indx = p->left;
@@ -2422,19 +2435,20 @@ static int ca_set(CSOUND *csound,CELLA *p)
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
       if (UNLIKELY( elements > ftp->flen ))
-        return csound->InitError(csound, "cella: invalid num of elements");
+        return csound->InitError(csound, Str("cella: invalid num of elements"));
     }
-    else return csound->InitError(csound, "cella: invalid output table");
+    else return csound->InitError(csound, Str("cella: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
       if (UNLIKELY(elements > ftp->flen ))
-        return csound->InitError(csound, "cella: invalid num of elements");
+        return csound->InitError(csound, Str("cella: invalid num of elements"));
     }
-    else return csound->InitError(csound, "cella: invalid initial state table");
+    else return csound->InitError(csound,
+                                  Str("cella: invalid initial state table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
-    else return csound->InitError(csound, "cella: invalid rule table");
+    else return csound->InitError(csound, Str("cella: invalid rule table"));
 
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
@@ -2498,7 +2512,7 @@ static int ca(CSOUND *csound,CELLA *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY vectorial_localops[] = {
   { "vtablei", S(MTABLEI),   TR|1, "",   "iiiim", (SUBR)mtable_i,  NULL },
   { "vtablek", S(MTABLE),    TR|3, "",   "kkkiz", (SUBR)mtable_set, (SUBR)mtable_k, NULL },
   { "vtablea", S(MTABLE),    TR|5, "",   "akkiy", (SUBR)mtable_set, NULL, (SUBR)mtable_a },
@@ -2540,17 +2554,13 @@ static OENTRY localops[] = {
   { "vmirror", S(VLIMIT),    3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror   },
   { "vlinseg", S(VSEG),   TB|3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg   },
   { "vexpseg", S(VSEG),      3, "",  "iin", (SUBR)vseg_set,   (SUBR)vexpseg   },
-  { "vrandh", S(VRANDH),  TB|3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR) vrandh   },
-  { "vrandi", S(VRANDI),  TB|3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi    },
+  { "vrandh", S(VRANDH),  TB|3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR) vrandh},
+  { "vrandi", S(VRANDI),  TB|3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi },
   { "vport",  S(VPORT),   TB|3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport     },
   { "vecdelay", S(VECDEL),   3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly  },
   { "vdelayk", S(KDEL),      3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay    },
   { "vcella", S(CELLA),      TR|3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca     }
 };
 
-int gab_vectorial_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE1(vectorial_localops)
 
