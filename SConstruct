@@ -1823,6 +1823,11 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
+if getPlatform() == 'darwin':
+    coreMidiEnvironment = pluginEnvironment.Clone()
+    makePlugin(coreMidiEnvironment, 'cmidi', ['InOut/cmidi.c'])
+
+
 # OSC opcodes
 
 if not (commonEnvironment['useOSC'] == '1' and oscFound):
