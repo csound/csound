@@ -26,7 +26,8 @@
     by Robin Whittle, see source OOps/ugrw1.c
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 const int MAX_PFACTOR = 16;

@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 #define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))

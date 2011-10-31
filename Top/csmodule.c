@@ -1333,6 +1333,21 @@ extern long pan2_localops_init(CSOUND *, void *);
 extern long tabvars_localops_init(CSOUND *, void *);
 extern long phisem_localops_init(CSOUND *, void *);
 extern long pvoc_localops_init(CSOUND *, void *);
+extern long hrtfopcodes_localops_init(CSOUND *, void *);
+
+extern long stackops_localops_init(CSOUND *, void *);
+extern long vbap_localops_init(CSOUND *, void *);
+extern long ugakbari_localops_init(CSOUND *, void *);
+extern long harmon_localops_init(CSOUND *, void *);
+extern long pitchtrack_localops_init(CSOUND *, void *);
+
+extern long partikkel_localops_init(CSOUND *, void *);
+extern long shape_localops_init(CSOUND *, void *);
+extern long tabsum_localops_init(CSOUND *, void *);
+extern long crossfm_localops_init(CSOUND *, void *);
+extern long pvlock_localops_init(CSOUND *, void *);
+extern long fareyseq_localops_init(CSOUND *, void *);
+
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1340,13 +1355,17 @@ extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
 
 
-const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init, vosim_localops_init,
+const INITFN staticmodules[] = {  hrtfopcodes_localops_init, babo_localops_init, bilbar_localops_init, vosim_localops_init,
 				  compress_localops_init, pvsbuffer_localops_init, eqfil_localops_init,
 				  modal4_localops_init,scoreline_localops_init,physmod_localops_init,
 				  modmatrix_localops_init, spectra_localops_init,  ambicode1_localops_init,
 				  grain4_localops_init,hrtferX_localops_init,loscilx_localops_init,
 				  pan2_localops_init, tabvars_localops_init, phisem_localops_init,
-                                  pvoc_localops_init,
+                                  pvoc_localops_init, stackops_localops_init,
+				  vbap_localops_init, ugakbari_localops_init, harmon_localops_init,
+				  pitchtrack_localops_init,partikkel_localops_init,
+				  shape_localops_init,tabsum_localops_init,crossfm_localops_init,
+				  pvlock_localops_init,fareyseq_localops_init,
                                  NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
