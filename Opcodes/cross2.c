@@ -24,6 +24,7 @@
 #include "stdopcod.h"
 #include "ptrigtbl.h"
 #include "fhtfun.h"
+#include "interlocks.h"
 #include <math.h>
 
 #define CH_THRESH       1.19209e-7
