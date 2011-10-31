@@ -23,13 +23,14 @@
 
 /* Collection of physical modelled instruments */
 
-#include "csdl.h"
+//#include "csdl.h"
+#include "csoundCore.h"
 #include "clarinet.h"
 #include "flute.h"
 #include "bowed.h"
 #include "brass.h"
 #include <math.h>
-
+#include "interlocks.h"
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */

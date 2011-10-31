@@ -21,7 +21,8 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+// #include "csdl.h"
+#include "csoundCore.h"
 #include "moog1.h"
 
 extern void make_TwoZero(TwoZero *);

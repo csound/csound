@@ -1319,11 +1319,18 @@ extern long compress_localops_init(CSOUND *, void *);
 extern long pvsbuffer_localops_init(CSOUND *, void *);
 extern long vosim_localops_init(CSOUND *, void *);
 extern long eqfil_localops_init(CSOUND *, void *);
+extern long modal4_localops_init(CSOUND *, void *);
+extern long scoreline_localops_init(CSOUND *, void *);
+extern long physmod_localops_init(CSOUND *, void *);
+extern long modmatrix_localops_init(CSOUND *, void *);
+
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 
 const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init, vosim_localops_init,
 				  compress_localops_init, pvsbuffer_localops_init, eqfil_localops_init,
+				  modal4_localops_init,scoreline_localops_init,physmod_localops_init,
+				  modmatrix_localops_init,
                                  NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
