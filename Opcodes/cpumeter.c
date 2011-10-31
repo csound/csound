@@ -202,7 +202,6 @@ static int cpupercent(CSOUND *csound, CPUMETER* p)
 OENTRY cpumeter_localops[] = {
   { "cpumeter",   S(CPUMETER),   5, "kzzzzzzzz", "i",
     (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   },
-  { "" }
 };
 
 LINKAGE1(cpumeter_localops)

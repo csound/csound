@@ -848,6 +848,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
+
 int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -1268,3 +1269,75 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
+/* 
+These need to be added
+stdopcod          stdopcod.c
+urandom          urandom.c
+modmatrix       modmatrix.c
+eqfil                eqfil.c
+pvsbuffer        pvsbuffer.c
+scoreline        scoreline.c
+modal4           modal4.c
+pitch               pitch.c
+physmod         physmod.c
+scansyn           scansyn.c
+ambidecode1   ambicode1.c
+		DONE        babo                 babo.c
+sfont                sfont.c
+barmodel         barmodel.c
+		DONE        compress        compress.c
+grain4             grain4.c
+hrtferX             hrtferX.c
+hrtfnew            hrtfopcodes.c
+loscilx              loscilx.c
+pan2                 pan2.c
+phisem             phisem.c
+pvoc                pvoc.c
+pvs_ops           pvs_ops.c
+stackops          stackops.c
+vbap                 vbap.c
+vaps                  vaops.c
+ugakbari           ugakbari.c
+harmon              harmon.c
+cs_date              cs_date.c
+ptrack               ptrack.c
+partikkel           partikkel.c
+shape               shape.c
+doppler            doppler.c
+tabsum            tabsum.c
+crossfm           crossfm.c
+pvlock            pvlock.c
+vosim              vosim.c
+*/
+
+typedef long (*INITFN)(CSOUND *, void *);
+
+//extern const long (*babo_localops_init)(CSOUND *, OENTRY **);
+extern const long babo_localops_init(CSOUND *, void *);
+extern const long bilbar_localops_init(CSOUND *, void *);
+extern const long compress_localops_init(CSOUND *, void *);
+
+const INITFN staticmodules[] = { babo_localops_init, bilbar_localops_init,
+                                 compress_localops_init, 
+                                 NULL };
+
+CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
+{
+    int     i;
+    OENTRY  *opcodlst_n;
+    long    length;
+
+    for (i=0; staticmodules[i]!=NULL; i++) {
+      length = (staticmodules[i])(csound, &opcodlst_n);
+
+      if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
+      length /= (long) sizeof(OENTRY);
+      if (length) {
+        if (UNLIKELY(csound->AppendOpcodes(csound, opcodlst_n,
+                                           (int) length) != 0))
+          return CSOUND_ERROR;
+      }
+    }
+    /* module was initialised successfully */
+    return CSOUND_SUCCESS;
+}

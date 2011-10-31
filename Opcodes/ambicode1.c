@@ -472,7 +472,6 @@ OENTRY ambicode1_localops[] = {
                 (SUBR)ibformenc, NULL, (SUBR)abformenc },
   { "bformdec1", S(AMBID), 5, "mmmmmmmm", "iy",
     (SUBR)ibformdec, NULL, (SUBR)abformdec },
-  { "" }
 };
 
 LINKAGE1(ambicode1_localops)

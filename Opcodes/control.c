@@ -291,7 +291,6 @@ OENTRY control_localops[] = {
 { "button",   S(CNTRL),  3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
 { "checkbox", S(CNTRL),  3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
 { "flashtxt", S(TXTWIN), 1, "",  "iT",  (SUBR) textflash, NULL, NULL          },
-  { "" }
 };
 
 LINKAGE1(control_localops)
