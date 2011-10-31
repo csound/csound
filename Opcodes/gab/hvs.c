@@ -68,7 +68,7 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
       return csound->InitError(csound, Str("hvs1: a line segment must be "
                                            "delimited by 2 points at least"));
 
-    if(*p->iConfigTab == 0)
+    if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
       if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
@@ -95,7 +95,7 @@ static int hvs1(CSOUND *csound, HVS1 *p)
     int j;
 
     if (p->iconfFlag) {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         switch ((int) p->confTable[j]) {
         case -1: // ignore parameter
           break;
@@ -114,7 +114,7 @@ static int hvs1(CSOUND *csound, HVS1 *p)
       }
     }
     else {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         MYFLT val1 = p->snapTable[ndx1 * noc + j];
         MYFLT val2 = p->snapTable[ndx2 * noc + j];
         MYFLT valu = (1 - fracX) * val1 + fracX * val2;
@@ -150,7 +150,7 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
       return csound->InitError(csound, Str("hvs2: a square area must be "
                                            "delimited by 2 lines at least"));
 
-    if(*p->iConfigTab == 0)
+    if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
       if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL) {
@@ -183,7 +183,7 @@ static int hvs2(CSOUND *csound, HVS2 *p)
     int j;
 
     if (p->iconfFlag) {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         switch ((int) p->confTable[j]) {
         case -1: // ignore parameter
           break;
@@ -205,7 +205,7 @@ static int hvs2(CSOUND *csound, HVS2 *p)
       }
     }
     else {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         MYFLT val1 = p->snapTable[ndx1 * noc + j];
         MYFLT val2 = p->snapTable[ndx2 * noc + j];
         MYFLT val3 = p->snapTable[ndx3 * noc + j];
@@ -247,7 +247,7 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
                                            "delimited by 2 lines at least"));
 
 
-    if(*p->iConfigTab == 0)
+    if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
       if ((ftp = csound->FTFind(csound, p->iConfigTab)) != NULL)
@@ -290,7 +290,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
     int j;
 
     if (p->iconfFlag) {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         switch ((int) p->confTable[j]) {
         case -1: // ignore parameter
           break;
@@ -324,7 +324,7 @@ static int hvs3(CSOUND *csound, HVS3 *p)
       }
     }
     else {
-      for( j =0; j< noc; j++) {
+      for ( j =0; j< noc; j++) {
         MYFLT   val1 = p->snapTable[ndx1 * noc + j];
         MYFLT   val2 = p->snapTable[ndx2 * noc + j];
         MYFLT   val3 = p->snapTable[ndx3 * noc + j];
@@ -393,7 +393,8 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
       p->elements = (int) *p->ielements;
     }
     if ( p->elements > ftp->flen )
-      return csound->InitError(csound, Str("vphaseseg: invalid num. of elements"));
+      return csound->InitError(csound,
+                               Str("vphaseseg: invalid num. of elements"));
     /* vector = p->vector; */
     /* flength = p->elements; */
 
@@ -480,16 +481,16 @@ static int vphaseseg(CSOUND *csound, VPSEG *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "hvs1",  S(HVS1), TB|3,  "",  "kiiiiio", (SUBR)hvs1_set, (SUBR)hvs1, (SUBR)NULL },
-  { "hvs2",  S(HVS2), TB|3,  "",  "kkiiiiiio", (SUBR)hvs2_set, (SUBR)hvs2, (SUBR)NULL },
-  { "hvs3",  S(HVS3), TB|3,  "",  "kkkiiiiiiio", (SUBR)hvs3_set, (SUBR)hvs3, (SUBR)NULL },
-  { "vphaseseg", S(VPSEG), TB|3,  "",  "kiim", (SUBR)vphaseseg_set, (SUBR)vphaseseg }
+OENTRY hvs_localops[] = {
+  { "hvs1",  S(HVS1), TB|3,  "",  "kiiiiio",
+    (SUBR)hvs1_set, (SUBR)hvs1, (SUBR)NULL },
+  { "hvs2",  S(HVS2), TB|3,  "",  "kkiiiiiio",
+    (SUBR)hvs2_set, (SUBR)hvs2, (SUBR)NULL },
+  { "hvs3",  S(HVS3), TB|3,  "",  "kkkiiiiiiio",
+    (SUBR)hvs3_set, (SUBR)hvs3, (SUBR)NULL },
+  { "vphaseseg", S(VPSEG), TB|3,  "",  "kiim",
+    (SUBR)vphaseseg_set, (SUBR)vphaseseg }
 };
 
 
-int hvs_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE1(hvs_localops)
