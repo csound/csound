@@ -25,9 +25,8 @@
 /* #include "csdl.h" */
 #include "csoundCore.h"
 
-#ifdef PARCS
 #include "interlocks.h"
-#endif
+
 
 extern int ifd_init_(CSOUND *);
 extern int partials_init_(CSOUND *);
