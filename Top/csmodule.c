@@ -1314,9 +1314,12 @@ typedef long (*INITFN)(CSOUND *, void *);
 
 //extern const long (*babo_localops_init)(CSOUND *, OENTRY **);
 extern const long babo_localops_init(CSOUND *, void *);
+extern const long bilbar_localops_init(CSOUND *, void *);
+extern const long compress_localops_init(CSOUND *, void *);
 
-const INITFN staticmodules[] = { babo_localops_init,
-                           NULL };
+const INITFN staticmodules[] = { babo_localops_init, bilbar_localops_init,
+                                 compress_localops_init, 
+                                 NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
