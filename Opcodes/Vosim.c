@@ -164,9 +164,9 @@ int vosim(CSOUND* csound, VOSIM *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+OENTRY vosim_localops[] = {
   { "vosim", S(VOSIM), TR|5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
 };
 
 
-LINKAGE
+LINKAGE1(vosim_localops)
