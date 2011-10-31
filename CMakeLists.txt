@@ -394,6 +394,9 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/ugrw2.c
     OOps/vdelay.c
+    Opcodes/babo.c
+    Opcodes/bilbar.c
+    Opcodes/compress.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -406,6 +409,65 @@ set(libcsound_SRCS
     Top/opcode.c
     Top/threads.c
     Top/utility.c)
+
+set(stdopcod_SRCS 
+    Opcodes/ambicode.c      
+    Opcodes/bbcut.c         
+    Opcodes/biquad.c
+    Opcodes/butter.c        
+    Opcodes/clfilt.c        
+    Opcodes/cross2.c
+    Opcodes/dam.c           
+    Opcodes/dcblockr.c      
+    Opcodes/filter.c
+    Opcodes/flanger.c       
+    Opcodes/follow.c        
+    Opcodes/fout.c
+    Opcodes/freeverb.c      
+    Opcodes/ftconv.c        
+    Opcodes/ftgen.c
+    Opcodes/gab/gab.c       
+    Opcodes/gab/vectorial.c 
+    Opcodes/grain.c
+    Opcodes/locsig.c        
+    Opcodes/lowpassr.c      
+    Opcodes/metro.c
+    Opcodes/midiops2.c      
+    Opcodes/midiops3.c      
+    Opcodes/newfils.c
+    Opcodes/nlfilt.c        
+    Opcodes/oscbnk.c        
+    Opcodes/pluck.c
+    Opcodes/repluck.c       
+    Opcodes/reverbsc.c      
+    Opcodes/seqtime.c
+    Opcodes/sndloop.c       
+    Opcodes/sndwarp.c       
+    Opcodes/space.c
+    Opcodes/spat3d.c        
+    Opcodes/syncgrain.c     
+    Opcodes/ugens7.c
+    Opcodes/ugens9.c        
+    Opcodes/ugensa.c        
+    Opcodes/uggab.c
+    Opcodes/ugmoss.c        
+    Opcodes/ugnorman.c      
+    Opcodes/ugsc.c
+    Opcodes/wave-terrain.c  
+    Opcodes/stdopcod.c)
+
+set(cs_pvs_ops_SRCS
+    Opcodes/ifd.c 
+    Opcodes/partials.c 
+    Opcodes/psynth.c 
+    Opcodes/pvsbasic.c
+    Opcodes/pvscent.c 
+    Opcodes/pvsdemix.c 
+    Opcodes/pvs_ops.c 
+    Opcodes/pvsband.c
+    Opcodes/pvsbuffer.c)
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS})
 
 # Handling New Parser
 
@@ -554,6 +616,9 @@ if(HAVE_SYS_TYPES_H)
 endif()
 if(HAVE_TERMIOS_H)
     list(APPEND libcsound_CFLAGS -DHAVE_TERMIOS_H)
+endif()
+if(HAVE_VALUES_H)
+    set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
 endif()
 
 expand_list(expanded_libcsound_CFLAGS ${libcsound_CFLAGS})
