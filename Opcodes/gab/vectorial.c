@@ -2054,7 +2054,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
     return OK;
 }
 
-static int vecdly_set(CSOUND *csound,VECDEL *p)
+static int vecdly_set(CSOUND *csound, VECDEL *p)
 {
     FUNC        *ftp;
     int elements = (p->elements = (int) *p->ielements), j;
