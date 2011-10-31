@@ -1146,6 +1146,33 @@ Engine/cs_par_orc_semantic_analysis.c
 Engine/cs_par_dispatch.c
 ''')
 
+stdopcodes = Split('''
+    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
+    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
+    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
+    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
+    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
+    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
+    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
+    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
+    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
+    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
+    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+    ''')
+
+pvs_opcodes = Split('''
+    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
+    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
+    Opcodes/pvsbuffer.c
+''')
+
+libCsoundSources += stdopcodes
+libCsoundSources += pvs_opcodes
+
 if commonEnvironment['buildMultiCore'] != '0':
     libCsoundSources += MultiCoreSources
 
@@ -1504,23 +1531,24 @@ else:
 # Plugin opcodes.
 #############################################################################
 
-makePlugin(pluginEnvironment, 'stdopcod', Split('''
-    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
-    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
-    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
-    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
-    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
-    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
-    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
-    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
-    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
-    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
-    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
-    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
-    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
-    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
-    '''))
+
+#makePlugin(pluginEnvironment, 'stdopcd', Split('''
+#    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
+#    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
+#    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
+#    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
+#    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
+#    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
+#    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
+#    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
+#    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
+#    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
+#    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+#    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+#    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+#    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+#    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
+#    '''))
 
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
@@ -1528,7 +1556,7 @@ if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
 makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
 makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
-makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
+# makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
 makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
@@ -1578,10 +1606,10 @@ makePlugin(pluginEnvironment, 'pvoc', Split('''
     Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
     Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
 '''))
-makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
-    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
-    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
-'''))
+#makePlugin(pluginEnvironment, 'cs_pvs_ops', Split('''
+#    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
+#    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c Opcodes/pvsband.c
+#'''))
 makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',

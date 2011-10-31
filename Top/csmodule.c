@@ -1316,14 +1316,17 @@ typedef long (*INITFN)(CSOUND *, void *);
 extern const long babo_localops_init(CSOUND *, void *);
 extern const long bilbar_localops_init(CSOUND *, void *);
 extern const long compress_localops_init(CSOUND *, void *);
+extern const long pvsbuffer_localops_init(CSOUND *, void *);
+extern int stdopc_ModuleInit(CSOUND *csound);
+extern int pvsopc_ModuleInit(CSOUND *csound);
 
-const INITFN staticmodules[] = { babo_localops_init, bilbar_localops_init,
-                                 compress_localops_init, 
+const INITFN staticmodules[] = {  babo_localops_init, bilbar_localops_init,
+				  compress_localops_init, pvsbuffer_localops_init, 
                                  NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
-    int     i;
+  int     i, ret;
     OENTRY  *opcodlst_n;
     long    length;
 
@@ -1338,6 +1341,12 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
           return CSOUND_ERROR;
       }
     }
+    /* stdopc module */
+    if(stdopc_ModuleInit(csound)) return CSOUND_ERROR;
+
+    /* pvs module */
+    if(pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
+
     /* module was initialised successfully */
     return CSOUND_SUCCESS;
 }
