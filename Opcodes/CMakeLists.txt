@@ -1,30 +1,30 @@
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
-set(stdopcod_SRCS 
-    ambicode.c      bbcut.c         biquad.c
-    butter.c        clfilt.c        cross2.c
-    dam.c           dcblockr.c      filter.c
-    flanger.c       follow.c        fout.c
-    freeverb.c      ftconv.c        ftgen.c
-    gab/gab.c       gab/vectorial.c grain.c
-    locsig.c        lowpassr.c      metro.c
-    midiops2.c      midiops3.c      newfils.c
-    nlfilt.c        oscbnk.c        pluck.c
-    repluck.c       reverbsc.c      seqtime.c
-    sndloop.c       sndwarp.c       space.c
-    spat3d.c        syncgrain.c     ugens7.c
-    ugens9.c        ugensa.c        uggab.c
-    ugmoss.c        ugnorman.c      ugsc.c
-    wave-terrain.c  stdopcod.c)
+#set(stdopcod_SRCS 
+#    ambicode.c      bbcut.c         biquad.c
+#    butter.c        clfilt.c        cross2.c
+#    dam.c           dcblockr.c      filter.c
+#    flanger.c       follow.c        fout.c
+#    freeverb.c      ftconv.c        ftgen.c
+#    gab/gab.c       gab/vectorial.c grain.c
+#    locsig.c        lowpassr.c      metro.c
+#    midiops2.c      midiops3.c      newfils.c
+#    nlfilt.c        oscbnk.c        pluck.c
+#    repluck.c       reverbsc.c      seqtime.c
+#    sndloop.c       sndwarp.c       space.c
+#    spat3d.c        syncgrain.c     ugens7.c
+#    ugens9.c        ugensa.c        uggab.c
+#    ugmoss.c        ugnorman.c      ugsc.c
+#    wave-terrain.c  stdopcod.c)
 
-make_plugin(stdopcod "${stdopcod_SRCS}" ${LIBSNDFILE_LIBRARY} m)
-if(HAVE_VALUES_H)
-    set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
-endif()
+#make_plugin(stdopcod "${stdopcod_SRCS}" ${LIBSNDFILE_LIBRARY} m)
+#if(HAVE_VALUES_H)
+#    set_target_properties(stdopcod PROPERTIES COMPILE_FLAGS "-DHAVE_VALUES_H")
+#endif()
 
 make_plugin(modmatrix modmatrix.c)
 make_plugin(eqfil eqfil.c m)
-make_plugin(pvsbuffer pvsbuffer.c)
+#make_plugin(pvsbuffer pvsbuffer.c)
 make_plugin(scoreline scoreline.c)
 make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
@@ -45,8 +45,8 @@ set(pitch_SRCS
 make_plugin(pitch "${pitch_SRCS}" m)
 
 
-make_plugin(barmodel bilbar.c m)
-make_plugin(compress compress.c m)
+#make_plugin(barmodel bilbar.c m)
+#make_plugin(compress compress.c m)
 make_plugin(grain4 grain4.c)
 make_plugin(loscilx loscilx.c m)
 make_plugin(minmax minmax.c)
@@ -58,10 +58,10 @@ set(pvoc_SRCS
     pvread.c ugens8.c vpvoc.c pvoc.c)
 make_plugin(pvoc "${pvoc_SRCS}" m)
 
-set(cs_pvs_ops_SRCS
-    ifd.c partials.c psynth.c pvsbasic.c
-    pvscent.c pvsdemix.c pvs_ops.c pvsband.c)
-make_plugin(cs_pvs_ops "${cs_pvs_ops_SRCS}" m)
+#set(cs_pvs_ops_SRCS
+#    ifd.c partials.c psynth.c pvsbasic.c
+#    pvscent.c pvsdemix.c pvs_ops.c pvsband.c)
+#make_plugin(cs_pvs_ops "${cs_pvs_ops_SRCS}" m)
 
 make_plugin(stackops stackops.c)
 make_plugin(vaops vaops.c)
@@ -102,7 +102,7 @@ endif()
 
 make_plugin(ftest ftest.c m)
 make_plugin(ambicode1 ambicode1.c m)
-make_plugin(babo babo.c m)
+#make_plugin(babo babo.c m)
 make_plugin(hrtferX hrtferX.c m)
 
 set(vbap_SRCS 
