@@ -879,10 +879,12 @@ ifac      : ident               { $$ = $1; }
           ;
 
 function  : T_FUNCTION  { $$ = make_leaf(csound, T_FUNCTION, (ORCTOKEN *)$1); 
+#ifdef PARCS
                           if ($1->value != 0)
-                            csp_orc_sa_interlocksf(csound, $1->value);}
+                            csp_orc_sa_interlocksf(csound, $1->value);
+#endif
+          }
           ;
-
 /* exprstrlist    : exprstrlist S_COM expr
                                         { $$ = make_node(csound, S_COM, $1, $3); }
           | exprstrlist S_COM T_STRCONST
