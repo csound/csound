@@ -1114,7 +1114,7 @@ OOps/ugrw2.c
 OOps/vdelay.c
 Opcodes/babo.c
 Opcodes/bilbar.c
-Opcodes/vosim.c
+Opcodes/Vosim.c
 Opcodes/compress.c
 Opcodes/eqfil.c
 Top/argdecode.c
