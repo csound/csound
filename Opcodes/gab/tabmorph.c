@@ -274,4 +274,9 @@ OENTRY tabmoroph_localops[] = {
 
 };
 
-LINKAGE1(tabmoroph_localops)
+int tabmorph_init_(CSOUND *csound) {
+    return
+      csound->AppendOpcodes(csound, &(tabmoroph_localops[0]),
+                            (int) (sizeof(tabmoroph_localops) / sizeof(OENTRY)));
+}
+

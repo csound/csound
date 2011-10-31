@@ -493,4 +493,9 @@ OENTRY hvs_localops[] = {
 };
 
 
-LINKAGE1(hvs_localops)
+int hvs_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(hvs_localops[0]),
+                                 (int) (sizeof(hvs_localops) / sizeof(OENTRY)));
+}
+
