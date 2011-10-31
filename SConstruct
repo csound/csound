@@ -1115,6 +1115,7 @@ OOps/vdelay.c
 Opcodes/babo.c
 Opcodes/bilbar.c
 Opcodes/compress.c
+Opcodes/eqfil.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
@@ -1549,14 +1550,16 @@ else:
 #    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
 #    Opcodes/wave-terrain.c  Opcodes/stdopcod.c
 #    '''))
+# makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
+# makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
 
 if (getPlatform() == 'linux' or getPlatform() == 'darwin'):
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
 if getPlatform() == 'linux':
     makePlugin(pluginEnvironment, 'urandom', ['Opcodes/urandom.c'])
 makePlugin(pluginEnvironment, 'modmatrix', ['Opcodes/modmatrix.c'])
-makePlugin(pluginEnvironment, 'eqfil', ['Opcodes/eqfil.c'])
-# makePlugin(pluginEnvironment, 'pvsbuffer', ['Opcodes/pvsbuffer.c'])
+
+
 makePlugin(pluginEnvironment, 'scoreline', ['Opcodes/scoreline.c'])
 makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
 makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
