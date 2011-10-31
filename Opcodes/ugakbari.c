@@ -101,7 +101,7 @@ static int gainslider_perf(CSOUND *csound, gainslider *p)
 
 /* opcode library entries */
 
-static OENTRY localops[] = {
+OENTRY ugakbari_localops[] = {
   { "scale", sizeof(scale), 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
   { "expcurve", sizeof(expcurve), 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
@@ -111,4 +111,4 @@ static OENTRY localops[] = {
     (SUBR)gainslider_perf, NULL }
 };
 
-LINKAGE
+LINKAGE1(ugakbari_localops)
