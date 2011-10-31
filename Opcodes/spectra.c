@@ -1203,7 +1203,7 @@ int specfilt(CSOUND *csound, SPECFILT *p)
 
 #define S       sizeof
 
-static OENTRY localops[] = {
+OENTRY spectra_localops[] = {
 { "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
@@ -1258,5 +1258,5 @@ static OENTRY localops[] = {
 { "mediank", S(MEDFILT), 5,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
-LINKAGE
+LINKAGE1(spectra_localops)
 
